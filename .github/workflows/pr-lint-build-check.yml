@@ -1,0 +1,38 @@
+name: PR and Push Lint and Build Check
+
+on:
+  push:
+    branches:
+      - development
+      - main
+  pull_request:
+    branches:
+      - development
+      - main
+
+jobs:
+  lint_and_build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Install Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18" # Use the Node.js version you prefer
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: yarn install
+
+      # Step 4: Run linting
+      - name: Run ESLint
+        run: yarn lint
+
+      # Step 5: Run build
+      - name: Run build
+        run: yarn build
