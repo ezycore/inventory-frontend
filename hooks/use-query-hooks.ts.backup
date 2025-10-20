@@ -1,0 +1,79 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-keys'
+import { handleMutationError } from '@/lib/error-handling'
+import { stockApi } from '@/lib/api-client'
+
+// Example hook for fetching stocks
+export const useStocks = (filters: Record<string, any> = {}) => {
+  return useQuery({
+    queryKey: queryKeys.stock.list(filters),
+    queryFn: () => stockApi.getStocks(filters),
+  })
+}
+
+// Example hook for fetching a single stock
+export const useStock = (symbol: string) => {
+  return useQuery({
+    queryKey: queryKeys.stock.detail(symbol),
+    queryFn: () => stockApi.getStock(symbol),
+    enabled: !!symbol, // Only run if symbol is provided
+  })
+}
+
+// Example hook for stock search
+export const useStockSearch = (query: string) => {
+  return useQuery({
+    queryKey: queryKeys.stock.search(query),
+    queryFn: () => stockApi.searchStocks(query),
+    enabled: query.length > 2, // Only search if query is at least 3 characters
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
+
+// Example hook for portfolio data
+export const usePortfolio = () => {
+  return useQuery({
+    queryKey: queryKeys.portfolio.summary(),
+    queryFn: () => stockApi.getPortfolio(),
+  })
+}
+
+// Example hook for portfolio holdings
+export const usePortfolioHoldings = () => {
+  return useQuery({
+    queryKey: queryKeys.portfolio.holdings(),
+    queryFn: () => stockApi.getPortfolioHoldings(),
+  })
+}
+
+// Example mutation hook for adding a stock to portfolio
+export const useAddToPortfolio = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: { symbol: string; quantity: number; price: number }) => 
+      stockApi.addToPortfolio(data),
+    onSuccess: () => {
+      // Invalidate and refetch portfolio data
+      queryClient.invalidateQueries({ queryKey: queryKeys.portfolio.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.transaction.all() })
+    },
+    onError: handleMutationError,
+  })
+}
+
+// Example mutation hook for removing a stock from portfolio
+export const useRemoveFromPortfolio = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: { symbol: string; quantity: number }) => 
+      stockApi.removeFromPortfolio(data),
+    onSuccess: () => {
+      // Invalidate and refetch portfolio data
+      queryClient.invalidateQueries({ queryKey: queryKeys.portfolio.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.transaction.all() })
+    },
+    onError: handleMutationError,
+  })
+}
