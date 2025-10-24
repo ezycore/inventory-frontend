@@ -18,7 +18,7 @@
     "cookies-next": "^6.1.0",
     "immer": "^10.1.3",
     "kbar": "0.1.0-beta.48",
-    "next": "^15.4.5",
+    "next": "^16.0.0",
     "sonner": "^2.0.7",
     "zustand": "^5.0.8",
     "@radix-ui/react-avatar": "^1.1.10",
