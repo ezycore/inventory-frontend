@@ -26,15 +26,14 @@ import { toast } from 'sonner'
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle } from 'lucide-react'
 import type { ProductWithVariants } from '@/types'
 import type { ProductFilters } from '@/types/products'
-import AddProductModal from '@/components/products/add-product-modal'
-import EditProductModal from '@/components/products/edit-product-modal'
+import ProductDrawer from '@/components/products/product-drawer'
 import { queryKeys } from '@/lib/query-keys-products'
 
 export default function ProductsPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [filters, setFilters] = useState<ProductFilters>({
     limit: 20,
@@ -50,13 +49,21 @@ export default function ProductsPage() {
   const { data: brands } = useBrands()
   const deleteProduct = useDeleteProduct()
 
-  const handleModalSuccess = () => {
+  const handleDrawerSuccess = () => {
     // Invalidate products query to refetch data
     queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
+    setIsDrawerOpen(false)
+    setEditingProductId(null)
   }
 
   const handleEditProduct = (productId: string) => {
     setEditingProductId(productId)
+    setIsDrawerOpen(true)
+  }
+
+  const handleAddProduct = () => {
+    setEditingProductId(null)
+    setIsDrawerOpen(true)
   }
 
   const products = (productsData as any)?.data?.items || []
@@ -119,7 +126,7 @@ export default function ProductsPage() {
             Manage your product catalog and variants
           </p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)}>
+        <Button onClick={handleAddProduct}>
           <Plus className="h-4 w-4 mr-2" />
           Add Product
         </Button>
@@ -233,7 +240,7 @@ export default function ProductsPage() {
               <p className="text-muted-foreground mb-4">
                 {searchQuery ? 'Try adjusting your search or filters' : 'Get started by adding your first product'}
               </p>
-              <Button onClick={() => setIsAddModalOpen(true)}>
+              <Button onClick={handleAddProduct}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Product
               </Button>
@@ -342,22 +349,16 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Add Product Modal */}
-      <AddProductModal 
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-        onSuccess={handleModalSuccess}
+      {/* Product Drawer */}
+      <ProductDrawer 
+        open={isDrawerOpen}
+        onOpenChange={(open) => {
+          setIsDrawerOpen(open)
+          if (!open) setEditingProductId(null)
+        }}
+        productId={editingProductId || undefined}
+        onSuccess={handleDrawerSuccess}
       />
-
-      {/* Edit Product Modal */}
-      {editingProductId && (
-        <EditProductModal 
-          open={true}
-          onOpenChange={(open) => !open && setEditingProductId(null)}
-          productId={editingProductId}
-          onSuccess={handleModalSuccess}
-        />
-      )}
     </div>
   )
 }
