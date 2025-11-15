@@ -70,7 +70,7 @@ export default function ProductDrawer({ open, onOpenChange, productId, onSuccess
             hideActions={true}
             onSuccess={handleSuccess}
             onCancel={handleCancel}
-            isModal={true}
+            isSidebar={true}
           />
         </div>
       </SheetContent>

@@ -14,6 +14,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@ui/components/collapsible'
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemPreview,
+  FileUploadList,
+} from '@ui/components/file-upload'
 import { 
   useCreateProduct, 
   useUpdateProduct, 
@@ -50,14 +58,14 @@ interface ProductFormProps {
   mode: 'create' | 'edit'
   onSuccess?: (productId?: string, hasVariants?: boolean) => void
   onCancel?: () => void
-  isModal?: boolean
+  isSidebar?: boolean
   formId?: string
   hideActions?: boolean
 }
 
-export default function ProductForm({ productId, mode, onSuccess, onCancel, isModal = false, formId = 'product-form', hideActions = false }: ProductFormProps) {
+export default function ProductForm({ productId, mode, onSuccess, onCancel, isSidebar = false, formId = 'product-form', hideActions = false }: ProductFormProps) {
   const router = useRouter()
-  const [imageInput, setImageInput] = useState('')
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [hasVariants, setHasVariants] = useState(false)
   const [productType, setProductType] = useState<'single' | 'variable'>('single')
   
@@ -135,6 +143,9 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isMo
         manufactured_date: productData.manufactured_date || '',
         expiry_date: productData.expiry_date || '',
       })
+      
+      // Reset uploaded files for edit mode - images will be shown from URLs
+      setUploadedFiles([])
     }
   }, [mode, product, form])
 
@@ -161,17 +172,16 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isMo
     form.setValue('slug', generateSlug(name))
   }
 
-  const handleAddImage = () => {
-    if (imageInput.trim()) {
-      const currentImages = form.getValues('images') || []
-      form.setValue('images', [...currentImages, imageInput.trim()])
-      setImageInput('')
-    }
-  }
-
   const handleRemoveImage = (index: number) => {
     const currentImages = form.getValues('images') || []
     form.setValue('images', currentImages.filter((_, i) => i !== index))
+  }
+
+  const handleFileUpload = (files: File[]) => {
+    setUploadedFiles(files)
+    // Convert files to URLs for preview (in real app, you'd upload to server)
+    const imageUrls = files.map(file => URL.createObjectURL(file))
+    form.setValue('images', imageUrls)
   }
 
   const onSubmit = async (data: ProductFormValues) => {
@@ -213,7 +223,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isMo
   return (
     <div className="container mx-auto py-6 max-w-6xl">
       {/* Header */}
-      {!isModal && (
+      {!isSidebar && (
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
@@ -544,50 +554,97 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isMo
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-4 pt-4">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Image URL"
-                    value={imageInput}
-                    onChange={(e) => setImageInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddImage())}
-                  />
-                  <Button type="button" onClick={handleAddImage}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {((form.watch('images')?.length || 0) > 0) && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {(form.watch('images') || []).map((image, index) => (
-                      <div key={index} className="relative group">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                          <img 
-                            src={image} 
-                            alt={`Product ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEyNSA3NUwxNzUgMTI1SDI1TDc1IDc1TDEwMCAxMDBaIiBmaWxsPSIjREREREREIi8+Cjwvc3ZnPgo='
-                            }}
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleRemoveImage(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                        {index === 0 && (
-                          <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                            Main
-                          </div>
-                        )}
+                <FileUpload
+                  value={uploadedFiles}
+                  onValueChange={handleFileUpload}
+                  accept="image/*"
+                  maxFiles={5}
+                  maxSize={5 * 1024 * 1024} // 5MB
+                  multiple
+                >
+                  <FileUploadDropzone className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload className="h-10 w-10 text-muted-foreground" />
+                      <div className="text-sm">
+                        <span className="font-semibold text-primary">Click to upload</span>
+                        <span className="text-muted-foreground"> or drag and drop</span>
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        PNG, JPG, GIF up to 5MB (Max 5 images)
+                      </p>
+                    </div>
+                  </FileUploadDropzone>
+
+                  <FileUploadList className="mt-4">
+                    {uploadedFiles.map((file, index) => (
+                      <FileUploadItem 
+                        key={index} 
+                        value={file}
+                        className="flex items-center gap-3 p-3 border rounded-lg"
+                      >
+                        <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                          {index === 0 && (
+                            <span className="inline-block mt-1 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
+                              Main Image
+                            </span>
+                          )}
+                        </div>
+                        <FileUploadItemDelete asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </FileUploadItemDelete>
+                      </FileUploadItem>
                     ))}
-                  </div>
-                )}
+                  </FileUploadList>
+
+                  {/* Show existing images when in edit mode */}
+                  {mode === 'edit' && form.watch('images')?.length > 0 && uploadedFiles.length === 0 && (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm font-medium">Current Images:</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {(form.watch('images') || []).map((imageUrl: string, index: number) => (
+                          <div key={index} className="relative group">
+                            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                              <img 
+                                src={imageUrl} 
+                                alt={`Product ${index + 1}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEyNSA3NUwxNzUgMTI1SDI1TDc1IDc1TDEwMCAxMDBaIiBmaWxsPSIjREREREREIi8+Cjwvc3ZnPgo='
+                                }}
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => handleRemoveImage(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                            {index === 0 && (
+                              <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                                Main
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </FileUpload>
               </CardContent>
             </CollapsibleContent>
           </Card>
