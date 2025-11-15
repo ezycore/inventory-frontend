@@ -47,10 +47,10 @@ export const navItems: NavItem[] = [
     icon: 'shopping-cart',
     isActive: false,
     items: [
-      { title: 'New Sale / POS', url: '/dashboard/sales/new', icon: 'credit-card' },
-      { title: 'Sales History', url: '/dashboard/sales/history', icon: 'clock' },
-      { title: 'Sales Return', url: '/dashboard/sales/returns', icon: 'corner-up-left' },
-      { title: 'Customers', url: '/dashboard/sales/customers', icon: 'users' }
+      { title: 'New Sale / POS', url: '/sales', icon: 'credit-card' },
+      { title: 'Sales History', url: 'sales/history', icon: 'clock' },
+      { title: 'Sales Return', url: 'sales/returns', icon: 'corner-up-left' },
+      { title: 'Customers', url: 'sales/customers', icon: 'users' }
     ]
   },
 
