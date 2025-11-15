@@ -666,29 +666,6 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-4 pt-4">
-                <div className="border-b pb-2 mb-4">
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      className="pb-2 border-b-2 border-orange-500 text-orange-600 font-medium"
-                    >
-                      Warranties
-                    </button>
-                    <button
-                      type="button"
-                      className="pb-2 text-muted-foreground"
-                    >
-                      Manufacturer
-                    </button>
-                    <button
-                      type="button"
-                      className="pb-2 text-muted-foreground"
-                    >
-                      Expiry
-                    </button>
-                  </div>
-                </div>
-
                 <FormRow>
                   <FormSelect
                     control={form.control}
