@@ -519,7 +519,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isMo
                 {productType === 'variable' && (
                   <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <p className="text-muted-foreground">
-                      Variable product selected. After creating the product, you'll be able to add variants with different attributes, prices, and stock levels.
+                      Variable product selected. After creating the product, you&apos;ll be able to add variants with different attributes, prices, and stock levels.
                     </p>
                   </div>
                 )}

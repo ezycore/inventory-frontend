@@ -1,35 +1,57 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Button } from '@ui/components/button'
-import { Input } from '@ui/components/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
-import { Label } from '@ui/components/label'
-import Image from 'next/image'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@ui/components/button";
+import { Input } from "@ui/components/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ui/components/card";
+import { Label } from "@ui/components/label";
+import Image from "next/image";
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@ui/components/collapsible'
-import { 
-  useCreateProduct, 
-  useUpdateProduct, 
+} from "@ui/components/collapsible";
+import {
+  useCreateProduct,
+  useUpdateProduct,
   useProduct,
-  useCategories, 
-  useBrands 
-} from '@/hooks/queries'
-import { toast } from 'sonner'
-import { handleMutationError } from '@/lib/error-handling'
-import { ArrowLeft, Plus, X, Upload, ChevronDown, ChevronUp, Wand2 } from 'lucide-react'
-import type { CreateProductDto, Product } from '@/types'
-import { ProductStatus } from '@/types'
-import { productFormSchema } from '../products/schema'
-import { FormInput, FormTextarea, FormSelect, FormRow, FormRow3, FormSelectWithButton, FormInputWithButton } from '../products/form-fields'
+  useCategories,
+  useBrands,
+} from "@/hooks/queries";
+import { toast } from "sonner";
+import { handleMutationError } from "@/lib/error-handling";
+import {
+  ArrowLeft,
+  Plus,
+  X,
+  Upload,
+  ChevronDown,
+  ChevronUp,
+  Wand2,
+} from "lucide-react";
+import type { CreateProductDto, Product } from "@/types";
+import { ProductStatus } from "@/types";
+import { productFormSchema } from "../products/schema";
+import {
+  FormInput,
+  FormTextarea,
+  FormSelect,
+  FormRow,
+  FormRow3,
+  FormSelectWithButton,
+  FormInputWithButton,
+} from "../products/form-fields";
 import {
   storeOptions,
   warehouseOptions,
@@ -41,176 +63,192 @@ import {
   taxOptions,
   discountTypeOptions,
   warrantyOptions,
-} from '../products/product-form-options'
+} from "../products/product-form-options";
 
-
-
-type ProductFormValues = z.infer<typeof productFormSchema>
+type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductFormProps {
-  productId?: string
-  mode: 'create' | 'edit'
-  onSuccess?: (productId?: string, hasVariants?: boolean) => void
-  onCancel?: () => void
-  isModal?: boolean
-  formId?: string
-  hideActions?: boolean
+  productId?: string;
+  mode: "create" | "edit";
+  onSuccess?: (productId?: string, hasVariants?: boolean) => void;
+  onCancel?: () => void;
+  isModal?: boolean;
+  formId?: string;
+  hideActions?: boolean;
 }
 
-export default function SalesForm({ productId, mode, onSuccess, onCancel, isModal = false, formId = 'product-form', hideActions = false }: ProductFormProps) {
-  const router = useRouter()
-  const [imageInput, setImageInput] = useState('')
-  const [hasVariants, setHasVariants] = useState(false)
-  const [productType, setProductType] = useState<'single' | 'variable'>('single')
-  
+export default function SalesForm({
+  productId,
+  mode,
+  onSuccess,
+  onCancel,
+  isModal = false,
+  formId = "product-form",
+  hideActions = false,
+}: ProductFormProps) {
+  const router = useRouter();
+  const [imageInput, setImageInput] = useState("");
+  const [hasVariants, setHasVariants] = useState(false);
+  const [productType, setProductType] = useState<"single" | "variable">(
+    "single"
+  );
+
   // Collapsible states
-  const [productInfoOpen, setProductInfoOpen] = useState(true)
-  const [pricingStocksOpen, setPricingStocksOpen] = useState(true)
-  const [imagesOpen, setImagesOpen] = useState(true)
-  const [customFieldsOpen, setCustomFieldsOpen] = useState(false)
+  const [productInfoOpen, setProductInfoOpen] = useState(true);
+  const [pricingStocksOpen, setPricingStocksOpen] = useState(true);
+  const [imagesOpen, setImagesOpen] = useState(true);
+  const [customFieldsOpen, setCustomFieldsOpen] = useState(false);
 
   // Queries
-  const { data: product, isLoading: productLoading } = useProduct(productId || '')
-  const { data: categories } = useCategories()
-  const { data: brands } = useBrands()
-  
+  const { data: product, isLoading: productLoading } = useProduct(
+    productId || ""
+  );
+  const { data: categories } = useCategories();
+  const { data: brands } = useBrands();
+
   // Mutations
-  const createProduct = useCreateProduct()
-  const updateProduct = useUpdateProduct()
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
 
   // React Hook Form
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
-      name: '',
-      slug: '',
-      description: '',
-      category_id: '',
-      brand_id: '',
-      base_sku: '',
+      name: "",
+      slug: "",
+      description: "",
+      category_id: "",
+      brand_id: "",
+      base_sku: "",
       images: [],
       status: ProductStatus.ACTIVE,
-      store_id: '',
-      warehouse_id: '',
-      sub_category_id: '',
-      unit_id: '',
-      barcode_symbology: 'CODE128',
-      barcode: '',
-      selling_type: 'retail',
-      tax_id: '',
-      discount_type: 'fixed',
+      store_id: "",
+      warehouse_id: "",
+      sub_category_id: "",
+      unit_id: "",
+      barcode_symbology: "CODE128",
+      barcode: "",
+      selling_type: "retail",
+      tax_id: "",
+      discount_type: "fixed",
       discount_value: 0,
       quantity_alert: 10,
-      warranty_id: '',
-      manufacturer: '',
-      manufactured_date: '',
-      expiry_date: '',
+      warranty_id: "",
+      manufacturer: "",
+      manufactured_date: "",
+      expiry_date: "",
     },
-  })
+  });
 
   // Load existing product data for editing
   useEffect(() => {
-    if (mode === 'edit' && product) {
-      const productData = product as any
+    if (mode === "edit" && product) {
+      const productData = product as any;
       form.reset({
         name: productData.name,
         slug: productData.slug,
-        description: productData.description || '',
+        description: productData.description || "",
         category_id: productData.category_id,
-        brand_id: productData.brand_id || '',
-        base_sku: productData.base_sku || '',
+        brand_id: productData.brand_id || "",
+        base_sku: productData.base_sku || "",
         images: productData.images || [],
         status: productData.status,
-        store_id: productData.store_id || '',
-        warehouse_id: productData.warehouse_id || '',
-        sub_category_id: productData.sub_category_id || '',
-        unit_id: productData.unit_id || '',
-        barcode_symbology: productData.barcode_symbology || 'CODE128',
-        barcode: productData.barcode || '',
-        selling_type: productData.selling_type || 'retail',
-        tax_id: productData.tax_id || '',
-        discount_type: productData.discount_type || 'fixed',
+        store_id: productData.store_id || "",
+        warehouse_id: productData.warehouse_id || "",
+        sub_category_id: productData.sub_category_id || "",
+        unit_id: productData.unit_id || "",
+        barcode_symbology: productData.barcode_symbology || "CODE128",
+        barcode: productData.barcode || "",
+        selling_type: productData.selling_type || "retail",
+        tax_id: productData.tax_id || "",
+        discount_type: productData.discount_type || "fixed",
         discount_value: productData.discount_value || 0,
         quantity_alert: productData.quantity_alert || 10,
-        warranty_id: productData.warranty_id || '',
-        manufacturer: productData.manufacturer || '',
-        manufactured_date: productData.manufactured_date || '',
-        expiry_date: productData.expiry_date || '',
-      })
+        warranty_id: productData.warranty_id || "",
+        manufacturer: productData.manufacturer || "",
+        manufactured_date: productData.manufactured_date || "",
+        expiry_date: productData.expiry_date || "",
+      });
     }
-  }, [mode, product, form])
+  }, [mode, product, form]);
 
   // Generate slug from name
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-  }
+      .replace(/[^a-z0-9 -]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
 
   // Generate barcode
   const generateBarcode = () => {
-    const timestamp = Date.now().toString().slice(-8)
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-    form.setValue('barcode', `${timestamp}${random}`)
-    toast.success('Barcode generated')
-  }
+    const timestamp = Date.now().toString().slice(-8);
+    const random = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, "0");
+    form.setValue("barcode", `${timestamp}${random}`);
+    toast.success("Barcode generated");
+  };
 
   const handleNameChange = (name: string) => {
-    form.setValue('name', name)
-    form.setValue('slug', generateSlug(name))
-  }
+    form.setValue("name", name);
+    form.setValue("slug", generateSlug(name));
+  };
 
   const handleAddImage = () => {
     if (imageInput.trim()) {
-      const currentImages = form.getValues('images') || []
-      form.setValue('images', [...currentImages, imageInput.trim()])
-      setImageInput('')
+      const currentImages = form.getValues("images") || [];
+      form.setValue("images", [...currentImages, imageInput.trim()]);
+      setImageInput("");
     }
-  }
+  };
 
   const handleRemoveImage = (index: number) => {
-    const currentImages = form.getValues('images') || []
-    form.setValue('images', currentImages.filter((_, i) => i !== index))
-  }
+    const currentImages = form.getValues("images") || [];
+    form.setValue(
+      "images",
+      currentImages.filter((_, i) => i !== index)
+    );
+  };
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      if (mode === 'create') {
-        const result = await createProduct.mutateAsync(data as any)
-        toast.success('Product created successfully')
-        
+      if (mode === "create") {
+        const result = await createProduct.mutateAsync(data as any);
+        toast.success("Product created successfully");
+
         if (onSuccess) {
           // Modal mode - use callback
-          onSuccess(result as any)
+          onSuccess(result as any);
         } else {
           // Regular mode - use router navigation
           if (hasVariants) {
-            router.push(`/products/${(result as any)._id}/variants`)
+            router.push(`/products/${(result as any)._id}/variants`);
           } else {
-            router.push('/products')
+            router.push("/products");
           }
         }
-      } else if (mode === 'edit' && productId) {
-        await updateProduct.mutateAsync({ id: productId, ...data } as any)
-        toast.success('Product updated successfully')
-        
+      } else if (mode === "edit" && productId) {
+        await updateProduct.mutateAsync({ id: productId, ...data } as any);
+        toast.success("Product updated successfully");
+
         if (onSuccess) {
           // Modal mode - use callback
-          onSuccess()
+          onSuccess();
         } else {
           // Regular mode - use router navigation
-          router.push('/products')
+          router.push("/products");
         }
       }
     } catch (error) {
-      handleMutationError(error)
+      handleMutationError(error);
     }
-  }
+  };
 
-  const isLoading = createProduct.isPending || updateProduct.isPending || productLoading
+  const isLoading =
+    createProduct.isPending || updateProduct.isPending || productLoading;
 
   return (
     <div className="container mx-auto py-6 max-w-6xl">
@@ -218,25 +256,37 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
       {!isModal && (
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
+            <Button
+              variant="outline"
+              onClick={() => (onCancel ? onCancel() : router.back())}
+            >
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
               <h1 className="text-3xl font-bold">
-                {mode === 'create' ? 'Create Sale Order' : 'Edit Sale Order'}
+                {mode === "create" ? "Create Sale Order" : "Edit Sale Order"}
               </h1>
               <p className="text-muted-foreground">
-                {mode === 'create' ? 'Create new sale order' : 'Update sale order information'}
+                {mode === "create"
+                  ? "Create new sale order"
+                  : "Update sale order information"}
               </p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
+          <Button
+            variant="outline"
+            onClick={() => (onCancel ? onCancel() : router.back())}
+          >
             Back to Sales
           </Button>
         </div>
       )}
 
-      <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        id={formId}
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+      >
         {/* Product Information */}
         <Collapsible open={productInfoOpen} onOpenChange={setProductInfoOpen}>
           <Card>
@@ -248,7 +298,11 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                   </div>
                   <CardTitle>Product Information</CardTitle>
                 </div>
-                {productInfoOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {productInfoOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -311,13 +365,15 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                     label="Category"
                     required
                     placeholder="Choose"
-                    options={((categories as any)?.data?.items || []).map((category: any) => ({
-                      value: category._id,
-                      label: category.name,
-                    }))}
+                    options={((categories as any)?.data?.items || []).map(
+                      (category: any) => ({
+                        value: category._id,
+                        label: category.name,
+                      })
+                    )}
                     buttonIcon={<Plus className="h-4 w-4" />}
                     onButtonClick={() => {
-                      toast.info('Add Category feature coming soon')
+                      toast.info("Add Category feature coming soon");
                     }}
                     buttonLabel="Add Category"
                     error={form.formState.errors.category_id?.message}
@@ -336,14 +392,16 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                     name="brand_id"
                     label="Brand"
                     options={[
-                      { value: 'none', label: 'No Brand' },
-                      ...((brands as any)?.data?.items || []).map((brand: any) => ({
-                        value: brand._id,
-                        label: brand.name,
-                      })),
+                      { value: "none", label: "No Brand" },
+                      ...((brands as any)?.data?.items || []).map(
+                        (brand: any) => ({
+                          value: brand._id,
+                          label: brand.name,
+                        })
+                      ),
                     ]}
                     onValueChange={(value) => {
-                      form.setValue('brand_id', value === 'none' ? '' : value)
+                      form.setValue("brand_id", value === "none" ? "" : value);
                     }}
                   />
                   <FormSelect
@@ -386,7 +444,10 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
         </Collapsible>
 
         {/* Pricing & Stocks */}
-        <Collapsible open={pricingStocksOpen} onOpenChange={setPricingStocksOpen}>
+        <Collapsible
+          open={pricingStocksOpen}
+          onOpenChange={setPricingStocksOpen}
+        >
           <Card>
             <CollapsibleTrigger className="w-full">
               <CardHeader className="flex flex-row items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors">
@@ -396,7 +457,11 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                   </div>
                   <CardTitle>Pricing & Stocks</CardTitle>
                 </div>
-                {pricingStocksOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {pricingStocksOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -410,14 +475,17 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                         id="single"
                         name="productType"
                         value="single"
-                        checked={productType === 'single'}
+                        checked={productType === "single"}
                         onChange={(e) => {
-                          setProductType('single')
-                          setHasVariants(false)
+                          setProductType("single");
+                          setHasVariants(false);
                         }}
                         className="h-4 w-4"
                       />
-                      <Label htmlFor="single" className="font-normal cursor-pointer">
+                      <Label
+                        htmlFor="single"
+                        className="font-normal cursor-pointer"
+                      >
                         Single Product
                       </Label>
                     </div>
@@ -427,21 +495,24 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                         id="variable"
                         name="productType"
                         value="variable"
-                        checked={productType === 'variable'}
+                        checked={productType === "variable"}
                         onChange={(e) => {
-                          setProductType('variable')
-                          setHasVariants(true)
+                          setProductType("variable");
+                          setHasVariants(true);
                         }}
                         className="h-4 w-4"
                       />
-                      <Label htmlFor="variable" className="font-normal cursor-pointer">
+                      <Label
+                        htmlFor="variable"
+                        className="font-normal cursor-pointer"
+                      >
                         Variable Product
                       </Label>
                     </div>
                   </div>
                 </div>
 
-                {productType === 'single' && (
+                {productType === "single" && (
                   <>
                     <FormRow3>
                       <FormInput
@@ -518,10 +589,12 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                   </>
                 )}
 
-                {productType === 'variable' && (
+                {productType === "variable" && (
                   <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <p className="text-muted-foreground">
-                      Variable product selected. After creating the product, you'll be able to add variants with different attributes, prices, and stock levels.
+                      Variable product selected. After creating the product,
+                      you&apos;ll be able to add variants with different attributes,
+                      prices, and stock levels.
                     </p>
                   </div>
                 )}
@@ -541,7 +614,11 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                   </div>
                   <CardTitle>Images</CardTitle>
                 </div>
-                {imagesOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {imagesOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -551,26 +628,30 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                     placeholder="Image URL"
                     value={imageInput}
                     onChange={(e) => setImageInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddImage())}
+                    onKeyPress={(e) =>
+                      e.key === "Enter" &&
+                      (e.preventDefault(), handleAddImage())
+                    }
                   />
                   <Button type="button" onClick={handleAddImage}>
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
 
-                {((form.watch('images')?.length || 0) > 0) && (
+                {(form.watch("images")?.length || 0) > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {(form.watch('images') || []).map((image, index) => (
+                    {(form.watch("images") || []).map((image, index) => (
                       <div key={index} className="relative group">
                         <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                            <Image
-      src={image}
-      onError={(e) => {
-                              e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEyNSA3NUwxNzUgMTI1SDI1TDc1IDc1TDEwMCAxMDBaIiBmaWxsPSIjREREREREIi8+Cjwvc3ZnPgo='
+                          <Image
+                            src={image}
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEyNSA3NUwxNzUgMTI1SDI1TDc1IDc1TDEwMCAxMDBaIiBmaWxsPSIjREREREREIi8+Cjwvc3ZnPgo=";
                             }}
-      className="w-full h-full object-cover"
-      alt={`Product ${index + 1}`}
-    />
+                            className="w-full h-full object-cover"
+                            alt={`Product ${index + 1}`}
+                          />
                         </div>
                         <Button
                           type="button"
@@ -606,7 +687,11 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                   </div>
                   <CardTitle>Custom Fields</CardTitle>
                 </div>
-                {customFieldsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {customFieldsOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -676,19 +761,23 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
         {/* Actions */}
         {!hideActions && (
           <div className="flex justify-end space-x-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onCancel ? onCancel() : router.back()}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => (onCancel ? onCancel() : router.back())}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : mode === 'create' ? 'Create Sales Order' : 'Update Sales Order'}
+              {isLoading
+                ? "Saving..."
+                : mode === "create"
+                ? "Create Sales Order"
+                : "Update Sales Order"}
             </Button>
           </div>
         )}
       </form>
     </div>
-  )
+  );
 }
