@@ -35,7 +35,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Run ESLint
-        run: pnpm run lint
+        run: npx next lint
 
       - name: Run Next.js build
         run: pnpm run build
