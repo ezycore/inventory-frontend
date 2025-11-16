@@ -48,9 +48,9 @@ export const navItems: NavItem[] = [
     isActive: false,
     items: [
       { title: 'New Sale / POS', url: '/sales', icon: 'credit-card' },
-      { title: 'Sales History', url: 'sales/history', icon: 'clock' },
-      { title: 'Sales Return', url: 'sales/returns', icon: 'corner-up-left' },
-      { title: 'Customers', url: 'sales/customers', icon: 'users' }
+      { title: 'Sales History', url: '/sales/history', icon: 'clock' },
+      { title: 'Sales Return', url: '/sales/returns', icon: 'corner-up-left' },
+      { title: 'Customers', url: '/sales/customers', icon: 'users' }
     ]
   },
 

@@ -221,15 +221,15 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
             </Button>
             <div>
               <h1 className="text-3xl font-bold">
-                {mode === 'create' ? 'Create Product' : 'Edit Product'}
+                {mode === 'create' ? 'Create Sale Order' : 'Edit Sale Order'}
               </h1>
               <p className="text-muted-foreground">
-                {mode === 'create' ? 'Create new product' : 'Update product information'}
+                {mode === 'create' ? 'Create new sale order' : 'Update sale order information'}
               </p>
             </div>
           </div>
           <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
-            Back to Product
+            Back to Sales
           </Button>
         </div>
       )}
@@ -682,7 +682,7 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : mode === 'create' ? 'Create Product' : 'Update Product'}
+              {isLoading ? 'Saving...' : mode === 'create' ? 'Create Sales Order' : 'Update Sales Order'}
             </Button>
           </div>
         )}

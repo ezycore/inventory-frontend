@@ -2,12 +2,7 @@
 import { useState } from "react";
 import { Button } from "@ui/components/button";
 import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Package,
-  AlertTriangle,
+  Plus
 } from "lucide-react";
 import SalesDrawer from "@/components/sales/sales-drawer";
 
@@ -15,7 +10,6 @@ export default function SalesPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleAddSales = () => {
-    console.log("Add Product button clicked");
     setIsDrawerOpen(true);
   };
   return (
@@ -24,7 +18,7 @@ export default function SalesPage() {
         <div>
           <h1 className="text-3xl font-bold">Sales</h1>
           <p className="text-muted-foreground">
-            Manage your product catalog and variants
+            Manage your sales catalog and variants
           </p>
         </div>
         <Button onClick={handleAddSales}>
