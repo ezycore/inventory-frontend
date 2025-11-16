@@ -9,6 +9,8 @@ import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
 import { Label } from '@ui/components/label'
+import Image from 'next/image'
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -561,14 +563,14 @@ export default function SalesForm({ productId, mode, onSuccess, onCancel, isModa
                     {(form.watch('images') || []).map((image, index) => (
                       <div key={index} className="relative group">
                         <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                          <img 
-                            src={image} 
-                            alt={`Product ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
+                            <Image
+      src={image}
+      onError={(e) => {
                               e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEyNSA3NUwxNzUgMTI1SDI1TDc1IDc1TDEwMCAxMDBaIiBmaWxsPSIjREREREREIi8+Cjwvc3ZnPgo='
                             }}
-                          />
+      className="w-full h-full object-cover"
+      alt={`Product ${index + 1}`}
+    />
                         </div>
                         <Button
                           type="button"
