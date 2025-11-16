@@ -71,6 +71,40 @@ export interface CreateBrandDto {
 
 export interface UpdateBrandDto extends Partial<CreateBrandDto> {}
 
+// Custom field types
+export enum CustomFieldType {
+  TEXT = 'text',
+  NUMBER = 'number',
+  EMAIL = 'email',
+  URL = 'url',
+  DATE = 'date',
+  TEXTAREA = 'textarea',
+  SELECT = 'select',
+  CHECKBOX = 'checkbox',
+  RADIO = 'radio'
+}
+
+export interface CustomFieldOption {
+  label: string
+  value: string
+}
+
+export interface CustomField {
+  id: string
+  label: string
+  type: CustomFieldType
+  value: string | number | boolean | string[]
+  required: boolean
+  placeholder?: string
+  options?: CustomFieldOption[]
+  validation?: {
+    min?: number
+    max?: number
+    pattern?: string
+    message?: string
+  }
+}
+
 // Product interfaces
 export interface Product extends BaseEntity {
   name: string
@@ -81,6 +115,7 @@ export interface Product extends BaseEntity {
   status: ProductStatus
   images?: string[]
   tags?: string[]
+  custom_fields?: CustomField[]
   category?: Category
   brand?: Brand
 }
@@ -99,6 +134,7 @@ export interface CreateProductDto {
   status?: ProductStatus
   images?: string[]
   tags?: string[]
+  custom_fields?: CustomField[]
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> {}

@@ -1,5 +1,36 @@
-import { ProductStatus } from "@/types";
+import { ProductStatus, CustomFieldType } from "@/types";
 import z from "zod";
+
+// Custom field option schema
+const customFieldOptionSchema = z.object({
+  label: z.string().min(1, 'Option label is required'),
+  value: z.string().min(1, 'Option value is required'),
+});
+
+// Custom field validation schema
+const customFieldValidationSchema = z.object({
+  min: z.number().optional(),
+  max: z.number().optional(),
+  pattern: z.string().optional(),
+  message: z.string().optional(),
+}).optional();
+
+// Custom field schema
+const customFieldSchema = z.object({
+  id: z.string(),
+  label: z.string().min(1, 'Field label is required'),
+  type: z.nativeEnum(CustomFieldType),
+  value: z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.array(z.string())
+  ]),
+  required: z.boolean().default(false),
+  placeholder: z.string().optional(),
+  options: z.array(customFieldOptionSchema).optional(),
+  validation: customFieldValidationSchema,
+});
 
 // Zod Schema
 export const productFormSchema = z.object({
@@ -29,4 +60,7 @@ export const productFormSchema = z.object({
   manufacturer: z.string().optional(),
   manufactured_date: z.string().optional(),
   expiry_date: z.string().optional(),
+  custom_fields: z.array(customFieldSchema).max(10, 'Maximum 10 custom fields allowed').optional(),
 })
+
+export { customFieldSchema };

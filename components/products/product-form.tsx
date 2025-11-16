@@ -36,6 +36,7 @@ import type { CreateProductDto, Product } from '@/types'
 import { ProductStatus } from '@/types'
 import { productFormSchema } from './schema'
 import { FormInput, FormTextarea, FormSelect, FormRow, FormRow3, FormSelectWithButton, FormInputWithButton } from './form-fields'
+import CustomFieldsManager from './custom-fields-manager'
 import {
   storeOptions,
   warehouseOptions,
@@ -86,7 +87,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
   // React Hook Form
   const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productFormSchema),
+    resolver: zodResolver(productFormSchema) as any,
     defaultValues: {
       name: '',
       slug: '',
@@ -111,6 +112,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
       manufacturer: '',
       manufactured_date: '',
       expiry_date: '',
+      custom_fields: [],
     },
   })
 
@@ -142,6 +144,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
         manufacturer: productData.manufacturer || '',
         manufactured_date: productData.manufactured_date || '',
         expiry_date: productData.expiry_date || '',
+        custom_fields: productData.custom_fields || [],
       })
       
       // Reset uploaded files for edit mode - images will be shown from URLs
@@ -244,7 +247,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
         </div>
       )}
 
-      <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form id={formId} onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
         {/* Product Information */}
         <Collapsible open={productInfoOpen} onOpenChange={setProductInfoOpen}>
           <Card>
@@ -263,13 +266,13 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
               <CardContent className="space-y-4 pt-4">
                 <FormRow>
                   <FormSelect
-                    control={form.control}
+                    control={form.control as any}
                     name="store_id"
                     label="Store"
                     options={storeOptions}
                   />
                   <FormSelect
-                    control={form.control}
+                    control={form.control as any}
                     name="warehouse_id"
                     label="Warehouse"
                     options={warehouseOptions}
@@ -278,7 +281,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
                 <FormRow>
                   <FormInput
-                    control={form.control}
+                    control={form.control as any}
                     name="name"
                     label="Product Name"
                     required
@@ -287,7 +290,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                     error={form.formState.errors.name?.message}
                   />
                   <FormInput
-                    control={form.control}
+                    control={form.control as any}
                     name="slug"
                     label="Slug"
                     required
@@ -298,13 +301,13 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
                 <FormRow>
                   <FormInput
-                    control={form.control}
+                    control={form.control as any}
                     name="base_sku"
                     label="SKU"
                     placeholder="Enter SKU"
                   />
                   <FormSelect
-                    control={form.control}
+                    control={form.control as any}
                     name="selling_type"
                     label="Selling Type"
                     required
@@ -314,7 +317,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
                 <FormRow>
                   <FormSelectWithButton
-                    control={form.control}
+                    control={form.control as any}
                     name="category_id"
                     label="Category"
                     required
@@ -331,7 +334,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                     error={form.formState.errors.category_id?.message}
                   />
                   <FormSelect
-                    control={form.control}
+                    control={form.control as any}
                     name="sub_category_id"
                     label="Sub Category"
                     options={subCategoryOptions}
@@ -340,7 +343,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
                 <FormRow>
                   <FormSelect
-                    control={form.control}
+                    control={form.control as any}
                     name="brand_id"
                     label="Brand"
                     options={[
@@ -355,7 +358,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                     }}
                   />
                   <FormSelect
-                    control={form.control}
+                    control={form.control as any}
                     name="unit_id"
                     label="Unit"
                     options={unitOptions}
@@ -364,13 +367,13 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
                 <FormRow>
                   <FormSelect
-                    control={form.control}
+                    control={form.control as any}
                     name="barcode_symbology"
                     label="Barcode Symbology"
                     options={barcodeSymbologyOptions}
                   />
                   <FormInputWithButton
-                    control={form.control}
+                    control={form.control as any}
                     name="barcode"
                     label="Item Barcode"
                     placeholder="Enter barcode"
@@ -381,7 +384,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                 </FormRow>
 
                 <FormTextarea
-                  control={form.control}
+                  control={form.control as any}
                   name="description"
                   label="Description"
                   placeholder="Describe your product..."
@@ -453,7 +456,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                   <>
                     <FormRow3>
                       <FormInput
-                        control={form.control}
+                        control={form.control as any}
                         name="quantity"
                         label="Quantity"
                         required
@@ -463,7 +466,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                         valueAsNumber
                       />
                       <FormInput
-                        control={form.control}
+                        control={form.control as any}
                         name="price"
                         label="Price"
                         required
@@ -474,7 +477,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                         valueAsNumber
                       />
                       <FormSelect
-                        control={form.control}
+                        control={form.control as any}
                         name="tax_type"
                         label="Tax Type"
                         required
@@ -485,7 +488,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
                     <FormRow3>
                       <FormSelect
-                        control={form.control}
+                        control={form.control as any}
                         name="tax_id"
                         label="Tax"
                         required
@@ -493,7 +496,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                         options={taxOptions}
                       />
                       <FormSelect
-                        control={form.control}
+                        control={form.control as any}
                         name="discount_type"
                         label="Discount Type"
                         required
@@ -501,7 +504,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                         options={discountTypeOptions}
                       />
                       <FormInput
-                        control={form.control}
+                        control={form.control as any}
                         name="discount_value"
                         label="Discount Value"
                         required
@@ -514,7 +517,7 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
                     </FormRow3>
 
                     <FormInput
-                      control={form.control}
+                      control={form.control as any}
                       name="quantity_alert"
                       label="Quantity Alert"
                       required
@@ -666,40 +669,46 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-4 pt-4">
-                <FormRow>
-                  <FormSelect
-                    control={form.control}
-                    name="warranty_id"
-                    label="Warranty"
-                    required
-                    placeholder="Select"
-                    options={warrantyOptions}
-                  />
-                  <FormInput
-                    control={form.control}
-                    name="manufacturer"
-                    label="Manufacturer"
-                    required
-                    placeholder="Enter manufacturer"
-                  />
-                </FormRow>
+                <CustomFieldsManager 
+                  control={form.control as any}
+                  name="custom_fields"
+                  maxFields={10}
+                />
+                
+                {/* Keep existing manufacturer fields for compatibility */}
+                <div className="mt-6 pt-6 border-t">
+                  <h4 className="text-sm font-semibold mb-4">Additional Product Information</h4>
+                  <FormRow>
+                    <FormSelect
+                      control={form.control as any}
+                      name="warranty_id"
+                      label="Warranty"
+                      placeholder="Select"
+                      options={warrantyOptions}
+                    />
+                    <FormInput
+                      control={form.control as any}
+                      name="manufacturer"
+                      label="Manufacturer"
+                      placeholder="Enter manufacturer"
+                    />
+                  </FormRow>
 
-                <FormRow>
-                  <FormInput
-                    control={form.control}
-                    name="manufactured_date"
-                    label="Manufactured Date"
-                    required
-                    type="date"
-                  />
-                  <FormInput
-                    control={form.control}
-                    name="expiry_date"
-                    label="Expiry On"
-                    required
-                    type="date"
-                  />
-                </FormRow>
+                  <FormRow>
+                    <FormInput
+                      control={form.control as any}
+                      name="manufactured_date"
+                      label="Manufactured Date"
+                      type="date"
+                    />
+                    <FormInput
+                      control={form.control as any}
+                      name="expiry_date"
+                      label="Expiry On"
+                      type="date"
+                    />
+                  </FormRow>
+                </div>
               </CardContent>
             </CollapsibleContent>
           </Card>
