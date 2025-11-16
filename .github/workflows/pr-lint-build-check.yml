@@ -42,7 +42,7 @@ jobs:
           cat .eslintrc.json
 
       - name: Run ESLint
-        run: npx next lint --dir .
+        run: npx --no -- next lint .
 
       - name: Run Next.js build
         run: pnpm run build
