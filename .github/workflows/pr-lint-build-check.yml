@@ -34,8 +34,15 @@ jobs:
       - name: Install dependencies (pnpm)
         run: pnpm install --no-frozen-lockfile
 
+      - name: Debug - Check files
+        run: |
+          pwd
+          ls -la
+          cat next.config.mjs
+          cat .eslintrc.json
+
       - name: Run ESLint
-        run: npx next lint
+        run: npx next lint --dir .
 
       - name: Run Next.js build
         run: pnpm run build
