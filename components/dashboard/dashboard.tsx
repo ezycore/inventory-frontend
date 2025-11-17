@@ -38,7 +38,7 @@ export function Dashboard() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome to your inventory management system. Here's an overview of your stock.
+          Welcome to your inventory management system. Here&apos;s an overview of your stock.
         </p>
       </div>
 

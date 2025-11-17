@@ -295,7 +295,7 @@ export default function VariantManager({ productId }: VariantManagerProps) {
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      No attributes added. Click "Add Attribute" to add color, size, etc.
+                      No attributes added. Click &quot;Add Attribute&quot; to add color, size, etc.
                     </p>
                   )}
                 </div>
