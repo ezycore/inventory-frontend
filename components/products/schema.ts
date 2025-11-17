@@ -40,7 +40,7 @@ export const productFormSchema = z.object({
   category_id: z.string().min(1, 'Category is required'),
   brand_id: z.string().optional(),
   base_sku: z.string().optional(),
-  images: z.array(z.string()).optional(),
+  images: z.array(z.any()).optional(), // Can be File[] or string[] (URLs)
   status: z.enum(ProductStatus),
   store_id: z.string().optional(),
   warehouse_id: z.string().optional(),
@@ -49,6 +49,7 @@ export const productFormSchema = z.object({
   barcode_symbology: z.string().optional(),
   barcode: z.string().optional(),
   selling_type: z.enum(['retail', 'wholesale', 'both']).optional(),
+  product_type_radio: z.enum(['single', 'variable']).default('single'),
   quantity: z.number().min(0).optional(),
   price: z.number().min(0).optional(),
   tax_type: z.enum(['inclusive', 'exclusive']).optional(),
