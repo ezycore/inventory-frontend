@@ -6,8 +6,6 @@ export type FormFieldType =
   | 'input' 
   | 'textarea' 
   | 'select' 
-  | 'select-with-button'
-  | 'input-with-button'
   | 'radio-group'
   | 'checkbox'
   | 'file-upload'
@@ -56,7 +54,8 @@ export interface FormFieldConfig {
   optional?: boolean
   
   // Type-specific properties
-  options?: SelectOption[] // For select fields
+  options?: SelectOption[] // For select fields (static options)
+  optionsApi?: string      // For select fields (dynamic API-based options) - URL string
   rows?: number // For textarea
   accept?: string // For file upload
   maxFiles?: number // For file upload
@@ -70,10 +69,17 @@ export interface FormFieldConfig {
   dropzoneText?: string // Custom dropzone text
   showPreview?: boolean // Show file preview (default: true)
   
-  // Button properties (for input-with-button, select-with-button)
-  buttonIcon?: ReactNode
-  buttonLabel?: string
-  onButtonClick?: () => void
+  // Advanced select action properties
+  action?: {
+    icon?: ReactNode
+    label?: string
+    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+    disabled?: boolean
+    onClick?: (props?: any) => void
+    renderItem?: () => ReactNode // Priority: if provided, other props ignored
+  }
+  
+
   
   // Custom properties
   customComponent?: React.ComponentType<any>
@@ -112,7 +118,7 @@ export interface DynamicFormConfig {
   generateSchema?: boolean // Whether to auto-generate Zod schema (default: true)
 }
 
-export interface DynamicFormProps {
+export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   config: DynamicFormConfig
   control: Control<any>
   formState: any
@@ -121,6 +127,24 @@ export interface DynamicFormProps {
   getValues: (name?: string | string[]) => any
   className?: string
   onFieldChange?: (fieldName: string, value: any) => void
+  
+  // Drawer mode props
+  asDrawer?: boolean
+  drawerOpen?: boolean
+  onDrawerOpenChange?: (open: boolean) => void
+  drawerTitle?: string
+  drawerSubmitLabel?: string
+  drawerCancelLabel?: string
+  onDrawerSubmit?: () => void
+  onDrawerCancel?: () => void
+  isSubmitting?: boolean
+  hideDrawerActions?: boolean
+  
+  // Regular form actions props
+  showActions?: boolean
+  cancelLabel?: string
+  submitLabel?: string
+  onCancel?: () => void
 }
 
 // Schema generation utility
@@ -190,8 +214,6 @@ export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema
         case 'string':
         case 'input':
         case 'textarea':
-        case 'select-with-button':
-        case 'input-with-button':
           let stringSchema = z.string()
           if (field.validation?.minLength !== undefined) {
             stringSchema = stringSchema.min(field.validation.minLength, `Minimum ${field.validation.minLength} characters required`)
@@ -216,7 +238,7 @@ export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema
       if (field.required) {
         // Only add required validation for explicit string types that don't already have validation
         const isStringField = (
-          (field.type === 'input' || field.type === 'textarea' || field.type === 'input-with-button') 
+          (field.type === 'input' || field.type === 'textarea') 
           && field.zodType !== 'number' 
           && field.zodType !== 'boolean' 
           && field.zodType !== 'array'

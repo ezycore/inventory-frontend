@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './collapsible'
 import { ChevronDown, ChevronUp, Upload, X } from 'lucide-react'
 import { Input } from './input'
+import { AdvancedSelect } from '../../components/advanced-select'
 import { Textarea } from './textarea'
 import { Label } from './label'
 import { Button } from './button'
@@ -27,25 +28,34 @@ import {
     FileUploadList
 } from './file-upload'
 import { cn } from '@ui/lib/utils'
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle
+} from './sheet'
 import type {
     DynamicFormProps,
     FormFieldConfig,
     FormSection,
     ColumnSpan
 } from '@/types/form'
+import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip'
 
-// Helper function to get grid column classes
+// Helper function to get grid column classes with responsive breakpoints
 const getColumnClass = (span: ColumnSpan): string => {
     const spanMap: Record<ColumnSpan, string> = {
-        1: 'col-span-1',
-        2: 'col-span-2',
-        3: 'col-span-3',
-        4: 'col-span-4',
-        6: 'col-span-6',
+        1: 'col-span-12 sm:col-span-6 lg:col-span-1',
+        2: 'col-span-12 sm:col-span-6 lg:col-span-2',
+        3: 'col-span-12 sm:col-span-6 lg:col-span-3',
+        4: 'col-span-12 sm:col-span-6 lg:col-span-4',
+        6: 'col-span-12 sm:col-span-6 lg:col-span-6',
         12: 'col-span-12'
     }
     return spanMap[span] || 'col-span-12'
 }
+
+
 
 // Individual field components
 const FormField: React.FC<{
@@ -116,7 +126,7 @@ const FormField: React.FC<{
                                     controllerField.onChange(value)
                                     handleChange(value)
                                 }}
-                                className={cn('w-full min-w-0', error ? 'border-red-500' : '')}
+                                className={cn('w-full', error ? 'border-red-500' : '')}
                             />
                         )}
                     />
@@ -140,7 +150,7 @@ const FormField: React.FC<{
                                     controllerField.onChange(e.target.value)
                                     handleChange(e.target.value)
                                 }}
-                                className={cn('w-full min-w-0', error ? 'border-red-500' : '')}
+                                className={cn('w-full', error ? 'border-red-500' : '')}
                             />
                         )}
                     />
@@ -148,132 +158,15 @@ const FormField: React.FC<{
 
             case 'select':
                 return (
-                    <Controller
-                        name={field.name}
+                    <AdvancedSelect
+                        field={field}
                         control={control}
-                        rules={{
-                            required: field.required ? `${field.label} is required` : false,
-                        }}
-                        render={({ field: controllerField }) => (
-                            <Select
-                                value={controllerField.value}
-                                onValueChange={(value) => {
-                                    controllerField.onChange(value)
-                                    handleChange(value)
-                                    if (field.onValueChange) field.onValueChange(value)
-                                }}
-                                disabled={field.disabled}
-                            >
-                                <SelectTrigger className={cn('!w-full min-w-0', error ? 'border-red-500' : '')}>
-                                    <SelectValue placeholder={field.placeholder} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {field.options?.map((option) => (
-                                        <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                            disabled={option.disabled}
-                                        >
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
+                        error={error}
+                        onChange={handleChange}
                     />
                 )
 
-            case 'select-with-button':
-                return (
-                    <div className="flex gap-2 w-full">
-                        <div className="flex-1 min-w-0">
-                            <Controller
-                                name={field.name}
-                                control={control}
-                                rules={{
-                                    required: field.required ? `${field.label} is required` : false,
-                                }}
-                                render={({ field: controllerField }) => (
-                                    <Select
-                                        value={controllerField.value}
-                                        onValueChange={(value) => {
-                                            controllerField.onChange(value)
-                                            handleChange(value)
-                                            if (field.onValueChange) field.onValueChange(value)
-                                        }}
-                                        disabled={field.disabled}
-                                    >
-                                        <SelectTrigger className={cn('!w-full min-w-0', error ? 'border-red-500' : '')}>
-                                            <SelectValue placeholder={field.placeholder} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {field.options?.map((option) => (
-                                                <SelectItem
-                                                    key={option.value}
-                                                    value={option.value}
-                                                    disabled={option.disabled}
-                                                >
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                        </div>
-                        {field.onButtonClick && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={field.onButtonClick}
-                                className="shrink-0 h-9 w-9"
-                                title={field.buttonLabel}
-                            >
-                                {field.buttonIcon}
-                            </Button>
-                        )}
-                    </div>
-                )
 
-            case 'input-with-button':
-                return (
-                    <div className="flex gap-2 w-full">
-                        <div className="flex-1">
-                            <Controller
-                                name={field.name}
-                                control={control}
-                                rules={{
-                                    required: field.required ? `${field.label} is required` : false,
-                                }}
-                                render={({ field: controllerField }) => (
-                                    <Input
-                                        {...controllerField}
-                                        placeholder={field.placeholder}
-                                        disabled={field.disabled}
-                                        onChange={(e) => {
-                                            controllerField.onChange(e.target.value)
-                                            handleChange(e.target.value)
-                                        }}
-                                        className={cn('w-full min-w-0', error ? 'border-red-500' : '')}
-                                    />
-                                )}
-                            />
-                        </div>
-                        {field.onButtonClick && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={field.onButtonClick}
-                                className="shrink-0 h-9 w-9"
-                                title={field.buttonLabel}
-                            >
-                                {field.buttonIcon}
-                            </Button>
-                        )}
-                    </div>
-                )
 
             case 'checkbox':
                 return (
@@ -362,13 +255,13 @@ const FormField: React.FC<{
                             const maxFiles = field.maxFiles || 1
                             const maxSize = field.maxSize || 5 * 1024 * 1024 // 5MB default
                             const showPreview = field.showPreview !== false
-                            
+
                             const handleFileChange = (selectedFiles: File[]) => {
                                 console.log('File upload changed:', selectedFiles) // Debug log
                                 controllerField.onChange(selectedFiles)
                                 handleChange(selectedFiles)
                             }
-                            
+
                             return (
                                 <FileUpload
                                     value={files}
@@ -395,7 +288,7 @@ const FormField: React.FC<{
                                     {showPreview && files.length > 0 && (
                                         <FileUploadList className="mt-4">
                                             {files.map((file: File, index: number) => (
-                                                <FileUploadItem 
+                                                <FileUploadItem
                                                     key={`${file.name}-${index}`}
                                                     value={file}
                                                     className="flex items-center gap-3 p-3 border rounded-lg"
@@ -463,24 +356,41 @@ const FormField: React.FC<{
     return (
         <div className={cn(
             getColumnClass(field.columnSpan || 12),
-            "w-full min-w-0",
+            "w-full min-w-0 flex flex-col",
             field.className
         )}>
             {field.type !== 'checkbox' && (
-                <div className="space-y-1 mb-2">
-                    <Label htmlFor={field.name}>
+                <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         {field.label}
                         {field.required && <span className="text-red-500 ml-1">*</span>}
                     </Label>
-                   
+                    {field.action && (<Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                type="button"
+                                variant={field.action.variant || "ghost"}
+                                size="icon"
+                                className="h-6 w-6 p-0 shrink-0"
+                                onClick={() => field.action?.onClick?.(field)}
+                                disabled={field.action.disabled}
+                            >
+                                {field.action.icon}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           { field.action.label }
+                        </TooltipContent>
+                    </Tooltip>
+                    )}
                 </div>
             )}
-            <div className="w-full min-w-0">
+            <div className="w-full min-w-0 flex-1">
                 {renderField()}
             </div>
-             {field.helperText && (
-                        <p className="text-xs text-muted-foreground">{field.helperText}</p>
-                    )}
+            {field.helperText && (
+                <p className="text-xs text-muted-foreground">{field.helperText}</p>
+            )}
             {error && (
                 <p className="text-sm text-red-500 mt-1">{error}</p>
             )}
@@ -502,7 +412,7 @@ const FormSectionComponent: React.FC<{
 
     const content = (
         <CardContent className={cn("space-y-4 pt-4", section.className)}>
-            <div className="grid grid-cols-12 gap-4 w-full">
+            <div className="grid grid-cols-12 gap-3 sm:gap-4 w-full">
                 {section.fields.map((field) => (
                     <FormField
                         key={field.name}
@@ -523,23 +433,25 @@ const FormSectionComponent: React.FC<{
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                 <Card>
                     <CollapsibleTrigger className="w-full">
-                        <CardHeader className="flex flex-row items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors">
-                            <div className="flex items-center gap-2">
+                        <CardHeader className="flex flex-row items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors p-4 sm:p-6">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
                                 {section.icon && (
-                                    <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
+                                    <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
                                         {section.icon}
                                     </div>
                                 )}
-                                <div className="text-left">
-                                    <CardTitle>{section.title}</CardTitle>
+                                <div className="text-left min-w-0 flex-1">
+                                    <CardTitle className="text-base sm:text-lg truncate">{section.title}</CardTitle>
                                     {section.description && (
-                                        <p className="text-sm text-muted-foreground mt-1">
+                                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                             {section.description}
                                         </p>
                                     )}
                                 </div>
                             </div>
-                            {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            <div className="shrink-0 ml-2">
+                                {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            </div>
                         </CardHeader>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -552,17 +464,17 @@ const FormSectionComponent: React.FC<{
 
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-center gap-2">
                     {section.icon && (
-                        <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
+                        <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
                             {section.icon}
                         </div>
                     )}
-                    <div>
-                        <CardTitle>{section.title}</CardTitle>
+                    <div className="min-w-0 flex-1">
+                        <CardTitle className="text-base sm:text-lg truncate">{section.title}</CardTitle>
                         {section.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                 {section.description}
                             </p>
                         )}
@@ -575,6 +487,34 @@ const FormSectionComponent: React.FC<{
 }
 
 // Main DynamicForm component
+// Form content component (extracted for reuse)
+const FormContent: React.FC<{
+    config: any;
+    control: any;
+    formState: any;
+    watch: any;
+    setValue: any;
+    onFieldChange?: any;
+    className?: string;
+}> = ({ config, control, formState, watch, setValue, onFieldChange, className }) => {
+    return (
+        <div className={cn("space-y-4 sm:space-y-6", className)}>
+            {config.sections.map((section: any, index: number) => (
+                <FormSectionComponent
+                    key={`${section.title}-${index}`}
+                    section={section}
+                    control={control}
+                    formState={formState}
+                    watch={watch}
+                    setValue={setValue}
+                    onFieldChange={onFieldChange}
+                    maxColumns={12}
+                />
+            ))}
+        </div>
+    )
+}
+
 export const DynamicForm: React.FC<DynamicFormProps> = ({
     config,
     control,
@@ -584,26 +524,123 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     getValues,
     className,
     onFieldChange,
+    // Drawer props
+    asDrawer = false,
+    drawerOpen = false,
+    onDrawerOpenChange,
+    drawerTitle,
+    drawerSubmitLabel = "Submit",
+    drawerCancelLabel = "Cancel",
+    onDrawerSubmit,
+    onDrawerCancel,
+    isSubmitting = false,
+    hideDrawerActions = false,
+
+    // Regular form actions props
+    showActions = false,
+    cancelLabel = "Cancel",
+    submitLabel = "Submit",
+    onCancel,
     ...props
 }) => {
-    return (
-        <form {...props}>
-            <div className={cn("space-y-6", className)}>
-                {config.sections.map((section, index) => (
-                    <FormSectionComponent
-                        key={`${section.title}-${index}`}
-                        section={section}
-                        control={control}
-                        formState={formState}
-                        watch={watch}
-                        setValue={setValue}
-                        onFieldChange={onFieldChange}
-                        maxColumns={12}
-                    />
-                ))}
-            </div>
-        </form>
+    const handleDrawerSubmit = () => {
+        if (onDrawerSubmit) {
+            onDrawerSubmit()
+        } else {
+            // Fallback: try to submit the form
+            const form = document.getElementById(props.id || 'dynamic-form') as HTMLFormElement
+            form?.requestSubmit()
+        }
+    }
 
+    const handleDrawerCancel = () => {
+        if (onDrawerCancel) {
+            onDrawerCancel()
+        } else if (onDrawerOpenChange) {
+            onDrawerOpenChange(false)
+        }
+    }
+
+    const formContent = (
+        <FormContent
+            config={config}
+            control={control}
+            formState={formState}
+            watch={watch}
+            setValue={setValue}
+            onFieldChange={onFieldChange}
+            className={className}
+        />
+    )
+
+    if (asDrawer) {
+        return (
+            <Sheet open={drawerOpen} onOpenChange={onDrawerOpenChange}>
+                <SheetContent
+                    side="right"
+                    className="w-full sm:w-[80vw] sm:max-w-[880px] p-0 overflow-hidden flex flex-col [&>button]:hidden"
+                >
+                    {!hideDrawerActions && (
+                        <SheetHeader className="px-6 py-4 border-b shrink-0 flex flex-row items-center justify-between space-y-0">
+                            <SheetTitle>{drawerTitle}</SheetTitle>
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleDrawerCancel}
+                                >
+                                    {drawerCancelLabel}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={handleDrawerSubmit}
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? `${drawerSubmitLabel}...` : drawerSubmitLabel}
+                                </Button>
+                            </div>
+                        </SheetHeader>
+                    )}
+                    <div className="flex-1 overflow-y-auto px-6 pb-6">
+                        <form {...props}>
+                            {formContent}
+                        </form>
+                    </div>
+                </SheetContent>
+            </Sheet>
+        )
+    }
+
+    // Regular form mode
+    return (
+        <div>
+            <form {...props}>
+                {formContent}
+            </form>
+
+            {/* Regular form actions */}
+            {showActions && (
+                <div className="flex justify-end space-x-4 mt-6">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onCancel}
+                    >
+                        {cancelLabel}
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        onClick={() => {
+                            const form = document.getElementById(props.id || 'dynamic-form') as HTMLFormElement
+                            form?.requestSubmit()
+                        }}
+                    >
+                        {isSubmitting ? `${submitLabel}...` : submitLabel}
+                    </Button>
+                </div>
+            )}
+        </div>
     )
 }
 

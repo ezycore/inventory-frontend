@@ -1,6 +1,9 @@
 // Export all organized query hooks by domain
 export * from './queries'
 
+// Export utility hooks
+export * from './utils'
+
 // Re-export TanStack Query utilities for convenience
 export {
   useQuery,

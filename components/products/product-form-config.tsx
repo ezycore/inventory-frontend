@@ -16,8 +16,6 @@ import {
 } from './product-form-options'
 
 export const createProductFormConfig = (
-  categories: any[] = [],
-  brands: any[] = [],
   onNameChange?: (name: string) => void,
   onGenerateBarcode?: () => void
 ): DynamicFormConfig => {
@@ -95,19 +93,18 @@ export const createProductFormConfig = (
           },
           {
             name: "category_id",
-            type: "select-with-button",
+            type: "select",
             label: "Category",
             required: true,
             columnSpan: 6,
             placeholder: "Choose category",
-            options: categories.map((category: any) => ({
-              value: category._id,
-              label: category.name,
-            })),
-            buttonIcon: <Plus className="h-4 w-4" />,
-            buttonLabel: "Add Category",
-            onButtonClick: () => {
-              toast.info('Add Category feature coming soon')
+            optionsApi: `/categories`,
+            action: {
+              icon: <Plus className="h-4 w-4" />,
+              label: "Add Category",
+              onClick: () => {
+                toast.info('Add Category feature coming soon')
+              }
             },
             validation: {
               minLength: 1
@@ -126,13 +123,7 @@ export const createProductFormConfig = (
             type: "select",
             label: "Brand",
             columnSpan: 6,
-            options: [
-              { value: 'none', label: 'No Brand' },
-              ...brands.map((brand: any) => ({
-                value: brand._id,
-                label: brand.name,
-              })),
-            ],
+            optionsApi: `/brands`,
             placeholder: "Select brand",
             onValueChange: (value) => {
               // This will be handled in the product form component
@@ -157,13 +148,15 @@ export const createProductFormConfig = (
           },
           {
             name: "barcode",
-            type: "input-with-button",
+            type: "input",
             label: "Item Barcode",
             columnSpan: 6,
             placeholder: "Enter barcode",
-            buttonIcon: <Wand2 className="h-4 w-4" />,
-            buttonLabel: "Generate Barcode", 
-            onButtonClick: onGenerateBarcode
+            action: {
+              icon: <Wand2 className="h-4 w-4" />,
+              label: "Generate Barcode",
+              onClick: onGenerateBarcode
+            }
           },
           {
             name: "description",

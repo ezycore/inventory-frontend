@@ -26,7 +26,7 @@ import { toast } from 'sonner'
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle } from 'lucide-react'
 import type { ProductWithVariants } from '@/types'
 import type { ProductFilters } from '@/types/products'
-import ProductDrawer from '@/components/products/product-drawer'
+import ProductForm from '@/components/products/product-form'
 import { queryKeys } from '@/lib/query-keys-products'
 
 export default function ProductsPage() {
@@ -349,14 +349,16 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Product Drawer */}
-      <ProductDrawer 
-        open={isDrawerOpen}
-        onOpenChange={(open) => {
+      {/* Product Form Drawer */}
+      <ProductForm 
+        mode={editingProductId ? 'edit' : 'create'}
+        productId={editingProductId || undefined}
+        asDrawer={true}
+        drawerOpen={isDrawerOpen}
+        onDrawerOpenChange={(open) => {
           setIsDrawerOpen(open)
           if (!open) setEditingProductId(null)
         }}
-        productId={editingProductId || undefined}
         onSuccess={handleDrawerSuccess}
       />
     </div>

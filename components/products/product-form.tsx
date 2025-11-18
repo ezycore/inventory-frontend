@@ -9,9 +9,7 @@ import { DynamicForm } from '@ui/components/form'
 import {
   useCreateProduct,
   useUpdateProduct,
-  useProduct,
-  useCategories,
-  useBrands
+  useProduct
 } from '@/hooks/queries'
 import { toast } from 'sonner'
 import { handleMutationError } from '@/lib/error-handling'
@@ -22,9 +20,6 @@ import CustomFieldsManager from './custom-fields-manager'
 import { createProductFormConfig } from './product-form-config'
 import type { DynamicFormConfig } from '@/types/form'
 
-
-
-
 type ProductFormValues = any // Will be inferred from generated schema
 
 interface ProductFormProps {
@@ -32,20 +27,40 @@ interface ProductFormProps {
   mode: 'create' | 'edit'
   onSuccess?: (productId?: string, hasVariants?: boolean) => void
   onCancel?: () => void
+  
+  // Display mode props
+  asDrawer?: boolean
+  drawerOpen?: boolean
+  onDrawerOpenChange?: (open: boolean) => void
+  
+  // Legacy props for backward compatibility
   isSidebar?: boolean
   formId?: string
   hideActions?: boolean
 }
 
-export default function ProductForm({ productId, mode, onSuccess, onCancel, isSidebar = false, formId = 'product-form', hideActions = false }: ProductFormProps) {
+export default function ProductForm({ 
+  productId, 
+  mode, 
+  onSuccess, 
+  onCancel,
+  
+  // Display mode props
+  asDrawer = false,
+  drawerOpen = false,
+  onDrawerOpenChange,
+  
+  // Legacy props
+  isSidebar = false, 
+  formId = 'product-form', 
+  hideActions = false 
+}: ProductFormProps) {
   const router = useRouter()
   const [hasVariants, setHasVariants] = useState(false)
   const [productType, setProductType] = useState<'single' | 'variable'>('single')
 
   // Queries
   const { data: product, isLoading: productLoading } = useProduct(productId || '')
-  const { data: categories } = useCategories()
-  const { data: brands } = useBrands()
 
   // Mutations
   const createProduct = useCreateProduct()
@@ -77,37 +92,34 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
   // Use dynamic form with auto-generated schema first
   const { form } = useDynamicForm<ProductFormValues>(
-    createProductFormConfig(
-      ((categories as any)?.data?.items || []),
-      ((brands as any)?.data?.items || [])
-    ), 
+    createProductFormConfig(),
     {
-    name: '',
-    slug: '',
-    description: '',
-    category_id: '',
-    brand_id: '',
-    base_sku: '',
-    images: [],
-    status: ProductStatus.ACTIVE,
-    store_id: '',
-    warehouse_id: '',
-    sub_category_id: '',
-    unit_id: '',
-    barcode_symbology: 'CODE128',
-    barcode: '',
-    selling_type: 'retail',
-    tax_id: '',
-    discount_type: 'fixed',
-    discount_value: 0,
-    quantity_alert: 10,
-    warranty_id: '',
-    manufacturer: '',
-    manufactured_date: '',
-    expiry_date: '',
-    custom_fields: [],
-    product_type_radio: 'single',
-  })
+      name: '',
+      slug: '',
+      description: '',
+      category_id: '',
+      brand_id: '',
+      base_sku: '',
+      images: [],
+      status: ProductStatus.ACTIVE,
+      store_id: '',
+      warehouse_id: '',
+      sub_category_id: '',
+      unit_id: '',
+      barcode_symbology: 'CODE128',
+      barcode: '',
+      selling_type: 'retail',
+      tax_id: '',
+      discount_type: 'fixed',
+      discount_value: 0,
+      quantity_alert: 10,
+      warranty_id: '',
+      manufacturer: '',
+      manufactured_date: '',
+      expiry_date: '',
+      custom_fields: [],
+      product_type_radio: 'single',
+    })
 
   // Load existing product data for editing
   useEffect(() => {
@@ -171,8 +183,6 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
   // Create final form configuration with custom components
   const finalFormConfig = createProductFormConfig(
-    ((categories as any)?.data?.items || []),
-    ((brands as any)?.data?.items || []),
     (name: string) => {
       form.setValue('name', name)
       form.setValue('slug', generateSlug(name))
@@ -187,8 +197,8 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
       ...section,
       fields: section.fields.map(field => {
         if (field.name === 'custom_fields') {
-          return { 
-            ...field, 
+          return {
+            ...field,
             customComponent: ({ value, onChange, error }: any) => (
               <CustomFieldsManager
                 control={form.control as any}
@@ -241,6 +251,52 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
 
   const isLoading = createProduct.isPending || updateProduct.isPending || productLoading
 
+  const handleDrawerSubmit = () => {
+    form.handleSubmit(onSubmit as any)()
+  }
+
+  const handleDrawerCancel = () => {
+    if (onCancel) {
+      onCancel()
+    } else if (onDrawerOpenChange) {
+      onDrawerOpenChange(false)
+    } else {
+      router.back()
+    }
+  }
+
+  const drawerTitle = mode === 'create' ? 'Create New Product' : 'Update Product'
+  const submitLabel = mode === 'create' ? 'Create Product' : 'Update Product'
+
+  if (asDrawer) {
+    return (
+      <DynamicForm
+        id={formId}
+        onSubmit={form.handleSubmit(onSubmit as any)}
+        className="space-y-6"
+        config={updatedFormConfig}
+        control={form.control}
+        formState={form.formState}
+        watch={form.watch}
+        setValue={form.setValue}
+        getValues={form.getValues}
+        onFieldChange={handleFieldChange}
+        
+        // Drawer props
+        asDrawer={true}
+        drawerOpen={drawerOpen}
+        onDrawerOpenChange={onDrawerOpenChange}
+        drawerTitle={drawerTitle}
+        drawerSubmitLabel={submitLabel}
+        drawerCancelLabel="Cancel"
+        onDrawerSubmit={handleDrawerSubmit}
+        onDrawerCancel={handleDrawerCancel}
+        isSubmitting={isLoading}
+      />
+    )
+  }
+
+  // Regular form mode
   return (
     <div className="container mx-auto py-6 max-w-6xl">
       {/* Header */}
@@ -265,34 +321,25 @@ export default function ProductForm({ productId, mode, onSuccess, onCancel, isSi
         </div>
       )}
 
-      <form id={formId} onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
-        <DynamicForm
-          config={updatedFormConfig}
-          control={form.control}
-          formState={form.formState}
-          watch={form.watch}
-          setValue={form.setValue}
-          getValues={form.getValues}
-          onFieldChange={handleFieldChange}
-        />
-      </form>
-
-      {/* Actions */}
-      {!hideActions && (
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onCancel ? onCancel() : router.back()}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : mode === 'create' ? 'Create Product' : 'Update Product'}
-          </Button>
-        </div>
-      )}
-
+      <DynamicForm
+        id={formId} 
+        onSubmit={form.handleSubmit(onSubmit as any)} 
+        className="space-y-6"
+        config={updatedFormConfig}
+        control={form.control}
+        formState={form.formState}
+        watch={form.watch}
+        setValue={form.setValue}
+        getValues={form.getValues}
+        onFieldChange={handleFieldChange}
+        
+        // Form actions props
+        showActions={!hideActions}
+        cancelLabel="Cancel"
+        submitLabel={isLoading ? 'Saving...' : mode === 'create' ? 'Create Product' : 'Update Product'}
+        onCancel={() => onCancel ? onCancel() : router.back()}
+        isSubmitting={isLoading}
+      />
     </div>
   )
 }
