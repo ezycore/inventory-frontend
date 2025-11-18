@@ -6,17 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from './card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './collapsible'
 import { ChevronDown, ChevronUp, Upload, X } from 'lucide-react'
 import { Input } from './input'
-import { AdvancedSelect } from '../../components/advanced-select'
+import { AdvancedSelect } from './advanced-select'
 import { Textarea } from './textarea'
 import { Label } from './label'
 import { Button } from './button'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from './select'
 import { Checkbox } from './checkbox'
 import { RadioGroup, RadioGroupItem } from './radio-group'
 import {
@@ -158,11 +151,34 @@ const FormField: React.FC<{
 
             case 'select':
                 return (
-                    <AdvancedSelect
-                        field={field}
+                    <Controller
+                        name={field.name}
                         control={control}
-                        error={error}
-                        onChange={handleChange}
+                        rules={{
+                            required: field.required ? `${field.label} is required` : false,
+                            validate: field.required ? (value: any) => {
+                                if (!value || value === '' || value === '__loading__' || value === '__error__') {
+                                    return `${field.label} is required`
+                                }
+                                return true
+                            } : undefined
+                        }}
+                        render={({ field: controllerField }) => (
+                            <AdvancedSelect
+                                value={controllerField.value}
+                                onValueChange={(value) => {
+                                    controllerField.onChange(value)
+                                    handleChange(value)
+                                    if (field.onValueChange) field.onValueChange(value)
+                                }}
+                                placeholder={field.placeholder}
+                                disabled={field.disabled}
+                                className={error ? 'border-red-500' : ''}
+                                options={field.options}
+                                optionsApi={field.optionsApi}
+                                error={error}
+                            />
+                        )}
                     />
                 )
 
@@ -361,9 +377,9 @@ const FormField: React.FC<{
         )}>
             {field.type !== 'checkbox' && (
                 <div className="flex items-center justify-between mb-2">
-                    <Label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <Label htmlFor={field.name} className="text-sm gap-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         {field.label}
-                        {field.required && <span className="text-red-500 ml-1">*</span>}
+                        {field.required && <span className="text-red-500">*</span>}
                     </Label>
                     {field.action && (<Tooltip>
                         <TooltipTrigger asChild>
