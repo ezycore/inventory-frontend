@@ -387,7 +387,7 @@ const FormField: React.FC<{
                                 type="button"
                                 variant={field.action.variant || "ghost"}
                                 size="icon"
-                                className="h-6 w-6 p-0 shrink-0"
+                                className="h-3 w-6 p-0 shrink-0 hover:bg-transparent"
                                 onClick={() => field.action?.onClick?.(field)}
                                 disabled={field.action.disabled}
                             >
@@ -515,7 +515,8 @@ const FormContent: React.FC<{
 }> = ({ config, control, formState, watch, setValue, onFieldChange, className }) => {
     return (
         <div className={cn("space-y-4 sm:space-y-6", className)}>
-            {config.sections.map((section: any, index: number) => (
+            {/* Render sections if available */}
+            {config.sections && config.sections.map((section: any, index: number) => (
                 <FormSectionComponent
                     key={`${section.title}-${index}`}
                     section={section}
@@ -527,6 +528,23 @@ const FormContent: React.FC<{
                     maxColumns={12}
                 />
             ))}
+            
+            {/* Render plain fields if no sections */}
+            {config.fields && !config.sections && (
+                <div className="grid grid-cols-12 gap-3 sm:gap-4 w-full">
+                    {config.fields.map((field: any) => (
+                        <FormField
+                            key={field.name}
+                            field={field}
+                            control={control}
+                            formState={formState}
+                            watch={watch}
+                            setValue={setValue}
+                            onFieldChange={onFieldChange}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

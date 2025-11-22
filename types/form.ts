@@ -108,7 +108,9 @@ export interface FormSection {
 }
 
 export interface DynamicFormConfig {
-  sections: FormSection[]
+  // Either sections OR plain fields - not both
+  sections?: FormSection[]
+  fields?: FormFieldConfig[]
   layout?: {
     maxColumns?: number // Default grid columns (default: 12)
     gap?: number // Gap between fields
@@ -151,8 +153,17 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
 export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema<any> => {
   const schemaObject: Record<string, z.ZodTypeAny> = {}
   
-  config.sections.forEach(section => {
-    section.fields.forEach(field => {
+  // Get all fields - either from sections or plain fields
+  const allFields: FormFieldConfig[] = []
+  if (config.sections) {
+    config.sections.forEach(section => {
+      allFields.push(...section.fields)
+    })
+  } else if (config.fields) {
+    allFields.push(...config.fields)
+  }
+  
+  allFields.forEach(field => {
       let fieldSchema: z.ZodTypeAny
       
       // Determine base schema type
@@ -254,7 +265,6 @@ export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema
       }
       
       schemaObject[field.name] = fieldSchema
-    })
   })
   
   return z.object(schemaObject)
