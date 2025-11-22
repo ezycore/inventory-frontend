@@ -130,7 +130,19 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   className?: string
   onFieldChange?: (fieldName: string, value: any) => void
   
-  // Drawer mode props
+  // Container mode props
+  openInside?: 'drawer' | 'modal'
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  title?: string
+  submitLabel?: string
+  cancelLabel?: string
+  onSubmit?: () => void
+  onCancel?: () => void
+  isSubmitting?: boolean
+  hideActions?: boolean
+  
+  // Legacy drawer props (for backward compatibility)
   asDrawer?: boolean
   drawerOpen?: boolean
   onDrawerOpenChange?: (open: boolean) => void
@@ -139,14 +151,13 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   drawerCancelLabel?: string
   onDrawerSubmit?: () => void
   onDrawerCancel?: () => void
-  isSubmitting?: boolean
   hideDrawerActions?: boolean
+  
+  // Modal specific props
+  modalSize?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   
   // Regular form actions props
   showActions?: boolean
-  cancelLabel?: string
-  submitLabel?: string
-  onCancel?: () => void
 }
 
 // Schema generation utility
