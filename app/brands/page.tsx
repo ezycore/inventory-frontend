@@ -6,16 +6,7 @@ import { Input } from '@ui/components/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
 import { Skeleton } from '@ui/components/skeleton'
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@ui/components/dialog'
-import { Label } from '@ui/components/label'
-import { Textarea } from '@ui/components/textarea'
+
 import { 
   useBrands, 
   useCreateBrand, 
@@ -27,18 +18,73 @@ import { queryKeys } from '@/lib/query-keys-products'
 import { toast } from 'sonner'
 import { Plus, Search, Edit, Trash2, Star, AlertTriangle, ExternalLink } from 'lucide-react'
 import type { Brand, CreateBrandDto } from '@/types/products'
+import { DynamicForm } from '@ui/components/form'
+import { useDynamicForm } from '@/hooks/use-dynamic-form'
 
+import type { DynamicFormConfig } from '@/types/form'
+
+export const brandFormConfig: DynamicFormConfig = {
+  fields: [
+    {
+      name: 'name',
+      type: 'input',
+      label: 'Brand Name',
+      placeholder: 'Enter brand name',
+      required: true,
+      columnSpan: 12,
+      validation: {
+        minLength: 2,
+        maxLength: 100
+      }
+    },
+    {
+      name: 'description',
+      type: 'textarea',
+      label: 'Description',
+      placeholder: 'Enter brand description',
+      rows: 3,
+      columnSpan: 12,
+      validation: {
+        maxLength: 500
+      }
+    },
+    {
+      name: 'logo_url',
+      type: 'input',
+      label: 'Logo URL',
+      placeholder: 'https://example.com/logo.png',
+      columnSpan: 12,
+      validation: {
+        url: true
+      }
+    },
+    {
+      name: 'status',
+      type: 'select',
+      label: 'Status',
+      required: true,
+      columnSpan: 12,
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' }
+      ]
+    }
+  ]
+}
 export default function BrandsPage() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
-  const [formData, setFormData] = useState<CreateBrandDto>({
+  
+  // Form setup
+  const defaultValues = editingBrand || { 
     name: '',
     description: '',
     logo_url: '',
-    status: 'active'
-  })
+    status: 'active' as const
+  }
+  const { form } = useDynamicForm(brandFormConfig, defaultValues)
 
   // Generate slug from name
   const generateSlug = (name: string) => {
@@ -63,19 +109,26 @@ export default function BrandsPage() {
   ) || []
 
   const handleAddBrand = () => {
-    setFormData({ name: '', description: '', logo_url: '', status: 'active' })
     setEditingBrand(null)
+    // Reset form to default values
+    form.reset({
+      name: '',
+      description: '',
+      logo_url: '',
+      status: 'active'
+    })
     setIsAddModalOpen(true)
   }
 
   const handleEditBrand = (brand: Brand) => {
-    setFormData({
+    setEditingBrand(brand)
+    // Reset form with brand data
+    form.reset({
       name: brand.name,
       description: brand.description || '',
       logo_url: brand.logo_url || '',
       status: brand.status
     })
-    setEditingBrand(brand)
     setIsAddModalOpen(true)
   }
 
@@ -90,13 +143,11 @@ export default function BrandsPage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const onSubmit = async (data: any) => {
     try {
       const dataWithSlug = {
-        ...formData,
-        slug: generateSlug(formData.name)
+        ...data,
+        slug: generateSlug(data.name)
       }
       
       if (editingBrand) {
@@ -271,78 +322,22 @@ export default function BrandsPage() {
       </Card>
 
       {/* Add/Edit Brand Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle>
-                {editingBrand ? 'Edit Brand' : 'Add New Brand'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingBrand 
-                  ? 'Update the brand information below.'
-                  : 'Create a new brand for your products.'
-                }
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="Brand name"
-                  value={formData.name}
-                  onChange={(e) => setFormData((prev: CreateBrandDto) => ({ ...prev, name: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Brand description"
-                  value={formData.description}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData((prev: CreateBrandDto) => ({ ...prev, description: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="logo_url">Logo URL</Label>
-                <Input
-                  id="logo_url"
-                  placeholder="https://example.com/logo.png"
-                  value={formData.logo_url}
-                  onChange={(e) => setFormData((prev: CreateBrandDto) => ({ ...prev, logo_url: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  value={formData.status}
-                  onChange={(e) => setFormData((prev: CreateBrandDto) => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : editingBrand ? 'Update' : 'Create'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <DynamicForm
+        onSubmit={form.handleSubmit(onSubmit)}
+        config={brandFormConfig}
+        control={form.control}
+        formState={form.formState}
+        watch={form.watch}
+        setValue={form.setValue}
+        getValues={form.getValues}
+        
+        openInside="modal"
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        title={editingBrand ? 'Edit Brand' : 'Add New Brand'}
+        submitLabel={editingBrand ? 'Update Brand' : 'Create Brand'}
+        modalSize="md"
+      />
     </div>
   )
 }

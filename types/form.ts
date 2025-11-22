@@ -108,7 +108,9 @@ export interface FormSection {
 }
 
 export interface DynamicFormConfig {
-  sections: FormSection[]
+  // Either sections OR plain fields - not both
+  sections?: FormSection[]
+  fields?: FormFieldConfig[]
   layout?: {
     maxColumns?: number // Default grid columns (default: 12)
     gap?: number // Gap between fields
@@ -128,7 +130,19 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   className?: string
   onFieldChange?: (fieldName: string, value: any) => void
   
-  // Drawer mode props
+  // Container mode props
+  openInside?: 'drawer' | 'modal'
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  title?: string
+  submitLabel?: string
+  cancelLabel?: string
+  onSubmit?: () => void
+  onCancel?: () => void
+  isSubmitting?: boolean
+  hideActions?: boolean
+  
+  // Legacy drawer props (for backward compatibility)
   asDrawer?: boolean
   drawerOpen?: boolean
   onDrawerOpenChange?: (open: boolean) => void
@@ -137,22 +151,30 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   drawerCancelLabel?: string
   onDrawerSubmit?: () => void
   onDrawerCancel?: () => void
-  isSubmitting?: boolean
   hideDrawerActions?: boolean
+  
+  // Modal specific props
+  modalSize?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   
   // Regular form actions props
   showActions?: boolean
-  cancelLabel?: string
-  submitLabel?: string
-  onCancel?: () => void
 }
 
 // Schema generation utility
 export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema<any> => {
   const schemaObject: Record<string, z.ZodTypeAny> = {}
   
-  config.sections.forEach(section => {
-    section.fields.forEach(field => {
+  // Get all fields - either from sections or plain fields
+  const allFields: FormFieldConfig[] = []
+  if (config.sections) {
+    config.sections.forEach(section => {
+      allFields.push(...section.fields)
+    })
+  } else if (config.fields) {
+    allFields.push(...config.fields)
+  }
+  
+  allFields.forEach(field => {
       let fieldSchema: z.ZodTypeAny
       
       // Determine base schema type
@@ -254,7 +276,6 @@ export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema
       }
       
       schemaObject[field.name] = fieldSchema
-    })
   })
   
   return z.object(schemaObject)

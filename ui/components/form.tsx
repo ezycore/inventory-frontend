@@ -27,6 +27,13 @@ import {
     SheetHeader,
     SheetTitle
 } from './sheet'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter
+} from './dialog'
 import type {
     DynamicFormProps,
     FormFieldConfig,
@@ -387,7 +394,7 @@ const FormField: React.FC<{
                                 type="button"
                                 variant={field.action.variant || "ghost"}
                                 size="icon"
-                                className="h-6 w-6 p-0 shrink-0"
+                                className="h-3 w-6 p-0 shrink-0 hover:bg-transparent"
                                 onClick={() => field.action?.onClick?.(field)}
                                 disabled={field.action.disabled}
                             >
@@ -515,7 +522,8 @@ const FormContent: React.FC<{
 }> = ({ config, control, formState, watch, setValue, onFieldChange, className }) => {
     return (
         <div className={cn("space-y-4 sm:space-y-6", className)}>
-            {config.sections.map((section: any, index: number) => (
+            {/* Render sections if available */}
+            {config.sections && config.sections.map((section: any, index: number) => (
                 <FormSectionComponent
                     key={`${section.title}-${index}`}
                     section={section}
@@ -527,6 +535,23 @@ const FormContent: React.FC<{
                     maxColumns={12}
                 />
             ))}
+            
+            {/* Render plain fields if no sections */}
+            {config.fields && !config.sections && (
+                <div className="grid grid-cols-12 gap-3 sm:gap-4 w-full">
+                    {config.fields.map((field: any) => (
+                        <FormField
+                            key={field.name}
+                            field={field}
+                            control={control}
+                            formState={formState}
+                            watch={watch}
+                            setValue={setValue}
+                            onFieldChange={onFieldChange}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     )
 }
@@ -540,7 +565,20 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     getValues,
     className,
     onFieldChange,
-    // Drawer props
+    
+    // Container mode props
+    openInside,
+    open,
+    onOpenChange,
+    title,
+    submitLabel = "Submit",
+    cancelLabel = "Cancel",
+    onSubmit,
+    onCancel,
+    isSubmitting = false,
+    hideActions = false,
+    
+    // Legacy drawer props (backward compatibility)
     asDrawer = false,
     drawerOpen = false,
     onDrawerOpenChange,
@@ -549,18 +587,32 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     drawerCancelLabel = "Cancel",
     onDrawerSubmit,
     onDrawerCancel,
-    isSubmitting = false,
     hideDrawerActions = false,
-
+    
+    // Modal specific props
+    modalSize = 'lg',
+    
     // Regular form actions props
     showActions = false,
-    cancelLabel = "Cancel",
-    submitLabel = "Submit",
-    onCancel,
     ...props
 }) => {
-    const handleDrawerSubmit = () => {
-        if (onDrawerSubmit) {
+    // Determine which mode we're in (priority: openInside > asDrawer > regular form)
+    const isDrawerMode = openInside === 'drawer' || (!openInside && asDrawer)
+    const isModalMode = openInside === 'modal'
+    const isContainerMode = isDrawerMode || isModalMode
+    
+    // Unified props handling (new props take priority over legacy props)
+    const containerOpen = open !== undefined ? open : drawerOpen
+    const containerOnOpenChange = onOpenChange || onDrawerOpenChange
+    const containerTitle = title || drawerTitle
+    const containerSubmitLabel = submitLabel !== "Submit" ? submitLabel : drawerSubmitLabel
+    const containerCancelLabel = cancelLabel !== "Cancel" ? cancelLabel : drawerCancelLabel
+    const containerHideActions = hideActions || hideDrawerActions
+    
+    const handleContainerSubmit = () => {
+        if (onSubmit) {
+            onSubmit()
+        } else if (onDrawerSubmit) {
             onDrawerSubmit()
         } else {
             // Fallback: try to submit the form
@@ -569,11 +621,13 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         }
     }
 
-    const handleDrawerCancel = () => {
-        if (onDrawerCancel) {
+    const handleContainerCancel = () => {
+        if (onCancel) {
+            onCancel()
+        } else if (onDrawerCancel) {
             onDrawerCancel()
-        } else if (onDrawerOpenChange) {
-            onDrawerOpenChange(false)
+        } else if (containerOnOpenChange) {
+            containerOnOpenChange(false)
         }
     }
 
@@ -589,30 +643,78 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         />
     )
 
-    if (asDrawer) {
+    // Modal size mapping
+    const modalSizeClass = {
+        sm: 'sm:max-w-md',
+        md: 'sm:max-w-lg', 
+        lg: 'sm:max-w-2xl',
+        xl: 'sm:max-w-4xl',
+        full: 'sm:max-w-[90vw]'
+    }[modalSize]
+
+    // Render modal mode
+    if (isModalMode) {
         return (
-            <Sheet open={drawerOpen} onOpenChange={onDrawerOpenChange}>
+            <Dialog open={containerOpen} onOpenChange={containerOnOpenChange}>
+                <DialogContent className={`${modalSizeClass} max-h-[90vh] flex flex-col p-0`}>
+                    {!containerHideActions && (
+                        <DialogHeader className="px-6 pt-6 pb-2">
+                            <DialogTitle>{containerTitle}</DialogTitle>
+                        </DialogHeader>
+                    )}
+                    <div className="flex-1 overflow-y-auto px-6 pb-6">
+                        <form {...props}>
+                            {formContent}
+                        </form>
+                    </div>
+                    {!containerHideActions && (
+                        <DialogFooter className="gap-2 px-6 pb-6 pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleContainerCancel}
+                            >
+                                {containerCancelLabel}
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={handleContainerSubmit}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? `${containerSubmitLabel}...` : containerSubmitLabel}
+                            </Button>
+                        </DialogFooter>
+                    )}
+                </DialogContent>
+            </Dialog>
+        )
+    }
+
+    // Render drawer mode
+    if (isDrawerMode) {
+        return (
+            <Sheet open={containerOpen} onOpenChange={containerOnOpenChange}>
                 <SheetContent
                     side="right"
                     className="w-full sm:w-[80vw] sm:max-w-[880px] p-0 overflow-hidden flex flex-col [&>button]:hidden"
                 >
-                    {!hideDrawerActions && (
+                    {!containerHideActions && (
                         <SheetHeader className="px-6 py-4 border-b shrink-0 flex flex-row items-center justify-between space-y-0">
-                            <SheetTitle>{drawerTitle}</SheetTitle>
+                            <SheetTitle>{containerTitle}</SheetTitle>
                             <div className="flex gap-2">
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={handleDrawerCancel}
+                                    onClick={handleContainerCancel}
                                 >
-                                    {drawerCancelLabel}
+                                    {containerCancelLabel}
                                 </Button>
                                 <Button
                                     type="button"
-                                    onClick={handleDrawerSubmit}
+                                    onClick={handleContainerSubmit}
                                     disabled={isSubmitting}
                                 >
-                                    {isSubmitting ? `${drawerSubmitLabel}...` : drawerSubmitLabel}
+                                    {isSubmitting ? `${containerSubmitLabel}...` : containerSubmitLabel}
                                 </Button>
                             </div>
                         </SheetHeader>
@@ -640,9 +742,9 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={onCancel}
+                        onClick={handleContainerCancel}
                     >
-                        {cancelLabel}
+                        {containerCancelLabel}
                     </Button>
                     <Button
                         type="submit"
@@ -652,7 +754,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                             form?.requestSubmit()
                         }}
                     >
-                        {isSubmitting ? `${submitLabel}...` : submitLabel}
+                        {isSubmitting ? `${containerSubmitLabel}...` : containerSubmitLabel}
                     </Button>
                 </div>
             )}

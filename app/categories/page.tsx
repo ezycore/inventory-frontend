@@ -6,16 +6,7 @@ import { Input } from '@ui/components/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
 import { Skeleton } from '@ui/components/skeleton'
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@ui/components/dialog'
-import { Label } from '@ui/components/label'
-import { Textarea } from '@ui/components/textarea'
+
 import { 
   useCategories, 
   useCreateCategory, 
@@ -27,17 +18,61 @@ import { queryKeys } from '@/lib/query-keys-products'
 import { toast } from 'sonner'
 import { Plus, Search, Edit, Trash2, Tag, AlertTriangle } from 'lucide-react'
 import type { Category, CreateCategoryDto } from '@/types/products'
+import { DynamicForm } from '@ui/components/form'
+import { useDynamicForm } from '@/hooks/use-dynamic-form'
+import { DynamicFormConfig } from '@/types/form'
 
+const categoryFormConfig: DynamicFormConfig = {
+  fields: [
+    {
+      name: 'name',
+      type: 'input',
+      label: 'Category Name',
+      placeholder: 'Enter category name',
+      required: true,
+      columnSpan: 12,
+      validation: {
+        minLength: 2,
+        maxLength: 100
+      }
+    },
+    {
+      name: 'description',
+      type: 'textarea',
+      label: 'Description',
+      placeholder: 'Enter category description',
+      rows: 3,
+      columnSpan: 12,
+      validation: {
+        maxLength: 500
+      }
+    },
+    {
+      name: 'status',
+      type: 'select',
+      label: 'Status',
+      required: true,
+      columnSpan: 12,
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' }
+      ]
+    }
+  ]
+}
 export default function CategoriesPage() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [formData, setFormData] = useState<CreateCategoryDto>({
+  
+  // Form setup
+  const defaultValues = editingCategory || { 
     name: '',
     description: '',
-    status: 'active'
-  })
+    status: 'active' as const
+  }
+  const { form } = useDynamicForm(categoryFormConfig, defaultValues)
 
   // Generate slug from name
   const generateSlug = (name: string) => {
@@ -62,18 +97,24 @@ export default function CategoriesPage() {
   ) || []
 
   const handleAddCategory = () => {
-    setFormData({ name: '', description: '', status: 'active' })
     setEditingCategory(null)
+    // Reset form to default values
+    form.reset({
+      name: '',
+      description: '',
+      status: 'active'
+    })
     setIsAddModalOpen(true)
   }
 
   const handleEditCategory = (category: Category) => {
-    setFormData({
+    setEditingCategory(category)
+    // Reset form with category data
+    form.reset({
       name: category.name,
       description: category.description || '',
       status: category.status
     })
-    setEditingCategory(category)
     setIsAddModalOpen(true)
   }
 
@@ -88,13 +129,11 @@ export default function CategoriesPage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const onSubmit = async (data: any) => {
     try {
       const dataWithSlug = {
-        ...formData,
-        slug: generateSlug(formData.name)
+        ...data,
+        slug: generateSlug(data.name)
       }
       
       if (editingCategory) {
@@ -239,69 +278,22 @@ export default function CategoriesPage() {
       </Card>
 
       {/* Add/Edit Category Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle>
-                {editingCategory ? 'Edit Category' : 'Add New Category'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingCategory 
-                  ? 'Update the category information below.'
-                  : 'Create a new category to organize your products.'
-                }
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="Category name"
-                  value={formData.name}
-                  onChange={(e) => setFormData((prev: CreateCategoryDto) => ({ ...prev, name: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Category description"
-                  value={formData.description}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData((prev: CreateCategoryDto) => ({ ...prev, description: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  value={formData.status}
-                  onChange={(e) => setFormData((prev: CreateCategoryDto) => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : editingCategory ? 'Update' : 'Create'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <DynamicForm
+        onSubmit={form.handleSubmit(onSubmit)}
+        config={categoryFormConfig}
+        control={form.control}
+        formState={form.formState}
+        watch={form.watch}
+        setValue={form.setValue}
+        getValues={form.getValues}
+        
+        openInside="modal"
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        title={editingCategory ? 'Edit Category' : 'Add New Category'}
+        submitLabel={editingCategory ? 'Update Category' : 'Create Category'}
+        modalSize="md"
+      />
     </div>
   )
 }
