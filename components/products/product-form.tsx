@@ -14,11 +14,9 @@ import {
 import { toast } from 'sonner'
 import { handleMutationError } from '@/lib/error-handling'
 import { ArrowLeft } from 'lucide-react'
-import type { CreateProductDto, Product } from '@/types'
 import { ProductStatus } from '@/types'
 import CustomFieldsManager from './custom-fields-manager'
 import { createProductFormConfig } from './product-form-config'
-import type { DynamicFormConfig } from '@/types/form'
 
 type ProductFormValues = any // Will be inferred from generated schema
 
@@ -27,37 +25,84 @@ interface ProductFormProps {
   mode: 'create' | 'edit'
   onSuccess?: (productId?: string, hasVariants?: boolean) => void
   onCancel?: () => void
-  
+
   // Display mode props
   asDrawer?: boolean
   drawerOpen?: boolean
   onDrawerOpenChange?: (open: boolean) => void
-  
+
   // Legacy props for backward compatibility
   isSidebar?: boolean
   formId?: string
   hideActions?: boolean
 }
 
-export default function ProductForm({ 
-  productId, 
-  mode, 
-  onSuccess, 
+// Generate slug from name
+const generateSlug = (name: string) => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+}
+
+// Generate barcode
+const generateBarcode = () => {
+  const timestamp = Date.now().toString().slice(-8)
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+  const barcode = `${timestamp}${random}`
+  // We'll set this in the form after it's created
+  return barcode
+}
+
+const handleNameChange = (name: string) => {
+  // This will be called after form is created
+  return { name, slug: generateSlug(name) }
+}
+
+export default function ProductForm({
+  productId,
+  mode,
+  onSuccess,
   onCancel,
-  
+
   // Display mode props
   asDrawer = false,
   drawerOpen = false,
   onDrawerOpenChange,
-  
+
   // Legacy props
-  isSidebar = false, 
-  formId = 'product-form', 
-  hideActions = false 
+  isSidebar = false,
+  formId = 'product-form',
+  hideActions = false
 }: ProductFormProps) {
   const router = useRouter()
   const [hasVariants, setHasVariants] = useState(false)
   const [productType, setProductType] = useState<'single' | 'variable'>('single')
+
+  // Register custom field renderers
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      ;(window as any).__customFieldRenderers = {
+        ...(window as any).__customFieldRenderers,
+        custom_fields: ({ control, maxCount }: any) => (
+          <CustomFieldsManager
+            control={control}
+            name="custom_fields"
+            maxFields={maxCount || 5}
+          />
+        )
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (typeof window !== 'undefined' && (window as any).__customFieldRenderers) {
+        delete (window as any).__customFieldRenderers.custom_fields
+      }
+    }
+  }, [])
 
   // Queries
   const { data: product, isLoading: productLoading } = useProduct(productId || '')
@@ -66,29 +111,7 @@ export default function ProductForm({
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
 
-  // Generate slug from name
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-  }
 
-  // Generate barcode
-  const generateBarcode = () => {
-    const timestamp = Date.now().toString().slice(-8)
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-    const barcode = `${timestamp}${random}`
-    // We'll set this in the form after it's created
-    return barcode
-  }
-
-  const handleNameChange = (name: string) => {
-    // This will be called after form is created
-    return { name, slug: generateSlug(name) }
-  }
 
   // Use dynamic form with auto-generated schema first
   const { form } = useDynamicForm<ProductFormValues>(
@@ -190,28 +213,7 @@ export default function ProductForm({
     handleGenerateBarcode
   )
 
-  // Add custom components for custom fields
-  const updatedFormConfig = {
-    ...finalFormConfig,
-    sections: finalFormConfig.sections.map(section => ({
-      ...section,
-      fields: section.fields.map(field => {
-        if (field.name === 'custom_fields') {
-          return {
-            ...field,
-            customComponent: ({ value, onChange, error }: any) => (
-              <CustomFieldsManager
-                control={form.control as any}
-                name="custom_fields"
-                maxFields={10}
-              />
-            )
-          }
-        }
-        return field
-      })
-    }))
-  }
+  // Form configuration handles the custom-fields type automatically
 
 
 
@@ -274,14 +276,14 @@ export default function ProductForm({
         id={formId}
         onSubmit={form.handleSubmit(onSubmit as any)}
         className="space-y-6"
-        config={updatedFormConfig}
+        config={finalFormConfig}
         control={form.control}
         formState={form.formState}
         watch={form.watch}
         setValue={form.setValue}
         getValues={form.getValues}
         onFieldChange={handleFieldChange}
-        
+
         // Drawer props
         asDrawer={true}
         drawerOpen={drawerOpen}
@@ -322,17 +324,17 @@ export default function ProductForm({
       )}
 
       <DynamicForm
-        id={formId} 
-        onSubmit={form.handleSubmit(onSubmit as any)} 
+        id={formId}
+        onSubmit={form.handleSubmit(onSubmit as any)}
         className="space-y-6"
-        config={updatedFormConfig}
+        config={finalFormConfig}
         control={form.control}
         formState={form.formState}
         watch={form.watch}
         setValue={form.setValue}
         getValues={form.getValues}
         onFieldChange={handleFieldChange}
-        
+
         // Form actions props
         showActions={!hideActions}
         cancelLabel="Cancel"

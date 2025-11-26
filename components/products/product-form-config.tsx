@@ -125,10 +125,6 @@ export const createProductFormConfig = (
             columnSpan: 6,
             optionsApi: `/brands`,
             placeholder: "Select brand",
-            onValueChange: (value) => {
-              // This will be handled in the product form component
-              return value === 'none' ? '' : value
-            }
           },
           {
             name: "unit_id",
@@ -291,7 +287,7 @@ export const createProductFormConfig = (
             customComponent: ({ value }: any) => (
               <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <p className="text-muted-foreground">
-                  Variable product selected. After creating the product, you'll be able to add variants with different attributes, prices, and stock levels.
+                  Variable product selected. After creating the product, you&apos;ll be able to add variants with different attributes, prices, and stock levels.
                 </p>
               </div>
             ),
@@ -336,38 +332,10 @@ export const createProductFormConfig = (
         fields: [
           {
             name: "custom_fields",
-            type: "custom",
-            label: "Custom Fields",
+            type: "custom-fields",
+            label: "",
             columnSpan: 12,
-            // This will be handled as a custom component
-            customComponent: null // Will be set in the product form component
-          },
-          {
-            name: "warranty_id",
-            type: "select",
-            label: "Warranty",
-            columnSpan: 6,
-            options: warrantyOptions,
-            placeholder: "Select"
-          },
-          {
-            name: "manufacturer",
-            type: "input",
-            label: "Manufacturer", 
-            columnSpan: 6,
-            placeholder: "Enter manufacturer"
-          },
-          {
-            name: "manufactured_date",
-            type: "date",
-            label: "Manufactured Date",
-            columnSpan: 6
-          },
-          {
-            name: "expiry_date", 
-            type: "date",
-            label: "Expiry On",
-            columnSpan: 6
+            maxCount: 5
           }
         ]
       }

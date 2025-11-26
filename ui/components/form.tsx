@@ -178,11 +178,8 @@ const FormField: React.FC<{
                                     handleChange(value)
                                     if (field.onValueChange) field.onValueChange(value)
                                 }}
-                                placeholder={field.placeholder}
-                                disabled={field.disabled}
                                 className={error ? 'border-red-500' : ''}
-                                options={field.options}
-                                optionsApi={field.optionsApi}
+                                {...field}
                                 error={error}
                             />
                         )}
@@ -359,6 +356,7 @@ const FormField: React.FC<{
                                 <CustomComponent
                                     {...controllerField}
                                     {...field.customProps}
+                                    control={control}
                                     onChange={(value: any) => {
                                         controllerField.onChange(value)
                                         handleChange(value)
@@ -370,6 +368,44 @@ const FormField: React.FC<{
                     )
                 }
                 return null
+
+            case 'custom-fields':
+                // Use a component registry approach - check if a custom field renderer is provided
+                if (typeof window !== 'undefined' && (window as any).__customFieldRenderers) {
+                    const renderers = (window as any).__customFieldRenderers
+                    const CustomRenderer = renderers[field.name]
+                    if (CustomRenderer) {
+                        return (
+                            <CustomRenderer
+                                control={control}
+                                name={field.name}
+                                maxCount={field.maxCount}
+                                error={error}
+                            />
+                        )
+                    }
+                }
+                
+                // Fallback to placeholder if no custom renderer found
+                return (
+                    <Controller
+                        name={field.name}
+                        control={control}
+                        render={({ field: controllerField }) => (
+                            <div className="p-4 border-2 border-dashed border-muted rounded-lg">
+                                <p className="text-center text-muted-foreground">
+                                    Custom field: {field.name}
+                                </p>
+                                <p className="text-xs text-center text-muted-foreground mt-1">
+                                    Type: {field.type} | Register a custom renderer to display this field
+                                </p>
+                                <p className="text-xs text-center text-muted-foreground mt-2">
+                                    Current value: {JSON.stringify(controllerField.value) || '[]'}
+                                </p>
+                            </div>
+                        )}
+                    />
+                )
 
             default:
                 return null
@@ -402,7 +438,7 @@ const FormField: React.FC<{
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                           { field.action.label }
+                            {field.action.label}
                         </TooltipContent>
                     </Tooltip>
                     )}
@@ -535,7 +571,7 @@ const FormContent: React.FC<{
                     maxColumns={12}
                 />
             ))}
-            
+
             {/* Render plain fields if no sections */}
             {config.fields && !config.sections && (
                 <div className="grid grid-cols-12 gap-3 sm:gap-4 w-full">
@@ -565,7 +601,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     getValues,
     className,
     onFieldChange,
-    
+
     // Container mode props
     openInside,
     open,
@@ -577,7 +613,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     onCancel,
     isSubmitting = false,
     hideActions = false,
-    
+
     // Legacy drawer props (backward compatibility)
     asDrawer = false,
     drawerOpen = false,
@@ -588,10 +624,10 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     onDrawerSubmit,
     onDrawerCancel,
     hideDrawerActions = false,
-    
+
     // Modal specific props
     modalSize = 'lg',
-    
+
     // Regular form actions props
     showActions = false,
     ...props
@@ -600,7 +636,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     const isDrawerMode = openInside === 'drawer' || (!openInside && asDrawer)
     const isModalMode = openInside === 'modal'
     const isContainerMode = isDrawerMode || isModalMode
-    
+
     // Unified props handling (new props take priority over legacy props)
     const containerOpen = open !== undefined ? open : drawerOpen
     const containerOnOpenChange = onOpenChange || onDrawerOpenChange
@@ -608,7 +644,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     const containerSubmitLabel = submitLabel !== "Submit" ? submitLabel : drawerSubmitLabel
     const containerCancelLabel = cancelLabel !== "Cancel" ? cancelLabel : drawerCancelLabel
     const containerHideActions = hideActions || hideDrawerActions
-    
+
     const handleContainerSubmit = () => {
         if (onSubmit) {
             onSubmit()
@@ -646,7 +682,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     // Modal size mapping
     const modalSizeClass = {
         sm: 'sm:max-w-md',
-        md: 'sm:max-w-lg', 
+        md: 'sm:max-w-lg',
         lg: 'sm:max-w-2xl',
         xl: 'sm:max-w-4xl',
         full: 'sm:max-w-[90vw]'
