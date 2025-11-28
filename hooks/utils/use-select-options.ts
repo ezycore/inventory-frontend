@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import type { SelectOption } from '@/types/form'
+import type { SelectOption } from '@/ui/components/form/type'
 
 /**
  * Generic utility hook for fetching select options from any API endpoint

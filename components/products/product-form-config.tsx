@@ -1,7 +1,8 @@
 import React from 'react'
 import { Plus, Wand2 } from 'lucide-react'
-import type { DynamicFormConfig } from '@/types/form'
+import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { toast } from 'sonner'
+import { ProductStatus } from '@/types'
 import {
   storeOptions,
   warehouseOptions,
@@ -89,7 +90,8 @@ export const createProductFormConfig = (
             required: true,
             columnSpan: 6,
             options: sellingTypeOptions,
-            placeholder: "Select selling type"
+            placeholder: "Select selling type",
+            defaultValue: "retail"
           },
           {
             name: "category_id",
@@ -124,7 +126,7 @@ export const createProductFormConfig = (
             label: "Brand",
             columnSpan: 6,
             optionsApi: `/brands`,
-            placeholder: "Select brand",
+            placeholder: "Select brand"
           },
           {
             name: "unit_id",
@@ -140,7 +142,8 @@ export const createProductFormConfig = (
             label: "Barcode Symbology",
             columnSpan: 6,
             options: barcodeSymbologyOptions,
-            placeholder: "Select symbology"
+            placeholder: "Select symbology",
+            defaultValue: "CODE128"
           },
           {
             name: "barcode",
@@ -177,6 +180,7 @@ export const createProductFormConfig = (
             label: "Product Type",
             required: true,
             columnSpan: 12,
+            defaultValue: "single",
             options: [
               { value: 'single', label: 'Single Product' },
               { value: 'variable', label: 'Variable Product' }
@@ -246,6 +250,7 @@ export const createProductFormConfig = (
             columnSpan: 4,
             options: discountTypeOptions,
             placeholder: "Select",
+            defaultValue: "fixed",
             showWhen: {
               field: "product_type_radio",
               value: "single"
@@ -258,6 +263,7 @@ export const createProductFormConfig = (
             required: true,
             columnSpan: 4,
             placeholder: "0",
+            defaultValue: 0,
             validation: { min: 0 },
             step: 0.01,
             showWhen: {
@@ -272,6 +278,7 @@ export const createProductFormConfig = (
             required: true,
             columnSpan: 12,
             placeholder: "10",
+            defaultValue: 10,
             validation: { min: 0 },
             showWhen: {
               field: "product_type_radio",

@@ -359,6 +359,7 @@ export default function ProductsPage() {
           if (!open) setEditingProductId(null)
         }}
         onSuccess={handleDrawerSuccess}
+
       />
     </div>
   )

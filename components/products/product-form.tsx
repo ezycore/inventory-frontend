@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useDynamicForm } from '@/hooks/use-dynamic-form'
 
 import { Button } from '@ui/components/button'
-import { DynamicForm } from '@ui/components/form'
+import DynamicForm from '@/ui/components/form'
 import {
   useCreateProduct,
   useUpdateProduct,
@@ -18,6 +18,7 @@ import { ProductStatus } from '@/types'
 import CustomFieldsManager from './custom-fields-manager'
 import { createProductFormConfig } from './product-form-config'
 
+
 type ProductFormValues = any // Will be inferred from generated schema
 
 interface ProductFormProps {
@@ -29,6 +30,8 @@ interface ProductFormProps {
   openInside?: 'drawer' | 'modal'
   open?: boolean
   onOpenChange?: (open: boolean) => void
+
+
 }
 
 // Generate slug from name
@@ -63,7 +66,9 @@ export default function ProductForm({
   // Container mode props
   openInside,
   open,
-  onOpenChange
+  onOpenChange,
+
+
 }: ProductFormProps) {
   const router = useRouter()
   const [hasVariants, setHasVariants] = useState(false)
@@ -100,38 +105,8 @@ export default function ProductForm({
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
 
-
-
-  // Use dynamic form with auto-generated schema first
-  const { form } = useDynamicForm<ProductFormValues>(
-    createProductFormConfig(),
-    {
-      name: '',
-      slug: '',
-      description: '',
-      category_id: '',
-      brand_id: '',
-      base_sku: '',
-      images: [],
-      status: ProductStatus.ACTIVE,
-      store_id: '',
-      warehouse_id: '',
-      sub_category_id: '',
-      unit_id: '',
-      barcode_symbology: 'CODE128',
-      barcode: '',
-      selling_type: 'retail',
-      tax_id: '',
-      discount_type: 'fixed',
-      discount_value: 0,
-      quantity_alert: 10,
-      warranty_id: '',
-      manufacturer: '',
-      manufactured_date: '',
-      expiry_date: '',
-      custom_fields: [],
-      product_type_radio: 'single',
-    })
+  // Use dynamic form with auto-generated schema and config defaults
+  const { form, config } = useDynamicForm<ProductFormValues>(createProductFormConfig())
 
   // Load existing product data for editing
   useEffect(() => {
@@ -206,41 +181,30 @@ export default function ProductForm({
 
 
 
-  const onSubmit = async (data: ProductFormValues) => {
-    try {
-      if (mode === 'create') {
-        const result = await createProduct.mutateAsync(data as any)
-        toast.success('Product created successfully')
 
-        if (onSuccess) {
-          // Modal mode - use callback
-          onSuccess(result as any)
-        } else {
-          // Regular mode - use router navigation
-          if (hasVariants) {
-            router.push(`/products/${(result as any)._id}/variants`)
-          } else {
-            router.push('/products')
-          }
-        }
-      } else if (mode === 'edit' && productId) {
-        await updateProduct.mutateAsync({ id: productId, ...data } as any)
-        toast.success('Product updated successfully')
 
-        if (onSuccess) {
-          // Modal mode - use callback
-          onSuccess()
-        } else {
-          // Regular mode - use router navigation
-          router.push('/products')
-        }
+  // Mutation-based form handlers
+  const handleActionSuccess = (result: any, data: any) => {
+    const successMessage = mode === 'create' ? 'Product created successfully' : 'Product updated successfully'
+    toast.success(successMessage)
+
+    if (onSuccess) {
+      // For update mutation, result contains the updated data directly
+      // For create mutation, result is the new product
+      const resultProductId = mode === 'create' ? result?._id : productId
+      onSuccess(resultProductId, hasVariants)
+    } else {
+      if (mode === 'create' && hasVariants) {
+        router.push(`/products/${result?._id}/variants`)
+      } else {
+        router.push('/products')
       }
-    } catch (error) {
-      handleMutationError(error)
     }
   }
 
-  const isLoading = createProduct.isPending || updateProduct.isPending || productLoading
+  const handleActionError = (error: any, data: any) => {
+    handleMutationError(error)
+  }
 
   const handleContainerCancel = () => {
     if (onCancel) {
@@ -254,23 +218,16 @@ export default function ProductForm({
 
   const containerTitle = mode === 'create' ? 'Create New Product' : 'Update Product'
   const submitLabel = mode === 'create' ? 'Create Product' : 'Update Product'
-
   if (openInside) {
     return (
       <DynamicForm
         id='product-form'
-        onSubmit={form.handleSubmit(onSubmit as any)}
         className="space-y-6"
+        form={form}
         config={finalFormConfig}
-        control={form.control}
-        formState={form.formState}
-        watch={form.watch}
-        setValue={form.setValue}
-        getValues={form.getValues}
         onFieldChange={handleFieldChange}
 
         // Container props
-        actionsPlacement='top'
         openInside={openInside}
         open={open}
         onOpenChange={onOpenChange}
@@ -278,7 +235,17 @@ export default function ProductForm({
         submitLabel={submitLabel}
         cancelLabel="Cancel"
         onCancel={handleContainerCancel}
-        isSubmitting={isLoading}
+
+        // Form actions props
+        actionsPlacement="top"
+
+        // Content loading for edit mode
+        contentLoading={mode === 'edit' && productLoading}
+
+        // Mutation hook
+        mutationHook={mode === 'create' ? createProduct : updateProduct}
+        onSuccess={handleActionSuccess}
+        onFailed={handleActionError}
       />
     )
   }
@@ -309,22 +276,23 @@ export default function ProductForm({
 
       <DynamicForm
         id='product-form'
-        onSubmit={form.handleSubmit(onSubmit as any)}
         className="space-y-6"
         config={finalFormConfig}
-        control={form.control}
-        formState={form.formState}
-        watch={form.watch}
-        setValue={form.setValue}
-        getValues={form.getValues}
+        form={form}
         onFieldChange={handleFieldChange}
 
         // Form actions props
-        actionsPlacement="top"
         cancelLabel="Cancel"
-        submitLabel={isLoading ? 'Saving...' : mode === 'create' ? 'Create Product' : 'Update Product'}
+        submitLabel={submitLabel}
         onCancel={() => onCancel ? onCancel() : router.back()}
-        isSubmitting={isLoading}
+
+        // Content loading for edit mode
+        contentLoading={mode === 'edit' && productLoading}
+
+        // Mutation hook
+        mutationHook={mode === 'create' ? createProduct : updateProduct}
+        onSuccess={handleActionSuccess}
+        onFailed={handleActionError}
       />
     </div>
   )

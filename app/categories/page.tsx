@@ -7,20 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/c
 import { Badge } from '@ui/components/badge'
 import { Skeleton } from '@ui/components/skeleton'
 
-import { 
-  useCategories, 
-  useCreateCategory, 
-  useUpdateCategory, 
-  useDeleteCategory 
+import {
+  useCategories,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory
 } from '@/hooks/queries'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys-products'
 import { toast } from 'sonner'
 import { Plus, Search, Edit, Trash2, Tag, AlertTriangle } from 'lucide-react'
-import type { Category, CreateCategoryDto } from '@/types/products'
-import { DynamicForm } from '@ui/components/form'
+import type { Category } from '@/types/products'
+import DynamicForm from '@/ui/components/form'
 import { useDynamicForm } from '@/hooks/use-dynamic-form'
-import { DynamicFormConfig } from '@/types/form'
+import type { DynamicFormConfig } from '@/ui/components/form/type'
 
 const categoryFormConfig: DynamicFormConfig = {
   fields: [
@@ -53,6 +53,7 @@ const categoryFormConfig: DynamicFormConfig = {
       label: 'Status',
       required: true,
       columnSpan: 12,
+      defaultValue: 'active',
       options: [
         { value: 'active', label: 'Active' },
         { value: 'inactive', label: 'Inactive' }
@@ -65,14 +66,6 @@ export default function CategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  
-  // Form setup
-  const defaultValues = editingCategory || { 
-    name: '',
-    description: '',
-    status: 'active' as const
-  }
-  const { form } = useDynamicForm(categoryFormConfig, defaultValues)
 
   // Generate slug from name
   const generateSlug = (name: string) => {
@@ -84,6 +77,9 @@ export default function CategoriesPage() {
       .trim()
   }
 
+  const { form, config } = useDynamicForm<typeof categoryFormConfig>(categoryFormConfig)
+
+
   // Queries
   const { data: categories, isLoading, error } = useCategories()
   const createCategory = useCreateCategory()
@@ -91,30 +87,18 @@ export default function CategoriesPage() {
   const deleteCategory = useDeleteCategory()
 
   // Filter categories based on search
-  const filteredCategories = ((categories as any)?.data?.items || []).filter((category: any) => 
+  const filteredCategories = ((categories as any)?.data?.items || []).filter((category: any) =>
     category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     category.description?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || []
 
   const handleAddCategory = () => {
     setEditingCategory(null)
-    // Reset form to default values
-    form.reset({
-      name: '',
-      description: '',
-      status: 'active'
-    })
     setIsAddModalOpen(true)
   }
 
   const handleEditCategory = (category: Category) => {
     setEditingCategory(category)
-    // Reset form with category data
-    form.reset({
-      name: category.name,
-      description: category.description || '',
-      status: category.status
-    })
     setIsAddModalOpen(true)
   }
 
@@ -129,28 +113,19 @@ export default function CategoriesPage() {
     }
   }
 
-  const onSubmit = async (data: any) => {
-    try {
-      const dataWithSlug = {
-        ...data,
-        slug: generateSlug(data.name)
-      }
-      
-      if (editingCategory) {
-        await updateCategory.mutateAsync({ id: editingCategory._id, ...dataWithSlug })
-        toast.success('Category updated successfully')
-      } else {
-        await createCategory.mutateAsync(dataWithSlug)
-        toast.success('Category created successfully')
-      }
-      setIsAddModalOpen(false)
-      queryClient.invalidateQueries({ queryKey: queryKeys.category.all() })
-    } catch (error) {
-      toast.error(`Failed to ${editingCategory ? 'update' : 'create'} category`)
+  const handleFormSubmit = async (data: any) => {
+    const dataWithSlug = {
+      ...data,
+      slug: generateSlug(data.name)
     }
+
+    if (editingCategory) {
+      return { id: editingCategory._id, ...dataWithSlug }
+    }
+    return dataWithSlug
   }
 
-  const isSubmitting = createCategory.isPending || updateCategory.isPending
+  const mutationHook = editingCategory ? updateCategory : createCategory
 
   if (error) {
     return (
@@ -279,20 +254,25 @@ export default function CategoriesPage() {
 
       {/* Add/Edit Category Modal */}
       <DynamicForm
-        onSubmit={form.handleSubmit(onSubmit)}
-        config={categoryFormConfig}
-        control={form.control}
-        formState={form.formState}
-        watch={form.watch}
-        setValue={form.setValue}
-        getValues={form.getValues}
-        
+        mutationHook={mutationHook}
+        contentLoading={isLoading && !!editingCategory}
+        form={form}
+        config={config}
         openInside="modal"
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         title={editingCategory ? 'Edit Category' : 'Add New Category'}
         submitLabel={editingCategory ? 'Update Category' : 'Create Category'}
         modalSize="md"
+        
+        onSuccess={() => {
+          setIsAddModalOpen(false)
+          toast.success(`Category ${editingCategory ? 'updated' : 'created'} successfully`)
+          queryClient.invalidateQueries({ queryKey: queryKeys.category.all() })
+        }}
+        onError={() => {
+          toast.error(`Failed to ${editingCategory ? 'update' : 'create'} category`)
+        }}
       />
     </div>
   )

@@ -29,7 +29,7 @@ import {
 } from '@ui/components/select'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@ui/lib/utils'
-import type { SelectOption } from '@/types/form'
+import type { SelectOption } from '@/ui/components/form/type'
 import { MultiSelect } from './multi-select'
 
 interface AdvancedSelectProps {

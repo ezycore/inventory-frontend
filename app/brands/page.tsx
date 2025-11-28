@@ -32,10 +32,10 @@ import {
   Copy,
 } from "lucide-react";
 import type { Brand } from "@/types/products";
-import { DynamicForm } from "@ui/components/form";
+import DynamicForm from "@/ui/components/form";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 
-import type { DynamicFormConfig } from "@/types/form";
+import type { DynamicFormConfig } from "@/ui/components/form/type";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/ui/components/dataTable/index";
 
