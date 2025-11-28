@@ -619,7 +619,7 @@ export default function BrandsPage() {
               pageSizeOptions: [5, 10, 15, 20, 50],
               onPaginationChange: (newPagination) => {
                 console.log("Pagination changed:", newPagination);
-                setPagination(newPagination);
+                // setPagination(newPagination);
               },
             }}
             rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
