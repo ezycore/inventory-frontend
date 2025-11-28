@@ -4,7 +4,6 @@ import { Button } from "@ui/components/button";
 import {
   Plus
 } from "lucide-react";
-import SalesDrawer from "@/components/sales/sales-drawer";
 
 export default function SalesPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -26,14 +25,14 @@ export default function SalesPage() {
           Add Sales
         </Button>
       </div>
-      {isDrawerOpen && (
+      {/* {isDrawerOpen && (
         <SalesDrawer
           open={isDrawerOpen}
           onOpenChange={setIsDrawerOpen}
           productId={null}
           onSuccess={() => {}}
         />
-      )}
+      )} */}
     </div>
   );
 }

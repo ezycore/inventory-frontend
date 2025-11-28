@@ -97,6 +97,7 @@ export interface CustomField {
   required: boolean
   placeholder?: string
   options?: CustomFieldOption[]
+  columnSpan?: 6 | 12
   validation?: {
     min?: number
     max?: number
