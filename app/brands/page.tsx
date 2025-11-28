@@ -76,6 +76,7 @@ const data: Payment[] = [
 
 export type Payment = {
   id: string;
+  name: string;
   amount: number;
   status: "pending" | "processing" | "success" | "failed";
   email: string;
@@ -504,7 +505,14 @@ export default function BrandsPage() {
                   </div>
                 </div>
               ))} */}
-              <DataTable columns={columns} data={filteredBrands} />
+              <DataTable 
+              columns={columns} 
+              data={filteredBrands} 
+              searchConfig={{
+                searchableColumn: "name",
+                placeholder: "Search by name"
+              }}
+              />
             </div>
           )}
         </CardContent>
