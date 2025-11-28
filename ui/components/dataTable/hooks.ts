@@ -4,7 +4,7 @@ import { DataTablePagination } from "@/types/DataTable";
 
 export function usePaginationState(pagination?: DataTablePagination) {
  const paginationState: PaginationState = {
-  pageIndex: pagination?.pageIndex ?? 0,
+  pageIndex: pagination?.pageIndex ?? 1,
   pageSize: pagination?.pageSize ?? 10,
  };
 
