@@ -351,11 +351,10 @@ export default function ProductsPage() {
 
       {/* Product Form Drawer */}
       <ProductForm 
-        mode={editingProductId ? 'edit' : 'create'}
         productId={editingProductId || undefined}
-        asDrawer={true}
-        drawerOpen={isDrawerOpen}
-        onDrawerOpenChange={(open) => {
+        openInside="drawer"
+        open={isDrawerOpen}
+        onOpenChange={(open) => {
           setIsDrawerOpen(open)
           if (!open) setEditingProductId(null)
         }}

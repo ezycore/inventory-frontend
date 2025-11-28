@@ -22,14 +22,13 @@ type ProductFormValues = any // Will be inferred from generated schema
 
 interface ProductFormProps {
   productId?: string
-  mode: 'create' | 'edit'
   onSuccess?: (productId?: string, hasVariants?: boolean) => void
   onCancel?: () => void
 
-  // Display mode props
-  asDrawer?: boolean
-  drawerOpen?: boolean
-  onDrawerOpenChange?: (open: boolean) => void
+  // Container mode props
+  openInside?: 'drawer' | 'modal'
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 // Generate slug from name
@@ -58,18 +57,18 @@ const handleNameChange = (name: string) => {
 
 export default function ProductForm({
   productId,
-  mode,
   onSuccess,
   onCancel,
 
-  // Display mode props
-  asDrawer = false,
-  drawerOpen = false,
-  onDrawerOpenChange
+  // Container mode props
+  openInside,
+  open,
+  onOpenChange
 }: ProductFormProps) {
   const router = useRouter()
   const [hasVariants, setHasVariants] = useState(false)
   const [productType, setProductType] = useState<'single' | 'variable'>('single')
+  const mode = productId ? 'edit' : 'create'
 
   // Register custom field renderers
   useEffect(() => {
@@ -243,24 +242,20 @@ export default function ProductForm({
 
   const isLoading = createProduct.isPending || updateProduct.isPending || productLoading
 
-  const handleDrawerSubmit = () => {
-    form.handleSubmit(onSubmit as any)()
-  }
-
-  const handleDrawerCancel = () => {
+  const handleContainerCancel = () => {
     if (onCancel) {
       onCancel()
-    } else if (onDrawerOpenChange) {
-      onDrawerOpenChange(false)
+    } else if (onOpenChange) {
+      onOpenChange(false)
     } else {
       router.back()
     }
   }
 
-  const drawerTitle = mode === 'create' ? 'Create New Product' : 'Update Product'
+  const containerTitle = mode === 'create' ? 'Create New Product' : 'Update Product'
   const submitLabel = mode === 'create' ? 'Create Product' : 'Update Product'
 
-  if (asDrawer) {
+  if (openInside) {
     return (
       <DynamicForm
         id='product-form'
@@ -274,15 +269,15 @@ export default function ProductForm({
         getValues={form.getValues}
         onFieldChange={handleFieldChange}
 
-        // Drawer props
-        asDrawer={true}
-        drawerOpen={drawerOpen}
-        onDrawerOpenChange={onDrawerOpenChange}
-        drawerTitle={drawerTitle}
-        drawerSubmitLabel={submitLabel}
-        drawerCancelLabel="Cancel"
-        onDrawerSubmit={handleDrawerSubmit}
-        onDrawerCancel={handleDrawerCancel}
+        // Container props
+        actionsPlacement='top'
+        openInside={openInside}
+        open={open}
+        onOpenChange={onOpenChange}
+        title={containerTitle}
+        submitLabel={submitLabel}
+        cancelLabel="Cancel"
+        onCancel={handleContainerCancel}
         isSubmitting={isLoading}
       />
     )

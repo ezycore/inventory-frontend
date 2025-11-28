@@ -145,20 +145,7 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   cancelLabel?: string
   onSubmit?: () => void
   onCancel?: () => void
-  isSubmitting?: boolean
-  hideActions?: boolean
-  
-  // Legacy drawer props (for backward compatibility)
-  asDrawer?: boolean
-  drawerOpen?: boolean
-  onDrawerOpenChange?: (open: boolean) => void
-  drawerTitle?: string
-  drawerSubmitLabel?: string
-  drawerCancelLabel?: string
-  onDrawerSubmit?: () => void
-  onDrawerCancel?: () => void
-  hideDrawerActions?: boolean
-  
+  isSubmitting?: boolean  
   // Modal specific props
   modalSize?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   

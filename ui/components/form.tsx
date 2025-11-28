@@ -612,19 +612,6 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     onSubmit,
     onCancel,
     isSubmitting = false,
-    hideActions = false,
-
-    // Legacy drawer props (backward compatibility)
-    asDrawer = false,
-    drawerOpen = false,
-    onDrawerOpenChange,
-    drawerTitle,
-    drawerSubmitLabel = "Submit",
-    drawerCancelLabel = "Cancel",
-    onDrawerSubmit,
-    onDrawerCancel,
-    hideDrawerActions = false,
-
     // Modal specific props
     modalSize = 'lg',
 
@@ -634,21 +621,10 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 }) => {
     const isDrawerMode = openInside === 'drawer';
     const isModalMode = openInside === 'modal';
-    const isContainerMode = isDrawerMode || isModalMode
-
-    // Unified props handling (new props take priority over legacy props)
-    const containerOpen = open !== undefined ? open : drawerOpen
-    const containerOnOpenChange = onOpenChange || onDrawerOpenChange
-    const containerTitle = title || drawerTitle
-    const containerSubmitLabel = submitLabel !== "Submit" ? submitLabel : drawerSubmitLabel
-    const containerCancelLabel = cancelLabel !== "Cancel" ? cancelLabel : drawerCancelLabel
-    const containerHideActions = hideActions || hideDrawerActions
 
     const handleContainerSubmit = () => {
         if (onSubmit) {
             onSubmit()
-        } else if (onDrawerSubmit) {
-            onDrawerSubmit()
         } else {
             // Fallback: try to submit the form
             const form = document.getElementById(props.id || 'dynamic-form') as HTMLFormElement
@@ -659,10 +635,8 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     const handleContainerCancel = () => {
         if (onCancel) {
             onCancel()
-        } else if (onDrawerCancel) {
-            onDrawerCancel()
-        } else if (containerOnOpenChange) {
-            containerOnOpenChange(false)
+        } else if (onOpenChange) {
+            onOpenChange(false)
         }
     }
 
@@ -687,13 +661,23 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         full: 'sm:max-w-[90vw]'
     }[modalSize]
 
+
+    const formActions = (<div className={openInside ? "flex justify-end space-x-4 mt-6" : ''}>
+        <Button type="button" variant="outline" onClick={handleContainerCancel}>
+            {cancelLabel}
+        </Button>
+        <Button type="submit" disabled={isSubmitting} onClick={handleContainerSubmit}>
+            {isSubmitting ? `${submitLabel}...` : submitLabel}
+        </Button>
+    </div>)
+
     // Render modal mode
     if (isModalMode) {
         return (
-            <Dialog open={containerOpen} onOpenChange={containerOnOpenChange}>
+            <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent className={`${modalSizeClass} max-h-[90vh] flex flex-col p-0`}>
                     <DialogHeader className="px-6 pt-6 pb-2">
-                        <DialogTitle>{containerTitle}</DialogTitle>
+                        <DialogTitle>{title}</DialogTitle>
                     </DialogHeader>
 
                     <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -703,20 +687,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     </div>
 
                     <DialogFooter className="gap-2 px-6 pb-6 pt-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleContainerCancel}
-                        >
-                            {containerCancelLabel}
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={handleContainerSubmit}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? `${containerSubmitLabel}...` : containerSubmitLabel}
-                        </Button>
+                       {formActions}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -724,41 +695,19 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     }
 
 
-    const formActions = <div className="flex justify-end space-x-4 mt-6">
-        <Button type="button" variant="outline" onClick={handleContainerCancel}>
-            {containerCancelLabel}
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? `${containerSubmitLabel}...` : containerSubmitLabel}
-        </Button>
-    </div>
-
     // Render drawer mode
     if (isDrawerMode) {
         return (
-            <Sheet open={containerOpen} onOpenChange={containerOnOpenChange}>
+            <Sheet open={open} onOpenChange={onOpenChange}>
                 <SheetContent
                     side="right"
                     className="w-full sm:w-[80vw] sm:max-w-[880px] p-0 overflow-hidden flex flex-col [&>button]:hidden"
                 >
 
                     <SheetHeader className="px-6 py-4 border-b shrink-0 flex flex-row items-center justify-between space-y-0">
-                        <SheetTitle>{containerTitle}</SheetTitle>
+                        <SheetTitle>{title}</SheetTitle>
                         <div className="flex gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleContainerCancel}
-                            >
-                                {containerCancelLabel}
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={handleContainerSubmit}
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? `${containerSubmitLabel}...` : containerSubmitLabel}
-                            </Button>
+                            {formActions}
                         </div>
                     </SheetHeader>
 
@@ -774,8 +723,6 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     }
 
     // Regular form mode
-
-
     return (
         <div>
             <form {...props}>
