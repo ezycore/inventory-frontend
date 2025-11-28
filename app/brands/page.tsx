@@ -37,7 +37,7 @@ import { useDynamicForm } from "@/hooks/use-dynamic-form";
 
 import type { DynamicFormConfig } from "@/types/form";
 import { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "@/ui/components/DataTable";
+import { DataTable } from "@/ui/components/dataTable/index";
 
 // Demo data for testing all features
 const DEMO_BRANDS: Brand[] = [
