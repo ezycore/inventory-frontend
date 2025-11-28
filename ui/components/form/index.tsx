@@ -20,6 +20,7 @@ import { Button } from '../button'
 import { FC, useCallback } from 'react'
 import { FormContent } from './helper'
 import { cn } from '@/ui/lib/utils';
+import { Spinner } from '../spinner';
 
 
 const DynamicForm: FC<DynamicFormProps> = ({
@@ -54,46 +55,40 @@ const DynamicForm: FC<DynamicFormProps> = ({
     ...props
 }) => {
 
-    const { control, formState, setValue, watch, getValues } = form as any;
-    const { onSubmit: originalOnSubmit, ...formProps } = props as any
+    const { control, formState, setValue, watch, handleSubmit } = form as any;
     const isDrawerMode = openInside === 'drawer';
     const isModalMode = openInside === 'modal';
 
     const isActuallySubmitting = isSubmitting || mutationHook?.isPending
-    console.log("isActuallySubmitting:", mutationHook);
-
-    // Common submit handler that works for both mutation and legacy approaches
-    const handleFormSubmit = useCallback((e: React.FormEvent) => {
-        e.preventDefault()
-
+    
+    // Form submission handler that works with React Hook Form
+    const handleFormSubmit = useCallback((data: any) => {
         if (mutationHook) {
-            // Mutation-based submission
-            const data = getValues()
-            mutationHook.mutate(data, {
+            // Apply onSubmit transformation if provided
+            let processedData = data
+
+            mutationHook.mutate(processedData, {
                 onSuccess: (result: any) => {
                     if (onSuccess) {
-                        onSuccess(result, data)
+                        onSuccess(result, processedData)
                     }
                 },
                 onError: (error: any) => {
                     if (onFailed) {
-                        onFailed(error, data)
+                        onFailed(error, processedData)
                     }
                 }
             })
-        } else if (originalOnSubmit) {
+        } else if (onSubmit) {
             // Legacy onSubmit handler
-            originalOnSubmit(e)
+            onSubmit(data)
         }
-    }, [mutationHook, getValues, onSuccess, onFailed, originalOnSubmit])
+    }, [mutationHook, onSubmit, onSuccess, onFailed])
 
     const handleContainerSubmit = () => {
-        if (onSubmit) {
-            onSubmit()
-        } else {
-            // Fallback: try to submit the form
-            const form = document.getElementById(props.id || 'dynamic-form') as HTMLFormElement
-            form?.requestSubmit()
+        // Trigger form submission through React Hook Form
+        if (handleSubmit) {
+            handleSubmit(handleFormSubmit)()
         }
     }
 
@@ -154,8 +149,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
         <Button type="button" variant="outline" onClick={handleContainerCancel}>
             {cancelLabel}
         </Button>
-        <Button type="submit" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
-            {isActuallySubmitting ? `${submitLabel}...` : submitLabel}
+        <Button type="submit" loading={isActuallySubmitting} disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
+            {submitLabel}
         </Button>
     </div>)
 
@@ -173,8 +168,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
 
                     <div className="flex-1 overflow-y-auto px-6">
                         <form
-                            {...formProps}
-                            onSubmit={handleFormSubmit}
+                            {...props}
+                            onSubmit={handleSubmit(handleFormSubmit)}
                         >
                             {formContent}
                         </form>
@@ -210,8 +205,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
 
                     <div className="flex-1 overflow-y-auto px-6 pb-6">
                         <form
-                            {...formProps}
-                            onSubmit={handleFormSubmit}
+                            {...props}
+                            onSubmit={handleSubmit(handleFormSubmit)}
                         >
                             {formContent}
                             {actionsPlacement === 'bottom' && formActions}
@@ -226,8 +221,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
     return (
         <div>
             <form
-                {...formProps}
-                onSubmit={handleFormSubmit}
+                {...props}
+                onSubmit={handleSubmit(handleFormSubmit)}
             >
                 {actionsPlacement === 'top' && formActions}
                 {formContent}
