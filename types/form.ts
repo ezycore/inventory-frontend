@@ -163,7 +163,7 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   modalSize?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   
   // Regular form actions props
-  showActions?: boolean
+  actionsPlacement?: 'top' | 'bottom' | 'both'
 }
 
 // Schema generation utility

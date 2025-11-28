@@ -30,11 +30,6 @@ interface ProductFormProps {
   asDrawer?: boolean
   drawerOpen?: boolean
   onDrawerOpenChange?: (open: boolean) => void
-
-  // Legacy props for backward compatibility
-  isSidebar?: boolean
-  formId?: string
-  hideActions?: boolean
 }
 
 // Generate slug from name
@@ -70,12 +65,7 @@ export default function ProductForm({
   // Display mode props
   asDrawer = false,
   drawerOpen = false,
-  onDrawerOpenChange,
-
-  // Legacy props
-  isSidebar = false,
-  formId = 'product-form',
-  hideActions = false
+  onDrawerOpenChange
 }: ProductFormProps) {
   const router = useRouter()
   const [hasVariants, setHasVariants] = useState(false)
@@ -84,7 +74,7 @@ export default function ProductForm({
   // Register custom field renderers
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      ;(window as any).__customFieldRenderers = {
+      ; (window as any).__customFieldRenderers = {
         ...(window as any).__customFieldRenderers,
         custom_fields: ({ control, maxCount }: any) => (
           <CustomFieldsManager
@@ -273,7 +263,7 @@ export default function ProductForm({
   if (asDrawer) {
     return (
       <DynamicForm
-        id={formId}
+        id='product-form'
         onSubmit={form.handleSubmit(onSubmit as any)}
         className="space-y-6"
         config={finalFormConfig}
@@ -302,29 +292,28 @@ export default function ProductForm({
   return (
     <div className="container mx-auto py-6 max-w-6xl">
       {/* Header */}
-      {!isSidebar && (
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">
-                {mode === 'create' ? 'Create Product' : 'Edit Product'}
-              </h1>
-              <p className="text-muted-foreground">
-                {mode === 'create' ? 'Create new product' : 'Update product information'}
-              </p>
-            </div>
-          </div>
+
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
           <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
-            Back to Product
+            <ArrowLeft className="h-4 w-4" />
           </Button>
+          <div>
+            <h1 className="text-3xl font-bold">
+              {mode === 'create' ? 'Create Product' : 'Edit Product'}
+            </h1>
+            <p className="text-muted-foreground">
+              {mode === 'create' ? 'Create new product' : 'Update product information'}
+            </p>
+          </div>
         </div>
-      )}
+        <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
+          Back to Product
+        </Button>
+      </div>
 
       <DynamicForm
-        id={formId}
+        id='product-form'
         onSubmit={form.handleSubmit(onSubmit as any)}
         className="space-y-6"
         config={finalFormConfig}
@@ -336,7 +325,7 @@ export default function ProductForm({
         onFieldChange={handleFieldChange}
 
         // Form actions props
-        showActions={!hideActions}
+        actionsPlacement="top"
         cancelLabel="Cancel"
         submitLabel={isLoading ? 'Saving...' : mode === 'create' ? 'Create Product' : 'Update Product'}
         onCancel={() => onCancel ? onCancel() : router.back()}
