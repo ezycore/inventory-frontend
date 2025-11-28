@@ -15,7 +15,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@ui/components/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
+
 import { 
   Dialog, 
   DialogContent, 
@@ -65,6 +65,7 @@ function CustomFieldBuilder({ field, onSave, onCancel, isOpen }: CustomFieldBuil
     required: field?.required || false,
     placeholder: field?.placeholder || '',
     options: field?.options || [],
+    columnSpan: field?.columnSpan || 6,
     validation: field?.validation || {},
   })
 
@@ -183,6 +184,25 @@ function CustomFieldBuilder({ field, onSave, onCancel, isOpen }: CustomFieldBuil
             <Label htmlFor="field-required" className="cursor-pointer">
               Required field
             </Label>
+          </div>
+
+          {/* Column Size */}
+          <div className="space-y-2">
+            <Label>Column Size</Label>
+            <RadioGroup
+              value={fieldData.columnSpan?.toString() || "6"}
+              onValueChange={(value) => setFieldData({ ...fieldData, columnSpan: parseInt(value) as 6 | 12 })}
+              className="flex gap-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="6" id="col-6" />
+                <Label htmlFor="col-6" className="cursor-pointer">Half Width (6/12)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="12" id="col-12" />
+                <Label htmlFor="col-12" className="cursor-pointer">Full Width (12/12)</Label>
+              </div>
+            </RadioGroup>
           </div>
 
           {/* Options for Select/Radio */}
@@ -421,7 +441,7 @@ function CustomFieldRenderer({ field, value, onChange, error }: {
     case CustomFieldType.SELECT:
       return (
         <Select value={value || ''} onValueChange={handleChange}>
-          <SelectTrigger className={error ? 'border-red-500' : ''}>
+          <SelectTrigger className={`w-full ${error ? 'border-red-500' : ''}`}>
             <SelectValue placeholder={field.placeholder || 'Select an option'} />
           </SelectTrigger>
           <SelectContent>
@@ -509,77 +529,67 @@ export default function CustomFieldsManager({ control, name, maxFields = 10 }: C
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Custom Fields</h3>
-          <p className="text-sm text-muted-foreground">
-            Add up to {maxFields} custom fields to collect additional product information
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setBuilderOpen(true)}
-          disabled={fields.length >= maxFields}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Field
-        </Button>
+      <div className="flex items-center justify-end">
+        {fields.length < maxFields && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setBuilderOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Field
+          </Button>
+        )}
       </div>
 
       {/* Existing Fields */}
       {fields.length > 0 && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-12 gap-3 sm:gap-4 w-full">
           {fields.map((field, index) => {
             const customField = field as CustomField
+            const columnSpan = customField.columnSpan || 6
+            const colSpanClass = columnSpan === 12 ? 'col-span-12' : 'col-span-12 sm:col-span-6'
+            
             return (
-              <Card key={field.id} className="relative">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">
-                      {customField.label}
-                      {customField.required && <span className="text-red-500 ml-1">*</span>}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditDialog(index, customField)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteField(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+              <div key={field.id} className={`${colSpanClass} w-full min-w-0 flex flex-col`}>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor={`custom-field-${customField.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {customField.label}
+                    {customField.required && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => openEditDialog(index, customField)}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => handleDeleteField(index)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Type: {FIELD_TYPE_OPTIONS.find(opt => opt.value === customField.type)?.label}
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Label htmlFor={`custom-field-${customField.id}`}>
-                      {customField.label}
-                      {customField.required && <span className="text-red-500 ml-1">*</span>}
-                    </Label>
-                    <CustomFieldRenderer
-                      field={customField}
-                      value={customField.value}
-                      onChange={(value) => {
-                        const updatedField = { ...customField, value }
-                        update(index, updatedField)
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+                <CustomFieldRenderer
+                  field={customField}
+                  value={customField.value}
+                  onChange={(value) => {
+                    const updatedField = { ...customField, value }
+                    update(index, updatedField)
+                  }}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Type: {FIELD_TYPE_OPTIONS.find(opt => opt.value === customField.type)?.label}
+                </p>
+              </div>
             )
           })}
         </div>

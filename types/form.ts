@@ -12,6 +12,7 @@ export type FormFieldType =
   | 'date'
   | 'number'
   | 'custom'
+  | 'custom-fields'
 
 export type ColumnSpan = 1 | 2 | 3 | 4 | 6 | 12
 
@@ -63,6 +64,11 @@ export interface FormFieldConfig {
   multiple?: boolean // For file upload and select
   step?: number // For number inputs
   helperText?: string
+  
+  // Multi-select specific properties
+  maxCount?: number // Maximum number of selected items
+  modalPopover?: boolean // Use modal popover for multi-select
+  variant?: 'default' | 'secondary' | 'destructive' | 'inverted' // Multi-select variant
   
   // File upload specific
   fileTypes?: string[] // Array of allowed file extensions ['jpg', 'png', 'pdf']
@@ -222,14 +228,48 @@ export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema
           
         case 'radio-group':
         case 'select':
-          if (field.enumValues) {
-            fieldSchema = z.enum(field.enumValues as [string, ...string[]])
-          } else if (field.options) {
-            const values = field.options.map(opt => opt.value) as [string, ...string[]]
-            fieldSchema = z.enum(values)
+          if (field.multiple) {
+            // Multi-select should be array of strings
+            if (field.enumValues) {
+              fieldSchema = z.array(z.enum(field.enumValues as [string, ...string[]]))
+            } else if (field.options) {
+              const values = field.options.map(opt => opt.value) as [string, ...string[]]
+              fieldSchema = z.array(z.enum(values))
+            } else {
+              fieldSchema = z.array(z.string())
+            }
           } else {
-            fieldSchema = z.string()
+            // Single select
+            if (field.enumValues) {
+              fieldSchema = z.enum(field.enumValues as [string, ...string[]])
+            } else if (field.options) {
+              const values = field.options.map(opt => opt.value) as [string, ...string[]]
+              fieldSchema = z.enum(values)
+            } else {
+              fieldSchema = z.string()
+            }
           }
+          break
+          
+        case 'custom':
+          // Custom fields can contain any type of data (array of field definitions)
+          fieldSchema = z.array(z.any()).optional()
+          break
+          
+        case 'custom-fields':
+          // Custom fields array with field definitions and values
+          fieldSchema = z.array(z.object({
+            name: z.string(),
+            type: z.string(),
+            value: z.any().optional(),
+            label: z.string().optional(),
+            placeholder: z.string().optional(),
+            required: z.boolean().optional(),
+            options: z.array(z.object({
+              value: z.string(),
+              label: z.string()
+            })).optional()
+          })).optional()
           break
           
         default:

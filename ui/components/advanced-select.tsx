@@ -30,19 +30,29 @@ import {
 import { Loader2 } from 'lucide-react'
 import { cn } from '@ui/lib/utils'
 import type { SelectOption } from '@/types/form'
+import { MultiSelect } from './multi-select'
 
 interface AdvancedSelectProps {
     // Core select properties
-    value?: string
-    onValueChange?: (value: string) => void
+    value?: string | string[]
+    onValueChange?: (value: string | string[]) => void
     placeholder?: string
     disabled?: boolean
     className?: string
     error?: string
     
+    // Mode selection
+    mode?: 'single' | 'multiple'
+    
     // Options - either static or API-driven
     options?: SelectOption[]
     optionsApi?: string
+    
+    // Multi-select specific props
+    variant?: 'default' | 'secondary' | 'destructive' | 'inverted'
+    maxCount?: number
+    modalPopover?: boolean
+    asChild?: boolean
 }
 
 export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({ 
@@ -52,8 +62,13 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     disabled,
     className,
     error,
+    mode = 'single',
     options,
-    optionsApi
+    optionsApi,
+    variant = 'default',
+    maxCount,
+    modalPopover,
+    asChild
 }) => {
     // Use the useSelectOptions hook for API-driven options
     const { data: apiOptions, isLoading: loading, error: queryError } = useSelectOptions(optionsApi || null)
@@ -62,39 +77,100 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     const finalOptions = optionsApi ? (apiOptions || []) : (options || [])
     const apiError = queryError ? (queryError as Error).message : null
 
-    // Handle value changes
-    const handleValueChange = (newValue: string) => {
+    // Handle value changes for both single and multiple modes
+    const handleValueChange = (newValue: string | string[]) => {
         if (onValueChange) onValueChange(newValue)
     }
 
+    // Show loading state for both modes
+    if (loading) {
+        if (mode === 'multiple') {
+            return (
+                <MultiSelect
+                    options={[]}
+                    value={Array.isArray(value) ? value : []}
+                    onValueChange={handleValueChange}
+                    placeholder="Loading options..."
+                    variant={variant}
+                    disabled={true}
+                    className={cn(error ? 'border-red-500' : '', className)}
+                    maxCount={maxCount}
+                    modalPopover={modalPopover}
+                    asChild={asChild}
+                />
+            )
+        }
+        
+        return (
+            <Select disabled={true}>
+                <SelectTrigger className={cn('w-full', error ? 'border-red-500' : '', className)}>
+                    <div className="flex items-center gap-2 w-full">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <SelectValue placeholder="Loading options..." />
+                    </div>
+                </SelectTrigger>
+            </Select>
+        )
+    }
+
+    // Show error state for both modes
+    if (apiError) {
+        if (mode === 'multiple') {
+            return (
+                <MultiSelect
+                    options={[]}
+                    value={Array.isArray(value) ? value : []}
+                    onValueChange={handleValueChange}
+                    placeholder={`Error: ${apiError}`}
+                    variant={variant}
+                    disabled={true}
+                    className={cn('border-red-500', className)}
+                    maxCount={maxCount}
+                    modalPopover={modalPopover}
+                    asChild={asChild}
+                />
+            )
+        }
+        
+        return (
+            <Select disabled={true}>
+                <SelectTrigger className={cn('w-full border-red-500', className)}>
+                    <SelectValue placeholder={`Error: ${apiError}`} />
+                </SelectTrigger>
+            </Select>
+        )
+    }
+
+    // Render multi-select mode
+    if (mode === 'multiple') {
+        return (
+            <MultiSelect
+                options={finalOptions}
+                value={Array.isArray(value) ? value : (value ? [value] : [])}
+                onValueChange={handleValueChange}
+                placeholder={placeholder || 'Select options...'}
+                variant={variant}
+                disabled={disabled}
+                className={cn(error ? 'border-red-500' : '', className)}
+                maxCount={maxCount}
+                modalPopover={modalPopover}
+                asChild={asChild}
+            />
+        )
+    }
+
+    // Render single select mode
     return (
         <Select
-            value={value}
-            onValueChange={handleValueChange}
-            disabled={disabled || loading}
+            value={Array.isArray(value) ? value[0] || '' : value || ''}
+            onValueChange={(newValue) => handleValueChange(newValue)}
+            disabled={disabled}
         >
             <SelectTrigger className={cn('w-full', error ? 'border-red-500' : '', className)}>
-                <div className="flex items-center gap-2 w-full">
-                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                    <SelectValue placeholder={
-                        loading ? 'Loading options...' : 
-                        apiError ? 'Error loading options' :
-                        placeholder
-                    } />
-                </div>
+                <SelectValue placeholder={placeholder || 'Select an option...'} />
             </SelectTrigger>
             <SelectContent>
-                {loading && (
-                    <SelectItem value="__loading__" disabled>
-                        Loading options...
-                    </SelectItem>
-                )}
-                {apiError && (
-                    <SelectItem value="__error__" disabled>
-                        Error: {apiError}
-                    </SelectItem>
-                )}
-                {!loading && !apiError && finalOptions.map((option) => (
+                {finalOptions.map((option) => (
                     <SelectItem
                         key={option.value}
                         value={option.value}
