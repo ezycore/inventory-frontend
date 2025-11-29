@@ -71,8 +71,8 @@ export const useUpdateBrand = () => {
       return brandsApi.update(id, rest);
     },
     onSuccess: (_, variables) => {
-      const id = variables instanceof FormData 
-        ? variables.get('id') as string 
+      const id = variables instanceof FormData
+        ? variables.get('id') as string
         : variables.id;
       queryClient.invalidateQueries({ queryKey: queryKeys.brands.all() })
       queryClient.invalidateQueries({ queryKey: queryKeys.brands.detail(id) })

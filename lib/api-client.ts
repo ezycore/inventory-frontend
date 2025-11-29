@@ -41,17 +41,17 @@ class ApiClient {
     try {
       // Check if body is FormData
       const isFormData = options.body instanceof FormData;
-      
+
       const response = await fetch(url, {
         headers: isFormData
           ? {
-              // Don't set Content-Type for FormData, let browser set it with boundary
-              ...options.headers,
-            }
+            // Don't set Content-Type for FormData, let browser set it with boundary
+            ...options.headers,
+          }
           : {
-              "Content-Type": "application/json",
-              ...options.headers,
-            },
+            "Content-Type": "application/json",
+            ...options.headers,
+          },
         ...options,
       });
 
@@ -174,10 +174,9 @@ export const categoriesApi = {
     } = {}
   ): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(
-      `/categories${
-        filters && Object.keys(filters).length
-          ? `?${new URLSearchParams(filters as any)}`
-          : ""
+      `/categories${filters && Object.keys(filters).length
+        ? `?${new URLSearchParams(filters as any)}`
+        : ""
       }`
     ),
 
