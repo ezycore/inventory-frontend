@@ -76,12 +76,17 @@ const brandFormConfig: DynamicFormConfig = {
       validation: { maxLength: 500 },
     },
     {
-      name: "logo_url",
-      type: "input",
-      label: "Logo URL",
-      placeholder: "https://example.com/logo.png",
+      name: "logo",
+      type: "file-upload",
+      label: "Brand Logo",
+      placeholder: "Upload brand logo",
       columnSpan: 12,
-      validation: { url: true },
+      accept: "image/*",
+      maxFiles: 1,
+      maxSize: 5 * 1024 * 1024, // 5MB
+      fileTypes: ["jpg", "jpeg", "png", "webp"],
+      dropzoneText: "PNG, JPG, WEBP up to 5MB",
+      showPreview: true,
     },
     {
       name: "status",
@@ -174,14 +179,29 @@ export default function BrandsPage() {
               defaultValues: {
                 name: "",
                 description: "",
-                logo_url: "",
+                logo: [],
                 status: "active" as const,
               },
-              prepareSubmitData: (data, isEdit, item) => ({
-                ...data,
-                slug: generateSlug(data.name),
-                ...(isEdit && item ? { id: item._id } : {}),
-              }),
+              prepareSubmitData: (data, isEdit, item) => {
+                const formData = new FormData();
+                formData.append("name", data.name);
+                formData.append("status", data.status);
+                if (data.description) {
+                  formData.append("description", data.description);
+                }
+                
+                // Add logo file if provided
+                if (data.logo && data.logo.length > 0) {
+                  formData.append("logo", data.logo[0]);
+                }
+                
+                // Add ID for updates
+                if (isEdit && item) {
+                  formData.append("id", item._id);
+                }
+                
+                return formData;
+              },
             }}
             enableSorting={true}
             defaultColumnVisibility={{ status: false }}

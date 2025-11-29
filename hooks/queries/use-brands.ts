@@ -46,7 +46,7 @@ export const useCreateBrand = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateBrandDto) =>
+    mutationFn: (data: CreateBrandDto | FormData) =>
       brandsApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.brands.all() })
@@ -62,11 +62,20 @@ export const useUpdateBrand = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string } & Partial<CreateBrandDto>) =>
-      brandsApi.update(id, data),
+    mutationFn: (data: FormData | ({ id: string } & Partial<CreateBrandDto>)) => {
+      if (data instanceof FormData) {
+        const id = data.get('id') as string;
+        return brandsApi.update(id, data);
+      }
+      const { id, ...rest } = data;
+      return brandsApi.update(id, rest);
+    },
     onSuccess: (_, variables) => {
+      const id = variables instanceof FormData 
+        ? variables.get('id') as string 
+        : variables.id;
       queryClient.invalidateQueries({ queryKey: queryKeys.brands.all() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.brands.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.brands.detail(id) })
     },
     onError: handleMutationError,
   })
