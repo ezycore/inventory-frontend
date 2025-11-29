@@ -28,6 +28,7 @@ import type { ProductWithVariants } from '@/types'
 import type { ProductFilters } from '@/types/products'
 import ProductForm from '@/components/products/product-form'
 import { queryKeys } from '@/lib/query-keys-products'
+import { DataTable } from '@/ui/components/dataTable'
 
 export default function ProductsPage() {
   const router = useRouter()
@@ -115,6 +116,26 @@ export default function ProductsPage() {
       </div>
     )
   }
+
+  // create columns for DataTable 
+  const columns = [
+    {
+      header: 'Name',
+      accessorKey: 'name',
+    },
+    {
+      header: 'SKU',
+      accessorKey: 'base_sku',
+    },
+    {
+      header: 'Price',
+      accessorKey: 'price',
+    },
+    {
+      header: 'Status',
+      accessorKey: 'status',
+    },
+  ] 
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -325,6 +346,9 @@ export default function ProductsPage() {
           )}
         </CardContent>
       </Card>
+
+
+      <DataTable columns={columns} data={products} />
 
       {/* Pagination */}
       {totalPages > 1 && (
