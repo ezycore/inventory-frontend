@@ -42,7 +42,6 @@ import { Plus } from "lucide-react";
 export function DataTableCrud<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>
 ) {
- console.log("DataTableCrud props:", props);
   const { crud, actions, onEdit, onView, onDelete, toolbarAction, ...restProps } = props;
 
   // Page state management - MUST call hooks unconditionally
