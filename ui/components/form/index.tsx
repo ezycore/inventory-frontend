@@ -65,7 +65,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     const handleFormSubmit = useCallback((data: any) => {
         if (mutationHook) {
             // Apply onSubmit transformation if provided
-            let processedData = data
+            let processedData = onSubmit ? onSubmit(data) : data
 
             mutationHook.mutate(processedData, {
                 onSuccess: (result: any) => {

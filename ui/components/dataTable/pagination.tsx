@@ -35,11 +35,6 @@ export function DataTablePagination<TData>({
             {selectedRowsCount} of {table.getFilteredRowModel().rows.length} row(s) selected
           </div>
         )}
-        {pagination?.totalItems && (
-          <div>
-            Total: {pagination.totalItems} item(s)
-          </div>
-        )}
       </div>
 
       <div className="flex items-center gap-6">
