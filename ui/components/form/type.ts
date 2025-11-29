@@ -133,6 +133,9 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   className?: string
   onFieldChange?: (fieldName: string, value: any) => void
 
+  // View mode - makes form read-only for viewing data
+  viewMode?: boolean
+
   // Container mode props
   openInside?: 'drawer' | 'modal'
   open?: boolean

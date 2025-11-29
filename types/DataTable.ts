@@ -117,6 +117,43 @@ export interface DataTableProps<TData, TValue = any> {
  /** View handler */
  onView?: (row: TData) => void;
 
+ // Integrated CRUD support (optional - auto-wires with form modal)
+ /** 
+  * Enable integrated CRUD operations
+  * When provided, DataTable will handle add/edit/view/delete with modal forms
+  */
+ crud?: {
+  /** Form configuration for DynamicForm */
+  formConfig: any; // DynamicFormConfig
+
+  /** Create mutation hook (from TanStack Query) */
+  createMutation?: any;
+
+  /** Update mutation hook (from TanStack Query) */
+  updateMutation?: any;
+
+  /** Delete mutation hook (from TanStack Query) */
+  deleteMutation?: any;
+
+  /** Entity name (e.g., "Brand", "Product") for toast messages */
+  entityName?: string;
+
+  /** Query key for cache invalidation */
+  queryKey?: any[];
+
+  /** Custom data preparation before submit */
+  prepareSubmitData?: (data: any, isEdit: boolean, originalItem?: TData) => any;
+
+  /** Custom default form values */
+  defaultValues?: any;
+
+  /** Disable specific operations */
+  disableAdd?: boolean;
+  disableEdit?: boolean;
+  disableView?: boolean;
+  disableDelete?: boolean;
+ };
+
  // Pagination
  /** Pagination configuration */
  pagination?: DataTablePagination;

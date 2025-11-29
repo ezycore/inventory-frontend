@@ -51,8 +51,10 @@ const FormField: React.FC<{
  watch: any
  setValue: any
  onFieldChange?: (fieldName: string, value: any) => void
-}> = ({ field, control, formState, watch, setValue, onFieldChange }) => {
+ viewMode?: boolean
+}> = ({ field, control, formState, watch, setValue, onFieldChange, viewMode = false }) => {
  const error = formState.errors[field.name]?.message
+ const fieldValue = watch(field.name)
 
  // Check conditional display
  if (field.showWhen) {
@@ -83,6 +85,26 @@ const FormField: React.FC<{
  const handleChange = (value: any) => {
   if (field.onChange) field.onChange(value)
   if (onFieldChange) onFieldChange(field.name, value)
+ }
+
+ // Render read-only display in view mode
+ const renderViewMode = () => {
+  let displayValue = fieldValue
+  
+  if (field.type === 'select' && field.options) {
+   const option = field.options.find(opt => opt.value === fieldValue)
+   displayValue = option?.label || fieldValue
+  } else if (field.type === 'checkbox') {
+   displayValue = fieldValue ? 'Yes' : 'No'
+  } else if (field.type === 'file-upload') {
+   displayValue = Array.isArray(fieldValue) ? `${fieldValue.length} file(s)` : 'No files'
+  }
+  
+  return (
+    <p className="text-sm text-muted-foreground">
+     {displayValue || '-'}
+    </p>
+  )
  }
 
  const renderField = () => {
@@ -408,7 +430,7 @@ const FormField: React.FC<{
     <div className="flex items-center justify-between mb-2">
      <Label htmlFor={field.name} className="text-sm gap-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
       {field.label}
-      {field.required && <span className="text-red-500">*</span>}
+      {!viewMode && field.required && <span className="text-red-500">*</span>}
      </Label>
      {field.action && (<Tooltip>
       <TooltipTrigger asChild>
@@ -431,12 +453,12 @@ const FormField: React.FC<{
     </div>
    )}
    <div className="w-full min-w-0 flex-1">
-    {renderField()}
+    {viewMode ? renderViewMode() : renderField()}
    </div>
    {field.helperText && (
     <p className="text-xs text-muted-foreground">{field.helperText}</p>
    )}
-   {error && (
+   {!viewMode && error && (
     <p className="text-sm text-red-500 mt-1">{error}</p>
    )}
   </div>
@@ -452,7 +474,8 @@ const FormSectionComponent: React.FC<{
  setValue: any
  onFieldChange?: (fieldName: string, value: any) => void
  maxColumns: number
-}> = ({ section, control, formState, watch, setValue, onFieldChange, maxColumns }) => {
+ viewMode?: boolean
+}> = ({ section, control, formState, watch, setValue, onFieldChange, maxColumns, viewMode = false }) => {
  const [isOpen, setIsOpen] = React.useState(section.defaultOpen ?? true)
 
  const content = (
@@ -467,6 +490,7 @@ const FormSectionComponent: React.FC<{
       watch={watch}
       setValue={setValue}
       onFieldChange={onFieldChange}
+      viewMode={viewMode}
      />
     ))}
    </div>
@@ -541,7 +565,8 @@ const FormContent: React.FC<{
  setValue: any;
  onFieldChange?: any;
  className?: string;
-}> = ({ config, control, formState, watch, setValue, onFieldChange, className }) => {
+ viewMode?: boolean;
+}> = ({ config, control, formState, watch, setValue, onFieldChange, className, viewMode = false }) => {
  return (
   <div className={cn("space-y-4 sm:space-y-6", className)}>
    {/* Render sections if available */}
@@ -555,6 +580,7 @@ const FormContent: React.FC<{
      setValue={setValue}
      onFieldChange={onFieldChange}
      maxColumns={12}
+     viewMode={viewMode}
     />
    ))}
 
@@ -570,6 +596,7 @@ const FormContent: React.FC<{
        watch={watch}
        setValue={setValue}
        onFieldChange={onFieldChange}
+       viewMode={viewMode}
       />
      ))}
     </div>
