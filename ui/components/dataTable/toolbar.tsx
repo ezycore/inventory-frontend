@@ -25,6 +25,12 @@ interface DataTableToolbarProps<TData> {
   onBulkDelete?: () => void;
   isDeleting?: boolean;
   enableColumnVisibility?: boolean;
+  actionButton?: {
+    label: string;
+    icon?: React.ReactNode;
+    onClick: () => void;
+    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  };
 }
 
 export function DataTableToolbar<TData>({
@@ -39,6 +45,7 @@ export function DataTableToolbar<TData>({
   onBulkDelete,
   isDeleting,
   enableColumnVisibility,
+  actionButton,
 }: DataTableToolbarProps<TData>) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -96,7 +103,11 @@ export function DataTableToolbar<TData>({
           </div>
         ) : null}
 
-        {/* Selection Actions */}
+      </div>
+
+      {/* Right side actions */}
+      <div className="flex items-center gap-2">
+        {/* Bulk Delete Button */}
         {selectable && hasSelection && deletable && (
           <Button
             variant="destructive"
@@ -105,13 +116,12 @@ export function DataTableToolbar<TData>({
             disabled={isDeleting}
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            Delete {selectedRowsCount} {selectedRowsCount === 1 ? "item" : "items"}
+            Delete {selectedRowsCount}
           </Button>
         )}
-      </div>
 
-      {/* Column Visibility */}
-      {enableColumnVisibility && (
+        {/* Column Visibility */}
+        {enableColumnVisibility && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
@@ -137,7 +147,20 @@ export function DataTableToolbar<TData>({
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
+        )}
+
+        {/* Custom Action Button (e.g., Add Brand) - Always on the right */}
+        {actionButton && (
+          <Button
+            variant={actionButton.variant || "default"}
+            size="sm"
+            onClick={actionButton.onClick}
+          >
+            {actionButton.icon}
+            {actionButton.label}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

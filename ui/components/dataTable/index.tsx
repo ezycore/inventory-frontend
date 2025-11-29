@@ -33,13 +33,15 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   enableSorting = true,
   enableColumnVisibility = true,
+  defaultColumnVisibility,
   enableRowHover = true,
+  toolbarAction,
   className,
   rowClassName,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
 
@@ -126,6 +128,7 @@ export function DataTable<TData, TValue>({
         onBulkDelete={handleBulkDelete}
         isDeleting={isDeleting}
         enableColumnVisibility={enableColumnVisibility}
+        actionButton={toolbarAction}
       />
 
       {/* Table */}

@@ -3,7 +3,7 @@
  * Import these types when using the DataTable component
  */
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, VisibilityState } from "@tanstack/react-table";
 
 /**
  * Configuration for table actions (edit, delete, view, custom)
@@ -126,8 +126,20 @@ export interface DataTableProps<TData, TValue = any> {
  /** Enable column visibility toggle */
  enableColumnVisibility?: boolean;
 
+ /** Default column visibility state */
+ defaultColumnVisibility?: VisibilityState;
+
  /** Enable row hover effects */
  enableRowHover?: boolean;
+
+ // Toolbar
+ /** Custom action button in toolbar (e.g., Add New) */
+ toolbarAction?: {
+  label: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+ };
 
  // Styling
  /** Custom CSS class for table container */
