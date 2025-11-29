@@ -35,6 +35,7 @@ export function DataTable<TData, TValue>({
   enableColumnVisibility = true,
   defaultColumnVisibility,
   enableRowHover = true,
+  toolbarAction,
   className,
   rowClassName,
 }: DataTableProps<TData, TValue>) {
@@ -43,12 +44,6 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
-
-  console.log("sorting state:", sorting);
-  console.log("column filters state:", columnFilters);
-  console.log("column visibility state:", columnVisibility);
-  console.log("row selection state:", rowSelection);
-  console.log("global filter state:", globalFilter);
 
   // Custom hooks
   const { paginationState, handlePaginationChange } = usePaginationState(pagination);
@@ -133,6 +128,7 @@ export function DataTable<TData, TValue>({
         onBulkDelete={handleBulkDelete}
         isDeleting={isDeleting}
         enableColumnVisibility={enableColumnVisibility}
+        actionButton={toolbarAction}
       />
 
       {/* Table */}

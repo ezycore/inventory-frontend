@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@ui/components/button";
 import {
@@ -374,6 +374,15 @@ export default function BrandsPage() {
     pageSize: 5,
   });
 
+  // Track if component is mounted to prevent state updates during render
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const defaultValues = editingBrand || {
     name: "",
     description: "",
@@ -509,21 +518,7 @@ export default function BrandsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <Plus className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">Row Selection</h3>
-                <p className="text-xs text-muted-foreground">
-                  {selectedBrands.length} selected
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -542,19 +537,13 @@ export default function BrandsPage() {
       {/* Brands List with DataTable */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
             <div>
               <CardTitle>All Brands ({brandsList.length})</CardTitle>
               <CardDescription>
                 Testing: Global Search • Row Selection • Sorting • Pagination • Actions
               </CardDescription>
             </div>
-            {selectedBrands.length > 0 && (
-              <Badge variant="default" className="text-base px-4 py-2">
-                {selectedBrands.length} Selected
-              </Badge>
-            )}
-          </div>
+        
         </CardHeader>
         <CardContent>
           <DataTable
@@ -615,16 +604,26 @@ export default function BrandsPage() {
             }}
             enableSorting={true}
             enableColumnVisibility={true}
+            defaultColumnVisibility={{ description: false }}
             enableRowHover={true}
             isLoading={!useDemoData && isLoading}
+            toolbarAction={{
+              label: "Add Brand",
+              icon: <Plus className="h-4 w-4 mr-2" />,
+              onClick: handleAddBrand,
+              variant: "default",
+            }}
             pagination={{
               pageIndex: pagination.pageIndex,
               pageSize: pagination.pageSize,
               pageSizeOptions: [5, 10, 15, 20, 50],
               manualPagination: false, // Client-side pagination for demo/local data
               onPaginationChange: (newPagination) => {
-                console.log("Pagination changed:", newPagination);
-                setPagination(newPagination);
+                // Only update state if component is mounted
+                if (isMountedRef.current) {
+                  console.log("Pagination changed:", newPagination);
+                  setPagination(newPagination);
+                }
               },
             }}
             rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}

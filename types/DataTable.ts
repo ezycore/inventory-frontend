@@ -132,6 +132,15 @@ export interface DataTableProps<TData, TValue = any> {
  /** Enable row hover effects */
  enableRowHover?: boolean;
 
+ // Toolbar
+ /** Custom action button in toolbar (e.g., Add New) */
+ toolbarAction?: {
+  label: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+ };
+
  // Styling
  /** Custom CSS class for table container */
  className?: string;

@@ -1,40 +1,19 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { PaginationState } from "@tanstack/react-table";
 import { DataTablePagination } from "@/types/DataTable";
 
 export function usePaginationState(pagination?: DataTablePagination) {
- // Use state to track pagination internally
- const [internalPagination, setInternalPagination] = useState<PaginationState>({
-  pageIndex: pagination?.pageIndex ?? 0,
-  pageSize: pagination?.pageSize ?? 10,
- });
-
- // Use provided pagination state if available, otherwise use internal
  const paginationState: PaginationState = {
-  pageIndex: pagination?.pageIndex ?? internalPagination.pageIndex,
-  pageSize: pagination?.pageSize ?? internalPagination.pageSize,
+  pageIndex: pagination?.pageIndex ?? 1,
+  pageSize: pagination?.pageSize ?? 10,
  };
 
- // Handle pagination change - use functional setState to avoid stale closure
- const handlePaginationChange = useCallback((updater: any) => {
-  setInternalPagination((prevState) => {
-   // Calculate new state from previous state to avoid closure issues
-   const currentState = {
-    pageIndex: pagination?.pageIndex ?? prevState.pageIndex,
-    pageSize: pagination?.pageSize ?? prevState.pageSize,
-   };
-
-   const newState =
-    typeof updater === "function" ? updater(currentState) : updater;
-
-   // Notify parent component asynchronously
-   setTimeout(() => {
-    pagination?.onPaginationChange?.(newState);
-   }, 0);
-
-   return newState;
-  });
- }, [pagination?.pageIndex, pagination?.pageSize, pagination?.onPaginationChange]);
+ // Handle pagination change
+ const handlePaginationChange = (updater: any) => {
+  const newState =
+   typeof updater === "function" ? updater(paginationState) : updater;
+  pagination?.onPaginationChange?.(newState);
+ };
 
  return { paginationState, handlePaginationChange };
 }
