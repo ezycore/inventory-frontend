@@ -59,6 +59,12 @@ export interface DataTablePagination {
  /** Enable server-side pagination */
  manualPagination?: boolean;
 
+ /** Indicates if there is a next page (from backend) */
+ hasNext?: boolean;
+
+ /** Indicates if there is a previous page (from backend) */
+ hasPrev?: boolean;
+
  /** Available page size options */
  pageSizeOptions?: number[];
 }
