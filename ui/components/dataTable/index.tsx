@@ -32,7 +32,7 @@ export function DataTable<TData, TValue>({
   pagination,
   isLoading = false,
   enableSorting = true,
-  enableColumnVisibility = true,
+  enableColumnVisibility = false,
   defaultColumnVisibility,
   enableRowHover = true,
   toolbarAction,

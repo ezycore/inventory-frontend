@@ -76,9 +76,7 @@ const columns: ColumnDef<Brand>[] = [
     accessorKey: "createdAt",
     header: "Created Date",
     cell: ({ row }) => {
-      console.log("Row data for created_at:", row.original);
       const date = new Date(row.getValue("createdAt"));
-      console.log("Created at date:", date);
       return <span className="text-sm">{date.toLocaleDateString()}</span>;
     },
   },
@@ -145,10 +143,11 @@ export default function BrandsPage() {
   const queryClient = useQueryClient();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [isViewMode, setIsViewMode] = useState(false);
   
   // Backend pagination state (1-based)
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(2);
 
   // Track if component is mounted to prevent state updates during render
   const isMountedRef = useRef(false);
@@ -191,9 +190,10 @@ export default function BrandsPage() {
   const brandsData = useMemo(() => {
     return brandsResponse?.data?.items || [];
   }, [brandsResponse]);
-
+  console.log("branData", brandsData)
   const handleAddBrand = () => {
     setEditingBrand(null);
+    setIsViewMode(false);
     form.reset({
       name: "",
       description: "",
@@ -206,6 +206,19 @@ export default function BrandsPage() {
 
   const handleEditBrand = (brand: Brand) => {
     setEditingBrand(brand);
+    setIsViewMode(false);
+    form.reset({
+      name: brand.name,
+      description: brand.description || "",
+      logo_url: brand.logo_url || "",
+      status: brand.status,
+    });
+    setIsAddModalOpen(true);
+  };
+
+  const handleViewBrand = (brand: Brand) => {
+    setEditingBrand(brand);
+    setIsViewMode(true);
     form.reset({
       name: brand.name,
       description: brand.description || "",
@@ -299,11 +312,9 @@ export default function BrandsPage() {
               await handleDeleteBrand(brand);
             }}
             onView={(brand) => {
-              console.log("View brand:", brand);
-              toast.info(`Viewing: ${brand.name}`);
+              handleViewBrand(brand);
             }}
             enableSorting={true}
-            enableColumnVisibility={true}
             defaultColumnVisibility={{ status: false }}
             enableRowHover={true}
             isLoading={isLoading}
@@ -321,7 +332,7 @@ export default function BrandsPage() {
               hasNext: brandsResponse?.data?.hasNext,
               hasPrev: brandsResponse?.data?.hasPrev,
               manualPagination: true, // Server-side pagination
-              pageSizeOptions: [10, 20, 50, 100],
+              pageSizeOptions: [2, 5, 10, 20, 50, 100],
               onPaginationChange: (newPagination) => {
                 if (isMountedRef.current) {
                   setPage(newPagination.pageIndex + 1); // Convert 0-based to 1-based
@@ -334,7 +345,7 @@ export default function BrandsPage() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Brand Modal */}
+      {/* Add/Edit/View Brand Modal */}
       <DynamicForm
         form={form}
         config={brandFormConfig}
@@ -343,9 +354,10 @@ export default function BrandsPage() {
         openInside="modal"
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
-        title={editingBrand ? "Edit Brand" : "Add New Brand"}
+        title={isViewMode ? "View Brand" : editingBrand ? "Edit Brand" : "Add New Brand"}
         submitLabel={editingBrand ? "Update Brand" : "Create Brand"}
         modalSize="md"
+        viewMode={isViewMode}
         onSuccess={(result, data) => {
           toast.success(`Brand ${editingBrand ? "updated" : "created"} successfully`);
           setIsAddModalOpen(false);
