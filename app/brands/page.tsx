@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { Button } from "@ui/components/button";
 import {
@@ -396,7 +396,11 @@ export default function BrandsPage() {
   const updateBrand = useUpdateBrand();
   const deleteBrand = useDeleteBrand();
 
-  const brandsList = useDemoData ? DEMO_BRANDS : ((brands as any)?.data?.items || []);
+  // Use useMemo to prevent state updates during render
+  const brandsList = useMemo(() => {
+    if (useDemoData) return DEMO_BRANDS;
+    return (brands as any)?.data?.items || [];
+  }, [useDemoData, brands]);
 
   const handleAddBrand = () => {
     setEditingBrand(null);
@@ -617,9 +621,10 @@ export default function BrandsPage() {
               pageIndex: pagination.pageIndex,
               pageSize: pagination.pageSize,
               pageSizeOptions: [5, 10, 15, 20, 50],
+              manualPagination: false, // Client-side pagination for demo/local data
               onPaginationChange: (newPagination) => {
                 console.log("Pagination changed:", newPagination);
-                // setPagination(newPagination);
+                setPagination(newPagination);
               },
             }}
             rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
@@ -746,7 +751,7 @@ export default function BrandsPage() {
       </Card>
 
       {/* Add/Edit Brand Modal */}
-      <DynamicForm
+      {/* <DynamicForm
         onSubmit={form.handleSubmit(onSubmit)}
         config={brandFormConfig}
         control={form.control}
@@ -760,7 +765,7 @@ export default function BrandsPage() {
         title={editingBrand ? "Edit Brand" : "Add New Brand"}
         submitLabel={editingBrand ? "Update Brand" : "Create Brand"}
         modalSize="md"
-      />
+      /> */}
     </div>
   );
 }
