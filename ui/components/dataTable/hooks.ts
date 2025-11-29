@@ -2,6 +2,10 @@ import { useState } from "react";
 import { PaginationState } from "@tanstack/react-table";
 import { DataTablePagination } from "@/types/DataTable";
 
+/**
+ * Internal DataTable hook - manages TanStack Table pagination state
+ * Used by DataTable component to handle client-side pagination
+ */
 export function usePaginationState(pagination?: DataTablePagination) {
  const paginationState: PaginationState = {
   pageIndex: pagination?.pageIndex ?? 1,

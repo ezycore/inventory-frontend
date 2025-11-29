@@ -160,3 +160,6 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
+
+// Re-export enhanced CRUD version
+export { DataTableCrud } from "./crud";

@@ -101,11 +101,9 @@ const FormField: React.FC<{
   }
   
   return (
-   <div className="py-2">
     <p className="text-sm text-muted-foreground">
      {displayValue || '-'}
     </p>
-   </div>
   )
  }
 
