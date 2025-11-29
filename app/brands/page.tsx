@@ -1,14 +1,11 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import Image from "next/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import {
   Plus,
-  Edit,
-  Trash2,
   Star,
   AlertTriangle,
   ExternalLink,
@@ -41,20 +38,24 @@ import {
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { brandsApi } from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys-products";
+import { SafeImage } from "@/ui/components/safeImage";
 
-export const columns: ColumnDef<Brand>[] = [
+const columns: ColumnDef<Brand>[] = [
   {
     accessorKey: "name",
     header: "Brand Name",
     cell: ({ row }) => {
+      const isLogoUrlAvailable = "logo_url" in row.original;
+      const logoUrl = isLogoUrlAvailable && row.original.logo_url ? row.original.logo_url : null;
+      const isActive = row.original.status === "active";
       return (
         <div className="flex items-center gap-3">
-          {row.original.logo_url ? (
+          { isLogoUrlAvailable && logoUrl ? (
             <div className="relative w-8 h-8 rounded overflow-hidden">
-              <Image
-                src={row.original.logo_url}
+              <SafeImage
+                src={logoUrl}
                 alt={row.getValue("name")}
-                fill
+                fill={true}
                 className="object-cover"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
@@ -66,54 +67,36 @@ export const columns: ColumnDef<Brand>[] = [
               <Star className="h-4 w-4 text-gray-400" />
             </div>
           )}
-          <span className="font-medium">{row.getValue("name")}</span>
+          <span className={`font-medium ${isActive ? "text-green-600" : "text-red-600"} capitalize`}>{row.getValue("name")}</span>
         </div>
       );
-    },
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => {
-      const description = row.getValue("description") as string;
-      return (
-        <div className="max-w-[300px] truncate text-muted-foreground">
-          {description || "—"}
-        </div>
-      );
-    },
+    }
   },
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      return (
-        <Badge variant={status === "active" ? "default" : "secondary"}>
-          {status}
-        </Badge>
-      );
-    },
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: "Created Date",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("created_at"));
+      console.log("Row data for created_at:", row.original);
+      const date = new Date(row.getValue("createdAt"));
+      console.log("Created at date:", date);
       return <span className="text-sm">{date.toLocaleDateString()}</span>;
     },
   },
   {
-    accessorKey: "updated_at",
+    accessorKey: "updatedAt",
     header: "Updated Date",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("updated_at"));
+      const date = new Date(row.getValue("updatedAt"));
       return <span className="text-sm text-muted-foreground">{date.toLocaleDateString()}</span>;
     },
   },
 ];
 
-export const brandFormConfig: DynamicFormConfig = {
+const brandFormConfig: DynamicFormConfig = {
   fields: [
     {
       name: "name",
@@ -123,7 +106,7 @@ export const brandFormConfig: DynamicFormConfig = {
       required: true,
       columnSpan: 12,
       validation: {
-        minLength: 2,
+        minLength: 1,
         maxLength: 100,
       },
     },
@@ -145,7 +128,7 @@ export const brandFormConfig: DynamicFormConfig = {
       placeholder: "https://example.com/logo.png",
       columnSpan: 12,
       validation: {
-        url: true,
+        url: true
       },
     },
     {
@@ -166,7 +149,6 @@ export default function BrandsPage() {
   const queryClient = useQueryClient();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
-  const [selectedBrands, setSelectedBrands] = useState<Brand[]>([]);
   
   // Backend pagination state (1-based)
   const [page, setPage] = useState(1);
@@ -224,6 +206,7 @@ export default function BrandsPage() {
     });
     setIsAddModalOpen(true);
   };
+  
 
   const handleEditBrand = (brand: Brand) => {
     setEditingBrand(brand);
@@ -297,64 +280,24 @@ export default function BrandsPage() {
       {/* Brands List with DataTable */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>All Brands</CardTitle>
-              <CardDescription>
-                {brandsResponse?.data && `${brandsResponse.data.total} total brands`}
-              </CardDescription>
-            </div>
-            {selectedBrands.length > 0 && (
-              <Badge variant="default" className="text-base px-4 py-2">
-                {selectedBrands.length} Selected
-              </Badge>
-            )}
-          </div>
+          <CardTitle>All Brands ({brandsResponse?.data?.total || 0})</CardTitle>
         </CardHeader>
         <CardContent>
           <DataTable
             columns={columns}
             data={brandsData}
             selectable={true}
-            onSelectionChange={(selected) => {
-              setSelectedBrands(selected);
-              console.log("Selected brands:", selected);
-            }}
             searchConfig={{
               globalSearch: true,
-              placeholder: "🔍 Search brands by name, description, or status...",
+              placeholder: "Search brands by name, description, or status...",
             }}
             actions={{
               editable: { tooltip: "Edit this brand" },
-              deletable: { tooltip: "Delete this brand (with confirmation)" },
+              deletable: { tooltip: "Delete this brand" },
               viewable: { tooltip: "View brand details" },
-              custom: [
-                {
-                  label: "Clone",
-                  icon: <Copy className="h-4 w-4" />,
-                  tooltip: "Duplicate this brand",
-                  onClick: (brand) => {
-                    toast.success(`Cloning: ${brand.name}`);
-                    console.log("Clone brand:", brand);
-                  },
-                  variant: "outline",
-                },
-                {
-                  label: "Share",
-                  icon: <ExternalLink className="h-4 w-4" />,
-                  tooltip: "Share brand link",
-                  onClick: (brand) => {
-                    toast.success(`Sharing: ${brand.name}`);
-                    console.log("Share brand:", brand);
-                  },
-                  variant: "ghost",
-                },
-              ],
             }}
             onEdit={(brand) => {
-              console.log("Edit brand:", brand);
               handleEditBrand(brand);
-              toast.info(`Editing: ${brand.name}`);
             }}
             onDelete={async (brand) => {
               await handleDeleteBrand(brand);
@@ -365,12 +308,12 @@ export default function BrandsPage() {
             }}
             enableSorting={true}
             enableColumnVisibility={true}
-            defaultColumnVisibility={{ description: false }}
+            defaultColumnVisibility={{ status: false }}
             enableRowHover={true}
             isLoading={isLoading}
             toolbarAction={{
               label: "Add Brand",
-              icon: <Plus className="h-4 w-4 mr-2" />,
+              icon: <Plus className="h-4 w-4" />,
               onClick: handleAddBrand,
               variant: "default",
             }}

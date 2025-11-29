@@ -289,7 +289,11 @@ export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema
           stringSchema = stringSchema.email('Invalid email address')
         }
         if (field.validation?.url) {
-          stringSchema = stringSchema.url('Invalid URL')
+          // Allow empty string or valid URL
+          stringSchema = stringSchema.refine(
+            (val) => !val || val === '' || z.string().url().safeParse(val).success,
+            { message: 'Invalid URL' }
+          )
         }
         fieldSchema = stringSchema
         break
