@@ -33,15 +33,22 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   enableSorting = true,
   enableColumnVisibility = true,
+  defaultColumnVisibility,
   enableRowHover = true,
   className,
   rowClassName,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
+
+  console.log("sorting state:", sorting);
+  console.log("column filters state:", columnFilters);
+  console.log("column visibility state:", columnVisibility);
+  console.log("row selection state:", rowSelection);
+  console.log("global filter state:", globalFilter);
 
   // Custom hooks
   const { paginationState, handlePaginationChange } = usePaginationState(pagination);
