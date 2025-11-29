@@ -8,8 +8,6 @@ import {
   Plus,
   Star,
   AlertTriangle,
-  ExternalLink,
-  Copy,
 } from "lucide-react";
 
 // Types
@@ -21,11 +19,9 @@ import { Button } from "@ui/components/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@ui/components/card";
-import { Badge } from "@ui/components/badge";
 import { DataTable } from "@/ui/components/dataTable/index";
 import DynamicForm from "@/ui/components/form";
 
