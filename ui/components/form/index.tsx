@@ -28,6 +28,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
     onFieldChange,
     form,
     config,
+    // View mode
+    viewMode = false,
     // Container mode props
     openInside,
     open,
@@ -65,7 +67,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     const handleFormSubmit = useCallback((data: any) => {
         if (mutationHook) {
             // Apply onSubmit transformation if provided
-            let processedData = data
+            let processedData = onSubmit ? onSubmit(data) : data
 
             mutationHook.mutate(processedData, {
                 onSuccess: (result: any) => {
@@ -133,6 +135,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
             setValue={setValue}
             onFieldChange={onFieldChange}
             className={className}
+            viewMode={viewMode}
         />
     )
 
@@ -145,7 +148,13 @@ const DynamicForm: FC<DynamicFormProps> = ({
         full: 'sm:max-w-[90vw]'
     }[modalSize]
 
-    const formActions = (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
+    const formActions = viewMode ? (
+        <div className={cn("flex justify-end", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
+            <Button type="button" variant="outline" onClick={handleContainerCancel}>
+                Close
+            </Button>
+        </div>
+    ) : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
         <Button type="button" variant="outline" onClick={handleContainerCancel}>
             {cancelLabel}
         </Button>

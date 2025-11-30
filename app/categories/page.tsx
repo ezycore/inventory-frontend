@@ -1,142 +1,148 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@ui/components/button'
-import { Input } from '@ui/components/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
-import { Badge } from '@ui/components/badge'
-import { Skeleton } from '@ui/components/skeleton'
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { ColumnDef } from '@tanstack/react-table'
+import { Tag } from 'lucide-react'
 
-import {
-  useCategories,
-  useCreateCategory,
-  useUpdateCategory,
-  useDeleteCategory
-} from '@/hooks/queries'
-import { useQueryClient } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/query-keys-products'
-import { toast } from 'sonner'
-import { Plus, Search, Edit, Trash2, Tag, AlertTriangle } from 'lucide-react'
-import type { Category } from '@/types/products'
-import DynamicForm from '@/ui/components/form'
-import { useDynamicForm } from '@/hooks/use-dynamic-form'
+// Types
+import type { Category, ApiResponse, PaginatedResponse } from '@/types'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 
+// UI Components
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
+import { Badge } from '@ui/components/badge'
+import { DataTableCrud } from '@/ui/components/dataTable'
+import { ErrorBoundaryFallback } from '@/ui/components/error-boundary-fallback'
+import { DateCell } from '@/ui/components/dataTable/cells'
+import { AvatarCell } from '@/ui/components/dataTable/cells'
+
+// Hooks & API
+import { useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/queries'
+import { usePageState } from '@/hooks/use-page-state'
+import { usePaginationHandler } from '@/hooks/use-pagination-handler'
+import { categoriesApi } from '@/lib/api-client'
+import { queryKeys } from '@/lib/query-keys-products'
+
+// Column definitions
+const columns: ColumnDef<Category>[] = [
+  {
+    accessorKey: "name",
+    header: "Category Name",
+    cell: ({ row }) => (
+      <AvatarCell
+        name={row.getValue("name")}
+        fallbackIcon={Tag}
+      />
+    ),
+  },
+  {
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => (
+      <div className="max-w-[300px] truncate text-muted-foreground">
+        {row.getValue("description") || "—"}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <Badge variant={row.getValue("status") === "active" ? "default" : "secondary"}>
+        {row.getValue("status") as string}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created Date",
+    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
+  },
+  {
+    accessorKey: "updatedAt",
+    header: "Updated Date",
+    cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
+  },
+];
+
+// Form configuration
 const categoryFormConfig: DynamicFormConfig = {
   fields: [
     {
-      name: 'name',
-      type: 'input',
-      label: 'Category Name',
-      placeholder: 'Enter category name',
+      name: "name",
+      type: "input",
+      label: "Category Name",
+      placeholder: "Enter category name",
       required: true,
       columnSpan: 12,
-      validation: {
-        minLength: 2,
-        maxLength: 100
-      }
+      validation: { minLength: 1, maxLength: 100 },
     },
     {
-      name: 'description',
-      type: 'textarea',
-      label: 'Description',
-      placeholder: 'Enter category description',
+      name: "description",
+      type: "textarea",
+      label: "Description",
+      placeholder: "Enter category description",
       rows: 3,
       columnSpan: 12,
-      validation: {
-        maxLength: 500
-      }
+      validation: { maxLength: 500 },
     },
     {
-      name: 'status',
-      type: 'select',
-      label: 'Status',
+      name: "status",
+      type: "select",
+      label: "Status",
       required: true,
       columnSpan: 12,
-      defaultValue: 'active',
       options: [
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' }
-      ]
-    }
-  ]
-}
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
+    },
+  ],
+};
+
+const generateSlug = (name: string) => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+};
+
 export default function CategoriesPage() {
-  const queryClient = useQueryClient()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  // Page state management
+  const pageState = usePageState<Category>({ defaultLimit: 10 });
+  const { pagination, isMountedRef } = pageState;
 
-  // Generate slug from name
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-  }
+  // Fetch categories
+  const { data: categoriesResponse, isLoading, error, refetch } = useQuery<
+    ApiResponse<PaginatedResponse<Category>>
+  >({
+    queryKey: ['categories', pagination.page, pagination.limit],
+    queryFn: () => categoriesApi.getAll({ page: pagination.page, limit: pagination.limit }),
+    placeholderData: (previousData) => previousData,
+  });
 
-  const { form, config } = useDynamicForm<typeof categoryFormConfig>(categoryFormConfig)
+  // Mutation hooks
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
 
+  // Extract data
+  const categoriesData = useMemo(() => {
+    return categoriesResponse?.data?.items || [];
+  }, [categoriesResponse]);
 
-  // Queries
-  const { data: categories, isLoading, error } = useCategories()
-  const createCategory = useCreateCategory()
-  const updateCategory = useUpdateCategory()
-  const deleteCategory = useDeleteCategory()
-
-  // Filter categories based on search
-  const filteredCategories = ((categories as any)?.data?.items || []).filter((category: any) =>
-    category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    category.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || []
-
-  const handleAddCategory = () => {
-    setEditingCategory(null)
-    setIsAddModalOpen(true)
-  }
-
-  const handleEditCategory = (category: Category) => {
-    setEditingCategory(category)
-    setIsAddModalOpen(true)
-  }
-
-  const handleDeleteCategory = async (category: Category) => {
-    if (window.confirm(`Are you sure you want to delete "${category.name}"?`)) {
-      try {
-        await deleteCategory.mutateAsync(category._id)
-        toast.success('Category deleted successfully')
-      } catch (error) {
-        toast.error('Failed to delete category')
-      }
-    }
-  }
-
-  const handleFormSubmit = async (data: any) => {
-    const dataWithSlug = {
-      ...data,
-      slug: generateSlug(data.name)
-    }
-
-    if (editingCategory) {
-      return { id: editingCategory._id, ...dataWithSlug }
-    }
-    return dataWithSlug
-  }
-
-  const mutationHook = editingCategory ? updateCategory : createCategory
+  // Pagination handler
+  const handlePaginationChange = usePaginationHandler(
+    pagination.setPage,
+    pagination.setLimit,
+    isMountedRef
+  );
 
   if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Error loading categories</h3>
-          <p className="text-muted-foreground">Please try again later.</p>
-        </div>
-      </div>
-    )
+    return <ErrorBoundaryFallback error={error as Error} onRetry={refetch} title="Error loading categories" />;
   }
 
   return (
@@ -149,131 +155,59 @@ export default function CategoriesPage() {
             Organize your products with categories
           </p>
         </div>
-        <Button onClick={handleAddCategory}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Category
-        </Button>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search categories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Categories List */}
+      {/* Categories Table with Integrated CRUD */}
       <Card>
         <CardHeader>
-          <CardTitle>All Categories</CardTitle>
-          <CardDescription>
-            {isLoading ? 'Loading...' : `${filteredCategories.length} categories found`}
-          </CardDescription>
+          <CardTitle>All Categories ({categoriesResponse?.data?.total || 0})</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-48" />
-                  </div>
-                  <div className="flex space-x-2">
-                    <Skeleton className="h-8 w-16" />
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredCategories.length === 0 ? (
-            <div className="text-center py-12">
-              <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No categories found</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchQuery ? 'Try adjusting your search' : 'Get started by adding your first category'}
-              </p>
-              <Button onClick={handleAddCategory}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Category
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredCategories.map((category: any) => (
-                <div key={category._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold">{category.name}</h3>
-                      <Badge variant={category.status === 'active' ? 'default' : 'secondary'}>
-                        {category.status}
-                      </Badge>
-                    </div>
-                    {category.description && (
-                      <p className="text-sm text-muted-foreground">{category.description}</p>
-                    )}
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                      <span>Created: {new Date(category.created_at).toLocaleDateString()}</span>
-                      {category.updated_at && (
-                        <span>Updated: {new Date(category.updated_at).toLocaleDateString()}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditCategory(category)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteCategory(category)}
-                      disabled={deleteCategory.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <DataTableCrud
+            columns={columns}
+            data={categoriesData}
+            selectable={true}
+            searchConfig={{
+              globalSearch: true,
+              placeholder: "Search categories by name, description, or status...",
+            }}
+            crud={{
+              formConfig: categoryFormConfig,
+              createMutation: createCategory,
+              updateMutation: updateCategory,
+              deleteMutation: deleteCategory,
+              entityName: "Category",
+              queryKey: [...queryKeys.category.all()],
+              defaultValues: {
+                name: "",
+                description: "",
+                status: "active" as const,
+              },
+              prepareSubmitData: (data, isEdit, item) => ({
+                ...data,
+                slug: generateSlug(data.name),
+                ...(isEdit && item ? { id: item._id } : {}),
+              }),
+            }}
+            enableSorting={true}
+            // defaultColumnVisibility={{ status: false }}
+            enableRowHover={true}
+            isLoading={isLoading}
+            pagination={{
+              pageIndex: pagination.page - 1,
+              pageSize: pagination.limit,
+              totalPages: categoriesResponse?.data?.totalPages,
+              totalItems: categoriesResponse?.data?.total,
+              hasNext: categoriesResponse?.data?.hasNext,
+              hasPrev: categoriesResponse?.data?.hasPrev,
+              manualPagination: true,
+              pageSizeOptions: [2, 10, 20, 50, 100],
+              onPaginationChange: handlePaginationChange,
+            }}
+            rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
+          />
         </CardContent>
       </Card>
-
-      {/* Add/Edit Category Modal */}
-      <DynamicForm
-        mutationHook={mutationHook}
-        contentLoading={isLoading && !!editingCategory}
-        form={form}
-        config={config}
-        openInside="modal"
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-        title={editingCategory ? 'Edit Category' : 'Add New Category'}
-        submitLabel={editingCategory ? 'Update Category' : 'Create Category'}
-        modalSize="md"
-        
-        onSuccess={() => {
-          setIsAddModalOpen(false)
-          toast.success(`Category ${editingCategory ? 'updated' : 'created'} successfully`)
-          queryClient.invalidateQueries({ queryKey: queryKeys.category.all() })
-        }}
-        onError={() => {
-          toast.error(`Failed to ${editingCategory ? 'update' : 'create'} category`)
-        }}
-      />
     </div>
   )
 }

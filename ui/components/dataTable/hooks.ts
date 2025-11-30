@@ -2,9 +2,21 @@ import { useState } from "react";
 import { PaginationState } from "@tanstack/react-table";
 import { DataTablePagination } from "@/types/DataTable";
 
+/**
+ * Internal DataTable hook - manages TanStack Table pagination state
+ * Used by DataTable component to handle client-side pagination
+ * 
+ * @param pagination - Optional pagination config from parent
+ * @returns Pagination state and handler for TanStack Table
+ * 
+ * Behavior:
+ * - If pagination prop is passed: Uses provided values (0-based indexing)
+ * - If pagination prop is NOT passed: Uses client-side pagination with defaults (pageIndex: 0, pageSize: 10)
+ */
 export function usePaginationState(pagination?: DataTablePagination) {
  const paginationState: PaginationState = {
-  pageIndex: pagination?.pageIndex ?? 1,
+  // Use 0-based indexing for TanStack Table (consistent with or without pagination prop)
+  pageIndex: pagination?.pageIndex ?? 0,
   pageSize: pagination?.pageSize ?? 10,
  };
 
@@ -12,6 +24,8 @@ export function usePaginationState(pagination?: DataTablePagination) {
  const handlePaginationChange = (updater: any) => {
   const newState =
    typeof updater === "function" ? updater(paginationState) : updater;
+
+  // Only call parent handler if pagination config was provided
   pagination?.onPaginationChange?.(newState);
  };
 
