@@ -1,23 +1,27 @@
 "use client";
 
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Star } from "lucide-react";
+import { useMemo } from "react";
 
 // Types
-import type { Brand, ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiResponse, Brand, PaginatedResponse } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from "@ui/components/card";
+import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
+import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { DataTableCrud } from "@/ui/components/dataTable/crud";
 import { ErrorBoundaryFallback } from "@/ui/components/error-boundary-fallback";
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
-import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
+import { Card, CardContent, CardHeader, CardTitle } from "@ui/components/card";
 
 // Hooks & API
-import { useCreateBrand, useUpdateBrand, useDeleteBrand } from "@/hooks/queries";
+import {
+  useCreateBrand,
+  useDeleteBrand,
+  useUpdateBrand,
+} from "@/hooks/queries";
 import { usePageState } from "@/hooks/use-page-state";
 import { usePaginationHandler } from "@/hooks/use-pagination-handler";
 import { brandsApi } from "@/lib/api-client";
@@ -76,7 +80,7 @@ const brandFormConfig: DynamicFormConfig = {
       validation: { maxLength: 500 },
     },
     {
-      name: "logo",
+      name: "logo_url",
       type: "file-upload",
       label: "Brand Logo",
       placeholder: "Upload brand logo",
@@ -116,11 +120,15 @@ export default function BrandsPage() {
   const { pagination, isMountedRef } = pageState;
 
   // Fetch brands
-  const { data: brandsResponse, isLoading, error, refetch } = useQuery<
-    ApiResponse<PaginatedResponse<Brand>>
-  >({
+  const {
+    data: brandsResponse,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<ApiResponse<PaginatedResponse<Brand>>>({
     queryKey: ["brands", pagination.page, pagination.limit],
-    queryFn: () => brandsApi.getAll({ page: pagination.page, limit: pagination.limit }),
+    queryFn: () =>
+      brandsApi.getAll({ page: pagination.page, limit: pagination.limit }),
     placeholderData: (previousData) => previousData,
   });
 
@@ -142,7 +150,13 @@ export default function BrandsPage() {
   );
 
   if (error) {
-    return <ErrorBoundaryFallback error={error as Error} onRetry={refetch} title="Error loading brands" />;
+    return (
+      <ErrorBoundaryFallback
+        error={error as Error}
+        onRetry={refetch}
+        title="Error loading brands"
+      />
+    );
   }
 
   return (
@@ -189,17 +203,17 @@ export default function BrandsPage() {
                 if (data.description) {
                   formData.append("description", data.description);
                 }
-                
+
                 // Add logo file if provided
                 if (data.logo && data.logo.length > 0) {
                   formData.append("logo", data.logo[0]);
                 }
-                
+
                 // Add ID for updates
                 if (isEdit && item) {
                   formData.append("id", item._id);
                 }
-                
+
                 return formData;
               },
             }}
@@ -218,7 +232,9 @@ export default function BrandsPage() {
               pageSizeOptions: [2, 10, 20, 50, 100],
               onPaginationChange: handlePaginationChange,
             }}
-            rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
+            rowClassName={(row) =>
+              row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+            }
           />
         </CardContent>
       </Card>
