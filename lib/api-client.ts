@@ -39,11 +39,19 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
 
     try {
+      // Check if body is FormData
+      const isFormData = options.body instanceof FormData;
+
       const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
+        headers: isFormData
+          ? {
+            // Don't set Content-Type for FormData, let browser set it with boundary
+            ...options.headers,
+          }
+          : {
+            "Content-Type": "application/json",
+            ...options.headers,
+          },
         ...options,
       });
 
@@ -74,14 +82,14 @@ class ApiClient {
   async post<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     });
   }
 
   async put<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     });
   }
 
@@ -166,10 +174,9 @@ export const categoriesApi = {
     } = {}
   ): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(
-      `/categories${
-        filters && Object.keys(filters).length
-          ? `?${new URLSearchParams(filters as any)}`
-          : ""
+      `/categories${filters && Object.keys(filters).length
+        ? `?${new URLSearchParams(filters as any)}`
+        : ""
       }`
     ),
 

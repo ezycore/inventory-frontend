@@ -45,35 +45,36 @@ function useDirection(dirProp?: Direction): Direction {
 }
 
 interface FileState {
-  file: File;
+  file: File | string;
   progress: number;
   error?: string;
   status: "idle" | "uploading" | "error" | "success";
+  isExisting?: boolean;
 }
 
 interface StoreState {
-  files: Map<File, FileState>;
+  files: Map<File | string, FileState>;
   dragOver: boolean;
   invalid: boolean;
 }
 
 type StoreAction =
-  | { type: "ADD_FILES"; files: File[] }
-  | { type: "SET_FILES"; files: File[] }
-  | { type: "SET_PROGRESS"; file: File; progress: number }
-  | { type: "SET_SUCCESS"; file: File }
-  | { type: "SET_ERROR"; file: File; error: string }
-  | { type: "REMOVE_FILE"; file: File }
+  | { type: "ADD_FILES"; files: (File | string)[] }
+  | { type: "SET_FILES"; files: (File | string)[] }
+  | { type: "SET_PROGRESS"; file: File | string; progress: number }
+  | { type: "SET_SUCCESS"; file: File | string }
+  | { type: "SET_ERROR"; file: File | string; error: string }
+  | { type: "REMOVE_FILE"; file: File | string }
   | { type: "SET_DRAG_OVER"; dragOver: boolean }
   | { type: "SET_INVALID"; invalid: boolean }
   | { type: "CLEAR" };
 
 function createStore(
   listeners: Set<() => void>,
-  files: Map<File, FileState>,
+  files: Map<File | string, FileState>,
   urlCache: WeakMap<File, string>,
   invalid: boolean,
-  onValueChange?: (files: File[]) => void,
+  onValueChange?: (files: (File | string)[]) => void,
 ) {
   let state: StoreState = {
     files,
@@ -87,8 +88,9 @@ function createStore(
         for (const file of action.files) {
           files.set(file, {
             file,
-            progress: 0,
-            status: "idle",
+            progress: file instanceof File ? 0 : 100,
+            status: file instanceof File ? "idle" : "success",
+            isExisting: typeof file === "string",
           });
         }
 
@@ -114,8 +116,9 @@ function createStore(
           if (!existingState) {
             files.set(file, {
               file,
-              progress: 0,
-              status: "idle",
+              progress: file instanceof File ? 0 : 100,
+              status: file instanceof File ? "idle" : "success",
+              isExisting: typeof file === "string",
             });
           }
         }
@@ -159,7 +162,7 @@ function createStore(
       }
 
       case "REMOVE_FILE": {
-        if (urlCache) {
+        if (urlCache && action.file instanceof File) {
           const cachedUrl = urlCache.get(action.file);
           if (cachedUrl) {
             URL.revokeObjectURL(cachedUrl);
@@ -189,10 +192,12 @@ function createStore(
       case "CLEAR": {
         if (urlCache) {
           for (const file of files.keys()) {
-            const cachedUrl = urlCache.get(file);
-            if (cachedUrl) {
-              URL.revokeObjectURL(cachedUrl);
-              urlCache.delete(file);
+            if (file instanceof File) {
+              const cachedUrl = urlCache.get(file);
+              if (cachedUrl) {
+                URL.revokeObjectURL(cachedUrl);
+                urlCache.delete(file);
+              }
             }
           }
         }
@@ -288,9 +293,9 @@ function useFileUploadContext(consumerName: string) {
 
 interface FileUploadRootProps
   extends Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> {
-  value?: File[];
-  defaultValue?: File[];
-  onValueChange?: (files: File[]) => void;
+  value?: (File | string)[];
+  defaultValue?: (File | string)[];
+  onValueChange?: (files: (File | string)[]) => void;
   onAccept?: (files: File[]) => void;
   onFileAccept?: (file: File) => void;
   onFileReject?: (file: File, message: string) => void;
@@ -349,7 +354,7 @@ function FileUploadRoot(props: FileUploadRootProps) {
 
   const dir = useDirection(dirProp);
   const listeners = useLazyRef(() => new Set<() => void>()).current;
-  const files = useLazyRef<Map<File, FileState>>(() => new Map()).current;
+  const files = useLazyRef<Map<File | string, FileState>>(() => new Map()).current;
   const urlCache = useLazyRef(() => new WeakMap<File, string>()).current;
   const inputRef = React.useRef<HTMLInputElement>(null);
   const isControlled = value !== undefined;
@@ -394,9 +399,11 @@ function FileUploadRoot(props: FileUploadRootProps) {
   React.useEffect(() => {
     return () => {
       for (const file of files.keys()) {
-        const cachedUrl = urlCache.get(file);
-        if (cachedUrl) {
-          URL.revokeObjectURL(cachedUrl);
+        if (file instanceof File) {
+          const cachedUrl = urlCache.get(file);
+          if (cachedUrl) {
+            URL.revokeObjectURL(cachedUrl);
+          }
         }
       }
     };
@@ -929,7 +936,7 @@ function useFileUploadItemContext(consumerName: string) {
 }
 
 interface FileUploadItemProps extends React.ComponentProps<"div"> {
-  value: File;
+  value: File | string;
   asChild?: boolean;
 }
 
@@ -1076,8 +1083,17 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
   const context = useFileUploadContext(ITEM_PREVIEW_NAME);
 
   const getDefaultRender = React.useCallback(
-    (file: File) => {
-      if (itemContext.fileState?.file.type.startsWith("image/")) {
+    (file: File | string) => {
+      // Handle URL strings (existing uploaded files)
+      if (typeof file === "string") {
+        return (
+          // biome-ignore lint/performance/noImgElement: dynamic file URLs from user uploads don't work well with Next.js Image optimization
+          <img src={file} alt="Preview" className="size-full object-cover" />
+        );
+      }
+
+      // Handle File objects (new uploads)
+      if (file.type.startsWith("image/")) {
         let url = context.urlCache.get(file);
         if (!url) {
           url = URL.createObjectURL(file);
@@ -1092,12 +1108,12 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
 
       return getFileIcon(file);
     },
-    [itemContext.fileState?.file.type, context.urlCache],
+    [context.urlCache],
   );
 
   const onPreviewRender = React.useCallback(
-    (file: File) => {
-      if (render) {
+    (file: File | string) => {
+      if (render && file instanceof File) {
         return render(file, () => getDefaultRender(file));
       }
 
@@ -1147,6 +1163,15 @@ function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
 
   const ItemMetadataPrimitive = asChild ? Slot : "div";
 
+  // Extract file name and size based on type
+  const fileName = itemContext.fileState.file instanceof File
+    ? itemContext.fileState.file.name
+    : itemContext.fileState.file.split('/').pop() || 'Existing file';
+
+  const fileSize = itemContext.fileState.file instanceof File
+    ? formatBytes(itemContext.fileState.file.size)
+    : 'Uploaded';
+
   return (
     <ItemMetadataPrimitive
       data-slot="file-upload-metadata"
@@ -1163,7 +1188,7 @@ function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
               size === "sm" && "font-normal text-[13px] leading-snug",
             )}
           >
-            {itemContext.fileState.file.name}
+            {fileName}
           </span>
           <span
             id={itemContext.sizeId}
@@ -1172,7 +1197,7 @@ function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
               size === "sm" && "text-[11px] leading-snug",
             )}
           >
-            {formatBytes(itemContext.fileState.file.size)}
+            {fileSize}
           </span>
           {itemContext.fileState.error && (
             <span
