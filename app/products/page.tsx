@@ -7,28 +7,30 @@ import { Input } from '@ui/components/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { Badge } from '@ui/components/badge'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@ui/components/select'
-import { 
-  useProducts, 
-  useCategories, 
-  useBrands, 
-  useDeleteProduct 
+import {
+  useProducts,
+  useCategories,
+  useBrands,
+  useDeleteProduct
 } from '@/hooks/queries'
 import { useDebounce } from '@/hooks/use-debounce'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Plus, Search, Edit, Trash2, Package, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Trash2, Package, AlertTriangle } from 'lucide-react'
 import type { ProductWithVariants } from '@/types'
 import type { ProductFilters } from '@/types/products'
 import ProductForm from '@/components/products/product-form'
 import { queryKeys } from '@/lib/query-keys-products'
 import { DataTable } from '@/ui/components/dataTable'
+import { AvatarCell } from '@/ui/components/dataTable/cells'
+import { StatusBadge } from '@/ui/components/status-badge'
 
 export default function ProductsPage() {
   const router = useRouter()
@@ -40,7 +42,7 @@ export default function ProductsPage() {
     limit: 20,
     page: 1,
   })
-  
+
   const debouncedSearch = useDebounce(searchQuery, 300)
   const searchFilters = debouncedSearch ? { ...filters, search: debouncedSearch } : filters
 
@@ -93,12 +95,12 @@ export default function ProductsPage() {
 
   const getVariantSummary = (product: ProductWithVariants) => {
     if (!product.variants?.length) return 'No variants'
-    
+
     const totalStock = product.variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0)
-    const lowStockCount = product.variants.filter(v => 
+    const lowStockCount = product.variants.filter(v =>
       v.stock_quantity <= v.low_stock_threshold
     ).length
-    
+
     return (
       <div className="flex items-center gap-2 text-sm">
         <span>{product.variants.length} variants</span>
@@ -122,6 +124,13 @@ export default function ProductsPage() {
     {
       header: 'Name',
       accessorKey: 'name',
+      cell: ({ row }) => (
+        <AvatarCell
+          imageUrl={row.original.logo_url}
+          name={row.getValue("name")}
+          fallbackIcon={Package}
+        />
+      ),
     },
     {
       header: 'SKU',
@@ -134,8 +143,10 @@ export default function ProductsPage() {
     {
       header: 'Status',
       accessorKey: 'status',
+      cell: ({ row }) => <StatusBadge status={row.original.status} />
+
     },
-  ] 
+  ]
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -166,10 +177,10 @@ export default function ProductsPage() {
                 className="pl-10"
               />
             </div>
-            
-            <Select 
-              value={filters.category_id || 'all'} 
-              onValueChange={(value) => 
+
+            <Select
+              value={filters.category_id || 'all'}
+              onValueChange={(value) =>
                 setFilters(prev => ({ ...prev, category_id: value === 'all' ? undefined : value }))
               }
             >
@@ -186,9 +197,9 @@ export default function ProductsPage() {
               </SelectContent>
             </Select>
 
-            <Select 
-              value={filters.brand_id || 'all'} 
-              onValueChange={(value) => 
+            <Select
+              value={filters.brand_id || 'all'}
+              onValueChange={(value) =>
                 setFilters(prev => ({ ...prev, brand_id: value === 'all' ? undefined : value }))
               }
             >
@@ -205,9 +216,9 @@ export default function ProductsPage() {
               </SelectContent>
             </Select>
 
-            <Select 
-              value={filters.status || 'all'} 
-              onValueChange={(value) => 
+            <Select
+              value={filters.status || 'all'}
+              onValueChange={(value) =>
                 setFilters(prev => ({ ...prev, status: value === 'all' ? undefined : value as any }))
               }
             >
@@ -231,7 +242,10 @@ export default function ProductsPage() {
           <CardTitle>Products ({totalCount})</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading && (
+
+          <DataTable columns={columns} data={products} />
+
+          {/* {isLoading && (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex items-center space-x-4">
@@ -254,19 +268,7 @@ export default function ProductsPage() {
             </div>
           )}
 
-          {products.length === 0 && !isLoading && !error && (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No products found</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchQuery ? 'Try adjusting your search or filters' : 'Get started by adding your first product'}
-              </p>
-              <Button onClick={handleAddProduct}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </div>
-          )}
+
 
           {products.length > 0 && (
             <div className="space-y-4">
@@ -343,12 +345,11 @@ export default function ProductsPage() {
                 </div>
               ))}
             </div>
-          )}
+          )} */}
         </CardContent>
       </Card>
 
 
-      <DataTable columns={columns} data={products} />
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -374,7 +375,7 @@ export default function ProductsPage() {
       )}
 
       {/* Product Form Drawer */}
-      <ProductForm 
+      <ProductForm
         productId={editingProductId || undefined}
         openInside="drawer"
         open={isDrawerOpen}

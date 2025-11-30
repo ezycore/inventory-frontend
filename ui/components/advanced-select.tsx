@@ -19,7 +19,7 @@
     */
 
 import React from 'react'
-import { useSelectOptions } from '@/hooks/utils'
+import { useSelectOptions } from '@/hooks/queries'
 import {
     Select,
     SelectContent,

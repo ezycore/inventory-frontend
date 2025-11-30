@@ -1,28 +1,31 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
-import { Badge } from '@ui/components/badge'
 import { Skeleton } from '@ui/components/skeleton'
-import { 
+import { StatusBadge } from '@ui/components/status-badge'
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@ui/components/select'
-import { 
-  useVariants, 
-  useProducts,
-  useDeleteVariant 
-} from '@/hooks/queries'
-import { useDebounce } from '@/hooks/use-debounce'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@ui/components/table'
+import DynamicForm from '@/ui/components/form'
+import { useDynamicForm } from '@/hooks/use-dynamic-form'
 import { toast } from 'sonner'
-import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Layers, Eye, DollarSign } from 'lucide-react'
-import type { VariantFilters, Variant, ProductWithVariants } from '@/types/products'
+import { Plus, Search, Edit, Trash2, AlertTriangle, Download, Upload, RotateCcw } from 'lucide-react'
+import type { DynamicFormConfig } from '@/types/form'
 
 export default function VariantsPage() {
   const router = useRouter()
