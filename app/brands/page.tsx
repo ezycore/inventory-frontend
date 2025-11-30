@@ -106,15 +106,6 @@ const brandFormConfig: DynamicFormConfig = {
   ],
 };
 
-const generateSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
-};
-
 export default function BrandsPage() {
   const pageState = usePageState<Brand>({ defaultLimit: 10 });
   const { pagination, isMountedRef } = pageState;
@@ -197,7 +188,6 @@ export default function BrandsPage() {
                 status: "active" as const,
               },
               transformEditData: (item: Brand) => {
-                // Transform backend data to form format for EDIT mode
                 return {
                   name: item.name,
                   description: item.description || "",
