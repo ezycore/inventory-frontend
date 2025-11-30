@@ -193,8 +193,17 @@ export default function BrandsPage() {
               defaultValues: {
                 name: "",
                 description: "",
-                logo: [],
+                logo_url: [],
                 status: "active" as const,
+              },
+              transformEditData: (item: Brand) => {
+                // Transform backend data to form format for EDIT mode
+                return {
+                  name: item.name,
+                  description: item.description || "",
+                  logo_url: item.logo_url ? [item.logo_url] : [], // Initialize with URL string
+                  status: item.status,
+                };
               },
               prepareSubmitData: (data, isEdit, item) => {
                 const formData = new FormData();
@@ -204,14 +213,23 @@ export default function BrandsPage() {
                   formData.append("description", data.description);
                 }
 
-                // Add logo file if provided
-                if (data.logo && data.logo.length > 0) {
-                  formData.append("logo", data.logo[0]);
-                }
-
-                // Add ID for updates
                 if (isEdit && item) {
                   formData.append("id", item._id);
+
+                  // EDIT MODE: Handle logo changes
+                  if (!data.logo_url || data.logo_url.length === 0) {
+                    // User removed the logo
+                    formData.append("remove_logo", "true");
+                  } else if (data.logo_url[0] instanceof File) {
+                    // User uploaded NEW file (File object)
+                    formData.append("logo", data.logo_url[0]);
+                  }
+                  // If data.logo_url[0] is string (existing URL), do nothing (keep existing)
+                } else {
+                  // ADD MODE: Upload new file
+                  if (data.logo_url && data.logo_url[0] instanceof File) {
+                    formData.append("logo", data.logo_url[0]);
+                  }
                 }
 
                 return formData;

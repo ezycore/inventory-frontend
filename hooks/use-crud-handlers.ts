@@ -8,6 +8,7 @@ export interface CrudHandlersOptions<T> {
  setIsViewMode: (isView: boolean) => void;
  setIsModalOpen: (isOpen: boolean) => void;
  defaultValues?: any;
+ transformEditData?: (item: T) => any;
  onDeleteFn?: (id: string) => Promise<void>;
  entityName?: string;
 }
@@ -18,6 +19,7 @@ export function useCrudHandlers<T extends { _id: string }>({
  setIsViewMode,
  setIsModalOpen,
  defaultValues = {},
+ transformEditData,
  onDeleteFn,
  entityName = "Item",
 }: CrudHandlersOptions<T>) {
@@ -32,16 +34,20 @@ export function useCrudHandlers<T extends { _id: string }>({
  const handleEdit = useCallback((item: T) => {
   setEditingItem(item);
   setIsViewMode(false);
-  form.reset(item);
+  // Transform data if transformer is provided, otherwise use item directly
+  const formData = transformEditData ? transformEditData(item) : item;
+  form.reset(formData);
   setIsModalOpen(true);
- }, [form, setEditingItem, setIsViewMode, setIsModalOpen]);
+ }, [form, setEditingItem, setIsViewMode, setIsModalOpen, transformEditData]);
 
  const handleView = useCallback((item: T) => {
   setEditingItem(item);
   setIsViewMode(true);
-  form.reset(item);
+  // Transform data if transformer is provided, otherwise use item directly
+  const formData = transformEditData ? transformEditData(item) : item;
+  form.reset(formData);
   setIsModalOpen(true);
- }, [form, setEditingItem, setIsViewMode, setIsModalOpen]);
+ }, [form, setEditingItem, setIsViewMode, setIsModalOpen, transformEditData]);
 
  const handleDelete = useCallback(async (item: T) => {
   if (!onDeleteFn) {

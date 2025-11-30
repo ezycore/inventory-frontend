@@ -110,9 +110,60 @@ const FormField: React.FC<{
     } else if (field.type === "checkbox") {
       displayValue = fieldValue ? "Yes" : "No";
     } else if (field.type === "file-upload") {
-      displayValue = Array.isArray(fieldValue)
-        ? `${fieldValue.length} file(s)`
-        : "abc";
+      // Handle file-upload view mode
+      if (!fieldValue || (Array.isArray(fieldValue) && fieldValue.length === 0)) {
+        return <p className="text-sm text-muted-foreground">No file uploaded</p>;
+      }
+
+      const files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+      return (
+        <div className="space-y-2">
+          {files.map((file: File | string, index: number) => {
+            if (typeof file === "string") {
+              // Display existing URL
+              return (
+                <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <img 
+                    src={file} 
+                    alt="Uploaded file" 
+                    className="h-16 w-16 object-cover rounded"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {file.split('/').pop() || 'Existing file'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Uploaded</p>
+                  </div>
+                  <a 
+                    href={file} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline"
+                  >
+                    View
+                  </a>
+                </div>
+              );
+            } else if (file instanceof File) {
+              // Display File object
+              return (
+                <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="h-16 w-16 rounded bg-gray-100 flex items-center justify-center">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      );
     }
 
     return (
@@ -312,13 +363,16 @@ const FormField: React.FC<{
               required: field.required ? `${field.label} is required` : false,
             }}
             render={({ field: controllerField }) => {
-              const files = controllerField.value || [];
+              const files: (File | string)[] = controllerField.value || [];
               const acceptedTypes = field.accept || "*";
               const maxFiles = field.maxFiles || 1;
               const maxSize = field.maxSize || 5 * 1024 * 1024; // 5MB default
               const showPreview = field.showPreview !== false;
+              const hasFiles = files.length > 0;
+              const isSingleFileMode = maxFiles === 1;
+              const shouldHideDropzone = isSingleFileMode && hasFiles;
 
-              const handleFileChange = (selectedFiles: File[]) => {
+              const handleFileChange = (selectedFiles: (File | string)[]) => {
                 console.log("File upload changed:", selectedFiles); // Debug log
                 controllerField.onChange(selectedFiles);
                 handleChange(selectedFiles);
@@ -334,7 +388,8 @@ const FormField: React.FC<{
                   multiple={field.multiple}
                   disabled={field.disabled}
                 >
-                  <FileUploadDropzone className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
+                  {!shouldHideDropzone && (
+                    <FileUploadDropzone className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
                     <div className="flex flex-col items-center gap-2">
                       <Upload className="h-10 w-10 text-muted-foreground" />
                       <div className="text-sm">
@@ -358,41 +413,62 @@ const FormField: React.FC<{
                       </p>
                     </div>
                   </FileUploadDropzone>
+                  )}
+
+                  {shouldHideDropzone && (
+                    <div className="text-sm text-muted-foreground mb-2">
+                      Remove the existing file to upload a new one
+                    </div>
+                  )}
 
                   {showPreview && files.length > 0 && (
                     <FileUploadList className="mt-4">
-                      {files.map((file: File, index: number) => (
-                        <FileUploadItem
-                          key={`${file.name}-${index}`}
-                          value={file}
-                          className="flex items-center gap-3 p-3 border rounded-lg"
-                        >
-                          <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {file.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                            {index === 0 && maxFiles > 1 && (
-                              <span className="inline-block mt-1 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
-                                Primary
-                              </span>
-                            )}
-                          </div>
-                          <FileUploadItemDelete asChild>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </FileUploadItemDelete>
-                        </FileUploadItem>
-                      ))}
+                      {files.map((file: File | string, index: number) => {
+                        const fileKey = file instanceof File 
+                          ? `${file.name}-${index}` 
+                          : `${file}-${index}`;
+                        
+                        const fileName = file instanceof File 
+                          ? file.name 
+                          : file.split('/').pop() || 'Existing file';
+                        
+                        const fileSize = file instanceof File 
+                          ? `${(file.size / 1024 / 1024).toFixed(2)} MB` 
+                          : 'Uploaded';
+
+                        return (
+                          <FileUploadItem
+                            key={fileKey}
+                            value={file}
+                            className="flex items-center gap-3 p-3 border rounded-lg"
+                          >
+                            <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {fileName}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {fileSize}
+                              </p>
+                              {index === 0 && maxFiles > 1 && (
+                                <span className="inline-block mt-1 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
+                                  Primary
+                                </span>
+                              )}
+                            </div>
+                            <FileUploadItemDelete asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </FileUploadItemDelete>
+                          </FileUploadItem>
+                        );
+                      })}
                     </FileUploadList>
                   )}
                 </FileUpload>

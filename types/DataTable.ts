@@ -144,6 +144,9 @@ export interface DataTableProps<TData, TValue = any> {
   /** Custom data preparation before submit */
   prepareSubmitData?: (data: any, isEdit: boolean, originalItem?: TData) => any;
 
+  /** Transform backend data to form format for edit mode */
+  transformEditData?: (item: TData) => any;
+
   /** Custom default form values */
   defaultValues?: any;
 

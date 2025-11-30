@@ -56,6 +56,7 @@ export interface Brand extends BaseEntity {
   slug: string
   description?: string
   logo_url?: string
+  logo_public_id?: string
   website?: string
   status: 'active' | 'inactive'
 }
@@ -65,6 +66,7 @@ export interface CreateBrandDto {
   slug?: string
   description?: string
   logo_url?: string
+  logo_public_id?: string
   website?: string
   status?: 'active' | 'inactive'
 }
