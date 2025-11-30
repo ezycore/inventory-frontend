@@ -59,6 +59,7 @@ export function DataTableCrud<TData extends { _id: string }, TValue = any>(
     setIsViewMode: view.setIsViewMode,
     setIsModalOpen: modal.setIsOpen,
     defaultValues,
+    transformEditData: crud?.transformEditData,
     onDeleteFn: crud?.deleteMutation
       ? async (id: string) => {
           await crud.deleteMutation.mutateAsync(id);
