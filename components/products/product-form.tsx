@@ -16,6 +16,7 @@ import { handleMutationError } from '@/lib/error-handling'
 import { ArrowLeft } from 'lucide-react'
 import { ProductStatus } from '@/types'
 import CustomFieldsManager from './custom-fields-manager'
+import VariantManager from './variant-manager'
 import { createProductFormConfig } from './product-form-config'
 
 
@@ -73,6 +74,7 @@ export default function ProductForm({
   const router = useRouter()
   const [hasVariants, setHasVariants] = useState(false)
   const [productType, setProductType] = useState<'single' | 'variable'>('single')
+  const [variants, setVariants] = useState<any[]>([])
   const mode = productId ? 'edit' : 'create'
 
   // Register custom field renderers
@@ -246,7 +248,19 @@ export default function ProductForm({
         mutationHook={mode === 'create' ? createProduct : updateProduct}
         onSuccess={handleActionSuccess}
         onFailed={handleActionError}
-      />
+      >
+        {/* VariantManager Component */}
+        <VariantManager
+          productType={productType}
+          onProductTypeChange={(type) => {
+            setProductType(type)
+            setHasVariants(type === 'variable')
+          }}
+          onVariantsChange={setVariants}
+          defaultVariants={variants}
+          basePrice={form.getValues('price') || 0}
+        />
+      </DynamicForm>
     )
   }
 
@@ -274,26 +288,40 @@ export default function ProductForm({
         </Button>
       </div>
 
-      <DynamicForm
-        id='product-form'
-        className="space-y-6"
-        config={finalFormConfig}
-        form={form}
-        onFieldChange={handleFieldChange}
+      <div className="space-y-6">
+        <DynamicForm
+          id='product-form'
+          className="space-y-6"
+          config={finalFormConfig}
+          form={form}
+          onFieldChange={handleFieldChange}
 
-        // Form actions props
-        cancelLabel="Cancel"
-        submitLabel={submitLabel}
-        onCancel={() => onCancel ? onCancel() : router.back()}
+          // Form actions props
+          cancelLabel="Cancel"
+          submitLabel={submitLabel}
+          onCancel={() => onCancel ? onCancel() : router.back()}
 
-        // Content loading for edit mode
-        contentLoading={mode === 'edit' && productLoading}
+          // Content loading for edit mode
+          contentLoading={mode === 'edit' && productLoading}
 
-        // Mutation hook
-        mutationHook={mode === 'create' ? createProduct : updateProduct}
-        onSuccess={handleActionSuccess}
-        onFailed={handleActionError}
-      />
+          // Mutation hook
+          mutationHook={mode === 'create' ? createProduct : updateProduct}
+          onSuccess={handleActionSuccess}
+          onFailed={handleActionError}
+        />
+
+        {/* VariantManager Component */}
+        <VariantManager
+          productType={productType}
+          onProductTypeChange={(type) => {
+            setProductType(type)
+            setHasVariants(type === 'variable')
+          }}
+          onVariantsChange={setVariants}
+          defaultVariants={variants}
+          basePrice={form.getValues('price') || 0}
+        />
+      </div>
     </div>
   )
 }

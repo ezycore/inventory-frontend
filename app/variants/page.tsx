@@ -13,328 +13,251 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@ui/components/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@ui/components/table'
 import DynamicForm from '@/ui/components/form'
 import { useDynamicForm } from '@/hooks/use-dynamic-form'
 import { toast } from 'sonner'
 import { Plus, Search, Edit, Trash2, AlertTriangle, Download, Upload, RotateCcw } from 'lucide-react'
 import type { DynamicFormConfig } from '@/types/form'
+import { DataTableCrud } from '@/ui/components/dataTable/crud'
+import { ColumnDef } from '@tanstack/react-table'
+import { DateCell } from '@/ui/components/dataTable/cells/date-cell'
+import { AvatarCell } from '@/ui/components/dataTable/cells/avatar-cell'
+
+// Mock data for variant attributes (replace with actual API calls)
+const mockVariantAttributes = [
+  {
+    _id: '1',
+    name: 'Size',
+    values: ['XS', 'S', 'M', 'L', 'XL'],
+    status: 'active',
+    created_at: '2024-12-24T00:00:00Z'
+  },
+  {
+    _id: '2',
+    name: 'Color',
+    values: ['Red', 'Blue', 'Green'],
+    status: 'active',
+    created_at: '2024-12-10T00:00:00Z'
+  },
+  {
+    _id: '3',
+    name: 'Capacity',
+    values: ['Small', 'Medium', 'Large'],
+    status: 'active',
+    created_at: '2024-11-27T00:00:00Z'
+  },
+  {
+    _id: '4',
+    name: 'Material',
+    values: ['Cotton', 'Leather', 'Synthetic'],
+    status: 'active',
+    created_at: '2024-11-18T00:00:00Z'
+  },
+  {
+    _id: '5',
+    name: 'Weight',
+    values: ['Light', 'Heavy'],
+    status: 'active',
+    created_at: '2024-11-06T00:00:00Z'
+  },
+  {
+    _id: '6',
+    name: 'Style',
+    values: ['Casual', 'Formal', 'Sporty'],
+    status: 'active',
+    created_at: '2024-10-25T00:00:00Z'
+  },
+  {
+    _id: '7',
+    name: 'Pattern',
+    values: ['Solid', 'Striped', 'Printed'],
+    status: 'active',
+    created_at: '2024-10-14T00:00:00Z'
+  },
+  {
+    _id: '8',
+    name: 'Memory',
+    values: ['8 GB', '16 GB', '36 GB'],
+    status: 'active',
+    created_at: '2024-10-03T00:00:00Z'
+  },
+  {
+    _id: '9',
+    name: 'Storage',
+    values: ['128 GB', '256 GB', '512 GB', '1TB'],
+    status: 'active',
+    created_at: '2024-09-20T00:00:00Z'
+  },
+  {
+    _id: '10',
+    name: 'Length',
+    values: ['Short', 'Regular', 'Long'],
+    status: 'active',
+    created_at: '2024-09-10T00:00:00Z'
+  }
+]
+
+const variantAttributeFormConfig: DynamicFormConfig = {
+  fields: [
+    {
+      name: 'name',
+      type: 'input',
+      label: 'Variant Attribute Name',
+      placeholder: 'Enter attribute name (e.g., Color, Size)',
+      required: true,
+      columnSpan: 12,
+      validation: {
+        minLength: 2,
+        maxLength: 50
+      }
+    },
+    {
+      name: 'values',
+      type: 'textarea',
+      label: 'Attribute Values',
+      placeholder: 'Enter values separated by commas (e.g., Red, Blue, Green)',
+      required: true,
+      rows: 3,
+      columnSpan: 12,
+      helperText: 'Separate multiple values with commas',
+      validation: {
+        minLength: 3,
+        maxLength: 500
+      }
+    },
+    {
+      name: 'status',
+      type: 'select',
+      label: 'Status',
+      required: true,
+      columnSpan: 12,
+      defaultValue: 'active',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' }
+      ]
+    }
+  ]
+}
 
 export default function VariantsPage() {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<VariantFilters>({
-    limit: 20,
-    page: 1,
-  })
-  
-  const debouncedSearch = useDebounce(searchQuery, 300)
-  const searchFilters = debouncedSearch ? { ...filters, search: debouncedSearch } : filters
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Queries
-  const { data: variantsData, isLoading, error } = useVariants(searchFilters)
-  const { data: products } = useProducts({ limit: 50 }) // Get all products for filter dropdown
-  const deleteVariant = useDeleteVariant()
+  // Use all mock data since DataTableCrud handles filtering
+  const filteredAttributes = mockVariantAttributes
 
-  const variants = (variantsData as any)?.variants || []
-  const totalPages = (variantsData as any)?.totalPages || 1
-  const totalCount = (variantsData as any)?.total || 0
-
-  const handleDeleteVariant = async (variant: Variant) => {
-    if (window.confirm(`Are you sure you want to delete variant "${variant.sku}"?`)) {
-      try {
-        await deleteVariant.mutateAsync(variant._id)
-        toast.success('Variant deleted successfully')
-      } catch (error) {
-        toast.error('Failed to delete variant')
-      }
+  const handleFormSubmit = async (data: any) => {
+    // Process the values string into an array
+    const processedData = {
+      ...data,
+      values: data.values.split(',').map((value: string) => value.trim()).filter((value: string) => value)
     }
+    
+    if (editingAttribute) {
+      return { id: editingAttribute._id, ...processedData }
+    }
+    return processedData
   }
 
-  const getStockStatus = (quantity: number, threshold: number) => {
-    if (quantity <= 0) return { label: 'Out of Stock', variant: 'destructive' as const }
-    if (quantity <= threshold) return { label: 'Low Stock', variant: 'secondary' as const }
-    return { label: 'In Stock', variant: 'default' as const }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
   }
 
-  const formatAttributes = (attributes: Record<string, string>) => {
-    return Object.entries(attributes)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(', ')
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Error loading variants</h3>
-          <p className="text-muted-foreground">Please try again later.</p>
-        </div>
-      </div>
-    )
-  }
+  // Define columns for DataTable with proper typing
+  const columns: ColumnDef<any>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Variant Name',
+      cell: ({ row }) => (
+        <AvatarCell
+          name={row.getValue("name")}
+          fallbackIcon={AlertTriangle}
+          showActiveStatus={true}
+          isActive={row.original.status === "active"}
+        />
+      ),
+    },
+    {
+      accessorKey: 'values',
+      header: 'Values',
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {(row.original.values as string[]).join(', ')}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'created_at',
+      header: 'Created Date',
+      cell: ({ row }) => <DateCell value={row.getValue("created_at")} />,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+    },
+  ]
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Product Variants</h1>
+          <h1 className="text-3xl font-bold">Variant Attributes</h1>
           <p className="text-muted-foreground">
-            Manage all product variants, pricing, and stock levels
+            Manage your variant attributes
           </p>
         </div>
-        <Button onClick={() => router.push('/products')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product & Variants
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Button variant="outline" size="sm">
+            <Upload className="h-4 w-4 mr-2" />
+            Import
+          </Button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search variants by SKU, attributes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select
-              value={filters.product_id || "all"}
-              onValueChange={(value) => setFilters(prev => ({ 
-                ...prev, 
-                product_id: value === "all" ? undefined : value,
-                page: 1 
-              }))}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Products" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Products</SelectItem>
-                {((products as any)?.products || []).map((product: ProductWithVariants) => (
-                  <SelectItem key={product._id} value={product._id}>
-                    {product.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={filters.status || "all"}
-              onValueChange={(value) => setFilters(prev => ({ 
-                ...prev, 
-                status: value === "all" ? undefined : value as any,
-                page: 1 
-              }))}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={filters.stock_status || "all"}
-              onValueChange={(value) => setFilters(prev => ({ 
-                ...prev, 
-                stock_status: value === "all" ? undefined : value as any,
-                page: 1 
-              }))}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Stock Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Stock</SelectItem>
-                <SelectItem value="in_stock">In Stock</SelectItem>
-                <SelectItem value="low_stock">Low Stock</SelectItem>
-                <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Variants List */}
+      {/* Variant Attributes Table with Integrated CRUD */}
       <Card>
         <CardHeader>
-          <CardTitle>All Variants</CardTitle>
-          <CardDescription>
-            {isLoading ? 'Loading...' : `${totalCount} variants found`}
-          </CardDescription>
+          <CardTitle>All Variant Attributes ({filteredAttributes.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <Skeleton className="h-16 w-16 rounded" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-40" />
-                      <Skeleton className="h-3 w-60" />
-                      <Skeleton className="h-3 w-32" />
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Skeleton className="h-8 w-20" />
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : variants.length === 0 ? (
-            <div className="text-center py-12">
-              <Layers className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No variants found</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchQuery ? 'Try adjusting your search or filters' : 'Create products with variants to see them here'}
-              </p>
-              <Button onClick={() => router.push('/products')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {variants.map((variant: Variant) => {
-                const stockStatus = getStockStatus(variant.stock_quantity, variant.low_stock_threshold)
-                
-                return (
-                  <div key={variant._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                    <div className="flex items-center space-x-4 flex-1">
-                      {/* Variant Image */}
-                      <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                        {variant.images && variant.images.length > 0 ? (
-                          <img 
-                            src={variant.images[0]} 
-                            alt={variant.sku}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none'
-                              const parent = e.currentTarget.parentElement!
-                              parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>'
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Layers className="h-8 w-8 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Variant Details */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold truncate">{variant.sku}</h3>
-                          <Badge variant={variant.status === 'active' ? 'default' : 'secondary'}>
-                            {variant.status}
-                          </Badge>
-                          <Badge variant={stockStatus.variant}>
-                            {stockStatus.label}
-                          </Badge>
-                        </div>
-                        
-                        {Object.keys(variant?.attributes || {}).length > 0 && (
-                          <p className="text-sm text-muted-foreground mb-1">
-                            {formatAttributes(variant.attributes)}
-                          </p>
-                        )}
-                        
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" />
-                            ${variant.price.toFixed(2)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Package className="h-3 w-3" />
-                            {variant.stock_quantity} in stock
-                          </span>
-                          {variant.barcode && (
-                            <span>Barcode: {variant.barcode}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex space-x-2 flex-shrink-0">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/products/${variant.product_id}/variants`)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/products/${variant.product_id}/variants/${variant._id}/edit`)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteVariant(variant)}
-                        disabled={deleteVariant.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+          <DataTableCrud
+            columns={columns}
+            data={filteredAttributes}
+            selectable={true}
+            searchConfig={{
+              globalSearch: true,
+              placeholder: "Search variant attributes by name, values, or status...",
+            }}
+            crud={{
+              formConfig: variantAttributeFormConfig,
+              entityName: "Variant Attribute",
+              defaultValues: {
+                name: "",
+                values: "",
+                status: "active" as const,
+              },
+              prepareSubmitData: (data, isEdit, item) => ({
+                ...handleFormSubmit(data),
+                ...(isEdit && item ? { id: item._id } : {}),
+              }),
+            }}
+            enableSorting={true}
+            defaultColumnVisibility={{ status: false }}
+            enableRowHover={true}
+            isLoading={isLoading}
+            rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
+          />
         </CardContent>
       </Card>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            Showing {((filters.page || 1) - 1) * (filters.limit || 20) + 1} to{' '}
-            {Math.min((filters.page || 1) * (filters.limit || 20), totalCount)} of {totalCount} variants
-          </p>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              disabled={filters.page === 1}
-              onClick={() => setFilters(prev => ({ ...prev, page: (prev.page || 1) - 1 }))}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              disabled={filters.page === totalPages}
-              onClick={() => setFilters(prev => ({ ...prev, page: (prev.page || 1) + 1 }))}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
