@@ -171,7 +171,7 @@ export default function BrandsPage() {
               endpoint: brandsApi,
               queryKey: [...queryKeys.brands.all()],
               defaultPageSize: 10,
-              pageSizeOptions: [2,10, 20, 50, 100],
+              pageSizeOptions: [10, 20, 50, 100],
             }}
             filterConfig={brandFilterConfig}
             columns={columns}

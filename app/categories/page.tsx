@@ -29,6 +29,8 @@ const columns: ColumnDef<Category>[] = [
       <AvatarCell
         name={row.getValue("name")}
         fallbackIcon={Tag}
+        showActiveStatus={true}
+        isActive={row.original.status === "active"}
       />
     ),
   },
@@ -97,15 +99,6 @@ const categoryFormConfig: DynamicFormConfig = {
   ],
 };
 
-const generateSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim()
-};
-
 // Filter configuration for categories
 const categoryFilterConfig: FilterConfig = {
   fields: [
@@ -135,7 +128,7 @@ const categoryFilterConfig: FilterConfig = {
     {
       name: "updatedAt",
       label: "Updated Date",
-      type: "date-range",
+      type: "date",
       placeholder: "Select date range",
       columnSpan: 2,
     },
@@ -199,10 +192,10 @@ export default function CategoriesPage() {
               },
               prepareSubmitData: (data, isEdit, item) => ({
                 ...data,
-                slug: generateSlug(data.name),
                 ...(isEdit && item ? { id: item._id } : {}),
               }),
             }}
+            defaultColumnVisibility={{ status: false, description: false }}
             enableSorting={true}
             enableRowHover={true}
             rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
