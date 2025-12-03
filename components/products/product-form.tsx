@@ -75,7 +75,18 @@ export default function ProductForm({
   const [hasVariants, setHasVariants] = useState(false)
   const [productType, setProductType] = useState<'single' | 'variable'>('single')
   const [variants, setVariants] = useState<any[]>([])
+  const [basePrice, setBasePrice] = useState<number>(0)
   const mode = productId ? 'edit' : 'create'
+
+  // Queries
+  const { data: product, isLoading: productLoading } = useProduct(productId || '')
+
+  // Mutations
+  const createProduct = useCreateProduct()
+  const updateProduct = useUpdateProduct()
+
+  // Use dynamic form with auto-generated schema and config defaults
+  const { form, config } = useDynamicForm<ProductFormValues>(createProductFormConfig())
 
   // Register custom field renderers
   useEffect(() => {
@@ -88,6 +99,18 @@ export default function ProductForm({
             name="custom_fields"
             maxFields={maxCount || 5}
           />
+        ),
+        variant_manager: () => (
+          <VariantManager
+            productType={productType}
+            onProductTypeChange={(type) => {
+              setProductType(type)
+              setHasVariants(type === 'variable')
+            }}
+            onVariantsChange={setVariants}
+            defaultVariants={variants}
+            basePrice={basePrice || form.getValues('price') || 0}
+          />
         )
       }
     }
@@ -96,19 +119,20 @@ export default function ProductForm({
     return () => {
       if (typeof window !== 'undefined' && (window as any).__customFieldRenderers) {
         delete (window as any).__customFieldRenderers.custom_fields
+        delete (window as any).__customFieldRenderers.variant_manager
       }
     }
-  }, [])
+  }, [productType, variants, basePrice, form])
 
-  // Queries
-  const { data: product, isLoading: productLoading } = useProduct(productId || '')
-
-  // Mutations
-  const createProduct = useCreateProduct()
-  const updateProduct = useUpdateProduct()
-
-  // Use dynamic form with auto-generated schema and config defaults
-  const { form, config } = useDynamicForm<ProductFormValues>(createProductFormConfig())
+  // Watch price field for variant base price
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'price' && value.price) {
+        setBasePrice(value.price)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form])
 
   // Load existing product data for editing
   useEffect(() => {
@@ -248,19 +272,7 @@ export default function ProductForm({
         mutationHook={mode === 'create' ? createProduct : updateProduct}
         onSuccess={handleActionSuccess}
         onFailed={handleActionError}
-      >
-        {/* VariantManager Component */}
-        <VariantManager
-          productType={productType}
-          onProductTypeChange={(type) => {
-            setProductType(type)
-            setHasVariants(type === 'variable')
-          }}
-          onVariantsChange={setVariants}
-          defaultVariants={variants}
-          basePrice={form.getValues('price') || 0}
-        />
-      </DynamicForm>
+      />
     )
   }
 
@@ -308,18 +320,6 @@ export default function ProductForm({
           mutationHook={mode === 'create' ? createProduct : updateProduct}
           onSuccess={handleActionSuccess}
           onFailed={handleActionError}
-        />
-
-        {/* VariantManager Component */}
-        <VariantManager
-          productType={productType}
-          onProductTypeChange={(type) => {
-            setProductType(type)
-            setHasVariants(type === 'variable')
-          }}
-          onVariantsChange={setVariants}
-          defaultVariants={variants}
-          basePrice={form.getValues('price') || 0}
         />
       </div>
     </div>

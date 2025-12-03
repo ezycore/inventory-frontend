@@ -285,19 +285,12 @@ export const createProductFormConfig = (
               value: "single"
             }
           },
-          // Variable product message
+          // Variant Manager custom field - shows when variable product is selected
           {
-            name: "variable_message",
+            name: "variant_manager",
             type: "custom",
             label: "",
             columnSpan: 12,
-            customComponent: ({ value }: any) => (
-              <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <p className="text-muted-foreground">
-                  Variable product selected. After creating the product, you&apos;ll be able to add variants with different attributes, prices, and stock levels.
-                </p>
-              </div>
-            ),
             showWhen: {
               field: "product_type_radio",
               value: "variable"

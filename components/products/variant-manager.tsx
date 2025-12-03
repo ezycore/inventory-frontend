@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
 import { Label } from '@ui/components/label'
@@ -171,22 +171,70 @@ export default function VariantManager({
   const [variants, setVariants] = useState<Variant[]>(defaultVariants)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingVariant, setEditingVariant] = useState<Variant | null>(null)
+  const [currentVariantIndex, setCurrentVariantIndex] = useState<number | null>(null)
 
   // Form setup for add variant modal
   const { form, config } = useDynamicForm<any>(addVariantFormConfig)
-
-  useEffect(() => {
-    if (productType === 'variable' && selectedAttributes.length > 0) {
-      generateVariants()
-    } else if (productType === 'single') {
+  
+  const generateVariants = useCallback(() => {
+    if (selectedAttributes.length === 0 || selectedAttributes.some(attr => attr.values.length === 0)) {
       setVariants([])
-      setSelectedAttributes([])
+      return
     }
-  }, [selectedAttributes, productType])
 
-  useEffect(() => {
-    onVariantsChange?.(variants)
-  }, [variants, onVariantsChange])
+    // Helper function to generate combinations
+    const generateCombinations = (attributes: Array<{ name: string; values: string[] }>): Record<string, string>[] => {
+      if (attributes.length === 0) return []
+      if (attributes.length === 1) {
+        return attributes[0].values.map(value => ({ [attributes[0].name]: value }))
+      }
+
+      const [first, ...rest] = attributes
+      const restCombinations = generateCombinations(rest)
+      
+      const result: Record<string, string>[] = []
+      for (const value of first.values) {
+        for (const combination of restCombinations) {
+          result.push({ [first.name]: value, ...combination })
+        }
+      }
+      
+      return result
+    }
+
+    const combinations = generateCombinations(selectedAttributes.map(attr => ({
+      name: attr.name,
+      values: attr.values
+    })))
+
+    const timestamp = Date.now()
+    
+    setVariants(prevVariants => {
+      const newVariants: Variant[] = combinations.map((combination, index) => {
+        // Check if variant already exists
+        const existingVariant = prevVariants.find(v => 
+          JSON.stringify(v.attributes) === JSON.stringify(combination)
+        )
+
+        if (existingVariant) {
+          return existingVariant
+        }
+
+        // Generate SKU from combination
+        const sku = Object.values(combination).join('-').toLowerCase().replace(/\s+/g, '-')
+        
+        return {
+          id: `variant-${timestamp}-${index}`,
+          attributes: combination,
+          sku: sku,
+          quantity: 0,
+          price: basePrice,
+          images: []
+        }
+      })
+      return newVariants
+    })
+  }, [selectedAttributes, basePrice])
 
   const handleAttributeSelect = (attributeName: string) => {
     const attribute = mockVariantAttributes.find(attr => attr.name === attributeName)
@@ -207,62 +255,6 @@ export default function VariantManager({
     setSelectedAttributes(prev => prev.filter(attr => attr.name !== attributeName))
   }
 
-  const generateVariants = () => {
-    if (selectedAttributes.length === 0 || selectedAttributes.some(attr => attr.values.length === 0)) {
-      setVariants([])
-      return
-    }
-
-    const combinations = generateCombinations(selectedAttributes.map(attr => ({
-      name: attr.name,
-      values: attr.values
-    })))
-
-    const newVariants: Variant[] = combinations.map((combination, index) => {
-      // Check if variant already exists
-      const existingVariant = variants.find(v => 
-        JSON.stringify(v.attributes) === JSON.stringify(combination)
-      )
-
-      if (existingVariant) {
-        return existingVariant
-      }
-
-      // Generate SKU from combination
-      const sku = Object.values(combination).join('-').toLowerCase().replace(/\s+/g, '-')
-      
-      return {
-        id: `variant-${Date.now()}-${index}`,
-        attributes: combination,
-        sku: sku,
-        quantity: 0,
-        price: basePrice,
-        images: []
-      }
-    })
-
-    setVariants(newVariants)
-  }
-
-  const generateCombinations = (attributes: Array<{ name: string; values: string[] }>): Record<string, string>[] => {
-    if (attributes.length === 0) return []
-    if (attributes.length === 1) {
-      return attributes[0].values.map(value => ({ [attributes[0].name]: value }))
-    }
-
-    const [first, ...rest] = attributes
-    const restCombinations = generateCombinations(rest)
-    
-    const result: Record<string, string>[] = []
-    for (const value of first.values) {
-      for (const combination of restCombinations) {
-        result.push({ [first.name]: value, ...combination })
-      }
-    }
-    
-    return result
-  }
-
   const updateVariantField = (variantId: string, field: string, value: any) => {
     setVariants(prev =>
       prev.map(variant =>
@@ -276,30 +268,53 @@ export default function VariantManager({
   }
 
   const addNewVariant = (variantData: any) => {
-    // Create attributes object from selected attributes
-    const attributes: Record<string, string> = {}
-    selectedAttributes.forEach(attr => {
-      if (attr.values.length > 0) {
-        attributes[attr.name] = attr.values[0] // Default to first value
+    if (editingVariant && currentVariantIndex !== null) {
+      // Update existing variant
+      setVariants(prev =>
+        prev.map((v, idx) =>
+          idx === currentVariantIndex
+            ? {
+                ...v,
+                barcode: variantData.item_code,
+                quantity: variantData.quantity || 0,
+                images: variantData.images || []
+              }
+            : v
+        )
+      )
+      toast.success('Variant updated successfully')
+    } else {
+      // Create attributes object from selected attributes
+      const attributes: Record<string, string> = {}
+      selectedAttributes.forEach(attr => {
+        if (attr.values.length > 0) {
+          attributes[attr.name] = attr.values[0] // Default to first value
+        }
+      })
+
+      const newVariant: Variant = {
+        id: `variant-${Date.now()}`,
+        attributes,
+        sku: Object.values(attributes).join('-').toLowerCase().replace(/\s+/g, '-'),
+        quantity: variantData.quantity || 0,
+        price: basePrice,
+        images: variantData.images || [],
+        barcode: variantData.item_code
       }
-    })
 
-    const newVariant: Variant = {
-      id: `variant-${Date.now()}`,
-      attributes,
-      sku: Object.values(attributes).join('-').toLowerCase().replace(/\s+/g, '-'),
-      quantity: variantData.quantity || 0,
-      price: basePrice,
-      images: variantData.images || [],
-      barcode: variantData.item_code
+      setVariants(prev => [...prev, newVariant])
+      toast.success('Variant added successfully')
     }
-
-    setVariants(prev => [...prev, newVariant])
+    
     setIsAddModalOpen(false)
+    setEditingVariant(null)
+    setCurrentVariantIndex(null)
+    form.reset()
   }
 
-  const handleEditVariant = (variant: Variant) => {
+  const handleEditVariant = (variant: Variant, index: number) => {
     setEditingVariant(variant)
+    setCurrentVariantIndex(index)
     form.reset({
       barcode_symbology: 'CODE128',
       item_code: variant.barcode || '',
@@ -314,44 +329,69 @@ export default function VariantManager({
     setIsAddModalOpen(true)
   }
 
-  const generateItemCode = () => {
+  const handleAddNewVariant = () => {
+    setEditingVariant(null)
+    setCurrentVariantIndex(null)
+    form.reset({
+      barcode_symbology: 'CODE128',
+      item_code: '',
+      images: [],
+      quantity: 0,
+      quantity_alert: 10,
+      tax_type: 'exclusive',
+      tax: 'none',
+      discount_type: 'fixed',
+      discount_value: 0
+    })
+    setIsAddModalOpen(true)
+  }
+
+  const generateItemCode = useCallback(() => {
     const code = `ITEM-${Date.now().toString().slice(-8)}`
     form.setValue('item_code', code)
     toast.success('Item code generated')
+  }, [form])
+
+  // Add Generate button action to form config
+  const enhancedConfig = {
+    ...config,
+    fields: config.fields?.map((field: any) => {
+      if (field.name === 'item_code') {
+        return {
+          ...field,
+          action: {
+            label: 'Generate',
+            onClick: generateItemCode
+          }
+        }
+      }
+      return field
+    })
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="text-orange-500">💰</span>
-          Pricing & Stocks
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Product Type Selection */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">
-            Product Type <span className="text-red-500">*</span>
-          </Label>
-          <RadioGroup
-            value={productType}
-            onValueChange={(value: 'single' | 'variable') => onProductTypeChange(value)}
-            className="flex gap-6"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="single" id="single" />
-              <Label htmlFor="single" className="cursor-pointer">Single Product</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="variable" id="variable" />
-              <Label htmlFor="variable" className="cursor-pointer">Variable Product</Label>
-            </div>
-          </RadioGroup>
-        </div>
+  // Effects - only regenerate variants when selectedAttributes values change
+  useEffect(() => {
+    if (productType === 'variable' && selectedAttributes.length > 0) {
+      // Check if any attribute has values selected
+      const hasValues = selectedAttributes.some(attr => attr.values.length > 0)
+      if (hasValues) {
+        generateVariants()
+      }
+    } else if (productType === 'single') {
+      setVariants([])
+      setSelectedAttributes([])
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAttributes, productType])
 
-        {/* Variable Product Configuration */}
-        {productType === 'variable' && (
+  useEffect(() => {
+    onVariantsChange?.(variants)
+  }, [variants, onVariantsChange])
+
+  return (
+    <div className="space-y-6">
+      {/* Variable Product Configuration - Only show when variable product is selected */}
+      {productType === 'variable' && (
           <div className="space-y-4">
             {/* Variant Attribute Selection */}
             <div className="space-y-3">
@@ -359,14 +399,16 @@ export default function VariantManager({
                 <Label className="text-sm font-medium">
                   Variant Attribute <span className="text-red-500">*</span>
                 </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAddModalOpen(true)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                {variants.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddNewVariant}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               
               {selectedAttributes.length === 0 ? (
@@ -518,7 +560,7 @@ export default function VariantManager({
                                 variant="outline"
                                 size="sm"
                                 className="text-orange-500 hover:text-orange-600"
-                                onClick={() => handleEditVariant(variant)}
+                                onClick={() => handleEditVariant(variant, variants.indexOf(variant))}
                               >
                                 <Check className="h-4 w-4" />
                               </Button>
@@ -526,7 +568,7 @@ export default function VariantManager({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {}}
+                                onClick={handleAddNewVariant}
                               >
                                 <Plus className="h-4 w-4" />
                               </Button>
@@ -550,9 +592,9 @@ export default function VariantManager({
           </div>
         )}
 
-        {/* Add Variant Modal */}
+        {/* Add/Edit Variant Modal */}
         <DynamicForm
-          config={config}
+          config={enhancedConfig}
           form={form}
           onSubmit={(data) => {
             addNewVariant(data)
@@ -561,20 +603,25 @@ export default function VariantManager({
           
           openInside="modal"
           open={isAddModalOpen}
-          onOpenChange={setIsAddModalOpen}
-          title="Add Variant"
-          submitLabel="Add Variant"
+          onOpenChange={(open) => {
+            setIsAddModalOpen(open)
+            if (!open) {
+              setEditingVariant(null)
+              setCurrentVariantIndex(null)
+              form.reset()
+            }
+          }}
+          title={editingVariant ? 'Edit Variant' : 'Add Variant'}
+          submitLabel={editingVariant ? 'Update Variant' : 'Add Variant'}
           modalSize="lg"
           
           onSuccess={() => {
-            toast.success('Variant added successfully')
-            form.reset()
+            // Success toast is handled in addNewVariant
           }}
           onFailed={() => {
-            toast.error('Failed to add variant')
+            toast.error(`Failed to ${editingVariant ? 'update' : 'add'} variant`)
           }}
         />
-      </CardContent>
-    </Card>
-  )
-}
+      </div>
+    )
+  }

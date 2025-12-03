@@ -478,6 +478,7 @@ const FormField: React.FC<{
         );
 
       case "custom":
+        // First check for customComponent prop
         if (field.customComponent) {
           const CustomComponent = field.customComponent;
           return (
@@ -498,6 +499,25 @@ const FormField: React.FC<{
               )}
             />
           );
+        }
+        
+        // Check for registered custom field renderer by field name
+        if (
+          typeof window !== "undefined" &&
+          (window as any).__customFieldRenderers
+        ) {
+          const renderers = (window as any).__customFieldRenderers;
+          const CustomRenderer = renderers[field.name];
+          if (CustomRenderer) {
+            return (
+              <CustomRenderer
+                control={control}
+                name={field.name}
+                maxCount={field.maxCount}
+                error={error}
+              />
+            );
+          }
         }
         return null;
 
