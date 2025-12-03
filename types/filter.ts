@@ -1,7 +1,7 @@
 export type FilterFieldType =
  | "text"
  | "select"
- | "multi-select"
+ | "checkbox"
  | "date"
  | "date-range"
  | "number"

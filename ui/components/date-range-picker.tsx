@@ -76,8 +76,8 @@ export function DateRangePicker({
             selected={date}
             onSelect={handleSelect}
             initialFocus
-            numberOfMonths={2}
-            // className="[--cell-size:4rem] text-xl p-2"
+            numberOfMonths={1}
+            // className="[--cell-size:4rem] text-xl p-2 w-80"
           />
         </div>
         <div className="block md:hidden">
@@ -87,7 +87,7 @@ export function DateRangePicker({
             onSelect={handleSelect}
             initialFocus
             numberOfMonths={1}
-            className="[--cell-size:3.5rem] text-lg p-2"
+            className="[--cell-size:3.5rem] text-lg p-2 w-72"
           />
         </div>
       </PopoverContent>

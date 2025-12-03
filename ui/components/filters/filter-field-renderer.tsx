@@ -65,7 +65,7 @@ export function FilterFieldRenderer({
           </Select>
         );
 
-      case 'multi-select':
+      case 'checkbox':
         const selectedValues = Array.isArray(value) ? value : [];
         return (
           <div className="space-y-2">

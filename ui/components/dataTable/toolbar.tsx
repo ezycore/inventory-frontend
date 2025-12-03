@@ -8,9 +8,12 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import { FilterConfig } from "@/types/filter";
+import { GlobalFilter } from "../filters/global-filter";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  filterConfig?: FilterConfig;
   searchConfig?: {
     searchableColumn?: keyof TData;
     placeholder?: string;
@@ -36,6 +39,7 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
   searchConfig,
+  filterConfig,
   globalFilter,
   onGlobalFilterChange,
   selectable,
@@ -149,6 +153,13 @@ export function DataTableToolbar<TData>({
         </DropdownMenu>
         )}
 
+        {
+        (filterConfig && Object.keys(filterConfig).length > 0) && (
+          <GlobalFilter
+            config={filterConfig}
+          />
+        )
+        }
         {/* Custom Action Button (e.g., Add Brand) - Always on the right */}
         {actionButton && (
           <Button

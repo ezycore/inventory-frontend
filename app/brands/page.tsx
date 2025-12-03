@@ -118,9 +118,15 @@ const brandFilterConfig: FilterConfig = {
       placeholder: "Search by name or description...",
     },
     {
+      name: "search 2",
+      label: "Search 2",
+      type: "number",
+      placeholder: "Search by name or description...",
+    },
+    {
       name: "status",
       label: "Status",
-      type: "select",
+      type: "checkbox",
       placeholder: "All statuses",
       options: [
         { label: "Active", value: "active" },
@@ -137,7 +143,7 @@ const brandFilterConfig: FilterConfig = {
     {
       name: "updatedAt",
       label: "Updated Date",
-      type: "date-range",
+      type: "date",
       placeholder: "Select date range",
       columnSpan: 2,
     },
@@ -214,7 +220,6 @@ export default function BrandsPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header with Filter Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Brands Management</h1>
           <p className="text-muted-foreground mt-1">
@@ -223,15 +228,7 @@ export default function BrandsPage() {
         </div>
         
         {/* Filter Component */}
-        <GlobalFilter
-          config={{
-            ...brandFilterConfig,
-            onApply: handleFilterApply,
-            onReset: handleFilterReset,
-          }}
-        />
-      </div>
-
+        
       {/* Brands Table with Integrated CRUD */}
       <Card>
         <CardHeader>
@@ -246,6 +243,11 @@ export default function BrandsPage() {
         </CardHeader>
         <CardContent>
           <DataTableCrud
+            filterConfig={{
+              ...brandFilterConfig,
+              onApply: handleFilterApply,
+              onReset: handleFilterReset,
+            }}
             columns={columns}
             data={brandsData}
             selectable={true}

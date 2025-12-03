@@ -39,7 +39,6 @@ export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
     updateField,
     apply,
     reset,
-    clearField,
     activeCount,
     isOpen,
     setIsOpen,
@@ -78,7 +77,7 @@ export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
         </SheetHeader>
 
         {/* Active Filters Summary */}
-        {activeCount > 0 && (
+        {/* {activeCount > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
             {Object.entries(values).map(([key, value]) => {
               if (!value || (Array.isArray(value) && value.length === 0)) return null;
@@ -102,7 +101,7 @@ export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
               );
             })}
           </div>
-        )}
+        )} */}
 
         {/* Filter Fields */}
         <div
