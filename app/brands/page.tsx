@@ -1,12 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Star } from "lucide-react";
-import { useMemo, useState } from "react";
 
 // Types
-import type { ApiResponse, Brand, PaginatedResponse } from "@/types";
+import type { Brand } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import type { FilterConfig } from "@/types/filter";
 
@@ -14,9 +12,7 @@ import type { FilterConfig } from "@/types/filter";
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { DataTableCrud } from "@/ui/components/dataTable/crud";
-import { ErrorBoundaryFallback } from "@/ui/components/error-boundary-fallback";
 import { Card, CardContent, CardHeader, CardTitle } from "@ui/components/card";
-import { GlobalFilter } from "@/ui/components/filters/global-filter";
 
 // Hooks & API
 import {
@@ -24,8 +20,6 @@ import {
   useDeleteBrand,
   useUpdateBrand,
 } from "@/hooks/queries";
-import { usePageState } from "@/hooks/use-page-state";
-import { usePaginationHandler } from "@/hooks/use-pagination-handler";
 import { brandsApi } from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys-products";
 
@@ -112,26 +106,10 @@ const brandFormConfig: DynamicFormConfig = {
 const brandFilterConfig: FilterConfig = {
   fields: [
     {
-      name: "search",
-      label: "Search",
+      name: "brand",
+      label: "Search brand",
       type: "text",
-      placeholder: "Search by name or description...",
-    },
-    {
-      name: "search 2",
-      label: "Search 2",
-      type: "number",
-      placeholder: "Search by name or description...",
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "checkbox",
-      placeholder: "All statuses",
-      options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
-      ],
+      placeholder: "Search by brand...",
     },
     {
       name: "createdAt",
@@ -156,101 +134,36 @@ const brandFilterConfig: FilterConfig = {
 };
 
 export default function BrandsPage() {
-  const pageState = usePageState<Brand>({ defaultLimit: 10 });
-  const { pagination, isMountedRef } = pageState;
-  
-  // Filter state
-  const [filters, setFilters] = useState<Record<string, any>>({});
-
-  // Fetch brands with filters
-  const {
-    data: brandsResponse,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<ApiResponse<PaginatedResponse<Brand>>>({
-    queryKey: ["brands", pagination.page, pagination.limit, filters],
-    queryFn: () =>
-      brandsApi.getAll({
-        page: pagination.page,
-        limit: pagination.limit,
-        ...filters,
-      }),
-    placeholderData: (previousData) => previousData,
-  });
-
   // Mutation hooks
   const createBrand = useCreateBrand();
   const updateBrand = useUpdateBrand();
   const deleteBrand = useDeleteBrand();
 
-  // Extract data
-  const brandsData = useMemo(() => {
-    return brandsResponse?.data?.items || [];
-  }, [brandsResponse]);
-
-  // Pagination handler
-  const handlePaginationChange = usePaginationHandler(
-    pagination.setPage,
-    pagination.setLimit,
-    isMountedRef
-  );
-
-  // Handle filter apply
-  const handleFilterApply = (newFilters: Record<string, any>) => {
-    setFilters(newFilters);
-    pagination.setPage(1); // Reset to first page when filtering
-  };
-
-  // Handle filter reset
-  const handleFilterReset = () => {
-    setFilters({});
-    pagination.setPage(1);
-  };
-
-  if (error) {
-    return (
-      <ErrorBoundaryFallback
-        error={error as Error}
-        onRetry={refetch}
-        title="Error loading brands"
-      />
-    );
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header with Filter Button */}
-        <div>
-          <h1 className="text-3xl font-bold">Brands Management</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your product brands and their details.
-          </p>
-        </div>
-        
-        {/* Filter Component */}
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">Brands Management</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage your product brands and their details.
+        </p>
+      </div>
         
       {/* Brands Table with Integrated CRUD */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            All Brands ({brandsResponse?.data?.total || 0})
-            {Object.keys(filters).length > 0 && (
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                (filtered)
-              </span>
-            )}
-          </CardTitle>
+          <CardTitle>All Brands</CardTitle>
         </CardHeader>
         <CardContent>
           <DataTableCrud
-            filterConfig={{
-              ...brandFilterConfig,
-              onApply: handleFilterApply,
-              onReset: handleFilterReset,
+            apiConfig={{
+              endpoint: brandsApi,
+              queryKey: [...queryKeys.brands.all()],
+              defaultPageSize: 10,
+              pageSizeOptions: [2,10, 20, 50, 100],
             }}
+            filterConfig={brandFilterConfig}
             columns={columns}
-            data={brandsData}
             selectable={true}
             searchConfig={{
               globalSearch: true,
@@ -310,18 +223,6 @@ export default function BrandsPage() {
             enableSorting={true}
             defaultColumnVisibility={{ status: false }}
             enableRowHover={true}
-            isLoading={isLoading}
-            pagination={{
-              pageIndex: pagination.page - 1,
-              pageSize: pagination.limit,
-              totalPages: brandsResponse?.data?.totalPages,
-              totalItems: brandsResponse?.data?.total,
-              hasNext: brandsResponse?.data?.hasNext,
-              hasPrev: brandsResponse?.data?.hasPrev,
-              manualPagination: true,
-              pageSizeOptions: [2, 10, 20, 50, 100],
-              onPaginationChange: handlePaginationChange,
-            }}
             rowClassName={(row) =>
               row.status === "inactive" ? "bg-red-50 opacity-70" : ""
             }

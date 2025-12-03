@@ -158,8 +158,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
         <Button type="button" variant="outline" onClick={handleContainerCancel}>
             {cancelLabel}
         </Button>
-        <Button type="submit" loading={isActuallySubmitting} disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
-            {submitLabel}
+        <Button type="submit" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
+            {isActuallySubmitting ? 'Submitting...' : submitLabel}
         </Button>
     </div>)
 
