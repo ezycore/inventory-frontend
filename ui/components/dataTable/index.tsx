@@ -21,6 +21,7 @@ import { DataTableProps } from "@/types/DataTable";
 
 export function DataTable<TData, TValue>({
   columns,
+  filterConfig,
   data,
   selectable = false,
   onSelectionChange,
@@ -118,6 +119,7 @@ export function DataTable<TData, TValue>({
       {/* Toolbar */}
       <DataTableToolbar
         table={table}
+        filterConfig={filterConfig}
         searchConfig={searchConfig}
         globalFilter={globalFilter}
         onGlobalFilterChange={setGlobalFilter}

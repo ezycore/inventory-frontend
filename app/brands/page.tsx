@@ -3,11 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Star } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 // Types
 import type { ApiResponse, Brand, PaginatedResponse } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
+import type { FilterConfig } from "@/types/filter";
 
 // UI Components
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
@@ -15,6 +16,7 @@ import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { DataTableCrud } from "@/ui/components/dataTable/crud";
 import { ErrorBoundaryFallback } from "@/ui/components/error-boundary-fallback";
 import { Card, CardContent, CardHeader, CardTitle } from "@ui/components/card";
+import { GlobalFilter } from "@/ui/components/filters/global-filter";
 
 // Hooks & API
 import {
@@ -106,20 +108,74 @@ const brandFormConfig: DynamicFormConfig = {
   ],
 };
 
+// Filter configuration for brands
+const brandFilterConfig: FilterConfig = {
+  fields: [
+    {
+      name: "search",
+      label: "Search",
+      type: "text",
+      placeholder: "Search by name or description...",
+    },
+    {
+      name: "search 2",
+      label: "Search 2",
+      type: "number",
+      placeholder: "Search by name or description...",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "checkbox",
+      placeholder: "All statuses",
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+      ],
+    },
+    {
+      name: "createdAt",
+      label: "Created Date",
+      type: "date-range",
+      placeholder: "Select date range",
+      columnSpan: 2,
+    },
+    {
+      name: "updatedAt",
+      label: "Updated Date",
+      type: "date",
+      placeholder: "Select date range",
+      columnSpan: 2,
+    },
+  ],
+  viewMode: 'popover',
+  columns: 2,
+  applyOnChange: false,
+  showResetButton: true,
+  showApplyButton: true,
+};
+
 export default function BrandsPage() {
   const pageState = usePageState<Brand>({ defaultLimit: 10 });
   const { pagination, isMountedRef } = pageState;
+  
+  // Filter state
+  const [filters, setFilters] = useState<Record<string, any>>({});
 
-  // Fetch brands
+  // Fetch brands with filters
   const {
     data: brandsResponse,
     isLoading,
     error,
     refetch,
   } = useQuery<ApiResponse<PaginatedResponse<Brand>>>({
-    queryKey: ["brands", pagination.page, pagination.limit],
+    queryKey: ["brands", pagination.page, pagination.limit, filters],
     queryFn: () =>
-      brandsApi.getAll({ page: pagination.page, limit: pagination.limit }),
+      brandsApi.getAll({
+        page: pagination.page,
+        limit: pagination.limit,
+        ...filters,
+      }),
     placeholderData: (previousData) => previousData,
   });
 
@@ -140,6 +196,18 @@ export default function BrandsPage() {
     isMountedRef
   );
 
+  // Handle filter apply
+  const handleFilterApply = (newFilters: Record<string, any>) => {
+    setFilters(newFilters);
+    pagination.setPage(1); // Reset to first page when filtering
+  };
+
+  // Handle filter reset
+  const handleFilterReset = () => {
+    setFilters({});
+    pagination.setPage(1);
+  };
+
   if (error) {
     return (
       <ErrorBoundaryFallback
@@ -152,21 +220,35 @@ export default function BrandsPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      {/* Header with Filter Button */}
         <div>
           <h1 className="text-3xl font-bold">Brands Management</h1>
-          <p className="text-muted-foreground">Manage your product brands.</p>
+          <p className="text-muted-foreground mt-1">
+            Manage your product brands and their details.
+          </p>
         </div>
-      </div>
-
+        
+        {/* Filter Component */}
+        
       {/* Brands Table with Integrated CRUD */}
       <Card>
         <CardHeader>
-          <CardTitle>All Brands ({brandsResponse?.data?.total || 0})</CardTitle>
+          <CardTitle>
+            All Brands ({brandsResponse?.data?.total || 0})
+            {Object.keys(filters).length > 0 && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                (filtered)
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <DataTableCrud
+            filterConfig={{
+              ...brandFilterConfig,
+              onApply: handleFilterApply,
+              onReset: handleFilterReset,
+            }}
             columns={columns}
             data={brandsData}
             selectable={true}

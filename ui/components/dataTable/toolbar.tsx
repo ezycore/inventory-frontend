@@ -8,9 +8,23 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../alert-dialog";
+import { FilterConfig } from "@/types/filter";
+import { GlobalFilter } from "../filters/global-filter";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  filterConfig?: FilterConfig;
   searchConfig?: {
     searchableColumn?: keyof TData;
     placeholder?: string;
@@ -36,6 +50,7 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
   searchConfig,
+  filterConfig,
   globalFilter,
   onGlobalFilterChange,
   selectable,
@@ -109,15 +124,35 @@ export function DataTableToolbar<TData>({
       <div className="flex items-center gap-2">
         {/* Bulk Delete Button */}
         {selectable && hasSelection && deletable && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={onBulkDelete}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete {selectedRowsCount}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete {selectedRowsCount}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete {selectedRowsCount} {selectedRowsCount === 1 ? 'item' : 'items'} from the database.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onBulkDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
 
         {/* Column Visibility */}
@@ -149,6 +184,13 @@ export function DataTableToolbar<TData>({
         </DropdownMenu>
         )}
 
+        {
+        (filterConfig && Object.keys(filterConfig).length > 0) && (
+          <GlobalFilter
+            config={filterConfig}
+          />
+        )
+        }
         {/* Custom Action Button (e.g., Add Brand) - Always on the right */}
         {actionButton && (
           <Button

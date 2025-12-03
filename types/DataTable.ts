@@ -4,6 +4,7 @@
  */
 
 import { ColumnDef, VisibilityState } from "@tanstack/react-table";
+import { FilterField } from "./filter";
 
 /**
  * Configuration for table actions (edit, delete, view, custom)
@@ -83,12 +84,28 @@ export interface DataTableSearchConfig<TData = any> {
  globalSearch?: boolean;
 }
 
+export interface FilterConfig {
+ fields: FilterField[];
+ // Layout
+ columns?: 1 | 2 | 3 | 4; // Grid columns
+ // Behavior
+ applyOnChange?: boolean; // Auto-apply on field change
+ showResetButton?: boolean;
+ showApplyButton?: boolean;
+ // Callbacks
+ onApply?: (filters: Record<string, any>) => void;
+ onReset?: () => void;
+}
+
 /**
  * Main DataTable component props
  */
 export interface DataTableProps<TData, TValue = any> {
  /** Column definitions */
  columns: ColumnDef<TData, TValue>[];
+
+ //filter
+ filterConfig?: FilterConfig;
 
  /** Array of data to display */
  data: TData[];
