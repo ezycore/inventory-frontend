@@ -14,6 +14,11 @@ import {
   SheetTrigger,
   SheetFooter,
 } from '@ui/components/sheet';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@ui/components/popover';
 import { Filter, X } from 'lucide-react';
 import { cn } from '@ui/lib/utils';
 import { FilterFieldRenderer } from './filter-field-renderer';
@@ -27,6 +32,7 @@ export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
   const {
     fields,
     columns = 2,
+    viewMode = 'sheet',
     applyOnChange = false,
     showResetButton = true,
     showApplyButton = true,
@@ -53,20 +59,103 @@ export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
     apply();
   };
 
+  const triggerButton = trigger || (
+    <Button variant="outline" className="gap-2">
+      <Filter className="h-4 w-4" />
+      Filters
+      {activeCount > 0 && (
+        <Badge variant="secondary" className="ml-1 rounded-full px-2">
+          {activeCount}
+        </Badge>
+      )}
+    </Button>
+  );
+
+  const filterContent = (
+    <>
+
+      {/* Filter Fields */}
+      <div
+        className={cn(
+          "grid gap-6 px-1",
+          columns === 1 && "grid-cols-1",
+          columns === 2 && "grid-cols-1 sm:grid-cols-2",
+          columns === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+          columns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+        )}
+      >
+        {fields.map((field) => {
+          // Check conditional visibility
+          if (field.showWhen && !field.showWhen(values)) {
+            return null;
+          }
+
+          return (
+            <div
+              key={field.name}
+              className={cn(
+                field.columnSpan === 2 && "sm:col-span-2",
+                field.columnSpan === 3 && "lg:col-span-3",
+                field.columnSpan === 4 && "lg:col-span-4"
+              )}
+            >
+              <FilterFieldRenderer
+                field={field}
+                value={values[field.name]}
+                onChange={(value) => updateField(field.name, value)}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer Actions */}
+      <div className={cn(
+        "mt-6 gap-2 flex",
+        viewMode === 'sheet' ? 'flex-col sm:flex-row sm:justify-end' : 'flex-row justify-end'
+      )}>
+        {showResetButton && (
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            disabled={activeCount === 0}
+            className={viewMode === 'sheet' ? 'w-full sm:w-auto' : 'w-auto'}
+          >
+            Reset All
+          </Button>
+        )}
+        {showApplyButton && !applyOnChange && (
+          <Button onClick={handleApply} className={viewMode === 'sheet' ? 'w-full sm:w-auto' : 'w-auto'}>
+            Apply Filters
+          </Button>
+        )}
+      </div>
+    </>
+  );
+
+  if (viewMode === 'popover') {
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          {triggerButton}
+        </PopoverTrigger>
+        <PopoverContent className="w-[600px] max-w-[95vw] p-6 mr-6" align="start">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-lg mb-1">Filter Options</h4>
+              <p className="text-sm text-muted-foreground">Apply filters to refine your results</p>
+            </div>
+            {filterContent}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        {trigger || (
-          <Button variant="outline" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filters
-            {activeCount > 0 && (
-              <Badge variant="secondary" className="ml-1 rounded-full px-2">
-                {activeCount}
-              </Badge>
-            )}
-          </Button>
-        )}
+        {triggerButton}
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
@@ -75,87 +164,9 @@ export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
             Apply filters to refine your results
           </SheetDescription>
         </SheetHeader>
-
-        {/* Active Filters Summary */}
-        {/* {activeCount > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {Object.entries(values).map(([key, value]) => {
-              if (!value || (Array.isArray(value) && value.length === 0)) return null;
-              
-              const field = fields.find(f => f.name === key);
-              if (!field) return null;
-
-              return (
-                <Badge key={key} variant="secondary" className="gap-1">
-                  <span className="font-semibold">{field.label}:</span>
-                  <span className="text-muted-foreground">
-                    {Array.isArray(value) ? value.join(', ') : String(value)}
-                  </span>
-                  <button
-                    onClick={() => clearField(key)}
-                    className="ml-1 hover:text-destructive"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              );
-            })}
-          </div>
-        )} */}
-
-        {/* Filter Fields */}
-        <div
-          className={cn(
-            "mx-4 mt-6 grid gap-6 px-1",
-            columns === 1 && "grid-cols-1",
-            columns === 2 && "grid-cols-1 sm:grid-cols-2",
-            columns === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-            columns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-          )}
-        >
-          {fields.map((field) => {
-            // Check conditional visibility
-            if (field.showWhen && !field.showWhen(values)) {
-              return null;
-            }
-
-            return (
-              <div
-                key={field.name}
-                className={cn(
-                  field.columnSpan === 2 && "sm:col-span-2",
-                  field.columnSpan === 3 && "lg:col-span-3",
-                  field.columnSpan === 4 && "lg:col-span-4"
-                )}
-              >
-                <FilterFieldRenderer
-                  field={field}
-                  value={values[field.name]}
-                  onChange={(value) => updateField(field.name, value)}
-                />
-              </div>
-            );
-          })}
+        <div className="mx-4 mt-6">
+          {filterContent}
         </div>
-
-        {/* Footer Actions */}
-        <SheetFooter className="mt-6 gap-2 flex-col sm:flex-row sm:justify-end">
-          {showResetButton && (
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              disabled={activeCount === 0}
-              className="w-full sm:w-auto"
-            >
-              Reset All
-            </Button>
-          )}
-          {showApplyButton && !applyOnChange && (
-            <Button onClick={handleApply} className="w-full sm:w-auto">
-              Apply Filters
-            </Button>
-          )}
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

@@ -36,6 +36,7 @@ export interface FilterConfig {
  fields: FilterField[];
  // Layout
  columns?: 1 | 2 | 3 | 4; // Grid columns
+ viewMode?: 'sheet' | 'popover'; // Display mode: sheet (default) or popover
  // Behavior
  applyOnChange?: boolean; // Auto-apply on field change
  showResetButton?: boolean;

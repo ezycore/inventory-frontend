@@ -148,6 +148,7 @@ const brandFilterConfig: FilterConfig = {
       columnSpan: 2,
     },
   ],
+  viewMode: 'popover',
   columns: 2,
   applyOnChange: false,
   showResetButton: true,
