@@ -112,6 +112,17 @@ const brandFilterConfig: FilterConfig = {
       placeholder: "Search by brand...",
     },
     {
+      name: "status",
+      label: "Status",
+      type: "select",
+      placeholder: "All statuses",
+      columnSpan: 1,
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+      ],
+    },
+    {
       name: "createdAt",
       label: "Created Date",
       type: "date-range",
