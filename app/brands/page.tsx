@@ -1,25 +1,25 @@
 "use client";
 
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Star } from "lucide-react";
 
 // Types
-import type { Brand, ApiResponse, PaginatedResponse } from "@/types";
+import type { Brand } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
+import type { FilterConfig } from "@/types/filter";
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from "@ui/components/card";
-import { DataTableCrud } from "@/ui/components/dataTable/crud";
-import { ErrorBoundaryFallback } from "@/ui/components/error-boundary-fallback";
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
+import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { DataTableCrud } from "@/ui/components/dataTable/crud";
+import { Card, CardContent, CardHeader, CardTitle } from "@ui/components/card";
 
 // Hooks & API
-import { useCreateBrand, useUpdateBrand, useDeleteBrand } from "@/hooks/queries";
-import { usePageState } from "@/hooks/use-page-state";
-import { usePaginationHandler } from "@/hooks/use-pagination-handler";
+import {
+  useCreateBrand,
+  useDeleteBrand,
+  useUpdateBrand,
+} from "@/hooks/queries";
 import { brandsApi } from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys-products";
 
@@ -77,11 +77,16 @@ const brandFormConfig: DynamicFormConfig = {
     },
     {
       name: "logo_url",
-      type: "input",
-      label: "Logo URL",
-      placeholder: "https://example.com/logo.png",
+      type: "file-upload",
+      label: "Brand Logo",
+      placeholder: "Upload brand logo",
       columnSpan: 12,
-      validation: { url: true },
+      accept: "image/*",
+      maxFiles: 1,
+      maxSize: 5 * 1024 * 1024, // 5MB
+      fileTypes: ["jpg", "jpeg", "png", "webp"],
+      dropzoneText: "PNG, JPG, WEBP up to 5MB",
+      showPreview: true,
     },
     {
       name: "status",
@@ -97,68 +102,79 @@ const brandFormConfig: DynamicFormConfig = {
   ],
 };
 
-const generateSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
+// Filter configuration for brands
+const brandFilterConfig: FilterConfig = {
+  fields: [
+    {
+      name: "brand",
+      label: "Search brand",
+      type: "text",
+      placeholder: "Search by brand...",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      placeholder: "All statuses",
+      columnSpan: 1,
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+      ],
+    },
+    {
+      name: "createdAt",
+      label: "Created Date",
+      type: "date-range",
+      placeholder: "Select date range",
+      columnSpan: 2,
+    },
+    {
+      name: "updatedAt",
+      label: "Updated Date",
+      type: "date",
+      placeholder: "Select date range",
+      columnSpan: 2,
+    },
+  ],
+  viewMode: 'popover',
+  columns: 2,
+  applyOnChange: false,
+  showResetButton: true,
+  showApplyButton: true,
 };
 
 export default function BrandsPage() {
-  const pageState = usePageState<Brand>({ defaultLimit: 10 });
-  const { pagination, isMountedRef } = pageState;
-
-  // Fetch brands
-  const { data: brandsResponse, isLoading, error, refetch } = useQuery<
-    ApiResponse<PaginatedResponse<Brand>>
-  >({
-    queryKey: ["brands", pagination.page, pagination.limit],
-    queryFn: () => brandsApi.getAll({ page: pagination.page, limit: pagination.limit }),
-    placeholderData: (previousData) => previousData,
-  });
-
   // Mutation hooks
   const createBrand = useCreateBrand();
   const updateBrand = useUpdateBrand();
   const deleteBrand = useDeleteBrand();
 
-  // Extract data
-  const brandsData = useMemo(() => {
-    return brandsResponse?.data?.items || [];
-  }, [brandsResponse]);
-
-  // Pagination handler
-  const handlePaginationChange = usePaginationHandler(
-    pagination.setPage,
-    pagination.setLimit,
-    isMountedRef
-  );
-
-  if (error) {
-    return <ErrorBoundaryFallback error={error as Error} onRetry={refetch} title="Error loading brands" />;
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Brands Management</h1>
-          <p className="text-muted-foreground">Manage your product brands.</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">Brands Management</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage your product brands and their details.
+        </p>
       </div>
-
+        
       {/* Brands Table with Integrated CRUD */}
       <Card>
         <CardHeader>
-          <CardTitle>All Brands ({brandsResponse?.data?.total || 0})</CardTitle>
+          <CardTitle>All Brands</CardTitle>
         </CardHeader>
         <CardContent>
           <DataTableCrud
+            apiConfig={{
+              endpoint: brandsApi,
+              queryKey: [...queryKeys.brands.all()],
+              defaultPageSize: 10,
+              pageSizeOptions: [10, 20, 50, 100],
+            }}
+            filterConfig={brandFilterConfig}
             columns={columns}
-            data={brandsData}
             selectable={true}
             searchConfig={{
               globalSearch: true,
@@ -174,31 +190,53 @@ export default function BrandsPage() {
               defaultValues: {
                 name: "",
                 description: "",
-                logo_url: "",
+                logo_url: [],
                 status: "active" as const,
               },
-              prepareSubmitData: (data, isEdit, item) => ({
-                ...data,
-                slug: generateSlug(data.name),
-                ...(isEdit && item ? { id: item._id } : {}),
-              }),
+              transformEditData: (item: Brand) => {
+                return {
+                  name: item.name,
+                  description: item.description || "",
+                  logo_url: item.logo_url ? [item.logo_url] : [], // Initialize with URL string
+                  status: item.status,
+                };
+              },
+              prepareSubmitData: (data, isEdit, item) => {
+                const formData = new FormData();
+                formData.append("name", data.name);
+                formData.append("status", data.status);
+                if (data.description) {
+                  formData.append("description", data.description);
+                }
+
+                if (isEdit && item) {
+                  formData.append("id", item._id);
+
+                  // EDIT MODE: Handle logo changes
+                  if (!data.logo_url || data.logo_url.length === 0) {
+                    // User removed the logo
+                    formData.append("remove_logo", "true");
+                  } else if (data.logo_url[0] instanceof File) {
+                    // User uploaded NEW file (File object)
+                    formData.append("logo", data.logo_url[0]);
+                  }
+                  // If data.logo_url[0] is string (existing URL), do nothing (keep existing)
+                } else {
+                  // ADD MODE: Upload new file
+                  if (data.logo_url && data.logo_url[0] instanceof File) {
+                    formData.append("logo", data.logo_url[0]);
+                  }
+                }
+
+                return formData;
+              },
             }}
             enableSorting={true}
             defaultColumnVisibility={{ status: false }}
             enableRowHover={true}
-            isLoading={isLoading}
-            pagination={{
-              pageIndex: pagination.page - 1,
-              pageSize: pagination.limit,
-              totalPages: brandsResponse?.data?.totalPages,
-              totalItems: brandsResponse?.data?.total,
-              hasNext: brandsResponse?.data?.hasNext,
-              hasPrev: brandsResponse?.data?.hasPrev,
-              manualPagination: true,
-              pageSizeOptions: [2, 10, 20, 50, 100],
-              onPaginationChange: handlePaginationChange,
-            }}
-            rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
+            rowClassName={(row) =>
+              row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+            }
           />
         </CardContent>
       </Card>

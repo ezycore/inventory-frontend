@@ -48,7 +48,7 @@ export interface CreateCategoryDto {
   status?: 'active' | 'inactive'
 }
 
-export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {}
+export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
 
 // Brand interfaces
 export interface Brand extends BaseEntity {
@@ -56,6 +56,7 @@ export interface Brand extends BaseEntity {
   slug: string
   description?: string
   logo_url?: string
+  logo_public_id?: string
   website?: string
   status: 'active' | 'inactive'
 }
@@ -65,11 +66,12 @@ export interface CreateBrandDto {
   slug?: string
   description?: string
   logo_url?: string
+  logo_public_id?: string
   website?: string
   status?: 'active' | 'inactive'
 }
 
-export interface UpdateBrandDto extends Partial<CreateBrandDto> {}
+export interface UpdateBrandDto extends Partial<CreateBrandDto> { }
 
 // Custom field types
 export enum CustomFieldType {
@@ -138,7 +140,7 @@ export interface CreateProductDto {
   custom_fields?: CustomField[]
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 export interface ProductFilters {
   search?: string
@@ -194,7 +196,7 @@ export interface CreateVariantDto {
   status?: 'active' | 'inactive' | 'archived'
 }
 
-export interface UpdateVariantDto extends Partial<Omit<CreateVariantDto, 'product_id'>> {}
+export interface UpdateVariantDto extends Partial<Omit<CreateVariantDto, 'product_id'>> { }
 
 export interface VariantFilters {
   product_id?: string | undefined
@@ -239,7 +241,7 @@ export interface CreateStockMovementDto {
   created_by?: string
 }
 
-export interface UpdateStockMovementDto extends Partial<Omit<CreateStockMovementDto, 'variant_id'>> {}
+export interface UpdateStockMovementDto extends Partial<Omit<CreateStockMovementDto, 'variant_id'>> { }
 
 export interface StockMovementFilters {
   variant_id?: string

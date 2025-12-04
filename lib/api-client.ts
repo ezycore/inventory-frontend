@@ -39,11 +39,19 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
 
     try {
+      // Check if body is FormData
+      const isFormData = options.body instanceof FormData;
+
       const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
+        headers: isFormData
+          ? {
+            // Don't set Content-Type for FormData, let browser set it with boundary
+            ...options.headers,
+          }
+          : {
+            "Content-Type": "application/json",
+            ...options.headers,
+          },
         ...options,
       });
 
@@ -74,14 +82,14 @@ class ApiClient {
   async post<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     });
   }
 
   async put<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     });
   }
 
@@ -163,15 +171,21 @@ export const categoriesApi = {
       limit?: number;
       is_active?: boolean;
       parent_id?: string;
+      [key: string]: any;
     } = {}
-  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
-    apiClient.get(
-      `/categories${
-        filters && Object.keys(filters).length
-          ? `?${new URLSearchParams(filters as any)}`
-          : ""
-      }`
-    ),
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/categories${params.toString() ? `?${params.toString()}` : ''}`);
+  },
 
   getById: (id: string): Promise<ApiResponse<any>> =>
     apiClient.get(`/categories/${id}`),
@@ -194,9 +208,22 @@ export const brandsApi = {
       limit?: number;
       search?: string;
       is_active?: boolean;
+      [key: string]: any; // Allow dynamic filter fields
     } = {}
-  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
-    apiClient.get(`/brands?${new URLSearchParams(filters as any)}`),
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        // Handle objects (like date-range) by JSON stringifying
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/brands?${params.toString()}`);
+  },
 
   getById: (id: string): Promise<ApiResponse<any>> =>
     apiClient.get(`/brands/${id}`),

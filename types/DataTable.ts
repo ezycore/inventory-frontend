@@ -4,6 +4,7 @@
  */
 
 import { ColumnDef, VisibilityState } from "@tanstack/react-table";
+import { FilterField } from "./filter";
 
 /**
  * Configuration for table actions (edit, delete, view, custom)
@@ -83,6 +84,38 @@ export interface DataTableSearchConfig<TData = any> {
  globalSearch?: boolean;
 }
 
+export interface FilterConfig {
+ fields: FilterField[];
+ // Layout
+ columns?: 1 | 2 | 3 | 4; // Grid columns
+ // Behavior
+ applyOnChange?: boolean; // Auto-apply on field change
+ showResetButton?: boolean;
+ showApplyButton?: boolean;
+ // Callbacks
+ onApply?: (filters: Record<string, any>) => void;
+ onReset?: () => void;
+}
+
+/**
+ * API configuration for self-contained data fetching
+ */
+export interface DataTableApiConfig<TData = any> {
+ /** API endpoint object with getAll method */
+ endpoint: {
+  getAll: (params: any) => Promise<any>;
+ };
+
+ /** TanStack Query key for caching */
+ queryKey: any[];
+
+ /** Default page size */
+ defaultPageSize?: number;
+
+ /** Available page size options */
+ pageSizeOptions?: number[];
+}
+
 /**
  * Main DataTable component props
  */
@@ -90,8 +123,20 @@ export interface DataTableProps<TData, TValue = any> {
  /** Column definitions */
  columns: ColumnDef<TData, TValue>[];
 
- /** Array of data to display */
- data: TData[];
+ //filter
+ filterConfig?: FilterConfig;
+
+ /** 
+  * API configuration for self-contained mode
+  * When provided, table manages its own data fetching, pagination, and filters
+  */
+ apiConfig?: DataTableApiConfig<TData>;
+
+ /** 
+  * Array of data to display (legacy mode)
+  * Only required when apiConfig is not provided
+  */
+ data?: TData[];
 
  // Selection
  /** Enable row selection checkboxes */
@@ -144,6 +189,9 @@ export interface DataTableProps<TData, TValue = any> {
   /** Custom data preparation before submit */
   prepareSubmitData?: (data: any, isEdit: boolean, originalItem?: TData) => any;
 
+  /** Transform backend data to form format for edit mode */
+  transformEditData?: (item: TData) => any;
+
   /** Custom default form values */
   defaultValues?: any;
 
@@ -155,7 +203,11 @@ export interface DataTableProps<TData, TValue = any> {
  };
 
  // Pagination
- /** Pagination configuration */
+ /** 
+  * Pagination configuration (legacy mode)
+  * Only required when apiConfig is not provided
+  * When apiConfig is provided, pagination is managed internally
+  */
  pagination?: DataTablePagination;
 
  // Loading state
