@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 import { handleMutationError } from '@/lib/error-handling'
 import { ArrowLeft } from 'lucide-react'
 import { ProductStatus } from '@/types'
-import CustomFieldsManager from './custom-fields-manager'
+import CustomFieldsManager from '../../ui/components/form/custom-fields-manager'
 import VariantManager from './variant-manager'
 import { createProductFormConfig } from './product-form-config'
 
