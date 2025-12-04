@@ -1,26 +1,22 @@
 'use client'
 
-import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { Tag } from 'lucide-react'
 
 // Types
-import type { Category, ApiResponse, PaginatedResponse } from '@/types'
+import type { Category } from '@/types'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
+import type { FilterConfig } from '@/types/filter'
 
 // UI Components
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
 import { DataTableCrud } from '@/ui/components/dataTable'
-import { ErrorBoundaryFallback } from '@/ui/components/error-boundary-fallback'
 import { DateCell } from '@/ui/components/dataTable/cells'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
 
 // Hooks & API
 import { useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/queries'
-import { usePageState } from '@/hooks/use-page-state'
-import { usePaginationHandler } from '@/hooks/use-pagination-handler'
 import { categoriesApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys-products'
 
@@ -33,6 +29,8 @@ const columns: ColumnDef<Category>[] = [
       <AvatarCell
         name={row.getValue("name")}
         fallbackIcon={Tag}
+        showActiveStatus={true}
+        isActive={row.original.status === "active"}
       />
     ),
   },
@@ -101,49 +99,52 @@ const categoryFormConfig: DynamicFormConfig = {
   ],
 };
 
-const generateSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim()
+// Filter configuration for categories
+const categoryFilterConfig: FilterConfig = {
+  fields: [
+    {
+      name: "category",
+      label: "Search category",
+      type: "text",
+      placeholder: "Search by category name...",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      placeholder: "All statuses",
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+      ],
+    },
+    {
+      name: "createdAt",
+      label: "Created Date",
+      type: "date-range",
+      placeholder: "Select date range",
+      columnSpan: 2,
+    },
+    {
+      name: "updatedAt",
+      label: "Updated Date",
+      type: "date",
+      placeholder: "Select date range",
+      columnSpan: 2,
+    },
+  ],
+  viewMode: 'popover',
+  columns: 2,
+  applyOnChange: false,
+  showResetButton: true,
+  showApplyButton: true,
 };
 
 export default function CategoriesPage() {
-  // Page state management
-  const pageState = usePageState<Category>({ defaultLimit: 10 });
-  const { pagination, isMountedRef } = pageState;
-
-  // Fetch categories
-  const { data: categoriesResponse, isLoading, error, refetch } = useQuery<
-    ApiResponse<PaginatedResponse<Category>>
-  >({
-    queryKey: ['categories', pagination.page, pagination.limit],
-    queryFn: () => categoriesApi.getAll({ page: pagination.page, limit: pagination.limit }),
-    placeholderData: (previousData) => previousData,
-  });
-
   // Mutation hooks
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
-
-  // Extract data
-  const categoriesData = useMemo(() => {
-    return categoriesResponse?.data?.items || [];
-  }, [categoriesResponse]);
-
-  // Pagination handler
-  const handlePaginationChange = usePaginationHandler(
-    pagination.setPage,
-    pagination.setLimit,
-    isMountedRef
-  );
-
-  if (error) {
-    return <ErrorBoundaryFallback error={error as Error} onRetry={refetch} title="Error loading categories" />;
-  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -160,12 +161,18 @@ export default function CategoriesPage() {
       {/* Categories Table with Integrated CRUD */}
       <Card>
         <CardHeader>
-          <CardTitle>All Categories ({categoriesResponse?.data?.total || 0})</CardTitle>
+          <CardTitle>All Categories</CardTitle>
         </CardHeader>
         <CardContent>
           <DataTableCrud
+            apiConfig={{
+              endpoint: categoriesApi,
+              queryKey: [...queryKeys.category.all()],
+              defaultPageSize: 10,
+              pageSizeOptions: [10, 20, 50, 100],
+            }}
+            filterConfig={categoryFilterConfig}
             columns={columns}
-            data={categoriesData}
             selectable={true}
             searchConfig={{
               globalSearch: true,
@@ -185,25 +192,12 @@ export default function CategoriesPage() {
               },
               prepareSubmitData: (data, isEdit, item) => ({
                 ...data,
-                slug: generateSlug(data.name),
                 ...(isEdit && item ? { id: item._id } : {}),
               }),
             }}
+            defaultColumnVisibility={{ status: false, description: false }}
             enableSorting={true}
-            // defaultColumnVisibility={{ status: false }}
             enableRowHover={true}
-            isLoading={isLoading}
-            pagination={{
-              pageIndex: pagination.page - 1,
-              pageSize: pagination.limit,
-              totalPages: categoriesResponse?.data?.totalPages,
-              totalItems: categoriesResponse?.data?.total,
-              hasNext: categoriesResponse?.data?.hasNext,
-              hasPrev: categoriesResponse?.data?.hasPrev,
-              manualPagination: true,
-              pageSizeOptions: [2, 10, 20, 50, 100],
-              onPaginationChange: handlePaginationChange,
-            }}
             rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
           />
         </CardContent>

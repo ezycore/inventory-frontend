@@ -29,7 +29,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "./index";
 import DynamicForm from "@/ui/components/form";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
@@ -38,11 +39,78 @@ import { useCrudHandlers } from "@/hooks/use-crud-handlers";
 import { useFormSuccess, useFormFailed } from "@/hooks/use-form-success";
 import { DataTableProps } from "@/types/DataTable";
 import { Plus } from "lucide-react";
+import type { ApiResponse, PaginatedResponse } from "@/types";
 
 export function DataTableCrud<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>
 ) {
-  const { crud, actions, onEdit, onView, onDelete, toolbarAction, ...restProps } = props;
+  const { crud, actions, onEdit, onView, onDelete, toolbarAction, apiConfig, data: externalData, pagination: externalPagination, isLoading: externalIsLoading, filterConfig, ...restProps } = props;
+
+  // Internal state for self-contained mode
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(apiConfig?.defaultPageSize || 10);
+  const [filters, setFilters] = useState<Record<string, any>>({});
+
+  // Data fetching (self-contained mode)
+  const { data: queryData, isLoading: queryIsLoading, error, refetch } = useQuery<ApiResponse<PaginatedResponse<TData>>>({
+    queryKey: apiConfig ? [...apiConfig.queryKey, page, limit, filters] : [],
+    queryFn: apiConfig ? () => apiConfig.endpoint.getAll({ page, limit, ...filters }) : undefined,
+    enabled: !!apiConfig,
+    placeholderData: (previousData) => previousData,
+  });
+
+  // Determine data source and loading state
+  const data = useMemo(() => {
+    if (apiConfig) {
+      return queryData?.data?.items || [];
+    }
+    return externalData || [];
+  }, [apiConfig, queryData, externalData]);
+
+  const isLoading = apiConfig ? queryIsLoading : (externalIsLoading || false);
+
+  // Pagination configuration
+  const paginationConfig = useMemo(() => {
+    if (apiConfig) {
+      return {
+        pageIndex: page - 1,
+        pageSize: limit,
+        totalPages: queryData?.data?.totalPages,
+        totalItems: queryData?.data?.total,
+        hasNext: queryData?.data?.hasNext,
+        hasPrev: queryData?.data?.hasPrev,
+        manualPagination: true,
+        pageSizeOptions: apiConfig.pageSizeOptions || [10, 20, 50, 100],
+        onPaginationChange: ({ pageIndex, pageSize }: { pageIndex: number; pageSize: number }) => {
+          setPage(pageIndex + 1);
+          setLimit(pageSize);
+        },
+      };
+    }
+    return externalPagination;
+  }, [apiConfig, page, limit, queryData, externalPagination]);
+
+  // Filter configuration with callbacks
+  const mergedFilterConfig = useMemo(() => {
+    if (!filterConfig) return undefined;
+    
+    if (apiConfig) {
+      return {
+        ...filterConfig,
+        onApply: (newFilters: Record<string, any>) => {
+          setFilters(newFilters);
+          setPage(1); // Reset to first page when filters change
+          filterConfig.onApply?.(newFilters);
+        },
+        onReset: () => {
+          setFilters({});
+          setPage(1); // Reset to first page when filters are cleared
+          filterConfig.onReset?.();
+        },
+      };
+    }
+    return filterConfig;
+  }, [filterConfig, apiConfig]);
 
   // Page state management - MUST call hooks unconditionally
   const pageState = usePageState<TData>();
@@ -122,6 +190,10 @@ export function DataTableCrud<TData extends { _id: string }, TValue = any>(
     <>
       <DataTable
         {...restProps}
+        data={data}
+        isLoading={isLoading}
+        pagination={paginationConfig}
+        filterConfig={mergedFilterConfig}
         actions={mergedActions}
         onEdit={onEdit || (!crud.disableEdit ? handleEdit : undefined)}
         onView={onView || (!crud.disableView ? handleView : undefined)}

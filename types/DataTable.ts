@@ -98,6 +98,25 @@ export interface FilterConfig {
 }
 
 /**
+ * API configuration for self-contained data fetching
+ */
+export interface DataTableApiConfig<TData = any> {
+ /** API endpoint object with getAll method */
+ endpoint: {
+  getAll: (params: any) => Promise<any>;
+ };
+
+ /** TanStack Query key for caching */
+ queryKey: any[];
+
+ /** Default page size */
+ defaultPageSize?: number;
+
+ /** Available page size options */
+ pageSizeOptions?: number[];
+}
+
+/**
  * Main DataTable component props
  */
 export interface DataTableProps<TData, TValue = any> {
@@ -107,8 +126,17 @@ export interface DataTableProps<TData, TValue = any> {
  //filter
  filterConfig?: FilterConfig;
 
- /** Array of data to display */
- data: TData[];
+ /** 
+  * API configuration for self-contained mode
+  * When provided, table manages its own data fetching, pagination, and filters
+  */
+ apiConfig?: DataTableApiConfig<TData>;
+
+ /** 
+  * Array of data to display (legacy mode)
+  * Only required when apiConfig is not provided
+  */
+ data?: TData[];
 
  // Selection
  /** Enable row selection checkboxes */
@@ -175,7 +203,11 @@ export interface DataTableProps<TData, TValue = any> {
  };
 
  // Pagination
- /** Pagination configuration */
+ /** 
+  * Pagination configuration (legacy mode)
+  * Only required when apiConfig is not provided
+  * When apiConfig is provided, pagination is managed internally
+  */
  pagination?: DataTablePagination;
 
  // Loading state
