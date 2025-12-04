@@ -329,6 +329,42 @@ export const usersApi = {
 };
 
 // Dashboard API
+export const variantAttributesApi = {
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/variant-attributes?${params.toString()}`);
+  },
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/variant-attributes/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/variant-attributes", data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/variant-attributes/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/variant-attributes/${id}`),
+};
+
 export const dashboardApi = {
   getStats: (): Promise<
     ApiResponse<{

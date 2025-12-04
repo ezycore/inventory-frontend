@@ -44,6 +44,15 @@ export {
   useDeleteBrand,
 } from './use-brands'
 
+// Variant Attribute hooks
+export {
+  useVariantAttributes,
+  useVariantAttribute,
+  useCreateVariantAttribute,
+  useUpdateVariantAttribute,
+  useDeleteVariantAttribute,
+} from './use-variant-attributes'
+
 // Dashboard hooks
 export {
   useDashboardStats,

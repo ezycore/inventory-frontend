@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react'
+'use client'
+
+import React, { useState, useEffect } from 'react'
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
 import { Label } from '@ui/components/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
-import { Badge } from '@ui/components/badge'
 import {
   Select,
   SelectContent,
@@ -19,609 +19,474 @@ import {
   TableHeader,
   TableRow,
 } from '@ui/components/table'
-import { RadioGroup, RadioGroupItem } from '@ui/components/radio-group'
-import DynamicForm from '@/ui/components/form'
-import { useDynamicForm } from '@/hooks/use-dynamic-form'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@ui/components/dialog'
+import { Textarea } from '@ui/components/textarea'
 import { toast } from 'sonner'
-import { Plus, Minus, Edit, Trash2, Upload, X, Check } from 'lucide-react'
-import type { DynamicFormConfig } from '@/ui/components/form/type'
+import { Plus, Trash2, Check, PlusCircle } from 'lucide-react'
+import { useVariantAttributes, useCreateVariantAttribute } from '@/hooks/queries'
+import type { VariantAttribute } from '@/types'
 
-// Mock variant attributes data (replace with actual API)
-const mockVariantAttributes = [
-  { _id: '1', name: 'Color', values: ['Red', 'Blue', 'Green', 'Black', 'White'] },
-  { _id: '2', name: 'Size', values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-  { _id: '3', name: 'Material', values: ['Cotton', 'Leather', 'Synthetic', 'Wool'] },
-  { _id: '4', name: 'Pattern', values: ['Solid', 'Striped', 'Printed', 'Embossed'] },
-]
-
-interface Variant {
+interface VariantRow {
   id: string
-  attributes: Record<string, string>
+  attributeName: string
+  value: string
   sku: string
   quantity: number
   price: number
-  images?: string[]
-  barcode?: string
+  enabled: boolean
 }
 
 interface VariantManagerProps {
-  productType: 'single' | 'variable'
-  onProductTypeChange: (type: 'single' | 'variable') => void
-  onVariantsChange?: (variants: Variant[]) => void
-  defaultVariants?: Variant[]
+  onVariantsChange?: (variants: VariantRow[]) => void
+  defaultVariants?: VariantRow[]
   basePrice?: number
 }
 
-const addVariantFormConfig: DynamicFormConfig = {
-  fields: [
-    {
-      name: 'barcode_symbology',
-      type: 'select',
-      label: 'Barcode Symbology',
-      required: true,
-      columnSpan: 6,
-      defaultValue: 'CODE128',
-      options: [
-        { value: 'CODE128', label: 'CODE128' },
-        { value: 'EAN13', label: 'EAN13' },
-        { value: 'UPC', label: 'UPC' },
-        { value: 'QR', label: 'QR Code' }
-      ]
-    },
-    {
-      name: 'item_code',
-      type: 'input',
-      label: 'Item Code',
-      required: true,
-      columnSpan: 6,
-      placeholder: 'Enter item code'
-    },
-    {
-      name: 'images',
-      type: 'file-upload',
-      label: 'Variant Thumbnail',
-      columnSpan: 12,
-      accept: 'image/*',
-      maxFiles: 5,
-      maxSize: 2 * 1024 * 1024, // 2MB
-      fileTypes: ['jpg', 'jpeg', 'png'],
-      dropzoneText: 'Drag and drop a file to upload'
-    },
-    {
-      name: 'quantity',
-      type: 'number',
-      label: 'Quantity',
-      required: true,
-      columnSpan: 6,
-      defaultValue: 0,
-      validation: {
-        min: 0
-      }
-    },
-    {
-      name: 'quantity_alert',
-      type: 'number',
-      label: 'Quantity Alert',
-      required: true,
-      columnSpan: 6,
-      defaultValue: 10,
-      validation: {
-        min: 0
-      }
-    },
-    {
-      name: 'tax_type',
-      type: 'select',
-      label: 'Tax Type',
-      required: true,
-      columnSpan: 6,
-      options: [
-        { value: 'exclusive', label: 'Exclusive' },
-        { value: 'inclusive', label: 'Inclusive' },
-        { value: 'none', label: 'No Tax' }
-      ]
-    },
-    {
-      name: 'tax',
-      type: 'select',
-      label: 'Tax',
-      required: true,
-      columnSpan: 6,
-      options: [
-        { value: 'vat_10', label: 'VAT 10%' },
-        { value: 'vat_15', label: 'VAT 15%' },
-        { value: 'gst_18', label: 'GST 18%' },
-        { value: 'none', label: 'No Tax' }
-      ]
-    },
-    {
-      name: 'discount_type',
-      type: 'select',
-      label: 'Discount Type',
-      required: true,
-      columnSpan: 6,
-      defaultValue: 'fixed',
-      options: [
-        { value: 'fixed', label: 'Fixed Amount' },
-        { value: 'percentage', label: 'Percentage' }
-      ]
-    },
-    {
-      name: 'discount_value',
-      type: 'number',
-      label: 'Discount Value',
-      required: true,
-      columnSpan: 6,
-      defaultValue: 0,
-      validation: {
-        min: 0
-      }
-    }
-  ]
+interface EditModalData {
+  id: string
+  sku: string
+  quantity: number
+  price: number
+  barcode?: string
+  weight?: string
+  dimensions?: string
 }
 
 export default function VariantManager({
-  productType,
-  onProductTypeChange,
   onVariantsChange,
   defaultVariants = [],
-  basePrice = 0
+  basePrice = 0,
 }: VariantManagerProps) {
-  const [selectedAttributes, setSelectedAttributes] = useState<Array<{ name: string; values: string[] }>>([])
-  const [variants, setVariants] = useState<Variant[]>(defaultVariants)
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [editingVariant, setEditingVariant] = useState<Variant | null>(null)
-  const [currentVariantIndex, setCurrentVariantIndex] = useState<number | null>(null)
+  const [selectedAttributeId, setSelectedAttributeId] = useState<string>('')
+  const [variants, setVariants] = useState<VariantRow[]>(defaultVariants)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingVariant, setEditingVariant] = useState<EditModalData | null>(null)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [newAttributeName, setNewAttributeName] = useState('')
+  const [newAttributeValues, setNewAttributeValues] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
 
-  // Form setup for add variant modal
-  const { form, config } = useDynamicForm<any>(addVariantFormConfig)
-  
-  const generateVariants = useCallback(() => {
-    if (selectedAttributes.length === 0 || selectedAttributes.some(attr => attr.values.length === 0)) {
-      setVariants([])
-      return
-    }
+  // Fetch variant attributes from API
+  const { data: attributesResponse, isLoading, error, refetch } = useVariantAttributes()
+  const variantAttributes = attributesResponse?.data?.items || []
+  const createVariantAttribute = useCreateVariantAttribute()
 
-    // Helper function to generate combinations
-    const generateCombinations = (attributes: Array<{ name: string; values: string[] }>): Record<string, string>[] => {
-      if (attributes.length === 0) return []
-      if (attributes.length === 1) {
-        return attributes[0].values.map(value => ({ [attributes[0].name]: value }))
-      }
-
-      const [first, ...rest] = attributes
-      const restCombinations = generateCombinations(rest)
-      
-      const result: Record<string, string>[] = []
-      for (const value of first.values) {
-        for (const combination of restCombinations) {
-          result.push({ [first.name]: value, ...combination })
-        }
-      }
-      
-      return result
-    }
-
-    const combinations = generateCombinations(selectedAttributes.map(attr => ({
-      name: attr.name,
-      values: attr.values
-    })))
-
-    const timestamp = Date.now()
+  // Generate variants when attribute is selected
+  const handleAttributeChange = (attributeId: string) => {
+    setSelectedAttributeId(attributeId)
     
-    setVariants(prevVariants => {
-      const newVariants: Variant[] = combinations.map((combination, index) => {
-        // Check if variant already exists
-        const existingVariant = prevVariants.find(v => 
-          JSON.stringify(v.attributes) === JSON.stringify(combination)
-        )
-
-        if (existingVariant) {
-          return existingVariant
-        }
-
-        // Generate SKU from combination
-        const sku = Object.values(combination).join('-').toLowerCase().replace(/\s+/g, '-')
-        
-        return {
-          id: `variant-${timestamp}-${index}`,
-          attributes: combination,
-          sku: sku,
+    if (attributeId) {
+      const attribute = variantAttributes.find((attr: VariantAttribute) => attr._id === attributeId)
+      if (attribute) {
+        const newVariants: VariantRow[] = attribute.values.map((value, index) => ({
+          id: `${attribute._id}-${value}`,
+          attributeName: attribute.name,
+          value,
+          sku: `SKU-${attribute.name.substring(0, 3).toUpperCase()}-${value.substring(0, 3).toUpperCase()}-${index + 1}`,
           quantity: 0,
           price: basePrice,
-          images: []
-        }
-      })
-      return newVariants
-    })
-  }, [selectedAttributes, basePrice])
-
-  const handleAttributeSelect = (attributeName: string) => {
-    const attribute = mockVariantAttributes.find(attr => attr.name === attributeName)
-    if (attribute && !selectedAttributes.find(sel => sel.name === attributeName)) {
-      setSelectedAttributes([...selectedAttributes, { name: attributeName, values: [] }])
+          enabled: true,
+        }))
+        setVariants(newVariants)
+      }
+    } else {
+      setVariants([])
     }
   }
 
-  const handleAttributeValueChange = (attributeName: string, values: string[]) => {
-    setSelectedAttributes(prev =>
-      prev.map(attr =>
-        attr.name === attributeName ? { ...attr, values } : attr
-      )
-    )
-  }
+  // Notify parent of changes
+  useEffect(() => {
+    if (onVariantsChange) {
+      onVariantsChange(variants)
+    }
+  }, [variants, onVariantsChange])
 
-  const removeAttribute = (attributeName: string) => {
-    setSelectedAttributes(prev => prev.filter(attr => attr.name !== attributeName))
-  }
-
-  const updateVariantField = (variantId: string, field: string, value: any) => {
+  const handleEnableToggle = (id: string) => {
     setVariants(prev =>
-      prev.map(variant =>
-        variant.id === variantId ? { ...variant, [field]: value } : variant
-      )
+      prev.map(v => (v.id === id ? { ...v, enabled: !v.enabled } : v))
     )
   }
 
-  const removeVariant = (variantId: string) => {
-    setVariants(prev => prev.filter(v => v.id !== variantId))
+  const handleDelete = (id: string) => {
+    setVariants(prev => prev.filter(v => v.id !== id))
+    toast.success('Variant deleted')
   }
 
-  const addNewVariant = (variantData: any) => {
-    if (editingVariant && currentVariantIndex !== null) {
-      // Update existing variant
+  const handleEditClick = (variant: VariantRow) => {
+    setEditingVariant({
+      id: variant.id,
+      sku: variant.sku,
+      quantity: variant.quantity,
+      price: variant.price,
+    })
+    setEditModalOpen(true)
+  }
+
+  const handleSaveEdit = () => {
+    if (editingVariant) {
       setVariants(prev =>
-        prev.map((v, idx) =>
-          idx === currentVariantIndex
+        prev.map(v =>
+          v.id === editingVariant.id
             ? {
                 ...v,
-                barcode: variantData.item_code,
-                quantity: variantData.quantity || 0,
-                images: variantData.images || []
+                sku: editingVariant.sku,
+                quantity: editingVariant.quantity,
+                price: editingVariant.price,
               }
             : v
         )
       )
-      toast.success('Variant updated successfully')
-    } else {
-      // Create attributes object from selected attributes
-      const attributes: Record<string, string> = {}
-      selectedAttributes.forEach(attr => {
-        if (attr.values.length > 0) {
-          attributes[attr.name] = attr.values[0] // Default to first value
-        }
-      })
-
-      const newVariant: Variant = {
-        id: `variant-${Date.now()}`,
-        attributes,
-        sku: Object.values(attributes).join('-').toLowerCase().replace(/\s+/g, '-'),
-        quantity: variantData.quantity || 0,
-        price: basePrice,
-        images: variantData.images || [],
-        barcode: variantData.item_code
-      }
-
-      setVariants(prev => [...prev, newVariant])
-      toast.success('Variant added successfully')
+      setEditModalOpen(false)
+      setEditingVariant(null)
+      toast.success('Variant updated')
     }
-    
-    setIsAddModalOpen(false)
-    setEditingVariant(null)
-    setCurrentVariantIndex(null)
-    form.reset()
   }
 
-  const handleEditVariant = (variant: Variant, index: number) => {
-    setEditingVariant(variant)
-    setCurrentVariantIndex(index)
-    form.reset({
-      barcode_symbology: 'CODE128',
-      item_code: variant.barcode || '',
-      images: variant.images || [],
-      quantity: variant.quantity,
-      quantity_alert: 10,
-      tax_type: 'exclusive',
-      tax: 'none',
-      discount_type: 'fixed',
-      discount_value: 0
-    })
-    setIsAddModalOpen(true)
-  }
-
-  const handleAddNewVariant = () => {
-    setEditingVariant(null)
-    setCurrentVariantIndex(null)
-    form.reset({
-      barcode_symbology: 'CODE128',
-      item_code: '',
-      images: [],
-      quantity: 0,
-      quantity_alert: 10,
-      tax_type: 'exclusive',
-      tax: 'none',
-      discount_type: 'fixed',
-      discount_value: 0
-    })
-    setIsAddModalOpen(true)
-  }
-
-  const generateItemCode = useCallback(() => {
-    const code = `ITEM-${Date.now().toString().slice(-8)}`
-    form.setValue('item_code', code)
-    toast.success('Item code generated')
-  }, [form])
-
-  // Add Generate button action to form config
-  const enhancedConfig = {
-    ...config,
-    fields: config.fields?.map((field: any) => {
-      if (field.name === 'item_code') {
-        return {
-          ...field,
-          action: {
-            label: 'Generate',
-            onClick: generateItemCode
-          }
-        }
-      }
-      return field
-    })
-  }
-
-  // Effects - only regenerate variants when selectedAttributes values change
-  useEffect(() => {
-    if (productType === 'variable' && selectedAttributes.length > 0) {
-      // Check if any attribute has values selected
-      const hasValues = selectedAttributes.some(attr => attr.values.length > 0)
-      if (hasValues) {
-        generateVariants()
-      }
-    } else if (productType === 'single') {
-      setVariants([])
-      setSelectedAttributes([])
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAttributes, productType])
-
-  useEffect(() => {
-    onVariantsChange?.(variants)
-  }, [variants, onVariantsChange])
-
-  return (
-    <div className="space-y-6">
-      {/* Variable Product Configuration - Only show when variable product is selected */}
-      {productType === 'variable' && (
-          <div className="space-y-4">
-            {/* Variant Attribute Selection */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">
-                  Variant Attribute <span className="text-red-500">*</span>
-                </Label>
-                {variants.length > 0 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddNewVariant}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              
-              {selectedAttributes.length === 0 ? (
-                <Select onValueChange={handleAttributeSelect}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockVariantAttributes.map((attr) => (
-                      <SelectItem key={attr._id} value={attr.name}>
-                        {attr.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="space-y-3">
-                  {selectedAttributes.map((selectedAttr) => {
-                    const fullAttribute = mockVariantAttributes.find(attr => attr.name === selectedAttr.name)
-                    return (
-                      <div key={selectedAttr.name} className="border rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <Label className="font-medium">{selectedAttr.name}</Label>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttribute(selectedAttr.name)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {fullAttribute?.values.map((value) => (
-                            <Button
-                              key={value}
-                              type="button"
-                              variant={selectedAttr.values.includes(value) ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => {
-                                const newValues = selectedAttr.values.includes(value)
-                                  ? selectedAttr.values.filter(v => v !== value)
-                                  : [...selectedAttr.values, value]
-                                handleAttributeValueChange(selectedAttr.name, newValues)
-                              }}
-                            >
-                              {value}
-                              {selectedAttr.values.includes(value) && (
-                                <X className="h-3 w-3 ml-1" />
-                              )}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                  
-                  {/* Add another attribute */}
-                  <Select onValueChange={handleAttributeSelect}>
-                    <SelectTrigger className="border-dashed">
-                      <SelectValue placeholder="Add another attribute" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mockVariantAttributes
-                        .filter(attr => !selectedAttributes.find(sel => sel.name === attr.name))
-                        .map((attr) => (
-                          <SelectItem key={attr._id} value={attr.name}>
-                            {attr.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-
-            {/* Variants Table */}
-            {variants.length > 0 && (
-              <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Variation</TableHead>
-                        <TableHead>Variant Value</TableHead>
-                        <TableHead>SKU</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead className="w-[100px]">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {variants.map((variant) => (
-                        <TableRow key={variant.id}>
-                          <TableCell className="font-medium">
-                            {Object.keys(variant.attributes)[0] || 'N/A'}
-                          </TableCell>
-                          <TableCell>
-                            {Object.values(variant.attributes).join(', ')}
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={variant.sku}
-                              onChange={(e) => updateVariantField(variant.id, 'sku', e.target.value)}
-                              className="w-24"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateVariantField(variant.id, 'quantity', Math.max(0, variant.quantity - 1))}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <Input
-                                type="number"
-                                value={variant.quantity}
-                                onChange={(e) => updateVariantField(variant.id, 'quantity', parseInt(e.target.value) || 0)}
-                                className="w-16 text-center"
-                                min="0"
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateVariantField(variant.id, 'quantity', variant.quantity + 1)}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={variant.price}
-                              onChange={(e) => updateVariantField(variant.id, 'price', parseFloat(e.target.value) || 0)}
-                              className="w-24"
-                              min="0"
-                              step="0.01"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="text-orange-500 hover:text-orange-600"
-                                onClick={() => handleEditVariant(variant, variants.indexOf(variant))}
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={handleAddNewVariant}
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removeVariant(variant.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Add/Edit Variant Modal */}
-        <DynamicForm
-          config={enhancedConfig}
-          form={form}
-          onSubmit={(data) => {
-            addNewVariant(data)
-            return data
-          }}
-          
-          openInside="modal"
-          open={isAddModalOpen}
-          onOpenChange={(open) => {
-            setIsAddModalOpen(open)
-            if (!open) {
-              setEditingVariant(null)
-              setCurrentVariantIndex(null)
-              form.reset()
-            }
-          }}
-          title={editingVariant ? 'Edit Variant' : 'Add Variant'}
-          submitLabel={editingVariant ? 'Update Variant' : 'Add Variant'}
-          modalSize="lg"
-          
-          onSuccess={() => {
-            // Success toast is handled in addNewVariant
-          }}
-          onFailed={() => {
-            toast.error(`Failed to ${editingVariant ? 'update' : 'add'} variant`)
-          }}
-        />
-      </div>
+  const handleInlineUpdate = (id: string, field: keyof VariantRow, value: any) => {
+    setVariants(prev =>
+      prev.map(v => (v.id === id ? { ...v, [field]: value } : v))
     )
   }
+
+  const handleCreateAttribute = async () => {
+    if (!newAttributeName.trim() || !newAttributeValues.trim()) {
+      toast.error('Please enter attribute name and values')
+      return
+    }
+
+    setIsCreating(true)
+    try {
+      const values = newAttributeValues
+        .split(',')
+        .map(v => v.trim())
+        .filter(v => v)
+
+      if (values.length === 0) {
+        toast.error('Please enter at least one value')
+        setIsCreating(false)
+        return
+      }
+
+      await createVariantAttribute.mutateAsync({
+        name: newAttributeName.trim(),
+        values,
+        status: 'active',
+      })
+
+      toast.success('Variant attribute created successfully')
+      setCreateModalOpen(false)
+      setNewAttributeName('')
+      setNewAttributeValues('')
+      refetch()
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to create variant attribute')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Variant Attribute Selector */}
+      <div className="space-y-2">
+        <Label htmlFor="variant-attribute">Variant Attribute *</Label>
+        <div className="flex gap-2">
+          <Select 
+          value={selectedAttributeId} 
+          onValueChange={handleAttributeChange}
+          disabled={isLoading}
+        >
+          <SelectTrigger id="variant-attribute" className="flex-1">
+            <SelectValue placeholder={
+              isLoading 
+                ? "Loading attributes..." 
+                : error 
+                ? "Error loading attributes" 
+                : "Choose variant attribute (e.g., Color, Size)"
+            } />
+          </SelectTrigger>
+          <SelectContent>
+            {variantAttributes
+              .filter((attr: VariantAttribute) => attr.status === 'active')
+              .map((attr: VariantAttribute) => (
+                <SelectItem key={attr._id} value={attr._id}>
+                  {attr.name} ({attr.values.length} values)
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+        <Button
+          type="button"
+          variant="outline"
+          size="default"
+          onClick={() => setCreateModalOpen(true)}
+          className="shrink-0"
+        >
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Create New
+        </Button>
+        </div>
+      </div>
+
+      {/* Variants Table */}
+      {variants.length > 0 && (
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow className="h-9">
+                <TableHead className="w-[160px] py-2 text-xs">Variant Value</TableHead>
+                <TableHead className="w-[180px] py-2 text-xs">SKU</TableHead>
+                <TableHead className="w-[140px] py-2 text-xs">Quantity</TableHead>
+                <TableHead className="w-[120px] py-2 text-xs">Price</TableHead>
+                <TableHead className="w-[160px] text-right py-2 text-xs">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {variants.map(variant => (
+                <TableRow
+                  key={variant.id}
+                  className={`h-10 ${!variant.enabled ? 'opacity-50 bg-gray-50' : ''}`}
+                >
+                  <TableCell className="font-medium py-1 text-sm">{variant.value}</TableCell>
+                  <TableCell className="py-1">
+                    <Input
+                      value={variant.sku}
+                      onChange={e =>
+                        handleInlineUpdate(variant.id, 'sku', e.target.value)
+                      }
+                      className="h-7 text-sm"
+                    />
+                  </TableCell>
+                  <TableCell className="py-1">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7 text-xs"
+                        onClick={() =>
+                          handleInlineUpdate(
+                            variant.id,
+                            'quantity',
+                            Math.max(0, variant.quantity - 1)
+                          )
+                        }
+                      >
+                        -
+                      </Button>
+                      <Input
+                        type="number"
+                        value={variant.quantity}
+                        onChange={e =>
+                          handleInlineUpdate(
+                            variant.id,
+                            'quantity',
+                            parseInt(e.target.value) || 0
+                          )
+                        }
+                        className="h-7 w-8 px-1 text-center text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7 text-xs"
+                        onClick={() =>
+                          handleInlineUpdate(variant.id, 'quantity', variant.quantity + 1)
+                        }
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-1">
+                    <Input
+                      type="number"
+                      value={variant.price}
+                      onChange={e =>
+                        handleInlineUpdate(
+                          variant.id,
+                          'price',
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
+                      className="h-7 text-sm"
+                    />
+                  </TableCell>
+                  <TableCell className="text-right py-1">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant={variant.enabled ? 'default' : 'outline'}
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleEnableToggle(variant.id)}
+                        title={variant.enabled ? 'Disable variant' : 'Enable variant'}
+                      >
+                        <Check className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleEditClick(variant)}
+                        title="More details"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleDelete(variant.id)}
+                        title="Delete variant"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {/* Edit Modal for Additional Information */}
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Additional Variant Information</DialogTitle>
+          </DialogHeader>
+          {editingVariant && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-sku">SKU</Label>
+                <Input
+                  id="edit-sku"
+                  value={editingVariant.sku}
+                  onChange={e =>
+                    setEditingVariant({ ...editingVariant, sku: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-quantity">Quantity</Label>
+                <Input
+                  id="edit-quantity"
+                  type="number"
+                  value={editingVariant.quantity}
+                  onChange={e =>
+                    setEditingVariant({
+                      ...editingVariant,
+                      quantity: parseInt(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-price">Price</Label>
+                <Input
+                  id="edit-price"
+                  type="number"
+                  value={editingVariant.price}
+                  onChange={e =>
+                    setEditingVariant({
+                      ...editingVariant,
+                      price: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-barcode">Barcode</Label>
+                <Input
+                  id="edit-barcode"
+                  value={editingVariant.barcode || ''}
+                  onChange={e =>
+                    setEditingVariant({ ...editingVariant, barcode: e.target.value })
+                  }
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-weight">Weight</Label>
+                <Input
+                  id="edit-weight"
+                  value={editingVariant.weight || ''}
+                  onChange={e =>
+                    setEditingVariant({ ...editingVariant, weight: e.target.value })
+                  }
+                  placeholder="e.g., 1.5 kg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-dimensions">Dimensions</Label>
+                <Input
+                  id="edit-dimensions"
+                  value={editingVariant.dimensions || ''}
+                  onChange={e =>
+                    setEditingVariant({ ...editingVariant, dimensions: e.target.value })
+                  }
+                  placeholder="e.g., 10x5x3 cm"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Variant Attribute Modal */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Variant Attribute</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-attribute-name">Attribute Name *</Label>
+              <Input
+                id="new-attribute-name"
+                placeholder="e.g., Color, Size, Material"
+                value={newAttributeName}
+                onChange={e => setNewAttributeName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-attribute-values">Values *</Label>
+              <Textarea
+                id="new-attribute-values"
+                placeholder="Enter values separated by commas (e.g., Red, Blue, Green)"
+                value={newAttributeValues}
+                onChange={e => setNewAttributeValues(e.target.value)}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                Separate multiple values with commas
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCreateModalOpen(false)
+                setNewAttributeName('')
+                setNewAttributeValues('')
+              }}
+              disabled={isCreating}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCreateAttribute} disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Create Attribute'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

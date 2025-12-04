@@ -310,6 +310,7 @@ const FormField: React.FC<{
             }}
             render={({ field: controllerField }) => (
               <RadioGroup
+              className="grid-cols-2"
                 value={controllerField.value}
                 onValueChange={(value) => {
                   controllerField.onChange(value);

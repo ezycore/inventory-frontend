@@ -72,11 +72,12 @@ export default function ProductForm({
 
 }: ProductFormProps) {
   const router = useRouter()
-  const [hasVariants, setHasVariants] = useState(false)
-  const [productType, setProductType] = useState<'single' | 'variable'>('single')
   const [variants, setVariants] = useState<any[]>([])
   const [basePrice, setBasePrice] = useState<number>(0)
   const mode = productId ? 'edit' : 'create'
+  
+  // Check if product has variants based on form data
+  const hasVariants = variants.length > 0
 
   // Queries
   const { data: product, isLoading: productLoading } = useProduct(productId || '')
@@ -102,11 +103,6 @@ export default function ProductForm({
         ),
         variant_manager: () => (
           <VariantManager
-            productType={productType}
-            onProductTypeChange={(type) => {
-              setProductType(type)
-              setHasVariants(type === 'variable')
-            }}
             onVariantsChange={setVariants}
             defaultVariants={variants}
             basePrice={basePrice || form.getValues('price') || 0}
@@ -122,7 +118,7 @@ export default function ProductForm({
         delete (window as any).__customFieldRenderers.variant_manager
       }
     }
-  }, [productType, variants, basePrice, form])
+  }, [variants, basePrice, form])
 
   // Watch price field for variant base price
   useEffect(() => {
@@ -177,10 +173,6 @@ export default function ProductForm({
       case 'brand_id':
         // Handle brand selection with 'none' option
         form.setValue('brand_id', value === 'none' ? '' : value)
-        break
-      case 'product_type_radio':
-        setProductType(value)
-        setHasVariants(value === 'variable')
         break
       default:
         break

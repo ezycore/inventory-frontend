@@ -73,6 +73,21 @@ export interface CreateBrandDto {
 
 export interface UpdateBrandDto extends Partial<CreateBrandDto> { }
 
+// Variant Attribute interfaces
+export interface VariantAttribute extends BaseEntity {
+  name: string
+  values: string[]
+  status: 'active' | 'inactive'
+}
+
+export interface CreateVariantAttributeDto {
+  name: string
+  values: string[]
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateVariantAttributeDto extends Partial<CreateVariantAttributeDto> { }
+
 // Custom field types
 export enum CustomFieldType {
   TEXT = 'text',
