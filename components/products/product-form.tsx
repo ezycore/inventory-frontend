@@ -88,6 +88,53 @@ export default function ProductForm({
 
   // Use dynamic form with auto-generated schema and config defaults
   const { form, config } = useDynamicForm<ProductFormValues>(createProductFormConfig())
+  
+  // Custom validation handler for conditional fields
+  const validateConditionalFields = (data: any) => {
+    const errors: Record<string, string> = {}
+    
+    if (data.product_type_radio === 'single') {
+      if (data.quantity === undefined || data.quantity === null || data.quantity === '') {
+        errors.quantity = 'Quantity is required for single product'
+      }
+      if (data.price === undefined || data.price === null || data.price === '') {
+        errors.price = 'Price is required for single product'
+      }
+      if (!data.tax_type) {
+        errors.tax_type = 'Tax Type is required for single product'
+      }
+      if (!data.tax_id) {
+        errors.tax_id = 'Tax is required for single product'
+      }
+      if (!data.discount_type) {
+        errors.discount_type = 'Discount Type is required for single product'
+      }
+      if (data.discount_value === undefined || data.discount_value === null || data.discount_value === '') {
+        errors.discount_value = 'Discount Value is required for single product'
+      }
+      if (data.quantity_alert === undefined || data.quantity_alert === null || data.quantity_alert === '') {
+        errors.quantity_alert = 'Quantity Alert is required for single product'
+      }
+    }
+    
+    return errors
+  }
+  
+  // Intercept form validation
+  const handleFormValidation = (data: any) => {
+    const conditionalErrors = validateConditionalFields(data)
+    
+    if (Object.keys(conditionalErrors).length > 0) {
+      // Set errors on form
+      Object.entries(conditionalErrors).forEach(([field, message]) => {
+        form.setError(field as any, { type: 'manual', message })
+      })
+      return false
+    }
+    
+    return true
+  }
+
 
   // Register custom field renderers
   useEffect(() => {
@@ -118,7 +165,8 @@ export default function ProductForm({
         delete (window as any).__customFieldRenderers.variant_manager
       }
     }
-  }, [variants, basePrice, form])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Watch price field for variant base price
   useEffect(() => {
@@ -244,6 +292,12 @@ export default function ProductForm({
         form={form}
         config={finalFormConfig}
         onFieldChange={handleFieldChange}
+        onSubmit={(data) => {
+          if (!handleFormValidation(data)) {
+            throw new Error('Validation failed')
+          }
+          return data
+        }}
 
         // Container props
         openInside={openInside}
@@ -299,6 +353,12 @@ export default function ProductForm({
           config={finalFormConfig}
           form={form}
           onFieldChange={handleFieldChange}
+          onSubmit={(data) => {
+            if (!handleFormValidation(data)) {
+              throw new Error('Validation failed')
+            }
+            return data
+          }}
 
           // Form actions props
           cancelLabel="Cancel"

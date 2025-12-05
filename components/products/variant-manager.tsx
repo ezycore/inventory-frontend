@@ -21,8 +21,10 @@ import {
 } from '@ui/components/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@ui/components/dialog'
 import { Textarea } from '@ui/components/textarea'
+import { Checkbox } from '@ui/components/checkbox'
+import { ControlledNumberInput } from '@ui/components/controlled-number-input'
 import { toast } from 'sonner'
-import { Plus, Trash2, Check, PlusCircle } from 'lucide-react'
+import { Plus, PlusCircle } from 'lucide-react'
 import { useVariantAttributes, useCreateVariantAttribute } from '@/hooks/queries'
 import type { VariantAttribute } from '@/types'
 
@@ -99,17 +101,13 @@ export default function VariantManager({
     if (onVariantsChange) {
       onVariantsChange(variants)
     }
-  }, [variants, onVariantsChange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [variants])
 
   const handleEnableToggle = (id: string) => {
     setVariants(prev =>
       prev.map(v => (v.id === id ? { ...v, enabled: !v.enabled } : v))
     )
-  }
-
-  const handleDelete = (id: string) => {
-    setVariants(prev => prev.filter(v => v.id !== id))
-    toast.success('Variant deleted')
   }
 
   const handleEditClick = (variant: VariantRow) => {
@@ -222,7 +220,7 @@ export default function VariantManager({
           onClick={() => setCreateModalOpen(true)}
           className="shrink-0"
         >
-          <PlusCircle className="h-4 w-4 mr-2" />
+          <PlusCircle className="h-4 w-4" />
           Create New
         </Button>
         </div>
@@ -238,7 +236,7 @@ export default function VariantManager({
                 <TableHead className="w-[180px] py-2 text-xs">SKU</TableHead>
                 <TableHead className="w-[140px] py-2 text-xs">Quantity</TableHead>
                 <TableHead className="w-[120px] py-2 text-xs">Price</TableHead>
-                <TableHead className="w-[160px] text-right py-2 text-xs">Actions</TableHead>
+                <TableHead className="w-[120px] text-right py-2 text-xs">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -258,44 +256,12 @@ export default function VariantManager({
                     />
                   </TableCell>
                   <TableCell className="py-1">
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7 text-xs"
-                        onClick={() =>
-                          handleInlineUpdate(
-                            variant.id,
-                            'quantity',
-                            Math.max(0, variant.quantity - 1)
-                          )
-                        }
-                      >
-                        -
-                      </Button>
-                      <Input
-                        type="number"
-                        value={variant.quantity}
-                        onChange={e =>
-                          handleInlineUpdate(
-                            variant.id,
-                            'quantity',
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                        className="h-7 w-8 px-1 text-center text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7 text-xs"
-                        onClick={() =>
-                          handleInlineUpdate(variant.id, 'quantity', variant.quantity + 1)
-                        }
-                      >
-                        +
-                      </Button>
-                    </div>
+                    <ControlledNumberInput
+                      value={variant.quantity}
+                      onChange={(value) => handleInlineUpdate(variant.id, 'quantity', value)}
+                      min={0}
+                      size="sm"
+                    />
                   </TableCell>
                   <TableCell className="py-1">
                     <Input
@@ -308,37 +274,26 @@ export default function VariantManager({
                           parseFloat(e.target.value) || 0
                         )
                       }
-                      className="h-7 text-sm"
+                      className="h-7 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </TableCell>
                   <TableCell className="text-right py-1">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant={variant.enabled ? 'default' : 'outline'}
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleEnableToggle(variant.id)}
+                    <div className="flex items-center justify-end pr-2 gap-2">
+                      <Checkbox
+                        checked={variant.enabled}
+                        onCheckedChange={() => handleEnableToggle(variant.id)}
                         title={variant.enabled ? 'Disable variant' : 'Enable variant'}
-                      >
-                        <Check className="h-3 w-3" />
-                      </Button>
+                        className="h-6 w-6"
+                      />
                       <Button
+                        type="button"
                         variant="outline"
                         size="icon"
                         className="h-7 w-7"
                         onClick={() => handleEditClick(variant)}
                         title="More details"
                       >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleDelete(variant.id)}
-                        title="Delete variant"
-                      >
-                        <Trash2 className="h-3 w-3" />
+                        <Plus className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </TableCell>
