@@ -107,7 +107,7 @@ export const navItems: NavItem[] = [
     icon: 'user',
     isActive: false,
     items: [
-      { title: 'Profile', url: '/dashboard/profile', icon: 'user' },
+      { title: 'Profile', url: '/profile', icon: 'user' },
       { title: 'Employees / Users', url: '/dashboard/users', icon: 'users' },
       { title: 'Settings', url: '/dashboard/settings', icon: 'settings' },
       { title: 'Subscription / Billing', url: '/dashboard/billing', icon: 'credit-card' },
