@@ -174,7 +174,7 @@ export default function AppSidebar() {
 
                 <DropdownMenuGroup>
                   <DropdownMenuItem
-                    onClick={() => router.push('/dashboard/profile')}
+                    onClick={() => router.push('/profile')}
                   >
                     <UserCircleIcon className='mr-2 h-4 w-4' />
                     Profile
