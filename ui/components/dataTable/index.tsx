@@ -1,167 +1,230 @@
+/**
+ * DataTable with Integrated CRUD Operations
+ * 
+ * This component wraps the base Data Table and adds automatic CRUD handling.
+ * Use this when you need add/edit/view/delete with forms.
+ * 
+ * @example
+ * ```tsx
+ * <DataTable
+ *   columns={columns}
+ *   data={brandsData}
+ *   crud={{
+ *     formConfig: brandFormConfig,
+ *     createMutation: useCreateBrand(),
+ *     updateMutation: useUpdateBrand(),
+ *     deleteMutation: useDeleteBrand(),
+ *     entityName: "Brand",
+ *     queryKey: queryKeys.brands.all(),
+ *     prepareSubmitData: (data, isEdit, item) => ({
+ *       ...data,
+ *       slug: generateSlug(data.name),
+ *       ...(isEdit && item ? { id: item._id } : {})
+ *     })
+ *   }}
+ *   // All other DataTable props...
+ * />
+ * ```
+ */
+
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { useEnhancedColumns } from "./columns";
-import { usePaginationState, useDeleteDialog } from "./hooks";
-import { DataTableToolbar } from "./toolbar";
-import { DataTableBody } from "./table-body";
-import { DataTablePagination } from "./pagination";
-import { DeleteDialog } from "./delete-dialog";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { BaseDataTable } from "./base-data-table ";
+import DynamicForm from "@/ui/components/form";
+import { useDynamicForm } from "@/hooks/use-dynamic-form";
+import { usePageState } from "@/hooks/use-page-state";
+import { useCrudHandlers } from "@/hooks/use-crud-handlers";
+import { useFormSuccess, useFormFailed } from "@/hooks/use-form-success";
 import { DataTableProps } from "@/types/DataTable";
+import { Plus } from "lucide-react";
+import type { ApiResponse, PaginatedResponse } from "@/types";
 
-export function DataTable<TData, TValue>({
-  columns,
-  filterConfig,
-  data,
-  selectable = false,
-  onSelectionChange,
-  searchConfig,
-  actions,
-  onEdit,
-  onDelete,
-  onView,
-  pagination,
-  isLoading = false,
-  enableSorting = true,
-  enableColumnVisibility = false,
-  defaultColumnVisibility,
-  enableRowHover = true,
-  toolbarAction,
-  className,
-  rowClassName,
-}: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
-  const [rowSelection, setRowSelection] = useState({});
-  const [globalFilter, setGlobalFilter] = useState("");
+export function DataTable<TData extends { _id: string }, TValue = any>(
+  props: DataTableProps<TData, TValue>
+) {
+  const { crud, actions, onEdit, onView, onDelete, toolbarAction, apiConfig, data: externalData, pagination: externalPagination, isLoading: externalIsLoading, filterConfig, ...restProps } = props;
 
-  // Custom hooks
-  const { paginationState, handlePaginationChange } = usePaginationState(pagination);
-  const {
-    deleteDialogOpen,
-    setDeleteDialogOpen,
-    isDeleting,
-    handleDeleteConfirm,
-    openDeleteDialog,
-  } = useDeleteDialog(onDelete);
+  // Internal state for self-contained mode
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(apiConfig?.defaultPageSize || 10);
+  const [filters, setFilters] = useState<Record<string, any>>({});
 
-  // Enhanced columns with selection and actions
-  const enhancedColumns = useEnhancedColumns({
-    columns,
-    selectable,
-    actions,
-    onView,
-    onEdit,
-    openDeleteDialog,
+  // Data fetching (self-contained mode)
+  const { data: queryData, isLoading: queryIsLoading, error, refetch } = useQuery<ApiResponse<PaginatedResponse<TData>>>({
+    queryKey: apiConfig ? [...apiConfig.queryKey, page, limit, filters] : [],
+    queryFn: apiConfig ? () => apiConfig.endpoint.getAll({ page, limit, ...filters }) : undefined,
+    enabled: !!apiConfig,
+    placeholderData: (previousData) => previousData,
   });
 
-  const table = useReactTable({
-    data,
-    columns: enhancedColumns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: pagination?.manualPagination ? undefined : getPaginationRowModel(),
-    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: handlePaginationChange,
-    manualPagination: pagination?.manualPagination,
-    pageCount: pagination?.manualPagination ? (pagination?.totalPages ?? -1) : undefined,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
-      pagination: paginationState,
-    },
-    globalFilterFn: "includesString",
-  });
-
-  // Notify parent of selection changes
-  useEffect(() => {
-    if (onSelectionChange) {
-      const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
-      onSelectionChange(selectedRows);
+  // Determine data source and loading state
+  const data = useMemo(() => {
+    if (apiConfig) {
+      return queryData?.data?.items || [];
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowSelection]);
+    return externalData || [];
+  }, [apiConfig, queryData, externalData]);
 
-  const selectedRowsCount = table.getFilteredSelectedRowModel().rows.length;
-  const hasSelection = selectedRowsCount > 0;
+  const isLoading = apiConfig ? queryIsLoading : (externalIsLoading || false);
 
-  const handleBulkDelete = async () => {
-    if (!hasSelection) return;
+  // Pagination configuration
+  const paginationConfig = useMemo(() => {
+    if (apiConfig) {
+      return {
+        pageIndex: page - 1,
+        pageSize: limit,
+        totalPages: queryData?.data?.totalPages,
+        totalItems: queryData?.data?.total,
+        hasNext: queryData?.data?.hasNext,
+        hasPrev: queryData?.data?.hasPrev,
+        manualPagination: true,
+        pageSizeOptions: apiConfig.pageSizeOptions || [10, 20, 50, 100],
+        onPaginationChange: ({ pageIndex, pageSize }: { pageIndex: number; pageSize: number }) => {
+          setPage(pageIndex + 1);
+          setLimit(pageSize);
+        },
+      };
+    }
+    return externalPagination;
+  }, [apiConfig, page, limit, queryData, externalPagination]);
+
+  // Filter configuration with callbacks
+  const mergedFilterConfig = useMemo(() => {
+    if (!filterConfig) return undefined;
     
-    const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
-    for (const row of selectedRows) {
-      await onDelete?.(row);
+    if (apiConfig) {
+      return {
+        ...filterConfig,
+        onApply: (newFilters: Record<string, any>) => {
+          setFilters(newFilters);
+          setPage(1); // Reset to first page when filters change
+          filterConfig.onApply?.(newFilters);
+        },
+        onReset: () => {
+          setFilters({});
+          setPage(1); // Reset to first page when filters are cleared
+          filterConfig.onReset?.();
+        },
+      };
     }
-    table.resetRowSelection();
+    return filterConfig;
+  }, [filterConfig, apiConfig]);
+
+  // Page state management - MUST call hooks unconditionally
+  const pageState = usePageState<TData>();
+  const { modal, editing, view } = pageState;
+
+  // Form management
+  const defaultValues = crud?.defaultValues || {};
+  const { form } = useDynamicForm(crud?.formConfig || { fields: [] }, defaultValues);
+
+  // CRUD handlers
+  const { handleAdd, handleEdit, handleView, handleDelete } = useCrudHandlers<TData>({
+    form,
+    setEditingItem: editing.setItem,
+    setIsViewMode: view.setIsViewMode,
+    setIsModalOpen: modal.setIsOpen,
+    defaultValues,
+    transformEditData: crud?.transformEditData,
+    onDeleteFn: crud?.deleteMutation
+      ? async (id: string) => {
+          await crud.deleteMutation.mutateAsync(id);
+        }
+      : undefined,
+    entityName: crud?.entityName || "Item",
+  });
+
+  // Form submission handlers
+  const onSuccess = useFormSuccess({
+    queryKey: crud?.queryKey || [],
+    onClose: () => modal.setIsOpen(false),
+    editMode: !!editing.item,
+    entityName: crud?.entityName || "Item",
+  });
+
+  const onFailed = useFormFailed({
+    editMode: !!editing.item,
+    entityName: crud?.entityName || "Item",
+  });
+
+  // If no CRUD config, fall back to regular DataTable
+  if (!crud) {
+    return <BaseDataTable {...props} />;
+  }
+
+  // Prepare submit data
+  const prepareSubmitData = (data: any) => {
+    if (crud.prepareSubmitData) {
+      return crud.prepareSubmitData(data, !!editing.item, editing.item);
+    }
+    
+    // Default: add ID for edit mode
+    if (editing.item) {
+      return { id: editing.item._id, ...data };
+    }
+    return data;
   };
 
+  // Determine mutation hook
+  const mutationHook = editing.item ? crud.updateMutation : crud.createMutation;
+
+  // Merge actions with CRUD config
+  const mergedActions = {
+    ...actions,
+    ...(crud.disableEdit ? {} : { editable: actions?.editable ?? { tooltip: `Edit ${crud.entityName}` } }),
+    ...(crud.disableView ? {} : { viewable: actions?.viewable ?? { tooltip: `View ${crud.entityName} details` } }),
+    ...(crud.disableDelete ? {} : { deletable: actions?.deletable ?? { tooltip: `Delete ${crud.entityName}` } }),
+  };
+
+  // Merge toolbar action
+  const mergedToolbarAction = toolbarAction || (crud.disableAdd ? undefined : {
+    label: `Add ${crud.entityName}`,
+    icon: <Plus className="h-4 w-4" />,
+    onClick: handleAdd,
+    variant: "default" as const,
+  });
+
   return (
-    <div className={`w-full space-y-4 ${className || ""}`}>
-      {/* Toolbar */}
-      <DataTableToolbar
-        table={table}
-        filterConfig={filterConfig}
-        searchConfig={searchConfig}
-        globalFilter={globalFilter}
-        onGlobalFilterChange={setGlobalFilter}
-        selectable={selectable}
-        hasSelection={hasSelection}
-        selectedRowsCount={selectedRowsCount}
-        deletable={!!actions?.deletable}
-        onBulkDelete={handleBulkDelete}
-        isDeleting={isDeleting}
-        enableColumnVisibility={enableColumnVisibility}
-        actionButton={toolbarAction}
-      />
-
-      {/* Table */}
-      <DataTableBody
-        table={table}
-        columns={enhancedColumns}
+    <>
+      <BaseDataTable
+        {...restProps}
+        data={data}
         isLoading={isLoading}
-        enableRowHover={enableRowHover}
-        rowClassName={rowClassName}
+        pagination={paginationConfig}
+        filterConfig={mergedFilterConfig}
+        actions={mergedActions}
+        onEdit={onEdit || (!crud.disableEdit ? handleEdit : undefined)}
+        onView={onView || (!crud.disableView ? handleView : undefined)}
+        onDelete={onDelete || (!crud.disableDelete ? handleDelete : undefined)}
+        toolbarAction={mergedToolbarAction}
       />
 
-      {/* Pagination */}
-      <DataTablePagination
-        table={table}
-        pagination={pagination}
-        paginationState={paginationState}
-        onPaginationChange={handlePaginationChange}
-        selectable={selectable}
-        selectedRowsCount={selectedRowsCount}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleDeleteConfirm}
-        isDeleting={isDeleting}
-      />
-    </div>
+      {/* Integrated CRUD Form Modal */}
+      {mutationHook && (
+        <DynamicForm
+          form={form}
+          config={crud.formConfig}
+          mutationHook={mutationHook}
+          onSubmit={prepareSubmitData}
+          openInside="modal"
+          open={modal.isOpen}
+          onOpenChange={modal.setIsOpen}
+          title={
+            view.isViewMode
+              ? `View ${crud.entityName}`
+              : editing.item
+              ? `Edit ${crud.entityName}`
+              : `Add New ${crud.entityName}`
+          }
+          submitLabel={editing.item ? `Update ${crud.entityName}` : `Create ${crud.entityName}`}
+          modalSize="md"
+          viewMode={view.isViewMode}
+          onSuccess={onSuccess}
+          onFailed={onFailed}
+        />
+      )}
+    </>
   );
 }
-
-// Re-export enhanced CRUD version
-export { DataTableCrud } from "./crud";

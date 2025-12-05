@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@ui/components/popover";
+import { useEffect, useLayoutEffect } from "react";
 
 interface DateRangePickerProps {
   value?: DateRange;
@@ -27,25 +28,26 @@ export function DateRangePicker({
   placeholder = "Pick a date range",
   disabled = false,
 }: DateRangePickerProps) {
-  const [date, setDate] = React.useState<DateRange | undefined>(
-    value ? { from: value.from, to: value.to } : undefined
-  );
+  // const [date, setDate] = React.useState<DateRange | undefined>(
+  //   value ? { from: value.from, to: value.to } : undefined
+  // );
+
 
   const handleSelect = (range: DateRange | undefined) => {
-    setDate(range);
+    // setDate(range);
     onChange?.(range);
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setDate(undefined);
+    // setDate(undefined);
     onChange?.(undefined);
   };
 
   const formatDateRange = () => {
-    if (!date?.from) return placeholder;
-    if (!date.to) return format(date.from, "PPP");
-    return `${format(date.from, "PPP")} - ${format(date.to, "PPP")}`;
+    if (!value?.from) return placeholder;
+    if (!value.to) return format(value.from, "PPP");
+    return `${format(value.from, "PPP")} - ${format(value.to, "PPP")}`;
   };
 
   return (
@@ -55,17 +57,20 @@ export function DateRangePicker({
           variant={"outline"}
           className={cn(
             "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground"
+            !value && "text-muted-foreground"
           )}
           disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           <span className="flex-1 truncate">{formatDateRange()}</span>
-          {date?.from && (
-            <X
-              className="ml-2 h-4 w-4 hover:text-destructive"
+          {value?.from && (
+            <div
               onClick={handleClear}
-            />
+              className="cursor-pointer"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </div>
+            
           )}
         </Button>
       </PopoverTrigger>
@@ -73,9 +78,8 @@ export function DateRangePicker({
         <div className="hidden md:block">
           <Calendar
             mode="range"
-            selected={date}
+            selected={value}
             onSelect={handleSelect}
-            initialFocus
             numberOfMonths={1}
             // className="[--cell-size:4rem] text-xl p-2 w-80"
           />
@@ -83,9 +87,8 @@ export function DateRangePicker({
         <div className="block md:hidden">
           <Calendar
             mode="range"
-            selected={date}
+            selected={value}
             onSelect={handleSelect}
-            initialFocus
             numberOfMonths={1}
             className="[--cell-size:3.5rem] text-lg p-2 w-72"
           />

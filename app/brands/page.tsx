@@ -11,7 +11,7 @@ import type { FilterConfig } from "@/types/filter";
 // UI Components
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
-import { DataTableCrud } from "@/ui/components/dataTable/crud";
+import { DataTable } from "@/ui/components/dataTable";
 import { Card, CardContent, CardHeader, CardTitle } from "@ui/components/card";
 
 // Hooks & API
@@ -166,7 +166,7 @@ export default function BrandsPage() {
           <CardTitle>All Brands</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTableCrud
+          <DataTable
             apiConfig={{
               endpoint: brandsApi,
               queryKey: [...queryKeys.brands.all()],

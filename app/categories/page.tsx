@@ -11,7 +11,7 @@ import type { FilterConfig } from '@/types/filter'
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
-import { DataTableCrud } from '@/ui/components/dataTable'
+import { DataTable } from '@/ui/components/dataTable'
 import { DateCell } from '@/ui/components/dataTable/cells'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
 
@@ -164,7 +164,7 @@ export default function CategoriesPage() {
           <CardTitle>All Categories</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTableCrud
+          <DataTable
             apiConfig={{
               endpoint: categoriesApi,
               queryKey: [...queryKeys.category.all()],
