@@ -98,7 +98,7 @@ export default function OwnerSetupPage() {
             Welcome to EasyStock!
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-            Let's set up your inventory management system. Create your owner account to get started.
+            Let&apos;s set up your inventory management system. Create your owner account to get started.
           </p>
         </div>
 
