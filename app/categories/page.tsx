@@ -18,6 +18,7 @@ import { AvatarCell } from '@/ui/components/dataTable/cells'
 import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategories } from '@/hooks/queries'
 import { categoriesApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys-products'
+import PageHeader from '@/ui/components/header'
 
 // Column definitions
 const columns: ColumnDef<Category>[] = [
@@ -144,14 +145,7 @@ export default function CategoriesPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Categories</h1>
-          <p className="text-muted-foreground">
-            Organize your products with categories
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Categories" subTitle="Organize your products with categories" />
 
       {/* Categories Table with Integrated CRUD */}
       <DataTable
@@ -169,9 +163,9 @@ export default function CategoriesPage() {
         operations={{
           formConfig: categoryFormConfig,
           getAllData: categoriesApi.getAll,
-          createMutation: createCategory,
-          updateMutation: updateCategory,
-          deleteMutation: deleteCategory,
+          createMutation: useCreateCategory(),
+          updateMutation: useUpdateCategory(),
+          deleteMutation: useDeleteCategory(),
           entityName: "Category",
           queryKey: [...queryKeys.category.all()],
           defaultValues: defaultValues,
