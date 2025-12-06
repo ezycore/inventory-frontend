@@ -1,145 +1,86 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys-products'
 import { handleMutationError } from '@/lib/error-handling'
-import { variantsApi } from '@/lib/api-client'
-import type { 
-  Variant, 
-  CreateVariantDto, 
-  VariantFilters,
-  VariantListResponse 
-} from '@/types/products'
+import { variantAttributesApi } from '@/lib/api-client'
+import type { VariantAttribute, CreateVariantAttributeDto } from '@/types'
 
 /**
- * Hook for fetching variants with optional filters
+ * Hook for fetching all variant attributes
  */
-export const useVariants = (filters: VariantFilters = {}) => {
+export const useVariantAttributes = () => {
   return useQuery({
-    queryKey: queryKeys.variants.list(filters),
-    queryFn: () => variantsApi.getAll(filters),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    queryKey: queryKeys.variantAttributes.list(),
+    queryFn: () => variantAttributesApi.getAll(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
   })
 }
 
 /**
- * Hook for fetching variants by product ID
+ * Hook for fetching a single variant attribute by ID
  */
-export const useVariantsByProduct = (productId: string) => {
+export const useVariantAttribute = (id: string) => {
   return useQuery({
-    queryKey: queryKeys.variants.byProduct(productId),
-    queryFn: () => variantsApi.getByProduct(productId),
-    enabled: !!productId,
-    staleTime: 2 * 60 * 1000,
-  })
-}
-
-/**
- * Hook for fetching a single variant by ID
- */
-export const useVariant = (id: string) => {
-  return useQuery({
-    queryKey: queryKeys.variants.detail(id),
-    queryFn: () => variantsApi.getById(id),
+    queryKey: queryKeys.variantAttributes.detail(id),
+    queryFn: () => variantAttributesApi.getById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   })
 }
 
 /**
- * Hook for fetching low stock variants
+ * Mutation hook for creating a new variant attribute
+ * Note: Data processing (values string to array conversion) is handled automatically by variantAttributesApi
  */
-export const useLowStockVariants = () => {
-  return useQuery({
-    queryKey: queryKeys.variants.lowStock(),
-    queryFn: () => variantsApi.getLowStock(),
-    staleTime: 1 * 60 * 1000, // 1 minute
-  })
-}
-
-/**
- * Mutation hook for creating a new variant
- */
-export const useCreateVariant = () => {
+export const useCreateVariantAttribute = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateVariantDto) => variantsApi.create(data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.variants.all() })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.variants.byProduct(variables.product_id) 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.withVariants(variables.product_id) 
-      })
+    mutationFn: (data: CreateVariantAttributeDto | FormData) =>
+      variantAttributesApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
     },
     onError: handleMutationError,
   })
 }
 
 /**
- * Mutation hook for updating a variant
+ * Mutation hook for updating a variant attribute
+ * Note: Data processing (values string to array conversion) is handled automatically by variantAttributesApi
  */
-export const useUpdateVariant = () => {
+export const useUpdateVariantAttribute = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string } & Partial<CreateVariantDto>) =>
-      variantsApi.update(id, data),
-    onSuccess: (result, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.variants.all() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.variants.detail(variables.id) })
-      
-      // Extract product_id from variables or result
-      const { id, ...updateData } = variables
-      const productId = updateData.product_id || (result as any)?.product_id
-      
-      if (productId) {
-        queryClient.invalidateQueries({ 
-          queryKey: queryKeys.variants.byProduct(productId) 
-        })
-        queryClient.invalidateQueries({ 
-          queryKey: queryKeys.products.withVariants(productId) 
-        })
+    mutationFn: (data: FormData | ({ id: string } & Partial<CreateVariantAttributeDto>)) => {
+      if (data instanceof FormData) {
+        const id = data.get('id') as string;
+        return variantAttributesApi.update(id, data);
       }
+      const { id, ...rest } = data;
+      return variantAttributesApi.update(id, rest);
+    },
+    onSuccess: (_, variables) => {
+      const id = variables instanceof FormData
+        ? variables.get('id') as string
+        : variables.id;
+      queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.detail(id) })
     },
     onError: handleMutationError,
   })
 }
 
 /**
- * Mutation hook for deleting a variant
+ * Mutation hook for deleting a variant attribute
  */
-export const useDeleteVariant = () => {
+export const useDeleteVariantAttribute = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: string) => variantsApi.delete(id),
+    mutationFn: (id: string) => variantAttributesApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.variants.all() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
-    },
-    onError: handleMutationError,
-  })
-}
-
-/**
- * Mutation hook for bulk updating variant stock
- */
-export const useBulkUpdateVariantStock = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (updates: Array<{ id: string; stock_quantity: number; reason?: string }>) =>
-      Promise.all(
-        updates.map(update => 
-          variantsApi.update(update.id, { 
-            stock_quantity: update.stock_quantity 
-          })
-        )
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.variants.all() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.stock.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
     },
     onError: handleMutationError,
   })

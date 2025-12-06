@@ -11,20 +11,14 @@ export {
   useDeleteProduct,
 } from './use-products'
 
-// Variant-related hooks
+// Product Variant hooks (actual product variations with SKU, price, stock)
+// Note: Stock movement hooks are in use-stock.ts
 export {
-  useVariants,
-  useVariant,
+  useProductVariants,
   useVariantsByProduct,
   useCreateVariant,
-  useUpdateVariant,
   useDeleteVariant,
-  useVariantStats,
-  useStockMovements,
-  useCreateStockMovement,
-  useBulkUpdateVariants,
-  useBulkDeleteVariants,
-} from './variant-queries'
+} from './use-product-variants'
 
 // Category hooks
 export {
@@ -44,14 +38,14 @@ export {
   useDeleteBrand,
 } from './use-brands'
 
-// Variant Attribute hooks
+// Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {
   useVariantAttributes,
   useVariantAttribute,
   useCreateVariantAttribute,
   useUpdateVariantAttribute,
   useDeleteVariantAttribute,
-} from './use-variant-attributes'
+} from './use-variants'
 
 // Dashboard hooks
 export {

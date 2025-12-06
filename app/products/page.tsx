@@ -154,10 +154,10 @@ export default function ProductsPage() {
       {/* Header */}
       <PageHeader title="Products Management" subTitle="Manage your products and their details." />
 
- <Button onClick={handleAddProduct}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product
-        </Button>
+      <Button onClick={handleAddProduct}>
+        <Plus className="h-4 w-4 mr-2" />
+        Add Product
+      </Button>
       {/* Products List */}
       <DataTable columns={columns} data={products} isLoading={isLoading}
         cardTitle={(dataLength: number) => `All Products (${dataLength})`}
