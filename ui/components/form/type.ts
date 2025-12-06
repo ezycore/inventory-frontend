@@ -145,7 +145,8 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   cancelLabel?: string
   onSubmit?: (data?: any) => any // Can transform data before submission
   onCancel?: () => void
-  isSubmitting?: boolean
+  isSubmitting?: boolean;
+  resetAfterSubmit?: boolean;
 
   // Mutation-based form submission (alternative to onSubmit)
   mutationHook?: {

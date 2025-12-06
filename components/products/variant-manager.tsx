@@ -27,6 +27,9 @@ import { toast } from 'sonner'
 import { Plus, PlusCircle } from 'lucide-react'
 import { useVariantAttributes, useCreateVariantAttribute } from '@/hooks/queries'
 import type { VariantAttribute } from '@/types'
+import DynamicForm from '@/ui/components/form'
+import variantAttributeFormConfig from '../variants/form-config'
+import useDynamicForm from '@/hooks/use-dynamic-form'
 
 interface VariantRow {
   id: string
@@ -73,10 +76,12 @@ export default function VariantManager({
   const variantAttributes = attributesResponse?.data?.items || []
   const createVariantAttribute = useCreateVariantAttribute()
 
+  const {form: variantCreateForm} = useDynamicForm(variantAttributeFormConfig)
+
   // Generate variants when attribute is selected
   const handleAttributeChange = (attributeId: string) => {
     setSelectedAttributeId(attributeId)
-    
+
     if (attributeId) {
       const attribute = variantAttributes.find((attr: VariantAttribute) => attr._id === attributeId)
       if (attribute) {
@@ -126,11 +131,11 @@ export default function VariantManager({
         prev.map(v =>
           v.id === editingVariant.id
             ? {
-                ...v,
-                sku: editingVariant.sku,
-                quantity: editingVariant.quantity,
-                price: editingVariant.price,
-              }
+              ...v,
+              sku: editingVariant.sku,
+              quantity: editingVariant.quantity,
+              price: editingVariant.price,
+            }
             : v
         )
       )
@@ -189,40 +194,40 @@ export default function VariantManager({
       <div className="space-y-2">
         <Label htmlFor="variant-attribute">Variant Attribute *</Label>
         <div className="flex gap-2">
-          <Select 
-          value={selectedAttributeId} 
-          onValueChange={handleAttributeChange}
-          disabled={isLoading}
-        >
-          <SelectTrigger id="variant-attribute" className="flex-1">
-            <SelectValue placeholder={
-              isLoading 
-                ? "Loading attributes..." 
-                : error 
-                ? "Error loading attributes" 
-                : "Choose variant attribute (e.g., Color, Size)"
-            } />
-          </SelectTrigger>
-          <SelectContent>
-            {variantAttributes
-              .filter((attr: VariantAttribute) => attr.status === 'active')
-              .map((attr: VariantAttribute) => (
-                <SelectItem key={attr._id} value={attr._id}>
-                  {attr.name} ({attr.values.length} values)
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-        <Button
-          type="button"
-          variant="outline"
-          size="default"
-          onClick={() => setCreateModalOpen(true)}
-          className="shrink-0"
-        >
-          <PlusCircle className="h-4 w-4" />
-          Create New
-        </Button>
+          <Select
+            value={selectedAttributeId}
+            onValueChange={handleAttributeChange}
+            disabled={isLoading}
+          >
+            <SelectTrigger id="variant-attribute" className="flex-1">
+              <SelectValue placeholder={
+                isLoading
+                  ? "Loading attributes..."
+                  : error
+                    ? "Error loading attributes"
+                    : "Choose variant attribute (e.g., Color, Size)"
+              } />
+            </SelectTrigger>
+            <SelectContent>
+              {variantAttributes
+                .filter((attr: VariantAttribute) => attr.status === 'active')
+                .map((attr: VariantAttribute) => (
+                  <SelectItem key={attr._id} value={attr._id}>
+                    {attr.name} ({attr.values.length} values)
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            size="default"
+            onClick={() => setCreateModalOpen(true)}
+            className="shrink-0"
+          >
+            <PlusCircle className="h-4 w-4" />
+            Create New
+          </Button>
         </div>
       </div>
 
@@ -394,54 +399,21 @@ export default function VariantManager({
         </DialogContent>
       </Dialog>
 
-      {/* Create Variant Attribute Modal */}
-      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Variant Attribute</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-attribute-name">Attribute Name *</Label>
-              <Input
-                id="new-attribute-name"
-                placeholder="e.g., Color, Size, Material"
-                value={newAttributeName}
-                onChange={e => setNewAttributeName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-attribute-values">Values *</Label>
-              <Textarea
-                id="new-attribute-values"
-                placeholder="Enter values separated by commas (e.g., Red, Blue, Green)"
-                value={newAttributeValues}
-                onChange={e => setNewAttributeValues(e.target.value)}
-                rows={3}
-              />
-              <p className="text-xs text-muted-foreground">
-                Separate multiple values with commas
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCreateModalOpen(false)
-                setNewAttributeName('')
-                setNewAttributeValues('')
-              }}
-              disabled={isCreating}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleCreateAttribute} disabled={isCreating}>
-              {isCreating ? 'Creating...' : 'Create Attribute'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DynamicForm
+        id='variant-form'
+        className="space-y-6"
+        form={variantCreateForm}
+        config={variantAttributeFormConfig}
+        // Container props
+        openInside="modal"
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        title="Create Variant Attribute"
+        cancelLabel="Cancel"
+        resetAfterSubmit
+        // Mutation hook
+        mutationHook={createVariantAttribute}
+      />
     </div>
   )
 }

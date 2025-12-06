@@ -11,7 +11,6 @@ import type { FilterConfig } from '@/types/filter'
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
-import { DataTableCrud } from '@/ui/components/dataTable/crud'
 import { DateCell } from '@/ui/components/dataTable/cells/date-cell'
 import { AvatarCell } from '@/ui/components/dataTable/cells/avatar-cell'
 
@@ -23,20 +22,15 @@ import {
 } from '@/hooks/queries'
 import { variantAttributesApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys-products'
+import variantAttributeFormConfig from '@/components/variants/form-config'
+import { DataTable } from '@/ui/components/dataTable'
+import PageHeader from '@/ui/components/header'
 
 // Column definitions
 const columns: ColumnDef<VariantAttribute>[] = [
   {
     accessorKey: "name",
-    header: "Attribute Name",
-    cell: ({ row }) => (
-      <AvatarCell
-        name={row.getValue("name")}
-        fallbackIcon={Tag}
-        showActiveStatus={true}
-        isActive={row.original.status === "active"}
-      />
-    ),
+    header: "Attribute Name"
   },
   {
     accessorKey: "values",
@@ -80,49 +74,6 @@ const columns: ColumnDef<VariantAttribute>[] = [
   },
 ];
 
-// Form configuration
-const variantAttributeFormConfig: DynamicFormConfig = {
-  fields: [
-    {
-      name: "name",
-      type: "input",
-      label: "Attribute Name",
-      placeholder: "Enter attribute name (e.g., Color, Size, Material)",
-      required: true,
-      columnSpan: 12,
-      validation: {
-        minLength: 2,
-        maxLength: 50,
-      },
-    },
-    {
-      name: "values",
-      type: "textarea",
-      label: "Attribute Values",
-      placeholder: "Enter values separated by commas (e.g., Red, Blue, Green)",
-      required: true,
-      rows: 3,
-      columnSpan: 12,
-      helperText: "Separate multiple values with commas",
-      validation: {
-        minLength: 1,
-      },
-    },
-    {
-      name: "status",
-      type: "select",
-      label: "Status",
-      required: true,
-      columnSpan: 12,
-      defaultValue: "active",
-      options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-      ],
-    },
-  ],
-};
-
 // Filter configuration
 const filterConfig: FilterConfig = {
   fields: [
@@ -148,76 +99,53 @@ export default function VariantsPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Variant Attributes</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage product variant attributes like Color, Size, Material, etc.
-        </p>
-      </div>
+      <PageHeader title="Variant Management" subTitle="Manage your product variants and their details." />
 
-      {/* Variant Attributes Table with Integrated CRUD */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Variant Attributes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTableCrud<VariantAttribute>
-            apiConfig={{
-              endpoint: variantAttributesApi,
-              queryKey: [...queryKeys.variantAttributes.all()],
-              defaultPageSize: 10,
-              pageSizeOptions: [10, 20, 50, 100],
-            }}
-            filterConfig={filterConfig}
-            columns={columns}
-            selectable={true}
-            searchConfig={{
-              globalSearch: true,
-              placeholder: "Search attributes by name...",
-            }}
-            crud={{
-              formConfig: variantAttributeFormConfig,
-              createMutation: createVariantAttribute,
-              updateMutation: updateVariantAttribute,
-              deleteMutation: deleteVariantAttribute,
-              entityName: "Variant Attribute",
-              queryKey: [...queryKeys.variantAttributes.all()],
-              defaultValues: {
-                name: "",
-                values: "",
-                status: "active" as const,
-              },
-              transformEditData: (item: VariantAttribute) => {
-                // Transform values array to comma-separated string for editing
-                return {
-                  ...item,
-                  values: Array.isArray(item.values) ? item.values.join(', ') : item.values
-                };
-              },
-              prepareSubmitData: (data, isEdit, item) => {
-                // Process the values string into an array
-                const processedData = {
-                  ...data,
-                  values: typeof data.values === 'string' 
-                    ? data.values.split(',').map((value: string) => value.trim()).filter((value: string) => value)
-                    : data.values
-                };
 
-                if (isEdit && item) {
-                  return { id: item._id, ...processedData };
-                }
-                return processedData;
-              },
-            }}
-            enableSorting={true}
-            defaultColumnVisibility={{ status: false }}
-            enableRowHover={true}
-            rowClassName={(row) =>
-              row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+      <DataTable<VariantAttribute>
+        cardTitle={(dataLength: number) => `All Variants (${dataLength})`}
+
+        apiConfig={{
+          endpoint: variantAttributesApi,
+          queryKey: [...queryKeys.variantAttributes.all()],
+          defaultPageSize: 10,
+          pageSizeOptions: [10, 20, 50, 100],
+        }}
+        filterConfig={filterConfig}
+        columns={columns}
+        selectable={true}
+        searchConfig={{
+          globalSearch: true,
+          placeholder: "Search attributes by name...",
+        }}
+        crud={{
+          formConfig: variantAttributeFormConfig,
+          createMutation: createVariantAttribute,
+          updateMutation: updateVariantAttribute,
+          deleteMutation: deleteVariantAttribute,
+          entityName: "Variant Attribute",
+          queryKey: [...queryKeys.variantAttributes.all()],
+          defaultValues: {
+            name: "",
+            values: "",
+            status: "active" as const,
+          },
+          transformEditData: variantAttributesApi.transformForEdit,
+          prepareSubmitData: (data, isEdit, item) => {
+            // Add id for edit mode (processing is handled by API)
+            if (isEdit && item) {
+              return { id: item._id, ...data };
             }
-          />
-        </CardContent>
-      </Card>
+            return data;
+          },
+        }}
+        enableSorting={true}
+        defaultColumnVisibility={{ status: false }}
+        enableRowHover={true}
+        rowClassName={(row) =>
+          row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+        }
+      />
     </div>
   );
 }

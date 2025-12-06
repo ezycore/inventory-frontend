@@ -363,6 +363,47 @@ export const profileApi = {
 
 // Dashboard API
 export const variantAttributesApi = {
+  /**
+   * Process variant attribute data before sending to API
+   * Converts values string to array and handles both FormData and plain objects
+   */
+  processData: (data: any): any => {
+    if (data instanceof FormData) {
+      const formData = new FormData();
+      for (const [key, value] of data.entries()) {
+        if (key === 'values') {
+          // Convert comma-separated string to array
+          const valuesArray = typeof value === 'string'
+            ? value.split(',').map((v: string) => v.trim()).filter((v: string) => v)
+            : value;
+          formData.append(key, JSON.stringify(valuesArray));
+        } else {
+          formData.append(key, value);
+        }
+      }
+      return formData;
+    } else {
+      // Plain object
+      return {
+        ...data,
+        values: typeof data.values === 'string'
+          ? data.values.split(',').map((v: string) => v.trim()).filter((v: string) => v)
+          : data.values
+      };
+    }
+  },
+
+  /**
+   * Transform variant attribute data for editing
+   * Converts values array to comma-separated string
+   */
+  transformForEdit: (item: any): any => {
+    return {
+      ...item,
+      values: Array.isArray(item.values) ? item.values.join(', ') : item.values
+    };
+  },
+
   getAll: (
     filters: {
       page?: number;
@@ -388,11 +429,15 @@ export const variantAttributesApi = {
   getById: (id: string): Promise<ApiResponse<any>> =>
     apiClient.get(`/variant-attributes/${id}`),
 
-  create: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/variant-attributes", data),
+  create: (data: any): Promise<ApiResponse<any>> => {
+    const processedData = variantAttributesApi.processData(data);
+    return apiClient.post("/variant-attributes", processedData);
+  },
 
-  update: (id: string, data: any): Promise<ApiResponse<any>> =>
-    apiClient.put(`/variant-attributes/${id}`, data),
+  update: (id: string, data: any): Promise<ApiResponse<any>> => {
+    const processedData = variantAttributesApi.processData(data);
+    return apiClient.put(`/variant-attributes/${id}`, processedData);
+  },
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/variant-attributes/${id}`),

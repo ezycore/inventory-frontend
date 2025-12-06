@@ -29,6 +29,7 @@ export const useVariantAttribute = (id: string) => {
 
 /**
  * Mutation hook for creating a new variant attribute
+ * Note: Data processing (values string to array conversion) is handled automatically by variantAttributesApi
  */
 export const useCreateVariantAttribute = () => {
   const queryClient = useQueryClient()
@@ -45,6 +46,7 @@ export const useCreateVariantAttribute = () => {
 
 /**
  * Mutation hook for updating a variant attribute
+ * Note: Data processing (values string to array conversion) is handled automatically by variantAttributesApi
  */
 export const useUpdateVariantAttribute = () => {
   const queryClient = useQueryClient()

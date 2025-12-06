@@ -54,15 +54,15 @@ const DynamicForm: FC<DynamicFormProps> = ({
 
     // Regular form actions props
     actionsPlacement = 'bottom',
+    resetAfterSubmit = false,
     ...props
 }) => {
 
     const { control, formState, setValue, watch, handleSubmit } = form as any;
     const isDrawerMode = openInside === 'drawer';
     const isModalMode = openInside === 'modal';
-
     const isActuallySubmitting = isSubmitting || mutationHook?.isPending
-    
+
     // Form submission handler that works with React Hook Form
     const handleFormSubmit = useCallback((data: any) => {
         if (mutationHook) {
@@ -72,7 +72,15 @@ const DynamicForm: FC<DynamicFormProps> = ({
             mutationHook.mutate(processedData, {
                 onSuccess: (result: any) => {
                     if (onSuccess) {
-                        onSuccess(result, processedData)
+                        onSuccess(result, processedData);
+                    }
+                    // if submission is successful, close the form
+                    if (onOpenChange) {
+                        onOpenChange(false)
+                    }
+                    // Reset form state if successful
+                    if (resetAfterSubmit) {
+                        form.reset();
                     }
                 },
                 onError: (error: any) => {
@@ -85,7 +93,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
             // Legacy onSubmit handler
             onSubmit(data)
         }
-    }, [mutationHook, onSubmit, onSuccess, onFailed])
+    }, [mutationHook, onSubmit, onSuccess, onFailed, onOpenChange, form, resetAfterSubmit])
 
     const handleContainerSubmit = () => {
         // Trigger form submission through React Hook Form
