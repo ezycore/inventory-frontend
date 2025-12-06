@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ui/components/card";
 import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@ui/components/avatar";
@@ -15,13 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/components/select";
-import { 
-  User, 
-  Lock, 
-  Shield, 
-  Settings, 
-  Camera, 
-  Eye, 
+import {
+  User,
+  Lock,
+  Shield,
+  Settings,
+  Camera,
+  Eye,
   EyeOff,
   Save,
   X,
@@ -30,13 +36,13 @@ import {
   Building2,
   Globe,
   Calendar,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import {
-  useUpdateProfile, 
-  useUpdatePassword, 
+  useUpdateProfile,
+  useUpdatePassword,
   useUpdatePreferences,
-  useProfilePermissions 
+  useProfilePermissions,
 } from "@/hooks/queries/use-profile";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -45,13 +51,12 @@ export default function ProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
 
   const { data: permissionsData } = useProfilePermissions();
-  const { user,isLoading } = useAuthStore();
+  const { user, isLoading } = useAuthStore();
 
-  console.log("User list",isLoading, user)
-  
+  console.log("User list", isLoading, user);
+
   // Mutations
   const updateProfile = useUpdateProfile();
   const updatePassword = useUpdatePassword();
@@ -59,10 +64,10 @@ export default function ProfilePage() {
 
   // Form states
   const [profileForm, setProfileForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    email: user.email || "",
+    phone: user.phone || "",
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -72,30 +77,12 @@ export default function ProfilePage() {
   });
 
   const [preferencesForm, setPreferencesForm] = useState({
-    theme: "system" as "light" | "dark" | "system",
-    currency: "USD",
-    timezone: "UTC",
-    language: "en",
+    theme:
+      user?.preferences?.theme || ("system" as "light" | "dark" | "system"),
+    currency: user?.preferences?.currency || "USD",
+    timezone: user?.preferences?.timezone || "UTC",
+    language: user?.preferences?.language || "en",
   });
-
-  // Initialize form with user data from auth store (from login) or profile API
-  useEffect(() => {
-    const userData = user;
-    if (userData) {
-      setProfileForm({
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        email: userData.email || "",
-        phone: userData.phone || "",
-      });
-      setPreferencesForm({
-        theme: userData.preferences?.theme || "system",
-        currency: userData.preferences?.currency || "USD",
-        timezone: userData.preferences?.timezone || "UTC",
-        language: userData.preferences?.language || "en",
-      });
-    }
-  }, [ user]);
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,18 +102,21 @@ export default function ProfilePage() {
       return;
     }
 
-    updatePassword.mutate({
-      currentPassword: passwordForm.currentPassword,
-      newPassword: passwordForm.newPassword,
-    }, {
-      onSuccess: () => {
-        setPasswordForm({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
+    updatePassword.mutate(
+      {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      },
+      {
+        onSuccess: () => {
+          setPasswordForm({
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          });
+        },
       }
-    });
+    );
   };
 
   const handlePreferencesSubmit = (e: React.FormEvent) => {
@@ -180,30 +170,36 @@ export default function ProfilePage() {
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="flex-1 text-center md:text-left space-y-2">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {(user?.firstName)} {(user?.lastName)}
+                  {user?.firstName} {user?.lastName}
                 </h1>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                  <Badge variant="default" className="text-sm px-3 py-1 capitalize">
+                  <Badge
+                    variant="default"
+                    className="text-sm px-3 py-1 capitalize"
+                  >
                     <Shield className="w-3 h-3 mr-1" />
                     {user?.role || "User"}
                   </Badge>
-                  {(user) && (
-                    <Badge variant="outline" className="text-sm px-3 py-1 border-green-500 text-green-600">
+                  {user && (
+                    <Badge
+                      variant="outline"
+                      className="text-sm px-3 py-1 border-green-500 text-green-600"
+                    >
                       <CheckCircle2 className="w-3 h-3 mr-1" />
                       Active
                     </Badge>
                   )}
                 </div>
-                
+
                 <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground pt-2">
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     <span>{user?.email}</span>
                   </div>
-                  {(user?.phone) && (
+                  {user?.phone && (
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
                       <span>{user?.phone}</span>
@@ -230,7 +226,10 @@ export default function ProfilePage() {
               <Shield className="h-4 w-4" />
               <span className="hidden sm:inline">Permissions</span>
             </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex items-center gap-2">
+            <TabsTrigger
+              value="preferences"
+              className="flex items-center gap-2"
+            >
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Preferences</span>
             </TabsTrigger>
@@ -252,35 +251,54 @@ export default function ProfilePage() {
                 <form onSubmit={handleProfileSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="firstName"
+                        className="flex items-center gap-1.5"
+                      >
                         First Name
                         <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="firstName"
                         value={profileForm.firstName}
-                        onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            firstName: e.target.value,
+                          })
+                        }
                         placeholder="Enter your first name"
                         className="h-11"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="lastName"
+                        className="flex items-center gap-1.5"
+                      >
                         Last Name
                         <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="lastName"
                         value={profileForm.lastName}
-                        onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            lastName: e.target.value,
+                          })
+                        }
                         placeholder="Enter your last name"
                         className="h-11"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="email"
+                        className="flex items-center gap-1.5"
+                      >
                         <Mail className="h-4 w-4" />
                         Email Address
                         <span className="text-red-500">*</span>
@@ -289,14 +307,22 @@ export default function ProfilePage() {
                         id="email"
                         type="email"
                         value={profileForm.email}
-                        onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            email: e.target.value,
+                          })
+                        }
                         placeholder="your@email.com"
                         className="h-11"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="phone"
+                        className="flex items-center gap-1.5"
+                      >
                         <Phone className="h-4 w-4" />
                         Phone Number
                       </Label>
@@ -304,7 +330,12 @@ export default function ProfilePage() {
                         id="phone"
                         type="tel"
                         value={profileForm.phone}
-                        onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            phone: e.target.value,
+                          })
+                        }
                         placeholder="+1 (555) 000-0000"
                         className="h-11"
                       />
@@ -359,7 +390,10 @@ export default function ProfilePage() {
               <CardContent>
                 <form onSubmit={handlePasswordSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="currentPassword" className="flex items-center gap-1.5">
+                    <Label
+                      htmlFor="currentPassword"
+                      className="flex items-center gap-1.5"
+                    >
                       Current Password
                       <span className="text-red-500">*</span>
                     </Label>
@@ -368,23 +402,37 @@ export default function ProfilePage() {
                         id="currentPassword"
                         type={showCurrentPassword ? "text" : "password"}
                         value={passwordForm.currentPassword}
-                        onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                        onChange={(e) =>
+                          setPasswordForm({
+                            ...passwordForm,
+                            currentPassword: e.target.value,
+                          })
+                        }
                         placeholder="Enter your current password"
                         className="h-11 pr-10"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        onClick={() =>
+                          setShowCurrentPassword(!showCurrentPassword)
+                        }
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showCurrentPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="newPassword" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="newPassword"
+                        className="flex items-center gap-1.5"
+                      >
                         New Password
                         <span className="text-red-500">*</span>
                       </Label>
@@ -393,7 +441,12 @@ export default function ProfilePage() {
                           id="newPassword"
                           type={showNewPassword ? "text" : "password"}
                           value={passwordForm.newPassword}
-                          onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              newPassword: e.target.value,
+                            })
+                          }
                           placeholder="Enter new password (min 6 chars)"
                           className="h-11 pr-10"
                         />
@@ -402,13 +455,20 @@ export default function ProfilePage() {
                           onClick={() => setShowNewPassword(!showNewPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
-                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showNewPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="confirmPassword"
+                        className="flex items-center gap-1.5"
+                      >
                         Confirm Password
                         <span className="text-red-500">*</span>
                       </Label>
@@ -417,26 +477,41 @@ export default function ProfilePage() {
                           id="confirmPassword"
                           type={showConfirmPassword ? "text" : "password"}
                           value={passwordForm.confirmPassword}
-                          onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              confirmPassword: e.target.value,
+                            })
+                          }
                           placeholder="Confirm your new password"
                           className="h-11 pr-10"
                         />
                         <button
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100 mb-2">Password Requirements:</h4>
+                    <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100 mb-2">
+                      Password Requirements:
+                    </h4>
                     <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
                       <li>Minimum 6 characters long</li>
-                      <li>Contains uppercase and lowercase letters (recommended)</li>
+                      <li>
+                        Contains uppercase and lowercase letters (recommended)
+                      </li>
                       <li>Includes at least one number (recommended)</li>
                       <li>Uses special characters (recommended)</li>
                     </ul>
@@ -464,7 +539,9 @@ export default function ProfilePage() {
                       className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     >
                       <Lock className="h-4 w-4" />
-                      {updatePassword.isPending ? "Updating..." : "Update Password"}
+                      {updatePassword.isPending
+                        ? "Updating..."
+                        : "Update Password"}
                     </Button>
                   </div>
                 </form>
@@ -488,8 +565,12 @@ export default function ProfilePage() {
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Role</h3>
-                      <p className="text-sm text-muted-foreground mt-1">Your assigned role in the system</p>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Current Role
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Your assigned role in the system
+                      </p>
                     </div>
                     <Badge className="text-lg px-4 py-2 capitalize bg-blue-600">
                       <Shield className="w-4 h-4 mr-2" />
@@ -499,8 +580,12 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Granted Permissions</h3>
-                  {permissionsData && permissionsData.permissions && permissionsData.permissions.length > 0 ? (
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
+                    Granted Permissions
+                  </h3>
+                  {permissionsData &&
+                  permissionsData.permissions &&
+                  permissionsData.permissions.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {permissionsData.permissions.map((permission: string) => (
                         <div
@@ -508,15 +593,21 @@ export default function ProfilePage() {
                           className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
                         >
                           <CheckCircle2 className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium">{permission}</span>
+                          <span className="text-sm font-medium">
+                            {permission}
+                          </span>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed">
                       <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-muted-foreground">No permissions assigned</p>
-                      <p className="text-sm text-muted-foreground mt-1">Contact your administrator for access</p>
+                      <p className="text-muted-foreground">
+                        No permissions assigned
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Contact your administrator for access
+                      </p>
                     </div>
                   )}
                 </div>
@@ -526,9 +617,12 @@ export default function ProfilePage() {
                     <div className="flex gap-3">
                       <Shield className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h4 className="font-medium text-sm text-amber-900 dark:text-amber-100">Administrator Access</h4>
+                        <h4 className="font-medium text-sm text-amber-900 dark:text-amber-100">
+                          Administrator Access
+                        </h4>
                         <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                          You have full administrative privileges with access to all features and settings.
+                          You have full administrative privileges with access to
+                          all features and settings.
                         </p>
                       </div>
                     </div>
@@ -554,13 +648,19 @@ export default function ProfilePage() {
                 <form onSubmit={handlePreferencesSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="theme" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="theme"
+                        className="flex items-center gap-1.5"
+                      >
                         Theme
                       </Label>
                       <Select
                         value={preferencesForm.theme}
                         onValueChange={(value: "light" | "dark" | "system") =>
-                          setPreferencesForm({ ...preferencesForm, theme: value })
+                          setPreferencesForm({
+                            ...preferencesForm,
+                            theme: value,
+                          })
                         }
                       >
                         <SelectTrigger className="h-11">
@@ -575,13 +675,19 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="currency" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="currency"
+                        className="flex items-center gap-1.5"
+                      >
                         Currency
                       </Label>
                       <Select
                         value={preferencesForm.currency}
                         onValueChange={(value) =>
-                          setPreferencesForm({ ...preferencesForm, currency: value })
+                          setPreferencesForm({
+                            ...preferencesForm,
+                            currency: value,
+                          })
                         }
                       >
                         <SelectTrigger className="h-11">
@@ -600,14 +706,20 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="timezone" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="timezone"
+                        className="flex items-center gap-1.5"
+                      >
                         <Globe className="h-4 w-4" />
                         Timezone
                       </Label>
                       <Select
                         value={preferencesForm.timezone}
                         onValueChange={(value) =>
-                          setPreferencesForm({ ...preferencesForm, timezone: value })
+                          setPreferencesForm({
+                            ...preferencesForm,
+                            timezone: value,
+                          })
                         }
                       >
                         <SelectTrigger className="h-11">
@@ -615,27 +727,51 @@ export default function ProfilePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="UTC">UTC (GMT+0)</SelectItem>
-                          <SelectItem value="America/New_York">EST (GMT-5)</SelectItem>
-                          <SelectItem value="America/Chicago">CST (GMT-6)</SelectItem>
-                          <SelectItem value="America/Denver">MST (GMT-7)</SelectItem>
-                          <SelectItem value="America/Los_Angeles">PST (GMT-8)</SelectItem>
-                          <SelectItem value="Europe/London">London (GMT+0)</SelectItem>
-                          <SelectItem value="Europe/Paris">Paris (GMT+1)</SelectItem>
-                          <SelectItem value="Asia/Tokyo">Tokyo (GMT+9)</SelectItem>
-                          <SelectItem value="Asia/Kolkata">India (GMT+5:30)</SelectItem>
-                          <SelectItem value="Australia/Sydney">Sydney (GMT+10)</SelectItem>
+                          <SelectItem value="America/New_York">
+                            EST (GMT-5)
+                          </SelectItem>
+                          <SelectItem value="America/Chicago">
+                            CST (GMT-6)
+                          </SelectItem>
+                          <SelectItem value="America/Denver">
+                            MST (GMT-7)
+                          </SelectItem>
+                          <SelectItem value="America/Los_Angeles">
+                            PST (GMT-8)
+                          </SelectItem>
+                          <SelectItem value="Europe/London">
+                            London (GMT+0)
+                          </SelectItem>
+                          <SelectItem value="Europe/Paris">
+                            Paris (GMT+1)
+                          </SelectItem>
+                          <SelectItem value="Asia/Tokyo">
+                            Tokyo (GMT+9)
+                          </SelectItem>
+                          <SelectItem value="Asia/Kolkata">
+                            India (GMT+5:30)
+                          </SelectItem>
+                          <SelectItem value="Australia/Sydney">
+                            Sydney (GMT+10)
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="language" className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor="language"
+                        className="flex items-center gap-1.5"
+                      >
                         Language
                       </Label>
                       <Select
                         value={preferencesForm.language}
                         onValueChange={(value) =>
-                          setPreferencesForm({ ...preferencesForm, language: value })
+                          setPreferencesForm({
+                            ...preferencesForm,
+                            language: value,
+                          })
                         }
                       >
                         <SelectTrigger className="h-11">
@@ -681,7 +817,9 @@ export default function ProfilePage() {
                       className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     >
                       <Save className="h-4 w-4" />
-                      {updatePreferences.isPending ? "Saving..." : "Save Preferences"}
+                      {updatePreferences.isPending
+                        ? "Saving..."
+                        : "Save Preferences"}
                     </Button>
                   </div>
                 </form>
