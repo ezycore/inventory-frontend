@@ -46,6 +46,9 @@ import {
 } from "@/hooks/queries/use-profile";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { DynamicFormConfig } from "@/ui/components/form/type";
+import useDynamicForm from "@/hooks/use-dynamic-form";
+import DynamicForm from "@/ui/components/form";
 
 export default function ProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -55,7 +58,70 @@ export default function ProfilePage() {
   const { data: permissionsData } = useProfilePermissions();
   const { user, isLoading } = useAuthStore();
 
-  console.log("User list", isLoading, user);
+  const profileFormConfig = (
+    onNameChange?: (name: string) => void,
+    onGenerateBarcode?: () => void
+  ): DynamicFormConfig => {
+    return {
+      generateSchema: true,
+      layout: {
+        maxColumns: 12,
+        gap: 4,
+        sectionSpacing: 6,
+      },
+      sections: [
+        {
+          title: "Product Information",
+          icon: <span className="text-orange-600 font-semibold">ℹ</span>,
+          collapsible: true,
+          defaultOpen: true,
+          fields: [
+            {
+              name: "email",
+              type: "input",
+              label: "Email",
+              columnSpan: 6,
+              placeholder: "Enter email",
+            },
+            {
+              name: "password",
+              type: "input",
+              label: "Password",
+              columnSpan: 6,
+              placeholder: "Enter password",
+            },
+          ],
+        },
+        {
+          title: "Images",
+          icon: <span className="text-orange-600 font-semibold">🖼</span>,
+          collapsible: true,
+          defaultOpen: true,
+          fields: [
+            {
+              name: "images",
+              type: "file-upload",
+              zodType: "array",
+              arrayOf: "file",
+              label: "Product Images",
+              columnSpan: 12,
+              accept: "image/*",
+              maxFiles: 5,
+              maxSize: 5 * 1024 * 1024, // 5MB
+              multiple: true,
+              showPreview: true,
+              dropzoneText: "PNG, JPG, GIF up to 5MB (Max 5 images)",
+              validation: {
+                max: 5,
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    };
+  };
+  const { form, config } = useDynamicForm(profileFormConfig());
 
   // Mutations
   const updateProfile = useUpdateProfile();
@@ -170,7 +236,9 @@ export default function ProfilePage() {
       </div>
     );
   }
-
+  const handleFieldChange = (fieldName: string, value: any) => {
+    console.log(`Field changed: ${fieldName} =`, value);
+  };
   return (
     <div className="container mx-auto p-6 space-y-6 min-h-screen">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -376,6 +444,27 @@ export default function ProfilePage() {
                     </Button>
                   </div>
                 </form>
+              </CardContent>
+              <CardContent>
+                <DynamicForm
+                  id="profile-form"
+                  className="space-y-6"
+                  config={config}
+                  form={form}
+                  onFieldChange={handleFieldChange}
+                  // Form actions props
+                  cancelLabel="Cancel"
+                  // submitLabel={submitLabel}
+                  // onCancel={() => onCancel ? onCancel() : router.back()}
+
+                  // Content loading for edit mode
+                  // contentLoading={mode === 'edit' && productLoading}
+
+                  // Mutation hook
+                  // mutationHook={mode === 'create' ? createProduct : updateProduct}
+                  // onSuccess={handleActionSuccess}
+                  // onFailed={handleActionError}
+                />
               </CardContent>
             </Card>
           </TabsContent>
