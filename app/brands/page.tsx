@@ -1,7 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Star } from "lucide-react";
 
 // Types
 import type { Brand } from "@/types";
