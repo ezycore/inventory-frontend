@@ -3,7 +3,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Input } from '@/ui/components/input';
 import { Button } from '@/ui/components/button';
 import { Label } from '@/ui/components/label';
@@ -21,12 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/components/select';
-import { Building2, User, Lock, Globe, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Building2, User, Lock, Globe, CheckCircle2 } from 'lucide-react';
+import { useCreateOwner } from '@/hooks/queries/use-setup';
+import { toast } from 'sonner';
 
 export default function OwnerSetupPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const createOwnerMutation = useCreateOwner();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -43,48 +42,24 @@ export default function OwnerSetupPage() {
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setError(''); // Clear error on input change
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
+      toast.error('Passwords do not match');
       return;
     }
 
     // Validate password length
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      setLoading(false);
+      toast.error('Password must be at least 8 characters');
       return;
     }
 
-    try {
-      const response = await fetch('/api/setup/owner', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Setup failed');
-      }
-
-      // Redirect to login after successful setup
-      router.push('/login?setup=success');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    createOwnerMutation.mutate(formData);
   };
 
   return (
@@ -102,16 +77,6 @@ export default function OwnerSetupPage() {
             Let&apos;s set up your inventory management system. Create your owner account to get started.
           </p>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <Card className="mb-6 border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900">
-            <CardContent className="flex items-center gap-3 py-4">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-500 flex-shrink-0" />
-              <p className="text-red-700 dark:text-red-400 text-sm font-medium">{error}</p>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -375,11 +340,11 @@ export default function OwnerSetupPage() {
             <CardContent className="py-4">
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={createOwnerMutation.isPending}
                 className="w-full h-12 text-base font-semibold"
                 size="lg"
               >
-                {loading ? (
+                {createOwnerMutation.isPending ? (
                   <span className="flex items-center gap-2">
                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                       <circle
@@ -412,7 +377,7 @@ export default function OwnerSetupPage() {
           {/* Info Note */}
           <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900">
             <CardContent className="flex gap-3 py-4">
-              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+              <Globe className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-amber-900 dark:text-amber-400">
                   Important Information

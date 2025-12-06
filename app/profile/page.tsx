@@ -32,8 +32,7 @@ import {
   Calendar,
   CheckCircle2
 } from "lucide-react";
-import { 
-  useProfile, 
+import {
   useUpdateProfile, 
   useUpdatePassword, 
   useUpdatePreferences,
@@ -47,10 +46,11 @@ export default function ProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  // Fetch profile data
-  const { data: profile, isLoading } = useProfile();
+
   const { data: permissionsData } = useProfilePermissions();
-  const { user } = useAuthStore();
+  const { user,isLoading } = useAuthStore();
+
+  console.log("User list",isLoading, user)
   
   // Mutations
   const updateProfile = useUpdateProfile();
@@ -80,7 +80,7 @@ export default function ProfilePage() {
 
   // Initialize form with user data from auth store (from login) or profile API
   useEffect(() => {
-    const userData = profile || user;
+    const userData = user;
     if (userData) {
       setProfileForm({
         firstName: userData.firstName || "",
@@ -95,7 +95,7 @@ export default function ProfilePage() {
         language: userData.preferences?.language || "en",
       });
     }
-  }, [profile, user]);
+  }, [ user]);
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,7 +135,7 @@ export default function ProfilePage() {
   };
 
   const getInitials = () => {
-    const userData = profile || user;
+    const userData = user;
     if (userData?.firstName && userData?.lastName) {
       return `${userData.firstName[0]}${userData.lastName[0]}`.toUpperCase();
     }
@@ -175,7 +175,7 @@ export default function ProfilePage() {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-800 shadow-lg">
-                <AvatarImage src={profile?.avatar} alt="Profile" />
+                <AvatarImage src={user?.avatar} alt="Profile" />
                 <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                   {getInitials()}
                 </AvatarFallback>
@@ -183,14 +183,14 @@ export default function ProfilePage() {
               
               <div className="flex-1 text-center md:text-left space-y-2">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {(profile?.firstName || user?.firstName)} {(profile?.lastName || user?.lastName)}
+                  {(user?.firstName)} {(user?.lastName)}
                 </h1>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                   <Badge variant="default" className="text-sm px-3 py-1 capitalize">
                     <Shield className="w-3 h-3 mr-1" />
-                    {profile?.role || user?.role || "User"}
+                    {user?.role || "User"}
                   </Badge>
-                  {(profile?.isActive !== false || user) && (
+                  {(user) && (
                     <Badge variant="outline" className="text-sm px-3 py-1 border-green-500 text-green-600">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
                       Active
@@ -201,12 +201,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground pt-2">
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    <span>{profile?.email || user?.email}</span>
+                    <span>{user?.email}</span>
                   </div>
-                  {(profile?.phone || user?.phone) && (
+                  {(user?.phone) && (
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      <span>{profile?.phone || user?.phone}</span>
+                      <span>{user?.phone}</span>
                     </div>
                   )}
                 </div>
@@ -316,12 +316,12 @@ export default function ProfilePage() {
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        if (profile) {
+                        if (user) {
                           setProfileForm({
-                            firstName: profile.firstName || "",
-                            lastName: profile.lastName || "",
-                            email: profile.email || "",
-                            phone: profile.phone || "",
+                            firstName: user.firstName || "",
+                            lastName: user.lastName || "",
+                            email: user.email || "",
+                            phone: user.phone || "",
                           });
                         }
                       }}
@@ -493,7 +493,7 @@ export default function ProfilePage() {
                     </div>
                     <Badge className="text-lg px-4 py-2 capitalize bg-blue-600">
                       <Shield className="w-4 h-4 mr-2" />
-                      {profile?.role || "User"}
+                      {user?.role || "User"}
                     </Badge>
                   </div>
                 </div>
@@ -521,7 +521,7 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {profile?.role === "admin" && (
+                {user?.role === "admin" && (
                   <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                     <div className="flex gap-3">
                       <Shield className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -661,12 +661,12 @@ export default function ProfilePage() {
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        if (profile?.preferences) {
+                        if (user?.preferences) {
                           setPreferencesForm({
-                            theme: profile.preferences.theme || "system",
-                            currency: profile.preferences.currency || "USD",
-                            timezone: profile.preferences.timezone || "UTC",
-                            language: profile.preferences.language || "en",
+                            theme: user.preferences.theme || "system",
+                            currency: user.preferences.currency || "USD",
+                            timezone: user.preferences.timezone || "UTC",
+                            language: user.preferences.language || "en",
                           });
                         }
                       }}

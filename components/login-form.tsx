@@ -10,56 +10,23 @@ import {
 } from "@ui/components/card"
 import { Input } from "@ui/components/input"
 import { Label } from "@ui/components/label"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
-import { useAuthStore } from "@/stores/use-auth-store"
+import { useLogin } from "@/hooks/queries/use-auth"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
 
-   const router = useRouter();
-   const { setUser } = useAuthStore();
-    const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-      email: '',
-      password: '',
-    });
+  const loginMutation = useLogin();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
-   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include', // Important: Send cookies with request
-      });
-      
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || result.message || 'Login failed');
-      }
-
-      // Store user data in auth store
-      if (result.data?.user) {
-        setUser(result.data.user);
-        console.log('✅ User stored in auth store:', result.data.user);
-      }
-
-      toast.success('Login successful!');
-      // Redirect to dashboard after successful login
-      router.push('/');
-    } catch (err: any) {
-      toast.error(err.message || 'An error occurred during login');
-    } finally {
-      setLoading(false);
-    }
+    loginMutation.mutate(formData);
   };
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -103,8 +70,8 @@ export function LoginForm({
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Logging in...' : 'Login'}
+                <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                  {loginMutation.isPending ? 'Logging in...' : 'Login'}
                 </Button>
                 {/* <Button variant="outline" className="w-full">
                   Login with Google

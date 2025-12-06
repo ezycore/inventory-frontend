@@ -9,16 +9,6 @@ export const profileKeys = {
   permissions: () => [...profileKeys.all, 'permissions'] as const,
 };
 
-// Get profile
-export function useProfile() {
-  return useQuery({
-    queryKey: profileKeys.detail(),
-    queryFn: async () => {
-      const response = await profileApi.get();
-      return response.data;
-    },
-  });
-}
 
 // Get permissions
 export function useProfilePermissions() {
@@ -74,12 +64,14 @@ export function useUpdatePreferences() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (preferences: {
-      theme?: 'light' | 'dark' | 'system';
-      currency?: string;
-      timezone?: string;
-      language?: string;
-    }) => profileApi.updatePreferences(preferences),
+    mutationFn: (data: {
+      preferences: {
+        theme?: 'light' | 'dark' | 'system';
+        currency?: string;
+        timezone?: string;
+        language?: string;
+      }
+    }) => profileApi.updatePreferences(data.preferences),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: profileKeys.all });
       toast.success(response.message || 'Preferences updated successfully');
