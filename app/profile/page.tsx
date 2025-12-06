@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -62,13 +62,13 @@ export default function ProfilePage() {
   const updatePassword = useUpdatePassword();
   const updatePreferences = useUpdatePreferences();
 
-  // Form states
-  const [profileForm, setProfileForm] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-  });
+  // Form states - directly use user data or track if edited
+  const [profileForm, setProfileForm] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  } | null>(null);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -76,17 +76,31 @@ export default function ProfilePage() {
     confirmPassword: "",
   });
 
-  const [preferencesForm, setPreferencesForm] = useState({
-    theme:
-      user?.preferences?.theme || ("system" as "light" | "dark" | "system"),
+  const [preferencesForm, setPreferencesForm] = useState<{
+    theme: "light" | "dark" | "system";
+    currency: string;
+    timezone: string;
+    language: string;
+  } | null>(null);
+
+  // Use user data directly if form hasn't been edited
+  const currentProfileForm = profileForm || {
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+  };
+
+  const currentPreferencesForm = preferencesForm || {
+    theme: user?.preferences?.theme || "system",
     currency: user?.preferences?.currency || "USD",
     timezone: user?.preferences?.timezone || "UTC",
     language: user?.preferences?.language || "en",
-  });
+  };
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile.mutate(profileForm);
+    updateProfile.mutate(currentProfileForm);
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -121,7 +135,7 @@ export default function ProfilePage() {
 
   const handlePreferencesSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updatePreferences.mutate({ preferences: preferencesForm });
+    updatePreferences.mutate({ preferences: currentPreferencesForm });
   };
 
   const getInitials = () => {
@@ -260,10 +274,10 @@ export default function ProfilePage() {
                       </Label>
                       <Input
                         id="firstName"
-                        value={profileForm.firstName}
+                        value={currentProfileForm.firstName}
                         onChange={(e) =>
                           setProfileForm({
-                            ...profileForm,
+                            ...currentProfileForm,
                             firstName: e.target.value,
                           })
                         }
@@ -282,10 +296,10 @@ export default function ProfilePage() {
                       </Label>
                       <Input
                         id="lastName"
-                        value={profileForm.lastName}
+                        value={currentProfileForm.lastName}
                         onChange={(e) =>
                           setProfileForm({
-                            ...profileForm,
+                            ...currentProfileForm,
                             lastName: e.target.value,
                           })
                         }
@@ -306,10 +320,10 @@ export default function ProfilePage() {
                       <Input
                         id="email"
                         type="email"
-                        value={profileForm.email}
+                        value={currentProfileForm.email}
                         onChange={(e) =>
                           setProfileForm({
-                            ...profileForm,
+                            ...currentProfileForm,
                             email: e.target.value,
                           })
                         }
@@ -329,10 +343,10 @@ export default function ProfilePage() {
                       <Input
                         id="phone"
                         type="tel"
-                        value={profileForm.phone}
+                        value={currentProfileForm.phone}
                         onChange={(e) =>
                           setProfileForm({
-                            ...profileForm,
+                            ...currentProfileForm,
                             phone: e.target.value,
                           })
                         }
@@ -346,16 +360,7 @@ export default function ProfilePage() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => {
-                        if (user) {
-                          setProfileForm({
-                            firstName: user.firstName || "",
-                            lastName: user.lastName || "",
-                            email: user.email || "",
-                            phone: user.phone || "",
-                          });
-                        }
-                      }}
+                      onClick={() => setProfileForm(null)}
                       className="gap-2"
                     >
                       <X className="h-4 w-4" />
@@ -655,10 +660,10 @@ export default function ProfilePage() {
                         Theme
                       </Label>
                       <Select
-                        value={preferencesForm.theme}
+                        value={currentPreferencesForm.theme}
                         onValueChange={(value: "light" | "dark" | "system") =>
                           setPreferencesForm({
-                            ...preferencesForm,
+                            ...currentPreferencesForm,
                             theme: value,
                           })
                         }
@@ -682,10 +687,10 @@ export default function ProfilePage() {
                         Currency
                       </Label>
                       <Select
-                        value={preferencesForm.currency}
+                        value={currentPreferencesForm.currency}
                         onValueChange={(value) =>
                           setPreferencesForm({
-                            ...preferencesForm,
+                            ...currentPreferencesForm,
                             currency: value,
                           })
                         }
@@ -714,10 +719,10 @@ export default function ProfilePage() {
                         Timezone
                       </Label>
                       <Select
-                        value={preferencesForm.timezone}
+                        value={currentPreferencesForm.timezone}
                         onValueChange={(value) =>
                           setPreferencesForm({
-                            ...preferencesForm,
+                            ...currentPreferencesForm,
                             timezone: value,
                           })
                         }
@@ -766,10 +771,10 @@ export default function ProfilePage() {
                         Language
                       </Label>
                       <Select
-                        value={preferencesForm.language}
+                        value={currentPreferencesForm.language}
                         onValueChange={(value) =>
                           setPreferencesForm({
-                            ...preferencesForm,
+                            ...currentPreferencesForm,
                             language: value,
                           })
                         }
@@ -796,16 +801,7 @@ export default function ProfilePage() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => {
-                        if (user?.preferences) {
-                          setPreferencesForm({
-                            theme: user.preferences.theme || "system",
-                            currency: user.preferences.currency || "USD",
-                            timezone: user.preferences.timezone || "UTC",
-                            language: user.preferences.language || "en",
-                          });
-                        }
-                      }}
+                      onClick={() => setPreferencesForm(null)}
                       className="gap-2"
                     >
                       <X className="h-4 w-4" />
