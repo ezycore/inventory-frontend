@@ -13,6 +13,7 @@ import { Label } from "@ui/components/label"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { useAuthStore } from "@/stores/use-auth-store"
 
 export function LoginForm({
   className,
@@ -20,6 +21,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
 
    const router = useRouter();
+   const { setUser } = useAuthStore();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
       email: '',
@@ -35,12 +37,19 @@ export function LoginForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
+        credentials: 'include', // Important: Send cookies with request
       });
-      console.log('Login response status:', response.status);
+      
       const result = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || result.message || 'Login failed');
+      }
+
+      // Store user data in auth store
+      if (result.data?.user) {
+        setUser(result.data.user);
+        console.log('✅ User stored in auth store:', result.data.user);
       }
 
       toast.success('Login successful!');

@@ -20,7 +20,6 @@ export interface User {
 interface AuthState extends LoadingState {
   user: User | null
   isAuthenticated: boolean
-  token: string | null
 }
 
 // Auth actions interface
@@ -28,7 +27,6 @@ interface AuthActions extends BaseActions {
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   setUser: (user: User) => void
-  setToken: (token: string) => void
   updateUserPreferences: (preferences: Partial<User['preferences']>) => void
   clearAuth: () => void
 }
@@ -41,7 +39,6 @@ const initialState: AuthState = {
   ...initialLoadingState,
   user: null,
   isAuthenticated: false,
-  token: null,
 }
 
 // Create the auth store with persistence
@@ -55,24 +52,25 @@ export const useAuthStore = create<AuthStore>()(
         login: async (email: string, password: string) => {
           set({ isLoading: true, error: null })
           try {
-            // Simulate API call
+            // API call with credentials to receive cookie
             const response = await fetch('/api/auth/login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email, password }),
+              credentials: 'include', // Important for cookies
             })
 
             if (!response.ok) {
               throw new Error('Login failed')
             }
 
-            const { user, token } = await response.json()
+            const { data } = await response.json()
             set({ 
-              user, 
-              token, 
+              user: data.user, 
               isAuthenticated: true, 
               isLoading: false 
             })
+            // Token is now in HTTP-only cookie, not in state
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Login failed',
@@ -81,10 +79,19 @@ export const useAuthStore = create<AuthStore>()(
           }
         },
 
-        logout: () => {
+        logout: async () => {
+          // Call logout API to clear cookie
+          try {
+            await fetch('/api/auth/logout', {
+              method: 'POST',
+              credentials: 'include',
+            })
+          } catch (error) {
+            console.error('Logout error:', error)
+          }
+          
           set({
             user: null,
-            token: null,
             isAuthenticated: false,
             error: null,
           })
@@ -92,10 +99,6 @@ export const useAuthStore = create<AuthStore>()(
 
         setUser: (user: User) => {
           set({ user, isAuthenticated: true })
-        },
-
-        setToken: (token: string) => {
-          set({ token })
         },
 
         updateUserPreferences: (preferences: Partial<User['preferences']>) => {
@@ -122,8 +125,8 @@ export const useAuthStore = create<AuthStore>()(
         name: 'easystock-auth',
         partialize: (state) => ({
           user: state.user,
-          token: state.token,
           isAuthenticated: state.isAuthenticated,
+          // Don't persist token - it's in HTTP-only cookie
         }),
       }
     ),
