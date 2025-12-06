@@ -127,11 +127,9 @@ export interface DataTableProps<TData, TValue = any> {
  //filter
  filterConfig?: FilterConfig;
 
- /** 
-  * API configuration for self-contained mode
-  * When provided, table manages its own data fetching, pagination, and filters
-  */
- apiConfig?: DataTableApiConfig<TData>;
+ //pagination
+ defaultPageSize?: number;
+ pageSizes?: number[];
 
  /** 
   * Array of data to display (legacy mode)
@@ -168,9 +166,9 @@ export interface DataTableProps<TData, TValue = any> {
   * Enable integrated CRUD operations
   * When provided, DataTable will handle add/edit/view/delete with modal forms
   */
- crud?: {
-  /** Form configuration for DynamicForm */
+ operations?: {
   formConfig: any; // DynamicFormConfig
+  getAllData: any;
 
   /** Create mutation hook (from TanStack Query) */
   createMutation?: any;
