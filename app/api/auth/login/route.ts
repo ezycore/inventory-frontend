@@ -5,12 +5,6 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5500/ap
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
-    console.log('='.repeat(60));
-    console.log('🔄 NEXT.JS API ROUTE - Proxying login request to backend...');
-    console.log('📍 Backend URL:', `${BACKEND_URL}/auth/login`);
-    console.log('📧 Email:', body.email);
-    console.log('='.repeat(60));
     
     // Forward request to backend
     const response = await fetch(`${BACKEND_URL}/auth/login`, {
@@ -22,13 +16,19 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await response.json();
+    
+    // Get the Set-Cookie header from backend response
+    const setCookieHeader = response.headers.get('set-cookie');
 
-    console.log('✅ Backend Response Status:', response.status);
-    console.log('📨 Success:', data.success);
-    console.log('='.repeat(60));
+    // Create the response
+    const nextResponse = NextResponse.json(data, { status: response.status });
+    
+    // Forward the Set-Cookie header from backend to client
+    if (setCookieHeader) {
+      nextResponse.headers.set('Set-Cookie', setCookieHeader);
+    }
 
-    // Return the response from backend
-    return NextResponse.json(data, { status: response.status });
+    return nextResponse;
     
   } catch (error: any) {
     console.error('❌ Error in login API route:', error);
