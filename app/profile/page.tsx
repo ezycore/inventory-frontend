@@ -64,10 +64,10 @@ export default function ProfilePage() {
 
   // Form states
   const [profileForm, setProfileForm] = useState({
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
-    email: user.email || "",
-    phone: user.phone || "",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
   });
 
   const [passwordForm, setPasswordForm] = useState({
