@@ -40,11 +40,12 @@ import { useFormSuccess, useFormFailed } from "@/hooks/use-form-success";
 import { DataTableProps } from "@/types/DataTable";
 import { Plus } from "lucide-react";
 import type { ApiResponse, PaginatedResponse } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "../card";
 
 export function DataTable<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>
 ) {
-  const { crud, actions, onEdit, onView, onDelete, toolbarAction, apiConfig, data: externalData, pagination: externalPagination, isLoading: externalIsLoading, filterConfig, ...restProps } = props;
+  const { crud, actions, onEdit, onView, onDelete, toolbarAction, apiConfig, data: externalData, pagination: externalPagination, isLoading: externalIsLoading, filterConfig, cardTitle, ...restProps } = props;
 
   // Internal state for self-contained mode
   const [page, setPage] = useState(1);
@@ -93,7 +94,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   // Filter configuration with callbacks
   const mergedFilterConfig = useMemo(() => {
     if (!filterConfig) return undefined;
-    
+
     if (apiConfig) {
       return {
         ...filterConfig,
@@ -130,8 +131,8 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     transformEditData: crud?.transformEditData,
     onDeleteFn: crud?.deleteMutation
       ? async (id: string) => {
-          await crud.deleteMutation.mutateAsync(id);
-        }
+        await crud.deleteMutation.mutateAsync(id);
+      }
       : undefined,
     entityName: crud?.entityName || "Item",
   });
@@ -159,7 +160,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     if (crud.prepareSubmitData) {
       return crud.prepareSubmitData(data, !!editing.item, editing.item);
     }
-    
+
     // Default: add ID for edit mode
     if (editing.item) {
       return { id: editing.item._id, ...data };
@@ -187,44 +188,53 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   });
 
   return (
-    <>
-      <BaseDataTable
-        {...restProps}
-        data={data}
-        isLoading={isLoading}
-        pagination={paginationConfig}
-        filterConfig={mergedFilterConfig}
-        actions={mergedActions}
-        onEdit={onEdit || (!crud.disableEdit ? handleEdit : undefined)}
-        onView={onView || (!crud.disableView ? handleView : undefined)}
-        onDelete={onDelete || (!crud.disableDelete ? handleDelete : undefined)}
-        toolbarAction={mergedToolbarAction}
-      />
+      <Card>
+        {
+          cardTitle && (
+            <CardHeader>
+              <CardTitle>{typeof cardTitle === "function" ? cardTitle(data?.length || 0) : cardTitle}</CardTitle>
+            </CardHeader>
+          )
+        }
+        <CardContent>
+          <BaseDataTable
+            {...restProps}
+            data={data}
+            isLoading={isLoading}
+            pagination={paginationConfig}
+            filterConfig={mergedFilterConfig}
+            actions={mergedActions}
+            onEdit={onEdit || (!crud.disableEdit ? handleEdit : undefined)}
+            onView={onView || (!crud.disableView ? handleView : undefined)}
+            onDelete={onDelete || (!crud.disableDelete ? handleDelete : undefined)}
+            toolbarAction={mergedToolbarAction}
+          />
 
-      {/* Integrated CRUD Form Modal */}
-      {mutationHook && (
-        <DynamicForm
-          form={form}
-          config={crud.formConfig}
-          mutationHook={mutationHook}
-          onSubmit={prepareSubmitData}
-          openInside="modal"
-          open={modal.isOpen}
-          onOpenChange={modal.setIsOpen}
-          title={
-            view.isViewMode
-              ? `View ${crud.entityName}`
-              : editing.item
-              ? `Edit ${crud.entityName}`
-              : `Add New ${crud.entityName}`
-          }
-          submitLabel={editing.item ? `Update ${crud.entityName}` : `Create ${crud.entityName}`}
-          modalSize="md"
-          viewMode={view.isViewMode}
-          onSuccess={onSuccess}
-          onFailed={onFailed}
-        />
-      )}
-    </>
+          {/* Integrated CRUD Form Modal */}
+          {mutationHook && (
+            <DynamicForm
+              form={form}
+              config={crud.formConfig}
+              mutationHook={mutationHook}
+              onSubmit={prepareSubmitData}
+              openInside="modal"
+              open={modal.isOpen}
+              onOpenChange={modal.setIsOpen}
+              title={
+                view.isViewMode
+                  ? `View ${crud.entityName}`
+                  : editing.item
+                    ? `Edit ${crud.entityName}`
+                    : `Add New ${crud.entityName}`
+              }
+              submitLabel={editing.item ? `Update ${crud.entityName}` : `Create ${crud.entityName}`}
+              modalSize="md"
+              viewMode={view.isViewMode}
+              onSuccess={onSuccess}
+              onFailed={onFailed}
+            />
+          )}
+        </CardContent>
+      </Card>
   );
 }
