@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ui/components/card";
 import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
@@ -9,7 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@ui/components/avatar";
 import { Button } from "@/ui/components/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { Badge } from "@/ui/components/badge";
-import { Separator } from "@/ui/components/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/components/select";
 import { 
   User, 
   Lock, 
@@ -19,7 +24,13 @@ import {
   Eye, 
   EyeOff,
   Save,
-  X
+  X,
+  Mail,
+  Phone,
+  Building2,
+  Globe,
+  Calendar,
+  CheckCircle2
 } from "lucide-react";
 import { 
   useProfile, 
@@ -29,15 +40,17 @@ import {
   useProfilePermissions 
 } from "@/hooks/queries/use-profile";
 import { toast } from "sonner";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 export default function ProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [image, setImage] = useState<string>("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Fetch profile data
   const { data: profile, isLoading } = useProfile();
   const { data: permissionsData } = useProfilePermissions();
+  const { user } = useAuthStore();
   
   // Mutations
   const updateProfile = useUpdateProfile();
@@ -66,7 +79,7 @@ export default function ProfilePage() {
   });
 
   // Update form when profile data loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile) {
       setProfileForm({
         firstName: profile.firstName || "",
@@ -74,7 +87,6 @@ export default function ProfilePage() {
         email: profile.email || "",
         phone: profile.phone || "",
       });
-      setImage(profile.avatar || "/user.png");
       setPreferencesForm({
         theme: profile.preferences?.theme || "system",
         currency: profile.preferences?.currency || "USD",
@@ -83,26 +95,6 @@ export default function ProfilePage() {
       });
     }
   }, [profile]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file size (2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image size should be less than 2MB");
-      return;
-    }
-
-    // Validate file type
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      toast.error("Only JPG and PNG formats are allowed");
-      return;
-    }
-
-    setImage(URL.createObjectURL(file));
-    // TODO: Upload to server and get URL
-  };
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +130,7 @@ export default function ProfilePage() {
 
   const handlePreferencesSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updatePreferences.mutate(preferencesForm);
+    updatePreferences.mutate({ preferences: preferencesForm });
   };
 
   const getInitials = () => {
@@ -150,459 +142,551 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
-        <Card className="p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-muted rounded w-1/4"></div>
-            <div className="h-32 bg-muted rounded"></div>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
+        <Card className="w-full max-w-4xl">
+          <CardContent className="p-12">
+            <div className="animate-pulse space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 bg-muted rounded-full"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-6 bg-muted rounded w-1/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/3"></div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="h-4 bg-muted rounded"></div>
+                <div className="h-4 bg-muted rounded w-5/6"></div>
+              </div>
+            </div>
+          </CardContent>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Profile Settings</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your account settings and preferences
-        </p>
-      </div>
+    <div className="container min-h-screen ">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header Card */}
+        <Card className="border-2 border-blue-100 dark:border-blue-900">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-800 shadow-lg">
+                <AvatarImage src={profile?.avatar} alt="Profile" />
+                <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex-1 text-center md:text-left space-y-2">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {profile?.firstName} {profile?.lastName}
+                </h1>
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                  <Badge variant="default" className="text-sm px-3 py-1 capitalize">
+                    <Shield className="w-3 h-3 mr-1" />
+                    {profile?.role || "User"}
+                  </Badge>
+                  {profile?.isActive && (
+                    <Badge variant="outline" className="text-sm px-3 py-1 border-green-500 text-green-600">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Active
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground pt-2">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    <span>{profile?.email}</span>
+                  </div>
+                  {profile?.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      <span>{profile?.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Profile
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            Security
-          </TabsTrigger>
-          <TabsTrigger value="roles" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Roles
-          </TabsTrigger>
-          <TabsTrigger value="preferences" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Preferences
-          </TabsTrigger>
-        </TabsList>
+        {/* Tabs */}
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-white dark:bg-gray-800 p-1">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              <span className="hidden sm:inline">Security</span>
+            </TabsTrigger>
+            <TabsTrigger value="roles" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Permissions</span>
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Preferences</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Profile Tab */}
-        <TabsContent value="profile">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your personal information and profile picture
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleProfileSubmit} className="space-y-6">
-                {/* Avatar Section */}
-                <div className="flex items-center gap-6">
-                  <Avatar className="w-24 h-24">
-                    <AvatarImage src={image} alt="Profile" />
-                    <AvatarFallback className="text-2xl">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <Button type="button" size="sm" variant="outline">
-                      <label className="cursor-pointer flex items-center gap-2">
-                        <Camera className="h-4 w-4" />
-                        Change Photo
-                        <input
-                          type="file"
-                          hidden
-                          accept="image/png,image/jpeg"
-                          onChange={handleImageUpload}
-                        />
-                      </label>
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            <Card className="border-2 border-gray-100 dark:border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-blue-600" />
+                  Personal Information
+                </CardTitle>
+                <CardDescription>
+                  Update your personal details and contact information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleProfileSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="flex items-center gap-1.5">
+                        First Name
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="firstName"
+                        value={profileForm.firstName}
+                        onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                        placeholder="Enter your first name"
+                        className="h-11"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="flex items-center gap-1.5">
+                        Last Name
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="lastName"
+                        value={profileForm.lastName}
+                        onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                        placeholder="Enter your last name"
+                        className="h-11"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex items-center gap-1.5">
+                        <Mail className="h-4 w-4" />
+                        Email Address
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={profileForm.email}
+                        onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                        placeholder="your@email.com"
+                        className="h-11"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-1.5">
+                        <Phone className="h-4 w-4" />
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={profileForm.phone}
+                        onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                        placeholder="+1 (555) 000-0000"
+                        className="h-11"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (profile) {
+                          setProfileForm({
+                            firstName: profile.firstName || "",
+                            lastName: profile.lastName || "",
+                            email: profile.email || "",
+                            phone: profile.phone || "",
+                          });
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Reset
                     </Button>
-                    <p className="text-xs text-muted-foreground">
-                      JPG or PNG. Max size 2MB
-                    </p>
+                    <Button
+                      type="submit"
+                      disabled={updateProfile.isPending}
+                      className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    >
+                      <Save className="h-4 w-4" />
+                      {updateProfile.isPending ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
-                </div>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <Separator />
-
-                {/* Form Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Security Tab */}
+          <TabsContent value="security" className="space-y-6">
+            <Card className="border-2 border-gray-100 dark:border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-blue-600" />
+                  Change Password
+                </CardTitle>
+                <CardDescription>
+                  Update your password to keep your account secure
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handlePasswordSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      value={profileForm.firstName}
-                      onChange={(e) =>
-                        setProfileForm({ ...profileForm, firstName: e.target.value })
-                      }
-                      placeholder="Enter first name"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      value={profileForm.lastName}
-                      onChange={(e) =>
-                        setProfileForm({ ...profileForm, lastName: e.target.value })
-                      }
-                      placeholder="Enter last name"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profileForm.email}
-                      onChange={(e) =>
-                        setProfileForm({ ...profileForm, email: e.target.value })
-                      }
-                      placeholder="Enter email"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={profileForm.phone}
-                      onChange={(e) =>
-                        setProfileForm({ ...profileForm, phone: e.target.value })
-                      }
-                      placeholder="Enter phone number"
-                    />
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      if (profile) {
-                        setProfileForm({
-                          firstName: profile.firstName || "",
-                          lastName: profile.lastName || "",
-                          email: profile.email || "",
-                          phone: profile.phone || "",
-                        });
-                      }
-                    }}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={updateProfile.isPending}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {updateProfile.isPending ? "Saving..." : "Save Changes"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Security Tab */}
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>
-                Update your password to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Label htmlFor="currentPassword" className="flex items-center gap-1.5">
+                      Current Password
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <div className="relative">
                       <Input
                         id="currentPassword"
                         type={showCurrentPassword ? "text" : "password"}
                         value={passwordForm.currentPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            currentPassword: e.target.value,
-                          })
-                        }
-                        placeholder="Enter current password"
+                        onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                        placeholder="Enter your current password"
+                        className="h-11 pr-10"
                       />
                       <button
                         type="button"
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
+                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="newPassword"
-                        type={showNewPassword ? "text" : "password"}
-                        value={passwordForm.newPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            newPassword: e.target.value,
-                          })
-                        }
-                        placeholder="Enter new password"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
-                      >
-                        {showNewPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword" className="flex items-center gap-1.5">
+                        New Password
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="newPassword"
+                          type={showNewPassword ? "text" : "password"}
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                          placeholder="Enter new password (min 6 chars)"
+                          className="h-11 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Minimum 6 characters
-                    </p>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className="flex items-center gap-1.5">
+                        Confirm Password
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                          placeholder="Confirm your new password"
+                          className="h-11 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) =>
+                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100 mb-2">Password Requirements:</h4>
+                    <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
+                      <li>Minimum 6 characters long</li>
+                      <li>Contains uppercase and lowercase letters (recommended)</li>
+                      <li>Includes at least one number (recommended)</li>
+                      <li>Uses special characters (recommended)</li>
+                    </ul>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
                         setPasswordForm({
-                          ...passwordForm,
-                          confirmPassword: e.target.value,
-                        })
-                      }
-                      placeholder="Confirm new password"
-                    />
+                          currentPassword: "",
+                          newPassword: "",
+                          confirmPassword: "",
+                        });
+                      }}
+                      className="gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Clear
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={updatePassword.isPending}
+                      className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    >
+                      <Lock className="h-4 w-4" />
+                      {updatePassword.isPending ? "Updating..." : "Update Password"}
+                    </Button>
                   </div>
-                </div>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <div className="flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      setPasswordForm({
-                        currentPassword: "",
-                        newPassword: "",
-                        confirmPassword: "",
-                      })
-                    }
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={updatePassword.isPending}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {updatePassword.isPending ? "Updating..." : "Update Password"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Roles & Permissions Tab */}
-        <TabsContent value="roles">
-          <Card>
-            <CardHeader>
-              <CardTitle>Roles & Permissions</CardTitle>
-              <CardDescription>
-                View your role and assigned permissions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base">Current Role</Label>
-                  <div className="mt-2">
-                    <Badge variant="default" className="text-sm px-3 py-1 capitalize">
-                      {profile?.role || "N/A"}
+          {/* Permissions Tab */}
+          <TabsContent value="roles" className="space-y-6">
+            <Card className="border-2 border-gray-100 dark:border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                  Permissions & Access Control
+                </CardTitle>
+                <CardDescription>
+                  View your role and assigned permissions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Role</h3>
+                      <p className="text-sm text-muted-foreground mt-1">Your assigned role in the system</p>
+                    </div>
+                    <Badge className="text-lg px-4 py-2 capitalize bg-blue-600">
+                      <Shield className="w-4 h-4 mr-2" />
+                      {profile?.role || "User"}
                     </Badge>
                   </div>
                 </div>
 
-                <Separator />
-
                 <div>
-                  <Label className="text-base">Permissions</Label>
-                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {permissionsData?.permissions && permissionsData.permissions.length > 0 ? (
-                      permissionsData.permissions.map((permission: string) => (
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Granted Permissions</h3>
+                  {permissionsData && permissionsData.permissions && permissionsData.permissions.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {permissionsData.permissions.map((permission: string) => (
                         <div
                           key={permission}
-                          className="flex items-center gap-2 text-sm p-2 rounded-md bg-muted/50"
+                          className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
                         >
-                          <Shield className="h-4 w-4 text-primary" />
-                          <span className="capitalize">
-                            {permission.replace(".", " - ")}
-                          </span>
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium">{permission}</span>
                         </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground col-span-2">
-                        No permissions assigned
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-muted/30 rounded-lg p-4 border border-muted">
-                <p className="text-sm text-muted-foreground">
-                  <strong>Note:</strong> Role and permission changes must be made by an administrator. 
-                  Contact your system administrator if you need additional access.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Preferences Tab */}
-        <TabsContent value="preferences">
-          <Card>
-            <CardHeader>
-              <CardTitle>Application Preferences</CardTitle>
-              <CardDescription>
-                Customize your application experience
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handlePreferencesSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="theme">Theme</Label>
-                    <select
-                      id="theme"
-                      value={preferencesForm.theme}
-                      onChange={(e) =>
-                        setPreferencesForm({
-                          ...preferencesForm,
-                          theme: e.target.value as "light" | "dark" | "system",
-                        })
-                      }
-                      className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                    >
-                      <option value="light">Light</option>
-                      <option value="dark">Dark</option>
-                      <option value="system">System</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="currency">Currency</Label>
-                    <select
-                      id="currency"
-                      value={preferencesForm.currency}
-                      onChange={(e) =>
-                        setPreferencesForm({
-                          ...preferencesForm,
-                          currency: e.target.value,
-                        })
-                      }
-                      className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                    >
-                      <option value="USD">USD - US Dollar</option>
-                      <option value="EUR">EUR - Euro</option>
-                      <option value="GBP">GBP - British Pound</option>
-                      <option value="BDT">BDT - Bangladeshi Taka</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="timezone">Timezone</Label>
-                    <select
-                      id="timezone"
-                      value={preferencesForm.timezone}
-                      onChange={(e) =>
-                        setPreferencesForm({
-                          ...preferencesForm,
-                          timezone: e.target.value,
-                        })
-                      }
-                      className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                    >
-                      <option value="UTC">UTC</option>
-                      <option value="America/New_York">Eastern Time</option>
-                      <option value="America/Los_Angeles">Pacific Time</option>
-                      <option value="Europe/London">London</option>
-                      <option value="Asia/Dhaka">Dhaka</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
-                    <select
-                      id="language"
-                      value={preferencesForm.language}
-                      onChange={(e) =>
-                        setPreferencesForm({
-                          ...preferencesForm,
-                          language: e.target.value,
-                        })
-                      }
-                      className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                    >
-                      <option value="en">English</option>
-                      <option value="es">Spanish</option>
-                      <option value="fr">French</option>
-                      <option value="bn">Bengali</option>
-                    </select>
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed">
+                      <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-muted-foreground">No permissions assigned</p>
+                      <p className="text-sm text-muted-foreground mt-1">Contact your administrator for access</p>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      if (profile?.preferences) {
-                        setPreferencesForm({
-                          theme: profile.preferences.theme || "system",
-                          currency: profile.preferences.currency || "USD",
-                          timezone: profile.preferences.timezone || "UTC",
-                          language: profile.preferences.language || "en",
-                        });
-                      }
-                    }}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={updatePreferences.isPending}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {updatePreferences.isPending ? "Saving..." : "Save Preferences"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                {profile?.role === "admin" && (
+                  <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                    <div className="flex gap-3">
+                      <Shield className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium text-sm text-amber-900 dark:text-amber-100">Administrator Access</h4>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                          You have full administrative privileges with access to all features and settings.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Preferences Tab */}
+          <TabsContent value="preferences" className="space-y-6">
+            <Card className="border-2 border-gray-100 dark:border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-blue-600" />
+                  Application Preferences
+                </CardTitle>
+                <CardDescription>
+                  Customize your application experience
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handlePreferencesSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="theme" className="flex items-center gap-1.5">
+                        Theme
+                      </Label>
+                      <Select
+                        value={preferencesForm.theme}
+                        onValueChange={(value: "light" | "dark" | "system") =>
+                          setPreferencesForm({ ...preferencesForm, theme: value })
+                        }
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="light">Light</SelectItem>
+                          <SelectItem value="dark">Dark</SelectItem>
+                          <SelectItem value="system">System</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="currency" className="flex items-center gap-1.5">
+                        Currency
+                      </Label>
+                      <Select
+                        value={preferencesForm.currency}
+                        onValueChange={(value) =>
+                          setPreferencesForm({ ...preferencesForm, currency: value })
+                        }
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USD">USD ($)</SelectItem>
+                          <SelectItem value="EUR">EUR (€)</SelectItem>
+                          <SelectItem value="GBP">GBP (£)</SelectItem>
+                          <SelectItem value="INR">INR (₹)</SelectItem>
+                          <SelectItem value="JPY">JPY (¥)</SelectItem>
+                          <SelectItem value="AUD">AUD (A$)</SelectItem>
+                          <SelectItem value="CAD">CAD (C$)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="timezone" className="flex items-center gap-1.5">
+                        <Globe className="h-4 w-4" />
+                        Timezone
+                      </Label>
+                      <Select
+                        value={preferencesForm.timezone}
+                        onValueChange={(value) =>
+                          setPreferencesForm({ ...preferencesForm, timezone: value })
+                        }
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="UTC">UTC (GMT+0)</SelectItem>
+                          <SelectItem value="America/New_York">EST (GMT-5)</SelectItem>
+                          <SelectItem value="America/Chicago">CST (GMT-6)</SelectItem>
+                          <SelectItem value="America/Denver">MST (GMT-7)</SelectItem>
+                          <SelectItem value="America/Los_Angeles">PST (GMT-8)</SelectItem>
+                          <SelectItem value="Europe/London">London (GMT+0)</SelectItem>
+                          <SelectItem value="Europe/Paris">Paris (GMT+1)</SelectItem>
+                          <SelectItem value="Asia/Tokyo">Tokyo (GMT+9)</SelectItem>
+                          <SelectItem value="Asia/Kolkata">India (GMT+5:30)</SelectItem>
+                          <SelectItem value="Australia/Sydney">Sydney (GMT+10)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="language" className="flex items-center gap-1.5">
+                        Language
+                      </Label>
+                      <Select
+                        value={preferencesForm.language}
+                        onValueChange={(value) =>
+                          setPreferencesForm({ ...preferencesForm, language: value })
+                        }
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="es">Spanish</SelectItem>
+                          <SelectItem value="fr">French</SelectItem>
+                          <SelectItem value="de">German</SelectItem>
+                          <SelectItem value="it">Italian</SelectItem>
+                          <SelectItem value="pt">Portuguese</SelectItem>
+                          <SelectItem value="ja">Japanese</SelectItem>
+                          <SelectItem value="zh">Chinese</SelectItem>
+                          <SelectItem value="hi">Hindi</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (profile?.preferences) {
+                          setPreferencesForm({
+                            theme: profile.preferences.theme || "system",
+                            currency: profile.preferences.currency || "USD",
+                            timezone: profile.preferences.timezone || "UTC",
+                            language: profile.preferences.language || "en",
+                          });
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Reset
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={updatePreferences.isPending}
+                      className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    >
+                      <Save className="h-4 w-4" />
+                      {updatePreferences.isPending ? "Saving..." : "Save Preferences"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
