@@ -137,10 +137,6 @@ const defaultValues = {
 }
 
 export default function CategoriesPage() {
-  // Mutation hooks
-  const createCategory = useCreateCategory();
-  const updateCategory = useUpdateCategory();
-  const deleteCategory = useDeleteCategory();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
