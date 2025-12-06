@@ -170,7 +170,7 @@ export const categoriesApi = {
     filters: {
       page?: number;
       limit?: number;
-      is_active?: boolean;
+      status?: "active" | "inactive";
       parent_id?: string;
       [key: string]: any;
     } = {}
@@ -208,7 +208,7 @@ export const brandsApi = {
       page?: number;
       limit?: number;
       search?: string;
-      is_active?: boolean;
+      status?: "active" | "inactive";
       [key: string]: any; // Allow dynamic filter fields
     } = {}
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
@@ -232,10 +232,10 @@ export const brandsApi = {
   getBySlug: (slug: string): Promise<ApiResponse<any>> =>
     apiClient.get(`/brands/slug/${slug}`),
 
-  create: (data: CreateBrandDto): Promise<ApiResponse<any>> =>
+  create: (data: FormData): Promise<ApiResponse<any>> =>
     apiClient.post("/brands", data),
 
-  update: (id: string, data: UpdateBrandDto): Promise<ApiResponse<any>> =>
+  update: (id: string, data: UpdateBrandDto | FormData): Promise<ApiResponse<any>> =>
     apiClient.put(`/brands/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>
@@ -365,7 +365,7 @@ export const authApi = {
 // Profile API
 export const profileApi = {
   get: (): Promise<ApiResponse<any>> => apiClient.get("/profile"),
-  
+
   update: (data: {
     firstName?: string;
     lastName?: string;
@@ -373,22 +373,22 @@ export const profileApi = {
     phone?: string;
     avatar?: string;
   }): Promise<ApiResponse<any>> => apiClient.put("/profile", data),
-  
+
   updatePassword: (data: {
     currentPassword: string;
     newPassword: string;
   }): Promise<ApiResponse<any>> => apiClient.put("/profile/password", data),
-  
+
   updatePreferences: (preferences: {
     theme?: 'light' | 'dark' | 'system';
     currency?: string;
     timezone?: string;
     language?: string;
   }): Promise<ApiResponse<any>> => apiClient.put("/profile/preferences", { preferences }),
-  
-  updateAvatar: (avatar: string): Promise<ApiResponse<any>> => 
+
+  updateAvatar: (avatar: string): Promise<ApiResponse<any>> =>
     apiClient.put("/profile/avatar", { avatar }),
-  
+
   getPermissions: (): Promise<ApiResponse<{
     role: string;
     permissions: string[];
