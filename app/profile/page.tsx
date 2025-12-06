@@ -165,7 +165,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container min-h-screen ">
+    <div className="container mx-auto p-6 space-y-6 min-h-screen">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header Card */}
         <Card className="border-2 border-blue-100 dark:border-blue-900">
