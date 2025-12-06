@@ -11,7 +11,7 @@ import type { FilterConfig } from '@/types/filter'
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
-import { DataTableCrud } from '@/ui/components/dataTable'
+import { DataTable } from '@/ui/components/dataTable'
 import { DateCell } from '@/ui/components/dataTable/cells'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
 
@@ -29,7 +29,6 @@ const columns: ColumnDef<Category>[] = [
       <AvatarCell
         name={row.getValue("name")}
         fallbackIcon={Tag}
-        showActiveStatus={true}
         isActive={row.original.status === "active"}
       />
     ),
@@ -159,49 +158,43 @@ export default function CategoriesPage() {
       </div>
 
       {/* Categories Table with Integrated CRUD */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Categories</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTableCrud
-            apiConfig={{
-              endpoint: categoriesApi,
-              queryKey: [...queryKeys.category.all()],
-              defaultPageSize: 10,
-              pageSizeOptions: [10, 20, 50, 100],
-            }}
-            filterConfig={categoryFilterConfig}
-            columns={columns}
-            selectable={true}
-            searchConfig={{
-              globalSearch: true,
-              placeholder: "Search categories by name, description, or status...",
-            }}
-            crud={{
-              formConfig: categoryFormConfig,
-              createMutation: createCategory,
-              updateMutation: updateCategory,
-              deleteMutation: deleteCategory,
-              entityName: "Category",
-              queryKey: [...queryKeys.category.all()],
-              defaultValues: {
-                name: "",
-                description: "",
-                status: "active" as const,
-              },
-              prepareSubmitData: (data, isEdit, item) => ({
-                ...data,
-                ...(isEdit && item ? { id: item._id } : {}),
-              }),
-            }}
-            defaultColumnVisibility={{ status: false, description: false }}
-            enableSorting={true}
-            enableRowHover={true}
-            rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
-          />
-        </CardContent>
-      </Card>
+      <DataTable
+        cardTitle={(dataLength: number) => `All Categories (${dataLength})`}
+        apiConfig={{
+          endpoint: categoriesApi,
+          queryKey: [...queryKeys.category.all()],
+          defaultPageSize: 10,
+          pageSizeOptions: [10, 20, 50, 100],
+        }}
+        filterConfig={categoryFilterConfig}
+        columns={columns}
+        selectable={true}
+        searchConfig={{
+          globalSearch: true,
+          placeholder: "Search categories by name, description, or status...",
+        }}
+        crud={{
+          formConfig: categoryFormConfig,
+          createMutation: createCategory,
+          updateMutation: updateCategory,
+          deleteMutation: deleteCategory,
+          entityName: "Category",
+          queryKey: [...queryKeys.category.all()],
+          defaultValues: {
+            name: "",
+            description: "",
+            status: "active" as const,
+          },
+          prepareSubmitData: (data, isEdit, item) => ({
+            ...data,
+            ...(isEdit && item ? { id: item._id } : {}),
+          }),
+        }}
+        defaultColumnVisibility={{ status: false, description: false }}
+        enableSorting={true}
+        enableRowHover={true}
+        rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
+      />
     </div>
   )
 }

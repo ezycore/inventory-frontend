@@ -1,22 +1,30 @@
-import React from "react";
-
+import { useSettingsStore } from "@/stores";
+import { formatDate, parseISO } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 export interface DateCellProps {
   value: string | Date;
-  format?: "short" | "long";
   className?: string;
+  isShowDateOnly?: boolean;
 }
 
 export function DateCell({ 
   value, 
-  format = "short",
+  isShowDateOnly = true,
   className = "text-sm"
 }: DateCellProps) {
-  const date = new Date(value);
+  const dateFormat = useSettingsStore((state) => state.dateFormat);
+  const timezone = useSettingsStore((state) => state.timezone);
+  const timeFormat = useSettingsStore((state) => state.timeFormat);
+  const date = parseISO(
+    typeof value === "string" ? value : value.toISOString()
+  );
   
-  const formatted = format === "short" 
-    ? date.toLocaleDateString()
-    : date.toLocaleString();
-  
+  const formatted = formatInTimeZone(
+  date, 
+  timezone, 
+  isShowDateOnly ? dateFormat : `${dateFormat}, ${timeFormat}`
+);
+
   return (
     <span className={className}>
       {formatted}

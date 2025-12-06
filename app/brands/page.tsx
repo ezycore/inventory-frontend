@@ -11,8 +11,7 @@ import type { FilterConfig } from "@/types/filter";
 // UI Components
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
-import { DataTableCrud } from "@/ui/components/dataTable/crud";
-import { Card, CardContent, CardHeader, CardTitle } from "@ui/components/card";
+import { DataTable } from "@/ui/components/dataTable";
 
 // Hooks & API
 import {
@@ -22,6 +21,7 @@ import {
 } from "@/hooks/queries";
 import { brandsApi } from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys-products";
+import PageHeader from "@/ui/components/header";
 
 // Column definitions
 const columns: ColumnDef<Brand>[] = [
@@ -32,8 +32,6 @@ const columns: ColumnDef<Brand>[] = [
       <AvatarCell
         imageUrl={row.original.logo_url}
         name={row.getValue("name")}
-        fallbackIcon={Star}
-        showActiveStatus={true}
         isActive={row.original.status === "active"}
       />
     ),
@@ -133,7 +131,7 @@ const brandFilterConfig: FilterConfig = {
       name: "updatedAt",
       label: "Updated Date",
       type: "date",
-      placeholder: "Select date range",
+      placeholder: "Select date",
       columnSpan: 2,
     },
   ],
@@ -153,93 +151,82 @@ export default function BrandsPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Brands Management</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your product brands and their details.
-        </p>
-      </div>
-        
+      <PageHeader title="Brands Management" subTitle="Manage your product brands and their details." />
+
       {/* Brands Table with Integrated CRUD */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Brands</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTableCrud
-            apiConfig={{
-              endpoint: brandsApi,
-              queryKey: [...queryKeys.brands.all()],
-              defaultPageSize: 10,
-              pageSizeOptions: [10, 20, 50, 100],
-            }}
-            filterConfig={brandFilterConfig}
-            columns={columns}
-            selectable={true}
-            searchConfig={{
-              globalSearch: true,
-              placeholder: "Search brands by name, description, or status...",
-            }}
-            crud={{
-              formConfig: brandFormConfig,
-              createMutation: createBrand,
-              updateMutation: updateBrand,
-              deleteMutation: deleteBrand,
-              entityName: "Brand",
-              queryKey: [...queryKeys.brands.all()],
-              defaultValues: {
-                name: "",
-                description: "",
-                logo_url: [],
-                status: "active" as const,
-              },
-              transformEditData: (item: Brand) => {
-                return {
-                  name: item.name,
-                  description: item.description || "",
-                  logo_url: item.logo_url ? [item.logo_url] : [], // Initialize with URL string
-                  status: item.status,
-                };
-              },
-              prepareSubmitData: (data, isEdit, item) => {
-                const formData = new FormData();
-                formData.append("name", data.name);
-                formData.append("status", data.status);
-                if (data.description) {
-                  formData.append("description", data.description);
-                }
-
-                if (isEdit && item) {
-                  formData.append("id", item._id);
-
-                  // EDIT MODE: Handle logo changes
-                  if (!data.logo_url || data.logo_url.length === 0) {
-                    // User removed the logo
-                    formData.append("remove_logo", "true");
-                  } else if (data.logo_url[0] instanceof File) {
-                    // User uploaded NEW file (File object)
-                    formData.append("logo", data.logo_url[0]);
-                  }
-                  // If data.logo_url[0] is string (existing URL), do nothing (keep existing)
-                } else {
-                  // ADD MODE: Upload new file
-                  if (data.logo_url && data.logo_url[0] instanceof File) {
-                    formData.append("logo", data.logo_url[0]);
-                  }
-                }
-
-                return formData;
-              },
-            }}
-            enableSorting={true}
-            defaultColumnVisibility={{ status: false }}
-            enableRowHover={true}
-            rowClassName={(row) =>
-              row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+      <DataTable
+        cardTitle={(dataLength: number) => `All Brands (${dataLength})`}
+        apiConfig={{
+          endpoint: brandsApi,
+          queryKey: [...queryKeys.brands.all()],
+          defaultPageSize: 10,
+          pageSizeOptions: [10, 20, 50, 100],
+        }}
+        filterConfig={brandFilterConfig}
+        columns={columns}
+        selectable={true}
+        searchConfig={{
+          globalSearch: true,
+          placeholder: "Search brands by name, description, or status...",
+        }}
+        crud={{
+          formConfig: brandFormConfig,
+          createMutation: createBrand,
+          updateMutation: updateBrand,
+          deleteMutation: deleteBrand,
+          entityName: "Brand",
+          queryKey: [...queryKeys.brands.all()],
+          defaultValues: {
+            name: "",
+            description: "",
+            logo_url: [],
+            status: "active" as const,
+          },
+          transformEditData: (item: Brand) => {
+            return {
+              name: item.name,
+              description: item.description || "",
+              logo_url: item.logo_url ? [item.logo_url] : [], // Initialize with URL string
+              status: item.status,
+            };
+          },
+          prepareSubmitData: (data, isEdit, item) => {
+            const formData = new FormData();
+            formData.append("name", data.name);
+            formData.append("status", data.status);
+            if (data.description) {
+              formData.append("description", data.description);
             }
-          />
-        </CardContent>
-      </Card>
+
+            if (isEdit && item) {
+              formData.append("id", item._id);
+
+              // EDIT MODE: Handle logo changes
+              if (!data.logo_url || data.logo_url.length === 0) {
+                // User removed the logo
+                formData.append("remove_logo", "true");
+              } else if (data.logo_url[0] instanceof File) {
+                // User uploaded NEW file (File object)
+                formData.append("logo", data.logo_url[0]);
+              }
+              // If data.logo_url[0] is string (existing URL), do nothing (keep existing)
+            } else {
+              // ADD MODE: Upload new file
+              if (data.logo_url && data.logo_url[0] instanceof File) {
+                formData.append("logo", data.logo_url[0]);
+              }
+            }
+
+            return formData;
+          },
+        }}
+        enableSorting={true}
+        defaultColumnVisibility={{ status: false }}
+        enableRowHover={true}
+        rowClassName={(row) =>
+          row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+        }
+      />
     </div>
   );
 }

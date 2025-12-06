@@ -4,7 +4,7 @@ export interface UsePageStateOptions {
  defaultLimit?: number;
 }
 
-export function usePageState<T = any>(options: UsePageStateOptions = {}) {
+export function usePageState<T>(options: UsePageStateOptions = {}) {
  const { defaultLimit = 10 } = options;
 
  const [isModalOpen, setIsModalOpen] = useState(false);
