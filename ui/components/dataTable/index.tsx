@@ -1,32 +1,3 @@
-/**
- * DataTable with Integrated CRUD Operations
- * 
- * This component wraps the base Data Table and adds automatic CRUD handling.
- * Use this when you need add/edit/view/delete with forms.
- * 
- * @example
- * ```tsx
- * <DataTable
- *   columns={columns}
- *   data={brandsData}
- *   crud={{
- *     formConfig: brandFormConfig,
- *     createMutation: useCreateBrand(),
- *     updateMutation: useUpdateBrand(),
- *     deleteMutation: useDeleteBrand(),
- *     entityName: "Brand",
- *     queryKey: queryKeys.brands.all(),
- *     prepareSubmitData: (data, isEdit, item) => ({
- *       ...data,
- *       slug: generateSlug(data.name),
- *       ...(isEdit && item ? { id: item._id } : {})
- *     })
- *   }}
- *   // All other DataTable props...
- * />
- * ```
- */
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -41,38 +12,41 @@ import { DataTableProps } from "@/types/DataTable";
 import { Plus } from "lucide-react";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
+import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 
 export function DataTable<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>
 ) {
-  const { crud, actions, onEdit, onView, onDelete, toolbarAction, apiConfig, data: externalData, pagination: externalPagination, isLoading: externalIsLoading, filterConfig, cardTitle, ...restProps } = props;
+  const { operations, actions, onEdit, onView, onDelete, defaultPageSize, pageSizes, toolbarAction, data: externalData, pagination: externalPagination, isLoading: externalIsLoading, filterConfig, cardTitle, ...restProps } = props;
 
+  const {getAllData, queryKey, defaultValues, transformEditData, deleteMutation, entityName, formConfig, disableAdd, disableEdit, disableView, disableDelete, updateMutation, createMutation, prepareSubmitData} = operations || {};
+  
   // Internal state for self-contained mode
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(apiConfig?.defaultPageSize || 10);
+  const [limit, setLimit] = useState(defaultPageSize || 10);
   const [filters, setFilters] = useState<Record<string, any>>({});
 
   // Data fetching (self-contained mode)
   const { data: queryData, isLoading: queryIsLoading, error, refetch } = useQuery<ApiResponse<PaginatedResponse<TData>>>({
-    queryKey: apiConfig ? [...apiConfig.queryKey, page, limit, filters] : [],
-    queryFn: apiConfig ? () => apiConfig.endpoint.getAll({ page, limit, ...filters }) : undefined,
-    enabled: !!apiConfig,
+    queryKey: getAllData ? [...queryKey, page, limit, filters] : [],
+    queryFn: getAllData ? () => getAllData({ page, limit, ...filters }) : () => Promise.resolve(undefined),
+    enabled: !!getAllData,
     placeholderData: (previousData) => previousData,
   });
 
   // Determine data source and loading state
   const data = useMemo(() => {
-    if (apiConfig) {
+    if (getAllData) {
       return queryData?.data?.items || [];
     }
     return externalData || [];
-  }, [apiConfig, queryData, externalData]);
+  }, [getAllData, queryData, externalData]);
 
-  const isLoading = apiConfig ? queryIsLoading : (externalIsLoading || false);
+  const isLoading = getAllData ? queryIsLoading : (externalIsLoading || false);
 
   // Pagination configuration
   const paginationConfig = useMemo(() => {
-    if (apiConfig) {
+    if (getAllData) {
       return {
         pageIndex: page - 1,
         pageSize: limit,
@@ -81,7 +55,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         hasNext: queryData?.data?.hasNext,
         hasPrev: queryData?.data?.hasPrev,
         manualPagination: true,
-        pageSizeOptions: apiConfig.pageSizeOptions || [10, 20, 50, 100],
+        pageSizeOptions: pageSizes || [10, 20, 50, 100],
         onPaginationChange: ({ pageIndex, pageSize }: { pageIndex: number; pageSize: number }) => {
           setPage(pageIndex + 1);
           setLimit(pageSize);
@@ -89,13 +63,13 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
       };
     }
     return externalPagination;
-  }, [apiConfig, page, limit, queryData, externalPagination]);
+  }, [getAllData, page, limit, queryData, externalPagination, pageSizes]);
 
   // Filter configuration with callbacks
   const mergedFilterConfig = useMemo(() => {
     if (!filterConfig) return undefined;
 
-    if (apiConfig) {
+    if (getAllData) {
       return {
         ...filterConfig,
         onApply: (newFilters: Record<string, any>) => {
@@ -111,15 +85,14 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
       };
     }
     return filterConfig;
-  }, [filterConfig, apiConfig]);
+  }, [filterConfig, getAllData]);
 
   // Page state management - MUST call hooks unconditionally
   const pageState = usePageState<TData>();
   const { modal, editing, view } = pageState;
 
   // Form management
-  const defaultValues = crud?.defaultValues || {};
-  const { form } = useDynamicForm(crud?.formConfig || { fields: [] }, defaultValues);
+  const { form } = useDynamicForm(formConfig || { fields: [] }, defaultValues);
 
   // CRUD handlers
   const { handleAdd, handleEdit, handleView, handleDelete } = useCrudHandlers<TData>({
@@ -128,37 +101,45 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     setIsViewMode: view.setIsViewMode,
     setIsModalOpen: modal.setIsOpen,
     defaultValues,
-    transformEditData: crud?.transformEditData,
-    onDeleteFn: crud?.deleteMutation
+    transformEditData: transformEditData,
+    onDeleteFn: deleteMutation
       ? async (id: string) => {
-        await crud.deleteMutation.mutateAsync(id);
+        await deleteMutation.mutateAsync(id);
       }
       : undefined,
-    entityName: crud?.entityName || "Item",
+    entityName: entityName || "Item",
   });
 
   // Form submission handlers
   const onSuccess = useFormSuccess({
-    queryKey: crud?.queryKey || [],
+    queryKey: queryKey || [],
     onClose: () => modal.setIsOpen(false),
     editMode: !!editing.item,
-    entityName: crud?.entityName || "Item",
+    entityName: entityName || "Item",
   });
 
   const onFailed = useFormFailed({
     editMode: !!editing.item,
-    entityName: crud?.entityName || "Item",
+    entityName: entityName || "Item",
   });
 
+  if(error){
+    return <ErrorBoundaryFallback error={error} onRetry={refetch}/>
+  }
+
+  if((!data || data.length === 0) && !isLoading){
+    return <div className="p-6 text-center text-gray-500">No data available.</div>
+  }
+
   // If no CRUD config, fall back to regular DataTable
-  if (!crud) {
+  if (!operations) {
     return <BaseDataTable {...props} />;
   }
 
   // Prepare submit data
-  const prepareSubmitData = (data: any) => {
-    if (crud.prepareSubmitData) {
-      return crud.prepareSubmitData(data, !!editing.item, editing.item);
+  const readyDataForSubmit = (data: any) => {
+    if (prepareSubmitData) {
+      return prepareSubmitData(data, !!editing.item, editing.item);
     }
 
     // Default: add ID for edit mode
@@ -169,19 +150,19 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   };
 
   // Determine mutation hook
-  const mutationHook = editing.item ? crud.updateMutation : crud.createMutation;
+  const mutationHook = editing.item ? updateMutation : createMutation;
 
   // Merge actions with CRUD config
   const mergedActions = {
     ...actions,
-    ...(crud.disableEdit ? {} : { editable: actions?.editable ?? { tooltip: `Edit ${crud.entityName}` } }),
-    ...(crud.disableView ? {} : { viewable: actions?.viewable ?? { tooltip: `View ${crud.entityName} details` } }),
-    ...(crud.disableDelete ? {} : { deletable: actions?.deletable ?? { tooltip: `Delete ${crud.entityName}` } }),
+    ...(disableEdit ? {} : { editable: actions?.editable ?? { tooltip: `Edit ${entityName}` } }),
+    ...(disableView ? {} : { viewable: actions?.viewable ?? { tooltip: `View ${entityName} details` } }),
+    ...(disableDelete ? {} : { deletable: actions?.deletable ?? { tooltip: `Delete ${entityName}` } }),
   };
 
   // Merge toolbar action
-  const mergedToolbarAction = toolbarAction || (crud.disableAdd ? undefined : {
-    label: `Add ${crud.entityName}`,
+  const mergedToolbarAction = toolbarAction || (disableAdd ? undefined : {
+    label: `Add ${entityName}`,
     icon: <Plus className="h-4 w-4" />,
     onClick: handleAdd,
     variant: "default" as const,
@@ -204,9 +185,9 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             pagination={paginationConfig}
             filterConfig={mergedFilterConfig}
             actions={mergedActions}
-            onEdit={onEdit || (!crud.disableEdit ? handleEdit : undefined)}
-            onView={onView || (!crud.disableView ? handleView : undefined)}
-            onDelete={onDelete || (!crud.disableDelete ? handleDelete : undefined)}
+            onEdit={onEdit || (!disableEdit ? handleEdit : undefined)}
+            onView={onView || (!disableView ? handleView : undefined)}
+            onDelete={onDelete || (!disableDelete ? handleDelete : undefined)}
             toolbarAction={mergedToolbarAction}
           />
 
@@ -214,20 +195,20 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           {mutationHook && (
             <DynamicForm
               form={form}
-              config={crud.formConfig}
+              config={formConfig}
               mutationHook={mutationHook}
-              onSubmit={prepareSubmitData}
+              onSubmit={readyDataForSubmit}
               openInside="modal"
               open={modal.isOpen}
               onOpenChange={modal.setIsOpen}
               title={
                 view.isViewMode
-                  ? `View ${crud.entityName}`
+                  ? `View ${entityName}`
                   : editing.item
-                    ? `Edit ${crud.entityName}`
-                    : `Add New ${crud.entityName}`
+                    ? `Edit ${entityName}`
+                    : `Add New ${entityName}`
               }
-              submitLabel={editing.item ? `Update ${crud.entityName}` : `Create ${crud.entityName}`}
+              submitLabel={editing.item ? `Update ${entityName}` : `Create ${entityName}`}
               modalSize="md"
               viewMode={view.isViewMode}
               onSuccess={onSuccess}

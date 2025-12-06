@@ -15,7 +15,7 @@ export function AvatarCell({
   imageUrl,
   name,
   fallbackIcon: FallbackIcon = Star,
-  isActive = true,
+  isActive,
   activeColor = "text-green-600",
   inactiveColor = "text-red-600",
 }: AvatarCellProps) {
