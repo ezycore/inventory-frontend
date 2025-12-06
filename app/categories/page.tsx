@@ -9,7 +9,6 @@ import type { DynamicFormConfig } from '@/ui/components/form/type'
 import type { FilterConfig } from '@/types/filter'
 
 // UI Components
-import { Badge } from '@ui/components/badge'
 import { DataTable } from '@/ui/components/dataTable'
 import { DateCell } from '@/ui/components/dataTable/cells'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
