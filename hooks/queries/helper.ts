@@ -1,14 +1,15 @@
 // hooks/factories/useResourceFactory.ts
 import { useQuery, useMutation, useQueryClient, QueryKey } from '@tanstack/react-query'
 import { handleMutationError } from '@/lib/error-handling'
+import { ApiResponse, PaginatedResponse } from '@/types'
 
 interface ResourceApi<T, CreateDto, UpdateDto> {
- getAll: () => Promise<T[]>
- getById: (id: string) => Promise<T>
- getBySlug?: (slug: string) => Promise<T>
- create: (data: FormData | CreateDto) => Promise<T>
- update: (id: string, data: FormData | UpdateDto) => Promise<T>
- delete: (id: string) => Promise<void>
+ getAll: () => Promise<ApiResponse<PaginatedResponse<any>>>
+ getById: (id: string) => Promise<ApiResponse<any>>
+ getBySlug?: (slug: string) => Promise<ApiResponse<any>>
+ create: (data: FormData | CreateDto) => Promise<ApiResponse<any>>
+ update: (id: string, data: FormData | UpdateDto) => Promise<ApiResponse<T>>
+ delete: (id: string) => Promise<ApiResponse<any>>
 }
 
 interface QueryKeys {
