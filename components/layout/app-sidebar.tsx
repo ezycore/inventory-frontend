@@ -59,7 +59,8 @@ export default function AppSidebar() {
   const { isOpen } = useMediaQuery();
   const router = useRouter();
   const user = {
-    fullName: 'John Doe',
+    firstName: 'John',
+    lastName: 'Doe',
     emailAddresses: [{ emailAddress: 'john@example.com' }]
   }
   const handleSwitchTenant = (_tenantId: string) => {

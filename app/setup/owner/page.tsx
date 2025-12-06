@@ -28,7 +28,8 @@ export default function OwnerSetupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -128,17 +129,32 @@ export default function OwnerSetupPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">
-                    Full Name <span className="text-red-500">*</span>
+                  <Label htmlFor="firstName">
+                    First Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    id="fullName"
-                    name="fullName"
+                    id="firstName"
+                    name="firstName"
                     type="text"
                     required
-                    value={formData.fullName}
-                    onChange={(e) => handleChange('fullName', e.target.value)}
-                    placeholder="John Smith"
+                    value={formData.firstName}
+                    onChange={(e) => handleChange('firstName', e.target.value)}
+                    placeholder="John"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">
+                    Last Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    value={formData.lastName}
+                    onChange={(e) => handleChange('lastName', e.target.value)}
+                    placeholder="Doe"
                     className="w-full"
                   />
                 </div>

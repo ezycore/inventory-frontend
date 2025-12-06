@@ -78,23 +78,24 @@ export default function ProfilePage() {
     language: "en",
   });
 
-  // Update form when profile data loads
+  // Initialize form with user data from auth store (from login) or profile API
   useEffect(() => {
-    if (profile) {
+    const userData = profile || user;
+    if (userData) {
       setProfileForm({
-        firstName: profile.firstName || "",
-        lastName: profile.lastName || "",
-        email: profile.email || "",
-        phone: profile.phone || "",
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
       });
       setPreferencesForm({
-        theme: profile.preferences?.theme || "system",
-        currency: profile.preferences?.currency || "USD",
-        timezone: profile.preferences?.timezone || "UTC",
-        language: profile.preferences?.language || "en",
+        theme: userData.preferences?.theme || "system",
+        currency: userData.preferences?.currency || "USD",
+        timezone: userData.preferences?.timezone || "UTC",
+        language: userData.preferences?.language || "en",
       });
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,15 +135,17 @@ export default function ProfilePage() {
   };
 
   const getInitials = () => {
-    if (profile?.firstName && profile?.lastName) {
-      return `${profile.firstName[0]}${profile.lastName[0]}`.toUpperCase();
+    const userData = profile || user;
+    if (userData?.firstName && userData?.lastName) {
+      return `${userData.firstName[0]}${userData.lastName[0]}`.toUpperCase();
     }
     return "U";
   };
 
-  if (isLoading) {
+  // Show loading only if we don't have any user data yet
+  if (isLoading && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
+      <div className="container min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-4xl">
           <CardContent className="p-12">
             <div className="animate-pulse space-y-6">
@@ -180,14 +183,14 @@ export default function ProfilePage() {
               
               <div className="flex-1 text-center md:text-left space-y-2">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {profile?.firstName} {profile?.lastName}
+                  {(profile?.firstName || user?.firstName)} {(profile?.lastName || user?.lastName)}
                 </h1>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                   <Badge variant="default" className="text-sm px-3 py-1 capitalize">
                     <Shield className="w-3 h-3 mr-1" />
-                    {profile?.role || "User"}
+                    {profile?.role || user?.role || "User"}
                   </Badge>
-                  {profile?.isActive && (
+                  {(profile?.isActive !== false || user) && (
                     <Badge variant="outline" className="text-sm px-3 py-1 border-green-500 text-green-600">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
                       Active
@@ -198,12 +201,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground pt-2">
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    <span>{profile?.email}</span>
+                    <span>{profile?.email || user?.email}</span>
                   </div>
-                  {profile?.phone && (
+                  {(profile?.phone || user?.phone) && (
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      <span>{profile?.phone}</span>
+                      <span>{profile?.phone || user?.phone}</span>
                     </div>
                   )}
                 </div>

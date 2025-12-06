@@ -6,13 +6,18 @@ import { BaseActions, LoadingState, initialLoadingState } from './store-utils'
 export interface User {
   id: string
   email: string
-  name: string
+  firstName: string
+  lastName: string
+  phone?: string
   avatar?: string
-  role: 'user' | 'admin'
+  role: 'user' | 'admin' | 'owner'
+  permissions: string[]
+  organizationName?: string
   preferences: {
     theme: 'light' | 'dark' | 'system'
     currency: string
     timezone: string
+    language?: string
   }
 }
 
