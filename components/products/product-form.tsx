@@ -117,6 +117,14 @@ export default function ProductForm({
       }
     }
     
+    if (data.product_type_radio === 'variable') {
+      const activeVariants = variants.filter(v => v.enabled)
+      if (!activeVariants || activeVariants.length === 0) {
+        toast.error('Please add and enable at least one variant for variable product')
+        errors.variant_manager = 'At least one active variant is required for variable product'
+      }
+    }
+    
     return errors
   }
   
@@ -296,6 +304,23 @@ export default function ProductForm({
           if (!handleFormValidation(data)) {
             throw new Error('Validation failed')
           }
+          // Add variants data if product type is variable (only active variants)
+          if (data.product_type_radio === 'variable' && variants.length > 0) {
+            const activeVariants = variants
+              .filter(v => v.enabled)
+              .map(v => ({
+                attribute_name: v.attributeName,
+                attribute_value: v.value,
+                sku: v.sku,
+                quantity: v.quantity,
+                price: v.price,
+              }))
+            
+            return {
+              ...data,
+              variants: activeVariants
+            }
+          }
           return data
         }}
 
@@ -356,6 +381,23 @@ export default function ProductForm({
           onSubmit={(data) => {
             if (!handleFormValidation(data)) {
               throw new Error('Validation failed')
+            }
+            // Add variants data if product type is variable (only active variants)
+            if (data.product_type_radio === 'variable' && variants.length > 0) {
+              const activeVariants = variants
+                .filter(v => v.enabled)
+                .map(v => ({
+                  attribute_name: v.attributeName,
+                  attribute_value: v.value,
+                  sku: v.sku,
+                  quantity: v.quantity,
+                  price: v.price,
+                }))
+              
+              return {
+                ...data,
+                variants: activeVariants
+              }
             }
             return data
           }}
