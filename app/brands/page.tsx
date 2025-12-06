@@ -32,8 +32,6 @@ const columns: ColumnDef<Brand>[] = [
       <AvatarCell
         imageUrl={row.original.logo_url}
         name={row.getValue("name")}
-        fallbackIcon={Star}
-        showActiveStatus={true}
         isActive={row.original.status === "active"}
       />
     ),
@@ -64,7 +62,7 @@ const brandFormConfig: DynamicFormConfig = {
       placeholder: "Enter brand name",
       required: true,
       columnSpan: 12,
-      validation: { minLength: 1, maxLength: 100 },
+      validation: { minLength: 1, maxLength: 100},
     },
     {
       name: "description",
@@ -133,7 +131,7 @@ const brandFilterConfig: FilterConfig = {
       name: "updatedAt",
       label: "Updated Date",
       type: "date",
-      placeholder: "Select date range",
+      placeholder: "Select date",
       columnSpan: 2,
     },
   ],

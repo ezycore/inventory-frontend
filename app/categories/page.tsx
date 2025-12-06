@@ -29,7 +29,6 @@ const columns: ColumnDef<Category>[] = [
       <AvatarCell
         name={row.getValue("name")}
         fallbackIcon={Tag}
-        showActiveStatus={true}
         isActive={row.original.status === "active"}
       />
     ),
