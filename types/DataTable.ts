@@ -120,6 +120,7 @@ export interface DataTableApiConfig<TData = any> {
  * Main DataTable component props
  */
 export interface DataTableProps<TData, TValue = any> {
+ cardTitle?: string | ((dataLength: number) => string);
  /** Column definitions */
  columns: ColumnDef<TData, TValue>[];
 

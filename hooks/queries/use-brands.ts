@@ -46,7 +46,7 @@ export const useCreateBrand = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateBrandDto | FormData) =>
+    mutationFn: (data: FormData) =>
       brandsApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.brands.all() })

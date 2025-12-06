@@ -123,7 +123,7 @@ export function FilterFieldRenderer({
       case 'date':
         return (
           <DatePicker
-            date={value ? new Date(value) : undefined}
+            date={value ? new Date(value) : null}
             onSelect={(date) => onChange(date ? date.toISOString() : undefined)}
             placeholder={field.placeholder || 'Select date'}
           />

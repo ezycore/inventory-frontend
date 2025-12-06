@@ -6,7 +6,6 @@ export interface AvatarCellProps {
   imageUrl?: string | null;
   name: string;
   fallbackIcon?: LucideIcon;
-  showActiveStatus?: boolean;
   isActive?: boolean;
   activeColor?: string;
   inactiveColor?: string;
@@ -16,12 +15,11 @@ export function AvatarCell({
   imageUrl,
   name,
   fallbackIcon: FallbackIcon = Star,
-  showActiveStatus = false,
   isActive = true,
   activeColor = "text-green-600",
   inactiveColor = "text-red-600",
 }: AvatarCellProps) {
-  const textColorClass = showActiveStatus 
+  const textColorClass = typeof isActive === "boolean" 
     ? (isActive ? activeColor : inactiveColor)
     : "";
 
