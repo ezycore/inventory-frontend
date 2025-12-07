@@ -6,7 +6,6 @@ import { Tag } from 'lucide-react'
 // Types
 import type { Category } from '@/types'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
-import type { FilterConfig } from '@/types/filter'
 
 // UI Components
 import { DataTable } from '@/ui/components/dataTable'
@@ -18,6 +17,7 @@ import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategories 
 import { categoriesApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys-products'
 import PageHeader from '@/ui/components/header'
+import { FilterConfig } from '@/types/DataTable'
 
 // Column definitions
 const columns: ColumnDef<Category>[] = [
@@ -142,7 +142,6 @@ export default function CategoriesPage() {
       {/* Header */}
       <PageHeader title="Categories" subTitle="Organize your products with categories" />
 
-      {/* Categories Table with Integrated CRUD */}
       <DataTable
         cardTitle={(dataLength: number) => `All Categories (${dataLength})`}
         defaultPageSize={10}
@@ -157,13 +156,13 @@ export default function CategoriesPage() {
         rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
         operations={{
           formConfig: categoryFormConfig,
+          defaultValues: defaultValues,
           getAllData: categoriesApi.getAll,
           createMutation: useCreateCategory(),
           updateMutation: useUpdateCategory(),
           deleteMutation: useDeleteCategory(),
-          entityName: "Category",
           queryKey: [...queryKeys.category.all()],
-          defaultValues: defaultValues,
+          entityName: "Category",
           prepareSubmitData: (data: Category, isEdit: boolean, item: Category) => ({
             ...data,
             ...(isEdit && item ? { id: item._id } : {}),

@@ -5,7 +5,6 @@ import { ColumnDef } from "@tanstack/react-table";
 // Types
 import type { Brand } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
-import type { FilterConfig } from "@/types/filter";
 
 // UI Components
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
@@ -21,6 +20,7 @@ import {
 import { brandsApi } from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys-products";
 import PageHeader from "@/ui/components/header";
+import { FilterConfig } from "@/types/DataTable";
 
 // Column definitions
 const columns: ColumnDef<Brand>[] = [
@@ -190,11 +190,10 @@ export default function BrandsPage() {
       {/* Header */}
       <PageHeader title="Brands Management" subTitle="Manage your product brands and their details." />
 
-      {/* Brands Table with Integrated CRUD */}
       <DataTable
         cardTitle={(dataLength: number) => `All Brands (${dataLength})`}
         defaultPageSize={10}
-        pageSizes={[10, 20, 50, 100]}
+        pageSizes={[2, 10, 20, 50, 100]}
         filterConfig={brandFilterConfig}
         columns={columns}
         selectable={true}
@@ -202,18 +201,22 @@ export default function BrandsPage() {
         enableSorting={true}
         defaultColumnVisibility={{ status: false }}
         enableRowHover={true}
-        rowClassName={(row) =>
+        rowClassName={(row: Brand) =>
           row.status === "inactive" ? "bg-red-50 opacity-70" : ""
         }
         operations={{
           formConfig: brandFormConfig,
+          defaultValues: defaultValues,
           getAllData: brandsApi.getAll,
           createMutation: useCreateBrand(),
           updateMutation: useUpdateBrand(),
           deleteMutation: useDeleteBrand(),
-          entityName: "Brand",
           queryKey: [...queryKeys.brands.all()],
-          defaultValues: defaultValues,
+          entityName: "Brand",
+          isViewAvailable: true,
+          editTooltip: "Edit Brand",
+          deleteTooltip: "Delete Brand",
+          viewTooltip: "Custom tooltip View Brand",
           transformEditData: (item: Brand) => {
             return {
               ...item,
