@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -71,11 +71,26 @@ export default function ProfilePage() {
       },
       sections: [
         {
-          title: "Product Information",
-          icon: <span className="text-orange-600 font-semibold">ℹ</span>,
+          title: "Personal Information",
+          description: "Manage your personal details and contact information.",
+          icon: <User className="h-5 w-5 text-blue-600" />,
           collapsible: true,
           defaultOpen: true,
           fields: [
+            {
+              name: "firstName",
+              type: "input",
+              label: "First Name",
+              columnSpan: 6,
+              placeholder: "Enter first name",
+            },
+            {
+              name: "lastName",
+              type: "input",
+              label: "Last Name",
+              columnSpan: 6,
+              placeholder: "Enter last name",
+            },
             {
               name: "email",
               type: "input",
@@ -123,10 +138,25 @@ export default function ProfilePage() {
   };
   const { form, config } = useDynamicForm(profileFormConfig());
 
+  console.log("Form state:", form);
+
   // Mutations
   const updateProfile = useUpdateProfile();
   const updatePassword = useUpdatePassword();
   const updatePreferences = useUpdatePreferences();
+
+  // Reset form with user data when user becomes available
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        password: "",
+        images: [],
+      });
+    }
+  }, [user?.id, form]);
 
   // Form states - directly use user data or track if edited
   const [profileForm, setProfileForm] = useState<{
@@ -149,13 +179,7 @@ export default function ProfilePage() {
     language: string;
   } | null>(null);
 
-  // Use user data directly if form hasn't been edited
-  const currentProfileForm = profileForm || {
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-  };
+ 
 
   const currentPreferencesForm = preferencesForm || {
     theme: user?.preferences?.theme || "system",
@@ -166,7 +190,6 @@ export default function ProfilePage() {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile.mutate(currentProfileForm);
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -212,6 +235,8 @@ export default function ProfilePage() {
     return "U";
   };
 
+  const submitLabel = "Save Changes";
+
   // Show loading only if we don't have any user data yet
   if (isLoading && !user) {
     return (
@@ -239,6 +264,7 @@ export default function ProfilePage() {
   const handleFieldChange = (fieldName: string, value: any) => {
     console.log(`Field changed: ${fieldName} =`, value);
   };
+  
   return (
     <div className="container mx-auto p-6 space-y-6 min-h-screen">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -319,134 +345,7 @@ export default function ProfilePage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <Card className="border-2 border-gray-100 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  Personal Information
-                </CardTitle>
-                <CardDescription>
-                  Update your personal details and contact information
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleProfileSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="firstName"
-                        className="flex items-center gap-1.5"
-                      >
-                        First Name
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="firstName"
-                        value={currentProfileForm.firstName}
-                        onChange={(e) =>
-                          setProfileForm({
-                            ...currentProfileForm,
-                            firstName: e.target.value,
-                          })
-                        }
-                        placeholder="Enter your first name"
-                        className="h-11"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="lastName"
-                        className="flex items-center gap-1.5"
-                      >
-                        Last Name
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="lastName"
-                        value={currentProfileForm.lastName}
-                        onChange={(e) =>
-                          setProfileForm({
-                            ...currentProfileForm,
-                            lastName: e.target.value,
-                          })
-                        }
-                        placeholder="Enter your last name"
-                        className="h-11"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="email"
-                        className="flex items-center gap-1.5"
-                      >
-                        <Mail className="h-4 w-4" />
-                        Email Address
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={currentProfileForm.email}
-                        onChange={(e) =>
-                          setProfileForm({
-                            ...currentProfileForm,
-                            email: e.target.value,
-                          })
-                        }
-                        placeholder="your@email.com"
-                        className="h-11"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="phone"
-                        className="flex items-center gap-1.5"
-                      >
-                        <Phone className="h-4 w-4" />
-                        Phone Number
-                      </Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={currentProfileForm.phone}
-                        onChange={(e) =>
-                          setProfileForm({
-                            ...currentProfileForm,
-                            phone: e.target.value,
-                          })
-                        }
-                        placeholder="+1 (555) 000-0000"
-                        className="h-11"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-3 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setProfileForm(null)}
-                      className="gap-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Reset
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={updateProfile.isPending}
-                      className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      <Save className="h-4 w-4" />
-                      {updateProfile.isPending ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-              <CardContent>
-                <DynamicForm
+            <DynamicForm
                   id="profile-form"
                   className="space-y-6"
                   config={config}
@@ -454,7 +353,8 @@ export default function ProfilePage() {
                   onFieldChange={handleFieldChange}
                   // Form actions props
                   cancelLabel="Cancel"
-                  // submitLabel={submitLabel}
+                  viewMode={true}
+                  submitLabel={submitLabel}
                   // onCancel={() => onCancel ? onCancel() : router.back()}
 
                   // Content loading for edit mode
@@ -462,11 +362,9 @@ export default function ProfilePage() {
 
                   // Mutation hook
                   // mutationHook={mode === 'create' ? createProduct : updateProduct}
-                  // onSuccess={handleActionSuccess}
+                  onSuccess={handleProfileSubmit}
                   // onFailed={handleActionError}
                 />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Security Tab */}
