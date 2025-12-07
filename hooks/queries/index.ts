@@ -1,6 +1,26 @@
 ﻿// Export all query hooks for the Product/Variant Management System
 // Based on SRS requirements for product catalog with variants and stock management
 
+// Auth hooks
+export {
+  useLogin,
+  useLogout,
+} from './use-auth'
+
+// Setup hooks
+export {
+  useCreateOwner,
+} from './use-setup'
+
+// Profile hooks
+export {
+  useProfilePermissions,
+  useUpdateProfile,
+  useUpdatePassword,
+  useUpdatePreferences,
+  useUpdateAvatar,
+} from './use-profile'
+
 // Product-related hooks
 export {
   useProducts,
