@@ -189,6 +189,7 @@ export default function ProfilePage() {
   };
 
   const handleProfileSubmit = (e: React.FormEvent) => {
+    console.log("Profile form submitted:", form.getValues());
     e.preventDefault();
   };
 
@@ -354,6 +355,7 @@ export default function ProfilePage() {
                   // Form actions props
                   cancelLabel="Cancel"
                   submitLabel={submitLabel}
+                  onSubmit={handleProfileSubmit}
                   // onCancel={() => onCancel ? onCancel() : router.back()}
 
                   // Content loading for edit mode
