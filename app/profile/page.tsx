@@ -99,12 +99,12 @@ export default function ProfilePage() {
               placeholder: "Enter email",
             },
             {
-              name: "password",
+              name: "phone",
               type: "input",
-              label: "Password",
+              label: "Phone Number",
               columnSpan: 6,
-              placeholder: "Enter password",
-            },
+              placeholder: "Enter phone number",
+            }
           ],
         },
         {
@@ -353,7 +353,6 @@ export default function ProfilePage() {
                   onFieldChange={handleFieldChange}
                   // Form actions props
                   cancelLabel="Cancel"
-                  viewMode={true}
                   submitLabel={submitLabel}
                   // onCancel={() => onCancel ? onCancel() : router.back()}
 
