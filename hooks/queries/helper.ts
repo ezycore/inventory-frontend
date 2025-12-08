@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient, QueryKey } from '@tanstack/react-query'
 import { handleMutationError } from '@/lib/error-handling'
 import { ApiResponse, PaginatedResponse } from '@/types'
+import { toast } from 'sonner'
 
 interface ResourceApi<T, CreateDto, UpdateDto> {
  getAll: () => Promise<ApiResponse<PaginatedResponse<any>>>
@@ -22,6 +23,16 @@ interface QueryKeys {
 interface FactoryOptions {
  staleTime?: number
  relatedQueryKeys?: QueryKey[] // For invalidating related queries
+}
+
+const handleMutationSuccess = (message: string | string[]) => {
+ if (Array.isArray(message) && message.length > 0) {
+  message.forEach(msg => {
+   toast.success(msg);
+  });
+ } else if (typeof message === 'string' && message) {
+  toast.success(message);
+ }
 }
 
 export function createResourceHooks<T, CreateDto = any, UpdateDto = Partial<CreateDto>>(
@@ -70,7 +81,8 @@ export function createResourceHooks<T, CreateDto = any, UpdateDto = Partial<Crea
 
   return useMutation({
    mutationFn: (data: FormData | CreateDto) => api.create(data),
-   onSuccess: () => {
+   onSuccess: (data) => {
+    handleMutationSuccess(data.message || 'Item created successfully')
     queryClient.invalidateQueries({ queryKey: queryKeys.all() })
     relatedQueryKeys.forEach(key => {
      queryClient.invalidateQueries({ queryKey: key })
@@ -94,6 +106,7 @@ export function createResourceHooks<T, CreateDto = any, UpdateDto = Partial<Crea
     return api.update(id, rest as UpdateDto)
    },
    onSuccess: (_, variables) => {
+    handleMutationSuccess(_.message || 'Item updated successfully')
     const id = variables instanceof FormData
      ? variables.get('id') as string
      : variables.id
@@ -114,7 +127,8 @@ export function createResourceHooks<T, CreateDto = any, UpdateDto = Partial<Crea
 
   return useMutation({
    mutationFn: (id: string) => api.delete(id),
-   onSuccess: () => {
+   onSuccess: (data) => {
+    handleMutationSuccess(data.message || 'Item deleted successfully')
     queryClient.invalidateQueries({ queryKey: queryKeys.all() })
     relatedQueryKeys.forEach(key => {
      queryClient.invalidateQueries({ queryKey: key })

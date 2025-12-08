@@ -19,17 +19,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../alert-dialog";
-import { FilterConfig } from "@/types/filter";
 import { GlobalFilter } from "../filters/global-filter";
+import { DataTableSearchConfig, FilterConfig } from "@/types/DataTable";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filterConfig?: FilterConfig;
-  searchConfig?: {
-    searchableColumn?: keyof TData;
-    placeholder?: string;
-    globalSearch?: boolean;
-  };
+  searchConfig?: DataTableSearchConfig;
   globalFilter?: string;
   onGlobalFilterChange?: (value: string) => void;
   selectable?: boolean;
