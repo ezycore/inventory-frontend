@@ -148,13 +148,13 @@ const DynamicForm: FC<DynamicFormProps> = ({
         full: 'sm:max-w-[90vw]'
     }[modalSize]
 
-    const formActions = viewMode ? (
-        <div className={cn("flex justify-end", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
+    const formActions = (viewMode && isModalMode) ? (
+        <div className={cn("flex justify-end")}>
             <Button type="button" variant="outline" onClick={handleContainerCancel}>
                 Close
             </Button>
         </div>
-    ) : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
+    ) : viewMode ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
         <Button type="button" variant="outline" onClick={handleContainerCancel}>
             {cancelLabel}
         </Button>

@@ -5,10 +5,7 @@ import { Brand, CreateBrandDto } from '@/types'
 
 const brandHooks = createResourceHooks<Brand, CreateBrandDto>(
   brandsApi,
-  queryKeys.brands,
-  {
-    relatedQueryKeys: [queryKeys.products.all()], // Invalidate products on brand changes
-  }
+  queryKeys.brands
 )
 
 export const useBrands = brandHooks.useList

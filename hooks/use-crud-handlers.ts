@@ -1,68 +1,87 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 
-export interface CrudHandlersOptions<T> {
- form: UseFormReturn<any>;
- setEditingItem: (item: T | null) => void;
- setIsViewMode: (isView: boolean) => void;
- setIsModalOpen: (isOpen: boolean) => void;
- defaultValues?: any;
- transformEditData?: (item: T) => any;
+interface UseCrudModalOptions<T> {
+ form: UseFormReturn<T>;
+ defaultValues?: T;
+ transformEditData?: (item: T) => T;
  onDeleteFn?: (id: string) => Promise<void>;
  entityName?: string;
 }
 
-export function useCrudHandlers<T extends { _id: string }>({
+export function useCrudModal<T extends { _id: string }>({
  form,
- setEditingItem,
- setIsViewMode,
- setIsModalOpen,
- defaultValues = {},
+ defaultValues = {} as T,
  transformEditData,
  onDeleteFn,
  entityName = "Item",
-}: CrudHandlersOptions<T>) {
+}: UseCrudModalOptions<T>) {
+ // ===== STATE =====
+ const [isModalOpen, setIsModalOpen] = useState(false);
+ const [editingItem, setEditingItem] = useState<T | null>(null);
+ const [isViewMode, setIsViewMode] = useState(false);
 
+ // ===== HANDLERS =====
  const handleAdd = useCallback(() => {
   setEditingItem(null);
   setIsViewMode(false);
   form.reset(defaultValues);
   setIsModalOpen(true);
- }, [form, setEditingItem, setIsViewMode, setIsModalOpen, defaultValues]);
+ }, [form, defaultValues]);
 
  const handleEdit = useCallback((item: T) => {
   setEditingItem(item);
   setIsViewMode(false);
-  // Transform data if transformer is provided, otherwise use item directly
   const formData = transformEditData ? transformEditData(item) : item;
   form.reset(formData);
   setIsModalOpen(true);
- }, [form, setEditingItem, setIsViewMode, setIsModalOpen, transformEditData]);
+ }, [form, transformEditData]);
 
  const handleView = useCallback((item: T) => {
   setEditingItem(item);
   setIsViewMode(true);
-  // Transform data if transformer is provided, otherwise use item directly
   const formData = transformEditData ? transformEditData(item) : item;
   form.reset(formData);
   setIsModalOpen(true);
- }, [form, setEditingItem, setIsViewMode, setIsModalOpen, transformEditData]);
+ }, [form, transformEditData]);
 
  const handleDelete = useCallback(async (item: T) => {
   if (!onDeleteFn) {
-   console.warn("onDeleteFn not provided to useCrudHandlers");
+   console.warn("onDeleteFn not provided to useCrudModal");
    return;
   }
 
   try {
    await onDeleteFn(item._id);
-   toast.success(`${entityName} deleted successfully`);
   } catch (error) {
-   toast.error(`Failed to delete ${entityName.toLowerCase()}`);
    console.error(`Delete ${entityName.toLowerCase()} error:`, error);
   }
  }, [onDeleteFn, entityName]);
 
- return { handleAdd, handleEdit, handleView, handleDelete };
+ const handleCloseModal = useCallback(() => {
+  setIsModalOpen(false);
+  setEditingItem(null);
+  setIsViewMode(false);
+ }, []);
+
+ // ===== RETURN =====
+ return {
+  // State
+  isModalOpen,
+  editingItem,
+  isViewMode,
+
+  // Handlers
+  handleAdd,
+  handleEdit,
+  handleView,
+  handleDelete,
+  handleCloseModal,
+
+  // Setters (if needed for edge cases)
+  setIsModalOpen,
+  setEditingItem,
+  setIsViewMode,
+ };
 }

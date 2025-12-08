@@ -5,6 +5,7 @@
 
 import { ColumnDef, VisibilityState } from "@tanstack/react-table";
 import { FilterField } from "./filter";
+import { DynamicFormConfig } from "@/ui/components/form/type";
 
 /**
  * Configuration for table actions (edit, delete, view, custom)
@@ -49,25 +50,25 @@ export interface DataTablePagination {
  pageSize: number;
 
  /** Total number of pages (for server-side pagination) */
- totalPages?: number;
+ totalPages: number;
 
  /** Total number of items (for server-side pagination) */
- totalItems?: number;
+ totalItems: number;
 
  /** Callback when pagination changes */
- onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
+ onPaginationChange: (pagination: { pageIndex: number; pageSize: number }) => void;
 
  /** Enable server-side pagination */
- manualPagination?: boolean;
+ manualPagination: boolean;
 
  /** Indicates if there is a next page (from backend) */
- hasNext?: boolean;
+ hasNext: boolean;
 
  /** Indicates if there is a previous page (from backend) */
- hasPrev?: boolean;
+ hasPrev: boolean;
 
  /** Available page size options */
- pageSizeOptions?: number[];
+ pageSizeOptions: number[];
 }
 
 /**
@@ -85,13 +86,14 @@ export interface DataTableSearchConfig<TData = any> {
 }
 
 export interface FilterConfig {
- fields: FilterField[];
+ fields?: FilterField[];
  // Layout
  columns?: 1 | 2 | 3 | 4; // Grid columns
  // Behavior
  applyOnChange?: boolean; // Auto-apply on field change
  showResetButton?: boolean;
  showApplyButton?: boolean;
+ viewMode?: 'drawer' | 'popover'; // Display mode
  // Callbacks
  onApply?: (filters: Record<string, any>) => void;
  onReset?: () => void;
@@ -116,133 +118,76 @@ export interface DataTableApiConfig<TData = any> {
  pageSizeOptions?: number[];
 }
 
+// operations 
+interface Operations<TData = any> {
+ formConfig: DynamicFormConfig; // DynamicFormConfig
+ defaultValues?: any;
+ getAllData: any;
+ createMutation?: any;
+ updateMutation?: any;
+ deleteMutation?: any;
+ queryKey?: any[];
+ entityName?: string;
+ isViewAvailable?: boolean;
+ editTooltip?: string;
+ deleteTooltip?: string;
+ viewTooltip?: string;
+ prepareSubmitData?: (data: TData, isEdit: boolean, originalItem?: TData) => any;
+ transformEditData?: (item: TData) => any;
+ openInside?: "modal" | "drawer";
+}
+
 /**
  * Main DataTable component props
  */
 export interface DataTableProps<TData, TValue = any> {
- cardTitle?: string | ((dataLength: number) => string);
- /** Column definitions */
- columns: ColumnDef<TData, TValue>[];
-
- //filter
- filterConfig?: FilterConfig;
-
- //pagination
+ cardTitle: string | ((length: number) => string);
  defaultPageSize?: number;
  pageSizes?: number[];
-
- /** 
-  * Array of data to display (legacy mode)
-  * Only required when apiConfig is not provided
-  */
- data?: TData[];
-
- // Selection
- /** Enable row selection checkboxes */
+ filterConfig?: FilterConfig;
+ columns: ColumnDef<TData, TValue>[];
  selectable?: boolean;
-
- /** Callback when selection changes */
- onSelectionChange?: (selectedRows: TData[]) => void;
-
- // Search
- /** Search configuration */
- searchConfig?: DataTableSearchConfig<TData>;
-
- // Actions
- /** Action buttons configuration */
- actions?: DataTableAction;
-
- /** Edit handler */
- onEdit?: (row: TData) => void;
-
- /** Delete handler (can be async) */
- onDelete?: (row: TData) => void | Promise<void>;
-
- /** View handler */
- onView?: (row: TData) => void;
-
- // Integrated CRUD support (optional - auto-wires with form modal)
- /** 
-  * Enable integrated CRUD operations
-  * When provided, DataTable will handle add/edit/view/delete with modal forms
-  */
- operations?: {
-  formConfig: any; // DynamicFormConfig
-  getAllData: any;
-
-  /** Create mutation hook (from TanStack Query) */
-  createMutation?: any;
-
-  /** Update mutation hook (from TanStack Query) */
-  updateMutation?: any;
-
-  /** Delete mutation hook (from TanStack Query) */
-  deleteMutation?: any;
-
-  /** Entity name (e.g., "Brand", "Product") for toast messages */
-  entityName?: string;
-
-  /** Query key for cache invalidation */
-  queryKey?: any[];
-
-  /** Custom data preparation before submit */
-  prepareSubmitData?: (data: any, isEdit: boolean, originalItem?: TData) => any;
-
-  /** Transform backend data to form format for edit mode */
-  transformEditData?: (item: TData) => any;
-
-  /** Custom default form values */
-  defaultValues?: any;
-
-  /** Disable specific operations */
-  disableAdd?: boolean;
-  disableEdit?: boolean;
-  disableView?: boolean;
-  disableDelete?: boolean;
- };
-
- // Pagination
- /** 
-  * Pagination configuration (legacy mode)
-  * Only required when apiConfig is not provided
-  * When apiConfig is provided, pagination is managed internally
-  */
- pagination?: DataTablePagination;
-
- // Loading state
- /** Show loading spinner */
- isLoading?: boolean;
-
- // Additional features
- /** Enable column sorting */
+ searchConfig?: DataTableSearchConfig;
  enableSorting?: boolean;
-
- /** Enable column visibility toggle */
- enableColumnVisibility?: boolean;
-
- /** Default column visibility state */
  defaultColumnVisibility?: VisibilityState;
-
- /** Enable row hover effects */
+ enableColumnVisibility?: boolean;
  enableRowHover?: boolean;
-
- // Toolbar
- /** Custom action button in toolbar (e.g., Add New) */
+ rowClassName?: string | ((row: TData) => string);
  toolbarAction?: {
   label: string;
   icon?: React.ReactNode;
   onClick: () => void;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
  };
-
- // Styling
- /** Custom CSS class for table container */
- className?: string;
-
- /** Custom CSS class for rows (can be function) */
- rowClassName?: string | ((row: TData) => string);
+ data?: TData[];
+ operations?: Operations<TData>
 }
 
+export interface BaseDataTableProps<TData, TValue = any> {
+ data: TData[];
+ columns: ColumnDef<TData, TValue>[];
+ isLoading: boolean;
+ pagination?: DataTablePagination;
+ filterConfig?: FilterConfig;
+ actions?: DataTableAction;
+ onEdit?: (row: TData) => void;
+ onView?: (row: TData) => void;
+ onDelete?: (row: TData) => void;
+ toolbarAction?: {
+  label: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+ };
+ selectable?: boolean;
+ searchConfig?: DataTableSearchConfig;
+ rowClassName?: string | ((row: TData) => string);
+ enableSorting?: boolean;
+ enableColumnVisibility?: boolean;
+ defaultColumnVisibility?: VisibilityState;
+ enableRowHover?: boolean;
+ onSelectionChange?: (selectedRows: TData[]) => void;
+}
 /**
  * Example usage:
  * 
