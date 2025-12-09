@@ -24,7 +24,7 @@ type ProductFormValues = any // Will be inferred from generated schema
 
 interface ProductFormProps {
   productId?: string
-  onSuccess?: (productId?: string, hasVariants?: boolean) => void
+  onSuccess?: () => void
   onCancel?: () => void
 
   // Container mode props
@@ -255,23 +255,23 @@ export default function ProductForm({
 
 
   // Mutation-based form handlers
-  const handleActionSuccess = (result: any, data: any) => {
-    const successMessage = mode === 'create' ? 'Product created successfully' : 'Product updated successfully'
-    toast.success(successMessage)
+  // const handleActionSuccess = (result: any, data: any) => {
+  //   const successMessage = mode === 'create' ? 'Product created successfully' : 'Product updated successfully'
+  //   toast.success(successMessage)
 
-    if (onSuccess) {
-      // For update mutation, result contains the updated data directly
-      // For create mutation, result is the new product
-      const resultProductId = mode === 'create' ? result?._id : productId
-      onSuccess(resultProductId, hasVariants)
-    } else {
-      if (mode === 'create' && hasVariants) {
-        router.push(`/products/${result?._id}/variants`)
-      } else {
-        router.push('/products')
-      }
-    }
-  }
+  //   if (onSuccess) {
+  //     // For update mutation, result contains the updated data directly
+  //     // For create mutation, result is the new product
+  //     const resultProductId = mode === 'create' ? result?._id : productId
+  //     onSuccess(resultProductId, hasVariants)
+  //   } else {
+  //     if (mode === 'create' && hasVariants) {
+  //       router.push(`/products/${result?._id}/variants`)
+  //     } else {
+  //       router.push('/products')
+  //     }
+  //   }
+  // }
 
   const handleActionError = (error: any, data: any) => {
     handleMutationError(error)
@@ -338,7 +338,7 @@ export default function ProductForm({
 
         // Mutation hook
         mutationHook={mode === 'create' ? createProduct : updateProduct}
-        onSuccess={handleActionSuccess}
+        onSuccess={onSuccess}
         onFailed={handleActionError}
       />
     )
@@ -355,17 +355,11 @@ export default function ProductForm({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">
+            <h4 className="text-2.5xl font-bold">
               {mode === 'create' ? 'Create Product' : 'Edit Product'}
-            </h1>
-            <p className="text-muted-foreground">
-              {mode === 'create' ? 'Create new product' : 'Update product information'}
-            </p>
+            </h4>
           </div>
         </div>
-        <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
-          Back to Product
-        </Button>
       </div>
 
       <div className="space-y-6">
@@ -409,7 +403,7 @@ export default function ProductForm({
 
           // Mutation hook
           mutationHook={mode === 'create' ? createProduct : updateProduct}
-          onSuccess={handleActionSuccess}
+          onSuccess={onSuccess}
           onFailed={handleActionError}
         />
       </div>

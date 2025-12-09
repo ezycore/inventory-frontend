@@ -120,7 +120,7 @@ export interface DataTableApiConfig<TData = any> {
 
 // operations 
 interface Operations<TData = any> {
- formConfig: DynamicFormConfig; // DynamicFormConfig
+ formConfig?: DynamicFormConfig; // DynamicFormConfig
  defaultValues?: any;
  getAllData: any;
  createMutation?: any;

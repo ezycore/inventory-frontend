@@ -26,7 +26,6 @@ import { toast } from 'sonner'
 import { Plus, Search, Trash2, Package, AlertTriangle } from 'lucide-react'
 import type { ProductWithVariants } from '@/types'
 import type { ProductFilters } from '@/types/products'
-import ProductForm from '@/components/products/product-form'
 import { queryKeys } from '@/lib/query-keys-products'
 import { DataTable } from '@/ui/components/dataTable'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
@@ -38,8 +37,6 @@ export default function ProductsPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [filters, setFilters] = useState<ProductFilters>({
     limit: 20,
     page: 1,
@@ -54,21 +51,12 @@ export default function ProductsPage() {
   const { data: brands } = useBrands()
   const deleteProduct = useDeleteProduct()
 
-  const handleDrawerSuccess = () => {
-    // Invalidate products query to refetch data
-    queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
-    setIsDrawerOpen(false)
-    setEditingProductId(null)
+  const handleAddProduct = () => {
+    router.push('/products/add')
   }
 
   const handleEditProduct = (productId: string) => {
-    setEditingProductId(productId)
-    setIsDrawerOpen(true)
-  }
-
-  const handleAddProduct = () => {
-    setEditingProductId(null)
-    setIsDrawerOpen(true)
+    router.push(`/products/${productId}/edit`)
   }
 
   const products = (productsData as any)?.data?.items || []
@@ -170,27 +158,12 @@ export default function ProductsPage() {
         }}
         operations={{
           getAllData: productsApi.getAll,
-     
           entityName: "Products",
           queryKey: [...queryKeys.variantAttributes.all()],
         }}
         enableSorting={true}
         defaultColumnVisibility={{ status: false }}
         enableRowHover={true}
-      />
-
-
-      {/* Product Form Drawer */}
-      <ProductForm
-        productId={editingProductId || undefined}
-        openInside="drawer"
-        open={isDrawerOpen}
-        onOpenChange={(open) => {
-          setIsDrawerOpen(open)
-          if (!open) setEditingProductId(null)
-        }}
-        onSuccess={handleDrawerSuccess}
-
       />
     </div>
   )
