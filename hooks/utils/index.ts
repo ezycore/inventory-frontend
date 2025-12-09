@@ -1,5 +1,5 @@
 // convert property type to preferable
-const sanitize = <T>(data: T | undefined, type = 'object'): T => {
+const sanitize = <T>(data: T | undefined, type: 'object' | 'array' | 'string' = 'object'): T => {
 	switch (type) {
 		case 'string':
 			return typeof data === 'string' ? data : '' as T;

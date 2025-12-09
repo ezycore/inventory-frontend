@@ -24,7 +24,7 @@ import { queryKeys } from '@/lib/query-keys-products'
 import variantAttributeFormConfig from '@/components/variants/form-config'
 import { DataTable } from '@/ui/components/dataTable'
 import PageHeader from '@/ui/components/header'
-import { FilterConfig } from '@/types/DataTable'
+import { sanitize } from '@/hooks'
 
 // Column definitions
 const columns: ColumnDef<VariantAttribute>[] = [
@@ -36,7 +36,7 @@ const columns: ColumnDef<VariantAttribute>[] = [
     accessorKey: "values",
     header: "Values",
     cell: ({ row }) => {
-      const values = row.getValue("values") as string[];
+      const values = sanitize(row.getValue("values"), 'array') as string[];
       return (
         <div className="flex flex-wrap gap-1">
           {values.slice(0, 3).map((value, index) => (
