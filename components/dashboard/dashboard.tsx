@@ -5,7 +5,7 @@ import { Button } from '@ui/components/button'
 import { Badge } from '@ui/components/badge'
 import { Skeleton } from '@ui/components/skeleton'
 import { StatCard } from './stat-card'
-import { useDashboardStats, useProducts, useVariants } from '@/hooks/queries'
+import { useDashboardStats, useProducts, useProductVariants } from '@/hooks/queries'
 import { useRouter } from 'next/navigation'
 import { 
   Package, 
@@ -26,7 +26,7 @@ export function Dashboard() {
   const router = useRouter()
   const { data: dashboardStats, isLoading: statsLoading } = useDashboardStats()
   const { data: recentProducts, isLoading: productsLoading } = useProducts({ limit: 5 })
-  const { data: lowStockVariants, isLoading: variantsLoading } = useVariants({ 
+  const { data: lowStockVariants, isLoading: variantsLoading } = useProductVariants({ 
     limit: 5
   })
 

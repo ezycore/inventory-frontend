@@ -43,7 +43,7 @@ export const createProductFormConfig = (
             placeholder: "Select store"
           },
           {
-            name: "warehouse_id", 
+            name: "warehouse_id",
             type: "select",
             label: "Warehouse",
             columnSpan: 6,
@@ -65,7 +65,7 @@ export const createProductFormConfig = (
           },
           {
             name: "slug",
-            type: "input", 
+            type: "input",
             label: "Slug",
             required: true,
             columnSpan: 6,
@@ -79,7 +79,7 @@ export const createProductFormConfig = (
           {
             name: "base_sku",
             type: "input",
-            label: "SKU", 
+            label: "SKU",
             columnSpan: 6,
             placeholder: "Enter SKU"
           },
@@ -186,13 +186,13 @@ export const createProductFormConfig = (
               { value: 'variable', label: 'Variable Product' }
             ]
           },
-          // Single product fields - conditional
+          // Single product fields - conditional (not required when variable product)
           {
             name: "quantity",
             type: "number",
             zodType: "number",
             label: "Quantity",
-            required: true,
+
             columnSpan: 4,
             placeholder: "0",
             validation: { min: 0, max: 999999 },
@@ -202,11 +202,11 @@ export const createProductFormConfig = (
             }
           },
           {
-            name: "price", 
+            name: "price",
             type: "number",
             zodType: "number",
             label: "Price",
-            required: true,
+
             columnSpan: 4,
             placeholder: "0.00",
             validation: { min: 0, max: 999999 },
@@ -220,7 +220,7 @@ export const createProductFormConfig = (
             name: "tax_type",
             type: "select",
             label: "Tax Type",
-            required: true,
+
             columnSpan: 4,
             options: taxTypeOptions,
             placeholder: "Select",
@@ -231,9 +231,9 @@ export const createProductFormConfig = (
           },
           {
             name: "tax_id",
-            type: "select", 
+            type: "select",
             label: "Tax",
-            required: true,
+
             columnSpan: 4,
             options: taxOptions,
             placeholder: "Select",
@@ -245,8 +245,8 @@ export const createProductFormConfig = (
           {
             name: "discount_type",
             type: "select",
-            label: "Discount Type", 
-            required: true,
+            label: "Discount Type",
+
             columnSpan: 4,
             options: discountTypeOptions,
             placeholder: "Select",
@@ -260,7 +260,7 @@ export const createProductFormConfig = (
             name: "discount_value",
             type: "number",
             label: "Discount Value",
-            required: true,
+
             columnSpan: 4,
             placeholder: "0",
             defaultValue: 0,
@@ -273,9 +273,9 @@ export const createProductFormConfig = (
           },
           {
             name: "quantity_alert",
-            type: "number", 
+            type: "number",
             label: "Quantity Alert",
-            required: true,
+
             columnSpan: 12,
             placeholder: "10",
             defaultValue: 10,
@@ -285,19 +285,12 @@ export const createProductFormConfig = (
               value: "single"
             }
           },
-          // Variable product message
+          // Variant Manager custom field - shows when variable product is selected
           {
-            name: "variable_message",
+            name: "variant_manager",
             type: "custom",
             label: "",
             columnSpan: 12,
-            customComponent: ({ value }: any) => (
-              <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <p className="text-muted-foreground">
-                  Variable product selected. After creating the product, you&apos;ll be able to add variants with different attributes, prices, and stock levels.
-                </p>
-              </div>
-            ),
             showWhen: {
               field: "product_type_radio",
               value: "variable"
@@ -327,12 +320,11 @@ export const createProductFormConfig = (
             validation: {
               max: 5
             },
-            optional: true
           }
         ]
       },
       {
-        title: "Custom Fields", 
+        title: "Custom Fields",
         icon: <span className="text-orange-600 font-semibold">⚙</span>,
         collapsible: true,
         defaultOpen: false,

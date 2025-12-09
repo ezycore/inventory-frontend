@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import { FilterConfig, FilterField } from '@/types/filter';
 import { useFilters } from '@/hooks/use-filters';
 import { Button } from '@ui/components/button';
 import { Badge } from '@ui/components/badge';
@@ -22,6 +21,7 @@ import {
 import { Filter, X } from 'lucide-react';
 import { cn } from '@ui/lib/utils';
 import { FilterFieldRenderer } from './filter-field-renderer';
+import { FilterConfig } from '@/types/DataTable';
 
 interface GlobalFilterProps {
   config: FilterConfig;

@@ -15,7 +15,8 @@ import { toast } from 'sonner'
 import { handleMutationError } from '@/lib/error-handling'
 import { ArrowLeft } from 'lucide-react'
 import { ProductStatus } from '@/types'
-import CustomFieldsManager from './custom-fields-manager'
+import CustomFieldsManager from '../../ui/components/form/custom-fields-manager'
+import VariantManager from './variant-manager'
 import { createProductFormConfig } from './product-form-config'
 
 
@@ -23,7 +24,7 @@ type ProductFormValues = any // Will be inferred from generated schema
 
 interface ProductFormProps {
   productId?: string
-  onSuccess?: (productId?: string, hasVariants?: boolean) => void
+  onSuccess?: () => void
   onCancel?: () => void
 
   // Container mode props
@@ -71,9 +72,77 @@ export default function ProductForm({
 
 }: ProductFormProps) {
   const router = useRouter()
-  const [hasVariants, setHasVariants] = useState(false)
-  const [productType, setProductType] = useState<'single' | 'variable'>('single')
+  const [variants, setVariants] = useState<any[]>([])
+  const [basePrice, setBasePrice] = useState<number>(0)
   const mode = productId ? 'edit' : 'create'
+  
+  // Check if product has variants based on form data
+  const hasVariants = variants.length > 0
+
+  // Queries
+  const { data: product, isLoading: productLoading } = useProduct(productId || '')
+
+  // Mutations
+  const createProduct = useCreateProduct()
+  const updateProduct = useUpdateProduct()
+
+  // Use dynamic form with auto-generated schema and config defaults
+  const { form, config } = useDynamicForm<ProductFormValues>(createProductFormConfig())
+  
+  // Custom validation handler for conditional fields
+  const validateConditionalFields = (data: any) => {
+    const errors: Record<string, string> = {}
+    
+    if (data.product_type_radio === 'single') {
+      if (data.quantity === undefined || data.quantity === null || data.quantity === '') {
+        errors.quantity = 'Quantity is required for single product'
+      }
+      if (data.price === undefined || data.price === null || data.price === '') {
+        errors.price = 'Price is required for single product'
+      }
+      if (!data.tax_type) {
+        errors.tax_type = 'Tax Type is required for single product'
+      }
+      if (!data.tax_id) {
+        errors.tax_id = 'Tax is required for single product'
+      }
+      if (!data.discount_type) {
+        errors.discount_type = 'Discount Type is required for single product'
+      }
+      if (data.discount_value === undefined || data.discount_value === null || data.discount_value === '') {
+        errors.discount_value = 'Discount Value is required for single product'
+      }
+      if (data.quantity_alert === undefined || data.quantity_alert === null || data.quantity_alert === '') {
+        errors.quantity_alert = 'Quantity Alert is required for single product'
+      }
+    }
+    
+    if (data.product_type_radio === 'variable') {
+      const activeVariants = variants.filter(v => v.enabled)
+      if (!activeVariants || activeVariants.length === 0) {
+        toast.error('Please add and enable at least one variant for variable product')
+        errors.variant_manager = 'At least one active variant is required for variable product'
+      }
+    }
+    
+    return errors
+  }
+  
+  // Intercept form validation
+  const handleFormValidation = (data: any) => {
+    const conditionalErrors = validateConditionalFields(data)
+    
+    if (Object.keys(conditionalErrors).length > 0) {
+      // Set errors on form
+      Object.entries(conditionalErrors).forEach(([field, message]) => {
+        form.setError(field as any, { type: 'manual', message })
+      })
+      return false
+    }
+    
+    return true
+  }
+
 
   // Register custom field renderers
   useEffect(() => {
@@ -86,6 +155,13 @@ export default function ProductForm({
             name="custom_fields"
             maxFields={maxCount || 5}
           />
+        ),
+        variant_manager: () => (
+          <VariantManager
+            onVariantsChange={setVariants}
+            defaultVariants={variants}
+            basePrice={basePrice || form.getValues('price') || 0}
+          />
         )
       }
     }
@@ -94,19 +170,21 @@ export default function ProductForm({
     return () => {
       if (typeof window !== 'undefined' && (window as any).__customFieldRenderers) {
         delete (window as any).__customFieldRenderers.custom_fields
+        delete (window as any).__customFieldRenderers.variant_manager
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Queries
-  const { data: product, isLoading: productLoading } = useProduct(productId || '')
-
-  // Mutations
-  const createProduct = useCreateProduct()
-  const updateProduct = useUpdateProduct()
-
-  // Use dynamic form with auto-generated schema and config defaults
-  const { form, config } = useDynamicForm<ProductFormValues>(createProductFormConfig())
+  // Watch price field for variant base price
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'price' && value.price) {
+        setBasePrice(value.price)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form])
 
   // Load existing product data for editing
   useEffect(() => {
@@ -152,10 +230,6 @@ export default function ProductForm({
         // Handle brand selection with 'none' option
         form.setValue('brand_id', value === 'none' ? '' : value)
         break
-      case 'product_type_radio':
-        setProductType(value)
-        setHasVariants(value === 'variable')
-        break
       default:
         break
     }
@@ -180,27 +254,24 @@ export default function ProductForm({
   // Form configuration handles the custom-fields type automatically
 
 
-
-
-
   // Mutation-based form handlers
-  const handleActionSuccess = (result: any, data: any) => {
-    const successMessage = mode === 'create' ? 'Product created successfully' : 'Product updated successfully'
-    toast.success(successMessage)
+  // const handleActionSuccess = (result: any, data: any) => {
+  //   const successMessage = mode === 'create' ? 'Product created successfully' : 'Product updated successfully'
+  //   toast.success(successMessage)
 
-    if (onSuccess) {
-      // For update mutation, result contains the updated data directly
-      // For create mutation, result is the new product
-      const resultProductId = mode === 'create' ? result?._id : productId
-      onSuccess(resultProductId, hasVariants)
-    } else {
-      if (mode === 'create' && hasVariants) {
-        router.push(`/products/${result?._id}/variants`)
-      } else {
-        router.push('/products')
-      }
-    }
-  }
+  //   if (onSuccess) {
+  //     // For update mutation, result contains the updated data directly
+  //     // For create mutation, result is the new product
+  //     const resultProductId = mode === 'create' ? result?._id : productId
+  //     onSuccess(resultProductId, hasVariants)
+  //   } else {
+  //     if (mode === 'create' && hasVariants) {
+  //       router.push(`/products/${result?._id}/variants`)
+  //     } else {
+  //       router.push('/products')
+  //     }
+  //   }
+  // }
 
   const handleActionError = (error: any, data: any) => {
     handleMutationError(error)
@@ -226,6 +297,29 @@ export default function ProductForm({
         form={form}
         config={finalFormConfig}
         onFieldChange={handleFieldChange}
+        onSubmit={(data) => {
+          if (!handleFormValidation(data)) {
+            throw new Error('Validation failed')
+          }
+          // Add variants data if product type is variable (only active variants)
+          if (data.product_type_radio === 'variable' && variants.length > 0) {
+            const activeVariants = variants
+              .filter(v => v.enabled)
+              .map(v => ({
+                attribute_name: v.attributeName,
+                attribute_value: v.value,
+                sku: v.sku,
+                quantity: v.quantity,
+                price: v.price,
+              }))
+            
+            return {
+              ...data,
+              variants: activeVariants
+            }
+          }
+          return data
+        }}
 
         // Container props
         openInside={openInside}
@@ -244,7 +338,7 @@ export default function ProductForm({
 
         // Mutation hook
         mutationHook={mode === 'create' ? createProduct : updateProduct}
-        onSuccess={handleActionSuccess}
+        onSuccess={onSuccess}
         onFailed={handleActionError}
       />
     )
@@ -261,39 +355,58 @@ export default function ProductForm({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">
+            <h4 className="text-2.5xl font-bold">
               {mode === 'create' ? 'Create Product' : 'Edit Product'}
-            </h1>
-            <p className="text-muted-foreground">
-              {mode === 'create' ? 'Create new product' : 'Update product information'}
-            </p>
+            </h4>
           </div>
         </div>
-        <Button variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
-          Back to Product
-        </Button>
       </div>
 
-      <DynamicForm
-        id='product-form'
-        className="space-y-6"
-        config={finalFormConfig}
-        form={form}
-        onFieldChange={handleFieldChange}
+      <div className="space-y-6">
+        <DynamicForm
+          id='product-form'
+          className="space-y-6"
+          config={finalFormConfig}
+          form={form}
+          onFieldChange={handleFieldChange}
+          onSubmit={(data) => {
+            if (!handleFormValidation(data)) {
+              throw new Error('Validation failed')
+            }
+            // Add variants data if product type is variable (only active variants)
+            if (data.product_type_radio === 'variable' && variants.length > 0) {
+              const activeVariants = variants
+                .filter(v => v.enabled)
+                .map(v => ({
+                  attribute_name: v.attributeName,
+                  attribute_value: v.value,
+                  sku: v.sku,
+                  quantity: v.quantity,
+                  price: v.price,
+                }))
+              
+              return {
+                ...data,
+                variants: activeVariants
+              }
+            }
+            return data
+          }}
 
-        // Form actions props
-        cancelLabel="Cancel"
-        submitLabel={submitLabel}
-        onCancel={() => onCancel ? onCancel() : router.back()}
+          // Form actions props
+          cancelLabel="Cancel"
+          submitLabel={submitLabel}
+          onCancel={() => onCancel ? onCancel() : router.back()}
 
-        // Content loading for edit mode
-        contentLoading={mode === 'edit' && productLoading}
+          // Content loading for edit mode
+          contentLoading={mode === 'edit' && productLoading}
 
-        // Mutation hook
-        mutationHook={mode === 'create' ? createProduct : updateProduct}
-        onSuccess={handleActionSuccess}
-        onFailed={handleActionError}
-      />
+          // Mutation hook
+          mutationHook={mode === 'create' ? createProduct : updateProduct}
+          onSuccess={onSuccess}
+          onFailed={handleActionError}
+        />
+      </div>
     </div>
   )
 }

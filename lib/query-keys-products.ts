@@ -65,6 +65,13 @@ export const queryKeys = {
     bySlug: (slug: string) => [...queryKeys.brands.all(), 'slug', slug] as const,
   },
 
+  // Variant Attributes query keys
+  variantAttributes: {
+    all: () => ['variantAttributes'] as const,
+    list: () => [...queryKeys.variantAttributes.all(), 'list'] as const,
+    detail: (id: string) => [...queryKeys.variantAttributes.all(), 'detail', id] as const,
+  },
+
   // Suppliers query keys
   supplier: {
     all: () => ['suppliers'] as const,

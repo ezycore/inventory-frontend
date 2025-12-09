@@ -38,6 +38,7 @@ export function BaseDataTable<TData, TValue>({
   enableRowHover = true,
   toolbarAction,
   rowClassName,
+  customActions,
 }: BaseDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -63,6 +64,7 @@ export function BaseDataTable<TData, TValue>({
     onView,
     onEdit,
     openDeleteDialog,
+    customActions,
   });
 
   const table = useReactTable({
@@ -130,6 +132,7 @@ export function BaseDataTable<TData, TValue>({
         isDeleting={isDeleting}
         enableColumnVisibility={enableColumnVisibility}
         actionButton={toolbarAction}
+        customActions={customActions}
       />
 
       {/* Table */}
