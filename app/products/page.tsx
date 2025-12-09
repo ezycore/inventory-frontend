@@ -173,7 +173,7 @@ export default function ProductsPage() {
             type: 'create',
             placement: 'header',
             onClick: handleAddProduct,
-            icon: <Plus className="h-4 w-4 mr-2" />,
+            icon: <Plus className="h-4 w-4" />,
             label: 'Add Product',
             variant: 'default',
           },

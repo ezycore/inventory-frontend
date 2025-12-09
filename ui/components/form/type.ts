@@ -316,7 +316,7 @@ export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema
       if (isStringField && !field.validation?.minLength && !field.options && !field.enumValues) {
         fieldSchema = (fieldSchema as z.ZodString).min(1, `${field.label} is required`)
       }
-    } else if (field.optional !== false) {
+    } else if (!field.required) {
       fieldSchema = fieldSchema.optional()
     }
 

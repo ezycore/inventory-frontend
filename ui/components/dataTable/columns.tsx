@@ -94,42 +94,16 @@ export function useEnhancedColumns<TData, TValue>({
               )}
               
               {(() => {
-                const customEdit = customActions?.find(a => a.type === 'edit' && a.placement === 'cell');
-                if (customEdit) {
-                  const href = typeof customEdit.href === 'function' ? customEdit.href(rowData) : customEdit.href;
-                  const ButtonComponent = (
-                    <Button
-                      variant={customEdit.variant || "ghost"}
-                      size="sm"
-                      onClick={customEdit.onClick ? () => customEdit.onClick?.(rowData) : undefined}
-                      className="h-8 w-8 p-0"
-                    >
-                      {customEdit.icon || <Edit className="h-4 w-4" />}
-                    </Button>
-                  );
-                  
-                  return (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          {href ? <Link href={href}>{ButtonComponent}</Link> : ButtonComponent}
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {customEdit.tooltip || customEdit.label || "Edit"}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                }
-                
-                return actions.editable ? (
+                const customEdit = customActions?.find(a => a.type === 'edit');
+        
+                return (actions.editable || customEdit) ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onEdit?.(rowData)}
+                          onClick={() => customEdit?.onClick ? customEdit.onClick(rowData) : onEdit?.(rowData)}
                           className="h-8 w-8 p-0"
                         >
                           <Edit className="h-4 w-4" />
