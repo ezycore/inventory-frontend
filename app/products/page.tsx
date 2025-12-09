@@ -23,7 +23,7 @@ import {
 import { useDebounce } from '@/hooks/use-debounce'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Plus, Search, Trash2, Package, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Package, AlertTriangle } from 'lucide-react'
 import type { ProductWithVariants } from '@/types'
 import type { ProductFilters } from '@/types/products'
 import { queryKeys } from '@/lib/query-keys-products'
@@ -51,13 +51,7 @@ export default function ProductsPage() {
   const { data: brands } = useBrands()
   const deleteProduct = useDeleteProduct()
 
-  const handleAddProduct = () => {
-    router.push('/products/add')
-  }
 
-  const handleEditProduct = (productId: string) => {
-    router.push(`/products/${productId}/edit`)
-  }
 
   const products = (productsData as any)?.data?.items || []
   const totalPages = (productsData as any)?.data?.totalPages || 1
@@ -143,10 +137,6 @@ export default function ProductsPage() {
       {/* Header */}
       <PageHeader title="Products Management" subTitle="Manage your products and their details." />
 
-      <Button onClick={handleAddProduct}>
-        <Plus className="h-4 w-4 mr-2" />
-        Add Product
-      </Button>
       {/* Products List */}
       <DataTable
         cardTitle={(dataLength: number) => `All Products (${dataLength})`}
@@ -154,13 +144,30 @@ export default function ProductsPage() {
         selectable={true}
         searchConfig={{
           globalSearch: true,
-          placeholder: "Search attributes by name...",
+          placeholder: "Search products by name...",
         }}
         operations={{
           getAllData: productsApi.getAll,
           entityName: "Products",
           queryKey: [...queryKeys.variantAttributes.all()],
         }}
+        customActions={[
+          {
+            type: 'create',
+            placement: 'header',
+            href: '/products/add',
+            icon: <Plus className="h-4 w-4 mr-2" />,
+            label: 'Add Product',
+            variant: 'default',
+          },
+          {
+            type: 'edit',
+            placement: 'cell',
+            href: (row) => `/products/${row._id}/edit`,
+            icon: <Pencil className="h-4 w-4" />,
+            tooltip: 'Edit Product',
+          },
+        ]}
         enableSorting={true}
         defaultColumnVisibility={{ status: false }}
         enableRowHover={true}

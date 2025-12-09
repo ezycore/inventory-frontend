@@ -8,6 +8,35 @@ import { FilterField } from "./filter";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 
 /**
+ * Custom action configuration that can override or extend built-in actions
+ */
+export interface CustomAction {
+ /** Action type - use built-in types to replace default behavior */
+ type: 'edit' | 'view' | 'delete' | 'create' | string;
+
+ /** Placement of the action */
+ placement: 'header' | 'cell';
+
+ /** Link href (for Next.js Link) - takes precedence over onClick */
+ href?: string | ((row?: any) => string);
+
+ /** Click handler */
+ onClick?: (row?: any) => void;
+
+ /** Icon component */
+ icon?: React.ReactNode;
+
+ /** Label text */
+ label?: string;
+
+ /** Tooltip text */
+ tooltip?: string;
+
+ /** Button variant */
+ variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+}
+
+/**
  * Configuration for table actions (edit, delete, view, custom)
  */
 export interface DataTableAction {
@@ -160,7 +189,9 @@ export interface DataTableProps<TData, TValue = any> {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
  };
  data?: TData[];
- operations?: Operations<TData>
+ operations?: Operations<TData>;
+ /** Custom actions that can override or extend built-in actions */
+ customActions?: CustomAction[];
 }
 
 export interface BaseDataTableProps<TData, TValue = any> {
@@ -187,6 +218,8 @@ export interface BaseDataTableProps<TData, TValue = any> {
  defaultColumnVisibility?: VisibilityState;
  enableRowHover?: boolean;
  onSelectionChange?: (selectedRows: TData[]) => void;
+ /** Custom actions that can override or extend built-in actions */
+ customActions?: CustomAction[];
 }
 /**
  * Example usage:
