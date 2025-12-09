@@ -32,6 +32,7 @@ import { AvatarCell } from '@/ui/components/dataTable/cells'
 import { StatusBadge } from '@/ui/components/status-badge'
 import PageHeader from '@/ui/components/header'
 import { productsApi } from '@/lib/api-client'
+import ProductForm from '@/components/products/product-form'
 
 export default function ProductsPage() {
   const router = useRouter()
@@ -41,6 +42,8 @@ export default function ProductsPage() {
     limit: 20,
     page: 1,
   })
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [editingProductId, setEditingProductId] = useState<string | null>(null)
 
   const debouncedSearch = useDebounce(searchQuery, 300)
   const searchFilters = debouncedSearch ? { ...filters, search: debouncedSearch } : filters
@@ -51,7 +54,21 @@ export default function ProductsPage() {
   const { data: brands } = useBrands()
   const deleteProduct = useDeleteProduct()
 
+  const handleAddProduct = () => {
+    setEditingProductId(null)
+    setIsDrawerOpen(true)
+  }
 
+  const handleEditProduct = (productId: string) => {
+    setEditingProductId(productId)
+    setIsDrawerOpen(true)
+  }
+
+  const handleDrawerSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
+    setIsDrawerOpen(false)
+    setEditingProductId(null)
+  }
 
   const products = (productsData as any)?.data?.items || []
   const totalPages = (productsData as any)?.data?.totalPages || 1
@@ -155,7 +172,7 @@ export default function ProductsPage() {
           {
             type: 'create',
             placement: 'header',
-            href: '/products/add',
+            onClick: handleAddProduct,
             icon: <Plus className="h-4 w-4 mr-2" />,
             label: 'Add Product',
             variant: 'default',
@@ -163,7 +180,7 @@ export default function ProductsPage() {
           {
             type: 'edit',
             placement: 'cell',
-            href: (row) => `/products/${row._id}/edit`,
+            onClick: (row) => handleEditProduct(row._id),
             icon: <Pencil className="h-4 w-4" />,
             tooltip: 'Edit Product',
           },
@@ -171,6 +188,15 @@ export default function ProductsPage() {
         enableSorting={true}
         defaultColumnVisibility={{ status: false }}
         enableRowHover={true}
+      />
+
+      {/* Product Form Drawer */}
+      <ProductForm
+        productId={editingProductId || undefined}
+        openInside="drawer"
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+        onSuccess={handleDrawerSuccess}
       />
     </div>
   )
