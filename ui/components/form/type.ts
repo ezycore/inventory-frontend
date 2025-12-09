@@ -53,8 +53,6 @@ export interface FormFieldConfig {
   zodType?: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'date' | 'file'
   arrayOf?: 'string' | 'number' | 'file' | 'any'
   enumValues?: readonly string[]
-  optional?: boolean
-
   // Type-specific properties
   options?: SelectOption[] // For select fields (static options)
   optionsApi?: string      // For select fields (dynamic API-based options) - URL string

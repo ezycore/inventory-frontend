@@ -43,7 +43,7 @@ export const createProductFormConfig = (
             placeholder: "Select store"
           },
           {
-            name: "warehouse_id", 
+            name: "warehouse_id",
             type: "select",
             label: "Warehouse",
             columnSpan: 6,
@@ -65,7 +65,7 @@ export const createProductFormConfig = (
           },
           {
             name: "slug",
-            type: "input", 
+            type: "input",
             label: "Slug",
             required: true,
             columnSpan: 6,
@@ -79,7 +79,7 @@ export const createProductFormConfig = (
           {
             name: "base_sku",
             type: "input",
-            label: "SKU", 
+            label: "SKU",
             columnSpan: 6,
             placeholder: "Enter SKU"
           },
@@ -192,7 +192,7 @@ export const createProductFormConfig = (
             type: "number",
             zodType: "number",
             label: "Quantity",
-            optional: true,
+
             columnSpan: 4,
             placeholder: "0",
             validation: { min: 0, max: 999999 },
@@ -202,11 +202,11 @@ export const createProductFormConfig = (
             }
           },
           {
-            name: "price", 
+            name: "price",
             type: "number",
             zodType: "number",
             label: "Price",
-            optional: true,
+
             columnSpan: 4,
             placeholder: "0.00",
             validation: { min: 0, max: 999999 },
@@ -220,7 +220,7 @@ export const createProductFormConfig = (
             name: "tax_type",
             type: "select",
             label: "Tax Type",
-            optional: true,
+
             columnSpan: 4,
             options: taxTypeOptions,
             placeholder: "Select",
@@ -231,9 +231,9 @@ export const createProductFormConfig = (
           },
           {
             name: "tax_id",
-            type: "select", 
+            type: "select",
             label: "Tax",
-            optional: true,
+
             columnSpan: 4,
             options: taxOptions,
             placeholder: "Select",
@@ -245,8 +245,8 @@ export const createProductFormConfig = (
           {
             name: "discount_type",
             type: "select",
-            label: "Discount Type", 
-            optional: true,
+            label: "Discount Type",
+
             columnSpan: 4,
             options: discountTypeOptions,
             placeholder: "Select",
@@ -260,7 +260,7 @@ export const createProductFormConfig = (
             name: "discount_value",
             type: "number",
             label: "Discount Value",
-            optional: true,
+
             columnSpan: 4,
             placeholder: "0",
             defaultValue: 0,
@@ -273,9 +273,9 @@ export const createProductFormConfig = (
           },
           {
             name: "quantity_alert",
-            type: "number", 
+            type: "number",
             label: "Quantity Alert",
-            optional: true,
+
             columnSpan: 12,
             placeholder: "10",
             defaultValue: 10,
@@ -320,12 +320,11 @@ export const createProductFormConfig = (
             validation: {
               max: 5
             },
-            optional: true
           }
         ]
       },
       {
-        title: "Custom Fields", 
+        title: "Custom Fields",
         icon: <span className="text-orange-600 font-semibold">⚙</span>,
         collapsible: true,
         defaultOpen: false,
