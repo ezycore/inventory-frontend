@@ -95,7 +95,7 @@
 
 ### Request/Response Format:
 
-**GET /api/variant-attributes**
+**GET /api/variants**
 ```json
 Response:
 {
@@ -121,7 +121,7 @@ Response:
 }
 ```
 
-**POST /api/variant-attributes**
+**POST /api/variants**
 ```json
 Request:
 {

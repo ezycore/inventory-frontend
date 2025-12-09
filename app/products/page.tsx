@@ -32,6 +32,7 @@ import { DataTable } from '@/ui/components/dataTable'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
 import { StatusBadge } from '@/ui/components/status-badge'
 import PageHeader from '@/ui/components/header'
+import { productsApi } from '@/lib/api-client'
 
 export default function ProductsPage() {
   const router = useRouter()
@@ -159,12 +160,23 @@ export default function ProductsPage() {
         Add Product
       </Button>
       {/* Products List */}
-      <DataTable columns={columns} data={products} isLoading={isLoading}
+      <DataTable
         cardTitle={(dataLength: number) => `All Products (${dataLength})`}
+        columns={columns}
+        selectable={true}
         searchConfig={{
           globalSearch: true,
-          placeholder: "Search products by name, description, or status...",
+          placeholder: "Search attributes by name...",
         }}
+        operations={{
+          getAllData: productsApi.getAll,
+     
+          entityName: "Products",
+          queryKey: [...queryKeys.variantAttributes.all()],
+        }}
+        enableSorting={true}
+        defaultColumnVisibility={{ status: false }}
+        enableRowHover={true}
       />
 
 

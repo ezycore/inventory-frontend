@@ -457,24 +457,24 @@ export const variantAttributesApi = {
         }
       }
     });
-    return apiClient.get(`/variant-attributes?${params.toString()}`);
+    return apiClient.get(`/variants?${params.toString()}`);
   },
 
   getById: (id: string): Promise<ApiResponse<any>> =>
-    apiClient.get(`/variant-attributes/${id}`),
+    apiClient.get(`/variants/${id}`),
 
   create: (data: any): Promise<ApiResponse<any>> => {
     const processedData = variantAttributesApi.processData(data);
-    return apiClient.post("/variant-attributes", processedData);
+    return apiClient.post("/variants", processedData);
   },
 
   update: (id: string, data: any): Promise<ApiResponse<any>> => {
     const processedData = variantAttributesApi.processData(data);
-    return apiClient.put(`/variant-attributes/${id}`, processedData);
+    return apiClient.put(`/variants/${id}`, processedData);
   },
 
   delete: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/variant-attributes/${id}`),
+    apiClient.delete(`/variants/${id}`),
 };
 
 export const dashboardApi = {

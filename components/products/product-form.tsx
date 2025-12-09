@@ -254,9 +254,6 @@ export default function ProductForm({
   // Form configuration handles the custom-fields type automatically
 
 
-
-
-
   // Mutation-based form handlers
   const handleActionSuccess = (result: any, data: any) => {
     const successMessage = mode === 'create' ? 'Product created successfully' : 'Product updated successfully'

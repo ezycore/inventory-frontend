@@ -6,7 +6,6 @@ import { Tag } from 'lucide-react'
 // Types
 import type { VariantAttribute } from '@/types'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
-import type { FilterConfig } from '@/types/filter'
 
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
@@ -25,6 +24,7 @@ import { queryKeys } from '@/lib/query-keys-products'
 import variantAttributeFormConfig from '@/components/variants/form-config'
 import { DataTable } from '@/ui/components/dataTable'
 import PageHeader from '@/ui/components/header'
+import { FilterConfig } from '@/types/DataTable'
 
 // Column definitions
 const columns: ColumnDef<VariantAttribute>[] = [
@@ -74,23 +74,6 @@ const columns: ColumnDef<VariantAttribute>[] = [
   },
 ];
 
-// Filter configuration
-const filterConfig: FilterConfig = {
-  fields: [
-    {
-      name: "status",
-      type: "select",
-      label: "Status",
-      placeholder: "All Status",
-      columnSpan: 6,
-      options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-      ],
-    },
-  ],
-};
-
 export default function VariantsPage() {
   const createVariantAttribute = useCreateVariantAttribute();
   const updateVariantAttribute = useUpdateVariantAttribute();
@@ -104,32 +87,20 @@ export default function VariantsPage() {
 
       <DataTable<VariantAttribute>
         cardTitle={(dataLength: number) => `All Variants (${dataLength})`}
-
-        apiConfig={{
-          endpoint: variantAttributesApi,
-          queryKey: [...queryKeys.variantAttributes.all()],
-          defaultPageSize: 10,
-          pageSizeOptions: [10, 20, 50, 100],
-        }}
-        filterConfig={filterConfig}
         columns={columns}
         selectable={true}
         searchConfig={{
           globalSearch: true,
           placeholder: "Search attributes by name...",
         }}
-        crud={{
+        operations={{
+          getAllData: variantAttributesApi.getAll,
           formConfig: variantAttributeFormConfig,
           createMutation: createVariantAttribute,
           updateMutation: updateVariantAttribute,
           deleteMutation: deleteVariantAttribute,
           entityName: "Variant Attribute",
           queryKey: [...queryKeys.variantAttributes.all()],
-          defaultValues: {
-            name: "",
-            values: "",
-            status: "active" as const,
-          },
           transformEditData: variantAttributesApi.transformForEdit,
           prepareSubmitData: (data, isEdit, item) => {
             // Add id for edit mode (processing is handled by API)
