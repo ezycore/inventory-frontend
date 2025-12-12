@@ -396,6 +396,87 @@ export const profileApi = {
 };
 
 // Dashboard API
+export const variantAttributesApi = {
+  /**
+   * Process variant attribute data before sending to API
+   * Converts values string to array and handles both FormData and plain objects
+   */
+  processData: (data: any): any => {
+    if (data instanceof FormData) {
+      const formData = new FormData();
+      for (const [key, value] of data.entries()) {
+        if (key === 'values') {
+          // Convert comma-separated string to array
+          const valuesArray = typeof value === 'string'
+            ? value.split(',').map((v: string) => v.trim()).filter((v: string) => v)
+            : value;
+          formData.append(key, JSON.stringify(valuesArray));
+        } else {
+          formData.append(key, value);
+        }
+      }
+      return formData;
+    } else {
+      // Plain object
+      return {
+        ...data,
+        values: typeof data.values === 'string'
+          ? data.values.split(',').map((v: string) => v.trim()).filter((v: string) => v)
+          : data.values
+      };
+    }
+  },
+
+  /**
+   * Transform variant attribute data for editing
+   * Converts values array to comma-separated string
+   */
+  transformForEdit: (item: any): any => {
+    return {
+      ...item,
+      values: Array.isArray(item.values) ? item.values.join(', ') : item.values
+    };
+  },
+
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/variants?${params.toString()}`);
+  },
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/variants/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> => {
+    const processedData = variantAttributesApi.processData(data);
+    return apiClient.post("/variants", processedData);
+  },
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> => {
+    const processedData = variantAttributesApi.processData(data);
+    return apiClient.put(`/variants/${id}`, processedData);
+  },
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/variants/${id}`),
+};
+
 export const dashboardApi = {
   getStats: (): Promise<
     ApiResponse<{

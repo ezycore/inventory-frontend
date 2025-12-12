@@ -32,20 +32,6 @@ export interface FilterField {
  showWhen?: (values: Record<string, any>) => boolean;
 }
 
-export interface FilterConfig {
- fields: FilterField[];
- // Layout
- columns?: 1 | 2 | 3 | 4; // Grid columns
- viewMode?: 'sheet' | 'popover'; // Display mode: sheet (default) or popover
- // Behavior
- applyOnChange?: boolean; // Auto-apply on field change
- showResetButton?: boolean;
- showApplyButton?: boolean;
- // Callbacks
- onApply?: (filters: Record<string, any>) => void;
- onReset?: () => void;
-}
-
 export interface FilterValues {
  [key: string]: any;
 }

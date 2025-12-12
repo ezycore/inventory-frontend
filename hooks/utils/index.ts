@@ -1,14 +1,15 @@
-/**
- * Utility hooks that can be used across any module
- * 
- * These hooks are module-independent and provide common functionality
- * that can be shared across different parts of the application.
- * 
- * Examples:
- * - Products module: useSelectOptions('/api/categories')
- * - Users module: useSelectOptions('/api/roles') 
- * - Settings module: useSelectOptions('/api/languages')
- * - Inventory module: useSelectOptions('/api/warehouses')
- */
+// convert property type to preferable
+const sanitize = <T>(data: T | undefined, type: 'object' | 'array' | 'string' = 'object'): T => {
+	switch (type) {
+		case 'string':
+			return typeof data === 'string' ? data : '' as T;
+		case 'array':
+			return Array.isArray(data) ? data : ([] as T);
+		case 'object':
+			return typeof data === 'object' && !Array.isArray(data) && data !== null ? data : ({} as T);
+		default:
+			return data as T;
+	}
+};
 
-export { useSelectOptions } from './use-select-options'
+export { sanitize };

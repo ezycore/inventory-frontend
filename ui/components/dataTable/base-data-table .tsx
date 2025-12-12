@@ -17,7 +17,7 @@ import { DataTableToolbar } from "./toolbar";
 import { DataTableBody } from "./table-body";
 import { DataTablePagination } from "./pagination";
 import { DeleteDialog } from "./delete-dialog";
-import { DataTableProps } from "@/types/DataTable";
+import { BaseDataTableProps } from "@/types/DataTable";
 
 export function BaseDataTable<TData, TValue>({
   columns,
@@ -37,9 +37,9 @@ export function BaseDataTable<TData, TValue>({
   defaultColumnVisibility,
   enableRowHover = true,
   toolbarAction,
-  className,
   rowClassName,
-}: DataTableProps<TData, TValue>) {
+  customActions,
+}: BaseDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
@@ -64,6 +64,7 @@ export function BaseDataTable<TData, TValue>({
     onView,
     onEdit,
     openDeleteDialog,
+    customActions,
   });
 
   const table = useReactTable({
@@ -115,7 +116,7 @@ export function BaseDataTable<TData, TValue>({
   };
 
   return (
-    <div className={`w-full space-y-4 ${className || ""}`}>
+    <div className={`w-full space-y-4 `}>
       {/* Toolbar */}
       <DataTableToolbar
         table={table}
@@ -131,6 +132,7 @@ export function BaseDataTable<TData, TValue>({
         isDeleting={isDeleting}
         enableColumnVisibility={enableColumnVisibility}
         actionButton={toolbarAction}
+        customActions={customActions}
       />
 
       {/* Table */}

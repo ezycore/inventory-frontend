@@ -1,5 +1,6 @@
 import { Search, X, Trash2, ChevronDown } from "lucide-react";
 import { Table } from "@tanstack/react-table";
+import Link from "next/link";
 import { Input } from "../input";
 import { Button } from "../button";
 import {
@@ -19,17 +20,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../alert-dialog";
-import { FilterConfig } from "@/types/filter";
 import { GlobalFilter } from "../filters/global-filter";
+import { DataTableSearchConfig, FilterConfig, CustomAction } from "@/types/DataTable";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filterConfig?: FilterConfig;
-  searchConfig?: {
-    searchableColumn?: keyof TData;
-    placeholder?: string;
-    globalSearch?: boolean;
-  };
+  searchConfig?: DataTableSearchConfig;
   globalFilter?: string;
   onGlobalFilterChange?: (value: string) => void;
   selectable?: boolean;
@@ -45,6 +42,7 @@ interface DataTableToolbarProps<TData> {
     onClick: () => void;
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   };
+  customActions?: CustomAction[];
 }
 
 export function DataTableToolbar<TData>({
@@ -61,6 +59,7 @@ export function DataTableToolbar<TData>({
   isDeleting,
   enableColumnVisibility,
   actionButton,
+  customActions,
 }: DataTableToolbarProps<TData>) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -192,16 +191,53 @@ export function DataTableToolbar<TData>({
         )
         }
         {/* Custom Action Button (e.g., Add Brand) - Always on the right */}
-        {actionButton && (
-          <Button
-            variant={actionButton.variant || "default"}
-            size="sm"
-            onClick={actionButton.onClick}
-          >
-            {actionButton.icon}
-            {actionButton.label}
-          </Button>
-        )}
+        {(() => {
+          const customCreate = customActions?.find(a => a.type === 'create' && a.placement === 'header');
+          if (customCreate) {
+            const href = typeof customCreate.href === 'function' ? customCreate.href() : customCreate.href;
+            const button = (
+              <Button
+                variant={customCreate.variant || "default"}
+                size="sm"
+                onClick={customCreate.onClick ? () => customCreate.onClick?.() : undefined}
+              >
+                {customCreate.icon}
+                {customCreate.label}
+              </Button>
+            );
+            return href ? <Link href={href}>{button}</Link> : button;
+          }
+          return actionButton ? (
+            <Button
+              variant={actionButton.variant || "default"}
+              size="sm"
+              onClick={actionButton.onClick}
+            >
+              {actionButton.icon}
+              {actionButton.label}
+            </Button>
+          ) : null;
+        })()}
+        
+        {/* Other custom header actions */}
+        {customActions?.filter(a => a.placement === 'header' && a.type !== 'create').map((action, index) => {
+          const href = typeof action.href === 'function' ? action.href() : action.href;
+          const button = (
+            <Button
+              variant={action.variant || "default"}
+              size="sm"
+              onClick={action.onClick ? () => action.onClick?.() : undefined}
+            >
+              {action.icon}
+              {action.label}
+            </Button>
+          );
+          return href ? (
+            <Link key={`header-${index}`} href={href}>{button}</Link>
+          ) : (
+            <span key={`header-${index}`}>{button}</span>
+          );
+        })}
       </div>
     </div>
   );

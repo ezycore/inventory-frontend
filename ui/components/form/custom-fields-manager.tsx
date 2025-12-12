@@ -601,7 +601,7 @@ export default function CustomFieldsManager({ control, name, maxFields = 10 }: C
           <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-600">No Custom Fields</h3>
           <p className="text-gray-500 mb-4">
-            Add custom fields to collect additional product information specific to your business needs.
+            Add custom fields to collect additional information specific to your business needs.
           </p>
           <Button
             type="button"

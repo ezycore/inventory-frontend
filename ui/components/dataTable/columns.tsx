@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Edit, Trash2, MoreHorizontal } from "lucide-react";
+import Link from "next/link";
 import { Button } from "../button";
 import {
   Tooltip,
@@ -8,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../tooltip";
-import { DataTableAction } from "@/types/DataTable";
+import { DataTableAction, CustomAction } from "@/types/DataTable";
 
 interface UseEnhancedColumnsProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -17,6 +18,7 @@ interface UseEnhancedColumnsProps<TData, TValue> {
   onView?: (row: TData) => void;
   onEdit?: (row: TData) => void;
   openDeleteDialog?: (row: TData) => void;
+  customActions?: CustomAction[];
 }
 
 export function useEnhancedColumns<TData, TValue>({
@@ -26,6 +28,7 @@ export function useEnhancedColumns<TData, TValue>({
   onView,
   onEdit,
   openDeleteDialog,
+  customActions,
 }: UseEnhancedColumnsProps<TData, TValue>) {
   return useMemo(() => {
     const cols = [...columns];
@@ -90,27 +93,31 @@ export function useEnhancedColumns<TData, TValue>({
                 </TooltipProvider>
               )}
               
-              {actions.editable && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit?.(rowData)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {typeof actions.editable === "object" && actions.editable.tooltip
-                        ? actions.editable.tooltip
-                        : "Edit"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+              {(() => {
+                const customEdit = customActions?.find(a => a.type === 'edit');
+        
+                return (actions.editable || customEdit) ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => customEdit?.onClick ? customEdit.onClick(rowData) : onEdit?.(rowData)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {typeof actions.editable === "object" && actions.editable.tooltip
+                          ? actions.editable.tooltip
+                          : "Edit"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : null;
+              })()}
               
               {actions.deletable && (
                 <TooltipProvider>
@@ -151,6 +158,32 @@ export function useEnhancedColumns<TData, TValue>({
                   </Tooltip>
                 </TooltipProvider>
               ))}
+              
+              {/* Custom cell actions (excluding built-in types) */}
+              {customActions?.filter(a => a.placement === 'cell' && !['edit', 'view', 'delete'].includes(a.type)).map((action, index) => {
+                const href = typeof action.href === 'function' ? action.href(rowData) : action.href;
+                const ButtonComponent = (
+                  <Button
+                    variant={action.variant || "ghost"}
+                    size="sm"
+                    onClick={action.onClick ? () => action.onClick?.(rowData) : undefined}
+                    className="h-8 w-8 p-0"
+                  >
+                    {action.icon || <MoreHorizontal className="h-4 w-4" />}
+                  </Button>
+                );
+                
+                return (
+                  <TooltipProvider key={`custom-${index}`}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        {href ? <Link href={href}>{ButtonComponent}</Link> : ButtonComponent}
+                      </TooltipTrigger>
+                      {action.tooltip && <TooltipContent>{action.tooltip}</TooltipContent>}
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
             </div>
           );
         },
@@ -160,5 +193,5 @@ export function useEnhancedColumns<TData, TValue>({
     }
     
     return cols;
-  }, [columns, selectable, actions, onView, onEdit, openDeleteDialog]);
+  }, [columns, selectable, actions, onView, onEdit, openDeleteDialog, customActions]);
 }

@@ -53,8 +53,6 @@ export interface FormFieldConfig {
   zodType?: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'date' | 'file'
   arrayOf?: 'string' | 'number' | 'file' | 'any'
   enumValues?: readonly string[]
-  optional?: boolean
-
   // Type-specific properties
   options?: SelectOption[] // For select fields (static options)
   optionsApi?: string      // For select fields (dynamic API-based options) - URL string
@@ -145,7 +143,8 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   cancelLabel?: string
   onSubmit?: (data?: any) => any // Can transform data before submission
   onCancel?: () => void
-  isSubmitting?: boolean
+  isSubmitting?: boolean;
+  resetAfterSubmit?: boolean;
 
   // Mutation-based form submission (alternative to onSubmit)
   mutationHook?: {
@@ -317,7 +316,7 @@ export const generateSchemaFromConfig = (config: DynamicFormConfig): z.ZodSchema
       if (isStringField && !field.validation?.minLength && !field.options && !field.enumValues) {
         fieldSchema = (fieldSchema as z.ZodString).min(1, `${field.label} is required`)
       }
-    } else if (field.optional !== false) {
+    } else if (!field.required) {
       fieldSchema = fieldSchema.optional()
     }
 

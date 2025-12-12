@@ -6,19 +6,18 @@ import { Tag } from 'lucide-react'
 // Types
 import type { Category } from '@/types'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
-import type { FilterConfig } from '@/types/filter'
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
-import { Badge } from '@ui/components/badge'
 import { DataTable } from '@/ui/components/dataTable'
 import { DateCell } from '@/ui/components/dataTable/cells'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
 
 // Hooks & API
-import { useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/queries'
+import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategories } from '@/hooks/queries'
 import { categoriesApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys-products'
+import PageHeader from '@/ui/components/header'
+import { FilterConfig } from '@/types/DataTable'
 
 // Column definitions
 const columns: ColumnDef<Category>[] = [
@@ -34,22 +33,8 @@ const columns: ColumnDef<Category>[] = [
     ),
   },
   {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => (
-      <div className="max-w-[300px] truncate text-muted-foreground">
-        {row.getValue("description") || "—"}
-      </div>
-    ),
-  },
-  {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => (
-      <Badge variant={row.getValue("status") === "active" ? "default" : "secondary"}>
-        {row.getValue("status") as string}
-      </Badge>
-    ),
   },
   {
     accessorKey: "createdAt",
@@ -128,7 +113,7 @@ const categoryFilterConfig: FilterConfig = {
       name: "updatedAt",
       label: "Updated Date",
       type: "date",
-      placeholder: "Select date range",
+      placeholder: "Select date",
       columnSpan: 2,
     },
   ],
@@ -139,61 +124,50 @@ const categoryFilterConfig: FilterConfig = {
   showApplyButton: true,
 };
 
+const searchConfig = {
+  globalSearch: true,
+  placeholder: "Search categories by name, description, or status...",
+}
+
+const defaultValues = {
+  name: "",
+  description: "",
+  status: "active" as const,
+}
+
 export default function CategoriesPage() {
-  // Mutation hooks
-  const createCategory = useCreateCategory();
-  const updateCategory = useUpdateCategory();
-  const deleteCategory = useDeleteCategory();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Categories</h1>
-          <p className="text-muted-foreground">
-            Organize your products with categories
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Categories" subTitle="Organize your products with categories" />
 
-      {/* Categories Table with Integrated CRUD */}
       <DataTable
         cardTitle={(dataLength: number) => `All Categories (${dataLength})`}
-        apiConfig={{
-          endpoint: categoriesApi,
-          queryKey: [...queryKeys.category.all()],
-          defaultPageSize: 10,
-          pageSizeOptions: [10, 20, 50, 100],
-        }}
+        defaultPageSize={10}
+        pageSizes={[10, 20, 50, 100]}
         filterConfig={categoryFilterConfig}
         columns={columns}
         selectable={true}
-        searchConfig={{
-          globalSearch: true,
-          placeholder: "Search categories by name, description, or status...",
-        }}
-        crud={{
+        searchConfig={searchConfig}
+        enableSorting={true}
+        defaultColumnVisibility={{ status: false }}
+        enableRowHover={true}
+        rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
+        operations={{
           formConfig: categoryFormConfig,
-          createMutation: createCategory,
-          updateMutation: updateCategory,
-          deleteMutation: deleteCategory,
-          entityName: "Category",
+          defaultValues: defaultValues,
+          getAllData: categoriesApi.getAll,
+          createMutation: useCreateCategory(),
+          updateMutation: useUpdateCategory(),
+          deleteMutation: useDeleteCategory(),
           queryKey: [...queryKeys.category.all()],
-          defaultValues: {
-            name: "",
-            description: "",
-            status: "active" as const,
-          },
-          prepareSubmitData: (data, isEdit, item) => ({
+          entityName: "Category",
+          prepareSubmitData: (data: Category, isEdit: boolean, item: Category) => ({
             ...data,
             ...(isEdit && item ? { id: item._id } : {}),
           }),
         }}
-        defaultColumnVisibility={{ status: false, description: false }}
-        enableSorting={true}
-        enableRowHover={true}
-        rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
       />
     </div>
   )
