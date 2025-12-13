@@ -233,8 +233,14 @@ interface FilterOption {
 }
 ```
 
-**Rendered As:** `<Select>` with `<SelectItem>` for each option  
-**Output Value:** `string | ""`  
+**Rendered As:** `AdvancedSelect` (single-select mode) with support for both static `options` and dynamic `optionsApi` (remote) sources.
+
+- Notes:
+  - `AdvancedSelect` renders a native `Select` UI for static options and falls back to a `MultiSelect` when used in `mode: 'multiple'`.
+  - Supports `optionsApi` (string) to fetch options via a query hook; includes built-in loading and error states while fetching.
+  - The filter renderer preserves the original option value types (string | number | boolean) — values are converted to strings for the UI and converted back to their original types when applied.
+
+**Output Value:** `string | ""` (single mode) — original option types preserved when filters are serialized for the API.  
 **API Example:** `?status=active`
 
 ---

@@ -3,13 +3,7 @@
 import { FilterField } from '@/types/filter';
 import { Input } from '@ui/components/input';
 import { Label } from '@ui/components/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@ui/components/select';
+import { AdvancedSelect } from '@ui/components/advanced-select';
 import { Checkbox } from '@ui/components/checkbox';
 import { DatePicker } from '@ui/components/date-picker';
 import { DateRangePicker } from '@ui/components/date-range-picker';
@@ -49,19 +43,21 @@ export function FilterFieldRenderer({
         );
 
       case 'select':
+        // Convert FilterOption[] to SelectOption[] format
+        const selectOptions = field.options?.map((option) => ({
+          label: option.label,
+          value: String(option.value),
+          disabled: false,
+        })) || [];
+
         return (
-          <Select value={value || ''} onValueChange={onChange}>
-            <SelectTrigger>
-              <SelectValue placeholder={field.placeholder || 'Select...'} />
-            </SelectTrigger>
-            <SelectContent>
-              {field.options?.map((option) => (
-                <SelectItem key={String(option.value)} value={String(option.value)}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <AdvancedSelect
+            mode="single"
+            value={value ? String(value) : ''}
+            onValueChange={onChange}
+            placeholder={field.placeholder || 'Select...'}
+            options={selectOptions}
+          />
         );
 
       case 'checkbox':
