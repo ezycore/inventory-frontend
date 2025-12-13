@@ -54,9 +54,8 @@ const profileFormConfig: DynamicFormConfig = {
 
 export default function ProfileForm({
   user,
-  onFieldChange,
-  submitLabel,
-  onSubmit,
+  submitLabel = "Save Changes"
+,
 }) {
   const { form, config } = useDynamicForm(profileFormConfig);
 
@@ -72,17 +71,25 @@ export default function ProfileForm({
     }
   }, [user?.id, form]);
 
+    const handleFieldChange = (fieldName: string, value: any) => {
+    console.log(`Field changed: ${fieldName} =`, value);
+  };
+  const handleProfileSubmit = (e: React.FormEvent) => {
+    console.log("Profile form submitted:", form.getValues());
+    e.preventDefault();
+  };
+
   return (
     <DynamicForm
       id="profile-form"
       className="space-y-6"
       config={config}
       form={form}
-      onFieldChange={onFieldChange}
+      onFieldChange={handleFieldChange}
       // Form actions props
       cancelLabel="Cancel"
       submitLabel={submitLabel}
-      onSubmit={onSubmit}
+      onSubmit={handleProfileSubmit}
       // onCancel={() => onCancel ? onCancel() : router.back()}
 
       // Content loading for edit mode
@@ -90,7 +97,7 @@ export default function ProfileForm({
 
       // Mutation hook
       // mutationHook={mode === 'create' ? createProduct : updateProduct}
-      onSuccess={onSubmit}
+      onSuccess={handleProfileSubmit}
       // onFailed={handleActionError}
     />
   );

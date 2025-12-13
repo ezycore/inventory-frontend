@@ -33,7 +33,7 @@ const securityFormConfig: DynamicFormConfig = {
   ],
 };
 
-export default function SecurityForm({}) {
+export default function SecurityForm({user}) {
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",

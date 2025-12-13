@@ -50,11 +50,9 @@ import useDynamicForm from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
 import ProfileForm from "@/components/profile/profile-form";
 import SecurityForm from "@/components/profile/security-form";
+import PreferenceForm from "@/components/profile/preference-form";
 
 export default function ProfilePage() {
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { data: permissionsData } = useProfilePermissions();
   const { user, isLoading } = useAuthStore();
@@ -139,10 +137,7 @@ export default function ProfilePage() {
   };
   const { form, config } = useDynamicForm(profileFormConfig());
 
-  console.log("Form state:", form);
-
-  // Mutations
-  const updateProfile = useUpdateProfile();
+ 
   const updatePreferences = useUpdatePreferences();
 
   // Reset form with user data when user becomes available
@@ -158,13 +153,6 @@ export default function ProfilePage() {
     }
   }, [user?.id, form]);
 
-  // Form states - directly use user data or track if edited
-  const [profileForm, setProfileForm] = useState<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  } | null>(null);
 
   const [preferencesForm, setPreferencesForm] = useState<{
     theme: "light" | "dark" | "system";
@@ -182,17 +170,11 @@ export default function ProfilePage() {
     language: user?.preferences?.language || "en",
   };
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
-    console.log("Profile form submitted:", form.getValues());
-    e.preventDefault();
-  };
+  
 
   
 
-  const handlePreferencesSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updatePreferences.mutate({ preferences: currentPreferencesForm });
-  };
+ 
 
   const getInitials = () => {
     const userData = user;
@@ -202,7 +184,6 @@ export default function ProfilePage() {
     return "U";
   };
 
-  const submitLabel = "Save Changes";
 
   // Show loading only if we don't have any user data yet
   if (isLoading && !user) {
@@ -228,9 +209,7 @@ export default function ProfilePage() {
       </div>
     );
   }
-  const handleFieldChange = (fieldName: string, value: any) => {
-    console.log(`Field changed: ${fieldName} =`, value);
-  };
+
   
   return (
     <div className="container mx-auto p-6 space-y-6 min-h-screen">
@@ -312,7 +291,7 @@ export default function ProfilePage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <ProfileForm user={user} onFieldChange={handleFieldChange} onSubmit={handleProfileSubmit} submitLabel={submitLabel} />
+            <ProfileForm user={user} />
           </TabsContent>
 
           {/* Security Tab */}
@@ -328,7 +307,7 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SecurityForm />
+                <SecurityForm user={user} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -429,175 +408,7 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handlePreferencesSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="theme"
-                        className="flex items-center gap-1.5"
-                      >
-                        Theme
-                      </Label>
-                      <Select
-                        value={currentPreferencesForm.theme}
-                        onValueChange={(value: "light" | "dark" | "system") =>
-                          setPreferencesForm({
-                            ...currentPreferencesForm,
-                            theme: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="light">Light</SelectItem>
-                          <SelectItem value="dark">Dark</SelectItem>
-                          <SelectItem value="system">System</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="currency"
-                        className="flex items-center gap-1.5"
-                      >
-                        Currency
-                      </Label>
-                      <Select
-                        value={currentPreferencesForm.currency}
-                        onValueChange={(value) =>
-                          setPreferencesForm({
-                            ...currentPreferencesForm,
-                            currency: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USD">USD ($)</SelectItem>
-                          <SelectItem value="EUR">EUR (€)</SelectItem>
-                          <SelectItem value="GBP">GBP (£)</SelectItem>
-                          <SelectItem value="INR">INR (₹)</SelectItem>
-                          <SelectItem value="JPY">JPY (¥)</SelectItem>
-                          <SelectItem value="AUD">AUD (A$)</SelectItem>
-                          <SelectItem value="CAD">CAD (C$)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="timezone"
-                        className="flex items-center gap-1.5"
-                      >
-                        <Globe className="h-4 w-4" />
-                        Timezone
-                      </Label>
-                      <Select
-                        value={currentPreferencesForm.timezone}
-                        onValueChange={(value) =>
-                          setPreferencesForm({
-                            ...currentPreferencesForm,
-                            timezone: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="UTC">UTC (GMT+0)</SelectItem>
-                          <SelectItem value="America/New_York">
-                            EST (GMT-5)
-                          </SelectItem>
-                          <SelectItem value="America/Chicago">
-                            CST (GMT-6)
-                          </SelectItem>
-                          <SelectItem value="America/Denver">
-                            MST (GMT-7)
-                          </SelectItem>
-                          <SelectItem value="America/Los_Angeles">
-                            PST (GMT-8)
-                          </SelectItem>
-                          <SelectItem value="Europe/London">
-                            London (GMT+0)
-                          </SelectItem>
-                          <SelectItem value="Europe/Paris">
-                            Paris (GMT+1)
-                          </SelectItem>
-                          <SelectItem value="Asia/Tokyo">
-                            Tokyo (GMT+9)
-                          </SelectItem>
-                          <SelectItem value="Asia/Kolkata">
-                            India (GMT+5:30)
-                          </SelectItem>
-                          <SelectItem value="Australia/Sydney">
-                            Sydney (GMT+10)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="language"
-                        className="flex items-center gap-1.5"
-                      >
-                        Language
-                      </Label>
-                      <Select
-                        value={currentPreferencesForm.language}
-                        onValueChange={(value) =>
-                          setPreferencesForm({
-                            ...currentPreferencesForm,
-                            language: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Spanish</SelectItem>
-                          <SelectItem value="fr">French</SelectItem>
-                          <SelectItem value="de">German</SelectItem>
-                          <SelectItem value="it">Italian</SelectItem>
-                          <SelectItem value="pt">Portuguese</SelectItem>
-                          <SelectItem value="ja">Japanese</SelectItem>
-                          <SelectItem value="zh">Chinese</SelectItem>
-                          <SelectItem value="hi">Hindi</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-3 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setPreferencesForm(null)}
-                      className="gap-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Reset
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={updatePreferences.isPending}
-                      className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      <Save className="h-4 w-4" />
-                      {updatePreferences.isPending
-                        ? "Saving..."
-                        : "Save Preferences"}
-                    </Button>
-                  </div>
-                </form>
+                <PreferenceForm user={user} />
               </CardContent>
             </Card>
           </TabsContent>
