@@ -16,8 +16,8 @@ import { usePaginationState, useDeleteDialog } from "./hooks";
 import { DataTableToolbar } from "./toolbar";
 import { DataTableBody } from "./table-body";
 import { DataTablePagination } from "./pagination";
-import { DeleteDialog } from "./delete-dialog";
 import { BaseDataTableProps } from "@/types/DataTable";
+import { EasyAlertDialog } from "../easy-alert-dialog";
 
 export function BaseDataTable<TData, TValue>({
   columns,
@@ -107,7 +107,7 @@ export function BaseDataTable<TData, TValue>({
 
   const handleBulkDelete = async () => {
     if (!hasSelection) return;
-    
+
     const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
     for (const row of selectedRows) {
       await onDelete?.(row);
@@ -155,11 +155,16 @@ export function BaseDataTable<TData, TValue>({
       />
 
       {/* Delete Confirmation Dialog */}
-      <DeleteDialog
+      <EasyAlertDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
+        title="Are you sure?"
+        description="This action cannot be undone. This will permanently delete the selected item."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
         onConfirm={handleDeleteConfirm}
-        isDeleting={isDeleting}
+        isConfirming={isDeleting}
+        confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
       />
     </div>
   );
