@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import { FilterField } from '@/types/filter';
 import { Input } from '@ui/components/input';
 import { Label } from '@ui/components/label';
