@@ -44,11 +44,12 @@ import {
   useUpdatePreferences,
   useProfilePermissions,
 } from "@/hooks/queries/use-profile";
-import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
+import ProfileForm from "@/components/profile/profile-form";
+import SecurityForm from "@/components/profile/security-form";
 
 export default function ProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -142,7 +143,6 @@ export default function ProfilePage() {
 
   // Mutations
   const updateProfile = useUpdateProfile();
-  const updatePassword = useUpdatePassword();
   const updatePreferences = useUpdatePreferences();
 
   // Reset form with user data when user becomes available
@@ -166,12 +166,6 @@ export default function ProfilePage() {
     phone: string;
   } | null>(null);
 
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
   const [preferencesForm, setPreferencesForm] = useState<{
     theme: "light" | "dark" | "system";
     currency: string;
@@ -193,35 +187,7 @@ export default function ProfilePage() {
     e.preventDefault();
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-
-    updatePassword.mutate(
-      {
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-      },
-      {
-        onSuccess: () => {
-          setPasswordForm({
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: "",
-          });
-        },
-      }
-    );
-  };
+  
 
   const handlePreferencesSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -346,26 +312,7 @@ export default function ProfilePage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <DynamicForm
-                  id="profile-form"
-                  className="space-y-6"
-                  config={config}
-                  form={form}
-                  onFieldChange={handleFieldChange}
-                  // Form actions props
-                  cancelLabel="Cancel"
-                  submitLabel={submitLabel}
-                  onSubmit={handleProfileSubmit}
-                  // onCancel={() => onCancel ? onCancel() : router.back()}
-
-                  // Content loading for edit mode
-                  // contentLoading={mode === 'edit' && productLoading}
-
-                  // Mutation hook
-                  // mutationHook={mode === 'create' ? createProduct : updateProduct}
-                  onSuccess={handleProfileSubmit}
-                  // onFailed={handleActionError}
-                />
+            <ProfileForm user={user} onFieldChange={handleFieldChange} onSubmit={handleProfileSubmit} submitLabel={submitLabel} />
           </TabsContent>
 
           {/* Security Tab */}
@@ -381,163 +328,7 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="currentPassword"
-                      className="flex items-center gap-1.5"
-                    >
-                      Current Password
-                      <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        type={showCurrentPassword ? "text" : "password"}
-                        value={passwordForm.currentPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            currentPassword: e.target.value,
-                          })
-                        }
-                        placeholder="Enter your current password"
-                        className="h-11 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowCurrentPassword(!showCurrentPassword)
-                        }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="newPassword"
-                        className="flex items-center gap-1.5"
-                      >
-                        New Password
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="newPassword"
-                          type={showNewPassword ? "text" : "password"}
-                          value={passwordForm.newPassword}
-                          onChange={(e) =>
-                            setPasswordForm({
-                              ...passwordForm,
-                              newPassword: e.target.value,
-                            })
-                          }
-                          placeholder="Enter new password (min 6 chars)"
-                          className="h-11 pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showNewPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="confirmPassword"
-                        className="flex items-center gap-1.5"
-                      >
-                        Confirm Password
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          value={passwordForm.confirmPassword}
-                          onChange={(e) =>
-                            setPasswordForm({
-                              ...passwordForm,
-                              confirmPassword: e.target.value,
-                            })
-                          }
-                          placeholder="Confirm your new password"
-                          className="h-11 pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowConfirmPassword(!showConfirmPassword)
-                          }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100 mb-2">
-                      Password Requirements:
-                    </h4>
-                    <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
-                      <li>Minimum 6 characters long</li>
-                      <li>
-                        Contains uppercase and lowercase letters (recommended)
-                      </li>
-                      <li>Includes at least one number (recommended)</li>
-                      <li>Uses special characters (recommended)</li>
-                    </ul>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-3 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setPasswordForm({
-                          currentPassword: "",
-                          newPassword: "",
-                          confirmPassword: "",
-                        });
-                      }}
-                      className="gap-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Clear
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={updatePassword.isPending}
-                      className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      <Lock className="h-4 w-4" />
-                      {updatePassword.isPending
-                        ? "Updating..."
-                        : "Update Password"}
-                    </Button>
-                  </div>
-                </form>
+                <SecurityForm />
               </CardContent>
             </Card>
           </TabsContent>

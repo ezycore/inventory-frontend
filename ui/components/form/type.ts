@@ -13,6 +13,7 @@ export type FormFieldType =
   | 'number'
   | 'custom'
   | 'custom-fields'
+  | 'password'
 
 export type ColumnSpan = 1 | 2 | 3 | 4 | 6 | 12
 
