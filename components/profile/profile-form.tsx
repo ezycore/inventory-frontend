@@ -6,12 +6,7 @@ import { DynamicFormConfig } from "@/ui/components/form/type";
 import { User } from "lucide-react";
 
 const profileFormConfig: DynamicFormConfig = {
-  sections: [
-    {
-      title: "Profile Information",
-      description: "Manage your personal details and contact information.",
-      icon: <User className="h-5 w-5 text-blue-600" />,
-      fields: [
+  fields: [
         {
           name: "firstName",
           type: "input",
@@ -47,9 +42,7 @@ const profileFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Enter current password",
         },
-      ],
-    },
-  ],
+      ]
 };
 
 export default function ProfileForm({

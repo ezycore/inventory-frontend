@@ -53,7 +53,6 @@ import SecurityForm from "@/components/profile/security-form";
 import PreferenceForm from "@/components/profile/preference-form";
 
 export default function ProfilePage() {
-
   const { data: permissionsData } = useProfilePermissions();
   const { user, isLoading } = useAuthStore();
 
@@ -103,7 +102,7 @@ export default function ProfilePage() {
               label: "Phone Number",
               columnSpan: 6,
               placeholder: "Enter phone number",
-            }
+            },
           ],
         },
         {
@@ -137,7 +136,6 @@ export default function ProfilePage() {
   };
   const { form, config } = useDynamicForm(profileFormConfig());
 
- 
   const updatePreferences = useUpdatePreferences();
 
   // Reset form with user data when user becomes available
@@ -153,15 +151,12 @@ export default function ProfilePage() {
     }
   }, [user?.id, form]);
 
-
   const [preferencesForm, setPreferencesForm] = useState<{
     theme: "light" | "dark" | "system";
     currency: string;
     timezone: string;
     language: string;
   } | null>(null);
-
- 
 
   const currentPreferencesForm = preferencesForm || {
     theme: user?.preferences?.theme || "system",
@@ -170,12 +165,6 @@ export default function ProfilePage() {
     language: user?.preferences?.language || "en",
   };
 
-  
-
-  
-
- 
-
   const getInitials = () => {
     const userData = user;
     if (userData?.firstName && userData?.lastName) {
@@ -183,7 +172,6 @@ export default function ProfilePage() {
     }
     return "U";
   };
-
 
   // Show loading only if we don't have any user data yet
   if (isLoading && !user) {
@@ -210,7 +198,6 @@ export default function ProfilePage() {
     );
   }
 
-  
   return (
     <div className="container mx-auto p-6 space-y-6 min-h-screen">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -291,7 +278,20 @@ export default function ProfilePage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <ProfileForm user={user} />
+            <Card className="border-2 border-gray-100 dark:border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-blue-600" />
+                  Profile Information
+                </CardTitle>
+                <CardDescription>
+                  Manage your personal details and contact information. 
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProfileForm user={user} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Security Tab */}
