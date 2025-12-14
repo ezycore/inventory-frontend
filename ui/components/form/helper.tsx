@@ -30,6 +30,7 @@ import type {
   FormSection,
 } from "@/ui/components/form/type";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
+import { ImageObject } from "@/types/DataTable";
 
 // Helper function to get grid column classes with responsive breakpoints
 const getColumnClass = (span: ColumnSpan): string => {
@@ -118,24 +119,25 @@ const FormField: React.FC<{
         const files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
         return (
           <div className="space-y-2">
-            {files.map((file: File | string, index: number) => {
-              if (typeof file === "string") {
+            {files.map((file: File | ImageObject, index: number) => {
+              if (typeof file === "string" || (typeof file === "object" && 'original' in file)) {
                 // Display existing URL
+                const fileUrl = typeof file === "string" ? file : file.original.url;
                 return (
                   <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
                     <img
-                      src={file}
+                      src={fileUrl}
                       alt="Uploaded file"
                       className="h-16 w-16 object-cover rounded"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      {/* <p className="text-sm font-medium truncate">
                         {file.split('/').pop() || 'Existing file'}
-                      </p>
+                      </p> */}
                       <p className="text-xs text-muted-foreground">Uploaded</p>
                     </div>
                     <a
-                      href={file}
+                      href={ fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-primary hover:underline"
