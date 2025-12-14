@@ -162,6 +162,7 @@ export default function CategoriesPage() {
           updateMutation: useUpdateCategory(),
           deleteMutation: useDeleteCategory(),
           queryKey: [...queryKeys.category.all()],
+          isViewAvailable: true,
           entityName: "Category",
           prepareSubmitData: (data: Category, isEdit: boolean, item: Category) => ({
             ...data,

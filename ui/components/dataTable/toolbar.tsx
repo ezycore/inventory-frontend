@@ -62,11 +62,11 @@ export function DataTableToolbar<TData>({
   customActions,
 }: DataTableToolbarProps<TData>) {
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
       {/* Search */}
-      <div className="flex items-center gap-4 flex-1">
+      <div className="flex items-center gap-2 sm:gap-4 flex-1">
         {searchConfig?.globalSearch ? (
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder={searchConfig.placeholder || "Search all columns..."}
@@ -86,7 +86,7 @@ export function DataTableToolbar<TData>({
             )}
           </div>
         ) : searchConfig?.searchableColumn ? (
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder={searchConfig.placeholder || "Search..."}
@@ -120,7 +120,7 @@ export function DataTableToolbar<TData>({
       </div>
 
       {/* Right side actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-2 sm:justify-end">
         {/* Bulk Delete Button */}
         {selectable && hasSelection && deletable && (
           <AlertDialog>
@@ -129,6 +129,7 @@ export function DataTableToolbar<TData>({
                 variant="destructive"
                 size="sm"
                 disabled={isDeleting}
+                className="whitespace-nowrap"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete {selectedRowsCount}
@@ -158,7 +159,7 @@ export function DataTableToolbar<TData>({
         {enableColumnVisibility && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="whitespace-nowrap">
               <ChevronDown className="h-4 w-4 mr-2" />
               Columns
             </Button>
@@ -200,7 +201,8 @@ export function DataTableToolbar<TData>({
                 variant={customCreate.variant || "default"}
                 size="sm"
                 onClick={customCreate.onClick ? () => customCreate.onClick?.() : undefined}
-              >
+              className="whitespace-nowrap"
+            >
                 {customCreate.icon}
                 {customCreate.label}
               </Button>
@@ -212,6 +214,7 @@ export function DataTableToolbar<TData>({
               variant={actionButton.variant || "default"}
               size="sm"
               onClick={actionButton.onClick}
+              className="whitespace-nowrap"
             >
               {actionButton.icon}
               {actionButton.label}
@@ -227,7 +230,8 @@ export function DataTableToolbar<TData>({
               variant={action.variant || "default"}
               size="sm"
               onClick={action.onClick ? () => action.onClick?.() : undefined}
-            >
+            className="whitespace-nowrap"
+          >
               {action.icon}
               {action.label}
             </Button>
