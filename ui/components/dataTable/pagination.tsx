@@ -24,49 +24,40 @@ export function DataTablePagination<TData>({
   pagination,
   paginationState,
   onPaginationChange,
-  selectable,
-  selectedRowsCount,
 }: DataTablePaginationProps<TData>) {
   return (
     <div className="flex items-center justify-between px-2">
-      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-        {selectable && (
-          <div>
-            {selectedRowsCount} of {table.getFilteredRowModel().rows.length} row(s) selected
-          </div>
-        )}
+      {/* Page Size Selector - Left Aligned */}
+      <div className="flex items-center gap-2">
+        <span className="hidden sm:inline text-sm text-muted-foreground">Per page</span>
+        <Select
+          value={`${paginationState.pageSize}`}
+          onValueChange={(value) => {
+            onPaginationChange({
+              pageIndex: 0,
+              pageSize: Number(value),
+            });
+          }}
+        >
+          <SelectTrigger className="h-8 w-[70px]">
+            <SelectValue placeholder={paginationState.pageSize} />
+          </SelectTrigger>
+          <SelectContent side="top">
+            {(pagination?.pageSizeOptions || [5, 10, 20, 30, 50, 100]).map((pageSize) => (
+              <SelectItem key={pageSize} value={`${pageSize}`}>
+                {pageSize}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="flex items-center gap-6">
-        {/* Page Size Selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Rows per page</span>
-          <Select
-            value={`${paginationState.pageSize}`}
-            onValueChange={(value) => {
-              onPaginationChange({
-                pageIndex: 0,
-                pageSize: Number(value),
-              });
-            }}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={paginationState.pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {(pagination?.pageSizeOptions || [5, 10, 20, 30, 50, 100]).map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+      {/* Pagination Controls - Right Aligned */}
+      <div className="flex items-center gap-2 sm:gap-6">
         {/* Page Info */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>
-            Page {paginationState.pageIndex + 1} of{" "}
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <span className="whitespace-nowrap">
+            {paginationState.pageIndex + 1} of{" "}
             {pagination?.totalPages || table.getPageCount()}
           </span>
         </div>
