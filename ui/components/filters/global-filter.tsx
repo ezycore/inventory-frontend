@@ -28,7 +28,7 @@ interface GlobalFilterProps {
   trigger?: React.ReactNode;
 }
 
-export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
+export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
   const {
     fields,
     columns = 2,

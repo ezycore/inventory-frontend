@@ -1,9 +1,10 @@
 import React from "react";
 import { LucideIcon, Star } from "lucide-react";
 import { SafeImage } from "@/ui/components/safeImage";
+import { ImageObject } from "@/types/DataTable";
 
 export interface AvatarCellProps {
-  imageUrl?: string | null;
+  imageUrl?: string  | null | ImageObject;
   name: string;
   fallbackIcon?: LucideIcon;
   isActive?: boolean;
@@ -23,12 +24,16 @@ export function AvatarCell({
     ? (isActive ? activeColor : inactiveColor)
     : "";
 
+  const imageSrc = typeof imageUrl === "object"
+    ? imageUrl.thumbnail?.url
+    : imageUrl;
+
   return (
     <div className="flex items-center gap-3">
       {imageUrl ? (
         <div className="relative w-8 h-8 rounded overflow-hidden">
           <SafeImage
-            src={imageUrl}
+            src={imageSrc}
             alt={name}
             fill={true}
             className="object-cover"

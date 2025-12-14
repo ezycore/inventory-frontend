@@ -7,6 +7,24 @@ import { ColumnDef, VisibilityState } from "@tanstack/react-table";
 import { FilterField } from "./filter";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 
+
+export interface ImageObject {
+  thumbnail: {
+    url: string;
+    secureUrl: string;
+    width: number;
+  },
+  medium: {
+    url: string;
+    secureUrl: string;
+    width: number;
+  },
+  original: {
+    url: string;
+    secureUrl: string;
+    width: number;
+  }
+}
 /**
  * Custom action configuration that can override or extend built-in actions
  */
