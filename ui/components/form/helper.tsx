@@ -30,6 +30,7 @@ import type {
   FormSection,
 } from "@/ui/components/form/type";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
+import { ImageObject } from "@/types/DataTable";
 
 // Helper function to get grid column classes with responsive breakpoints
 const getColumnClass = (span: ColumnSpan): string => {
@@ -115,7 +116,20 @@ const FormField: React.FC<{
           return <p className="text-sm text-muted-foreground">No file uploaded</p>;
         }
 
-        const files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+        let files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+        if (files.length) {
+          const modifiedFiles = (files as unknown as (File | ImageObject)[]).map(file => {
+            if (typeof file === "string") {
+              return file; // existing URL
+            } else if (file instanceof File) {
+              return file; // new File object
+            } else if ( typeof file === "object" && file.original && file.original.url) {
+              return file.original.url; // existing file object with URL
+            }
+          });
+          files = modifiedFiles;
+        }
+        
         return (
           <div className="space-y-2">
             {files.map((file: File | string, index: number) => {
@@ -364,7 +378,19 @@ const FormField: React.FC<{
                 required: field.required ? `${field.label} is required` : false,
               }}
               render={({ field: controllerField }) => {
-                const files: (File | string)[] = controllerField.value || [];
+                let files: (File | string)[] = controllerField.value || [];
+                if(Array.isArray(files) && files.length) {
+                  const modifiedFiles = (files as unknown as (File | ImageObject)[]).map(file => {
+                    if (typeof file === "string") {
+                      return file; // existing URL
+                    } else if (file instanceof File) {
+                      return file; // new File object
+                    } else if ( typeof file === "object" && file.original && file.original.url) {
+                      return file.original.url; // existing file object with URL
+                    }
+                  });
+                  files = modifiedFiles;
+                }
                 const acceptedTypes = field.accept || "*";
                 const maxFiles = field.maxFiles || 1;
                 const maxSize = field.maxSize || 5 * 1024 * 1024; // 5MB default
