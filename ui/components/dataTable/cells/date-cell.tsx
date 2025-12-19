@@ -15,11 +15,11 @@ export function DateCell({
   const dateFormat = useSettingsStore((state) => state.dateFormat);
   const timezone = useSettingsStore((state) => state.timezone);
   const timeFormat = useSettingsStore((state) => state.timeFormat);
-  const date = parseISO(
+  const date = value && parseISO(
     typeof value === "string" ? value : value.toISOString()
   );
   
-  const formatted = formatInTimeZone(
+  const formatted = date && formatInTimeZone(
   date, 
   timezone, 
   isShowDateOnly ? dateFormat : `${dateFormat}, ${timeFormat}`
