@@ -58,6 +58,24 @@ export {
   useDeleteBrand,
 } from './use-brands'
 
+// Store hooks
+export {
+  useStores,
+  useStore,
+  useCreateStore,
+  useUpdateStore,
+  useDeleteStore,
+} from './use-stores'
+
+// Warehouse hooks
+export {
+  useWarehouses,
+  useWarehouse,
+  useCreateWarehouse,
+  useUpdateWarehouse,
+  useDeleteWarehouse,
+} from './use-warehouses'
+
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {
   useVariantAttributes,
@@ -73,4 +91,4 @@ export {
 } from './use-dashboard'
 
 
-export { useSelectOptions} from './use-select-options'
+export { useSelectOptions } from './use-select-options'
