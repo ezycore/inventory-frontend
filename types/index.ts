@@ -115,6 +115,44 @@ export interface CreateWarehouseDto {
 
 export interface UpdateWarehouseDto extends Partial<CreateWarehouseDto> { }
 
+// Customer interfaces
+export interface Customer extends BaseEntity {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateCustomerDto {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateCustomerDto extends Partial<CreateCustomerDto> { }
+
+// Supplier interfaces
+export interface Supplier extends BaseEntity {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateSupplierDto {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateSupplierDto extends Partial<CreateSupplierDto> { }
+
 // Variant Attribute interfaces
 export interface VariantAttribute extends BaseEntity {
   name: string

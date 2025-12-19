@@ -43,7 +43,7 @@ export const navItems: NavItem[] = [
   // SALES
   {
     title: 'Sales',
-    url: '/dashboard/sales',
+    url: '/sales',
     icon: 'shopping-cart',
     isActive: false,
     items: [
@@ -57,14 +57,14 @@ export const navItems: NavItem[] = [
   // PURCHASES
   {
     title: 'Purchases',
-    url: '/dashboard/purchases',
+    url: '/purchases',
     icon: 'shopping-bag',
     isActive: false,
     items: [
-      { title: 'New Purchase', url: '/dashboard/purchases/new', icon: 'plus' },
-      { title: 'Purchase Orders', url: '/dashboard/purchases/orders', icon: 'file-text' },
-      { title: 'Purchase Returns', url: '/dashboard/purchases/returns', icon: 'corner-down-left' },
-      { title: 'Suppliers', url: '/dashboard/purchases/suppliers', icon: 'truck' }
+      { title: 'New Purchase', url: '/purchases/new', icon: 'plus' },
+      { title: 'Purchase Orders', url: '/purchases/orders', icon: 'file-text' },
+      { title: 'Purchase Returns', url: '/purchases/returns', icon: 'corner-down-left' },
+      { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
     ]
   },
 

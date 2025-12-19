@@ -76,6 +76,24 @@ export {
   useDeleteWarehouse,
 } from './use-warehouses'
 
+// Customers (Sales)
+export {
+  useCustomers,
+  useCustomer,
+  useCreateCustomer,
+  useUpdateCustomer,
+  useDeleteCustomer,
+} from './use-customers'
+
+// Suppliers (Purchases)
+export {
+  useSuppliers,
+  useSupplier,
+  useCreateSupplier,
+  useUpdateSupplier,
+  useDeleteSupplier,
+} from './use-suppliers'
+
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {
   useVariantAttributes,
