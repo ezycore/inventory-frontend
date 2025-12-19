@@ -71,14 +71,26 @@ export const navItems: NavItem[] = [
   // WAREHOUSES
   {
     title: 'Warehouses',
-    url: '/dashboard/warehouses',
+    url: '/warehouses',
     icon: 'box',
     isActive: false,
     items: [
-      { title: 'Add Warehouse', url: '/dashboard/warehouses/add', icon: 'plus' },
-      { title: 'View All Warehouses', url: '/dashboard/warehouses/list', icon: 'list' },
-      { title: 'Warehouse Stock Report', url: '/dashboard/warehouses/stock-report', icon: 'bar-chart-2' },
-      { title: 'Transfer Requests', url: '/dashboard/warehouses/transfer-requests', icon: 'truck' }
+      { title: 'View All Warehouses', url: '/warehouses', icon: 'list' },
+      { title: 'Warehouse Stock Report', url: '/warehouses/stock-report', icon: 'bar-chart-2' },
+      { title: 'Transfer Requests', url: '/warehouses/transfer-requests', icon: 'truck' }
+    ]
+  },
+
+  //stores
+  {
+    title: 'Stores',
+    url: '/stores',
+    icon: 'shopping-bag',
+    isActive: false,
+    items: [
+      { title: 'View All Stores', url: '/stores', icon: 'list' },
+      { title: 'Store Stock Report', url: '/stores/stock-report', icon: 'bar-chart-2' },
+      { title: 'Store Transfer Requests', url: '/stores/transfer-requests', icon: 'truck' }
     ]
   },
 

@@ -87,7 +87,7 @@ const categoryFormConfig: DynamicFormConfig = {
 const categoryFilterConfig: FilterConfig = {
   fields: [
     {
-      name: "category",
+      name: "name",
       label: "Search category",
       type: "text",
       placeholder: "Search by category name...",

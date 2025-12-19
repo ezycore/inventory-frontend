@@ -119,7 +119,7 @@ export function FilterFieldRenderer({
         return (
           <DatePicker
             date={value ? new Date(value) : null}
-            onSelect={(date) => onChange(date ? date.toISOString() : undefined)}
+            onSelect={(date) => onChange(date ? date.toLocaleDateString('en-CA') : undefined)}
             placeholder={field.placeholder || 'Select date'}
           />
         );
@@ -139,8 +139,8 @@ export function FilterFieldRenderer({
               onChange(
                 range?.from || range?.to
                   ? {
-                      from: range.from?.toISOString(),
-                      to: range.to?.toISOString(),
+                      from: range.from?.toLocaleDateString('en-CA'),
+                      to: range.to?.toLocaleDateString('en-CA'),
                     }
                   : undefined
               )

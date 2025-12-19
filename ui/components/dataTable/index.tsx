@@ -100,9 +100,9 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     return <ErrorBoundaryFallback error={error} onRetry={refetch}/>
   }
 
-  if((!data || data.length === 0) && !isLoading){
-    return <div className="p-6 text-center text-gray-500">No data available.</div>
-  }
+  // if((!data || data.length === 0) && !isLoading){
+  //   return <div className="p-6 text-center text-gray-500">No data available.</div>
+  // }
 
   // Prepare submit data
   const readyDataForSubmit = (data: any) => {
