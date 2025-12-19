@@ -207,7 +207,6 @@ export const brandsApi = {
     filters: {
       page?: number;
       limit?: number;
-      search?: string;
       status?: "active" | "inactive";
       [key: string]: any; // Allow dynamic filter fields
     } = {}
@@ -240,6 +239,78 @@ export const brandsApi = {
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/brands/${id}`),
+};
+
+// Stores API
+export const storesApi = {
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      status?: "active" | "inactive";
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/stores?${params.toString()}`);
+  },
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/stores/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stores", data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/stores/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/stores/${id}`),
+};
+
+// Warehouses API
+export const warehousesApi = {
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      status?: "active" | "inactive";
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/warehouses?${params.toString()}`);
+  },
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/warehouses/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/warehouses", data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/warehouses/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/warehouses/${id}`),
 };
 
 // Stock Management API
