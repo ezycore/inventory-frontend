@@ -207,7 +207,6 @@ export const brandsApi = {
     filters: {
       page?: number;
       limit?: number;
-      search?: string;
       status?: "active" | "inactive";
       [key: string]: any; // Allow dynamic filter fields
     } = {}
@@ -240,6 +239,80 @@ export const brandsApi = {
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/brands/${id}`),
+};
+
+// Locations API (unified stores & warehouses)
+export const locationsApi = {
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      status?: "active" | "inactive";
+      location_type?: string;
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/locations?${params.toString()}`);
+  },
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/locations/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/locations", data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/locations/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/locations/${id}`),
+};
+
+
+// Customers API (Sales)
+export const customersApi = {
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      status?: "active" | "inactive";
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/sales/customers${params.toString() ? `?${params.toString()}` : ''}`);
+  },
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/sales/customers/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post(`/sales/customers`, data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/sales/customers/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/sales/customers/${id}`),
 };
 
 // Stock Management API
@@ -311,13 +384,40 @@ export const inventoryApi = {
     }),
 };
 
-// Suppliers API (placeholder for future implementation)
+// Suppliers API (Purchases)
 export const suppliersApi = {
-  getAll: () => Promise.resolve([]),
-  getById: (id: string) => Promise.resolve(null),
-  create: (data: any) => Promise.resolve(null),
-  update: (id: string, data: any) => Promise.resolve(null),
-  delete: (id: string) => Promise.resolve(null),
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      status?: "active" | "inactive";
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'object') {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/purchases/suppliers${params.toString() ? `?${params.toString()}` : ''}`);
+  },
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/purchases/suppliers/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post(`/purchases/suppliers`, data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/purchases/suppliers/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/purchases/suppliers/${id}`),
 };
 
 // Users API (placeholder for future implementation)

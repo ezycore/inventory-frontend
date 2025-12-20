@@ -61,6 +61,29 @@ export interface Brand extends BaseEntity {
   status: 'active' | 'inactive'
 }
 
+// Location interfaces (unified for stores and warehouses)
+export interface Location extends BaseEntity {
+  name: string
+  location_type: 'store' | 'warehouse'
+  address: string
+  manager: string
+  contact_number?: string
+  email?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateLocationDto {
+  name: string
+  location_type: 'store' | 'warehouse'
+  address: string
+  manager: string
+  contact_number?: string
+  email?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateLocationDto extends Partial<CreateLocationDto> { }
+
 export interface CreateBrandDto {
   name: string
   slug?: string
@@ -72,6 +95,45 @@ export interface CreateBrandDto {
 }
 
 export interface UpdateBrandDto extends Partial<CreateBrandDto> { }
+
+
+// Customer interfaces
+export interface Customer extends BaseEntity {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateCustomerDto {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateCustomerDto extends Partial<CreateCustomerDto> { }
+
+// Supplier interfaces
+export interface Supplier extends BaseEntity {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateSupplierDto {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateSupplierDto extends Partial<CreateSupplierDto> { }
 
 // Variant Attribute interfaces
 export interface VariantAttribute extends BaseEntity {

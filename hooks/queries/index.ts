@@ -58,6 +58,34 @@ export {
   useDeleteBrand,
 } from './use-brands'
 
+
+// Customers (Sales)
+export {
+  useCustomers,
+  useCustomer,
+  useCreateCustomer,
+  useUpdateCustomer,
+  useDeleteCustomer,
+} from './use-customers'
+
+// Suppliers (Purchases)
+export {
+  useSuppliers,
+  useSupplier,
+  useCreateSupplier,
+  useUpdateSupplier,
+  useDeleteSupplier,
+} from './use-suppliers'
+
+// Locations hooks
+export {
+  useLocations,
+  useLocation,
+  useCreateLocation,
+  useUpdateLocation,
+  useDeleteLocation,
+} from './use-locations'
+
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {
   useVariantAttributes,
@@ -73,4 +101,4 @@ export {
 } from './use-dashboard'
 
 
-export { useSelectOptions} from './use-select-options'
+export { useSelectOptions } from './use-select-options'

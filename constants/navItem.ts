@@ -43,7 +43,7 @@ export const navItems: NavItem[] = [
   // SALES
   {
     title: 'Sales',
-    url: '/dashboard/sales',
+    url: '/sales',
     icon: 'shopping-cart',
     isActive: false,
     items: [
@@ -57,30 +57,31 @@ export const navItems: NavItem[] = [
   // PURCHASES
   {
     title: 'Purchases',
-    url: '/dashboard/purchases',
+    url: '/purchases',
     icon: 'shopping-bag',
     isActive: false,
     items: [
-      { title: 'New Purchase', url: '/dashboard/purchases/new', icon: 'plus' },
-      { title: 'Purchase Orders', url: '/dashboard/purchases/orders', icon: 'file-text' },
-      { title: 'Purchase Returns', url: '/dashboard/purchases/returns', icon: 'corner-down-left' },
-      { title: 'Suppliers', url: '/dashboard/purchases/suppliers', icon: 'truck' }
+      { title: 'New Purchase', url: '/purchases/new', icon: 'plus' },
+      { title: 'Purchase Orders', url: '/purchases/orders', icon: 'file-text' },
+      { title: 'Purchase Returns', url: '/purchases/returns', icon: 'corner-down-left' },
+      { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
     ]
   },
 
   // WAREHOUSES
   {
-    title: 'Warehouses',
-    url: '/dashboard/warehouses',
+    title: 'Locations',
+    url: '/locations',
     icon: 'box',
     isActive: false,
     items: [
-      { title: 'Add Warehouse', url: '/dashboard/warehouses/add', icon: 'plus' },
-      { title: 'View All Warehouses', url: '/dashboard/warehouses/list', icon: 'list' },
-      { title: 'Warehouse Stock Report', url: '/dashboard/warehouses/stock-report', icon: 'bar-chart-2' },
-      { title: 'Transfer Requests', url: '/dashboard/warehouses/transfer-requests', icon: 'truck' }
+      { title: 'View All Locations', url: '/locations', icon: 'list' },
+      { title: 'Location Stock Report', url: '/locations/stock-report', icon: 'bar-chart-2' },
+      { title: 'Transfer Requests', url: '/locations/transfer-requests', icon: 'truck' }
     ]
   },
+
+
 
   // REPORTS
   {

@@ -103,7 +103,7 @@ const brandFormConfig: DynamicFormConfig = {
 const brandFilterConfig: FilterConfig = {
   fields: [
     {
-      name: "brand",
+      name: "name",
       label: "Search brand",
       type: "text",
       placeholder: "Search by brand...",
