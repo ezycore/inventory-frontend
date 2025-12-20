@@ -58,23 +58,6 @@ export {
   useDeleteBrand,
 } from './use-brands'
 
-// Store hooks
-export {
-  useStores,
-  useStore,
-  useCreateStore,
-  useUpdateStore,
-  useDeleteStore,
-} from './use-stores'
-
-// Warehouse hooks
-export {
-  useWarehouses,
-  useWarehouse,
-  useCreateWarehouse,
-  useUpdateWarehouse,
-  useDeleteWarehouse,
-} from './use-warehouses'
 
 // Customers (Sales)
 export {
