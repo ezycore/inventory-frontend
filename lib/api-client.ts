@@ -241,13 +241,14 @@ export const brandsApi = {
     apiClient.delete(`/brands/${id}`),
 };
 
-// Stores API
-export const storesApi = {
+// Locations API (unified stores & warehouses)
+export const locationsApi = {
   getAll: (
     filters: {
       page?: number;
       limit?: number;
       status?: "active" | "inactive";
+      location_type?: string;
       [key: string]: any;
     } = {}
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
@@ -261,57 +262,22 @@ export const storesApi = {
         }
       }
     });
-    return apiClient.get(`/stores?${params.toString()}`);
+    return apiClient.get(`/locations?${params.toString()}`);
   },
 
   getById: (id: string): Promise<ApiResponse<any>> =>
-    apiClient.get(`/stores/${id}`),
+    apiClient.get(`/locations/${id}`),
 
   create: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/stores", data),
+    apiClient.post("/locations", data),
 
   update: (id: string, data: any): Promise<ApiResponse<any>> =>
-    apiClient.put(`/stores/${id}`, data),
+    apiClient.put(`/locations/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/stores/${id}`),
+    apiClient.delete(`/locations/${id}`),
 };
 
-// Warehouses API
-export const warehousesApi = {
-  getAll: (
-    filters: {
-      page?: number;
-      limit?: number;
-      status?: "active" | "inactive";
-      [key: string]: any;
-    } = {}
-  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        if (typeof value === 'object') {
-          params.append(key, JSON.stringify(value));
-        } else {
-          params.append(key, String(value));
-        }
-      }
-    });
-    return apiClient.get(`/warehouses?${params.toString()}`);
-  },
-
-  getById: (id: string): Promise<ApiResponse<any>> =>
-    apiClient.get(`/warehouses/${id}`),
-
-  create: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/warehouses", data),
-
-  update: (id: string, data: any): Promise<ApiResponse<any>> =>
-    apiClient.put(`/warehouses/${id}`, data),
-
-  delete: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/warehouses/${id}`),
-};
 
 // Customers API (Sales)
 export const customersApi = {

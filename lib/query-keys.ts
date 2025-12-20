@@ -34,19 +34,13 @@ export const queryKeys = {
     bySlug: (slug: string) => ['brands', 'slug', slug] as const,
   },
 
-  // Stores
-  stores: {
-    all: () => ['stores'] as const,
-    list: (filters?: any) => ['stores', 'list', filters] as const,
-    detail: (id: string) => ['stores', 'detail', id] as const,
+  // Locations (unified for stores & warehouses)
+  locations: {
+    all: () => ['locations'] as const,
+    list: (filters?: any) => ['locations', 'list', filters] as const,
+    detail: (id: string) => ['locations', 'detail', id] as const,
   },
 
-  // Warehouses
-  warehouses: {
-    all: () => ['warehouses'] as const,
-    list: (filters?: any) => ['warehouses', 'list', filters] as const,
-    detail: (id: string) => ['warehouses', 'detail', id] as const,
-  },
 
   // Customers (Sales)
   customers: {

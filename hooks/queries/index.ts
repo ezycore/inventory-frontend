@@ -58,23 +58,6 @@ export {
   useDeleteBrand,
 } from './use-brands'
 
-// Store hooks
-export {
-  useStores,
-  useStore,
-  useCreateStore,
-  useUpdateStore,
-  useDeleteStore,
-} from './use-stores'
-
-// Warehouse hooks
-export {
-  useWarehouses,
-  useWarehouse,
-  useCreateWarehouse,
-  useUpdateWarehouse,
-  useDeleteWarehouse,
-} from './use-warehouses'
 
 // Customers (Sales)
 export {
@@ -93,6 +76,15 @@ export {
   useUpdateSupplier,
   useDeleteSupplier,
 } from './use-suppliers'
+
+// Locations hooks
+export {
+  useLocations,
+  useLocation,
+  useCreateLocation,
+  useUpdateLocation,
+  useDeleteLocation,
+} from './use-locations'
 
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {
