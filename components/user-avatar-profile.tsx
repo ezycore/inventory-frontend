@@ -7,7 +7,7 @@ interface UserAvatarProfileProps {
     imageUrl?: string;
     firstName?: string | null;
     lastName?: string | null;
-    emailAddresses: Array<{ emailAddress: string }>;
+    email: string;
   } | null;
 }
 
@@ -16,6 +16,7 @@ export function UserAvatarProfile({
   showInfo = false,
   user
 }: UserAvatarProfileProps) {
+  console.log('UserAvatarProfile user:', user);
   return (
     <div className='flex items-center gap-2'>
       <Avatar className={className}>
@@ -29,7 +30,7 @@ export function UserAvatarProfile({
         <div className='grid flex-1 text-left text-sm leading-tight'>
           <span className='truncate font-semibold'>{`${user?.firstName || ''} ${user?.lastName || ''}`.trim() || ''}</span>
           <span className='truncate text-xs'>
-            {user?.emailAddresses?.[0]?.emailAddress || 'test'}
+            {user?.email || 'test'}
           </span>
         </div>
       )}

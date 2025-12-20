@@ -60,11 +60,8 @@ export default function AppSidebar() {
   const { isOpen } = useMediaQuery();
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
-  const user = {
-    firstName: 'John',
-    lastName: 'Doe',
-    emailAddresses: [{ emailAddress: 'john@example.com' }]
-  }
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const handleSwitchTenant = (_tenantId: string) => {
     // Tenant switching functionality would be implemented here
   };
@@ -137,25 +134,24 @@ export default function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size='lg'
-                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-                >
-                  {user && (
+      {isAuthenticated && user && (
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton
+                    size='lg'
+                    className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                  >
                     <UserAvatarProfile
                       className='h-8 w-8 rounded-lg'
                       showInfo
                       user={user}
                     />
-                  )}
-                  <ChevronDownIcon className='ml-auto size-4' />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
+                    <ChevronDownIcon className='ml-auto size-4' />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
               <DropdownMenuContent
                 className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
                 side='bottom'
@@ -205,7 +201,8 @@ export default function AppSidebar() {
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+        </SidebarFooter>
+      )}
       <SidebarRail />
     </Sidebar>
   );
