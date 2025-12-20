@@ -30,6 +30,7 @@ import type {
   FormSection,
 } from "@/ui/components/form/type";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
+import { Password } from "../input-password";
 import { ImageObject } from "@/types/DataTable";
 
 // Helper function to get grid column classes with responsive breakpoints
@@ -245,6 +246,29 @@ const FormField: React.FC<{
                   placeholder={field.placeholder}
                   disabled={field.disabled}
                   rows={field.rows || 3}
+                  onChange={(e) => {
+                    controllerField.onChange(e.target.value);
+                    handleChange(e.target.value);
+                  }}
+                  className={cn("w-full", error ? "border-red-500" : "")}
+                />
+              )}
+            />
+          );
+
+        case "password":
+          return(
+            <Controller
+              name={field.name}
+              control={control}
+              render={({ field: controllerField })=>(
+                <Password
+                  {...controllerField}
+                  type={"password"}
+                  placeholder={field.placeholder}
+                  disabled={field.disabled}
+                  min={field.validation?.min}
+                  max={field.validation?.max}
                   onChange={(e) => {
                     controllerField.onChange(e.target.value);
                     handleChange(e.target.value);

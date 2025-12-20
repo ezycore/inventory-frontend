@@ -44,17 +44,15 @@ import {
   useUpdatePreferences,
   useProfilePermissions,
 } from "@/hooks/queries/use-profile";
-import { toast } from "sonner";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
+import ProfileForm from "@/components/profile/profile-form";
+import SecurityForm from "@/components/profile/security-form";
+import PreferenceForm from "@/components/profile/preference-form";
 
 export default function ProfilePage() {
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const { data: permissionsData } = useProfilePermissions();
   const { user, isLoading } = useAuthStore();
 
@@ -99,11 +97,11 @@ export default function ProfilePage() {
               placeholder: "Enter email",
             },
             {
-              name: "password",
+              name: "phone",
               type: "input",
-              label: "Password",
+              label: "Phone Number",
               columnSpan: 6,
-              placeholder: "Enter password",
+              placeholder: "Enter phone number",
             },
           ],
         },
@@ -138,11 +136,6 @@ export default function ProfilePage() {
   };
   const { form, config } = useDynamicForm(profileFormConfig());
 
-  console.log("Form state:", form);
-
-  // Mutations
-  const updateProfile = useUpdateProfile();
-  const updatePassword = useUpdatePassword();
   const updatePreferences = useUpdatePreferences();
 
   // Reset form with user data when user becomes available
@@ -158,20 +151,6 @@ export default function ProfilePage() {
     }
   }, [user?.id, form]);
 
-  // Form states - directly use user data or track if edited
-  const [profileForm, setProfileForm] = useState<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  } | null>(null);
-
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
   const [preferencesForm, setPreferencesForm] = useState<{
     theme: "light" | "dark" | "system";
     currency: string;
@@ -179,52 +158,11 @@ export default function ProfilePage() {
     language: string;
   } | null>(null);
 
- 
-
   const currentPreferencesForm = preferencesForm || {
     theme: user?.preferences?.theme || "system",
     currency: user?.preferences?.currency || "USD",
     timezone: user?.preferences?.timezone || "UTC",
     language: user?.preferences?.language || "en",
-  };
-
-  const handleProfileSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-
-    updatePassword.mutate(
-      {
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-      },
-      {
-        onSuccess: () => {
-          setPasswordForm({
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: "",
-          });
-        },
-      }
-    );
-  };
-
-  const handlePreferencesSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updatePreferences.mutate({ preferences: currentPreferencesForm });
   };
 
   const getInitials = () => {
@@ -234,8 +172,6 @@ export default function ProfilePage() {
     }
     return "U";
   };
-
-  const submitLabel = "Save Changes";
 
   // Show loading only if we don't have any user data yet
   if (isLoading && !user) {
@@ -261,10 +197,7 @@ export default function ProfilePage() {
       </div>
     );
   }
-  const handleFieldChange = (fieldName: string, value: any) => {
-    console.log(`Field changed: ${fieldName} =`, value);
-  };
-  
+
   return (
     <div className="container mx-auto p-6 space-y-6 min-h-screen">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -345,26 +278,20 @@ export default function ProfilePage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <DynamicForm
-                  id="profile-form"
-                  className="space-y-6"
-                  config={config}
-                  form={form}
-                  onFieldChange={handleFieldChange}
-                  // Form actions props
-                  cancelLabel="Cancel"
-                  viewMode={true}
-                  submitLabel={submitLabel}
-                  // onCancel={() => onCancel ? onCancel() : router.back()}
-
-                  // Content loading for edit mode
-                  // contentLoading={mode === 'edit' && productLoading}
-
-                  // Mutation hook
-                  // mutationHook={mode === 'create' ? createProduct : updateProduct}
-                  onSuccess={handleProfileSubmit}
-                  // onFailed={handleActionError}
-                />
+            <Card className="border-2 border-gray-100 dark:border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-blue-600" />
+                  Profile Information
+                </CardTitle>
+                <CardDescription>
+                  Manage your personal details and contact information. 
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProfileForm user={user} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Security Tab */}
@@ -380,163 +307,7 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="currentPassword"
-                      className="flex items-center gap-1.5"
-                    >
-                      Current Password
-                      <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        type={showCurrentPassword ? "text" : "password"}
-                        value={passwordForm.currentPassword}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            currentPassword: e.target.value,
-                          })
-                        }
-                        placeholder="Enter your current password"
-                        className="h-11 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowCurrentPassword(!showCurrentPassword)
-                        }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="newPassword"
-                        className="flex items-center gap-1.5"
-                      >
-                        New Password
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="newPassword"
-                          type={showNewPassword ? "text" : "password"}
-                          value={passwordForm.newPassword}
-                          onChange={(e) =>
-                            setPasswordForm({
-                              ...passwordForm,
-                              newPassword: e.target.value,
-                            })
-                          }
-                          placeholder="Enter new password (min 6 chars)"
-                          className="h-11 pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showNewPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="confirmPassword"
-                        className="flex items-center gap-1.5"
-                      >
-                        Confirm Password
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          value={passwordForm.confirmPassword}
-                          onChange={(e) =>
-                            setPasswordForm({
-                              ...passwordForm,
-                              confirmPassword: e.target.value,
-                            })
-                          }
-                          placeholder="Confirm your new password"
-                          className="h-11 pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowConfirmPassword(!showConfirmPassword)
-                          }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100 mb-2">
-                      Password Requirements:
-                    </h4>
-                    <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
-                      <li>Minimum 6 characters long</li>
-                      <li>
-                        Contains uppercase and lowercase letters (recommended)
-                      </li>
-                      <li>Includes at least one number (recommended)</li>
-                      <li>Uses special characters (recommended)</li>
-                    </ul>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-3 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setPasswordForm({
-                          currentPassword: "",
-                          newPassword: "",
-                          confirmPassword: "",
-                        });
-                      }}
-                      className="gap-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Clear
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={updatePassword.isPending}
-                      className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      <Lock className="h-4 w-4" />
-                      {updatePassword.isPending
-                        ? "Updating..."
-                        : "Update Password"}
-                    </Button>
-                  </div>
-                </form>
+                <SecurityForm user={user} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -637,175 +408,7 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handlePreferencesSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="theme"
-                        className="flex items-center gap-1.5"
-                      >
-                        Theme
-                      </Label>
-                      <Select
-                        value={currentPreferencesForm.theme}
-                        onValueChange={(value: "light" | "dark" | "system") =>
-                          setPreferencesForm({
-                            ...currentPreferencesForm,
-                            theme: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="light">Light</SelectItem>
-                          <SelectItem value="dark">Dark</SelectItem>
-                          <SelectItem value="system">System</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="currency"
-                        className="flex items-center gap-1.5"
-                      >
-                        Currency
-                      </Label>
-                      <Select
-                        value={currentPreferencesForm.currency}
-                        onValueChange={(value) =>
-                          setPreferencesForm({
-                            ...currentPreferencesForm,
-                            currency: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USD">USD ($)</SelectItem>
-                          <SelectItem value="EUR">EUR (€)</SelectItem>
-                          <SelectItem value="GBP">GBP (£)</SelectItem>
-                          <SelectItem value="INR">INR (₹)</SelectItem>
-                          <SelectItem value="JPY">JPY (¥)</SelectItem>
-                          <SelectItem value="AUD">AUD (A$)</SelectItem>
-                          <SelectItem value="CAD">CAD (C$)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="timezone"
-                        className="flex items-center gap-1.5"
-                      >
-                        <Globe className="h-4 w-4" />
-                        Timezone
-                      </Label>
-                      <Select
-                        value={currentPreferencesForm.timezone}
-                        onValueChange={(value) =>
-                          setPreferencesForm({
-                            ...currentPreferencesForm,
-                            timezone: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="UTC">UTC (GMT+0)</SelectItem>
-                          <SelectItem value="America/New_York">
-                            EST (GMT-5)
-                          </SelectItem>
-                          <SelectItem value="America/Chicago">
-                            CST (GMT-6)
-                          </SelectItem>
-                          <SelectItem value="America/Denver">
-                            MST (GMT-7)
-                          </SelectItem>
-                          <SelectItem value="America/Los_Angeles">
-                            PST (GMT-8)
-                          </SelectItem>
-                          <SelectItem value="Europe/London">
-                            London (GMT+0)
-                          </SelectItem>
-                          <SelectItem value="Europe/Paris">
-                            Paris (GMT+1)
-                          </SelectItem>
-                          <SelectItem value="Asia/Tokyo">
-                            Tokyo (GMT+9)
-                          </SelectItem>
-                          <SelectItem value="Asia/Kolkata">
-                            India (GMT+5:30)
-                          </SelectItem>
-                          <SelectItem value="Australia/Sydney">
-                            Sydney (GMT+10)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="language"
-                        className="flex items-center gap-1.5"
-                      >
-                        Language
-                      </Label>
-                      <Select
-                        value={currentPreferencesForm.language}
-                        onValueChange={(value) =>
-                          setPreferencesForm({
-                            ...currentPreferencesForm,
-                            language: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Spanish</SelectItem>
-                          <SelectItem value="fr">French</SelectItem>
-                          <SelectItem value="de">German</SelectItem>
-                          <SelectItem value="it">Italian</SelectItem>
-                          <SelectItem value="pt">Portuguese</SelectItem>
-                          <SelectItem value="ja">Japanese</SelectItem>
-                          <SelectItem value="zh">Chinese</SelectItem>
-                          <SelectItem value="hi">Hindi</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-3 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setPreferencesForm(null)}
-                      className="gap-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Reset
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={updatePreferences.isPending}
-                      className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      <Save className="h-4 w-4" />
-                      {updatePreferences.isPending
-                        ? "Saving..."
-                        : "Save Preferences"}
-                    </Button>
-                  </div>
-                </form>
+                <PreferenceForm user={user} />
               </CardContent>
             </Card>
           </TabsContent>
