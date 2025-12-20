@@ -34,6 +34,13 @@ export const queryKeys = {
     bySlug: (slug: string) => ['brands', 'slug', slug] as const,
   },
 
+  // Locations (unified for stores & warehouses)
+  locations: {
+    all: () => ['locations'] as const,
+    list: (filters?: any) => ['locations', 'list', filters] as const,
+    detail: (id: string) => ['locations', 'detail', id] as const,
+  },
+
 
   // Customers (Sales)
   customers: {

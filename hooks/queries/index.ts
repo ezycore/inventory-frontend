@@ -77,6 +77,15 @@ export {
   useDeleteSupplier,
 } from './use-suppliers'
 
+// Locations hooks
+export {
+  useLocations,
+  useLocation,
+  useCreateLocation,
+  useUpdateLocation,
+  useDeleteLocation,
+} from './use-locations'
+
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {
   useVariantAttributes,
