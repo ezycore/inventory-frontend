@@ -53,11 +53,13 @@ export const company = {
 };
 import { DynamicIcon } from 'lucide-react/dynamic';
 import { navItems } from '@/constants/navItem';
+import { useAuthStore } from '@/stores/use-auth-store';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
   const router = useRouter();
+  const logout = useAuthStore((state) => state.logout);
   const user = {
     firstName: 'John',
     lastName: 'Doe',
@@ -190,7 +192,12 @@ export default function AppSidebar() {
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={async () => {
+                    await logout();
+                    router.push('/login');
+                  }}
+                >
                   <LogOutIcon className='mr-2 h-4 w-4' />
                   Logout
                 </DropdownMenuItem>
