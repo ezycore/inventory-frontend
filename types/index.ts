@@ -48,7 +48,7 @@ export interface CreateCategoryDto {
   status?: 'active' | 'inactive'
 }
 
-export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {}
+export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
 
 // Brand interfaces
 export interface Brand extends BaseEntity {
@@ -56,6 +56,7 @@ export interface Brand extends BaseEntity {
   slug: string
   description?: string
   logo_url?: string
+  logo_public_id?: string
   website?: string
   status: 'active' | 'inactive'
 }
@@ -65,11 +66,142 @@ export interface CreateBrandDto {
   slug?: string
   description?: string
   logo_url?: string
+  logo_public_id?: string
   website?: string
   status?: 'active' | 'inactive'
 }
 
-export interface UpdateBrandDto extends Partial<CreateBrandDto> {}
+export interface UpdateBrandDto extends Partial<CreateBrandDto> { }
+
+// Store interfaces
+export interface Store extends BaseEntity {
+  name: string
+  location: string
+  manager: string
+  contact_number?: string
+  email?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateStoreDto {
+  name: string
+  location: string
+  manager: string
+  contact_number?: string
+  email?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateStoreDto extends Partial<CreateStoreDto> { }
+
+// Warehouse interfaces
+export interface Warehouse extends BaseEntity {
+  name: string
+  location: string
+  manager: string
+  contact_number?: string
+  email?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateWarehouseDto {
+  name: string
+  location: string
+  manager: string
+  contact_number?: string
+  email?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateWarehouseDto extends Partial<CreateWarehouseDto> { }
+
+// Customer interfaces
+export interface Customer extends BaseEntity {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateCustomerDto {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateCustomerDto extends Partial<CreateCustomerDto> { }
+
+// Supplier interfaces
+export interface Supplier extends BaseEntity {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status: 'active' | 'inactive'
+}
+
+export interface CreateSupplierDto {
+  name: string
+  email?: string
+  phone?: string
+  address?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateSupplierDto extends Partial<CreateSupplierDto> { }
+
+// Variant Attribute interfaces
+export interface VariantAttribute extends BaseEntity {
+  name: string
+  values: string[]
+  status: 'active' | 'inactive'
+}
+
+export interface CreateVariantAttributeDto {
+  name: string
+  values: string[]
+  status?: 'active' | 'inactive'
+}
+
+export interface UpdateVariantAttributeDto extends Partial<CreateVariantAttributeDto> { }
+
+// Custom field types
+export enum CustomFieldType {
+  TEXT = 'text',
+  NUMBER = 'number',
+  EMAIL = 'email',
+  URL = 'url',
+  DATE = 'date',
+  TEXTAREA = 'textarea',
+  SELECT = 'select',
+  CHECKBOX = 'checkbox',
+  RADIO = 'radio'
+}
+
+export interface CustomFieldOption {
+  label: string
+  value: string
+}
+
+export interface CustomField {
+  id: string
+  label: string
+  type: CustomFieldType
+  value: string | number | boolean | string[]
+  required: boolean
+  placeholder?: string
+  options?: CustomFieldOption[]
+  columnSpan?: 6 | 12
+  validation?: {
+    min?: number
+    max?: number
+    pattern?: string
+    message?: string
+  }
+}
 
 // Product interfaces
 export interface Product extends BaseEntity {
@@ -81,6 +213,7 @@ export interface Product extends BaseEntity {
   status: ProductStatus
   images?: string[]
   tags?: string[]
+  custom_fields?: CustomField[]
   category?: Category
   brand?: Brand
 }
@@ -99,9 +232,10 @@ export interface CreateProductDto {
   status?: ProductStatus
   images?: string[]
   tags?: string[]
+  custom_fields?: CustomField[]
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 export interface ProductFilters {
   search?: string
@@ -157,7 +291,7 @@ export interface CreateVariantDto {
   status?: 'active' | 'inactive' | 'archived'
 }
 
-export interface UpdateVariantDto extends Partial<Omit<CreateVariantDto, 'product_id'>> {}
+export interface UpdateVariantDto extends Partial<Omit<CreateVariantDto, 'product_id'>> { }
 
 export interface VariantFilters {
   product_id?: string | undefined
@@ -202,7 +336,7 @@ export interface CreateStockMovementDto {
   created_by?: string
 }
 
-export interface UpdateStockMovementDto extends Partial<Omit<CreateStockMovementDto, 'variant_id'>> {}
+export interface UpdateStockMovementDto extends Partial<Omit<CreateStockMovementDto, 'variant_id'>> { }
 
 export interface StockMovementFilters {
   variant_id?: string

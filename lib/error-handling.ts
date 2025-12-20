@@ -23,15 +23,15 @@ export const getErrorMessage = (error: unknown): string => {
   if (isApiError(error)) {
     return error.message
   }
-  
+
   if (error instanceof Error) {
     return error.message
   }
-  
+
   if (typeof error === 'string') {
     return error
   }
-  
+
   return 'An unexpected error occurred'
 }
 
@@ -46,7 +46,7 @@ export const handleMutationError = (error: unknown) => {
 // Error handling for queries (more silent, usually handled by components)
 export const handleQueryError = (error: unknown) => {
   console.error('Query error:', error)
-  
+
   // Only show toast for network errors or 5xx errors
   if (isApiError(error) && (!error.status || error.status >= 500)) {
     const message = getErrorMessage(error)
@@ -66,7 +66,7 @@ export const shouldRetryError = (error: unknown): boolean => {
     // Retry server errors (5xx)
     return error.status >= 500
   }
-  
+
   // Retry network errors
   return true
 }

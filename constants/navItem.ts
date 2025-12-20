@@ -43,42 +43,54 @@ export const navItems: NavItem[] = [
   // SALES
   {
     title: 'Sales',
-    url: '/dashboard/sales',
+    url: '/sales',
     icon: 'shopping-cart',
     isActive: false,
     items: [
-      { title: 'New Sale / POS', url: '/dashboard/sales/new', icon: 'credit-card' },
-      { title: 'Sales History', url: '/dashboard/sales/history', icon: 'clock' },
-      { title: 'Sales Return', url: '/dashboard/sales/returns', icon: 'corner-up-left' },
-      { title: 'Customers', url: '/dashboard/sales/customers', icon: 'users' }
+      { title: 'New Sale / POS', url: '/sales', icon: 'credit-card' },
+      { title: 'Sales History', url: '/sales/history', icon: 'clock' },
+      { title: 'Sales Return', url: '/sales/returns', icon: 'corner-up-left' },
+      { title: 'Customers', url: '/sales/customers', icon: 'users' }
     ]
   },
 
   // PURCHASES
   {
     title: 'Purchases',
-    url: '/dashboard/purchases',
+    url: '/purchases',
     icon: 'shopping-bag',
     isActive: false,
     items: [
-      { title: 'New Purchase', url: '/dashboard/purchases/new', icon: 'plus' },
-      { title: 'Purchase Orders', url: '/dashboard/purchases/orders', icon: 'file-text' },
-      { title: 'Purchase Returns', url: '/dashboard/purchases/returns', icon: 'corner-down-left' },
-      { title: 'Suppliers', url: '/dashboard/purchases/suppliers', icon: 'truck' }
+      { title: 'New Purchase', url: '/purchases/new', icon: 'plus' },
+      { title: 'Purchase Orders', url: '/purchases/orders', icon: 'file-text' },
+      { title: 'Purchase Returns', url: '/purchases/returns', icon: 'corner-down-left' },
+      { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
     ]
   },
 
   // WAREHOUSES
   {
     title: 'Warehouses',
-    url: '/dashboard/warehouses',
+    url: '/warehouses',
     icon: 'box',
     isActive: false,
     items: [
-      { title: 'Add Warehouse', url: '/dashboard/warehouses/add', icon: 'plus' },
-      { title: 'View All Warehouses', url: '/dashboard/warehouses/list', icon: 'list' },
-      { title: 'Warehouse Stock Report', url: '/dashboard/warehouses/stock-report', icon: 'bar-chart-2' },
-      { title: 'Transfer Requests', url: '/dashboard/warehouses/transfer-requests', icon: 'truck' }
+      { title: 'View All Warehouses', url: '/warehouses', icon: 'list' },
+      { title: 'Warehouse Stock Report', url: '/warehouses/stock-report', icon: 'bar-chart-2' },
+      { title: 'Transfer Requests', url: '/warehouses/transfer-requests', icon: 'truck' }
+    ]
+  },
+
+  //stores
+  {
+    title: 'Stores',
+    url: '/stores',
+    icon: 'shopping-bag',
+    isActive: false,
+    items: [
+      { title: 'View All Stores', url: '/stores', icon: 'list' },
+      { title: 'Store Stock Report', url: '/stores/stock-report', icon: 'bar-chart-2' },
+      { title: 'Store Transfer Requests', url: '/stores/transfer-requests', icon: 'truck' }
     ]
   },
 
@@ -107,7 +119,7 @@ export const navItems: NavItem[] = [
     icon: 'user',
     isActive: false,
     items: [
-      { title: 'Profile', url: '/dashboard/profile', icon: 'user' },
+      { title: 'Profile', url: '/profile', icon: 'user' },
       { title: 'Employees / Users', url: '/dashboard/users', icon: 'users' },
       { title: 'Settings', url: '/dashboard/settings', icon: 'settings' },
       { title: 'Subscription / Billing', url: '/dashboard/billing', icon: 'credit-card' },

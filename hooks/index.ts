@@ -1,6 +1,13 @@
 // Export all organized query hooks by domain
 export * from './queries'
 
+// Export utility hooks
+export * from './utils'
+
+// Export page management hooks
+export { useCrudModal } from './use-crud-handlers'
+export { usePaginationHandler } from './use-pagination-handler'
+
 // Re-export TanStack Query utilities for convenience
 export {
   useQuery,
