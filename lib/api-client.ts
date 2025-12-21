@@ -1,17 +1,16 @@
 import type {
   ApiResponse,
+  CreateCategoryDto,
+  CreateProductDto,
+  CreateStockMovementDto,
+  CreateVariantDto,
   PaginatedResponse,
   ProductFilters,
-  VariantFilters,
-  CreateProductDto,
-  UpdateProductDto,
-  CreateVariantDto,
-  UpdateVariantDto,
-  CreateCategoryDto,
-  UpdateCategoryDto,
-  CreateBrandDto,
   UpdateBrandDto,
-  CreateStockMovementDto,
+  UpdateCategoryDto,
+  UpdateProductDto,
+  UpdateVariantDto,
+  VariantFilters,
 } from "@/types";
 import { StockMovementType } from "@/types";
 
@@ -43,16 +42,16 @@ class ApiClient {
       const isFormData = options.body instanceof FormData;
 
       const response = await fetch(url, {
-        credentials: 'include', // Always include cookies for authentication
+        credentials: "include", // Always include cookies for authentication
         headers: isFormData
           ? {
-            // Don't set Content-Type for FormData, let browser set it with boundary
-            ...options.headers,
-          }
+              // Don't set Content-Type for FormData, let browser set it with boundary
+              ...options.headers,
+            }
           : {
-            "Content-Type": "application/json",
-            ...options.headers,
-          },
+              "Content-Type": "application/json",
+              ...options.headers,
+            },
         ...options,
       });
 
@@ -177,15 +176,17 @@ export const categoriesApi = {
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        if (typeof value === 'object') {
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value === "object") {
           params.append(key, JSON.stringify(value));
         } else {
           params.append(key, String(value));
         }
       }
     });
-    return apiClient.get(`/categories${params.toString() ? `?${params.toString()}` : ''}`);
+    return apiClient.get(
+      `/categories${params.toString() ? `?${params.toString()}` : ""}`
+    );
   },
 
   getById: (id: string): Promise<ApiResponse<any>> =>
@@ -213,9 +214,9 @@ export const brandsApi = {
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
+      if (value !== undefined && value !== null && value !== "") {
         // Handle objects (like date-range) by JSON stringifying
-        if (typeof value === 'object') {
+        if (typeof value === "object") {
           params.append(key, JSON.stringify(value));
         } else {
           params.append(key, String(value));
@@ -234,8 +235,10 @@ export const brandsApi = {
   create: (data: FormData): Promise<ApiResponse<any>> =>
     apiClient.post("/brands", data),
 
-  update: (id: string, data: UpdateBrandDto | FormData): Promise<ApiResponse<any>> =>
-    apiClient.put(`/brands/${id}`, data),
+  update: (
+    id: string,
+    data: UpdateBrandDto | FormData
+  ): Promise<ApiResponse<any>> => apiClient.put(`/brands/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/brands/${id}`),
@@ -254,8 +257,8 @@ export const locationsApi = {
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        if (typeof value === 'object') {
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value === "object") {
           params.append(key, JSON.stringify(value));
         } else {
           params.append(key, String(value));
@@ -278,6 +281,55 @@ export const locationsApi = {
     apiClient.delete(`/locations/${id}`),
 };
 
+// Units API
+export const unitsApi = {
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+    apiClient.get(`/units?${new URLSearchParams(filters as any)}`),
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/units/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post(`/units`, data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/units/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/units/${id}`),
+};
+
+// Taxes API
+export const taxesApi = {
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+    apiClient.get(`/taxes?${new URLSearchParams(filters as any)}`),
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/taxes/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post(`/taxes`, data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/taxes/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/taxes/${id}`),
+};
 
 // Customers API (Sales)
 export const customersApi = {
@@ -291,15 +343,17 @@ export const customersApi = {
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        if (typeof value === 'object') {
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value === "object") {
           params.append(key, JSON.stringify(value));
         } else {
           params.append(key, String(value));
         }
       }
     });
-    return apiClient.get(`/sales/customers${params.toString() ? `?${params.toString()}` : ''}`);
+    return apiClient.get(
+      `/sales/customers${params.toString() ? `?${params.toString()}` : ""}`
+    );
   },
 
   getById: (id: string): Promise<ApiResponse<any>> =>
@@ -396,15 +450,17 @@ export const suppliersApi = {
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        if (typeof value === 'object') {
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value === "object") {
           params.append(key, JSON.stringify(value));
         } else {
           params.append(key, String(value));
         }
       }
     });
-    return apiClient.get(`/purchases/suppliers${params.toString() ? `?${params.toString()}` : ''}`);
+    return apiClient.get(
+      `/purchases/suppliers${params.toString() ? `?${params.toString()}` : ""}`
+    );
   },
 
   getById: (id: string): Promise<ApiResponse<any>> =>
@@ -432,30 +488,30 @@ export const usersApi = {
 // Auth API - using fetch directly since these are Next.js API routes
 export const authApi = {
   login: async (credentials: { email: string; password: string }) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
-      credentials: 'include',
+      credentials: "include",
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || result.message || 'Login failed');
+      throw new Error(result.error || result.message || "Login failed");
     }
 
     return result;
   },
 
   logout: async () => {
-    const response = await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
     });
 
     if (!response.ok) {
-      throw new Error('Logout failed');
+      throw new Error("Logout failed");
     }
 
     return response.json();
@@ -480,19 +536,22 @@ export const profileApi = {
   }): Promise<ApiResponse<any>> => apiClient.put("/profile/password", data),
 
   updatePreferences: (preferences: {
-    theme?: 'light' | 'dark' | 'system';
+    theme?: "light" | "dark" | "system";
     currency?: string;
     timezone?: string;
     language?: string;
-  }): Promise<ApiResponse<any>> => apiClient.put("/profile/preferences", { preferences }),
+  }): Promise<ApiResponse<any>> =>
+    apiClient.put("/profile/preferences", { preferences }),
 
   updateAvatar: (avatar: string): Promise<ApiResponse<any>> =>
     apiClient.put("/profile/avatar", { avatar }),
 
-  getPermissions: (): Promise<ApiResponse<{
-    role: string;
-    permissions: string[];
-  }>> => apiClient.get("/profile/permissions"),
+  getPermissions: (): Promise<
+    ApiResponse<{
+      role: string;
+      permissions: string[];
+    }>
+  > => apiClient.get("/profile/permissions"),
 };
 
 // Dashboard API
@@ -505,11 +564,15 @@ export const variantAttributesApi = {
     if (data instanceof FormData) {
       const formData = new FormData();
       for (const [key, value] of data.entries()) {
-        if (key === 'values') {
+        if (key === "values") {
           // Convert comma-separated string to array
-          const valuesArray = typeof value === 'string'
-            ? value.split(',').map((v: string) => v.trim()).filter((v: string) => v)
-            : value;
+          const valuesArray =
+            typeof value === "string"
+              ? value
+                  .split(",")
+                  .map((v: string) => v.trim())
+                  .filter((v: string) => v)
+              : value;
           formData.append(key, JSON.stringify(valuesArray));
         } else {
           formData.append(key, value);
@@ -520,9 +583,13 @@ export const variantAttributesApi = {
       // Plain object
       return {
         ...data,
-        values: typeof data.values === 'string'
-          ? data.values.split(',').map((v: string) => v.trim()).filter((v: string) => v)
-          : data.values
+        values:
+          typeof data.values === "string"
+            ? data.values
+                .split(",")
+                .map((v: string) => v.trim())
+                .filter((v: string) => v)
+            : data.values,
       };
     }
   },
@@ -534,7 +601,7 @@ export const variantAttributesApi = {
   transformForEdit: (item: any): any => {
     return {
       ...item,
-      values: Array.isArray(item.values) ? item.values.join(', ') : item.values
+      values: Array.isArray(item.values) ? item.values.join(", ") : item.values,
     };
   },
 
@@ -549,8 +616,8 @@ export const variantAttributesApi = {
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        if (typeof value === 'object') {
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value === "object") {
           params.append(key, JSON.stringify(value));
         } else {
           params.append(key, String(value));
