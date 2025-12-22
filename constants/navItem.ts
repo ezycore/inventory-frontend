@@ -103,15 +103,28 @@ export const navItems: NavItem[] = [
 
   // ADMIN / ACCOUNT
   {
-    title: 'Account',
-    url: '#',
-    icon: 'user',
+    title: "Settings",
+    url: "#",
+    icon: "settings",
     isActive: false,
     items: [
-      { title: 'Profile', url: '/profile', icon: 'user' },
-      { title: 'Employees / Users', url: '/dashboard/users', icon: 'users' },
-      { title: 'Settings', url: '/dashboard/settings', icon: 'settings' },
-      { title: 'Subscription / Billing', url: '/dashboard/billing', icon: 'credit-card' },
-    ]
-  }
+      { title: "Units", url: "/units", icon: "grid" },
+      { title: "Taxes", url: "/taxes", icon: "percent" },
+    ],
+  },
+  {
+    title: "Account",
+    url: "#",
+    icon: "user",
+    isActive: false,
+    items: [
+      { title: "Profile", url: "/profile", icon: "user" },
+      { title: "Employees / Users", url: "/dashboard/users", icon: "users" },
+      {
+        title: "Subscription / Billing",
+        url: "/dashboard/billing",
+        icon: "credit-card",
+      },
+    ],
+  },
 ];
