@@ -1,31 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@ui/components/button'
-import { Input } from '@ui/components/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ui/components/card'
-import { Skeleton } from '@ui/components/skeleton'
-import { Badge } from '@ui/components/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@ui/components/select'
-import {
-  useProducts,
-  useCategories,
-  useBrands,
-  useDeleteProduct
-} from '@/hooks/queries'
-import { useDebounce } from '@/hooks/use-debounce'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { Plus, Pencil, Package, AlertTriangle } from 'lucide-react'
-import type { ProductWithVariants } from '@/types'
-import type { ProductFilters } from '@/types/products'
+import { Plus, Pencil, Package } from 'lucide-react'
 import { queryKeys } from '@/lib/query-keys-products'
 import { DataTable } from '@/ui/components/dataTable'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
@@ -34,25 +11,33 @@ import PageHeader from '@/ui/components/header'
 import { productsApi } from '@/lib/api-client'
 import ProductForm from '@/components/products/product-form'
 
+
+// create columns for DataTable 
+  const columns = [
+    {
+      header: 'Name',
+      accessorKey: 'name',
+      cell: ({ row }) => (
+        <AvatarCell
+          imageUrl={row.original.images}
+          name={row.getValue("name")}
+          fallbackIcon={Package}
+        />
+      ),
+    },
+    {
+      header: 'Status',
+      accessorKey: 'status',
+      cell: ({ row }) => <StatusBadge status={row.original.status} />
+
+    },
+  ]
+
 export default function ProductsPage() {
-  const router = useRouter()
   const queryClient = useQueryClient()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<ProductFilters>({
-    limit: 20,
-    page: 1,
-  })
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
-
-  const debouncedSearch = useDebounce(searchQuery, 300)
-  const searchFilters = debouncedSearch ? { ...filters, search: debouncedSearch } : filters
-
-  // Queries
-  const { data: productsData, isLoading, error } = useProducts(searchFilters)
-  const { data: categories } = useCategories()
-  const { data: brands } = useBrands()
-  const deleteProduct = useDeleteProduct()
 
   const handleAddProduct = () => {
     setEditingProductId(null)
@@ -69,85 +54,6 @@ export default function ProductsPage() {
     setIsDrawerOpen(false)
     setEditingProductId(null)
   }
-
-  const products = (productsData as any)?.data?.items || []
-  const totalPages = (productsData as any)?.data?.totalPages || 1
-  const totalCount = (productsData as any)?.data?.total || 0
-
-  const handleDeleteProduct = async (product: ProductWithVariants) => {
-    if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
-      try {
-        await deleteProduct.mutateAsync(product._id)
-        toast.success('Product deleted successfully')
-      } catch (error) {
-        toast.error('Failed to delete product')
-      }
-    }
-  }
-
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      active: 'bg-green-100 text-green-800',
-      inactive: 'bg-yellow-100 text-yellow-800',
-      archived: 'bg-red-100 text-red-800',
-    }
-    return variants[status as keyof typeof variants] || variants.inactive
-  }
-
-  const getVariantSummary = (product: ProductWithVariants) => {
-    if (!product.variants?.length) return 'No variants'
-
-    const totalStock = product.variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0)
-    const lowStockCount = product.variants.filter(v =>
-      v.stock_quantity <= v.low_stock_threshold
-    ).length
-
-    return (
-      <div className="flex items-center gap-2 text-sm">
-        <span>{product.variants.length} variants</span>
-        <span>•</span>
-        <span>{totalStock} total stock</span>
-        {lowStockCount > 0 && (
-          <>
-            <span>•</span>
-            <span className="text-orange-600 flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3" />
-              {lowStockCount} low stock
-            </span>
-          </>
-        )}
-      </div>
-    )
-  }
-
-  // create columns for DataTable 
-  const columns = [
-    {
-      header: 'Name',
-      accessorKey: 'name',
-      cell: ({ row }) => (
-        <AvatarCell
-          imageUrl={row.original.logo_url}
-          name={row.getValue("name")}
-          fallbackIcon={Package}
-        />
-      ),
-    },
-    {
-      header: 'SKU',
-      accessorKey: 'base_sku',
-    },
-    {
-      header: 'Price',
-      accessorKey: 'price',
-    },
-    {
-      header: 'Status',
-      accessorKey: 'status',
-      cell: ({ row }) => <StatusBadge status={row.original.status} />
-
-    },
-  ]
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -186,7 +92,6 @@ export default function ProductsPage() {
           },
         ]}
         enableSorting={true}
-        defaultColumnVisibility={{ status: false }}
         enableRowHover={true}
       />
 
