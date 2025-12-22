@@ -106,13 +106,13 @@ export function useEnhancedColumns<TData, TValue>({
                           onClick={() => customEdit?.onClick ? customEdit.onClick(rowData) : onEdit?.(rowData)}
                           className="h-8 w-8 p-0"
                         >
-                          <Edit className="h-4 w-4" />
+                          {customEdit?.icon || <Edit className="h-4 w-4" />}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
                         {typeof actions.editable === "object" && actions.editable.tooltip
                           ? actions.editable.tooltip
-                          : "Edit"}
+                          : customEdit?.tooltip || "Edit"}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
