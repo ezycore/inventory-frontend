@@ -25,7 +25,7 @@ export function AvatarCell({
     : "";
 
   const imageSrc = typeof imageUrl === "object"
-    ? imageUrl.thumbnail?.url
+    ? imageUrl?.thumbnail?.url ?? ""
     : imageUrl;
 
   return (

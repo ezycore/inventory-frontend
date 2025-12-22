@@ -20,9 +20,7 @@ import {
   TableRow,
 } from '@ui/components/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@ui/components/dialog'
-import { Textarea } from '@ui/components/textarea'
 import { Checkbox } from '@ui/components/checkbox'
-import { ControlledNumberInput } from '@ui/components/controlled-number-input'
 import { toast } from 'sonner'
 import { Plus, PlusCircle } from 'lucide-react'
 import { useVariantAttributes, useCreateVariantAttribute } from '@/hooks/queries'
@@ -36,7 +34,7 @@ interface VariantRow {
   attributeName: string
   value: string
   sku: string
-  quantity: number
+  costPrice: number
   price: number
   enabled: boolean
 }
@@ -50,7 +48,7 @@ interface VariantManagerProps {
 interface EditModalData {
   id: string
   sku: string
-  quantity: number
+  costPrice: number
   price: number
   barcode?: string
   weight?: string
@@ -90,7 +88,7 @@ export default function VariantManager({
           attributeName: attribute.name,
           value,
           sku: `SKU-${attribute.name.substring(0, 3).toUpperCase()}-${value.substring(0, 3).toUpperCase()}-${index + 1}`,
-          quantity: 0,
+          costPrice: 0,
           price: basePrice,
           enabled: true,
         }))
@@ -119,7 +117,7 @@ export default function VariantManager({
     setEditingVariant({
       id: variant.id,
       sku: variant.sku,
-      quantity: variant.quantity,
+      costPrice: variant.costPrice,
       price: variant.price,
     })
     setEditModalOpen(true)
@@ -133,7 +131,7 @@ export default function VariantManager({
             ? {
               ...v,
               sku: editingVariant.sku,
-              quantity: editingVariant.quantity,
+              costPrice: editingVariant.costPrice,
               price: editingVariant.price,
             }
             : v
@@ -239,8 +237,8 @@ export default function VariantManager({
               <TableRow className="h-9">
                 <TableHead className="w-[160px] py-2 text-xs">Variant Value</TableHead>
                 <TableHead className="w-[180px] py-2 text-xs">SKU</TableHead>
-                <TableHead className="w-[140px] py-2 text-xs">Quantity</TableHead>
                 <TableHead className="w-[120px] py-2 text-xs">Price</TableHead>
+                <TableHead className="w-[140px] py-2 text-xs">Cost Price</TableHead>
                 <TableHead className="w-[120px] text-right py-2 text-xs">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -261,14 +259,6 @@ export default function VariantManager({
                     />
                   </TableCell>
                   <TableCell className="py-1">
-                    <ControlledNumberInput
-                      value={variant.quantity}
-                      onChange={(value) => handleInlineUpdate(variant.id, 'quantity', value)}
-                      min={0}
-                      size="sm"
-                    />
-                  </TableCell>
-                  <TableCell className="py-1">
                     <Input
                       type="number"
                       value={variant.price}
@@ -276,6 +266,20 @@ export default function VariantManager({
                         handleInlineUpdate(
                           variant.id,
                           'price',
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
+                      className="h-7 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </TableCell>
+                  <TableCell className="py-1">
+                    <Input
+                      type="number"
+                      value={variant.costPrice || ''}
+                      onChange={e =>
+                        handleInlineUpdate(
+                          variant.id,
+                          'costPrice',
                           parseFloat(e.target.value) || 0
                         )
                       }
@@ -330,13 +334,13 @@ export default function VariantManager({
               <div className="space-y-2">
                 <Label htmlFor="edit-quantity">Quantity</Label>
                 <Input
-                  id="edit-quantity"
+                  id="edit-costPrice"
                   type="number"
-                  value={editingVariant.quantity}
+                  value={editingVariant.costPrice}
                   onChange={e =>
                     setEditingVariant({
                       ...editingVariant,
-                      quantity: parseInt(e.target.value) || 0,
+                      costPrice: parseInt(e.target.value) || 0,
                     })
                   }
                 />
