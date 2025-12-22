@@ -41,7 +41,7 @@ const taxFormConfig: DynamicFormConfig = {
     },
     {
       name: "rate",
-      type: "input",
+      type: "number",
       label: "Rate",
       placeholder: "Enter tax rate",
       required: true,

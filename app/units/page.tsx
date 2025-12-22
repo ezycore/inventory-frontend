@@ -96,7 +96,7 @@ export default function UnitsPage() {
       <DataTable
         cardTitle={(n: number) => `All Units (${n})`}
         defaultPageSize={10}
-        pageSizes={[10, 20, 50, 100]}
+        pageSizes={[2, 10, 20, 50, 100]}
         filterConfig={unitFilterConfig}
         columns={columns}
         selectable
