@@ -82,8 +82,8 @@ export function Dashboard() {
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           title="Stock Value"
-          value={`$${(stats?.stock.totalValue || 0).toLocaleString()}`}
-          subtitle={`${stats?.stock.totalItems || 0} total items`}
+          value={`$${(stats?.stock?.totalValue || 0).toLocaleString()}`}
+          subtitle={`${stats?.stock?.totalItems || 0} total items`}
           icon="DollarSign"
           loading={statsLoading}
           valueColor="success"
@@ -91,20 +91,20 @@ export function Dashboard() {
         
         <StatCard
           title="Low Stock Alerts"
-          value={stats?.variants.lowStock || 0}
+          value={stats?.variants?.lowStock || 0}
           subtitle="Items below threshold"
           icon="AlertTriangle"
           loading={statsLoading}
-          valueColor={stats?.variants.lowStock && stats.variants.lowStock > 0 ? 'warning' : 'default'}
+          valueColor={stats?.variants?.lowStock && stats.variants.lowStock > 0 ? 'warning' : 'default'}
         />
         
         <StatCard
           title="Out of Stock"
-          value={stats?.variants.outOfStock || 0}
+          value={stats?.variants?.outOfStock || 0}
           subtitle="Items need restocking"
           icon="Package"
           loading={statsLoading}
-          valueColor={stats?.variants.outOfStock && stats.variants.outOfStock > 0 ? 'danger' : 'default'}
+          valueColor={stats?.variants?.outOfStock && stats.variants.outOfStock > 0 ? 'danger' : 'default'}
         />
       </div>
 
