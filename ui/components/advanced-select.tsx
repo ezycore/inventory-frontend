@@ -48,6 +48,11 @@ interface AdvancedSelectProps {
     options?: SelectOption[]
     optionsApi?: string
     
+    // Dependent select properties
+    dependsOn?: string
+    dependsOnTemplate?: string
+    dependsOnValue?: string | null
+    
     // Multi-select specific props
     variant?: 'default' | 'secondary' | 'destructive' | 'inverted'
     maxCount?: number
@@ -65,16 +70,31 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     mode = 'single',
     options,
     optionsApi,
+    dependsOn,
+    dependsOnTemplate,
+    dependsOnValue,
     variant = 'default',
     maxCount,
     modalPopover,
     asChild
 }) => {
+    // Build dynamic API endpoint if dependsOnTemplate is provided
+    let finalApiEndpoint = optionsApi || null
+    
+    if (dependsOnTemplate && dependsOnValue) {
+        // Replace :id or {id} with actual value
+        finalApiEndpoint = dependsOnTemplate.replace(/:id|\{id\}/g, dependsOnValue)
+    }
+    
+    // Disable select if depends on another field but no value is selected yet
+    const isDependentAndEmpty = !!dependsOn && !dependsOnValue
+    const isDisabled = disabled || isDependentAndEmpty
+    
     // Use the useSelectOptions hook for API-driven options
-    const { data: apiOptions, isLoading: loading, error: queryError } = useSelectOptions(optionsApi || null)
+    const { data: apiOptions, isLoading: loading, error: queryError } = useSelectOptions(finalApiEndpoint)
 
     // Determine which options to use
-    const finalOptions = optionsApi ? (apiOptions || []) : (options || [])
+    const finalOptions = finalApiEndpoint ? (apiOptions || []) : (options || [])
     console.log('AdvancedSelect Options:', finalOptions)
     const apiError = queryError ? (queryError as Error).message : null
 
@@ -83,6 +103,35 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
         if (onValueChange) onValueChange(newValue)
     }
 
+    // Show waiting state if dependent field has no value
+    if (isDependentAndEmpty) {
+        const waitingPlaceholder = placeholder || `Select ${dependsOn} first`
+        if (mode === 'multiple') {
+            return (
+                <MultiSelect
+                    options={[]}
+                    value={Array.isArray(value) ? value : []}
+                    onValueChange={handleValueChange}
+                    placeholder={waitingPlaceholder}
+                    variant={variant}
+                    disabled={true}
+                    className={cn(error ? 'border-red-500' : '', className)}
+                    maxCount={maxCount}
+                    modalPopover={modalPopover}
+                    asChild={asChild}
+                />
+            )
+        }
+        
+        return (
+            <Select disabled={true}>
+                <SelectTrigger className={cn('w-full', error ? 'border-red-500' : '', className)}>
+                    <SelectValue placeholder={waitingPlaceholder} />
+                </SelectTrigger>
+            </Select>
+        )
+    }
+    
     // Show loading state for both modes
     if (loading) {
         if (mode === 'multiple') {
@@ -151,7 +200,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
                 onValueChange={handleValueChange}
                 placeholder={placeholder || 'Select options...'}
                 variant={variant}
-                disabled={disabled}
+                disabled={isDisabled}
                 className={cn(error ? 'border-red-500' : '', className)}
                 maxCount={maxCount}
                 modalPopover={modalPopover}
@@ -165,7 +214,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
         <Select
             value={Array.isArray(value) ? value[0] || '' : value || ''}
             onValueChange={(newValue) => handleValueChange(newValue)}
-            disabled={disabled}
+            disabled={isDisabled}
         >
             <SelectTrigger className={cn('w-full', error ? 'border-red-500' : '', className)}>
                 <SelectValue placeholder={placeholder || 'Select an option...'} />

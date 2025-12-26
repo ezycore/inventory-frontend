@@ -1,7 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useState, useMemo } from "react";
 
 // Types
 import type { Inventory } from "@/types";
@@ -115,10 +114,8 @@ const columns: ColumnDef<Inventory>[] = [
   },
 ];
 
-// Form configuration function that returns config with onChange handler
-const getInventoryFormConfig = (
-  onProductChange?: (productId: string) => void
-): DynamicFormConfig => ({
+// Form configuration with dependent select
+const inventoryFormConfig: DynamicFormConfig = {
   fields: [
     {
       name: "product_id",
@@ -129,11 +126,6 @@ const getInventoryFormConfig = (
       columnSpan: 6,
       optionsApi: "/products",
       validation: { minLength: 1 },
-      onChange: (value: any) => {
-        if (onProductChange && value) {
-          onProductChange(value);
-        }
-      },
     },
     {
       name: "variant_id",
@@ -141,7 +133,8 @@ const getInventoryFormConfig = (
       label: "Variant",
       placeholder: "Select variant (if applicable)",
       columnSpan: 6,
-      optionsApi: "", // Will be dynamically set
+      dependsOn: "product_id",
+      dependsOnTemplate: "/products/:id/variants",
       helperText: "Select a product first to see variants",
     },
     {
@@ -193,7 +186,7 @@ const getInventoryFormConfig = (
       ],
     },
   ],
-});
+};
 
 // Filter configuration
 const inventoryFilterConfig: FilterConfig = {
@@ -275,26 +268,6 @@ const prepareSubmitData = (
 };
 
 export default function InventoryPage() {
-  const [selectedProductId, setSelectedProductId] = useState<string>("");
-
-  // Create dynamic form config based on selected product
-  const inventoryFormConfig = useMemo(() => {
-    return getInventoryFormConfig((productId: string) => {
-      setSelectedProductId(productId);
-    });
-  }, []);
-
-  // Update variant field optionsApi when product changes
-  if (selectedProductId && inventoryFormConfig.fields) {
-    const variantField = inventoryFormConfig.fields.find(
-      (f) => f.name === "variant_id"
-    );
-    if (variantField) {
-      variantField.optionsApi = `/products/${selectedProductId}/variants`;
-      variantField.helperText = "Select a variant for this product";
-    }
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
