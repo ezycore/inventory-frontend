@@ -75,6 +75,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
 
     // Determine which options to use
     const finalOptions = optionsApi ? (apiOptions || []) : (options || [])
+    console.log('AdvancedSelect Options:', finalOptions)
     const apiError = queryError ? (queryError as Error).message : null
 
     // Handle value changes for both single and multiple modes

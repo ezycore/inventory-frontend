@@ -45,13 +45,13 @@ class ApiClient {
         credentials: "include", // Always include cookies for authentication
         headers: isFormData
           ? {
-              // Don't set Content-Type for FormData, let browser set it with boundary
-              ...options.headers,
-            }
+            // Don't set Content-Type for FormData, let browser set it with boundary
+            ...options.headers,
+          }
           : {
-              "Content-Type": "application/json",
-              ...options.headers,
-            },
+            "Content-Type": "application/json",
+            ...options.headers,
+          },
         ...options,
       });
 
@@ -125,6 +125,9 @@ export const productsApi = {
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/products/${id}`),
+
+  getVariants: (productId: string): Promise<ApiResponse<PaginatedResponse<any>>> =>
+    apiClient.get(`/products/${productId}/variants`),
 };
 
 // Variants API
@@ -331,6 +334,45 @@ export const taxesApi = {
     apiClient.delete(`/taxes/${id}`),
 };
 
+// Inventory API (Stock Management)
+export const inventoryApi = {
+  getAll: (
+    filters: {
+      page?: number;
+      limit?: number;
+      product_id?: string;
+      location_id?: string;
+      variant_id?: string;
+      status?: "active" | "inactive";
+      [key: string]: any;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value === "object") {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/stock?${params.toString()}`);
+  },
+
+  getById: (id: string): Promise<ApiResponse<any>> =>
+    apiClient.get(`/stock/${id}`),
+
+  create: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock", data),
+
+  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+    apiClient.put(`/stock/${id}`, data),
+
+  delete: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/stock/${id}`),
+};
+
 // Customers API (Sales)
 export const customersApi = {
   getAll: (
@@ -414,7 +456,7 @@ export const stockApi = {
 };
 
 // Legacy API endpoints for backward compatibility
-export const inventoryApi = {
+export const legacyInventoryApi = {
   getItems: (filters: Record<string, any> = {}) => productsApi.getAll(filters),
 
   getItem: (id: string) => productsApi.getById(id),
@@ -569,9 +611,9 @@ export const variantAttributesApi = {
           const valuesArray =
             typeof value === "string"
               ? value
-                  .split(",")
-                  .map((v: string) => v.trim())
-                  .filter((v: string) => v)
+                .split(",")
+                .map((v: string) => v.trim())
+                .filter((v: string) => v)
               : value;
           formData.append(key, JSON.stringify(valuesArray));
         } else {
@@ -586,9 +628,9 @@ export const variantAttributesApi = {
         values:
           typeof data.values === "string"
             ? data.values
-                .split(",")
-                .map((v: string) => v.trim())
-                .filter((v: string) => v)
+              .split(",")
+              .map((v: string) => v.trim())
+              .filter((v: string) => v)
             : data.values,
       };
     }
