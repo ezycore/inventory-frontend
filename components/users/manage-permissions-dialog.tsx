@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@ui/components/dialog'
 import { Button } from '@ui/components/button'
 import { Checkbox } from '@ui/components/checkbox'
@@ -52,11 +52,11 @@ export function ManagePermissionsDialog({ user, open, onOpenChange }: ManagePerm
   const updatePermissions = useUpdateUserPermissions()
 
   // Update selected permissions when user changes
-  useState(() => {
+  useEffect(() => {
     if (user) {
       setSelectedPermissions(user.permissions)
     }
-  })
+  }, [user])
 
   const handleTogglePermission = (permission: Permission) => {
     setSelectedPermissions(prev =>
