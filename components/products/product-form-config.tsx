@@ -1,25 +1,14 @@
-import React from 'react'
-import { Plus, Wand2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { toast } from 'sonner'
 import { ProductStatus } from '@/types'
 import {
-  storeOptions,
-  warehouseOptions,
   sellingTypeOptions,
-  subCategoryOptions,
-  unitOptions,
-  barcodeSymbologyOptions,
   taxTypeOptions,
-  taxOptions,
   discountTypeOptions,
-  warrantyOptions,
 } from './product-form-options'
 
-export const createProductFormConfig = (
-  onNameChange?: (name: string) => void,
-  onGenerateBarcode?: () => void
-): DynamicFormConfig => {
+export const createProductFormConfig = (): DynamicFormConfig => {
   return {
     generateSchema: true,
     layout: {
@@ -35,63 +24,29 @@ export const createProductFormConfig = (
         defaultOpen: true,
         fields: [
           {
-            name: "store_id",
-            type: "select",
-            label: "Store",
-            columnSpan: 6,
-            options: storeOptions,
-            placeholder: "Select store"
-          },
-          {
-            name: "warehouse_id",
-            type: "select",
-            label: "Warehouse",
-            columnSpan: 6,
-            options: warehouseOptions,
-            placeholder: "Select warehouse"
-          },
-          {
             name: "name",
             type: "input",
             label: "Product Name",
             required: true,
             columnSpan: 6,
             placeholder: "Enter product name",
-            onChange: onNameChange,
             validation: {
               minLength: 1,
               maxLength: 255
             }
           },
           {
-            name: "slug",
-            type: "input",
-            label: "Slug",
+            name: 'status',
+            type: 'select',
+            label: 'Status',
             required: true,
             columnSpan: 6,
-            placeholder: "product-slug",
-            validation: {
-              minLength: 1,
-              maxLength: 255,
-              pattern: /^[a-z0-9-]+$/
-            }
-          },
-          {
-            name: "base_sku",
-            type: "input",
-            label: "SKU",
-            columnSpan: 6,
-            placeholder: "Enter SKU"
-          },
-          {
-            name: "selling_type",
-            type: "select",
-            label: "Selling Type",
-            required: true,
-            columnSpan: 6,
-            options: sellingTypeOptions,
-            placeholder: "Select selling type",
-            defaultValue: "retail"
+            options: [
+              { value: ProductStatus.ACTIVE, label: 'Active' },
+              { value: ProductStatus.INACTIVE, label: 'Inactive' },
+              { value: ProductStatus.ARCHIVED, label: 'Archived' },
+            ],
+            defaultValue: ProductStatus.ACTIVE,
           },
           {
             name: "category_id",
@@ -113,14 +68,6 @@ export const createProductFormConfig = (
             }
           },
           {
-            name: "sub_category_id",
-            type: "select",
-            label: "Sub Category",
-            columnSpan: 6,
-            options: subCategoryOptions,
-            placeholder: "Select sub category"
-          },
-          {
             name: "brand_id",
             type: "select",
             label: "Brand",
@@ -133,30 +80,75 @@ export const createProductFormConfig = (
             type: "select",
             label: "Unit",
             columnSpan: 6,
-            options: unitOptions,
+            optionsApi: `/units`,
             placeholder: "Select unit"
           },
           {
-            name: "barcode_symbology",
+            name: "selling_type",
             type: "select",
-            label: "Barcode Symbology",
+            label: "Selling Type",
+            required: true,
             columnSpan: 6,
-            options: barcodeSymbologyOptions,
-            placeholder: "Select symbology",
-            defaultValue: "CODE128"
+            options: sellingTypeOptions,
+            placeholder: "Select selling type",
+            defaultValue: "retail"
           },
           {
-            name: "barcode",
-            type: "input",
-            label: "Item Barcode",
+            name: "tax_type",
+            type: "select",
+            label: "Tax Type",
             columnSpan: 6,
-            placeholder: "Enter barcode",
-            action: {
-              icon: <Wand2 className="h-4 w-4" />,
-              label: "Generate Barcode",
-              onClick: onGenerateBarcode
-            }
+            options: taxTypeOptions,
+            placeholder: "Select",
           },
+          {
+            name: "tax_id",
+            type: "select",
+            label: "Tax",
+            columnSpan: 6,
+            optionsApi: '/taxes',
+            placeholder: "Select",
+          },
+          {
+            name: "discount_type",
+            type: "select",
+            label: "Discount Type",
+
+            columnSpan: 6,
+            options: discountTypeOptions,
+            placeholder: "Select",
+            defaultValue: "fixed",
+          },
+          {
+            name: "discount_value",
+            type: "number",
+            label: "Discount Value",
+            columnSpan: 6,
+            placeholder: "0",
+            defaultValue: 0,
+            validation: { min: 0 },
+            step: 0.1,
+          },
+          // {
+          //   name: "has_expiry",
+          //   type: "radio-group",
+          //   label: "Has Expiry",
+          //   columnSpan: 6,
+          //   defaultValue: false,
+          //   options: [
+          //     { value: true, label: 'Yes' },
+          //     { value: false, label: 'No' }
+          //   ]
+          // },
+          // {
+          //   name: "expiry_alert_days",
+          //   type: "number",
+          //   label: "Expiry Alert Days",
+          //   columnSpan: 6,
+          //   placeholder: "0",
+          //   defaultValue: 0,
+          //   validation: { min: 0 },
+          // },
           {
             name: "description",
             type: "textarea",
@@ -175,7 +167,7 @@ export const createProductFormConfig = (
         defaultOpen: true,
         fields: [
           {
-            name: "product_type_radio",
+            name: "product_type",
             type: "radio-group",
             label: "Product Type",
             required: true,
@@ -188,103 +180,36 @@ export const createProductFormConfig = (
           },
           // Single product fields - conditional (not required when variable product)
           {
-            name: "quantity",
-            type: "number",
-            zodType: "number",
-            label: "Quantity",
-
-            columnSpan: 4,
-            placeholder: "0",
-            validation: { min: 0, max: 999999 },
-            showWhen: {
-              field: "product_type_radio",
-              value: "single"
-            }
-          },
-          {
             name: "price",
             type: "number",
             zodType: "number",
             label: "Price",
 
-            columnSpan: 4,
+            columnSpan: 6,
             placeholder: "0.00",
             validation: { min: 0, max: 999999 },
-            step: 0.01,
+            step: 1,
             showWhen: {
-              field: "product_type_radio",
+              field: "product_type",
               value: "single"
             }
           },
           {
-            name: "tax_type",
-            type: "select",
-            label: "Tax Type",
-
-            columnSpan: 4,
-            options: taxTypeOptions,
-            placeholder: "Select",
-            showWhen: {
-              field: "product_type_radio",
-              value: "single"
-            }
-          },
-          {
-            name: "tax_id",
-            type: "select",
-            label: "Tax",
-
-            columnSpan: 4,
-            options: taxOptions,
-            placeholder: "Select",
-            showWhen: {
-              field: "product_type_radio",
-              value: "single"
-            }
-          },
-          {
-            name: "discount_type",
-            type: "select",
-            label: "Discount Type",
-
-            columnSpan: 4,
-            options: discountTypeOptions,
-            placeholder: "Select",
-            defaultValue: "fixed",
-            showWhen: {
-              field: "product_type_radio",
-              value: "single"
-            }
-          },
-          {
-            name: "discount_value",
+            name: "cost_price",
             type: "number",
-            label: "Discount Value",
+            label: "Cost Price",
 
-            columnSpan: 4,
-            placeholder: "0",
+            columnSpan: 6,
+            placeholder: "0.00",
             defaultValue: 0,
             validation: { min: 0 },
-            step: 0.01,
+            step: 1,
             showWhen: {
-              field: "product_type_radio",
+              field: "product_type",
               value: "single"
             }
           },
-          {
-            name: "quantity_alert",
-            type: "number",
-            label: "Quantity Alert",
-
-            columnSpan: 12,
-            placeholder: "10",
-            defaultValue: 10,
-            validation: { min: 0 },
-            showWhen: {
-              field: "product_type_radio",
-              value: "single"
-            }
-          },
+      
           // Variant Manager custom field - shows when variable product is selected
           {
             name: "variant_manager",
@@ -292,14 +217,14 @@ export const createProductFormConfig = (
             label: "",
             columnSpan: 12,
             showWhen: {
-              field: "product_type_radio",
+              field: "product_type",
               value: "variable"
             }
           }
         ]
       },
       {
-        title: "Images",
+        title: "Image",
         icon: <span className="text-orange-600 font-semibold">🖼</span>,
         collapsible: true,
         defaultOpen: true,
@@ -312,32 +237,32 @@ export const createProductFormConfig = (
             label: "Product Images",
             columnSpan: 12,
             accept: "image/*",
-            maxFiles: 5,
+            maxFiles: 1,
             maxSize: 5 * 1024 * 1024, // 5MB
-            multiple: true,
+            multiple: false,
             showPreview: true,
-            dropzoneText: "PNG, JPG, GIF up to 5MB (Max 5 images)",
+            dropzoneText: "PNG, JPG, GIF up to 5MB (Max 1 image)",
             validation: {
-              max: 5
+              max: 1
             },
           }
         ]
       },
-      {
-        title: "Custom Fields",
-        icon: <span className="text-orange-600 font-semibold">⚙</span>,
-        collapsible: true,
-        defaultOpen: false,
-        fields: [
-          {
-            name: "custom_fields",
-            type: "custom-fields",
-            label: "",
-            columnSpan: 12,
-            maxCount: 5
-          }
-        ]
-      }
+      // {
+      //   title: "Custom Fields",
+      //   icon: <span className="text-orange-600 font-semibold">⚙</span>,
+      //   collapsible: true,
+      //   defaultOpen: false,
+      //   fields: [
+      //     {
+      //       name: "custom_fields",
+      //       type: "custom-fields",
+      //       label: "",
+      //       columnSpan: 12,
+      //       maxCount: 5
+      //     }
+      //   ]
+      // }
     ]
   }
 }

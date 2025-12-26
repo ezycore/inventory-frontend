@@ -1,15 +1,5 @@
 // Product Form Select Options
 
-export const storeOptions = [
-  { value: 'store1', label: 'Main Store' },
-  { value: 'store2', label: 'Branch Store' },
-]
-
-export const warehouseOptions = [
-  { value: 'wh1', label: 'Main Warehouse' },
-  { value: 'wh2', label: 'Secondary Warehouse' },
-]
-
 export const sellingTypeOptions = [
   { value: 'retail', label: 'Retail' },
   { value: 'wholesale', label: 'Wholesale' },
@@ -21,12 +11,6 @@ export const subCategoryOptions = [
   { value: 'sub2', label: 'Sub Category 2' },
 ]
 
-export const unitOptions = [
-  { value: 'pc', label: 'Piece (PC)' },
-  { value: 'kg', label: 'Kilogram (KG)' },
-  { value: 'ltr', label: 'Liter (LTR)' },
-  { value: 'box', label: 'Box' },
-]
 
 export const barcodeSymbologyOptions = [
   { value: 'CODE128', label: 'CODE128' },
@@ -38,13 +22,6 @@ export const barcodeSymbologyOptions = [
 export const taxTypeOptions = [
   { value: 'inclusive', label: 'Inclusive' },
   { value: 'exclusive', label: 'Exclusive' },
-]
-
-export const taxOptions = [
-  { value: 'none', label: 'No Tax' },
-  { value: 'vat5', label: 'VAT 5%' },
-  { value: 'vat10', label: 'VAT 10%' },
-  { value: 'vat15', label: 'VAT 15%' },
 ]
 
 export const discountTypeOptions = [

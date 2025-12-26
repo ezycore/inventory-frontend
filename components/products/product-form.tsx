@@ -14,7 +14,6 @@ import {
 import { toast } from 'sonner'
 import { handleMutationError } from '@/lib/error-handling'
 import { ArrowLeft } from 'lucide-react'
-import { ProductStatus } from '@/types'
 import CustomFieldsManager from '../../ui/components/form/custom-fields-manager'
 import VariantManager from './variant-manager'
 import { createProductFormConfig } from './product-form-config'
@@ -35,30 +34,6 @@ interface ProductFormProps {
 
 }
 
-// Generate slug from name
-const generateSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim()
-}
-
-// Generate barcode
-const generateBarcode = () => {
-  const timestamp = Date.now().toString().slice(-8)
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-  const barcode = `${timestamp}${random}`
-  // We'll set this in the form after it's created
-  return barcode
-}
-
-const handleNameChange = (name: string) => {
-  // This will be called after form is created
-  return { name, slug: generateSlug(name) }
-}
-
 export default function ProductForm({
   productId,
   onSuccess,
@@ -75,7 +50,7 @@ export default function ProductForm({
   const [variants, setVariants] = useState<any[]>([])
   const [basePrice, setBasePrice] = useState<number>(0)
   const mode = productId ? 'edit' : 'create'
-  
+  console.log("variants:", variants);
   // Check if product has variants based on form data
   const hasVariants = variants.length > 0
 
@@ -87,61 +62,8 @@ export default function ProductForm({
   const updateProduct = useUpdateProduct()
 
   // Use dynamic form with auto-generated schema and config defaults
-  const { form, config } = useDynamicForm<ProductFormValues>(createProductFormConfig())
-  
-  // Custom validation handler for conditional fields
-  const validateConditionalFields = (data: any) => {
-    const errors: Record<string, string> = {}
-    
-    if (data.product_type_radio === 'single') {
-      if (data.quantity === undefined || data.quantity === null || data.quantity === '') {
-        errors.quantity = 'Quantity is required for single product'
-      }
-      if (data.price === undefined || data.price === null || data.price === '') {
-        errors.price = 'Price is required for single product'
-      }
-      if (!data.tax_type) {
-        errors.tax_type = 'Tax Type is required for single product'
-      }
-      if (!data.tax_id) {
-        errors.tax_id = 'Tax is required for single product'
-      }
-      if (!data.discount_type) {
-        errors.discount_type = 'Discount Type is required for single product'
-      }
-      if (data.discount_value === undefined || data.discount_value === null || data.discount_value === '') {
-        errors.discount_value = 'Discount Value is required for single product'
-      }
-      if (data.quantity_alert === undefined || data.quantity_alert === null || data.quantity_alert === '') {
-        errors.quantity_alert = 'Quantity Alert is required for single product'
-      }
-    }
-    
-    if (data.product_type_radio === 'variable') {
-      const activeVariants = variants.filter(v => v.enabled)
-      if (!activeVariants || activeVariants.length === 0) {
-        toast.error('Please add and enable at least one variant for variable product')
-        errors.variant_manager = 'At least one active variant is required for variable product'
-      }
-    }
-    
-    return errors
-  }
-  
-  // Intercept form validation
-  const handleFormValidation = (data: any) => {
-    const conditionalErrors = validateConditionalFields(data)
-    
-    if (Object.keys(conditionalErrors).length > 0) {
-      // Set errors on form
-      Object.entries(conditionalErrors).forEach(([field, message]) => {
-        form.setError(field as any, { type: 'manual', message })
-      })
-      return false
-    }
-    
-    return true
-  }
+  const { form } = useDynamicForm<ProductFormValues>(createProductFormConfig())
+
 
 
   // Register custom field renderers
@@ -187,69 +109,67 @@ export default function ProductForm({
   }, [form])
 
   // Load existing product data for editing
+  // useEffect(() => {
+  //   if (mode === 'edit' && product) {
+  //     const productData = product.data as any
+  //     console.log('Loading product data into form:', productData)
+  //     form.reset({
+  //       name: productData.name,
+  //       description: productData.description || '',
+  //       category_id: productData.category_id,
+  //       brand_id: productData.brand_id || '',
+  //       images: productData.images || [],
+  //       status: productData.status,
+  //       unit_id: productData.unit_id || '',
+  //       selling_type: productData.selling_type,
+  //       tax_type: productData.tax_type,
+  //       tax_id: productData.tax_id || '',
+  //       discount_type: productData.discount_type,
+  //       discount_value: productData.discount_value,
+  //       has_expiry: productData.has_expiry || '',
+  //       expiry_alert_days: productData.expiry_alert_days,
+  //       product_type: productData.product_type,
+  //       price: productData.price,
+  //       cost_price: productData.cost_price,
+  //     })
+  //   }
+  // }, [mode, product, form])
+
   useEffect(() => {
-    if (mode === 'edit' && product) {
-      const productData = product as any
-      form.reset({
-        name: productData.name,
-        slug: productData.slug,
-        description: productData.description || '',
-        category_id: productData.category_id,
-        brand_id: productData.brand_id || '',
-        base_sku: productData.base_sku || '',
-        images: productData.images || [],
-        status: productData.status,
-        store_id: productData.store_id || '',
-        warehouse_id: productData.warehouse_id || '',
-        sub_category_id: productData.sub_category_id || '',
-        unit_id: productData.unit_id || '',
-        barcode_symbology: productData.barcode_symbology || 'CODE128',
-        barcode: productData.barcode || '',
-        selling_type: productData.selling_type || 'retail',
-        tax_id: productData.tax_id || '',
-        discount_type: productData.discount_type || 'fixed',
-        discount_value: productData.discount_value || 0,
-        quantity_alert: productData.quantity_alert || 10,
-        warranty_id: productData.warranty_id || '',
-        manufacturer: productData.manufacturer || '',
-        manufactured_date: productData.manufactured_date || '',
-        expiry_date: productData.expiry_date || '',
-        custom_fields: productData.custom_fields || [],
-      })
-    }
-  }, [mode, product, form])
+  if (mode === "edit" && product?.data) {
+    const p = product.data as any;
 
-  // Handle field changes from dynamic form
-  const handleFieldChange = (fieldName: string, value: any) => {
-    switch (fieldName) {
-      case 'name':
-        const slugValue = generateSlug(value)
-        form.setValue('slug', slugValue)
-        break
-      case 'brand_id':
-        // Handle brand selection with 'none' option
-        form.setValue('brand_id', value === 'none' ? '' : value)
-        break
-      default:
-        break
-    }
-  }
+    form.reset({
+      name: p.name ?? "",
+      description: p.description ?? "",
+      category_id: p.category_id ?? "",
+      brand_id: p.brand_id?._id ?? "",
+      unit_id: p.unit_id?._id ?? "",
+      tax_id: p.tax_id?._id ?? "",
 
-  // Add barcode generation function for the form
-  const handleGenerateBarcode = () => {
-    const barcode = generateBarcode()
-    form.setValue('barcode', barcode)
-    toast.success('Barcode generated')
+      images: p.images?.thumbnail ? [p.images] : [],
+
+      status: p.status ?? "active",
+      selling_type: p.selling_type ?? undefined,
+      tax_type: p.tax_type ?? undefined,
+
+      discount_type: p.discount_type ?? "fixed",
+      discount_value: p.discount_value ?? 0,
+
+      has_expiry: p.has_expiry ?? false,
+      expiry_alert_days: p.expiry_alert_days ?? 0,
+
+      product_type: p.product_type,
+      price: p.price ?? 0,
+      cost_price: p.cost_price ?? 0,
+    });
   }
+}, [mode, product, form]);
+
+console.log('Form values:', form.getValues())
 
   // Create final form configuration with custom components
-  const finalFormConfig = createProductFormConfig(
-    (name: string) => {
-      form.setValue('name', name)
-      form.setValue('slug', generateSlug(name))
-    },
-    handleGenerateBarcode
-  )
+  const finalFormConfig = createProductFormConfig()
 
   // Form configuration handles the custom-fields type automatically
 
@@ -296,29 +216,60 @@ export default function ProductForm({
         className="space-y-6"
         form={form}
         config={finalFormConfig}
-        onFieldChange={handleFieldChange}
         onSubmit={(data) => {
-          if (!handleFormValidation(data)) {
-            throw new Error('Validation failed')
-          }
           // Add variants data if product type is variable (only active variants)
-          if (data.product_type_radio === 'variable' && variants.length > 0) {
-            const activeVariants = variants
-              .filter(v => v.enabled)
-              .map(v => ({
-                attribute_name: v.attributeName,
-                attribute_value: v.value,
-                sku: v.sku,
-                quantity: v.quantity,
-                price: v.price,
-              }))
-            
-            return {
-              ...data,
-              variants: activeVariants
+          // if (data.product_type_radio === 'variable' && variants.length > 0) {
+          //   const activeVariants = variants
+          //     .filter(v => v.enabled)
+          //     .map(v => ({
+          //       attribute_name: v.attributeName,
+          //       attribute_value: v.value,
+          //       sku: v.sku,
+          //       quantity: v.quantity,
+          //       price: v.price,
+          //     }))
+
+          //   return {
+          //     ...data,
+          //     variants: activeVariants
+          //   }
+          // }
+          // return data
+          const formData = new FormData()
+            for (const key in data) {
+              if (key !== 'images' && data[key] !== undefined) {
+                formData.append(key, data[key])
+              }
             }
-          }
-          return data
+            if (mode === 'edit' && productId) {
+              formData.append('id', productId)
+              if (!data.images || data.images.length === 0) {
+                // User removed the logo
+                formData.append("remove_logo", "true");
+              } else if (Array.isArray(data.images) && data.images[0] instanceof File) {
+                // User uploaded NEW file (File object)
+                formData.append("images", data.images[0]);
+              }
+            } else {
+              const images = data.images || []
+              if (images.length) {
+                formData.append('images', images[0])
+              }
+            }
+            if(data.product_type === "variable" && variants.length > 0) {
+              const variantsData = variants
+                .map(v => ({
+                  attributes: {
+                    [v.attributeName]: v.value
+                  },
+                  cost_price: v.costPrice,
+                  price: v.price,
+                  status: v.enabled ? 'active' : 'inactive',
+                  // sku: v.sku,
+                }))
+              formData.append('variants', JSON.stringify(variantsData))
+            }
+            return formData
         }}
 
         // Container props
@@ -368,30 +319,50 @@ export default function ProductForm({
           className="space-y-6"
           config={finalFormConfig}
           form={form}
-          onFieldChange={handleFieldChange}
           onSubmit={(data) => {
-            if (!handleFormValidation(data)) {
-              throw new Error('Validation failed')
-            }
+
             // Add variants data if product type is variable (only active variants)
-            if (data.product_type_radio === 'variable' && variants.length > 0) {
-              const activeVariants = variants
-                .filter(v => v.enabled)
-                .map(v => ({
-                  attribute_name: v.attributeName,
-                  attribute_value: v.value,
-                  sku: v.sku,
-                  quantity: v.quantity,
-                  price: v.price,
-                }))
-              
-              return {
-                ...data,
-                variants: activeVariants
+            // if (data.product_type_radio === 'variable' && variants.length > 0) {
+            //   const activeVariants = variants
+            //     .filter(v => v.enabled)
+            //     .map(v => ({
+            //       attribute_name: v.attributeName,
+            //       attribute_value: v.value,
+            //       sku: v.sku,
+            //       quantity: v.quantity,
+            //       price: v.price,
+            //     }))
+
+            //   return {
+            //     ...data,
+            //     variants: activeVariants
+            //   }
+            // }
+            // return data
+            const formData = new FormData()
+            for (const key in data) {
+              if (key !== 'images' && data[key] !== undefined) {
+                formData.append(key, data[key])
               }
             }
-            return data
-          }}
+            if (mode === 'edit' && productId) {
+              formData.append('id', productId)
+              if (!data.images || data.images.length === 0) {
+                // User removed the logo
+                formData.append("remove_logo", "true");
+              } else if (Array.isArray(data.images) && data.images[0] instanceof File) {
+                // User uploaded NEW file (File object)
+                formData.append("images", data.images[0]);
+              }
+            } else {
+              const images = data.images || []
+              if (images.length) {
+                formData.append('images', images[0])
+              }
+            }
+            return formData
+          }
+          }
 
           // Form actions props
           cancelLabel="Cancel"

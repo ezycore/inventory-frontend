@@ -2,103 +2,112 @@
 // Based on SRS requirements for product catalog with variants and stock management
 
 // Auth hooks
-export {
-  useLogin,
-  useLogout,
-} from './use-auth'
+export { useLogin, useLogout } from "./use-auth";
 
 // Setup hooks
-export {
-  useCreateOwner,
-} from './use-setup'
+export { useCreateOwner } from "./use-setup";
 
 // Profile hooks
 export {
   useProfilePermissions,
-  useUpdateProfile,
+  useUpdateAvatar,
   useUpdatePassword,
   useUpdatePreferences,
-  useUpdateAvatar,
-} from './use-profile'
+  useUpdateProfile,
+} from "./use-profile";
 
 // Product-related hooks
 export {
-  useProducts,
+  useCreateProduct,
+  useDeleteProduct,
   useProduct,
   useProductBySlug,
-  useCreateProduct,
+  useProducts,
   useUpdateProduct,
-  useDeleteProduct,
-} from './use-products'
+} from "./use-products";
 
 // Product Variant hooks (actual product variations with SKU, price, stock)
 // Note: Stock movement hooks are in use-stock.ts
 export {
-  useProductVariants,
-  useVariantsByProduct,
   useCreateVariant,
   useDeleteVariant,
-} from './use-product-variants'
+  useProductVariants,
+  useVariantsByProduct,
+} from "./use-product-variants";
 
 // Category hooks
 export {
   useCategories,
   useCategory,
   useCreateCategory,
-  useUpdateCategory,
   useDeleteCategory,
-} from './use-categories'
+  useUpdateCategory,
+} from "./use-categories";
 
 // Brand hooks
 export {
-  useBrands,
   useBrand,
+  useBrands,
   useCreateBrand,
-  useUpdateBrand,
   useDeleteBrand,
-} from './use-brands'
-
+  useUpdateBrand,
+} from "./use-brands";
 
 // Customers (Sales)
 export {
-  useCustomers,
-  useCustomer,
   useCreateCustomer,
-  useUpdateCustomer,
+  useCustomer,
+  useCustomers,
   useDeleteCustomer,
-} from './use-customers'
+  useUpdateCustomer,
+} from "./use-customers";
 
 // Suppliers (Purchases)
 export {
-  useSuppliers,
-  useSupplier,
   useCreateSupplier,
-  useUpdateSupplier,
   useDeleteSupplier,
-} from './use-suppliers'
+  useSupplier,
+  useSuppliers,
+  useUpdateSupplier,
+} from "./use-suppliers";
 
 // Locations hooks
 export {
-  useLocations,
-  useLocation,
   useCreateLocation,
-  useUpdateLocation,
   useDeleteLocation,
-} from './use-locations'
+  useLocation,
+  useLocations,
+  useUpdateLocation,
+} from "./use-locations";
+
+// Units hooks
+export {
+  useCreateUnit,
+  useDeleteUnit,
+  useUnit,
+  useUnits,
+  useUpdateUnit,
+} from "./use-units";
+
+// Taxes hooks
+export {
+  useCreateTax,
+  useDeleteTax,
+  useTax,
+  useTaxes,
+  useUpdateTax,
+} from "./use-taxes";
 
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {
-  useVariantAttributes,
-  useVariantAttribute,
   useCreateVariantAttribute,
-  useUpdateVariantAttribute,
   useDeleteVariantAttribute,
-} from './use-variants'
+  useUpdateVariantAttribute,
+  useVariantAttribute,
+  useVariantAttributes,
+} from "./use-variants";
 
 // Dashboard hooks
-export {
-  useDashboardStats,
-} from './use-dashboard'
+export { useDashboardStats } from "./use-dashboard";
 
-
-export { useSelectOptions } from './use-select-options'
+export { useSelectOptions } from "./use-select-options";
