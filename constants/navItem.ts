@@ -25,6 +25,17 @@ export const navItems: NavItem[] = [
     ]
   },
 
+  // INVENTORY
+  {
+    title: 'Inventory',
+    url: '/inventory',
+    icon: 'database',
+    isActive: false,
+    items: [
+      { title: 'Inventory List', url: '/inventory', icon: 'list' }
+    ]
+  },
+
   // STOCK MANAGEMENT
   {
     title: 'Stock Management',
@@ -80,9 +91,6 @@ export const navItems: NavItem[] = [
       { title: 'Transfer Requests', url: '/locations/transfer-requests', icon: 'truck' }
     ]
   },
-
-
-
   // REPORTS
   {
     title: 'Reports',

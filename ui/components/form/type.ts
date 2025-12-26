@@ -57,6 +57,8 @@ export interface FormFieldConfig {
   // Type-specific properties
   options?: SelectOption[] // For select fields (static options)
   optionsApi?: string      // For select fields (dynamic API-based options) - URL string
+  dependsOn?: string       // Field name this select depends on (e.g., 'product_id')
+  dependsOnTemplate?: string // API template with :id placeholder (e.g., '/products/:id/variants')
   rows?: number // For textarea
   accept?: string // For file upload
   maxFiles?: number // For file upload

@@ -20,13 +20,24 @@ export const useSelectOptions = (url: string | null | undefined) => {
     queryKey: ['select-options', url] as const,
     queryFn: async (): Promise<SelectOption[]> => {
       if (!url) return []
-      
+
       // Use the centralized API client instead of fetch
-      const response = await apiClient.get(url)
-      
+      const response = await apiClient.get(url) as any
+      const items = response?.data?.items || []
+
+      //create options for getVariantByProductId
+      if (response.data && response.data.getVariantByProductId) {
+        //create label by attrivutes. attributes is a object key value pair
+        let options = items.map((item: any) => ({
+          value: item._id || item.id,
+          label: Object.entries(item.attributes).map(([key, val]) => `${key}: ${val}`).join(', '),
+          disabled: item.disabled || false
+        }))
+        return options
+      }
+
       // Transform data - expect API to return data.data.items format
       // and convert to {label, value}[] format  
-      const items = (response as any)?.data?.items || []
       let options = items.map((item: any) => ({
         value: item._id || item.id,
         label: item.name || item.label,
@@ -42,7 +53,7 @@ export const useSelectOptions = (url: string | null | undefined) => {
       }
 
       return options
-    }, 
+    },
     enabled: !!url, // Only run query if URL is provided
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes

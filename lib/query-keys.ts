@@ -41,6 +41,12 @@ export const queryKeys = {
     detail: (id: string) => ['locations', 'detail', id] as const,
   },
 
+  // Inventory/Stock
+  inventory: {
+    all: () => ['inventory'] as const,
+    list: (filters?: any) => ['inventory', 'list', filters] as const,
+    detail: (id: string) => ['inventory', 'detail', id] as const,
+  },
 
   // Customers (Sales)
   customers: {
@@ -62,14 +68,6 @@ export const queryKeys = {
     movements: (filters?: any) => ['stock', 'movements', filters] as const,
     movementsByVariant: (variantId: string) => ['stock', 'movements-by-variant', variantId] as const,
     levels: () => ['stock', 'levels'] as const,
-  },
-
-  // Legacy support for existing usage patterns
-  inventory: {
-    all: () => ['inventory'] as const,
-    detail: (id: string) => ['inventory', 'detail', id] as const,
-    search: (query: string) => ['inventory', 'search', query] as const,
-    lowStock: () => ['inventory', 'low-stock'] as const,
   },
 
   supplier: {

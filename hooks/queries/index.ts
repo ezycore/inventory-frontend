@@ -98,6 +98,15 @@ export {
   useUpdateTax,
 } from "./use-taxes";
 
+// Inventory hooks
+export {
+  useCreateInventory,
+  useDeleteInventory,
+  useInventory,
+  useInventories,
+  useUpdateInventory,
+} from "./use-inventory";
+
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {
   useCreateVariantAttribute,

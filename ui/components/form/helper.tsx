@@ -300,19 +300,27 @@ const FormField: React.FC<{
                   }
                   : undefined,
               }}
-              render={({ field: controllerField }) => (
-                <AdvancedSelect
-                  value={controllerField.value}
-                  onValueChange={(value) => {
-                    controllerField.onChange(value);
-                    handleChange(value);
-                    if (field.onValueChange) field.onValueChange(value);
-                  }}
-                  className={error ? "border-red-500" : ""}
-                  {...field}
-                  error={error}
-                />
-              )}
+              render={({ field: controllerField }) => {
+                // Get the value of the dependent field if specified
+                const dependsOnValue = field.dependsOn 
+                  ? watch(field.dependsOn) 
+                  : undefined
+                
+                return (
+                  <AdvancedSelect
+                    value={controllerField.value}
+                    onValueChange={(value) => {
+                      controllerField.onChange(value);
+                      handleChange(value);
+                      if (field.onValueChange) field.onValueChange(value);
+                    }}
+                    className={error ? "border-red-500" : ""}
+                    {...field}
+                    dependsOnValue={dependsOnValue}
+                    error={error}
+                  />
+                )
+              }}
             />
           );
 
