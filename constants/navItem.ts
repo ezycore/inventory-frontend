@@ -119,8 +119,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     items: [
       { title: "Profile", url: "/profile", icon: "user" },
-      { title: "Employees / Users", url: "/dashboard/users", icon: "users" },
-      { title: 'User Management', url: '/users', icon: 'users', roles: ['admin'] },
+      { title: "Employees / Users", url: "/users", icon: "users", roles: ['admin'] },
       {
         title: "Subscription / Billing",
         url: "/dashboard/billing",
