@@ -360,6 +360,29 @@ export const inventoryApi = {
     return apiClient.get(`/stock?${params.toString()}`);
   },
 
+  getShortlist: (
+    filters: {
+      page?: number;
+      limit?: number;
+      location_id: string;
+      product_id?: string;
+      low_stock_only?: string;
+      [key: string]: any;
+    }
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value === "object") {
+          params.append(key, JSON.stringify(value));
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    });
+    return apiClient.get(`/stock/shortlist?${params.toString()}`);
+  },
+
   getById: (id: string): Promise<ApiResponse<any>> =>
     apiClient.get(`/stock/${id}`),
 

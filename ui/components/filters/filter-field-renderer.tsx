@@ -57,6 +57,7 @@ export function FilterFieldRenderer({
             onValueChange={onChange}
             placeholder={field.placeholder || 'Select...'}
             options={selectOptions}
+            optionsApi={field.optionsApi}
           />
         );
 

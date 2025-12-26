@@ -32,7 +32,8 @@ export const navItems: NavItem[] = [
     icon: 'database',
     isActive: false,
     items: [
-      { title: 'Inventory List', url: '/inventory', icon: 'list' }
+      { title: 'Inventory List', url: '/inventory', icon: 'list' },
+      { title: 'Shortlist', url: '/inventory/shortlist', icon: 'clipboard-list' }
     ]
   },
 
