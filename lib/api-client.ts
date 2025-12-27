@@ -403,6 +403,12 @@ export const inventoryApi = {
 
   bulkAdjustStock: (adjustments: any[]): Promise<ApiResponse<any>> =>
     apiClient.post("/stock/bulk-adjust", { adjustments }),
+
+  sellStock: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/sell", data),
+
+  bulkSellStock: (sales: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-sell", { sales }),
 };
 
 // Customers API (Sales)

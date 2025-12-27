@@ -102,3 +102,40 @@ export const useBulkReceiveStock = () => {
     },
   })
 }
+
+// Sell stock mutation hook
+export const useSellStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: any) => inventoryApi.sellStock(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      toast.success('Stock sold successfully')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to sell stock'
+      toast.error(message)
+    },
+  })
+}
+
+// Bulk sell stock mutation hook with transaction support
+export const useBulkSellStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (sales: any[]) => inventoryApi.bulkSellStock(sales),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully sold ${result.total} items`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to sell stock'
+      toast.error(message)
+    },
+  })
+}
