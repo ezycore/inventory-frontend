@@ -107,6 +107,7 @@ export {
   useInventoryShortlist,
   useReceiveStock,
   useBulkAdjustStock,
+  useBulkReceiveStock,
   useUpdateInventory,
 } from "./use-inventory";
 export type { BulkAdjustmentItem } from "./use-inventory";

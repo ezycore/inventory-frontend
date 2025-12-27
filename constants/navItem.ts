@@ -75,6 +75,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     items: [
       { title: 'Receive Stock', url: '/purchases/receive', icon: 'package-plus' },
+      { title: 'Receive Stock (Bulk)', url: '/purchases/receive-bulk', icon: 'packages' },
       { title: 'Purchase History', url: '/purchases/history', icon: 'clock' },
       { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
     ]

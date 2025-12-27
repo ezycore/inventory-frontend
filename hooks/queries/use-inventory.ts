@@ -80,3 +80,25 @@ export const useBulkAdjustStock = () => {
     },
   })
 }
+export const useBulkReceiveStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (receipts: any[]) =>
+      inventoryApi.bulkReceiveStock(receipts),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully received ${result.total} items`)
+        // Transaction committed - safe to clear Zustand store
+        // Invalidate inventory queries to refetch data
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to receive stock'
+      toast.error(message)
+      // Transaction rolled back - Zustand store keeps data for retry
+    },
+  })
+}

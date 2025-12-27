@@ -398,6 +398,9 @@ export const inventoryApi = {
   receiveStock: (data: any): Promise<ApiResponse<any>> =>
     apiClient.post("/stock/receive", data),
 
+  bulkReceiveStock: (receipts: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-receive", { receipts }),
+
   bulkAdjustStock: (adjustments: any[]): Promise<ApiResponse<any>> =>
     apiClient.post("/stock/bulk-adjust", { adjustments }),
 };
