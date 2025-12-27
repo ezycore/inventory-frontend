@@ -487,6 +487,35 @@ export const stockApi = {
     apiClient.get(`/stock/low-stock${limit ? `?limit=${limit}` : ""}`),
 };
 
+// Stock Movements API (Audit Trail)
+export const stockMovementsApi = {
+  getAll: (
+    filters: {
+      product_id?: string;
+      variant_id?: string;
+      location_id?: string;
+      reason?: string;
+      movement_type?: string;
+      start_date?: string;
+      end_date?: string;
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+    apiClient.get(`/stock-movements?${new URLSearchParams(filters as any)}`),
+
+  getInventoryHistory: (
+    productId: string,
+    locationId: string,
+    variantId?: string
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const url = variantId
+      ? `/stock-movements/inventory/${productId}/${locationId}?variantId=${variantId}`
+      : `/stock-movements/inventory/${productId}/${locationId}`;
+    return apiClient.get(url);
+  },
+};
+
 // Legacy API endpoints for backward compatibility
 export const legacyInventoryApi = {
   getItems: (filters: Record<string, any> = {}) => productsApi.getAll(filters),

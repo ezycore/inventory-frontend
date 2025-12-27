@@ -70,6 +70,14 @@ export const queryKeys = {
     levels: () => ['stock', 'levels'] as const,
   },
 
+  // Stock Movements (Audit Trail)
+  stockMovements: {
+    all: () => ['stock-movements'] as const,
+    list: (filters?: any) => ['stock-movements', 'list', filters] as const,
+    inventoryHistory: (productId: string, locationId: string, variantId?: string) =>
+      ['stock-movements', 'inventory-history', productId, locationId, variantId] as const,
+  },
+
   supplier: {
     all: () => ['supplier'] as const,
     detail: (id: string) => ['supplier', 'detail', id] as const,
