@@ -5,6 +5,13 @@ import { Inventory, CreateInventoryDto, ReceiveStockDto } from '@/types'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+export interface BulkAdjustmentItem {
+  product_id: string
+  variant_id?: string | null
+  location_id: string
+  new_quantity: number
+}
+
 const inventoryHooks = createResourceHooks<Inventory, CreateInventoryDto>(
   inventoryApi,
   queryKeys.inventory
@@ -45,6 +52,31 @@ export const useReceiveStock = () => {
     onError: (error: any) => {
       const message = error?.response?.data?.error || 'Failed to receive stock'
       toast.error(message)
+    },
+  })
+}
+
+// Bulk adjustment mutation hook with transaction support
+// Only clears Zustand store on successful commit, keeps data on rollback
+export const useBulkAdjustStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (adjustments: BulkAdjustmentItem[]) =>
+      inventoryApi.bulkAdjustStock(adjustments),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully adjusted ${result.total} items`)
+        // Transaction committed - safe to clear Zustand store
+        // Invalidate inventory queries to refetch data
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to adjust stock'
+      toast.error(message)
+      // Transaction rolled back - Zustand store keeps data for retry
     },
   })
 }

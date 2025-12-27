@@ -106,8 +106,10 @@ export {
   useInventories,
   useInventoryShortlist,
   useReceiveStock,
+  useBulkAdjustStock,
   useUpdateInventory,
 } from "./use-inventory";
+export type { BulkAdjustmentItem } from "./use-inventory";
 
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {

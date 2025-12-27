@@ -33,7 +33,8 @@ export const navItems: NavItem[] = [
     isActive: false,
     items: [
       { title: 'Inventory List', url: '/inventory', icon: 'list' },
-      { title: 'Shortlist', url: '/inventory/shortlist', icon: 'clipboard-list' }
+      { title: 'Shortlist', url: '/inventory/shortlist', icon: 'clipboard-list' },
+      { title: 'Stock Adjustment', url: '/inventory/adjust', icon: 'edit' }
     ]
   },
 

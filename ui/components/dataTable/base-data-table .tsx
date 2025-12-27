@@ -17,7 +17,7 @@ import { DataTableToolbar } from "./toolbar";
 import { DataTableBody } from "./table-body";
 import { DataTablePagination } from "./pagination";
 import { BaseDataTableProps } from "@/types/DataTable";
-import { EasyAlertDialog } from "../easy-alert-dialog";
+import { EasyAlertDialog } from "../custom/easy-alert-dialog";
 
 export function BaseDataTable<TData, TValue>({
   columns,

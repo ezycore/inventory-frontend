@@ -8,7 +8,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "./alert-dialog";
+} from "../alert-dialog";
 
 export interface EasyAlertDialogProps {
   open: boolean;

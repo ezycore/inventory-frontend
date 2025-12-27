@@ -129,7 +129,7 @@ export default function ReceiveStockPage() {
             <h4 className="font-semibold mb-2">Important Notes:</h4>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
               <li>Received quantity will be <strong>added</strong> to existing stock (not replaced)</li>
-              <li>If the product doesn't exist in this location, a new inventory record will be created</li>
+              <li>If the product doesn`t exist in this location, a new inventory record will be created</li>
               <li>Stock alerts will be automatically recalculated after receiving stock</li>
               <li>Variable products require a variant selection</li>
             </ul>
