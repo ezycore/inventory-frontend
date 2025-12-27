@@ -20,11 +20,12 @@ import { Pencil, Trash2, Trash } from 'lucide-react'
 import { useStockAdjustmentStore, AdjustmentItem } from '@/stores/stock-adjustment-store'
 import { useBulkAdjustStock } from '@/hooks/queries'
 import { toast } from 'sonner'
+import type { LabelValueOption } from '@/ui/components/advanced-select'
 
 const adjustmentSchema = z.object({
-  location_id: z.string().min(1, 'Location is required'),
-  product_id: z.string().min(1, 'Product is required'),
-  variant_id: z.string().optional(),
+  location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  product_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  variant_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
   new_quantity: z.number().min(0, 'Quantity must be 0 or greater'),
 })
 
@@ -44,6 +45,18 @@ export default function StockAdjustmentPage() {
       new_quantity: 0,
     },
   })
+
+  // Helper to extract value from labelInValue format
+  const extractValue = (val: string | LabelValueOption | undefined): string => {
+    if (!val) return ''
+    return typeof val === 'object' ? val.value : val
+  }
+
+  // Helper to extract label from labelInValue format
+  const extractLabel = (val: string | LabelValueOption | undefined): string => {
+    if (!val) return ''
+    return typeof val === 'object' ? val.label : val
+  }
 
   const formConfig: DynamicFormConfig = {
     sections: [
@@ -99,32 +112,39 @@ export default function StockAdjustmentPage() {
     if (editingId) {
       // Update existing item
       updateItem(editingId, {
-        product_id: data.product_id,
-        variant_id: data.variant_id || null,
-        location_id: data.location_id,
+        product_id: extractValue(data.product_id),
+        variant_id: extractValue(data.variant_id) || null,
+        location_id: extractValue(data.location_id),
         new_quantity: data.new_quantity,
+        product_name: extractLabel(data.product_id),
+        location_name: extractLabel(data.location_id),
+        variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
       })
       setEditingId(null)
       toast.success('Item updated in list')
     } else {
+      const productId = extractValue(data.product_id)
+      const locationId = extractValue(data.location_id)
+      const variantId = extractValue(data.variant_id) || null
+
       // Check if item already exists
       const existingItem = items.find(
         (item) =>
-          item.product_id === data.product_id &&
-          item.location_id === data.location_id &&
-          (item.variant_id || null) === (data.variant_id || null)
+          item.product_id === productId &&
+          item.location_id === locationId &&
+          (item.variant_id || null) === variantId
       );
 
       // Add new item (replaces existing if duplicate)
       addItem({
-        product_id: data.product_id,
-        variant_id: data.variant_id || null,
-        location_id: data.location_id,
+        product_id: productId,
+        variant_id: variantId,
+        location_id: locationId,
         old_quantity: 0, // Will be filled by backend
         new_quantity: data.new_quantity,
-        product_name: data.product_id, // Will be replaced when fetched
-        location_name: data.location_id, // Will be replaced when fetched
-        variant_attributes: null,
+        product_name: extractLabel(data.product_id),
+        location_name: extractLabel(data.location_id),
+        variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
       })
       
       if (existingItem) {
@@ -144,9 +164,12 @@ export default function StockAdjustmentPage() {
 
   const handleEdit = (item: AdjustmentItem) => {
     setEditingId(item.id)
-    form.setValue('location_id', item.location_id)
-    form.setValue('product_id', item.product_id)
-    form.setValue('variant_id', item.variant_id || '')
+    form.setValue('location_id', { label: item.location_name, value: item.location_id })
+    form.setValue('product_id', { label: item.product_name, value: item.product_id })
+    form.setValue('variant_id', item.variant_id ? { 
+      label: item.variant_attributes?.name || item.variant_id, 
+      value: item.variant_id 
+    } : '')
     form.setValue('new_quantity', item.new_quantity)
   }
 
@@ -193,6 +216,7 @@ export default function StockAdjustmentPage() {
       cell: ({ row }) => {
         const attrs = row.original.variant_attributes
         if (!attrs) return '-'
+        if (attrs.name) return attrs.name
         return Object.entries(attrs).map(([k, v]) => `${k}: ${v}`).join(', ')
       },
     },
@@ -254,9 +278,6 @@ export default function StockAdjustmentPage() {
             onSubmit={handleAddOrUpdate}
             form={form}
             submitLabel={editingId ? 'Update Item' : 'Add to List'}
-            onFieldChange={(fieldName, value) => {
-             console.log(`${fieldName} - ${value}`)
-            }}
           />
           {editingId && (
             <Button
