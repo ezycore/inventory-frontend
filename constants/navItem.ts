@@ -73,9 +73,8 @@ export const navItems: NavItem[] = [
     icon: 'shopping-bag',
     isActive: false,
     items: [
-      { title: 'New Purchase', url: '/purchases/new', icon: 'plus' },
-      { title: 'Purchase Orders', url: '/purchases/orders', icon: 'file-text' },
-      { title: 'Purchase Returns', url: '/purchases/returns', icon: 'corner-down-left' },
+      { title: 'Receive Stock', url: '/purchases/receive', icon: 'package-plus' },
+      { title: 'Purchase History', url: '/purchases/history', icon: 'clock' },
       { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
     ]
   },

@@ -105,6 +105,7 @@ export {
   useInventory,
   useInventories,
   useInventoryShortlist,
+  useReceiveStock,
   useUpdateInventory,
 } from "./use-inventory";
 

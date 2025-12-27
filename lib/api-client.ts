@@ -394,6 +394,9 @@ export const inventoryApi = {
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/stock/${id}`),
+
+  receiveStock: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/receive", data),
 };
 
 // Customers API (Sales)

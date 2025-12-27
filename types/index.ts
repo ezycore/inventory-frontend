@@ -193,6 +193,14 @@ export interface CreateInventoryDto {
 
 export interface UpdateInventoryDto extends Partial<CreateInventoryDto> { }
 
+// Receive Stock / Purchase DTO
+export interface ReceiveStockDto {
+  product_id: string;
+  variant_id?: string | null;
+  location_id: string;
+  received_quantity: number;
+}
+
 // Variant Attribute interfaces
 export interface VariantAttribute extends BaseEntity {
   name: string;
