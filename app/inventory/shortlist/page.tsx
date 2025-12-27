@@ -73,6 +73,13 @@ const columns: ColumnDef<ShortlistItem>[] = [
     },
   },
   {
+    accessorKey: "quantity_alert",
+    header: "Alert Qty",
+    cell: ({ row }) => {
+      return <span className="font-medium">{row.getValue("quantity_alert")}</span>;
+    },
+  },
+  {
     accessorKey: "ideal_quantity",
     header: "Ideal Qty",
     cell: ({ row }) => {

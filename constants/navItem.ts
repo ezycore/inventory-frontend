@@ -33,7 +33,8 @@ export const navItems: NavItem[] = [
     isActive: false,
     items: [
       { title: 'Inventory List', url: '/inventory', icon: 'list' },
-      { title: 'Shortlist', url: '/inventory/shortlist', icon: 'clipboard-list' }
+      { title: 'Shortlist', url: '/inventory/shortlist', icon: 'clipboard-list' },
+      { title: 'Stock Adjustment', url: '/inventory/adjust', icon: 'edit' }
     ]
   },
 
@@ -73,9 +74,9 @@ export const navItems: NavItem[] = [
     icon: 'shopping-bag',
     isActive: false,
     items: [
-      { title: 'New Purchase', url: '/purchases/new', icon: 'plus' },
-      { title: 'Purchase Orders', url: '/purchases/orders', icon: 'file-text' },
-      { title: 'Purchase Returns', url: '/purchases/returns', icon: 'corner-down-left' },
+      { title: 'Receive Stock', url: '/purchases/receive', icon: 'package-plus' },
+      { title: 'Receive Stock (Bulk)', url: '/purchases/receive-bulk', icon: 'packages' },
+      { title: 'Purchase History', url: '/purchases/history', icon: 'clock' },
       { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
     ]
   },

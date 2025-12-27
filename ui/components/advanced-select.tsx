@@ -32,15 +32,23 @@ import { cn } from '@ui/lib/utils'
 import type { SelectOption } from '@/ui/components/form/type'
 import { MultiSelect } from './multi-select'
 
+export interface LabelValueOption {
+    label: string
+    value: string
+}
+
+export type SelectValue = string | string[] | LabelValueOption | LabelValueOption[]
+
 interface AdvancedSelectProps {
     // Core select properties
-    value?: string | string[]
-    onValueChange?: (value: string | string[]) => void
+    value?: SelectValue
+    onValueChange?: (value: SelectValue) => void
     placeholder?: string
     disabled?: boolean
     className?: string
     error?: string
-    
+    // When true, onChange returns {label, value} object(s) instead of just value string(s)
+    labelInValue?: boolean
     // Mode selection
     mode?: 'single' | 'multiple'
     
@@ -51,7 +59,7 @@ interface AdvancedSelectProps {
     // Dependent select properties
     dependsOn?: string
     dependsOnTemplate?: string
-    dependsOnValue?: string | null
+    dependsOnValue?: string | null | LabelValueOption
     
     // Multi-select specific props
     variant?: 'default' | 'secondary' | 'destructive' | 'inverted'
@@ -76,18 +84,54 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     variant = 'default',
     maxCount,
     modalPopover,
-    asChild
+    asChild,
+    labelInValue = false
 }) => {
+    // Helper: Extract value string from dependsOnValue (handles labelInValue format)
+    const extractDependsOnValue = (depValue: string | null | LabelValueOption | undefined): string | null => {
+        if (!depValue) return null
+        if (typeof depValue === 'object') return depValue.value
+        return depValue
+    }
+    
+    // Helper: Extract actual value string(s) from SelectValue (handles labelInValue format)
+    const extractValue = (val: SelectValue | undefined): string | string[] => {
+        if (!val) return ''
+        if (Array.isArray(val)) {
+            return val.map(v => typeof v === 'object' ? v.value : v)
+        }
+        return typeof val === 'object' ? val.value : val
+    }
+    
+    // Helper: Find label for a value from options
+    const findLabelForValue = (valueStr: string): string => {
+        const option = finalOptions.find(opt => opt.value === valueStr)
+        return option?.label || valueStr
+    }
+    
+    // Helper: Convert value string(s) to labelInValue format if needed
+    const formatValue = (rawValue: string | string[]): SelectValue => {
+        if (!labelInValue) return rawValue
+        
+        if (Array.isArray(rawValue)) {
+            return rawValue.map(v => ({ label: findLabelForValue(v), value: v }))
+        }
+        return { label: findLabelForValue(rawValue), value: rawValue }
+    }
+    
     // Build dynamic API endpoint if dependsOnTemplate is provided
     let finalApiEndpoint = optionsApi || null
     
-    if (dependsOnTemplate && dependsOnValue) {
+    // Extract actual value from dependsOnValue
+    const actualDependsOnValue = extractDependsOnValue(dependsOnValue)
+    
+    if (dependsOnTemplate && actualDependsOnValue) {
         // Replace :id or {id} with actual value
-        finalApiEndpoint = dependsOnTemplate.replace(/:id|\{id\}/g, dependsOnValue)
+        finalApiEndpoint = dependsOnTemplate.replace(/:id|\{id\}/g, actualDependsOnValue)
     }
     
     // Disable select if depends on another field but no value is selected yet
-    const isDependentAndEmpty = !!dependsOn && !dependsOnValue
+    const isDependentAndEmpty = !!dependsOn && !actualDependsOnValue
     const isDisabled = disabled || isDependentAndEmpty
     
     // Use the useSelectOptions hook for API-driven options
@@ -95,22 +139,26 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
 
     // Determine which options to use
     const finalOptions = finalApiEndpoint ? (apiOptions || []) : (options || [])
-    console.log('AdvancedSelect Options:', finalOptions)
     const apiError = queryError ? (queryError as Error).message : null
+    
+    // Extract actual value strings for rendering
+    const actualValue = extractValue(value)
 
     // Handle value changes for both single and multiple modes
     const handleValueChange = (newValue: string | string[]) => {
-        if (onValueChange) onValueChange(newValue)
+        const formattedValue = formatValue(newValue)
+        if (onValueChange) onValueChange(formattedValue)
     }
 
     // Show waiting state if dependent field has no value
     if (isDependentAndEmpty) {
         const waitingPlaceholder = placeholder || `Select ${dependsOn} first`
         if (mode === 'multiple') {
+            const multiValue = Array.isArray(actualValue) ? actualValue : (actualValue ? [actualValue] : [])
             return (
                 <MultiSelect
                     options={[]}
-                    value={Array.isArray(value) ? value : []}
+                    value={multiValue}
                     onValueChange={handleValueChange}
                     placeholder={waitingPlaceholder}
                     variant={variant}
@@ -135,10 +183,11 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     // Show loading state for both modes
     if (loading) {
         if (mode === 'multiple') {
+            const multiValue = Array.isArray(actualValue) ? actualValue : (actualValue ? [actualValue] : [])
             return (
                 <MultiSelect
                     options={[]}
-                    value={Array.isArray(value) ? value : []}
+                    value={multiValue}
                     onValueChange={handleValueChange}
                     placeholder="Loading options..."
                     variant={variant}
@@ -166,10 +215,11 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     // Show error state for both modes
     if (apiError) {
         if (mode === 'multiple') {
+            const multiValue = Array.isArray(actualValue) ? actualValue : (actualValue ? [actualValue] : [])
             return (
                 <MultiSelect
                     options={[]}
-                    value={Array.isArray(value) ? value : []}
+                    value={multiValue}
                     onValueChange={handleValueChange}
                     placeholder={`Error: ${apiError}`}
                     variant={variant}
@@ -193,10 +243,11 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
 
     // Render multi-select mode
     if (mode === 'multiple') {
+        const multiValue = Array.isArray(actualValue) ? actualValue : (actualValue ? [actualValue] : [])
         return (
             <MultiSelect
                 options={finalOptions}
-                value={Array.isArray(value) ? value : (value ? [value] : [])}
+                value={multiValue}
                 onValueChange={handleValueChange}
                 placeholder={placeholder || 'Select options...'}
                 variant={variant}
@@ -210,9 +261,10 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     }
 
     // Render single select mode
+    const singleValue = Array.isArray(actualValue) ? actualValue[0] || '' : actualValue || ''
     return (
         <Select
-            value={Array.isArray(value) ? value[0] || '' : value || ''}
+            value={singleValue}
             onValueChange={(newValue) => handleValueChange(newValue)}
             disabled={isDisabled}
         >

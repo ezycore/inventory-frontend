@@ -55,6 +55,7 @@ export interface FormFieldConfig {
   arrayOf?: 'string' | 'number' | 'file' | 'any'
   enumValues?: readonly string[]
   // Type-specific properties
+  labelInValue?: boolean // For select fields
   options?: SelectOption[] // For select fields (static options)
   optionsApi?: string      // For select fields (dynamic API-based options) - URL string
   dependsOn?: string       // Field name this select depends on (e.g., 'product_id')

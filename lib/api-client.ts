@@ -394,6 +394,15 @@ export const inventoryApi = {
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/stock/${id}`),
+
+  receiveStock: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/receive", data),
+
+  bulkReceiveStock: (receipts: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-receive", { receipts }),
+
+  bulkAdjustStock: (adjustments: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-adjust", { adjustments }),
 };
 
 // Customers API (Sales)
