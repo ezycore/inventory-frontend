@@ -6,8 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 const inventoryHooks = createResourceHooks<Inventory, CreateInventoryDto>(
- inventoryApi,
- queryKeys.inventory
+  inventoryApi,
+  queryKeys.inventory
 )
 
 export const useInventories = inventoryHooks.useList
