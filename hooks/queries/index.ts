@@ -114,6 +114,8 @@ export {
   useBulkReturnSale,
   useReturnPurchase,
   useBulkReturnPurchase,
+  useTransferStock,
+  useBulkTransferStock,
   useUpdateInventory,
 } from "./use-inventory";
 export type { BulkAdjustmentItem } from "./use-inventory";

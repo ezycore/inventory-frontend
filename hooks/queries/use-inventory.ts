@@ -214,3 +214,40 @@ export const useBulkReturnPurchase = () => {
     },
   })
 }
+
+// 🔄 STOCK TRANSFER (Location → Location)
+
+export const useTransferStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: any) => inventoryApi.transferStock(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      toast.success('Stock transferred successfully')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to transfer stock'
+      toast.error(message)
+    },
+  })
+}
+
+export const useBulkTransferStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (transfers: any[]) => inventoryApi.bulkTransferStock(transfers),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully transferred ${result.total} items`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to transfer stock'
+      toast.error(message)
+    },
+  })
+}

@@ -422,6 +422,13 @@ export const inventoryApi = {
 
   bulkReturnPurchase: (returns: any[]): Promise<ApiResponse<any>> =>
     apiClient.post("/stock/bulk-return-purchase", { returns }),
+
+  // 🔄 Stock Transfer
+  transferStock: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/transfer", data),
+
+  bulkTransferStock: (transfers: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-transfer", { transfers }),
 };
 
 // Customers API (Sales)
