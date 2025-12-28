@@ -403,6 +403,32 @@ export const inventoryApi = {
 
   bulkAdjustStock: (adjustments: any[]): Promise<ApiResponse<any>> =>
     apiClient.post("/stock/bulk-adjust", { adjustments }),
+
+  sellStock: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/sell", data),
+
+  bulkSellStock: (sales: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-sell", { sales }),
+
+  // 🔁 Returns & Adjustments
+  returnSale: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/return-sale", data),
+
+  bulkReturnSale: (returns: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-return-sale", { returns }),
+
+  returnPurchase: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/return-purchase", data),
+
+  bulkReturnPurchase: (returns: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-return-purchase", { returns }),
+
+  // 🔄 Stock Transfer
+  transferStock: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/transfer", data),
+
+  bulkTransferStock: (transfers: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-transfer", { transfers }),
 };
 
 // Customers API (Sales)
@@ -485,6 +511,35 @@ export const stockApi = {
 
   getLowStock: (limit?: number): Promise<ApiResponse<any[]>> =>
     apiClient.get(`/stock/low-stock${limit ? `?limit=${limit}` : ""}`),
+};
+
+// Stock Movements API (Audit Trail)
+export const stockMovementsApi = {
+  getAll: (
+    filters: {
+      product_id?: string;
+      variant_id?: string;
+      location_id?: string;
+      reason?: string;
+      movement_type?: string;
+      start_date?: string;
+      end_date?: string;
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+    apiClient.get(`/stock-movements?${new URLSearchParams(filters as any)}`),
+
+  getInventoryHistory: (
+    productId: string,
+    locationId: string,
+    variantId?: string
+  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+    const url = variantId
+      ? `/stock-movements/inventory/${productId}/${locationId}?variantId=${variantId}`
+      : `/stock-movements/inventory/${productId}/${locationId}`;
+    return apiClient.get(url);
+  },
 };
 
 // Legacy API endpoints for backward compatibility

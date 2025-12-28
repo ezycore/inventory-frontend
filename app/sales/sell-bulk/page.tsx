@@ -16,35 +16,33 @@ import DynamicForm from '@/ui/components/form'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { CardTable } from '@/ui/components/custom/card-table'
 import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Trash } from 'lucide-react'
-import { useStockAdjustmentStore, AdjustmentItem } from '@/stores/stock-adjustment-store'
-import { useBulkAdjustStock } from '@/hooks/queries'
+import { Pencil, Trash2, Trash, ShoppingCart } from 'lucide-react'
+import { useSalesStore, SaleItem } from '@/stores/sales-store'
+import { useBulkSellStock } from '@/hooks/queries'
 import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 
-const adjustmentSchema = z.object({
+const saleSchema = z.object({
   location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   product_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   variant_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  new_quantity: z.number().min(0, 'Quantity must be 0 or greater'),
-  notes: z.string().optional(),
+  sold_quantity: z.number().min(1, 'Quantity must be at least 1'),
 })
 
-type AdjustmentFormData = z.infer<typeof adjustmentSchema>
+type SaleFormData = z.infer<typeof saleSchema>
 
-export default function StockAdjustmentPage() {
+export default function BulkSellStockPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
-  const { items, addItem, updateItem, removeItem, clearAll } = useStockAdjustmentStore()
-  const bulkAdjustMutation = useBulkAdjustStock()
+  const { items, addItem, updateItem, removeItem, clearAll } = useSalesStore()
+  const bulkSellMutation = useBulkSellStock()
 
-  const form = useForm<AdjustmentFormData>({
-    resolver: zodResolver(adjustmentSchema),
+  const form = useForm<SaleFormData>({
+    resolver: zodResolver(saleSchema),
     defaultValues: {
       location_id: '',
       product_id: '',
       variant_id: '',
-      new_quantity: 0,
-      notes: '',
+      sold_quantity: 1,
     },
   })
 
@@ -63,7 +61,8 @@ export default function StockAdjustmentPage() {
   const formConfig: DynamicFormConfig = {
     sections: [
       {
-        title: 'Stock Adjustment Details',
+        title: 'Sale Details',
+        icon: <ShoppingCart className="h-5 w-5 text-primary" />,
         fields: [
           {
             name: 'location_id',
@@ -97,36 +96,27 @@ export default function StockAdjustmentPage() {
             columnSpan: 3,
           },
           {
-            name: 'new_quantity',
-            label: 'New Quantity',
+            name: 'sold_quantity',
+            label: 'Sold Quantity',
             type: 'number',
             required: true,
-            placeholder: 'Enter new quantity',
+            placeholder: 'Enter quantity sold',
             columnSpan: 3,
-            validation: { min: 0 },
-          },
-          {
-            name: 'notes',
-            label: 'Notes',
-            type: 'textarea',
-            required: false,
-            placeholder: 'Reason for adjustment (e.g., physical count, damage, theft)',
-            columnSpan: 4,
+            validation: { min: 1 },
           },
         ],
       },
     ],
   }
 
-  const handleAddOrUpdate = (data: AdjustmentFormData) => {
+  const handleAddOrUpdate = (data: SaleFormData) => {
     if (editingId) {
       // Update existing item
       updateItem(editingId, {
         product_id: extractValue(data.product_id),
         variant_id: extractValue(data.variant_id) || null,
         location_id: extractValue(data.location_id),
-        new_quantity: data.new_quantity,
-        notes: data.notes,
+        sold_quantity: data.sold_quantity,
         product_name: extractLabel(data.product_id),
         location_name: extractLabel(data.location_id),
         variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
@@ -144,16 +134,14 @@ export default function StockAdjustmentPage() {
           item.product_id === productId &&
           item.location_id === locationId &&
           (item.variant_id || null) === variantId
-      );
+      )
 
       // Add new item (replaces existing if duplicate)
       addItem({
         product_id: productId,
         variant_id: variantId,
         location_id: locationId,
-        old_quantity: 0, // Will be filled by backend
-        new_quantity: data.new_quantity,
-        notes: data.notes,
+        sold_quantity: data.sold_quantity,
         product_name: extractLabel(data.product_id),
         location_name: extractLabel(data.location_id),
         variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
@@ -170,12 +158,11 @@ export default function StockAdjustmentPage() {
       location_id: data.location_id,
       product_id: '',
       variant_id: '',
-      new_quantity: 0,
-      notes: '',
+      sold_quantity: 1,
     })
   }
 
-  const handleEdit = (item: AdjustmentItem) => {
+  const handleEdit = (item: SaleItem) => {
     setEditingId(item.id)
     form.setValue('location_id', { label: item.location_name, value: item.location_id })
     form.setValue('product_id', { label: item.product_name, value: item.product_id })
@@ -183,8 +170,7 @@ export default function StockAdjustmentPage() {
       label: item.variant_attributes?.name || item.variant_id, 
       value: item.variant_id 
     } : '')
-    form.setValue('new_quantity', item.new_quantity)
-    form.setValue('notes', item.notes || '')
+    form.setValue('sold_quantity', item.sold_quantity)
   }
 
   const handleCancelEdit = () => {
@@ -198,28 +184,26 @@ export default function StockAdjustmentPage() {
       return
     }
 
-    const adjustments = items.map((item) => ({
+    const sales = items.map((item) => ({
       product_id: item.product_id,
       variant_id: item.variant_id,
       location_id: item.location_id,
-      new_quantity: item.new_quantity,
-      notes: item.notes,
+      sold_quantity: item.sold_quantity,
     }))
 
     try {
-      await bulkAdjustMutation.mutateAsync(adjustments)
+      await bulkSellMutation.mutateAsync(sales)
       // Transaction succeeded - clear Zustand store
       clearAll()
       form.reset()
     } catch (error) {
       // Transaction failed/rolled back - keep items in store for retry
-      console.error('Bulk adjustment failed:', error)
+      console.error('Bulk sell failed:', error)
       // Items remain in Zustand store for user to review and retry
     }
   }
 
-
-  const columns: ColumnDef<AdjustmentItem>[] = [
+  const columns: ColumnDef<SaleItem>[] = [
     {
       accessorKey: 'product_name',
       header: 'Product',
@@ -241,13 +225,8 @@ export default function StockAdjustmentPage() {
       cell: ({ row }) => row.original.location_name || row.original.location_id,
     },
     {
-      accessorKey: 'new_quantity',
-      header: 'New Quantity',
-    },
-    {
-      accessorKey: 'notes',
-      header: 'Notes',
-      cell: ({ row }) => row.original.notes || '-',
+      accessorKey: 'sold_quantity',
+      header: 'Sold Quantity',
     },
     {
       id: 'actions',
@@ -277,9 +256,9 @@ export default function StockAdjustmentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Stock Adjustment</h1>
+        <h1 className="text-3xl font-bold">Sell Stock (Bulk)</h1>
         <p className="text-muted-foreground">
-          Manually adjust stock quantities for products
+          Record multiple stock sales at once
         </p>
       </div>
 
@@ -314,7 +293,7 @@ export default function StockAdjustmentPage() {
 
       {items.length > 0 && (
         <CardTable
-          title={`Items to Adjust (${items.length})`}
+          title={`Items to Sell (${items.length})`}
           description="Review and edit items before submitting"
           headerAction={
             <Button 
@@ -327,26 +306,17 @@ export default function StockAdjustmentPage() {
           }
           columns={columns}
           data={items}
-          emptyMessage="No items to adjust"
+          emptyMessage="No items to sell"
           actions={[
-            // {
-            //   label: 'Clear All',
-            //   onClick: clearAll,
-            //   variant: 'outline',
-            //   requiresConfirmation: true,
-            //   confirmationTitle: 'Clear All Items?',
-            //   confirmationDescription: `This will remove all ${items.length} item(s) from the list. This action cannot be undone.`,
-            //   confirmLabel: 'Clear All',
-            // },
             {
               label: `Submit All (${items.length})`,
               onClick: handleSubmitAll,
               variant: 'default',
-              loading: bulkAdjustMutation.isPending,
-              disabled: bulkAdjustMutation.isPending,
+              loading: bulkSellMutation.isPending,
+              disabled: bulkSellMutation.isPending,
               requiresConfirmation: true,
-              confirmationTitle: 'Submit Stock Adjustments?',
-              confirmationDescription: `This will adjust stock for ${items.length} item(s). This action cannot be undone.`,
+              confirmationTitle: 'Sell Stock?',
+              confirmationDescription: `This will record stock sale for ${items.length} item(s). This action cannot be undone.`,
               confirmLabel: 'Submit All',
             },
           ]}

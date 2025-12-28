@@ -1,0 +1,70 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { v4 as uuid } from 'uuid'
+
+export interface SalesReturnItem {
+ id: string
+ product_id: string
+ variant_id: string | null
+ location_id: string
+ returned_quantity: number
+ // Display names
+ product_name: string
+ location_name: string
+ variant_attributes?: { name?: string;[key: string]: any } | null
+ notes?: string
+}
+
+interface SalesReturnStore {
+ items: SalesReturnItem[]
+ addItem: (item: Omit<SalesReturnItem, 'id'>) => void
+ updateItem: (id: string, updates: Partial<Omit<SalesReturnItem, 'id'>>) => void
+ removeItem: (id: string) => void
+ clearAll: () => void
+}
+
+export const useSalesReturnStore = create<SalesReturnStore>()(
+ persist(
+  (set) => ({
+   items: [],
+
+   addItem: (item) =>
+    set((state) => {
+     // Check for duplicate (same product + variant + location)
+     const existingIndex = state.items.findIndex(
+      (existing) =>
+       existing.product_id === item.product_id &&
+       existing.location_id === item.location_id &&
+       (existing.variant_id || null) === (item.variant_id || null)
+     )
+
+     if (existingIndex !== -1) {
+      // Replace existing item
+      const newItems = [...state.items]
+      newItems[existingIndex] = { ...item, id: newItems[existingIndex].id }
+      return { items: newItems }
+     } else {
+      // Add new item
+      return { items: [...state.items, { ...item, id: uuid() }] }
+     }
+    }),
+
+   updateItem: (id, updates) =>
+    set((state) => ({
+     items: state.items.map((item) =>
+      item.id === id ? { ...item, ...updates } : item
+     ),
+    })),
+
+   removeItem: (id) =>
+    set((state) => ({
+     items: state.items.filter((item) => item.id !== id),
+    })),
+
+   clearAll: () => set({ items: [] }),
+  }),
+  {
+   name: 'sales-return-storage',
+  }
+ )
+)

@@ -16,34 +16,36 @@ import DynamicForm from '@/ui/components/form'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { CardTable } from '@/ui/components/custom/card-table'
 import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Trash } from 'lucide-react'
-import { useStockAdjustmentStore, AdjustmentItem } from '@/stores/stock-adjustment-store'
-import { useBulkAdjustStock } from '@/hooks/queries'
+import { Pencil, Trash2, Trash, ArrowRightLeft } from 'lucide-react'
+import { useTransferStore, TransferItem } from '@/stores/stock-transfer-store'
+import { useBulkTransferStock } from '@/hooks/queries'
 import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 
-const adjustmentSchema = z.object({
-  location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+const transferSchema = z.object({
+  from_location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  to_location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   product_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   variant_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  new_quantity: z.number().min(0, 'Quantity must be 0 or greater'),
+  transfer_quantity: z.number().min(1, 'Quantity must be at least 1'),
   notes: z.string().optional(),
 })
 
-type AdjustmentFormData = z.infer<typeof adjustmentSchema>
+type TransferFormData = z.infer<typeof transferSchema>
 
-export default function StockAdjustmentPage() {
+export default function BulkStockTransferPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
-  const { items, addItem, updateItem, removeItem, clearAll } = useStockAdjustmentStore()
-  const bulkAdjustMutation = useBulkAdjustStock()
+  const { items, addItem, updateItem, removeItem, clearAll } = useTransferStore()
+  const bulkTransferMutation = useBulkTransferStock()
 
-  const form = useForm<AdjustmentFormData>({
-    resolver: zodResolver(adjustmentSchema),
+  const form = useForm<TransferFormData>({
+    resolver: zodResolver(transferSchema),
     defaultValues: {
-      location_id: '',
+      from_location_id: '',
+      to_location_id: '',
       product_id: '',
       variant_id: '',
-      new_quantity: 0,
+      transfer_quantity: 1,
       notes: '',
     },
   })
@@ -63,17 +65,28 @@ export default function StockAdjustmentPage() {
   const formConfig: DynamicFormConfig = {
     sections: [
       {
-        title: 'Stock Adjustment Details',
+        title: 'Stock Transfer Details',
+        icon: <ArrowRightLeft className="h-5 w-5 text-primary" />,
         fields: [
           {
-            name: 'location_id',
-            label: 'Location',
+            name: 'from_location_id',
+            label: 'From Location',
             type: 'select',
             required: true,
             optionsApi: '/locations',
-            placeholder: 'Select location',
+            placeholder: 'Select source location',
             labelInValue: true,
-            columnSpan: 3,
+            columnSpan: 2,
+          },
+          {
+            name: 'to_location_id',
+            label: 'To Location',
+            type: 'select',
+            required: true,
+            optionsApi: '/locations',
+            placeholder: 'Select destination location',
+            labelInValue: true,
+            columnSpan: 2,
           },
           {
             name: 'product_id',
@@ -97,20 +110,20 @@ export default function StockAdjustmentPage() {
             columnSpan: 3,
           },
           {
-            name: 'new_quantity',
-            label: 'New Quantity',
+            name: 'transfer_quantity',
+            label: 'Transfer Quantity',
             type: 'number',
             required: true,
-            placeholder: 'Enter new quantity',
-            columnSpan: 3,
-            validation: { min: 0 },
+            placeholder: 'Enter quantity to transfer',
+            columnSpan: 2,
+            validation: { min: 1 },
           },
           {
             name: 'notes',
             label: 'Notes',
             type: 'textarea',
             required: false,
-            placeholder: 'Reason for adjustment (e.g., physical count, damage, theft)',
+            placeholder: 'Reason for transfer (optional)',
             columnSpan: 4,
           },
         ],
@@ -118,45 +131,57 @@ export default function StockAdjustmentPage() {
     ],
   }
 
-  const handleAddOrUpdate = (data: AdjustmentFormData) => {
+  const handleAddOrUpdate = (data: TransferFormData) => {
+    const fromLocationId = extractValue(data.from_location_id)
+    const toLocationId = extractValue(data.to_location_id)
+
+    // Validate same location
+    if (fromLocationId === toLocationId) {
+      toast.error('Cannot transfer to the same location')
+      return
+    }
+
     if (editingId) {
       // Update existing item
       updateItem(editingId, {
         product_id: extractValue(data.product_id),
         variant_id: extractValue(data.variant_id) || null,
-        location_id: extractValue(data.location_id),
-        new_quantity: data.new_quantity,
-        notes: data.notes,
+        from_location_id: fromLocationId,
+        to_location_id: toLocationId,
+        transfer_quantity: data.transfer_quantity,
         product_name: extractLabel(data.product_id),
-        location_name: extractLabel(data.location_id),
+        from_location_name: extractLabel(data.from_location_id),
+        to_location_name: extractLabel(data.to_location_id),
         variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
+        notes: data.notes,
       })
       setEditingId(null)
       toast.success('Item updated in list')
     } else {
       const productId = extractValue(data.product_id)
-      const locationId = extractValue(data.location_id)
       const variantId = extractValue(data.variant_id) || null
 
       // Check if item already exists
       const existingItem = items.find(
         (item) =>
           item.product_id === productId &&
-          item.location_id === locationId &&
+          item.from_location_id === fromLocationId &&
+          item.to_location_id === toLocationId &&
           (item.variant_id || null) === variantId
-      );
+      )
 
       // Add new item (replaces existing if duplicate)
       addItem({
         product_id: productId,
         variant_id: variantId,
-        location_id: locationId,
-        old_quantity: 0, // Will be filled by backend
-        new_quantity: data.new_quantity,
-        notes: data.notes,
+        from_location_id: fromLocationId,
+        to_location_id: toLocationId,
+        transfer_quantity: data.transfer_quantity,
         product_name: extractLabel(data.product_id),
-        location_name: extractLabel(data.location_id),
+        from_location_name: extractLabel(data.from_location_id),
+        to_location_name: extractLabel(data.to_location_id),
         variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
+        notes: data.notes,
       })
       
       if (existingItem) {
@@ -167,23 +192,25 @@ export default function StockAdjustmentPage() {
     }
   
     form.reset({
-      location_id: data.location_id,
+      from_location_id: data.from_location_id,
+      to_location_id: data.to_location_id,
       product_id: '',
       variant_id: '',
-      new_quantity: 0,
+      transfer_quantity: 1,
       notes: '',
     })
   }
 
-  const handleEdit = (item: AdjustmentItem) => {
+  const handleEdit = (item: TransferItem) => {
     setEditingId(item.id)
-    form.setValue('location_id', { label: item.location_name, value: item.location_id })
+    form.setValue('from_location_id', { label: item.from_location_name, value: item.from_location_id })
+    form.setValue('to_location_id', { label: item.to_location_name, value: item.to_location_id })
     form.setValue('product_id', { label: item.product_name, value: item.product_id })
     form.setValue('variant_id', item.variant_id ? { 
       label: item.variant_attributes?.name || item.variant_id, 
       value: item.variant_id 
     } : '')
-    form.setValue('new_quantity', item.new_quantity)
+    form.setValue('transfer_quantity', item.transfer_quantity)
     form.setValue('notes', item.notes || '')
   }
 
@@ -198,28 +225,28 @@ export default function StockAdjustmentPage() {
       return
     }
 
-    const adjustments = items.map((item) => ({
+    const transfers = items.map((item) => ({
       product_id: item.product_id,
       variant_id: item.variant_id,
-      location_id: item.location_id,
-      new_quantity: item.new_quantity,
+      from_location_id: item.from_location_id,
+      to_location_id: item.to_location_id,
+      transfer_quantity: item.transfer_quantity,
       notes: item.notes,
     }))
 
     try {
-      await bulkAdjustMutation.mutateAsync(adjustments)
+      await bulkTransferMutation.mutateAsync(transfers)
       // Transaction succeeded - clear Zustand store
       clearAll()
       form.reset()
     } catch (error) {
       // Transaction failed/rolled back - keep items in store for retry
-      console.error('Bulk adjustment failed:', error)
+      console.error('Bulk transfer failed:', error)
       // Items remain in Zustand store for user to review and retry
     }
   }
 
-
-  const columns: ColumnDef<AdjustmentItem>[] = [
+  const columns: ColumnDef<TransferItem>[] = [
     {
       accessorKey: 'product_name',
       header: 'Product',
@@ -236,13 +263,18 @@ export default function StockAdjustmentPage() {
       },
     },
     {
-      accessorKey: 'location_name',
-      header: 'Location',
-      cell: ({ row }) => row.original.location_name || row.original.location_id,
+      accessorKey: 'from_location_name',
+      header: 'From',
+      cell: ({ row }) => row.original.from_location_name || row.original.from_location_id,
     },
     {
-      accessorKey: 'new_quantity',
-      header: 'New Quantity',
+      accessorKey: 'to_location_name',
+      header: 'To',
+      cell: ({ row }) => row.original.to_location_name || row.original.to_location_id,
+    },
+    {
+      accessorKey: 'transfer_quantity',
+      header: 'Quantity',
     },
     {
       accessorKey: 'notes',
@@ -277,18 +309,18 @@ export default function StockAdjustmentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Stock Adjustment</h1>
+        <h1 className="text-3xl font-bold">Stock Transfer (Bulk)</h1>
         <p className="text-muted-foreground">
-          Manually adjust stock quantities for products
+          Transfer stock between locations
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>{editingId ? 'Edit Item' : 'Add Item'}</CardTitle>
+          <CardTitle>{editingId ? 'Edit Transfer' : 'Add Transfer'}</CardTitle>
           <CardDescription>
             {editingId
-              ? 'Update the item details below'
+              ? 'Update the transfer details below'
               : 'Add items to the list and submit all at once'}
           </CardDescription>
         </CardHeader>
@@ -314,8 +346,8 @@ export default function StockAdjustmentPage() {
 
       {items.length > 0 && (
         <CardTable
-          title={`Items to Adjust (${items.length})`}
-          description="Review and edit items before submitting"
+          title={`Transfers to Process (${items.length})`}
+          description="Review and edit transfers before submitting"
           headerAction={
             <Button 
               variant="destructive" 
@@ -327,26 +359,17 @@ export default function StockAdjustmentPage() {
           }
           columns={columns}
           data={items}
-          emptyMessage="No items to adjust"
+          emptyMessage="No transfers to process"
           actions={[
-            // {
-            //   label: 'Clear All',
-            //   onClick: clearAll,
-            //   variant: 'outline',
-            //   requiresConfirmation: true,
-            //   confirmationTitle: 'Clear All Items?',
-            //   confirmationDescription: `This will remove all ${items.length} item(s) from the list. This action cannot be undone.`,
-            //   confirmLabel: 'Clear All',
-            // },
             {
               label: `Submit All (${items.length})`,
               onClick: handleSubmitAll,
               variant: 'default',
-              loading: bulkAdjustMutation.isPending,
-              disabled: bulkAdjustMutation.isPending,
+              loading: bulkTransferMutation.isPending,
+              disabled: bulkTransferMutation.isPending,
               requiresConfirmation: true,
-              confirmationTitle: 'Submit Stock Adjustments?',
-              confirmationDescription: `This will adjust stock for ${items.length} item(s). This action cannot be undone.`,
+              confirmationTitle: 'Process Stock Transfers?',
+              confirmationDescription: `This will transfer stock for ${items.length} item(s) between locations. This action cannot be undone.`,
               confirmLabel: 'Submit All',
             },
           ]}

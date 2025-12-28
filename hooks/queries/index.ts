@@ -108,9 +108,23 @@ export {
   useReceiveStock,
   useBulkAdjustStock,
   useBulkReceiveStock,
+  useSellStock,
+  useBulkSellStock,
+  useReturnSale,
+  useBulkReturnSale,
+  useReturnPurchase,
+  useBulkReturnPurchase,
+  useTransferStock,
+  useBulkTransferStock,
   useUpdateInventory,
 } from "./use-inventory";
 export type { BulkAdjustmentItem } from "./use-inventory";
+
+// Stock Movements hooks (Audit Trail)
+export {
+  useStockMovements,
+  useInventoryHistory,
+} from "./use-stock-movements";
 
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)
 export {

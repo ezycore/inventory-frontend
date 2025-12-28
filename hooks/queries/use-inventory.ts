@@ -10,6 +10,7 @@ export interface BulkAdjustmentItem {
   variant_id?: string | null
   location_id: string
   new_quantity: number
+  notes?: string
 }
 
 const inventoryHooks = createResourceHooks<Inventory, CreateInventoryDto>(
@@ -99,6 +100,154 @@ export const useBulkReceiveStock = () => {
       const message = error?.response?.data?.error || 'Failed to receive stock'
       toast.error(message)
       // Transaction rolled back - Zustand store keeps data for retry
+    },
+  })
+}
+
+// Sell stock mutation hook
+export const useSellStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: any) => inventoryApi.sellStock(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      toast.success('Stock sold successfully')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to sell stock'
+      toast.error(message)
+    },
+  })
+}
+
+// Bulk sell stock mutation hook with transaction support
+export const useBulkSellStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (sales: any[]) => inventoryApi.bulkSellStock(sales),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully sold ${result.total} items`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to sell stock'
+      toast.error(message)
+    },
+  })
+}
+
+// 🔁 RETURNS & ADJUSTMENTS
+
+// Sales Return (Stock IN) - Customer returns item
+export const useReturnSale = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: any) => inventoryApi.returnSale(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      toast.success('Sales return processed successfully')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to process sales return'
+      toast.error(message)
+    },
+  })
+}
+
+export const useBulkReturnSale = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (returns: any[]) => inventoryApi.bulkReturnSale(returns),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully processed ${result.total} sales returns`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to process sales returns'
+      toast.error(message)
+    },
+  })
+}
+
+// Purchase Return (Stock OUT) - Return damaged items to supplier
+export const useReturnPurchase = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: any) => inventoryApi.returnPurchase(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      toast.success('Purchase return processed successfully')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to process purchase return'
+      toast.error(message)
+    },
+  })
+}
+
+export const useBulkReturnPurchase = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (returns: any[]) => inventoryApi.bulkReturnPurchase(returns),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully processed ${result.total} purchase returns`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to process purchase returns'
+      toast.error(message)
+    },
+  })
+}
+
+// 🔄 STOCK TRANSFER (Location → Location)
+
+export const useTransferStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: any) => inventoryApi.transferStock(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      toast.success('Stock transferred successfully')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to transfer stock'
+      toast.error(message)
+    },
+  })
+}
+
+export const useBulkTransferStock = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (transfers: any[]) => inventoryApi.bulkTransferStock(transfers),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully transferred ${result.total} items`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to transfer stock'
+      toast.error(message)
     },
   })
 }
