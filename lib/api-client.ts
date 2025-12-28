@@ -409,6 +409,19 @@ export const inventoryApi = {
 
   bulkSellStock: (sales: any[]): Promise<ApiResponse<any>> =>
     apiClient.post("/stock/bulk-sell", { sales }),
+
+  // 🔁 Returns & Adjustments
+  returnSale: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/return-sale", data),
+
+  bulkReturnSale: (returns: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-return-sale", { returns }),
+
+  returnPurchase: (data: any): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/return-purchase", data),
+
+  bulkReturnPurchase: (returns: any[]): Promise<ApiResponse<any>> =>
+    apiClient.post("/stock/bulk-return-purchase", { returns }),
 };
 
 // Customers API (Sales)

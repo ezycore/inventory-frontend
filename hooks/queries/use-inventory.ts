@@ -139,3 +139,77 @@ export const useBulkSellStock = () => {
     },
   })
 }
+
+// 🔁 RETURNS & ADJUSTMENTS
+
+// Sales Return (Stock IN) - Customer returns item
+export const useReturnSale = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: any) => inventoryApi.returnSale(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      toast.success('Sales return processed successfully')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to process sales return'
+      toast.error(message)
+    },
+  })
+}
+
+export const useBulkReturnSale = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (returns: any[]) => inventoryApi.bulkReturnSale(returns),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully processed ${result.total} sales returns`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to process sales returns'
+      toast.error(message)
+    },
+  })
+}
+
+// Purchase Return (Stock OUT) - Return damaged items to supplier
+export const useReturnPurchase = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: any) => inventoryApi.returnPurchase(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      toast.success('Purchase return processed successfully')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to process purchase return'
+      toast.error(message)
+    },
+  })
+}
+
+export const useBulkReturnPurchase = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (returns: any[]) => inventoryApi.bulkReturnPurchase(returns),
+    onSuccess: (data) => {
+      const result = data?.data
+      if (result?.success) {
+        toast.success(`Successfully processed ${result.total} purchase returns`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.error || 'Failed to process purchase returns'
+      toast.error(message)
+    },
+  })
+}
