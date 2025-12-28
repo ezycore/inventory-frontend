@@ -34,24 +34,25 @@ export const navItems: NavItem[] = [
     items: [
       { title: 'Inventory List', url: '/inventory', icon: 'list' },
       { title: 'Shortlist', url: '/inventory/shortlist', icon: 'clipboard-list' },
-      { title: 'Stock Adjustment', url: '/inventory/adjust', icon: 'edit' }
+      { title: 'Stock Adjustment', url: '/inventory/adjust', icon: 'edit' },
+      { title: 'Stock Movements', url: '/stock/movements', icon: 'arrow-right-left' },
     ]
   },
 
-  // STOCK MANAGEMENT
-  {
-    title: 'Stock Management',
-    url: '/stock',
-    icon: 'layers',
-    isActive: false,
-    items: [
-      { title: 'Stock Overview', url: '/stock', icon: 'eye' },
-      { title: 'Stock Movements', url: '/stock/movements', icon: 'arrow-right-left' },
-      { title: 'Stock Adjustments', url: '/stock/adjustments', icon: 'edit' },
-      { title: 'Low Stock Alert', url: '/stock/alerts', icon: 'alert-triangle' },
-      { title: 'Stock Transfer', url: '/stock/transfers', icon: 'truck' }
-    ]
-  },
+  // // STOCK MANAGEMENT
+  // {
+  //   title: 'Stock Management',
+  //   url: '/stock',
+  //   icon: 'layers',
+  //   isActive: false,
+  //   items: [
+  //     { title: 'Stock Overview', url: '/stock', icon: 'eye' },
+  //     { title: 'Stock Movements', url: '/stock/movements', icon: 'arrow-right-left' },
+  //     { title: 'Stock Adjustments', url: '/stock/adjustments', icon: 'edit' },
+  //     { title: 'Low Stock Alert', url: '/stock/alerts', icon: 'alert-triangle' },
+  //     { title: 'Stock Transfer', url: '/stock/transfers', icon: 'truck' }
+  //   ]
+  // },
 
   // SALES
   {
