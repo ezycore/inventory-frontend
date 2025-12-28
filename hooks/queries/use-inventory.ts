@@ -10,6 +10,7 @@ export interface BulkAdjustmentItem {
   variant_id?: string | null
   location_id: string
   new_quantity: number
+  notes?: string
 }
 
 const inventoryHooks = createResourceHooks<Inventory, CreateInventoryDto>(

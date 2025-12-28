@@ -9,6 +9,7 @@ export interface AdjustmentItem {
  location_id: string;
  old_quantity: number;
  new_quantity: number;
+ notes?: string;
  // Display fields
  product_name: string;
  variant_attributes?: Record<string, any> | null;

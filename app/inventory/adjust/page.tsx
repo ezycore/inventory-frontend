@@ -27,6 +27,7 @@ const adjustmentSchema = z.object({
   product_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   variant_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
   new_quantity: z.number().min(0, 'Quantity must be 0 or greater'),
+  notes: z.string().optional(),
 })
 
 type AdjustmentFormData = z.infer<typeof adjustmentSchema>
@@ -43,6 +44,7 @@ export default function StockAdjustmentPage() {
       product_id: '',
       variant_id: '',
       new_quantity: 0,
+      notes: '',
     },
   })
 
@@ -103,6 +105,14 @@ export default function StockAdjustmentPage() {
             columnSpan: 3,
             validation: { min: 0 },
           },
+          {
+            name: 'notes',
+            label: 'Notes',
+            type: 'textarea',
+            required: false,
+            placeholder: 'Reason for adjustment (e.g., physical count, damage, theft)',
+            columnSpan: 4,
+          },
         ],
       },
     ],
@@ -116,6 +126,7 @@ export default function StockAdjustmentPage() {
         variant_id: extractValue(data.variant_id) || null,
         location_id: extractValue(data.location_id),
         new_quantity: data.new_quantity,
+        notes: data.notes,
         product_name: extractLabel(data.product_id),
         location_name: extractLabel(data.location_id),
         variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
@@ -142,6 +153,7 @@ export default function StockAdjustmentPage() {
         location_id: locationId,
         old_quantity: 0, // Will be filled by backend
         new_quantity: data.new_quantity,
+        notes: data.notes,
         product_name: extractLabel(data.product_id),
         location_name: extractLabel(data.location_id),
         variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
@@ -159,6 +171,7 @@ export default function StockAdjustmentPage() {
       product_id: '',
       variant_id: '',
       new_quantity: 0,
+      notes: '',
     })
   }
 
@@ -171,6 +184,7 @@ export default function StockAdjustmentPage() {
       value: item.variant_id 
     } : '')
     form.setValue('new_quantity', item.new_quantity)
+    form.setValue('notes', item.notes || '')
   }
 
   const handleCancelEdit = () => {
@@ -189,6 +203,7 @@ export default function StockAdjustmentPage() {
       variant_id: item.variant_id,
       location_id: item.location_id,
       new_quantity: item.new_quantity,
+      notes: item.notes,
     }))
 
     try {
@@ -228,6 +243,11 @@ export default function StockAdjustmentPage() {
     {
       accessorKey: 'new_quantity',
       header: 'New Quantity',
+    },
+    {
+      accessorKey: 'notes',
+      header: 'Notes',
+      cell: ({ row }) => row.original.notes || '-',
     },
     {
       id: 'actions',
