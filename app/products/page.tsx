@@ -29,7 +29,16 @@ import ProductForm from '@/components/products/product-form'
       header: 'Status',
       accessorKey: 'status',
       cell: ({ row }) => <StatusBadge status={row.original.status} />
-
+    },
+    {
+      header: 'Brand',
+      accessorKey: 'brand',
+      cell: ({ row }) => row.getValue("brand")?.name,
+    },
+    {
+      header: 'Category',
+      accessorKey: 'category',
+      cell: ({ row }) => row.getValue("category")?.name,
     },
   ]
 
