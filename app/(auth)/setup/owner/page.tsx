@@ -1,70 +1,224 @@
 // app/setup/owner/page.tsx
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Input } from '@/ui/components/input';
-import { Button } from '@/ui/components/button';
-import { Label } from '@/ui/components/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/ui/components/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/ui/components/select';
-import { Building2, User, Lock, Globe, CheckCircle2 } from 'lucide-react';
-import { useCreateOwner } from '@/hooks/queries/use-setup';
-import { toast } from 'sonner';
+import { Building2, Globe, User } from "lucide-react";
+import { useCreateOwner } from "@/hooks/queries/use-setup";
+import { toast } from "sonner";
+import useDynamicForm from "@/hooks/use-dynamic-form";
+import DynamicForm from "@/ui/components/form";
+import { DynamicFormConfig } from "@/ui/components/form/type";
+import { Card, CardContent } from "@/ui/components/card";
+
+const ownerSetupFormConfig: DynamicFormConfig = {
+  sections: [
+    {
+      title: "Personal Information",
+      description: "Manage your personal details and contact information.",
+      icon: <User className="h-5 w-5 text-blue-600" />,
+      collapsible: false,
+      fields: [
+        {
+          name: "firstName",
+          type: "input",
+          label: "First Name",
+          columnSpan: 6,
+          placeholder: "John",
+          required: true,
+        },
+        {
+          name: "lastName",
+          type: "input",
+          label: "Last Name",
+          columnSpan: 6,
+          placeholder: "Doe",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "input",
+          label: "Email Address",
+          columnSpan: 6,
+          placeholder: "john@company.com",
+          required: true,
+        },
+        {
+          name: "phone",
+          type: "input",
+          label: "Phone Number",
+          columnSpan: 6,
+          placeholder: "+1 (234) 567-8900",
+        },
+        {
+          name: "password",
+          type: "password",
+          label: "Password",
+          columnSpan: 6,
+          placeholder: "Min. 8 characters",
+          required: true,
+        },
+        {
+          name: "confirmPassword",
+          type: "password",
+          label: "Confirm Password",
+          columnSpan: 6,
+          placeholder: "Re-enter password",
+          required: true,
+        },
+      ],
+    },
+    {
+      title: "Organization Details",
+      icon: <span className="text-orange-600 font-semibold">🖼</span>,
+      collapsible: false,
+      fields: [
+        {
+          name: "organizationName",
+          type: "input",
+          label: "Organization Name",
+          columnSpan: 6,
+          placeholder: "ABC Manufacturing Ltd",
+          required: true,
+        },
+        {
+          name: "organizationSlug",
+          type: "input",
+          label: "Organization Slug",
+          columnSpan: 6,
+          placeholder: "abc-manufacturing-ltd",
+          required: true,
+          description:
+            "Used in URLs and must be unique. Only lowercase letters, numbers, and hyphens allowed.",
+        },
+        {
+          name: "industry",
+          type: "select",
+          label: "Industry",
+          columnSpan: 6,
+          placeholder: "Select industry",
+          required: true,
+          options: [
+            { label: "Manufacturing", value: "Manufacturing" },
+            { label: "Retail", value: "Retail" },
+            { label: "Wholesale", value: "Wholesale" },
+            { label: "Services", value: "Services" },
+            { label: "Technology", value: "Technology" },
+            { label: "Healthcare", value: "Healthcare" },
+            { label: "Education", value: "Education" },
+            { label: "Food & Beverage", value: "Food & Beverage" },
+            { label: "Other", value: "Other" },
+          ],
+        },
+        {
+          name: "country",
+          type: "select",
+          label: "Country",
+          columnSpan: 6,
+          placeholder: "Select country",
+          required: true,
+          options: [
+            { label: "🇺🇸 United States", value: "US" },
+            { label: "🇬🇧 United Kingdom", value: "UK" },
+            { label: "🇨🇦 Canada", value: "CA" },
+            { label: "🇦🇺 Australia", value: "AU" },
+            { label: "🇮🇳 India", value: "IN" },
+            { label: "🇧🇩 Bangladesh", value: "BD" },
+            { label: "🇵🇰 Pakistan", value: "PK" },
+            { label: "🇸🇬 Singapore", value: "SG" },
+            { label: "🇦🇪 UAE", value: "AE" },
+          ],
+        },
+        {
+          name: "timezone",
+          type: "select",
+          label: "Timezone",
+          columnSpan: 6,
+          placeholder: "Select timezone",
+          required: true,
+          options: [
+            { label: "Eastern Time (ET)", value: "America/New_York" },
+            { label: "Central Time (CT)", value: "America/Chicago" },
+            { label: "Mountain Time (MT)", value: "America/Denver" },
+            { label: "Pacific Time (PT)", value: "America/Los_Angeles" },
+            { label: "London (GMT)", value: "Europe/London" },
+            { label: "Central European (CET)", value: "Europe/Paris" },
+            { label: "Dubai (GST)", value: "Asia/Dubai" },
+            { label: "India (IST)", value: "Asia/Kolkata" },
+            { label: "Bangladesh (BST)", value: "Asia/Dhaka" },
+            { label: "Singapore (SGT)", value: "Asia/Singapore" },
+            { label: "Sydney (AEDT)", value: "Australia/Sydney" },
+          ],
+        },
+        {
+          name: "currency",
+          type: "select",
+          label: "Currency",
+          columnSpan: 6,
+          placeholder: "Select currency",
+          required: true,
+          options: [
+            { label: "USD - US Dollar ($)", value: "USD" },
+            { label: "EUR - Euro (€)", value: "EUR" },
+            { label: "GBP - British Pound (£)", value: "GBP" },
+            { label: "CAD - Canadian Dollar (C$)", value: "CAD" },
+            { label: "AUD - Australian Dollar (A$)", value: "AUD" },
+            { label: "INR - Indian Rupee (₹)", value: "INR" },
+            { label: "BDT - Bangladeshi Taka (৳)", value: "BDT" },
+            { label: "PKR - Pakistani Rupee (₨)", value: "PKR" },
+            { label: "SGD - Singapore Dollar (S$)", value: "SGD" },
+            { label: "AED - UAE Dirham (د.إ)", value: "AED" },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+const generateSlug = (name: string) => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+};
 
 export default function OwnerSetupPage() {
   const createOwnerMutation = useCreateOwner();
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: '',
-    organizationName: '',
-    industry: '',
-    country: '',
-    timezone: '',
-    currency: '',
-  });
+  const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleFieldChange = (fieldName: string, value: any) => {
+    // Auto-generate slug from organization name
+    if (fieldName === "organizationName") {
+      const currentSlug = form.getValues("organizationSlug");
+      const previousOrgName = form.getValues("organizationName");
+
+      // Only auto-generate if slug hasn't been manually edited
+      if (!currentSlug || currentSlug === generateSlug(previousOrgName)) {
+        form.setValue("organizationSlug", generateSlug(value));
+      }
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSubmit = (data: any) => {
     // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+    if (data.password !== data.confirmPassword) {
+      toast.error("Passwords do not match");
       return;
     }
 
     // Validate password length
-    if (formData.password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+    if (data.password.length < 8) {
+      toast.error("Password must be at least 8 characters");
       return;
     }
 
-    createOwnerMutation.mutate(formData);
+    createOwnerMutation.mutate(data);
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="max-w-4xl w-full">
+      <div className="max-w-4xl w-full mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg">
@@ -74,326 +228,51 @@ export default function OwnerSetupPage() {
             Welcome to EasyStock!
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-            Let&apos;s set up your inventory management system. Create your owner account to get started.
+            Let&apos;s set up your inventory management system. Create your
+            owner account to get started.
           </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Owner Information Card */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-blue-600 dark:text-blue-500" />
-                <CardTitle>Owner Information</CardTitle>
-              </div>
-              <CardDescription>
-                Personal details for the account owner
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">
-                    First Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={(e) => handleChange('firstName', e.target.value)}
-                    placeholder="John"
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">
-                    Last Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={(e) => handleChange('lastName', e.target.value)}
-                    placeholder="Doe"
-                    className="w-full"
-                  />
-                </div>
+        <DynamicForm
+          id="owner-setup-form"
+          className="space-y-6"
+          config={config}
+          form={form}
+          onFieldChange={handleFieldChange}
+          cancelLabel={null}
+          submitLabel={
+            createOwnerMutation.isPending
+              ? "Setting up your account..."
+              : "Complete Setup & Create Account"
+          }
+          onSubmit={handleSubmit}
+          contentLoading={false}
+          hideCancel={true}
+        />
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">
-                    Email Address <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                    placeholder="john@company.com"
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
-                    placeholder="+1 (234) 567-8900"
-                    className="w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="flex items-center gap-2">
-                    <Lock className="w-3.5 h-3.5" />
-                    Password <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={8}
-                    value={formData.password}
-                    onChange={(e) => handleChange('password', e.target.value)}
-                    placeholder="Min. 8 characters"
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">
-                    Confirm Password <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    minLength={8}
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                    placeholder="Re-enter password"
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Organization Information Card */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-500" />
-                <CardTitle>Organization Information</CardTitle>
-              </div>
-              <CardDescription>
-                Details about your company or business
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="organizationName">
-                    Organization Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="organizationName"
-                    name="organizationName"
-                    type="text"
-                    required
-                    value={formData.organizationName}
-                    onChange={(e) => handleChange('organizationName', e.target.value)}
-                    placeholder="ABC Manufacturing Ltd"
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="industry">
-                    Industry <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={formData.industry}
-                    onValueChange={(value) => handleChange('industry', value)}
-                    required
-                  >
-                    <SelectTrigger id="industry" className="w-full">
-                      <SelectValue placeholder="Select industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                      <SelectItem value="Retail">Retail</SelectItem>
-                      <SelectItem value="Wholesale">Wholesale</SelectItem>
-                      <SelectItem value="Services">Services</SelectItem>
-                      <SelectItem value="Technology">Technology</SelectItem>
-                      <SelectItem value="Healthcare">Healthcare</SelectItem>
-                      <SelectItem value="Education">Education</SelectItem>
-                      <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="country" className="flex items-center gap-2">
-                    <Globe className="w-3.5 h-3.5" />
-                    Country <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={formData.country}
-                    onValueChange={(value) => handleChange('country', value)}
-                    required
-                  >
-                    <SelectTrigger id="country" className="w-full">
-                      <SelectValue placeholder="Select country" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="US">🇺🇸 United States</SelectItem>
-                      <SelectItem value="UK">🇬🇧 United Kingdom</SelectItem>
-                      <SelectItem value="CA">🇨🇦 Canada</SelectItem>
-                      <SelectItem value="AU">🇦🇺 Australia</SelectItem>
-                      <SelectItem value="IN">🇮🇳 India</SelectItem>
-                      <SelectItem value="BD">🇧🇩 Bangladesh</SelectItem>
-                      <SelectItem value="PK">🇵🇰 Pakistan</SelectItem>
-                      <SelectItem value="SG">🇸🇬 Singapore</SelectItem>
-                      <SelectItem value="AE">🇦🇪 UAE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">
-                    Timezone <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={formData.timezone}
-                    onValueChange={(value) => handleChange('timezone', value)}
-                    required
-                  >
-                    <SelectTrigger id="timezone" className="w-full">
-                      <SelectValue placeholder="Select timezone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
-                      <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
-                      <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
-                      <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
-                      <SelectItem value="Europe/London">London (GMT)</SelectItem>
-                      <SelectItem value="Europe/Paris">Central European (CET)</SelectItem>
-                      <SelectItem value="Asia/Dubai">Dubai (GST)</SelectItem>
-                      <SelectItem value="Asia/Kolkata">India (IST)</SelectItem>
-                      <SelectItem value="Asia/Dhaka">Bangladesh (BST)</SelectItem>
-                      <SelectItem value="Asia/Singapore">Singapore (SGT)</SelectItem>
-                      <SelectItem value="Australia/Sydney">Sydney (AEDT)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="currency">
-                    Currency <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={formData.currency}
-                    onValueChange={(value) => handleChange('currency', value)}
-                    required
-                  >
-                    <SelectTrigger id="currency" className="w-full">
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
-                      <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
-                      <SelectItem value="GBP">GBP - British Pound (£)</SelectItem>
-                      <SelectItem value="CAD">CAD - Canadian Dollar (C$)</SelectItem>
-                      <SelectItem value="AUD">AUD - Australian Dollar (A$)</SelectItem>
-                      <SelectItem value="INR">INR - Indian Rupee (₹)</SelectItem>
-                      <SelectItem value="BDT">BDT - Bangladeshi Taka (৳)</SelectItem>
-                      <SelectItem value="PKR">PKR - Pakistani Rupee (₨)</SelectItem>
-                      <SelectItem value="SGD">SGD - Singapore Dollar (S$)</SelectItem>
-                      <SelectItem value="AED">AED - UAE Dirham (د.إ)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Submit Button */}
-          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 dark:border-blue-900">
-            <CardContent className="py-4">
-              <Button
-                type="submit"
-                disabled={createOwnerMutation.isPending}
-                className="w-full h-12 text-base font-semibold"
-                size="lg"
-              >
-                {createOwnerMutation.isPending ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Setting up your account...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5" />
-                    Complete Setup & Create Account
-                  </span>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Info Note */}
-          <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900">
-            <CardContent className="flex gap-3 py-4">
-              <Globe className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-amber-900 dark:text-amber-400">
-                  Important Information
-                </p>
-                <p className="text-sm text-amber-800 dark:text-amber-500">
-                  You are creating the owner account with full administrative access. This account will have complete control over user management, roles, permissions, and all system settings.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </form>
+        {/* Info Note */}
+        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 mt-6">
+          <CardContent className="flex gap-3 py-4">
+            <Globe className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-amber-900 dark:text-amber-400">
+                Important Information
+              </p>
+              <p className="text-sm text-amber-800 dark:text-amber-500">
+                You are creating the owner account with full administrative
+                access. This account will have complete control over user
+                management, roles, permissions, and all system settings.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            By creating an account, you agree to our Terms of Service and Privacy Policy
+            By creating an account, you agree to our Terms of Service and
+            Privacy Policy
           </p>
         </div>
       </div>

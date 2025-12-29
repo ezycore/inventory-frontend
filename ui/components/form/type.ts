@@ -33,6 +33,7 @@ export interface FormFieldConfig {
   disabled?: boolean
   hidden?: boolean
   defaultValue?: any // Default value for the field
+  description?: string
 
   // Layout properties
   columnSpan?: ColumnSpan // Grid columns to span (out of 12)
@@ -146,6 +147,7 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   onCancel?: () => void
   isSubmitting?: boolean;
   resetAfterSubmit?: boolean;
+  hideCancel?: boolean;
 
   // Mutation-based form submission (alternative to onSubmit)
   mutationHook?: {
