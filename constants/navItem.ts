@@ -25,20 +25,35 @@ export const navItems: NavItem[] = [
     ]
   },
 
-  // STOCK MANAGEMENT
+  // INVENTORY
   {
-    title: 'Stock Management',
-    url: '/stock',
-    icon: 'layers',
+    title: 'Inventory',
+    url: '/inventory',
+    icon: 'database',
     isActive: false,
     items: [
-      { title: 'Stock Overview', url: '/stock', icon: 'eye' },
+      { title: 'Inventory List', url: '/inventory', icon: 'list' },
+      { title: 'Shortlist', url: '/inventory/shortlist', icon: 'clipboard-list' },
+      { title: 'Stock Adjustment', url: '/inventory/adjust', icon: 'edit' },
       { title: 'Stock Movements', url: '/stock/movements', icon: 'arrow-right-left' },
-      { title: 'Stock Adjustments', url: '/stock/adjustments', icon: 'edit' },
-      { title: 'Low Stock Alert', url: '/stock/alerts', icon: 'alert-triangle' },
       { title: 'Stock Transfer', url: '/stock/transfers', icon: 'truck' }
     ]
   },
+
+  // // STOCK MANAGEMENT
+  // {
+  //   title: 'Stock Management',
+  //   url: '/stock',
+  //   icon: 'layers',
+  //   isActive: false,
+  //   items: [
+  //     { title: 'Stock Overview', url: '/stock', icon: 'eye' },
+  //     { title: 'Stock Movements', url: '/stock/movements', icon: 'arrow-right-left' },
+  //     { title: 'Stock Adjustments', url: '/stock/adjustments', icon: 'edit' },
+  //     { title: 'Low Stock Alert', url: '/stock/alerts', icon: 'alert-triangle' },
+  //     { title: 'Stock Transfer', url: '/stock/transfers', icon: 'truck' }
+  //   ]
+  // },
 
   // SALES
   {
@@ -48,8 +63,9 @@ export const navItems: NavItem[] = [
     isActive: false,
     items: [
       { title: 'New Sale / POS', url: '/sales', icon: 'credit-card' },
+      { title: 'Sell Stock (Bulk)', url: '/sales/sell-bulk', icon: 'shopping-cart' },
       { title: 'Sales History', url: '/sales/history', icon: 'clock' },
-      { title: 'Sales Return', url: '/sales/returns', icon: 'corner-up-left' },
+      { title: 'Sales Returns (Bulk)', url: '/sales/returns-bulk', icon: 'corner-up-left' },
       { title: 'Customers', url: '/sales/customers', icon: 'users' }
     ]
   },
@@ -61,9 +77,10 @@ export const navItems: NavItem[] = [
     icon: 'shopping-bag',
     isActive: false,
     items: [
-      { title: 'New Purchase', url: '/purchases/new', icon: 'plus' },
-      { title: 'Purchase Orders', url: '/purchases/orders', icon: 'file-text' },
-      { title: 'Purchase Returns', url: '/purchases/returns', icon: 'corner-down-left' },
+      { title: 'Receive Stock', url: '/purchases/receive', icon: 'package-plus' },
+      { title: 'Receive Stock (Bulk)', url: '/purchases/receive-bulk', icon: 'packages' },
+      { title: 'Purchase History', url: '/purchases/history', icon: 'clock' },
+      { title: 'Purchase Returns (Bulk)', url: '/purchases/returns-bulk', icon: 'package-minus' },
       { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
     ]
   },
@@ -80,9 +97,6 @@ export const navItems: NavItem[] = [
       { title: 'Transfer Requests', url: '/locations/transfer-requests', icon: 'truck' }
     ]
   },
-
-
-
   // REPORTS
   {
     title: 'Reports',

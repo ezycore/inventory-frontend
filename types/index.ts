@@ -48,7 +48,7 @@ export interface CreateCategoryDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {}
+export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
 
 // Brand interfaces
 export interface Brand extends BaseEntity {
@@ -82,7 +82,7 @@ export interface CreateLocationDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateLocationDto extends Partial<CreateLocationDto> {}
+export interface UpdateLocationDto extends Partial<CreateLocationDto> { }
 
 export interface CreateBrandDto {
   name: string;
@@ -94,7 +94,7 @@ export interface CreateBrandDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateBrandDto extends Partial<CreateBrandDto> {}
+export interface UpdateBrandDto extends Partial<CreateBrandDto> { }
 
 // Customer interfaces
 export interface Customer extends BaseEntity {
@@ -113,7 +113,7 @@ export interface CreateCustomerDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}
+export interface UpdateCustomerDto extends Partial<CreateCustomerDto> { }
 
 // Supplier interfaces
 export interface Supplier extends BaseEntity {
@@ -132,7 +132,7 @@ export interface CreateSupplierDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {}
+export interface UpdateSupplierDto extends Partial<CreateSupplierDto> { }
 
 // Unit interfaces
 export interface Unit extends BaseEntity {
@@ -147,7 +147,7 @@ export interface CreateUnitDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateUnitDto extends Partial<CreateUnitDto> {}
+export interface UpdateUnitDto extends Partial<CreateUnitDto> { }
 
 // Tax interfaces
 export interface Tax extends BaseEntity {
@@ -164,7 +164,42 @@ export interface CreateTaxDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateTaxDto extends Partial<CreateTaxDto> {}
+export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
+
+// Inventory interfaces
+export interface Inventory extends BaseEntity {
+  product_id: string;
+  variant_id?: string | null;
+  location_id: string;
+  quantity: number;
+  quantity_alert: number;
+  ideal_quantity: number;
+  is_low_stock: boolean;
+  status: "active" | "inactive";
+  product?: Product;
+  variant?: Variant;
+  location?: Location;
+}
+
+export interface CreateInventoryDto {
+  product_id: string;
+  variant_id?: string | null;
+  location_id: string;
+  quantity: number;
+  quantity_alert: number;
+  ideal_quantity: number;
+  status?: "active" | "inactive";
+}
+
+export interface UpdateInventoryDto extends Partial<CreateInventoryDto> { }
+
+// Receive Stock / Purchase DTO
+export interface ReceiveStockDto {
+  product_id: string;
+  variant_id?: string | null;
+  location_id: string;
+  received_quantity: number;
+}
 
 // Variant Attribute interfaces
 export interface VariantAttribute extends BaseEntity {
@@ -180,7 +215,7 @@ export interface CreateVariantAttributeDto {
 }
 
 export interface UpdateVariantAttributeDto
-  extends Partial<CreateVariantAttributeDto> {}
+  extends Partial<CreateVariantAttributeDto> { }
 
 // Custom field types
 export enum CustomFieldType {
@@ -249,7 +284,7 @@ export interface CreateProductDto {
   custom_fields?: CustomField[];
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 export interface ProductFilters {
   search?: string;
@@ -306,7 +341,7 @@ export interface CreateVariantDto {
 }
 
 export interface UpdateVariantDto
-  extends Partial<Omit<CreateVariantDto, "product_id">> {}
+  extends Partial<Omit<CreateVariantDto, "product_id">> { }
 
 export interface VariantFilters {
   product_id?: string | undefined;
@@ -352,7 +387,7 @@ export interface CreateStockMovementDto {
 }
 
 export interface UpdateStockMovementDto
-  extends Partial<Omit<CreateStockMovementDto, "variant_id">> {}
+  extends Partial<Omit<CreateStockMovementDto, "variant_id">> { }
 
 export interface StockMovementFilters {
   variant_id?: string;

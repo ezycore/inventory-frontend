@@ -164,14 +164,14 @@ const DynamicForm: FC<DynamicFormProps> = ({
             </Button>
         </div>
     ) : viewMode ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
-       {
+        {
             !hideCancel && (
                  <Button type="button" variant="outline" onClick={handleContainerCancel}>
                     {cancelLabel}
                 </Button>
             )
        }
-        <Button type="submit" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
+        <Button type="button" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
             {isActuallySubmitting ? 'Submitting...' : submitLabel}
         </Button>
     </div>)
