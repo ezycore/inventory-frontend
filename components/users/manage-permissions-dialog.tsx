@@ -54,6 +54,7 @@ export function ManagePermissionsDialog({ user, open, onOpenChange }: ManagePerm
   // Update selected permissions when user changes
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       setSelectedPermissions(user.permissions)
     }
   }, [user])
