@@ -111,7 +111,7 @@ export function UsersTable({ users, isLoading }: UsersTableProps) {
       accessorKey: 'isActive',
       header: 'Status',
       cell: ({ row }) => {
-        const isActive = row.original.isActive
+        const isActive = row.original.status
         return (
           <Badge variant={isActive ? 'default' : 'secondary'}>
             {isActive ? 'Active' : 'Inactive'}
@@ -152,7 +152,7 @@ export function UsersTable({ users, isLoading }: UsersTableProps) {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => toggleStatus.mutate(user._id)}>
                 <Power className="mr-2 h-4 w-4" />
-                {user.isActive ? 'Deactivate' : 'Activate'}
+                {user.status ? 'Deactivate' : 'Activate'}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
