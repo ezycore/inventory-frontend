@@ -75,7 +75,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
         {
           name: "organizationName",
           type: "input",
-          label: "Organization Name",
+          label: "Name",
           columnSpan: 6,
           placeholder: "ABC Manufacturing Ltd",
           required: true,
@@ -83,7 +83,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
         {
           name: "organizationSlug",
           type: "input",
-          label: "Organization Slug",
+          label: "Slug",
           columnSpan: 6,
           placeholder: "abc-manufacturing-ltd",
           required: true,
@@ -188,16 +188,17 @@ export default function OwnerSetupPage() {
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
   const handleFieldChange = (fieldName: string, value: any) => {
-    // Auto-generate slug from organization name
-    if (fieldName === "organizationName") {
-      const currentSlug = form.getValues("organizationSlug");
-      const previousOrgName = form.getValues("organizationName");
+    console.log(`Field changed: ${fieldName} = ${value}`);
+    // // Auto-generate slug from organization name
+    // if (fieldName === "organizationName") {
+    //   const currentSlug = form.getValues("organizationSlug");
+    //   const previousOrgName = form.getValues("organizationName");
 
-      // Only auto-generate if slug hasn't been manually edited
-      if (!currentSlug || currentSlug === generateSlug(previousOrgName)) {
-        form.setValue("organizationSlug", generateSlug(value));
-      }
-    }
+    //   // Only auto-generate if slug hasn't been manually edited
+    //   if (!currentSlug || currentSlug === generateSlug(previousOrgName)) {
+    //     form.setValue("organizationSlug", generateSlug(value));
+    //   }
+    // }
   };
 
   const handleSubmit = (data: any) => {
