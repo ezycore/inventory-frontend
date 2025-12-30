@@ -15,7 +15,7 @@ import {
 import { toast } from 'sonner'
 import { Plus, Search, Edit, Trash2, ArrowLeft, Package, AlertTriangle, Layers, DollarSign, Eye } from 'lucide-react'
 import type { Variant, Product } from '@/types/products'
-import AddVariantModal from '../../../../components/products/add-variant-modal'
+import AddVariantModal from '@/components/products/add-variant-modal' 
 
 export default function ProductVariantsPage() {
   const router = useRouter()

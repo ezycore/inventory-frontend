@@ -5,5 +5,6 @@ export type NavItem = {
   isActive?: boolean;
   shortcut?: string[];        // optional keyboard shortcut pair
   items?: NavItem[];          // nested children
+  roles?: string[];           // optional: allowed roles for this item
 };
 

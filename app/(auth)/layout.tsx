@@ -3,16 +3,11 @@ import ThemeProvider from '@/components/layout/ThemeToggle/theme-provider'
 import QueryProvider from '@/components/providers/query-provider'
 import Toaster from '@/components/providers/toaster'
 
-export const metadata = {
-  title: 'EasyStock - Inventory Management System',
-  description: 'Modern inventory management system for businesses',
-}
-
-export default function RootLayout({
+export default function AuthLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
