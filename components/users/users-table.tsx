@@ -95,19 +95,6 @@ export function UsersTable({ users, isLoading }: UsersTableProps) {
       },
     },
     {
-      accessorKey: 'permissions',
-      header: 'Permissions',
-      cell: ({ row }) => {
-        const permissionsCount = row.original.permissions.length
-        return (
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">{permissionsCount} permissions</span>
-          </div>
-        )
-      },
-    },
-    {
       accessorKey: 'isActive',
       header: 'Status',
       cell: ({ row }) => {
