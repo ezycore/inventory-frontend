@@ -133,10 +133,10 @@ export function UsersTable({ users, isLoading }: UsersTableProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleManagePermissions(user)}>
+              {/* <DropdownMenuItem onClick={() => handleManagePermissions(user)}>
                 <UserCog className="mr-2 h-4 w-4" />
                 Manage Permissions
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem onClick={() => toggleStatus.mutate(user._id)}>
                 <Power className="mr-2 h-4 w-4" />
                 {user.status ? 'Deactivate' : 'Activate'}
