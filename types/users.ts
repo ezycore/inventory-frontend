@@ -30,7 +30,7 @@ export interface User {
   avatar?: string
   role: Role
   permissions: Permission[]
-  isActive: boolean
+  status: boolean
   preferences: {
     theme: 'light' | 'dark' | 'system'
     currency: string
