@@ -12,6 +12,17 @@ import type {
   UpdateVariantDto,
   VariantFilters,
 } from "@/types";
+import type {
+  User,
+  RegisterUserDto,
+  UpdateUserPermissionsDto,
+  UpdateUserRoleDto,
+  RegisterUserResponse,
+  UsersResponse,
+  UserResponse,
+  PermissionsResponse,
+  Permission
+} from "@/types/users";
 import { StockMovementType } from "@/types";
 
 type ApiError = {
@@ -89,6 +100,13 @@ class ApiClient {
   async put<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+  }
+
+  async patch<T>(endpoint: string, data: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: "PATCH",
       body: data instanceof FormData ? data : JSON.stringify(data),
     });
   }
@@ -605,13 +623,29 @@ export const suppliersApi = {
     apiClient.delete(`/purchases/suppliers/${id}`),
 };
 
-// Users API (placeholder for future implementation)
+// User Management APIs
 export const usersApi = {
-  getProfile: () => Promise.resolve(null),
-  getById: (id: string) => Promise.resolve(null),
-  getAll: (filters: Record<string, any> = {}) => Promise.resolve([]),
-  update: (id: string, data: any) => Promise.resolve(null),
-  updateProfile: (data: any) => Promise.resolve(null),
+  getAll: (): Promise<UsersResponse> => apiClient.get("/users"),
+  
+  getById: (id: string): Promise<UserResponse> => apiClient.get(`/users/${id}`),
+  
+  register: (data: RegisterUserDto): Promise<RegisterUserResponse> => 
+    apiClient.post("/users", data),
+  
+  updatePermissions: (id: string, data: UpdateUserPermissionsDto): Promise<UserResponse> => 
+    apiClient.patch(`/users/${id}/permissions`, data),
+  
+  updateRole: (id: string, data: UpdateUserRoleDto): Promise<UserResponse> => 
+    apiClient.patch(`/users/${id}/role`, data),
+  
+  toggleStatus: (id: string): Promise<UserResponse> => 
+    apiClient.patch(`/users/${id}/toggle-status`, {}),
+  
+  delete: (id: string): Promise<ApiResponse<{ message: string }>> => 
+    apiClient.delete(`/users/${id}`),
+  
+  getAllPermissions: (): Promise<PermissionsResponse> => 
+    apiClient.get("/users/permissions"),
 };
 
 // Auth API - using fetch directly since these are Next.js API routes
