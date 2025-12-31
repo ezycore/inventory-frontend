@@ -12,6 +12,7 @@ import { Input } from "@ui/components/input"
 import { Label } from "@ui/components/label"
 import { useState } from "react"
 import { useLogin } from "@/hooks/queries/use-auth"
+import { Loader2 } from "lucide-react"
 
 export function LoginForm({
   className,
@@ -71,6 +72,7 @@ export function LoginForm({
               </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                  {loginMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {loginMutation.isPending ? 'Logging in...' : 'Login'}
                 </Button>
                 {/* <Button variant="outline" className="w-full">
