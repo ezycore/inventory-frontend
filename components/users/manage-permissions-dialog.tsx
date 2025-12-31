@@ -9,12 +9,41 @@ import { ScrollArea } from '@ui/components/scroll-area'
 import { useUpdateUserPermissions } from '@/hooks/queries/use-users'
 import type { User, Permission } from '@/types/users'
 import { Loader2 } from 'lucide-react'
-import { PERMISSION_GROUPS, PERMISSION_LABELS } from '@/constants/permissions'
 
 interface ManagePermissionsDialogProps {
   user: User | null
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+const PERMISSION_GROUPS = {
+  'Products': ['products.view', 'products.create', 'products.edit', 'products.delete'],
+  'Categories': ['categories.view', 'categories.create', 'categories.edit', 'categories.delete'],
+  'Brands': ['brands.view', 'brands.create', 'brands.edit', 'brands.delete'],
+  'Stock': ['stock.view', 'stock.manage'],
+  'Reports': ['reports.view'],
+  'Settings': ['settings.manage'],
+  'Users': ['users.view', 'users.manage'],
+} as const
+
+const PERMISSION_LABELS: Record<Permission, string> = {
+  'products.view': 'View Products',
+  'products.create': 'Create Products',
+  'products.edit': 'Edit Products',
+  'products.delete': 'Delete Products',
+  'categories.view': 'View Categories',
+  'categories.create': 'Create Categories',
+  'categories.edit': 'Edit Categories',
+  'categories.delete': 'Delete Categories',
+  'brands.view': 'View Brands',
+  'brands.create': 'Create Brands',
+  'brands.edit': 'Edit Brands',
+  'brands.delete': 'Delete Brands',
+  'stock.view': 'View Stock',
+  'stock.manage': 'Manage Stock',
+  'reports.view': 'View Reports',
+  'settings.manage': 'Manage Settings',
+  'users.view': 'View Users',
+  'users.manage': 'Manage Users',
 }
 
 export function ManagePermissionsDialog({ user, open, onOpenChange }: ManagePermissionsDialogProps) {
