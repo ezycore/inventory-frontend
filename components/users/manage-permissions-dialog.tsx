@@ -6,7 +6,7 @@ import { Button } from '@ui/components/button'
 import { Checkbox } from '@ui/components/checkbox'
 import { Label } from '@ui/components/label'
 import { ScrollArea } from '@ui/components/scroll-area'
-import { useUpdateUserPermissions, usePermissions } from '@/hooks/queries/use-users'
+import { useUpdateUserPermissions } from '@/hooks/queries/use-users'
 import type { User, Permission } from '@/types/users'
 import { Loader2 } from 'lucide-react'
 
@@ -15,7 +15,6 @@ interface ManagePermissionsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
-
 const PERMISSION_GROUPS = {
   'Products': ['products.view', 'products.create', 'products.edit', 'products.delete'],
   'Categories': ['categories.view', 'categories.create', 'categories.edit', 'categories.delete'],
@@ -103,6 +102,7 @@ export function ManagePermissionsDialog({ user, open, onOpenChange }: ManagePerm
               Configure permissions for {user.firstName} {user.lastName} ({user.role})
             </DialogDescription>
           </DialogHeader>
+
 
           <ScrollArea className="h-[400px] pr-4 mt-4">
             <div className="space-y-6">

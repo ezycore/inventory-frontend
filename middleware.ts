@@ -18,17 +18,7 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
 
-  // Special handling for /setup/owner - check if setup is needed
-  if (pathname.startsWith('/setup/owner')) {
-    // If authenticated, redirect to dashboard (setup already complete)
-    if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-    // Allow access to setup page
-    return NextResponse.next()
-  }
-
-  // Handle root path
+  // Handle root path only
   if (pathname === '/') {
     if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
@@ -37,16 +27,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // If user is authenticated and trying to access auth routes (login), redirect to dashboard
+  // If user is authenticated and trying to access auth routes (login, setup), redirect to dashboard
   if (isAuthenticated && isAuthRoute) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // If user is not authenticated and trying to access protected route
+  // If user is not authenticated and trying to access protected route, redirect to login
   if (!isAuthenticated && !isPublicRoute) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Allow access to all other routes
   return NextResponse.next()
 }
 

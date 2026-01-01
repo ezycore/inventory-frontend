@@ -248,7 +248,7 @@ export default function OwnerSetupPage() {
               : "Complete Setup & Create Account"
           }
           onSubmit={handleSubmit}
-          contentLoading={false}
+          contentLoading={createOwnerMutation.isPending}
           hideCancel={true}
         />
 
