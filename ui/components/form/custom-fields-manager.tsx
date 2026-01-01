@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import { useFieldArray, Control } from 'react-hook-form'
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
@@ -28,8 +28,10 @@ import {
 import { Plus, Trash2, Edit, Settings, X } from 'lucide-react'
 import { CustomFieldType, CustomField, CustomFieldOption } from '@/types'
 import { toast } from 'sonner'
-// Simple ID generator
-const generateId = () => Math.random().toString(36).substr(2, 9)
+
+// Counter for unique IDs
+let fieldIdCounter = 0
+const generateId = () => `field-${++fieldIdCounter}`
 
 interface CustomFieldsManagerProps {
   control: Control<any>
@@ -57,7 +59,8 @@ const FIELD_TYPE_OPTIONS = [
 ]
 
 function CustomFieldBuilder({ field, onSave, onCancel, isOpen }: CustomFieldBuilderProps) {
-  const [fieldData, setFieldData] = useState<Partial<CustomField>>({
+  const reactId = useId()
+  const [fieldData, setFieldData] = useState<Partial<CustomField>>(() => ({
     id: field?.id || generateId(),
     label: field?.label || '',
     type: field?.type || CustomFieldType.TEXT,
@@ -67,7 +70,7 @@ function CustomFieldBuilder({ field, onSave, onCancel, isOpen }: CustomFieldBuil
     options: field?.options || [],
     columnSpan: field?.columnSpan || 6,
     validation: field?.validation || {},
-  })
+  }))
 
   const [newOption, setNewOption] = useState({ label: '', value: '' })
 
