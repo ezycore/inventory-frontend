@@ -645,23 +645,6 @@ const FormField: React.FC<{
                 <span className="text-red-500">*</span>
               )}
             </Label>
-            {field.action && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant={field.action.variant || "ghost"}
-                    size="icon"
-                    className="h-3 w-6 p-0 shrink-0 hover:bg-transparent"
-                    onClick={() => field.action?.onClick?.(field)}
-                    disabled={field.action.disabled}
-                  >
-                    {field.action.icon}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{field.action.label}</TooltipContent>
-              </Tooltip>
-            )}
           </div>
         )}
         <div className="w-full min-w-0 flex-1">

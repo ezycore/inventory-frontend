@@ -1,6 +1,4 @@
-import { Plus } from 'lucide-react'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
-import { toast } from 'sonner'
 import { ProductStatus } from '@/types'
 import {
   sellingTypeOptions,
@@ -56,13 +54,8 @@ export const createProductFormConfig = (): DynamicFormConfig => {
             columnSpan: 6,
             placeholder: "Choose category",
             optionsApi: `/categories`,
-            action: {
-              icon: <Plus className="h-4 w-4" />,
-              label: "Add Category",
-              onClick: () => {
-                toast.info('Add Category feature coming soon')
-              }
-            },
+            creatable: true,
+            quickAddModule: "category",
             validation: {
               minLength: 1
             }
