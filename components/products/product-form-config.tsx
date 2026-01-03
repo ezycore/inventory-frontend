@@ -5,6 +5,7 @@ import {
   taxTypeOptions,
   discountTypeOptions,
 } from './product-form-options'
+import VariantManager from './variant-manager'
 
 // Export as constant instead of function to prevent recreation on every render
 export const productFormConfig: DynamicFormConfig = {
@@ -147,7 +148,6 @@ export const productFormConfig: DynamicFormConfig = {
             type: "textarea",
             label: "Description",
             columnSpan: 12,
-            defaultValue: "ok",
             placeholder: "Describe your product...",
             rows: 4,
             helperText: "Maximum 60 Words"
@@ -206,10 +206,11 @@ export const productFormConfig: DynamicFormConfig = {
       
           // Variant Manager custom field - shows when variable product is selected
           {
-            name: "variant_manager",
+            name: "variants",
             type: "custom",
             label: "",
             columnSpan: 12,
+            customComponent: VariantManager,
             showWhen: {
               field: "product_type",
               value: "variable"

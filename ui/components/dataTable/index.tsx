@@ -167,6 +167,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
               mutationHook={mutationHook}
               onSubmit={readyDataForSubmit}
               openInside={openInside || "modal"}
+              actionsPlacement={openInside === 'drawer' ? 'top' : 'bottom'}
               open={isModalOpen}
               onOpenChange={handleCloseModal}
               title={

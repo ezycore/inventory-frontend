@@ -102,11 +102,21 @@ export const useUpdateProduct = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string } & Partial<CreateProductDto>) =>
-      productsApi.update(id, data),
+    mutationFn: (data: FormData | ({ id: string } & Partial<CreateProductDto>)) => {
+      if (data instanceof FormData) {
+        const id = data.get('id') as string
+        return productsApi.update(id, data)
+      }
+      const { id, ...rest } = data
+      return productsApi.update(id, rest)
+    },
     onSuccess: (_, variables) => {
+      const id = variables instanceof FormData
+        ? variables.get('id') as string
+        : variables.id
+      
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.detail(id) })
     },
     onError: handleMutationError,
   })
