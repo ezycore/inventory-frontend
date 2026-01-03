@@ -5,19 +5,18 @@ import type { DynamicFormConfig, FormFieldConfig } from '@/ui/components/form/ty
 import { generateSchemaFromConfig } from '@/ui/components/form/type'
 
 /**
- * Extract default values from form configuration - optimized version
+ * Extract default values from form configuration
  */
 const extractDefaultValues = (config: DynamicFormConfig): Record<string, any> => {
   const defaults: Record<string, any> = {}
-  
-  // Single pass through fields with early returns
+
   const processField = (field: FormFieldConfig) => {
     if (field.defaultValue !== undefined) {
       defaults[field.name] = field.defaultValue
     }
   }
-  
-  // Process fields efficiently based on structure
+
+  // Process fields based on config structure
   if (config.fields) {
     config.fields.forEach(processField)
   } else if (config.sections) {
@@ -25,13 +24,18 @@ const extractDefaultValues = (config: DynamicFormConfig): Record<string, any> =>
       section.fields.forEach(processField)
     }
   }
-  
+
   return defaults
 }
 
 /**
  * Custom hook that creates a form with auto-generated schema from config
- * @param config - The dynamic form configuration
+ * 
+ * PERFORMANCE NOTE: To avoid recreating the schema on every render, ensure your config
+ * is stable (defined outside component or memoized). The config object reference
+ * should not change unless the form structure actually changes.
+ * 
+ * @param config - The dynamic form configuration (should be stable reference)
  * @param defaultValues - Default form values (will override config defaults)
  * @returns React Hook Form instance with generated schema validation
  */
@@ -39,14 +43,16 @@ export const useDynamicForm = <T = any>(
   config: DynamicFormConfig,
   defaultValues?: Partial<T>
 ) => {
-  // Memoize expensive operations to prevent recalculation on re-renders
+  // Memoize expensive operations
   const schema = useMemo(() => generateSchemaFromConfig(config), [config])
   const configDefaults = useMemo(() => extractDefaultValues(config), [config])
+  
+  // Merge config defaults with provided defaults (provided defaults take precedence)
   const mergedDefaults = useMemo(() => 
     ({ ...configDefaults, ...defaultValues }), 
     [configDefaults, defaultValues]
   )
-  
+
   const form = useForm<T>({
     resolver: zodResolver(schema) as any,
     defaultValues: mergedDefaults as any,

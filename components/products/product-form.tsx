@@ -1,6 +1,4 @@
-'use client'
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDynamicForm } from '@/hooks/use-dynamic-form'
 
@@ -16,7 +14,7 @@ import { handleMutationError } from '@/lib/error-handling'
 import { ArrowLeft } from 'lucide-react'
 import CustomFieldsManager from '../../ui/components/form/custom-fields-manager'
 import VariantManager from './variant-manager'
-import { createProductFormConfig } from './product-form-config'
+import { productFormConfig } from './product-form-config'
 import { sanitize } from '@/hooks'
 
 
@@ -63,8 +61,9 @@ export default function ProductForm({
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
 
-  // Use dynamic form with auto-generated schema and config defaults
-  const { form } = useDynamicForm<ProductFormValues>(createProductFormConfig())
+  // Use dynamic form with auto-generated schema
+  // Config is memoized to prevent recreation on every render
+  const { form } = useDynamicForm<ProductFormValues>(productFormConfig)
 
 
 
@@ -100,10 +99,10 @@ export default function ProductForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Watch price field for variant base price
+  // Watch price field for variant base price - optimized subscription
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === 'price' && value.price) {
+      if (name === 'price' && value.price !== undefined) {
         setBasePrice(value.price)
       }
     })
@@ -145,10 +144,8 @@ export default function ProductForm({
   }
 }, [mode, product, form]);
 
-  // Create final form configuration
-  const finalFormConfig = createProductFormConfig()
-
-  // Form configuration handles the custom-fields type automatically
+  // Use the imported config directly (already memoized at module level)
+  // No need to recreate it here
 
 
   // Mutation-based form handlers
@@ -193,7 +190,7 @@ export default function ProductForm({
           id='product-form'
           className="space-y-6"
           form={form}
-          config={finalFormConfig}
+          config={productFormConfig}
           onSubmit={(data) => {
             // Add variants data if product type is variable (only active variants)
             // if (data.product_type_radio === 'variable' && variants.length > 0) {
@@ -296,7 +293,7 @@ export default function ProductForm({
         <DynamicForm
           id='product-form'
           className="space-y-6"
-          config={finalFormConfig}
+          config={productFormConfig}
           form={form}
           onSubmit={(data) => {
 

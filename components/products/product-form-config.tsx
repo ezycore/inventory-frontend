@@ -6,8 +6,8 @@ import {
   discountTypeOptions,
 } from './product-form-options'
 
-export const createProductFormConfig = (): DynamicFormConfig => {
-  return {
+// Export as constant instead of function to prevent recreation on every render
+export const productFormConfig: DynamicFormConfig = {
     generateSchema: true,
     layout: {
       maxColumns: 12,
@@ -147,6 +147,7 @@ export const createProductFormConfig = (): DynamicFormConfig => {
             type: "textarea",
             label: "Description",
             columnSpan: 12,
+            defaultValue: "ok",
             placeholder: "Describe your product...",
             rows: 4,
             helperText: "Maximum 60 Words"
@@ -258,4 +259,3 @@ export const createProductFormConfig = (): DynamicFormConfig => {
       // }
     ]
   }
-}

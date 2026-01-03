@@ -1,7 +1,7 @@
 import { cn } from "@ui/lib/utils";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
-import React from "react";
-import { Controller } from "react-hook-form";
+import React, { memo } from "react";
+import { Controller, useWatch } from "react-hook-form";
 import { AdvancedSelect } from "../advanced-select";
 import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
@@ -46,7 +46,7 @@ const getColumnClass = (span: ColumnSpan): string => {
   return spanMap[span] || "col-span-12";
 };
 
-// Individual field components
+// Individual field components - Memoized for performance
 const FormField: React.FC<{
   field: FormFieldConfig;
   control: any;
@@ -55,7 +55,7 @@ const FormField: React.FC<{
   setValue: any;
   onFieldChange?: (fieldName: string, value: any) => void;
   viewMode?: boolean;
-}> = ({
+}> = memo(({
   field,
   control,
   formState,
@@ -65,29 +65,41 @@ const FormField: React.FC<{
   viewMode = false,
 }) => {
     const error = formState.errors[field.name]?.message;
-    const fieldValue = watch(field.name);
+    
+    // Use useWatch for better performance - only subscribes to specific fields
+    const fieldValue = useWatch({ control, name: field.name });
+    const showWhenValue = useWatch({ 
+      control, 
+      name: field.showWhen?.field || field.name,
+      disabled: !field.showWhen 
+    });
+    // Watch dependent field value at component level (for select fields)
+    const dependsOnValue = useWatch({ 
+      control, 
+      name: field.dependsOn || field.name,
+      disabled: !field.dependsOn 
+    });
 
     // Check conditional display
     if (field.showWhen) {
-      const watchedValue = watch(field.showWhen.field);
       const { value, operator = "equals" } = field.showWhen;
 
       let shouldShow = false;
       switch (operator) {
         case "equals":
-          shouldShow = watchedValue === value;
+          shouldShow = showWhenValue === value;
           break;
         case "not-equals":
-          shouldShow = watchedValue !== value;
+          shouldShow = showWhenValue !== value;
           break;
         case "includes":
-          shouldShow = Array.isArray(watchedValue)
-            ? watchedValue.includes(value)
+          shouldShow = Array.isArray(showWhenValue)
+            ? showWhenValue.includes(value)
             : false;
           break;
         case "not-includes":
-          shouldShow = Array.isArray(watchedValue)
-            ? !watchedValue.includes(value)
+          shouldShow = Array.isArray(showWhenValue)
+            ? !showWhenValue.includes(value)
             : true;
           break;
       }
@@ -301,11 +313,6 @@ const FormField: React.FC<{
                   : undefined,
               }}
               render={({ field: controllerField }) => {
-                // Get the value of the dependent field if specified
-                const dependsOnValue = field.dependsOn 
-                  ? watch(field.dependsOn) 
-                  : undefined
-                
                 return (
                   <AdvancedSelect
                     value={controllerField.value}
@@ -658,7 +665,16 @@ const FormField: React.FC<{
         )}
       </div>
     );
-  };
+  }, (prevProps, nextProps) => {
+    // Custom comparison for memo - only re-render if these specific props change
+    return (
+      prevProps.field.name === nextProps.field.name &&
+      prevProps.formState.errors[prevProps.field.name] === nextProps.formState.errors[nextProps.field.name] &&
+      prevProps.viewMode === nextProps.viewMode
+    );
+  });
+
+FormField.displayName = 'FormField';
 
 // Section component
 const FormSectionComponent: React.FC<{
