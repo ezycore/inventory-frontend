@@ -1,6 +1,7 @@
 import type { DynamicFormConfig } from '@/ui/components/form/type'
-import { categoryFormConfig } from '@/components/categories/category-form-config'
-import { useCreateCategory } from '@/hooks/queries'
+import { categoryFormConfig } from '@/components/categories/form-config'
+import { useCreateBrand, useCreateCategory } from '@/hooks/queries'
+import { brandFormConfig } from '@/components/brands/form-config'
 
 /**
  * Quick-Add Module Configuration
@@ -30,6 +31,13 @@ export const quickAddConfig: Record<string, QuickAddModuleConfig> = {
     useMutation: useCreateCategory,
     title: 'Add New Category',
     submitLabel: 'Create Category',
+    optionsApiPath: '/categories',
+  },
+  brand: {
+    formConfig: brandFormConfig,
+    useMutation: useCreateBrand,
+    title: 'Add New Brand',
+    submitLabel: 'Create Brand',
     optionsApiPath: '/categories',
   },
   

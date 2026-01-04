@@ -14,7 +14,7 @@ import { handleMutationError } from '@/lib/error-handling'
 import { ArrowLeft } from 'lucide-react'
 import CustomFieldsManager from '../../ui/components/form/custom-fields-manager'
 import VariantManager from './variant-manager'
-import { productFormConfig } from './product-form-config'
+import { productFormConfig } from './form-config'
 import { sanitize } from '@/hooks'
 
 

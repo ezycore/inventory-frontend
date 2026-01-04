@@ -17,7 +17,7 @@ import { categoriesApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys-products'
 import PageHeader from '@/ui/components/header'
 import { FilterConfig } from '@/types/DataTable'
-import { categoryFormConfig } from '@/components/categories/category-form-config'
+import { categoryFormConfig } from '@/components/categories/form-config'
 
 // Column definitions
 const columns: ColumnDef<Category>[] = [

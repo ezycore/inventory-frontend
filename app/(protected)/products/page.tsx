@@ -8,7 +8,7 @@ import { AvatarCell } from '@/ui/components/dataTable/cells'
 import { StatusBadge } from '@/ui/components/status-badge'
 import PageHeader from '@/ui/components/header'
 import { productsApi } from '@/lib/api-client'
-import { productFormConfig } from '@/components/products/product-form-config'
+import { productFormConfig } from '@/components/products/form-config'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/queries'
 import type { FilterConfig } from '@/types/DataTable'
 import { ProductStatus } from '@/types'
@@ -151,7 +151,6 @@ export default function ProductsPage() {
         operations={{
           formConfig: productFormConfig,
           getAllData: productsApi.getAll,
-          getDetailById: productsApi.getById,
           createMutation: useCreateProduct(),
           updateMutation: useUpdateProduct(),
           deleteMutation: useDeleteProduct(),

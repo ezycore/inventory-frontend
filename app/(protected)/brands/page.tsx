@@ -4,8 +4,6 @@ import { ColumnDef } from "@tanstack/react-table";
 
 // Types
 import type { Brand } from "@/types";
-import type { DynamicFormConfig } from "@/ui/components/form/type";
-
 // UI Components
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
@@ -21,6 +19,7 @@ import { brandsApi } from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys-products";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
+import { brandFormConfig } from "@/components/brands/form-config";
 
 // Column definitions
 const columns: ColumnDef<Brand>[] = [
@@ -51,53 +50,7 @@ const columns: ColumnDef<Brand>[] = [
   },
 ];
 
-// Form configuration
-const brandFormConfig: DynamicFormConfig = {
-  fields: [
-    {
-      name: "name",
-      type: "input",
-      label: "Brand Name",
-      placeholder: "Enter brand name",
-      required: true,
-      columnSpan: 12,
-      validation: { minLength: 1, maxLength: 100 },
-    },
-    {
-      name: "description",
-      type: "textarea",
-      label: "Description",
-      placeholder: "Enter brand description",
-      rows: 3,
-      columnSpan: 12,
-      validation: { maxLength: 500 },
-    },
-    {
-      name: "logo_url",
-      type: "file-upload",
-      label: "Brand Logo",
-      placeholder: "Upload brand logo",
-      columnSpan: 12,
-      accept: "image/*",
-      maxFiles: 1,
-      maxSize: 5 * 1024 * 1024, // 5MB
-      fileTypes: ["jpg", "jpeg", "png", "webp"],
-      dropzoneText: "PNG, JPG, WEBP up to 5MB",
-      showPreview: true,
-    },
-    {
-      name: "status",
-      type: "select",
-      label: "Status",
-      required: true,
-      columnSpan: 12,
-      options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-      ],
-    },
-  ],
-};
+
 
 // Filter configuration for brands
 const brandFilterConfig: FilterConfig = {
@@ -162,7 +115,7 @@ const prepareSubmitData = (data: Brand, isEdit: boolean, item: Brand) => {
   }
 
   if (isEdit && item) {
-    formData.append("id", item._id);
+    // formData.append("id", item._id);
 
     // EDIT MODE: Handle logo changes
     if (!data.logo_url || data.logo_url.length === 0) {
