@@ -19,8 +19,7 @@ export const queryKeys = {
   // Products query keys
   products: {
     all: () => ["products"] as const,
-    list: (filters: Record<string, any>) =>
-      [...queryKeys.products.all(), "list", filters] as const,
+    list: () => [...queryKeys.products.all(), "list"] as const,
     detail: (id: string) =>
       [...queryKeys.products.all(), "detail", id] as const,
     bySlug: (slug: string) =>
