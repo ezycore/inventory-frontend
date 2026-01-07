@@ -17,7 +17,7 @@ import {
   useDeleteInventory,
   useUpdateInventory,
 } from "@/hooks/queries";
-import { inventoryApi, productsApi } from "@/lib/api-client";
+import { inventoryApi, productsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";

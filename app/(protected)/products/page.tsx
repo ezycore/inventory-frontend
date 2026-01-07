@@ -7,7 +7,7 @@ import { DataTable } from '@/ui/components/dataTable'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
 import { StatusBadge } from '@/ui/components/status-badge'
 import PageHeader from '@/ui/components/header'
-import { productsApi } from '@/lib/api-client'
+import { productsApi } from '@/lib/api'
 import { productFormConfig } from '@/components/products/form-config'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/queries'
 import type { FilterConfig } from '@/types/DataTable'
@@ -86,13 +86,7 @@ export default function ProductsPage() {
   const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
     const formData = new FormData()
     
-    // Add ID for edit mode (use data._id or item._id)
-    // if (isEdit) {
-    //   const id = data._id || item?._id
-    //   if (id) {
-    //     formData.append('id', id)
-    //   }
-    // }
+    // Note: ID is automatically injected by DataTable for edit mode
     
     // Add all fields except images, variants, and _id
     for (const key in data) {

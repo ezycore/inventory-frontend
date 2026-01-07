@@ -13,7 +13,7 @@ import PageHeader from "@/ui/components/header";
 
 // Hooks & API
 import { useCreateTax, useDeleteTax, useUpdateTax } from "@/hooks/queries";
-import { taxesApi } from "@/lib/api-client";
+import { taxesApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import { FilterConfig } from "@/types/DataTable";
 

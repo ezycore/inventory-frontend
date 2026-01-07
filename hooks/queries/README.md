@@ -1,99 +1,167 @@
 # Query Hooks Organization
 
-This directory contains organized query hooks for the EasyStock application, structured by domain/module for better maintainability.
+This directory contains organized React Query hooks for the EasyStock Inventory Management application, structured by domain/module for better maintainability.
 
 ## Structure
 
 ```
-hooks/
-  queries/
-    ├── index.ts              # Main export file
-    ├── use-stocks.ts         # Stock-related queries
-    ├── use-portfolio.ts      # Portfolio queries & mutations
-    ├── use-transactions.ts   # Transaction queries
-    ├── use-analytics.ts      # Analytics queries
-    └── use-users.ts         # User-related queries
+hooks/queries/
+├── index.ts                    # Central export file
+├── helper.ts                   # Factory for creating CRUD hooks
+├── use-auth.ts                 # Authentication queries
+├── use-setup.ts                # Initial setup queries
+├── use-profile.ts              # User profile queries & mutations
+├── use-products.ts             # Product CRUD operations
+├── use-product-variants.ts     # Product variant instances (SKU, price, stock)
+├── use-variants.ts             # Variant attribute templates (Color, Size, etc.)
+├── use-categories.ts           # Category CRUD operations
+├── use-brands.ts               # Brand CRUD operations
+├── use-locations.ts            # Location (stores/warehouses) CRUD
+├── use-units.ts                # Unit of measure CRUD
+├── use-taxes.ts                # Tax CRUD operations
+├── use-customers.ts            # Customer CRUD (for sales)
+├── use-suppliers.ts            # Supplier CRUD (for purchases)
+├── use-users.ts                # User management queries
+├── use-inventory.ts            # Inventory CRUD + bulk operations
+├── use-stock-movements.ts      # Stock movements (audit trail) + mutations
+├── use-dashboard.ts            # Dashboard statistics
+└── use-select-options.ts       # Common select dropdown options
 ```
 
 ## Usage Examples
 
 ### Import Specific Hooks
 ```typescript
-// Import specific hooks from their modules
-import { useStocks, useStock } from '@/hooks/queries/use-stocks'
-import { usePortfolio, useAddToPortfolio } from '@/hooks/queries/use-portfolio'
+// Import from specific modules
+import { useProducts, useProduct } from '@/hooks/queries/use-products'
+import { useBrands, useBrand } from '@/hooks/queries/use-brands'
 ```
 
-### Import All from Index
+### Import from Index (Recommended)
 ```typescript
 // Import multiple hooks from the main index
 import { 
-  useStocks, 
-  usePortfolio, 
-  useTransactions 
+  useProducts, 
+  useBrands,
+  useCategories,
+  useInventories
 } from '@/hooks/queries'
 ```
 
-### Import Entire Module
+## Key Hook Categories
+
+### Product Management
+- **use-products.ts**: Main product CRUD (name, description, category)
+- **use-product-variants.ts**: Product variant instances with SKU, price, stock levels
+- **use-variants.ts**: Variant attribute templates (e.g., "Color", "Size")
+
+### Inventory & Stock
+- **use-inventory.ts**: 
+  - Inventory CRUD operations
+  - Bulk operations: receive, sell, adjust
+  - Stock returns (sales/purchases)
+  - Stock transfers between locations
+  
+- **use-stock-movements.ts**:
+  - Stock movement audit trail queries
+  - Stock adjustment mutations
+  - Stock transfer operations
+  - Historical inventory tracking
+
+### Master Data
+- **use-categories.ts**: Product categories
+- **use-brands.ts**: Product brands
+- **use-locations.ts**: Stores & warehouses
+- **use-units.ts**: Units of measure (pcs, kg, liters)
+- **use-taxes.ts**: Tax configurations
+
+### Business Partners
+- **use-customers.ts**: Customer records for sales
+- **use-suppliers.ts**: Supplier records for purchases
+
+### User & System
+- **use-auth.ts**: Login/logout operations
+- **use-profile.ts**: User profile & preferences
+- **use-users.ts**: User management & permissions
+- **use-dashboard.ts**: Dashboard statistics & analytics
+
+## Factory Pattern
+
+Most CRUD hooks use the `createResourceHooks` factory from `helper.ts`:
+
 ```typescript
-// Import everything from a specific module
-import * as StockQueries from '@/hooks/queries/use-stocks'
-import * as PortfolioQueries from '@/hooks/queries/use-portfolio'
+// Example: use-brands.ts
+import { brandsApi } from '@/lib/api'
+import { createResourceHooks } from './helper'
+import { queryKeys } from '@/lib/query-keys'
+
+const brandHooks = createResourceHooks(brandsApi, queryKeys.brands)
+
+export const useBrands = brandHooks.useList
+export const useBrand = brandHooks.useDetail
+export const useCreateBrand = brandHooks.useCreate
+export const useUpdateBrand = brandHooks.useUpdate
+export const useDeleteBrand = brandHooks.useDelete
 ```
+
+This provides:
+- ✅ Consistent API across all resources
+- ✅ Automatic query invalidation
+- ✅ Error handling with toast notifications
+- ✅ Optimistic updates support
+- ✅ Type safety
 
 ## Benefits of This Organization
 
 1. **🗂️ Better Organization**: Each domain has its own file
 2. **🔍 Easy Discovery**: Find hooks by their domain/feature
-3. **🚀 Better Performance**: Import only what you need
-4. **👥 Team Collaboration**: Multiple developers can work on different modules
-5. **🧪 Easier Testing**: Test hooks by domain
-6. **📦 Code Splitting**: Better bundle optimization
+3. **📦 Code Reusability**: Factory pattern reduces boilerplate
+4. **🚀 Type Safety**: Full TypeScript support
+5. **👥 Team Collaboration**: Multiple developers can work on different modules
+6. **🧪 Easier Testing**: Test hooks by domain
+7. **📊 Better Performance**: Import only what you need
 
-## Hook Categories
+## Common Patterns
 
-### Stock Queries (`use-stocks.ts`)
-- `useStocks()` - Fetch stocks list with filters
-- `useStock()` - Fetch single stock by symbol
-- `useStockSearch()` - Search stocks by query
-- `useStockPrice()` - Real-time price data
-- `useStockHistory()` - Historical price data
-
-### Portfolio Management (`use-portfolio.ts`)
-- `usePortfolio()` - Portfolio summary
-- `usePortfolioHoldings()` - Holdings list
-- `useAddToPortfolio()` - Add stock mutation
-- `useRemoveFromPortfolio()` - Remove stock mutation
-- `useOptimisticPortfolio()` - Optimistic updates
-
-### Transactions (`use-transactions.ts`)
-- `useTransactions()` - Transaction history
-- `useTransaction()` - Single transaction
-- `useRecentTransactions()` - Recent transactions
-
-### Analytics (`use-analytics.ts`)
-- `useAnalytics()` - Dashboard analytics
-- `useAnalyticsReport()` - Specific reports
-- `usePerformanceAnalytics()` - Performance data
-- `useRiskAnalytics()` - Risk analysis
-
-### Users (`use-users.ts`)
-- `useUserProfile()` - Current user profile
-- `useUser()` - User by ID
-- `useUsers()` - Users list
-
-## Migration from Single File
-
-If you were using the old `use-query-hooks.ts`, simply update your imports:
-
+### List Query with Filters
 ```typescript
-// Old way
-import { useStocks, usePortfolio } from '@/hooks/use-query-hooks'
-
-// New way - specific modules
-import { useStocks } from '@/hooks/queries/use-stocks'
-import { usePortfolio } from '@/hooks/queries/use-portfolio'
-
-// Or from index
-import { useStocks, usePortfolio } from '@/hooks/queries'
+const { data, isLoading } = useProducts({ 
+  page: 1, 
+  limit: 10, 
+  status: 'active' 
+})
 ```
+
+### Detail Query by ID
+```typescript
+const { data: product } = useProduct(productId)
+```
+
+### Create Mutation
+```typescript
+const createProduct = useCreateProduct()
+await createProduct.mutateAsync(productData)
+```
+
+### Update Mutation
+```typescript
+const updateProduct = useUpdateProduct()
+await updateProduct.mutateAsync({ id, ...data })
+```
+
+### Delete Mutation
+```typescript
+const deleteProduct = useDeleteProduct()
+await deleteProduct.mutateAsync(productId)
+```
+
+## Hook Reusability
+
+The factory pattern in `helper.ts` eliminates 90% of boilerplate code. Instead of manually writing query and mutation hooks for each resource, you simply:
+
+1. Create an API client for your resource
+2. Define query keys
+3. Call `createResourceHooks()` 
+4. Export the generated hooks
+
+This ensures consistency across all CRUD operations and makes it easy to add new resources.

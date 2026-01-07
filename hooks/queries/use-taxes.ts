@@ -1,4 +1,4 @@
-import { taxesApi } from "@/lib/api-client";
+import { taxesApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import { CreateTaxDto, Tax } from "@/types";
 import { createResourceHooks } from "./helper";

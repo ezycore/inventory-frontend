@@ -15,7 +15,7 @@ import {
   useDeleteBrand,
   useUpdateBrand,
 } from "@/hooks/queries";
-import { brandsApi } from "@/lib/api-client";
+import { brandsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
@@ -114,10 +114,9 @@ const prepareSubmitData = (data: Brand, isEdit: boolean, item: Brand) => {
     formData.append("description", data.description);
   }
 
-  if (isEdit && item) {
-    // formData.append("id", item._id);
-
+  if (isEdit) {
     // EDIT MODE: Handle logo changes
+    // Note: ID is automatically injected by DataTable
     if (!data.logo_url || data.logo_url.length === 0) {
       // User removed the logo
       formData.append("remove_logo", "true");

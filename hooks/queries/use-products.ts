@@ -1,4 +1,4 @@
-import { productsApi } from '@/lib/api-client'
+import { productsApi } from '@/lib/api'
 import { createResourceHooks } from './helper'
 import { queryKeys } from '@/lib/query-keys-products'
 import { Product, CreateProductDto } from '@/types'

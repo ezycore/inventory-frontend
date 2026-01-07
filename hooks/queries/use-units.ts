@@ -1,4 +1,4 @@
-import { unitsApi } from "@/lib/api-client";
+import { unitsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import { CreateUnitDto, Unit } from "@/types";
 import { createResourceHooks } from "./helper";

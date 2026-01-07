@@ -107,7 +107,22 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   // Prepare submit data
   const readyDataForSubmit = (data: any) => {
     if (prepareSubmitData) {
-      return prepareSubmitData(data, !!editingItem, editingItem);
+      const preparedData = prepareSubmitData(data, !!editingItem, editingItem);
+      
+      // Auto-inject ID for edit mode if not already present
+      if (editingItem) {
+        if (preparedData instanceof FormData) {
+          // Only add ID if it's not already in FormData
+          if (!preparedData.has('id')) {
+            preparedData.append('id', editingItem._id);
+          }
+        } else if (typeof preparedData === 'object' && !preparedData.id) {
+          // Add ID to object if not present
+          return { id: editingItem._id, ...preparedData };
+        }
+      }
+      
+      return preparedData;
     }
 
     // Default: add ID for edit mode

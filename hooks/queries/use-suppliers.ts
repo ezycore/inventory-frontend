@@ -1,4 +1,4 @@
-import { suppliersApi } from '@/lib/api-client'
+import { suppliersApi } from '@/lib/api'
 import { createResourceHooks } from './helper'
 import { queryKeys } from '@/lib/query-keys'
 import { Supplier, CreateSupplierDto } from '@/types'

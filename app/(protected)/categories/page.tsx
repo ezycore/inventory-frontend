@@ -13,7 +13,7 @@ import { AvatarCell } from '@/ui/components/dataTable/cells'
 
 // Hooks & API
 import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategories } from '@/hooks/queries'
-import { categoriesApi } from '@/lib/api-client'
+import { categoriesApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys-products'
 import PageHeader from '@/ui/components/header'
 import { FilterConfig } from '@/types/DataTable'
@@ -121,11 +121,7 @@ export default function CategoriesPage() {
           deleteMutation: useDeleteCategory(),
           queryKey: [...queryKeys.category.all()],
           isViewAvailable: true,
-          entityName: "Category",
-          prepareSubmitData: (data: Category, isEdit: boolean, item: Category) => ({
-            ...data,
-            ...(isEdit && item ? { id: item._id } : {}),
-          }),
+          entityName: "Category"
         }}
       />
     </div>

@@ -16,7 +16,7 @@ import {
   useDeleteCustomer,
   useUpdateCustomer,
 } from "@/hooks/queries";
-import { customersApi } from "@/lib/api-client";
+import { customersApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
