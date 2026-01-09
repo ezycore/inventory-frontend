@@ -28,6 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@ui/components/alert-dialog'
+import { useAuthStore } from '@/stores/use-auth-store'
 
 interface UsersTableProps {
   users: User[]
@@ -41,6 +42,7 @@ export function UsersTable({ users, isLoading }: UsersTableProps) {
   
   const toggleStatus = useToggleUserStatus()
   const deleteUser = useDeleteUser()
+  const { user: currentUser } = useAuthStore()
 
   const handleManagePermissions = (user: User) => {
     setSelectedUser(user)
@@ -121,6 +123,7 @@ export function UsersTable({ users, isLoading }: UsersTableProps) {
       id: 'actions',
       cell: ({ row }) => {
         const user = row.original
+        const isCurrentUser = currentUser?.id === user._id || currentUser?.id === user.id
 
         return (
           <DropdownMenu>
@@ -137,18 +140,29 @@ export function UsersTable({ users, isLoading }: UsersTableProps) {
                 <UserCog className="mr-2 h-4 w-4" />
                 Manage Permissions
               </DropdownMenuItem> */}
-              <DropdownMenuItem onClick={() => toggleStatus.mutate(user._id)}>
-                <Power className="mr-2 h-4 w-4" />
-                {user.status ? 'Deactivate' : 'Activate'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDeleteUser(user)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete User
-              </DropdownMenuItem>
+              {!isCurrentUser && (
+                <DropdownMenuItem onClick={() => toggleStatus.mutate(user._id)}>
+                  <Power className="mr-2 h-4 w-4" />
+                  {user.status ? 'Deactivate' : 'Activate'}
+                </DropdownMenuItem>
+              )}
+              {!isCurrentUser && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => handleDeleteUser(user)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete User
+                  </DropdownMenuItem>
+                </>
+              )}
+              {isCurrentUser && (
+                <DropdownMenuItem disabled className="text-muted-foreground">
+                  Cannot modify own account
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )
