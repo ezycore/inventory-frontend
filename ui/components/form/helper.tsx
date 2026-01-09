@@ -224,6 +224,7 @@ const FormField: React.FC<{
               render={({ field: controllerField }) => (
                 <Input
                   {...controllerField}
+                  value={controllerField.value ?? ""}
                   type={field.type === "number" ? "number" : "text"}
                   placeholder={field.placeholder}
                   disabled={field.disabled}
@@ -231,10 +232,21 @@ const FormField: React.FC<{
                   max={field.validation?.max}
                   step={field.step}
                   onChange={(e) => {
-                    const value =
-                      field.type === "number"
-                        ? parseFloat(e.target.value) || 0
-                        : e.target.value;
+                    const rawValue = e.target.value;
+                    let value;
+                    
+                    if (field.type === "number") {
+                      // Allow empty string for clearing the field
+                      if (rawValue === "" || rawValue === null || rawValue === undefined) {
+                        value = "";
+                      } else {
+                        const parsed = parseFloat(rawValue);
+                        value = isNaN(parsed) ? "" : parsed;
+                      }
+                    } else {
+                      value = rawValue;
+                    }
+                    
                     controllerField.onChange(value);
                     handleChange(value);
                   }}
@@ -255,6 +267,7 @@ const FormField: React.FC<{
               render={({ field: controllerField }) => (
                 <Textarea
                   {...controllerField}
+                  value={controllerField.value ?? ""}
                   placeholder={field.placeholder}
                   disabled={field.disabled}
                   rows={field.rows || 3}
@@ -395,6 +408,7 @@ const FormField: React.FC<{
               }}
               render={({ field: controllerField }) => (
                 <Input
+                  value={controllerField.value ?? ""}
                   {...controllerField}
                   type="date"
                   disabled={field.disabled}
@@ -443,7 +457,6 @@ const FormField: React.FC<{
                   controllerField.onChange(selectedFiles);
                   handleChange(selectedFiles);
                 };
-
                 return (
                   <FileUpload
                     value={files}
