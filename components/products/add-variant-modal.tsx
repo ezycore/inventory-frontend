@@ -46,7 +46,8 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
   const generateSKU = () => {
     const baseSku = product.base_sku || product.name.substring(0, 3).toUpperCase()
     const attributeValues = Object.values(formData.attributes).join('-')
-    const suffix = attributeValues ? `-${attributeValues}` : `-${Date.now().toString().slice(-4)}`
+    // Use a counter instead of Date.now() to avoid hydration issues
+    const suffix = attributeValues ? `-${attributeValues}` : `-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`
     return `${baseSku}${suffix}`.replace(/\s+/g, '-').toUpperCase()
   }
 

@@ -10,7 +10,7 @@ import { FilterConfig } from "@/types/DataTable";
 
 // Hooks & API
 import { queryKeys } from "@/lib/query-keys";
-import { inventoryApi } from "@/lib/api-client";
+import { inventoryApi } from "@/lib/api";
 
 // Shortlist item type
 interface ShortlistItem {

@@ -1,4 +1,4 @@
-import { inventoryApi } from '@/lib/api-client'
+import { inventoryApi } from '@/lib/api'
 import { createResourceHooks } from './helper'
 import { queryKeys } from '@/lib/query-keys'
 import { Inventory, CreateInventoryDto, ReceiveStockDto } from '@/types'
@@ -216,22 +216,8 @@ export const useBulkReturnPurchase = () => {
 }
 
 // 🔄 STOCK TRANSFER (Location → Location)
-
-export const useTransferStock = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (data: any) => inventoryApi.transferStock(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
-      toast.success('Stock transferred successfully')
-    },
-    onError: (error: any) => {
-      const message = error?.response?.data?.error || 'Failed to transfer stock'
-      toast.error(message)
-    },
-  })
-}
+// Note: Individual useTransferStock is in use-stock-movements.ts
+// This file only exports bulk transfer for consistency
 
 export const useBulkTransferStock = () => {
   const queryClient = useQueryClient()

@@ -22,5 +22,5 @@ export {
 
 // Export query keys and API client
 export { queryKeys } from '@/lib/query-keys'
-export { apiClient } from '@/lib/api-client'
+export { apiClient } from '@/lib/api'
 export { getErrorMessage, handleMutationError } from '@/lib/error-handling'

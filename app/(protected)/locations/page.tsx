@@ -17,7 +17,7 @@ import {
   useUpdateLocation,
   useLocations,
 } from "@/hooks/queries";
-import { locationsApi } from "@/lib/api-client";
+import { locationsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";

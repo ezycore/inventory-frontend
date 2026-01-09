@@ -1,4 +1,4 @@
-import { brandsApi } from '@/lib/api-client'
+import { brandsApi } from '@/lib/api'
 import { createResourceHooks } from './helper'
 import { queryKeys } from '@/lib/query-keys-products'
 import { Brand, CreateBrandDto } from '@/types'

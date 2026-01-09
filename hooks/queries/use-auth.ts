@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { useRouter } from 'next/navigation';
-import { authApi } from '@/lib/api-client';
+import { authApi } from '@/lib/api';
 
 // Login mutation hook
 export function useLogin() {

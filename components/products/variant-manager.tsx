@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useWatch } from 'react-hook-form'
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
 import { Label } from '@ui/components/label'
@@ -40,9 +41,9 @@ interface VariantRow {
 }
 
 interface VariantManagerProps {
-  onVariantsChange?: (variants: VariantRow[]) => void
-  defaultVariants?: VariantRow[]
-  basePrice?: number
+  control: any // React Hook Form control
+  value?: VariantRow[] // Current value from form
+  onChange?: (variants: VariantRow[]) => void // Callback to pass data back to form
 }
 
 interface EditModalData {
@@ -56,18 +57,21 @@ interface EditModalData {
 }
 
 export default function VariantManager({
-  onVariantsChange,
-  defaultVariants = [],
-  basePrice = 0,
+  control,
+  value = [],
+  onChange,
 }: VariantManagerProps) {
   const [selectedAttributeId, setSelectedAttributeId] = useState<string>('')
-  const [variants, setVariants] = useState<VariantRow[]>(defaultVariants)
+  const [variants, setVariants] = useState<VariantRow[]>(value)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingVariant, setEditingVariant] = useState<EditModalData | null>(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [newAttributeName, setNewAttributeName] = useState('')
   const [newAttributeValues, setNewAttributeValues] = useState('')
   const [isCreating, setIsCreating] = useState(false)
+  
+  // Watch the price field from parent form using useWatch
+  const basePrice = useWatch({ control, name: 'price' }) || 0
 
   // Fetch variant attributes from API
   const { data: attributesResponse, isLoading, error, refetch } = useVariantAttributes()
@@ -75,6 +79,13 @@ export default function VariantManager({
   const createVariantAttribute = useCreateVariantAttribute()
 
   const {form: variantCreateForm} = useDynamicForm(variantAttributeFormConfig)
+  
+  // Update internal state when value prop changes (for edit mode)
+  useEffect(() => {
+    if (value && value.length > 0 && variants.length === 0) {
+      setVariants(value)
+    }
+  }, [value, variants.length])
 
   // Generate variants when attribute is selected
   const handleAttributeChange = (attributeId: string) => {
@@ -93,24 +104,28 @@ export default function VariantManager({
           enabled: true,
         }))
         setVariants(newVariants)
+        // Notify parent of change
+        if (onChange) {
+          onChange(newVariants)
+        }
       }
     } else {
       setVariants([])
+      if (onChange) {
+        onChange([])
+      }
     }
   }
 
-  // Notify parent of changes
-  useEffect(() => {
-    if (onVariantsChange) {
-      onVariantsChange(variants)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [variants])
-
   const handleEnableToggle = (id: string) => {
-    setVariants(prev =>
-      prev.map(v => (v.id === id ? { ...v, enabled: !v.enabled } : v))
-    )
+    setVariants(prev => {
+      const updated = prev.map(v => (v.id === id ? { ...v, enabled: !v.enabled } : v))
+      // Notify parent of change
+      if (onChange) {
+        onChange(updated)
+      }
+      return updated
+    })
   }
 
   const handleEditClick = (variant: VariantRow) => {
@@ -125,8 +140,8 @@ export default function VariantManager({
 
   const handleSaveEdit = () => {
     if (editingVariant) {
-      setVariants(prev =>
-        prev.map(v =>
+      setVariants(prev => {
+        const updated = prev.map(v =>
           v.id === editingVariant.id
             ? {
               ...v,
@@ -136,7 +151,12 @@ export default function VariantManager({
             }
             : v
         )
-      )
+        // Notify parent of change
+        if (onChange) {
+          onChange(updated)
+        }
+        return updated
+      })
       setEditModalOpen(false)
       setEditingVariant(null)
       toast.success('Variant updated')
@@ -144,9 +164,14 @@ export default function VariantManager({
   }
 
   const handleInlineUpdate = (id: string, field: keyof VariantRow, value: any) => {
-    setVariants(prev =>
-      prev.map(v => (v.id === id ? { ...v, [field]: value } : v))
-    )
+    setVariants(prev => {
+      const updated = prev.map(v => (v.id === id ? { ...v, [field]: value } : v))
+      // Notify parent of change
+      if (onChange) {
+        onChange(updated)
+      }
+      return updated
+    })
   }
 
   const handleCreateAttribute = async () => {

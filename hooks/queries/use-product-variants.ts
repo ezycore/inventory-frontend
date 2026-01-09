@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { variantsApi } from '@/lib/api-client'
+import { variantsApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys-products'
 import type { 
   Variant, 

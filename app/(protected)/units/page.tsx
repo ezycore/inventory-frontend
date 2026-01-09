@@ -13,7 +13,7 @@ import PageHeader from "@/ui/components/header";
 
 // Hooks & API
 import { useCreateUnit, useDeleteUnit, useUpdateUnit } from "@/hooks/queries";
-import { unitsApi } from "@/lib/api-client";
+import { unitsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import { FilterConfig } from "@/types/DataTable";
 

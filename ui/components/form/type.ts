@@ -61,6 +61,11 @@ export interface FormFieldConfig {
   optionsApi?: string      // For select fields (dynamic API-based options) - URL string
   dependsOn?: string       // Field name this select depends on (e.g., 'product_id')
   dependsOnTemplate?: string // API template with :id placeholder (e.g., '/products/:id/variants')
+  
+  // Quick-add functionality for select fields
+  creatable?: boolean      // Enable quick-add modal for creating new options
+  quickAddModule?: string  // Module name from quickAddConfig (e.g., 'category', 'brand')
+  
   rows?: number // For textarea
   accept?: string // For file upload
   maxFiles?: number // For file upload
@@ -86,6 +91,7 @@ export interface FormFieldConfig {
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
     disabled?: boolean
     onClick?: (props?: any) => void
+    href?: string // For Next.js Link navigation (opens modal via intercepting routes)
     renderItem?: () => ReactNode // Priority: if provided, other props ignored
   }
 

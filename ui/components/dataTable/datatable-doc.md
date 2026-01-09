@@ -445,8 +445,8 @@ const prepareSubmitData = (data: Brand, isEdit: boolean, item?: Brand) => {
   formData.append("name", data.name);
   formData.append("status", data.status);
 
-  if (isEdit && item) {
-    formData.append("id", item._id);
+  if (isEdit) {
+    // Note: ID is automatically injected by DataTable, no need to add it manually
 
     // Handle logo changes
     if (!data.logo_url || data.logo_url.length === 0) {
@@ -465,6 +465,8 @@ const prepareSubmitData = (data: Brand, isEdit: boolean, item?: Brand) => {
   return formData;
 };
 ```
+
+**Note**: The DataTable component automatically injects the `id` field into FormData for edit operations. You no longer need to manually add `formData.append("id", item._id)` in your `prepareSubmitData` function.
 
 ---
 
@@ -993,7 +995,7 @@ const prepareSubmitData = (data, isEdit, item) => {
   if (data.logo?.[0] instanceof File) {
     formData.append("logo", data.logo[0]);
   }
-  if (isEdit) formData.append("id", item._id);
+  // Note: ID is auto-injected by DataTable for edit mode
   return formData;
 };
 
