@@ -46,7 +46,7 @@ export default function UsersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users?.filter(u => u.isActive).length || 0}
+              {users?.filter(u => u.status).length || 0}
             </div>
             <p className="text-xs text-muted-foreground">
               Currently active
