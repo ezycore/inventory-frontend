@@ -21,6 +21,7 @@ export default function ProtectedLayout({
 
   // Wait for Zustand store to hydrate from localStorage
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setIsHydrated(true)
   }, [])
 
