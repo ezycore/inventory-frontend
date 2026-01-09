@@ -34,9 +34,17 @@ type ApiError = {
 
 // Global 401 handler - will be set by the auth store
 let handle401: (() => void) | null = null;
+let is401Handling = false; // Prevent infinite 401 loops
 
 export const setGlobal401Handler = (handler: () => void) => {
   handle401 = handler;
+};
+
+// Function to get auth token - will be set by auth store
+let getAuthToken: (() => string | null) | null = null;
+
+export const setAuthTokenGetter = (getter: () => string | null) => {
+  getAuthToken = getter;
 };
 
 class ApiClient {
@@ -59,17 +67,33 @@ class ApiClient {
       // Check if body is FormData
       const isFormData = options.body instanceof FormData;
 
-      const response = await fetch(url, {
-        credentials: "include", // Always include cookies for authentication
-        headers: isFormData
-          ? {
+      // Get auth token (safely handle when store isn't hydrated yet)
+      const token = getAuthToken ? getAuthToken() : null;
+      
+      console.log('🔍 API Request Debug:', {
+        endpoint,
+        hasTokenGetter: !!getAuthToken,
+        token: token ? `${token.substring(0, 30)}...` : 'NO TOKEN',
+      });
+
+      // Build headers
+      const headers: HeadersInit = isFormData
+        ? {
             // Don't set Content-Type for FormData, let browser set it with boundary
             ...options.headers,
           }
-          : {
+        : {
             "Content-Type": "application/json",
             ...options.headers,
-          },
+          };
+
+      // Add Authorization header if token exists
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        headers,
         ...options,
       });
 
@@ -77,9 +101,14 @@ class ApiClient {
 
       if (!response.ok) {
         // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
-        if (response.status === 401 && handle401) {
-          console.warn('🚨 401 Unauthorized - Auto logging out user');
-          handle401();
+        // Only trigger logout if we had a token (avoid logout loop on login page)
+        if (response.status === 401 && token && handle401 && !is401Handling) {
+          is401Handling = true;
+          console.warn('🚨 401 Unauthorized - Logging out user');
+          setTimeout(() => {
+            handle401();
+            is401Handling = false;
+          }, 100);
         }
 
         throw {
@@ -656,9 +685,6 @@ export const usersApi = {
   
   delete: (id: string): Promise<ApiResponse<{ message: string }>> => 
     apiClient.delete(`/users/${id}`),
-  
-  getAllPermissions: (): Promise<PermissionsResponse> => 
-    apiClient.get("/users/permissions"),
 };
 
 // Auth API - using fetch directly since these are Next.js API routes
@@ -668,7 +694,6 @@ export const authApi = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
-      credentials: "include",
     });
 
     const result = await response.json();
@@ -683,7 +708,6 @@ export const authApi = {
   logout: async () => {
     const response = await fetch("/api/auth/logout", {
       method: "POST",
-      credentials: "include",
     });
 
     if (!response.ok) {
@@ -721,13 +745,6 @@ export const profileApi = {
 
   updateAvatar: (avatar: string): Promise<ApiResponse<any>> =>
     apiClient.put("/profile/avatar", { avatar }),
-
-  getPermissions: (): Promise<
-    ApiResponse<{
-      role: string;
-      permissions: string[];
-    }>
-  > => apiClient.get("/profile/permissions"),
 };
 
 // Dashboard API

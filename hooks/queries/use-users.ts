@@ -35,16 +35,6 @@ export function useUser(id: string) {
   })
 }
 
-export function usePermissions() {
-  return useQuery({
-    queryKey: usersKeys.permissions(),
-    queryFn: async () => {
-      const response = await usersApi.getAllPermissions()
-      return response.data
-    },
-  })
-}
-
 // Mutations
 export function useRegisterUser() {
   const queryClient = useQueryClient()

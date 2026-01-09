@@ -4,29 +4,18 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5500/ap
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 Proxying logout request to backend...');
+    console.log('🔄 Logout request received');
     
-    // Forward request to backend
-    const response = await fetch(`${BACKEND_URL}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Forward cookies from the request
-        'Cookie': request.headers.get('cookie') || '',
-      },
-    });
+    // No need to call backend for token-based auth
+    // Token is cleared on client side by auth store
+    const data = {
+      success: true,
+      message: 'Logged out successfully'
+    };
 
-    const data = await response.json();
+    console.log('✅ Logout successful');
 
-    console.log('✅ Logout response:', data);
-
-    // Create response and clear cookie on frontend too
-    const nextResponse = NextResponse.json(data, { status: response.status });
-    
-    // Clear the cookie on the client side
-    nextResponse.cookies.delete('auth_token');
-
-    return nextResponse;
+    return NextResponse.json(data, { status: 200 });
     
   } catch (error: any) {
     console.error('❌ Error in logout API route:', error);

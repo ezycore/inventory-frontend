@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { BaseActions, LoadingState, initialLoadingState } from './store-utils'
-import { setGlobal401Handler } from '@/lib/api-client'
+import { setGlobal401Handler, setAuthTokenGetter } from '@/lib/api-client'
 
 // User data interface
 export interface User {
@@ -26,6 +26,7 @@ export interface User {
 interface AuthState extends LoadingState {
   user: User | null
   isAuthenticated: boolean
+  token: string | null
 }
 
 // Auth actions interface
@@ -45,6 +46,7 @@ const initialState: AuthState = {
   ...initialLoadingState,
   user: null,
   isAuthenticated: false,
+  token: null,
 }
 
 // Create the auth store with persistence
@@ -58,25 +60,40 @@ export const useAuthStore = create<AuthStore>()(
         login: async (email: string, password: string) => {
           set({ isLoading: true, error: null })
           try {
-            // API call with credentials to receive cookie
+            // API call to get Bearer token
             const response = await fetch('/api/auth/login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email, password }),
-              credentials: 'include', // Important for cookies
             })
 
             if (!response.ok) {
               throw new Error('Login failed')
             }
 
-            const { data } = await response.json()
+            const result = await response.json()
+            console.log('🔐 Auth Store - Login Response:', {
+              success: result.success,
+              hasData: !!result.data,
+              hasToken: !!(result.data?.token || result.token),
+              hasUser: !!(result.data?.user || result.user)
+            })
+            
+            const token = result.data?.token || result.token
+            const user = result.data?.user || result.user
+            
+            console.log('🔐 Auth Store - Setting State:', {
+              hasToken: !!token,
+              hasUser: !!user,
+              tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN'
+            })
+            
             set({ 
-              user: data.user, 
+              user,
+              token,
               isAuthenticated: true, 
               isLoading: false 
             })
-            // Token is now in HTTP-only cookie, not in state
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Login failed',
@@ -86,25 +103,30 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         logout: async () => {
-          // Call logout API to clear cookie
+          // Clear token and user data first
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            error: null,
+          })
+          
+          // Then try to call logout API (don't await or block on this)
           try {
-            await fetch('/api/auth/logout', {
+            fetch('/api/auth/logout', {
               method: 'POST',
-              credentials: 'include',
+            }).catch(() => {
+              // Ignore errors - we're already logged out locally
             })
           } catch (error) {
             console.error('Logout error:', error)
           }
           
-          set({
-            user: null,
-            isAuthenticated: false,
-            error: null,
-          })
-          
-          // Redirect to login page
+          // Redirect to login page after a small delay
           if (typeof window !== 'undefined') {
-            window.location.href = '/login'
+            setTimeout(() => {
+              window.location.href = '/login'
+            }, 100)
           }
         },
 
@@ -136,18 +158,23 @@ export const useAuthStore = create<AuthStore>()(
         name: 'easystock-auth',
         partialize: (state) => ({
           user: state.user,
+          token: state.token,
           isAuthenticated: state.isAuthenticated,
-          // Don't persist token - it's in HTTP-only cookie
         }),
       }
     ),
     { name: 'AuthStore' }
   )
 )
-// 🔒 Setup global 401 handler when store is initialized
+// 🔒 Setup global 401 handler and token getter when store is initialized
 if (typeof window !== 'undefined') {
   setGlobal401Handler(() => {
     const { logout } = useAuthStore.getState()
     logout()
+  })
+  
+  setAuthTokenGetter(() => {
+    const { token } = useAuthStore.getState()
+    return token
   })
 }

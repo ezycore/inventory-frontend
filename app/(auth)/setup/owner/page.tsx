@@ -2,8 +2,11 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Building2, Globe, User } from "lucide-react";
 import { useCreateOwner } from "@/hooks/queries/use-setup";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { toast } from "sonner";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
@@ -184,8 +187,29 @@ const generateSlug = (name: string) => {
 };
 
 export default function OwnerSetupPage() {
+  const router = useRouter();
   const createOwnerMutation = useCreateOwner();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
+  const [isChecking, setIsChecking] = useState(true);
+
+  // Check auth on mount and redirect if logged in
+  useEffect(() => {
+    const checkAuth = () => {
+      const { isAuthenticated, token } = useAuthStore.getState();
+      if (isAuthenticated && token) {
+        router.replace('/dashboard');
+      } else {
+        setIsChecking(false);
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
+  // Don't render anything while checking auth (prevents flash)
+  if (isChecking) {
+    return null;
+  }
 
   const handleFieldChange = (fieldName: string, value: any) => {
     console.log(`Field changed: ${fieldName} = ${value}`);

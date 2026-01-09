@@ -10,8 +10,10 @@ import {
 } from "@ui/components/card"
 import { Input } from "@ui/components/input"
 import { Label } from "@ui/components/label"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLogin } from "@/hooks/queries/use-auth"
+import { useAuthStore } from "@/stores/use-auth-store"
+import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
 export function LoginForm({
@@ -19,11 +21,32 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
 
+  const router = useRouter();
   const loginMutation = useLogin();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [isChecking, setIsChecking] = useState(true);
+
+  // Check auth on mount and redirect if logged in
+  useEffect(() => {
+    const checkAuth = () => {
+      const { isAuthenticated, token } = useAuthStore.getState();
+      if (isAuthenticated && token) {
+        router.replace('/dashboard');
+      } else {
+        setIsChecking(false);
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
+  // Don't render anything while checking auth (prevents flash)
+  if (isChecking) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

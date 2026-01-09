@@ -7,16 +7,35 @@ import { authApi } from '@/lib/api-client';
 // Login mutation hook
 export function useLogin() {
   const router = useRouter();
-  const { setUser } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (result) => {
-      // Store user data in auth store
-      if (result.data?.user) {
-        setUser(result.data.user);
-        console.log('✅ User stored in auth store:', result.data.user);
+      console.log('🔐 useLogin - Response:', {
+        success: result.success,
+        hasData: !!result.data,
+        hasToken: !!(result.data?.token || result.token),
+        hasUser: !!(result.data?.user || result.user)
+      });
+      
+      // Extract user and token
+      const user = result.data?.user || result.user;
+      const token = result.data?.token || result.token;
+      
+      // Store BOTH user and token in auth store
+      if (user && token) {
+        useAuthStore.setState({ 
+          user, 
+          token,
+          isAuthenticated: true 
+        });
+        console.log('✅ User & Token stored:', { 
+          user: user.email, 
+          tokenPreview: token.substring(0, 20) + '...'
+        });
+      } else {
+        console.error('❌ Missing user or token in response');
       }
 
       // Invalidate all queries to refresh data

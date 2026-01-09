@@ -42,7 +42,6 @@ import {
   useUpdateProfile,
   useUpdatePassword,
   useUpdatePreferences,
-  useProfilePermissions,
 } from "@/hooks/queries/use-profile";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { DynamicFormConfig } from "@/ui/components/form/type";
@@ -53,7 +52,6 @@ import SecurityForm from "@/components/profile/security-form";
 import PreferenceForm from "@/components/profile/preference-form";
 
 export default function ProfilePage() {
-  const { data: permissionsData } = useProfilePermissions();
   const { user, isLoading } = useAuthStore();
 
   const profileFormConfig = (
@@ -346,11 +344,9 @@ export default function ProfilePage() {
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
                     Granted Permissions
                   </h3>
-                  {permissionsData &&
-                  permissionsData.permissions &&
-                  permissionsData.permissions.length > 0 ? (
+                  {user?.permissions && user.permissions.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {permissionsData.permissions.map((permission: string) => (
+                      {user.permissions.map((permission: string) => (
                         <div
                           key={permission}
                           className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"

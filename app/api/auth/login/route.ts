@@ -17,18 +17,15 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     
-    // Get the Set-Cookie header from backend response
-    const setCookieHeader = response.headers.get('set-cookie');
+    console.log('🔐 Login API Route - Backend Response:', {
+      status: response.status,
+      success: data.success,
+      hasToken: !!data.token || !!(data.data?.token),
+      hasUser: !!data.user || !!(data.data?.user)
+    });
 
-    // Create the response
-    const nextResponse = NextResponse.json(data, { status: response.status });
-    
-    // Forward the Set-Cookie header from backend to client
-    if (setCookieHeader) {
-      nextResponse.headers.set('Set-Cookie', setCookieHeader);
-    }
-
-    return nextResponse;
+    // Return the response with token (no cookie forwarding)
+    return NextResponse.json(data, { status: response.status });
     
   } catch (error: any) {
     console.error('❌ Error in login API route:', error);

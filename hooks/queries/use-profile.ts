@@ -6,20 +6,7 @@ import { toast } from 'sonner';
 export const profileKeys = {
   all: ['profile'] as const,
   detail: () => [...profileKeys.all, 'detail'] as const,
-  permissions: () => [...profileKeys.all, 'permissions'] as const,
 };
-
-
-// Get permissions
-export function useProfilePermissions() {
-  return useQuery({
-    queryKey: profileKeys.permissions(),
-    queryFn: async () => {
-      const response = await profileApi.getPermissions();
-      return response.data;
-    },
-  });
-}
 
 // Update profile
 export function useUpdateProfile() {
