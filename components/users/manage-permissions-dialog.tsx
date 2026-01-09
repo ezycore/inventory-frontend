@@ -54,7 +54,7 @@ export function ManagePermissionsDialog({ user, open, onOpenChange }: ManagePerm
   useEffect(() => {
     if (user) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      setSelectedPermissions(user.permissions)
+      setSelectedPermissions(user.permissions || [])
     }
   }, [user])
 
@@ -107,8 +107,8 @@ export function ManagePermissionsDialog({ user, open, onOpenChange }: ManagePerm
           <ScrollArea className="h-[400px] pr-4 mt-4">
             <div className="space-y-6">
               {Object.entries(PERMISSION_GROUPS).map(([groupName, permissions]) => {
-                const allSelected = permissions.every(p => selectedPermissions.includes(p as Permission))
-                const someSelected = permissions.some(p => selectedPermissions.includes(p as Permission))
+                const allSelected = permissions.every(p => selectedPermissions?.includes(p as Permission))
+                const someSelected = permissions.some(p => selectedPermissions?.includes(p as Permission))
 
                 return (
                   <div key={groupName} className="space-y-3">
