@@ -72,20 +72,20 @@ export interface Brand extends BaseEntity {
 // Location interfaces (unified for stores and warehouses)
 export interface Location extends BaseEntity {
   name: string;
-  location_type: "store" | "warehouse";
+  locationType: "store" | "warehouse";
   address: string;
   manager: string;
-  contact_number?: string;
+  contactNumber?: string;
   email?: string;
   status: "active" | "inactive";
 }
 
 export interface CreateLocationDto {
   name: string;
-  location_type: "store" | "warehouse";
+  locationType: "store" | "warehouse";
   address: string;
   manager: string;
-  contact_number?: string;
+  contactNumber?: string;
   email?: string;
   status?: "active" | "inactive";
 }

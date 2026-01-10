@@ -37,11 +37,11 @@ const columns: ColumnDef<LocationType>[] = [
     header: "Manager",
   },
   {
-    accessorKey: "contact_number",
+    accessorKey: "contactNumber",
     header: "Contact",
   },
   {
-    accessorKey: "location_type",
+    accessorKey: "locationType",
     header: "Type",
   },
   {
@@ -81,7 +81,7 @@ const locationFormConfig: DynamicFormConfig = {
       columnSpan: 12,
     },
     {
-      name: "location_type",
+      name: "locationType",
       type: "select",
       label: "Location Type",
       required: true,
@@ -100,7 +100,7 @@ const locationFormConfig: DynamicFormConfig = {
       columnSpan: 12,
     },
     {
-      name: "contact_number",
+      name: "contactNumber",
       type: "input",
       label: "Contact Number",
       placeholder: "Enter contact number",
@@ -143,7 +143,7 @@ const locationFilterConfig: FilterConfig = {
       placeholder: "Search by address...",
     },
     {
-      name: "location_type",
+      name: "locationType",
       label: "Type",
       type: "select",
       placeholder: "All types",
@@ -187,9 +187,9 @@ const searchConfig = {
 const defaultValues = {
   name: "",
   address: "",
-  location_type: 'store' as const,
+  locationType: 'store' as const,
   manager: "",
-  contact_number: "",
+  contactNumber: "",
   email: "",
   status: "active" as const,
 }
@@ -210,7 +210,7 @@ export default function LocationsPage() {
         selectable={true}
         searchConfig={searchConfig}
         enableSorting={true}
-        defaultColumnVisibility={{ status: false, contact_number: false }}
+        defaultColumnVisibility={{ status: false, contactNumber: false }}
         enableRowHover={true}
         rowClassName={(row: LocationType) =>
           row.status === "inactive" ? "bg-red-50 opacity-70" : ""
