@@ -2,7 +2,7 @@ import type { ApiResponse, PaginatedResponse } from "@/types";
 import { buildQueryParams, type BaseFilters } from "./utils";
 
 interface LocationFilters extends BaseFilters {
-  location_type?: string;
+  locationType?: string;
 }
 
 export function createLocationsApi(apiClient: any) {
