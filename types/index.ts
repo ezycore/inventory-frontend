@@ -50,14 +50,22 @@ export interface CreateCategoryDto {
 
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
 
+// Brand image metadata
+export interface BrandImage {
+  url: {
+    thumbnail?: { url: string; secureUrl: string; width: number; height: number };
+    medium?: { url: string; secureUrl: string; width: number; height: number };
+    original?: { url: string; secureUrl: string; width: number; height: number };
+  };
+  publicId: string;
+}
+
 // Brand interfaces
 export interface Brand extends BaseEntity {
   name: string;
   slug: string;
   description?: string;
-  logo_url?: string;
-  logo_public_id?: string;
-  website?: string;
+  images: BrandImage[];
   status: "active" | "inactive";
 }
 
@@ -137,13 +145,13 @@ export interface UpdateSupplierDto extends Partial<CreateSupplierDto> { }
 // Unit interfaces
 export interface Unit extends BaseEntity {
   name: string;
-  short_name?: string;
+  shortName?: string;
   status: "active" | "inactive";
 }
 
 export interface CreateUnitDto {
   name: string;
-  short_name?: string;
+  shortName?: string;
   status?: "active" | "inactive";
 }
 
@@ -257,8 +265,8 @@ export interface Product extends BaseEntity {
   name: string;
   description?: string;
   base_sku?: string;
-  category_id?: string;
-  brand_id?: string;
+  categoryId?: string;
+  brandId?: string;
   status: ProductStatus;
   images?: string[];
   tags?: string[];
@@ -276,8 +284,8 @@ export interface CreateProductDto {
   slug?: string;
   description?: string;
   base_sku?: string;
-  category_id?: string;
-  brand_id?: string;
+  categoryId?: string;
+  brandId?: string;
   status?: ProductStatus;
   images?: string[];
   tags?: string[];
@@ -288,8 +296,8 @@ export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 export interface ProductFilters {
   search?: string;
-  category_id?: string | undefined;
-  brand_id?: string | undefined;
+  categoryId?: string | undefined;
+  brandId?: string | undefined;
   status?: ProductStatus;
   tags?: string[];
   page?: number;
@@ -305,7 +313,7 @@ export interface Variant extends BaseEntity {
   name?: string;
   attributes: Record<string, any>;
   price: number;
-  cost_price?: number;
+  costPrice?: number;
   stock_quantity: number;
   low_stock_threshold: number;
   barcode?: string;
@@ -326,7 +334,7 @@ export interface CreateVariantDto {
   name?: string;
   attributes: Record<string, any>;
   price: number;
-  cost_price?: number;
+  costPrice?: number;
   stock_quantity?: number;
   low_stock_threshold?: number;
   barcode?: string;

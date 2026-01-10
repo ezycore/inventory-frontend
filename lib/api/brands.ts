@@ -20,5 +20,8 @@ export function createBrandsApi(apiClient: any) {
 
     delete: (id: string): Promise<ApiResponse<void>> =>
       apiClient.delete(`/brands/${id}`),
+
+    bulkDelete: (ids: string[]): Promise<ApiResponse<void>> =>
+      apiClient.post("/brands/bulk-delete", { ids }),
   };
 }

@@ -29,6 +29,7 @@ export function BaseDataTable<TData, TValue>({
   actions,
   onEdit,
   onDelete,
+  onBulkDelete,
   onView,
   pagination,
   isLoading = false,
@@ -109,9 +110,18 @@ export function BaseDataTable<TData, TValue>({
     if (!hasSelection) return;
 
     const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
-    for (const row of selectedRows) {
-      await onDelete?.(row);
+    
+    // Use bulk delete API if available
+    if (onBulkDelete) {
+      const ids = selectedRows.map((row: any) => row._id);
+      await onBulkDelete(ids);
+    } else {
+      // Fallback: delete one by one
+      for (const row of selectedRows) {
+        await onDelete?.(row);
+      }
     }
+    
     table.resetRowSelection();
   };
 

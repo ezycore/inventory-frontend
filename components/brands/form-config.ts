@@ -22,16 +22,16 @@ export const brandFormConfig: DynamicFormConfig = {
       validation: { maxLength: 500 },
     },
     {
-      name: "logo_url",
+      name: "images",
       type: "file-upload",
-      label: "Brand Logo",
-      placeholder: "Upload brand logo",
+      label: "Brand Images",
+      placeholder: "Upload brand images",
       columnSpan: 12,
       accept: "image/*",
       maxFiles: 1,
-      maxSize: 5 * 1024 * 1024, // 5MB
+      maxSize: 5 * 1024 * 1024, // 5MB per file
       fileTypes: ["jpg", "jpeg", "png", "webp"],
-      dropzoneText: "PNG, JPG, WEBP up to 5MB",
+      dropzoneText: "PNG, JPG, WEBP up to 5MB (max 5 images)",
       showPreview: true,
     },
     {

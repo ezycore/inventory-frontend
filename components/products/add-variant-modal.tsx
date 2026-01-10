@@ -30,7 +30,7 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
     sku: '',
     attributes: {},
     price: 0,
-    cost_price: 0,
+    costPrice: 0,
     stock_quantity: 0,
     low_stock_threshold: 5,
     barcode: '',
@@ -107,7 +107,7 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
         sku: '',
         attributes: {},
         price: 0,
-        cost_price: 0,
+        costPrice: 0,
         stock_quantity: 0,
         low_stock_threshold: 5,
         barcode: '',
@@ -131,7 +131,7 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
       sku: '',
       attributes: {},
       price: 0,
-      cost_price: 0,
+      costPrice: 0,
       stock_quantity: 0,
       low_stock_threshold: 5,
       barcode: '',
@@ -240,15 +240,15 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cost_price">Cost Price ($)</Label>
+              <Label htmlFor="costPrice">Cost Price ($)</Label>
               <Input
-                id="cost_price"
+                id="costPrice"
                 type="number"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                value={formData.cost_price || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, cost_price: parseFloat(e.target.value) || 0 }))}
+                value={formData.costPrice || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
               />
             </div>
           </div>

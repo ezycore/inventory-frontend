@@ -117,21 +117,21 @@ export default function ProductForm({
   //     form.reset({
   //       name: productData.name,
   //       description: productData.description || '',
-  //       category_id: productData.category_id,
-  //       brand_id: productData.brand_id || '',
+  //       categoryId: productData.categoryId,
+  //       brandId: productData.brandId || '',
   //       images: productData.images || [],
   //       status: productData.status,
-  //       unit_id: productData.unit_id || '',
-  //       selling_type: productData.selling_type,
-  //       tax_type: productData.tax_type,
-  //       tax_id: productData.tax_id || '',
-  //       discount_type: productData.discount_type,
-  //       discount_value: productData.discount_value,
-  //       has_expiry: productData.has_expiry || '',
-  //       expiry_alert_days: productData.expiry_alert_days,
-  //       product_type: productData.product_type,
+  //       unitId: productData.unitId || '',
+  //       sellingType: productData.sellingType,
+  //       taxType: productData.taxType,
+  //       taxId: productData.taxId || '',
+  //       discountType: productData.discountType,
+  //       discountValue: productData.discountValue,
+  //       hasExpiry: productData.hasExpiry || '',
+  //       expiryAlertDays: productData.expiryAlertDays,
+  //       productType: productData.productType,
   //       price: productData.price,
-  //       cost_price: productData.cost_price,
+  //       costPrice: productData.costPrice,
   //     })
   //   }
   // }, [mode, product, form])
@@ -193,7 +193,7 @@ export default function ProductForm({
           config={productFormConfig}
           onSubmit={(data) => {
             // Add variants data if product type is variable (only active variants)
-            // if (data.product_type_radio === 'variable' && variants.length > 0) {
+            // if (data.productType_radio === 'variable' && variants.length > 0) {
             //   const activeVariants = variants
             //     .filter(v => v.enabled)
             //     .map(v => ({
@@ -231,13 +231,13 @@ export default function ProductForm({
                   formData.append('images', images[0])
                 }
               }
-              if(data.product_type === "variable" && variants.length > 0) {
+              if(data.productType === "variable" && variants.length > 0) {
                 const variantsData = variants
                   .map(v => ({
                     attributes: {
                       [v.attributeName]: v.value
                     },
-                    cost_price: v.costPrice,
+                    costPrice: v.costPrice,
                     price: v.price,
                     status: v.enabled ? 'active' : 'inactive',
                     // sku: v.sku,
@@ -298,7 +298,7 @@ export default function ProductForm({
           onSubmit={(data) => {
 
             // Add variants data if product type is variable (only active variants)
-            // if (data.product_type_radio === 'variable' && variants.length > 0) {
+            // if (data.productType_radio === 'variable' && variants.length > 0) {
             //   const activeVariants = variants
             //     .filter(v => v.enabled)
             //     .map(v => ({

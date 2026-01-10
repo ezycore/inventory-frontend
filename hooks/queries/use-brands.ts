@@ -14,3 +14,4 @@ export const useBrandBySlug = brandHooks.useBySlug!
 export const useCreateBrand = brandHooks.useCreate
 export const useUpdateBrand = brandHooks.useUpdate
 export const useDeleteBrand = brandHooks.useDelete
+export const useBulkDeleteBrand = brandHooks.useBulkDelete

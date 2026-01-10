@@ -24,7 +24,7 @@ interface ProductVariant {
   _id: string
   attributes: Record<string, string>
   price: number
-  cost_price: number
+  costPrice: number
   status: Status
   sku?: string
   images?: any
@@ -36,13 +36,13 @@ interface Product {
   description?: string
   images?: Array<{ url: string }> | null
   status: Status
-  product_type: string
-  selling_type: string
-  discount_type?: string
-  discount_value?: number
-  has_expiry: boolean
+  productType: string
+  sellingType: string
+  discountType?: string
+  discountValue?: number
+  hasExpiry: boolean
   price: number
-  cost_price: number
+  costPrice: number
   slug: string
   createdAt: string
   updatedAt: string
@@ -88,7 +88,7 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
   }
 
   const product = data.data
-  const hasVariants = product.product_type === 'variable' && product.variants && product.variants.length > 0
+  const hasVariants = product.productType === 'variable' && product.variants && product.variants.length > 0
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -133,8 +133,8 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
             )}
             <div className="flex items-center gap-2 mt-2">
               <StatusBadge status={product.status} />
-              <Badge variant="outline">{product.product_type}</Badge>
-              <Badge variant="outline">{product.selling_type}</Badge>
+              <Badge variant="outline">{product.productType}</Badge>
+              <Badge variant="outline">{product.sellingType}</Badge>
             </div>
           </div>
         </div>
@@ -207,25 +207,25 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Cost Price</p>
-                <p className="text-2xl font-bold">{formatPrice(product.cost_price)}</p>
+                <p className="text-2xl font-bold">{formatPrice(product.costPrice)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Profit Margin</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {getMargin(product.price, product.cost_price)}%
+                  {getMargin(product.price, product.costPrice)}%
                 </p>
               </div>
             </div>
 
-            {product.discount_value && product.discount_value > 0 && (
+            {product.discountValue && product.discountValue > 0 && (
               <div className="mt-4 p-3 bg-orange-50 rounded-lg flex items-center gap-2">
                 <TrendingDown className="w-5 h-5 text-orange-600" />
                 <div>
                   <p className="text-sm font-medium">Discount Applied</p>
                   <p className="text-sm text-muted-foreground">
-                    {product.discount_type === 'fixed' 
-                      ? formatPrice(product.discount_value)
-                      : `${product.discount_value}%`} off
+                    {product.discountType === 'fixed' 
+                      ? formatPrice(product.discountValue)
+                      : `${product.discountValue}%`} off
                   </p>
                 </div>
               </div>
@@ -271,10 +271,10 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
                         {formatPrice(variant.price)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Cost: {formatPrice(variant.cost_price)}
+                        Cost: {formatPrice(variant.costPrice)}
                       </p>
                       <p className="text-xs text-blue-600 font-medium">
-                        {getMargin(variant.price, variant.cost_price)}% margin
+                        {getMargin(variant.price, variant.costPrice)}% margin
                       </p>
                     </div>
                   </div>
@@ -294,15 +294,15 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Has Expiry</p>
-              <p className="font-medium">{product.has_expiry ? 'Yes' : 'No'}</p>
+              <p className="font-medium">{product.hasExpiry ? 'Yes' : 'No'}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Product Type</p>
-              <p className="font-medium capitalize">{product.product_type}</p>
+              <p className="font-medium capitalize">{product.productType}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Selling Type</p>
-              <p className="font-medium capitalize">{product.selling_type}</p>
+              <p className="font-medium capitalize">{product.sellingType}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Created</p>
