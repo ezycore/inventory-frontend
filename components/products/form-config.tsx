@@ -48,7 +48,7 @@ export const productFormConfig: DynamicFormConfig = {
           defaultValue: ProductStatus.ACTIVE,
         },
         {
-          name: "category_id",
+          name: "categoryId",
           type: "select",
           label: "Category",
           required: true,
@@ -59,7 +59,7 @@ export const productFormConfig: DynamicFormConfig = {
           quickAddModule: "category",
         },
         {
-          name: "brand_id",
+          name: "brandId",
           type: "select",
           label: "Brand",
           columnSpan: 6,
@@ -69,7 +69,7 @@ export const productFormConfig: DynamicFormConfig = {
           quickAddModule: "brand",
         },
         {
-          name: "unit_id",
+          name: "unitId",
           type: "select",
           label: "Unit",
           columnSpan: 6,
@@ -77,7 +77,7 @@ export const productFormConfig: DynamicFormConfig = {
           placeholder: "Select unit"
         },
         {
-          name: "selling_type",
+          name: "sellingType",
           type: "select",
           label: "Selling Type",
           required: true,
@@ -87,7 +87,7 @@ export const productFormConfig: DynamicFormConfig = {
           defaultValue: "retail"
         },
         {
-          name: "tax_type",
+          name: "taxType",
           type: "select",
           label: "Tax Type",
           columnSpan: 6,
@@ -95,7 +95,7 @@ export const productFormConfig: DynamicFormConfig = {
           placeholder: "Select",
         },
         {
-          name: "tax_id",
+          name: "taxId",
           type: "select",
           label: "Tax",
           columnSpan: 6,
@@ -103,7 +103,7 @@ export const productFormConfig: DynamicFormConfig = {
           placeholder: "Select",
         },
         {
-          name: "discount_type",
+          name: "discountType",
           type: "select",
           label: "Discount Type",
 
@@ -113,7 +113,7 @@ export const productFormConfig: DynamicFormConfig = {
           defaultValue: "fixed",
         },
         {
-          name: "discount_value",
+          name: "discountValue",
           type: "number",
           label: "Discount Value",
           columnSpan: 6,
@@ -123,7 +123,7 @@ export const productFormConfig: DynamicFormConfig = {
           step: 0.1,
         },
         // {
-        //   name: "has_expiry",
+        //   name: "hasExpiry",
         //   type: "radio-group",
         //   label: "Has Expiry",
         //   columnSpan: 6,
@@ -134,7 +134,7 @@ export const productFormConfig: DynamicFormConfig = {
         //   ]
         // },
         // {
-        //   name: "expiry_alert_days",
+        //   name: "expiryAlertDays",
         //   type: "number",
         //   label: "Expiry Alert Days",
         //   columnSpan: 6,
@@ -160,7 +160,7 @@ export const productFormConfig: DynamicFormConfig = {
       defaultOpen: true,
       fields: [
         {
-          name: "product_type",
+          name: "productType",
           type: "radio-group",
           label: "Product Type",
           required: true,
@@ -183,12 +183,12 @@ export const productFormConfig: DynamicFormConfig = {
           validation: { min: 0, max: 999999 },
           step: 1,
           showWhen: {
-            field: "product_type",
+            field: "productType",
             value: "single"
           }
         },
         {
-          name: "cost_price",
+          name: "costPrice",
           type: "number",
           label: "Cost Price",
 
@@ -198,7 +198,7 @@ export const productFormConfig: DynamicFormConfig = {
           validation: { min: 0 },
           step: 1,
           showWhen: {
-            field: "product_type",
+            field: "productType",
             value: "single"
           }
         },
@@ -211,7 +211,7 @@ export const productFormConfig: DynamicFormConfig = {
           columnSpan: 12,
           customComponent: VariantManager,
           showWhen: {
-            field: "product_type",
+            field: "productType",
             value: "variable"
           }
         }

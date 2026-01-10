@@ -50,6 +50,7 @@ export {
   useBrands,
   useCreateBrand,
   useDeleteBrand,
+  useBulkDeleteBrand,
   useUpdateBrand,
 } from "./use-brands";
 

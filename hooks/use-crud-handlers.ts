@@ -7,6 +7,7 @@ interface UseCrudModalOptions<T> {
  defaultValues?: T;
  transformEditData?: (item: T) => T;
  onDeleteFn?: (id: string) => Promise<void>;
+ onBulkDeleteFn?: (ids: string[]) => Promise<void>;
  entityName?: string;
 }
 
@@ -15,6 +16,7 @@ export function useCrudModal<T extends { _id: string }>({
  defaultValues = {} as T,
  transformEditData,
  onDeleteFn,
+ onBulkDeleteFn,
  entityName = "Item",
 }: UseCrudModalOptions<T>) {
  // ===== STATE =====
@@ -59,6 +61,18 @@ export function useCrudModal<T extends { _id: string }>({
   }
  }, [onDeleteFn, entityName]);
 
+ const handleBulkDelete = useCallback(async (ids: string[]) => {
+  if (!onBulkDeleteFn) {
+   console.warn("onBulkDeleteFn not provided to useCrudModal");
+   return;
+  }
+  try {
+   await onBulkDeleteFn(ids);
+  } catch (error) {
+   console.error(`Bulk delete ${entityName.toLowerCase()}s error:`, error);
+  }
+ }, [onBulkDeleteFn, entityName]);
+
  const handleCloseModal = useCallback(() => {
   setIsModalOpen(false);
   setEditingItem(null);
@@ -78,6 +92,7 @@ export function useCrudModal<T extends { _id: string }>({
   handleView,
   handleDelete,
   handleCloseModal,
+  handleBulkDelete,
 
   // Setters (if needed for edge cases)
   setIsModalOpen,

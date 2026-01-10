@@ -29,7 +29,6 @@ import type {
   FormFieldConfig,
   FormSection,
 } from "@/ui/components/form/type";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { Password } from "../input-password";
 import { ImageObject } from "@/types/DataTable";
 
@@ -130,64 +129,63 @@ const FormField: React.FC<{
         }
 
         let files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-        if (files.length) {
-          const modifiedFiles = (files as unknown as (File | ImageObject)[]).map(file => {
-            if (typeof file === "string") {
-              return file; // existing URL
-            } else if (file instanceof File) {
-              return file; // new File object
-            } else if ( typeof file === "object" && file.original && file.original.url) {
-              return file.original.url; // existing file object with URL
-            }
-          });
-          files = modifiedFiles;
-        }
         
         return (
           <div className="space-y-2">
-            {files.map((file: File | string, index: number) => {
+            {files.map((file: any, index: number) => {
+              let displayUrl: string | null = null;
+              let displayName = 'Uploaded file';
+
               if (typeof file === "string") {
-                // Display existing URL
-                return (
-                  <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <img
-                      src={file}
-                      alt="Uploaded file"
-                      className="h-16 w-16 object-cover rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {file.split('/').pop() || 'Existing file'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Uploaded</p>
-                    </div>
+                // Simple string URL
+                displayUrl = file;
+                displayName = file.split('/').pop() || 'Existing file';
+              } else if (file instanceof File) {
+                // File object (newly uploaded)
+                displayUrl = URL.createObjectURL(file);
+                displayName = file.name;
+              } else if (file && typeof file === "object") {
+                // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
+                if (file.url) {
+                  displayUrl = file.url.thumbnail?.secureUrl || 
+                              file.url.medium?.secureUrl || 
+                              file.url.original?.secureUrl || 
+                              file.url.thumbnail?.url || 
+                              file.url.medium?.url || 
+                              file.url.original?.url;
+                }
+                // Also check for direct URL properties
+                else if (file.original?.url) {
+                  displayUrl = file.original.url;
+                }
+                displayName = file.publicId?.split('/').pop() || 'Existing file';
+              }
+
+              if (!displayUrl) return null;
+              
+              return (
+                <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <img
+                    src={displayUrl}
+                    alt={displayName}
+                    className="h-16 w-16 object-cover rounded"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground">Uploaded</p>
+                  </div>
+                  {typeof file === "string" || (file && file.url) ? (
                     <a
-                      href={file}
+                      href={displayUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-primary hover:underline"
                     >
                       View
                     </a>
-                  </div>
-                );
-              } else if (file instanceof File) {
-                // Display File object
-                return (
-                  <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <div className="h-16 w-16 rounded bg-gray-100 flex items-center justify-center">
-                      <Upload className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
+                  ) : null}
+                </div>
+              );
             })}
           </div>
         );
@@ -431,19 +429,30 @@ const FormField: React.FC<{
                 required: field.required ? `${field.label} is required` : false,
               }}
               render={({ field: controllerField }) => {
-                let files: (File | string)[] = controllerField.value || [];
+                let files: (File | string | any)[] = controllerField.value || [];
+                
+                // Convert BrandImage objects to displayable format
                 if(Array.isArray(files) && files.length) {
-                  const modifiedFiles = (files as unknown as (File | ImageObject)[]).map(file => {
+                  const modifiedFiles = files.map(file => {
                     if (typeof file === "string") {
-                      return file; // existing URL
+                      return file; // existing URL string
                     } else if (file instanceof File) {
                       return file; // new File object
-                    } else if ( typeof file === "object" && file.original && file.original.url) {
-                      return file.original.url; // existing file object with URL
+                    } else if (file && typeof file === "object") {
+                      // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
+                      if (file.url) {
+                        return file; // Keep the full BrandImage object
+                      }
+                      // Legacy format check
+                      else if (file.original?.url) {
+                        return file.original.url;
+                      }
                     }
+                    return file;
                   });
                   files = modifiedFiles;
                 }
+                
                 const acceptedTypes = field.accept || "*";
                 const maxFiles = field.maxFiles || 1;
                 const maxSize = field.maxSize || 5 * 1024 * 1024; // 5MB default
@@ -501,18 +510,39 @@ const FormField: React.FC<{
 
                     {showPreview && files.length > 0 && (
                       <FileUploadList className="mt-4">
-                        {files.map((file: File | string, index: number) => {
-                          const fileKey = file instanceof File
-                            ? `${file.name}-${index}`
-                            : `${file}-${index}`;
+                        {files.map((file: any, index: number) => {
+                          let fileKey: string;
+                          let fileName: string;
+                          let fileSize: string;
+                          let previewUrl: string | null = null;
 
-                          const fileName = file instanceof File
-                            ? file.name
-                            : file.split('/').pop() || 'Existing file';
-
-                          const fileSize = file instanceof File
-                            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
-                            : 'Uploaded';
+                          if (file instanceof File) {
+                            // New File object
+                            fileKey = `${file.name}-${index}`;
+                            fileName = file.name;
+                            fileSize = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                            previewUrl = URL.createObjectURL(file);
+                          } else if (typeof file === "string") {
+                            // Simple string URL
+                            fileKey = `${file}-${index}`;
+                            fileName = file.split('/').pop() || 'Existing file';
+                            fileSize = 'Uploaded';
+                            previewUrl = file;
+                          } else if (file && typeof file === "object") {
+                            // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
+                            fileKey = `${file.publicId || index}-${index}`;
+                            fileName = file.publicId?.split('/').pop() || 'Existing file';
+                            fileSize = 'Uploaded';
+                            previewUrl = file.url?.thumbnail?.secureUrl || 
+                                        file.url?.medium?.secureUrl || 
+                                        file.url?.original?.secureUrl || 
+                                        file.url?.thumbnail?.url || 
+                                        file.url?.medium?.url || 
+                                        file.url?.original?.url || 
+                                        null;
+                          } else {
+                            return null;
+                          }
 
                           return (
                             <FileUploadItem
@@ -520,7 +550,15 @@ const FormField: React.FC<{
                               value={file}
                               className="flex items-center gap-3 p-3 border rounded-lg"
                             >
-                              <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
+                              {previewUrl ? (
+                                <img 
+                                  src={previewUrl} 
+                                  alt={fileName}
+                                  className="h-16 w-16 rounded object-cover bg-gray-100"
+                                />
+                              ) : (
+                                <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
+                              )}
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">
                                   {fileName}

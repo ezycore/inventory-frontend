@@ -138,6 +138,23 @@ export function createResourceHooks<T, CreateDto = any, UpdateDto = Partial<Crea
   })
  }
 
+ // Mutation hook for bulk delete
+ const useBulkDelete = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+   mutationFn: (ids: string[]) => (api as any).bulkDelete(ids),
+   onSuccess: (data: any) => {
+    handleMutationSuccess(data?.message || 'Items deleted successfully')
+    queryClient.invalidateQueries({ queryKey: queryKeys.all() })
+    relatedQueryKeys.forEach(key => {
+     queryClient.invalidateQueries({ queryKey: key })
+    })
+   },
+   onError: handleMutationError,
+  })
+ }
+
  return {
   useList,
   useDetail,
@@ -145,5 +162,6 @@ export function createResourceHooks<T, CreateDto = any, UpdateDto = Partial<Crea
   useCreate,
   useUpdate,
   useDelete,
+  useBulkDelete,
  }
 }

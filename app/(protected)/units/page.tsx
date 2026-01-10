@@ -19,7 +19,7 @@ import { FilterConfig } from "@/types/DataTable";
 
 const columns: ColumnDef<Unit>[] = [
   { accessorKey: "name", header: "Unit Name" },
-  { accessorKey: "short_name", header: "Short Name" },
+  { accessorKey: "shortName", header: "Short Name" },
   { accessorKey: "status", header: "Status" },
   {
     accessorKey: "createdAt",
@@ -44,7 +44,7 @@ const unitFormConfig: DynamicFormConfig = {
       columnSpan: 12,
     },
     {
-      name: "short_name",
+      name: "shortName",
       type: "input",
       label: "Short Name",
       placeholder: "e.g. pcs, kg",
@@ -86,7 +86,7 @@ const unitFilterConfig: FilterConfig = {
   viewMode: "popover",
 };
 
-const defaultValues = { name: "", short_name: "", status: "active" as const };
+const defaultValues = { name: "", shortName: "", status: "active" as const };
 
 export default function UnitsPage() {
   return (

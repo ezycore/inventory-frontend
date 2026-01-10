@@ -119,12 +119,12 @@ export default function ProductsPage() {
     }
 
     // Handle variants for variable products
-    if (data.product_type === "variable" && data.variants && data.variants.length > 0) {
+    if (data.productType === "variable" && data.variants && data.variants.length > 0) {
       const variantsData = data.variants.map((v: any) => ({
         attributes: {
           [v.attributeName]: v.value
         },
-        cost_price: v.costPrice,
+        costPrice: v.costPrice,
         price: v.price,
         status: v.enabled ? 'active' : 'inactive',
       }))
@@ -180,7 +180,7 @@ export default function ProductsPage() {
                 attributeName: attributeKey || '',
                 value: attributeValue || '',
                 sku: variant.sku || '',
-                costPrice: variant.cost_price || 0,
+                costPrice: variant.costPrice || 0,
                 price: variant.price || 0,
                 enabled: variant.status === 'active',
               }

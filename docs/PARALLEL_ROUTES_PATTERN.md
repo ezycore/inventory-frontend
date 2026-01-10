@@ -47,7 +47,7 @@ router.push('/products/new?selectedCategory=123')
 useEffect(() => {
   const selectedCategory = searchParams.get('selectedCategory')
   if (selectedCategory) {
-    form.setValue('category_id', selectedCategory)
+    form.setValue('categoryId', selectedCategory)
   }
 }, [searchParams])
 ```
@@ -86,7 +86,7 @@ queryClient.invalidateQueries({
 ### In Form Config
 ```tsx
 {
-  name: "category_id",
+  name: "categoryId",
   type: "select",
   label: "Category",
   optionsApi: "/categories",

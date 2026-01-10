@@ -276,10 +276,10 @@ export default function ProductVariantsPage() {
                       <p className="text-sm text-muted-foreground">Price</p>
                       <p className="font-medium">${variant.price.toFixed(2)}</p>
                     </div>
-                    {variant.cost_price && variant.cost_price > 0 && (
+                    {variant.costPrice && variant.costPrice > 0 && (
                       <div>
                         <p className="text-sm text-muted-foreground">Cost</p>
-                        <p className="font-medium">${variant.cost_price.toFixed(2)}</p>
+                        <p className="font-medium">${variant.costPrice.toFixed(2)}</p>
                       </div>
                     )}
                   </div>
