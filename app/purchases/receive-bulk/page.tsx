@@ -23,9 +23,9 @@ import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 
 const receiveSchema = z.object({
-  location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  locationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
-  variant_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
+  variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
   received_quantity: z.number().min(1, 'Quantity must be at least 1'),
 })
 
@@ -39,9 +39,9 @@ export default function BulkReceiveStockPage() {
   const form = useForm<ReceiveFormData>({
     resolver: zodResolver(receiveSchema),
     defaultValues: {
-      location_id: '',
+      locationId: '',
       productId: '',
-      variant_id: '',
+      variantId: '',
       received_quantity: 1,
     },
   })
@@ -65,7 +65,7 @@ export default function BulkReceiveStockPage() {
         icon: <Package className="h-5 w-5 text-primary" />,
         fields: [
           {
-            name: 'location_id',
+            name: 'locationId',
             label: 'Location',
             type: 'select',
             required: true,
@@ -85,7 +85,7 @@ export default function BulkReceiveStockPage() {
             columnSpan: 3,
           },
           {
-            name: 'variant_id',
+            name: 'variantId',
             label: 'Variant',
             type: 'select',
             required: false,
@@ -114,37 +114,37 @@ export default function BulkReceiveStockPage() {
       // Update existing item
       updateItem(editingId, {
         productId: extractValue(data.productId),
-        variant_id: extractValue(data.variant_id) || null,
-        location_id: extractValue(data.location_id),
+        variantId: extractValue(data.variantId) || null,
+        locationId: extractValue(data.locationId),
         received_quantity: data.received_quantity,
         product_name: extractLabel(data.productId),
-        location_name: extractLabel(data.location_id),
-        variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
+        location_name: extractLabel(data.locationId),
+        variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
       })
       setEditingId(null)
       toast.success('Item updated in list')
     } else {
       const productId = extractValue(data.productId)
-      const locationId = extractValue(data.location_id)
-      const variantId = extractValue(data.variant_id) || null
+      const locationId = extractValue(data.locationId)
+      const variantId = extractValue(data.variantId) || null
 
       // Check if item already exists
       const existingItem = items.find(
         (item) =>
           item.productId === productId &&
-          item.location_id === locationId &&
-          (item.variant_id || null) === variantId
+          item.locationId === locationId &&
+          (item.variantId || null) === variantId
       )
 
       // Add new item (replaces existing if duplicate)
       addItem({
         productId: productId,
-        variant_id: variantId,
-        location_id: locationId,
+        variantId: variantId,
+        locationId: locationId,
         received_quantity: data.received_quantity,
         product_name: extractLabel(data.productId),
-        location_name: extractLabel(data.location_id),
-        variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
+        location_name: extractLabel(data.locationId),
+        variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
       })
       
       if (existingItem) {
@@ -155,20 +155,20 @@ export default function BulkReceiveStockPage() {
     }
   
     form.reset({
-      location_id: data.location_id,
+      locationId: data.locationId,
       productId: '',
-      variant_id: '',
+      variantId: '',
       received_quantity: 1,
     })
   }
 
   const handleEdit = (item: ReceiveItem) => {
     setEditingId(item.id)
-    form.setValue('location_id', { label: item.location_name, value: item.location_id })
+    form.setValue('locationId', { label: item.location_name, value: item.locationId })
     form.setValue('productId', { label: item.product_name, value: item.productId })
-    form.setValue('variant_id', item.variant_id ? { 
-      label: item.variant_attributes?.name || item.variant_id, 
-      value: item.variant_id 
+    form.setValue('variantId', item.variantId ? { 
+      label: item.variant_attributes?.name || item.variantId, 
+      value: item.variantId 
     } : '')
     form.setValue('received_quantity', item.received_quantity)
   }
@@ -186,8 +186,8 @@ export default function BulkReceiveStockPage() {
 
     const receipts = items.map((item) => ({
       productId: item.productId,
-      variant_id: item.variant_id,
-      location_id: item.location_id,
+      variantId: item.variantId,
+      locationId: item.locationId,
       received_quantity: item.received_quantity,
     }))
 
@@ -222,7 +222,7 @@ export default function BulkReceiveStockPage() {
     {
       accessorKey: 'location_name',
       header: 'Location',
-      cell: ({ row }) => row.original.location_name || row.original.location_id,
+      cell: ({ row }) => row.original.location_name || row.original.locationId,
     },
     {
       accessorKey: 'received_quantity',

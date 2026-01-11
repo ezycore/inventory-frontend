@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 export interface AdjustmentItem {
   id: string; // local ID
   productId: string;
-  variant_id?: string | null;
-  location_id: string;
+  variantId?: string | null;
+  locationId: string;
   old_quantity: number;
   new_quantity: number;
   notes?: string;
@@ -34,8 +34,8 @@ export const useStockAdjustmentStore = create<StockAdjustmentStore>()(persist(
         const existingIndex = state.items.findIndex(
           (existing) =>
             existing.productId === item.productId &&
-            existing.location_id === item.location_id &&
-            (existing.variant_id || null) === (item.variant_id || null)
+            existing.locationId === item.locationId &&
+            (existing.variantId || null) === (item.variantId || null)
         );
 
         if (existingIndex !== -1) {

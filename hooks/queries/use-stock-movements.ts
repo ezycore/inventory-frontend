@@ -13,8 +13,8 @@ import type { StockAdjustmentDto } from '@/types/products'
 
 export const useStockMovements = (filters: {
  productId?: string;
- variant_id?: string;
- location_id?: string;
+ variantId?: string;
+ locationId?: string;
  reason?: string;
  movement_type?: string;
  start_date?: string;

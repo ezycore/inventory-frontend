@@ -62,7 +62,7 @@ const columns: ColumnDef<Inventory>[] = [
     header: "Quantity",
     cell: ({ row }) => {
       const quantity = row.getValue("quantity") as number;
-      const isLowStock = row.original.is_low_stock;
+      const isLowStock = row.original.isLowStock;
       return (
         <span className={isLowStock ? "text-red-600 font-semibold" : ""}>
           {quantity}
@@ -71,18 +71,18 @@ const columns: ColumnDef<Inventory>[] = [
     },
   },
   {
-    accessorKey: "quantity_alert",
+    accessorKey: "quantityAlert",
     header: "Alert Level",
   },
   {
-    accessorKey: "ideal_quantity",
+    accessorKey: "idealQuantity",
     header: "Ideal Quantity",
   },
   {
-    accessorKey: "is_low_stock",
+    accessorKey: "isLowStock",
     header: "Stock Status",
     cell: ({ row }) => {
-      const isLowStock = row.getValue("is_low_stock");
+      const isLowStock = row.getValue("isLowStock");
       return isLowStock ? (
         <Badge variant="destructive">Low Stock</Badge>
       ) : (
@@ -103,14 +103,14 @@ const columns: ColumnDef<Inventory>[] = [
     },
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: "Created Date",
-    cell: ({ row }) => <DateCell value={row.getValue("created_at")} />,
+    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
   },
   {
-    accessorKey: "updated_at",
+    accessorKey: "updatedAt",
     header: "Updated Date",
-    cell: ({ row }) => <DateCell value={row.getValue("updated_at")} />,
+    cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
   },
 ];
 
@@ -128,7 +128,7 @@ const inventoryFormConfig: DynamicFormConfig = {
       validation: { minLength: 1 },
     },
     {
-      name: "variant_id",
+      name: "variantId",
       type: "select",
       label: "Variant",
       placeholder: "Select variant (if applicable)",
@@ -138,7 +138,7 @@ const inventoryFormConfig: DynamicFormConfig = {
       helperText: "Select a product first to see variants",
     },
     {
-      name: "location_id",
+      name: "locationId",
       type: "select",
       label: "Location",
       placeholder: "Select location",
@@ -157,7 +157,7 @@ const inventoryFormConfig: DynamicFormConfig = {
       validation: { min: 0 },
     },
     {
-      name: "quantity_alert",
+      name: "quantityAlert",
       type: "number",
       label: "Alert Level",
       placeholder: "Enter alert level",
@@ -166,7 +166,7 @@ const inventoryFormConfig: DynamicFormConfig = {
       validation: { min: 0 },
     },
     {
-      name: "ideal_quantity",
+      name: "idealQuantity",
       type: "number",
       label: "Ideal Quantity",
       placeholder: "Enter ideal quantity",
@@ -200,7 +200,7 @@ const inventoryFilterConfig: FilterConfig = {
       options: [], // Will be populated dynamically via API
     },
     {
-      name: "location_id",
+      name: "locationId",
       label: "Location",
       type: "select",
       placeholder: "All locations",
@@ -233,11 +233,11 @@ const searchConfig = {
 
 const defaultValues = {
   productId: "",
-  variant_id: "",
-  location_id: "",
+  variantId: "",
+  locationId: "",
   quantity: 0,
-  quantity_alert: 0,
-  ideal_quantity: 0,
+  quantityAlert: 0,
+  idealQuantity: 0,
   status: "active" as const,
 };
 
@@ -248,16 +248,16 @@ const prepareSubmitData = (
 ) => {
   const submitData: any = {
     productId: data.productId,
-    location_id: data.location_id,
+    locationId: data.locationId,
     quantity: Number(data.quantity),
-    quantity_alert: Number(data.quantity_alert),
-    ideal_quantity: Number(data.ideal_quantity),
+    quantityAlert: Number(data.quantityAlert),
+    idealQuantity: Number(data.idealQuantity),
     status: data.status,
   };
 
-  // Only include variant_id if it has a value
-  if (data.variant_id && data.variant_id !== "") {
-    submitData.variant_id = data.variant_id;
+  // Only include variantId if it has a value
+  if (data.variantId && data.variantId !== "") {
+    submitData.variantId = data.variantId;
   }
 
   if (isEdit && item) {
@@ -288,7 +288,7 @@ export default function InventoryPage() {
         defaultColumnVisibility={{ status: false }}
         enableRowHover={true}
         rowClassName={(row: Inventory) =>
-          row.is_low_stock ? "bg-red-50 opacity-90" : ""
+          row.isLowStock ? "bg-red-50 opacity-90" : ""
         }
         operations={{
           formConfig: inventoryFormConfig,
@@ -307,8 +307,8 @@ export default function InventoryPage() {
             return {
               ...item,
               productId: item.productId || "",
-              variant_id: item.variant_id || "",
-              location_id: item.location_id || "",
+              variantId: item.variantId || "",
+              locationId: item.locationId || "",
             };
           },
           prepareSubmitData: (data: Inventory, isEdit: boolean, item: Inventory) =>

@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 export interface SaleItem {
   id: string; // local ID
   productId: string;
-  variant_id?: string | null;
-  location_id: string;
+  variantId?: string | null;
+  locationId: string;
   sold_quantity: number;
   // Display fields
   product_name: string;
@@ -33,8 +33,8 @@ export const useSalesStore = create<SalesStore>()(
           const existingIndex = state.items.findIndex(
             (existing) =>
               existing.productId === item.productId &&
-              existing.location_id === item.location_id &&
-              (existing.variant_id || null) === (item.variant_id || null)
+              existing.locationId === item.locationId &&
+              (existing.variantId || null) === (item.variantId || null)
           );
 
           if (existingIndex !== -1) {

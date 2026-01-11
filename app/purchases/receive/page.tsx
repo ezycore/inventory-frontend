@@ -18,9 +18,9 @@ import { Package } from "lucide-react";
 
 // Form Schema
 const receiveStockSchema = z.object({
-  location_id: z.string().min(1, "Location is required"),
+  locationId: z.string().min(1, "Location is required"),
   productId: z.string().min(1, "Product is required"),
-  variant_id: z.string().optional(),
+  variantId: z.string().optional(),
   received_quantity: z.number().min(1, "Quantity must be at least 1"),
 });
 
@@ -35,7 +35,7 @@ const receiveStockFormConfig: DynamicFormConfig = {
       icon: <Package className="h-5 w-5 text-primary" />,
       fields: [
         {
-          name: "location_id",
+          name: "locationId",
           type: "select",
           label: "Location",
           placeholder: "Select location where stock is received",
@@ -55,7 +55,7 @@ const receiveStockFormConfig: DynamicFormConfig = {
           helperText: "Which product are you receiving?",
         },
         {
-          name: "variant_id",
+          name: "variantId",
           type: "select",
           label: "Variant",
           placeholder: "Select variant (if applicable)",
@@ -80,9 +80,9 @@ const receiveStockFormConfig: DynamicFormConfig = {
 };
 
 const defaultValues: ReceiveStockFormData = {
-  location_id: "",
+  locationId: "",
   productId: "",
-  variant_id: "",
+  variantId: "",
   received_quantity: 1,
 };
 
@@ -96,10 +96,10 @@ export default function ReceiveStockPage() {
   });
 
   const prepareSubmitData = (data: ReceiveStockFormData) => {
-    // Transform data before submission - convert empty variant_id to null
+    // Transform data before submission - convert empty variantId to null
     return {
       ...data,
-      variant_id: data.variant_id || null,
+      variantId: data.variantId || null,
     };
   };
 

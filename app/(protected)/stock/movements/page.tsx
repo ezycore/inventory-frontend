@@ -42,9 +42,9 @@ const ReasonBadge = ({ reason }: { reason: string }) => {
 // Column definitions
 const columns: ColumnDef<any>[] = [
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: "Date",
-    cell: ({ row }) => <DateCell value={row.getValue("created_at")} />,
+    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
   },
   {
     accessorKey: "productId",
@@ -55,10 +55,10 @@ const columns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "variant_id",
+    accessorKey: "variantId",
     header: "Variant",
     cell: ({ row }) => {
-      const variant = row.original.variant_id;
+      const variant = row.original.variantId;
       if (!variant) return "-";
       
       // Display variant attributes if available
@@ -72,10 +72,10 @@ const columns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "location_id",
+    accessorKey: "locationId",
     header: "Location",
     cell: ({ row }) => {
-      const location = row.original.location_id;
+      const location = row.original.locationId;
       return location?.name || location || "-";
     },
   },
@@ -181,7 +181,7 @@ const filterConfig: FilterConfig = {
       options: [],
     },
     {
-      name: "location_id",
+      name: "locationId",
       label: "Location",
       type: "select",
       placeholder: "Select location",

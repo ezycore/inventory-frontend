@@ -5,9 +5,9 @@ import { v4 as uuid } from 'uuid'
 export interface TransferItem {
   id: string
   productId: string
-  variant_id: string | null
-  from_location_id: string
-  to_location_id: string
+  variantId: string | null
+  from_locationId: string
+  to_locationId: string
   transfer_quantity: number
   // Display names
   product_name: string
@@ -36,9 +36,9 @@ export const useTransferStore = create<TransferStore>()(
           const existingIndex = state.items.findIndex(
             (existing) =>
               existing.productId === item.productId &&
-              existing.from_location_id === item.from_location_id &&
-              existing.to_location_id === item.to_location_id &&
-              (existing.variant_id || null) === (item.variant_id || null)
+              existing.from_locationId === item.from_locationId &&
+              existing.to_locationId === item.to_locationId &&
+              (existing.variantId || null) === (item.variantId || null)
           )
 
           if (existingIndex !== -1) {

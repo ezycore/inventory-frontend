@@ -27,8 +27,8 @@ export enum StockMovementReason {
 export interface BaseEntity {
   _id: string;
   // API returns snake_case timestamp fields. Keep union with Date for flexibility.
-  created_at: string | Date;
-  updated_at: string | Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 // Category interfaces
@@ -177,12 +177,12 @@ export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
 // Inventory interfaces
 export interface Inventory extends BaseEntity {
   productId: string;
-  variant_id?: string | null;
-  location_id: string;
+  variantId?: string | null;
+  locationId: string;
   quantity: number;
-  quantity_alert: number;
-  ideal_quantity: number;
-  is_low_stock: boolean;
+  quantityAlert: number;
+  idealQuantity: number;
+  isLowStock: boolean;
   status: "active" | "inactive";
   product?: Product;
   variant?: Variant;
@@ -191,11 +191,11 @@ export interface Inventory extends BaseEntity {
 
 export interface CreateInventoryDto {
   productId: string;
-  variant_id?: string | null;
-  location_id: string;
+  variantId?: string | null;
+  locationId: string;
   quantity: number;
-  quantity_alert: number;
-  ideal_quantity: number;
+  quantityAlert: number;
+  idealQuantity: number;
   status?: "active" | "inactive";
 }
 
@@ -204,8 +204,8 @@ export interface UpdateInventoryDto extends Partial<CreateInventoryDto> { }
 // Receive Stock / Purchase DTO
 export interface ReceiveStockDto {
   productId: string;
-  variant_id?: string | null;
-  location_id: string;
+  variantId?: string | null;
+  locationId: string;
   received_quantity: number;
 }
 
@@ -374,7 +374,7 @@ export interface VariantStats {
 
 // Stock Movement interfaces
 export interface StockMovement extends BaseEntity {
-  variant_id: string;
+  variantId: string;
   type: StockMovementType;
   quantity: number;
   reason: StockMovementReason;
@@ -385,7 +385,7 @@ export interface StockMovement extends BaseEntity {
 }
 
 export interface CreateStockMovementDto {
-  variant_id: string;
+  variantId: string;
   type: StockMovementType;
   quantity: number;
   reason: StockMovementReason;
@@ -395,10 +395,10 @@ export interface CreateStockMovementDto {
 }
 
 export interface UpdateStockMovementDto
-  extends Partial<Omit<CreateStockMovementDto, "variant_id">> { }
+  extends Partial<Omit<CreateStockMovementDto, "variantId">> { }
 
 export interface StockMovementFilters {
-  variant_id?: string;
+  variantId?: string;
   productId?: string;
   type?: StockMovementType;
   reason?: StockMovementReason;

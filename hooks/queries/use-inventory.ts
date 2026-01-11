@@ -7,8 +7,8 @@ import { toast } from 'sonner'
 
 export interface BulkAdjustmentItem {
   productId: string
-  variant_id?: string | null
-  location_id: string
+  variantId?: string | null
+  locationId: string
   new_quantity: number
   notes?: string
 }
@@ -26,7 +26,7 @@ export const useDeleteInventory = inventoryHooks.useDelete
 
 // Shortlist query hook
 export const useInventoryShortlist = (filters: {
-  location_id: string;
+  locationId: string;
   productId?: string;
   low_stock_only?: string;
   page?: number;
@@ -35,7 +35,7 @@ export const useInventoryShortlist = (filters: {
   return useQuery({
     queryKey: [...queryKeys.inventory.list(filters), 'shortlist'],
     queryFn: () => inventoryApi.getShortlist(filters),
-    enabled: !!filters.location_id, // Only fetch if location_id is provided
+    enabled: !!filters.locationId, // Only fetch if locationId is provided
   })
 }
 

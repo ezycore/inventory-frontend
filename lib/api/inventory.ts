@@ -3,12 +3,12 @@ import { buildQueryParams, type BaseFilters } from "./utils";
 
 interface InventoryFilters extends BaseFilters {
   productId?: string;
-  location_id?: string;
-  variant_id?: string;
+  locationId?: string;
+  variantId?: string;
 }
 
 interface ShortlistFilters extends BaseFilters {
-  location_id: string;
+  locationId: string;
   productId?: string;
   low_stock_only?: string;
 }

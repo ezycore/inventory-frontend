@@ -63,14 +63,14 @@ const columns: ColumnDef<VariantAttribute>[] = [
     ),
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: "Created Date",
-    cell: ({ row }) => <DateCell value={row.getValue("created_at")} />,
+    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
   },
   {
-    accessorKey: "updated_at",
+    accessorKey: "updatedAt",
     header: "Updated Date",
-    cell: ({ row }) => <DateCell value={row.getValue("updated_at")} />,
+    cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
   },
 ];
 
