@@ -6,10 +6,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 export interface BulkAdjustmentItem {
-  product_id: string
-  variant_id?: string | null
-  location_id: string
-  new_quantity: number
+  productId: string
+  variantId?: string | null
+  locationId: string
+  newQuantity: number
   notes?: string
 }
 
@@ -26,8 +26,8 @@ export const useDeleteInventory = inventoryHooks.useDelete
 
 // Shortlist query hook
 export const useInventoryShortlist = (filters: {
-  location_id: string;
-  product_id?: string;
+  locationId: string;
+  productId?: string;
   low_stock_only?: string;
   page?: number;
   limit?: number;
@@ -35,7 +35,7 @@ export const useInventoryShortlist = (filters: {
   return useQuery({
     queryKey: [...queryKeys.inventory.list(filters), 'shortlist'],
     queryFn: () => inventoryApi.getShortlist(filters),
-    enabled: !!filters.location_id, // Only fetch if location_id is provided
+    enabled: !!filters.locationId, // Only fetch if locationId is provided
   })
 }
 

@@ -65,13 +65,13 @@ export function createVariantsApi(apiClient: any) {
       apiClient.get(`/variants/${id}`),
 
     getByProduct: (productId: string): Promise<ApiResponse<PaginatedResponse<any>>> =>
-      apiClient.get(`/variants?product_id=${productId}`),
+      apiClient.get(`/variants?productId=${productId}`),
 
     getLowStock: (): Promise<ApiResponse<PaginatedResponse<any>>> =>
       apiClient.get("/variants/low-stock"),
 
     getStats: (productId?: string): Promise<ApiResponse<any>> =>
-      apiClient.get(`/variants/stats${productId ? `?product_id=${productId}` : ""}`),
+      apiClient.get(`/variants/stats${productId ? `?productId=${productId}` : ""}`),
 
     // Mutation methods with data processing
     create: (data: CreateVariantDto | any): Promise<ApiResponse<any>> => {

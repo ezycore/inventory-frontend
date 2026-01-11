@@ -12,11 +12,11 @@ import type { StockAdjustmentDto } from '@/types/products'
 // ========== QUERIES (Audit Trail) ==========
 
 export const useStockMovements = (filters: {
- product_id?: string;
- variant_id?: string;
- location_id?: string;
+ productId?: string;
+ variantId?: string;
+ locationId?: string;
  reason?: string;
- movement_type?: string;
+ movementType?: string;
  start_date?: string;
  end_date?: string;
  page?: number;
@@ -62,7 +62,7 @@ export const useAdjustStock = () => {
    // Invalidate stock-related queries
    queryClient.invalidateQueries({ queryKey: ['stock'] })
    queryClient.invalidateQueries({ queryKey: ['stockMovements'] })
-   
+
    // Invalidate variant queries to update stock quantity
    queryClient.invalidateQueries({ queryKey: ['variants'] })
   },
@@ -77,7 +77,7 @@ export const useTransferStock = () => {
  const queryClient = useQueryClient()
 
  return useMutation({
-  mutationFn: (data: StockAdjustmentDto & { from_location: string; to_location: string }) => 
+  mutationFn: (data: StockAdjustmentDto & { from_location: string; to_location: string }) =>
    stockApi.transferStock(data),
   onSuccess: () => {
    // Invalidate all stock-related queries

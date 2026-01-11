@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { variantsApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys-products'
-import type { 
-  Variant, 
+import type {
+  Variant,
   CreateVariantDto
 } from '@/types'
 
@@ -42,7 +42,7 @@ export const useVariantsByProduct = (productId: string) => {
 // Create variant mutation
 export const useCreateVariant = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (data: CreateVariantDto) => {
       const response = await variantsApi.create(data)
@@ -51,10 +51,10 @@ export const useCreateVariant = () => {
     onSuccess: (newVariant: Variant) => {
       // Invalidate variant lists
       queryClient.invalidateQueries({ queryKey: queryKeys.variants.all() })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.variants.byProduct(newVariant.product_id) 
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.variants.byProduct(newVariant.productId)
       })
-      
+
       // Add to cache
       queryClient.setQueryData(
         queryKeys.variants.detail(newVariant._id),
@@ -67,13 +67,13 @@ export const useCreateVariant = () => {
 // Delete variant mutation
 export const useDeleteVariant = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: (id: string) => variantsApi.delete(id),
     onSuccess: (_, deletedId) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: queryKeys.variants.detail(deletedId) })
-      
+
       // Invalidate lists
       queryClient.invalidateQueries({ queryKey: queryKeys.variants.all() })
       queryClient.invalidateQueries({ queryKey: queryKeys.variants.list({}) })

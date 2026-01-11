@@ -165,7 +165,7 @@ const locationFilterConfig: FilterConfig = {
       ],
     },
     {
-      name: "created_at",
+      name: "createdAt",
       label: "Created Date",
       type: "date-range",
       placeholder: "Select date range",

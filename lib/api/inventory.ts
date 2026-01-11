@@ -2,14 +2,14 @@ import type { ApiResponse, PaginatedResponse } from "@/types";
 import { buildQueryParams, type BaseFilters } from "./utils";
 
 interface InventoryFilters extends BaseFilters {
-  product_id?: string;
-  location_id?: string;
-  variant_id?: string;
+  productId?: string;
+  locationId?: string;
+  variantId?: string;
 }
 
 interface ShortlistFilters extends BaseFilters {
-  location_id: string;
-  product_id?: string;
+  locationId: string;
+  productId?: string;
   low_stock_only?: string;
 }
 

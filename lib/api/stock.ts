@@ -2,12 +2,12 @@ import type { ApiResponse, PaginatedResponse, CreateStockMovementDto, StockMovem
 import { buildQueryParams } from "./utils";
 
 interface StockMovementFilters {
-  variant_id?: string;
-  product_id?: string;
-  location_id?: string;
+  variantId?: string;
+  productId?: string;
+  locationId?: string;
   type?: string;
   reason?: string;
-  movement_type?: string;
+  movementType?: string;
   start_date?: string;
   end_date?: string;
   page?: number;
@@ -22,7 +22,7 @@ export function createStockApi(apiClient: any) {
       apiClient.get(`/stock/movements${buildQueryParams(filters)}`),
 
     getMovementsByVariant: (variantId: string): Promise<ApiResponse<PaginatedResponse<any>>> =>
-      apiClient.get(`/stock/movements?variant_id=${variantId}`),
+      apiClient.get(`/stock/movements?variantId=${variantId}`),
 
     getStockLevels: (): Promise<ApiResponse<PaginatedResponse<any>>> =>
       apiClient.get("/stock/levels"),
@@ -37,7 +37,7 @@ export function createStockApi(apiClient: any) {
       apiClient.post("/stock/transfer", data),
 
     getOverview: (productId?: string): Promise<ApiResponse<any>> =>
-      apiClient.get(`/stock/overview${productId ? `?product_id=${productId}` : ""}`),
+      apiClient.get(`/stock/overview${productId ? `?productId=${productId}` : ""}`),
 
     getLowStock: (limit?: number): Promise<ApiResponse<any[]>> =>
       apiClient.get(`/stock/low-stock${limit ? `?limit=${limit}` : ""}`),
@@ -74,7 +74,7 @@ export function createLegacyInventoryApi(apiClient: any, productsApi: any, stock
     deleteItem: (id: string) => productsApi.delete(id),
     updateQuantity: (id: string, quantity: number, reason?: string) =>
       stockApi.createMovement({
-        variant_id: id,
+        variantId: id,
         type: quantity > 0 ? ("in" as StockMovementType) : ("out" as StockMovementType),
         quantity: Math.abs(quantity),
         reason: (reason as any) || "adjustment",

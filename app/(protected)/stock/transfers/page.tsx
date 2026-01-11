@@ -23,11 +23,11 @@ import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 
 const transferSchema = z.object({
-  from_location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
-  to_location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
-  product_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
-  variant_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  transfer_quantity: z.number().min(1, 'Quantity must be at least 1'),
+  fromLocationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  toLocationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
+  transferQuantity: z.number().min(1, 'Quantity must be at least 1'),
   notes: z.string().optional(),
 })
 
@@ -41,11 +41,11 @@ export default function BulkStockTransferPage() {
   const form = useForm<TransferFormData>({
     resolver: zodResolver(transferSchema),
     defaultValues: {
-      from_location_id: '',
-      to_location_id: '',
-      product_id: '',
-      variant_id: '',
-      transfer_quantity: 1,
+      fromLocationId: '',
+      toLocationId: '',
+      productId: '',
+      variantId: '',
+      transferQuantity: 1,
       notes: '',
     },
   })
@@ -69,7 +69,7 @@ export default function BulkStockTransferPage() {
         icon: <ArrowRightLeft className="h-5 w-5 text-primary" />,
         fields: [
           {
-            name: 'from_location_id',
+            name: 'fromLocationId',
             label: 'From Location',
             type: 'select',
             required: true,
@@ -79,7 +79,7 @@ export default function BulkStockTransferPage() {
             columnSpan: 2,
           },
           {
-            name: 'to_location_id',
+            name: 'toLocationId',
             label: 'To Location',
             type: 'select',
             required: true,
@@ -89,7 +89,7 @@ export default function BulkStockTransferPage() {
             columnSpan: 2,
           },
           {
-            name: 'product_id',
+            name: 'productId',
             label: 'Product',
             type: 'select',
             required: true,
@@ -99,18 +99,18 @@ export default function BulkStockTransferPage() {
             columnSpan: 3,
           },
           {
-            name: 'variant_id',
+            name: 'variantId',
             label: 'Variant',
             type: 'select',
             required: false,
-            dependsOn: 'product_id',
+            dependsOn: 'productId',
             dependsOnTemplate: '/products/:id/variants',
             placeholder: 'Select variant (optional)',
             labelInValue: true,
             columnSpan: 3,
           },
           {
-            name: 'transfer_quantity',
+            name: 'transferQuantity',
             label: 'Transfer Quantity',
             type: 'number',
             required: true,
@@ -132,8 +132,8 @@ export default function BulkStockTransferPage() {
   }
 
   const handleAddOrUpdate = (data: TransferFormData) => {
-    const fromLocationId = extractValue(data.from_location_id)
-    const toLocationId = extractValue(data.to_location_id)
+    const fromLocationId = extractValue(data.fromLocationId)
+    const toLocationId = extractValue(data.toLocationId)
 
     // Validate same location
     if (fromLocationId === toLocationId) {
@@ -144,43 +144,43 @@ export default function BulkStockTransferPage() {
     if (editingId) {
       // Update existing item
       updateItem(editingId, {
-        product_id: extractValue(data.product_id),
-        variant_id: extractValue(data.variant_id) || null,
-        from_location_id: fromLocationId,
-        to_location_id: toLocationId,
-        transfer_quantity: data.transfer_quantity,
-        product_name: extractLabel(data.product_id),
-        from_location_name: extractLabel(data.from_location_id),
-        to_location_name: extractLabel(data.to_location_id),
-        variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
+        productId: extractValue(data.productId),
+        variantId: extractValue(data.variantId) || null,
+        fromLocationId: fromLocationId,
+        toLocationId: toLocationId,
+        transferQuantity: data.transferQuantity,
+        product_name: extractLabel(data.productId),
+        from_location_name: extractLabel(data.fromLocationId),
+        to_location_name: extractLabel(data.toLocationId),
+        variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
         notes: data.notes,
       })
       setEditingId(null)
       toast.success('Item updated in list')
     } else {
-      const productId = extractValue(data.product_id)
-      const variantId = extractValue(data.variant_id) || null
+      const productId = extractValue(data.productId)
+      const variantId = extractValue(data.variantId) || null
 
       // Check if item already exists
       const existingItem = items.find(
         (item) =>
-          item.product_id === productId &&
-          item.from_location_id === fromLocationId &&
-          item.to_location_id === toLocationId &&
-          (item.variant_id || null) === variantId
+          item.productId === productId &&
+          item.fromLocationId === fromLocationId &&
+          item.toLocationId === toLocationId &&
+          (item.variantId || null) === variantId
       )
 
       // Add new item (replaces existing if duplicate)
       addItem({
-        product_id: productId,
-        variant_id: variantId,
-        from_location_id: fromLocationId,
-        to_location_id: toLocationId,
-        transfer_quantity: data.transfer_quantity,
-        product_name: extractLabel(data.product_id),
-        from_location_name: extractLabel(data.from_location_id),
-        to_location_name: extractLabel(data.to_location_id),
-        variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
+        productId: productId,
+        variantId: variantId,
+        fromLocationId: fromLocationId,
+        toLocationId: toLocationId,
+        transferQuantity: data.transferQuantity,
+        product_name: extractLabel(data.productId),
+        from_location_name: extractLabel(data.fromLocationId),
+        to_location_name: extractLabel(data.toLocationId),
+        variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
         notes: data.notes,
       })
       
@@ -192,25 +192,25 @@ export default function BulkStockTransferPage() {
     }
   
     form.reset({
-      from_location_id: data.from_location_id,
-      to_location_id: data.to_location_id,
-      product_id: '',
-      variant_id: '',
-      transfer_quantity: 1,
+      fromLocationId: data.fromLocationId,
+      toLocationId: data.toLocationId,
+      productId: '',
+      variantId: '',
+      transferQuantity: 1,
       notes: '',
     })
   }
 
   const handleEdit = (item: TransferItem) => {
     setEditingId(item.id)
-    form.setValue('from_location_id', { label: item.from_location_name, value: item.from_location_id })
-    form.setValue('to_location_id', { label: item.to_location_name, value: item.to_location_id })
-    form.setValue('product_id', { label: item.product_name, value: item.product_id })
-    form.setValue('variant_id', item.variant_id ? { 
-      label: item.variant_attributes?.name || item.variant_id, 
-      value: item.variant_id 
+    form.setValue('fromLocationId', { label: item.from_location_name, value: item.fromLocationId })
+    form.setValue('toLocationId', { label: item.to_location_name, value: item.toLocationId })
+    form.setValue('productId', { label: item.product_name, value: item.productId })
+    form.setValue('variantId', item.variantId ? { 
+      label: item.variant_attributes?.name || item.variantId, 
+      value: item.variantId 
     } : '')
-    form.setValue('transfer_quantity', item.transfer_quantity)
+    form.setValue('transferQuantity', item.transferQuantity)
     form.setValue('notes', item.notes || '')
   }
 
@@ -226,11 +226,11 @@ export default function BulkStockTransferPage() {
     }
 
     const transfers = items.map((item) => ({
-      product_id: item.product_id,
-      variant_id: item.variant_id,
-      from_location_id: item.from_location_id,
-      to_location_id: item.to_location_id,
-      transfer_quantity: item.transfer_quantity,
+      productId: item.productId,
+      variantId: item.variantId,
+      fromLocationId: item.fromLocationId,
+      toLocationId: item.toLocationId,
+      transferQuantity: item.transferQuantity,
       notes: item.notes,
     }))
 
@@ -250,7 +250,7 @@ export default function BulkStockTransferPage() {
     {
       accessorKey: 'product_name',
       header: 'Product',
-      cell: ({ row }) => row.original.product_name || row.original.product_id,
+      cell: ({ row }) => row.original.product_name || row.original.productId,
     },
     {
       accessorKey: 'variant_attributes',
@@ -265,15 +265,15 @@ export default function BulkStockTransferPage() {
     {
       accessorKey: 'from_location_name',
       header: 'From',
-      cell: ({ row }) => row.original.from_location_name || row.original.from_location_id,
+      cell: ({ row }) => row.original.from_location_name || row.original.fromLocationId,
     },
     {
       accessorKey: 'to_location_name',
       header: 'To',
-      cell: ({ row }) => row.original.to_location_name || row.original.to_location_id,
+      cell: ({ row }) => row.original.to_location_name || row.original.toLocationId,
     },
     {
-      accessorKey: 'transfer_quantity',
+      accessorKey: 'transferQuantity',
       header: 'Quantity',
     },
     {

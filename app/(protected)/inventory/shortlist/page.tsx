@@ -19,12 +19,12 @@ interface ShortlistItem {
   variant_attributes: Record<string, any> | null;
   location_name: string;
   current_quantity: number;
-  ideal_quantity: number;
+  idealQuantity: number;
   needed_quantity: number;
-  is_low_stock: boolean;
-  product_id: string;
-  variant_id?: string | null;
-  location_id: string;
+  isLowStock: boolean;
+  productId: string;
+  variantId?: string | null;
+  locationId: string;
   product?: any;
   variant?: any;
   location?: any;
@@ -64,7 +64,7 @@ const columns: ColumnDef<ShortlistItem>[] = [
     header: "Current Qty",
     cell: ({ row }) => {
       const quantity = row.getValue("current_quantity") as number;
-      const isLowStock = row.original.is_low_stock;
+      const isLowStock = row.original.isLowStock;
       return (
         <span className={isLowStock ? "text-red-600 font-semibold" : "font-medium"}>
           {quantity}
@@ -73,17 +73,17 @@ const columns: ColumnDef<ShortlistItem>[] = [
     },
   },
   {
-    accessorKey: "quantity_alert",
+    accessorKey: "quantityAlert",
     header: "Alert Qty",
     cell: ({ row }) => {
-      return <span className="font-medium">{row.getValue("quantity_alert")}</span>;
+      return <span className="font-medium">{row.getValue("quantityAlert")}</span>;
     },
   },
   {
-    accessorKey: "ideal_quantity",
+    accessorKey: "idealQuantity",
     header: "Ideal Qty",
     cell: ({ row }) => {
-      return <span className="font-medium">{row.getValue("ideal_quantity")}</span>;
+      return <span className="font-medium">{row.getValue("idealQuantity")}</span>;
     },
   },
   {
@@ -99,10 +99,10 @@ const columns: ColumnDef<ShortlistItem>[] = [
     },
   },
   {
-    accessorKey: "is_low_stock",
+    accessorKey: "isLowStock",
     header: "Stock Status",
     cell: ({ row }) => {
-      const isLowStock = row.getValue("is_low_stock");
+      const isLowStock = row.getValue("isLowStock");
       return isLowStock ? (
         <Badge variant="destructive">Low Stock</Badge>
       ) : (
@@ -116,7 +116,7 @@ const columns: ColumnDef<ShortlistItem>[] = [
 const shortlistFilterConfig: FilterConfig = {
   fields: [
     {
-      name: "location_id",
+      name: "locationId",
       label: "Location",
       type: "select",
       placeholder: "Select location",
@@ -124,7 +124,7 @@ const shortlistFilterConfig: FilterConfig = {
       optionsApi: "/locations",
     },
     {
-      name: "product_id",
+      name: "productId",
       label: "Product",
       type: "select",
       placeholder: "All products",

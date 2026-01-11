@@ -23,10 +23,10 @@ import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 
 const returnSchema = z.object({
-  location_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
-  product_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
-  variant_id: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  returned_quantity: z.number().min(1, 'Quantity must be at least 1'),
+  locationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+  variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
+  returnedQuantity: z.number().min(1, 'Quantity must be at least 1'),
   notes: z.string().optional(),
 })
 
@@ -40,10 +40,10 @@ export default function BulkPurchaseReturnPage() {
   const form = useForm<ReturnFormData>({
     resolver: zodResolver(returnSchema),
     defaultValues: {
-      location_id: '',
-      product_id: '',
-      variant_id: '',
-      returned_quantity: 1,
+      locationId: '',
+      productId: '',
+      variantId: '',
+      returnedQuantity: 1,
       notes: '',
     },
   })
@@ -67,7 +67,7 @@ export default function BulkPurchaseReturnPage() {
         icon: <PackageMinus className="h-5 w-5 text-primary" />,
         fields: [
           {
-            name: 'location_id',
+            name: 'locationId',
             label: 'Location',
             type: 'select',
             required: true,
@@ -77,7 +77,7 @@ export default function BulkPurchaseReturnPage() {
             columnSpan: 3,
           },
           {
-            name: 'product_id',
+            name: 'productId',
             label: 'Product',
             type: 'select',
             required: true,
@@ -87,18 +87,18 @@ export default function BulkPurchaseReturnPage() {
             columnSpan: 3,
           },
           {
-            name: 'variant_id',
+            name: 'variantId',
             label: 'Variant',
             type: 'select',
             required: false,
-            dependsOn: 'product_id',
+            dependsOn: 'productId',
             dependsOnTemplate: '/products/:id/variants',
             placeholder: 'Select variant (optional)',
             labelInValue: true,
             columnSpan: 3,
           },
           {
-            name: 'returned_quantity',
+            name: 'returnedQuantity',
             label: 'Returned Quantity',
             type: 'number',
             required: true,
@@ -123,39 +123,39 @@ export default function BulkPurchaseReturnPage() {
     if (editingId) {
       // Update existing item
       updateItem(editingId, {
-        product_id: extractValue(data.product_id),
-        variant_id: extractValue(data.variant_id) || null,
-        location_id: extractValue(data.location_id),
-        returned_quantity: data.returned_quantity,
-        product_name: extractLabel(data.product_id),
-        location_name: extractLabel(data.location_id),
-        variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
+        productId: extractValue(data.productId),
+        variantId: extractValue(data.variantId) || null,
+        locationId: extractValue(data.locationId),
+        returnedQuantity: data.returnedQuantity,
+        product_name: extractLabel(data.productId),
+        location_name: extractLabel(data.locationId),
+        variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
         notes: data.notes,
       })
       setEditingId(null)
       toast.success('Item updated in list')
     } else {
-      const productId = extractValue(data.product_id)
-      const locationId = extractValue(data.location_id)
-      const variantId = extractValue(data.variant_id) || null
+      const productId = extractValue(data.productId)
+      const locationId = extractValue(data.locationId)
+      const variantId = extractValue(data.variantId) || null
 
       // Check if item already exists
       const existingItem = items.find(
         (item) =>
-          item.product_id === productId &&
-          item.location_id === locationId &&
-          (item.variant_id || null) === variantId
+          item.productId === productId &&
+          item.locationId === locationId &&
+          (item.variantId || null) === variantId
       )
 
       // Add new item (replaces existing if duplicate)
       addItem({
-        product_id: productId,
-        variant_id: variantId,
-        location_id: locationId,
-        returned_quantity: data.returned_quantity,
-        product_name: extractLabel(data.product_id),
-        location_name: extractLabel(data.location_id),
-        variant_attributes: data.variant_id ? { name: extractLabel(data.variant_id) } : null,
+        productId: productId,
+        variantId: variantId,
+        locationId: locationId,
+        returnedQuantity: data.returnedQuantity,
+        product_name: extractLabel(data.productId),
+        location_name: extractLabel(data.locationId),
+        variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
         notes: data.notes,
       })
       
@@ -167,23 +167,23 @@ export default function BulkPurchaseReturnPage() {
     }
   
     form.reset({
-      location_id: data.location_id,
-      product_id: '',
-      variant_id: '',
-      returned_quantity: 1,
+      locationId: data.locationId,
+      productId: '',
+      variantId: '',
+      returnedQuantity: 1,
       notes: '',
     })
   }
 
   const handleEdit = (item: PurchaseReturnItem) => {
     setEditingId(item.id)
-    form.setValue('location_id', { label: item.location_name, value: item.location_id })
-    form.setValue('product_id', { label: item.product_name, value: item.product_id })
-    form.setValue('variant_id', item.variant_id ? { 
-      label: item.variant_attributes?.name || item.variant_id, 
-      value: item.variant_id 
+    form.setValue('locationId', { label: item.location_name, value: item.locationId })
+    form.setValue('productId', { label: item.product_name, value: item.productId })
+    form.setValue('variantId', item.variantId ? { 
+      label: item.variant_attributes?.name || item.variantId, 
+      value: item.variantId 
     } : '')
-    form.setValue('returned_quantity', item.returned_quantity)
+    form.setValue('returnedQuantity', item.returnedQuantity)
     form.setValue('notes', item.notes || '')
   }
 
@@ -199,10 +199,10 @@ export default function BulkPurchaseReturnPage() {
     }
 
     const returns = items.map((item) => ({
-      product_id: item.product_id,
-      variant_id: item.variant_id,
-      location_id: item.location_id,
-      returned_quantity: item.returned_quantity,
+      productId: item.productId,
+      variantId: item.variantId,
+      locationId: item.locationId,
+      returnedQuantity: item.returnedQuantity,
       notes: item.notes,
     }))
 
@@ -222,7 +222,7 @@ export default function BulkPurchaseReturnPage() {
     {
       accessorKey: 'product_name',
       header: 'Product',
-      cell: ({ row }) => row.original.product_name || row.original.product_id,
+      cell: ({ row }) => row.original.product_name || row.original.productId,
     },
     {
       accessorKey: 'variant_attributes',
@@ -237,10 +237,10 @@ export default function BulkPurchaseReturnPage() {
     {
       accessorKey: 'location_name',
       header: 'Location',
-      cell: ({ row }) => row.original.location_name || row.original.location_id,
+      cell: ({ row }) => row.original.location_name || row.original.locationId,
     },
     {
-      accessorKey: 'returned_quantity',
+      accessorKey: 'returnedQuantity',
       header: 'Returned Quantity',
     },
     {
