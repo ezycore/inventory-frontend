@@ -118,7 +118,7 @@ const columns: ColumnDef<Inventory>[] = [
 const inventoryFormConfig: DynamicFormConfig = {
   fields: [
     {
-      name: "product_id",
+      name: "productId",
       type: "select",
       label: "Product",
       placeholder: "Select product",
@@ -133,7 +133,7 @@ const inventoryFormConfig: DynamicFormConfig = {
       label: "Variant",
       placeholder: "Select variant (if applicable)",
       columnSpan: 6,
-      dependsOn: "product_id",
+      dependsOn: "productId",
       dependsOnTemplate: "/products/:id/variants",
       helperText: "Select a product first to see variants",
     },
@@ -192,7 +192,7 @@ const inventoryFormConfig: DynamicFormConfig = {
 const inventoryFilterConfig: FilterConfig = {
   fields: [
     {
-      name: "product_id",
+      name: "productId",
       label: "Product",
       type: "select",
       placeholder: "All products",
@@ -232,7 +232,7 @@ const searchConfig = {
 };
 
 const defaultValues = {
-  product_id: "",
+  productId: "",
   variant_id: "",
   location_id: "",
   quantity: 0,
@@ -247,7 +247,7 @@ const prepareSubmitData = (
   item: Inventory
 ) => {
   const submitData: any = {
-    product_id: data.product_id,
+    productId: data.productId,
     location_id: data.location_id,
     quantity: Number(data.quantity),
     quantity_alert: Number(data.quantity_alert),
@@ -306,7 +306,7 @@ export default function InventoryPage() {
           transformEditData: (item: Inventory) => {
             return {
               ...item,
-              product_id: item.product_id || "",
+              productId: item.productId || "",
               variant_id: item.variant_id || "",
               location_id: item.location_id || "",
             };

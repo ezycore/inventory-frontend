@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 export interface BulkAdjustmentItem {
-  product_id: string
+  productId: string
   variant_id?: string | null
   location_id: string
   new_quantity: number
@@ -27,7 +27,7 @@ export const useDeleteInventory = inventoryHooks.useDelete
 // Shortlist query hook
 export const useInventoryShortlist = (filters: {
   location_id: string;
-  product_id?: string;
+  productId?: string;
   low_stock_only?: string;
   page?: number;
   limit?: number;

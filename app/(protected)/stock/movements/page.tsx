@@ -47,10 +47,10 @@ const columns: ColumnDef<any>[] = [
     cell: ({ row }) => <DateCell value={row.getValue("created_at")} />,
   },
   {
-    accessorKey: "product_id",
+    accessorKey: "productId",
     header: "Product",
     cell: ({ row }) => {
-      const product = row.original.product_id;
+      const product = row.original.productId;
       return product?.name || product || "-";
     },
   },
@@ -173,7 +173,7 @@ const filterConfig: FilterConfig = {
       ],
     },
     {
-      name: "product_id",
+      name: "productId",
       label: "Product",
       type: "select",
       placeholder: "Select product",

@@ -176,7 +176,7 @@ export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
 
 // Inventory interfaces
 export interface Inventory extends BaseEntity {
-  product_id: string;
+  productId: string;
   variant_id?: string | null;
   location_id: string;
   quantity: number;
@@ -190,7 +190,7 @@ export interface Inventory extends BaseEntity {
 }
 
 export interface CreateInventoryDto {
-  product_id: string;
+  productId: string;
   variant_id?: string | null;
   location_id: string;
   quantity: number;
@@ -203,7 +203,7 @@ export interface UpdateInventoryDto extends Partial<CreateInventoryDto> { }
 
 // Receive Stock / Purchase DTO
 export interface ReceiveStockDto {
-  product_id: string;
+  productId: string;
   variant_id?: string | null;
   location_id: string;
   received_quantity: number;
@@ -308,7 +308,7 @@ export interface ProductFilters {
 
 // Variant interfaces
 export interface Variant extends BaseEntity {
-  product_id: string;
+  productId: string;
   sku: string;
   name?: string;
   attributes: Record<string, any>;
@@ -329,7 +329,7 @@ export interface Variant extends BaseEntity {
 }
 
 export interface CreateVariantDto {
-  product_id: string;
+  productId: string;
   sku: string;
   name?: string;
   attributes: Record<string, any>;
@@ -349,10 +349,10 @@ export interface CreateVariantDto {
 }
 
 export interface UpdateVariantDto
-  extends Partial<Omit<CreateVariantDto, "product_id">> { }
+  extends Partial<Omit<CreateVariantDto, "productId">> { }
 
 export interface VariantFilters {
-  product_id?: string | undefined;
+  productId?: string | undefined;
   search?: string;
   sku?: string;
   low_stock?: boolean;
@@ -399,7 +399,7 @@ export interface UpdateStockMovementDto
 
 export interface StockMovementFilters {
   variant_id?: string;
-  product_id?: string;
+  productId?: string;
   type?: StockMovementType;
   reason?: StockMovementReason;
   start_date?: Date;

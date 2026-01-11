@@ -19,7 +19,7 @@ import { Package } from "lucide-react";
 // Form Schema
 const receiveStockSchema = z.object({
   location_id: z.string().min(1, "Location is required"),
-  product_id: z.string().min(1, "Product is required"),
+  productId: z.string().min(1, "Product is required"),
   variant_id: z.string().optional(),
   received_quantity: z.number().min(1, "Quantity must be at least 1"),
 });
@@ -45,7 +45,7 @@ const receiveStockFormConfig: DynamicFormConfig = {
           helperText: "Where is this stock being received?",
         },
         {
-          name: "product_id",
+          name: "productId",
           type: "select",
           label: "Product",
           placeholder: "Select product",
@@ -60,7 +60,7 @@ const receiveStockFormConfig: DynamicFormConfig = {
           label: "Variant",
           placeholder: "Select variant (if applicable)",
           columnSpan: 6,
-          dependsOn: "product_id",
+          dependsOn: "productId",
           dependsOnTemplate: "/products/:id/variants",
           helperText: "Select a product first to see variants",
         },
@@ -81,7 +81,7 @@ const receiveStockFormConfig: DynamicFormConfig = {
 
 const defaultValues: ReceiveStockFormData = {
   location_id: "",
-  product_id: "",
+  productId: "",
   variant_id: "",
   received_quantity: 1,
 };

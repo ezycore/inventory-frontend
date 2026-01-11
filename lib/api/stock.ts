@@ -3,7 +3,7 @@ import { buildQueryParams } from "./utils";
 
 interface StockMovementFilters {
   variant_id?: string;
-  product_id?: string;
+  productId?: string;
   location_id?: string;
   type?: string;
   reason?: string;
@@ -37,7 +37,7 @@ export function createStockApi(apiClient: any) {
       apiClient.post("/stock/transfer", data),
 
     getOverview: (productId?: string): Promise<ApiResponse<any>> =>
-      apiClient.get(`/stock/overview${productId ? `?product_id=${productId}` : ""}`),
+      apiClient.get(`/stock/overview${productId ? `?productId=${productId}` : ""}`),
 
     getLowStock: (limit?: number): Promise<ApiResponse<any[]>> =>
       apiClient.get(`/stock/low-stock${limit ? `?limit=${limit}` : ""}`),

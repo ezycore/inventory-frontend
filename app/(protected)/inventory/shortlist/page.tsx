@@ -22,7 +22,7 @@ interface ShortlistItem {
   ideal_quantity: number;
   needed_quantity: number;
   is_low_stock: boolean;
-  product_id: string;
+  productId: string;
   variant_id?: string | null;
   location_id: string;
   product?: any;
@@ -124,7 +124,7 @@ const shortlistFilterConfig: FilterConfig = {
       optionsApi: "/locations",
     },
     {
-      name: "product_id",
+      name: "productId",
       label: "Product",
       type: "select",
       placeholder: "All products",

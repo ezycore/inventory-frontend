@@ -26,7 +26,7 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
   const createVariant = useCreateVariant()
   
   const [formData, setFormData] = useState<CreateVariantDto>({
-    product_id: productId,
+    productId: productId,
     sku: '',
     attributes: {},
     price: 0,
@@ -103,7 +103,7 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
       
       // Reset form
       setFormData({
-        product_id: productId,
+        productId: productId,
         sku: '',
         attributes: {},
         price: 0,
@@ -127,7 +127,7 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
     onOpenChange(false)
     // Reset form
     setFormData({
-      product_id: productId,
+      productId: productId,
       sku: '',
       attributes: {},
       price: 0,
