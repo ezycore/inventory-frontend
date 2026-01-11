@@ -80,10 +80,10 @@ const columns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "movement_type",
+    accessorKey: "movementType",
     header: "Type",
     cell: ({ row }) => (
-      <MovementTypeBadge type={row.getValue("movement_type")} />
+      <MovementTypeBadge type={row.getValue("movementType")} />
     ),
   },
   {
@@ -96,7 +96,7 @@ const columns: ColumnDef<any>[] = [
     header: "Quantity",
     cell: ({ row }) => {
       const quantity = row.getValue("quantity") as number;
-      const type = row.original.movement_type;
+      const type = row.original.movementType;
       return (
         <span className={type === "in" ? "text-green-600" : "text-red-600"}>
           {type === "in" ? "+" : "-"}
@@ -106,19 +106,19 @@ const columns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "previous_quantity",
+    accessorKey: "previousQuantity",
     header: "Previous",
     cell: ({ row }) => (
       <span className="text-muted-foreground">
-        {row.getValue("previous_quantity")}
+        {row.getValue("previousQuantity")}
       </span>
     ),
   },
   {
-    accessorKey: "new_quantity",
+    accessorKey: "newQuantity",
     header: "New",
     cell: ({ row }) => (
-      <span className="font-semibold">{row.getValue("new_quantity")}</span>
+      <span className="font-semibold">{row.getValue("newQuantity")}</span>
     ),
   },
   {
@@ -134,10 +134,10 @@ const columns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "created_by",
+    accessorKey: "createdBy",
     header: "Created By",
     cell: ({ row }) => {
-      const user = row.original.created_by;
+      const user = row.original.createdBy;
       return user?.name || user?.email || "-";
     },
   },
@@ -162,7 +162,7 @@ const filterConfig: FilterConfig = {
       ],
     },
     {
-      name: "movement_type",
+      name: "movementType",
       label: "Movement Type",
       type: "select",
       placeholder: "All types",

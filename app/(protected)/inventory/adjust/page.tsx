@@ -26,7 +26,7 @@ const adjustmentSchema = z.object({
   locationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  new_quantity: z.number().min(0, 'Quantity must be 0 or greater'),
+  newQuantity: z.number().min(0, 'Quantity must be 0 or greater'),
   notes: z.string().optional(),
 })
 
@@ -43,7 +43,7 @@ export default function StockAdjustmentPage() {
       locationId: '',
       productId: '',
       variantId: '',
-      new_quantity: 0,
+      newQuantity: 0,
       notes: '',
     },
   })
@@ -97,7 +97,7 @@ export default function StockAdjustmentPage() {
             columnSpan: 3,
           },
           {
-            name: 'new_quantity',
+            name: 'newQuantity',
             label: 'New Quantity',
             type: 'number',
             required: true,
@@ -125,7 +125,7 @@ export default function StockAdjustmentPage() {
         productId: extractValue(data.productId),
         variantId: extractValue(data.variantId) || null,
         locationId: extractValue(data.locationId),
-        new_quantity: data.new_quantity,
+        newQuantity: data.newQuantity,
         notes: data.notes,
         product_name: extractLabel(data.productId),
         location_name: extractLabel(data.locationId),
@@ -152,7 +152,7 @@ export default function StockAdjustmentPage() {
         variantId: variantId,
         locationId: locationId,
         old_quantity: 0, // Will be filled by backend
-        new_quantity: data.new_quantity,
+        newQuantity: data.newQuantity,
         notes: data.notes,
         product_name: extractLabel(data.productId),
         location_name: extractLabel(data.locationId),
@@ -170,7 +170,7 @@ export default function StockAdjustmentPage() {
       locationId: data.locationId,
       productId: '',
       variantId: '',
-      new_quantity: 0,
+      newQuantity: 0,
       notes: '',
     })
   }
@@ -183,7 +183,7 @@ export default function StockAdjustmentPage() {
       label: item.variant_attributes?.name || item.variantId, 
       value: item.variantId 
     } : '')
-    form.setValue('new_quantity', item.new_quantity)
+    form.setValue('newQuantity', item.newQuantity)
     form.setValue('notes', item.notes || '')
   }
 
@@ -202,7 +202,7 @@ export default function StockAdjustmentPage() {
       productId: item.productId,
       variantId: item.variantId,
       locationId: item.locationId,
-      new_quantity: item.new_quantity,
+      newQuantity: item.newQuantity,
       notes: item.notes,
     }))
 
@@ -241,7 +241,7 @@ export default function StockAdjustmentPage() {
       cell: ({ row }) => row.original.location_name || row.original.locationId,
     },
     {
-      accessorKey: 'new_quantity',
+      accessorKey: 'newQuantity',
       header: 'New Quantity',
     },
     {

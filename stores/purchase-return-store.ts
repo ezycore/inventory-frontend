@@ -7,7 +7,7 @@ export interface PurchaseReturnItem {
   productId: string
   variantId: string | null
   locationId: string
-  returned_quantity: number
+  returnedQuantity: number
   // Display names
   product_name: string
   location_name: string

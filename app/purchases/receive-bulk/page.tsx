@@ -26,7 +26,7 @@ const receiveSchema = z.object({
   locationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  received_quantity: z.number().min(1, 'Quantity must be at least 1'),
+  receivedQuantity: z.number().min(1, 'Quantity must be at least 1'),
 })
 
 type ReceiveFormData = z.infer<typeof receiveSchema>
@@ -42,7 +42,7 @@ export default function BulkReceiveStockPage() {
       locationId: '',
       productId: '',
       variantId: '',
-      received_quantity: 1,
+      receivedQuantity: 1,
     },
   })
 
@@ -96,7 +96,7 @@ export default function BulkReceiveStockPage() {
             columnSpan: 3,
           },
           {
-            name: 'received_quantity',
+            name: 'receivedQuantity',
             label: 'Received Quantity',
             type: 'number',
             required: true,
@@ -116,7 +116,7 @@ export default function BulkReceiveStockPage() {
         productId: extractValue(data.productId),
         variantId: extractValue(data.variantId) || null,
         locationId: extractValue(data.locationId),
-        received_quantity: data.received_quantity,
+        receivedQuantity: data.receivedQuantity,
         product_name: extractLabel(data.productId),
         location_name: extractLabel(data.locationId),
         variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
@@ -141,7 +141,7 @@ export default function BulkReceiveStockPage() {
         productId: productId,
         variantId: variantId,
         locationId: locationId,
-        received_quantity: data.received_quantity,
+        receivedQuantity: data.receivedQuantity,
         product_name: extractLabel(data.productId),
         location_name: extractLabel(data.locationId),
         variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
@@ -158,7 +158,7 @@ export default function BulkReceiveStockPage() {
       locationId: data.locationId,
       productId: '',
       variantId: '',
-      received_quantity: 1,
+      receivedQuantity: 1,
     })
   }
 
@@ -170,7 +170,7 @@ export default function BulkReceiveStockPage() {
       label: item.variant_attributes?.name || item.variantId, 
       value: item.variantId 
     } : '')
-    form.setValue('received_quantity', item.received_quantity)
+    form.setValue('receivedQuantity', item.receivedQuantity)
   }
 
   const handleCancelEdit = () => {
@@ -188,7 +188,7 @@ export default function BulkReceiveStockPage() {
       productId: item.productId,
       variantId: item.variantId,
       locationId: item.locationId,
-      received_quantity: item.received_quantity,
+      receivedQuantity: item.receivedQuantity,
     }))
 
     try {
@@ -225,7 +225,7 @@ export default function BulkReceiveStockPage() {
       cell: ({ row }) => row.original.location_name || row.original.locationId,
     },
     {
-      accessorKey: 'received_quantity',
+      accessorKey: 'receivedQuantity',
       header: 'Received Quantity',
     },
     {

@@ -9,7 +9,7 @@ export interface BulkAdjustmentItem {
   productId: string
   variantId?: string | null
   locationId: string
-  new_quantity: number
+  newQuantity: number
   notes?: string
 }
 

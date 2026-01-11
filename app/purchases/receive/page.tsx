@@ -21,7 +21,7 @@ const receiveStockSchema = z.object({
   locationId: z.string().min(1, "Location is required"),
   productId: z.string().min(1, "Product is required"),
   variantId: z.string().optional(),
-  received_quantity: z.number().min(1, "Quantity must be at least 1"),
+  receivedQuantity: z.number().min(1, "Quantity must be at least 1"),
 });
 
 type ReceiveStockFormData = z.infer<typeof receiveStockSchema>;
@@ -65,7 +65,7 @@ const receiveStockFormConfig: DynamicFormConfig = {
           helperText: "Select a product first to see variants",
         },
         {
-          name: "received_quantity",
+          name: "receivedQuantity",
           type: "number",
           label: "Received Quantity",
           placeholder: "Enter quantity received",
@@ -83,7 +83,7 @@ const defaultValues: ReceiveStockFormData = {
   locationId: "",
   productId: "",
   variantId: "",
-  received_quantity: 1,
+  receivedQuantity: 1,
 };
 
 export default function ReceiveStockPage() {

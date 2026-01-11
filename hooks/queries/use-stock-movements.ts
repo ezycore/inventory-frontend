@@ -16,7 +16,7 @@ export const useStockMovements = (filters: {
  variantId?: string;
  locationId?: string;
  reason?: string;
- movement_type?: string;
+ movementType?: string;
  start_date?: string;
  end_date?: string;
  page?: number;

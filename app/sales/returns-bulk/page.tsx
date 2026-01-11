@@ -26,7 +26,7 @@ const returnSchema = z.object({
   locationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  returned_quantity: z.number().min(1, 'Quantity must be at least 1'),
+  returnedQuantity: z.number().min(1, 'Quantity must be at least 1'),
   notes: z.string().optional(),
 })
 
@@ -43,7 +43,7 @@ export default function BulkSalesReturnPage() {
       locationId: '',
       productId: '',
       variantId: '',
-      returned_quantity: 1,
+      returnedQuantity: 1,
       notes: '',
     },
   })
@@ -98,7 +98,7 @@ export default function BulkSalesReturnPage() {
             columnSpan: 3,
           },
           {
-            name: 'returned_quantity',
+            name: 'returnedQuantity',
             label: 'Returned Quantity',
             type: 'number',
             required: true,
@@ -126,7 +126,7 @@ export default function BulkSalesReturnPage() {
         productId: extractValue(data.productId),
         variantId: extractValue(data.variantId) || null,
         locationId: extractValue(data.locationId),
-        returned_quantity: data.returned_quantity,
+        returnedQuantity: data.returnedQuantity,
         product_name: extractLabel(data.productId),
         location_name: extractLabel(data.locationId),
         variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
@@ -152,7 +152,7 @@ export default function BulkSalesReturnPage() {
         productId: productId,
         variantId: variantId,
         locationId: locationId,
-        returned_quantity: data.returned_quantity,
+        returnedQuantity: data.returnedQuantity,
         product_name: extractLabel(data.productId),
         location_name: extractLabel(data.locationId),
         variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
@@ -170,7 +170,7 @@ export default function BulkSalesReturnPage() {
       locationId: data.locationId,
       productId: '',
       variantId: '',
-      returned_quantity: 1,
+      returnedQuantity: 1,
       notes: '',
     })
   }
@@ -183,7 +183,7 @@ export default function BulkSalesReturnPage() {
       label: item.variant_attributes?.name || item.variantId, 
       value: item.variantId 
     } : '')
-    form.setValue('returned_quantity', item.returned_quantity)
+    form.setValue('returnedQuantity', item.returnedQuantity)
     form.setValue('notes', item.notes || '')
   }
 
@@ -202,7 +202,7 @@ export default function BulkSalesReturnPage() {
       productId: item.productId,
       variantId: item.variantId,
       locationId: item.locationId,
-      returned_quantity: item.returned_quantity,
+      returnedQuantity: item.returnedQuantity,
       notes: item.notes,
     }))
 
@@ -240,7 +240,7 @@ export default function BulkSalesReturnPage() {
       cell: ({ row }) => row.original.location_name || row.original.locationId,
     },
     {
-      accessorKey: 'returned_quantity',
+      accessorKey: 'returnedQuantity',
       header: 'Returned Quantity',
     },
     {

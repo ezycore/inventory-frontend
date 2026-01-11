@@ -8,7 +8,7 @@ export interface AdjustmentItem {
   variantId?: string | null;
   locationId: string;
   old_quantity: number;
-  new_quantity: number;
+  newQuantity: number;
   notes?: string;
   // Display fields
   product_name: string;

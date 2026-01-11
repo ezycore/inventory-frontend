@@ -26,7 +26,7 @@ const saleSchema = z.object({
   locationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
   variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  sold_quantity: z.number().min(1, 'Quantity must be at least 1'),
+  soldQuantity: z.number().min(1, 'Quantity must be at least 1'),
 })
 
 type SaleFormData = z.infer<typeof saleSchema>
@@ -42,7 +42,7 @@ export default function BulkSellStockPage() {
       locationId: '',
       productId: '',
       variantId: '',
-      sold_quantity: 1,
+      soldQuantity: 1,
     },
   })
 
@@ -96,7 +96,7 @@ export default function BulkSellStockPage() {
             columnSpan: 3,
           },
           {
-            name: 'sold_quantity',
+            name: 'soldQuantity',
             label: 'Sold Quantity',
             type: 'number',
             required: true,
@@ -116,7 +116,7 @@ export default function BulkSellStockPage() {
         productId: extractValue(data.productId),
         variantId: extractValue(data.variantId) || null,
         locationId: extractValue(data.locationId),
-        sold_quantity: data.sold_quantity,
+        soldQuantity: data.soldQuantity,
         product_name: extractLabel(data.productId),
         location_name: extractLabel(data.locationId),
         variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
@@ -141,7 +141,7 @@ export default function BulkSellStockPage() {
         productId: productId,
         variantId: variantId,
         locationId: locationId,
-        sold_quantity: data.sold_quantity,
+        soldQuantity: data.soldQuantity,
         product_name: extractLabel(data.productId),
         location_name: extractLabel(data.locationId),
         variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
@@ -158,7 +158,7 @@ export default function BulkSellStockPage() {
       locationId: data.locationId,
       productId: '',
       variantId: '',
-      sold_quantity: 1,
+      soldQuantity: 1,
     })
   }
 
@@ -170,7 +170,7 @@ export default function BulkSellStockPage() {
       label: item.variant_attributes?.name || item.variantId, 
       value: item.variantId 
     } : '')
-    form.setValue('sold_quantity', item.sold_quantity)
+    form.setValue('soldQuantity', item.soldQuantity)
   }
 
   const handleCancelEdit = () => {
@@ -188,7 +188,7 @@ export default function BulkSellStockPage() {
       productId: item.productId,
       variantId: item.variantId,
       locationId: item.locationId,
-      sold_quantity: item.sold_quantity,
+      soldQuantity: item.soldQuantity,
     }))
 
     try {
@@ -225,7 +225,7 @@ export default function BulkSellStockPage() {
       cell: ({ row }) => row.original.location_name || row.original.locationId,
     },
     {
-      accessorKey: 'sold_quantity',
+      accessorKey: 'soldQuantity',
       header: 'Sold Quantity',
     },
     {

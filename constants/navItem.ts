@@ -62,10 +62,9 @@ export const navItems: NavItem[] = [
     icon: 'shopping-cart',
     isActive: false,
     items: [
-      { title: 'New Sale / POS', url: '/sales', icon: 'credit-card' },
-      { title: 'Sell Stock (Bulk)', url: '/sales/sell-bulk', icon: 'shopping-cart' },
+      { title: 'Sell Stock', url: '/sales/sell-bulk', icon: 'shopping-cart' },
       { title: 'Sales History', url: '/sales/history', icon: 'clock' },
-      { title: 'Sales Returns (Bulk)', url: '/sales/returns-bulk', icon: 'corner-up-left' },
+      { title: 'Sales Returns', url: '/sales/returns-bulk', icon: 'corner-up-left' },
       { title: 'Customers', url: '/sales/customers', icon: 'users' }
     ]
   },
@@ -77,10 +76,9 @@ export const navItems: NavItem[] = [
     icon: 'shopping-bag',
     isActive: false,
     items: [
-      { title: 'Receive Stock', url: '/purchases/receive', icon: 'package-plus' },
-      { title: 'Receive Stock (Bulk)', url: '/purchases/receive-bulk', icon: 'packages' },
+      { title: 'Receive Stock', url: '/purchases/receive-bulk', icon: 'packages' },
       { title: 'Purchase History', url: '/purchases/history', icon: 'clock' },
-      { title: 'Purchase Returns (Bulk)', url: '/purchases/returns-bulk', icon: 'package-minus' },
+      { title: 'Purchase Returns', url: '/purchases/returns-bulk', icon: 'package-minus' },
       { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
     ]
   },

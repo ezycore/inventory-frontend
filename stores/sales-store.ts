@@ -7,7 +7,7 @@ export interface SaleItem {
   productId: string;
   variantId?: string | null;
   locationId: string;
-  sold_quantity: number;
+  soldQuantity: number;
   // Display fields
   product_name: string;
   variant_attributes?: Record<string, any> | null;

@@ -6,9 +6,9 @@ export interface TransferItem {
   id: string
   productId: string
   variantId: string | null
-  from_locationId: string
-  to_locationId: string
-  transfer_quantity: number
+  fromLocationId: string
+  toLocationId: string
+  transferQuantity: number
   // Display names
   product_name: string
   from_location_name: string
@@ -36,8 +36,8 @@ export const useTransferStore = create<TransferStore>()(
           const existingIndex = state.items.findIndex(
             (existing) =>
               existing.productId === item.productId &&
-              existing.from_locationId === item.from_locationId &&
-              existing.to_locationId === item.to_locationId &&
+              existing.fromLocationId === item.fromLocationId &&
+              existing.toLocationId === item.toLocationId &&
               (existing.variantId || null) === (item.variantId || null)
           )
 

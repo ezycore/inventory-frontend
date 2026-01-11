@@ -206,7 +206,7 @@ export interface ReceiveStockDto {
   productId: string;
   variantId?: string | null;
   locationId: string;
-  received_quantity: number;
+  receivedQuantity: number;
 }
 
 // Variant Attribute interfaces
@@ -380,7 +380,7 @@ export interface StockMovement extends BaseEntity {
   reason: StockMovementReason;
   reference_id?: string;
   notes?: string;
-  created_by?: string;
+  createdBy?: string;
   variant?: Variant;
 }
 
@@ -391,7 +391,7 @@ export interface CreateStockMovementDto {
   reason: StockMovementReason;
   reference_id?: string;
   notes?: string;
-  created_by?: string;
+  createdBy?: string;
 }
 
 export interface UpdateStockMovementDto
