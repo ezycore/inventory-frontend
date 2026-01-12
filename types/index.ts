@@ -51,12 +51,10 @@ export interface CreateCategoryDto {
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
 
 // Brand image metadata
-export interface BrandImage {
-  url: {
-    thumbnail?: { url: string; secureUrl: string; width: number; height: number };
-    medium?: { url: string; secureUrl: string; width: number; height: number };
-    original?: { url: string; secureUrl: string; width: number; height: number };
-  };
+export interface Image {
+  url: string;
+  thumbnailUrl?: string;
+  mediumUrl?: string;
   publicId: string;
 }
 
@@ -65,7 +63,7 @@ export interface Brand extends BaseEntity {
   name: string;
   slug: string;
   description?: string;
-  images: BrandImage[];
+  images: Image[];
   status: "active" | "inactive";
 }
 

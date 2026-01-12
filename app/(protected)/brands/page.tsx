@@ -27,15 +27,10 @@ const columns: ColumnDef<Brand>[] = [
   {
     accessorKey: "name",
     header: "Brand Name",
-    cell: ({ row }) => {
-      // Display first image (acts as primary/featured)
-      const firstImage = row.original.images?.[0];
-      const imageUrl = firstImage?.url?.thumbnail?.secureUrl || 
-                      firstImage?.url?.medium?.secureUrl;
-      
+    cell: ({ row }) => {      
       return (
         <AvatarCell
-          imageUrl={imageUrl}
+          imageUrl={row.original.images?.[0]?.thumbnailUrl}
           name={row.getValue("name")}
           isActive={row.original.status === "active"}
         />

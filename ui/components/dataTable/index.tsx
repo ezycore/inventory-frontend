@@ -187,6 +187,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
               openInside={openInside || "modal"}
               actionsPlacement={openInside === 'drawer' ? 'top' : 'bottom'}
               open={isModalOpen}
+              resetAfterSubmit={!editingItem}
               onOpenChange={handleCloseModal}
               title={
                 isViewMode

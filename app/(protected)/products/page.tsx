@@ -25,7 +25,7 @@ const columns: ColumnDef<any>[] = [
     cell: ({ row }) => (
       <Link href={`/products/${row.original._id}`} className="block hover:underline">
         <AvatarCell
-          imageUrl={row.original.images?.[0]?.url}
+          imageUrl={row.original.images?.[0]?.thumbnailUrl}
           name={row.getValue("name")}
           fallbackIcon={Package}
           isActive={row.original.status === ProductStatus.ACTIVE}
