@@ -318,15 +318,21 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
                         <SelectValue placeholder={placeholder || 'Select an option...'} />
                     </SelectTrigger>
                     <SelectContent>
-                        {finalOptions.map((option) => (
-                            <SelectItem
-                                key={option.value}
-                                value={option.value}
-                                disabled={option.disabled}
-                            >
-                                {option.label}
-                            </SelectItem>
-                        ))}
+                        {finalOptions.length === 0 ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                                No data available
+                            </div>
+                        ) : (
+                            finalOptions.map((option) => (
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                    disabled={option.disabled}
+                                >
+                                    {option.label}
+                                </SelectItem>
+                            ))
+                        )}
                     </SelectContent>
                 </Select>
 
