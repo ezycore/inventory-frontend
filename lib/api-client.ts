@@ -10,6 +10,13 @@ export type ApiError = {
   statusCode?: number;
 };
 
+// Global 401 handler - will be set by the auth store
+let handle401: (() => void) | null = null;
+
+export const setGlobal401Handler = (handler: () => void) => {
+  handle401 = handler;
+};
+
 export class ApiClient {
   private baseURL: string;
 
@@ -47,6 +54,12 @@ export class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
+         // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
+        if (response.status === 401 && handle401) {
+          console.warn('🚨 401 Unauthorized - Auto logging out user');
+          handle401();
+        }
+
         throw {
           message:
             data.error ||
