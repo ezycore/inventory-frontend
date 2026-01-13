@@ -358,6 +358,9 @@ function FileUploadRoot(props: FileUploadRootProps) {
   const urlCache = useLazyRef(() => new WeakMap<File, string>()).current;
   const inputRef = React.useRef<HTMLInputElement>(null);
   const isControlled = value !== undefined;
+  
+  // Auto-determine multiple from maxFiles if not explicitly set
+  const isMultiple = multiple || (maxFiles !== undefined && maxFiles > 1);
 
   const store = React.useMemo(
     () => createStore(listeners, files, urlCache, invalid, onValueChange),
@@ -630,7 +633,7 @@ function FileUploadRoot(props: FileUploadRootProps) {
             name={name}
             className="sr-only"
             disabled={disabled}
-            multiple={multiple}
+            multiple={isMultiple}
             required={required}
             onChange={onInputChange}
           />

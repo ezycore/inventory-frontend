@@ -1,4 +1,3 @@
-// components/SafeImage.tsx
 import Image from 'next/image';
 import { useState } from 'react';
 
@@ -11,11 +10,16 @@ export function SafeImage({ src, alt, ...props }: any) {
     return <img src={src} alt={alt} {...propsWithoutFill} />;
   }
 
+  // Only set width if fill is not present
+  const imageProps = props.fill 
+    ? { ...props }
+    : { width: 200, height: 200, ...props };
+
   return (
     <Image
       src={src}
       alt={alt}
-      {...props}
+      {...imageProps}
       unoptimized
       onError={() => setUseNative(true)}
     />

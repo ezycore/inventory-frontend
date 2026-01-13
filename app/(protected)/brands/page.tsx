@@ -190,12 +190,6 @@ export default function BrandsPage() {
           editTooltip: "Edit Brand",
           deleteTooltip: "Delete Brand",
           viewTooltip: "Custom tooltip View Brand",
-          transformEditData: (item: Brand) => {
-            return {
-              ...item,
-              images: Array.isArray(item.images) ? item.images : [], // Pass images array directly
-            }
-          },
           prepareSubmitData: (data: Brand, isEdit: boolean, item?: Brand) => prepareSubmitData(data, isEdit, item),
         }}
       />
