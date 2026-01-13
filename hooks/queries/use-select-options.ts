@@ -44,14 +44,6 @@ export const useSelectOptions = (url: string | null | undefined) => {
         disabled: item.disabled || false
       }))
 
-      // Special handling for brands - add "No Brand" option
-      if (url.includes('/brands')) {
-        options = [
-          { value: 'none', label: 'No Brand', disabled: false },
-          ...options
-        ]
-      }
-
       return options
     },
     enabled: !!url, // Only run query if URL is provided

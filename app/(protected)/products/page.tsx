@@ -25,7 +25,7 @@ const columns: ColumnDef<any>[] = [
     cell: ({ row }) => (
       <Link href={`/products/${row.original._id}`} className="block hover:underline">
         <AvatarCell
-          imageUrl={row.original.images?.[0]?.url}
+          imageUrl={row.original.images?.[0]?.thumbnailUrl}
           name={row.getValue("name")}
           fallbackIcon={Package}
           isActive={row.original.status === ProductStatus.ACTIVE}
@@ -104,17 +104,27 @@ export default function ProductsPage() {
       }
     }
 
-    // Handle images
+    // Handle images (multiple)
     if (isEdit) {
       if (!data.images || data.images.length === 0) {
-        formData.append("remove_logo", "true")
-      } else if (Array.isArray(data.images) && data.images[0] instanceof File) {
-        formData.append("images", data.images[0])
+        formData.append("removeImages", "true")
+      } else if (Array.isArray(data.images)) {
+        // Append all File objects
+        data.images.forEach((img: any) => {
+          if (img instanceof File) {
+            formData.append("images", img)
+          }
+        })
       }
     } else {
       const images = data.images || []
       if (images.length) {
-        formData.append('images', images[0])
+        // Append all images for create
+        images.forEach((img: any) => {
+          if (img instanceof File) {
+            formData.append('images', img)
+          }
+        })
       }
     }
 
@@ -171,6 +181,7 @@ export default function ProductsPage() {
           deleteTooltip: "Delete Product",
           viewTooltip: "View Product",
           transformEditData: (item: any) => {
+            // Transform variants and images (images auto-handled in form helper)
             const transformedVariants = item.variants?.map((variant: any) => {
               const attributeKey = Object.keys(variant.attributes || {})[0]
               const attributeValue = variant.attributes?.[attributeKey]
@@ -188,7 +199,6 @@ export default function ProductsPage() {
 
             return {
               ...item,
-              images: item.images ? [item.images?.thumbnail?.url] : [],
               variants: transformedVariants,
             }
           },

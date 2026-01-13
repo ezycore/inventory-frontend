@@ -31,6 +31,7 @@ import type {
 } from "@/ui/components/form/type";
 import { Password } from "../input-password";
 import { ImageObject } from "@/types/DataTable";
+import { SafeImage } from '@/ui/components/safeImage';
 
 // Helper function to get grid column classes with responsive breakpoints
 const getColumnClass = (span: ColumnSpan): string => {
@@ -145,19 +146,8 @@ const FormField: React.FC<{
                 displayUrl = URL.createObjectURL(file);
                 displayName = file.name;
               } else if (file && typeof file === "object") {
-                // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
-                if (file.url) {
-                  displayUrl = file.url.thumbnail?.secureUrl || 
-                              file.url.medium?.secureUrl || 
-                              file.url.original?.secureUrl || 
-                              file.url.thumbnail?.url || 
-                              file.url.medium?.url || 
-                              file.url.original?.url;
-                }
-                // Also check for direct URL properties
-                else if (file.original?.url) {
-                  displayUrl = file.original.url;
-                }
+                // Image interface: { url, thumbnailUrl?, mediumUrl?, publicId }
+                displayUrl = file.thumbnailUrl || file.url;
                 displayName = file.publicId?.split('/').pop() || 'Existing file';
               }
 
@@ -165,7 +155,7 @@ const FormField: React.FC<{
               
               return (
                 <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <img
+                  <SafeImage
                     src={displayUrl}
                     alt={displayName}
                     className="h-16 w-16 object-cover rounded"
@@ -431,26 +421,9 @@ const FormField: React.FC<{
               render={({ field: controllerField }) => {
                 let files: (File | string | any)[] = controllerField.value || [];
                 
-                // Convert BrandImage objects to displayable format
-                if(Array.isArray(files) && files.length) {
-                  const modifiedFiles = files.map(file => {
-                    if (typeof file === "string") {
-                      return file; // existing URL string
-                    } else if (file instanceof File) {
-                      return file; // new File object
-                    } else if (file && typeof file === "object") {
-                      // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
-                      if (file.url) {
-                        return file; // Keep the full BrandImage object
-                      }
-                      // Legacy format check
-                      else if (file.original?.url) {
-                        return file.original.url;
-                      }
-                    }
-                    return file;
-                  });
-                  files = modifiedFiles;
+                // Normalize to array format
+                if (!Array.isArray(files)) {
+                  files = files ? [files] : [];
                 }
                 
                 const acceptedTypes = field.accept || "*";
@@ -529,17 +502,11 @@ const FormField: React.FC<{
                             fileSize = 'Uploaded';
                             previewUrl = file;
                           } else if (file && typeof file === "object") {
-                            // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
+                            // Image interface: { url, thumbnailUrl?, mediumUrl?, publicId }
                             fileKey = `${file.publicId || index}-${index}`;
                             fileName = file.publicId?.split('/').pop() || 'Existing file';
                             fileSize = 'Uploaded';
-                            previewUrl = file.url?.thumbnail?.secureUrl || 
-                                        file.url?.medium?.secureUrl || 
-                                        file.url?.original?.secureUrl || 
-                                        file.url?.thumbnail?.url || 
-                                        file.url?.medium?.url || 
-                                        file.url?.original?.url || 
-                                        null;
+                            previewUrl = file.thumbnailUrl || file.url;
                           } else {
                             return null;
                           }
@@ -551,7 +518,7 @@ const FormField: React.FC<{
                               className="flex items-center gap-3 p-3 border rounded-lg"
                             >
                               {previewUrl ? (
-                                <img 
+                                <SafeImage 
                                   src={previewUrl} 
                                   alt={fileName}
                                   className="h-16 w-16 rounded object-cover bg-gray-100"
