@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { BaseActions, LoadingState, initialLoadingState } from './store-utils'
+import { setGlobal401Handler } from '@/lib/api-client'
 
 // User data interface
 export interface User {
@@ -100,6 +101,12 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: false,
             error: null,
           })
+
+          // Redirect to login page
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login'
+          }
+
         },
 
         setUser: (user: User) => {
@@ -138,3 +145,10 @@ export const useAuthStore = create<AuthStore>()(
     { name: 'AuthStore' }
   )
 )
+
+if (typeof window !== 'undefined') {
+  setGlobal401Handler(() => {
+    const { logout } = useAuthStore.getState()
+    logout()
+  })
+}
