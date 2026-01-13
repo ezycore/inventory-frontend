@@ -107,7 +107,7 @@ export default function ProductsPage() {
     // Handle images (multiple)
     if (isEdit) {
       if (!data.images || data.images.length === 0) {
-        formData.append("remove_logo", "true")
+        formData.append("removeImages", "true")
       } else if (Array.isArray(data.images)) {
         // Append all File objects
         data.images.forEach((img: any) => {
