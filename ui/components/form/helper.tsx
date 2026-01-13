@@ -1,7 +1,7 @@
 import { cn } from "@ui/lib/utils";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
-import React from "react";
-import { Controller } from "react-hook-form";
+import React, { memo } from "react";
+import { Controller, useWatch } from "react-hook-form";
 import { AdvancedSelect } from "../advanced-select";
 import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
@@ -29,7 +29,6 @@ import type {
   FormFieldConfig,
   FormSection,
 } from "@/ui/components/form/type";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { Password } from "../input-password";
 import { ImageObject } from "@/types/DataTable";
 
@@ -46,7 +45,7 @@ const getColumnClass = (span: ColumnSpan): string => {
   return spanMap[span] || "col-span-12";
 };
 
-// Individual field components
+// Individual field components - Memoized for performance
 const FormField: React.FC<{
   field: FormFieldConfig;
   control: any;
@@ -55,7 +54,7 @@ const FormField: React.FC<{
   setValue: any;
   onFieldChange?: (fieldName: string, value: any) => void;
   viewMode?: boolean;
-}> = ({
+}> = memo(({
   field,
   control,
   formState,
@@ -65,29 +64,41 @@ const FormField: React.FC<{
   viewMode = false,
 }) => {
     const error = formState.errors[field.name]?.message;
-    const fieldValue = watch(field.name);
+    
+    // Use useWatch for better performance - only subscribes to specific fields
+    const fieldValue = useWatch({ control, name: field.name });
+    const showWhenValue = useWatch({ 
+      control, 
+      name: field.showWhen?.field || field.name,
+      disabled: !field.showWhen 
+    });
+    // Watch dependent field value at component level (for select fields)
+    const dependsOnValue = useWatch({ 
+      control, 
+      name: field.dependsOn || field.name,
+      disabled: !field.dependsOn 
+    });
 
     // Check conditional display
     if (field.showWhen) {
-      const watchedValue = watch(field.showWhen.field);
       const { value, operator = "equals" } = field.showWhen;
 
       let shouldShow = false;
       switch (operator) {
         case "equals":
-          shouldShow = watchedValue === value;
+          shouldShow = showWhenValue === value;
           break;
         case "not-equals":
-          shouldShow = watchedValue !== value;
+          shouldShow = showWhenValue !== value;
           break;
         case "includes":
-          shouldShow = Array.isArray(watchedValue)
-            ? watchedValue.includes(value)
+          shouldShow = Array.isArray(showWhenValue)
+            ? showWhenValue.includes(value)
             : false;
           break;
         case "not-includes":
-          shouldShow = Array.isArray(watchedValue)
-            ? !watchedValue.includes(value)
+          shouldShow = Array.isArray(showWhenValue)
+            ? !showWhenValue.includes(value)
             : true;
           break;
       }
@@ -118,64 +129,63 @@ const FormField: React.FC<{
         }
 
         let files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-        if (files.length) {
-          const modifiedFiles = (files as unknown as (File | ImageObject)[]).map(file => {
-            if (typeof file === "string") {
-              return file; // existing URL
-            } else if (file instanceof File) {
-              return file; // new File object
-            } else if ( typeof file === "object" && file.original && file.original.url) {
-              return file.original.url; // existing file object with URL
-            }
-          });
-          files = modifiedFiles;
-        }
         
         return (
           <div className="space-y-2">
-            {files.map((file: File | string, index: number) => {
+            {files.map((file: any, index: number) => {
+              let displayUrl: string | null = null;
+              let displayName = 'Uploaded file';
+
               if (typeof file === "string") {
-                // Display existing URL
-                return (
-                  <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <img
-                      src={file}
-                      alt="Uploaded file"
-                      className="h-16 w-16 object-cover rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {file.split('/').pop() || 'Existing file'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Uploaded</p>
-                    </div>
+                // Simple string URL
+                displayUrl = file;
+                displayName = file.split('/').pop() || 'Existing file';
+              } else if (file instanceof File) {
+                // File object (newly uploaded)
+                displayUrl = URL.createObjectURL(file);
+                displayName = file.name;
+              } else if (file && typeof file === "object") {
+                // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
+                if (file.url) {
+                  displayUrl = file.url.thumbnail?.secureUrl || 
+                              file.url.medium?.secureUrl || 
+                              file.url.original?.secureUrl || 
+                              file.url.thumbnail?.url || 
+                              file.url.medium?.url || 
+                              file.url.original?.url;
+                }
+                // Also check for direct URL properties
+                else if (file.original?.url) {
+                  displayUrl = file.original.url;
+                }
+                displayName = file.publicId?.split('/').pop() || 'Existing file';
+              }
+
+              if (!displayUrl) return null;
+              
+              return (
+                <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <img
+                    src={displayUrl}
+                    alt={displayName}
+                    className="h-16 w-16 object-cover rounded"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground">Uploaded</p>
+                  </div>
+                  {typeof file === "string" || (file && file.url) ? (
                     <a
-                      href={file}
+                      href={displayUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-primary hover:underline"
                     >
                       View
                     </a>
-                  </div>
-                );
-              } else if (file instanceof File) {
-                // Display File object
-                return (
-                  <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <div className="h-16 w-16 rounded bg-gray-100 flex items-center justify-center">
-                      <Upload className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
+                  ) : null}
+                </div>
+              );
             })}
           </div>
         );
@@ -212,6 +222,7 @@ const FormField: React.FC<{
               render={({ field: controllerField }) => (
                 <Input
                   {...controllerField}
+                  value={controllerField.value ?? ""}
                   type={field.type === "number" ? "number" : "text"}
                   placeholder={field.placeholder}
                   disabled={field.disabled}
@@ -219,10 +230,21 @@ const FormField: React.FC<{
                   max={field.validation?.max}
                   step={field.step}
                   onChange={(e) => {
-                    const value =
-                      field.type === "number"
-                        ? parseFloat(e.target.value) || 0
-                        : e.target.value;
+                    const rawValue = e.target.value;
+                    let value;
+                    
+                    if (field.type === "number") {
+                      // Allow empty string for clearing the field
+                      if (rawValue === "" || rawValue === null || rawValue === undefined) {
+                        value = "";
+                      } else {
+                        const parsed = parseFloat(rawValue);
+                        value = isNaN(parsed) ? "" : parsed;
+                      }
+                    } else {
+                      value = rawValue;
+                    }
+                    
                     controllerField.onChange(value);
                     handleChange(value);
                   }}
@@ -243,6 +265,7 @@ const FormField: React.FC<{
               render={({ field: controllerField }) => (
                 <Textarea
                   {...controllerField}
+                  value={controllerField.value ?? ""}
                   placeholder={field.placeholder}
                   disabled={field.disabled}
                   rows={field.rows || 3}
@@ -301,11 +324,6 @@ const FormField: React.FC<{
                   : undefined,
               }}
               render={({ field: controllerField }) => {
-                // Get the value of the dependent field if specified
-                const dependsOnValue = field.dependsOn 
-                  ? watch(field.dependsOn) 
-                  : undefined
-                
                 return (
                   <AdvancedSelect
                     value={controllerField.value}
@@ -388,6 +406,7 @@ const FormField: React.FC<{
               }}
               render={({ field: controllerField }) => (
                 <Input
+                  value={controllerField.value ?? ""}
                   {...controllerField}
                   type="date"
                   disabled={field.disabled}
@@ -410,19 +429,30 @@ const FormField: React.FC<{
                 required: field.required ? `${field.label} is required` : false,
               }}
               render={({ field: controllerField }) => {
-                let files: (File | string)[] = controllerField.value || [];
+                let files: (File | string | any)[] = controllerField.value || [];
+                
+                // Convert BrandImage objects to displayable format
                 if(Array.isArray(files) && files.length) {
-                  const modifiedFiles = (files as unknown as (File | ImageObject)[]).map(file => {
+                  const modifiedFiles = files.map(file => {
                     if (typeof file === "string") {
-                      return file; // existing URL
+                      return file; // existing URL string
                     } else if (file instanceof File) {
                       return file; // new File object
-                    } else if ( typeof file === "object" && file.original && file.original.url) {
-                      return file.original.url; // existing file object with URL
+                    } else if (file && typeof file === "object") {
+                      // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
+                      if (file.url) {
+                        return file; // Keep the full BrandImage object
+                      }
+                      // Legacy format check
+                      else if (file.original?.url) {
+                        return file.original.url;
+                      }
                     }
+                    return file;
                   });
                   files = modifiedFiles;
                 }
+                
                 const acceptedTypes = field.accept || "*";
                 const maxFiles = field.maxFiles || 1;
                 const maxSize = field.maxSize || 5 * 1024 * 1024; // 5MB default
@@ -436,7 +466,6 @@ const FormField: React.FC<{
                   controllerField.onChange(selectedFiles);
                   handleChange(selectedFiles);
                 };
-
                 return (
                   <FileUpload
                     value={files}
@@ -481,18 +510,39 @@ const FormField: React.FC<{
 
                     {showPreview && files.length > 0 && (
                       <FileUploadList className="mt-4">
-                        {files.map((file: File | string, index: number) => {
-                          const fileKey = file instanceof File
-                            ? `${file.name}-${index}`
-                            : `${file}-${index}`;
+                        {files.map((file: any, index: number) => {
+                          let fileKey: string;
+                          let fileName: string;
+                          let fileSize: string;
+                          let previewUrl: string | null = null;
 
-                          const fileName = file instanceof File
-                            ? file.name
-                            : file.split('/').pop() || 'Existing file';
-
-                          const fileSize = file instanceof File
-                            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
-                            : 'Uploaded';
+                          if (file instanceof File) {
+                            // New File object
+                            fileKey = `${file.name}-${index}`;
+                            fileName = file.name;
+                            fileSize = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                            previewUrl = URL.createObjectURL(file);
+                          } else if (typeof file === "string") {
+                            // Simple string URL
+                            fileKey = `${file}-${index}`;
+                            fileName = file.split('/').pop() || 'Existing file';
+                            fileSize = 'Uploaded';
+                            previewUrl = file;
+                          } else if (file && typeof file === "object") {
+                            // BrandImage structure: { url: { thumbnail, medium, original }, publicId }
+                            fileKey = `${file.publicId || index}-${index}`;
+                            fileName = file.publicId?.split('/').pop() || 'Existing file';
+                            fileSize = 'Uploaded';
+                            previewUrl = file.url?.thumbnail?.secureUrl || 
+                                        file.url?.medium?.secureUrl || 
+                                        file.url?.original?.secureUrl || 
+                                        file.url?.thumbnail?.url || 
+                                        file.url?.medium?.url || 
+                                        file.url?.original?.url || 
+                                        null;
+                          } else {
+                            return null;
+                          }
 
                           return (
                             <FileUploadItem
@@ -500,7 +550,15 @@ const FormField: React.FC<{
                               value={file}
                               className="flex items-center gap-3 p-3 border rounded-lg"
                             >
-                              <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
+                              {previewUrl ? (
+                                <img 
+                                  src={previewUrl} 
+                                  alt={fileName}
+                                  className="h-16 w-16 rounded object-cover bg-gray-100"
+                                />
+                              ) : (
+                                <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
+                              )}
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">
                                   {fileName}
@@ -645,23 +703,6 @@ const FormField: React.FC<{
                 <span className="text-red-500">*</span>
               )}
             </Label>
-            {field.action && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant={field.action.variant || "ghost"}
-                    size="icon"
-                    className="h-3 w-6 p-0 shrink-0 hover:bg-transparent"
-                    onClick={() => field.action?.onClick?.(field)}
-                    disabled={field.action.disabled}
-                  >
-                    {field.action.icon}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{field.action.label}</TooltipContent>
-              </Tooltip>
-            )}
           </div>
         )}
         <div className="w-full min-w-0 flex-1">
@@ -675,7 +716,16 @@ const FormField: React.FC<{
         )}
       </div>
     );
-  };
+  }, (prevProps, nextProps) => {
+    // Custom comparison for memo - only re-render if these specific props change
+    return (
+      prevProps.field.name === nextProps.field.name &&
+      prevProps.formState.errors[prevProps.field.name] === nextProps.formState.errors[nextProps.field.name] &&
+      prevProps.viewMode === nextProps.viewMode
+    );
+  });
+
+FormField.displayName = 'FormField';
 
 // Section component
 const FormSectionComponent: React.FC<{

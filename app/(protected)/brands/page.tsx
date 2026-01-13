@@ -4,8 +4,6 @@ import { ColumnDef } from "@tanstack/react-table";
 
 // Types
 import type { Brand } from "@/types";
-import type { DynamicFormConfig } from "@/ui/components/form/type";
-
 // UI Components
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
@@ -15,25 +13,34 @@ import { DataTable } from "@/ui/components/dataTable";
 import {
   useCreateBrand,
   useDeleteBrand,
+  useBulkDeleteBrand,
   useUpdateBrand,
 } from "@/hooks/queries";
-import { brandsApi } from "@/lib/api-client";
+import { brandsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
+import { brandFormConfig } from "@/components/brands/form-config";
 
 // Column definitions
 const columns: ColumnDef<Brand>[] = [
   {
     accessorKey: "name",
     header: "Brand Name",
-    cell: ({ row }) => (
-      <AvatarCell
-        imageUrl={row.original.logo_url}
-        name={row.getValue("name")}
-        isActive={row.original.status === "active"}
-      />
-    ),
+    cell: ({ row }) => {
+      // Display first image (acts as primary/featured)
+      const firstImage = row.original.images?.[0];
+      const imageUrl = firstImage?.url?.thumbnail?.secureUrl || 
+                      firstImage?.url?.medium?.secureUrl;
+      
+      return (
+        <AvatarCell
+          imageUrl={imageUrl}
+          name={row.getValue("name")}
+          isActive={row.original.status === "active"}
+        />
+      );
+    },
   },
   {
     accessorKey: "status",
@@ -51,53 +58,7 @@ const columns: ColumnDef<Brand>[] = [
   },
 ];
 
-// Form configuration
-const brandFormConfig: DynamicFormConfig = {
-  fields: [
-    {
-      name: "name",
-      type: "input",
-      label: "Brand Name",
-      placeholder: "Enter brand name",
-      required: true,
-      columnSpan: 12,
-      validation: { minLength: 1, maxLength: 100 },
-    },
-    {
-      name: "description",
-      type: "textarea",
-      label: "Description",
-      placeholder: "Enter brand description",
-      rows: 3,
-      columnSpan: 12,
-      validation: { maxLength: 500 },
-    },
-    {
-      name: "logo_url",
-      type: "file-upload",
-      label: "Brand Logo",
-      placeholder: "Upload brand logo",
-      columnSpan: 12,
-      accept: "image/*",
-      maxFiles: 1,
-      maxSize: 5 * 1024 * 1024, // 5MB
-      fileTypes: ["jpg", "jpeg", "png", "webp"],
-      dropzoneText: "PNG, JPG, WEBP up to 5MB",
-      showPreview: true,
-    },
-    {
-      name: "status",
-      type: "select",
-      label: "Status",
-      required: true,
-      columnSpan: 12,
-      options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-      ],
-    },
-  ],
-};
+
 
 // Filter configuration for brands
 const brandFilterConfig: FilterConfig = {
@@ -149,11 +110,11 @@ const searchConfig = {
 const defaultValues = {
   name: "",
   description: "",
-  logo_url: [],
+  images: [],
   status: "active" as const,
 }
 
-const prepareSubmitData = (data: Brand, isEdit: boolean, item: Brand) => {
+const prepareSubmitData = (data: Brand, isEdit: boolean, item?: Brand) => {
   const formData = new FormData();
   formData.append("name", data.name);
   formData.append("status", data.status);
@@ -162,21 +123,37 @@ const prepareSubmitData = (data: Brand, isEdit: boolean, item: Brand) => {
   }
 
   if (isEdit && item) {
-    formData.append("id", item._id);
+    // EDIT MODE: Handle image changes
+    const existingImages = item.images || [];
+    const currentImages = data.images || [];
 
-    // EDIT MODE: Handle logo changes
-    if (!data.logo_url || data.logo_url.length === 0) {
-      // User removed the logo
-      formData.append("remove_logo", "true");
-    } else if (Array.isArray(data.logo_url) && data.logo_url[0] instanceof File) {
-      // User uploaded NEW file (File object)
-      formData.append("logo", data.logo_url[0]);
+    // Detect removed images (compare publicIds)
+    const existingPublicIds = existingImages.map((img: any) => img.publicId);
+    const currentPublicIds = currentImages
+      .filter((img: any) => typeof img === 'object' && img.publicId)
+      .map((img: any) => img.publicId);
+    
+    const removedImageIds = existingPublicIds.filter(
+      (id: string) => !currentPublicIds.includes(id)
+    );
+
+    if (removedImageIds.length > 0) {
+      formData.append("removeImages", JSON.stringify(removedImageIds));
     }
-    // If data.logo_url[0] is string (existing URL), do nothing (keep existing)
+
+    // Append new files (File objects) - use a type guard so currentImages narrows to File[]
+        const newFiles = (currentImages as unknown[]).filter((img): img is File => img instanceof File);
+        newFiles.forEach((file) => {
+          formData.append("images", file);
+        });
   } else {
-    // ADD MODE: Upload new file
-    if (data.logo_url && Array.isArray(data.logo_url) && data.logo_url[0] instanceof File) {
-      formData.append("logo", data.logo_url[0]);
+    // ADD MODE: Upload new files
+    if (data.images && Array.isArray(data.images)) {
+      data.images.forEach((file: any) => {
+        if (file instanceof File) {
+          formData.append("images", file);
+        }
+      });
     }
   }
 
@@ -211,6 +188,7 @@ export default function BrandsPage() {
           createMutation: useCreateBrand(),
           updateMutation: useUpdateBrand(),
           deleteMutation: useDeleteBrand(),
+          bulkDeleteMutation: useBulkDeleteBrand(),
           queryKey: [...queryKeys.brands.all()],
           entityName: "Brand",
           isViewAvailable: true,
@@ -220,10 +198,10 @@ export default function BrandsPage() {
           transformEditData: (item: Brand) => {
             return {
               ...item,
-              logo_url: item.logo_url ? [item.logo_url] : [], // Initialize with URL string
+              images: Array.isArray(item.images) ? item.images : [], // Pass images array directly
             }
           },
-          prepareSubmitData: (data: Brand, isEdit: boolean, item: Brand) => prepareSubmitData(data, isEdit, item),
+          prepareSubmitData: (data: Brand, isEdit: boolean, item?: Brand) => prepareSubmitData(data, isEdit, item),
         }}
       />
     </div>

@@ -1,6 +1,4 @@
-'use client'
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDynamicForm } from '@/hooks/use-dynamic-form'
 
@@ -16,7 +14,8 @@ import { handleMutationError } from '@/lib/error-handling'
 import { ArrowLeft } from 'lucide-react'
 import CustomFieldsManager from '../../ui/components/form/custom-fields-manager'
 import VariantManager from './variant-manager'
-import { createProductFormConfig } from './product-form-config'
+import { productFormConfig } from './form-config'
+import { sanitize } from '@/hooks'
 
 
 type ProductFormValues = any // Will be inferred from generated schema
@@ -51,6 +50,7 @@ export default function ProductForm({
   const [basePrice, setBasePrice] = useState<number>(0)
   const mode = productId ? 'edit' : 'create'
   console.log("variants:", variants);
+  
   // Check if product has variants based on form data
   const hasVariants = variants.length > 0
 
@@ -61,8 +61,9 @@ export default function ProductForm({
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
 
-  // Use dynamic form with auto-generated schema and config defaults
-  const { form } = useDynamicForm<ProductFormValues>(createProductFormConfig())
+  // Use dynamic form with auto-generated schema
+  // Config is memoized to prevent recreation on every render
+  const { form } = useDynamicForm<ProductFormValues>(productFormConfig)
 
 
 
@@ -98,10 +99,10 @@ export default function ProductForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Watch price field for variant base price
+  // Watch price field for variant base price - optimized subscription
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === 'price' && value.price) {
+      if (name === 'price' && value.price !== undefined) {
         setBasePrice(value.price)
       }
     })
@@ -116,21 +117,21 @@ export default function ProductForm({
   //     form.reset({
   //       name: productData.name,
   //       description: productData.description || '',
-  //       category_id: productData.category_id,
-  //       brand_id: productData.brand_id || '',
+  //       categoryId: productData.categoryId,
+  //       brandId: productData.brandId || '',
   //       images: productData.images || [],
   //       status: productData.status,
-  //       unit_id: productData.unit_id || '',
-  //       selling_type: productData.selling_type,
-  //       tax_type: productData.tax_type,
-  //       tax_id: productData.tax_id || '',
-  //       discount_type: productData.discount_type,
-  //       discount_value: productData.discount_value,
-  //       has_expiry: productData.has_expiry || '',
-  //       expiry_alert_days: productData.expiry_alert_days,
-  //       product_type: productData.product_type,
+  //       unitId: productData.unitId || '',
+  //       sellingType: productData.sellingType,
+  //       taxType: productData.taxType,
+  //       taxId: productData.taxId || '',
+  //       discountType: productData.discountType,
+  //       discountValue: productData.discountValue,
+  //       hasExpiry: productData.hasExpiry || '',
+  //       expiryAlertDays: productData.expiryAlertDays,
+  //       productType: productData.productType,
   //       price: productData.price,
-  //       cost_price: productData.cost_price,
+  //       costPrice: productData.costPrice,
   //     })
   //   }
   // }, [mode, product, form])
@@ -139,39 +140,12 @@ export default function ProductForm({
   if (mode === "edit" && product?.data) {
     const p = product.data as any;
 
-    form.reset({
-      name: p.name ?? "",
-      description: p.description ?? "",
-      category_id: p.category_id ?? "",
-      brand_id: p.brand_id?._id ?? "",
-      unit_id: p.unit_id?._id ?? "",
-      tax_id: p.tax_id?._id ?? "",
-
-      images: p.images?.thumbnail ? [p.images] : [],
-
-      status: p.status ?? "active",
-      selling_type: p.selling_type ?? undefined,
-      tax_type: p.tax_type ?? undefined,
-
-      discount_type: p.discount_type ?? "fixed",
-      discount_value: p.discount_value ?? 0,
-
-      has_expiry: p.has_expiry ?? false,
-      expiry_alert_days: p.expiry_alert_days ?? 0,
-
-      product_type: p.product_type,
-      price: p.price ?? 0,
-      cost_price: p.cost_price ?? 0,
-    });
+    form.reset(sanitize(p));
   }
 }, [mode, product, form]);
 
-console.log('Form values:', form.getValues())
-
-  // Create final form configuration with custom components
-  const finalFormConfig = createProductFormConfig()
-
-  // Form configuration handles the custom-fields type automatically
+  // Use the imported config directly (already memoized at module level)
+  // No need to recreate it here
 
 
   // Mutation-based form handlers
@@ -211,87 +185,89 @@ console.log('Form values:', form.getValues())
   const submitLabel = mode === 'create' ? 'Create Product' : 'Update Product'
   if (openInside) {
     return (
-      <DynamicForm
-        id='product-form'
-        className="space-y-6"
-        form={form}
-        config={finalFormConfig}
-        onSubmit={(data) => {
-          // Add variants data if product type is variable (only active variants)
-          // if (data.product_type_radio === 'variable' && variants.length > 0) {
-          //   const activeVariants = variants
-          //     .filter(v => v.enabled)
-          //     .map(v => ({
-          //       attribute_name: v.attributeName,
-          //       attribute_value: v.value,
-          //       sku: v.sku,
-          //       quantity: v.quantity,
-          //       price: v.price,
-          //     }))
+      <>
+        <DynamicForm
+          id='product-form'
+          className="space-y-6"
+          form={form}
+          config={productFormConfig}
+          onSubmit={(data) => {
+            // Add variants data if product type is variable (only active variants)
+            // if (data.productType_radio === 'variable' && variants.length > 0) {
+            //   const activeVariants = variants
+            //     .filter(v => v.enabled)
+            //     .map(v => ({
+            //       attribute_name: v.attributeName,
+            //       attribute_value: v.value,
+            //       sku: v.sku,
+            //       quantity: v.quantity,
+            //       price: v.price,
+            //     }))
 
-          //   return {
-          //     ...data,
-          //     variants: activeVariants
-          //   }
-          // }
-          // return data
-          const formData = new FormData()
-            for (const key in data) {
-              if (key !== 'images' && data[key] !== undefined) {
-                formData.append(key, data[key])
+            //   return {
+            //     ...data,
+            //     variants: activeVariants
+            //   }
+            // }
+            // return data
+            const formData = new FormData()
+              for (const key in data) {
+                if (key !== 'images' && data[key] !== undefined) {
+                  formData.append(key, data[key])
+                }
               }
-            }
-            if (mode === 'edit' && productId) {
-              formData.append('id', productId)
-              if (!data.images || data.images.length === 0) {
-                // User removed the logo
-                formData.append("remove_logo", "true");
-              } else if (Array.isArray(data.images) && data.images[0] instanceof File) {
-                // User uploaded NEW file (File object)
-                formData.append("images", data.images[0]);
+              if (mode === 'edit' && productId) {
+                formData.append('id', productId)
+                if (!data.images || data.images.length === 0) {
+                  // User removed the logo
+                  formData.append("remove_logo", "true");
+                } else if (Array.isArray(data.images) && data.images[0] instanceof File) {
+                  // User uploaded NEW file (File object)
+                  formData.append("images", data.images[0]);
+                }
+              } else {
+                const images = data.images || []
+                if (images.length) {
+                  formData.append('images', images[0])
+                }
               }
-            } else {
-              const images = data.images || []
-              if (images.length) {
-                formData.append('images', images[0])
+              if(data.productType === "variable" && variants.length > 0) {
+                const variantsData = variants
+                  .map(v => ({
+                    attributes: {
+                      [v.attributeName]: v.value
+                    },
+                    costPrice: v.costPrice,
+                    price: v.price,
+                    status: v.enabled ? 'active' : 'inactive',
+                    // sku: v.sku,
+                  }))
+                formData.append('variants', JSON.stringify(variantsData))
               }
-            }
-            if(data.product_type === "variable" && variants.length > 0) {
-              const variantsData = variants
-                .map(v => ({
-                  attributes: {
-                    [v.attributeName]: v.value
-                  },
-                  cost_price: v.costPrice,
-                  price: v.price,
-                  status: v.enabled ? 'active' : 'inactive',
-                  // sku: v.sku,
-                }))
-              formData.append('variants', JSON.stringify(variantsData))
-            }
-            return formData
-        }}
+              return formData
+          }}
 
-        // Container props
-        openInside={openInside}
-        open={open}
-        onOpenChange={onOpenChange}
-        title={containerTitle}
-        submitLabel={submitLabel}
-        cancelLabel="Cancel"
-        onCancel={handleContainerCancel}
+          // Container props
+          openInside={openInside}
+          open={open}
+          onOpenChange={onOpenChange}
+          title={containerTitle}
+          submitLabel={submitLabel}
+          cancelLabel="Cancel"
+          onCancel={handleContainerCancel}
 
-        // Form actions props
-        actionsPlacement="top"
+          // Form actions props
+          actionsPlacement="top"
 
-        // Content loading for edit mode
-        contentLoading={mode === 'edit' && productLoading}
+          // Content loading for edit mode
+          contentLoading={mode === 'edit' && productLoading}
 
-        // Mutation hook
-        mutationHook={mode === 'create' ? createProduct : updateProduct}
-        onSuccess={onSuccess}
-        onFailed={handleActionError}
-      />
+          // Mutation hook
+          mutationHook={mode === 'create' ? createProduct : updateProduct}
+          onSuccess={onSuccess}
+          onFailed={handleActionError}
+        />
+      </>
     )
   }
 
@@ -317,12 +293,12 @@ console.log('Form values:', form.getValues())
         <DynamicForm
           id='product-form'
           className="space-y-6"
-          config={finalFormConfig}
+          config={productFormConfig}
           form={form}
           onSubmit={(data) => {
 
             // Add variants data if product type is variable (only active variants)
-            // if (data.product_type_radio === 'variable' && variants.length > 0) {
+            // if (data.productType_radio === 'variable' && variants.length > 0) {
             //   const activeVariants = variants
             //     .filter(v => v.enabled)
             //     .map(v => ({

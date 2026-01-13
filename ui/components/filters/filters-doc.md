@@ -622,14 +622,14 @@ if (req.query.priceRange) {
 
 ### 6.3 API Key Mapping
 
-**Use Case:** Frontend uses `"brand"` but backend expects `"brand_id"`.
+**Use Case:** Frontend uses `"brand"` but backend expects `"brandId"`.
 
 ```typescript
 {
   name: "brand",
   label: "Brand",
   type: "select",
-  apiKey: "brand_id", // Send as ?brand_id=123 instead of ?brand=123
+  apiKey: "brandId", // Send as ?brandId=123 instead of ?brand=123
   options: [...],
 }
 ```

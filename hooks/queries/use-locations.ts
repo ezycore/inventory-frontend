@@ -1,4 +1,4 @@
-import { locationsApi } from '@/lib/api-client'
+import { locationsApi } from '@/lib/api'
 import { createResourceHooks } from './helper'
 import { queryKeys } from '@/lib/query-keys'
 import { Location, CreateLocationDto } from '@/types'

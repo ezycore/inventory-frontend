@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys-products'
-import { dashboardApi } from '@/lib/api-client'
+import { dashboardApi } from '@/lib/api'
 
 /**
  * Hook for fetching dashboard statistics

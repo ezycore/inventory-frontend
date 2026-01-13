@@ -49,6 +49,7 @@ export {
   useBrands,
   useCreateBrand,
   useDeleteBrand,
+  useBulkDeleteBrand,
   useUpdateBrand,
 } from "./use-brands";
 
@@ -113,16 +114,20 @@ export {
   useBulkReturnSale,
   useReturnPurchase,
   useBulkReturnPurchase,
-  useTransferStock,
   useBulkTransferStock,
   useUpdateInventory,
 } from "./use-inventory";
 export type { BulkAdjustmentItem } from "./use-inventory";
+// Note: Individual useTransferStock is exported from use-stock-movements
 
-// Stock Movements hooks (Audit Trail)
+// Stock Movements & Operations (Audit Trail + Mutations)
 export {
   useStockMovements,
   useInventoryHistory,
+  useStockLevels,
+  useAdjustStock,
+  useTransferStock,
+  useBulkStockAdjustment,
 } from "./use-stock-movements";
 
 // Variant hooks (variant attribute templates like Color, Size - used for creating variants)

@@ -1,4 +1,4 @@
-import { inventoryApi } from '@/lib/api-client'
+import { inventoryApi } from '@/lib/api'
 import { createResourceHooks } from './helper'
 import { queryKeys } from '@/lib/query-keys'
 import { Inventory, CreateInventoryDto, ReceiveStockDto } from '@/types'
@@ -6,10 +6,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 export interface BulkAdjustmentItem {
-  product_id: string
-  variant_id?: string | null
-  location_id: string
-  new_quantity: number
+  productId: string
+  variantId?: string | null
+  locationId: string
+  newQuantity: number
   notes?: string
 }
 
@@ -26,8 +26,8 @@ export const useDeleteInventory = inventoryHooks.useDelete
 
 // Shortlist query hook
 export const useInventoryShortlist = (filters: {
-  location_id: string;
-  product_id?: string;
+  locationId: string;
+  productId?: string;
   low_stock_only?: string;
   page?: number;
   limit?: number;
@@ -35,7 +35,7 @@ export const useInventoryShortlist = (filters: {
   return useQuery({
     queryKey: [...queryKeys.inventory.list(filters), 'shortlist'],
     queryFn: () => inventoryApi.getShortlist(filters),
-    enabled: !!filters.location_id, // Only fetch if location_id is provided
+    enabled: !!filters.locationId, // Only fetch if locationId is provided
   })
 }
 
@@ -216,22 +216,8 @@ export const useBulkReturnPurchase = () => {
 }
 
 // 🔄 STOCK TRANSFER (Location → Location)
-
-export const useTransferStock = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (data: any) => inventoryApi.transferStock(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
-      toast.success('Stock transferred successfully')
-    },
-    onError: (error: any) => {
-      const message = error?.response?.data?.error || 'Failed to transfer stock'
-      toast.error(message)
-    },
-  })
-}
+// Note: Individual useTransferStock is in use-stock-movements.ts
+// This file only exports bulk transfer for consistency
 
 export const useBulkTransferStock = () => {
   const queryClient = useQueryClient()

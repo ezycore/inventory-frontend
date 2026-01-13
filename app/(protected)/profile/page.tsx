@@ -125,7 +125,6 @@ export default function ProfilePage() {
               validation: {
                 max: 5,
               },
-              optional: true,
             },
           ],
         },

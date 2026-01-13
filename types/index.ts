@@ -27,8 +27,8 @@ export enum StockMovementReason {
 export interface BaseEntity {
   _id: string;
   // API returns snake_case timestamp fields. Keep union with Date for flexibility.
-  created_at: string | Date;
-  updated_at: string | Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 // Category interfaces
@@ -50,34 +50,42 @@ export interface CreateCategoryDto {
 
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
 
+// Brand image metadata
+export interface BrandImage {
+  url: {
+    thumbnail?: { url: string; secureUrl: string; width: number; height: number };
+    medium?: { url: string; secureUrl: string; width: number; height: number };
+    original?: { url: string; secureUrl: string; width: number; height: number };
+  };
+  publicId: string;
+}
+
 // Brand interfaces
 export interface Brand extends BaseEntity {
   name: string;
   slug: string;
   description?: string;
-  logo_url?: string;
-  logo_public_id?: string;
-  website?: string;
+  images: BrandImage[];
   status: "active" | "inactive";
 }
 
 // Location interfaces (unified for stores and warehouses)
 export interface Location extends BaseEntity {
   name: string;
-  location_type: "store" | "warehouse";
+  locationType: "store" | "warehouse";
   address: string;
   manager: string;
-  contact_number?: string;
+  contactNumber?: string;
   email?: string;
   status: "active" | "inactive";
 }
 
 export interface CreateLocationDto {
   name: string;
-  location_type: "store" | "warehouse";
+  locationType: "store" | "warehouse";
   address: string;
   manager: string;
-  contact_number?: string;
+  contactNumber?: string;
   email?: string;
   status?: "active" | "inactive";
 }
@@ -137,13 +145,13 @@ export interface UpdateSupplierDto extends Partial<CreateSupplierDto> { }
 // Unit interfaces
 export interface Unit extends BaseEntity {
   name: string;
-  short_name?: string;
+  shortName?: string;
   status: "active" | "inactive";
 }
 
 export interface CreateUnitDto {
   name: string;
-  short_name?: string;
+  shortName?: string;
   status?: "active" | "inactive";
 }
 
@@ -168,13 +176,13 @@ export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
 
 // Inventory interfaces
 export interface Inventory extends BaseEntity {
-  product_id: string;
-  variant_id?: string | null;
-  location_id: string;
+  productId: string;
+  variantId?: string | null;
+  locationId: string;
   quantity: number;
-  quantity_alert: number;
-  ideal_quantity: number;
-  is_low_stock: boolean;
+  quantityAlert: number;
+  idealQuantity: number;
+  isLowStock: boolean;
   status: "active" | "inactive";
   product?: Product;
   variant?: Variant;
@@ -182,12 +190,12 @@ export interface Inventory extends BaseEntity {
 }
 
 export interface CreateInventoryDto {
-  product_id: string;
-  variant_id?: string | null;
-  location_id: string;
+  productId: string;
+  variantId?: string | null;
+  locationId: string;
   quantity: number;
-  quantity_alert: number;
-  ideal_quantity: number;
+  quantityAlert: number;
+  idealQuantity: number;
   status?: "active" | "inactive";
 }
 
@@ -195,10 +203,10 @@ export interface UpdateInventoryDto extends Partial<CreateInventoryDto> { }
 
 // Receive Stock / Purchase DTO
 export interface ReceiveStockDto {
-  product_id: string;
-  variant_id?: string | null;
-  location_id: string;
-  received_quantity: number;
+  productId: string;
+  variantId?: string | null;
+  locationId: string;
+  receivedQuantity: number;
 }
 
 // Variant Attribute interfaces
@@ -257,8 +265,8 @@ export interface Product extends BaseEntity {
   name: string;
   description?: string;
   base_sku?: string;
-  category_id?: string;
-  brand_id?: string;
+  categoryId?: string;
+  brandId?: string;
   status: ProductStatus;
   images?: string[];
   tags?: string[];
@@ -276,8 +284,8 @@ export interface CreateProductDto {
   slug?: string;
   description?: string;
   base_sku?: string;
-  category_id?: string;
-  brand_id?: string;
+  categoryId?: string;
+  brandId?: string;
   status?: ProductStatus;
   images?: string[];
   tags?: string[];
@@ -288,8 +296,8 @@ export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 export interface ProductFilters {
   search?: string;
-  category_id?: string | undefined;
-  brand_id?: string | undefined;
+  categoryId?: string | undefined;
+  brandId?: string | undefined;
   status?: ProductStatus;
   tags?: string[];
   page?: number;
@@ -300,12 +308,12 @@ export interface ProductFilters {
 
 // Variant interfaces
 export interface Variant extends BaseEntity {
-  product_id: string;
+  productId: string;
   sku: string;
   name?: string;
   attributes: Record<string, any>;
   price: number;
-  cost_price?: number;
+  costPrice?: number;
   stock_quantity: number;
   low_stock_threshold: number;
   barcode?: string;
@@ -321,12 +329,12 @@ export interface Variant extends BaseEntity {
 }
 
 export interface CreateVariantDto {
-  product_id: string;
+  productId: string;
   sku: string;
   name?: string;
   attributes: Record<string, any>;
   price: number;
-  cost_price?: number;
+  costPrice?: number;
   stock_quantity?: number;
   low_stock_threshold?: number;
   barcode?: string;
@@ -341,10 +349,10 @@ export interface CreateVariantDto {
 }
 
 export interface UpdateVariantDto
-  extends Partial<Omit<CreateVariantDto, "product_id">> { }
+  extends Partial<Omit<CreateVariantDto, "productId">> { }
 
 export interface VariantFilters {
-  product_id?: string | undefined;
+  productId?: string | undefined;
   search?: string;
   sku?: string;
   low_stock?: boolean;
@@ -366,32 +374,32 @@ export interface VariantStats {
 
 // Stock Movement interfaces
 export interface StockMovement extends BaseEntity {
-  variant_id: string;
+  variantId: string;
   type: StockMovementType;
   quantity: number;
   reason: StockMovementReason;
   reference_id?: string;
   notes?: string;
-  created_by?: string;
+  createdBy?: string;
   variant?: Variant;
 }
 
 export interface CreateStockMovementDto {
-  variant_id: string;
+  variantId: string;
   type: StockMovementType;
   quantity: number;
   reason: StockMovementReason;
   reference_id?: string;
   notes?: string;
-  created_by?: string;
+  createdBy?: string;
 }
 
 export interface UpdateStockMovementDto
-  extends Partial<Omit<CreateStockMovementDto, "variant_id">> { }
+  extends Partial<Omit<CreateStockMovementDto, "variantId">> { }
 
 export interface StockMovementFilters {
-  variant_id?: string;
-  product_id?: string;
+  variantId?: string;
+  productId?: string;
   type?: StockMovementType;
   reason?: StockMovementReason;
   start_date?: Date;

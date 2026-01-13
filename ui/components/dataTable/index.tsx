@@ -17,7 +17,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
 ) {
   const { cardTitle, defaultPageSize, pageSizes,filterConfig, operations,  toolbarAction, data: externalData, customActions, ...restProps } = props;
 
-  const {formConfig, defaultValues, openInside, getAllData, createMutation, updateMutation, deleteMutation, queryKey, entityName, isViewAvailable, editTooltip, deleteTooltip, viewTooltip, transformEditData, prepareSubmitData} = operations || {};
+  const {formConfig, defaultValues, openInside, getAllData, createMutation, updateMutation, deleteMutation, bulkDeleteMutation, queryKey, entityName, isViewAvailable, editTooltip, deleteTooltip, viewTooltip, transformEditData, prepareSubmitData} = operations || {};
   
   // Internal state for self-contained mode
   const [page, setPage] = useState(1);
@@ -87,12 +87,14 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   handleEdit,
   handleView,
   handleDelete,
+  handleBulkDelete,
   handleCloseModal,
 } = useCrudModal<TData>({
   form,
   defaultValues,
   transformEditData,
   onDeleteFn: deleteMutation?.mutateAsync,
+  onBulkDeleteFn: bulkDeleteMutation?.mutateAsync,
   entityName: "Brand",
 });
 
@@ -107,7 +109,22 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   // Prepare submit data
   const readyDataForSubmit = (data: any) => {
     if (prepareSubmitData) {
-      return prepareSubmitData(data, !!editingItem, editingItem);
+      const preparedData = prepareSubmitData(data, !!editingItem, editingItem);
+      
+      // Auto-inject ID for edit mode if not already present
+      if (editingItem) {
+        if (preparedData instanceof FormData) {
+          // Only add ID if it's not already in FormData
+          if (!preparedData.has('id')) {
+            preparedData.append('id', editingItem._id);
+          }
+        } else if (typeof preparedData === 'object' && !preparedData.id) {
+          // Add ID to object if not present
+          return { id: editingItem._id, ...preparedData };
+        }
+      }
+      
+      return preparedData;
     }
 
     // Default: add ID for edit mode
@@ -155,6 +172,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             onEdit={handleEdit}
             onView={handleView}
             onDelete={handleDelete}
+            onBulkDelete={bulkDeleteMutation ? handleBulkDelete : undefined}
             toolbarAction={mergedToolbarAction}
             customActions={customActions}
           />
@@ -167,6 +185,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
               mutationHook={mutationHook}
               onSubmit={readyDataForSubmit}
               openInside={openInside || "modal"}
+              actionsPlacement={openInside === 'drawer' ? 'top' : 'bottom'}
               open={isModalOpen}
               onOpenChange={handleCloseModal}
               title={

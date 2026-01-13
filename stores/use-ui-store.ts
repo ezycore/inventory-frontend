@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { BaseActions, LoadingState, initialLoadingState } from './store-utils'
 
+// Counter for notification IDs to avoid hydration issues
+let notificationCounter = 0
+
 // Theme type
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -83,7 +86,7 @@ export const useUIStore = create<UIStore>()(
         addNotification: (notification) => {
           const newNotification: Notification = {
             ...notification,
-            id: `notification-${Date.now()}-${Math.random()}`,
+            id: `notification-${++notificationCounter}`,
             timestamp: new Date(),
           }
           

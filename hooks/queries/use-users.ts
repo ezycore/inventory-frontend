@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { usersApi } from '@/lib/api-client'
-import type { RegisterUserDto, UpdateUserPermissionsDto, UpdateUserRoleDto } from '@/types/users'
+import { usersApi } from '@/lib/api'
+import type { 
+  RegisterUserDto, 
+  UpdateUserPermissionsDto, 
+  UpdateUserRoleDto,
+  RegisterUserResponse 
+} from '@/types/users'
 import { toast } from 'sonner'
 
 // Query Keys

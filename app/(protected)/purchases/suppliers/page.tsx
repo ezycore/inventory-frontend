@@ -16,7 +16,7 @@ import {
   useDeleteSupplier,
   useUpdateSupplier,
 } from "@/hooks/queries";
-import { suppliersApi } from "@/lib/api-client";
+import { suppliersApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";

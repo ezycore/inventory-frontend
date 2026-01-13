@@ -26,11 +26,11 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
   const createVariant = useCreateVariant()
   
   const [formData, setFormData] = useState<CreateVariantDto>({
-    product_id: productId,
+    productId: productId,
     sku: '',
     attributes: {},
     price: 0,
-    cost_price: 0,
+    costPrice: 0,
     stock_quantity: 0,
     low_stock_threshold: 5,
     barcode: '',
@@ -46,7 +46,8 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
   const generateSKU = () => {
     const baseSku = product.base_sku || product.name.substring(0, 3).toUpperCase()
     const attributeValues = Object.values(formData.attributes).join('-')
-    const suffix = attributeValues ? `-${attributeValues}` : `-${Date.now().toString().slice(-4)}`
+    // Use a counter instead of Date.now() to avoid hydration issues
+    const suffix = attributeValues ? `-${attributeValues}` : `-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`
     return `${baseSku}${suffix}`.replace(/\s+/g, '-').toUpperCase()
   }
 
@@ -102,11 +103,11 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
       
       // Reset form
       setFormData({
-        product_id: productId,
+        productId: productId,
         sku: '',
         attributes: {},
         price: 0,
-        cost_price: 0,
+        costPrice: 0,
         stock_quantity: 0,
         low_stock_threshold: 5,
         barcode: '',
@@ -126,11 +127,11 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
     onOpenChange(false)
     // Reset form
     setFormData({
-      product_id: productId,
+      productId: productId,
       sku: '',
       attributes: {},
       price: 0,
-      cost_price: 0,
+      costPrice: 0,
       stock_quantity: 0,
       low_stock_threshold: 5,
       barcode: '',
@@ -239,15 +240,15 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cost_price">Cost Price ($)</Label>
+              <Label htmlFor="costPrice">Cost Price ($)</Label>
               <Input
-                id="cost_price"
+                id="costPrice"
                 type="number"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                value={formData.cost_price || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, cost_price: parseFloat(e.target.value) || 0 }))}
+                value={formData.costPrice || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
               />
             </div>
           </div>

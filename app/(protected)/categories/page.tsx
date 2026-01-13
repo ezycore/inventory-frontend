@@ -5,7 +5,6 @@ import { Tag } from 'lucide-react'
 
 // Types
 import type { Category } from '@/types'
-import type { DynamicFormConfig } from '@/ui/components/form/type'
 
 // UI Components
 import { DataTable } from '@/ui/components/dataTable'
@@ -14,10 +13,11 @@ import { AvatarCell } from '@/ui/components/dataTable/cells'
 
 // Hooks & API
 import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategories } from '@/hooks/queries'
-import { categoriesApi } from '@/lib/api-client'
+import { categoriesApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys-products'
 import PageHeader from '@/ui/components/header'
 import { FilterConfig } from '@/types/DataTable'
+import { categoryFormConfig } from '@/components/categories/form-config'
 
 // Column definitions
 const columns: ColumnDef<Category>[] = [
@@ -47,41 +47,6 @@ const columns: ColumnDef<Category>[] = [
     cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
   },
 ];
-
-// Form configuration
-const categoryFormConfig: DynamicFormConfig = {
-  fields: [
-    {
-      name: "name",
-      type: "input",
-      label: "Category Name",
-      placeholder: "Enter category name",
-      required: true,
-      columnSpan: 12,
-      validation: { minLength: 1, maxLength: 100 },
-    },
-    {
-      name: "description",
-      type: "textarea",
-      label: "Description",
-      placeholder: "Enter category description",
-      rows: 3,
-      columnSpan: 12,
-      validation: { maxLength: 500 },
-    },
-    {
-      name: "status",
-      type: "select",
-      label: "Status",
-      required: true,
-      columnSpan: 12,
-      options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-      ],
-    },
-  ],
-};
 
 // Filter configuration for categories
 const categoryFilterConfig: FilterConfig = {
@@ -129,12 +94,6 @@ const searchConfig = {
   placeholder: "Search categories by name, description, or status...",
 }
 
-const defaultValues = {
-  name: "",
-  description: "",
-  status: "active" as const,
-}
-
 export default function CategoriesPage() {
 
   return (
@@ -156,18 +115,13 @@ export default function CategoriesPage() {
         rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
         operations={{
           formConfig: categoryFormConfig,
-          defaultValues: defaultValues,
           getAllData: categoriesApi.getAll,
           createMutation: useCreateCategory(),
           updateMutation: useUpdateCategory(),
           deleteMutation: useDeleteCategory(),
           queryKey: [...queryKeys.category.all()],
           isViewAvailable: true,
-          entityName: "Category",
-          prepareSubmitData: (data: Category, isEdit: boolean, item: Category) => ({
-            ...data,
-            ...(isEdit && item ? { id: item._id } : {}),
-          }),
+          entityName: "Category"
         }}
       />
     </div>

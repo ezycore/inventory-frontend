@@ -19,7 +19,7 @@ import {
   useUpdateVariantAttribute,
   useDeleteVariantAttribute,
 } from '@/hooks/queries'
-import { variantAttributesApi } from '@/lib/api-client'
+import { variantAttributesApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys-products'
 import variantAttributeFormConfig from '@/components/variants/form-config'
 import { DataTable } from '@/ui/components/dataTable'
@@ -63,14 +63,14 @@ const columns: ColumnDef<VariantAttribute>[] = [
     ),
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: "Created Date",
-    cell: ({ row }) => <DateCell value={row.getValue("created_at")} />,
+    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
   },
   {
-    accessorKey: "updated_at",
+    accessorKey: "updatedAt",
     header: "Updated Date",
-    cell: ({ row }) => <DateCell value={row.getValue("updated_at")} />,
+    cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
   },
 ];
 
@@ -101,14 +101,7 @@ export default function VariantsPage() {
           deleteMutation: deleteVariantAttribute,
           entityName: "Variant Attribute",
           queryKey: [...queryKeys.variantAttributes.all()],
-          transformEditData: variantAttributesApi.transformForEdit,
-          prepareSubmitData: (data, isEdit, item) => {
-            // Add id for edit mode (processing is handled by API)
-            if (isEdit && item) {
-              return { id: item._id, ...data };
-            }
-            return data;
-          },
+          transformEditData: variantAttributesApi.transformForEdit
         }}
         enableSorting={true}
         defaultColumnVisibility={{ status: false }}

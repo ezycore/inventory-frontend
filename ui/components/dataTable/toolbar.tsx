@@ -131,7 +131,7 @@ export function DataTableToolbar<TData>({
                 disabled={isDeleting}
                 className="whitespace-nowrap"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4" />
                 Delete {selectedRowsCount}
               </Button>
             </AlertDialogTrigger>
