@@ -17,6 +17,12 @@ export const setGlobal401Handler = (handler: () => void) => {
   handle401 = handler;
 };
 
+let getAuthToken: (() => string | null) | null = null;
+
+export const setAuthTokenGetter = (getter: () => string | null) => {
+  getAuthToken = getter;
+};
+
 export class ApiClient {
   private baseURL: string;
 
@@ -37,26 +43,30 @@ export class ApiClient {
       // Check if body is FormData
       const isFormData = options.body instanceof FormData;
 
+      // Get auth token from store
+      const token = getAuthToken ? getAuthToken() : null;
+
       const response = await fetch(url, {
-        credentials: "include", // Always include cookies for authentication
         headers: isFormData
           ? {
-            // Don't set Content-Type for FormData, let browser set it with boundary
-            ...options.headers,
-          }
+              // Don't set Content-Type for FormData, let browser set it with boundary
+              ...options.headers,
+              Authorization: token ? `Bearer ${token}` : undefined,
+            }
           : {
-            "Content-Type": "application/json",
-            ...options.headers,
-          },
+              "Content-Type": "application/json",
+              ...options.headers,
+              Authorization: token ? `Bearer ${token}` : undefined,
+            },
         ...options,
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-         // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
+        // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
         if (response.status === 401 && handle401) {
-          console.warn('🚨 401 Unauthorized - Auto logging out user');
+          console.warn("🚨 401 Unauthorized - Auto logging out user");
           handle401();
         }
 
@@ -109,5 +119,3 @@ export class ApiClient {
 
 // Export singleton instance
 export const apiClient = new ApiClient();
-
-

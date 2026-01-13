@@ -7,16 +7,16 @@ import { authApi } from '@/lib/api';
 // Login mutation hook
 export function useLogin() {
   const router = useRouter();
-  const { setUser } = useAuthStore();
+  const { setUser,setToken } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (result) => {
-      // Store user data in auth store
-      if (result.data?.user) {
+      // Store user data and token in auth store
+      if (result.data?.user && result.data?.token) {
         setUser(result.data.user);
-        console.log('✅ User stored in auth store:', result.data.user);
+        setToken(result.data.token);
       }
 
       // Invalidate all queries to refresh data

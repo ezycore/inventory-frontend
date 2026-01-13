@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${request.headers.get('cookie')}`,
         // Forward cookies from the request
         'Cookie': request.headers.get('cookie') || '',
       },
