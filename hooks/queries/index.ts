@@ -9,7 +9,6 @@ export { useCreateOwner } from "./use-setup";
 
 // Profile hooks
 export {
-  useProfilePermissions,
   useUpdateAvatar,
   useUpdatePassword,
   useUpdatePreferences,
