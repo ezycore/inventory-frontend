@@ -7,16 +7,21 @@ import { authApi } from '@/lib/api';
 // Login mutation hook
 export function useLogin() {
   const router = useRouter();
-  const { setUser,setToken } = useAuthStore();
+  const { setAuth, setUser, setAccessToken } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (result) => {
-      // Store user data and token in auth store
-      if (result.data?.user && result.data?.token) {
-        setUser(result.data.user);
-        setToken(result.data.token);
+
+      console.log('Login successful:', result);
+      if(result.success === true){
+        setAuth(
+        result.data.user,
+        result.data.token
+      );
+      setUser(result.data.user);
+      setAccessToken(result.data.token);
       }
 
       // Invalidate all queries to refresh data
@@ -48,7 +53,7 @@ export function useLogout() {
       // Clear all queries
       queryClient.clear();
 
-      toast.success('Logged out successfully');
+      toast.success('Successfully Logged out ');
       
       // Redirect to login page
       router.push('/login');
