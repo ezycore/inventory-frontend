@@ -231,14 +231,10 @@ export const productFormConfig: DynamicFormConfig = {
           label: "Product Images",
           columnSpan: 12,
           accept: "image/*",
-          maxFiles: 1,
+          maxFiles: 5,
           maxSize: 5 * 1024 * 1024, // 5MB
-          multiple: false,
           showPreview: true,
-          dropzoneText: "PNG, JPG, GIF up to 5MB (Max 1 image)",
-          validation: {
-            max: 1
-          },
+          dropzoneText: "PNG, JPG, GIF up to 5MB (Max 5 images)"
         }
       ]
     },

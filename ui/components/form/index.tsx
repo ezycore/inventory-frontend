@@ -54,11 +54,10 @@ const DynamicForm: FC<DynamicFormProps> = ({
 
     // Regular form actions props
     actionsPlacement = 'bottom',
-    resetAfterSubmit = false,
+    resetAfterSubmit = true,
     hideCancel = false,
     ...props
 }) => {
-
     const { control, formState, setValue, watch, handleSubmit } = form as any;
     const isDrawerMode = openInside === 'drawer';
     const isModalMode = openInside === 'modal';
@@ -166,11 +165,11 @@ const DynamicForm: FC<DynamicFormProps> = ({
     ) : viewMode ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
         {
             !hideCancel && (
-                 <Button type="button" variant="outline" onClick={handleContainerCancel}>
+                <Button type="button" variant="outline" onClick={handleContainerCancel}>
                     {cancelLabel}
                 </Button>
             )
-       }
+        }
         <Button type="button" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
             {isActuallySubmitting ? 'Submitting...' : submitLabel}
         </Button>

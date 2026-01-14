@@ -25,7 +25,7 @@ const columns: ColumnDef<any>[] = [
     cell: ({ row }) => (
       <Link href={`/products/${row.original._id}`} className="block hover:underline">
         <AvatarCell
-          imageUrl={row.original.images?.[0]?.url}
+          imageUrl={row.original.images?.[0]?.thumbnailUrl}
           name={row.getValue("name")}
           fallbackIcon={Package}
           isActive={row.original.status === ProductStatus.ACTIVE}
@@ -104,17 +104,38 @@ export default function ProductsPage() {
       }
     }
 
-    // Handle images
-    if (isEdit) {
-      if (!data.images || data.images.length === 0) {
-        formData.append("remove_logo", "true")
-      } else if (Array.isArray(data.images) && data.images[0] instanceof File) {
-        formData.append("images", data.images[0])
+    if (isEdit && item) {
+      // EDIT MODE: Handle image changes
+      const existingImages = item.images || [];
+      const currentImages = data.images || [];
+
+      // Detect removed images (compare publicIds)
+      const existingPublicIds = existingImages.map((img: any) => img.publicId);
+      const currentPublicIds = currentImages
+        .filter((img: any) => typeof img === 'object' && img.publicId)
+        .map((img: any) => img.publicId);
+
+      const removedImageIds = existingPublicIds.filter(
+        (id: string) => !currentPublicIds.includes(id)
+      );
+
+      if (removedImageIds.length > 0) {
+        formData.append("removeImages", JSON.stringify(removedImageIds));
       }
+
+      // Append new files (File objects) - use a type guard so currentImages narrows to File[]
+      const newFiles = (currentImages as unknown[]).filter((img): img is File => img instanceof File);
+      newFiles.forEach((file) => {
+        formData.append("images", file);
+      });
     } else {
-      const images = data.images || []
-      if (images.length) {
-        formData.append('images', images[0])
+      // ADD MODE: Upload new files
+      if (data.images && Array.isArray(data.images)) {
+        data.images.forEach((file: any) => {
+          if (file instanceof File) {
+            formData.append("images", file);
+          }
+        });
       }
     }
 
@@ -171,6 +192,7 @@ export default function ProductsPage() {
           deleteTooltip: "Delete Product",
           viewTooltip: "View Product",
           transformEditData: (item: any) => {
+            // Transform variants and images (images auto-handled in form helper)
             const transformedVariants = item.variants?.map((variant: any) => {
               const attributeKey = Object.keys(variant.attributes || {})[0]
               const attributeValue = variant.attributes?.[attributeKey]
@@ -188,7 +210,6 @@ export default function ProductsPage() {
 
             return {
               ...item,
-              images: item.images ? [item.images?.thumbnail?.url] : [],
               variants: transformedVariants,
             }
           },

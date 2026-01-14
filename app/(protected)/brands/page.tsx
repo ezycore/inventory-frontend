@@ -27,15 +27,10 @@ const columns: ColumnDef<Brand>[] = [
   {
     accessorKey: "name",
     header: "Brand Name",
-    cell: ({ row }) => {
-      // Display first image (acts as primary/featured)
-      const firstImage = row.original.images?.[0];
-      const imageUrl = firstImage?.url?.thumbnail?.secureUrl || 
-                      firstImage?.url?.medium?.secureUrl;
-      
+    cell: ({ row }) => {      
       return (
         <AvatarCell
-          imageUrl={imageUrl}
+          imageUrl={row.original.images?.[0]?.thumbnailUrl}
           name={row.getValue("name")}
           isActive={row.original.status === "active"}
         />
@@ -195,12 +190,6 @@ export default function BrandsPage() {
           editTooltip: "Edit Brand",
           deleteTooltip: "Delete Brand",
           viewTooltip: "Custom tooltip View Brand",
-          transformEditData: (item: Brand) => {
-            return {
-              ...item,
-              images: Array.isArray(item.images) ? item.images : [], // Pass images array directly
-            }
-          },
           prepareSubmitData: (data: Brand, isEdit: boolean, item?: Brand) => prepareSubmitData(data, isEdit, item),
         }}
       />
