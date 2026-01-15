@@ -97,7 +97,7 @@ export const useAuthStore = create<AuthStore>()(
         name: "easystock-auth",
         partialize: (state) => ({
           user: state.user,
-          token: state.accessToken,
+          accessToken: state.accessToken,
           isAuthenticated: state.isAuthenticated,
         }),
       }

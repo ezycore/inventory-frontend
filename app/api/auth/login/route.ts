@@ -15,7 +15,27 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
-    const data = await response.json();
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType?.includes('application/json');
+
+    let data;
+    if (isJson) {
+      data = await response.json();
+    } else {
+      // Handle non-JSON responses (HTML error pages, plain text, etc.)
+      const text = await response.text();
+      console.error('❌ Backend returned non-JSON response:', text.substring(0, 200));
+      
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Backend error',
+          message: `Backend returned ${response.status}: ${text.substring(0, 100)}`,
+        },
+        { status: response.status }
+      );
+    }
     
     // Get the Set-Cookie header from backend response
     const setCookieHeader = response.headers.get('set-cookie');
