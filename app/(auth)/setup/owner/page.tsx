@@ -174,15 +174,6 @@ const ownerSetupFormConfig: DynamicFormConfig = {
   ],
 };
 
-const generateSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
-};
-
 export default function OwnerSetupPage() {
   const createOwnerMutation = useCreateOwner();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);

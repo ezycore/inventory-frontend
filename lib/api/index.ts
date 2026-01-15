@@ -19,6 +19,7 @@ import { createUsersApi } from "./users";
 import { authApi } from "./auth";
 import { createProfileApi } from "./profile";
 import { createDashboardApi } from "./dashboard";
+import { createOrganizationApi } from "@/lib/api/organization";
 
 // Export core client
 export { apiClient, type ApiError } from "../api-client";
@@ -41,7 +42,7 @@ export const suppliersApi = createSuppliersApi(apiClient);
 export const usersApi = createUsersApi(apiClient);
 export const profileApi = createProfileApi(apiClient);
 export const dashboardApi = createDashboardApi(apiClient);
-
+export const organizationApi = createOrganizationApi(apiClient);
 // Legacy API for backward compatibility
 export const legacyInventoryApi = createLegacyInventoryApi(apiClient, productsApi, stockApi);
 
