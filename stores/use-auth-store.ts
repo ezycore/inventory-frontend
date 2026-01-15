@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { BaseActions, LoadingState, initialLoadingState } from "./store-utils";
-import { setAuthTokenGetter, setGlobal401Handler } from "@/lib/api-client";
+import { setGlobal401Handler } from "@/lib/api-client";
 
 // User data interface
 export interface User {
@@ -120,9 +120,4 @@ if (typeof window !== "undefined") {
     window.location.href = "/login";
   });
 
-  // Configure token getter for API requests
-  setAuthTokenGetter(() => {
-    const { accessToken } = useAuthStore.getState();
-    return accessToken;
-  });
 }

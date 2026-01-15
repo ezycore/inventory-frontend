@@ -3,6 +3,8 @@
  * Provides base HTTP methods for making API requests
  */
 
+import { useAuthStore } from "@/stores";
+
 export type ApiError = {
   success: false;
   error: string;
@@ -17,11 +19,12 @@ export const setGlobal401Handler = (handler: () => void) => {
   handle401 = handler;
 };
 
-let getAuthToken: (() => string | null) | null = null;
 
-export const setAuthTokenGetter = (getter: () => string | null) => {
-  getAuthToken = getter;
-};
+export const getAccessToken = () =>{
+  const {accessToken} = useAuthStore.getState() 
+  console.log("Getting token from store", accessToken);
+  return accessToken;
+}
 
 export class ApiClient {
   private baseURL: string;
@@ -43,20 +46,20 @@ export class ApiClient {
       // Check if body is FormData
       const isFormData = options.body instanceof FormData;
 
-      // Get auth token from store
-      const token = getAuthToken ? getAuthToken() : null;
+      const accessToken = getAccessToken()
+      
+      // Build common headers
+      const baseHeaders = {
+        ...options.headers,
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      };
 
       const response = await fetch(url, {
         headers: isFormData
-          ? {
-              // Don't set Content-Type for FormData, let browser set it with boundary
-              ...options.headers,
-              Authorization: token ? `Bearer ${token}` : undefined,
-            }
+          ? baseHeaders // Don't set Content-Type for FormData, let browser set it with boundary
           : {
               "Content-Type": "application/json",
-              ...options.headers,
-              Authorization: token ? `Bearer ${token}` : undefined,
+              ...baseHeaders,
             },
         ...options,
       });
