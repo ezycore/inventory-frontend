@@ -24,8 +24,8 @@ export function useLogin() {
       setAccessToken(result.data.token);
       }
 
-      // Invalidate all queries to refresh data
-      queryClient.invalidateQueries();
+      // Don't invalidate all queries - let components refetch as needed
+      // queryClient.invalidateQueries(); // Removed to prevent infinite render loop
 
       toast.success('Login successful!');
       

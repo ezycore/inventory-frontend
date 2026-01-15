@@ -107,7 +107,13 @@ export const useAuthStore = create<AuthStore>()(
 );
 
 if (typeof window !== "undefined") {
+  let isRedirecting = false; // Prevent multiple redirects
+  
   setGlobal401Handler(() => {
+    // Prevent multiple simultaneous 401 redirects
+    if (isRedirecting) return;
+    
+    isRedirecting = true;
     const { clearAuth } = useAuthStore.getState();
     clearAuth();
     // Redirect to login page
