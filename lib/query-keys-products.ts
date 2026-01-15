@@ -4,6 +4,14 @@
  */
 
 export const queryKeys = {
+  organization: {
+    get: () => ["organization"] as const,
+    create: () => [...queryKeys.organization.get(), "list"] as const,
+    update: () => [...queryKeys.organization.get(), "update"] as const,
+    delete: () => [...queryKeys.organization.get(), "delete"] as const,
+    updateFormSettings: () => [...queryKeys.organization.get(), "form-settings"] as const,
+  },
+
   // Inventory query keys (legacy support)
   inventory: {
     all: () => ["inventory"] as const,
