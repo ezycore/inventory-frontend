@@ -26,7 +26,7 @@ interface FactoryOptions {
  relatedQueryKeys?: QueryKey[] // For invalidating related queries
 }
 
-const handleMutationSuccess = (message: string | string[]) => {
+export const handleMutationSuccess = (message: string | string[]) => {
  if (Array.isArray(message) && message.length > 0) {
   message.forEach(msg => {
    toast.success(msg);

@@ -26,12 +26,12 @@ export async function POST(request: NextRequest) {
 
     console.log('='.repeat(60));
     console.log('🔄 NEXT.JS API ROUTE - Proxying owner setup request to backend...');
-    console.log('📍 Backend URL:', `${BACKEND_URL}/setup/owner`);
+    console.log('📍 Backend URL:', `${BACKEND_URL}/organization/create`);
     console.log('📦 Request Body:', JSON.stringify(body, null, 2));
     console.log('='.repeat(60));
     
     // Forward request to backend
-    const response = await fetch(`${BACKEND_URL}/setup/owner`, {
+    const response = await fetch(`${BACKEND_URL}/organization/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

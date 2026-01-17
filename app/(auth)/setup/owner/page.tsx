@@ -9,6 +9,7 @@ import useDynamicForm from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { Card, CardContent } from "@/ui/components/card";
+import { useCreateOrganizationApi } from "@/hooks/queries/use-organization";
 
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
@@ -174,17 +175,8 @@ const ownerSetupFormConfig: DynamicFormConfig = {
   ],
 };
 
-const generateSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
-};
-
 export default function OwnerSetupPage() {
-  const createOwnerMutation = useCreateOwner();
+  const createOwnerMutation = useCreateOrganizationApi();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
   const handleFieldChange = (fieldName: string, value: any) => {

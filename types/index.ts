@@ -94,9 +94,7 @@ export interface CreateBrandDto {
   name: string;
   slug?: string;
   description?: string;
-  logo_url?: string;
-  logo_public_id?: string;
-  website?: string;
+  images?: Image[];
   status?: "active" | "inactive";
 }
 
@@ -455,3 +453,30 @@ export interface UseMutationOptions<
     variables: TVariables
   ) => void;
 }
+
+export interface createOrganizationDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phone?: string;
+  organizationName: string;
+  organizationSlug?: string;
+  industry: string;
+  country: string;
+  timezone: string;
+  currency: string;
+  address?: string;
+}
+
+export interface OrganizationData {
+  name: string;
+  industry: string;
+  country: string;
+  timezone: string;
+  currency: string;
+  address: string;
+}
+
+export interface UpdateOrganizationDto
+  extends Partial<OrganizationData> {}
