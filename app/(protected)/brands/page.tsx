@@ -21,6 +21,8 @@ import { queryKeys } from "@/lib/query-keys-products";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
 import { brandFormConfig } from "@/components/brands/form-config";
+import { FieldSettingsLink } from "@/components/shared/field-settings-link";
+import { useFilteredFormConfig } from "@/hooks/use-filtered-form-config";
 
 // Column definitions
 const columns: ColumnDef<Brand>[] = [
@@ -156,11 +158,16 @@ const prepareSubmitData = (data: Brand, isEdit: boolean, item?: Brand) => {
 }
 
 export default function BrandsPage() {
+  const filteredFormConfig = useFilteredFormConfig(brandFormConfig, 'brand')
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <PageHeader title="Brands Management" subTitle="Manage your product brands and their details." />
+      <PageHeader 
+        title="Brands Management" 
+        subTitle="Manage your product brands and their details."
+        actions={<FieldSettingsLink module="brand" />}
+      />
 
       <DataTable
         cardTitle={(dataLength: number) => `All Brands (${dataLength})`}
@@ -177,7 +184,7 @@ export default function BrandsPage() {
           row.status === "inactive" ? "bg-red-50 opacity-70" : ""
         }
         operations={{
-          formConfig: brandFormConfig,
+          formConfig: filteredFormConfig,
           defaultValues: defaultValues,
           getAllData: brandsApi.getAll,
           createMutation: useCreateBrand(),

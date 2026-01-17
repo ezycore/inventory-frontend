@@ -64,6 +64,12 @@ export const useAuthStore = create<AuthStore>()(
             const { authApi } = await import('@/lib/api')
             const response = await authApi.login({ email, password })
 
+            // Update field settings store with organization settings
+            if (response.data.settings?.excludedFields) {
+              const { useFieldSettingsStore } = await import('./use-field-settings-store')
+              useFieldSettingsStore.getState().setExcludedFields(response.data.settings.excludedFields)
+            }
+
             set({
               user: response.data.user,
               token: response.data.token,
@@ -87,6 +93,10 @@ export const useAuthStore = create<AuthStore>()(
           } catch (error) {
             console.error('Logout error:', error)
           }
+
+          // Clear field settings store to prevent stale data
+          const { useFieldSettingsStore } = await import('./use-field-settings-store')
+          useFieldSettingsStore.getState().reset()
 
           set({
             user: null,

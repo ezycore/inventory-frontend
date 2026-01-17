@@ -6,5 +6,6 @@ export type NavItem = {
   shortcut?: string[];        // optional keyboard shortcut pair
   items?: NavItem[];          // nested children
   roles?: string[];           // optional: allowed roles for this item
+  permissions?: string[];     // optional: required permissions for this item
 };
 
