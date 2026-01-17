@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react'
 import '@ui/styles/globals.css'
 import ThemeProvider from '@/components/layout/ThemeToggle/theme-provider'
 import QueryProvider from '@/components/providers/query-provider'
@@ -19,9 +20,11 @@ export default function AuthLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <AuthLayoutWrapper>
-              {children}
-            </AuthLayoutWrapper>
+            <Suspense fallback={<div />}>
+              <AuthLayoutWrapper>
+                {children}
+              </AuthLayoutWrapper>
+            </Suspense>
             <Toaster />
           </ThemeProvider>
         </QueryProvider>
