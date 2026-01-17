@@ -5,6 +5,7 @@ import { getCookie } from "cookies-next"
 import Header from "@/components/layout/header"
 import KBar from "@/components/kbar"
 import { SidebarProvider, SidebarInset } from "@ui/components/sidebar"
+import { AuthGuard } from "@/components/providers/auth-guard"
 
 export default function ProtectedLayout({
   children,
@@ -14,14 +15,16 @@ export default function ProtectedLayout({
   const defaultOpen = getCookie('sidebar_state') !== 'false'
 
   return (
-    <KBar>
-      <SidebarProvider defaultOpen={defaultOpen}>
-        <AppSidebar />
-        <SidebarInset>
-          <Header />
-          {children}
-        </SidebarInset>
-      </SidebarProvider>
-    </KBar>
+    <AuthGuard>
+      <KBar>
+        <SidebarProvider defaultOpen={defaultOpen}>
+          <AppSidebar />
+          <SidebarInset>
+            <Header />
+            {children}
+          </SidebarInset>
+        </SidebarProvider>
+      </KBar>
+    </AuthGuard>
   )
 }

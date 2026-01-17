@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { variantsApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys-products'
+import { useAuthStore } from '@/stores/use-auth-store'
 import type {
   Variant,
   CreateVariantDto
@@ -22,10 +23,13 @@ import type {
 
 // Get all product variants with filters
 export const useProductVariants = (filters?: any) => {
+  const { accessToken, _hasHydrated } = useAuthStore();
+  
   return useQuery({
     queryKey: queryKeys.variants.filtered(filters),
     queryFn: () => variantsApi.getAll(filters),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!accessToken && _hasHydrated,
   })
 }
 

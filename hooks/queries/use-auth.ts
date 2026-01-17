@@ -7,30 +7,23 @@ import { authApi } from '@/lib/api';
 // Login mutation hook
 export function useLogin() {
   const router = useRouter();
-  const { setAuth, setUser, setAccessToken } = useAuthStore();
+  const { setAuth } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (result) => {
+      if (result.success === true) {
+        // Set auth data in store
+        setAuth(result.data.user, result.data.token);
 
-      console.log('Login successful:', result);
-      if(result.success === true){
-        setAuth(
-        result.data.user,
-        result.data.token
-      );
-      setUser(result.data.user);
-      setAccessToken(result.data.token);
+        toast.success('Login successful!');
+
+        // Redirect to dashboard after successful login
+        router.push('/dashboard');
+      } else {
+        toast.error('Login failed');
       }
-
-      // Don't invalidate all queries - let components refetch as needed
-      // queryClient.invalidateQueries(); // Removed to prevent infinite render loop
-
-      toast.success('Login successful!');
-      
-      // Redirect to dashboard after successful login
-      router.push('/dashboard');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'An error occurred during login');

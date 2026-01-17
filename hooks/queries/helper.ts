@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient, QueryKey } from '@tanstack/react
 import { handleMutationError } from '@/lib/error-handling'
 import { ApiResponse, PaginatedResponse } from '@/types'
 import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/use-auth-store'
 
 interface ResourceApi<T, CreateDto, UpdateDto> {
  getAll: () => Promise<ApiResponse<PaginatedResponse<any>>>
@@ -44,25 +45,32 @@ export function createResourceHooks<T, CreateDto = any, UpdateDto = Partial<Crea
 
  // Query hook for list
  const useList = () => {
+  const { accessToken, _hasHydrated } = useAuthStore();
+  
   return useQuery({
    queryKey: queryKeys.list(),
    queryFn: () => api.getAll(),
    staleTime,
+   enabled: !!accessToken && _hasHydrated,
   })
  }
 
  // Query hook for single item by ID
  const useDetail = (id: string) => {
+  const { accessToken, _hasHydrated } = useAuthStore();
+  
   return useQuery({
    queryKey: queryKeys.detail(id),
    queryFn: () => api.getById(id),
-   enabled: !!id,
+   enabled: !!id && !!accessToken && _hasHydrated,
    staleTime,
   })
  }
 
  // Query hook for single item by slug (optional)
  const useBySlug = (slug: string) => {
+  const { accessToken, _hasHydrated } = useAuthStore();
+  
   if (!api.getBySlug || !queryKeys.bySlug) {
    throw new Error('getBySlug not implemented')
   }
@@ -70,7 +78,7 @@ export function createResourceHooks<T, CreateDto = any, UpdateDto = Partial<Crea
   return useQuery({
    queryKey: queryKeys.bySlug(slug),
    queryFn: () => api.getBySlug!(slug),
-   enabled: !!slug,
+   enabled: !!slug && !!accessToken && _hasHydrated,
    staleTime,
   })
  }

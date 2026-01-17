@@ -1,43 +1,20 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Define public routes that don't require authentication
-const publicRoutes = ['/login', '/setup/owner']
-
-// Define auth routes (login, setup) that should redirect to dashboard if already authenticated
-const authRoutes = ['/login', '/setup/owner']
-
+/**
+ * Middleware for handling route redirects
+ * NOTE: Auth checks are handled client-side via Zustand store
+ * This middleware only handles the root path redirect
+ */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
-  
-  // Get auth token from cookies
-  const authToken = request.cookies.get('auth_token')?.value
-  const isAuthenticated = !!authToken
 
-  // Check if it's a public route
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
-
-  // Handle root path only
+  // Handle root path - redirect to dashboard (auth will be checked client-side)
   if (pathname === '/') {
-    if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    } else {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-  }
-
-  // If user is authenticated and trying to access auth routes (login, setup), redirect to dashboard
-  if (isAuthenticated && isAuthRoute) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // If user is not authenticated and trying to access protected route, redirect to login
-  if (!isAuthenticated && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // Allow access to all other routes
+  // Allow access to all other routes - auth is checked client-side
   return NextResponse.next()
 }
 

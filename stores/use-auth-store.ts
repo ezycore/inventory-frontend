@@ -27,6 +27,7 @@ interface AuthState extends LoadingState {
   user: User | null;
   isAuthenticated: boolean;
   accessToken: string | null;
+  _hasHydrated: boolean;
 }
 
 // Auth actions interface
@@ -36,6 +37,7 @@ interface AuthActions extends BaseActions {
   setAccessToken: (token: string) => void;
   updateUserPreferences: (preferences: Partial<User["preferences"]>) => void;
   clearAuth: () => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 // Combined auth store type
@@ -47,6 +49,7 @@ const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   accessToken: null,
+  _hasHydrated: false,
 };
 
 // Create the auth store with persistence
@@ -61,6 +64,7 @@ export const useAuthStore = create<AuthStore>()(
             user,
             accessToken,
             isAuthenticated: true,
+            _hasHydrated: true,
           });
         },
 
@@ -69,8 +73,7 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         setAccessToken: (token: string) => {
-          console.log("Setting token in store", token);
-          set({ accessToken: token });
+          set({ accessToken: token, _hasHydrated: true });
         },
 
         updateUserPreferences: (preferences: Partial<User["preferences"]>) => {
@@ -86,11 +89,15 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         clearAuth: () => {
-          set(initialState);
+          set({ ...initialState, _hasHydrated: true });
         },
 
         reset: () => {
-          set(initialState);
+          set({ ...initialState, _hasHydrated: true });
+        },
+
+        setHasHydrated: (state: boolean) => {
+          set({ _hasHydrated: state });
         },
       }),
       {
@@ -100,6 +107,9 @@ export const useAuthStore = create<AuthStore>()(
           accessToken: state.accessToken,
           isAuthenticated: state.isAuthenticated,
         }),
+        onRehydrateStorage: () => (state) => {
+          state?.setHasHydrated(true);
+        },
       }
     ),
     { name: "AuthStore" }

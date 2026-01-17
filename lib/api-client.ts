@@ -19,12 +19,10 @@ export const setGlobal401Handler = (handler: () => void) => {
   handle401 = handler;
 };
 
-
-export const getAccessToken = () =>{
-  const {accessToken} = useAuthStore.getState() 
-  console.log("Getting token from store", accessToken);
+export const getAccessToken = () => {
+  const { accessToken } = useAuthStore.getState();
   return accessToken;
-}
+};
 
 export class ApiClient {
   private baseURL: string;
@@ -46,8 +44,8 @@ export class ApiClient {
       // Check if body is FormData
       const isFormData = options.body instanceof FormData;
 
-      const accessToken = getAccessToken()
-      
+      const accessToken = getAccessToken();
+
       // Build common headers
       const baseHeaders = {
         ...options.headers,
@@ -55,13 +53,13 @@ export class ApiClient {
       };
 
       const response = await fetch(url, {
+        ...options,
         headers: isFormData
           ? baseHeaders // Don't set Content-Type for FormData, let browser set it with boundary
           : {
               "Content-Type": "application/json",
               ...baseHeaders,
             },
-        ...options,
       });
 
       const data = await response.json();
