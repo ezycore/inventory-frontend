@@ -34,27 +34,44 @@ export class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
 
     try {
+      // Get token from Zustand store (if available)
+      let token: string | null = null;
+      if (typeof window !== 'undefined') {
+        try {
+          const authStore = await import('@/stores/use-auth-store');
+          token = authStore.useAuthStore.getState().token || null;
+        } catch (e) {
+          // Store might not be available yet
+        }
+      }
+
       // Check if body is FormData
       const isFormData = options.body instanceof FormData;
 
+      const headers: HeadersInit = isFormData
+        ? {
+          ...options.headers,
+        }
+        : {
+          "Content-Type": "application/json",
+          ...options.headers,
+        };
+
+      // Add Authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(url, {
         credentials: "include", // Always include cookies for authentication
-        headers: isFormData
-          ? {
-            // Don't set Content-Type for FormData, let browser set it with boundary
-            ...options.headers,
-          }
-          : {
-            "Content-Type": "application/json",
-            ...options.headers,
-          },
+        headers,
         ...options,
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-         // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
+        // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
         if (response.status === 401 && handle401) {
           console.warn('🚨 401 Unauthorized - Auto logging out user');
           handle401();
