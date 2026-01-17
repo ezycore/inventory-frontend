@@ -10,7 +10,7 @@ import {
 } from "@ui/components/card"
 import { Input } from "@ui/components/input"
 import { Label } from "@ui/components/label"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useLogin } from "@/hooks/queries/use-auth"
 import { Loader2, Mail } from "lucide-react"
 import Link from "next/link"
@@ -26,6 +26,7 @@ export function LoginForm({
   const registered = searchParams.get('registered');
   const loginMutation = useLogin();
   const [formData, setFormData] = useState({
+    slug: '',
     email: '',
     password: '',
   });
