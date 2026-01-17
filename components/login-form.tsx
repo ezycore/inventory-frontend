@@ -10,15 +10,20 @@ import {
 } from "@ui/components/card"
 import { Input } from "@ui/components/input"
 import { Label } from "@ui/components/label"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLogin } from "@/hooks/queries/use-auth"
-import { Loader2 } from "lucide-react"
+import { Loader2, Mail } from "lucide-react"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { Alert, AlertDescription } from "@ui/components/alert"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
 
+  const searchParams = useSearchParams();
+  const registered = searchParams.get('registered');
   const loginMutation = useLogin();
   const [formData, setFormData] = useState({
     email: '',
@@ -29,8 +34,17 @@ export function LoginForm({
     e.preventDefault();
     loginMutation.mutate(formData);
   };
+  
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      {registered === 'true' && (
+        <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900">
+          <Mail className="h-4 w-4 text-blue-600 dark:text-blue-500" />
+          <AlertDescription className="text-blue-800 dark:text-blue-400 ml-2">
+            Account created successfully! Please check your email to verify your account before logging in.
+          </AlertDescription>
+        </Alert>
+      )}
       <Card>
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
@@ -55,12 +69,12 @@ export function LoginForm({
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
+                  <Link
+                    href="/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
-                  </a>
+                  </Link>
                 </div>
                 <Input 
                   id="password" 
@@ -80,12 +94,17 @@ export function LoginForm({
                 </Button> */}
               </div>
             </div>
-            {/* <div className="mt-4 text-center text-sm">
+            <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <a href="#" className="underline underline-offset-4">
+              <Link href="/signup" className="underline underline-offset-4">
                 Sign up
-              </a>
-            </div> */}
+              </Link>
+            </div>
+            <div className="mt-2 text-center text-sm">
+              <Link href="/resend-verification" className="text-muted-foreground hover:underline underline-offset-4">
+                Resend verification email
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>

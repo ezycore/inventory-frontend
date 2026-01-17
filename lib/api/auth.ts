@@ -1,34 +1,31 @@
+import type { ApiResponse } from "@/types";
+
 /**
- * Auth API - using fetch directly since these are Next.js API routes
+ * Auth API - Direct backend calls
  */
-export const authApi = {
-  login: async (credentials: { email: string; password: string }) => {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(credentials),
-      credentials: "include",
-    });
+export function createAuthApi(apiClient: any) {
+  return {
+    login: (credentials: { email: string; password: string }): Promise<ApiResponse<any>> =>
+      apiClient.post("/auth/login", credentials),
 
-    const result = await response.json();
+    logout: (): Promise<ApiResponse<void>> =>
+      apiClient.post("/auth/logout"),
 
-    if (!response.ok) {
-      throw new Error(result.error || result.message || "Login failed");
-    }
+    me: (): Promise<ApiResponse<any>> =>
+      apiClient.get("/auth/me"),
 
-    return result;
-  },
+    verifyEmail: (data: { token: string }): Promise<ApiResponse<any>> =>
+      apiClient.post("/auth/verify-email", data),
 
-  logout: async () => {
-    const response = await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    });
+    resendVerification: (data: { email: string; organizationSlug?: string }): Promise<ApiResponse<any>> =>
+      apiClient.post("/auth/resend-verification", data),
 
-    if (!response.ok) {
-      throw new Error("Logout failed");
-    }
+    forgotPassword: (data: { email: string; organizationSlug?: string }): Promise<ApiResponse<any>> =>
+      apiClient.post("/auth/forgot-password", data),
 
-    return response.json();
-  },
-};
+    resetPassword: (data: { token: string; newPassword: string }): Promise<ApiResponse<any>> =>
+      apiClient.post("/auth/reset-password", data),
+  };
+}
+
+

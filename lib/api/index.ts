@@ -16,7 +16,8 @@ import { createStockApi, createStockMovementsApi, createLegacyInventoryApi } fro
 import { createCustomersApi } from "./customers";
 import { createSuppliersApi } from "./suppliers";
 import { createUsersApi } from "./users";
-import { authApi } from "./auth";
+import { createAuthApi } from "./auth";
+import { createSetupApi } from "./setup";
 import { createProfileApi } from "./profile";
 import { createDashboardApi } from "./dashboard";
 import { createOrganizationApi } from "@/lib/api/organization";
@@ -43,11 +44,11 @@ export const usersApi = createUsersApi(apiClient);
 export const profileApi = createProfileApi(apiClient);
 export const dashboardApi = createDashboardApi(apiClient);
 export const organizationApi = createOrganizationApi(apiClient);
+export const authApi = createAuthApi(apiClient);
+export const setupApi = createSetupApi(apiClient);
+
 // Legacy API for backward compatibility
 export const legacyInventoryApi = createLegacyInventoryApi(apiClient, productsApi, stockApi);
-
-// Export auth API (doesn't use apiClient)
-export { authApi };
 
 // Re-export utility functions
 export { buildQueryParams, type BaseFilters } from "./utils";

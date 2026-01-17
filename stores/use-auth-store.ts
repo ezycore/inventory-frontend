@@ -25,6 +25,7 @@ export interface User {
 // Auth state interface
 interface AuthState extends LoadingState {
   user: User | null
+  token: string | null
   isAuthenticated: boolean
 }
 
@@ -32,7 +33,7 @@ interface AuthState extends LoadingState {
 interface AuthActions extends BaseActions {
   login: (email: string, password: string) => Promise<void>
   logout: () => void
-  setUser: (user: User) => void
+  setUser: (user: User, token: string) => void
   updateUserPreferences: (preferences: Partial<User['preferences']>) => void
   clearAuth: () => void
 }
@@ -44,6 +45,7 @@ type AuthStore = AuthState & AuthActions
 const initialState: AuthState = {
   ...initialLoadingState,
   user: null,
+  token: null,
   isAuthenticated: false,
 }
 
@@ -58,46 +60,37 @@ export const useAuthStore = create<AuthStore>()(
         login: async (email: string, password: string) => {
           set({ isLoading: true, error: null })
           try {
-            // API call with credentials to receive cookie
-            const response = await fetch('/api/auth/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email, password }),
-              credentials: 'include', // Important for cookies
-            })
+            // Import authApi dynamically to avoid circular dependencies
+            const { authApi } = await import('@/lib/api')
+            const response = await authApi.login({ email, password })
 
-            if (!response.ok) {
-              throw new Error('Login failed')
-            }
-
-            const { data } = await response.json()
-            set({ 
-              user: data.user, 
-              isAuthenticated: true, 
-              isLoading: false 
+            set({
+              user: response.data.user,
+              token: response.data.token,
+              isAuthenticated: true,
+              isLoading: false
             })
-            // Token is now in HTTP-only cookie, not in state
-          } catch (error) {
-            set({ 
-              error: error instanceof Error ? error.message : 'Login failed',
-              isLoading: false 
+          } catch (error: any) {
+            set({
+              error: error.message || 'Login failed',
+              isLoading: false
             })
+            throw error
           }
         },
 
         logout: async () => {
-          // Call logout API to clear cookie
           try {
-            await fetch('/api/auth/logout', {
-              method: 'POST',
-              credentials: 'include',
-            })
+            // Import authApi dynamically to avoid circular dependencies
+            const { authApi } = await import('@/lib/api')
+            await authApi.logout()
           } catch (error) {
             console.error('Logout error:', error)
           }
-          
+
           set({
             user: null,
+            token: null,
             isAuthenticated: false,
             error: null,
           })
@@ -109,8 +102,8 @@ export const useAuthStore = create<AuthStore>()(
 
         },
 
-        setUser: (user: User) => {
-          set({ user, isAuthenticated: true })
+        setUser: (user: User, token: string) => {
+          set({ user, token, isAuthenticated: true })
         },
 
         updateUserPreferences: (preferences: Partial<User['preferences']>) => {
@@ -137,8 +130,8 @@ export const useAuthStore = create<AuthStore>()(
         name: 'easystock-auth',
         partialize: (state) => ({
           user: state.user,
+          token: state.token,
           isAuthenticated: state.isAuthenticated,
-          // Don't persist token - it's in HTTP-only cookie
         }),
       }
     ),

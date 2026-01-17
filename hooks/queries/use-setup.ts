@@ -1,55 +1,37 @@
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-// Setup API
-const setupApi = {
-  createOwner: async (data: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-    phone?: string;
-    organizationName: string;
-    industry: string;
-    country: string;
-    timezone: string;
-    currency: string;
-  }) => {
-    const response = await fetch("/api/setup/owner", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || result.error || "Setup failed");
-    }
-
-    return result;
-  },
-};
+import { setupApi } from "@/lib/api";
+import { handleMutationSuccess } from "./helper";
+import { handleMutationError } from "@/lib/error-handling";
 
 // Create owner setup hook
 export function useCreateOwner() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: setupApi.createOwner,
-    onSuccess: (result) => {
-      toast.success(
-        "Owner account created successfully! Redirecting to login..."
+    mutationFn: (data: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
+      phone?: string;
+      organizationName: string;
+      organizationSlug?: string;
+      industry: string;
+      country: string;
+      timezone: string;
+      currency: string;
+      address?: string;
+    }) => setupApi.createOwner(data),
+    onSuccess: () => {
+      handleMutationSuccess(
+        "Account created successfully! Please check your email to verify your account."
       );
-      // Redirect to login after successful setup
+      // Redirect to login with registered flag
       setTimeout(() => {
-        router.push("/login?setup=success");
-      }, 1500);
+        router.push("/login?registered=true");
+      }, 2000);
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create owner account");
-    },
+    onError: handleMutationError,
   });
 }

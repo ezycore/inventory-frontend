@@ -1,4 +1,4 @@
-// app/setup/owner/page.tsx
+// app/(auth)/signup/page.tsx
 
 "use client";
 
@@ -9,7 +9,6 @@ import useDynamicForm from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { Card, CardContent } from "@/ui/components/card";
-import { useCreateOrganizationApi } from "@/hooks/queries/use-organization";
 
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
@@ -176,7 +175,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
 };
 
 export default function OwnerSetupPage() {
-  const createOwnerMutation = useCreateOrganizationApi();
+  const createOwnerMutation = useCreateOwner();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
   const handleFieldChange = (fieldName: string, value: any) => {
