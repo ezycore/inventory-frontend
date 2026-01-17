@@ -17,7 +17,7 @@ const authRoutes = [
   '/signup',
 ]
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Check if user has token in cookies (for server-side check)
