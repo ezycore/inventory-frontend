@@ -1,31 +1,43 @@
-"use client"
+"use client";
 
-import { cn } from "@ui/lib/utils"
-import { Button } from "@ui/components/button"
+import { useForgotPassword } from "@/hooks/queries/use-auth";
+import {
+  getOrganizationSlugDescription,
+  getOrganizationSlugPlaceholder,
+  shouldShowOrganizationSlugField,
+  withOrganizationSlug,
+} from "@/lib/organization-utils";
+import { Button } from "@ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@ui/components/card"
-import { Input } from "@ui/components/input"
-import { Label } from "@ui/components/label"
-import { useState } from "react"
-import { Loader2, Mail } from "lucide-react"
-import Link from "next/link"
-import { useForgotPassword } from "@/hooks/queries/use-auth"
+} from "@ui/components/card";
+import { Input } from "@ui/components/input";
+import { Label } from "@ui/components/label";
+import { cn } from "@ui/lib/utils";
+import { Loader2, Mail } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function ForgotPasswordPage() {
   const forgotPasswordMutation = useForgotPassword();
   const [formData, setFormData] = useState({
-    email: '',
-    organizationSlug: '',
+    email: "",
+    organizationSlug: "",
   });
+
+  const showSlugField = shouldShowOrganizationSlugField();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    forgotPasswordMutation.mutate(formData);
+    const dataWithSlug = withOrganizationSlug(
+      formData,
+      formData.organizationSlug,
+    );
+    forgotPasswordMutation.mutate(dataWithSlug);
   };
 
   return (
@@ -41,26 +53,36 @@ export default function ForgotPasswordPage() {
               </div>
               <CardTitle className="text-center">Forgot Password?</CardTitle>
               <CardDescription className="text-center">
-                Enter your email address and we&apos;ll send you a link to reset your password
+                Enter your email address and we&apos;ll send you a link to reset
+                your password
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-6">
-                  <div className="grid gap-3">
-                    <Label htmlFor="organizationSlug">Organization Slug</Label>
-                    <Input
-                      id="organizationSlug"
-                      type="text"
-                      placeholder="your-organization"
-                      value={formData.organizationSlug}
-                      onChange={(e) => setFormData({ ...formData, organizationSlug: e.target.value })}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Enter your organization slug (e.g., abc-company)
-                    </p>
-                  </div>
+                  {showSlugField && (
+                    <div className="grid gap-3">
+                      <Label htmlFor="organizationSlug">
+                        Organization Slug
+                      </Label>
+                      <Input
+                        id="organizationSlug"
+                        type="text"
+                        placeholder={getOrganizationSlugPlaceholder()}
+                        value={formData.organizationSlug}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            organizationSlug: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {getOrganizationSlugDescription()}
+                      </p>
+                    </div>
+                  )}
                   <div className="grid gap-3">
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -68,20 +90,29 @@ export default function ForgotPasswordPage() {
                       type="email"
                       placeholder="m@example.com"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
                       required
                     />
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full"
                     disabled={forgotPasswordMutation.isPending}
                   >
-                    {forgotPasswordMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {forgotPasswordMutation.isPending ? 'Sending...' : 'Send Reset Link'}
+                    {forgotPasswordMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {forgotPasswordMutation.isPending
+                      ? "Sending..."
+                      : "Send Reset Link"}
                   </Button>
                   <div className="text-center text-sm">
-                    <Link href="/login" className="underline underline-offset-4">
+                    <Link
+                      href="/login"
+                      className="underline underline-offset-4"
+                    >
                       Back to login
                     </Link>
                   </div>
@@ -92,5 +123,5 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

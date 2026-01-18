@@ -1,48 +1,60 @@
-"use client"
-import { cn } from "@ui/lib/utils"
-import { Button } from "@ui/components/button"
+"use client";
+import { useLogin } from "@/hooks/queries/use-auth";
+import {
+  getOrganizationSlugDescription,
+  getOrganizationSlugPlaceholder,
+  shouldShowOrganizationSlugField,
+  withOrganizationSlug,
+} from "@/lib/organization-utils";
+import { Alert, AlertDescription } from "@ui/components/alert";
+import { Button } from "@ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@ui/components/card"
-import { Input } from "@ui/components/input"
-import { Label } from "@ui/components/label"
-import { useState } from "react"
-import { useLogin } from "@/hooks/queries/use-auth"
-import { Loader2, Mail } from "lucide-react"
-import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { Alert, AlertDescription } from "@ui/components/alert"
+} from "@ui/components/card";
+import { Input } from "@ui/components/input";
+import { Label } from "@ui/components/label";
+import { cn } from "@ui/lib/utils";
+import { Loader2, Mail } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-
   const searchParams = useSearchParams();
-  const registered = searchParams.get('registered');
+  const registered = searchParams.get("registered");
   const loginMutation = useLogin();
   const [formData, setFormData] = useState({
-    slug: '',
-    email: '',
-    password: '',
+    organizationSlug: "",
+    email: "",
+    password: "",
   });
+
+  const showSlugField = shouldShowOrganizationSlugField();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    loginMutation.mutate(formData);
+    const dataWithSlug = withOrganizationSlug(
+      formData,
+      formData.organizationSlug,
+    );
+    loginMutation.mutate(dataWithSlug);
   };
-  
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      {registered === 'true' && (
+      {registered === "true" && (
         <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900">
           <Mail className="h-4 w-4 text-blue-600 dark:text-blue-500" />
           <AlertDescription className="text-blue-800 dark:text-blue-400 ml-2">
-            Account created successfully! Please check your email to verify your account before logging in.
+            Account created successfully! Please check your email to verify your
+            account before logging in.
           </AlertDescription>
         </Alert>
       )}
@@ -56,6 +68,27 @@ export function LoginForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
+              {showSlugField && (
+                <div className="grid gap-3">
+                  <Label htmlFor="organizationSlug">Organization Slug</Label>
+                  <Input
+                    id="organizationSlug"
+                    type="text"
+                    placeholder={getOrganizationSlugPlaceholder()}
+                    value={formData.organizationSlug}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        organizationSlug: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {getOrganizationSlugDescription()}
+                  </p>
+                </div>
+              )}
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -63,7 +96,9 @@ export function LoginForm({
                   type="email"
                   placeholder="m@example.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -77,18 +112,26 @@ export function LoginForm({
                     Forgot your password?
                   </Link>
                 </div>
-                <Input 
-                  id="password" 
-                  type="password" 
+                <Input
+                  id="password"
+                  type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required 
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  required
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                  {loginMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {loginMutation.isPending ? 'Logging in...' : 'Login'}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {loginMutation.isPending ? "Logging in..." : "Login"}
                 </Button>
                 {/* <Button variant="outline" className="w-full">
                   Login with Google
@@ -102,7 +145,10 @@ export function LoginForm({
               </Link>
             </div>
             <div className="mt-2 text-center text-sm">
-              <Link href="/resend-verification" className="text-muted-foreground hover:underline underline-offset-4">
+              <Link
+                href="/resend-verification"
+                className="text-muted-foreground hover:underline underline-offset-4"
+              >
                 Resend verification email
               </Link>
             </div>
@@ -110,5 +156,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
