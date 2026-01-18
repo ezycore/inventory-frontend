@@ -1,4 +1,5 @@
 import { Image } from "@/types";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { LoadingState, initialLoadingState } from "./store-utils";
@@ -40,6 +41,7 @@ interface AuthState extends LoadingState {
 interface AuthActions {
   setUser: (user: User, token: string) => void;
   clearAuth: () => void;
+  hydrateAuth: () => void;
 }
 
 // Combined auth store type
@@ -61,11 +63,38 @@ export const useAuthStore = create<AuthStore>()(
         ...initialState,
 
         setUser: (user: User, token: string) => {
+          // Store in Zustand
           set({ user, token, isAuthenticated: true });
+
+          // Store token in cookie for middleware access
+          setCookie("auth-token", token, {
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: "/",
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+          });
         },
 
         clearAuth: () => {
           set(initialState);
+
+          // Remove token cookie
+          deleteCookie("auth-token", { path: "/" });
+        },
+
+        hydrateAuth: () => {
+          // Check if token exists in cookie but not in state (after hard refresh)
+          const cookieToken = getCookie("auth-token");
+          const { token: stateToken } = get();
+
+          if (cookieToken && !stateToken) {
+            // Cookie exists but state is empty - should not happen normally
+            // Clear the cookie to stay in sync
+            deleteCookie("auth-token", { path: "/" });
+          } else if (!cookieToken && stateToken) {
+            // State exists but cookie doesn't - clear state
+            set(initialState);
+          }
         },
       }),
       {

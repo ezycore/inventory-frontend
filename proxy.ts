@@ -1,4 +1,3 @@
-import { useAuthStore } from "@/stores";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -17,7 +16,10 @@ const authRoutes = ["/login", "/signup"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const { isAuthenticated } = useAuthStore.getState();
+
+  // Check for auth token in cookies (server-side accessible)
+  const token = request.cookies.get("auth-token")?.value;
+  const isAuthenticated = !!token;
   // Check if it's a public route
   const isPublicRoute = publicRoutes.some((route) =>
     pathname.startsWith(route),
