@@ -2,13 +2,13 @@
 
 "use client";
 
-import { Building2, Globe, User } from "lucide-react";
-import { useCreateOwner } from "@/hooks/queries/use-setup";
-import { toast } from "sonner";
+import { useCreateOrganizationApi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
+import { Card, CardContent } from "@/ui/components/card";
 import DynamicForm from "@/ui/components/form";
 import { DynamicFormConfig } from "@/ui/components/form/type";
-import { Card, CardContent } from "@/ui/components/card";
+import { Building2, Globe, User } from "lucide-react";
+import { toast } from "sonner";
 
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
@@ -174,25 +174,11 @@ const ownerSetupFormConfig: DynamicFormConfig = {
   ],
 };
 
-export default function OwnerSetupPage() {
-  const createOwnerMutation = useCreateOwner();
+export default function Signup() {
+  const createOwnerMutation = useCreateOrganizationApi();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
-  const handleFieldChange = (fieldName: string, value: any) => {
-    console.log(`Field changed: ${fieldName} = ${value}`);
-    // // Auto-generate slug from organization name
-    // if (fieldName === "organizationName") {
-    //   const currentSlug = form.getValues("organizationSlug");
-    //   const previousOrgName = form.getValues("organizationName");
-
-    //   // Only auto-generate if slug hasn't been manually edited
-    //   if (!currentSlug || currentSlug === generateSlug(previousOrgName)) {
-    //     form.setValue("organizationSlug", generateSlug(value));
-    //   }
-    // }
-  };
-
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: Record<string, any>) => {
     // Validate passwords match
     if (data.password !== data.confirmPassword) {
       toast.error("Passwords do not match");
@@ -205,7 +191,7 @@ export default function OwnerSetupPage() {
       return;
     }
 
-    createOwnerMutation.mutate(data);
+    createOwnerMutation.mutate(data as FormData);
   };
 
   return (
@@ -231,7 +217,6 @@ export default function OwnerSetupPage() {
           className="space-y-6"
           config={config}
           form={form}
-          onFieldChange={handleFieldChange}
           cancelLabel={null}
           submitLabel={
             createOwnerMutation.isPending

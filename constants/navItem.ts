@@ -2,42 +2,50 @@ import { NavItem } from "@/types/layout";
 
 export const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
-    url: '/',
-    icon: 'home',
+    title: "Dashboard",
+    url: "/",
+    icon: "home",
     isActive: false,
-    shortcut: ['d', 'd'],
-    items: []
+    shortcut: ["d", "d"],
+    items: [],
   },
 
   // PRODUCTS
   {
-    title: 'Products',
-    url: '/products',
-    icon: 'package',
+    title: "Products",
+    url: "/products",
+    icon: "package",
     isActive: false,
-    shortcut: ['p', 'p'],
+    shortcut: ["p", "p"],
     items: [
-      { title: 'All Products', url: '/products', icon: 'list' },
-      { title: 'Categories', url: '/categories', icon: 'tag' },
-      { title: 'Brands', url: '/brands', icon: 'star' },
-      { title: 'Variants', url: '/variants', icon: 'layers' }
-    ]
+      { title: "All Products", url: "/products", icon: "list" },
+      { title: "Categories", url: "/categories", icon: "tag" },
+      { title: "Brands", url: "/brands", icon: "star" },
+      { title: "Variants", url: "/variants", icon: "layers" },
+    ],
   },
 
   // INVENTORY
   {
-    title: 'Inventory',
-    url: '/inventory',
-    icon: 'database',
+    title: "Inventory",
+    url: "/inventory",
+    icon: "database",
     isActive: false,
     items: [
-      { title: 'Inventory List', url: '/inventory', icon: 'list' },
-      { title: 'Shortlist', url: '/inventory/shortlist', icon: 'clipboard-list' },
-      { title: 'Stock Adjustment', url: '/inventory/adjust', icon: 'edit' },
-      { title: 'Stock Movements', url: '/stock/movements', icon: 'arrow-right-left' },
-      { title: 'Stock Transfer', url: '/stock/transfers', icon: 'truck' }
-    ]
+      { title: "Inventory List", url: "/inventory", icon: "list" },
+      {
+        title: "Shortlist",
+        url: "/inventory/shortlist",
+        icon: "clipboard-list",
+      },
+      { title: "Stock Adjustment", url: "/inventory/adjust", icon: "edit" },
+      {
+        title: "Stock Movements",
+        url: "/stock/movements",
+        icon: "arrow-right-left",
+      },
+      { title: "Stock Transfer", url: "/stock/transfers", icon: "truck" },
+    ],
   },
 
   // // STOCK MANAGEMENT
@@ -57,60 +65,112 @@ export const navItems: NavItem[] = [
 
   // SALES
   {
-    title: 'Sales',
-    url: '/sales',
-    icon: 'shopping-cart',
+    title: "Sales",
+    url: "/sales",
+    icon: "shopping-cart",
     isActive: false,
     items: [
-      { title: 'Sell Stock', url: '/sales/sell-bulk', icon: 'shopping-cart' },
-      { title: 'Sales History', url: '/sales/history', icon: 'clock' },
-      { title: 'Sales Returns', url: '/sales/returns-bulk', icon: 'corner-up-left' },
-      { title: 'Customers', url: '/sales/customers', icon: 'users' }
-    ]
+      { title: "Sell Stock", url: "/sales/sell-bulk", icon: "shopping-cart" },
+      { title: "Sales History", url: "/sales/history", icon: "clock" },
+      {
+        title: "Sales Returns",
+        url: "/sales/returns-bulk",
+        icon: "corner-up-left",
+      },
+      { title: "Customers", url: "/sales/customers", icon: "users" },
+    ],
   },
 
   // PURCHASES
   {
-    title: 'Purchases',
-    url: '/purchases',
-    icon: 'shopping-bag',
+    title: "Purchases",
+    url: "/purchases",
+    icon: "shopping-bag",
     isActive: false,
     items: [
-      { title: 'Receive Stock', url: '/purchases/receive-bulk', icon: 'packages' },
-      { title: 'Purchase History', url: '/purchases/history', icon: 'clock' },
-      { title: 'Purchase Returns', url: '/purchases/returns-bulk', icon: 'package-minus' },
-      { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
-    ]
+      {
+        title: "Receive Stock",
+        url: "/purchases/receive-bulk",
+        icon: "packages",
+      },
+      { title: "Purchase History", url: "/purchases/history", icon: "clock" },
+      {
+        title: "Purchase Returns",
+        url: "/purchases/returns-bulk",
+        icon: "package-minus",
+      },
+      { title: "Suppliers", url: "/purchases/suppliers", icon: "truck" },
+    ],
   },
 
   // WAREHOUSES
   {
-    title: 'Locations',
-    url: '/locations',
-    icon: 'box',
+    title: "Locations",
+    url: "/locations",
+    icon: "box",
     isActive: false,
     items: [
-      { title: 'View All Locations', url: '/locations', icon: 'list' },
-      { title: 'Location Stock Report', url: '/locations/stock-report', icon: 'bar-chart-2' },
-      { title: 'Transfer Requests', url: '/locations/transfer-requests', icon: 'truck' }
-    ]
+      { title: "View All Locations", url: "/locations", icon: "list" },
+      {
+        title: "Location Stock Report",
+        url: "/locations/stock-report",
+        icon: "bar-chart-2",
+      },
+      {
+        title: "Transfer Requests",
+        url: "/locations/transfer-requests",
+        icon: "truck",
+      },
+    ],
   },
   // REPORTS
   {
-    title: 'Reports',
-    url: '/dashboard/reports',
-    icon: 'file-text',
+    title: "Reports",
+    url: "/dashboard/reports",
+    icon: "file-text",
     isActive: false,
     items: [
-      { title: 'Inventory Report', url: '/dashboard/reports/inventory', icon: 'file-text' },
-      { title: 'Sales Report', url: '/dashboard/reports/sales', icon: 'bar-chart-2' },
-      { title: 'Purchase Report', url: '/dashboard/reports/purchases', icon: 'file-text' },
-      { title: 'Cash Report', url: '/dashboard/reports/cash', icon: 'credit-card' },
-      { title: 'Stock Product Value', url: '/dashboard/reports/valuation', icon: 'database' },
-      { title: 'Expiry Report', url: '/dashboard/reports/expiry', icon: 'calendar' },
-      { title: 'Employee Report', url: '/dashboard/reports/employees', icon: 'user-check' },
-      { title: 'Export Data', url: '/dashboard/reports/export', icon: 'download-cloud' }
-    ]
+      {
+        title: "Inventory Report",
+        url: "/dashboard/reports/inventory",
+        icon: "file-text",
+      },
+      {
+        title: "Sales Report",
+        url: "/dashboard/reports/sales",
+        icon: "bar-chart-2",
+      },
+      {
+        title: "Purchase Report",
+        url: "/dashboard/reports/purchases",
+        icon: "file-text",
+      },
+      {
+        title: "Cash Report",
+        url: "/dashboard/reports/cash",
+        icon: "credit-card",
+      },
+      {
+        title: "Stock Product Value",
+        url: "/dashboard/reports/valuation",
+        icon: "database",
+      },
+      {
+        title: "Expiry Report",
+        url: "/dashboard/reports/expiry",
+        icon: "calendar",
+      },
+      {
+        title: "Employee Report",
+        url: "/dashboard/reports/employees",
+        icon: "user-check",
+      },
+      {
+        title: "Export Data",
+        url: "/dashboard/reports/export",
+        icon: "download-cloud",
+      },
+    ],
   },
 
   // ADMIN / ACCOUNT
@@ -122,7 +182,12 @@ export const navItems: NavItem[] = [
     items: [
       { title: "Units", url: "/units", icon: "grid" },
       { title: "Taxes", url: "/taxes", icon: "percent" },
-      { title: "Field Settings", url: "/settings/fields", icon: "sliders", permissions: ['settings.manage'] },
+      {
+        title: "Field Settings",
+        url: "/settings/fields",
+        icon: "sliders",
+        permissions: ["organization.edit"],
+      },
     ],
   },
   {
@@ -132,7 +197,12 @@ export const navItems: NavItem[] = [
     isActive: false,
     items: [
       { title: "Profile", url: "/profile", icon: "user" },
-      { title: "Employees / Users", url: "/users", icon: "users", roles: ['admin'] },
+      {
+        title: "Employees / Users",
+        url: "/users",
+        icon: "users",
+        roles: ["admin"],
+      },
       {
         title: "Subscription / Billing",
         url: "/dashboard/billing",
