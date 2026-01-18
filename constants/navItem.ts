@@ -122,6 +122,7 @@ export const navItems: NavItem[] = [
     items: [
       { title: "Units", url: "/units", icon: "grid" },
       { title: "Taxes", url: "/taxes", icon: "percent" },
+      { title: "Field Settings", url: "/settings/fields", icon: "sliders", permissions: ['settings.manage'] },
     ],
   },
   {

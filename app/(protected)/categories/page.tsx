@@ -12,12 +12,14 @@ import { DateCell } from '@/ui/components/dataTable/cells'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
 
 // Hooks & API
-import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategories } from '@/hooks/queries'
+import { useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/queries'
 import { categoriesApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys-products'
 import PageHeader from '@/ui/components/header'
 import { FilterConfig } from '@/types/DataTable'
 import { categoryFormConfig } from '@/components/categories/form-config'
+import { FieldSettingsLink } from '@/components/shared/field-settings-link'
+import { useFilteredFormConfig } from '@/hooks/use-filtered-form-config'
 
 // Column definitions
 const columns: ColumnDef<Category>[] = [
@@ -95,11 +97,16 @@ const searchConfig = {
 }
 
 export default function CategoriesPage() {
+  const filteredFormConfig = useFilteredFormConfig(categoryFormConfig, 'category')
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <PageHeader title="Categories" subTitle="Organize your products with categories" />
+      <PageHeader 
+        title="Categories" 
+        subTitle="Organize your products with categories"
+        actions={<FieldSettingsLink module="category" />}
+      />
 
       <DataTable
         cardTitle={(dataLength: number) => `All Categories (${dataLength})`}
@@ -114,7 +121,7 @@ export default function CategoriesPage() {
         enableRowHover={true}
         rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
         operations={{
-          formConfig: categoryFormConfig,
+          formConfig: filteredFormConfig,
           getAllData: categoriesApi.getAll,
           createMutation: useCreateCategory(),
           updateMutation: useUpdateCategory(),
