@@ -24,7 +24,7 @@ export const useCreateOrganizationApi = () => {
       handleMutationSuccess(data.message || "Item created successfully");
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
       // Redirect to dashboard after successful login
-      router.push("/login");
+      router.push("/login?registered=true");
     },
     onError: handleMutationError,
   });
