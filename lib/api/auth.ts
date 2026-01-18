@@ -26,7 +26,7 @@ export function createAuthApi(apiClient: any) {
 
     forgotPassword: (data: {
       email: string;
-      organizationSlug?: string;
+      organizationSlug: string;
     }): Promise<ApiResponse<any>> =>
       apiClient.post("/auth/forgot-password", data),
 
