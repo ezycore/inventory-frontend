@@ -13,9 +13,10 @@ import { productFormConfig } from '@/components/products/form-config'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/queries'
 import type { FilterConfig } from '@/types/DataTable'
 import { ProductStatus } from '@/types'
-import Link from 'next/link'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@ui/components/sheet'
-import { ProductDetail } from '@/components/products/product-detail';
+import { ProductDetail } from '@/components/products/product-detail'
+import { FieldSettingsLink } from '@/components/shared/field-settings-link'
+import { useFilteredFormConfig } from '@/hooks/use-filtered-form-config'
 
 // Column definitions
 const columns: ColumnDef<any>[] = [
@@ -90,6 +91,7 @@ const productFilterConfig: FilterConfig = {
 export default function ProductsPage() {
 
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
 
   // Prepare form data for submission
   const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
@@ -160,6 +162,7 @@ export default function ProductsPage() {
       <PageHeader
         title="Products Management"
         subTitle="Manage your products and their details."
+        actions={<FieldSettingsLink module="product" />}
       />
       <DataTable
         cardTitle={(dataLength: number) => `All Products (${dataLength})`}
@@ -180,7 +183,7 @@ export default function ProductsPage() {
           },
         ]}
         operations={{
-          formConfig: productFormConfig,
+          formConfig: filteredFormConfig,
           getAllData: productsApi.getAll,
           createMutation: useCreateProduct(),
           updateMutation: useUpdateProduct(),
