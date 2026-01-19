@@ -161,6 +161,15 @@ export function useEnhancedColumns<TData, TValue>({
               
               {/* Custom cell actions (excluding built-in types) */}
               {customActions?.filter(a => a.placement === 'cell' && !['edit', 'view', 'delete'].includes(a.type)).map((action, index) => {
+                // If custom render is provided, use it
+                if (action.render) {
+                  return (
+                    <div key={`custom-${index}`}>
+                      {action.render(rowData)}
+                    </div>
+                  );
+                }
+                
                 const href = typeof action.href === 'function' ? action.href(rowData) : action.href;
                 const ButtonComponent = (
                   <Button

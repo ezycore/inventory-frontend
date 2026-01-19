@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Settings2 } from "lucide-react"
-import { Button } from "@/ui/components/button"
-import { useAuthStore } from "@/stores"
+import { useAuthStore } from "@/stores";
+import { Button } from "@/ui/components/button";
+import { Settings2 } from "lucide-react";
+import Link from "next/link";
 
 interface FieldSettingsLinkProps {
-  module: "product" | "brand" | "category"
+  module: "product" | "brand" | "category";
 }
 
 /**
  * Reusable component that shows a Field Settings button
- * Only visible to users with 'settings.manage' permission
+ * Only visible to users with 'organization.edit' permission
  */
 export function FieldSettingsLink({ module }: FieldSettingsLinkProps) {
-  const user = useAuthStore((state) => state.user)
-  const canManageSettings = user?.permissions?.includes("settings.manage") ?? false
-
+  const user = useAuthStore((state) => state.user);
+  const canManageSettings =
+    user?.permissions?.includes("organization.edit") ?? false;
   if (!canManageSettings) {
-    return null
+    return null;
   }
 
   return (
@@ -28,7 +28,7 @@ export function FieldSettingsLink({ module }: FieldSettingsLinkProps) {
         Field Settings
       </Button>
     </Link>
-  )
+  );
 }
 
-export default FieldSettingsLink
+export default FieldSettingsLink;

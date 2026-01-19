@@ -1,37 +1,45 @@
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
   User,
-  RegisterUserDto,
+  CreateUserDto,
+  UpdateUserDto,
   UpdateUserPermissionsDto,
   UpdateUserRoleDto,
-  RegisterUserResponse,
-  UsersResponse,
-  UserResponse,
-  PermissionsResponse,
 } from "@/types/users";
 
 export function createUsersApi(apiClient: any) {
   return {
-    getAll: (): Promise<UsersResponse> => apiClient.get("/users"),
+    getAll: async (params?: { page?: number; limit?: number; [key: string]: any }): Promise<ApiResponse<PaginatedResponse<User>>> => {
+      const response = await apiClient.get("/users");
+      // Backend returns array, need to convert to paginated format
+      const users = response.data || [];
+      return {
+        ...response,
+        data: {
+          items: users,
+          total: users.length,
+          page: 1,
+          limit: users.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
+    },
     
-    getById: (id: string): Promise<UserResponse> => apiClient.get(`/users/${id}`),
+    getById: (id: string): Promise<ApiResponse<User>> => 
+      apiClient.get(`/users/${id}`),
     
-    register: (data: RegisterUserDto): Promise<RegisterUserResponse> => 
+    create: (data: CreateUserDto): Promise<ApiResponse<User>> => 
       apiClient.post("/users", data),
     
-    updatePermissions: (id: string, data: UpdateUserPermissionsDto): Promise<UserResponse> => 
-      apiClient.patch(`/users/${id}/permissions`, data),
+    update: (id: string, data: UpdateUserDto): Promise<ApiResponse<User>> => 
+      apiClient.put(`/users/${id}`, data),
     
-    updateRole: (id: string, data: UpdateUserRoleDto): Promise<UserResponse> => 
-      apiClient.patch(`/users/${id}/role`, data),
-    
-    toggleStatus: (id: string): Promise<UserResponse> => 
+    toggleStatus: (id: string): Promise<ApiResponse<User>> => 
       apiClient.patch(`/users/${id}/toggle-status`, {}),
     
     delete: (id: string): Promise<ApiResponse<{ message: string }>> => 
       apiClient.delete(`/users/${id}`),
-    
-    getAllPermissions: (): Promise<PermissionsResponse> => 
-      apiClient.get("/users/permissions"),
   };
 }

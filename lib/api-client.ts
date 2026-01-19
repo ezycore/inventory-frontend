@@ -22,23 +22,25 @@ export class ApiClient {
 
   constructor(
     baseURL: string = process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:5000/api"
+      "http://localhost:5000/api",
   ) {
     this.baseURL = baseURL;
   }
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    const authStore = await import("@/stores/use-auth-store");
+    const isAuthenticated = authStore.useAuthStore.getState().isAuthenticated;
+    const clearAuth = authStore.useAuthStore.getState().clearAuth;
 
     try {
       // Get token from Zustand store (if available)
       let token: string | null = null;
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         try {
-          const authStore = await import('@/stores/use-auth-store');
           token = authStore.useAuthStore.getState().token || null;
         } catch (e) {
           // Store might not be available yet
@@ -50,20 +52,19 @@ export class ApiClient {
 
       const headers: HeadersInit = isFormData
         ? {
-          ...options.headers,
-        }
+            ...options.headers,
+          }
         : {
-          "Content-Type": "application/json",
-          ...options.headers,
-        };
+            "Content-Type": "application/json",
+            ...options.headers,
+          };
 
       // Add Authorization header if token exists
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers["Authorization"] = `Bearer ${token}`;
       }
 
       const response = await fetch(url, {
-        credentials: "include", // Always include cookies for authentication
         headers,
         ...options,
       });
@@ -72,9 +73,15 @@ export class ApiClient {
 
       if (!response.ok) {
         // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
-        if (response.status === 401 && handle401) {
-          console.warn('🚨 401 Unauthorized - Auto logging out user');
-          handle401();
+        if (response.status === 401) {
+          if (handle401) {
+            handle401();
+          } 
+
+          if(isAuthenticated) {
+            location.pathname = "/login";
+            clearAuth();
+          }
         }
 
         throw {
@@ -126,5 +133,3 @@ export class ApiClient {
 
 // Export singleton instance
 export const apiClient = new ApiClient();
-
-
