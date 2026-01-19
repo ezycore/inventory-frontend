@@ -2,13 +2,55 @@
 
 "use client";
 
-import { Building2, Globe, User } from "lucide-react";
-import { useCreateOwner } from "@/hooks/queries/use-setup";
-import { toast } from "sonner";
+import { useCreateOrganizationApi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
+import { Card, CardContent } from "@/ui/components/card";
 import DynamicForm from "@/ui/components/form";
 import { DynamicFormConfig } from "@/ui/components/form/type";
-import { Card, CardContent } from "@/ui/components/card";
+import { Building2, Globe, User } from "lucide-react";
+import { toast } from "sonner";
+
+export const countryOptions = [
+  { label: "🇺🇸 United States", value: "US" },
+  { label: "🇬🇧 United Kingdom", value: "UK" },
+  { label: "🇨🇦 Canada", value: "CA" },
+  { label: "🇦🇺 Australia", value: "AU" },
+  { label: "🇩🇪 Germany", value: "DE" },
+  { label: "🇫🇷 France", value: "FR" },
+  { label: "🇮🇳 India", value: "IN" },
+  { label: "🇯🇵 Japan", value: "JP" },
+  { label: "🇧🇷 Brazil", value: "BR" },
+  { label: "🇨🇳 China", value: "CN" },
+  { label: "🇧🇩 Bangladesh", value: "BD"},
+];
+
+export const timezoneOptions = [
+  { label: "Eastern Time (ET)", value: "America/New_York" },
+  { label: "Central Time (CT)", value: "America/Chicago" },
+  { label: "Mountain Time (MT)", value: "America/Denver" },
+  { label: "Pacific Time (PT)", value: "America/Los_Angeles" },
+  { label: "London (GMT)", value: "Europe/London" },
+  { label: "Central European (CET)", value: "Europe/Paris" },
+  { label: "Dubai (GST)", value: "Asia/Dubai" },
+  { label: "India (IST)", value: "Asia/Kolkata" },
+  { label: "Bangladesh (BST)", value: "Asia/Dhaka" },
+  { label: "Singapore (SGT)", value: "Asia/Singapore" },
+  { label: "Sydney (AEDT)", value: "Australia/Sydney" },
+];
+
+export const currencyOptions = [
+  { label: "USD - US Dollar ($)", value: "USD" },
+  { label: "EUR - Euro (€)", value: "EUR" },
+  { label: "GBP - British Pound (£)", value: "GBP" },
+  { label: "CAD - Canadian Dollar (C$)", value: "CAD" },
+  { label: "AUD - Australian Dollar (A$)", value: "AUD" },
+  { label: "INR - Indian Rupee (₹)", value: "INR" },
+  { label: "BDT - Bangladeshi Taka (৳)", value: "BDT" },
+  { label: "PKR - Pakistani Rupee (₨)", value: "PKR" },
+  { label: "SGD - Singapore Dollar (S$)", value: "SGD" },
+  { label: "AED - UAE Dirham (د.إ)", value: "AED" },
+];
+
 
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
@@ -116,17 +158,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select country",
           required: true,
-          options: [
-            { label: "🇺🇸 United States", value: "US" },
-            { label: "🇬🇧 United Kingdom", value: "UK" },
-            { label: "🇨🇦 Canada", value: "CA" },
-            { label: "🇦🇺 Australia", value: "AU" },
-            { label: "🇮🇳 India", value: "IN" },
-            { label: "🇧🇩 Bangladesh", value: "BD" },
-            { label: "🇵🇰 Pakistan", value: "PK" },
-            { label: "🇸🇬 Singapore", value: "SG" },
-            { label: "🇦🇪 UAE", value: "AE" },
-          ],
+          options: countryOptions,
         },
         {
           name: "timezone",
@@ -135,19 +167,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select timezone",
           required: true,
-          options: [
-            { label: "Eastern Time (ET)", value: "America/New_York" },
-            { label: "Central Time (CT)", value: "America/Chicago" },
-            { label: "Mountain Time (MT)", value: "America/Denver" },
-            { label: "Pacific Time (PT)", value: "America/Los_Angeles" },
-            { label: "London (GMT)", value: "Europe/London" },
-            { label: "Central European (CET)", value: "Europe/Paris" },
-            { label: "Dubai (GST)", value: "Asia/Dubai" },
-            { label: "India (IST)", value: "Asia/Kolkata" },
-            { label: "Bangladesh (BST)", value: "Asia/Dhaka" },
-            { label: "Singapore (SGT)", value: "Asia/Singapore" },
-            { label: "Sydney (AEDT)", value: "Australia/Sydney" },
-          ],
+          options: timezoneOptions,
         },
         {
           name: "currency",
@@ -156,43 +176,18 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select currency",
           required: true,
-          options: [
-            { label: "USD - US Dollar ($)", value: "USD" },
-            { label: "EUR - Euro (€)", value: "EUR" },
-            { label: "GBP - British Pound (£)", value: "GBP" },
-            { label: "CAD - Canadian Dollar (C$)", value: "CAD" },
-            { label: "AUD - Australian Dollar (A$)", value: "AUD" },
-            { label: "INR - Indian Rupee (₹)", value: "INR" },
-            { label: "BDT - Bangladeshi Taka (৳)", value: "BDT" },
-            { label: "PKR - Pakistani Rupee (₨)", value: "PKR" },
-            { label: "SGD - Singapore Dollar (S$)", value: "SGD" },
-            { label: "AED - UAE Dirham (د.إ)", value: "AED" },
-          ],
+          options: currencyOptions
         },
       ],
     },
   ],
 };
 
-export default function OwnerSetupPage() {
-  const createOwnerMutation = useCreateOwner();
+export default function Signup() {
+  const createOwnerMutation = useCreateOrganizationApi();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
-  const handleFieldChange = (fieldName: string, value: any) => {
-    console.log(`Field changed: ${fieldName} = ${value}`);
-    // // Auto-generate slug from organization name
-    // if (fieldName === "organizationName") {
-    //   const currentSlug = form.getValues("organizationSlug");
-    //   const previousOrgName = form.getValues("organizationName");
-
-    //   // Only auto-generate if slug hasn't been manually edited
-    //   if (!currentSlug || currentSlug === generateSlug(previousOrgName)) {
-    //     form.setValue("organizationSlug", generateSlug(value));
-    //   }
-    // }
-  };
-
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: Record<string, any>) => {
     // Validate passwords match
     if (data.password !== data.confirmPassword) {
       toast.error("Passwords do not match");
@@ -205,7 +200,7 @@ export default function OwnerSetupPage() {
       return;
     }
 
-    createOwnerMutation.mutate(data);
+    createOwnerMutation.mutate(data as FormData);
   };
 
   return (
@@ -231,7 +226,6 @@ export default function OwnerSetupPage() {
           className="space-y-6"
           config={config}
           form={form}
-          onFieldChange={handleFieldChange}
           cancelLabel={null}
           submitLabel={
             createOwnerMutation.isPending

@@ -52,6 +52,9 @@ export interface CustomAction {
 
   /** Button variant */
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+
+  /** Custom render function for complete control over rendering */
+  render?: (row?: any) => React.ReactNode;
 }
 
 /**

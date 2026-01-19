@@ -54,13 +54,14 @@ export const company = {
 import { DynamicIcon } from 'lucide-react/dynamic';
 import { navItems } from '@/constants/navItem';
 import { useAuthStore } from '@/stores/use-auth-store';
+import { useLogout } from '@/hooks';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
   const router = useRouter();
-  const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
+  const logout = useLogout();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const handleSwitchTenant = (_tenantId: string) => {
     // Tenant switching functionality would be implemented here
@@ -220,10 +221,7 @@ export default function AppSidebar() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={async () => {
-                    await logout();
-                    router.push('/login');
-                  }}
+                  onClick={logout}
                 >
                   <LogOutIcon className='mr-2 h-4 w-4' />
                   Logout

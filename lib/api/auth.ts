@@ -5,27 +5,35 @@ import type { ApiResponse } from "@/types";
  */
 export function createAuthApi(apiClient: any) {
   return {
-    login: (credentials: { email: string; password: string }): Promise<ApiResponse<any>> =>
-      apiClient.post("/auth/login", credentials),
+    login: (credentials: {
+      email: string;
+      password: string;
+      organizationSlug?: string;
+    }): Promise<ApiResponse<any>> => apiClient.post("/auth/login", credentials),
 
-    logout: (): Promise<ApiResponse<void>> =>
-      apiClient.post("/auth/logout"),
+    logout: (): Promise<ApiResponse<void>> => apiClient.post("/auth/logout"),
 
-    me: (): Promise<ApiResponse<any>> =>
-      apiClient.get("/auth/me"),
+    me: (): Promise<ApiResponse<any>> => apiClient.get("/auth/me"),
 
     verifyEmail: (data: { token: string }): Promise<ApiResponse<any>> =>
       apiClient.post("/auth/verify-email", data),
 
-    resendVerification: (data: { email: string; organizationSlug?: string }): Promise<ApiResponse<any>> =>
+    resendVerification: (data: {
+      email: string;
+      organizationSlug?: string;
+    }): Promise<ApiResponse<any>> =>
       apiClient.post("/auth/resend-verification", data),
 
-    forgotPassword: (data: { email: string; organizationSlug?: string }): Promise<ApiResponse<any>> =>
+    forgotPassword: (data: {
+      email: string;
+      organizationSlug: string;
+    }): Promise<ApiResponse<any>> =>
       apiClient.post("/auth/forgot-password", data),
 
-    resetPassword: (data: { token: string; newPassword: string }): Promise<ApiResponse<any>> =>
+    resetPassword: (data: {
+      token: string;
+      newPassword: string;
+    }): Promise<ApiResponse<any>> =>
       apiClient.post("/auth/reset-password", data),
   };
 }
-
-
