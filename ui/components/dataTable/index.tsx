@@ -17,7 +17,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
 ) {
   const { cardTitle, defaultPageSize, pageSizes,filterConfig, operations,  toolbarAction, data: externalData, customActions, ...restProps } = props;
 
-  const {formConfig, defaultValues, openInside, getAllData, createMutation, updateMutation, deleteMutation, bulkDeleteMutation, queryKey, entityName, isViewAvailable, editTooltip, deleteTooltip, viewTooltip, transformEditData, prepareSubmitData} = operations || {};
+  const {formConfig, defaultValues, openInside, getAllData, createMutation, updateMutation, deleteMutation, bulkDeleteMutation, queryKey, entityName, isViewAvailable, editTooltip, deleteTooltip, viewTooltip, transformEditData, prepareSubmitData, disabledFieldsInEdit} = operations || {};
   
   // Internal state for self-contained mode
   const [page, setPage] = useState(1);
@@ -200,6 +200,8 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
               modalSize="md"
               viewMode={isViewMode}
               onSuccess={handleCloseModal}
+              disabledFieldsInEdit={disabledFieldsInEdit}
+              isEditMode={!!editingItem}
             />
           )}
         </CardContent>

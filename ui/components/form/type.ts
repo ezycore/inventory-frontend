@@ -177,6 +177,10 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
 
   // Regular form actions props
   actionsPlacement?: 'top' | 'bottom' | 'both'
+
+  // Disabled fields in edit mode
+  disabledFieldsInEdit?: string[]
+  isEditMode?: boolean
 }
 
 // Schema generation utility
