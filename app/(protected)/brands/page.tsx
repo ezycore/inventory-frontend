@@ -190,6 +190,7 @@ export default function BrandsPage() {
           createMutation: useCreateBrand(),
           updateMutation: useUpdateBrand(),
           deleteMutation: useDeleteBrand(),
+          disabledFieldsInEdit: ['name'],
           bulkDeleteMutation: useBulkDeleteBrand(),
           queryKey: [...queryKeys.brands.all()],
           entityName: "Brand",

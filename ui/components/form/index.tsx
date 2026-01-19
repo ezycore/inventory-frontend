@@ -56,6 +56,10 @@ const DynamicForm: FC<DynamicFormProps> = ({
     actionsPlacement = 'bottom',
     resetAfterSubmit = true,
     hideCancel = false,
+
+    // Disabled fields in edit mode
+    disabledFieldsInEdit,
+    isEditMode = false,
     ...props
 }) => {
     const { control, formState, setValue, watch, handleSubmit } = form as any;
@@ -144,6 +148,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
             onFieldChange={onFieldChange}
             className={className}
             viewMode={viewMode}
+            disabledFieldsInEdit={disabledFieldsInEdit}
+            isEditMode={isEditMode}
         />
     )
 

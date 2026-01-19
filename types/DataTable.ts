@@ -183,6 +183,7 @@ interface Operations<TData = any> {
   prepareSubmitData?: (data: TData, isEdit: boolean, originalItem?: TData) => any;
   transformEditData?: (item: TData) => any;
   openInside?: "modal" | "drawer";
+  disabledFieldsInEdit?: string[];
 }
 
 /**
