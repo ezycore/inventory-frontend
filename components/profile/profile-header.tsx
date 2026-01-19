@@ -8,9 +8,8 @@ import {
 } from "@/ui/components/card";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { Mail, Phone, Building2, Camera, Loader2, Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { profileApi } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { useUpdateAvatar, useRemoveAvatar } from "@/hooks/queries/use-profile";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -24,53 +23,33 @@ import {
 } from "@/ui/components/alert-dialog";
 
 export function ProfileHeader() {
-  const { user, updateUser } = useAuthStore();
+  const { user : storedUser } = useAuthStore();
+  const [user, setUser] = useState({
+    firstName: '-',
+    lastName: '',
+    avatar: {
+      url: ''
+    },
+    role: '-',
+    organization: {
+      name: '-'
+    },
+    email: '-',
+    phone: '-'
+  });
+
+  useEffect(() => {
+    if (storedUser) {
+      setUser(storedUser as typeof user);
+    }
+  }, [storedUser]);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
 
-  const updateAvatar = useMutation({
-    mutationFn: (formData: FormData) => profileApi.update('me', formData),
-    onSuccess: (response) => {
-      // Update the user in auth store
-      if (response.data) {
-        updateUser(response.data);
-      }
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      toast.success(response.message || "Profile image updated successfully");
-      setIsUploading(false);
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to update profile image");
-      setIsUploading(false);
-    },
-  });
-
-  const removeAvatar = useMutation({
-    mutationFn: () => {
-      const formData = new FormData();
-      formData.append("id", "me");
-      formData.append("removeAvatar", "true");
-      return profileApi.update('me', formData);
-    },
-    onSuccess: (response) => {
-      // Update the user in auth store
-      if (response.data) {
-        updateUser(response.data);
-      }
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      toast.success("Profile image removed successfully");
-      setShowRemoveDialog(false);
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to remove profile image");
-    },
-  });
-
-  if (!user) return null;
+  const updateAvatar = useUpdateAvatar();
+  const removeAvatar = useRemoveAvatar();
 
   const getInitials = () => {
     return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
@@ -109,7 +88,9 @@ export function ProfileHeader() {
     const formData = new FormData();
     formData.append("avatar", file);
 
-    updateAvatar.mutate(formData);
+    updateAvatar.mutate(formData, {
+      onSettled: () => setIsUploading(false),
+    });
     
     // Clear the input so same file can be selected again
     e.target.value = '';
@@ -233,7 +214,9 @@ export function ProfileHeader() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => removeAvatar.mutate()}
+              onClick={() => removeAvatar.mutate(undefined, {
+                onSuccess: () => setShowRemoveDialog(false),
+              })}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Remove

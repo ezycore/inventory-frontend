@@ -36,6 +36,41 @@ export function createProfileApi(apiClient: any) {
       }>
     > => apiClient.get("/profile/permissions"),
 
+    // 2FA methods
+    get2FAStatus: (): Promise<ApiResponse<{ enabled: boolean }>> =>
+      apiClient.get("/profile/2fa/status"),
+
+    enable2FA: (): Promise<
+      ApiResponse<{ secret: string; qrCode: string }>
+    > => apiClient.post("/profile/2fa/enable", {}),
+
+    verify2FA: (data: {
+      token: string;
+    }): Promise<
+      ApiResponse<{ message: string; backupCodes: string[] }>
+    > => apiClient.post("/profile/2fa/verify", data),
+
+    disable2FA: (data: { password: string }): Promise<ApiResponse<any>> =>
+      apiClient.post("/profile/2fa/disable", data),
+
+    // Organization ownership methods
+    getOrganizationUsers: (): Promise<
+      ApiResponse<
+        Array<{
+          _id: string;
+          firstName: string;
+          lastName: string;
+          email: string;
+          role: string;
+        }>
+      >
+    > => apiClient.get("/profile/organization/users"),
+
+    transferOwnership: (data: {
+      newOwnerId: string;
+    }): Promise<ApiResponse<any>> =>
+      apiClient.post("/profile/transfer-ownership", data),
+
     // Dummy methods to match standard API pattern (not used but required by factory)
     create: (data: FormData): Promise<ApiResponse<any>> => 
       Promise.reject(new Error("Create not supported for profile")),

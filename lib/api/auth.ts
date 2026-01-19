@@ -9,6 +9,7 @@ export function createAuthApi(apiClient: any) {
       email: string;
       password: string;
       organizationSlug?: string;
+      twoFactorToken?: string;
     }): Promise<ApiResponse<any>> => apiClient.post("/auth/login", credentials),
 
     logout: (): Promise<ApiResponse<void>> => apiClient.post("/auth/logout"),

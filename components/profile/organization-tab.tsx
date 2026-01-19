@@ -14,14 +14,11 @@ import {
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useState, useMemo } from "react";
 import { Loader2, Lock } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { organizationApi } from "@/lib/api";
-import { toast } from "sonner";
+import { useUpdateOrganization } from "@/hooks/queries/use-profile";
 import { countryOptions, currencyOptions, timezoneOptions } from "@/app/(auth)/signup/page";
 
 export function OrganizationTab() {
-  const { user, updateUser } = useAuthStore();
-  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
 
   // Initialize form data using useMemo to avoid cascading renders
@@ -41,28 +38,7 @@ export function OrganizationTab() {
 
   const [formData, setFormData] = useState(initialFormData);
 
-  const updateOrganization = useMutation({
-    mutationFn: (data: typeof formData) => {
-      return organizationApi.update(data as unknown as FormData);
-    },
-    onSuccess: (response) => {
-      // Update organization in auth store
-      if (response.data && user) {
-        updateUser({
-          ...user,
-          organization: {
-            ...user.organization,
-            ...response.data
-          }
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
-      toast.success(response.message || "Organization updated successfully");
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to update organization");
-    },
-  });
+  const updateOrganization = useUpdateOrganization();
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
