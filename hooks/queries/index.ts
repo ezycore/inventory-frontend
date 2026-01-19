@@ -6,8 +6,8 @@ export { useLogin, useLogout } from "./use-auth";
 
 // Profile hooks
 export {
+  useProfile,
   useProfilePermissions,
-  useUpdateAvatar,
   useUpdatePassword,
   useUpdatePreferences,
   useUpdateProfile,

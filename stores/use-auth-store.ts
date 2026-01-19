@@ -11,7 +11,7 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
-  avatar?: Image[];
+  avatar?: Image; // Single image object, not array
   role: "super_admin" | "admin" | "manager" | "staff" | "viewer";
   status: "active" | "inactive";
   permissions: string[];
@@ -40,6 +40,7 @@ interface AuthState extends LoadingState {
 // Auth actions interface
 interface AuthActions {
   setUser: (user: User, token: string) => void;
+  updateUser: (updates: Partial<User>) => void;
   clearAuth: () => void;
   hydrateAuth: () => void;
 }
@@ -73,6 +74,13 @@ export const useAuthStore = create<AuthStore>()(
             sameSite: "lax",
             secure: process.env.NODE_ENV === "production",
           });
+        },
+
+        updateUser: (updates: Partial<User>) => {
+          const currentUser = get().user;
+          if (currentUser) {
+            set({ user: { ...currentUser, ...updates } });
+          }
         },
 
         clearAuth: () => {

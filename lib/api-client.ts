@@ -34,6 +34,7 @@ export class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
     const authStore = await import("@/stores/use-auth-store");
     const isAuthenticated = authStore.useAuthStore.getState().isAuthenticated;
+    const clearAuth = authStore.useAuthStore.getState().clearAuth;
 
     try {
       // Get token from Zustand store (if available)
@@ -79,6 +80,7 @@ export class ApiClient {
 
           if(isAuthenticated) {
             location.pathname = "/login";
+            clearAuth();
           }
         }
 
