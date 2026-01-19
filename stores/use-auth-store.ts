@@ -24,6 +24,7 @@ export interface User {
     address?: string;
     image?: Image[];
     status: "active" | "inactive";
+    ownerId?: string;
     settings: {
       excludedFields?: { [key: string]: string[] };
     };

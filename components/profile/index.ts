@@ -3,3 +3,5 @@ export { ProfileInfoTab } from "./profile-info-tab";
 export { PasswordChangeTab } from "./password-change-tab";
 export { PermissionsTab } from "./permissions-tab";
 export { OrganizationTab } from "./organization-tab";
+export { TwoFactorTab } from "./two-factor-tab";
+export { TransferOwnershipTab } from "./transfer-ownership-tab";

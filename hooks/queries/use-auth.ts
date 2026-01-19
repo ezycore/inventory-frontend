@@ -16,8 +16,16 @@ export function useLogin() {
       email: string;
       password: string;
       organizationSlug?: string;
+      twoFactorToken?: string;
     }) => authApi.login(credentials),
     onSuccess: (result) => {
+      // Check if 2FA is required
+      if (result.data?.requires2FA) {
+        // Don't redirect or show success message for 2FA required
+        // The component will handle showing the 2FA input
+        return;
+      }
+
       // Store user data and token in auth store
       if (result.data?.user && result.data?.token) {
         setUser(result.data.user, result.data.token);
