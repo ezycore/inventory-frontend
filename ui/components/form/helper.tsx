@@ -55,6 +55,8 @@ const FormField: React.FC<{
   setValue: any;
   onFieldChange?: (fieldName: string, value: any) => void;
   viewMode?: boolean;
+  disabledFieldsInEdit?: string[];
+  isEditMode?: boolean;
 }> = memo(({
   field,
   control,
@@ -63,8 +65,14 @@ const FormField: React.FC<{
   setValue,
   onFieldChange,
   viewMode = false,
+  disabledFieldsInEdit,
+  isEditMode = false,
 }) => {
     const error = formState.errors[field.name]?.message;
+    
+    // Check if field should be disabled in edit mode
+    const isFieldDisabledInEdit = isEditMode && disabledFieldsInEdit?.includes(field.name);
+    const effectiveDisabled = field.disabled || isFieldDisabledInEdit;
     
     // Use useWatch for better performance - only subscribes to specific fields
     const fieldValue = useWatch({ control, name: field.name });
@@ -215,7 +223,7 @@ const FormField: React.FC<{
                   value={controllerField.value ?? ""}
                   type={field.type === "number" ? "number" : "text"}
                   placeholder={field.placeholder}
-                  disabled={field.disabled}
+                  disabled={effectiveDisabled}
                   min={field.validation?.min}
                   max={field.validation?.max}
                   step={field.step}
@@ -257,7 +265,7 @@ const FormField: React.FC<{
                   {...controllerField}
                   value={controllerField.value ?? ""}
                   placeholder={field.placeholder}
-                  disabled={field.disabled}
+                  disabled={effectiveDisabled}
                   rows={field.rows || 3}
                   onChange={(e) => {
                     controllerField.onChange(e.target.value);
@@ -279,7 +287,7 @@ const FormField: React.FC<{
                   {...controllerField}
                   type={"password"}
                   placeholder={field.placeholder}
-                  disabled={field.disabled}
+                  disabled={effectiveDisabled}
                   min={field.validation?.min}
                   max={field.validation?.max}
                   onChange={(e) => {
@@ -346,7 +354,7 @@ const FormField: React.FC<{
                       controllerField.onChange(checked);
                       handleChange(checked);
                     }}
-                    disabled={field.disabled}
+                    disabled={effectiveDisabled}
                   />
                   <Label htmlFor={field.name}>{field.label}</Label>
                 </div>
@@ -370,7 +378,7 @@ const FormField: React.FC<{
                     controllerField.onChange(value);
                     handleChange(value);
                   }}
-                  disabled={field.disabled}
+                  disabled={effectiveDisabled}
                 >
                   {field.options?.map((option) => (
                     <div
@@ -704,6 +712,8 @@ const FormSectionComponent: React.FC<{
   onFieldChange?: (fieldName: string, value: any) => void;
   maxColumns: number;
   viewMode?: boolean;
+  disabledFieldsInEdit?: string[];
+  isEditMode?: boolean;
 }> = ({
   section,
   control,
@@ -713,6 +723,8 @@ const FormSectionComponent: React.FC<{
   onFieldChange,
   maxColumns,
   viewMode = false,
+  disabledFieldsInEdit,
+  isEditMode = false,
 }) => {
     const [isOpen, setIsOpen] = React.useState(section.defaultOpen ?? true);
 
@@ -729,6 +741,8 @@ const FormSectionComponent: React.FC<{
               setValue={setValue}
               onFieldChange={onFieldChange}
               viewMode={viewMode}
+              disabledFieldsInEdit={disabledFieldsInEdit}
+              isEditMode={isEditMode}
             />
           ))}
         </div>
@@ -810,6 +824,8 @@ const FormContent: React.FC<{
   onFieldChange?: any;
   className?: string;
   viewMode?: boolean;
+  disabledFieldsInEdit?: string[];
+  isEditMode?: boolean;
 }> = ({
   config,
   control,
@@ -819,6 +835,8 @@ const FormContent: React.FC<{
   onFieldChange,
   className,
   viewMode = false,
+  disabledFieldsInEdit,
+  isEditMode = false,
 }) => {
     return (
       <div className={cn("space-y-4 sm:space-y-6", className)}>
@@ -835,6 +853,8 @@ const FormContent: React.FC<{
               onFieldChange={onFieldChange}
               maxColumns={12}
               viewMode={viewMode}
+              disabledFieldsInEdit={disabledFieldsInEdit}
+              isEditMode={isEditMode}
             />
           ))}
 
@@ -851,6 +871,8 @@ const FormContent: React.FC<{
                 setValue={setValue}
                 onFieldChange={onFieldChange}
                 viewMode={viewMode}
+                disabledFieldsInEdit={disabledFieldsInEdit}
+                isEditMode={isEditMode}
               />
             ))}
           </div>
