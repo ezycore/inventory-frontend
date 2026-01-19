@@ -201,7 +201,7 @@ export const navItems: NavItem[] = [
         title: "Employees / Users",
         url: "/users",
         icon: "users",
-        roles: ["admin"],
+        roles: ["admin", "manager"],
       },
       {
         title: "Subscription / Billing",

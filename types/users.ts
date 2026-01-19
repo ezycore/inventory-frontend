@@ -26,11 +26,12 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
+  emailVerified: boolean;
   phone?: string;
   avatar?: string;
   role: Role;
   permissions: Permission[];
-  status: boolean;
+  status: "active" | "inactive";
   preferences: {
     theme: "light" | "dark" | "system";
     currency: string;
@@ -40,6 +41,21 @@ export interface User {
   lastLogin?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateUserDto {
+  email: string;
+  firstName: string;
+  lastName: string;
+  role?: Role;
+  phone?: string;
+}
+
+export interface UpdateUserDto {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  role?: Role;
 }
 
 export interface RegisterUserDto {

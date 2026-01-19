@@ -123,12 +123,10 @@ export const queryKeys = {
   },
 
   // Users query keys
-  user: {
+  users: {
     all: () => ["users"] as const,
-    list: (filters: Record<string, any>) =>
-      [...queryKeys.user.all(), "list", filters] as const,
-    detail: (id: string) => [...queryKeys.user.all(), "detail", id] as const,
-    profile: () => [...queryKeys.user.all(), "profile"] as const,
+    list: () => [...queryKeys.users.all(), "list"] as const,
+    detail: (id: string) => [...queryKeys.users.all(), "detail", id] as const,
   },
 
   // Dashboard query keys

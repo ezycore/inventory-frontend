@@ -32,13 +32,14 @@ export class ApiClient {
     options: RequestInit = {},
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    const authStore = await import("@/stores/use-auth-store");
+    const isAuthenticated = authStore.useAuthStore.getState().isAuthenticated;
 
     try {
       // Get token from Zustand store (if available)
       let token: string | null = null;
       if (typeof window !== "undefined") {
         try {
-          const authStore = await import("@/stores/use-auth-store");
           token = authStore.useAuthStore.getState().token || null;
         } catch (e) {
           // Store might not be available yet
@@ -71,9 +72,14 @@ export class ApiClient {
 
       if (!response.ok) {
         // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
-        if (response.status === 401 && handle401) {
-          console.warn("🚨 401 Unauthorized - Auto logging out user");
-          handle401();
+        if (response.status === 401) {
+          if (handle401) {
+            handle401();
+          } 
+
+          if(isAuthenticated) {
+            location.pathname = "/login";
+          }
         }
 
         throw {
