@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { Button } from "@ui/components/button"
+import { useVerifyEmail } from "@/hooks/queries/use-auth";
+import { Button } from "@ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@ui/components/card"
-import { CheckCircle2, Loader2, XCircle } from "lucide-react"
-import Link from "next/link"
-import { useVerifyEmail } from "@/hooks/queries/use-auth"
-import { useSearchParams } from "next/navigation"
-import { useEffect } from "react"
+} from "@ui/components/card";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const token = searchParams.get("token");
   const verifyEmailMutation = useVerifyEmail();
 
   useEffect(() => {
@@ -53,18 +53,19 @@ export default function VerifyEmailPage() {
               {verifyEmailMutation.isError && "Verification Failed"}
             </CardTitle>
             <CardDescription className="text-center">
-              {verifyEmailMutation.isPending && "Please wait while we verify your email address"}
-              {verifyEmailMutation.isSuccess && "Your email has been successfully verified. You can now login to your account."}
-              {verifyEmailMutation.isError && "The verification link is invalid or has expired. Please request a new verification email."}
+              {verifyEmailMutation.isPending &&
+                "Please wait while we verify your email address"}
+              {verifyEmailMutation.isSuccess &&
+                "Your email has been successfully verified. You can now login to your account."}
+              {verifyEmailMutation.isError &&
+                "The verification link is invalid or has expired. Please request a new verification email."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-3">
               {verifyEmailMutation.isSuccess && (
                 <Button asChild className="w-full">
-                  <Link href="/login">
-                    Go to Login
-                  </Link>
+                  <Link href="/login">Go to Login</Link>
                 </Button>
               )}
               {verifyEmailMutation.isError && (
@@ -75,9 +76,7 @@ export default function VerifyEmailPage() {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="w-full">
-                    <Link href="/login">
-                      Back to Login
-                    </Link>
+                    <Link href="/login">Back to Login</Link>
                   </Button>
                 </>
               )}
@@ -86,5 +85,19 @@ export default function VerifyEmailPage() {
         </Card>
       </div>
     </div>
-  )
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <VerifyEmailForm />
+    </Suspense>
+  );
 }

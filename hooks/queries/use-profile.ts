@@ -1,15 +1,15 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileApi, organizationApi } from '@/lib/api';
-import { createResourceHooks, handleMutationSuccess } from './helper';
-import { handleMutationError } from '@/lib/error-handling';
-import { useAuthStore } from '@/stores/use-auth-store';
+import { organizationApi, profileApi } from "@/lib/api";
+import { handleMutationError } from "@/lib/error-handling";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createResourceHooks, handleMutationSuccess } from "./helper";
 
 // Query keys
 export const profileKeys = {
-  all: () => ['profile'] as const,
+  all: () => ["profile"] as const,
   list: () => [...profileKeys.all()] as const,
   detail: (id: string) => [...profileKeys.all(), id] as const,
-  permissions: () => [...profileKeys.all(), 'permissions'] as const,
+  permissions: () => [...profileKeys.all(), "permissions"] as const,
 };
 
 // Profile DTO types
@@ -18,6 +18,7 @@ interface ProfileDto {
   lastName?: string;
   email?: string;
   phone?: string;
+  avatar?: string;
 }
 
 interface UpdatePasswordDto {
@@ -26,7 +27,7 @@ interface UpdatePasswordDto {
 }
 
 interface PreferencesDto {
-  theme?: 'light' | 'dark' | 'system';
+  theme?: "light" | "dark" | "system";
   currency?: string;
   timezone?: string;
   language?: string;
@@ -41,23 +42,23 @@ interface OrganizationDto {
 }
 
 // Create resource hooks using the factory
-const profileHooks = createResourceHooks<any, ProfileDto, ProfileDto>(
+const profileHooks = createResourceHooks<ProfileDto, ProfileDto>(
   profileApi,
-  profileKeys as any
+  profileKeys as any,
 );
 
 // Export standard hooks - use 'me' as the ID for current user profile
-export const useProfile = () => profileHooks.useDetail('me');
+export const useProfile = () => profileHooks.useDetail("me");
 
 // Custom update profile hook with auth store update
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuthStore();
-  
+
   return useMutation({
     mutationFn: (data: FormData | ({ id: string } & any)) => {
       if (data instanceof FormData) {
-        const id = data.get('id') as string;
+        const id = data.get("id") as string;
         return profileApi.update(id, data);
       }
       const { id, ...rest } = data;
@@ -68,15 +69,16 @@ export function useUpdateProfile() {
       if (response.data) {
         updateUser(response.data);
       }
-      
-      const id = variables instanceof FormData
-        ? variables.get('id') as string
-        : variables.id;
+
+      const id =
+        variables instanceof FormData
+          ? (variables.get("id") as string)
+          : variables.id;
 
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
       queryClient.invalidateQueries({ queryKey: profileKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
+
       if (response.message) {
         handleMutationSuccess(response.message);
       }
@@ -91,15 +93,17 @@ export function useUpdateAvatar() {
   const { updateUser } = useAuthStore();
 
   return useMutation({
-    mutationFn: (formData: FormData) => profileApi.update('me', formData),
+    mutationFn: (formData: FormData) => profileApi.update("me", formData),
     onSuccess: (response) => {
       // Update the user in auth store
       if (response.data) {
         updateUser(response.data);
       }
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      handleMutationSuccess(response.message || 'Profile image updated successfully');
+      handleMutationSuccess(
+        response.message || "Profile image updated successfully",
+      );
     },
     onError: handleMutationError,
   });
@@ -113,18 +117,18 @@ export function useRemoveAvatar() {
   return useMutation({
     mutationFn: () => {
       const formData = new FormData();
-      formData.append('id', 'me');
-      formData.append('removeAvatar', 'true');
-      return profileApi.update('me', formData);
+      formData.append("id", "me");
+      formData.append("removeAvatar", "true");
+      return profileApi.update("me", formData);
     },
     onSuccess: (response) => {
       // Update the user in auth store
       if (response.data) {
         updateUser(response.data);
       }
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      handleMutationSuccess('Profile image removed successfully');
+      handleMutationSuccess("Profile image removed successfully");
     },
     onError: handleMutationError,
   });
@@ -133,7 +137,7 @@ export function useRemoveAvatar() {
 // Get permissions
 export function useProfilePermissions() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async () => {
       const response = await profileApi.getPermissions();
@@ -151,7 +155,9 @@ export function useUpdatePassword() {
   return useMutation({
     mutationFn: (data: UpdatePasswordDto) => profileApi.updatePassword(data),
     onSuccess: (response) => {
-      handleMutationSuccess(response.message || 'Password changed successfully');
+      handleMutationSuccess(
+        response.message || "Password changed successfully",
+      );
     },
     onError: handleMutationError,
   });
@@ -162,10 +168,13 @@ export function useUpdatePreferences() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (preferences: PreferencesDto) => profileApi.updatePreferences(preferences),
+    mutationFn: (preferences: PreferencesDto) =>
+      profileApi.updatePreferences(preferences),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      handleMutationSuccess(response.message || 'Preferences updated successfully');
+      handleMutationSuccess(
+        response.message || "Preferences updated successfully",
+      );
     },
     onError: handleMutationError,
   });
@@ -177,7 +186,8 @@ export function useUpdateOrganization() {
   const { user, updateUser } = useAuthStore();
 
   return useMutation({
-    mutationFn: (data: OrganizationDto) => organizationApi.update(data as unknown as FormData),
+    mutationFn: (data: OrganizationDto) =>
+      organizationApi.update(data as unknown as FormData),
     onSuccess: (response) => {
       // Update organization in auth store
       if (response.data && user) {
@@ -189,9 +199,11 @@ export function useUpdateOrganization() {
           },
         });
       }
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      handleMutationSuccess(response.message || 'Organization updated successfully');
+      handleMutationSuccess(
+        response.message || "Organization updated successfully",
+      );
     },
     onError: handleMutationError,
   });
@@ -202,14 +214,14 @@ export function useUpdateOrganization() {
 // Get 2FA status
 export function use2FAStatus() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async () => {
       const response = await profileApi.get2FAStatus();
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData([...profileKeys.all(), '2fa-status'], data);
+      queryClient.setQueryData([...profileKeys.all(), "2fa-status"], data);
     },
     onError: handleMutationError,
   });
@@ -229,11 +241,13 @@ export function useEnable2FA() {
 // Verify 2FA
 export function useVerify2FA() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (token: string) => profileApi.verify2FA({ token }),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [...profileKeys.all(), '2fa-status'] });
+      queryClient.invalidateQueries({
+        queryKey: [...profileKeys.all(), "2fa-status"],
+      });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
       if (response.message) {
         handleMutationSuccess(response.message);
@@ -246,13 +260,15 @@ export function useVerify2FA() {
 // Disable 2FA
 export function useDisable2FA() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (password: string) => profileApi.disable2FA({ password }),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [...profileKeys.all(), '2fa-status'] });
+      queryClient.invalidateQueries({
+        queryKey: [...profileKeys.all(), "2fa-status"],
+      });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      handleMutationSuccess(response.message || '2FA disabled successfully');
+      handleMutationSuccess(response.message || "2FA disabled successfully");
     },
     onError: handleMutationError,
   });
@@ -275,15 +291,15 @@ export function useOrganizationUsers() {
 export function useTransferOwnership() {
   const queryClient = useQueryClient();
   const { updateUser, user } = useAuthStore();
-  
+
   return useMutation({
-    mutationFn: (newOwnerId: string) => 
+    mutationFn: (newOwnerId: string) =>
       profileApi.transferOwnership({ newOwnerId }),
     onSuccess: (response) => {
       // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      
+
       // Update auth store - current user is no longer owner
       if (user && response.data) {
         updateUser({
@@ -294,8 +310,10 @@ export function useTransferOwnership() {
           },
         });
       }
-      
-      handleMutationSuccess(response.message || 'Ownership transferred successfully');
+
+      handleMutationSuccess(
+        response.message || "Ownership transferred successfully",
+      );
     },
     onError: handleMutationError,
   });
