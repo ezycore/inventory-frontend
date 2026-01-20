@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { handleMutationSuccess } from "./helper";
 
 // Login mutation hook
-export function useLogin() {
+export function useLogin(show2FASetter: (show: boolean) => void) {
   const router = useRouter();
   const { setUser } = useAuthStore();
   const queryClient = useQueryClient();
@@ -21,6 +21,7 @@ export function useLogin() {
     onSuccess: (result) => {
       // Check if 2FA is required
       if (result.data?.requires2FA) {
+        show2FASetter(true);
         // Don't redirect or show success message for 2FA required
         // The component will handle showing the 2FA input
         return;
@@ -53,7 +54,7 @@ export function useLogout() {
     router.push("/login");
     queryClient.clear();
     handleMutationSuccess("Logged out successfully");
-  }
+  };
 }
 
 // Verify email mutation hook

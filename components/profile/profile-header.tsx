@@ -1,16 +1,7 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
-import { Badge } from "@/ui/components/badge";
-import { Button } from "@/ui/components/button";
-import {
-  Card,
-} from "@/ui/components/card";
+import { useRemoveAvatar, useUpdateAvatar } from "@/hooks/queries/use-profile";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { Mail, Phone, Building2, Camera, Loader2, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useUpdateAvatar, useRemoveAvatar } from "@/hooks/queries/use-profile";
-import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,29 +12,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/ui/components/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
+import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
+import { Card } from "@/ui/components/card";
+import { Building2, Camera, Loader2, Mail, Phone, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 export function ProfileHeader() {
-  const { user : storedUser } = useAuthStore();
-  const [user, setUser] = useState({
-    firstName: '-',
-    lastName: '',
+  const { user: storedUser } = useAuthStore();
+  const user = storedUser || {
+    firstName: "-",
+    lastName: "",
     avatar: {
-      url: ''
+      url: "",
     },
-    role: '-',
+    role: "-",
     organization: {
-      name: '-'
+      name: "-",
     },
-    email: '-',
-    phone: '-'
-  });
+    email: "-",
+    phone: "-",
+  };
 
-  useEffect(() => {
-    if (storedUser) {
-      setUser(storedUser as typeof user);
-    }
-  }, [storedUser]);
-  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -91,9 +83,9 @@ export function ProfileHeader() {
     updateAvatar.mutate(formData, {
       onSettled: () => setIsUploading(false),
     });
-    
+
     // Clear the input so same file can be selected again
-    e.target.value = '';
+    e.target.value = "";
   };
 
   return (
@@ -104,7 +96,7 @@ export function ProfileHeader() {
           <div className="relative group cursor-pointer">
             <Avatar className="h-28 w-28 border-4 border-background shadow-xl ring-2 ring-primary/20 transition-all group-hover:ring-4 group-hover:ring-primary/30">
               <AvatarImage
-                key={user.avatar?.url || 'no-avatar'}
+                key={user.avatar?.url || "no-avatar"}
                 src={user.avatar?.url}
                 alt={`${user.firstName} ${user.lastName}`}
               />
@@ -118,43 +110,45 @@ export function ProfileHeader() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             )}
-            
+
             {/* Elegant hover overlay with single action button */}
-            {! isUploading && <div className="absolute inset-0 flex items-end justify-center pb-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-              {/* Main action button - upload/change */}
-              <Button
-                size="icon"
-                variant="secondary"
-                className="h-7 w-7 rounded-full shadow-lg ml-2 absolute left-0 bottom-1"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading || removeAvatar.isPending}
-                title={user.avatar ? "Change photo" : "Upload photo"}
-              >
-                  <Camera className="h-4 w-4" />
-              </Button>
-              
-              {/* Remove button - only show if avatar exists, positioned separately */}
-              {user.avatar && (
+            {!isUploading && (
+              <div className="absolute inset-0 flex items-end justify-center pb-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                {/* Main action button - upload/change */}
                 <Button
                   size="icon"
-                  variant="destructive"
-                  className="h-7 w-7 rounded-full shadow-lg ml-2 absolute right-0 bottom-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowRemoveDialog(true);
-                  }}
+                  variant="secondary"
+                  className="h-7 w-7 rounded-full shadow-lg ml-2 absolute left-0 bottom-1"
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading || removeAvatar.isPending}
-                  title="Remove photo"
+                  title={user.avatar ? "Change photo" : "Upload photo"}
                 >
-                  {removeAvatar.isPending ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-3 w-3" />
-                  )}
+                  <Camera className="h-4 w-4" />
                 </Button>
-              )}
-            </div>}
-            
+
+                {/* Remove button - only show if avatar exists, positioned separately */}
+                {user.avatar && (
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="h-7 w-7 rounded-full shadow-lg ml-2 absolute right-0 bottom-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowRemoveDialog(true);
+                    }}
+                    disabled={isUploading || removeAvatar.isPending}
+                    title="Remove photo"
+                  >
+                    {removeAvatar.isPending ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
+                  </Button>
+                )}
+              </div>
+            )}
+
             <input
               ref={fileInputRef}
               type="file"
@@ -171,7 +165,10 @@ export function ProfileHeader() {
                 <h2 className="text-3xl font-bold tracking-tight">
                   {user.firstName} {user.lastName}
                 </h2>
-                <Badge variant={getRoleBadgeVariant()} className="capitalize w-fit mx-auto sm:mx-0">
+                <Badge
+                  variant={getRoleBadgeVariant()}
+                  className="capitalize w-fit mx-auto sm:mx-0"
+                >
                   {user.role.replace("_", " ")}
                 </Badge>
               </div>
@@ -208,15 +205,18 @@ export function ProfileHeader() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Profile Picture?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove your profile picture? You can always upload a new one later.
+              Are you sure you want to remove your profile picture? You can
+              always upload a new one later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => removeAvatar.mutate(undefined, {
-                onSuccess: () => setShowRemoveDialog(false),
-              })}
+              onClick={() =>
+                removeAvatar.mutate(undefined, {
+                  onSuccess: () => setShowRemoveDialog(false),
+                })
+              }
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Remove

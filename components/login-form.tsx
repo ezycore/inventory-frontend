@@ -21,7 +21,7 @@ import { cn } from "@ui/lib/utils";
 import { ArrowLeft, Loader2, Mail, Shield } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function LoginForm({
   className,
@@ -29,26 +29,17 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered");
-  const loginMutation = useLogin();
   const [formData, setFormData] = useState({
     organizationSlug: "",
     email: "",
     password: "",
   });
   const [show2FA, setShow2FA] = useState(false);
-  const [tempUserId, setTempUserId] = useState("");
+  const loginMutation = useLogin(setShow2FA);
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [useBackupCode, setUseBackupCode] = useState(false);
 
   const showSlugField = shouldShowOrganizationSlugField();
-
-  // Check if 2FA is required after login mutation
-  useEffect(() => {
-    if (loginMutation.isSuccess && loginMutation.data?.data?.requires2FA) {
-      setShow2FA(true);
-      setTempUserId(loginMutation.data.data.tempUserId);
-    }
-  }, [loginMutation.isSuccess, loginMutation.data]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,7 +61,6 @@ export function LoginForm({
 
   const handleBackToLogin = () => {
     setShow2FA(false);
-    setTempUserId("");
     setTwoFactorToken("");
     setUseBackupCode(false);
     loginMutation.reset();
