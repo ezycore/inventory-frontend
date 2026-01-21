@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@ui/components/she
 import { ProductDetail } from '@/components/products/product-detail'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
 import { useFilteredFormConfig } from '@/hooks/use-filtered-form-config'
+import Link from 'next/link'
 
 // Column definitions
 const columns: ColumnDef<any>[] = [

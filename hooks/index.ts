@@ -8,6 +8,9 @@ export * from './utils'
 export { useCrudModal } from './use-crud-handlers'
 export { usePaginationHandler } from './use-pagination-handler'
 
+// Export feature hooks
+export { useFilteredNavItems, useFeatureCheck } from './use-features'
+
 // Re-export TanStack Query utilities for convenience
 export {
   useQuery,

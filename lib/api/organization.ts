@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, OrganizationFeatures } from "@/types";
 
 export interface ExcludedFieldsSettings {
   product?: string[];
@@ -23,5 +23,14 @@ export function createOrganizationApi(apiClient: any) {
       data: ExcludedFieldsSettings,
     ): Promise<ApiResponse<{ excludedFields: ExcludedFieldsSettings }>> =>
       apiClient.put(`/organization/form-settings`, data),
+
+    // Feature settings
+    getFeatures: (): Promise<ApiResponse<{ features: OrganizationFeatures }>> =>
+      apiClient.get(`/organization/features`),
+
+    updateFeatures: (
+      data: Partial<OrganizationFeatures>,
+    ): Promise<ApiResponse<{ features: OrganizationFeatures }>> =>
+      apiClient.put(`/organization/features`, data),
   };
 }

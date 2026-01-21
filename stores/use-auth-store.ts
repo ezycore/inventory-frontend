@@ -1,4 +1,4 @@
-import { Image } from "@/types";
+import { Image, OrganizationFeatures, DEFAULT_ORGANIZATION_FEATURES } from "@/types";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
@@ -25,9 +25,11 @@ export interface User {
     image?: Image[];
     status: "active" | "inactive";
     ownerId?: string;
+    defaultLocationId?: string;
     settings: {
       excludedFields?: { [key: string]: string[] };
     };
+    features: OrganizationFeatures;
   };
 }
 

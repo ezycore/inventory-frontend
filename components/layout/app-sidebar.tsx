@@ -53,7 +53,9 @@ export const company = {
 };
 import { DynamicIcon } from 'lucide-react/dynamic';
 import { navItems } from '@/constants/navItem';
+import { filterNavItems } from '@/lib/nav-utils';
 import { useAuthStore } from '@/stores/use-auth-store';
+import { useSettingsStore } from '@/stores/use-settings-store';
 import { useLogout } from '@/hooks';
 
 export default function AppSidebar() {
@@ -61,6 +63,7 @@ export default function AppSidebar() {
   const { isOpen } = useMediaQuery();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const features = useSettingsStore((state) => state.features);
   const logout = useLogout();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const handleSwitchTenant = (_tenantId: string) => {
@@ -71,36 +74,17 @@ export default function AppSidebar() {
     // Side effects based on sidebar state changes
   }, [isOpen]);
 
-  // Filter navigation items based on user role and permissions
+  // Filter navigation items based on user role, permissions, and features
   const filteredNavItems = React.useMemo(() => {
     if (!user?.role) return navItems;
     
-    const hasPermission = (requiredPermissions?: string[]) => {
-      if (!requiredPermissions || requiredPermissions.length === 0) return true;
-      return requiredPermissions.some(p => user.permissions?.includes(p));
-    };
-
-    const hasRole = (requiredRoles?: string[]) => {
-      if (!requiredRoles || requiredRoles.length === 0) return true;
-      return requiredRoles.includes(user.role);
-    };
-    
-    return navItems
-      .map((item) => {
-        // Filter sub-items if they exist
-        if (item.items && item.items.length > 0) {
-          const filteredSubItems = item.items.filter((subItem) => {
-            return hasRole(subItem.roles) && hasPermission(subItem.permissions);
-          });
-          return { ...item, items: filteredSubItems };
-        }
-        return item;
-      })
-      .filter((item) => {
-        // Filter parent items by role and permissions
-        return hasRole(item.roles) && hasPermission(item.permissions);
-      });
-  }, [user]);
+    return filterNavItems(
+      navItems,
+      user.role,
+      user.permissions || [],
+      features
+    );
+  }, [user, features]);
 
   return (
     <Sidebar collapsible='icon'>

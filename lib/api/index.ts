@@ -11,6 +11,7 @@ import { createBrandsApi } from "./brands";
 import { createLocationsApi } from "./locations";
 import { createUnitsApi } from "./units";
 import { createTaxesApi } from "./taxes";
+import { createDiscountsApi } from "./discounts";
 import { createInventoryApi } from "./inventory";
 import { createStockApi, createStockMovementsApi, createLegacyInventoryApi } from "./stock";
 import { createCustomersApi } from "./customers";
@@ -21,6 +22,8 @@ import { createSetupApi } from "./setup";
 import { createProfileApi } from "./profile";
 import { createDashboardApi } from "./dashboard";
 import { createOrganizationApi } from "@/lib/api/organization";
+import { createAccountsApi } from "./accounts";
+import { createTransactionsApi } from "./transactions";
 
 // Export core client
 export { apiClient, type ApiError } from "../api-client";
@@ -35,6 +38,7 @@ export const brandsApi = createBrandsApi(apiClient);
 export const locationsApi = createLocationsApi(apiClient);
 export const unitsApi = createUnitsApi(apiClient);
 export const taxesApi = createTaxesApi(apiClient);
+export const discountsApi = createDiscountsApi(apiClient);
 export const inventoryApi = createInventoryApi(apiClient);
 export const stockApi = createStockApi(apiClient);
 export const stockMovementsApi = createStockMovementsApi(apiClient);
@@ -46,6 +50,8 @@ export const dashboardApi = createDashboardApi(apiClient);
 export const organizationApi = createOrganizationApi(apiClient);
 export const authApi = createAuthApi(apiClient);
 export const setupApi = createSetupApi(apiClient);
+export const accountsApi = createAccountsApi(apiClient);
+export const transactionsApi = createTransactionsApi(apiClient);
 
 // Legacy API for backward compatibility
 export const legacyInventoryApi = createLegacyInventoryApi(apiClient, productsApi, stockApi);

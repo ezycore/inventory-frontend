@@ -23,6 +23,36 @@ export enum StockMovementReason {
   TRANSFER_OUT = "transfer_out",
 }
 
+/**
+ * Organization feature toggles
+ * Controls which modules are enabled for the organization
+ */
+export interface OrganizationFeatures {
+  sales: boolean;
+  accounts: boolean;
+  expiryTracking: boolean;
+  barcodeSystem: boolean;
+  invoicePrinting: boolean;
+  returns: boolean;
+}
+
+/**
+ * Default feature settings for new organizations
+ */
+export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
+  sales: true,
+  accounts: false,
+  expiryTracking: false,
+  barcodeSystem: false,
+  invoicePrinting: false,
+  returns: true,
+};
+
+/**
+ * Feature name type for type-safe feature checks
+ */
+export type FeatureName = keyof OrganizationFeatures;
+
 // Base interfaces
 export interface BaseEntity {
   _id: string;
@@ -107,6 +137,8 @@ export interface Customer extends BaseEntity {
   phone?: string;
   address?: string;
   status: "active" | "inactive";
+  defaultDiscountId?: string;
+  defaultDiscount?: Discount;
 }
 
 export interface CreateCustomerDto {
@@ -115,6 +147,7 @@ export interface CreateCustomerDto {
   phone?: string;
   address?: string;
   status?: "active" | "inactive";
+  defaultDiscountId?: string;
 }
 
 export interface UpdateCustomerDto extends Partial<CreateCustomerDto> { }
@@ -126,6 +159,8 @@ export interface Supplier extends BaseEntity {
   phone?: string;
   address?: string;
   status: "active" | "inactive";
+  defaultDiscountId?: string;
+  defaultDiscount?: Discount;
 }
 
 export interface CreateSupplierDto {
@@ -134,6 +169,7 @@ export interface CreateSupplierDto {
   phone?: string;
   address?: string;
   status?: "active" | "inactive";
+  defaultDiscountId?: string;
 }
 
 export interface UpdateSupplierDto extends Partial<CreateSupplierDto> { }
@@ -169,6 +205,30 @@ export interface CreateTaxDto {
 }
 
 export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
+
+// Discount interfaces
+export type DiscountType = "percentage" | "fixed";
+export type DiscountApplicableTo = "sales" | "purchase" | "both";
+
+export interface Discount extends BaseEntity {
+  name: string;
+  value: number;
+  type: DiscountType;
+  applicableTo: DiscountApplicableTo;
+  description?: string;
+  status: "active" | "inactive";
+}
+
+export interface CreateDiscountDto {
+  name: string;
+  value: number;
+  type: DiscountType;
+  applicableTo?: DiscountApplicableTo;
+  description?: string;
+  status?: "active" | "inactive";
+}
+
+export interface UpdateDiscountDto extends Partial<CreateDiscountDto> { }
 
 // Inventory interfaces
 export interface Inventory extends BaseEntity {
@@ -480,3 +540,108 @@ export interface OrganizationData {
 
 export interface UpdateOrganizationDto
   extends Partial<OrganizationData> {}
+
+// Account interfaces
+export type AccountType = "cash" | "bank" | "bkash" | "nagad" | "custom";
+
+export interface Account extends BaseEntity {
+  name: string;
+  type: AccountType;
+  balance: number;
+  accountNumber?: string;
+  description?: string;
+  isDefault: boolean;
+  isActive: boolean;
+}
+
+export interface CreateAccountDto {
+  name: string;
+  type: AccountType;
+  initialBalance?: number;
+  accountNumber?: string;
+  description?: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateAccountDto extends Partial<Omit<CreateAccountDto, "initialBalance">> {}
+
+export interface AccountSummary {
+  totalBalance: number;
+  accountCount: number;
+  byType: {
+    cash: number;
+    bank: number;
+    bkash: number;
+    nagad: number;
+    custom: number;
+  };
+}
+
+// Transaction interfaces
+export type TransactionType = "income" | "expense" | "transfer";
+export type TransactionCategory =
+  | "sale"
+  | "purchase"
+  | "salary"
+  | "rent"
+  | "utilities"
+  | "refund"
+  | "adjustment"
+  | "transfer"
+  | "other";
+
+export interface Transaction extends BaseEntity {
+  accountId: string;
+  type: TransactionType;
+  category: TransactionCategory;
+  amount: number;
+  balanceAfter: number;
+  description?: string;
+  reference?: string;
+  toAccountId?: string;
+  customerId?: string;
+  supplierId?: string;
+  createdBy: string;
+  date: string;
+  account?: Account;
+  toAccount?: Account;
+  customer?: Customer;
+  supplier?: Supplier;
+}
+
+export interface CreateIncomeDto {
+  accountId: string;
+  amount: number;
+  category: TransactionCategory;
+  description?: string;
+  reference?: string;
+  customerId?: string;
+  date?: string;
+}
+
+export interface CreateExpenseDto {
+  accountId: string;
+  amount: number;
+  category: TransactionCategory;
+  description?: string;
+  reference?: string;
+  supplierId?: string;
+  date?: string;
+}
+
+export interface CreateTransferDto {
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  description?: string;
+  reference?: string;
+  date?: string;
+}
+
+export interface TransactionSummary {
+  totalIncome: number;
+  totalExpense: number;
+  totalTransferOut: number;
+  totalTransferIn: number;
+  netChange: number;
+}
