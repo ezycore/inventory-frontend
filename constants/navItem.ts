@@ -95,6 +95,11 @@ export const navItems: NavItem[] = [
         url: "/purchases/receive-bulk",
         icon: "packages",
       },
+      {
+        title: "Purchase Orders",
+        url: "/purchases/orders/create",
+        icon: "file-text",
+      },
       { title: "Purchase History", url: "/purchases/history", icon: "clock" },
       {
         title: "Purchase Returns",

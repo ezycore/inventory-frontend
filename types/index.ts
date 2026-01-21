@@ -645,3 +645,83 @@ export interface TransactionSummary {
   totalTransferIn: number;
   netChange: number;
 }
+
+// Purchase Order Types
+export type PurchaseOrderStatus =
+  | "draft"
+  | "ordered"
+  | "partial"
+  | "received"
+  | "cancelled";
+
+export type PurchaseOrderDiscountType = "percentage" | "fixed";
+
+export interface PurchaseOrderItem {
+  productId: string;
+  variantId?: string | null;
+  quantity: number;
+  unitPrice: number;
+  discount: number;
+  total: number;
+  receivedQuantity: number;
+  productName?: string;
+  variantName?: string;
+  product?: Product;
+  variant?: Variant;
+}
+
+export interface PurchaseOrder extends BaseEntity {
+  organizationId: string;
+  orderNumber: string;
+  supplierId: string;
+  locationId: string;
+  items: PurchaseOrderItem[];
+  status: PurchaseOrderStatus;
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  discountType: PurchaseOrderDiscountType;
+  discountValue: number;
+  subtotal: number;
+  taxTotal: number;
+  grandTotal: number;
+  notes?: string;
+  receivedAt?: string;
+  createdBy?: string;
+  supplier?: Supplier;
+  location?: Location;
+}
+
+export interface CreatePurchaseOrderItemDto {
+  productId: string;
+  variantId?: string | null;
+  quantity: number;
+  unitPrice: number;
+  discount?: number;
+  productName?: string;
+  variantName?: string;
+}
+
+export interface CreatePurchaseOrderDto {
+  supplierId: string;
+  locationId: string;
+  items: CreatePurchaseOrderItemDto[];
+  status?: PurchaseOrderStatus;
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  discountType?: PurchaseOrderDiscountType;
+  discountValue?: number;
+  taxTotal?: number;
+  notes?: string;
+}
+
+export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> { }
+
+export interface ReceivePurchaseOrderItemDto {
+  productId: string;
+  variantId?: string | null;
+  receivedQuantity: number;
+}
+
+export interface ReceivePurchaseOrderDto {
+  items: ReceivePurchaseOrderItemDto[];
+}
