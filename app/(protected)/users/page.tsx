@@ -1,25 +1,31 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import type { User } from "@/types/users";
-import { DataTable } from "@/ui/components/dataTable";
 import {
   useCreateUser,
   useDeleteUser,
+  useToggleUserStatus,
   useUpdateUser,
 } from "@/hooks/queries/use-users";
 import { usersApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
-import PageHeader from "@/ui/components/header";
-import { FilterConfig } from "@/types/DataTable";
-import { Badge } from "@/ui/components/badge";
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { AlertCircle, CheckCircle2, Mail, MailCheck, Ban, CheckCircle } from "lucide-react";
-import { DynamicFormConfig } from "@/ui/components/form/type";
-import { Button } from "@/ui/components/button";
-import { useToggleUserStatus } from "@/hooks/queries/use-users";
 import type { CustomAction } from "@/types/DataTable";
+import type { User } from "@/types/users";
+import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
+import { DataTable } from "@/ui/components/dataTable";
+import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { DynamicFormConfig } from "@/ui/components/form/type";
+import PageHeader from "@/ui/components/header";
+import { ColumnDef } from "@tanstack/react-table";
+import {
+  AlertCircle,
+  Ban,
+  CheckCircle,
+  CheckCircle2,
+  Mail,
+  MailCheck,
+} from "lucide-react";
 
 // Form configuration for user management
 const userFormConfig: DynamicFormConfig = {
@@ -187,7 +193,7 @@ const defaultValues = {
 
 export default function UsersPage() {
   const { user: currentUser } = useAuthStore();
-  
+
   // All hooks must be called unconditionally at the top level
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
@@ -249,7 +255,6 @@ export default function UsersPage() {
           cardTitle={(dataLength: number) => `All Users (${dataLength})`}
           defaultPageSize={10}
           pageSizes={[10, 20, 50, 100]}
-          // filterConfig={userFilterConfig}
           columns={columns}
           selectable={false}
           searchConfig={searchConfig}

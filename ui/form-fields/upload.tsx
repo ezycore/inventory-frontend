@@ -1,8 +1,6 @@
 "use client";
- 
-import { Upload, X } from "lucide-react";
-import * as React from "react";
-import { toast } from "sonner";
+
+import { Button } from "@/ui/components/button";
 import {
   FileUpload,
   FileUploadDropzone,
@@ -13,24 +11,26 @@ import {
   FileUploadList,
   FileUploadTrigger,
 } from "@/ui/components/file-upload";
-import { Button } from "@/ui/components/button";
- 
+import { Upload, X } from "lucide-react";
+import * as React from "react";
+import { toast } from "sonner";
+
 export function FileUploadDemo() {
   const [files, setFiles] = React.useState<File[]>([]);
- 
+
   const onFileReject = React.useCallback((file: File, message: string) => {
     toast(message, {
       description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" has been rejected`,
     });
   }, []);
- 
+
   return (
     <FileUpload
       maxFiles={2}
       maxSize={5 * 1024 * 1024}
       className="w-full max-w-md"
       value={files}
-      onValueChange={setFiles}
+      onValueChange={(newFiles) => setFiles(newFiles as File[])}
       onFileReject={onFileReject}
       multiple
     >

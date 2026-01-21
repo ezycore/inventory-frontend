@@ -1,6 +1,6 @@
 "use client";
 
-import { brandFormConfig } from "@/components/brands/form-config";
+import { brandFormConfig } from "@/components/brands/constants";
 import { categoryFormConfig } from "@/components/categories/form-config";
 import FieldSettingsManager from "@/components/products/field-settings-manager";
 import { productFormConfig } from "@/components/products/form-config";
@@ -9,9 +9,9 @@ import { useAuthStore } from "@/stores";
 import { useFieldSettingsStore } from "@/stores/use-field-settings-store";
 import PageHeader from "@/ui/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
-import { Package, Star, Tag } from "lucide-react";
+import { Loader2, Package, Star, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React from "react";
+import React, { Suspense } from "react";
 import { toast } from "sonner";
 
 const modules = [
@@ -37,7 +37,7 @@ const modules = [
 
 const validTabs = modules.map((m) => m.key);
 
-export default function FieldSettingsPage() {
+function FieldSettingsForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -109,5 +109,19 @@ export default function FieldSettingsPage() {
         ))}
       </Tabs>
     </div>
+  );
+}
+
+export default function FormSettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <FieldSettingsForm />
+    </Suspense>
   );
 }

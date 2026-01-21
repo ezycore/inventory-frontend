@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
-import { Label } from "@/ui/components/label";
+import {
+  use2FAStatus,
+  useDisable2FA,
+  useEnable2FA,
+  useVerify2FA,
+} from "@/hooks/queries/use-profile";
 import { Alert, AlertDescription } from "@/ui/components/alert";
+import { Button } from "@/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -13,17 +16,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/components/dialog";
-import { Shield, ShieldCheck, Key, Copy, CheckCircle2 } from "lucide-react";
+import { Input } from "@/ui/components/input";
+import { Label } from "@/ui/components/label";
+import { CheckCircle2, Copy, Key, Shield, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  use2FAStatus,
-  useEnable2FA,
-  useVerify2FA,
-  useDisable2FA,
-} from "@/hooks/queries/use-profile";
 
 export function TwoFactorTab() {
-
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [showEnableDialog, setShowEnableDialog] = useState(false);
   const [showDisableDialog, setShowDisableDialog] = useState(false);
@@ -109,7 +108,9 @@ export function TwoFactorTab() {
       <div className="rounded-lg border bg-card p-6">
         <div className="flex items-start justify-between">
           <div className="flex gap-4">
-            <div className={`rounded-lg p-3 ${is2FAEnabled ? 'bg-green-100 dark:bg-green-900/20' : 'bg-muted'}`}>
+            <div
+              className={`rounded-lg p-3 ${is2FAEnabled ? "bg-green-100 dark:bg-green-900/20" : "bg-muted"}`}
+            >
               {is2FAEnabled ? (
                 <ShieldCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
               ) : (
@@ -155,8 +156,8 @@ export function TwoFactorTab() {
         <Key className="h-4 w-4" />
         <AlertDescription>
           Two-factor authentication adds an additional layer of security to your
-          account. In addition to your password, you&apos;ll need to enter a code
-          from your authenticator app when signing in.
+          account. In addition to your password, you&apos;ll need to enter a
+          code from your authenticator app when signing in.
         </AlertDescription>
       </Alert>
 
@@ -229,7 +230,9 @@ export function TwoFactorTab() {
             <Button
               onClick={handleVerify}
               disabled={
-                isVerifying || !verificationToken || verificationToken.length !== 6
+                isVerifying ||
+                !verificationToken ||
+                verificationToken.length !== 6
               }
             >
               {isVerifying ? "Verifying..." : "Verify & Enable"}

@@ -1,34 +1,34 @@
-"use client"
+"use client";
 
-import { cn } from "@ui/lib/utils"
-import { Button } from "@ui/components/button"
+import { useResetPassword } from "@/hooks/queries/use-auth";
+import { Button } from "@ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@ui/components/card"
-import { Input } from "@ui/components/input"
-import { Label } from "@ui/components/label"
-import { useState } from "react"
-import { Loader2, KeyRound } from "lucide-react"
-import Link from "next/link"
-import { useResetPassword } from "@/hooks/queries/use-auth"
-import { useSearchParams } from "next/navigation"
+} from "@ui/components/card";
+import { Input } from "@ui/components/input";
+import { Label } from "@ui/components/label";
+import { cn } from "@ui/lib/utils";
+import { KeyRound, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const token = searchParams.get("token");
   const resetPasswordMutation = useResetPassword();
   const [formData, setFormData] = useState({
-    newPassword: '',
-    confirmPassword: '',
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
       return; // Toast will be shown from validation
     }
@@ -37,9 +37,9 @@ export default function ResetPasswordPage() {
       return; // Token is required
     }
 
-    resetPasswordMutation.mutate({ 
-      token, 
-      newPassword: formData.newPassword 
+    resetPasswordMutation.mutate({
+      token,
+      newPassword: formData.newPassword,
     });
   };
 
@@ -69,7 +69,12 @@ export default function ResetPasswordPage() {
                       type="password"
                       placeholder="Min. 8 characters"
                       value={formData.newPassword}
-                      onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          newPassword: e.target.value,
+                        })
+                      }
                       required
                       minLength={8}
                     />
@@ -81,26 +86,43 @@ export default function ResetPasswordPage() {
                       type="password"
                       placeholder="Re-enter password"
                       value={formData.confirmPassword}
-                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          confirmPassword: e.target.value,
+                        })
+                      }
                       required
                       minLength={8}
                     />
                   </div>
-                  {formData.newPassword && formData.confirmPassword && formData.newPassword !== formData.confirmPassword && (
-                    <p className="text-sm text-red-600 dark:text-red-500">
-                      Passwords do not match
-                    </p>
-                  )}
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={resetPasswordMutation.isPending || formData.newPassword !== formData.confirmPassword}
+                  {formData.newPassword &&
+                    formData.confirmPassword &&
+                    formData.newPassword !== formData.confirmPassword && (
+                      <p className="text-sm text-red-600 dark:text-red-500">
+                        Passwords do not match
+                      </p>
+                    )}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={
+                      resetPasswordMutation.isPending ||
+                      formData.newPassword !== formData.confirmPassword
+                    }
                   >
-                    {resetPasswordMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
+                    {resetPasswordMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {resetPasswordMutation.isPending
+                      ? "Resetting..."
+                      : "Reset Password"}
                   </Button>
                   <div className="text-center text-sm">
-                    <Link href="/login" className="underline underline-offset-4">
+                    <Link
+                      href="/login"
+                      className="underline underline-offset-4"
+                    >
                       Back to login
                     </Link>
                   </div>
@@ -111,5 +133,19 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
+  );
 }
