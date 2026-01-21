@@ -25,6 +25,7 @@ import { createOrganizationApi } from "@/lib/api/organization";
 import { createAccountsApi } from "./accounts";
 import { createTransactionsApi } from "./transactions";
 import { createPurchaseOrdersApi } from "./purchase-orders";
+import { createSalesOrdersApi } from "./sales-orders";
 
 // Export core client
 export { apiClient, type ApiError } from "../api-client";
@@ -54,6 +55,7 @@ export const setupApi = createSetupApi(apiClient);
 export const accountsApi = createAccountsApi(apiClient);
 export const transactionsApi = createTransactionsApi(apiClient);
 export const purchaseOrdersApi = createPurchaseOrdersApi(apiClient);
+export const salesOrdersApi = createSalesOrdersApi(apiClient);
 
 // Legacy API for backward compatibility
 export const legacyInventoryApi = createLegacyInventoryApi(apiClient, productsApi, stockApi);

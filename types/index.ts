@@ -725,3 +725,73 @@ export interface ReceivePurchaseOrderItemDto {
 export interface ReceivePurchaseOrderDto {
   items: ReceivePurchaseOrderItemDto[];
 }
+
+// Sales Order Types
+export type SalesOrderStatus =
+  | "draft"
+  | "confirmed"
+  | "fulfilled"
+  | "cancelled";
+
+export type SalesOrderDiscountType = "percentage" | "fixed";
+
+export interface SalesOrderItem {
+  productId: string;
+  variantId?: string | null;
+  quantity: number;
+  unitPrice: number;
+  discount: number;
+  total: number;
+  productName?: string;
+  variantName?: string;
+  product?: Product;
+  variant?: Variant;
+}
+
+export interface SalesOrder extends BaseEntity {
+  organizationId: string;
+  orderNumber: string;
+  customerId?: string;
+  locationId: string;
+  items: SalesOrderItem[];
+  status: SalesOrderStatus;
+  invoiceNumber?: string;
+  discountType: SalesOrderDiscountType;
+  discountValue: number;
+  subtotal: number;
+  taxTotal: number;
+  grandTotal: number;
+  notes?: string;
+  fulfilledAt?: string;
+  createdBy?: string;
+  customer?: Customer;
+  location?: Location;
+}
+
+export interface CreateSalesOrderItemDto {
+  productId: string;
+  variantId?: string | null;
+  quantity: number;
+  unitPrice: number;
+  discount?: number;
+  productName?: string;
+  variantName?: string;
+}
+
+export interface CreateSalesOrderDto {
+  customerId?: string | null;
+  locationId: string;
+  items: CreateSalesOrderItemDto[];
+  status?: SalesOrderStatus;
+  invoiceNumber?: string;
+  discountType?: SalesOrderDiscountType;
+  discountValue?: number;
+  taxTotal?: number;
+  notes?: string;
+}
+
+export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> { }
+
+export interface FulfillSalesOrderDto {
+  notes?: string;
+}

@@ -199,3 +199,17 @@ export {
   useUpdatePurchaseOrder,
   useUpdatePurchaseOrderStatus,
 } from "./use-purchase-orders";
+
+// Sales Orders hooks
+export {
+  useAddSalesOrder,
+  useCancelSalesOrder,
+  useCreateSalesOrder,
+  useCustomerDiscount,
+  useDeleteSalesOrder,
+  useFulfillSalesOrder,
+  useSalesOrder,
+  useSalesOrders,
+  useUpdateSalesOrder,
+  useUpdateSalesOrderStatus,
+} from "./use-sales-orders";
