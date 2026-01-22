@@ -1,31 +1,38 @@
-'use client'
+"use client";
 
-import PageHeader from '@/ui/components/header'
-import { useState } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Package, EyeIcon } from 'lucide-react'
-import { queryKeys } from '@/lib/query-keys-products'
-import { DataTable } from '@/ui/components/dataTable'
-import { AvatarCell } from '@/ui/components/dataTable/cells'
-import { StatusBadge } from '@/ui/components/status-badge'
-import { productsApi } from '@/lib/api'
-import { productFormConfig } from '@/components/products/form-config'
-import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/queries'
-import type { FilterConfig } from '@/types/DataTable'
-import { ProductStatus } from '@/types'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@ui/components/sheet'
-import { ProductDetail } from '@/components/products/product-detail'
-import { FieldSettingsLink } from '@/components/shared/field-settings-link'
-import { useFilteredFormConfig } from '@/hooks/use-filtered-form-config'
-import Link from 'next/link'
+import { productFormConfig } from "@/components/products/form-config";
+import { ProductDetail } from "@/components/products/product-detail";
+import { FieldSettingsLink } from "@/components/shared/field-settings-link";
+import {
+  useCreateProduct,
+  useDeleteProduct,
+  useUpdateProduct,
+} from "@/hooks/queries";
+import { useFilteredFormConfig } from "@/hooks/use-filtered-form-config";
+import { productsApi } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys-products";
+import { ProductStatus } from "@/types";
+import type { FilterConfig } from "@/types/DataTable";
+import { DataTable } from "@/ui/components/dataTable";
+import { AvatarCell } from "@/ui/components/dataTable/cells";
+import PageHeader from "@/ui/components/header";
+import { StatusBadge } from "@/ui/components/status-badge";
+import { ColumnDef } from "@tanstack/react-table";
+import { Sheet, SheetContent } from "@ui/components/sheet";
+import { EyeIcon, Package } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 // Column definitions
 const columns: ColumnDef<any>[] = [
   {
-    header: 'Name',
-    accessorKey: 'name',
+    header: "Name",
+    accessorKey: "name",
     cell: ({ row }) => (
-      <Link href={`/products/${row.original._id}`} className="block hover:underline">
+      <Link
+        href={`/products/${row.original._id}`}
+        className="block hover:underline"
+      >
         <AvatarCell
           imageUrl={row.original.images?.[0]?.thumbnailUrl}
           name={row.getValue("name")}
@@ -36,35 +43,35 @@ const columns: ColumnDef<any>[] = [
     ),
   },
   {
-    header: 'Status',
-    accessorKey: 'status',
-    cell: ({ row }) => <StatusBadge status={row.original.status} />
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
   },
   {
-    header: 'Brand',
-    accessorKey: 'brand',
+    header: "Brand",
+    accessorKey: "brand",
     cell: ({ row }) => {
-      const brand = row.getValue("brand") as any
-      return brand?.name || '-'
+      const brand = row.getValue("brand") as any;
+      return brand?.name || "-";
     },
   },
   {
-    header: 'Category',
-    accessorKey: 'category',
+    header: "Category",
+    accessorKey: "category",
     cell: ({ row }) => {
-      const category = row.getValue("category") as any
-      return category?.name || '-'
+      const category = row.getValue("category") as any;
+      return category?.name || "-";
     },
   },
   {
-    header: 'Price',
-    accessorKey: 'price',
+    header: "Price",
+    accessorKey: "price",
     cell: ({ row }) => {
-      const price = row.getValue("price")
-      return price ? `$${Number(price).toFixed(2)}` : '-'
-    }
+      const price = row.getValue("price");
+      return price ? `$${Number(price).toFixed(2)}` : "-";
+    },
   },
-]
+];
 
 // Filter configuration
 const productFilterConfig: FilterConfig = {
@@ -87,23 +94,32 @@ const productFilterConfig: FilterConfig = {
       ],
     },
   ],
-}
+};
 
 export default function ProductsPage() {
-
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
-  const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null,
+  );
+  const filteredFormConfig = useFilteredFormConfig(
+    productFormConfig,
+    "product",
+  );
 
   // Prepare form data for submission
   const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
-    const formData = new FormData()
+    const formData = new FormData();
 
     // Note: ID is automatically injected by DataTable for edit mode
 
     // Add all fields except images, variants, and _id
     for (const key in data) {
-      if (key !== 'images' && key !== 'variants' && key !== '_id' && data[key] !== undefined) {
-        formData.append(key, data[key])
+      if (
+        key !== "images" &&
+        key !== "variants" &&
+        key !== "_id" &&
+        data[key] !== undefined
+      ) {
+        formData.append(key, data[key]);
       }
     }
 
@@ -115,11 +131,11 @@ export default function ProductsPage() {
       // Detect removed images (compare publicIds)
       const existingPublicIds = existingImages.map((img: any) => img.publicId);
       const currentPublicIds = currentImages
-        .filter((img: any) => typeof img === 'object' && img.publicId)
+        .filter((img: any) => typeof img === "object" && img.publicId)
         .map((img: any) => img.publicId);
 
       const removedImageIds = existingPublicIds.filter(
-        (id: string) => !currentPublicIds.includes(id)
+        (id: string) => !currentPublicIds.includes(id),
       );
 
       if (removedImageIds.length > 0) {
@@ -127,7 +143,9 @@ export default function ProductsPage() {
       }
 
       // Append new files (File objects) - use a type guard so currentImages narrows to File[]
-      const newFiles = (currentImages as unknown[]).filter((img): img is File => img instanceof File);
+      const newFiles = (currentImages as unknown[]).filter(
+        (img): img is File => img instanceof File,
+      );
       newFiles.forEach((file) => {
         formData.append("images", file);
       });
@@ -143,20 +161,24 @@ export default function ProductsPage() {
     }
 
     // Handle variants for variable products
-    if (data.productType === "variable" && data.variants && data.variants.length > 0) {
+    if (
+      data.productType === "variable" &&
+      data.variants &&
+      data.variants.length > 0
+    ) {
       const variantsData = data.variants.map((v: any) => ({
         attributes: {
-          [v.attributeName]: v.value
+          [v.attributeName]: v.value,
         },
         costPrice: v.costPrice,
         price: v.price,
-        status: v.enabled ? 'active' : 'inactive',
-      }))
-      formData.append('variants', JSON.stringify(variantsData))
+        status: v.enabled ? "active" : "inactive",
+      }));
+      formData.append("variants", JSON.stringify(variantsData));
     }
 
-    return formData
-  }
+    return formData;
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -177,10 +199,10 @@ export default function ProductsPage() {
         customActions={[
           {
             icon: <EyeIcon />,
-            tooltip: 'View Product Details',
+            tooltip: "View Product Details",
             onClick: (row) => setSelectedProductId(row._id),
-            placement: 'cell',
-            type: 'custom',
+            placement: "cell",
+            type: "custom",
           },
         ]}
         operations={{
@@ -197,25 +219,26 @@ export default function ProductsPage() {
           viewTooltip: "View Product",
           transformEditData: (item: any) => {
             // Transform variants and images (images auto-handled in form helper)
-            const transformedVariants = item.variants?.map((variant: any) => {
-              const attributeKey = Object.keys(variant.attributes || {})[0]
-              const attributeValue = variant.attributes?.[attributeKey]
+            const transformedVariants =
+              item.variants?.map((variant: any) => {
+                const attributeKey = Object.keys(variant.attributes || {})[0];
+                const attributeValue = variant.attributes?.[attributeKey];
 
-              return {
-                id: variant._id || `${attributeKey}-${attributeValue}`,
-                attributeName: attributeKey || '',
-                value: attributeValue || '',
-                sku: variant.sku || '',
-                costPrice: variant.costPrice || 0,
-                price: variant.price || 0,
-                enabled: variant.status === 'active',
-              }
-            }) || []
+                return {
+                  id: variant._id || `${attributeKey}-${attributeValue}`,
+                  attributeName: attributeKey || "",
+                  value: attributeValue || "",
+                  sku: variant.sku || "",
+                  costPrice: variant.costPrice || 0,
+                  price: variant.price || 0,
+                  enabled: variant.status === "active",
+                };
+              }) || [];
 
             return {
               ...item,
               variants: transformedVariants,
-            }
+            };
           },
           prepareSubmitData,
         }}
@@ -223,9 +246,14 @@ export default function ProductsPage() {
         enableRowHover={true}
       />
 
-      <Sheet open={!!selectedProductId} onOpenChange={(open) => !open && setSelectedProductId(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-4xl overflow-y-auto p-6">
-
+      <Sheet
+        open={!!selectedProductId}
+        onOpenChange={(open) => !open && setSelectedProductId(null)}
+      >
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl lg:max-w-4xl overflow-y-auto p-6"
+        >
           {selectedProductId && (
             <ProductDetail
               productId={selectedProductId}
@@ -235,5 +263,5 @@ export default function ProductsPage() {
         </SheetContent>
       </Sheet>
     </div>
-  )
+  );
 }

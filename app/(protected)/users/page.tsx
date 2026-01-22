@@ -267,6 +267,7 @@ export default function UsersPage() {
           customActions={customActions}
           operations={{
             formConfig: userFormConfig,
+            disabledFieldsInEdit: ["email"],
             defaultValues: defaultValues,
             getAllData: usersApi.getAll,
             createMutation: createMutation,

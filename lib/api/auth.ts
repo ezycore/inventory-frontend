@@ -5,6 +5,9 @@ import type { ApiResponse } from "@/types";
  */
 export function createAuthApi(apiClient: any) {
   return {
+    signup: (data: FormData): Promise<ApiResponse<any>> =>
+      apiClient.post("/auth/signup", data),
+
     login: (credentials: {
       email: string;
       password: string;

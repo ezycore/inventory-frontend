@@ -2,7 +2,7 @@
 // Based on SRS requirements for product catalog with variants and stock management
 
 // Auth hooks
-export { useLogin, useLogout } from "./use-auth";
+export { useLogin, useLogout, useSignupAPi } from "./use-auth";
 
 // Profile hooks
 export {
@@ -153,7 +153,6 @@ export { useSelectOptions } from "./use-select-options";
 
 // Organization hooks
 export {
-  useCreateOrganizationApi,
   useDeleteOrganizationApi,
   useFormSettingsOrganizationApi,
   useGetOrganizationApi,

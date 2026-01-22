@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCreateOrganizationApi } from "@/hooks";
+import { useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import { Card, CardContent } from "@/ui/components/card";
 import DynamicForm from "@/ui/components/form";
@@ -21,7 +21,7 @@ export const countryOptions = [
   { label: "🇯🇵 Japan", value: "JP" },
   { label: "🇧🇷 Brazil", value: "BR" },
   { label: "🇨🇳 China", value: "CN" },
-  { label: "🇧🇩 Bangladesh", value: "BD"},
+  { label: "🇧🇩 Bangladesh", value: "BD" },
 ];
 
 export const timezoneOptions = [
@@ -50,7 +50,6 @@ export const currencyOptions = [
   { label: "SGD - Singapore Dollar (S$)", value: "SGD" },
   { label: "AED - UAE Dirham (د.إ)", value: "AED" },
 ];
-
 
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
@@ -176,7 +175,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select currency",
           required: true,
-          options: currencyOptions
+          options: currencyOptions,
         },
       ],
     },
@@ -184,7 +183,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
 };
 
 export default function Signup() {
-  const createOwnerMutation = useCreateOrganizationApi();
+  const createOwnerMutation = useSignupAPi();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
   const handleSubmit = (data: Record<string, any>) => {

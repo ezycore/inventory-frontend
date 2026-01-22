@@ -4,7 +4,6 @@ import { organizationApi } from "@/lib/api";
 import { ExcludedFieldsSettings } from "@/lib/api/organization";
 import { handleMutationError } from "@/lib/error-handling";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
 export const useGetOrganizationApi = () => {
   return useQuery({
@@ -14,21 +13,6 @@ export const useGetOrganizationApi = () => {
   });
 };
 
-export const useCreateOrganizationApi = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
-  return useMutation({
-    mutationFn: (data: FormData) => organizationApi.create(data),
-    onSuccess: (data) => {
-      handleMutationSuccess(data.message || "Item created successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
-      // Redirect to dashboard after successful login
-      router.push("/login?registered=true");
-    },
-    onError: handleMutationError,
-  });
-};
 //create update hook
 export const useUpdateOrganizationApi = () => {
   const queryClient = useQueryClient();

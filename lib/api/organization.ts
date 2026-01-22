@@ -11,9 +11,6 @@ export function createOrganizationApi(apiClient: any) {
   return {
     get: (): Promise<ApiResponse<any>> => apiClient.get(`/organization`),
 
-    create: (data: FormData): Promise<ApiResponse<any>> =>
-      apiClient.post("/organization", data),
-
     update: (data: FormData): Promise<ApiResponse<any>> =>
       apiClient.put(`/organization`, data),
 
