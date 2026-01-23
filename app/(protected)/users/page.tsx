@@ -81,6 +81,25 @@ const userFormConfig: DynamicFormConfig = {
         { value: "viewer", label: "Viewer" },
       ],
     },
+    {
+      name: "locationIds",
+      type: "select",
+      label: "Assign Locations",
+      optionsApi: "/locations/active",
+      mode: "multiple",
+      columnSpan: 12,
+      required: false,
+      description: "Select locations to assign (leave empty for Admin - they have access to all locations)",
+      itemsCreateCallback: (response) => {
+        const items = response?.data?.items || response?.data || [];
+        return items.map(
+          (item: { _id?: string; name?: string; locationType?: string }) => ({
+            value: item._id,
+            label: `${item.name} (${item.locationType})`,
+          }),
+        );
+      },
+    },
   ],
 };
 
@@ -118,6 +137,27 @@ const columns: ColumnDef<User>[] = [
       return (
         <Badge variant={variants[role] || "outline"}>
           {role.charAt(0).toUpperCase() + role.slice(1)}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "defaultLocationId",
+    header: "Location",
+    cell: ({ row }) => {
+      const user = row.original;
+      // Admin has access to all locations
+      if (user.role === "admin") {
+        return <Badge variant="default">All Locations</Badge>;
+      }
+      // Show default location or count of assigned locations
+      const locationCount = user.locationIds?.length || 0;
+      if (locationCount === 0) {
+        return <span className="text-muted-foreground">—</span>;
+      }
+      return (
+        <Badge variant="secondary">
+          {locationCount} location{locationCount !== 1 ? "s" : ""}
         </Badge>
       );
     },
@@ -189,6 +229,7 @@ const defaultValues = {
   email: "",
   phone: "",
   role: "staff" as const,
+  locationIds: [] as string[],
 };
 
 export default function UsersPage() {
@@ -277,7 +318,7 @@ export default function UsersPage() {
             entityName: "User",
             isViewAvailable: false,
             editTooltip: "Edit User",
-            deleteTooltip: "Delete User (must be deactivated first)",
+            deleteTooltip: "Delete User (must be deactivated first)"
           }}
         />
       ) : (

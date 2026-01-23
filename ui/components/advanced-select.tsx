@@ -108,7 +108,6 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   // Quick-add modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
-
   // Get quick-add config if creatable
   const moduleConfig =
     creatable && quickAddModule ? quickAddConfig[quickAddModule] : null;

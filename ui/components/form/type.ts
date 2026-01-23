@@ -34,7 +34,7 @@ export interface FormFieldConfig {
   hidden?: boolean;
   defaultValue?: any; // Default value for the field
   description?: string;
-
+  mode?: "single" | "multiple"; // For select fields
   // Layout properties
   columnSpan?: ColumnSpan; // Grid columns to span (out of 12)
   className?: string;
@@ -273,7 +273,7 @@ export const generateSchemaFromConfig = (
 
       case "radio-group":
       case "select":
-        if (field.multiple) {
+        if (field.mode === "multiple") {
           // Multi-select should be array of strings
           if (field.enumValues) {
             fieldSchema = z.array(

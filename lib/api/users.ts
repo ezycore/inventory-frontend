@@ -77,5 +77,9 @@ export function createUsersApi(apiClient: any) {
     /** Update current user's default location */
     updateMyDefaultLocation: (locationId: string): Promise<ApiResponse<User>> =>
       apiClient.put("/users/me/default-location", { locationId }),
+
+    /** Get users assigned to a specific location */
+    getUsersByLocation: (locationId: string): Promise<ApiResponse<User[]>> =>
+      apiClient.get(`/users/by-location/${locationId}`),
   };
 }

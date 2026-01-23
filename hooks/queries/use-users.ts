@@ -138,3 +138,12 @@ export function useUpdateMyDefaultLocation() {
     onError: handleMutationError,
   })
 }
+
+/** Get users assigned to a specific location */
+export function useUsersByLocation(locationId: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['users', 'by-location', locationId],
+    queryFn: () => usersApi.getUsersByLocation(locationId),
+    enabled: options?.enabled ?? !!locationId,
+  })
+}

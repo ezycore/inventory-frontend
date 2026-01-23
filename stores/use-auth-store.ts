@@ -10,6 +10,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   phone?: string;
   avatar?: Image; // Single image object, not array
   role: "super_admin" | "admin" | "manager" | "staff" | "viewer";

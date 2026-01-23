@@ -9,6 +9,7 @@ import type { DynamicFormConfig } from "@/ui/components/form/type";
 // UI Components
 import { DataTable } from "@/ui/components/dataTable";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { UserCountCell } from "@/components/locations/UserCountCell";
 
 // Hooks & API
 import {
@@ -32,23 +33,13 @@ const columns: ColumnDef<LocationType>[] = [
     header: "Address",
   },
   {
-    accessorKey: "manager",
-    header: "Manager",
-    cell: ({ row }) => {
-      const manager = row.original.manager;
-      if (manager) {
-        return `${manager.firstName} ${manager.lastName} <${manager.email}>`;
-      }
-      return "N/A";
-    },
-  },
-  {
-    accessorKey: "manager.phone",
-    header: "Contact Number",
-  },
-  {
     accessorKey: "locationType",
     header: "Type",
+  },
+  {
+    accessorKey: "users",
+    header: "Users",
+    cell: ({ row }) => <UserCountCell users={row.original.users} />,
   },
   {
     accessorKey: "status",
@@ -98,20 +89,24 @@ const locationFormConfig: DynamicFormConfig = {
       ],
     },
     {
-      name: "managerId",
+      name: "userIds",
       type: "select",
-      label: "Manager",
+      label: "Assign Users",
       optionsApi: "/users",
-      required: true,
+      mode: "multiple",
       columnSpan: 12,
+      required: false,
+      description: "Select users to assign to this location (admins have access to all locations automatically)",
       itemsCreateCallback: (response) => {
         const items = response?.data || [];
-        return items.map(
-          (item: { _id?: string; fullName?: string; email?: string }) => ({
-            value: item._id,
-            label: `${item.fullName} <${item.email}>`,
-          }),
-        );
+        return items
+          .filter((item: { role?: string }) => item.role !== "admin") // Filter out admins
+          .map(
+            (item: { _id?: string; fullName?: string; email?: string; role?: string }) => ({
+              value: item._id,
+              label: `${item.fullName} <${item.email}> - ${item.role}`,
+            }),
+          );
       },
     },
     {
@@ -165,7 +160,6 @@ const defaultValues = {
   name: "",
   address: "",
   locationType: "store" as const,
-  managerId: "",
   status: "active" as const,
 };
 
@@ -213,6 +207,25 @@ export default function LocationsPage() {
             ...data,
             ...(isEdit && item ? { id: item._id } : {}),
           }),
+          transformEditData: async (item: LocationType) => {
+            // Fetch users assigned to this location
+            try {
+              const usersResponse = await locationsApi.getUsersByLocation(item._id);
+              const assignedUsers = usersResponse?.data || [];
+              // Extract user IDs (exclude admins as they're automatically included)
+              const userIds = assignedUsers
+                .filter((user: { role?: string }) => user.role !== "admin")
+                .map((user: { _id?: string }) => user._id);
+              
+              return {
+                ...item,
+                userIds,
+              };
+            } catch (error) {
+              console.error("Error fetching location users:", error);
+              return item;
+            }
+          },
         }}
       />
     </div>

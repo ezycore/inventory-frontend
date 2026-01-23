@@ -1,16 +1,18 @@
 "use client";
-import { sanitize, useLocations } from "@/hooks";
+import { sanitize, useLocations, useQueryClient, useUpdateMyDefaultLocation } from "@/hooks";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { Location } from "@/types";
 import { Check, ChevronDown, MapPin } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { toast } from "sonner";
 
 export function LocationSwitcher() {
   const { data = {} } = useLocations();
   const { data: locationsRes } = data as { data: { items: Location[] } };
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Get location state from auth store
   const { user, activeLocationId, setActiveLocation } = useAuthStore();
@@ -39,7 +41,7 @@ export function LocationSwitcher() {
   }, [allLocations, user]);
 
   // Get current active location
-  const currentLocation = useMemo(() => {
+  const currentLocation = (() => {
     if (activeLocationId) {
       const found = accessibleLocations.find((loc) => loc.id === activeLocationId);
       if (found) return found;
@@ -56,7 +58,7 @@ export function LocationSwitcher() {
     // Fallback to org default location or first accessible
     const defaultLoc = accessibleLocations.find((loc) => loc.isDefault);
     return defaultLoc || accessibleLocations[0];
-  }, [activeLocationId, accessibleLocations, user?.defaultLocationId]);
+  })();
 
   // Initialize active location if not set
   useEffect(() => {
@@ -65,9 +67,11 @@ export function LocationSwitcher() {
     }
   }, [activeLocationId, currentLocation?.id, setActiveLocation]);
 
-  const handleLocationSelect = (location: { id: string; name: string }) => {
+  const handleLocationSelect = async (location: { id: string; name: string }) => {
     setActiveLocation(location.id);
-    setOpen(false);
+      setOpen(false);
+      queryClient.invalidateQueries()
+      toast.success(`Switched to location: ${location.name}`);
   };
 
   // Don't show if only one location or no locations

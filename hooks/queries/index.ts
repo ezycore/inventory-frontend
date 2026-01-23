@@ -167,6 +167,7 @@ export {
   useRemoveLocationFromUser,
   useUpdateDefaultLocation,
   useUpdateMyDefaultLocation,
+  useUsersByLocation,
 } from "./use-users";
 
 // Organization hooks

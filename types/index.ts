@@ -102,25 +102,18 @@ export interface Location extends BaseEntity {
   name: string;
   locationType: "store" | "warehouse";
   address: string;
-  managerId: string;
   contactNumber?: string;
   email?: string;
   status: "active" | "inactive";
   default: boolean;
-  manager?: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-  };
+  users: { _id: string; firstName: string; lastName: string; email: string }[];
+  usersId: string[];
 }
 
 export interface CreateLocationDto {
   name: string;
   locationType: "store" | "warehouse";
   address: string;
-  managerId: string;
   status?: "active" | "inactive";
   default?: boolean;
 }
