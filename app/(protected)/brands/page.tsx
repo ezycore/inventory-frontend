@@ -6,12 +6,10 @@ import type { Brand } from "@/types";
 import { DataTable } from "@/ui/components/dataTable";
 
 // Hooks & API
-import {
-  brandColumns,
-  brandFilterConfig,
-  brandFormConfig,
-  brandPrepareSubmitData,
-} from "@/components/brands/constants";
+import { brandColumns } from "@/components/brands/columns";
+import { brandFilterConfig } from "@/components/brands/filters";
+import { brandFormConfig } from "@/components/brands/form-config";
+import { prepareSubmitData } from "@/components/brands/helpers";
 import { FieldSettingsLink } from "@/components/shared/field-settings-link";
 import {
   useBulkDeleteBrand,
@@ -77,8 +75,7 @@ export default function BrandsPage() {
           editTooltip: "Edit Brand",
           deleteTooltip: "Delete Brand",
           viewTooltip: "Custom tooltip View Brand",
-          prepareSubmitData: (data: Brand, isEdit: boolean, item?: Brand) =>
-            brandPrepareSubmitData(data, isEdit, item),
+          prepareSubmitData,
         }}
       />
     </div>

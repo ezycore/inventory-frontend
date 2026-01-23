@@ -14,10 +14,10 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const defaultOpen = getCookie("sidebar_state") !== "false";
-  const varifyMe = useMe();
+  const verifyMe = useMe();
 
   useEffect(() => {
-    varifyMe.mutate();
+    verifyMe.mutate();
   }, []);
   
   return (

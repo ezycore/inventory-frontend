@@ -1,6 +1,6 @@
 "use client";
 
-import { brandFormConfig } from "@/components/brands/constants";
+import { brandFormConfig } from "@/components/brands/form-config";
 import { categoryFormConfig } from "@/components/categories/form-config";
 import FieldSettingsManager from "@/components/products/field-settings-manager";
 import { productFormConfig } from "@/components/products/form-config";
