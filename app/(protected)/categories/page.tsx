@@ -11,8 +11,8 @@ import { categoryColumns } from '@/components/categories/columns'
 import { categoryFilterConfig } from '@/components/categories/filters'
 import { categoryFormConfig } from '@/components/categories/form-config'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
+import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
 import { useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/queries'
-import { useFilteredFormConfig } from '@/hooks/use-filtered-form-config'
 import { categoriesApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys-products'
 import PageHeader from '@/ui/components/header'
@@ -24,6 +24,7 @@ const searchConfig = {
 
 export default function CategoriesPage() {
   const filteredFormConfig = useFilteredFormConfig(categoryFormConfig, 'category')
+  const filteredColumns = useFilteredColumns(categoryColumns, 'category')
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -39,7 +40,9 @@ export default function CategoriesPage() {
         defaultPageSize={10}
         pageSizes={[10, 20, 50, 100]}
         filterConfig={categoryFilterConfig}
-        columns={categoryColumns}
+        columns={filteredColumns}
+        manageColumns={true}
+        module="category"
         selectable={true}
         searchConfig={searchConfig}
         enableSorting={true}

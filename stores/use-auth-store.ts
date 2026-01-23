@@ -27,6 +27,7 @@ export interface User {
     ownerId?: string;
     settings: {
       excludedFields?: { [key: string]: string[] };
+      excludedColumns?: { [key: string]: string[] };
     };
   };
 }
@@ -75,13 +76,6 @@ export const useAuthStore = create<AuthStore>()(
             sameSite: "lax",
             secure: process.env.NODE_ENV === "production",
           });
-
-          // Update field settings store with organization settings
-          if (user.organization?.settings?.excludedFields) {
-            import('./use-field-settings-store').then(({ useFieldSettingsStore }) => {
-              useFieldSettingsStore.getState().setExcludedFields(user.organization.settings.excludedFields || {});
-            });
-          }
         },
 
         updateUser: (updates: Partial<User>) => {
@@ -96,11 +90,6 @@ export const useAuthStore = create<AuthStore>()(
 
           // Remove token cookie
           deleteCookie("auth-token", { path: "/" });
-
-          // Clear field settings store to prevent stale data
-          import('./use-field-settings-store').then(({ useFieldSettingsStore }) => {
-            useFieldSettingsStore.getState().reset();
-          });
         },
 
         hydrateAuth: () => {

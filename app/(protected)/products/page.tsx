@@ -14,12 +14,13 @@ import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/qu
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
-import { useFilteredFormConfig } from '@/hooks/use-filtered-form-config'
+import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
 
 export default function ProductsPage() {
 
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
+  const filteredColumns = useFilteredColumns(productColumns, 'product')
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -30,8 +31,10 @@ export default function ProductsPage() {
       />
       <DataTable
         cardTitle={(dataLength: number) => `All Products (${dataLength})`}
-        columns={productColumns}
+        columns={filteredColumns}
         selectable={true}
+        manageColumns={true}
+        module="product"
         searchConfig={{
           globalSearch: true,
           placeholder: "Search products by name...",

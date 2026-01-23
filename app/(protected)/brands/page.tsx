@@ -11,13 +11,13 @@ import { brandFilterConfig } from "@/components/brands/filters";
 import { brandFormConfig } from "@/components/brands/form-config";
 import { prepareSubmitData } from "@/components/brands/helpers";
 import { FieldSettingsLink } from "@/components/shared/field-settings-link";
+import { useFilteredFormConfig, useFilteredColumns } from "@/hooks/use-filters";
 import {
   useBulkDeleteBrand,
   useCreateBrand,
   useDeleteBrand,
   useUpdateBrand,
 } from "@/hooks/queries";
-import { useFilteredFormConfig } from "@/hooks/use-filtered-form-config";
 import { brandsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import PageHeader from "@/ui/components/header";
@@ -36,6 +36,7 @@ const defaultValues = {
 
 export default function BrandsPage() {
   const filteredFormConfig = useFilteredFormConfig(brandFormConfig, "brand");
+  const filteredColumns = useFilteredColumns(brandColumns, "brand");
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -51,7 +52,9 @@ export default function BrandsPage() {
         defaultPageSize={10}
         pageSizes={[2, 10, 20, 50, 100]}
         filterConfig={brandFilterConfig}
-        columns={brandColumns}
+        columns={filteredColumns}
+        manageColumns={true}
+        module="brand"
         selectable={true}
         searchConfig={searchConfig}
         enableSorting={true}

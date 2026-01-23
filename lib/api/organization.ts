@@ -7,6 +7,13 @@ export interface ExcludedFieldsSettings {
   [key: string]: string[] | undefined;
 }
 
+export interface ExcludedColumnsSettings {
+  product?: string[];
+  brand?: string[];
+  category?: string[];
+  [key: string]: string[] | undefined;
+}
+
 export function createOrganizationApi(apiClient: any) {
   return {
     get: (): Promise<ApiResponse<any>> => apiClient.get(`/organization`),
@@ -23,5 +30,10 @@ export function createOrganizationApi(apiClient: any) {
       data: ExcludedFieldsSettings,
     ): Promise<ApiResponse<{ excludedFields: ExcludedFieldsSettings }>> =>
       apiClient.put(`/organization/form-settings`, data),
+
+    updateColumnSettings: (
+      data: ExcludedColumnsSettings,
+    ): Promise<ApiResponse<{ excludedColumns: ExcludedColumnsSettings }>> =>
+      apiClient.put(`/organization/column-settings`, data),
   };
 }

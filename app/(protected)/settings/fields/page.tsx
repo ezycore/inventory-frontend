@@ -6,13 +6,13 @@ import FieldSettingsManager from "@/components/products/field-settings-manager";
 import { productFormConfig } from "@/components/products/form-config";
 import { organizationApi } from "@/lib/api";
 import { useAuthStore } from "@/stores";
-import { useFieldSettingsStore } from "@/stores/use-field-settings-store";
 import PageHeader from "@/ui/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { Loader2, Package, Star, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const modules = [
   {
@@ -42,13 +42,12 @@ function FieldSettingsForm() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const defaultTab = validTabs.includes(tabParam || "") ? tabParam! : "product";
+  const queryClient = useQueryClient();
 
   const user = useAuthStore((state) => state.user);
   const canManageSettings =
     user?.permissions?.includes("organization.edit") ?? false;
 
-  const { updateModuleExcludedFields, getExcludedFieldsForModule } =
-    useFieldSettingsStore();
   const [activeTab, setActiveTab] = React.useState(defaultTab);
 
   // Redirect if user doesn't have permission
@@ -67,7 +66,9 @@ function FieldSettingsForm() {
   const handleSave = async (module: string, fields: string[]) => {
     try {
       await organizationApi.updateFormSettings({ [module]: fields });
-      updateModuleExcludedFields(module, fields);
+      
+      // Refetch user data to get updated settings
+      await queryClient.invalidateQueries({ queryKey: ["user", "me"] });
 
       toast.success("Field settings saved successfully");
     } catch (error: any) {
@@ -102,7 +103,7 @@ function FieldSettingsForm() {
             <FieldSettingsManager
               formConfig={module.formConfig}
               module={module.key}
-              excludedFields={getExcludedFieldsForModule(module.key)}
+              excludedFields={user?.organization?.settings?.excludedFields?.[module.key] || []}
               onSave={(fields) => handleSave(module.key, fields)}
             />
           </TabsContent>

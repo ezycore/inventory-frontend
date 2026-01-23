@@ -1,4 +1,4 @@
-import { Search, X, Trash2, ChevronDown } from "lucide-react";
+import { Search, X, Trash2, ChevronDown, Settings } from "lucide-react";
 import { Table } from "@tanstack/react-table";
 import Link from "next/link";
 import { Input } from "../input";
@@ -43,6 +43,8 @@ interface DataTableToolbarProps<TData> {
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   };
   customActions?: CustomAction[];
+  manageColumns?: boolean;
+  onColumnSettingsClick?: () => void;
 }
 
 export function DataTableToolbar<TData>({
@@ -60,6 +62,8 @@ export function DataTableToolbar<TData>({
   enableColumnVisibility,
   actionButton,
   customActions,
+  manageColumns,
+  onColumnSettingsClick,
 }: DataTableToolbarProps<TData>) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
@@ -182,6 +186,19 @@ export function DataTableToolbar<TData>({
               })}
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
+
+        {/* Column Settings Button */}
+        {manageColumns && onColumnSettingsClick && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onColumnSettingsClick}
+            className="whitespace-nowrap"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Columns
+          </Button>
         )}
 
         {
