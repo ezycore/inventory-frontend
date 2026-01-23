@@ -151,6 +151,24 @@ export { useDashboardStats } from "./use-dashboard";
 
 export { useSelectOptions } from "./use-select-options";
 
+// User Management hooks
+export {
+  useUsers,
+  useUser,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+  useToggleUserStatus,
+  // Location management
+  useUserLocations,
+  useMyLocations,
+  useAssignLocations,
+  useAddLocationToUser,
+  useRemoveLocationFromUser,
+  useUpdateDefaultLocation,
+  useUpdateMyDefaultLocation,
+} from "./use-users";
+
 // Organization hooks
 export {
   useDeleteOrganizationApi,

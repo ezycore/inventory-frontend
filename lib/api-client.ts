@@ -37,11 +37,14 @@ export class ApiClient {
     const clearAuth = authStore.useAuthStore.getState().clearAuth;
 
     try {
-      // Get token from Zustand store (if available)
+      // Get token and active location from Zustand store (if available)
       let token: string | null = null;
+      let activeLocationId: string | null = null;
       if (typeof window !== "undefined") {
         try {
-          token = authStore.useAuthStore.getState().token || null;
+          const state = authStore.useAuthStore.getState();
+          token = state.token || null;
+          activeLocationId = state.activeLocationId || null;
         } catch (e) {
           // Store might not be available yet
         }
@@ -62,6 +65,11 @@ export class ApiClient {
       // Add Authorization header if token exists
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // Add active location header for location-scoped operations
+      if (activeLocationId) {
+        headers["X-Active-Location"] = activeLocationId;
       }
 
       const response = await fetch(url, {

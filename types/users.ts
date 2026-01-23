@@ -31,6 +31,10 @@ export interface User {
   avatar?: string;
   role: Role;
   permissions: Permission[];
+  /** Array of location IDs the user has access to (admin has all access) */
+  locationIds?: string[];
+  /** User's default/active location ID */
+  defaultLocationId?: string;
   status: "active" | "inactive";
   preferences: {
     theme: "light" | "dark" | "system";
@@ -49,6 +53,10 @@ export interface CreateUserDto {
   lastName: string;
   role?: Role;
   phone?: string;
+  /** Array of location IDs to assign to the user */
+  locationIds?: string[];
+  /** User's default location ID */
+  defaultLocationId?: string;
 }
 
 export interface UpdateUserDto {
@@ -64,6 +72,10 @@ export interface RegisterUserDto {
   lastName: string;
   role?: Role;
   phone?: string;
+  /** Array of location IDs to assign to the user */
+  locationIds?: string[];
+  /** User's default location ID */
+  defaultLocationId?: string;
 }
 
 export interface UpdateUserPermissionsDto {

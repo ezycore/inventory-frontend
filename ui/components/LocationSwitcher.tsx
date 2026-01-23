@@ -1,8 +1,9 @@
 "use client";
 import { sanitize, useLocations } from "@/hooks";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { Location } from "@/types";
 import { Check, ChevronDown, MapPin } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
@@ -10,32 +11,74 @@ export function LocationSwitcher() {
   const { data = {} } = useLocations();
   const { data: locationsRes } = data as { data: { items: Location[] } };
   const [open, setOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<{
-    id: string;
-    name: string;
-  }>();
+
+  // Get location state from auth store
+  const { user, activeLocationId, setActiveLocation } = useAuthStore();
+
+  // Get all locations as a simple list
+  const allLocations = useMemo(() => {
+    return sanitize(locationsRes?.items, "array").map((loc) => ({
+      id: loc._id,
+      name: loc.name,
+      isDefault: loc.default,
+    }));
+  }, [locationsRes?.items]);
+
+  // Filter locations based on user role
+  const accessibleLocations = useMemo(() => {
+    if (!user) return allLocations;
+
+    // Admin has access to all locations
+    if (user.role === "admin") {
+      return allLocations;
+    }
+
+    // Other roles only see their assigned locations
+    const userLocationIds = user.locationIds || [];
+    return allLocations.filter((loc) => userLocationIds.includes(loc.id));
+  }, [allLocations, user]);
+
+  // Get current active location
+  const currentLocation = useMemo(() => {
+    if (activeLocationId) {
+      const found = accessibleLocations.find((loc) => loc.id === activeLocationId);
+      if (found) return found;
+    }
+
+    // Fallback to user's default location
+    if (user?.defaultLocationId) {
+      const found = accessibleLocations.find(
+        (loc) => loc.id === user.defaultLocationId
+      );
+      if (found) return found;
+    }
+
+    // Fallback to org default location or first accessible
+    const defaultLoc = accessibleLocations.find((loc) => loc.isDefault);
+    return defaultLoc || accessibleLocations[0];
+  }, [activeLocationId, accessibleLocations, user?.defaultLocationId]);
+
+  // Initialize active location if not set
+  useEffect(() => {
+    if (!activeLocationId && currentLocation?.id) {
+      setActiveLocation(currentLocation.id);
+    }
+  }, [activeLocationId, currentLocation?.id, setActiveLocation]);
 
   const handleLocationSelect = (location: { id: string; name: string }) => {
-    setSelectedLocation(location);
+    setActiveLocation(location.id);
     setOpen(false);
   };
 
-  const items = sanitize(locationsRes?.items, "array").map((loc) => ({
-    id: loc._id,
-    name: loc.name,
-  }));
+  // Don't show if only one location or no locations
+  const showSwitcher = accessibleLocations.length > 0;
 
-  const activeLocation =
-    sanitize(locationsRes?.items, "array").find((loc) => loc.default) ||
-    sanitize(locationsRes?.items, "array")[0];
-
-  const defaultLocation = {
-    id: activeLocation?._id || "0",
-    name: activeLocation?.name || "Default Location",
-  };
+  if (!showSwitcher) {
+    return null;
+  }
 
   return (
-    <Popover open={items.length > 1 ? open : false} onOpenChange={setOpen}>
+    <Popover open={accessibleLocations.length > 1 ? open : false} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -50,11 +93,11 @@ export function LocationSwitcher() {
             </div>
             <div className="flex flex-col items-start">
               <span className="text-sm font-semibold text-gray-900">
-                {selectedLocation?.name || defaultLocation.name}
+                {currentLocation?.name || "Select Location"}
               </span>
             </div>
           </div>
-          {items.length > 1 && (
+          {accessibleLocations.length > 1 && (
             <ChevronDown className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
           )}
         </Button>
@@ -68,11 +111,11 @@ export function LocationSwitcher() {
             Select Location
           </h4>
           <p className="text-xs text-gray-500 mt-0.5">
-            Choose your preferred location
+            Choose your active location for operations
           </p>
         </div>
         <div className="space-y-1 max-h-[300px] overflow-y-auto">
-          {items.map((location) => (
+          {accessibleLocations.map((location) => (
             <button
               key={location.id}
               onClick={() => handleLocationSelect(location)}
@@ -86,9 +129,12 @@ export function LocationSwitcher() {
                   <span className="text-sm font-medium text-gray-900">
                     {location.name}
                   </span>
+                  {location.isDefault && (
+                    <span className="text-xs text-gray-500">Default</span>
+                  )}
                 </div>
               </div>
-              {(selectedLocation?.id || defaultLocation.id) === location.id && (
+              {currentLocation?.id === location.id && (
                 <Check className="h-4 w-4 text-blue-600" />
               )}
             </button>

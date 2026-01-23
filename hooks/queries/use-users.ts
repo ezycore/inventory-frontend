@@ -38,3 +38,103 @@ export function useToggleUserStatus() {
     onError: handleMutationError,
   })
 }
+
+// ========================================
+// LOCATION MANAGEMENT HOOKS
+// ========================================
+
+/** Get user's accessible locations */
+export function useUserLocations(userId: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: [...queryKeys.users.detail(userId), 'locations'],
+    queryFn: () => usersApi.getUserLocations(userId),
+    enabled: options?.enabled ?? !!userId,
+  })
+}
+
+/** Get current user's accessible locations */
+export function useMyLocations() {
+  return useQuery({
+    queryKey: ['users', 'me', 'locations'],
+    queryFn: () => usersApi.getMyLocations(),
+  })
+}
+
+/** Assign locations to a user */
+export function useAssignLocations() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ userId, locationIds }: { userId: string; locationIds: string[] }) =>
+      usersApi.assignLocations(userId, locationIds),
+    onSuccess: (response, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) })
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.users.detail(userId), 'locations'] })
+      handleMutationSuccess('Locations assigned successfully')
+    },
+    onError: handleMutationError,
+  })
+}
+
+/** Add a location to a user */
+export function useAddLocationToUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ userId, locationId }: { userId: string; locationId: string }) =>
+      usersApi.addLocation(userId, locationId),
+    onSuccess: (response, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) })
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.users.detail(userId), 'locations'] })
+      handleMutationSuccess('Location added successfully')
+    },
+    onError: handleMutationError,
+  })
+}
+
+/** Remove a location from a user */
+export function useRemoveLocationFromUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ userId, locationId }: { userId: string; locationId: string }) =>
+      usersApi.removeLocation(userId, locationId),
+    onSuccess: (response, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) })
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.users.detail(userId), 'locations'] })
+      handleMutationSuccess('Location removed successfully')
+    },
+    onError: handleMutationError,
+  })
+}
+
+/** Update user's default location */
+export function useUpdateDefaultLocation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ userId, locationId }: { userId: string; locationId: string }) =>
+      usersApi.updateDefaultLocation(userId, locationId),
+    onSuccess: (response, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) })
+      handleMutationSuccess('Default location updated successfully')
+    },
+    onError: handleMutationError,
+  })
+}
+
+/** Update current user's default location */
+export function useUpdateMyDefaultLocation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (locationId: string) =>
+      usersApi.updateMyDefaultLocation(locationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users', 'me'] })
+      queryClient.invalidateQueries({ queryKey: ['auth'] })
+      handleMutationSuccess('Default location updated successfully')
+    },
+    onError: handleMutationError,
+  })
+}
