@@ -6,7 +6,6 @@ import {
   useToggleUserStatus,
   useUpdateUser,
 } from "@/hooks/queries/use-users";
-import { usersApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import { useAuthStore } from "@/stores/use-auth-store";
 import type { CustomAction } from "@/types/DataTable";
@@ -27,6 +26,7 @@ import {
   MailCheck,
 } from "lucide-react";
 import LocationCountCell from "@/components/locations/LocationCountCell";
+import { usersApi } from "@/lib/api";
 
 // Form configuration for user management
 const userFormConfig: DynamicFormConfig = {

@@ -1,44 +1,29 @@
 "use client";
-import { sanitize, useLocations, useQueryClient, useUpdateMyDefaultLocation } from "@/hooks";
+import { sanitize, useMyLocations, useQueryClient } from "@/hooks";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { Location } from "@/types";
-import { Check, ChevronDown, MapPin } from "lucide-react";
+import { Check, ChevronDown, MapPin, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { toast } from "sonner";
 
 export function LocationSwitcher() {
-  const { data = {} } = useLocations();
-  const { data: locationsRes } = data as { data: { items: Location[] } };
+  const { data: locationsData, isLoading } = useMyLocations();
+  const locations = useMemo(() => locationsData?.data || [], [locationsData]);
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Get location state from auth store
   const { user, activeLocationId, setActiveLocation } = useAuthStore();
 
-  // Get all locations as a simple list
-  const allLocations = useMemo(() => {
-    return sanitize(locationsRes?.items, "array").map((loc) => ({
+  // Get all accessible locations - useMyLocations already filters by user access
+  const accessibleLocations = useMemo(() => {
+    return sanitize(locations, "array").map((loc) => ({
       id: loc._id,
       name: loc.name,
       isDefault: loc.default,
     }));
-  }, [locationsRes?.items]);
-
-  // Filter locations based on user role
-  const accessibleLocations = useMemo(() => {
-    if (!user) return allLocations;
-
-    // Admin has access to all locations
-    if (user.role === "admin") {
-      return allLocations;
-    }
-
-    // Other roles only see their assigned locations
-    const userLocationIds = user.locationIds || [];
-    return allLocations.filter((loc) => userLocationIds.includes(loc.id));
-  }, [allLocations, user]);
+  }, [locations]);
 
   // Get current active location
   const currentLocation = (() => {
@@ -68,13 +53,30 @@ export function LocationSwitcher() {
   }, [activeLocationId, currentLocation?.id, setActiveLocation]);
 
   const handleLocationSelect = async (location: { id: string; name: string }) => {
-    setActiveLocation(location.id);
+    try {
+      setActiveLocation(location.id);
       setOpen(false);
-      queryClient.invalidateQueries()
+      queryClient.invalidateQueries();
       toast.success(`Switched to location: ${location.name}`);
+    } catch (error) {
+      toast.error("Failed to switch location");
+    }
   };
 
-  // Don't show if only one location or no locations
+  // Don't show if loading or no locations available
+  if (isLoading) {
+    return (
+      <Button
+        variant="ghost"
+        disabled
+        className="group relative h-11 gap-2 px-4 rounded-full border border-gray-200/60 bg-white/80 backdrop-blur-sm"
+      >
+        <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
+        <span className="text-sm font-semibold text-gray-900">Loading...</span>
+      </Button>
+    );
+  }
+
   const showSwitcher = accessibleLocations.length > 0;
 
   if (!showSwitcher) {

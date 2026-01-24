@@ -1,3 +1,5 @@
+import { Location } from "@/types";
+
 // User and Permission types
 export type Permission =
   | "products.view"
@@ -34,6 +36,7 @@ export interface User {
   /** Array of location IDs the user has access to (admin has all access) */
   locationIds?: string[];
   /** User's default/active location ID */
+  locations: Location[];
   defaultLocationId?: string;
   status: "active" | "inactive";
   preferences: {

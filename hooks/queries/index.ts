@@ -159,14 +159,13 @@ export {
   useDeleteUser,
   useToggleUserStatus,
   // Location management
-  useUserLocations,
+  // useUserLocations,
   useMyLocations,
-  useAssignLocations,
-  useAddLocationToUser,
-  useRemoveLocationFromUser,
-  useUpdateDefaultLocation,
+  // useAssignLocations,
+  // useAddLocationToUser,
+  // useRemoveLocationFromUser,
+  // useUpdateDefaultLocation,
   useUpdateMyDefaultLocation,
-  useUsersByLocation,
 } from "./use-users";
 
 // Organization hooks

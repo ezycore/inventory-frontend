@@ -24,6 +24,7 @@ export interface User {
     name: string;
     slug: string;
     ownerId?: string;
+    currency?: string;
     settings: {
       excludedFields?: { [key: string]: string[] };
     };
