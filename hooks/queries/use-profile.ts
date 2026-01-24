@@ -41,16 +41,7 @@ interface OrganizationDto {
   currency?: string;
 }
 
-// Create resource hooks using the factory
-const profileHooks = createResourceHooks<ProfileDto, ProfileDto>(
-  profileApi,
-  profileKeys as any,
-);
-
-// Export standard hooks - use 'me' as the ID for current user profile
-export const useProfile = () => profileHooks.useDetail("me");
-
-// Custom update profile hook with auth store update
+// Custom update profile hook with auth store update (in use)
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuthStore();
@@ -58,11 +49,10 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (data: FormData | ({ id: string } & any)) => {
       if (data instanceof FormData) {
-        const id = data.get("id") as string;
-        return profileApi.update(id, data);
+        return profileApi.update(data);
       }
       const { id, ...rest } = data;
-      return profileApi.update(id, rest);
+      return profileApi.update(rest);
     },
     onSuccess: (response, variables) => {
       // Update auth store with new user data
@@ -70,13 +60,7 @@ export function useUpdateProfile() {
         updateUser(response.data);
       }
 
-      const id =
-        variables instanceof FormData
-          ? (variables.get("id") as string)
-          : variables.id;
-
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      queryClient.invalidateQueries({ queryKey: profileKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: ["auth"] });
 
       if (response.message) {
@@ -87,13 +71,13 @@ export function useUpdateProfile() {
   });
 }
 
-// Update avatar hook
+// Update avatar hook (in use)
 export function useUpdateAvatar() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuthStore();
 
   return useMutation({
-    mutationFn: (formData: FormData) => profileApi.update("me", formData),
+    mutationFn: (formData: FormData) => profileApi.update(formData),
     onSuccess: (response) => {
       // Update the user in auth store
       if (response.data) {
@@ -109,7 +93,7 @@ export function useUpdateAvatar() {
   });
 }
 
-// Remove avatar hook
+// Remove avatar hook (in use)
 export function useRemoveAvatar() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuthStore();
@@ -117,9 +101,8 @@ export function useRemoveAvatar() {
   return useMutation({
     mutationFn: () => {
       const formData = new FormData();
-      formData.append("id", "me");
       formData.append("removeAvatar", "true");
-      return profileApi.update("me", formData);
+      return profileApi.update(formData);
     },
     onSuccess: (response) => {
       // Update the user in auth store
@@ -211,7 +194,7 @@ export function useUpdateOrganization() {
 
 // 2FA Hooks
 
-// Get 2FA status
+// Get 2FA status (in use)
 export function use2FAStatus() {
   const queryClient = useQueryClient();
 
@@ -227,7 +210,7 @@ export function use2FAStatus() {
   });
 }
 
-// Enable 2FA
+// Enable 2FA (in use)
 export function useEnable2FA() {
   return useMutation({
     mutationFn: async () => {
@@ -238,7 +221,7 @@ export function useEnable2FA() {
   });
 }
 
-// Verify 2FA
+// Verify 2FA (in use)
 export function useVerify2FA() {
   const queryClient = useQueryClient();
 
@@ -257,7 +240,7 @@ export function useVerify2FA() {
   });
 }
 
-// Disable 2FA
+// Disable 2FA (in use)
 export function useDisable2FA() {
   const queryClient = useQueryClient();
 
@@ -276,7 +259,7 @@ export function useDisable2FA() {
 
 // Organization Ownership Hooks
 
-// Get organization users
+// Get organization users (in use)
 export function useOrganizationUsers() {
   return useMutation({
     mutationFn: async () => {
@@ -287,7 +270,7 @@ export function useOrganizationUsers() {
   });
 }
 
-// Transfer ownership
+// Transfer ownership (in use)
 export function useTransferOwnership() {
   const queryClient = useQueryClient();
   const { updateUser, user } = useAuthStore();

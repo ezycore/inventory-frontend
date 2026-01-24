@@ -5,7 +5,7 @@ import { ExcludedFieldsSettings } from "@/lib/api/organization";
 import { handleMutationError } from "@/lib/error-handling";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useGetOrganizationApi = () => {
+export const useGetOrganizationApi = () => { // (in use)
   return useQuery({
     queryKey: queryKeys.organization.get(),
     queryFn: () => organizationApi.get(),

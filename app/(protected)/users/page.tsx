@@ -26,6 +26,7 @@ import {
   Mail,
   MailCheck,
 } from "lucide-react";
+import LocationCountCell from "@/components/locations/LocationCountCell";
 
 // Form configuration for user management
 const userFormConfig: DynamicFormConfig = {
@@ -146,19 +147,8 @@ const columns: ColumnDef<User>[] = [
     header: "Location",
     cell: ({ row }) => {
       const user = row.original;
-      // Admin has access to all locations
-      if (user.role === "admin") {
-        return <Badge variant="default">All Locations</Badge>;
-      }
-      // Show default location or count of assigned locations
-      const locationCount = user.locationIds?.length || 0;
-      if (locationCount === 0) {
-        return <span className="text-muted-foreground">—</span>;
-      }
       return (
-        <Badge variant="secondary">
-          {locationCount} location{locationCount !== 1 ? "s" : ""}
-        </Badge>
+        <LocationCountCell locations={user.locations} role={user.role} />
       );
     },
   },

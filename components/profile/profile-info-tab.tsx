@@ -10,7 +10,7 @@ import { Loader2 } from "lucide-react";
 import { ChangeDefaultLocationDialog } from "./ChangeDefaultLocationDialog";
 
 export function ProfileInfoTab() {
-  const { user, updateUser } = useAuthStore();
+  const { user } = useAuthStore();
   const updateProfile = useUpdateProfile();
 
   // Initialize form data using useMemo to avoid cascading renders
@@ -35,7 +35,6 @@ export function ProfileInfoTab() {
     e.preventDefault();
     
     const data = new FormData();
-    data.append("id", "me");
     data.append("firstName", formData.firstName);
     data.append("lastName", formData.lastName);
     data.append("phone", formData.phone || "");
@@ -68,7 +67,7 @@ export function ProfileInfoTab() {
         {/* Last Name */}
         <div className="space-y-2">
           <Label htmlFor="lastName">
-            Last Name <span className="text-destructive">*</span>
+            Last Name
           </Label>
           <Input
             id="lastName"

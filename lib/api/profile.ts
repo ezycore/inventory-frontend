@@ -11,11 +11,11 @@ export function createProfileApi(apiClient: any) {
     
     getById: (id: string): Promise<ApiResponse<any>> => apiClient.get("/profile"),
 
-    // Update profile with FormData support for avatar upload
-    update: (id: string, data: FormData): Promise<ApiResponse<any>> => 
+    // Update profile with FormData support for avatar upload (in use)
+    update: (data: FormData): Promise<ApiResponse<any>> => 
       apiClient.put("/profile", data),
 
-    // Additional profile-specific methods
+    // Additional profile-specific methods (in use)
     updatePassword: (data: {
       currentPassword: string;
       newPassword: string;
@@ -36,25 +36,25 @@ export function createProfileApi(apiClient: any) {
       }>
     > => apiClient.get("/profile/permissions"),
 
-    // 2FA methods
+    // 2FA methods (in use)
     get2FAStatus: (): Promise<ApiResponse<{ enabled: boolean }>> =>
       apiClient.get("/profile/2fa/status"),
 
-    enable2FA: (): Promise<
+    enable2FA: (): Promise< // in use
       ApiResponse<{ secret: string; qrCode: string }>
     > => apiClient.post("/profile/2fa/enable", {}),
 
-    verify2FA: (data: {
+    verify2FA: (data: { // in use
       token: string;
     }): Promise<
       ApiResponse<{ message: string; backupCodes: string[] }>
     > => apiClient.post("/profile/2fa/verify", data),
 
-    disable2FA: (data: { password: string }): Promise<ApiResponse<any>> =>
+    disable2FA: (data: { password: string }): Promise<ApiResponse<any>> => // in use
       apiClient.post("/profile/2fa/disable", data),
 
-    // Organization ownership methods
-    getOrganizationUsers: (): Promise<
+    // Organization ownership methods (in use)
+    getOrganizationUsers: (): Promise< 
       ApiResponse<
         Array<{
           _id: string;
@@ -66,7 +66,7 @@ export function createProfileApi(apiClient: any) {
       >
     > => apiClient.get("/profile/organization/users"),
 
-    transferOwnership: (data: {
+    transferOwnership: (data: { // in use
       newOwnerId: string;
     }): Promise<ApiResponse<any>> =>
       apiClient.post("/profile/transfer-ownership", data),

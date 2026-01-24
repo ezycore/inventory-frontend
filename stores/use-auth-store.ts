@@ -23,18 +23,10 @@ export interface User {
   organization: {
     name: string;
     slug: string;
-    country: string;
-    timezone: string;
-    currency: string;
-    address?: string;
-    image?: Image[];
-    status: "active" | "inactive";
     ownerId?: string;
-    defaultLocationId?: string;
     settings: {
       excludedFields?: { [key: string]: string[] };
     };
-    features: OrganizationFeatures;
   };
 }
 
@@ -43,7 +35,6 @@ interface AuthState extends LoadingState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  /** Currently active location ID for operations */
   activeLocationId: string | null;
 }
 
@@ -53,7 +44,6 @@ interface AuthActions {
   updateUser: (updates: Partial<User>) => void;
   clearAuth: () => void;
   hydrateAuth: () => void;
-  /** Set the active location for the current session */
   setActiveLocation: (locationId: string) => void;
 }
 
@@ -78,8 +68,7 @@ export const useAuthStore = create<AuthStore>()(
 
         setUser: (user: User, token: string) => {
           // Determine active location: user's default or organization's default
-          const activeLocationId =
-            user.defaultLocationId || user.organization.defaultLocationId || null;
+          const activeLocationId = user.defaultLocationId || null;
 
           // Store in Zustand
           set({ user, token, isAuthenticated: true, activeLocationId });

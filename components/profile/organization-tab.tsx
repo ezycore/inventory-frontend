@@ -12,31 +12,39 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Loader2, Lock } from "lucide-react";
 import { useUpdateOrganization } from "@/hooks/queries/use-profile";
 import { countryOptions, currencyOptions, timezoneOptions } from "@/app/(auth)/signup/page";
+import { useGetOrganizationApi } from "@/hooks";
 
 export function OrganizationTab() {
+  const {data} = useGetOrganizationApi();
+  const {address, country, currency, name, timezone} = data?.data || {};
   const { user } = useAuthStore();
+
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
 
   // Initialize form data using useMemo to avoid cascading renders
   const initialFormData = useMemo(() => ({
-    name: user?.organization?.name || "",
-    address: user?.organization?.address || "",
-    country: user?.organization?.country || "",
-    timezone: user?.organization?.timezone || "",
-    currency: user?.organization?.currency || "",
+    name: name || "",
+    address: address || "",
+    country: country || "",
+    timezone: timezone || "",
+    currency: currency || "",
   }), [
-    user?.organization?.name,
-    user?.organization?.address,
-    user?.organization?.country,
-    user?.organization?.timezone,
-    user?.organization?.currency,
+    name,
+    address,
+    country,
+    timezone,
+    currency,
   ]);
 
   const [formData, setFormData] = useState(initialFormData);
+
+  useEffect(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   const updateOrganization = useUpdateOrganization();
 
@@ -50,11 +58,11 @@ export function OrganizationTab() {
   };
 
   const hasChanges =
-    formData.name !== user?.organization?.name ||
-    formData.address !== user?.organization?.address ||
-    formData.country !== user?.organization?.country ||
-    formData.timezone !== user?.organization?.timezone ||
-    formData.currency !== user?.organization?.currency;
+    formData.name !== name ||
+    formData.address !== address ||
+    formData.country !== country ||
+    formData.timezone !== timezone ||
+    formData.currency !== currency;
 
   if (!isAdmin) {
     return (

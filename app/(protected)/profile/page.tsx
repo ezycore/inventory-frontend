@@ -21,9 +21,78 @@ import {
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useMemo } from "react";
 
+const CardWithContent = ({
+  title,
+  description,
+  icon: Icon,
+  cardContent,
+}: {
+  title: string;
+  description: string;
+  icon: React.ComponentType<any>;
+  cardContent: React.ReactNode;
+}) => (
+  <Card className="border-2">
+    <CardHeader className="border-b bg-muted/30">
+      <CardTitle className="flex items-center gap-2">
+        <div className="rounded-lg bg-primary/10 p-2">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        {title}
+      </CardTitle>
+      <CardDescription>{description}</CardDescription>
+    </CardHeader>
+    <CardContent className="pt-6">{cardContent}</CardContent>
+  </Card>
+);
+
+const tabItems = [
+  {
+    value: "profile",
+    title: "Profile",
+    description: "Update your personal information and contact details",
+    icon: User,
+    content: <ProfileInfoTab />,
+  },
+  { 
+    value: "password",
+    title: "Change Password",
+    description: "Update your password to keep your account secure",
+    icon: Lock,
+    content: <PasswordChangeTab />,
+  },
+  {
+    value: "2fa",
+    title: "Two-Factor Authentication",
+    description: "Enhance your account security with 2FA",
+    icon: KeyRound,
+    content: <TwoFactorTab />,
+  },
+  {
+    value: "permissions",
+    title: "Your Permissions",
+    description: "View your role and assigned permissions",
+    icon: Shield,
+    content: <PermissionsTab />,
+  },
+  {
+    value: "organization",
+    title: "Organization Users",
+    description: "Manage users within your organization",
+    icon: Building2,
+    content: <OrganizationTab />,
+  },
+  {
+    value: "transfer",
+    title: "Transfer Ownership",
+    description: "Transfer ownership of your organization",
+    icon: UserCog,
+    content: <TransferOwnershipTab />,
+  },
+];
+
 export default function ProfilePage() {
   const { user } = useAuthStore();
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
   const isOwner = useMemo(() => {
     return user?.organization?.ownerId === user?.id;
   }, [user?.firstName]);
@@ -82,129 +151,23 @@ export default function ProfilePage() {
           )}
         </TabsList>
 
-        {/* Profile Tab */}
-        <TabsContent value="profile">
-          <Card className="border-2">
-            <CardHeader className="border-b bg-muted/30">
-              <CardTitle className="flex items-center gap-2">
-                <div className="rounded-lg bg-primary/10 p-2">
-                  <User className="h-5 w-5 text-primary" />
-                </div>
-                Profile Information
-              </CardTitle>
-              <CardDescription>
-                Update your personal information and contact details
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <ProfileInfoTab />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Password Tab */}
-        <TabsContent value="password">
-          <Card className="border-2">
-            <CardHeader className="border-b bg-muted/30">
-              <CardTitle className="flex items-center gap-2">
-                <div className="rounded-lg bg-primary/10 p-2">
-                  <Lock className="h-5 w-5 text-primary" />
-                </div>
-                Change Password
-              </CardTitle>
-              <CardDescription>
-                Update your password to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <PasswordChangeTab />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 2FA Tab */}
-        <TabsContent value="2fa">
-          <Card className="border-2">
-            <CardHeader className="border-b bg-muted/30">
-              <CardTitle className="flex items-center gap-2">
-                <div className="rounded-lg bg-primary/10 p-2">
-                  <KeyRound className="h-5 w-5 text-primary" />
-                </div>
-                Two-Factor Authentication
-              </CardTitle>
-              <CardDescription>
-                Enhance your account security with 2FA
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <TwoFactorTab />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Permissions Tab */}
-        <TabsContent value="permissions">
-          <Card className="border-2">
-            <CardHeader className="border-b bg-muted/30">
-              <CardTitle className="flex items-center gap-2">
-                <div className="rounded-lg bg-primary/10 p-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                </div>
-                Your Permissions
-              </CardTitle>
-              <CardDescription>
-                View your role and assigned permissions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <PermissionsTab />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Organization Tab */}
-        <TabsContent value="organization">
-          <Card className="border-2">
-            <CardHeader className="border-b bg-muted/30">
-              <CardTitle className="flex items-center gap-2">
-                <div className="rounded-lg bg-primary/10 p-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                </div>
-                Organization Settings
-              </CardTitle>
-              <CardDescription>
-                {isAdmin
-                  ? "Manage your organization information and settings"
-                  : "View your organization details"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <OrganizationTab />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Transfer Ownership Tab - Only for owners */}
-        
-          <TabsContent value="transfer">
-            <Card className="border-2">
-              <CardHeader className="border-b bg-muted/30">
-                <CardTitle className="flex items-center gap-2">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <UserCog className="h-5 w-5 text-primary" />
-                  </div>
-                  Transfer Ownership
-                </CardTitle>
-                <CardDescription>
-                  Transfer organization ownership to another user
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <TransferOwnershipTab />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        
+          {
+          tabItems.map((tab) => {
+            if (tab.value === "transfer" && !isOwner) {
+              return null;
+            }
+            return (
+              <TabsContent key={tab.value} value={tab.value}>
+                <CardWithContent
+                  title={tab.title}
+                  description={tab.description}
+                  icon={tab.icon}
+                  cardContent={tab.content}
+                />
+              </TabsContent>
+            );
+          })
+        }
       </Tabs>
     </div>
   );

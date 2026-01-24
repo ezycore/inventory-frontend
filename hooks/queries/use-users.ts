@@ -52,7 +52,7 @@ export function useUserLocations(userId: string, options?: { enabled?: boolean }
   })
 }
 
-/** Get current user's accessible locations */
+/** Get current user's accessible locations (in use) */
 export function useMyLocations() {
   return useQuery({
     queryKey: ['users', 'me', 'locations'],

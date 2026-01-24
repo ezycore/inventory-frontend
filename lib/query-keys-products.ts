@@ -5,7 +5,7 @@
 
 export const queryKeys = {
   organization: {
-    get: () => ["organization"] as const,
+    get: () => ["organization"] as const, //in use
     update: () => [...queryKeys.organization.get(), "update"] as const,
     delete: () => [...queryKeys.organization.get(), "delete"] as const,
     updateFormSettings: () =>

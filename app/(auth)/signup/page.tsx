@@ -73,7 +73,6 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           label: "Last Name",
           columnSpan: 6,
           placeholder: "Doe",
-          required: true,
         },
         {
           name: "email",
@@ -95,7 +94,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           type: "password",
           label: "Password",
           columnSpan: 6,
-          placeholder: "Min. 8 characters",
+          placeholder: "Min. 6 characters",
           required: true,
         },
         {
@@ -194,8 +193,8 @@ export default function Signup() {
     }
 
     // Validate password length
-    if (data.password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+    if (data.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
       return;
     }
 

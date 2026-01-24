@@ -207,25 +207,6 @@ export default function LocationsPage() {
             ...data,
             ...(isEdit && item ? { id: item._id } : {}),
           }),
-          transformEditData: async (item: LocationType) => {
-            // Fetch users assigned to this location
-            try {
-              const usersResponse = await locationsApi.getUsersByLocation(item._id);
-              const assignedUsers = usersResponse?.data || [];
-              // Extract user IDs (exclude admins as they're automatically included)
-              const userIds = assignedUsers
-                .filter((user: { role?: string }) => user.role !== "admin")
-                .map((user: { _id?: string }) => user._id);
-              
-              return {
-                ...item,
-                userIds,
-              };
-            } catch (error) {
-              console.error("Error fetching location users:", error);
-              return item;
-            }
-          },
         }}
       />
     </div>
