@@ -10,12 +10,6 @@ export function createLocationsApi(apiClient: any) {
     getAll: (filters: LocationFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
       apiClient.get(`/locations${buildQueryParams(filters)}`),
 
-    getById: (id: string, includeUsers = false): Promise<ApiResponse<any>> =>
-      apiClient.get(`/locations/${id}${includeUsers ? '?includeUsers=true' : ''}`),
-
-    getUsersByLocation: (id: string): Promise<ApiResponse<any[]>> =>
-      apiClient.get(`/locations/${id}/users`),
-
     create: (data: any): Promise<ApiResponse<any>> =>
       apiClient.post("/locations", data),
 

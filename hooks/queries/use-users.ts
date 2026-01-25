@@ -17,10 +17,9 @@ const userHooks = createResourceHooks<User, CreateUserDto, UpdateUserDto>(
 
 // Export standard hooks
 export const useUsers = userHooks.useList
-export const useUser = userHooks.useDetail
-export const useCreateUser = userHooks.useCreate //in use
-export const useUpdateUser = userHooks.useUpdate //in use
-export const useDeleteUser = userHooks.useDelete  //in use
+export const useCreateUser = userHooks.useCreate
+export const useUpdateUser = userHooks.useUpdate
+export const useDeleteUser = userHooks.useDelete
 
 // Custom hook for toggling user status (deactivate/activate) //in use
 export function useToggleUserStatus() {

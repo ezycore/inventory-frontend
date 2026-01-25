@@ -10,14 +10,15 @@ import {
 import { toast } from "sonner";
 
 interface ResourceApi<T, CreateDto, UpdateDto> {
-  getAll: (
+  getAll?: (
     filters?: Record<string, any>,
   ) => Promise<ApiResponse<PaginatedResponse<any>>>;
-  getById: (id: string) => Promise<ApiResponse<any>>;
+  getById?: (id: string) => Promise<ApiResponse<any>>;
   getBySlug?: (slug: string) => Promise<ApiResponse<any>>;
-  create: (data: FormData | CreateDto) => Promise<ApiResponse<any>>;
-  update: (id: string, data: FormData | UpdateDto) => Promise<ApiResponse<T>>;
-  delete: (id: string) => Promise<ApiResponse<any>>;
+  create?: (data: FormData | CreateDto) => Promise<ApiResponse<any>>;
+  update?: (id: string, data: FormData | UpdateDto) => Promise<ApiResponse<T>>;
+  delete?: (id: string) => Promise<ApiResponse<any>>;
+  bulkDelete?: (ids: string[]) => Promise<ApiResponse<any>>;
 }
 
 interface QueryKeys {
@@ -54,123 +55,136 @@ export function createResourceHooks<
   const { staleTime = 10 * 60 * 1000, relatedQueryKeys = [] } = options;
 
   // Query hook for list
-  const useList = (filters?: Record<string, any>) => {
-    return useQuery({
-      queryKey: queryKeys.list(),
-      queryFn: () => api.getAll(filters),
-      staleTime,
-    });
-  };
+  const useList = api.getAll
+    ? (filters?: Record<string, any>) => {
+        return useQuery({
+          queryKey: queryKeys.list(),
+          queryFn: () => api.getAll!(filters),
+          staleTime,
+        });
+      }
+    : undefined;
 
   // Query hook for single item by ID
-  const useDetail = (id: string) => {
-    return useQuery({
-      queryKey: queryKeys.detail(id),
-      queryFn: () => api.getById(id),
-      enabled: !!id,
-      staleTime,
-    });
-  };
+  const useDetail = api.getById
+    ? (id: string) => {
+        return useQuery({
+          queryKey: queryKeys.detail(id),
+          queryFn: () => api.getById!(id),
+          enabled: !!id,
+          staleTime,
+        });
+      }
+    : undefined;
 
   // Query hook for single item by slug (optional)
-  const useBySlug = (slug: string) => {
-    if (!api.getBySlug || !queryKeys.bySlug) {
-      throw new Error("getBySlug not implemented");
-    }
-
-    return useQuery({
-      queryKey: queryKeys.bySlug(slug),
-      queryFn: () => api.getBySlug!(slug),
-      enabled: !!slug,
-      staleTime,
-    });
-  };
+  const useBySlug =
+    api.getBySlug && queryKeys.bySlug
+      ? (slug: string) => {
+          return useQuery({
+            queryKey: queryKeys.bySlug!(slug),
+            queryFn: () => api.getBySlug!(slug),
+            enabled: !!slug,
+            staleTime,
+          });
+        }
+      : undefined;
 
   // Mutation hook for create
-  const useCreate = () => {
-    const queryClient = useQueryClient();
+  const useCreate = api.create
+    ? () => {
+        const queryClient = useQueryClient();
 
-    return useMutation({
-      mutationFn: (data: FormData | CreateDto) => api.create(data),
-      onSuccess: (data) => {
-        handleMutationSuccess(data.message || "Item created successfully");
-        queryClient.invalidateQueries({ queryKey: queryKeys.all() });
-        relatedQueryKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key });
+        return useMutation({
+          mutationFn: (data: FormData | CreateDto) => api.create!(data),
+          onSuccess: (data) => {
+            handleMutationSuccess(data.message || "Item created successfully");
+            queryClient.invalidateQueries({ queryKey: queryKeys.all() });
+            relatedQueryKeys.forEach((key) => {
+              queryClient.invalidateQueries({ queryKey: key });
+            });
+          },
+          onError: handleMutationError,
         });
-      },
-      onError: handleMutationError,
-    });
-  };
+      }
+    : undefined;
 
   // Mutation hook for update
-  const useUpdate = () => {
-    const queryClient = useQueryClient();
+  const useUpdate = api.update
+    ? () => {
+        const queryClient = useQueryClient();
 
-    return useMutation({
-      mutationFn: (data: FormData | ({ id: string } & UpdateDto)) => {
-        if (data instanceof FormData) {
-          const id = data.get("id") as string;
-          return api.update(id, data);
-        }
-        const { id, ...rest } = data;
-        return api.update(id, rest as UpdateDto);
-      },
-      onSuccess: (_, variables) => {
-        handleMutationSuccess(_.message || "Item updated successfully");
-        const id =
-          variables instanceof FormData
-            ? (variables.get("id") as string)
-            : variables.id;
+        return useMutation({
+          mutationFn: (data: FormData | ({ id: string } & UpdateDto)) => {
+            if (data instanceof FormData) {
+              const id = data.get("id") as string;
+              return api.update!(id, data);
+            }
+            const { id, ...rest } = data;
+            return api.update!(id, rest as UpdateDto);
+          },
+          onSuccess: (_, variables) => {
+            handleMutationSuccess(_.message || "Item updated successfully");
+            const id =
+              variables instanceof FormData
+                ? (variables.get("id") as string)
+                : variables.id;
 
-        queryClient.invalidateQueries({ queryKey: queryKeys.all() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.detail(id) });
-        relatedQueryKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key });
+            queryClient.invalidateQueries({ queryKey: queryKeys.all() });
+            queryClient.invalidateQueries({ queryKey: queryKeys.detail(id) });
+            relatedQueryKeys.forEach((key) => {
+              queryClient.invalidateQueries({ queryKey: key });
+            });
+          },
+          onError: handleMutationError,
         });
-      },
-      onError: handleMutationError,
-    });
-  };
+      }
+    : undefined;
 
   // Mutation hook for delete
-  const useDelete = () => {
-    const queryClient = useQueryClient();
+  const useDelete = api.delete
+    ? () => {
+        const queryClient = useQueryClient();
 
-    return useMutation({
-      mutationFn: (id: string) => api.delete(id),
-      onSuccess: (data) => {
-        handleMutationSuccess(data.message || "Item deleted successfully");
-        queryClient.invalidateQueries({ queryKey: queryKeys.all() });
-        relatedQueryKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key });
+        return useMutation({
+          mutationFn: (id: string) => api.delete!(id),
+          onSuccess: (data) => {
+            handleMutationSuccess(data.message || "Item deleted successfully");
+            queryClient.invalidateQueries({ queryKey: queryKeys.all() });
+            relatedQueryKeys.forEach((key) => {
+              queryClient.invalidateQueries({ queryKey: key });
+            });
+          },
+          onError: handleMutationError,
         });
-      },
-      onError: handleMutationError,
-    });
-  };
+      }
+    : undefined;
 
   // Mutation hook for bulk delete
-  const useBulkDelete = () => {
-    const queryClient = useQueryClient();
+  const useBulkDelete = api.bulkDelete
+    ? () => {
+        const queryClient = useQueryClient();
 
-    return useMutation({
-      mutationFn: (ids: string[]) => (api as any).bulkDelete(ids),
-      onSuccess: (data: any) => {
-        handleMutationSuccess(data?.message || "Items deleted successfully");
-        queryClient.invalidateQueries({ queryKey: queryKeys.all() });
-        relatedQueryKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key });
+        return useMutation({
+          mutationFn: (ids: string[]) => api.bulkDelete!(ids),
+          onSuccess: (data: any) => {
+            handleMutationSuccess(
+              data?.message || "Items deleted successfully",
+            );
+            queryClient.invalidateQueries({ queryKey: queryKeys.all() });
+            relatedQueryKeys.forEach((key) => {
+              queryClient.invalidateQueries({ queryKey: key });
+            });
+          },
+          onError: handleMutationError,
         });
-      },
-      onError: handleMutationError,
-    });
-  };
+      }
+    : undefined;
 
   return {
     useList,
     useDetail,
-    useBySlug: api.getBySlug ? useBySlug : undefined,
+    useBySlug,
     useCreate,
     useUpdate,
     useDelete,

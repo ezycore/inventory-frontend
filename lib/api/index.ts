@@ -18,7 +18,6 @@ import { createCustomersApi } from "./customers";
 import { createSuppliersApi } from "./suppliers";
 import { createUsersApi } from "./users";
 import { createAuthApi } from "./auth";
-import { createSetupApi } from "./setup";
 import { createProfileApi } from "./profile";
 import { createDashboardApi } from "./dashboard";
 import { createOrganizationApi } from "@/lib/api/organization";
@@ -37,7 +36,6 @@ export const variantApi = variantsApi; // Alias for compatibility
 export const variantAttributesApi = variantsApi; // Alias for attribute templates (same API)
 export const categoriesApi = createCategoriesApi(apiClient);
 export const brandsApi = createBrandsApi(apiClient);
-export const locationsApi = createLocationsApi(apiClient);
 export const unitsApi = createUnitsApi(apiClient);
 export const taxesApi = createTaxesApi(apiClient);
 export const discountsApi = createDiscountsApi(apiClient);
@@ -46,16 +44,16 @@ export const stockApi = createStockApi(apiClient);
 export const stockMovementsApi = createStockMovementsApi(apiClient);
 export const customersApi = createCustomersApi(apiClient);
 export const suppliersApi = createSuppliersApi(apiClient);
-export const usersApi = createUsersApi(apiClient);
 export const profileApi = createProfileApi(apiClient);
 export const dashboardApi = createDashboardApi(apiClient);
-export const organizationApi = createOrganizationApi(apiClient);
-export const authApi = createAuthApi(apiClient);
-export const setupApi = createSetupApi(apiClient);
 export const accountsApi = createAccountsApi(apiClient);
 export const transactionsApi = createTransactionsApi(apiClient);
 export const purchaseOrdersApi = createPurchaseOrdersApi(apiClient);
 export const salesOrdersApi = createSalesOrdersApi(apiClient);
+export const authApi = createAuthApi(apiClient);
+export const locationsApi = createLocationsApi(apiClient);
+export const organizationApi = createOrganizationApi(apiClient);
+export const usersApi = createUsersApi(apiClient);
 
 // Legacy API for backward compatibility
 export const legacyInventoryApi = createLegacyInventoryApi(apiClient, productsApi, stockApi);

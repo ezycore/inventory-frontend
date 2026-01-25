@@ -21,8 +21,6 @@ export function createOrganizationApi(apiClient: any) {
     update: (data: FormData): Promise<ApiResponse<any>> =>
       apiClient.put(`/organization`, data),
 
-    delete: (): Promise<ApiResponse<void>> => apiClient.delete(`/organization`),
-
     updateFormSettings: (
       data: ExcludedFieldsSettings,
     ): Promise<ApiResponse<{ excludedFields: ExcludedFieldsSettings }>> =>
@@ -36,6 +34,7 @@ export function createOrganizationApi(apiClient: any) {
       data: Partial<OrganizationFeatures>,
     ): Promise<ApiResponse<{ features: OrganizationFeatures }>> =>
       apiClient.put(`/organization/features`, data),
+      
     updateColumnSettings: (
       data: ExcludedColumnsSettings,
     ): Promise<ApiResponse<{ excludedColumns: ExcludedColumnsSettings }>> =>

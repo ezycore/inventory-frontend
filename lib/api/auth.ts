@@ -15,8 +15,6 @@ export function createAuthApi(apiClient: any) {
       twoFactorToken?: string;
     }): Promise<ApiResponse<any>> => apiClient.post("/auth/login", credentials),
 
-    logout: (): Promise<ApiResponse<void>> => apiClient.post("/auth/logout"),
-
     me: (): Promise<ApiResponse<any>> => apiClient.get("/auth/me"),
 
     verifyEmail: (data: { token: string }): Promise<ApiResponse<any>> =>

@@ -11,9 +11,6 @@ export function createUsersApi(apiClient: any) {
     getAll: (filters: BaseFilters = {}): Promise<ApiResponse<PaginatedResponse<User>>> =>
       apiClient.get(`/users${buildQueryParams(filters)}`),
     
-    getById: (id: string): Promise<ApiResponse<User>> => 
-      apiClient.get(`/users/${id}`),
-    
     create: (data: CreateUserDto): Promise<ApiResponse<User>> => 
       apiClient.post("/users", data),
     

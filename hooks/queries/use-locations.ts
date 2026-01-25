@@ -9,7 +9,6 @@ const locationHooks = createResourceHooks<Location, CreateLocationDto>(
 )
 
 export const useLocations = locationHooks.useList
-export const useLocation = locationHooks.useDetail
 export const useCreateLocation = locationHooks.useCreate
 export const useUpdateLocation = locationHooks.useUpdate
 export const useDeleteLocation = locationHooks.useDelete

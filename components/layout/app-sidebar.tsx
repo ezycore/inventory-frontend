@@ -59,12 +59,9 @@ export default function AppSidebar() {
   const { isOpen } = useMediaQuery();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const { features } = user?.organization;
+  const { features } = user?.organization || {};
   const logout = useLogout();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const handleSwitchTenant = (_tenantId: string) => {
-    // Tenant switching functionality would be implemented here
-  };
 
   React.useEffect(() => {
     // Side effects based on sidebar state changes
