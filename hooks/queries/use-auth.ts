@@ -111,7 +111,7 @@ export function useResetPassword() {
   });
 }
 
-//varify me
+//verify me
 export function useMe() {
   const { setUser, token, clearAuth } = useAuthStore();
   const router = useRouter();

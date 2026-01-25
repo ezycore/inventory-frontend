@@ -18,6 +18,7 @@ import { DataTableBody } from "./table-body";
 import { DataTablePagination } from "./pagination";
 import { BaseDataTableProps } from "@/types/DataTable";
 import { EasyAlertDialog } from "../custom/easy-alert-dialog";
+import { ColumnSettingsDialog } from "@/components/shared/column-settings-dialog";
 
 export function BaseDataTable<TData, TValue>({
   columns,
@@ -40,12 +41,16 @@ export function BaseDataTable<TData, TValue>({
   toolbarAction,
   rowClassName,
   customActions,
+  manageColumns = false,
+  module,
+  fullColumns,
 }: BaseDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
+  const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
 
   // Custom hooks
   const { paginationState, handlePaginationChange } = usePaginationState(pagination);
@@ -142,8 +147,8 @@ export function BaseDataTable<TData, TValue>({
         isDeleting={isDeleting}
         enableColumnVisibility={enableColumnVisibility}
         actionButton={toolbarAction}
-        customActions={customActions}
-      />
+        customActions={customActions}        manageColumns={manageColumns}
+        onColumnSettingsClick={() => setColumnSettingsOpen(true)}      />
 
       {/* Table */}
       <DataTableBody
@@ -176,6 +181,16 @@ export function BaseDataTable<TData, TValue>({
         isConfirming={isDeleting}
         confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
       />
+
+      {/* Column Settings Modal */}
+      {manageColumns && module && fullColumns && (
+        <ColumnSettingsDialog
+          open={columnSettingsOpen}
+          onOpenChange={setColumnSettingsOpen}
+          columns={fullColumns}
+          module={module}
+        />
+      )}
     </div>
   );
 }

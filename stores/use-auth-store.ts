@@ -27,6 +27,7 @@ export interface User {
     ownerId?: string;
     settings: {
       excludedFields?: { [key: string]: string[] };
+      excludedColumns?: { [key: string]: string[] };
     };
   };
 }

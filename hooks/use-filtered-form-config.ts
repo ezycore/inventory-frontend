@@ -1,6 +1,43 @@
 import { useMemo } from "react"
-import { useFieldSettingsStore, filterFormConfig } from "@/stores"
+import { useAuthStore } from "@/stores/use-auth-store"
 import type { DynamicFormConfig } from "@/ui/components/form/type"
+
+/**
+ * Utility function to filter form config based on excluded fields
+ */
+function filterFormConfig<T extends { sections?: any[]; fields?: any[] }>(
+  config: T,
+  excludedFields: string[]
+): T {
+  if (!excludedFields || excludedFields.length === 0) {
+    return config
+  }
+
+  // Handle section-based config
+  if (config.sections) {
+    return {
+      ...config,
+      sections: config.sections.map((section) => ({
+        ...section,
+        fields: section.fields.filter(
+          (field: any) => !excludedFields.includes(field.name)
+        ),
+      })).filter((section) => section.fields.length > 0),
+    }
+  }
+
+  // Handle flat fields config
+  if (config.fields) {
+    return {
+      ...config,
+      fields: config.fields.filter(
+        (field: any) => !excludedFields.includes(field.name)
+      ),
+    }
+  }
+
+  return config
+}
 
 /**
  * Hook to get a filtered form config based on organization's excluded fields
@@ -13,8 +50,8 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
   formConfig: T,
   module: string
 ): T {
-  const { getExcludedFieldsForModule } = useFieldSettingsStore()
-  const excludedFields = getExcludedFieldsForModule(module)
+  const user = useAuthStore((state) => state.user)
+  const excludedFields = user?.organization?.settings?.excludedFields?.[module] || []
 
   return useMemo(() => {
     return filterFormConfig(formConfig, excludedFields)

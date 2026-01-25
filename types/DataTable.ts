@@ -215,6 +215,10 @@ export interface DataTableProps<TData, TValue = any> {
   operations?: Operations<TData>;
   /** Custom actions that can override or extend built-in actions */
   customActions?: CustomAction[];
+  /** Enable column management settings */
+  manageColumns?: boolean;
+  /** Module name for column settings (required if manageColumns is true) */
+  module?: string;
 }
 
 export interface BaseDataTableProps<TData, TValue = any> {
@@ -244,6 +248,12 @@ export interface BaseDataTableProps<TData, TValue = any> {
   onSelectionChange?: (selectedRows: TData[]) => void;
   /** Custom actions that can override or extend built-in actions */
   customActions?: CustomAction[];
+  /** Enable column management settings */
+  manageColumns?: boolean;
+  /** Module name for column settings (required if manageColumns is true) */
+  module?: string;
+  /** Full column definitions for settings modal */
+  fullColumns?: ColumnDef<TData, TValue>[];
 }
 /**
  * Example usage:
