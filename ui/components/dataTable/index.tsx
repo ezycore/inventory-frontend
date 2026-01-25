@@ -15,7 +15,7 @@ import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 export function DataTable<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>
 ) {
-  const { cardTitle, defaultPageSize, pageSizes,filterConfig, operations,  toolbarAction, data: externalData, customActions, ...restProps } = props;
+  const { cardTitle, defaultPageSize, pageSizes,filterConfig, operations,  toolbarAction, data: externalData, customActions, manageColumns, module, ...restProps } = props;
 
   const {formConfig, defaultValues, openInside, getAllData, createMutation, updateMutation, deleteMutation, bulkDeleteMutation, queryKey, entityName, isViewAvailable, editTooltip, deleteTooltip, viewTooltip, transformEditData, prepareSubmitData, disabledFieldsInEdit} = operations || {};
   
@@ -175,6 +175,9 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             onBulkDelete={bulkDeleteMutation ? handleBulkDelete : undefined}
             toolbarAction={mergedToolbarAction}
             customActions={customActions}
+            manageColumns={manageColumns}
+            module={module}
+            fullColumns={props.columns}
           />
 
           {/* Integrated CRUD Form Modal */}

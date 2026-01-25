@@ -27,6 +27,7 @@ export interface User {
     currency?: string;
     settings: {
       excludedFields?: { [key: string]: string[] };
+      excludedColumns?: { [key: string]: string[] };
     };
   };
 }
