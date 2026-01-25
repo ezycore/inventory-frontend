@@ -7,9 +7,9 @@ import type { Location as LocationType } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
+import { UserCountCell } from "@/components/locations/UserCountCell";
 import { DataTable } from "@/ui/components/dataTable";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
-import { UserCountCell } from "@/components/locations/UserCountCell";
 
 // Hooks & API
 import {
@@ -96,13 +96,19 @@ const locationFormConfig: DynamicFormConfig = {
       mode: "multiple",
       columnSpan: 12,
       required: false,
-      description: "Select users to assign to this location (admins have access to all locations automatically)",
+      description:
+        "Select users to assign to this location (admins have access to all locations automatically)",
       itemsCreateCallback: (response) => {
-        const items = response?.data || [];
+        const items = response?.data?.items || [];
         return items
           .filter((item: { role?: string }) => item.role !== "admin") // Filter out admins
           .map(
-            (item: { _id?: string; fullName?: string; email?: string; role?: string }) => ({
+            (item: {
+              _id?: string;
+              fullName?: string;
+              email?: string;
+              role?: string;
+            }) => ({
               value: item._id,
               label: `${item.fullName} <${item.email}> - ${item.role}`,
             }),

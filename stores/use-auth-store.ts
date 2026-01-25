@@ -1,4 +1,4 @@
-import { Image, OrganizationFeatures, DEFAULT_ORGANIZATION_FEATURES } from "@/types";
+import { Image, OrganizationFeatures } from "@/types";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
@@ -29,6 +29,7 @@ export interface User {
       excludedFields?: { [key: string]: string[] };
       excludedColumns?: { [key: string]: string[] };
     };
+    features?: OrganizationFeatures;
   };
 }
 
@@ -47,6 +48,7 @@ interface AuthActions {
   clearAuth: () => void;
   hydrateAuth: () => void;
   setActiveLocation: (locationId: string) => void;
+  updateFeatures: (features: OrganizationFeatures) => void;
 }
 
 // Combined auth store type
@@ -112,6 +114,20 @@ export const useAuthStore = create<AuthStore>()(
             }
           }
         },
+        updateFeatures: (features: OrganizationFeatures) => {
+          const currentUser = get().user;
+          if (currentUser) {
+            const updatedOrganization = {
+              ...currentUser.organization,
+              features,
+            };
+            const updatedUser = {
+              ...currentUser,
+              organization: updatedOrganization,
+            };
+            set({ user: updatedUser });
+          }
+        },
 
         clearAuth: () => {
           set(initialState);
@@ -145,7 +161,10 @@ export const useAuthStore = create<AuthStore>()(
           if (user && user.role !== "admin") {
             const hasAccess = user.locationIds?.includes(locationId);
             if (!hasAccess) {
-              console.warn("User does not have access to location:", locationId);
+              console.warn(
+                "User does not have access to location:",
+                locationId,
+              );
               return;
             }
           }

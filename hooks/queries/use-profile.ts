@@ -2,7 +2,7 @@ import { organizationApi, profileApi } from "@/lib/api";
 import { handleMutationError } from "@/lib/error-handling";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createResourceHooks, handleMutationSuccess } from "./helper";
+import { handleMutationSuccess } from "./helper";
 
 // Query keys
 export const profileKeys = {
@@ -54,7 +54,7 @@ export function useUpdateProfile() {
       const { id, ...rest } = data;
       return profileApi.update(rest);
     },
-    onSuccess: (response, variables) => {
+    onSuccess: (response) => {
       // Update auth store with new user data
       if (response.data) {
         updateUser(response.data);

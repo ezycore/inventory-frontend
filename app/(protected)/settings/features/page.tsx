@@ -1,15 +1,13 @@
 "use client";
 
+import { organizationApi } from "@/lib/api";
 import {
   FEATURE_DESCRIPTIONS,
   FEATURE_DISPLAY_NAMES,
   FEATURE_ICONS,
 } from "@/lib/feature-utils";
-import { organizationApi } from "@/lib/api";
 import { useAuthStore } from "@/stores";
-import { useSettingsStore } from "@/stores/use-settings-store";
-import { FeatureName, OrganizationFeatures } from "@/types";
-import PageHeader from "@/ui/components/header";
+import { FeatureName } from "@/types";
 import {
   Card,
   CardContent,
@@ -17,12 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/components/card";
+import PageHeader from "@/ui/components/header";
 import { Switch } from "@/ui/components/switch";
-import { Label } from "@/ui/components/label";
 import { Loader2 } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { useRouter } from "next/navigation";
-import React from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 // Define feature order for display
@@ -38,20 +36,17 @@ const FEATURE_ORDER: FeatureName[] = [
 export default function FeatureSettingsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const features = useSettingsStore((state) => state.features);
-  const setFeatures = useSettingsStore((state) => state.setFeatures);
-  const updateFeature = useSettingsStore((state) => state.updateFeature);
+  const updateFeatures = useAuthStore((state) => state.updateFeatures);
+  const { features } = user?.organization || {};
 
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [savingFeature, setSavingFeature] = React.useState<FeatureName | null>(
-    null
-  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [savingFeature, setSavingFeature] = useState<FeatureName | null>(null);
 
   const canManageSettings =
     user?.permissions?.includes("organization.edit") ?? false;
 
   // Redirect if user doesn't have permission
-  React.useEffect(() => {
+  useEffect(() => {
     if (user && !canManageSettings) {
       toast.error("You don't have permission to access this page");
       router.push("/");
@@ -59,13 +54,13 @@ export default function FeatureSettingsPage() {
   }, [user, canManageSettings, router]);
 
   // Fetch current features on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchFeatures = async () => {
       try {
         setIsLoading(true);
         const response = await organizationApi.getFeatures();
         if (response.data?.features) {
-          setFeatures(response.data.features);
+          updateFeatures(response.data.features);
         }
       } catch (error: any) {
         toast.error(error.message || "Failed to load feature settings");
@@ -77,7 +72,7 @@ export default function FeatureSettingsPage() {
     if (canManageSettings) {
       fetchFeatures();
     }
-  }, [canManageSettings, setFeatures]);
+  }, [canManageSettings, updateFeatures]);
 
   // Don't render if no permission
   if (!canManageSettings) {
@@ -86,23 +81,23 @@ export default function FeatureSettingsPage() {
 
   const handleToggleFeature = async (
     feature: FeatureName,
-    enabled: boolean
+    enabled: boolean,
   ) => {
     try {
       setSavingFeature(feature);
 
       // Optimistically update UI
-      updateFeature(feature, enabled);
+      updateFeatures({ ...features, [feature]: enabled });
 
       // Save to server
       await organizationApi.updateFeatures({ [feature]: enabled });
 
       toast.success(
-        `${FEATURE_DISPLAY_NAMES[feature]} ${enabled ? "enabled" : "disabled"}`
+        `${FEATURE_DISPLAY_NAMES[feature]} ${enabled ? "enabled" : "disabled"}`,
       );
     } catch (error: any) {
       // Revert on error
-      updateFeature(feature, !enabled);
+      updateFeatures({ ...features, [feature]: !enabled });
       toast.error(error.message || "Failed to update feature setting");
     } finally {
       setSavingFeature(null);

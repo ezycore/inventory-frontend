@@ -1,9 +1,15 @@
-'use client';
+"use client";
+import { UserAvatarProfile } from "@/components/user-avatar-profile";
+import { navItems } from "@/constants/navItem";
+import { useLogout } from "@/hooks";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { filterNavItems } from "@/lib/nav-utils";
+import { useAuthStore } from "@/stores/use-auth-store";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger
-} from '@ui/components/collapsible';
+  CollapsibleTrigger,
+} from "@ui/components/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@ui/components/dropdown-menu';
+  DropdownMenuTrigger,
+} from "@ui/components/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -26,44 +32,34 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarRail
-} from '@ui/components/sidebar';
-import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { useMediaQuery } from '@/hooks/use-media-query';
+  SidebarRail,
+} from "@ui/components/sidebar";
 import {
   BellIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  ChevronsRightIcon,
   CreditCardIcon,
-  LayoutDashboardIcon,
   LogOutIcon,
-  LucideIcon,
   PanelsRightBottom,
-  UserCircleIcon
-} from 'lucide-react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import * as React from 'react';
-import { AppTitle } from './app-title';
+  UserCircleIcon,
+} from "lucide-react";
+import { DynamicIcon } from "lucide-react/dynamic";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import * as React from "react";
+import { AppTitle } from "./app-title";
 export const company = {
-  name: 'Acme Inc',
+  name: "Acme Inc",
   logo: PanelsRightBottom,
-  plan: 'Enterprise'
+  plan: "Enterprise",
 };
-import { DynamicIcon } from 'lucide-react/dynamic';
-import { navItems } from '@/constants/navItem';
-import { filterNavItems } from '@/lib/nav-utils';
-import { useAuthStore } from '@/stores/use-auth-store';
-import { useSettingsStore } from '@/stores/use-settings-store';
-import { useLogout } from '@/hooks';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const features = useSettingsStore((state) => state.features);
+  const { features } = user?.organization;
   const logout = useLogout();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const handleSwitchTenant = (_tenantId: string) => {
@@ -77,21 +73,21 @@ export default function AppSidebar() {
   // Filter navigation items based on user role, permissions, and features
   const filteredNavItems = React.useMemo(() => {
     if (!user?.role) return navItems;
-    
+
     return filterNavItems(
       navItems,
       user.role,
       user.permissions || [],
-      features
+      features,
     );
   }, [user, features]);
 
   return (
-    <Sidebar collapsible='icon'>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
-       <AppTitle />
+        <AppTitle />
       </SidebarHeader>
-      <SidebarContent className='overflow-x-hidden'>
+      <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
@@ -101,7 +97,7 @@ export default function AppSidebar() {
                   key={item.title}
                   asChild
                   defaultOpen={item.isActive}
-                  className='group/collapsible'
+                  className="group/collapsible"
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
@@ -111,7 +107,7 @@ export default function AppSidebar() {
                       >
                         {item.icon && <DynamicIcon name={item.icon as any} />}
                         <span>{item.title}</span>
-                        <ChevronRightIcon className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -157,63 +153,57 @@ export default function AppSidebar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton
-                    size='lg'
-                    className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                    size="lg"
+                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   >
                     <UserAvatarProfile
-                      className='h-8 w-8 rounded-lg'
+                      className="h-8 w-8 rounded-lg"
                       showInfo
                       user={user}
                     />
-                    <ChevronDownIcon className='ml-auto size-4' />
+                    <ChevronDownIcon className="ml-auto size-4" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-                side='bottom'
-                align='end'
-                sideOffset={4}
-              >
-                <DropdownMenuLabel className='p-0 font-normal'>
-                  <div className='px-1 py-1.5'>
-                 
+                <DropdownMenuContent
+                  className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                  side="bottom"
+                  align="end"
+                  sideOffset={4}
+                >
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="px-1 py-1.5">
                       <UserAvatarProfile
-                        className='h-8 w-8 rounded-lg'
+                        className="h-8 w-8 rounded-lg"
                         showInfo
                         user={user}
                       />
-                  
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
 
-                <DropdownMenuGroup>
-                  <DropdownMenuItem
-                    onClick={() => router.push('/profile')}
-                  >
-                    <UserCircleIcon className='mr-2 h-4 w-4' />
-                    Profile
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => router.push("/profile")}>
+                      <UserCircleIcon className="mr-2 h-4 w-4" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <CreditCardIcon className="mr-2 h-4 w-4" />
+                      Billing
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <BellIcon className="mr-2 h-4 w-4" />
+                      Notifications
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOutIcon className="mr-2 h-4 w-4" />
+                    Logout
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <CreditCardIcon className='mr-2 h-4 w-4' />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BellIcon className='mr-2 h-4 w-4' />
-                    Notifications
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={logout}
-                >
-                  <LogOutIcon className='mr-2 h-4 w-4' />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarFooter>
       )}
       <SidebarRail />
