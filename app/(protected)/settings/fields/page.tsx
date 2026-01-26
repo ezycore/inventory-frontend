@@ -4,7 +4,6 @@ import { brandFormConfig } from "@/components/brands/form-config";
 import { categoryFormConfig } from "@/components/categories/form-config";
 import FieldSettingsManager from "@/components/products/field-settings-manager";
 import { productFormConfig } from "@/components/products/form-config";
-import { organizationApi } from "@/lib/api";
 import { useAuthStore } from "@/stores";
 import PageHeader from "@/ui/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
@@ -12,7 +11,7 @@ import { Loader2, Package, Star, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateFormSettings } from "@/hooks/queries/use-organization";
 
 const modules = [
   {
@@ -42,7 +41,7 @@ function FieldSettingsForm() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const defaultTab = validTabs.includes(tabParam || "") ? tabParam! : "product";
-  const queryClient = useQueryClient();
+  const { mutateAsync: updateFormSettings } = useUpdateFormSettings();
 
   const user = useAuthStore((state) => state.user);
   const canManageSettings =
@@ -64,17 +63,7 @@ function FieldSettingsForm() {
   }
 
   const handleSave = async (module: string, fields: string[]) => {
-    try {
-      await organizationApi.updateFormSettings({ [module]: fields });
-      
-      // Refetch user data to get updated settings
-      await queryClient.invalidateQueries({ queryKey: ["user", "me"] });
-
-      toast.success("Field settings saved successfully");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save field settings");
-      throw error;
-    }
+    await updateFormSettings({ [module]: fields });
   };
 
   return (

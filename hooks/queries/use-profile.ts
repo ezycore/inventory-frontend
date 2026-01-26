@@ -117,7 +117,10 @@ export function useUpdatePassword() {
 
 // ============= Organization Management Hooks =============
 
-// Update organization hook
+// Note: useUpdateOrganization has been moved to use-organization.ts
+// Import from there: import { useUpdateOrganization } from "@/hooks/queries/use-organization"
+
+// Update organization hook (keeping for backward compatibility)
 export function useUpdateOrganization() {
   const queryClient = useQueryClient();
   const { user, updateUser } = useAuthStore();

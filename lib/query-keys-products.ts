@@ -10,6 +10,7 @@ export const queryKeys = {
     delete: () => [...queryKeys.organization.get(), "delete"] as const,
     updateFormSettings: () =>
       [...queryKeys.organization.get(), "form-settings"] as const,
+    features: () => [...queryKeys.organization.get(), "features"] as const,
   },
 
   // Inventory query keys (legacy support)

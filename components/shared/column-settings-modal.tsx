@@ -10,8 +10,7 @@ import {
 } from "@/ui/components/dialog"
 import { ColumnSettingsManager } from "./column-settings-manager"
 import { useColumnSettingsStore } from "@/stores/use-column-settings-store"
-import { organizationApi } from "@/lib/api"
-import { toast } from "sonner"
+import { useUpdateColumnSettings } from "@/hooks/queries/use-organization"
 import type { ColumnDef } from "@tanstack/react-table"
 
 interface ColumnSettingsModalProps {
@@ -27,26 +26,24 @@ export function ColumnSettingsModal({
   columns,
   module,
 }: ColumnSettingsModalProps) {
-  const [isLoading, setIsLoading] = useState(false)
   const excludedColumns = useColumnSettingsStore((state) =>
     state.getExcludedColumnsForModule(module)
   )
   const updateModuleExcludedColumns = useColumnSettingsStore(
     (state) => state.updateModuleExcludedColumns
   )
+  const { mutate: updateColumnSettings, isPending: isLoading } = useUpdateColumnSettings()
 
-  const handleSave = async (excludedColumnsList: string[]) => {
-    setIsLoading(true)
-    try {
-      await organizationApi.updateColumnSettings({ [module]: excludedColumnsList })
-      updateModuleExcludedColumns(module, excludedColumnsList)
-      toast.success("Column settings saved successfully")
-      onOpenChange(false)
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save column settings")
-    } finally {
-      setIsLoading(false)
-    }
+  const handleSave = (excludedColumnsList: string[]) => {
+    updateColumnSettings(
+      { [module]: excludedColumnsList },
+      {
+        onSuccess: () => {
+          updateModuleExcludedColumns(module, excludedColumnsList)
+          onOpenChange(false)
+        },
+      }
+    )
   }
 
   return (

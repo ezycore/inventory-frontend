@@ -1,6 +1,5 @@
 "use client";
 
-import { organizationApi } from "@/lib/api";
 import {
   FEATURE_DESCRIPTIONS,
   FEATURE_DISPLAY_NAMES,
@@ -8,6 +7,7 @@ import {
 } from "@/lib/feature-utils";
 import { useAuthStore } from "@/stores";
 import { FeatureName } from "@/types";
+import { useGetFeatures, useUpdateFeatures } from "@/hooks/queries/use-organization";
 import {
   Card,
   CardContent,
@@ -36,10 +36,11 @@ const FEATURE_ORDER: FeatureName[] = [
 export default function FeatureSettingsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const updateFeatures = useAuthStore((state) => state.updateFeatures);
+  const updateFeaturesStore = useAuthStore((state) => state.updateFeatures);
   const { features } = user?.organization || {};
 
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: featuresData, isLoading } = useGetFeatures();
+  const { mutate: updateFeaturesMutation, isPending } = useUpdateFeatures();
   const [savingFeature, setSavingFeature] = useState<FeatureName | null>(null);
 
   const canManageSettings =
@@ -53,55 +54,36 @@ export default function FeatureSettingsPage() {
     }
   }, [user, canManageSettings, router]);
 
-  // Fetch current features on mount
+  // Update store with fetched features
   useEffect(() => {
-    const fetchFeatures = async () => {
-      try {
-        setIsLoading(true);
-        const response = await organizationApi.getFeatures();
-        if (response.data?.features) {
-          updateFeatures(response.data.features);
-        }
-      } catch (error: any) {
-        toast.error(error.message || "Failed to load feature settings");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (canManageSettings) {
-      fetchFeatures();
+    if (featuresData?.data?.features) {
+      updateFeaturesStore(featuresData.data.features);
     }
-  }, [canManageSettings, updateFeatures]);
+  }, [featuresData, updateFeaturesStore]);
 
   // Don't render if no permission
   if (!canManageSettings) {
     return null;
   }
 
-  const handleToggleFeature = async (
-    feature: FeatureName,
-    enabled: boolean,
-  ) => {
-    try {
-      setSavingFeature(feature);
+  const handleToggleFeature = (feature: FeatureName, enabled: boolean) => {
+    setSavingFeature(feature);
 
-      // Optimistically update UI
-      updateFeatures({ ...features, [feature]: enabled });
+    // Optimistically update UI
+    updateFeaturesStore({ ...features, [feature]: enabled });
 
-      // Save to server
-      await organizationApi.updateFeatures({ [feature]: enabled });
-
-      toast.success(
-        `${FEATURE_DISPLAY_NAMES[feature]} ${enabled ? "enabled" : "disabled"}`,
-      );
-    } catch (error: any) {
-      // Revert on error
-      updateFeatures({ ...features, [feature]: !enabled });
-      toast.error(error.message || "Failed to update feature setting");
-    } finally {
-      setSavingFeature(null);
-    }
+    updateFeaturesMutation(
+      { [feature]: enabled },
+      {
+        onError: () => {
+          // Revert on error
+          updateFeaturesStore({ ...features, [feature]: !enabled });
+        },
+        onSettled: () => {
+          setSavingFeature(null);
+        },
+      }
+    );
   };
 
   if (isLoading) {

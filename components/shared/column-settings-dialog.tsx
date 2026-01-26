@@ -9,10 +9,8 @@ import {
   DialogTitle,
 } from "@/ui/components/dialog"
 import { ColumnSettingsManager } from "./column-settings-manager"
-import { organizationApi } from "@/lib/api"
-import { toast } from "sonner"
 import { useAuthStore } from "@/stores/use-auth-store"
-import { useQueryClient } from "@tanstack/react-query"
+import { useUpdateColumnSettings } from "@/hooks/queries/use-organization"
 import type { ColumnDef } from "@tanstack/react-table"
 
 interface ColumnSettingsDialogProps {
@@ -28,30 +26,19 @@ export function ColumnSettingsDialog({
   columns,
   module,
 }: ColumnSettingsDialogProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
   const excludedColumns = user?.organization?.settings?.excludedColumns?.[module] || []
+  const { mutate: updateColumnSettings, isPending: isLoading } = useUpdateColumnSettings()
 
-  const handleSave = async (excludedCols: string[]) => {
-    setIsLoading(true)
-    try {
-      const response = await organizationApi.updateColumnSettings({
-        [module]: excludedCols,
-      })
-
-      if (response.success) {
-        // Refetch user data to get updated settings
-        await queryClient.invalidateQueries({ queryKey: ["user", "me"] })
-        
-        toast.success("Column settings saved successfully")
-        onOpenChange(false)
+  const handleSave = (excludedCols: string[]) => {
+    updateColumnSettings(
+      { [module]: excludedCols },
+      {
+        onSuccess: () => {
+          onOpenChange(false)
+        },
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save column settings")
-    } finally {
-      setIsLoading(false)
-    }
+    )
   }
 
   return (
