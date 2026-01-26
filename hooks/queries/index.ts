@@ -5,12 +5,7 @@
 export { useLogin, useLogout, useSignupAPi } from "./use-auth";
 
 // Profile hooks
-export {
-  useProfilePermissions,
-  useUpdatePassword,
-  useUpdatePreferences,
-  useUpdateProfile,
-} from "./use-profile";
+export { useUpdatePassword, useUpdateProfile } from "./use-profile";
 
 // Product-related hooks
 export {

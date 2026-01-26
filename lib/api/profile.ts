@@ -1,61 +1,63 @@
 import type { ApiResponse } from "@/types";
 
 /**
- * Profile API - Following standard architecture
+ * Profile API - Current user profile management
+ * Backend: /api/profile
+ *
+ * USAGE MAP:
+ * -----------
+ * update                → useUpdateProfile, useUpdateAvatar, useRemoveAvatar (use-profile.ts)
+ *                         → profile/profile-info-tab.tsx, profile/profile-header.tsx
+ * updatePassword        → useUpdatePassword (use-profile.ts) → profile/password-change-tab.tsx
+ * get2FAStatus          → use2FAStatus (use-profile.ts) → profile/two-factor-tab.tsx
+ * enable2FA             → useEnable2FA (use-profile.ts) → profile/two-factor-tab.tsx
+ * verify2FA             → useVerify2FA (use-profile.ts) → profile/two-factor-tab.tsx
+ * disable2FA            → useDisable2FA (use-profile.ts) → profile/two-factor-tab.tsx
+ * getOrganizationUsers  → useOrganizationUsers (use-profile.ts) → profile/transfer-ownership-tab.tsx
+ * transferOwnership     → useTransferOwnership (use-profile.ts) → profile/transfer-ownership-tab.tsx
  */
 export function createProfileApi(apiClient: any) {
   return {
-    // Get profile (equivalent to getById for current user)
-    getAll: (): Promise<ApiResponse<any>> => apiClient.get("/profile"),
-
-    getById: (id: string): Promise<ApiResponse<any>> =>
-      apiClient.get("/profile"),
-
-    // Update profile with FormData support for avatar upload (in use)
+    // PUT /api/profile - Update profile with FormData support for avatar upload
+    // Used in: useUpdateProfile, useUpdateAvatar, useRemoveAvatar → profile-info-tab.tsx, profile-header.tsx
     update: (data: FormData): Promise<ApiResponse<any>> =>
       apiClient.put("/profile", data),
 
-    // Additional profile-specific methods (in use)
+    // PUT /api/profile/password - Change password
+    // Used in: useUpdatePassword → password-change-tab.tsx
     updatePassword: (data: {
       currentPassword: string;
       newPassword: string;
     }): Promise<ApiResponse<any>> => apiClient.put("/profile/password", data),
 
-    updatePreferences: (preferences: {
-      theme?: "light" | "dark" | "system";
-      currency?: string;
-      timezone?: string;
-      language?: string;
-    }): Promise<ApiResponse<any>> =>
-      apiClient.put("/profile/preferences", { preferences }),
+    // ============= 2FA Methods =============
 
-    getPermissions: (): Promise<
-      ApiResponse<{
-        role: string;
-        permissions: string[];
-      }>
-    > => apiClient.get("/profile/permissions"),
-
-    // 2FA methods (in use)
+    // GET /api/profile/2fa/status - Get 2FA enabled status
+    // Used in: use2FAStatus → two-factor-tab.tsx
     get2FAStatus: (): Promise<ApiResponse<{ enabled: boolean }>> =>
       apiClient.get("/profile/2fa/status"),
 
-    enable2FA: (): Promise<
-      // in use
-      ApiResponse<{ secret: string; qrCode: string }>
-    > => apiClient.post("/profile/2fa/enable", {}),
+    // POST /api/profile/2fa/enable - Enable 2FA and get QR code
+    // Used in: useEnable2FA → two-factor-tab.tsx
+    enable2FA: (): Promise<ApiResponse<{ secret: string; qrCode: string }>> =>
+      apiClient.post("/profile/2fa/enable", {}),
 
+    // POST /api/profile/2fa/verify - Verify 2FA token and get backup codes
+    // Used in: useVerify2FA → two-factor-tab.tsx
     verify2FA: (data: {
-      // in use
       token: string;
     }): Promise<ApiResponse<{ message: string; backupCodes: string[] }>> =>
       apiClient.post("/profile/2fa/verify", data),
 
+    // POST /api/profile/2fa/disable - Disable 2FA
+    // Used in: useDisable2FA → two-factor-tab.tsx
     disable2FA: (data: { password: string }): Promise<ApiResponse<any>> =>
-      // in use
       apiClient.post("/profile/2fa/disable", data),
 
-    // Organization ownership methods (in use)
+    // ============= Organization Ownership Methods =============
+
+    // GET /api/profile/organization/users - Get all users in organization
+    // Used in: useOrganizationUsers → transfer-ownership-tab.tsx
     getOrganizationUsers: (): Promise<
       ApiResponse<
         Array<{
@@ -68,17 +70,11 @@ export function createProfileApi(apiClient: any) {
       >
     > => apiClient.get("/profile/organization/users"),
 
+    // POST /api/profile/transfer-ownership - Transfer organization ownership
+    // Used in: useTransferOwnership → transfer-ownership-tab.tsx
     transferOwnership: (data: {
-      // in use
       newOwnerId: string;
     }): Promise<ApiResponse<any>> =>
       apiClient.post("/profile/transfer-ownership", data),
-
-    // Dummy methods to match standard API pattern (not used but required by factory)
-    create: (data: FormData): Promise<ApiResponse<any>> =>
-      Promise.reject(new Error("Create not supported for profile")),
-
-    delete: (id: string): Promise<ApiResponse<void>> =>
-      Promise.reject(new Error("Delete not supported for profile")),
   };
 }
