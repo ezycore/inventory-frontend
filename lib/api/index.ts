@@ -3,28 +3,28 @@
  * Central export point for all API modules
  */
 
+import { createOrganizationApi } from "@/lib/api/organization";
 import { apiClient } from "../api-client";
-import { createProductsApi } from "./products";
-import { createVariantsApi } from "./variants";
-import { createCategoriesApi } from "./categories";
+import { createAccountsApi } from "./accounts";
+import { createAuthApi } from "./auth";
 import { createBrandsApi } from "./brands";
-import { createLocationsApi } from "./locations";
-import { createUnitsApi } from "./units";
-import { createTaxesApi } from "./taxes";
+import { createCategoriesApi } from "./categories";
+import { createCustomersApi } from "./customers";
+import { createDashboardApi } from "./dashboard";
 import { createDiscountsApi } from "./discounts";
 import { createInventoryApi } from "./inventory";
-import { createStockApi, createStockMovementsApi, createLegacyInventoryApi } from "./stock";
-import { createCustomersApi } from "./customers";
-import { createSuppliersApi } from "./suppliers";
-import { createUsersApi } from "./users";
-import { createAuthApi } from "./auth";
+import { createLocationsApi } from "./locations";
+import { createProductsApi } from "./products";
 import { createProfileApi } from "./profile";
-import { createDashboardApi } from "./dashboard";
-import { createOrganizationApi } from "@/lib/api/organization";
-import { createAccountsApi } from "./accounts";
-import { createTransactionsApi } from "./transactions";
 import { createPurchaseOrdersApi } from "./purchase-orders";
 import { createSalesOrdersApi } from "./sales-orders";
+import { createStockApi, createStockMovementsApi } from "./stock";
+import { createSuppliersApi } from "./suppliers";
+import { createTaxesApi } from "./taxes";
+import { createTransactionsApi } from "./transactions";
+import { createUnitsApi } from "./units";
+import { createUsersApi } from "./users";
+import { createVariantsApi } from "./variants";
 
 // Export core client
 export { apiClient, type ApiError } from "../api-client";
@@ -44,19 +44,16 @@ export const stockApi = createStockApi(apiClient);
 export const stockMovementsApi = createStockMovementsApi(apiClient);
 export const customersApi = createCustomersApi(apiClient);
 export const suppliersApi = createSuppliersApi(apiClient);
-export const profileApi = createProfileApi(apiClient);
 export const dashboardApi = createDashboardApi(apiClient);
 export const accountsApi = createAccountsApi(apiClient);
+export const profileApi = createProfileApi(apiClient);
 export const transactionsApi = createTransactionsApi(apiClient);
 export const purchaseOrdersApi = createPurchaseOrdersApi(apiClient);
 export const salesOrdersApi = createSalesOrdersApi(apiClient);
 export const authApi = createAuthApi(apiClient);
-export const locationsApi = createLocationsApi(apiClient);
 export const organizationApi = createOrganizationApi(apiClient);
+export const locationsApi = createLocationsApi(apiClient);
 export const usersApi = createUsersApi(apiClient);
-
-// Legacy API for backward compatibility
-export const legacyInventoryApi = createLegacyInventoryApi(apiClient, productsApi, stockApi);
 
 // Re-export utility functions
 export { buildQueryParams, type BaseFilters } from "./utils";

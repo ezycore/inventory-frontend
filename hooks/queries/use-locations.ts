@@ -1,14 +1,14 @@
-import { locationsApi } from '@/lib/api'
-import { createResourceHooks } from './helper'
-import { queryKeys } from '@/lib/query-keys'
-import { Location, CreateLocationDto } from '@/types'
+import { locationsApi } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
+import { CreateLocationDto, Location } from "@/types";
+import { createResourceHooks } from "./helper";
 
 const locationHooks = createResourceHooks<Location, CreateLocationDto>(
- locationsApi,
- queryKeys.locations
-)
+  locationsApi,
+  queryKeys.locations,
+);
 
-export const useLocations = locationHooks.useList
-export const useCreateLocation = locationHooks.useCreate
-export const useUpdateLocation = locationHooks.useUpdate
-export const useDeleteLocation = locationHooks.useDelete
+export const useLocations = locationHooks.useList; // used in CreatePurchaseOrderPage (will removed later)
+export const useCreateLocation = locationHooks.useCreate; //used in locations page
+export const useUpdateLocation = locationHooks.useUpdate; //used in locations page
+export const useDeleteLocation = locationHooks.useDelete; //used in locations page

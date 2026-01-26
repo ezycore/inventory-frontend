@@ -151,25 +151,16 @@ export { useSelectOptions } from "./use-select-options";
 
 // User Management hooks
 export {
-  useUsers,
   useCreateUser,
-  useUpdateUser,
   useDeleteUser,
-  useToggleUserStatus,
-  // Location management
-  // useUserLocations,
   useMyLocations,
-  // useAssignLocations,
-  // useAddLocationToUser,
-  // useRemoveLocationFromUser,
-  // useUpdateDefaultLocation,
+  useToggleUserStatus,
   useUpdateMyDefaultLocation,
+  useUpdateUser,
 } from "./use-users";
 
 // Organization hooks
-export {
-  useGetOrganizationApi,
-} from "./use-organization";
+export { useGetOrganizationApi } from "./use-organization";
 
 // Accounts hooks
 export {

@@ -84,9 +84,9 @@ export class ApiClient {
         if (response.status === 401) {
           if (handle401) {
             handle401();
-          } 
+          }
 
-          if(isAuthenticated) {
+          if (isAuthenticated) {
             location.pathname = "/login";
             clearAuth();
           }

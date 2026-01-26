@@ -1,38 +1,33 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/ui/components/button'
+import { useCreatePurchaseOrder, useLocations } from "@/hooks/queries";
+import { useSuppliers } from "@/hooks/queries/use-suppliers";
+import {
+  PurchaseOrderLineItem,
+  usePurchaseOrderStore,
+} from "@/stores/purchase-order-store";
+import type { LabelValueOption } from "@/ui/components/advanced-select";
+import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/ui/components/card'
-import { Input } from '@/ui/components/input'
-import { Label } from '@/ui/components/label'
-import { Textarea } from '@/ui/components/textarea'
-import DynamicForm from '@/ui/components/form'
-import type { DynamicFormConfig } from '@/ui/components/form/type'
-import { Pencil, Trash2, Trash, Package, ShoppingCart, Building2, FileText } from 'lucide-react'
-import { usePurchaseOrderStore, PurchaseOrderLineItem } from '@/stores/purchase-order-store'
-import { useCreatePurchaseOrder, useLocations } from '@/hooks/queries'
-import { useSuppliers } from '@/hooks/queries/use-suppliers'
-import { toast } from 'sonner'
-import type { LabelValueOption } from '@/ui/components/advanced-select'
-import { Separator } from '@/ui/components/separator'
+} from "@/ui/components/card";
+import DynamicForm from "@/ui/components/form";
+import type { DynamicFormConfig } from "@/ui/components/form/type";
+import { Input } from "@/ui/components/input";
+import { Label } from "@/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/ui/components/select'
-import { Badge } from '@/ui/components/badge'
-import { useRouter } from 'next/navigation'
+} from "@/ui/components/select";
+import { Separator } from "@/ui/components/separator";
 import {
   Table,
   TableBody,
@@ -40,24 +35,45 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/ui/components/table'
+} from "@/ui/components/table";
+import { Textarea } from "@/ui/components/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Building2,
+  FileText,
+  Package,
+  Pencil,
+  ShoppingCart,
+  Trash,
+  Trash2,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const itemSchema = z.object({
-  productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
-  variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  quantity: z.number().min(1, 'Quantity must be at least 1'),
-  unitPrice: z.number().min(0, 'Unit price must be 0 or greater'),
+  productId: z.union([
+    z.string(),
+    z.object({ label: z.string(), value: z.string() }),
+  ]),
+  variantId: z
+    .union([z.string(), z.object({ label: z.string(), value: z.string() })])
+    .optional(),
+  quantity: z.number().min(1, "Quantity must be at least 1"),
+  unitPrice: z.number().min(0, "Unit price must be 0 or greater"),
   discount: z.number().min(0).max(100).optional(),
-})
+});
 
-type ItemFormData = z.infer<typeof itemSchema>
+type ItemFormData = z.infer<typeof itemSchema>;
 
 export default function CreatePurchaseOrderPage() {
-  const router = useRouter()
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const createPurchaseOrderMutation = useCreatePurchaseOrder()
-  const { data: suppliersData } = useSuppliers()
-  const { data: locationsData } = useLocations()
+  const router = useRouter();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const createPurchaseOrderMutation = useCreatePurchaseOrder();
+  const { data: suppliersData } = useSuppliers();
+  const { data: locationsData } = useLocations(); // use be removed later
 
   const {
     supplierId,
@@ -87,113 +103,113 @@ export default function CreatePurchaseOrderPage() {
     removeItem,
     clearAll,
     clearItems,
-  } = usePurchaseOrderStore()
+  } = usePurchaseOrderStore();
 
   const form = useForm<ItemFormData>({
     resolver: zodResolver(itemSchema),
     defaultValues: {
-      productId: '',
-      variantId: '',
+      productId: "",
+      variantId: "",
       quantity: 1,
       unitPrice: 0,
       discount: supplierDiscount,
     },
-  })
+  });
 
   // Update default discount when supplier changes
   useEffect(() => {
-    form.setValue('discount', supplierDiscount)
-  }, [supplierDiscount, form])
+    form.setValue("discount", supplierDiscount);
+  }, [supplierDiscount, form]);
 
   // Extract value/label helpers
   const extractValue = (val: string | LabelValueOption | undefined): string => {
-    if (!val) return ''
-    return typeof val === 'object' ? val.value : val
-  }
+    if (!val) return "";
+    return typeof val === "object" ? val.value : val;
+  };
 
   const extractLabel = (val: string | LabelValueOption | undefined): string => {
-    if (!val) return ''
-    return typeof val === 'object' ? val.label : val
-  }
+    if (!val) return "";
+    return typeof val === "object" ? val.label : val;
+  };
 
   // Handle supplier selection
   const handleSupplierChange = (value: string) => {
-    const suppliers = suppliersData?.data?.items || []
-    const supplier = suppliers.find((s: any) => s._id === value)
+    const suppliers = suppliersData?.data?.items || [];
+    const supplier = suppliers.find((s: any) => s._id === value);
     if (supplier) {
       setSupplier(
         supplier._id,
         supplier.name,
-        supplier.defaultDiscount?.value || 0
-      )
+        supplier.defaultDiscount?.value || 0,
+      );
     } else {
-      setSupplier(null, null, 0)
+      setSupplier(null, null, 0);
     }
-  }
+  };
 
   const itemFormConfig: DynamicFormConfig = {
     sections: [
       {
-        title: 'Add Item',
+        title: "Add Item",
         icon: <Package className="h-5 w-5 text-primary" />,
         fields: [
           {
-            name: 'productId',
-            label: 'Product',
-            type: 'select',
+            name: "productId",
+            label: "Product",
+            type: "select",
             required: true,
-            optionsApi: '/products',
-            placeholder: 'Select product',
+            optionsApi: "/products",
+            placeholder: "Select product",
             labelInValue: true,
             columnSpan: 3,
           },
           {
-            name: 'variantId',
-            label: 'Variant',
-            type: 'select',
+            name: "variantId",
+            label: "Variant",
+            type: "select",
             required: false,
-            dependsOn: 'productId',
-            dependsOnTemplate: '/products/:id/variants',
-            placeholder: 'Select variant (optional)',
+            dependsOn: "productId",
+            dependsOnTemplate: "/products/:id/variants",
+            placeholder: "Select variant (optional)",
             labelInValue: true,
             columnSpan: 3,
           },
           {
-            name: 'quantity',
-            label: 'Quantity',
-            type: 'number',
+            name: "quantity",
+            label: "Quantity",
+            type: "number",
             required: true,
-            placeholder: 'Enter quantity',
+            placeholder: "Enter quantity",
             columnSpan: 2,
             validation: { min: 1 },
           },
           {
-            name: 'unitPrice',
-            label: 'Unit Price',
-            type: 'number',
+            name: "unitPrice",
+            label: "Unit Price",
+            type: "number",
             required: true,
-            placeholder: 'Enter unit price',
+            placeholder: "Enter unit price",
             columnSpan: 2,
             validation: { min: 0 },
           },
           {
-            name: 'discount',
-            label: 'Discount %',
-            type: 'number',
+            name: "discount",
+            label: "Discount %",
+            type: "number",
             required: false,
-            placeholder: 'Item discount',
+            placeholder: "Item discount",
             columnSpan: 2,
             validation: { min: 0, max: 100 },
           },
         ],
       },
     ],
-  }
+  };
 
   const handleAddOrUpdateItem = (data: ItemFormData) => {
     if (!locationId) {
-      toast.error('Please select a location first')
-      return
+      toast.error("Please select a location first");
+      return;
     }
 
     const itemData = {
@@ -205,62 +221,70 @@ export default function CreatePurchaseOrderPage() {
       productName: extractLabel(data.productId),
       variantName: data.variantId ? extractLabel(data.variantId) : null,
       locationId: locationId,
-      locationName: locationName || '',
-    }
+      locationName: locationName || "",
+    };
 
     if (editingId) {
-      updateItem(editingId, itemData)
-      setEditingId(null)
-      toast.success('Item updated')
+      updateItem(editingId, itemData);
+      setEditingId(null);
+      toast.success("Item updated");
     } else {
-      addItem(itemData)
-      toast.success('Item added')
+      addItem(itemData);
+      toast.success("Item added");
     }
 
     form.reset({
-      productId: '',
-      variantId: '',
+      productId: "",
+      variantId: "",
       quantity: 1,
       unitPrice: 0,
       discount: supplierDiscount,
-    })
-  }
+    });
+  };
 
   const handleEditItem = (item: PurchaseOrderLineItem) => {
-    setEditingId(item.id)
-    form.setValue('productId', { label: item.productName, value: item.productId })
-    form.setValue('variantId', item.variantId ? { 
-      label: item.variantName || item.variantId, 
-      value: item.variantId 
-    } : '')
-    form.setValue('quantity', item.quantity)
-    form.setValue('unitPrice', item.unitPrice)
-    form.setValue('discount', item.discount)
-  }
+    setEditingId(item.id);
+    form.setValue("productId", {
+      label: item.productName,
+      value: item.productId,
+    });
+    form.setValue(
+      "variantId",
+      item.variantId
+        ? {
+            label: item.variantName || item.variantId,
+            value: item.variantId,
+          }
+        : "",
+    );
+    form.setValue("quantity", item.quantity);
+    form.setValue("unitPrice", item.unitPrice);
+    form.setValue("discount", item.discount);
+  };
 
   const handleCancelEdit = () => {
-    setEditingId(null)
+    setEditingId(null);
     form.reset({
-      productId: '',
-      variantId: '',
+      productId: "",
+      variantId: "",
       quantity: 1,
       unitPrice: 0,
       discount: supplierDiscount,
-    })
-  }
+    });
+  };
 
-  const handleSubmitOrder = async (status: 'draft' | 'ordered' = 'draft') => {
+  const handleSubmitOrder = async (status: "draft" | "ordered" = "draft") => {
     if (!supplierId) {
-      toast.error('Please select a supplier')
-      return
+      toast.error("Please select a supplier");
+      return;
     }
     if (!locationId) {
-      toast.error('Please select a location')
-      return
+      toast.error("Please select a location");
+      return;
     }
     if (items.length === 0) {
-      toast.error('Please add at least one item')
-      return
+      toast.error("Please add at least one item");
+      return;
     }
 
     const orderData = {
@@ -282,31 +306,33 @@ export default function CreatePurchaseOrderPage() {
       discountValue,
       taxTotal,
       notes: notes || undefined,
-    }
+    };
 
     try {
-      const result = await createPurchaseOrderMutation.mutateAsync(orderData)
-      clearAll()
-      form.reset()
-      toast.success(`Purchase order ${result.data?.orderNumber || ''} created successfully`)
-      router.push('/purchases/history')
+      const result = await createPurchaseOrderMutation.mutateAsync(orderData);
+      clearAll();
+      form.reset();
+      toast.success(
+        `Purchase order ${result.data?.orderNumber || ""} created successfully`,
+      );
+      router.push("/purchases/history");
     } catch (error) {
-      console.error('Failed to create purchase order:', error)
+      console.error("Failed to create purchase order:", error);
     }
-  }
+  };
 
-  const suppliers = suppliersData?.data?.items || []
-  const locations = locationsData?.data?.items || []
+  const suppliers = suppliersData?.data?.items || [];
+  const locations = locationsData?.data?.items || [];
 
   // Handle location selection
   const handleLocationChange = (value: string) => {
-    const location = locations.find((l: any) => l._id === value)
+    const location = locations.find((l: any) => l._id === value);
     if (location) {
-      setLocation(location._id, location.name)
+      setLocation(location._id, location.name);
     } else {
-      setLocation(null, null)
+      setLocation(null, null);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -332,7 +358,10 @@ export default function CreatePurchaseOrderPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>Supplier *</Label>
-              <Select value={supplierId || ''} onValueChange={handleSupplierChange}>
+              <Select
+                value={supplierId || ""}
+                onValueChange={handleSupplierChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select supplier" />
                 </SelectTrigger>
@@ -358,7 +387,10 @@ export default function CreatePurchaseOrderPage() {
 
             <div className="space-y-2">
               <Label>Location *</Label>
-              <Select value={locationId || ''} onValueChange={handleLocationChange}>
+              <Select
+                value={locationId || ""}
+                onValueChange={handleLocationChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
@@ -396,9 +428,10 @@ export default function CreatePurchaseOrderPage() {
       {/* Add Items */}
       <Card>
         <CardHeader>
-          <CardTitle>{editingId ? 'Edit Item' : 'Add Item'}</CardTitle>
+          <CardTitle>{editingId ? "Edit Item" : "Add Item"}</CardTitle>
           <CardDescription>
-            Add products to this purchase order. Discount auto-fills from supplier.
+            Add products to this purchase order. Discount auto-fills from
+            supplier.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -406,7 +439,7 @@ export default function CreatePurchaseOrderPage() {
             config={itemFormConfig}
             onSubmit={handleAddOrUpdateItem}
             form={form}
-            submitLabel={editingId ? 'Update Item' : 'Add to Order'}
+            submitLabel={editingId ? "Update Item" : "Add to Order"}
           />
           {editingId && (
             <Button
@@ -428,13 +461,19 @@ export default function CreatePurchaseOrderPage() {
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle>Order Items ({items.length})</CardTitle>
-                <CardDescription>Review items before submitting</CardDescription>
+                <CardDescription>
+                  Review items before submitting
+                </CardDescription>
               </div>
-              <Button variant="destructive" size="icon" onClick={() => {
-                if (confirm('Clear all items?')) {
-                  clearItems()
-                }
-              }}>
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={() => {
+                  if (confirm("Clear all items?")) {
+                    clearItems();
+                  }
+                }}
+              >
                 <Trash className="h-4 w-4" />
               </Button>
             </div>
@@ -458,14 +497,24 @@ export default function CreatePurchaseOrderPage() {
                       <div>
                         <div className="font-medium">{item.productName}</div>
                         {item.variantName && (
-                          <div className="text-sm text-muted-foreground">{item.variantName}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {item.variantName}
+                          </div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">{item.quantity}</TableCell>
-                    <TableCell className="text-right">৳{item.unitPrice.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">{item.discount}%</TableCell>
-                    <TableCell className="text-right font-medium">৳{item.total.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      {item.quantity}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      ৳{item.unitPrice.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {item.discount}%
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      ৳{item.total.toFixed(2)}
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button
@@ -498,9 +547,11 @@ export default function CreatePurchaseOrderPage() {
                 <div className="space-y-2">
                   <Label>Order Discount</Label>
                   <div className="flex gap-2">
-                    <Select 
-                      value={discountType} 
-                      onValueChange={(v) => setDiscountType(v as 'percentage' | 'fixed')}
+                    <Select
+                      value={discountType}
+                      onValueChange={(v) =>
+                        setDiscountType(v as "percentage" | "fixed")
+                      }
                     >
                       <SelectTrigger className="w-32">
                         <SelectValue />
@@ -514,7 +565,9 @@ export default function CreatePurchaseOrderPage() {
                       type="number"
                       value={discountValue}
                       onChange={(e) => setDiscountValue(Number(e.target.value))}
-                      placeholder={discountType === 'percentage' ? '% discount' : 'Amount'}
+                      placeholder={
+                        discountType === "percentage" ? "% discount" : "Amount"
+                      }
                       className="w-32"
                     />
                   </div>
@@ -549,10 +602,17 @@ export default function CreatePurchaseOrderPage() {
                 </div>
                 {discountValue > 0 && (
                   <div className="flex justify-between py-2 text-green-600">
-                    <span>Discount ({discountType === 'percentage' ? `${discountValue}%` : 'Fixed'}):</span>
                     <span>
-                      -৳{(discountType === 'percentage' 
-                        ? (subtotal * discountValue / 100) 
+                      Discount (
+                      {discountType === "percentage"
+                        ? `${discountValue}%`
+                        : "Fixed"}
+                      ):
+                    </span>
+                    <span>
+                      -৳
+                      {(discountType === "percentage"
+                        ? (subtotal * discountValue) / 100
                         : discountValue
                       ).toFixed(2)}
                     </span>
@@ -578,14 +638,14 @@ export default function CreatePurchaseOrderPage() {
             <div className="flex justify-end gap-4">
               <Button
                 variant="outline"
-                onClick={() => handleSubmitOrder('draft')}
+                onClick={() => handleSubmitOrder("draft")}
                 disabled={createPurchaseOrderMutation.isPending}
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Save as Draft
               </Button>
               <Button
-                onClick={() => handleSubmitOrder('ordered')}
+                onClick={() => handleSubmitOrder("ordered")}
                 disabled={createPurchaseOrderMutation.isPending}
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
@@ -596,5 +656,5 @@ export default function CreatePurchaseOrderPage() {
         </Card>
       )}
     </div>
-  )
+  );
 }
