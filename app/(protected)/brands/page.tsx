@@ -11,13 +11,13 @@ import { brandFilterConfig } from "@/components/brands/filters";
 import { brandFormConfig } from "@/components/brands/form-config";
 import { prepareSubmitData } from "@/components/brands/helpers";
 import { FieldSettingsLink } from "@/components/shared/field-settings-link";
-import { useFilteredFormConfig, useFilteredColumns } from "@/hooks/use-filters";
 import {
   useBulkDeleteBrand,
   useCreateBrand,
   useDeleteBrand,
   useUpdateBrand,
 } from "@/hooks/queries";
+import { useFilteredColumns, useFilteredFormConfig } from "@/hooks/use-filters";
 import { brandsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import PageHeader from "@/ui/components/header";

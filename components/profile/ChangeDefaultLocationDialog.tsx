@@ -1,7 +1,7 @@
 "use client";
 
-import { useAuthStore } from "@/stores/use-auth-store";
 import { useMyLocations, useUpdateMyDefaultLocation } from "@/hooks/queries";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { Button } from "@/ui/components/button";
 import {
   Dialog,
@@ -50,7 +50,16 @@ export function ChangeDefaultLocationDialog() {
     }
   };
 
-  return (
+  return locations.length === 1 ? (
+    <>
+      {
+        <div className="text-sm text-muted-foreground">
+          You only have access to one location. Your default location cannot be
+          changed.
+        </div>
+      }
+    </>
+  ) : (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
