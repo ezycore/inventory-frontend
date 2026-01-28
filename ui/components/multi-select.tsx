@@ -331,12 +331,13 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			deduplicateOptions = false,
 			resetOnDefaultValueChange = true,
 			closeOnSelect = false,
+			value,
 			...props
 		},
 		ref
 	) => {
 		const [selectedValues, setSelectedValues] =
-			React.useState<string[]>(defaultValue);
+			React.useState<string[]>(value || defaultValue);
 		const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 		const [isAnimating, setIsAnimating] = React.useState(false);
 		const [searchValue, setSearchValue] = React.useState("");
