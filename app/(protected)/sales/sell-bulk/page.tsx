@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -12,39 +12,97 @@ import {
   CardHeader,
   CardTitle,
 } from '@/ui/components/card'
+import { Input } from '@/ui/components/input'
+import { Label } from '@/ui/components/label'
+import { Textarea } from '@/ui/components/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/ui/components/select'
 import DynamicForm from '@/ui/components/form'
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { CardTable } from '@/ui/components/custom/card-table'
 import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Trash, ShoppingCart } from 'lucide-react'
-import { useSalesStore, SaleItem } from '@/stores/sales-store'
-import { useBulkSellStock } from '@/hooks/queries'
+import { Pencil, Trash2, Trash, ShoppingCart, Receipt } from 'lucide-react'
+import { useSalesOrderStore, SalesOrderItem } from '@/stores/sales-order-store'
+import { useCreateSalesOrder, useFulfillSalesOrder, useCustomerDiscount } from '@/hooks/queries'
 import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
+import { AdvancedSelect } from '@/ui/components/advanced-select'
+import { Separator } from '@/ui/components/separator'
 
-const saleSchema = z.object({
-  locationId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
-  productId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]),
+const itemSchema = z.object({
+  productId: z.union([z.string().min(1, 'Product is required'), z.object({ label: z.string(), value: z.string() })]),
   variantId: z.union([z.string(), z.object({ label: z.string(), value: z.string() })]).optional(),
-  soldQuantity: z.number().min(1, 'Quantity must be at least 1'),
+  quantity: z.number().min(1, 'Quantity must be at least 1'),
+  unitPrice: z.number().min(0, 'Unit price cannot be negative'),
+  discount: z.number().min(0).max(100),
 })
 
-type SaleFormData = z.infer<typeof saleSchema>
+type ItemFormData = z.infer<typeof itemSchema>
 
-export default function BulkSellStockPage() {
+export default function SellBulkPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
-  const { items, addItem, updateItem, removeItem, clearAll } = useSalesStore()
-  const bulkSellMutation = useBulkSellStock()
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
+  
+  const {
+    customerId,
+    customerName,
+    customerDiscount,
+    locationId,
+    locationName,
+    items,
+    discountType,
+    discountValue,
+    notes,
+    invoiceNumber,
+    getSubtotal,
+    getGrandTotal,
+    setCustomer,
+    setLocation,
+    addItem,
+    updateItem,
+    removeItem,
+    setOrderDiscount,
+    setNotes,
+    setInvoiceNumber,
+    applyCustomerDiscountToAll,
+    clearAll,
+  } = useSalesOrderStore()
 
-  const form = useForm<SaleFormData>({
-    resolver: zodResolver(saleSchema),
+  const createOrderMutation = useCreateSalesOrder()
+  const fulfillOrderMutation = useFulfillSalesOrder()
+  
+  // Fetch customer discount when customer changes
+  const { data: discountData } = useCustomerDiscount(selectedCustomerId || undefined)
+
+  // Update customer discount when data is fetched
+  useEffect(() => {
+    if (discountData?.data?.discount !== undefined) {
+      setCustomer(customerId, customerName, discountData.data.discount)
+    }
+  }, [discountData])
+
+  const form = useForm<ItemFormData>({
+    resolver: zodResolver(itemSchema),
     defaultValues: {
-      locationId: '',
       productId: '',
       variantId: '',
-      soldQuantity: 1,
+      quantity: 1,
+      unitPrice: 0,
+      discount: customerDiscount,
     },
   })
+
+  // Update default discount in form when customer changes
+  useEffect(() => {
+    if (!editingId) {
+      form.setValue('discount', customerDiscount)
+    }
+  }, [customerDiscount, editingId])
 
   // Helper to extract value from labelInValue format
   const extractValue = (val: string | LabelValueOption | undefined): string => {
@@ -58,22 +116,12 @@ export default function BulkSellStockPage() {
     return typeof val === 'object' ? val.label : val
   }
 
-  const formConfig: DynamicFormConfig = {
+  const itemFormConfig: DynamicFormConfig = {
     sections: [
       {
-        title: 'Sale Details',
+        title: 'Item Details',
         icon: <ShoppingCart className="h-5 w-5 text-primary" />,
         fields: [
-          {
-            name: 'locationId',
-            label: 'Location',
-            type: 'select',
-            required: true,
-            optionsApi: '/locations',
-            placeholder: 'Select location',
-            labelInValue: true,
-            columnSpan: 3,
-          },
           {
             name: 'productId',
             label: 'Product',
@@ -96,137 +144,234 @@ export default function BulkSellStockPage() {
             columnSpan: 3,
           },
           {
-            name: 'soldQuantity',
-            label: 'Sold Quantity',
+            name: 'quantity',
+            label: 'Quantity',
             type: 'number',
             required: true,
-            placeholder: 'Enter quantity sold',
-            columnSpan: 3,
+            placeholder: 'Enter quantity',
+            columnSpan: 2,
             validation: { min: 1 },
+          },
+          {
+            name: 'unitPrice',
+            label: 'Unit Price',
+            type: 'number',
+            required: true,
+            placeholder: 'Enter price',
+            columnSpan: 2,
+            validation: { min: 0 },
+          },
+          {
+            name: 'discount',
+            label: 'Discount %',
+            type: 'number',
+            required: false,
+            placeholder: '0',
+            columnSpan: 2,
+            validation: { min: 0, max: 100 },
           },
         ],
       },
     ],
   }
 
-  const handleAddOrUpdate = (data: SaleFormData) => {
+  const handleCustomerChange = (value: LabelValueOption | string | undefined) => {
+    const id = extractValue(value)
+    const name = extractLabel(value)
+    setCustomer(id || null, name || null, 0)
+    setSelectedCustomerId(id || null)
+  }
+
+  const handleLocationChange = (value: LabelValueOption | string | undefined) => {
+    const id = extractValue(value)
+    const name = extractLabel(value)
+    setLocation(id || null, name || null)
+  }
+
+  const handleAddOrUpdate = (data: ItemFormData) => {
+    const productId = extractValue(data.productId)
+    const variantId = extractValue(data.variantId) || null
+    const productName = extractLabel(data.productId)
+    const variantName = data.variantId ? extractLabel(data.variantId) : null
+
     if (editingId) {
-      // Update existing item
       updateItem(editingId, {
-        productId: extractValue(data.productId),
-        variantId: extractValue(data.variantId) || null,
-        locationId: extractValue(data.locationId),
-        soldQuantity: data.soldQuantity,
-        product_name: extractLabel(data.productId),
-        location_name: extractLabel(data.locationId),
-        variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
+        productId,
+        variantId,
+        quantity: data.quantity,
+        unitPrice: data.unitPrice,
+        discount: data.discount || 0,
+        productName,
+        variantName,
       })
       setEditingId(null)
-      toast.success('Item updated in list')
+      toast.success('Item updated')
     } else {
-      const productId = extractValue(data.productId)
-      const locationId = extractValue(data.locationId)
-      const variantId = extractValue(data.variantId) || null
-
-      // Check if item already exists
-      const existingItem = items.find(
-        (item) =>
-          item.productId === productId &&
-          item.locationId === locationId &&
-          (item.variantId || null) === variantId
-      )
-
-      // Add new item (replaces existing if duplicate)
       addItem({
-        productId: productId,
-        variantId: variantId,
-        locationId: locationId,
-        soldQuantity: data.soldQuantity,
-        product_name: extractLabel(data.productId),
-        location_name: extractLabel(data.locationId),
-        variant_attributes: data.variantId ? { name: extractLabel(data.variantId) } : null,
+        productId,
+        variantId,
+        quantity: data.quantity,
+        unitPrice: data.unitPrice,
+        discount: data.discount || customerDiscount,
+        productName,
+        variantName,
       })
-      
-      if (existingItem) {
-        toast.success('Item updated in list (replaced duplicate)')
-      } else {
-        toast.success('Item added to list')
-      }
+      toast.success('Item added to order')
     }
-  
+
     form.reset({
-      locationId: data.locationId,
       productId: '',
       variantId: '',
-      soldQuantity: 1,
+      quantity: 1,
+      unitPrice: 0,
+      discount: customerDiscount,
     })
   }
 
-  const handleEdit = (item: SaleItem) => {
+  const handleEdit = (item: SalesOrderItem) => {
     setEditingId(item.id)
-    form.setValue('locationId', { label: item.location_name, value: item.locationId })
-    form.setValue('productId', { label: item.product_name, value: item.productId })
-    form.setValue('variantId', item.variantId ? { 
-      label: item.variant_attributes?.name || item.variantId, 
-      value: item.variantId 
-    } : '')
-    form.setValue('soldQuantity', item.soldQuantity)
+    form.setValue('productId', { label: item.productName, value: item.productId })
+    form.setValue('variantId', item.variantId 
+      ? { label: item.variantName || item.variantId, value: item.variantId }
+      : '')
+    form.setValue('quantity', item.quantity)
+    form.setValue('unitPrice', item.unitPrice)
+    form.setValue('discount', item.discount)
   }
 
   const handleCancelEdit = () => {
     setEditingId(null)
-    form.reset()
+    form.reset({
+      productId: '',
+      variantId: '',
+      quantity: 1,
+      unitPrice: 0,
+      discount: customerDiscount,
+    })
   }
 
-  const handleSubmitAll = async () => {
+  const handleCreateAndFulfill = async () => {
+    if (!locationId) {
+      toast.error('Please select a location')
+      return
+    }
     if (items.length === 0) {
-      toast.error('No items to submit')
+      toast.error('Please add items to the order')
       return
     }
 
-    const sales = items.map((item) => ({
-      productId: item.productId,
-      variantId: item.variantId,
-      locationId: item.locationId,
-      soldQuantity: item.soldQuantity,
-    }))
-
     try {
-      await bulkSellMutation.mutateAsync(sales)
-      // Transaction succeeded - clear Zustand store
-      clearAll()
-      form.reset()
+      // Create the sales order
+      const orderData = {
+        customerId: customerId || undefined,
+        locationId,
+        items: items.map(item => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discount: item.discount,
+          productName: item.productName,
+          variantName: item.variantName,
+        })),
+        discountType,
+        discountValue,
+        notes: notes || undefined,
+        invoiceNumber: invoiceNumber || undefined,
+        status: 'draft' as const,
+      }
+
+      const createResult = await createOrderMutation.mutateAsync(orderData)
+      
+      if (createResult.data?._id) {
+        // Immediately fulfill the order
+        await fulfillOrderMutation.mutateAsync({ 
+          id: createResult.data._id,
+          data: { notes: 'Fulfilled via bulk sell' }
+        })
+        
+        toast.success('Sale completed successfully!')
+        clearAll()
+        form.reset()
+      }
     } catch (error) {
-      // Transaction failed/rolled back - keep items in store for retry
-      console.error('Bulk sell failed:', error)
-      // Items remain in Zustand store for user to review and retry
+      console.error('Failed to complete sale:', error)
     }
   }
 
-  const columns: ColumnDef<SaleItem>[] = [
+  const handleSaveDraft = async () => {
+    if (!locationId) {
+      toast.error('Please select a location')
+      return
+    }
+    if (items.length === 0) {
+      toast.error('Please add items to the order')
+      return
+    }
+
+    try {
+      const orderData = {
+        customerId: customerId || undefined,
+        locationId,
+        items: items.map(item => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discount: item.discount,
+          productName: item.productName,
+          variantName: item.variantName,
+        })),
+        discountType,
+        discountValue,
+        notes: notes || undefined,
+        invoiceNumber: invoiceNumber || undefined,
+        status: 'draft' as const,
+      }
+
+      await createOrderMutation.mutateAsync(orderData)
+      toast.success('Order saved as draft')
+      clearAll()
+      form.reset()
+    } catch (error) {
+      console.error('Failed to save draft:', error)
+    }
+  }
+
+  const formatCurrency = (amount: number) => `৳${amount.toFixed(2)}`
+
+  const columns: ColumnDef<SalesOrderItem>[] = [
     {
-      accessorKey: 'product_name',
+      accessorKey: 'productName',
       header: 'Product',
-      cell: ({ row }) => row.original.product_name || row.original.productId,
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.original.productName}</div>
+          {row.original.variantName && (
+            <div className="text-sm text-muted-foreground">{row.original.variantName}</div>
+          )}
+        </div>
+      ),
     },
     {
-      accessorKey: 'variant_attributes',
-      header: 'Variant',
-      cell: ({ row }) => {
-        const attrs = row.original.variant_attributes
-        if (!attrs) return '-'
-        if (attrs.name) return attrs.name
-        return Object.entries(attrs).map(([k, v]) => `${k}: ${v}`).join(', ')
-      },
+      accessorKey: 'quantity',
+      header: 'Qty',
+      cell: ({ row }) => row.original.quantity,
     },
     {
-      accessorKey: 'location_name',
-      header: 'Location',
-      cell: ({ row }) => row.original.location_name || row.original.locationId,
+      accessorKey: 'unitPrice',
+      header: 'Unit Price',
+      cell: ({ row }) => formatCurrency(row.original.unitPrice),
     },
     {
-      accessorKey: 'soldQuantity',
-      header: 'Sold Quantity',
+      accessorKey: 'discount',
+      header: 'Discount',
+      cell: ({ row }) => `${row.original.discount}%`,
+    },
+    {
+      accessorKey: 'total',
+      header: 'Total',
+      cell: ({ row }) => formatCurrency(row.original.total),
     },
     {
       id: 'actions',
@@ -256,27 +401,124 @@ export default function BulkSellStockPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Sell Stock (Bulk)</h1>
+        <h1 className="text-3xl font-bold">Sell Stock</h1>
         <p className="text-muted-foreground">
-          Record multiple stock sales at once
+          Create a sales order and record stock sale
         </p>
       </div>
 
+      {/* Order Header */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Receipt className="h-5 w-5" />
+            Order Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Location */}
+            <div>
+              <Label>Location *</Label>
+              <AdvancedSelect
+                value={locationId ? { value: locationId, label: locationName || '' } : undefined}
+                onValueChange={(val) => handleLocationChange(val as LabelValueOption)}
+                optionsApi="/locations"
+                placeholder="Select location"
+                labelInValue
+              />
+            </div>
+
+            {/* Customer */}
+            <div>
+              <Label>Customer (Optional)</Label>
+              <AdvancedSelect
+                value={customerId ? { value: customerId, label: customerName || '' } : undefined}
+                onValueChange={(val) => handleCustomerChange(val as LabelValueOption)}
+                optionsApi="/customers"
+                placeholder="Select customer"
+                labelInValue
+              />
+              {customerDiscount > 0 && (
+                <p className="text-xs text-green-600 mt-1">
+                  Customer discount: {customerDiscount}%
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="text-xs h-auto p-0 ml-2"
+                    onClick={applyCustomerDiscountToAll}
+                  >
+                    Apply to all items
+                  </Button>
+                </p>
+              )}
+            </div>
+
+            {/* Invoice Number */}
+            <div>
+              <Label>Invoice Number (Optional)</Label>
+              <Input
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+                placeholder="Enter invoice number"
+              />
+            </div>
+
+            {/* Order Discount */}
+            <div>
+              <Label>Order Discount</Label>
+              <div className="flex gap-2">
+                <Select
+                  value={discountType}
+                  onValueChange={(value: 'percentage' | 'fixed') => setOrderDiscount(value, discountValue)}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">%</SelectItem>
+                    <SelectItem value="fixed">Fixed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  value={discountValue}
+                  onChange={(e) => setOrderDiscount(discountType, Number(e.target.value))}
+                  placeholder="0"
+                  min={0}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Label>Notes (Optional)</Label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add any notes for this order"
+              rows={2}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Add Item Form */}
       <Card>
         <CardHeader>
           <CardTitle>{editingId ? 'Edit Item' : 'Add Item'}</CardTitle>
           <CardDescription>
             {editingId
               ? 'Update the item details below'
-              : 'Add items to the list and submit all at once'}
+              : 'Add items to your sales order'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <DynamicForm
-            config={formConfig}
+            config={itemFormConfig}
             onSubmit={handleAddOrUpdate}
             form={form}
-            submitLabel={editingId ? 'Update Item' : 'Add to List'}
+            submitLabel={editingId ? 'Update Item' : 'Add to Order'}
           />
           {editingId && (
             <Button
@@ -291,11 +533,14 @@ export default function BulkSellStockPage() {
         </CardContent>
       </Card>
 
+      {/* Items List */}
       {items.length > 0 && (
-        <CardTable
-          title={`Items to Sell (${items.length})`}
-          description="Review and edit items before submitting"
-          headerAction={
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Order Items ({items.length})</CardTitle>
+              <CardDescription>Review items before submitting</CardDescription>
+            </div>
             <Button 
               variant="destructive" 
               size="icon"
@@ -303,24 +548,67 @@ export default function BulkSellStockPage() {
             >
               <Trash className="h-4 w-4" />
             </Button>
-          }
-          columns={columns}
-          data={items}
-          emptyMessage="No items to sell"
-          actions={[
-            {
-              label: `Submit All (${items.length})`,
-              onClick: handleSubmitAll,
-              variant: 'default',
-              loading: bulkSellMutation.isPending,
-              disabled: bulkSellMutation.isPending,
-              requiresConfirmation: true,
-              confirmationTitle: 'Sell Stock?',
-              confirmationDescription: `This will record stock sale for ${items.length} item(s). This action cannot be undone.`,
-              confirmLabel: 'Submit All',
-            },
-          ]}
-        />
+          </CardHeader>
+          <CardContent>
+            <CardTable
+              columns={columns}
+              data={items}
+              emptyMessage="No items added"
+              showCard={false}
+            />
+
+            <Separator className="my-4" />
+
+            {/* Totals */}
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{formatCurrency(getSubtotal())}</span>
+              </div>
+              {discountValue > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>
+                    Order Discount ({discountType === 'percentage' ? `${discountValue}%` : 'Fixed'})
+                  </span>
+                  <span>
+                    -{formatCurrency(
+                      discountType === 'percentage'
+                        ? getSubtotal() * discountValue / 100
+                        : discountValue
+                    )}
+                  </span>
+                </div>
+              )}
+              <Separator />
+              <div className="flex justify-between text-lg font-bold">
+                <span>Grand Total</span>
+                <span>{formatCurrency(getGrandTotal())}</span>
+              </div>
+            </div>
+
+            <Separator className="my-4" />
+
+            {/* Actions */}
+            <div className="flex gap-4">
+              <Button
+                onClick={handleCreateAndFulfill}
+                disabled={createOrderMutation.isPending || fulfillOrderMutation.isPending || !locationId}
+                className="flex-1"
+              >
+                {(createOrderMutation.isPending || fulfillOrderMutation.isPending) 
+                  ? 'Processing...' 
+                  : 'Complete Sale'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSaveDraft}
+                disabled={createOrderMutation.isPending || !locationId}
+              >
+                Save as Draft
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

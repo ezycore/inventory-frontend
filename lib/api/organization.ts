@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, OrganizationFeatures } from "@/types";
 
 export interface ExcludedFieldsSettings {
   product?: string[];
@@ -14,23 +14,53 @@ export interface ExcludedColumnsSettings {
   [key: string]: string[] | undefined;
 }
 
+/**
+ * Organization API - Organization settings and features
+ * Backend: /api/organization
+ *
+ * USAGE MAP:
+ * -----------
+ * get                  → useGetOrganizationApi (use-organization.ts) → profile/organization-tab.tsx
+ * update               → useUpdateOrganization (use-profile.ts) → profile/organization-tab.tsx
+ * updateFormSettings   → [Used for form field visibility settings]
+ * getFeatures          → [Used for feature flags/toggles]
+ * updateFeatures       → [Used for feature flags/toggles]
+ * updateColumnSettings → [Used for table column visibility settings]
+ */
 export function createOrganizationApi(apiClient: any) {
   return {
+    // GET /api/organization - Get organization details
+    // Used in: useGetOrganizationApi → organization-tab.tsx
     get: (): Promise<ApiResponse<any>> => apiClient.get(`/organization`),
 
-    create: (data: FormData): Promise<ApiResponse<any>> =>
-      apiClient.post("/organization", data),
-
+    // PUT /api/organization - Update organization details
+    // Used in: useUpdateOrganization → organization-tab.tsx
     update: (data: FormData): Promise<ApiResponse<any>> =>
       apiClient.put(`/organization`, data),
 
-    delete: (): Promise<ApiResponse<void>> => apiClient.delete(`/organization`),
-
+    // PUT /api/organization/form-settings - Update form field visibility settings
+    // Used in: Form field management components
     updateFormSettings: (
       data: ExcludedFieldsSettings,
     ): Promise<ApiResponse<{ excludedFields: ExcludedFieldsSettings }>> =>
       apiClient.put(`/organization/form-settings`, data),
 
+    // ============= Feature Settings =============
+
+    // GET /api/organization/features - Get feature flags
+    // Used in: Feature management components
+    getFeatures: (): Promise<ApiResponse<{ features: OrganizationFeatures }>> =>
+      apiClient.get(`/organization/features`),
+
+    // PUT /api/organization/features - Update feature flags
+    // Used in: Feature management components
+    updateFeatures: (
+      data: Partial<OrganizationFeatures>,
+    ): Promise<ApiResponse<{ features: OrganizationFeatures }>> =>
+      apiClient.put(`/organization/features`, data),
+
+    // PUT /api/organization/column-settings - Update table column visibility
+    // Used in: Column settings management components
     updateColumnSettings: (
       data: ExcludedColumnsSettings,
     ): Promise<ApiResponse<{ excludedColumns: ExcludedColumnsSettings }>> =>

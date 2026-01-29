@@ -6,7 +6,6 @@ import {
   useToggleUserStatus,
   useUpdateUser,
 } from "@/hooks/queries/use-users";
-import { usersApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys-products";
 import { useAuthStore } from "@/stores/use-auth-store";
 import type { CustomAction } from "@/types/DataTable";
@@ -26,6 +25,8 @@ import {
   Mail,
   MailCheck,
 } from "lucide-react";
+import LocationCountCell from "@/components/locations/LocationCountCell";
+import { usersApi } from "@/lib/api";
 
 // Form configuration for user management
 const userFormConfig: DynamicFormConfig = {
@@ -81,6 +82,25 @@ const userFormConfig: DynamicFormConfig = {
         { value: "viewer", label: "Viewer" },
       ],
     },
+    {
+      name: "locationIds",
+      type: "select",
+      label: "Assign Locations",
+      optionsApi: "/locations/active",
+      mode: "multiple",
+      columnSpan: 12,
+      required: false,
+      description: "Select locations to assign (leave empty for Admin - they have access to all locations)",
+      itemsCreateCallback: (response) => {
+        const items = response?.data?.items || response?.data || [];
+        return items.map(
+          (item: { _id?: string; name?: string; locationType?: string }) => ({
+            value: item._id,
+            label: `${item.name} (${item.locationType})`,
+          }),
+        );
+      },
+    },
   ],
 };
 
@@ -119,6 +139,16 @@ const columns: ColumnDef<User>[] = [
         <Badge variant={variants[role] || "outline"}>
           {role.charAt(0).toUpperCase() + role.slice(1)}
         </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "defaultLocationId",
+    header: "Location",
+    cell: ({ row }) => {
+      const user = row.original;
+      return (
+        <LocationCountCell locations={user.locations} role={user.role} />
       );
     },
   },
@@ -189,6 +219,7 @@ const defaultValues = {
   email: "",
   phone: "",
   role: "staff" as const,
+  locationIds: [] as string[],
 };
 
 export default function UsersPage() {
@@ -267,6 +298,7 @@ export default function UsersPage() {
           customActions={customActions}
           operations={{
             formConfig: userFormConfig,
+            disabledFieldsInEdit: ["email"],
             defaultValues: defaultValues,
             getAllData: usersApi.getAll,
             createMutation: createMutation,
@@ -276,7 +308,7 @@ export default function UsersPage() {
             entityName: "User",
             isViewAvailable: false,
             editTooltip: "Edit User",
-            deleteTooltip: "Delete User (must be deactivated first)",
+            deleteTooltip: "Delete User (must be deactivated first)"
           }}
         />
       ) : (

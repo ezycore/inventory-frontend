@@ -1,11 +1,15 @@
-import { handleMutationSuccess } from "@/hooks/queries/helper";
 import { queryKeys } from "@/lib//query-keys-products";
 import { organizationApi } from "@/lib/api";
-import { ExcludedFieldsSettings } from "@/lib/api/organization";
-import { handleMutationError } from "@/lib/error-handling";
+import type {
+  ExcludedFieldsSettings,
+  ExcludedColumnsSettings,
+} from "@/lib/api/organization";
+import type { OrganizationFeatures } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { handleMutationError } from "@/lib/error-handling";
+import { handleMutationSuccess } from "./helper";
 
+// GET /api/organization - Get organization details
 export const useGetOrganizationApi = () => {
   return useQuery({
     queryKey: queryKeys.organization.get(),
@@ -14,56 +18,77 @@ export const useGetOrganizationApi = () => {
   });
 };
 
-export const useCreateOrganizationApi = () => {
+// PUT /api/organization - Update organization details
+export const useUpdateOrganization = () => {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   return useMutation({
-    mutationFn: (data: FormData) => organizationApi.create(data),
-    onSuccess: (data) => {
-      handleMutationSuccess(data.message || "Item created successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
-      // Redirect to dashboard after successful login
-      router.push("/login?registered=true");
-    },
-    onError: handleMutationError,
-  });
-};
-//create update hook
-export const useUpdateOrganizationApi = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: FormData) => {
-      return organizationApi.update(data);
-    },
-    onSuccess: (_, variables) => {
-      handleMutationSuccess(_.message || "Item updated successfully");
+    mutationFn: (data: FormData) => organizationApi.update(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(
+        result.message || "Organization updated successfully!",
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },
     onError: handleMutationError,
   });
 };
 
-export const useDeleteOrganizationApi = () => {
+// PUT /api/organization/form-settings - Update form field visibility settings
+export const useUpdateFormSettings = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: () => organizationApi.delete(),
-    onSuccess: (data) => {
-      handleMutationSuccess(data.message || "Item deleted successfully");
+    mutationFn: (data: ExcludedFieldsSettings) =>
+      organizationApi.updateFormSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(
+        result.message || "Form settings updated successfully!",
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },
     onError: handleMutationError,
   });
 };
 
-export const useFormSettingsOrganizationApi = () => {
+// GET /api/organization/features - Get feature flags
+export const useGetFeatures = () => {
+  return useQuery({
+    queryKey: queryKeys.organization.features(),
+    queryFn: () => organizationApi.getFeatures(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// PUT /api/organization/features - Update feature flags
+export const useUpdateFeatures = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (data: ExcludedFieldsSettings) => {
-      return organizationApi.updateFormSettings(data);
+    mutationFn: (data: Partial<OrganizationFeatures>) =>
+      organizationApi.updateFeatures(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Features updated successfully!");
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.organization.features(),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },
-    onSuccess: (_, variables) => {
-      handleMutationSuccess(_.message || "Item updated successfully");
+    onError: handleMutationError,
+  });
+};
+
+// PUT /api/organization/column-settings - Update table column visibility
+export const useUpdateColumnSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ExcludedColumnsSettings) =>
+      organizationApi.updateColumnSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(
+        result.message || "Column settings updated successfully!",
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },
     onError: handleMutationError,

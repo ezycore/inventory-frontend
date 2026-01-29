@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import PageHeader from '@/ui/components/header'
 import { useState } from 'react'
@@ -43,10 +43,10 @@ export default function ProductsPage() {
         customActions={[
           {
             icon: <EyeIcon />,
-            tooltip: 'View Product Details',
+            tooltip: "View Product Details",
             onClick: (row) => setSelectedProductId(row._id),
-            placement: 'cell',
-            type: 'custom',
+            placement: "cell",
+            type: "custom",
           },
         ]}
         operations={{
@@ -63,25 +63,26 @@ export default function ProductsPage() {
           viewTooltip: "View Product",
           transformEditData: (item: any) => {
             // Transform variants and images (images auto-handled in form helper)
-            const transformedVariants = item.variants?.map((variant: any) => {
-              const attributeKey = Object.keys(variant.attributes || {})[0]
-              const attributeValue = variant.attributes?.[attributeKey]
+            const transformedVariants =
+              item.variants?.map((variant: any) => {
+                const attributeKey = Object.keys(variant.attributes || {})[0];
+                const attributeValue = variant.attributes?.[attributeKey];
 
-              return {
-                id: variant._id || `${attributeKey}-${attributeValue}`,
-                attributeName: attributeKey || '',
-                value: attributeValue || '',
-                sku: variant.sku || '',
-                costPrice: variant.costPrice || 0,
-                price: variant.price || 0,
-                enabled: variant.status === 'active',
-              }
-            }) || []
+                return {
+                  id: variant._id || `${attributeKey}-${attributeValue}`,
+                  attributeName: attributeKey || "",
+                  value: attributeValue || "",
+                  sku: variant.sku || "",
+                  costPrice: variant.costPrice || 0,
+                  price: variant.price || 0,
+                  enabled: variant.status === "active",
+                };
+              }) || [];
 
             return {
               ...item,
               variants: transformedVariants,
-            }
+            };
           },
           prepareSubmitData,
         }}
@@ -89,9 +90,14 @@ export default function ProductsPage() {
         enableRowHover={true}
       />
 
-      <Sheet open={!!selectedProductId} onOpenChange={(open) => !open && setSelectedProductId(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-4xl overflow-y-auto p-6">
-
+      <Sheet
+        open={!!selectedProductId}
+        onOpenChange={(open) => !open && setSelectedProductId(null)}
+      >
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl lg:max-w-4xl overflow-y-auto p-6"
+        >
           {selectedProductId && (
             <ProductDetail
               productId={selectedProductId}
@@ -101,5 +107,5 @@ export default function ProductsPage() {
         </SheetContent>
       </Sheet>
     </div>
-  )
+  );
 }

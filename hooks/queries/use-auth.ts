@@ -5,6 +5,22 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { handleMutationSuccess } from "./helper";
 
+export const useSignupAPi = () => {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (data: FormData) => authApi.signup(data),
+    onSuccess: (data) => {
+      handleMutationSuccess(data.message || "Item created successfully");
+      queryClient.invalidateQueries();
+      // Redirect to dashboard after successful login
+      router.push("/login?registered=true");
+    },
+    onError: handleMutationError,
+  });
+};
+
 // Login mutation hook
 export function useLogin(show2FASetter: (show: boolean) => void) {
   const router = useRouter();

@@ -2,35 +2,18 @@ import { organizationApi, profileApi } from "@/lib/api";
 import { handleMutationError } from "@/lib/error-handling";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createResourceHooks, handleMutationSuccess } from "./helper";
+import { handleMutationSuccess } from "./helper";
 
 // Query keys
 export const profileKeys = {
   all: () => ["profile"] as const,
-  list: () => [...profileKeys.all()] as const,
-  detail: (id: string) => [...profileKeys.all(), id] as const,
-  permissions: () => [...profileKeys.all(), "permissions"] as const,
+  twoFactorStatus: () => [...profileKeys.all(), "2fa-status"] as const,
 };
 
 // Profile DTO types
-interface ProfileDto {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  avatar?: string;
-}
-
 interface UpdatePasswordDto {
   currentPassword: string;
   newPassword: string;
-}
-
-interface PreferencesDto {
-  theme?: "light" | "dark" | "system";
-  currency?: string;
-  timezone?: string;
-  language?: string;
 }
 
 interface OrganizationDto {
@@ -41,16 +24,9 @@ interface OrganizationDto {
   currency?: string;
 }
 
-// Create resource hooks using the factory
-const profileHooks = createResourceHooks<ProfileDto, ProfileDto>(
-  profileApi,
-  profileKeys as any,
-);
+// ============= Profile Management Hooks =============
 
-// Export standard hooks - use 'me' as the ID for current user profile
-export const useProfile = () => profileHooks.useDetail("me");
-
-// Custom update profile hook with auth store update
+// Update profile hook with auth store update
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuthStore();
@@ -58,25 +34,18 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (data: FormData | ({ id: string } & any)) => {
       if (data instanceof FormData) {
-        const id = data.get("id") as string;
-        return profileApi.update(id, data);
+        return profileApi.update(data);
       }
       const { id, ...rest } = data;
-      return profileApi.update(id, rest);
+      return profileApi.update(rest);
     },
-    onSuccess: (response, variables) => {
+    onSuccess: (response) => {
       // Update auth store with new user data
       if (response.data) {
         updateUser(response.data);
       }
 
-      const id =
-        variables instanceof FormData
-          ? (variables.get("id") as string)
-          : variables.id;
-
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      queryClient.invalidateQueries({ queryKey: profileKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: ["auth"] });
 
       if (response.message) {
@@ -93,7 +62,7 @@ export function useUpdateAvatar() {
   const { updateUser } = useAuthStore();
 
   return useMutation({
-    mutationFn: (formData: FormData) => profileApi.update("me", formData),
+    mutationFn: (formData: FormData) => profileApi.update(formData),
     onSuccess: (response) => {
       // Update the user in auth store
       if (response.data) {
@@ -117,9 +86,8 @@ export function useRemoveAvatar() {
   return useMutation({
     mutationFn: () => {
       const formData = new FormData();
-      formData.append("id", "me");
       formData.append("removeAvatar", "true");
-      return profileApi.update("me", formData);
+      return profileApi.update(formData);
     },
     onSuccess: (response) => {
       // Update the user in auth store
@@ -129,22 +97,6 @@ export function useRemoveAvatar() {
       queryClient.invalidateQueries({ queryKey: ["auth"] });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
       handleMutationSuccess("Profile image removed successfully");
-    },
-    onError: handleMutationError,
-  });
-}
-
-// Get permissions
-export function useProfilePermissions() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const response = await profileApi.getPermissions();
-      return response.data;
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(profileKeys.permissions(), data);
     },
     onError: handleMutationError,
   });
@@ -163,24 +115,12 @@ export function useUpdatePassword() {
   });
 }
 
-// Update preferences hook
-export function useUpdatePreferences() {
-  const queryClient = useQueryClient();
+// ============= Organization Management Hooks =============
 
-  return useMutation({
-    mutationFn: (preferences: PreferencesDto) =>
-      profileApi.updatePreferences(preferences),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      handleMutationSuccess(
-        response.message || "Preferences updated successfully",
-      );
-    },
-    onError: handleMutationError,
-  });
-}
+// Note: useUpdateOrganization has been moved to use-organization.ts
+// Import from there: import { useUpdateOrganization } from "@/hooks/queries/use-organization"
 
-// Update organization hook
+// Update organization hook (keeping for backward compatibility)
 export function useUpdateOrganization() {
   const queryClient = useQueryClient();
   const { user, updateUser } = useAuthStore();
@@ -209,7 +149,7 @@ export function useUpdateOrganization() {
   });
 }
 
-// 2FA Hooks
+// ============= 2FA Hooks =============
 
 // Get 2FA status
 export function use2FAStatus() {
@@ -221,7 +161,7 @@ export function use2FAStatus() {
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData([...profileKeys.all(), "2fa-status"], data);
+      queryClient.setQueryData(profileKeys.twoFactorStatus(), data);
     },
     onError: handleMutationError,
   });
@@ -246,7 +186,7 @@ export function useVerify2FA() {
     mutationFn: (token: string) => profileApi.verify2FA({ token }),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: [...profileKeys.all(), "2fa-status"],
+        queryKey: profileKeys.twoFactorStatus(),
       });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
       if (response.message) {
@@ -265,7 +205,7 @@ export function useDisable2FA() {
     mutationFn: (password: string) => profileApi.disable2FA({ password }),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: [...profileKeys.all(), "2fa-status"],
+        queryKey: profileKeys.twoFactorStatus(),
       });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
       handleMutationSuccess(response.message || "2FA disabled successfully");
@@ -274,7 +214,7 @@ export function useDisable2FA() {
   });
 }
 
-// Organization Ownership Hooks
+// ============= Organization Ownership Hooks =============
 
 // Get organization users
 export function useOrganizationUsers() {

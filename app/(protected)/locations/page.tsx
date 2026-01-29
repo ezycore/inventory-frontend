@@ -7,20 +7,20 @@ import type { Location as LocationType } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { UserCountCell } from "@/components/locations/UserCountCell";
 import { DataTable } from "@/ui/components/dataTable";
+import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 
 // Hooks & API
 import {
   useCreateLocation,
   useDeleteLocation,
   useUpdateLocation,
-  useLocations,
 } from "@/hooks/queries";
 import { locationsApi } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
-import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
+import PageHeader from "@/ui/components/header";
 
 // Column definitions
 const columns: ColumnDef<LocationType>[] = [
@@ -33,16 +33,13 @@ const columns: ColumnDef<LocationType>[] = [
     header: "Address",
   },
   {
-    accessorKey: "manager",
-    header: "Manager",
-  },
-  {
-    accessorKey: "contactNumber",
-    header: "Contact",
-  },
-  {
     accessorKey: "locationType",
     header: "Type",
+  },
+  {
+    accessorKey: "users",
+    header: "Users",
+    cell: ({ row }) => <UserCountCell users={row.original.users} />,
   },
   {
     accessorKey: "status",
@@ -92,26 +89,31 @@ const locationFormConfig: DynamicFormConfig = {
       ],
     },
     {
-      name: "manager",
-      type: "input",
-      label: "Manager",
-      placeholder: "Enter manager name",
-      required: true,
+      name: "userIds",
+      type: "select",
+      label: "Assign Users",
+      optionsApi: "/users",
+      mode: "multiple",
       columnSpan: 12,
-    },
-    {
-      name: "contactNumber",
-      type: "input",
-      label: "Contact Number",
-      placeholder: "Enter contact number",
-      columnSpan: 6,
-    },
-    {
-      name: "email",
-      type: "input",
-      label: "Email",
-      placeholder: "Enter email address",
-      columnSpan: 6,
+      required: false,
+      description:
+        "Select users to assign to this location (admins have access to all locations automatically)",
+      itemsCreateCallback: (response) => {
+        const items = response?.data?.items || [];
+        return items
+          .filter((item: { role?: string }) => item.role !== "admin") // Filter out admins
+          .map(
+            (item: {
+              _id?: string;
+              fullName?: string;
+              email?: string;
+              role?: string;
+            }) => ({
+              value: item._id,
+              label: `${item.fullName} <${item.email}> - ${item.role}`,
+            }),
+          );
+      },
     },
     {
       name: "status",
@@ -137,23 +139,6 @@ const locationFilterConfig: FilterConfig = {
       placeholder: "Search by name...",
     },
     {
-      name: "address",
-      label: "Address",
-      type: "text",
-      placeholder: "Search by address...",
-    },
-    {
-      name: "locationType",
-      label: "Type",
-      type: "select",
-      placeholder: "All types",
-      columnSpan: 2,
-      options: [
-        { label: "Store", value: "store" },
-        { label: "Warehouse", value: "warehouse" },
-      ],
-    },
-    {
       name: "status",
       label: "Status",
       type: "select",
@@ -164,15 +149,8 @@ const locationFilterConfig: FilterConfig = {
         { label: "Inactive", value: "inactive" },
       ],
     },
-    {
-      name: "createdAt",
-      label: "Created Date",
-      type: "date-range",
-      placeholder: "Select date range",
-      columnSpan: 2,
-    },
   ],
-  viewMode: 'popover',
+  viewMode: "popover",
   columns: 2,
   applyOnChange: false,
   showResetButton: true,
@@ -187,19 +165,18 @@ const searchConfig = {
 const defaultValues = {
   name: "",
   address: "",
-  locationType: 'store' as const,
-  manager: "",
-  contactNumber: "",
-  email: "",
+  locationType: "store" as const,
   status: "active" as const,
-}
+};
 
 export default function LocationsPage() {
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <PageHeader title="Locations Management" subTitle="Manage your stores and warehouses in one place." />
+      <PageHeader
+        title="Locations Management"
+        subTitle="Manage your stores and warehouses in one place."
+      />
 
       <DataTable
         cardTitle={(dataLength: number) => `All Locations (${dataLength})`}
@@ -210,7 +187,7 @@ export default function LocationsPage() {
         selectable={true}
         searchConfig={searchConfig}
         enableSorting={true}
-        defaultColumnVisibility={{ status: false, contactNumber: false }}
+        defaultColumnVisibility={{ status: false }}
         enableRowHover={true}
         rowClassName={(row: LocationType) =>
           row.status === "inactive" ? "bg-red-50 opacity-70" : ""
@@ -228,7 +205,11 @@ export default function LocationsPage() {
           editTooltip: "Edit Location",
           deleteTooltip: "Delete Location",
           viewTooltip: "View Location Details",
-          prepareSubmitData: (data: LocationType, isEdit: boolean, item: LocationType) => ({
+          prepareSubmitData: (
+            data: LocationType,
+            isEdit: boolean,
+            item: LocationType,
+          ) => ({
             ...data,
             ...(isEdit && item ? { id: item._id } : {}),
           }),

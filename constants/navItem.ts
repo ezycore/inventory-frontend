@@ -48,36 +48,38 @@ export const navItems: NavItem[] = [
     ],
   },
 
-  // // STOCK MANAGEMENT
-  // {
-  //   title: 'Stock Management',
-  //   url: '/stock',
-  //   icon: 'layers',
-  //   isActive: false,
-  //   items: [
-  //     { title: 'Stock Overview', url: '/stock', icon: 'eye' },
-  //     { title: 'Stock Movements', url: '/stock/movements', icon: 'arrow-right-left' },
-  //     { title: 'Stock Adjustments', url: '/stock/adjustments', icon: 'edit' },
-  //     { title: 'Low Stock Alert', url: '/stock/alerts', icon: 'alert-triangle' },
-  //     { title: 'Stock Transfer', url: '/stock/transfers', icon: 'truck' }
-  //   ]
-  // },
-
-  // SALES
+  // SALES (requires sales feature)
   {
     title: "Sales",
     url: "/sales",
     icon: "shopping-cart",
     isActive: false,
+    features: ["sales"],
     items: [
-      { title: "Sell Stock", url: "/sales/sell-bulk", icon: "shopping-cart" },
-      { title: "Sales History", url: "/sales/history", icon: "clock" },
+      {
+        title: "Sell Stock",
+        url: "/sales/sell-bulk",
+        icon: "shopping-cart",
+        features: ["sales"],
+      },
+      {
+        title: "Sales History",
+        url: "/sales/history",
+        icon: "clock",
+        features: ["sales"],
+      },
       {
         title: "Sales Returns",
         url: "/sales/returns-bulk",
         icon: "corner-up-left",
+        features: ["sales", "returns"],
       },
-      { title: "Customers", url: "/sales/customers", icon: "users" },
+      {
+        title: "Customers",
+        url: "/sales/customers",
+        icon: "users",
+        features: ["sales"],
+      },
     ],
   },
 
@@ -93,17 +95,23 @@ export const navItems: NavItem[] = [
         url: "/purchases/receive-bulk",
         icon: "packages",
       },
+      {
+        title: "Purchase Orders",
+        url: "/purchases/orders/create",
+        icon: "file-text",
+      },
       { title: "Purchase History", url: "/purchases/history", icon: "clock" },
       {
         title: "Purchase Returns",
         url: "/purchases/returns-bulk",
         icon: "package-minus",
+        features: ["returns"],
       },
       { title: "Suppliers", url: "/purchases/suppliers", icon: "truck" },
     ],
   },
 
-  // WAREHOUSES
+  // LOCATIONS
   {
     title: "Locations",
     url: "/locations",
@@ -123,6 +131,30 @@ export const navItems: NavItem[] = [
       },
     ],
   },
+
+  // ACCOUNTS (requires accounts feature)
+  {
+    title: "Accounts",
+    url: "/accounts",
+    icon: "wallet",
+    isActive: false,
+    features: ["accounts"],
+    items: [
+      {
+        title: "All Accounts",
+        url: "/accounts",
+        icon: "list",
+        features: ["accounts"],
+      },
+      {
+        title: "Transactions",
+        url: "/accounts/transactions",
+        icon: "arrow-right-left",
+        features: ["accounts"],
+      }
+    ],
+  },
+
   // REPORTS
   {
     title: "Reports",
@@ -139,6 +171,7 @@ export const navItems: NavItem[] = [
         title: "Sales Report",
         url: "/dashboard/reports/sales",
         icon: "bar-chart-2",
+        features: ["sales"],
       },
       {
         title: "Purchase Report",
@@ -149,6 +182,7 @@ export const navItems: NavItem[] = [
         title: "Cash Report",
         url: "/dashboard/reports/cash",
         icon: "credit-card",
+        features: ["accounts"],
       },
       {
         title: "Stock Product Value",
@@ -159,6 +193,7 @@ export const navItems: NavItem[] = [
         title: "Expiry Report",
         url: "/dashboard/reports/expiry",
         icon: "calendar",
+        features: ["expiryTracking"],
       },
       {
         title: "Employee Report",
@@ -173,7 +208,7 @@ export const navItems: NavItem[] = [
     ],
   },
 
-  // ADMIN / ACCOUNT
+  // SETTINGS
   {
     title: "Settings",
     url: "#",
@@ -182,14 +217,23 @@ export const navItems: NavItem[] = [
     items: [
       { title: "Units", url: "/units", icon: "grid" },
       { title: "Taxes", url: "/taxes", icon: "percent" },
+      { title: "Discounts", url: "/discounts", icon: "tag" },
       {
         title: "Field Settings",
         url: "/settings/fields",
         icon: "sliders",
         permissions: ["organization.edit"],
       },
+      {
+        title: "Feature Settings",
+        url: "/settings/features",
+        icon: "toggle-left",
+        permissions: ["organization.edit"],
+      },
     ],
   },
+
+  // ACCOUNT
   {
     title: "Account",
     url: "#",

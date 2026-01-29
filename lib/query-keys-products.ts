@@ -5,11 +5,12 @@
 
 export const queryKeys = {
   organization: {
-    get: () => ["organization"] as const,
-    create: () => [...queryKeys.organization.get(), "list"] as const,
+    get: () => ["organization"] as const, //in use
     update: () => [...queryKeys.organization.get(), "update"] as const,
     delete: () => [...queryKeys.organization.get(), "delete"] as const,
-    updateFormSettings: () => [...queryKeys.organization.get(), "form-settings"] as const,
+    updateFormSettings: () =>
+      [...queryKeys.organization.get(), "form-settings"] as const,
+    features: () => [...queryKeys.organization.get(), "features"] as const,
   },
 
   // Inventory query keys (legacy support)
@@ -97,6 +98,14 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.taxes.all(), "detail", id] as const,
   },
 
+  // Discounts query keys
+  discounts: {
+    all: () => ["discounts"] as const,
+    list: () => [...queryKeys.discounts.all(), "list"] as const,
+    detail: (id: string) =>
+      [...queryKeys.discounts.all(), "detail", id] as const,
+  },
+
   // Brands query keys
   brands: {
     all: () => ["brands"] as const,
@@ -133,5 +142,33 @@ export const queryKeys = {
   dashboard: {
     all: () => ["dashboard"] as const,
     stats: () => [...queryKeys.dashboard.all(), "stats"] as const,
+  },
+
+  // Accounts query keys
+  accounts: {
+    all: () => ["accounts"] as const,
+    list: () => [...queryKeys.accounts.all(), "list"] as const,
+    detail: (id: string) =>
+      [...queryKeys.accounts.all(), "detail", id] as const,
+    default: () => [...queryKeys.accounts.all(), "default"] as const,
+    summary: () => [...queryKeys.accounts.all(), "summary"] as const,
+  },
+
+  // Transactions query keys
+  transactions: {
+    all: () => ["transactions"] as const,
+    list: (filters?: Record<string, any>) =>
+      [...queryKeys.transactions.all(), "list", filters || {}] as const,
+    detail: (id: string) =>
+      [...queryKeys.transactions.all(), "detail", id] as const,
+    byAccount: (accountId: string, filters?: Record<string, any>) =>
+      [
+        ...queryKeys.transactions.all(),
+        "account",
+        accountId,
+        filters || {},
+      ] as const,
+    summary: (filters?: Record<string, any>) =>
+      [...queryKeys.transactions.all(), "summary", filters || {}] as const,
   },
 } as const;

@@ -85,11 +85,20 @@ const customerFormConfig: DynamicFormConfig = {
       columnSpan: 12,
     },
     {
+      name: "defaultDiscountId",
+      type: "select",
+      label: "Default Discount",
+      placeholder: "Select a default discount (optional)",
+      columnSpan: 6,
+      optionsApi: "/discounts/sales?all=true&status=active",
+      description: "Applied automatically to sales for this customer",
+    },
+    {
       name: "status",
       type: "select",
       label: "Status",
       required: true,
-      columnSpan: 12,
+      columnSpan: 6,
       options: [
         { value: "active", label: "Active" },
         { value: "inactive", label: "Inactive" },
@@ -156,6 +165,7 @@ const defaultValues = {
   email: "",
   phone: "",
   address: "",
+  defaultDiscountId: "",
   status: "active" as const,
 }
 

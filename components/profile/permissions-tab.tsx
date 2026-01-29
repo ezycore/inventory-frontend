@@ -60,26 +60,8 @@ export function PermissionsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Role Badge */}
-      <div className="flex items-center gap-3">
-        <Shield className="h-5 w-5 text-primary" />
-        <div>
-          <p className="text-sm font-medium">Your Role</p>
-          <Badge variant="secondary" className="mt-1 capitalize">
-            {user?.role?.replace("_", " ")}
-          </Badge>
-        </div>
-      </div>
-
       {/* Permissions List */}
       <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold">Your Permissions</h3>
-          <p className="text-sm text-muted-foreground">
-            Based on your role, you have access to the following features
-          </p>
-        </div>
-
         {Object.keys(groupedPermissions).length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center">

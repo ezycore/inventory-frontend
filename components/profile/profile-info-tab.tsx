@@ -7,9 +7,10 @@ import { useUpdateProfile } from "@/hooks/queries/use-profile";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useState, useMemo, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { ChangeDefaultLocationDialog } from "./ChangeDefaultLocationDialog";
 
 export function ProfileInfoTab() {
-  const { user, updateUser } = useAuthStore();
+  const { user } = useAuthStore();
   const updateProfile = useUpdateProfile();
 
   // Initialize form data using useMemo to avoid cascading renders
@@ -34,7 +35,6 @@ export function ProfileInfoTab() {
     e.preventDefault();
     
     const data = new FormData();
-    data.append("id", "me");
     data.append("firstName", formData.firstName);
     data.append("lastName", formData.lastName);
     data.append("phone", formData.phone || "");
@@ -67,7 +67,7 @@ export function ProfileInfoTab() {
         {/* Last Name */}
         <div className="space-y-2">
           <Label htmlFor="lastName">
-            Last Name <span className="text-destructive">*</span>
+            Last Name
           </Label>
           <Input
             id="lastName"
@@ -102,6 +102,19 @@ export function ProfileInfoTab() {
             onChange={(e) => handleChange("phone", e.target.value)}
             placeholder="Enter phone number"
           />
+        </div>
+      </div>
+
+      {/* Default Location Section */}
+      <div className="border-t pt-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium">Default Location</h3>
+            <p className="text-sm text-muted-foreground">
+              Change your default location for when you log in
+            </p>
+          </div>
+          <ChangeDefaultLocationDialog />
         </div>
       </div>
 

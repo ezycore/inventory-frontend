@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCreateOrganizationApi } from "@/hooks";
+import { useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import { Card, CardContent } from "@/ui/components/card";
 import DynamicForm from "@/ui/components/form";
@@ -21,7 +21,7 @@ export const countryOptions = [
   { label: "🇯🇵 Japan", value: "JP" },
   { label: "🇧🇷 Brazil", value: "BR" },
   { label: "🇨🇳 China", value: "CN" },
-  { label: "🇧🇩 Bangladesh", value: "BD"},
+  { label: "🇧🇩 Bangladesh", value: "BD" },
 ];
 
 export const timezoneOptions = [
@@ -51,7 +51,6 @@ export const currencyOptions = [
   { label: "AED - UAE Dirham (د.إ)", value: "AED" },
 ];
 
-
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
     {
@@ -74,7 +73,6 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           label: "Last Name",
           columnSpan: 6,
           placeholder: "Doe",
-          required: true,
         },
         {
           name: "email",
@@ -96,7 +94,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           type: "password",
           label: "Password",
           columnSpan: 6,
-          placeholder: "Min. 8 characters",
+          placeholder: "Min. 6 characters",
           required: true,
         },
         {
@@ -176,7 +174,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select currency",
           required: true,
-          options: currencyOptions
+          options: currencyOptions,
         },
       ],
     },
@@ -184,7 +182,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
 };
 
 export default function Signup() {
-  const createOwnerMutation = useCreateOrganizationApi();
+  const createOwnerMutation = useSignupAPi();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
   const handleSubmit = (data: Record<string, any>) => {
@@ -195,8 +193,8 @@ export default function Signup() {
     }
 
     // Validate password length
-    if (data.password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+    if (data.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
       return;
     }
 

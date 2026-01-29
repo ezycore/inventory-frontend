@@ -13,7 +13,7 @@ interface ColumnSettingsManagerProps {
   columns: ColumnDef<any>[]
   module: string
   excludedColumns: string[]
-  onSave: (excludedColumns: string[]) => Promise<void>
+  onSave: (excludedColumns: string[]) => void
   isLoading?: boolean
 }
 

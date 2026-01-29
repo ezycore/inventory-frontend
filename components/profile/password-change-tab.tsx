@@ -42,8 +42,8 @@ export function PasswordChangeTab() {
       confirmPassword: "",
     };
 
-    if (formData.newPassword.length < 8) {
-      newErrors.newPassword = "Password must be at least 8 characters";
+    if (formData.newPassword.length < 6) {
+      newErrors.newPassword = "Password must be at least 6 characters";
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
@@ -86,7 +86,7 @@ export function PasswordChangeTab() {
     formData.newPassword &&
     formData.confirmPassword &&
     formData.newPassword === formData.confirmPassword &&
-    formData.newPassword.length >= 8;
+    formData.newPassword.length >= 6;
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -151,7 +151,7 @@ export function PasswordChangeTab() {
             <p className="text-xs text-destructive">{errors.newPassword}</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Password must be at least 8 characters long
+            Password must be at least 6 characters long
           </p>
         </div>
 
@@ -212,7 +212,7 @@ export function PasswordChangeTab() {
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li className="flex gap-2">
               <span className="text-primary font-bold">•</span>
-              <span>Use at least 8 characters with a mix of letters, numbers, and symbols</span>
+              <span>Use at least 6 characters with a mix of letters, numbers, and symbols</span>
             </li>
             <li className="flex gap-2">
               <span className="text-primary font-bold">•</span>

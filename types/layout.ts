@@ -1,3 +1,5 @@
+import { FeatureName } from "@/types";
+
 export type NavItem = {
   title: string;
   url: string;
@@ -7,4 +9,6 @@ export type NavItem = {
   items?: NavItem[]; // nested children
   roles?: string[]; // optional: allowed roles for this item
   permissions?: string[]; // optional: required permissions for this item
+  features?: FeatureName[]; // optional: required features for this item (all must be enabled)
+  anyFeatures?: FeatureName[]; // optional: any of these features must be enabled
 };
