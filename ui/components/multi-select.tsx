@@ -336,8 +336,10 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 		},
 		ref
 	) => {
-		const [selectedValues, setSelectedValues] =
-			React.useState<string[]>(value || defaultValue);
+		const [selectedValues, setSelectedValues] = React.useState<string[]>(Array.isArray(value) ? value as string[] : Array.isArray(defaultValue)
+				? defaultValue as string[]
+				: []
+			);
 		const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 		const [isAnimating, setIsAnimating] = React.useState(false);
 		const [searchValue, setSearchValue] = React.useState("");

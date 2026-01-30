@@ -126,11 +126,11 @@ export function ColumnSettingsManager({
             onClick={handleReset}
             disabled={!hasChanges || saving}
           >
-            <RotateCcw className="h-4 w-4 mr-2" />
+            <RotateCcw className="h-4 w-4" />
             Reset
           </Button>
           <Button onClick={handleSave} disabled={!hasChanges || saving}>
-            <Save className="h-4 w-4 mr-2" />
+            <Save className="h-4 w-4" />
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
