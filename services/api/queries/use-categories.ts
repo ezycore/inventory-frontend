@@ -1,7 +1,7 @@
 import { Category, CreateCategoryDto } from "@/types";
 import { createResourceHooks } from "./helper";
-import { categoriesApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+import { categoriesApi } from "@/services/api";
+import { queryKeys } from "@/lib/query-keys";
 
 const categoriesHooks = createResourceHooks<Category, CreateCategoryDto>(categoriesApi, queryKeys.category);
 

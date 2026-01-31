@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { transactionsApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+import { transactionsApi } from "@/services/api";
+import { queryKeys } from "@/lib/query-keys";
 import type { CreateIncomeDto, CreateExpenseDto, CreateTransferDto } from "@/types";
-import type { TransactionFilters } from "@/lib/api/transactions";
+import type { TransactionFilters } from "@/services/api/transactions";
 
 // Get all transactions
 export function useTransactions(filters: TransactionFilters = {}) {

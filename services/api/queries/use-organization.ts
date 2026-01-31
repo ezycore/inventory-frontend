@@ -1,9 +1,9 @@
-import { queryKeys } from "@/lib//query-keys-products";
-import { organizationApi } from "@/lib/api";
+import { queryKeys } from "@/lib//query-keys";
+import { organizationApi } from "@/services/api";
 import type {
   ExcludedFieldsSettings,
   ExcludedColumnsSettings,
-} from "@/lib/api/organization";
+} from "@/services/api/organization";
 import type { OrganizationFeatures } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";

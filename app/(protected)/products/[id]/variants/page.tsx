@@ -11,7 +11,7 @@ import {
   useProduct,
   useVariantsByProduct,
   useDeleteVariant 
-} from '@/hooks/queries'
+} from '@/services/api/queries'
 import { toast } from 'sonner'
 import { Plus, Search, Edit, Trash2, ArrowLeft, Package, AlertTriangle, Layers, DollarSign, Eye } from 'lucide-react'
 import type { Variant, Product } from '@/types/products'

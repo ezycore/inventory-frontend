@@ -12,9 +12,9 @@ import { DateCell } from "@/ui/components/dataTable/cells";
 import PageHeader from "@/ui/components/header";
 
 // Hooks & API
-import { useCreateDiscount, useDeleteDiscount, useUpdateDiscount } from "@/hooks/queries";
-import { discountsApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+import { useCreateDiscount, useDeleteDiscount, useUpdateDiscount } from "@/services/api/queries";
+import { discountsApi } from "@/services/api";
+import { queryKeys } from "@/lib/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
 const columns: ColumnDef<Discount>[] = [

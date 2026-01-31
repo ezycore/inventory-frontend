@@ -1,6 +1,6 @@
 "use client";
 
-import { useResendVerification } from "@/hooks/queries/use-auth";
+import { useResendVerification } from "@/services/api/queries/use-auth";
 import {
   getOrganizationSlugDescription,
   getOrganizationSlugPlaceholder,

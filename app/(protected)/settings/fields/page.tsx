@@ -4,14 +4,14 @@ import { brandFormConfig } from "@/components/brands/form-config";
 import { categoryFormConfig } from "@/components/categories/form-config";
 import FieldSettingsManager from "@/components/products/field-settings-manager";
 import { productFormConfig } from "@/components/products/form-config";
-import { useAuthStore } from "@/stores";
+import { useAuthStore } from "@/services/stores";
 import PageHeader from "@/ui/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { Loader2, Package, Star, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
 import { toast } from "sonner";
-import { useUpdateFormSettings } from "@/hooks/queries/use-organization";
+import { useUpdateFormSettings } from "@/services/api/queries/use-organization";
 
 const modules = [
   {

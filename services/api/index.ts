@@ -3,8 +3,8 @@
  * Central export point for all API modules
  */
 
-import { createOrganizationApi } from "@/lib/api/organization";
-import { apiClient } from "../api-client";
+import { createOrganizationApi } from "@/services/api/organization";
+import { apiClient } from "../../lib/api-client";
 import { createAccountsApi } from "./accounts";
 import { createAuthApi } from "./auth";
 import { createBrandsApi } from "./brands";
@@ -27,7 +27,7 @@ import { createUsersApi } from "./users";
 import { createVariantsApi } from "./variants";
 
 // Export core client
-export { apiClient, type ApiError } from "../api-client";
+export { apiClient, type ApiError } from "../../lib/api-client";
 
 // Create API instances
 export const productsApi = createProductsApi(apiClient);

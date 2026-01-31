@@ -1,4 +1,4 @@
-import { purchaseOrdersApi } from "@/lib/api";
+import { purchaseOrdersApi } from "@/services/api";
 import { queryKeys } from "@/lib/query-keys";
 import {
   CreatePurchaseOrderDto,
@@ -9,7 +9,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { handleMutationError } from "@/lib/error-handling";
-import { PurchaseOrderFilters } from "@/lib/api/purchase-orders";
+import { PurchaseOrderFilters } from "@/services/api/purchase-orders";
 
 // List purchase orders
 export const usePurchaseOrders = (filters?: PurchaseOrderFilters) => {

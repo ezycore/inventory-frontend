@@ -15,8 +15,8 @@ import {
   useCreateSupplier,
   useDeleteSupplier,
   useUpdateSupplier,
-} from "@/hooks/queries";
-import { suppliersApi } from "@/lib/api";
+} from "@/services/api/queries";
+import { suppliersApi } from "@/services/api";
 import { queryKeys } from "@/lib/query-keys";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
@@ -197,7 +197,7 @@ export default function SuppliersPage() {
           createMutation: useCreateSupplier(),
           updateMutation: useUpdateSupplier(),
           deleteMutation: useDeleteSupplier(),
-          queryKey: [...queryKeys.suppliers.all()],
+          queryKey: [...queryKeys.supplier.all()],
           entityName: "Supplier",
           isViewAvailable: true,
           editTooltip: "Edit Supplier",

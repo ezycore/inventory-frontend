@@ -1,4 +1,4 @@
-import { locationsApi } from "@/lib/api";
+import { locationsApi } from "@/services/api";
 import { queryKeys } from "@/lib/query-keys";
 import { CreateLocationDto, Location } from "@/types";
 import { createResourceHooks } from "./helper";

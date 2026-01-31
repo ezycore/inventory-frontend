@@ -32,7 +32,7 @@ export class ApiClient {
     options: RequestInit = {},
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    const authStore = await import("@/stores/use-auth-store");
+    const authStore = await import("@/services/stores/use-auth-store");
     const isAuthenticated = authStore.useAuthStore.getState().isAuthenticated;
     const clearAuth = authStore.useAuthStore.getState().clearAuth;
 

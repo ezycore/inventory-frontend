@@ -3,7 +3,7 @@
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
-import { useUpdatePassword } from "@/hooks/queries/use-profile";
+import { useUpdatePassword } from "@/services/api/queries/use-profile";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2, Shield } from "lucide-react";
 

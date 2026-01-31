@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { FilterField, FilterValues } from '@/types/filter';
-import { useAuthStore } from "@/stores/use-auth-store"
+import { useAuthStore } from "@/services/stores/use-auth-store"
 import type { DynamicFormConfig } from "@/ui/components/form/type"
 import type { ColumnDef } from "@tanstack/react-table"
 

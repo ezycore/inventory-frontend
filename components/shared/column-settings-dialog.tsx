@@ -9,8 +9,8 @@ import {
   DialogTitle,
 } from "@/ui/components/dialog"
 import { ColumnSettingsManager } from "./column-settings-manager"
-import { useAuthStore } from "@/stores/use-auth-store"
-import { useUpdateColumnSettings } from "@/hooks/queries/use-organization"
+import { useAuthStore } from "@/services/stores/use-auth-store"
+import { useUpdateColumnSettings } from "@/services/api/queries/use-organization"
 import type { ColumnDef } from "@tanstack/react-table"
 
 interface ColumnSettingsDialogProps {

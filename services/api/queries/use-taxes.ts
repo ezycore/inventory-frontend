@@ -1,5 +1,5 @@
-import { taxesApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+import { taxesApi } from "@/services/api";
+import { queryKeys } from "@/lib/query-keys";
 import { CreateTaxDto, Tax } from "@/types";
 import { createResourceHooks } from "./helper";
 

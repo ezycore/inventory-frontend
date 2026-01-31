@@ -12,9 +12,9 @@ import { DateCell } from "@/ui/components/dataTable/cells";
 import PageHeader from "@/ui/components/header";
 
 // Hooks & API
-import { useCreateUnit, useDeleteUnit, useUpdateUnit } from "@/hooks/queries";
-import { unitsApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+import { useCreateUnit, useDeleteUnit, useUpdateUnit } from "@/services/api/queries";
+import { unitsApi } from "@/services/api";
+import { queryKeys } from "@/lib/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
 const columns: ColumnDef<Unit>[] = [

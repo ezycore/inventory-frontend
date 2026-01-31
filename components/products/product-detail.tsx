@@ -9,7 +9,7 @@ import { Package, Tag, Building2, DollarSign, TrendingDown, Layers, AlertCircle 
 import { StatusBadge } from '@/ui/components/status-badge'
 import { formatDistanceToNow } from 'date-fns'
 import Image from 'next/image'
-import { useProduct } from '@/hooks/queries'
+import { useProduct } from '@/services/api/queries'
 
 type Status = 
   | "active" | "inactive" | "expired" | "pending" | "completed" 

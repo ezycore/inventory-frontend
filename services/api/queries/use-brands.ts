@@ -1,6 +1,6 @@
-import { brandsApi } from '@/lib/api'
+import { brandsApi } from '@/services/api'
 import { createResourceHooks } from './helper'
-import { queryKeys } from '@/lib/query-keys-products'
+import { queryKeys } from '@/lib/query-keys'
 import { Brand, CreateBrandDto } from '@/types'
 
 const brandHooks = createResourceHooks<Brand, CreateBrandDto>(

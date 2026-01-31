@@ -1,5 +1,5 @@
 // Export all organized query hooks by domain
-export * from "./queries";
+export * from "../services/api/queries";
 
 // Export utility hooks
 export * from "../utils";
@@ -21,6 +21,6 @@ export {
 } from "@tanstack/react-query";
 
 // Export query keys and API client
-export { apiClient } from "@/lib/api";
+export { apiClient } from "@/services/api";
 export { getErrorMessage, handleMutationError } from "@/lib/error-handling";
 export { queryKeys } from "@/lib/query-keys";

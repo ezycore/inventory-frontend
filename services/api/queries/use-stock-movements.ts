@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { stockMovementsApi, stockApi } from "@/lib/api";
+import { stockMovementsApi, stockApi } from "@/services/api";
 import { queryKeys } from "@/lib/query-keys";
 import { handleMutationError } from '@/lib/error-handling'
 import type { StockAdjustmentDto } from '@/types/products'

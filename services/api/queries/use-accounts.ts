@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { accountsApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+import { accountsApi } from "@/services/api";
+import { queryKeys } from "@/lib/query-keys";
 import type { Account, CreateAccountDto, UpdateAccountDto } from "@/types";
-import type { AccountFilters } from "@/lib/api/accounts";
+import type { AccountFilters } from "@/services/api/accounts";
 
 // Get all accounts
 export function useAccounts(filters: AccountFilters = {}) {

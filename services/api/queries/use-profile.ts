@@ -1,6 +1,6 @@
-import { organizationApi, profileApi } from "@/lib/api";
+import { organizationApi, profileApi } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleMutationSuccess } from "./helper";
 

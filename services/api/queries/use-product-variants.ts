@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { variantsApi } from '@/lib/api'
-import { queryKeys } from '@/lib/query-keys-products'
+import { variantsApi } from '@/services/api'
+import { queryKeys } from '@/lib/query-keys'
 import type {
   Variant,
   CreateVariantDto

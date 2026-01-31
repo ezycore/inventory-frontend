@@ -67,7 +67,7 @@ import {
   useUpdateSalesOrderStatus,
   useFulfillSalesOrder,
   useCancelSalesOrder,
-} from '@/hooks/queries'
+} from '@/services/api/queries'
 import { toast } from 'sonner'
 import type { SalesOrder, SalesOrderStatus } from '@/types'
 import { Skeleton } from '@/ui/components/skeleton'

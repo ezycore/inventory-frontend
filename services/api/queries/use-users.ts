@@ -1,6 +1,6 @@
-import { usersApi } from "@/lib/api";
+import { usersApi } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
-import { queryKeys } from "@/lib/query-keys-products";
+import { queryKeys } from "@/lib/query-keys";
 import type { CreateUserDto, UpdateUserDto, User } from "@/types/users";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createResourceHooks, handleMutationSuccess } from "./helper";

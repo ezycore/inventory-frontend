@@ -1,6 +1,6 @@
 "use client";
 
-import { useResetPassword } from "@/hooks/queries/use-auth";
+import { useResetPassword } from "@/services/api/queries/use-auth";
 import { Button } from "@ui/components/button";
 import {
   Card,

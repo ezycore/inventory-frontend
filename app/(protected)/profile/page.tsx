@@ -18,7 +18,7 @@ import {
   TwoFactorTab,
   TransferOwnershipTab,
 } from "@/components/profile";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useMemo } from "react";
 
 const CardWithContent = ({

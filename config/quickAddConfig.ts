@@ -1,6 +1,6 @@
 import { brandFormConfig } from "@/components/brands/form-config";
 import { categoryFormConfig } from "@/components/categories/form-config";
-import { useCreateBrand, useCreateCategory } from "@/hooks/queries";
+import { useCreateBrand, useCreateCategory } from "@/services/api/queries";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 /**

@@ -1,5 +1,5 @@
-import { discountsApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+import { discountsApi } from "@/services/api";
+import { queryKeys } from "@/lib/query-keys";
 import { CreateDiscountDto, Discount } from "@/types";
 import { createResourceHooks } from "./helper";
 

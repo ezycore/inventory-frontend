@@ -1,11 +1,11 @@
-import { suppliersApi } from '@/lib/api'
+import { suppliersApi } from '@/services/api'
 import { createResourceHooks } from './helper'
 import { queryKeys } from '@/lib/query-keys'
 import { Supplier, CreateSupplierDto } from '@/types'
 
 const supplierHooks = createResourceHooks<Supplier, CreateSupplierDto>(
  suppliersApi,
- queryKeys.suppliers
+ queryKeys.supplier
 )
 
 export const useSuppliers = supplierHooks.useList

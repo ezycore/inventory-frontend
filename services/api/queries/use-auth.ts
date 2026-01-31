@@ -1,6 +1,6 @@
-import { authApi } from "@/lib/api";
+import { authApi } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { handleMutationSuccess } from "./helper";

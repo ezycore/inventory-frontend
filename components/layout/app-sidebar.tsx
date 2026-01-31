@@ -4,7 +4,7 @@ import { navItems } from "@/constants/navItem";
 import { useLogout } from "@/hooks";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { filterNavItems } from "@/lib/nav-utils";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   Collapsible,
   CollapsibleContent,

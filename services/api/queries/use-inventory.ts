@@ -1,4 +1,4 @@
-import { inventoryApi } from '@/lib/api'
+import { inventoryApi } from '@/services/api'
 import { createResourceHooks } from './helper'
 import { queryKeys } from '@/lib/query-keys'
 import { Inventory, CreateInventoryDto, ReceiveStockDto } from '@/types'

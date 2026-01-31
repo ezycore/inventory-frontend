@@ -1,11 +1,11 @@
 "use client";
 
-import { useCreatePurchaseOrder, useLocations } from "@/hooks/queries";
-import { useSuppliers } from "@/hooks/queries/use-suppliers";
+import { useCreatePurchaseOrder, useLocations } from "@/services/api/queries";
+import { useSuppliers } from "@/services/api/queries/use-suppliers";
 import {
   PurchaseOrderLineItem,
   usePurchaseOrderStore,
-} from "@/stores/purchase-order-store";
+} from "@/services/stores/purchase-order-store";
 import type { LabelValueOption } from "@/ui/components/advanced-select";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";

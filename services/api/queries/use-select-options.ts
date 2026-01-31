@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api";
+import { apiClient } from "@/services/api";
 import type { SelectOption } from "@/ui/components/form/type";
 import { useQuery } from "@tanstack/react-query";
 

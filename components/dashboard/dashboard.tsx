@@ -5,7 +5,7 @@ import { Button } from '@ui/components/button'
 import { Badge } from '@ui/components/badge'
 import { Skeleton } from '@ui/components/skeleton'
 import { StatCard } from './stat-card'
-import { useDashboardStats, useProducts, useProductVariants } from '@/hooks/queries'
+import { useDashboardStats, useProducts, useProductVariants } from '@/services/api/queries'
 import { useRouter } from 'next/navigation'
 import { 
   Package, 

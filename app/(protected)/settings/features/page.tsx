@@ -5,9 +5,9 @@ import {
   FEATURE_DISPLAY_NAMES,
   FEATURE_ICONS,
 } from "@/lib/feature-utils";
-import { useAuthStore } from "@/stores";
+import { useAuthStore } from "@/services/stores";
 import { FeatureName } from "@/types";
-import { useGetFeatures, useUpdateFeatures } from "@/hooks/queries/use-organization";
+import { useGetFeatures, useUpdateFeatures } from "@/services/api/queries/use-organization";
 import {
   Card,
   CardContent,

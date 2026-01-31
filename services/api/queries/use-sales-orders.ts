@@ -1,4 +1,4 @@
-import { salesOrdersApi } from "@/lib/api";
+import { salesOrdersApi } from "@/services/api";
 import { queryKeys } from "@/lib/query-keys";
 import {
   CreateSalesOrderDto,
@@ -9,7 +9,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { handleMutationError } from "@/lib/error-handling";
-import { SalesOrderFilters } from "@/lib/api/sales-orders";
+import { SalesOrderFilters } from "@/services/api/sales-orders";
 
 // List sales orders
 export const useSalesOrders = (filters?: SalesOrderFilters) => {

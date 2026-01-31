@@ -1,6 +1,6 @@
-import { productsApi } from '@/lib/api'
+import { productsApi } from '@/services/api'
 import { createResourceHooks } from './helper'
-import { queryKeys } from '@/lib/query-keys-products'
+import { queryKeys } from '@/lib/query-keys'
 import { Product, CreateProductDto } from '@/types'
 
 const productHooks = createResourceHooks<Product, CreateProductDto>(

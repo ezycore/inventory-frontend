@@ -24,8 +24,8 @@ import { toast } from "sonner";
 import {
   useOrganizationUsers,
   useTransferOwnership,
-} from "@/hooks/queries/use-profile";
-import { useAuthStore } from "@/stores/use-auth-store";
+} from "@/services/api/queries/use-profile";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 
 interface OrganizationUser {
   _id: string;
