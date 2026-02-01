@@ -1,6 +1,6 @@
 "use client";
 
-import { useMyLocations, useUpdateMyDefaultLocation } from "@/services/api/queries";
+import { useMyLocations, useUpdateMyDefaultLocation } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Button } from "@/ui/components/button";
 import {

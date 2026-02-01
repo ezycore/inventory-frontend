@@ -1,5 +1,5 @@
 // Export all organized query hooks by domain
-export * from "../services/api/queries";
+export * from "../services/api";
 
 // Export utility hooks
 export * from "../utils";
@@ -23,4 +23,4 @@ export {
 // Export query keys and API client
 export { apiClient } from "@/services/api";
 export { getErrorMessage, handleMutationError } from "@/lib/error-handling";
-export { queryKeys } from "@/lib/query-keys";
+export { queryKeys } from "@/services/api/query-keys";

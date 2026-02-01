@@ -3,7 +3,7 @@
 import KBar from "@/components/kbar";
 import AppSidebar from "@/components/layout/app-sidebar";
 import Header from "@/components/layout/header";
-import { useMe } from "@/services/api/queries/use-auth";
+import { useMe } from "@/services/api";
 import { SidebarInset, SidebarProvider } from "@ui/components/sidebar";
 import { getCookie } from "cookies-next";
 import { useEffect } from "react";

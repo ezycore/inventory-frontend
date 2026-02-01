@@ -3,57 +3,58 @@
  * Central export point for all API modules
  */
 
-import { createOrganizationApi } from "@/services/api/organization";
-import { apiClient } from "../../lib/api-client";
-import { createAccountsApi } from "./accounts";
-import { createAuthApi } from "./auth";
-import { createBrandsApi } from "./brands";
-import { createCategoriesApi } from "./categories";
-import { createCustomersApi } from "./customers";
-import { createDashboardApi } from "./dashboard";
-import { createDiscountsApi } from "./discounts";
-import { createInventoryApi } from "./inventory";
-import { createLocationsApi } from "./locations";
-import { createProductsApi } from "./products";
-import { createProfileApi } from "./profile";
-import { createPurchaseOrdersApi } from "./purchase-orders";
-import { createSalesOrdersApi } from "./sales-orders";
-import { createStockApi, createStockMovementsApi } from "./stock";
-import { createSuppliersApi } from "./suppliers";
-import { createTaxesApi } from "./taxes";
-import { createTransactionsApi } from "./transactions";
-import { createUnitsApi } from "./units";
-import { createUsersApi } from "./users";
-import { createVariantsApi } from "./variants";
-
 // Export core client
 export { apiClient, type ApiError } from "../../lib/api-client";
 
-// Create API instances
-export const productsApi = createProductsApi(apiClient);
-export const variantsApi = createVariantsApi(apiClient); // Handles both variant instances & attribute templates
-export const variantApi = variantsApi; // Alias for compatibility
-export const variantAttributesApi = variantsApi; // Alias for attribute templates (same API)
-export const categoriesApi = createCategoriesApi(apiClient);
-export const brandsApi = createBrandsApi(apiClient);
-export const unitsApi = createUnitsApi(apiClient);
-export const taxesApi = createTaxesApi(apiClient);
-export const discountsApi = createDiscountsApi(apiClient);
-export const inventoryApi = createInventoryApi(apiClient);
-export const stockApi = createStockApi(apiClient);
-export const stockMovementsApi = createStockMovementsApi(apiClient);
-export const customersApi = createCustomersApi(apiClient);
-export const suppliersApi = createSuppliersApi(apiClient);
-export const dashboardApi = createDashboardApi(apiClient);
-export const accountsApi = createAccountsApi(apiClient);
-export const transactionsApi = createTransactionsApi(apiClient);
-export const purchaseOrdersApi = createPurchaseOrdersApi(apiClient);
-export const salesOrdersApi = createSalesOrdersApi(apiClient);
-export const profileApi = createProfileApi(apiClient);
-export const authApi = createAuthApi(apiClient);
-export const organizationApi = createOrganizationApi(apiClient);
-export const locationsApi = createLocationsApi(apiClient);
-export const usersApi = createUsersApi(apiClient);
-
 // Re-export utility functions
 export { buildQueryParams, type BaseFilters } from "./utils";
+
+// Re-export all API instances and types from modules
+export * from './modules/accounts/api'
+export * from './modules/auth/api'
+export * from './modules/brands/api'
+export * from './modules/categories/api'
+export * from './modules/customers/api'
+export * from './modules/dashboard/api'
+export * from './modules/discounts/api'
+export * from './modules/inventory/api'
+export * from './modules/locations/api'
+export * from './modules/organization/api'
+export * from './modules/products/api'
+export * from './modules/profile/api'
+export * from './modules/purchase-orders/api'
+export * from './modules/sales-orders/api'
+export * from './modules/stock/api'
+export * from './modules/suppliers/api'
+export * from './modules/taxes/api'
+export * from './modules/transactions/api'
+export * from './modules/units/api'
+export * from './modules/users/api'
+export * from './modules/variants/api'
+export * from './modules/use-select-options'
+
+// Aliases for backward compatibility
+export { variantsApi as variantApi, variantsApi as variantAttributesApi } from './modules/variants/api'
+
+// Re-export all hooks from modules
+export * from './modules/accounts/hooks'
+export * from './modules/auth/hooks'
+export * from './modules/brands/hooks'
+export * from './modules/categories/hooks'
+export * from './modules/customers/hooks'
+export * from './modules/dashboard/hooks'
+export * from './modules/discounts/hooks'
+export * from './modules/inventory/hooks'
+export * from './modules/locations/hooks'
+export * from './modules/organization/hooks'
+export * from './modules/products/hooks'
+export * from './modules/profile/hooks'
+export * from './modules/purchase-orders/hooks'
+export * from './modules/sales-orders/hooks'
+export * from './modules/stock/hooks'
+export * from './modules/suppliers/hooks'
+export * from './modules/taxes/hooks'
+export * from './modules/transactions/hooks'
+export * from './modules/units/hooks'
+export * from './modules/users/hooks'
+export * from './modules/variants/hooks'

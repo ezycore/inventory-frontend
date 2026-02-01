@@ -1,6 +1,6 @@
 "use client";
 
-import { useVerifyEmail } from "@/services/api/queries/use-auth";
+import { useVerifyEmail } from "@/services/api";
 import { Button } from "@ui/components/button";
 import {
   Card,

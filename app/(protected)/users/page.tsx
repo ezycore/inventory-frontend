@@ -5,8 +5,8 @@ import {
   useDeleteUser,
   useToggleUserStatus,
   useUpdateUser,
-} from "@/services/api/queries/use-users";
-import { queryKeys } from "@/lib/query-keys";
+} from "@/services/api";
+import { queryKeys } from "@/services/api/query-keys";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { CustomAction } from "@/types/DataTable";
 import type { User } from "@/types/users";

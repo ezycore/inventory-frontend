@@ -16,10 +16,10 @@ import {
   useCreateBrand,
   useDeleteBrand,
   useUpdateBrand,
-} from "@/services/api/queries";
+} from "@/services/api";
 import { useFilteredColumns, useFilteredFormConfig } from "@/hooks/use-filters";
 import { brandsApi } from "@/services/api";
-import { queryKeys } from "@/lib/query-keys";
+import { queryKeys } from "@/services/api/query-keys";
 import PageHeader from "@/ui/components/header";
 
 const searchConfig = {

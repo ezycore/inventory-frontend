@@ -1,6 +1,6 @@
 "use client";
 
-import { useForgotPassword } from "@/services/api/queries/use-auth";
+import { useForgotPassword } from "@/services/api";
 import {
   getOrganizationSlugDescription,
   getOrganizationSlugPlaceholder,

@@ -11,7 +11,7 @@ import { Loader2, Package, Star, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
 import { toast } from "sonner";
-import { useUpdateFormSettings } from "@/services/api/queries/use-organization";
+import { useUpdateFormSettings } from "@/services/api";
 
 const modules = [
   {

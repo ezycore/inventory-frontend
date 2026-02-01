@@ -7,7 +7,7 @@ import {
 } from "@/lib/feature-utils";
 import { useAuthStore } from "@/services/stores";
 import { FeatureName } from "@/types";
-import { useGetFeatures, useUpdateFeatures } from "@/services/api/queries/use-organization";
+import { useGetFeatures, useUpdateFeatures } from "@/services/api";
 import {
   Card,
   CardContent,

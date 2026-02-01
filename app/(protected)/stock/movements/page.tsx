@@ -6,7 +6,7 @@ import { DataTable } from "@/ui/components/dataTable";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import PageHeader from "@/ui/components/header";
 import { stockMovementsApi } from "@/services/api";
-import { queryKeys } from "@/lib/query-keys";
+import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 import { ArrowUp, ArrowDown, Package } from "lucide-react";
 

@@ -18,7 +18,7 @@ import { CardTable } from '@/ui/components/custom/card-table'
 import { ColumnDef } from '@tanstack/react-table'
 import { Pencil, Trash2, Trash, Package } from 'lucide-react'
 import { usePurchaseReceiveStore, ReceiveItem } from '@/services/stores/purchase-receive-store'
-import { useBulkReceiveStock } from '@/services/api/queries'
+import { useBulkReceiveStock } from '@/services/api'
 import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 

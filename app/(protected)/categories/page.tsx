@@ -12,7 +12,7 @@ import { categoryFilterConfig } from '@/components/categories/filters'
 import { categoryFormConfig } from '@/components/categories/form-config'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
 import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
-import { useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/services/api/queries'
+import { useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/services/api'
 import { categoriesApi } from '@/services/api'
 import { queryKeys } from '@/lib/query-keys'
 import PageHeader from '@/ui/components/header'
@@ -55,7 +55,7 @@ export default function CategoriesPage() {
           createMutation: useCreateCategory(),
           updateMutation: useUpdateCategory(),
           deleteMutation: useDeleteCategory(),
-          queryKey: [...queryKeys.category.all()],
+          queryKey: [...queryKeys.categories.all()],
           isViewAvailable: true,
           entityName: "Category"
         }}

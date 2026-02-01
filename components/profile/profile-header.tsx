@@ -1,6 +1,6 @@
 "use client";
 
-import { useRemoveAvatar, useUpdateAvatar } from "@/services/api/queries/use-profile";
+import { useRemoveAvatar, useUpdateAvatar } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   AlertDialog,

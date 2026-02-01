@@ -42,10 +42,10 @@ import {
   useCreateExpense,
   useCreateTransfer,
   useTransactionSummary,
-} from "@/services/api/queries";
+} from "@/services/api";
 import { FilterConfig } from "@/types/DataTable";
 import { transactionsApi } from "@/services/api";
-import { queryKeys } from "@/lib/query-keys";
+import { queryKeys } from "@/services/api/query-keys";
 
 const getTransactionTypeIcon = (type: string) => {
   switch (type) {

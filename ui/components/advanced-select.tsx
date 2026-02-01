@@ -20,7 +20,7 @@
  */
 
 import { quickAddConfig } from "@/config/quickAddConfig";
-import { useSelectOptions } from "@/services/api/queries";
+import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
 import type { SelectOption } from "@/ui/components/form/type";

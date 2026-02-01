@@ -3,7 +3,7 @@
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
-import { useUpdateProfile } from "@/services/api/queries/use-profile";
+import { useUpdateProfile } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useState, useMemo, useEffect } from "react";
 import { Loader2 } from "lucide-react";

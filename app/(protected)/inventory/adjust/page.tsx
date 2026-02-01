@@ -18,7 +18,7 @@ import { CardTable } from '@/ui/components/custom/card-table'
 import { ColumnDef } from '@tanstack/react-table'
 import { Pencil, Trash2, Trash } from 'lucide-react'
 import { useStockAdjustmentStore, AdjustmentItem } from '@/services/stores/stock-adjustment-store'
-import { useBulkAdjustStock } from '@/services/api/queries'
+import { useBulkAdjustStock } from '@/services/api'
 import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 

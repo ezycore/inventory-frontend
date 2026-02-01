@@ -14,7 +14,7 @@ import {
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useState, useMemo, useEffect } from "react";
 import { Loader2, Lock } from "lucide-react";
-import { useUpdateOrganization } from "@/services/api/queries/use-profile";
+import { useUpdateOrganization } from "@/services/api";
 import { countryOptions, currencyOptions, timezoneOptions } from "@/app/(auth)/signup/page";
 import { useGetOrganizationApi } from "@/hooks";
 

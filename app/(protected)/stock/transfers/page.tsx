@@ -18,7 +18,7 @@ import { CardTable } from '@/ui/components/custom/card-table'
 import { ColumnDef } from '@tanstack/react-table'
 import { Pencil, Trash2, Trash, ArrowRightLeft } from 'lucide-react'
 import { useTransferStore, TransferItem } from '@/services/stores/stock-transfer-store'
-import { useBulkTransferStock } from '@/services/api/queries'
+import { useBulkTransferStock } from '@/services/api'
 import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 

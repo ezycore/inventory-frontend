@@ -10,7 +10,7 @@ import {
 } from "@/ui/components/dialog"
 import { ColumnSettingsManager } from "./column-settings-manager"
 import { useAuthStore } from "@/services/stores/use-auth-store"
-import { useUpdateColumnSettings } from "@/services/api/queries/use-organization"
+import { useUpdateColumnSettings } from "@/services/api"
 import type { ColumnDef } from "@tanstack/react-table"
 
 interface ColumnSettingsDialogProps {

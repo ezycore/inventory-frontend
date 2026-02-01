@@ -1,5 +1,5 @@
 "use client";
-import { useLogin } from "@/services/api/queries/use-auth";
+import { useLogin } from "@/services/api";
 import {
   getOrganizationSlugDescription,
   getOrganizationSlugPlaceholder,

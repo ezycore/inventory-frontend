@@ -1,7 +1,7 @@
 "use client";
 
-import { useCreatePurchaseOrder, useLocations } from "@/services/api/queries";
-import { useSuppliers } from "@/services/api/queries/use-suppliers";
+import { useCreatePurchaseOrder, useLocations } from "@/services/api";
+import { useSuppliers } from "@/services/api";
 import {
   PurchaseOrderLineItem,
   usePurchaseOrderStore,
