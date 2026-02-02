@@ -1,6 +1,6 @@
 "use client";
 import { sanitize, useMyLocations, useQueryClient } from "@/hooks";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Check, ChevronDown, MapPin, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./button";

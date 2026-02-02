@@ -5,9 +5,9 @@ import {
   useDeleteUser,
   useToggleUserStatus,
   useUpdateUser,
-} from "@/hooks/queries/use-users";
-import { queryKeys } from "@/lib/query-keys-products";
-import { useAuthStore } from "@/stores/use-auth-store";
+} from "@/services/api";
+import { queryKeys } from "@/services/api/query-keys";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { CustomAction } from "@/types/DataTable";
 import type { User } from "@/types/users";
 import { Badge } from "@/ui/components/badge";
@@ -26,7 +26,7 @@ import {
   MailCheck,
 } from "lucide-react";
 import LocationCountCell from "@/components/locations/LocationCountCell";
-import { usersApi } from "@/lib/api";
+import { usersApi } from "@/services/api";
 
 // Form configuration for user management
 const userFormConfig: DynamicFormConfig = {

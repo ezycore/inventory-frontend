@@ -23,9 +23,9 @@ import {
   useCreateAccount,
   useDeleteAccount,
   useUpdateAccount,
-} from "@/hooks/queries";
-import { accountsApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+} from "@/services/api";
+import { accountsApi } from "@/services/api";
+import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
 const getAccountTypeIcon = (type: string) => {

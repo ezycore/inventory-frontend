@@ -3,7 +3,7 @@
  * Uses currency from auth store user's organization
  */
 
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 
 // Currency symbols map
 const CURRENCY_SYMBOLS: Record<string, string> = {

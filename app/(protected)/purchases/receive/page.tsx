@@ -13,7 +13,7 @@ import DynamicForm from "@/ui/components/form";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // Hooks
-import { useReceiveStock } from "@/hooks/queries";
+import { useReceiveStock } from "@/services/api";
 import { Package } from "lucide-react";
 
 // Form Schema

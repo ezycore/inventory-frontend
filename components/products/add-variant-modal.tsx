@@ -7,12 +7,12 @@ import { Input } from '@ui/components/input'
 import { Label } from '@ui/components/label'
 import { Textarea } from '@ui/components/textarea'
 import { Badge } from '@ui/components/badge'
-import { useCreateVariant } from '@/hooks/queries'
 import { useQueryClient } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/query-keys-products'
+import { queryKeys } from '@/lib/query-keys'
 import { toast } from 'sonner'
 import { Plus, X, Upload } from 'lucide-react'
 import type { CreateVariantDto, Product } from '@/types/products'
+import { useCreateVariantAttribute } from '@/hooks'
 
 interface AddVariantModalProps {
   productId: string
@@ -23,7 +23,7 @@ interface AddVariantModalProps {
 
 export default function AddVariantModal({ productId, product, open, onOpenChange }: AddVariantModalProps) {
   const queryClient = useQueryClient()
-  const createVariant = useCreateVariant()
+  const createVariant = useCreateVariantAttribute()
   
   const [formData, setFormData] = useState<CreateVariantDto>({
     productId: productId,

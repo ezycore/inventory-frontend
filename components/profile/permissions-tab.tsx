@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/ui/components/badge";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Shield, CheckCircle2 } from "lucide-react";
 import {
   Card,

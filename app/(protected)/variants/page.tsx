@@ -18,9 +18,9 @@ import {
   useCreateVariantAttribute,
   useUpdateVariantAttribute,
   useDeleteVariantAttribute,
-} from '@/hooks/queries'
-import { variantAttributesApi } from '@/lib/api'
-import { queryKeys } from '@/lib/query-keys-products'
+} from '@/services/api'
+import { variantAttributesApi } from '@/services/api'
+import { queryKeys } from '@/lib/query-keys'
 import variantAttributeFormConfig from '@/components/variants/form-config'
 import { DataTable } from '@/ui/components/dataTable'
 import PageHeader from '@/ui/components/header'

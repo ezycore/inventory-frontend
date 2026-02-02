@@ -5,7 +5,7 @@ import {
   useDisable2FA,
   useEnable2FA,
   useVerify2FA,
-} from "@/hooks/queries/use-profile";
+} from "@/services/api";
 import { Alert, AlertDescription } from "@/ui/components/alert";
 import { Button } from "@/ui/components/button";
 import {
