@@ -23,6 +23,68 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
+/**
+ * Dependency condition operators for field dependencies
+ */
+export type DependencyCondition = 
+  | "eq"     // equals
+  | "ne"     // not equals
+  | "gt"     // greater than
+  | "gte"    // greater than or equal
+  | "lt"     // less than
+  | "lte"    // less than or equal
+  | "in"     // value in array
+  | "notIn"  // value not in array
+  | "truthy" // any truthy value
+  | "falsy";  // any falsy value
+
+/**
+ * Actions to take when dependency condition is met
+ */
+export type DependencyAction = "disable" | "hide" | "show" | "enable";
+
+/**
+ * Unified field dependency configuration
+ * 
+ * @example
+ * // Simple disable when field is empty
+ * dependsOn: {
+ *   field: 'productId',
+ *   condition: 'truthy',
+ *   action: 'disable'
+ * }
+ * 
+ * @example
+ * // Hide field when another field equals specific value
+ * dependsOn: {
+ *   field: 'discountType',
+ *   value: 'percentage',
+ *   condition: 'eq',
+ *   action: 'show'
+ * }
+ * 
+ * @example
+ * // Extract property from complex object (like select options)
+ * dependsOn: {
+ *   field: 'category',
+ *   matchWithProp: '_id',
+ *   condition: 'truthy',
+ *   action: 'disable'
+ * }
+ */
+export interface FieldDependency {
+  /** Field name to watch */
+  field: string;
+  /** Property to extract from field value (useful for objects like {label, value, _id}) */
+  matchWithProp?: string;
+  /** Comparison operator (default: 'eq') */
+  condition?: DependencyCondition;
+  /** Value to compare against (optional for truthy/falsy) */
+  value?: any;
+  /** Action to take when condition matches (default: 'disable') */
+  action?: DependencyAction;
+}
+
 export interface FormFieldConfig {
   // Basic field properties
   name: string;
@@ -65,13 +127,22 @@ export interface FormFieldConfig {
   // Type-specific properties
   labelInValue?: boolean; // For select fields
   options?: SelectOption[]; // For select fields (static options)
-  optionsApi?: string; // For select fields (dynamic API-based options) - URL string
-  dependsOn?: string; // Field name this select depends on (e.g., 'productId')
-  dependsOnTemplate?: string; // API template with :id placeholder (e.g., '/products/:id/variants')
+  /**
+   * API endpoint for select field options
+   * Supports template syntax with {{fieldName}} placeholders
+   * Example: '/products/{{productId}}/variants'
+   */
+  optionsApi?: string;
   itemsCreateCallback?: (response: any) => SelectOption[];
   // Quick-add functionality for select fields
   creatable?: boolean; // Enable quick-add modal for creating new options
   quickAddModule?: string; // Module name from quickAddConfig (e.g., 'category', 'brand')
+
+  /**
+   * Unified field dependency configuration
+   * Controls field visibility and disabled state based on another field
+   */
+  dependsOn?: FieldDependency;
 
   rows?: number; // For textarea
   accept?: string; // For file upload
@@ -111,13 +182,6 @@ export interface FormFieldConfig {
   // Custom properties
   customComponent?: React.ComponentType<any>;
   customProps?: Record<string, any>;
-
-  // Conditional display
-  showWhen?: {
-    field: string;
-    value: any;
-    operator?: "equals" | "not-equals" | "includes" | "not-includes";
-  };
 
   // Change handlers
   onChange?: (value: any) => void;

@@ -38,7 +38,7 @@ export const quickAddConfig: Record<string, QuickAddModuleConfig> = {
     useMutation: useCreateBrand,
     title: "Add New Brand",
     submitLabel: "Create Brand",
-    optionsApiPath: "/categories",
+    optionsApiPath: "/brands",
   },
 
   // Add more modules as needed:
