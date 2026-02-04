@@ -10,7 +10,7 @@ import type {
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface AccountFilters extends BaseFilters {
-  type?: "cash" | "bank" | "bkash" | "nagad" | "custom";
+  type?: "cash" | "bank" | "mfs" | "custom";
   isActive?: boolean;
 }
 

@@ -542,7 +542,7 @@ export interface OrganizationData {
 export interface UpdateOrganizationDto extends Partial<OrganizationData> {}
 
 // Account interfaces
-export type AccountType = "cash" | "bank" | "bkash" | "nagad" | "custom";
+export type AccountType = "cash" | "bank" | "mfs" | "custom";
 
 export interface Account extends BaseEntity {
   name: string;
@@ -573,8 +573,7 @@ export interface AccountSummary {
   byType: {
     cash: number;
     bank: number;
-    bkash: number;
-    nagad: number;
+    mfs: number;
     custom: number;
   };
 }
