@@ -32,6 +32,7 @@ import type {
 import { Password } from "../input-password";
 import { ImageObject } from "@/types/DataTable";
 import { SafeImage } from '@/ui/components/safeImage';
+import { evaluateFieldDependency, resolveApiTemplate } from "./dependency-utils";
 
 // Helper function to get grid column classes with responsive breakpoints
 const getColumnClass = (span: ColumnSpan): string => {
@@ -72,50 +73,28 @@ const FormField: React.FC<{
     
     // Check if field should be disabled in edit mode
     const isFieldDisabledInEdit = isEditMode && disabledFieldsInEdit?.includes(field.name);
-    const effectiveDisabled = field.disabled || isFieldDisabledInEdit;
     
     // Use useWatch for better performance - only subscribes to specific fields
     const fieldValue = useWatch({ control, name: field.name });
-    const showWhenValue = useWatch({ 
+    
+    // Watch dependent field value if dependency exists
+    const dependencyWatchedValue = useWatch({ 
       control, 
-      name: field.showWhen?.field || field.name,
-      disabled: !field.showWhen 
-    });
-    // Watch dependent field value at component level (for select fields)
-    const dependsOnValue = useWatch({ 
-      control, 
-      name: field.dependsOn || field.name,
+      name: field.dependsOn?.field || field.name,
       disabled: !field.dependsOn 
     });
 
-    // Check conditional display
-    if (field.showWhen) {
-      const { value, operator = "equals" } = field.showWhen;
+    // Evaluate dependency and determine field state
+    const { shouldHide, shouldDisable } = evaluateFieldDependency(
+      dependencyWatchedValue,
+      field.dependsOn
+    );
 
-      let shouldShow = false;
-      switch (operator) {
-        case "equals":
-          shouldShow = showWhenValue === value;
-          break;
-        case "not-equals":
-          shouldShow = showWhenValue !== value;
-          break;
-        case "includes":
-          shouldShow = Array.isArray(showWhenValue)
-            ? showWhenValue.includes(value)
-            : false;
-          break;
-        case "not-includes":
-          shouldShow = Array.isArray(showWhenValue)
-            ? !showWhenValue.includes(value)
-            : true;
-          break;
-      }
+    // Determine effective disabled state
+    const effectiveDisabled = field.disabled || isFieldDisabledInEdit || shouldDisable;
 
-      if (!shouldShow) return null;
-    }
-
-    if (field.hidden) return null;
+    // Hide field if dependency condition requires it
+    if (field.hidden || shouldHide) return null;
 
     const handleChange = (value: any) => {
       if (field.onChange) field.onChange(value);
@@ -332,7 +311,8 @@ const FormField: React.FC<{
                     }}
                     className={error ? "border-red-500" : ""}
                     {...field}
-                    dependsOnValue={dependsOnValue}
+                    dependsOnValue={dependencyWatchedValue}
+                    disabled={effectiveDisabled}
                     error={error}
                   />
                 )

@@ -122,6 +122,8 @@ const inventoryFormConfig: DynamicFormConfig = {
       type: "select",
       label: "Product",
       placeholder: "Select product",
+      creatable: true,
+          quickAddModule: "brand",
       required: true,
       columnSpan: 6,
       optionsApi: "/products",
@@ -133,8 +135,12 @@ const inventoryFormConfig: DynamicFormConfig = {
       label: "Variant",
       placeholder: "Select variant (if applicable)",
       columnSpan: 6,
-      dependsOn: "productId",
-      dependsOnTemplate: "/products/:id/variants",
+      optionsApi: "/products/{{productId}}/variants",
+      dependsOn: {
+        field: "productId",
+        condition: "truthy",
+        action: "disable",
+      },
       helperText: "Select a product first to see variants",
     },
     {
