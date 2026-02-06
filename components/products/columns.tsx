@@ -49,4 +49,8 @@ export const productColumns: ColumnDef<any>[] = [
       return price ? `$${Number(price).toFixed(2)}` : '-'
     }
   },
+  {
+    header: 'Type',
+    accessorKey: 'productType'
+  }
 ];

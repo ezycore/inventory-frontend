@@ -136,7 +136,6 @@ const inventoryFormConfig: DynamicFormConfig = {
       placeholder: "Select variant",
       columnSpan: 6,
       optionsApi: "/products/{{_id}}/variants",
-      mode: 'multiple',
       dependsOn: {
         field: "productId",
         condition: "gt",
@@ -278,17 +277,13 @@ export default function InventoryPage() {
         }
         operations={{
           formConfig: inventoryFormConfig,
-          defaultValues: defaultValues,
+          defaultValues,
           getAllData: inventoryApi.getAll,
           createMutation: useCreateInventory(),
           updateMutation: useUpdateInventory(),
           deleteMutation: useDeleteInventory(),
           queryKey: [...queryKeys.inventory.all()],
           entityName: "Inventory",
-          isViewAvailable: true,
-          editTooltip: "Edit Inventory",
-          deleteTooltip: "Delete Inventory",
-          viewTooltip: "View Inventory Details",
           transformEditData: (item: Inventory) => {
             return {
               ...item,

@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import LocationCountCell from "@/components/locations/LocationCountCell";
 import { usersApi } from "@/services/api";
+import { ApiResponse, Location, PaginatedResponse } from "@/types";
+import { sanitize } from "@/utils";
 
 // Form configuration for user management
 const userFormConfig: DynamicFormConfig = {
@@ -91,10 +93,9 @@ const userFormConfig: DynamicFormConfig = {
       columnSpan: 12,
       required: false,
       description: "Select locations to assign (leave empty for Admin - they have access to all locations)",
-      itemsCreateCallback: (response) => {
-        const items = response?.data?.items || response?.data || [];
-        return items.map(
-          (item: { _id?: string; name?: string; locationType?: string }) => ({
+      itemsCreateCallback: (response: ApiResponse<PaginatedResponse<Location>>) => {
+        const items = sanitize(response?.data?.items, 'array');
+        return items.map((item) => ({
             value: item._id,
             label: `${item.name} (${item.locationType})`,
           }),

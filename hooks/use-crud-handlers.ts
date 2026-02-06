@@ -28,7 +28,7 @@ export function useCrudModal<T extends { _id: string }>({
  const handleAdd = useCallback(() => {
   setEditingItem(null);
   setIsViewMode(false);
-  form.reset(defaultValues);
+  form.reset(defaultValues); // Reset to default values for add new form
   setIsModalOpen(true);
  }, [form, defaultValues]);
 
@@ -77,7 +77,8 @@ export function useCrudModal<T extends { _id: string }>({
   setIsModalOpen(false);
   setEditingItem(null);
   setIsViewMode(false);
- }, []);
+  form.reset(defaultValues); // Clear form on close to prevent stale data
+ }, [form, defaultValues]);
 
  // ===== RETURN =====
  return {

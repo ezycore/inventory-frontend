@@ -1,6 +1,6 @@
 import { cn } from "@ui/lib/utils";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
-import React, { memo } from "react";
+import { FC, memo, useMemo, useState } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import Link from "next/link";
 import { AdvancedSelect } from "../advanced-select";
@@ -31,7 +31,6 @@ import type {
   FormSection,
 } from "@/ui/components/form/type";
 import { Password } from "../input-password";
-import { ImageObject } from "@/types/DataTable";
 import { SafeImage } from '@/ui/components/safeImage';
 import { evaluateFieldDependency, resolveApiTemplate } from "./dependency-utils";
 import { useSelectOptions } from "@/services/api";
@@ -50,7 +49,7 @@ const getColumnClass = (span: ColumnSpan): string => {
 };
 
 // Individual field components - Memoized for performance
-const FormField: React.FC<{
+const FormField: FC<{
   field: FormFieldConfig;
   control: any;
   formState: any;
@@ -89,7 +88,7 @@ const FormField: React.FC<{
     });
 
     // Find the dependency field's configuration
-    const dependencyField = React.useMemo(() => {
+    const dependencyField = useMemo(() => {
       if (!field.dependsOn) return null;
       return allFields.find(f => f.name === field.dependsOn!.field);
     }, [field.dependsOn, allFields]);
@@ -102,7 +101,7 @@ const FormField: React.FC<{
     );
 
     // Enrich dependency value with full option data if it's a select field
-    const dependencyWatchedValue = React.useMemo(() => {
+    const dependencyWatchedValue = useMemo(() => {
       if (!field.dependsOn || !dependencyRawValue) return dependencyRawValue;
       
       // If value is already an object with all the data we need, use it
@@ -785,7 +784,7 @@ const FormField: React.FC<{
 FormField.displayName = 'FormField';
 
 // Section component
-const FormSectionComponent: React.FC<{
+const FormSectionComponent: FC<{
   section: FormSection;
   control: any;
   formState: any;
@@ -810,7 +809,7 @@ const FormSectionComponent: React.FC<{
   isEditMode = false,
   allFields = [],
 }) => {
-    const [isOpen, setIsOpen] = React.useState(section.defaultOpen ?? true);
+    const [isOpen, setIsOpen] = useState(section.defaultOpen ?? true);
 
     const content = (
       <CardContent className={cn("space-y-4 pt-4", section.className)}>
@@ -900,7 +899,7 @@ const FormSectionComponent: React.FC<{
 
 // Main DynamicForm component
 // Form content component (extracted for reuse)
-const FormContent: React.FC<{
+const FormContent: FC<{
   config: any;
   control: any;
   formState: any;
@@ -924,7 +923,7 @@ const FormContent: React.FC<{
   isEditMode = false,
 }) => {
     // Collect all fields from config (sections or plain fields)
-    const allFields = React.useMemo(() => {
+    const allFields = useMemo(() => {
       if (config.sections) {
         return config.sections.flatMap((section: FormSection) => section.fields);
       }

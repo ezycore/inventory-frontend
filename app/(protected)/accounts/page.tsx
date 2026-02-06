@@ -81,9 +81,9 @@ const accountFormConfig: DynamicFormConfig = {
       ],
     },
     {
-      name: "initialBalance",
+      name: "balance",
       type: "number",
-      label: "Initial Balance",
+      label: "Balance",
       placeholder: "Enter opening balance",
       columnSpan: 6,
       helperText: "Set initial balance for new accounts (cannot be changed later)",
@@ -110,7 +110,7 @@ const accountFormConfig: DynamicFormConfig = {
       name: "isDefault",
       type: "checkbox",
       label: "Set as Default Account",
-      columnSpan: 6,
+      columnSpan: 12,
     },
     {
       name: "description",
