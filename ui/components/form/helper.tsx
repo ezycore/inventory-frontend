@@ -2,6 +2,7 @@ import { cn } from "@ui/lib/utils";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
 import React, { memo } from "react";
 import { Controller, useWatch } from "react-hook-form";
+import Link from "next/link";
 import { AdvancedSelect } from "../advanced-select";
 import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
@@ -33,6 +34,7 @@ import { Password } from "../input-password";
 import { ImageObject } from "@/types/DataTable";
 import { SafeImage } from '@/ui/components/safeImage';
 import { evaluateFieldDependency, resolveApiTemplate } from "./dependency-utils";
+import { useSelectOptions } from "@/services/api";
 
 // Helper function to get grid column classes with responsive breakpoints
 const getColumnClass = (span: ColumnSpan): string => {
@@ -58,6 +60,7 @@ const FormField: React.FC<{
   viewMode?: boolean;
   disabledFieldsInEdit?: string[];
   isEditMode?: boolean;
+  allFields?: FormFieldConfig[]; // All fields to look up dependency field config
 }> = memo(({
   field,
   control,
@@ -68,6 +71,7 @@ const FormField: React.FC<{
   viewMode = false,
   disabledFieldsInEdit,
   isEditMode = false,
+  allFields = [],
 }) => {
     const error = formState.errors[field.name]?.message;
     
@@ -78,11 +82,49 @@ const FormField: React.FC<{
     const fieldValue = useWatch({ control, name: field.name });
     
     // Watch dependent field value if dependency exists
-    const dependencyWatchedValue = useWatch({ 
+    const dependencyRawValue = useWatch({ 
       control, 
       name: field.dependsOn?.field || field.name,
       disabled: !field.dependsOn 
     });
+
+    // Find the dependency field's configuration
+    const dependencyField = React.useMemo(() => {
+      if (!field.dependsOn) return null;
+      return allFields.find(f => f.name === field.dependsOn!.field);
+    }, [field.dependsOn, allFields]);
+
+    // Fetch API options for dependency field if it uses optionsApi
+    // This will use cached data from TanStack Query if already fetched
+    const { data: dependencyApiOptions } = useSelectOptions(
+      dependencyField?.optionsApi || null,
+      dependencyField?.itemsCreateCallback
+    );
+
+    // Enrich dependency value with full option data if it's a select field
+    const dependencyWatchedValue = React.useMemo(() => {
+      if (!field.dependsOn || !dependencyRawValue) return dependencyRawValue;
+      
+      // If value is already an object with all the data we need, use it
+      if (typeof dependencyRawValue === 'object' && dependencyRawValue !== null) {
+        return dependencyRawValue;
+      }
+      
+      // If dependency field has static options, look up from config
+      if (dependencyField?.type === 'select' && dependencyField.options) {
+        const fullOption = dependencyField.options.find(opt => opt.value === dependencyRawValue);
+        return fullOption || dependencyRawValue;
+      }
+      
+      // If dependency field has optionsApi, look up from API data
+      if (dependencyField?.type === 'select' && dependencyApiOptions) {
+        const fullOption = dependencyApiOptions.find(opt => opt.value === dependencyRawValue);
+        return fullOption || dependencyRawValue;
+      }
+      
+      return dependencyRawValue;
+    }, [dependencyRawValue, field.dependsOn, dependencyField, dependencyApiOptions]);
+
 
     // Evaluate dependency and determine field state
     const { shouldHide, shouldDisable } = evaluateFieldDependency(
@@ -301,6 +343,37 @@ const FormField: React.FC<{
                   : undefined,
               }}
               render={({ field: controllerField }) => {
+                // Resolve API endpoint with dependency checking
+                let resolvedOptionsApi = field.optionsApi;
+                
+                if (field.optionsApi && field.dependsOn && field.optionsApi.includes('{{')) {
+                  // Only process if there's a watched value
+                  if (dependencyWatchedValue) {
+                    // Check if dependency condition is met
+                    const { shouldDisable } = evaluateFieldDependency(
+                      dependencyWatchedValue,
+                      field.dependsOn
+                    );
+                    
+                    // Only resolve template if condition is met (shouldDisable = false means condition met)
+                    if (!shouldDisable) {
+                      resolvedOptionsApi = resolveApiTemplate(
+                        field.optionsApi,
+                       dependencyWatchedValue 
+                      );
+                    } else {
+                      // Condition not met, don't call API
+                      resolvedOptionsApi = undefined;
+                    }
+                  } else {
+                    // No watched value yet, don't call API
+                    resolvedOptionsApi = undefined;
+                  }
+                }
+                
+                // Destructure field to exclude props that shouldn't be passed to AdvancedSelect
+                const { dependsOn, ...selectProps } = field;
+                
                 return (
                   <AdvancedSelect
                     value={controllerField.value}
@@ -310,8 +383,8 @@ const FormField: React.FC<{
                       if (field.onValueChange) field.onValueChange(value);
                     }}
                     className={error ? "border-red-500" : ""}
-                    {...field}
-                    dependsOnValue={dependencyWatchedValue}
+                    {...selectProps}
+                    optionsApi={resolvedOptionsApi}
                     disabled={effectiveDisabled}
                     error={error}
                   />
@@ -659,9 +732,38 @@ const FormField: React.FC<{
               )}
             </Label>
           </div>
-        )}
-        <div className="w-full min-w-0 flex-1">
-          {viewMode ? renderViewMode() : renderField()}
+        )}        <div className="w-full min-w-0 flex-1">
+          {field.type === "select" && field.action ? (
+            <div className="flex gap-2 w-full">
+              {viewMode ? renderViewMode() : renderField()}
+              {!viewMode && field.action.renderItem ? (
+                field.action.renderItem()
+              ) : field.action.href ? (
+                <Link href={field.action.href}>
+                  <Button
+                    type="button"
+                    variant={field.action.variant || "outline"}
+                    size="icon"
+                    disabled={field.action.disabled}
+                  >
+                    {field.action.icon}
+                  </Button>
+                </Link>
+              ) : field.action.onClick ? (
+                <Button
+                  type="button"
+                  variant={field.action.variant || "outline"}
+                  size="icon"
+                  onClick={field.action.onClick}
+                  disabled={field.action.disabled}
+                >
+                  {field.action.icon}
+                </Button>
+              ) : null}
+            </div>
+          ) : (
+            viewMode ? renderViewMode() : renderField()
+          )}
         </div>
         {field.helperText && (
           <p className="text-xs text-muted-foreground">{field.helperText}</p>
@@ -694,6 +796,7 @@ const FormSectionComponent: React.FC<{
   viewMode?: boolean;
   disabledFieldsInEdit?: string[];
   isEditMode?: boolean;
+  allFields?: FormFieldConfig[];
 }> = ({
   section,
   control,
@@ -705,6 +808,7 @@ const FormSectionComponent: React.FC<{
   viewMode = false,
   disabledFieldsInEdit,
   isEditMode = false,
+  allFields = [],
 }) => {
     const [isOpen, setIsOpen] = React.useState(section.defaultOpen ?? true);
 
@@ -723,6 +827,7 @@ const FormSectionComponent: React.FC<{
               viewMode={viewMode}
               disabledFieldsInEdit={disabledFieldsInEdit}
               isEditMode={isEditMode}
+              allFields={allFields}
             />
           ))}
         </div>
@@ -818,6 +923,14 @@ const FormContent: React.FC<{
   disabledFieldsInEdit,
   isEditMode = false,
 }) => {
+    // Collect all fields from config (sections or plain fields)
+    const allFields = React.useMemo(() => {
+      if (config.sections) {
+        return config.sections.flatMap((section: FormSection) => section.fields);
+      }
+      return config.fields || [];
+    }, [config]);
+    
     return (
       <div className={cn("space-y-4 sm:space-y-6", className)}>
         {/* Render sections if available */}
@@ -835,6 +948,7 @@ const FormContent: React.FC<{
               viewMode={viewMode}
               disabledFieldsInEdit={disabledFieldsInEdit}
               isEditMode={isEditMode}
+              allFields={allFields}
             />
           ))}
 
@@ -853,6 +967,7 @@ const FormContent: React.FC<{
                 viewMode={viewMode}
                 disabledFieldsInEdit={disabledFieldsInEdit}
                 isEditMode={isEditMode}
+                allFields={allFields}
               />
             ))}
           </div>

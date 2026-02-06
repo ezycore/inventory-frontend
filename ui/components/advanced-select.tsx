@@ -24,7 +24,7 @@ import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
 import type { SelectOption, FieldDependency } from "@/ui/components/form/type";
-import { resolveApiTemplate, extractValue as extractValueFromObject } from "@/ui/components/form/dependency-utils";
+import { extractValue as extractValueFromObject } from "@/ui/components/form/dependency-utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Select,
@@ -148,51 +148,31 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     return option?.label || valueStr;
   };
 
+  // Helper: Find full option object for a value
+  const findOptionForValue = (valueStr: string): SelectOption | LabelValueOption => {
+    const option = finalOptions.find((opt) => opt.value === valueStr);
+    return option || { label: valueStr, value: valueStr };
+  };
+
   // Helper: Convert value string(s) to labelInValue format if needed
   const formatValue = (rawValue: string | string[]): SelectValue => {
     if (!labelInValue) return rawValue;
 
     if (Array.isArray(rawValue)) {
-      return rawValue.map((v) => ({ label: findLabelForValue(v), value: v }));
+      return rawValue.map((v) => findOptionForValue(v));
     }
-    return { label: findLabelForValue(rawValue), value: rawValue };
+    return findOptionForValue(rawValue);
   };
-
-  // Resolve API endpoint with template placeholders
-  const finalApiEndpoint = useMemo(() => {
-    if (!optionsApi) return null;
-
-    // Check if optionsApi contains template placeholders
-    if (optionsApi.includes('{{')) {
-      // Extract actual value from dependsOnValue
-      const actualDependsOnValue = extractDependsOnValue(dependsOnValue);
-      
-      // Build values object for template resolution
-      const templateValues: Record<string, any> = {};
-      if (dependsOn?.field && actualDependsOnValue) {
-        templateValues[dependsOn.field] = actualDependsOnValue;
-      }
-      
-      // Resolve template
-      return resolveApiTemplate(optionsApi, templateValues);
-    }
-
-    // No template, return as is
-    return optionsApi;
-  }, [optionsApi, dependsOn, dependsOnValue]);
-
-  // Disable select if dependent field has no value (when using templates)
-  const isDependentAndEmpty = optionsApi?.includes('{{') && !finalApiEndpoint;
-  const isDisabled = disabled || isDependentAndEmpty;
 
   // Use the useSelectOptions hook for API-driven options
   const {
     data: apiOptions,
     isLoading: loading,
     error: queryError,
-  } = useSelectOptions(finalApiEndpoint, itemsCreateCallback);
+  } = useSelectOptions(optionsApi || null, itemsCreateCallback);
+  
   // Determine which options to use
-  const finalOptions = finalApiEndpoint ? apiOptions || [] : options || [];
+  const finalOptions = optionsApi ? apiOptions || [] : options || [];
   const apiError = queryError ? (queryError as Error).message : null;
 
   // Extract actual value strings for rendering
@@ -203,42 +183,6 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     const formattedValue = formatValue(newValue);
     if (onValueChange) onValueChange(formattedValue);
   };
-
-  // Show waiting state if dependent field has no value
-  if (isDependentAndEmpty) {
-    const waitingPlaceholder = placeholder || (dependsOn?.field ? `Select ${dependsOn.field} first` : 'Waiting for dependency');
-    if (mode === "multiple") {
-      const multiValue = Array.isArray(actualValue)
-        ? actualValue
-        : actualValue
-          ? [actualValue]
-          : [];
-      return (
-        <MultiSelect
-          options={[]}
-          value={multiValue}
-          onValueChange={handleValueChange}
-          placeholder={waitingPlaceholder}
-          variant={variant}
-          disabled={true}
-          className={cn(error ? "border-red-500" : "", className)}
-          maxCount={maxCount}
-          modalPopover={modalPopover}
-          asChild={asChild}
-        />
-      );
-    }
-
-    return (
-      <Select disabled={true}>
-        <SelectTrigger
-          className={cn("w-full", error ? "border-red-500" : "", className)}
-        >
-          <SelectValue placeholder={waitingPlaceholder} />
-        </SelectTrigger>
-      </Select>
-    );
-  }
 
   // Show loading state for both modes
   if (loading) {
@@ -325,7 +269,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
         onValueChange={handleValueChange}
         placeholder={placeholder || "Select options..."}
         variant={variant}
-        disabled={isDisabled}
+        disabled={disabled}
         className={cn(error ? "border-red-500" : "", className)}
         maxCount={maxCount}
         modalPopover={modalPopover}
@@ -365,7 +309,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
         <Select
           value={singleValue}
           onValueChange={handleValueChange}
-          disabled={isDisabled}
+          disabled={disabled}
         >
           <SelectTrigger
             className={cn("w-full", error ? "border-red-500" : "", className)}
@@ -397,7 +341,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
             variant="outline"
             size="icon"
             onClick={() => setIsModalOpen(true)}
-            disabled={isDisabled}
+            disabled={disabled}
           >
             <Plus className="h-4 w-4" />
           </Button>

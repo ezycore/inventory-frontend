@@ -4,7 +4,7 @@
  * Handles unified field dependency logic for dynamic forms
  */
 
-import type { FieldDependency, DependencyCondition } from './type';
+import type { FieldDependency } from './type';
 
 /**
  * Extract value from an object using a property path
@@ -161,7 +161,7 @@ export const resolveApiTemplate = (
   
   // Find {{placeholder}} pattern
   const match = template.match(/\{\{([^}]+)\}\}/);
-  
+
   if (!match) {
     // No placeholder, return as is
     return template;
@@ -182,7 +182,7 @@ export const resolveApiTemplate = (
   if (!actualValue || (typeof actualValue === 'string' && actualValue.trim() === '')) {
     return null;
   }
-  
+
   // Replace placeholder with actual value
   return template.replace(match[0], String(actualValue));
 };
