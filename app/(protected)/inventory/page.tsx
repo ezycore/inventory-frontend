@@ -75,10 +75,6 @@ const columns: ColumnDef<Inventory>[] = [
     header: "Alert Level",
   },
   {
-    accessorKey: "idealQuantity",
-    header: "Ideal Quantity",
-  },
-  {
     accessorKey: "isLowStock",
     header: "Stock Status",
     cell: ({ row }) => {
@@ -144,21 +140,10 @@ const inventoryFormConfig: DynamicFormConfig = {
       helperText: "Select a product first to see variants",
     },
     {
-      name: "locationId",
-      type: "select",
-      label: "Location",
-      placeholder: "Select location",
-      required: true,
-      columnSpan: 6,
-      optionsApi: "/locations",
-      validation: { minLength: 1 },
-    },
-    {
       name: "quantity",
       type: "number",
       label: "Quantity",
       placeholder: "Enter quantity",
-      required: true,
       columnSpan: 6,
       validation: { min: 0 },
     },
@@ -167,15 +152,6 @@ const inventoryFormConfig: DynamicFormConfig = {
       type: "number",
       label: "Alert Level",
       placeholder: "Enter alert level",
-      required: true,
-      columnSpan: 6,
-      validation: { min: 0 },
-    },
-    {
-      name: "idealQuantity",
-      type: "number",
-      label: "Ideal Quantity",
-      placeholder: "Enter ideal quantity",
       required: true,
       columnSpan: 6,
       validation: { min: 0 },
@@ -243,7 +219,6 @@ const defaultValues = {
   locationId: "",
   quantity: 0,
   quantityAlert: 0,
-  idealQuantity: 0,
   status: "active" as const,
 };
 
@@ -257,7 +232,6 @@ const prepareSubmitData = (
     locationId: data.locationId,
     quantity: Number(data.quantity),
     quantityAlert: Number(data.quantityAlert),
-    idealQuantity: Number(data.idealQuantity),
     status: data.status,
   };
 
