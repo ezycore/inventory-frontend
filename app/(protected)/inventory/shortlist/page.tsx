@@ -19,7 +19,6 @@ interface ShortlistItem {
   variant_attributes: Record<string, any> | null;
   location_name: string;
   current_quantity: number;
-  idealQuantity: number;
   needed_quantity: number;
   isLowStock: boolean;
   productId: string;
@@ -77,13 +76,6 @@ const columns: ColumnDef<ShortlistItem>[] = [
     header: "Alert Qty",
     cell: ({ row }) => {
       return <span className="font-medium">{row.getValue("quantityAlert")}</span>;
-    },
-  },
-  {
-    accessorKey: "idealQuantity",
-    header: "Ideal Qty",
-    cell: ({ row }) => {
-      return <span className="font-medium">{row.getValue("idealQuantity")}</span>;
     },
   },
   {

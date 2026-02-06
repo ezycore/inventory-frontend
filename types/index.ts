@@ -237,7 +237,6 @@ export interface Inventory extends BaseEntity {
   locationId: string;
   quantity: number;
   quantityAlert: number;
-  idealQuantity: number;
   isLowStock: boolean;
   status: "active" | "inactive";
   product?: Product;
@@ -251,7 +250,6 @@ export interface CreateInventoryDto {
   locationId: string;
   quantity: number;
   quantityAlert: number;
-  idealQuantity: number;
   status?: "active" | "inactive";
 }
 
