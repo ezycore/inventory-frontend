@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { useAuthStore } from "@/stores/use-auth-store"
+import { useAuthStore } from "@/services/stores/use-auth-store"
 import type { DynamicFormConfig } from "@/ui/components/form/type"
 
 /**

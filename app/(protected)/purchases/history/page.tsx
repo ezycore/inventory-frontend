@@ -66,7 +66,7 @@ import {
   useUpdatePurchaseOrderStatus,
   useReceivePurchaseOrder,
   useCancelPurchaseOrder,
-} from '@/hooks/queries'
+} from '@/services/api'
 import { toast } from 'sonner'
 import type { PurchaseOrder, PurchaseOrderStatus } from '@/types'
 import { Skeleton } from '@/ui/components/skeleton'

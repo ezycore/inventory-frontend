@@ -9,8 +9,8 @@ import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
 
 // Hooks & API
-import { queryKeys } from "@/lib/query-keys";
-import { inventoryApi } from "@/lib/api";
+import { queryKeys } from "@/services/api/query-keys";
+import { inventoryApi } from "@/services/api";
 
 // Shortlist item type
 interface ShortlistItem {

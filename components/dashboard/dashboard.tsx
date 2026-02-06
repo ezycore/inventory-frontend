@@ -5,7 +5,7 @@ import { Button } from '@ui/components/button'
 import { Badge } from '@ui/components/badge'
 import { Skeleton } from '@ui/components/skeleton'
 import { StatCard } from './stat-card'
-import { useDashboardStats, useProducts, useProductVariants } from '@/hooks/queries'
+import { useDashboardStats, useProducts } from '@/services/api'
 import { useRouter } from 'next/navigation'
 import { 
   Package, 
@@ -26,9 +26,6 @@ export function Dashboard() {
   const router = useRouter()
   const { data: dashboardStats, isLoading: statsLoading } = useDashboardStats()
   const { data: recentProducts, isLoading: productsLoading } = useProducts({ limit: 5 })
-  const { data: lowStockVariants, isLoading: variantsLoading } = useProductVariants({ 
-    limit: 5
-  })
 
   const stats = dashboardStats?.data
 
@@ -196,42 +193,6 @@ export function Dashboard() {
               View All
             </Button>
           </CardHeader>
-          <CardContent>
-            {variantsLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-[180px]" />
-                      <Skeleton className="h-3 w-[100px]" />
-                    </div>
-                    <Skeleton className="h-6 w-12" />
-                  </div>
-                ))}
-              </div>
-            ) : (lowStockVariants?.data?.items || []).length > 0 ? (
-              <div className="space-y-3">
-                {(lowStockVariants?.data?.items || []).slice(0, 5).map((variant: any) => (
-                  <div key={variant._id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{variant.product?.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        SKU: {variant.sku}
-                      </p>
-                    </div>
-                    <Badge variant="destructive">
-                      {variant.stock_quantity || 0}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <Boxes className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>All stock levels are healthy</p>
-              </div>
-            )}
-          </CardContent>
         </Card>
       </div>
 

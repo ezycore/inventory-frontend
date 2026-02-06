@@ -182,9 +182,11 @@ export const productFormConfig: DynamicFormConfig = {
           placeholder: "0.00",
           validation: { min: 0, max: 999999 },
           step: 1,
-          showWhen: {
+          dependsOn: {
             field: "productType",
-            value: "single"
+            value: "single",
+            condition: "eq",
+            action: "show"
           }
         },
         {
@@ -197,9 +199,11 @@ export const productFormConfig: DynamicFormConfig = {
           defaultValue: 0,
           validation: { min: 0 },
           step: 1,
-          showWhen: {
+          dependsOn: {
             field: "productType",
-            value: "single"
+            value: "single",
+            condition: "eq",
+            action: "show"
           }
         },
 
@@ -210,9 +214,11 @@ export const productFormConfig: DynamicFormConfig = {
           label: "",
           columnSpan: 12,
           customComponent: VariantManager,
-          showWhen: {
+          dependsOn: {
             field: "productType",
-            value: "variable"
+            value: "variable",
+            condition: "eq",
+            action: "show"
           }
         }
       ]

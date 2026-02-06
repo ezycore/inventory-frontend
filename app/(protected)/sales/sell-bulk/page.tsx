@@ -27,8 +27,8 @@ import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { CardTable } from '@/ui/components/custom/card-table'
 import { ColumnDef } from '@tanstack/react-table'
 import { Pencil, Trash2, Trash, ShoppingCart, Receipt } from 'lucide-react'
-import { useSalesOrderStore, SalesOrderItem } from '@/stores/sales-order-store'
-import { useCreateSalesOrder, useFulfillSalesOrder, useCustomerDiscount } from '@/hooks/queries'
+import { useSalesOrderStore, SalesOrderItem } from '@/services/stores/sales-order-store'
+import { useCreateSalesOrder, useFulfillSalesOrder, useCustomerDiscount } from '@/services/api'
 import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 import { AdvancedSelect } from '@/ui/components/advanced-select'
@@ -137,8 +137,12 @@ export default function SellBulkPage() {
             label: 'Variant',
             type: 'select',
             required: false,
-            dependsOn: 'productId',
-            dependsOnTemplate: '/products/:id/variants',
+            optionsApi: '/products/{{productId}}/variants',
+            dependsOn: {
+              field: 'productId',
+              condition: 'truthy',
+              action: 'disable',
+            },
             placeholder: 'Select variant (optional)',
             labelInValue: true,
             columnSpan: 3,

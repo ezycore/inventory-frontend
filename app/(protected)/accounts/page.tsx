@@ -23,9 +23,9 @@ import {
   useCreateAccount,
   useDeleteAccount,
   useUpdateAccount,
-} from "@/hooks/queries";
-import { accountsApi } from "@/lib/api";
-import { queryKeys } from "@/lib/query-keys-products";
+} from "@/services/api";
+import { accountsApi } from "@/services/api";
+import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
 const getAccountTypeIcon = (type: string) => {
@@ -34,8 +34,7 @@ const getAccountTypeIcon = (type: string) => {
       return <Wallet className="h-4 w-4" />;
     case "bank":
       return <Building2 className="h-4 w-4" />;
-    case "bkash":
-    case "nagad":
+    case "mfs":
     case "custom":
       return <Smartphone className="h-4 w-4" />;
     default:
@@ -49,10 +48,8 @@ const getAccountTypeLabel = (type: string) => {
       return "Cash";
     case "bank":
       return "Bank";
-    case "bkash":
-      return "bKash";
-    case "nagad":
-      return "Nagad";
+    case "mfs":
+      return "Mobile Financial Service";
     case "custom":
       return "Custom";
     default:
@@ -79,8 +76,7 @@ const accountFormConfig: DynamicFormConfig = {
       options: [
         { value: "cash", label: "Cash" },
         { value: "bank", label: "Bank Account" },
-        { value: "bkash", label: "bKash" },
-        { value: "nagad", label: "Nagad" },
+        { value: "mfs", label: "Mobile Financial Service" },
         { value: "custom", label: "Custom" },
       ],
     },
@@ -98,6 +94,17 @@ const accountFormConfig: DynamicFormConfig = {
       label: "Account Number",
       placeholder: "Enter account/card number",
       columnSpan: 6,
+    },
+    //status field
+    {
+      name: "status",
+      type: "select",
+      label: "Status",
+      columnSpan: 6,
+      options: [
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
     },
     {
       name: "isDefault",
@@ -131,19 +138,18 @@ const accountFilterConfig: FilterConfig = {
       options: [
         { label: "Cash", value: "cash" },
         { label: "Bank", value: "bank" },
-        { label: "bKash", value: "bkash" },
-        { label: "Nagad", value: "nagad" },
+        { label: "Mobile Financial Service", value: "mfs" },
         { label: "Custom", value: "custom" },
       ],
     },
     {
-      name: "isActive",
+      name: "status",
       label: "Status",
       type: "select",
       placeholder: "All statuses",
       options: [
-        { label: "Active", value: "true" },
-        { label: "Inactive", value: "false" },
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
       ],
     },
   ],
@@ -156,6 +162,7 @@ const defaultValues = {
   initialBalance: 0,
   accountNumber: "",
   isDefault: false,
+  status: "active" as const,
   description: "",
 };
 
@@ -230,10 +237,10 @@ function AccountSummaryCards() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {format((summary.byType.bkash || 0) + (summary.byType.nagad || 0))}
+            {format(summary.byType.mfs)}
           </div>
           <p className="text-xs text-muted-foreground">
-            bKash + Nagad
+            Mobile Financial Service
           </p>
         </CardContent>
       </Card>
@@ -291,13 +298,13 @@ export default function AccountsPage() {
       cell: ({ row }) => row.getValue("accountNumber") || "-",
     },
     {
-      accessorKey: "isActive",
+      accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const isActive = row.getValue("isActive") as boolean;
+        const status = row.getValue("status") as string;
         return (
-          <Badge variant={isActive ? "default" : "secondary"}>
-            {isActive ? "Active" : "Inactive"}
+          <Badge variant={status === "active" ? "default" : "secondary"}>
+            {status === "active" ? "Active" : "Inactive"}
           </Badge>
         );
       },

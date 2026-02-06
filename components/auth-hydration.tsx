@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useEffect } from "react";
 
 /**

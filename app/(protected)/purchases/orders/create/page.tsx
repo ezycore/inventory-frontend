@@ -1,11 +1,11 @@
 "use client";
 
-import { useCreatePurchaseOrder, useLocations } from "@/hooks/queries";
-import { useSuppliers } from "@/hooks/queries/use-suppliers";
+import { useCreatePurchaseOrder, useLocations } from "@/services/api";
+import { useSuppliers } from "@/services/api";
 import {
   PurchaseOrderLineItem,
   usePurchaseOrderStore,
-} from "@/stores/purchase-order-store";
+} from "@/services/stores/purchase-order-store";
 import type { LabelValueOption } from "@/ui/components/advanced-select";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -168,8 +168,12 @@ export default function CreatePurchaseOrderPage() {
             label: "Variant",
             type: "select",
             required: false,
-            dependsOn: "productId",
-            dependsOnTemplate: "/products/:id/variants",
+            optionsApi: "/products/{{productId}}/variants",
+            dependsOn: {
+              field: "productId",
+              condition: "truthy",
+              action: "disable",
+            },
             placeholder: "Select variant (optional)",
             labelInValue: true,
             columnSpan: 3,

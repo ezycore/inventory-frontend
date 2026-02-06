@@ -17,8 +17,8 @@ import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { CardTable } from '@/ui/components/custom/card-table'
 import { ColumnDef } from '@tanstack/react-table'
 import { Pencil, Trash2, Trash } from 'lucide-react'
-import { useStockAdjustmentStore, AdjustmentItem } from '@/stores/stock-adjustment-store'
-import { useBulkAdjustStock } from '@/hooks/queries'
+import { useStockAdjustmentStore, AdjustmentItem } from '@/services/stores/stock-adjustment-store'
+import { useBulkAdjustStock } from '@/services/api'
 import { toast } from 'sonner'
 import type { LabelValueOption } from '@/ui/components/advanced-select'
 
@@ -90,8 +90,12 @@ export default function StockAdjustmentPage() {
             label: 'Variant',
             type: 'select',
             required: false,
-            dependsOn: 'productId',
-            dependsOnTemplate: '/products/:id/variants',
+            optionsApi: '/products/{{productId}}/variants',
+            dependsOn: {
+              field: 'productId',
+              condition: 'truthy',
+              action: 'disable',
+            },
             placeholder: 'Select variant (optional)',
             labelInValue: true,
             columnSpan: 3,

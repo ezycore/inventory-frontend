@@ -10,20 +10,21 @@
  * Features:
  * - 🆓 Form-independent - works standalone or with React Hook Form
  * - 📊 Static options via `options` prop
- * - 📡 Dynamic options via `optionsApi` prop (string URL)
+ * - 📡 Dynamic options via `optionsApi` prop with template support {{fieldName}}
  * - ⚡ Built-in loading and error states
  * - 🔄 Automatic data transformation from API responses
  * - 🚀 Module-independent utility hook for maximum reusability
  * - 💾 Centralized API client with proper caching strategy
- * - 🔙 Backward compatible with existing form field configs
+ * - 🔗 Unified dependency system with automatic template resolution
  * - ➕ Quick-add modal for creating new options inline
  */
 
 import { quickAddConfig } from "@/config/quickAddConfig";
-import { useSelectOptions } from "@/hooks/queries";
+import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
-import type { SelectOption } from "@/ui/components/form/type";
+import type { SelectOption, FieldDependency } from "@/ui/components/form/type";
+import { resolveApiTemplate, extractValue as extractValueFromObject } from "@/ui/components/form/dependency-utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Select,
@@ -34,7 +35,7 @@ import {
 } from "@ui/components/select";
 import { cn } from "@ui/lib/utils";
 import { Loader2, Plus } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "./button";
 import { MultiSelect } from "./multi-select";
 
@@ -64,11 +65,14 @@ interface AdvancedSelectProps {
 
   // Options - either static or API-driven
   options?: SelectOption[];
+  /**
+   * API endpoint for select options
+   * Supports template syntax: '/products/{{productId}}/variants'
+   */
   optionsApi?: string;
 
-  // Dependent select properties
-  dependsOn?: string;
-  dependsOnTemplate?: string;
+  // Unified dependency system
+  dependsOn?: FieldDependency;
   dependsOnValue?: string | null | LabelValueOption;
 
   // Multi-select specific props
@@ -94,7 +98,6 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   options,
   optionsApi,
   dependsOn,
-  dependsOnTemplate,
   dependsOnValue,
   variant = "default",
   maxCount,
@@ -117,9 +120,16 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   // Helper: Extract value string from dependsOnValue (handles labelInValue format)
   const extractDependsOnValue = (
     depValue: string | null | LabelValueOption | undefined,
-  ): string | null => {
+  ): any => {
     if (!depValue) return null;
-    if (typeof depValue === "object") return depValue.value;
+    if (typeof depValue === "object") {
+      // Extract using matchWithProp if specified in dependency
+      if (dependsOn?.matchWithProp) {
+        return extractValueFromObject(depValue, dependsOn.matchWithProp);
+      }
+      // Default to value property
+      return depValue.value || depValue;
+    }
     return depValue;
   };
 
@@ -148,22 +158,31 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     return { label: findLabelForValue(rawValue), value: rawValue };
   };
 
-  // Build dynamic API endpoint if dependsOnTemplate is provided
-  let finalApiEndpoint = optionsApi || null;
+  // Resolve API endpoint with template placeholders
+  const finalApiEndpoint = useMemo(() => {
+    if (!optionsApi) return null;
 
-  // Extract actual value from dependsOnValue
-  const actualDependsOnValue = extractDependsOnValue(dependsOnValue);
+    // Check if optionsApi contains template placeholders
+    if (optionsApi.includes('{{')) {
+      // Extract actual value from dependsOnValue
+      const actualDependsOnValue = extractDependsOnValue(dependsOnValue);
+      
+      // Build values object for template resolution
+      const templateValues: Record<string, any> = {};
+      if (dependsOn?.field && actualDependsOnValue) {
+        templateValues[dependsOn.field] = actualDependsOnValue;
+      }
+      
+      // Resolve template
+      return resolveApiTemplate(optionsApi, templateValues);
+    }
 
-  if (dependsOnTemplate && actualDependsOnValue) {
-    // Replace :id or {id} with actual value
-    finalApiEndpoint = dependsOnTemplate.replace(
-      /:id|\{id\}/g,
-      actualDependsOnValue,
-    );
-  }
+    // No template, return as is
+    return optionsApi;
+  }, [optionsApi, dependsOn, dependsOnValue]);
 
-  // Disable select if depends on another field but no value is selected yet
-  const isDependentAndEmpty = !!dependsOn && !actualDependsOnValue;
+  // Disable select if dependent field has no value (when using templates)
+  const isDependentAndEmpty = optionsApi?.includes('{{') && !finalApiEndpoint;
   const isDisabled = disabled || isDependentAndEmpty;
 
   // Use the useSelectOptions hook for API-driven options
@@ -187,7 +206,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
 
   // Show waiting state if dependent field has no value
   if (isDependentAndEmpty) {
-    const waitingPlaceholder = placeholder || `Select ${dependsOn} first`;
+    const waitingPlaceholder = placeholder || (dependsOn?.field ? `Select ${dependsOn.field} first` : 'Waiting for dependency');
     if (mode === "multiple") {
       const multiValue = Array.isArray(actualValue)
         ? actualValue
