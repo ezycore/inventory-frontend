@@ -21,6 +21,7 @@ import { inventoryApi, productsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
+import { PlusIcon } from "lucide-react";
 
 // Column definitions
 const columns: ColumnDef<Inventory>[] = [
@@ -38,7 +39,7 @@ const columns: ColumnDef<Inventory>[] = [
     cell: ({ row }) => {
       const variant = row.original.variant;
       if (!variant) return "-";
-      
+
       // Display variant attributes if available
       if (variant.attributes) {
         const attrs = Object.entries(variant.attributes)
@@ -122,8 +123,11 @@ const inventoryFormConfig: DynamicFormConfig = {
       type: "select",
       label: "Product",
       placeholder: "Select product",
-      creatable: true,
-          quickAddModule: "brand",
+      action: {
+        icon: <PlusIcon className="h-5 w-5" />,
+        href: "/products",
+      },
+
       required: true,
       columnSpan: 6,
       optionsApi: "/products",
@@ -133,15 +137,17 @@ const inventoryFormConfig: DynamicFormConfig = {
       name: "variantId",
       type: "select",
       label: "Variant",
-      placeholder: "Select variant (if applicable)",
+      placeholder: "Select variant",
       columnSpan: 6,
-      optionsApi: "/products/{{productId}}/variants",
+      optionsApi: "/products/{{_id}}/variants",
+      mode: 'multiple',
       dependsOn: {
         field: "productId",
-        condition: "truthy",
+        condition: "gt",
         action: "disable",
-      },
-      helperText: "Select a product first to see variants",
+        matchWithProp: "variant_count",
+        value: 0
+      }
     },
     {
       name: "locationId",

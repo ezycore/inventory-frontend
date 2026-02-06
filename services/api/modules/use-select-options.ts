@@ -1,5 +1,6 @@
 import { apiClient } from "@/services/api";
 import type { SelectOption } from "@/ui/components/form/type";
+import { sanitize } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 
 /**
@@ -47,6 +48,7 @@ export const useSelectOptions = (
       // Transform data - expect API to return data.data.items format
       // and convert to {label, value}[] format
       let options = items.map((item: any) => ({
+        ...sanitize(item),
         value: item._id || item.id,
         label: item.name || item.label,
         disabled: item.disabled || false,
