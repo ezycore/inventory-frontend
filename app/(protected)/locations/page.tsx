@@ -5,6 +5,8 @@ import { ColumnDef } from "@tanstack/react-table";
 // Types
 import type { Location as LocationType } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
+import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { User } from "@/types/users";
 
 // UI Components
 import { UserCountCell } from "@/components/locations/UserCountCell";
@@ -21,6 +23,7 @@ import { locationsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 import PageHeader from "@/ui/components/header";
+import { sanitize } from "@/utils";
 
 // Column definitions
 const columns: ColumnDef<LocationType>[] = [
@@ -89,7 +92,7 @@ const locationFormConfig: DynamicFormConfig = {
       ],
     },
     {
-      name: "userIds",
+      name: "users",
       type: "select",
       label: "Assign Users",
       optionsApi: "/users",
@@ -98,21 +101,14 @@ const locationFormConfig: DynamicFormConfig = {
       required: false,
       description:
         "Select users to assign to this location (admins have access to all locations automatically)",
-      itemsCreateCallback: (response) => {
-        const items = response?.data?.items || [];
+      itemsCreateCallback: (response: ApiResponse<PaginatedResponse<User>>) => {
+        const items = sanitize(response?.data?.items, 'array');
         return items
-          .filter((item: { role?: string }) => item.role !== "admin") // Filter out admins
-          .map(
-            (item: {
-              _id?: string;
-              fullName?: string;
-              email?: string;
-              role?: string;
-            }) => ({
-              value: item._id,
-              label: `${item.fullName} <${item.email}> - ${item.role}`,
-            }),
-          );
+          .filter((item) => item.role !== "admin") // Filter out admins
+          .map((item) => ({
+            value: item._id,
+            label: `${item.firstName} ${item.lastName} <${item.email}> - ${item.role}`,
+          }));
       },
     },
     {

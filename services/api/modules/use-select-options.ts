@@ -31,7 +31,6 @@ export const useSelectOptions = (
         return itemsCreateCallback(response);
       }
       const items = response?.data?.items || [];
-      console.log("useSelectOptions response:", response);
       //create options for getVariantByProductId
       if (response.data && response.data.getVariantByProductId) {
         //create label by attrivutes. attributes is a object key value pair

@@ -60,6 +60,7 @@ export function createResourceHooks<
         return useQuery({
           queryKey: queryKeys.list(),
           queryFn: () => api.getAll!(filters),
+          select: (data) => data.data,
           staleTime,
         });
       }
@@ -72,6 +73,7 @@ export function createResourceHooks<
           queryKey: queryKeys.detail(id),
           queryFn: () => api.getById!(id),
           enabled: !!id,
+          select: (data) => data.data,
           staleTime,
         });
       }
@@ -85,6 +87,7 @@ export function createResourceHooks<
             queryKey: queryKeys.bySlug!(slug),
             queryFn: () => api.getBySlug!(slug),
             enabled: !!slug,
+            select: (data) => data.data,
             staleTime,
           });
         }

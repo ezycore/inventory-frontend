@@ -1,27 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { accountsApi } from "@/services/api";
-import { queryKeys } from "@/services/api/query-keys";
-import type { Account, CreateAccountDto, UpdateAccountDto } from "@/types";
-import type { AccountFilters } from "./api";
+import { accountsApi } from '@/services/api'
+import { createResourceHooks } from '../query-helpers'
+import { queryKeys } from '@/lib/query-keys'
+import { Account, CreateAccountDto, UpdateAccountDto } from '@/types'
+import { useQuery } from '@tanstack/react-query'
+import type { AccountFilters } from './api'
 
-// Get all accounts
-export function useAccounts(filters: AccountFilters = {}) {
-  return useQuery({
-    queryKey: queryKeys.accounts.list(),
-    queryFn: () => accountsApi.getAll(filters),
-    select: (data) => data.data,
-  });
-}
+const accountHooks = createResourceHooks<Account, CreateAccountDto, UpdateAccountDto>(
+  accountsApi,
+  queryKeys.accounts
+)
 
-// Get single account by ID
-export function useAccount(id: string) {
-  return useQuery({
-    queryKey: queryKeys.accounts.detail(id),
-    queryFn: () => accountsApi.getById(id),
-    select: (data) => data.data,
-    enabled: !!id,
-  });
-}
+export const useAccounts = accountHooks.useList
+export const useAccount = accountHooks.useDetail
+export const useCreateAccount = accountHooks.useCreate
+export const useUpdateAccount = accountHooks.useUpdate
+export const useDeleteAccount = accountHooks.useDelete
+export const useBulkDeleteAccounts = accountHooks.useBulkDelete
 
 // Get default account
 export function useDefaultAccount() {
@@ -29,7 +23,7 @@ export function useDefaultAccount() {
     queryKey: queryKeys.accounts.default(),
     queryFn: () => accountsApi.getDefault(),
     select: (data) => data.data,
-  });
+  })
 }
 
 // Get account summary
@@ -38,56 +32,8 @@ export function useAccountSummary() {
     queryKey: queryKeys.accounts.summary(),
     queryFn: () => accountsApi.getSummary(),
     select: (data) => data.data,
-  });
-}
-
-// Create account
-export function useCreateAccount() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: CreateAccountDto) => accountsApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
-    },
-  });
-}
-
-// Update account
-export function useUpdateAccount() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateAccountDto }) =>
-      accountsApi.update(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.accounts.detail(variables.id),
-      });
-    },
-  });
-}
-
-// Delete account
-export function useDeleteAccount() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => accountsApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
-    },
-  });
-}
-
-// Bulk delete accounts
-export function useBulkDeleteAccounts() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (ids: string[]) => accountsApi.bulkDelete(ids),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
-    },
-  });
+  })
 }
 
 // Aliases for consistency with other hooks
-export const useAddAccount = useCreateAccount;
+export const useAddAccount = useCreateAccount
