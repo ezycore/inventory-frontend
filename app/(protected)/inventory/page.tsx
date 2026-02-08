@@ -16,6 +16,7 @@ import {
   useCreateInventory,
   useDeleteInventory,
   useUpdateInventory,
+  useBulkDeleteInventory
 } from "@/services/api";
 import { inventoryApi, productsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
@@ -282,6 +283,7 @@ export default function InventoryPage() {
           createMutation: useCreateInventory(),
           updateMutation: useUpdateInventory(),
           deleteMutation: useDeleteInventory(),
+          bulkDeleteMutation: useBulkDeleteInventory(),
           queryKey: [...queryKeys.inventory.all()],
           entityName: "Inventory",
           transformEditData: (item: Inventory) => {

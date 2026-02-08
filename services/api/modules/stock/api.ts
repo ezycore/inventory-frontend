@@ -57,7 +57,7 @@ export const stockMovementsApi = {
   getAll: (
     filters: StockMovementFilters = {},
   ): Promise<ApiResponse<PaginatedResponse<any>>> =>
-    apiClient.get(`/stock-movements${buildQueryParams(filters)}`),
+    apiClient.get(`/inventory-movements${buildQueryParams(filters)}`),
 
   getInventoryHistory: (
     productId: string,
@@ -65,8 +65,8 @@ export const stockMovementsApi = {
     variantId?: string,
   ): Promise<ApiResponse<PaginatedResponse<any>>> => {
     const url = variantId
-      ? `/stock-movements/inventory/${productId}/${locationId}?variantId=${variantId}`
-      : `/stock-movements/inventory/${productId}/${locationId}`;
+      ? `/inventory-movements/inventory/${productId}/${locationId}?variantId=${variantId}`
+      : `/inventory-movements/inventory/${productId}/${locationId}`;
     return apiClient.get(url);
   },
 };

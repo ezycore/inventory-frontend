@@ -16,56 +16,59 @@ interface ShortlistFilters extends BaseFilters {
 
 export const inventoryApi = {
   getAll: (filters: InventoryFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
-    apiClient.get(`/stock${buildQueryParams(filters)}`),
+    apiClient.get(`/inventory${buildQueryParams(filters)}`),
 
   getShortlist: (filters: ShortlistFilters): Promise<ApiResponse<PaginatedResponse<any>>> =>
-    apiClient.get(`/stock/shortlist${buildQueryParams(filters)}`),
+    apiClient.get(`/inventory/shortlist${buildQueryParams(filters)}`),
 
   getById: (id: string): Promise<ApiResponse<any>> =>
-    apiClient.get(`/stock/${id}`),
+    apiClient.get(`/inventory/${id}`),
 
   create: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock", data),
+    apiClient.post("/inventory", data),
 
   update: (id: string, data: any): Promise<ApiResponse<any>> =>
-    apiClient.put(`/stock/${id}`, data),
+    apiClient.put(`/inventory/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/stock/${id}`),
+    apiClient.delete(`/inventory/${id}`),
+
+  bulkDelete: (ids: string[]): Promise<ApiResponse<void>> =>
+    apiClient.post("/inventory/bulk-delete", { ids }),
 
   // Stock operations
   receiveStock: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/receive", data),
+    apiClient.post("/inventory/receive", data),
 
   bulkReceiveStock: (receipts: any[]): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/bulk-receive", { receipts }),
+    apiClient.post("/inventory/bulk-receive", { receipts }),
 
   bulkAdjustStock: (adjustments: any[]): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/bulk-adjust", { adjustments }),
+    apiClient.post("/inventory/bulk-adjust", { adjustments }),
 
   sellStock: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/sell", data),
+    apiClient.post("/inventory/sell", data),
 
   bulkSellStock: (sales: any[]): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/bulk-sell", { sales }),
+    apiClient.post("/inventory/bulk-sell", { sales }),
 
   // Returns
   returnSale: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/return-sale", data),
+    apiClient.post("/inventory/return-sale", data),
 
   bulkReturnSale: (returns: any[]): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/bulk-return-sale", { returns }),
+    apiClient.post("/inventory/bulk-return-sale", { returns }),
 
   returnPurchase: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/return-purchase", data),
+    apiClient.post("/inventory/return-purchase", data),
 
   bulkReturnPurchase: (returns: any[]): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/bulk-return-purchase", { returns }),
+    apiClient.post("/inventory/bulk-return-purchase", { returns }),
 
   // Stock Transfer
   transferStock: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/transfer", data),
+    apiClient.post("/inventory/transfer", data),
 
   bulkTransferStock: (transfers: any[]): Promise<ApiResponse<any>> =>
-    apiClient.post("/stock/bulk-transfer", { transfers }),
+    apiClient.post("/inventory/bulk-transfer", { transfers }),
 };
