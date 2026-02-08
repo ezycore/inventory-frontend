@@ -127,7 +127,7 @@ export default function SellBulkPage() {
             label: 'Product',
             type: 'select',
             required: true,
-            optionsApi: '/products',
+            optionsApi: '/inventory',
             placeholder: 'Select product',
             labelInValue: true,
             columnSpan: 3,
@@ -421,18 +421,6 @@ export default function SellBulkPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Location */}
-            <div>
-              <Label>Location *</Label>
-              <AdvancedSelect
-                value={locationId ? { value: locationId, label: locationName || '' } : undefined}
-                onValueChange={(val) => handleLocationChange(val as LabelValueOption)}
-                optionsApi="/locations"
-                placeholder="Select location"
-                labelInValue
-              />
-            </div>
-
             {/* Customer */}
             <div>
               <Label>Customer (Optional)</Label>
@@ -456,16 +444,6 @@ export default function SellBulkPage() {
                   </Button>
                 </p>
               )}
-            </div>
-
-            {/* Invoice Number */}
-            <div>
-              <Label>Invoice Number (Optional)</Label>
-              <Input
-                value={invoiceNumber}
-                onChange={(e) => setInvoiceNumber(e.target.value)}
-                placeholder="Enter invoice number"
-              />
             </div>
 
             {/* Order Discount */}

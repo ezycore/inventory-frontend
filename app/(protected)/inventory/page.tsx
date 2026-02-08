@@ -146,6 +146,14 @@ const inventoryFormConfig: DynamicFormConfig = {
       }
     },
     {
+      name: "costPrice",
+      type: "number",
+      label: "Cost Price",
+      placeholder: "Enter cost price",
+      columnSpan: 6,
+      validation: { min: 0 },
+    },
+    {
       name: "quantity",
       type: "number",
       label: "Quantity",

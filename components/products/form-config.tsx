@@ -189,24 +189,6 @@ export const productFormConfig: DynamicFormConfig = {
             action: "show"
           }
         },
-        {
-          name: "costPrice",
-          type: "number",
-          label: "Cost Price",
-
-          columnSpan: 6,
-          placeholder: "0.00",
-          defaultValue: 0,
-          validation: { min: 0 },
-          step: 1,
-          dependsOn: {
-            field: "productType",
-            value: "single",
-            condition: "eq",
-            action: "show"
-          }
-        },
-
         // Variant Manager custom field - shows when variable product is selected
         {
           name: "variants",
