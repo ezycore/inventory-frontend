@@ -15,34 +15,30 @@ import { inventoryApi } from "@/services/api";
 // Shortlist item type
 interface ShortlistItem {
   _id: string;
-  product_name: string;
-  variant_attributes: Record<string, any> | null;
-  location_name: string;
-  current_quantity: number;
-  needed_quantity: number;
+  product: Record<string, any> | null;
+  variant: Record<string, any> | null;
+  location: Record<string, any> | null;
+  quantity: number;
+  quantityAlert: number;
+  neededQuantity: number;
   isLowStock: boolean;
-  productId: string;
-  variantId?: string | null;
-  locationId: string;
-  product?: any;
-  variant?: any;
-  location?: any;
+  restockStatus: string;
 }
 
 // Column definitions for shortlist
 const columns: ColumnDef<ShortlistItem>[] = [
   {
-    accessorKey: "product_name",
+    accessorKey: "product",
     header: "Product",
     cell: ({ row }) => {
-      return <span className="font-medium">{row.getValue("product_name")}</span>;
+      return <span className="font-medium">{row.getValue("product")?.name}</span>;
     },
   },
   {
-    accessorKey: "variant_attributes",
+    accessorKey: "variant",
     header: "Variant",
     cell: ({ row }) => {
-      const attributes = row.getValue("variant_attributes") as Record<string, any> | null;
+      const attributes = row.getValue("variant")?.attributes as Record<string, any> | null;
       if (!attributes) return <span className="text-muted-foreground">-</span>;
       
       const attrs = Object.entries(attributes)
@@ -52,17 +48,17 @@ const columns: ColumnDef<ShortlistItem>[] = [
     },
   },
   {
-    accessorKey: "location_name",
+    accessorKey: "location",
     header: "Location",
     cell: ({ row }) => {
-      return <span>{row.getValue("location_name")}</span>;
+      return <span>{row.getValue("location")?.name}</span>;
     },
   },
   {
-    accessorKey: "current_quantity",
+    accessorKey: "quantity",
     header: "Current Qty",
     cell: ({ row }) => {
-      const quantity = row.getValue("current_quantity") as number;
+      const quantity = row.getValue("quantity") as number;
       const isLowStock = row.original.isLowStock;
       return (
         <span className={isLowStock ? "text-red-600 font-semibold" : "font-medium"}>
@@ -79,10 +75,10 @@ const columns: ColumnDef<ShortlistItem>[] = [
     },
   },
   {
-    accessorKey: "needed_quantity",
+    accessorKey: "neededQuantity",
     header: "Needed Qty",
     cell: ({ row }) => {
-      const needed = row.getValue("needed_quantity") as number;
+      const needed = row.getValue("neededQuantity") as number;
       return (
         <Badge variant={needed > 0 ? "destructive" : "secondary"} className="font-semibold">
           {needed > 0 ? `+${needed}` : needed}

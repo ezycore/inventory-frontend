@@ -23,6 +23,7 @@ export const useInventory = inventoryHooks.useDetail
 export const useCreateInventory = inventoryHooks.useCreate
 export const useUpdateInventory = inventoryHooks.useUpdate
 export const useDeleteInventory = inventoryHooks.useDelete
+export const useBulkDeleteInventory = inventoryHooks.useBulkDelete
 
 // Shortlist query hook
 export const useInventoryShortlist = (filters: {
