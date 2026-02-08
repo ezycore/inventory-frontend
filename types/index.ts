@@ -34,6 +34,8 @@ export interface OrganizationFeatures {
   barcodeSystem: boolean;
   invoicePrinting: boolean;
   returns: boolean;
+  /** Enable UOM conversion (purchase in boxes, sell in pieces, etc.) */
+  uomConversion: boolean;
 }
 
 /**
@@ -46,6 +48,7 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   barcodeSystem: false,
   invoicePrinting: false,
   returns: true,
+  uomConversion: false,
 };
 
 /**
@@ -174,16 +177,28 @@ export interface CreateSupplierDto {
 
 export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {}
 
+// Unit Category for grouping units
+export enum UnitCategory {
+  COUNT = "count",       // pieces, boxes, packs
+  WEIGHT = "weight",     // kg, g, lb
+  VOLUME = "volume",     // l, ml, gal
+  LENGTH = "length",     // m, cm, ft
+  CUSTOM = "custom",     // user-defined
+}
+
 // Unit interfaces
 export interface Unit extends BaseEntity {
   name: string;
   shortName?: string;
+  category: UnitCategory;
+  isSystemUnit: boolean;
   status: "active" | "inactive";
 }
 
 export interface CreateUnitDto {
   name: string;
   shortName?: string;
+  category?: UnitCategory;
   status?: "active" | "inactive";
 }
 
@@ -241,7 +256,7 @@ export interface Inventory extends BaseEntity {
   status: "active" | "inactive";
   product?: Product;
   variant?: Variant;
-  location?: Location;
+  costPrice: number;
 }
 
 export interface CreateInventoryDto {
@@ -320,12 +335,25 @@ export interface Product extends BaseEntity {
   base_sku?: string;
   categoryId?: string;
   brandId?: string;
+  unitId?: string;
   status: ProductStatus;
   images?: string[];
   tags?: string[];
   custom_fields?: CustomField[];
   category?: Category;
   brand?: Brand;
+  unit?: Unit;
+
+  // UOM Conversion fields
+  enableUOMConversion?: boolean;
+  purchaseUnit?: {
+    unitId: string;
+    conversionFactor: number;
+  };
+  saleUnit?: {
+    unitId: string;
+    conversionFactor: number;
+  };
 }
 
 export interface ProductWithVariants extends Product {

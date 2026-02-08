@@ -127,7 +127,7 @@ export default function SellBulkPage() {
             label: 'Product',
             type: 'select',
             required: true,
-            optionsApi: '/inventory',
+            optionsApi: '/inventory/sellable-products',
             placeholder: 'Select product',
             labelInValue: true,
             columnSpan: 3,
