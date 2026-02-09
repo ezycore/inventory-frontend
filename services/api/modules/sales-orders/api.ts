@@ -27,7 +27,7 @@ export interface SalesOrderFilters {
 
 export const salesOrdersApi = {
   getAll: (
-    filters: SalesOrderFilters = {}
+    filters: SalesOrderFilters = {},
   ): Promise<ApiResponse<PaginatedResponse<SalesOrder>>> =>
     apiClient.get(`/sales-orders${buildQueryParams(filters)}`),
 
@@ -35,23 +35,23 @@ export const salesOrdersApi = {
     apiClient.get(`/sales-orders/${id}`),
 
   create: (data: CreateSalesOrderDto): Promise<ApiResponse<SalesOrder>> =>
-    apiClient.post("/sales-orders", data),
+    apiClient.post("/sales", data),
 
   update: (
     id: string,
-    data: UpdateSalesOrderDto
+    data: UpdateSalesOrderDto,
   ): Promise<ApiResponse<SalesOrder>> =>
     apiClient.put(`/sales-orders/${id}`, data),
 
   updateStatus: (
     id: string,
-    status: string
+    status: string,
   ): Promise<ApiResponse<SalesOrder>> =>
     apiClient.patch(`/sales-orders/${id}/status`, { status }),
 
   fulfill: (
     id: string,
-    data?: FulfillSalesOrderDto
+    data?: FulfillSalesOrderDto,
   ): Promise<ApiResponse<SalesOrder>> =>
     apiClient.post(`/sales-orders/${id}/fulfill`, data || {}),
 
@@ -62,7 +62,7 @@ export const salesOrdersApi = {
     apiClient.delete(`/sales-orders/${id}`),
 
   getCustomerDiscount: (
-    customerId: string
+    customerId: string,
   ): Promise<ApiResponse<{ discount: number }>> =>
     apiClient.get(`/sales-orders/customer/${customerId}/discount`),
 };

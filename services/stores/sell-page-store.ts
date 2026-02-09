@@ -1,11 +1,7 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { v4 as uuidv4 } from 'uuid';
-import { 
-  DiscountType, 
-  calculateDiscount, 
-  calculateLineTotal 
-} from '@/utils/discount';
+import { DiscountType, calculateLineTotal } from "@/utils/discount";
+import { v4 as uuidv4 } from "uuid";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 /**
  * Customer option with discount metadata
@@ -21,13 +17,15 @@ export interface CustomerSelectOption {
  * Product option with pricing and discount metadata
  */
 export interface ProductSelectOption {
-  value: string;
+  value: string; // inventoryId
   label: string;
   price: number;
   costPrice: number;
   availableQuantity: number;
   productDiscountType: DiscountType;
   productDiscountValue: number;
+  productId: string;
+  variantId: string | null;
 }
 
 /**
@@ -36,6 +34,8 @@ export interface ProductSelectOption {
 export interface SellOrderItem {
   id: string; // local ID for tracking
   productId: string;
+  variantId?: string | null;
+  inventoryId: string;
   productName: string;
   quantity: number;
   costPrice: number;
@@ -55,32 +55,36 @@ interface SellPageStore {
   // Customer details
   customerId: string | null;
   customerName: string | null;
-  
+
   // Order-level discount (from customer)
   orderDiscountType: DiscountType;
   orderDiscountValue: number;
-  
+
+  // Additional discount (for rounding, applied after all calculations)
+  additionalDiscount: number;
+
   // Notes
   notes: string;
-  
+
   // Items in the order
   items: SellOrderItem[];
-  
+
   // Computed values
   getTotalCostPrice: () => number;
   getTotalSalePrice: () => number;
-  
+
   // Actions
   setCustomer: (
-    customerId: string | null, 
+    customerId: string | null,
     customerName: string | null,
     discountType: DiscountType,
-    discountValue: number
+    discountValue: number,
   ) => void;
   setOrderDiscount: (discountType: DiscountType, discountValue: number) => void;
+  setAdditionalDiscount: (discount: number) => void;
   setNotes: (notes: string) => void;
-  addItem: (item: Omit<SellOrderItem, 'id' | 'total'>) => void;
-  updateItem: (id: string, data: Partial<Omit<SellOrderItem, 'id'>>) => void;
+  addItem: (item: Omit<SellOrderItem, "id" | "total">) => void;
+  updateItem: (id: string, data: Partial<Omit<SellOrderItem, "id">>) => void;
   removeItem: (id: string) => void;
   clearAll: () => void;
   clearItems: () => void;
@@ -89,12 +93,14 @@ interface SellPageStore {
 /**
  * Calculate total for a line item
  */
-const calculateItemTotal = (item: Omit<SellOrderItem, 'id' | 'total'>): number => {
+const calculateItemTotal = (
+  item: Omit<SellOrderItem, "id" | "total">,
+): number => {
   return calculateLineTotal(
     item.quantity,
     item.salePrice, // Use sale price which already has discount applied
-    'fixed', // No additional discount on the total
-    0
+    "fixed", // No additional discount on the total
+    0,
   );
 };
 
@@ -103,17 +109,26 @@ export const useSellPageStore = create<SellPageStore>()(
     (set, get) => ({
       customerId: null,
       customerName: null,
-      orderDiscountType: 'percentage',
+      orderDiscountType: "percentage",
       orderDiscountValue: 0,
-      notes: '',
+      additionalDiscount: 0,
+      notes: "",
       items: [],
 
       getTotalCostPrice: () => {
-        return get().items.reduce((sum, item) => sum + (item.costPrice * item.quantity), 0);
+        return get().items.reduce(
+          (sum, item) => sum + item.costPrice * item.quantity,
+          0,
+        );
       },
 
       getTotalSalePrice: () => {
-        return get().items.reduce((sum, item) => sum + item.total, 0);
+        const itemsTotal = get().items.reduce(
+          (sum, item) => sum + item.total,
+          0,
+        );
+        const additionalDiscount = get().additionalDiscount;
+        return Math.max(0, itemsTotal - additionalDiscount);
       },
 
       setCustomer: (customerId, customerName, discountType, discountValue) =>
@@ -130,15 +145,18 @@ export const useSellPageStore = create<SellPageStore>()(
           orderDiscountValue: discountValue,
         }),
 
+      setAdditionalDiscount: (discount) =>
+        set({ additionalDiscount: discount }),
+
       setNotes: (notes) => set({ notes }),
 
       addItem: (item) =>
         set((state) => {
           const total = item.quantity * item.salePrice;
 
-          // Check if item with same product already exists
+          // Check if item with same inventory ID already exists
           const existingIndex = state.items.findIndex(
-            (existing) => existing.productId === item.productId
+            (existing) => existing.inventoryId === item.inventoryId,
           );
 
           if (existingIndex !== -1) {
@@ -180,16 +198,17 @@ export const useSellPageStore = create<SellPageStore>()(
         set({
           customerId: null,
           customerName: null,
-          orderDiscountType: 'percentage',
+          orderDiscountType: "percentage",
           orderDiscountValue: 0,
-          notes: '',
+          additionalDiscount: 0,
+          notes: "",
           items: [],
         }),
 
       clearItems: () => set({ items: [] }),
     }),
     {
-      name: 'sell-page-storage', // localStorage key
-    }
-  )
+      name: "sell-page-storage", // localStorage key
+    },
+  ),
 );

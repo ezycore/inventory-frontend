@@ -23,23 +23,31 @@ export interface DiscountResult {
 
 /**
  * Calculate discount amount based on type and value
- * 
+ *
  * Rules:
  * - If discountType === "percentage": discount = (price * discountValue) / 100
  * - If discountType === "fixed": discount = discountValue
  * - Discount must not exceed price
  * - Negative discount is not allowed
  * - Always returns a valid number
- * 
+ *
  * @param params - Discount calculation parameters
  * @returns Calculated discount amount
  */
-export function calculateDiscount({ price, discountType, discountValue }: DiscountParams): number {
+export function calculateDiscount({
+  price,
+  discountType,
+  discountValue,
+}: DiscountParams): number {
   // Validate inputs
   if (typeof price !== "number" || isNaN(price) || price < 0) {
     return 0;
   }
-  if (typeof discountValue !== "number" || isNaN(discountValue) || discountValue < 0) {
+  if (
+    typeof discountValue !== "number" ||
+    isNaN(discountValue) ||
+    discountValue < 0
+  ) {
     return 0;
   }
 
@@ -63,11 +71,13 @@ export function calculateDiscount({ price, discountType, discountValue }: Discou
 
 /**
  * Calculate both discount amount and final sale price
- * 
+ *
  * @param params - Discount calculation parameters
  * @returns Object containing discountAmount and salePrice
  */
-export function calculateDiscountWithPrice(params: DiscountParams): DiscountResult {
+export function calculateDiscountWithPrice(
+  params: DiscountParams,
+): DiscountResult {
   const discountAmount = calculateDiscount(params);
   const salePrice = Math.round((params.price - discountAmount) * 100) / 100;
 
@@ -80,10 +90,6 @@ export function calculateDiscountWithPrice(params: DiscountParams): DiscountResu
 export interface ApplyDiscountParams {
   /** Unit price of the product */
   unitPrice: number;
-  /** Product-level discount type (higher priority) */
-  productDiscountType?: DiscountType;
-  /** Product-level discount value (higher priority) */
-  productDiscountValue?: number;
   /** Order-level discount type (fallback) */
   orderDiscountType?: DiscountType;
   /** Order-level discount value (fallback) */
@@ -92,42 +98,22 @@ export interface ApplyDiscountParams {
 
 /**
  * Apply discount with priority: product-level > order-level
- * 
+ *
  * Rules:
  * - Product-level discount has higher priority
- * - If productDiscountType and productDiscountValue exist and > 0, use them
- * - Otherwise, use order-level (customer) discount
- * 
+ * - use order-level (customer) discount
+ *
  * @param params - Apply discount parameters with priority
  * @returns Discount calculation result
  */
 export function applyDiscountWithPriority({
   unitPrice,
-  productDiscountType,
-  productDiscountValue,
   orderDiscountType,
   orderDiscountValue,
 }: ApplyDiscountParams): DiscountResult {
-  // Check if product-level discount exists and is valid
-  const hasProductDiscount = 
-    productDiscountType !== undefined && 
-    productDiscountValue !== undefined && 
-    productDiscountValue > 0;
- console.log("Applying discount with priority:", {
-    unitPrice,
-    productDiscountType,
-    productDiscountValue,
-    orderDiscountType,
-    orderDiscountValue,
-    hasProductDiscount
-   })
   // Determine which discount to apply
-  const discountType = hasProductDiscount ? productDiscountType! : (orderDiscountType ?? "fixed");
-  const discountValue = hasProductDiscount ? productDiscountValue! : (orderDiscountValue ?? 0);
-  console.log("Determined discount to apply:", {
-    discountType,
-    discountValue
-   })
+  const discountType = orderDiscountType ?? "fixed";
+  const discountValue = orderDiscountValue ?? 0;
   return calculateDiscountWithPrice({
     price: unitPrice,
     discountType,
@@ -137,7 +123,7 @@ export function applyDiscountWithPriority({
 
 /**
  * Calculate total discount for a line item
- * 
+ *
  * @param quantity - Number of items
  * @param unitPrice - Price per item
  * @param discountType - Type of discount
@@ -148,7 +134,7 @@ export function calculateLineDiscount(
   quantity: number,
   unitPrice: number,
   discountType: DiscountType,
-  discountValue: number
+  discountValue: number,
 ): number {
   const lineTotal = quantity * unitPrice;
   return calculateDiscount({
@@ -160,7 +146,7 @@ export function calculateLineDiscount(
 
 /**
  * Calculate line total after discount
- * 
+ *
  * @param quantity - Number of items
  * @param unitPrice - Price per item
  * @param discountType - Type of discount
@@ -171,9 +157,14 @@ export function calculateLineTotal(
   quantity: number,
   unitPrice: number,
   discountType: DiscountType,
-  discountValue: number
+  discountValue: number,
 ): number {
   const lineTotal = quantity * unitPrice;
-  const discount = calculateLineDiscount(quantity, unitPrice, discountType, discountValue);
+  const discount = calculateLineDiscount(
+    quantity,
+    unitPrice,
+    discountType,
+    discountValue,
+  );
   return Math.round((lineTotal - discount) * 100) / 100;
 }
