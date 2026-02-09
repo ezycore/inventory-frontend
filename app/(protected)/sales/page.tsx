@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateSalesOrder, useFulfillSalesOrder } from "@/services/api";
+import { useCreateSalesOrder } from "@/services/api";
 import {
   type SellOrderItem,
   useAuthStore,
@@ -301,7 +301,6 @@ export default function SalesPage() {
 
   // API mutations
   const createOrderMutation = useCreateSalesOrder();
-  const fulfillOrderMutation = useFulfillSalesOrder();
 
   // Customer form
   const customerForm = useForm<CustomerFormData>({
@@ -848,7 +847,7 @@ export default function SalesPage() {
   // =====================
 
   const isLoading =
-    createOrderMutation.isPending || fulfillOrderMutation.isPending;
+    createOrderMutation.isPending
 
   return (
     <div className="container mx-auto p-6 space-y-6">

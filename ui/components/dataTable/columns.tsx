@@ -170,12 +170,18 @@ export function useEnhancedColumns<TData, TValue>({
                   );
                 }
                 
+                // Check if button should be disabled
+                const isDisabled = action.disabled ? 
+                  (typeof action.disabled === 'function' ? action.disabled(rowData) : action.disabled) 
+                  : false;
+                
                 const href = typeof action.href === 'function' ? action.href(rowData) : action.href;
                 const ButtonComponent = (
                   <Button
                     variant={action.variant || "ghost"}
                     size="sm"
                     onClick={action.onClick ? () => action.onClick?.(rowData) : undefined}
+                    disabled={isDisabled}
                     className="h-8 w-8 p-0"
                   >
                     {action.icon || <MoreHorizontal className="h-4 w-4" />}
@@ -188,7 +194,7 @@ export function useEnhancedColumns<TData, TValue>({
                       <TooltipTrigger asChild>
                         {href ? <Link href={href}>{ButtonComponent}</Link> : ButtonComponent}
                       </TooltipTrigger>
-                      {action.tooltip && <TooltipContent>{action.tooltip}</TooltipContent>}
+                      {(action.tooltip || action.label) && <TooltipContent>{action.tooltip || action.label}</TooltipContent>}
                     </Tooltip>
                   </TooltipProvider>
                 );

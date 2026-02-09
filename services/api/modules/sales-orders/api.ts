@@ -1,12 +1,13 @@
 import { apiClient } from "@/lib/api-client";
 import type {
+  AddPaymentDto,
   ApiResponse,
   CreateSalesOrderDto,
-  FulfillSalesOrderDto,
   PaginatedResponse,
-  SalesOrder,
+  Payment,
+  Sale,
+  SaleFilters,
   SalesOrderStatus,
-  UpdateSalesOrderDto,
 } from "@/types";
 import { buildQueryParams } from "../../utils";
 
@@ -25,44 +26,41 @@ export interface SalesOrderFilters {
   sort_order?: "asc" | "desc";
 }
 
-export const salesOrdersApi = {
+/**
+ * Sales API - for working with Sale records (sales history)
+ * Uses the same endpoints but with proper Sale types
+ */
+export const salesApi = {
+  /**
+   * Get all sales with pagination and filters
+   */
   getAll: (
-    filters: SalesOrderFilters = {},
-  ): Promise<ApiResponse<PaginatedResponse<SalesOrder>>> =>
+    filters: SaleFilters = {},
+  ): Promise<ApiResponse<PaginatedResponse<Sale>>> =>
     apiClient.get(`/sales${buildQueryParams(filters)}`),
 
-  getById: (id: string): Promise<ApiResponse<SalesOrder>> =>
+  /**
+   * Get a single sale by ID with payments
+   */
+  getById: (id: string): Promise<ApiResponse<Sale & { payments?: Payment[] }>> =>
     apiClient.get(`/sales/${id}`),
 
-  create: (data: CreateSalesOrderDto): Promise<ApiResponse<SalesOrder>> =>
-    apiClient.post("/sales", data),
+  /**
+   * Get all payments for a sale
+   */
+  getPayments: (saleId: string): Promise<ApiResponse<Payment[]>> =>
+    apiClient.get(`/sales/${saleId}/payments`),
 
-  update: (
-    id: string,
-    data: UpdateSalesOrderDto,
-  ): Promise<ApiResponse<SalesOrder>> =>
-    apiClient.put(`/sales-orders/${id}`, data),
+  /**
+   * Add payment to a sale
+   */
+  addPayment: (
+    saleId: string,
+    data: AddPaymentDto,
+  ): Promise<ApiResponse<{ payment: Payment; sale: Sale }>> =>
+    apiClient.post(`/sales/${saleId}/payment`, data),
 
-  updateStatus: (
-    id: string,
-    status: string,
-  ): Promise<ApiResponse<SalesOrder>> =>
-    apiClient.patch(`/sales-orders/${id}/status`, { status }),
-
-  fulfill: (
-    id: string,
-    data?: FulfillSalesOrderDto,
-  ): Promise<ApiResponse<SalesOrder>> =>
-    apiClient.post(`/sales-orders/${id}/fulfill`, data || {}),
-
-  cancel: (id: string): Promise<ApiResponse<SalesOrder>> =>
-    apiClient.post(`/sales-orders/${id}/cancel`, {}),
-
-  delete: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/sales-orders/${id}`),
-
-  getCustomerDiscount: (
-    customerId: string,
-  ): Promise<ApiResponse<{ discount: number }>> =>
-    apiClient.get(`/sales-orders/customer/${customerId}/discount`),
+    //create sales order
+    createSalesOrder: (data: CreateSalesOrderDto): Promise<ApiResponse<Sale>> =>
+    apiClient.post(`/sales`, data),
 };

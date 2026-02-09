@@ -819,6 +819,125 @@ export interface CreateSalesOrderDto {
 
 export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> {}
 
-export interface FulfillSalesOrderDto {
+
+// ============================================
+// Sale Types (Backend Sale Model)
+// ============================================
+
+/**
+ * Sale status definitions:
+ * - draft: Sale saved but not finalized
+ * - partial: Sale has partial payment (due amount > 0)
+ * - paid: Sale fully paid (due amount = 0)
+ * - cancelled: Sale cancelled
+ */
+export type SaleStatus = "draft" | "partial" | "paid" | "cancelled";
+
+export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other";
+
+/**
+ * Sale item interface - represents an item in a sale
+ */
+export interface SaleItem {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount: number;
+  subtotal: number;
+}
+
+/**
+ * Customer reference in sale
+ */
+export interface SaleCustomer {
+  _id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+}
+
+/**
+ * Created by user reference
+ */
+export interface SaleCreatedBy {
+  _id: string;
+  firstName: string;
+  lastName: string;
+}
+
+/**
+ * Sale interface - represents a completed sale
+ */
+export interface Sale extends BaseEntity {
+  invoiceNumber: string;
+  organizationId: string;
+  locationId: string;
+  customerId: SaleCustomer;
+  items: SaleItem[];
+  subtotal: number;
+  additionalDiscount: number;
+  totalAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  costPrice: number;
+  status: SaleStatus;
   notes?: string;
+  saleDate: string | Date;
+  createdBy?: SaleCreatedBy;
+}
+
+/**
+ * Payment account reference
+ */
+export interface PaymentAccount {
+  _id: string;
+  name: string;
+  type?: string;
+}
+
+/**
+ * Payment interface - represents a payment for a sale
+ */
+export interface Payment extends BaseEntity {
+  organizationId: string;
+  locationId: string;
+  type: "sale" | "purchase";
+  referenceId: string;
+  customerId?: string;
+  supplierId?: string;
+  accountId: PaymentAccount;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  paymentDate: string | Date;
+  notes?: string;
+  status: "completed" | "cancelled";
+  createdBy?: SaleCreatedBy;
+}
+
+/**
+ * DTO for creating/adding a payment
+ */
+export interface AddPaymentDto {
+  amount: number;
+  accountId: string;
+  paymentMethod?: PaymentMethod;
+  notes?: string;
+  paymentDate?: Date | string;
+}
+
+/**
+ * Sale query filters
+ */
+export interface SaleFilters {
+  page?: number;
+  limit?: number;
+  status?: SaleStatus | string;
+  customerId?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
 }
