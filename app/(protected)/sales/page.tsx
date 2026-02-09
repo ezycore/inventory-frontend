@@ -647,7 +647,7 @@ export default function SalesPage() {
         totalPrice: number
         costPrice: number
         notes?: string
-        status: 'completed'
+        // status: 'completed'
         payment?: {
           paidAmount: number
           accountId: string
@@ -668,7 +668,7 @@ export default function SalesPage() {
         totalPrice: totalSalePrice,
         costPrice: totalCostPrice,
         notes: notes || undefined,
-        status: 'completed' as const,
+        // status: 'completed' as const,
       }
 
       // Add payment info if accounts enabled and payment is provided
