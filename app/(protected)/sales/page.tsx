@@ -699,8 +699,6 @@ export default function SalesPage() {
           discount: number;
           productName: string;
         }>;
-        discountType: string;
-        discountValue: number;
         additionalDiscount: number;
         totalPrice: number;
         costPrice: number;
@@ -723,8 +721,6 @@ export default function SalesPage() {
           discount: item.discountAmount,
           productName: item.productName,
         })),
-        discountType: orderDiscountType,
-        discountValue: orderDiscountValue,
         additionalDiscount: formAdditionalDiscount,
         totalPrice: totalSalePrice,
         costPrice: totalCostPrice,

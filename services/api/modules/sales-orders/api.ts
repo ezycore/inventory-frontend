@@ -29,10 +29,10 @@ export const salesOrdersApi = {
   getAll: (
     filters: SalesOrderFilters = {},
   ): Promise<ApiResponse<PaginatedResponse<SalesOrder>>> =>
-    apiClient.get(`/sales-orders${buildQueryParams(filters)}`),
+    apiClient.get(`/sales${buildQueryParams(filters)}`),
 
   getById: (id: string): Promise<ApiResponse<SalesOrder>> =>
-    apiClient.get(`/sales-orders/${id}`),
+    apiClient.get(`/sales/${id}`),
 
   create: (data: CreateSalesOrderDto): Promise<ApiResponse<SalesOrder>> =>
     apiClient.post("/sales", data),
