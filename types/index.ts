@@ -179,11 +179,11 @@ export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {}
 
 // Unit Category for grouping units
 export enum UnitCategory {
-  COUNT = "count",       // pieces, boxes, packs
-  WEIGHT = "weight",     // kg, g, lb
-  VOLUME = "volume",     // l, ml, gal
-  LENGTH = "length",     // m, cm, ft
-  CUSTOM = "custom",     // user-defined
+  COUNT = "count", // pieces, boxes, packs
+  WEIGHT = "weight", // kg, g, lb
+  VOLUME = "volume", // l, ml, gal
+  LENGTH = "length", // m, cm, ft
+  CUSTOM = "custom", // user-defined
 }
 
 // Unit interfaces
@@ -819,7 +819,6 @@ export interface CreateSalesOrderDto {
 
 export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> {}
 
-
 // ============================================
 // Sale Types (Backend Sale Model)
 // ============================================
@@ -886,7 +885,6 @@ export interface Sale extends BaseEntity {
   costPrice: number;
   status: SaleStatus;
   notes?: string;
-  saleDate: string | Date;
   createdBy?: SaleCreatedBy;
 }
 
@@ -912,7 +910,6 @@ export interface Payment extends BaseEntity {
   accountId: PaymentAccount;
   amount: number;
   paymentMethod: PaymentMethod;
-  paymentDate: string | Date;
   notes?: string;
   status: "completed" | "cancelled";
   createdBy?: SaleCreatedBy;
@@ -926,7 +923,6 @@ export interface AddPaymentDto {
   accountId: string;
   paymentMethod?: PaymentMethod;
   notes?: string;
-  paymentDate?: Date | string;
 }
 
 /**
