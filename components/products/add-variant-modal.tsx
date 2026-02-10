@@ -238,19 +238,6 @@ export default function AddVariantModal({ productId, product, open, onOpenChange
                 required
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="costPrice">Cost Price ($)</Label>
-              <Input
-                id="costPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={formData.costPrice || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
           </div>
 
           {/* Stock Management */}
