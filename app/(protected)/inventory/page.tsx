@@ -52,14 +52,6 @@ const columns: ColumnDef<Inventory>[] = [
     },
   },
   {
-    accessorKey: "location",
-    header: "Location",
-    cell: ({ row }) => {
-      const location = row.original.location;
-      return location ? location.name : "-";
-    },
-  },
-  {
     accessorKey: "quantity",
     header: "Quantity",
     cell: ({ row }) => {
@@ -146,6 +138,14 @@ const inventoryFormConfig: DynamicFormConfig = {
       }
     },
     {
+      name: "costPrice",
+      type: "number",
+      label: "Cost Price",
+      placeholder: "Enter cost price",
+      columnSpan: 6,
+      validation: { min: 0 },
+    },
+    {
       name: "quantity",
       type: "number",
       label: "Quantity",
@@ -223,6 +223,7 @@ const defaultValues = {
   productId: "",
   variantId: "",
   locationId: "",
+  costPrice: 0,
   quantity: 0,
   quantityAlert: 0,
   status: "active" as const,
@@ -239,6 +240,7 @@ const prepareSubmitData = (
     quantity: Number(data.quantity),
     quantityAlert: Number(data.quantityAlert),
     status: data.status,
+    costPrice: Number(data.costPrice),
   };
 
   // Only include variantId if it has a value
@@ -287,6 +289,7 @@ export default function InventoryPage() {
           queryKey: [...queryKeys.inventory.all()],
           entityName: "Inventory",
           transformEditData: (item: Inventory) => {
+            console.log("Transforming edit data for item:", item);
             return {
               ...item,
               productId: item.productId || "",

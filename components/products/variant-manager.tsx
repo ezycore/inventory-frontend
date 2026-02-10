@@ -263,7 +263,6 @@ export default function VariantManager({
                 <TableHead className="w-[160px] py-2 text-xs">Variant Value</TableHead>
                 <TableHead className="w-[180px] py-2 text-xs">SKU</TableHead>
                 <TableHead className="w-[120px] py-2 text-xs">Price</TableHead>
-                <TableHead className="w-[140px] py-2 text-xs">Cost Price</TableHead>
                 <TableHead className="w-[120px] text-right py-2 text-xs">Actions</TableHead>
               </TableRow>
             </TableHeader>

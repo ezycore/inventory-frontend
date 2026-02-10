@@ -34,6 +34,8 @@ export interface OrganizationFeatures {
   barcodeSystem: boolean;
   invoicePrinting: boolean;
   returns: boolean;
+  /** Enable UOM conversion (purchase in boxes, sell in pieces, etc.) */
+  uomConversion: boolean;
 }
 
 /**
@@ -46,6 +48,7 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   barcodeSystem: false,
   invoicePrinting: false,
   returns: true,
+  uomConversion: false,
 };
 
 /**
@@ -174,16 +177,28 @@ export interface CreateSupplierDto {
 
 export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {}
 
+// Unit Category for grouping units
+export enum UnitCategory {
+  COUNT = "count",       // pieces, boxes, packs
+  WEIGHT = "weight",     // kg, g, lb
+  VOLUME = "volume",     // l, ml, gal
+  LENGTH = "length",     // m, cm, ft
+  CUSTOM = "custom",     // user-defined
+}
+
 // Unit interfaces
 export interface Unit extends BaseEntity {
   name: string;
   shortName?: string;
+  category: UnitCategory;
+  isSystemUnit: boolean;
   status: "active" | "inactive";
 }
 
 export interface CreateUnitDto {
   name: string;
   shortName?: string;
+  category?: UnitCategory;
   status?: "active" | "inactive";
 }
 
@@ -241,7 +256,7 @@ export interface Inventory extends BaseEntity {
   status: "active" | "inactive";
   product?: Product;
   variant?: Variant;
-  location?: Location;
+  costPrice: number;
 }
 
 export interface CreateInventoryDto {
@@ -320,12 +335,25 @@ export interface Product extends BaseEntity {
   base_sku?: string;
   categoryId?: string;
   brandId?: string;
+  unitId?: string;
   status: ProductStatus;
   images?: string[];
   tags?: string[];
   custom_fields?: CustomField[];
   category?: Category;
   brand?: Brand;
+  unit?: Unit;
+
+  // UOM Conversion fields
+  enableUOMConversion?: boolean;
+  purchaseUnit?: {
+    unitId: string;
+    conversionFactor: number;
+  };
+  saleUnit?: {
+    unitId: string;
+    conversionFactor: number;
+  };
 }
 
 export interface ProductWithVariants extends Product {
@@ -791,6 +819,125 @@ export interface CreateSalesOrderDto {
 
 export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> {}
 
-export interface FulfillSalesOrderDto {
+
+// ============================================
+// Sale Types (Backend Sale Model)
+// ============================================
+
+/**
+ * Sale status definitions:
+ * - draft: Sale saved but not finalized
+ * - partial: Sale has partial payment (due amount > 0)
+ * - paid: Sale fully paid (due amount = 0)
+ * - cancelled: Sale cancelled
+ */
+export type SaleStatus = "draft" | "partial" | "paid" | "cancelled";
+
+export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other";
+
+/**
+ * Sale item interface - represents an item in a sale
+ */
+export interface SaleItem {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount: number;
+  subtotal: number;
+}
+
+/**
+ * Customer reference in sale
+ */
+export interface SaleCustomer {
+  _id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+}
+
+/**
+ * Created by user reference
+ */
+export interface SaleCreatedBy {
+  _id: string;
+  firstName: string;
+  lastName: string;
+}
+
+/**
+ * Sale interface - represents a completed sale
+ */
+export interface Sale extends BaseEntity {
+  invoiceNumber: string;
+  organizationId: string;
+  locationId: string;
+  customerId: SaleCustomer;
+  items: SaleItem[];
+  subtotal: number;
+  additionalDiscount: number;
+  totalAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  costPrice: number;
+  status: SaleStatus;
   notes?: string;
+  saleDate: string | Date;
+  createdBy?: SaleCreatedBy;
+}
+
+/**
+ * Payment account reference
+ */
+export interface PaymentAccount {
+  _id: string;
+  name: string;
+  type?: string;
+}
+
+/**
+ * Payment interface - represents a payment for a sale
+ */
+export interface Payment extends BaseEntity {
+  organizationId: string;
+  locationId: string;
+  type: "sale" | "purchase";
+  referenceId: string;
+  customerId?: string;
+  supplierId?: string;
+  accountId: PaymentAccount;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  paymentDate: string | Date;
+  notes?: string;
+  status: "completed" | "cancelled";
+  createdBy?: SaleCreatedBy;
+}
+
+/**
+ * DTO for creating/adding a payment
+ */
+export interface AddPaymentDto {
+  amount: number;
+  accountId: string;
+  paymentMethod?: PaymentMethod;
+  notes?: string;
+  paymentDate?: Date | string;
+}
+
+/**
+ * Sale query filters
+ */
+export interface SaleFilters {
+  page?: number;
+  limit?: number;
+  status?: SaleStatus | string;
+  customerId?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
 }

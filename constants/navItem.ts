@@ -58,7 +58,7 @@ export const navItems: NavItem[] = [
     items: [
       {
         title: "Sell Stock",
-        url: "/sales/sell-bulk",
+        url: "/sales",
         icon: "shopping-cart",
         features: ["sales"],
       },
@@ -151,7 +151,7 @@ export const navItems: NavItem[] = [
         url: "/accounts/transactions",
         icon: "arrow-right-left",
         features: ["accounts"],
-      }
+      },
     ],
   },
 
