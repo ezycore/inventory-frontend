@@ -8,6 +8,7 @@ export type FormFieldType =
   | "select"
   | "radio-group"
   | "checkbox"
+  | "switch"
   | "file-upload"
   | "date"
   | "number"

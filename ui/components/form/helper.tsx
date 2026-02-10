@@ -7,6 +7,7 @@ import { AdvancedSelect } from "../advanced-select";
 import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import { Checkbox } from "../checkbox";
+import { Switch } from "../switch";
 import {
   Collapsible,
   CollapsibleContent,
@@ -413,7 +414,27 @@ const FormField: FC<{
               )}
             />
           );
-
+          case "switch":
+          return (
+            <Controller
+              name={field.name}
+              control={control}
+              render={({ field: controllerField }) => (
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id={field.name}
+                    checked={controllerField.value}
+                    onCheckedChange={(checked) => {
+                      controllerField.onChange(checked);
+                      handleChange(checked);
+                    }}
+                    disabled={effectiveDisabled}
+                  />
+                  <Label htmlFor={field.name}>{field.label}</Label>
+                </div>
+              )}
+            />
+          );  
         case "radio-group":
           return (
             <Controller
