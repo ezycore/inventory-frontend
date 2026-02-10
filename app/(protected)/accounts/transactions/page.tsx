@@ -531,9 +531,9 @@ export default function TransactionsPage() {
 
   const columns: ColumnDef<Transaction>[] = [
     {
-      accessorKey: "date",
+      accessorKey: "createdAt",
       header: "Date",
-      cell: ({ row }) => <DateCell value={row.getValue("date")} />,
+      cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
     },
     {
       accessorKey: "type",

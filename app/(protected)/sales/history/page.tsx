@@ -184,7 +184,7 @@ export default function SalesHistoryPage() {
       {
         accessorKey: 'saleDate',
         header: 'Sale Date',
-        cell: ({ row }) => <DateCell value={row.original.saleDate} />,
+        cell: ({ row }) => <DateCell value={row.original.createdAt} />,
       },
       {
         accessorKey: 'customerId',
@@ -451,7 +451,7 @@ export default function SalesHistoryPage() {
                               +{formatCurrency(payment.amount)}
                             </span>
                             <div className="text-sm text-muted-foreground">
-                              {formatDateTime(payment.paymentDate)}
+                              {formatDateTime(payment.createdAt)}
                             </div>
                           </div>
                           <Badge variant="outline" className="capitalize">
