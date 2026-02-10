@@ -1,5 +1,6 @@
 "use client";
 
+import { salesColumns } from "@/components/sales/columns";
 import { useCreateSalesOrder } from "@/services/api";
 import {
   type SellOrderItem,
@@ -782,65 +783,7 @@ export default function SalesPage() {
   // Table Columns
   // =====================
 
-  const columns: ColumnDef<SellOrderItem>[] = useMemo(
-    () => [
-      {
-        accessorKey: "productName",
-        header: "Product",
-        cell: ({ row }) => (
-          <span className="font-medium">{row.original.productName}</span>
-        ),
-      },
-      {
-        accessorKey: "quantity",
-        header: "Qty",
-        cell: ({ row }) => row.original.quantity,
-      },
-      {
-        accessorKey: "costPrice",
-        header: "Cost Price",
-        cell: ({ row }) => formatCurrency(row.original.costPrice),
-      },
-      {
-        accessorKey: "unitPrice",
-        header: "Unit Price",
-        cell: ({ row }) => formatCurrency(row.original.unitPrice),
-      },
-      {
-        accessorKey: "discountAmount",
-        header: "Discount",
-        cell: ({ row }) => formatCurrency(row.original.discountAmount),
-      },
-      {
-        accessorKey: "salePrice",
-        header: "Sale Price",
-        cell: ({ row }) => formatCurrency(row.original.salePrice),
-      },
-      {
-        accessorKey: "total",
-        header: "Total",
-        cell: ({ row }) => (
-          <span className="font-semibold">
-            {formatCurrency(row.original.total)}
-          </span>
-        ),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => removeItem(row.original.id)}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        ),
-      },
-    ],
-    [removeItem],
-  );
+ 
 
   // =====================
   // Render
@@ -912,7 +855,7 @@ export default function SalesPage() {
               <CardContent>
                 {/* Items Table */}
                 <CardTable
-                  columns={columns}
+                  columns={salesColumns}
                   data={items}
                   emptyMessage="No items in order"
                   showCard={false}

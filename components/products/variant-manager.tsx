@@ -296,20 +296,6 @@ export default function VariantManager({
                       className="h-7 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </TableCell>
-                  <TableCell className="py-1">
-                    <Input
-                      type="number"
-                      value={variant.costPrice || ''}
-                      onChange={e =>
-                        handleInlineUpdate(
-                          variant.id,
-                          'costPrice',
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      className="h-7 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                  </TableCell>
                   <TableCell className="text-right py-1">
                     <div className="flex items-center justify-end pr-2 gap-2">
                       <Checkbox

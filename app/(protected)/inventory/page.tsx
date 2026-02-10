@@ -282,6 +282,7 @@ export default function InventoryPage() {
           formConfig: inventoryFormConfig,
           defaultValues,
           getAllData: inventoryApi.getAll,
+          disabledFieldsInEdit: ['quantity'],
           createMutation: useCreateInventory(),
           updateMutation: useUpdateInventory(),
           deleteMutation: useDeleteInventory(),

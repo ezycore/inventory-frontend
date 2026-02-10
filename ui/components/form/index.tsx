@@ -176,7 +176,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                 </Button>
             )
         }
-        <Button type="button" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
+        <Button type="button" disabled={isActuallySubmitting || contentLoading || !form.formState.isDirty} onClick={handleContainerSubmit}>
             {isActuallySubmitting ? 'Submitting...' : submitLabel}
         </Button>
     </div>)

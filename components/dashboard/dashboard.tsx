@@ -138,9 +138,9 @@ export function Dashboard() {
                   </div>
                 ))}
               </div>
-            ) : (recentProducts?.data?.items || []).length > 0 ? (
+            ) : (recentProducts?.items || []).length > 0 ? (
               <div className="space-y-3">
-                {(recentProducts?.data?.items || []).slice(0, 5).map((product: any) => (
+                {(recentProducts?.items || []).slice(0, 5).map((product: any) => (
                   <div key={product._id} className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">{product.name}</p>
