@@ -66,7 +66,7 @@ export const useUpdateFeatures = () => {
     onSuccess: (result) => {
       handleMutationSuccess(result.message || "Features updated successfully!");
       queryClient.invalidateQueries({
-        queryKey: queryKeys.organization.features(),
+        queryKey: [...queryKeys.organization.features(), 'me'],
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },

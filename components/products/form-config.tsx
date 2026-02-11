@@ -123,26 +123,25 @@ export const productFormConfig: DynamicFormConfig = {
           validation: { min: 0 },
           step: 0.1,
         },
-        // {
-        //   name: "hasExpiry",
-        //   type: "radio-group",
-        //   label: "Has Expiry",
-        //   columnSpan: 6,
-        //   defaultValue: false,
-        //   options: [
-        //     { value: true, label: 'Yes' },
-        //     { value: false, label: 'No' }
-        //   ]
-        // },
-        // {
-        //   name: "expiryAlertDays",
-        //   type: "number",
-        //   label: "Expiry Alert Days",
-        //   columnSpan: 6,
-        //   placeholder: "0",
-        //   defaultValue: 0,
-        //   validation: { min: 0 },
-        // },
+        {
+          name: "hasExpiry",
+          type: "checkbox",
+          label: "Has Expiry",
+          columnSpan: 12,
+        },
+        {
+          name: "expiryAlertDays",
+          type: "number",
+          label: "Expiry Alert Days",
+          columnSpan: 6,
+          placeholder: "0",
+          defaultValue: 0,
+          dependsOn: {
+            field: "hasExpiry",
+            condition: "truthy",
+            action: "show"
+          },
+        },
         {
           name: "description",
           type: "textarea",

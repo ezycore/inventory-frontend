@@ -67,6 +67,7 @@ export const FEATURE_DISPLAY_NAMES: Record<FeatureName, string> = {
   barcodeSystem: "Barcode System",
   invoicePrinting: "Invoice Printing",
   returns: "Returns Management",
+  uomConversion: "Unit of Measure Conversion"
 };
 
 /**
@@ -85,6 +86,8 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureName, string> = {
     "Generate and print invoices for sales and purchases",
   returns:
     "Enable sales returns, purchase returns, and credit management",
+    uomConversion:
+    "Enable unit of measure conversion for products with multiple units",
 };
 
 /**
@@ -97,4 +100,5 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   barcodeSystem: "scan-barcode",
   invoicePrinting: "printer",
   returns: "undo-2",
+  uomConversion: "repeat"
 };
