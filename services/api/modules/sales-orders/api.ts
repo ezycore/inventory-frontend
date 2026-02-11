@@ -8,6 +8,7 @@ import type {
   Sale,
   SaleFilters,
   SalesOrderStatus,
+  SalesSummary,
 } from "@/types";
 import { buildQueryParams } from "../../utils";
 
@@ -59,6 +60,12 @@ export const salesApi = {
     data: AddPaymentDto,
   ): Promise<ApiResponse<{ payment: Payment; sale: Sale }>> =>
     apiClient.post(`/sales/${saleId}/payment`, data),
+
+  /**
+   * Get sales summary statistics (for sales history page)
+   */
+  getSummary: (): Promise<ApiResponse<SalesSummary>> =>
+    apiClient.get("/sales/summary"),
 
     //create sales order
     createSalesOrder: (data: CreateSalesOrderDto): Promise<ApiResponse<Sale>> =>

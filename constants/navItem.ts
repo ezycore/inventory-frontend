@@ -70,7 +70,7 @@ export const navItems: NavItem[] = [
       },
       {
         title: "Sales Returns",
-        url: "/sales/returns-bulk",
+        url: "/sales/returns",
         icon: "corner-up-left",
         features: ["sales", "returns"],
       },

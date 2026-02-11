@@ -102,6 +102,18 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.salesOrders.details(), id] as const,
   },
 
+  // Sales Returns query keys
+  salesReturns: {
+    all: () => ["sales-returns"] as const,
+    lists: () => [...queryKeys.salesReturns.all(), "list"] as const,
+    list: (filters?: Record<string, any>) => [...queryKeys.salesReturns.lists(), filters || {}] as const,
+    details: () => [...queryKeys.salesReturns.all(), "detail"] as const,
+    detail: (id: string) => [...queryKeys.salesReturns.details(), id] as const,
+    bySale: (saleId: string) => [...queryKeys.salesReturns.all(), "sale", saleId] as const,
+    customerDues: (customerId: string, excludeSaleId?: string) => 
+      [...queryKeys.salesReturns.all(), "customer-dues", customerId, excludeSaleId] as const,
+  },
+
   // Categories query keys
   categories: {
     all: () => ["categories"] as const,
@@ -169,6 +181,9 @@ export const queryKeys = {
     list: (filters?: Record<string, any>) => [...queryKeys.customers.lists(), filters || {}] as const,
     details: () => [...queryKeys.customers.all(), "detail"] as const,
     detail: (id: string) => [...queryKeys.customers.details(), id] as const,
+    summary: () => [...queryKeys.customers.all(), "summary"] as const,
+    ledger: (customerId: string, filters?: Record<string, any>) => 
+      [...queryKeys.customers.all(), "ledger", customerId, filters || {}] as const,
   },
 
   // Variant Attributes query keys

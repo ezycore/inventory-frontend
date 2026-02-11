@@ -146,7 +146,7 @@ export default function PurchaseHistoryPage() {
     }
   }
 
-  const formatCurrency = (amount: number) => `৳${amount.toFixed(2)}`
+  const formatCurrency = (amount: number) => `৳${(amount || 0).toFixed(2)}`
   const formatDate = (date: string | Date) => format(new Date(date), 'dd MMM yyyy')
 
   return (

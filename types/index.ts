@@ -155,6 +155,115 @@ export interface CreateCustomerDto {
 
 export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}
 
+// Customer Summary (aggregated stats - includes returns data)
+export interface CustomersSummary {
+  totalSales: number;
+  totalPaid: number;
+  totalDue: number;
+  salesCount: number;
+  // Returns data
+  totalRefunds: number;
+  totalCashRefunded: number;
+  totalDueAdjusted: number;
+  returnsCount: number;
+}
+
+// Sales Summary (for sales history page)
+export interface SalesSummary {
+  allTime: {
+    totalSales: number;
+    totalPaid: number;
+    totalDue: number;
+    salesCount: number;
+  };
+  today: {
+    totalSales: number;
+    salesCount: number;
+  };
+  thisWeek: {
+    totalSales: number;
+    salesCount: number;
+  };
+  thisMonth: {
+    totalSales: number;
+    salesCount: number;
+  };
+}
+
+// Sales Returns Summary (for returns page)
+export interface SalesReturnsSummary {
+  allTime: {
+    totalRefunds: number;
+    totalCashRefunded: number;
+    totalDueAdjusted: number;
+    returnsCount: number;
+    totalItems: number;
+  };
+  today: {
+    totalRefunds: number;
+    returnsCount: number;
+  };
+  thisWeek: {
+    totalRefunds: number;
+    returnsCount: number;
+  };
+  thisMonth: {
+    totalRefunds: number;
+    returnsCount: number;
+  };
+}
+
+// Customer Ledger Types
+export interface CustomerLedgerSale {
+  _id: string;
+  invoiceNumber: string;
+  totalAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  createdAt: string;
+  status: "draft" | "partial" | "paid" | "cancelled";
+}
+
+export interface CustomerLedgerPayment {
+  _id: string;
+  type: "sale" | "salesRefund";
+  amount: number;
+  createdAt: string;
+  accountId?: {
+    _id: string;
+    name: string;
+  };
+  referenceId?: {
+    _id: string;
+    invoiceNumber: string;
+  };
+}
+
+export interface CustomerLedgerReturn {
+  _id: string;
+  returnNumber: string;
+  invoiceNumber: string;
+  totalRefundAmount: number;
+  refundedAmount: number;
+  createdAt: string;
+  saleId?: {
+    _id: string;
+    invoiceNumber: string;
+  };
+}
+
+export interface CustomerLedger {
+  sales: CustomerLedgerSale[];
+  payments: CustomerLedgerPayment[];
+  returns: CustomerLedgerReturn[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 // Supplier interfaces
 export interface Supplier extends BaseEntity {
   name: string;
@@ -937,3 +1046,101 @@ export interface SaleFilters {
   startDate?: string;
   endDate?: string;
 }
+
+// ============================
+// Sales Return Types
+// ============================
+
+/**
+ * Sales return status enum
+ */
+export type SalesReturnStatus = "pending" | "completed" | "cancelled";
+
+/**
+ * Sales return reason enum
+ */
+export type SalesReturnReason = 
+  | "damaged" 
+  | "defective" 
+  | "wrong_item" 
+  | "customer_changed_mind" 
+  | "expired" 
+  | "other";
+
+/**
+ * Sales return item interface
+ */
+export interface SalesReturnItem {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount?: number;
+  refundAmount: number;
+  lineTotal: number;
+}
+
+/**
+ * Sales return interface
+ */
+export interface SalesReturn extends BaseEntity {
+  returnNumber: string;
+  organizationId: string;
+  locationId: string;
+  saleId: string | { _id: string; invoiceNumber: string };
+  invoiceNumber: string;
+  customerId?: string;
+  items: SalesReturnItem[];
+  totalRefundAmount: number;
+  refundedAmount: number; // Actual cash refunded
+  totalCostAmount?: number;
+  reason: SalesReturnReason;
+  notes?: string;
+  status: SalesReturnStatus;
+  returnDate: string;
+  processedBy?: string;
+  refundAllocation?: {
+    adjustSaleDue?: number;
+    adjustOtherDues?: Array<{
+      dueId: string;
+      saleId: string;
+      amount: number;
+    }>;
+    accountRefund?: {
+      accountId: string;
+      amount: number;
+      paymentMethod: string;
+    };
+  };
+}
+
+/**
+ * Sales return filters for queries
+ */
+export interface SalesReturnFilters {
+  page?: number;
+  limit?: number;
+  saleId?: string;
+  customerId?: string;
+  status?: SalesReturnStatus;
+  reason?: SalesReturnReason;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+}
+
+/**
+ * Customer pending due from a sale
+ */
+export interface CustomerPendingDue {
+  id: string;
+  saleId: string;
+  invoiceNumber: string;
+  dueAmount: number;
+  totalAmount: number;
+  saleDate: string;
+}
+
