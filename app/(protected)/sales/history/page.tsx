@@ -74,6 +74,7 @@ const statusConfig: Record<
   partial: { label: 'Partial', variant: 'outline', icon: <AlertCircle className="h-3 w-3" /> },
   paid: { label: 'Paid', variant: 'default', icon: <CheckCircle2 className="h-3 w-3" /> },
   cancelled: { label: 'Cancelled', variant: 'destructive', icon: <XCircle className="h-3 w-3" /> },
+  due: { label: 'Due', variant: 'outline', icon: <AlertCircle className="h-3 w-3" /> },
 };
 
 export default function SalesHistoryPage() {
@@ -241,9 +242,9 @@ export default function SalesHistoryPage() {
           const status = row.original.status;
           const config = statusConfig[status];
           return (
-            <Badge variant={config.variant} className="flex gap-1 w-fit">
-              {config.icon}
-              {config.label}
+            <Badge variant={config?.variant} className="flex gap-1 w-fit">
+              {config?.icon}
+              {config?.label}
             </Badge>
           );
         },

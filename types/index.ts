@@ -795,15 +795,24 @@ export type PurchaseOrderDiscountType = "percentage" | "fixed";
 export interface PurchaseOrderItem {
   productId: string;
   variantId?: string | null;
+  inventoryId?: string;
   quantity: number;
-  unitPrice: number;
-  discount: number;
-  total: number;
   receivedQuantity: number;
+  unitPrice: number;
+  costPrice?: number;
+  discount: number;
+  subtotal: number;
+  total: number;
+  profit?: number;
   productName?: string;
   variantName?: string;
   product?: Product;
   variant?: Variant;
+  // UOM fields
+  purchaseUnitId?: string;
+  purchaseUnitName?: string;
+  conversionFactor?: number;
+  convertedQuantity?: number;
 }
 
 export interface PurchaseOrder extends BaseEntity {
@@ -825,21 +834,33 @@ export interface PurchaseOrder extends BaseEntity {
   createdBy?: string;
   supplier?: Supplier;
   location?: Location;
+  // Payment fields
+  paymentStatus?: "unpaid" | "partial" | "paid";
+  paidAmount?: number;
+  dueAmount?: number;
+  refundedAmount?: number;
+  totalProfit?: number;
 }
 
 export interface CreatePurchaseOrderItemDto {
   productId: string;
   variantId?: string | null;
+  inventoryId?: string;
   quantity: number;
   unitPrice: number;
+  costPrice?: number;
   discount?: number;
   productName?: string;
   variantName?: string;
+  // UOM fields
+  purchaseUnitId?: string;
+  purchaseUnitName?: string;
+  conversionFactor?: number;
+  convertedQuantity?: number;
 }
 
 export interface CreatePurchaseOrderDto {
   supplierId: string;
-  locationId: string;
   items: CreatePurchaseOrderItemDto[];
   status?: PurchaseOrderStatus;
   invoiceNumber?: string;
@@ -848,6 +869,8 @@ export interface CreatePurchaseOrderDto {
   discountValue?: number;
   taxTotal?: number;
   notes?: string;
+  // Payment info for instant purchase (backend expects 'payment' not 'paymentInfo')
+  payment?: PurchasePaymentInfo;
 }
 
 export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> {}
@@ -855,11 +878,192 @@ export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> 
 export interface ReceivePurchaseOrderItemDto {
   productId: string;
   variantId?: string | null;
+  inventoryId?: string;
   receivedQuantity: number;
 }
 
 export interface ReceivePurchaseOrderDto {
   items: ReceivePurchaseOrderItemDto[];
+  paymentInfo?: PurchasePaymentInfo;
+}
+
+// Purchase Payment Types
+export interface PurchasePaymentInfo {
+  paymentMethod: string;
+  accountId: string;
+  amount?: number;
+}
+
+export interface AddPurchasePaymentDto {
+  paymentMethod: string;
+  accountId: string;
+  amount: number;
+  notes?: string;
+}
+
+export interface PurchaseOrdersSummary {
+  totalOrders: number;
+  orderedOrders: number;
+  receivedOrders: number;
+  partialOrders: number;
+  cancelledOrders: number;
+  draftOrders: number;
+  totalAmount: number;
+  totalPaid: number;
+  totalDue: number;
+}
+
+export interface PurchaseOrderFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: PurchaseOrderStatus;
+  supplierId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+// ============================
+// Purchase Return Types
+// ============================
+
+/**
+ * Purchase return status enum
+ */
+export type PurchaseReturnStatus = "pending" | "completed" | "cancelled";
+
+/**
+ * Purchase return reason enum
+ */
+export type PurchaseReturnReason =
+  | "damaged"
+  | "defective"
+  | "wrong_item"
+  | "excess_quantity"
+  | "expired"
+  | "other";
+
+/**
+ * Purchase return item interface
+ */
+export interface PurchaseReturnItem {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount?: number;
+  refundAmount: number;
+  lineTotal: number;
+}
+
+/**
+ * Purchase return interface
+ */
+export interface PurchaseReturn extends BaseEntity {
+  returnNumber: string;
+  organizationId: string;
+  locationId: string;
+  purchaseOrderId: string | { _id: string; orderNumber: string };
+  orderNumber: string;
+  supplierId?: string;
+  items: PurchaseReturnItem[];
+  totalRefundAmount: number;
+  refundedAmount: number;
+  totalCostAmount?: number;
+  reason: PurchaseReturnReason;
+  notes?: string;
+  status: PurchaseReturnStatus;
+  returnDate: string;
+  processedBy?: string;
+  refundAllocation?: {
+    adjustPurchaseDue?: number;
+    adjustOtherDues?: Array<{
+      dueId: string;
+      purchaseOrderId: string;
+      amount: number;
+    }>;
+    accountRefund?: {
+      accountId: string;
+      amount: number;
+      paymentMethod: string;
+    };
+  };
+  supplier?: Supplier;
+}
+
+/**
+ * Create purchase return item DTO
+ */
+export interface CreatePurchaseReturnItemDto {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName?: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount?: number;
+}
+
+/**
+ * Create purchase return DTO
+ */
+export interface CreatePurchaseReturnDto {
+  purchaseOrderId: string;
+  items: CreatePurchaseReturnItemDto[];
+  reason: PurchaseReturnReason;
+  notes?: string;
+  refundAllocation?: {
+    // Backend expects 'adjustSupplierDue' not 'adjustPurchaseDue'
+    adjustSupplierDue?: number;
+    accountRefund?: {
+      accountId: string;
+      amount: number;
+      paymentMethod: string;
+    };
+  };
+}
+
+/**
+ * Purchase return filters for queries
+ */
+export interface PurchaseReturnFilters {
+  page?: number;
+  limit?: number;
+  purchaseOrderId?: string;
+  supplierId?: string;
+  status?: PurchaseReturnStatus;
+  reason?: PurchaseReturnReason;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+}
+
+/**
+ * Supplier pending due from a purchase order
+ */
+export interface SupplierPendingDue {
+  id: string;
+  purchaseOrderId: string;
+  orderNumber: string;
+  dueAmount: number;
+  totalAmount: number;
+  purchaseDate: string;
+}
+
+/**
+ * Purchase returns summary
+ */
+export interface PurchaseReturnsSummary {
+  totalReturns: number;
+  totalRefundAmount: number;
+  totalRefundedAmount: number;
+  pendingRefunds: number;
+  completedReturns: number;
+  pendingReturns: number;
 }
 
 // Sales Order Types
@@ -938,8 +1142,9 @@ export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> {}
  * - partial: Sale has partial payment (due amount > 0)
  * - paid: Sale fully paid (due amount = 0)
  * - cancelled: Sale cancelled
+ * - due: Sale has an outstanding due amount
  */
-export type SaleStatus = "draft" | "partial" | "paid" | "cancelled";
+export type SaleStatus = "draft" | "partial" | "paid" | "cancelled" | "due";
 
 export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other";
 

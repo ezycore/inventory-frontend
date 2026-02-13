@@ -91,6 +91,21 @@ export const queryKeys = {
     list: (filters?: Record<string, any>) => [...queryKeys.purchaseOrders.lists(), filters || {}] as const,
     details: () => [...queryKeys.purchaseOrders.all(), "detail"] as const,
     detail: (id: string) => [...queryKeys.purchaseOrders.details(), id] as const,
+    summary: () => [...queryKeys.purchaseOrders.all(), "summary"] as const,
+    payments: (id: string) => [...queryKeys.purchaseOrders.all(), "payments", id] as const,
+  },
+
+  // Purchase Returns query keys
+  purchaseReturns: {
+    all: () => ["purchase-returns"] as const,
+    lists: () => [...queryKeys.purchaseReturns.all(), "list"] as const,
+    list: (filters?: Record<string, any>) => [...queryKeys.purchaseReturns.lists(), filters || {}] as const,
+    details: () => [...queryKeys.purchaseReturns.all(), "detail"] as const,
+    detail: (id: string) => [...queryKeys.purchaseReturns.details(), id] as const,
+    byPurchaseOrder: (purchaseOrderId: string) => [...queryKeys.purchaseReturns.all(), "purchase-order", purchaseOrderId] as const,
+    supplierDues: (supplierId: string, excludePurchaseOrderId?: string) =>
+      [...queryKeys.purchaseReturns.all(), "supplier-dues", supplierId, excludePurchaseOrderId] as const,
+    summary: () => [...queryKeys.purchaseReturns.all(), "summary"] as const,
   },
 
   // Sales Orders query keys
