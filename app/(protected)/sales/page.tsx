@@ -1,270 +1,37 @@
 "use client";
 
-import { salesColumns } from "@/components/sales/columns";
-import { useCreateSalesOrder } from "@/services/api";
 import {
-  type SellOrderItem,
-  useAuthStore,
-  useSellPageStore,
-} from "@/services/stores";
+  salesColumns,
+  extractCustomerValue,
+  extractProductValue,
+  formatCurrency,
+  getCustomerFormConfig,
+  getProductFormConfig,
+  type CreateSalesOrderData,
+} from "@/components/sales";
+import { useCreateSalesOrder } from "@/services/api";
+import { useAuthStore, useSellPageStore } from "@/services/stores";
+import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { Button } from "@/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
+import { DataTable } from "@/ui/components/dataTable";
+import type { CustomAction } from "@/types/DataTable";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/ui/components/collapsible";
-import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
-import type {
-  DynamicFormConfig,
-  FormFieldConfig,
-  SelectOption,
-} from "@/ui/components/form/type";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/ui/components/popover";
 import { Separator } from "@/ui/components/separator";
-import { type DiscountType, applyDiscountWithPriority } from "@/utils/discount";
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { ColumnDef } from "@tanstack/react-table";
-import {
-  ChevronDown,
-  ChevronUp,
-  ShoppingCart,
-  Trash2,
-  User,
-} from "lucide-react";
+import { CheckCircleIcon, ChevronDown, ChevronUp, Trash2, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
-
-// =====================
-// Schema Definitions
-// =====================
-
-const customerFormSchema = z.object({
-  customerId: z
-    .union([
-      z.string(),
-      z.object({
-        label: z.string(),
-        value: z.string(),
-        defaultDiscountValue: z.number().optional(),
-        defaultDiscountType: z.enum(["percentage", "fixed"]).optional(),
-      }),
-    ])
-    .optional()
-    .nullable(),
-  discountType: z.enum(["percentage", "fixed"]),
-  discountValue: z.number().min(0),
-  accountId: z
-    .union([
-      z.string(),
-      z.object({
-        label: z.string(),
-        value: z.string(),
-        isDefault: z.boolean().optional(),
-      }),
-    ])
-    .optional()
-    .nullable(),
-  paidAmount: z.number().min(0).optional(),
-  notes: z.string().optional(),
-});
-
-const productFormSchema = z.object({
-  productId: z.union([
-    z.string().min(1, "Product is required"),
-    z.object({
-      label: z.string(),
-      value: z.string(),
-      price: z.number().optional(),
-      costPrice: z.number().optional(),
-      availableQuantity: z.number().optional(),
-      productId: z.string().optional(),
-      variantId: z.string().nullable().optional(),
-    }),
-  ]),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  costPrice: z.number().min(0),
-  unitPrice: z.number().min(0),
-  discountAmount: z.number().min(0),
-  salePrice: z.number().min(0),
-});
-
-type CustomerFormData = z.infer<typeof customerFormSchema>;
-type ProductFormData = z.infer<typeof productFormSchema>;
-
-// =====================
-// Types for API Responses
-// =====================
-
-interface CustomerApiItem {
-  _id: string;
-  name: string;
-  defaultDiscount?: {
-    value?: number;
-    type?: DiscountType;
-  };
-}
-
-interface ProductApiItem {
-  _id: string; // inventoryId
-  name: string;
-  price: number;
-  costPrice: number;
-  quantity: number;
-  discountType?: DiscountType;
-  discountValue?: number;
-  productId: string;
-  variantId: string | null;
-}
-
-interface CustomerApiResponse {
-  data?: {
-    items?: CustomerApiItem[];
-  };
-}
-
-interface ProductApiResponse {
-  data?: ProductApiItem[];
-}
-
-interface AccountApiItem {
-  _id: string;
-  name: string;
-  isDefault: boolean;
-  balance: number;
-}
-
-interface AccountApiResponse {
-  data?: {
-    items?: AccountApiItem[];
-  };
-}
-
-// =====================
-// Transform Callbacks
-// =====================
-
-/**
- * Transform customer API response to select options with discount metadata
- */
-const customerItemsCreateCallback = (
-  response: CustomerApiResponse,
-): SelectOption[] => {
-  const items = response?.data?.items || [];
-  return items.map((item) => ({
-    value: item._id,
-    label: item.name,
-    defaultDiscountValue: item.defaultDiscount?.value ?? 0,
-    defaultDiscountType: item.defaultDiscount?.type ?? "fixed",
-  })) as SelectOption[];
-};
-
-/**
- * Transform inventory API response to select options with pricing metadata
- */
-const productItemsCreateCallback = (
-  response: ProductApiResponse,
-): SelectOption[] => {
-  const items = response?.data || [];
-  return items.map((item) => ({
-    value: item._id, // inventoryId
-    label: item.name,
-    price: item.price,
-    costPrice: item.costPrice,
-    availableQuantity: item.quantity,
-    productId: item.productId,
-    variantId: item.variantId,
-  })) as SelectOption[];
-};
-
-/**
- * Transform accounts API response to select options
- */
-const accountItemsCreateCallback = (
-  response: AccountApiResponse,
-): SelectOption[] => {
-  const items = response?.data?.items || [];
-  return items.map((item) => ({
-    value: item._id,
-    label: `${item.name} (৳${item.balance.toFixed(2)})`,
-    isDefault: item.isDefault,
-  })) as SelectOption[];
-};
-
-// =====================
-// Helper Functions
-// =====================
-
-interface ExtractedCustomer {
-  value: string | null;
-  label: string | null;
-  discountType: DiscountType;
-  discountValue: number;
-}
-
-const extractCustomerValue = (
-  val: CustomerFormData["customerId"],
-): ExtractedCustomer => {
-  if (!val) {
-    return {
-      value: null,
-      label: null,
-      discountType: "percentage",
-      discountValue: 0,
-    };
-  }
-  if (typeof val === "object" && "value" in val) {
-    return {
-      value: val.value,
-      label: val.label,
-      discountType: (val.defaultDiscountType as DiscountType) ?? "percentage",
-      discountValue: val.defaultDiscountValue ?? 0,
-    };
-  }
-  return {
-    value: val as string,
-    label: null,
-    discountType: "percentage",
-    discountValue: 0,
-  };
-};
-
-interface ExtractedProduct {
-  value: string; // inventoryId
-  label: string;
-  price: number;
-  costPrice: number;
-  availableQuantity: number;
-  productId: string;
-  variantId: string | null;
-}
-
-const extractProductValue = (
-  val: ProductFormData["productId"],
-): ExtractedProduct | null => {
-  if (!val) return null;
-  if (typeof val === "object" && "value" in val) {
-    return {
-      value: val.value, // inventoryId
-      label: val.label,
-      price: val.price ?? 0,
-      costPrice: val.costPrice ?? 0,
-      availableQuantity: val.availableQuantity ?? 0,
-      productId: (val as any).productId ?? "",
-      variantId: (val as any).variantId ?? null,
-    };
-  }
-  return null;
-};
-
-const formatCurrency = (amount: number) => `৳${amount.toFixed(2)}`;
 
 // =====================
 // Main Component
@@ -303,9 +70,14 @@ export default function SalesPage() {
   // API mutations
   const createOrderMutation = useCreateSalesOrder();
 
-  // Customer form
-  const customerForm = useForm<CustomerFormData>({
-    resolver: zodResolver(customerFormSchema),
+  // Form configurations
+  const customerFormConfig = useMemo(
+    () => getCustomerFormConfig(isAccountsEnabled),
+    [isAccountsEnabled]
+  );
+
+  // Customer form (must be defined before productFormConfig uses it)
+  const customerForm = useForm({
     defaultValues: {
       customerId: customerId
         ? { value: customerId, label: customerName || "" }
@@ -318,9 +90,8 @@ export default function SalesPage() {
     },
   });
 
-  // Product form
-  const productForm = useForm<ProductFormData>({
-    resolver: zodResolver(productFormSchema),
+  // Product form (must be defined before productFormConfig uses it)
+  const productForm = useForm({
     defaultValues: {
       productId: "",
       quantity: 1,
@@ -331,164 +102,16 @@ export default function SalesPage() {
     },
   });
 
+  // Product form config (depends on both forms being defined)
+  const productFormConfig = useMemo(
+    () => getProductFormConfig(customerForm, productForm),
+    [customerForm, productForm]
+  );
+
   // Sync local additional discount with store
   useEffect(() => {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
-
-  // =====================
-  // Form Configurations
-  // =====================
-
-  const customerFormConfig: DynamicFormConfig = useMemo(() => {
-    const fields: FormFieldConfig[] = [
-      {
-        name: "customerId",
-        label: "Customer",
-        type: "select",
-        required: false,
-        optionsApi: "/sales/customers",
-        placeholder: "Select customer (optional)",
-        labelInValue: true,
-        itemsCreateCallback: customerItemsCreateCallback,
-        columnSpan: 6,
-      },
-      {
-        name: "discountType",
-        label: "Discount Type",
-        type: "select",
-        required: true,
-        options: [
-          { value: "percentage", label: "Percentage (%)" },
-          { value: "fixed", label: "Fixed Amount" },
-        ],
-        columnSpan: 3,
-      },
-      {
-        name: "discountValue",
-        label: "Discount Value",
-        type: "number",
-        required: false,
-        placeholder: "0",
-        columnSpan: 3,
-        validation: { min: 0 },
-      },
-    ];
-
-    // Add account and payment fields if accounts feature is enabled
-    if (isAccountsEnabled) {
-      fields.push(
-        {
-          name: "accountId",
-          label: "Payment Account",
-          type: "select",
-          required: false,
-          optionsApi: "/accounts",
-          placeholder: "Select account",
-          labelInValue: true,
-          itemsCreateCallback: accountItemsCreateCallback,
-          columnSpan: 6,
-        },
-        {
-          name: "paidAmount",
-          label: "Paid Amount",
-          type: "number",
-          required: false,
-          placeholder: "0",
-          columnSpan: 6,
-          validation: { min: 0 },
-        },
-      );
-    }
-
-    fields.push({
-      name: "notes",
-      label: "Notes",
-      type: "textarea",
-      required: false,
-      placeholder: "Add any notes for this sale (optional)",
-      columnSpan: 12,
-      rows: 2,
-    });
-
-    return {
-      sections: [
-        {
-          title: "Customer & Order Discount",
-          icon: <User className="h-5 w-5 text-primary" />,
-          fields,
-        },
-      ],
-    };
-  }, [isAccountsEnabled]);
-
-  const productFormConfig: DynamicFormConfig = useMemo(
-    () => ({
-      sections: [
-        {
-          title: "Add Product",
-          icon: <ShoppingCart className="h-5 w-5 text-primary" />,
-          fields: [
-            {
-              name: "productId",
-              label: "Product",
-              type: "select",
-              required: true,
-              optionsApi: "/inventory/sellable-products",
-              placeholder: "Select product",
-              labelInValue: true,
-              itemsCreateCallback: productItemsCreateCallback,
-              columnSpan: 4,
-            },
-            {
-              name: "quantity",
-              label: "Quantity",
-              type: "number",
-              required: true,
-              placeholder: "1",
-              columnSpan: 2,
-              validation: { min: 1 },
-            },
-            {
-              name: "costPrice",
-              label: "Cost Price",
-              type: "number",
-              required: false,
-              disabled: true,
-              columnSpan: 2,
-            },
-            {
-              name: "unitPrice",
-              label: "Unit Price",
-              type: "number",
-              required: true,
-              placeholder: "0",
-              columnSpan: 2,
-              validation: { min: 0 },
-            },
-            {
-              name: "discountAmount",
-              label: "Discount",
-              type: "number",
-              required: false,
-              placeholder: "0",
-              columnSpan: 1,
-              validation: { min: 0 },
-            },
-            {
-              name: "salePrice",
-              label: "Sale Price",
-              type: "number",
-              required: false,
-              disabled: true,
-              columnSpan: 1,
-            },
-          ],
-        },
-      ],
-    }),
-    [],
-  );
 
   // =====================
   // Event Handlers
@@ -500,9 +123,7 @@ export default function SalesPage() {
   const handleCustomerFieldChange = useCallback(
     (fieldName: string, value: unknown) => {
       if (fieldName === "customerId") {
-        const customer = extractCustomerValue(
-          value as CustomerFormData["customerId"],
-        );
+        const customer = extractCustomerValue(value);
 
         // Update store
         setCustomer(
@@ -536,69 +157,31 @@ export default function SalesPage() {
   );
 
   /**
-   * Handle product field changes - calculate prices and discounts
+   * Handle product field changes - recalculate when unitPrice is auto-filled
    */
   const handleProductFieldChange = useCallback(
     (fieldName: string, value: unknown) => {
-      if (fieldName === "productId") {
-        const product = extractProductValue(
-          value as ProductFormData["productId"],
-        );
-        if (product) {
-          // Read current discount values directly from form (not from watched values to avoid stale closure)
-          const currentDiscountType = customerForm.getValues("discountType");
-          const currentDiscountValue = customerForm.getValues("discountValue");
-
-          // Calculate discount with priority: product > order
-          const { discountAmount, salePrice } = applyDiscountWithPriority({
-            unitPrice: product.price,
-            orderDiscountType: currentDiscountType,
-            orderDiscountValue: currentDiscountValue,
-          });
-
-          // Auto-fill product fields
-          productForm.setValue("costPrice", product.costPrice);
-          productForm.setValue("unitPrice", product.price);
-          productForm.setValue("discountAmount", discountAmount);
-          productForm.setValue("salePrice", salePrice);
-        }
-      } else if (fieldName === "unitPrice") {
-        // Read current discount values directly from form
+      // When unitPrice is auto-filled from product selection, recalculate discount and sale price
+      if (fieldName === 'unitPrice' && value) {
         const currentDiscountType = customerForm.getValues("discountType");
         const currentDiscountValue = customerForm.getValues("discountValue");
-
-        // Recalculate when unit price changes
-        const currentProduct = productForm.getValues("productId");
-        const unitPrice = value as number;
-
         const { discountAmount, salePrice } = applyDiscountWithPriority({
-          unitPrice,
+          unitPrice: value as number,
           orderDiscountType: currentDiscountType,
           orderDiscountValue: currentDiscountValue,
         });
-
         productForm.setValue("discountAmount", discountAmount);
         productForm.setValue("salePrice", salePrice);
-      } else if (fieldName === "discountAmount") {
-        // When discount is manually changed, recalculate sale price
-        const unitPrice = productForm.getValues("unitPrice");
-        const discountAmount = value as number;
-        const salePrice = Math.max(0, unitPrice - discountAmount);
-
-        productForm.setValue("salePrice", salePrice);
-      } else if (fieldName === "quantity") {
-        // Quantity change doesn't affect item-level pricing, but it's tracked for validation
-        // The total is calculated when adding to order
       }
     },
-    [productForm, customerForm],
+    [customerForm, productForm],
   );
 
   /**
    * Handle add to order
    */
   const handleAddToOrder = useCallback(
-    (data: ProductFormData) => {
+    (data: any) => {
       const product = extractProductValue(data.productId);
       if (!product) {
         toast.error("Please select a product");
@@ -611,14 +194,6 @@ export default function SalesPage() {
         return;
       }
 
-      // Read current discount values directly from form
-      const currentDiscountType = customerForm.getValues("discountType");
-      const currentDiscountValue = customerForm.getValues("discountValue");
-
-      // Determine which discount was applied
-      const discountType = currentDiscountType;
-      const discountValue = currentDiscountValue;
-
       // Add item to store
       addItem({
         inventoryId: product.value,
@@ -628,8 +203,8 @@ export default function SalesPage() {
         quantity: data.quantity,
         costPrice: data.costPrice,
         unitPrice: data.unitPrice,
-        discountType,
-        discountValue,
+        discountType: customerForm.getValues("discountType"),
+        discountValue: customerForm.getValues("discountValue"),
         discountAmount: data.discountAmount,
         salePrice: data.salePrice,
         availableQuantity: product.availableQuantity,
@@ -667,8 +242,8 @@ export default function SalesPage() {
     // Extract account ID if it's an object
     const extractedAccountId =
       typeof accountId === "object" &&
-      accountId !== null &&
-      "value" in accountId
+        accountId !== null &&
+        "value" in accountId
         ? accountId.value
         : typeof accountId === "string"
           ? accountId
@@ -681,34 +256,12 @@ export default function SalesPage() {
     }
 
     try {
-      const totalSalePrice = getTotalSalePrice(); // This already includes additional discount
+      const totalSalePrice = getTotalSalePrice();
       const totalCostPrice = getTotalCostPrice();
       const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
 
-      // Prepare order data with proper typing
-      const orderData: {
-        customerId?: string;
-        locationId: string;
-        items: Array<{
-          productId: string;
-          inventoryId: string;
-          variantId: string | null;
-          quantity: number;
-          unitPrice: number;
-          costPrice: number;
-          discount: number;
-          productName: string;
-        }>;
-        additionalDiscount: number;
-        totalPrice: number;
-        costPrice: number;
-        notes?: string;
-        payment?: {
-          paidAmount: number;
-          accountId: string;
-        };
-        dueAmount?: number;
-      } = {
+      // Prepare order data
+      const orderData: CreateSalesOrderData = {
         customerId: customerId || undefined,
         locationId: "default",
         items: items.map((item) => ({
@@ -737,9 +290,7 @@ export default function SalesPage() {
       }
 
       // Create and complete order
-      const createResult = await createOrderMutation.mutateAsync(
-        orderData as any,
-      );
+      const createResult = await createOrderMutation.mutateAsync(orderData);
 
       if (createResult.data?._id) {
         // Show success
@@ -767,8 +318,6 @@ export default function SalesPage() {
   }, [
     items,
     customerId,
-    orderDiscountType,
-    orderDiscountValue,
     notes,
     isAccountsEnabled,
     getTotalSalePrice,
@@ -777,20 +326,24 @@ export default function SalesPage() {
     clearAll,
     customerForm,
     productForm,
+    localAdditionalDiscount,
   ]);
 
-  // =====================
-  // Table Columns
-  // =====================
+  const isLoading = createOrderMutation.isPending;
 
- 
-
-  // =====================
-  // Render
-  // =====================
-
-  const isLoading =
-    createOrderMutation.isPending
+  // Custom actions for removing items
+  const customActions: CustomAction[] = useMemo(
+    () => [
+      {
+        type: "remove",
+        placement: "cell",
+        variant: "destructive",
+        icon: <Trash2 className="h-2 w-2" />,
+        onClick: (row) => removeItem(row.id),
+      },
+    ],
+    [removeItem]
+  );
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -803,20 +356,16 @@ export default function SalesPage() {
       </div>
 
       {/* Section 1: Customer & Order Discount */}
-      <Card>
-        <CardContent className="pt-6">
+     
           <DynamicForm
             form={customerForm}
             config={customerFormConfig}
             onFieldChange={handleCustomerFieldChange}
             hideCancel
           />
-        </CardContent>
-      </Card>
 
       {/* Section 2: Product Selection */}
-      <Card>
-        <CardContent className="pt-6">
+   
           <DynamicForm
             form={productForm}
             config={productFormConfig}
@@ -825,8 +374,7 @@ export default function SalesPage() {
             submitLabel="Add to Order"
             hideCancel
           />
-        </CardContent>
-      </Card>
+     
 
       {/* Section 4: Order Summary */}
       {items.length > 0 && (
@@ -854,11 +402,11 @@ export default function SalesPage() {
             <CollapsibleContent>
               <CardContent>
                 {/* Items Table */}
-                <CardTable
-                  columns={salesColumns}
-                  data={items}
-                  emptyMessage="No items in order"
-                  showCard={false}
+                <DataTable
+                  cardTitle=""
+                  columns={salesColumns as any}
+                  data={items as any}
+                  customActions={customActions}
                 />
 
                 <Separator className="my-4" />
@@ -866,16 +414,16 @@ export default function SalesPage() {
                 {/* Summary Footer */}
                 <div className="space-y-3">
                   {/* Items Subtotal */}
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm py-2">
                     <span className="text-muted-foreground">
                       Items Subtotal
                     </span>
-                    <span>{formatCurrency(items.reduce((sum, item) => sum + item.total, 0))}</span>
+                    <span className="font-medium">{formatCurrency(items.reduce((sum, item) => sum + item.total, 0))}</span>
                   </div>
 
                   {/* Additional Discount Input */}
-                  <div className="flex justify-between items-center gap-4">
-                    <label htmlFor="additionalDiscount" className="text-sm text-muted-foreground">
+                  <div className="flex justify-between items-center gap-4 py-2 px-3 bg-muted/50 rounded-lg">
+                    <label htmlFor="additionalDiscount" className="text-sm font-medium text-foreground">
                       Additional Discount
                     </label>
                     <input
@@ -890,52 +438,54 @@ export default function SalesPage() {
                         setAdditionalDiscount(value);
                       }}
                       placeholder="0"
-                      className="w-32 px-3 py-1.5 text-sm border rounded-md text-right focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-32 px-3 py-2 text-sm border border-input bg-background rounded-md text-right focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                     />
                   </div>
 
-                  <Separator />
+                  <Separator className="my-2" />
 
                   {/* Total Sale Price (After Discount) */}
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total Sale Price</span>
-                    <span className="text-primary">
+                  <div className="flex justify-between items-center py-3 px-4 bg-primary/10 rounded-lg">
+                    <span className="text-lg font-bold text-foreground">Total Sale Price</span>
+                    <span className="text-2xl font-bold text-primary">
                       {formatCurrency(getTotalSalePrice())}
                     </span>
                   </div>
 
                   {/* Total Cost Price */}
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm py-2 px-2">
                     <span className="text-muted-foreground">
                       Total Cost Price
                     </span>
-                    <span>{formatCurrency(getTotalCostPrice())}</span>
+                    <span className="font-medium text-muted-foreground">{formatCurrency(getTotalCostPrice())}</span>
                   </div>
 
                   {/* Payment Info - only show if accounts enabled */}
                   {isAccountsEnabled && (
                     <>
-                      <Separator className="my-2" />
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Paid Amount
-                        </span>
-                        <span className="text-green-600">
-                          {formatCurrency(paidAmount || 0)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm font-semibold">
-                        <span className="text-muted-foreground">
-                          Due Amount
-                        </span>
-                        <span className="text-orange-600">
-                          {formatCurrency(
-                            Math.max(
-                              getTotalSalePrice() - (paidAmount || 0),
-                              0,
-                            ),
-                          )}
-                        </span>
+                      <Separator className="my-3" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between py-2 px-2">
+                          <span className="text-sm text-muted-foreground">
+                            Paid Amount
+                          </span>
+                          <span className="text-sm font-semibold text-green-600 dark:text-green-500">
+                            {formatCurrency(paidAmount || 0)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-2 px-2">
+                          <span className="text-sm text-muted-foreground">
+                            Due Amount
+                          </span>
+                          <span className="text-sm font-semibold text-orange-600 dark:text-orange-500">
+                            {formatCurrency(
+                              Math.max(
+                                getTotalSalePrice() - (paidAmount || 0),
+                                0,
+                              ),
+                            )}
+                          </span>
+                        </div>
                       </div>
                     </>
                   )}
@@ -944,32 +494,20 @@ export default function SalesPage() {
                 <Separator className="my-4" />
 
                 {/* Actions */}
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <Popover open={showSuccessPopover}>
                     <PopoverTrigger asChild>
                       <Button
                         onClick={handleMarkAsSold}
                         disabled={isLoading || items.length === 0}
-                        className="flex-1"
+                        className="flex-1 text-base font-semibold"
                       >
                         {isLoading ? "Processing..." : "Mark as Sold"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto">
                       <div className="flex items-center gap-2 text-green-600">
-                        <svg
-                          className="h-5 w-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
+                        <CheckCircleIcon className="h-5 w-5" />
                         <span className="font-medium">
                           Sale completed successfully!
                         </span>

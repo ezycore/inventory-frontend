@@ -176,9 +176,12 @@ const DynamicForm: FC<DynamicFormProps> = ({
                 </Button>
             )
         }
-        <Button type="button" disabled={isActuallySubmitting || contentLoading || !form.formState.isDirty} onClick={handleContainerSubmit}>
-            {isActuallySubmitting ? 'Submitting...' : submitLabel}
-        </Button>
+        {/* Only show submit button if there's an onSubmit handler or mutationHook */}
+        {(onSubmit || mutationHook) && (
+            <Button type="button" disabled={isActuallySubmitting || contentLoading || !form.formState.isDirty} onClick={handleContainerSubmit}>
+                {isActuallySubmitting ? 'Submitting...' : submitLabel}
+            </Button>
+        )}
     </div>)
 
     // Render modal mode

@@ -1,7 +1,6 @@
 import { formatCurrency } from "@/lib/currency";
-import { SellOrderItem } from "@/services/stores"
-import { ColumnDef } from "@tanstack/react-table"
-import { useMemo } from "react"
+import { SellOrderItem } from "@/services/stores";
+import { ColumnDef } from "@tanstack/react-table";
 
 export const salesColumns: ColumnDef<SellOrderItem>[] = [
   {
@@ -44,5 +43,5 @@ export const salesColumns: ColumnDef<SellOrderItem>[] = [
         {formatCurrency(row.original.total)}
       </span>
     ),
-  }
+  },
 ];
