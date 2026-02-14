@@ -3,6 +3,7 @@ import { queryKeys } from "@/services/api/query-keys";
 import type {
   AddPurchasePaymentDto,
   CreatePurchaseOrderDto,
+  CreatePurchaseOrdersDto,
   CreatePurchaseReturnDto,
   PurchaseOrderFilters,
   PurchaseReturnFilters,
@@ -59,7 +60,7 @@ export const useCreatePurchaseOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreatePurchaseOrderDto) => purchaseOrdersApi.create(data),
+    mutationFn: (data: CreatePurchaseOrdersDto) => purchaseOrdersApi.create(data),
     onSuccess: (data) => {
       toast.success(data.message || "Purchase order created successfully");
       queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });

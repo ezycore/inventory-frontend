@@ -1,4 +1,3 @@
-import { DiscountType } from "@/utils/discount";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -63,7 +62,7 @@ export interface PurchasePaymentInfo {
   paymentMethod: string;
   accountId: string;
   accountName?: string;
-  amount: number;
+  paidAmount: number;
 }
 
 /**
@@ -77,8 +76,11 @@ export interface SellerSession {
   purchaseType: "instant" | "order"; // instant = received, order = ordered
   paymentInfo: PurchasePaymentInfo | null;
   notes: string;
-  additionalDiscount: number;
-  discountType: DiscountType;
+  // Supplier discount settings (used for product discount calculation, not sent to API)
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  additionalDiscount: number; // Fixed amount discount on total
+  invoiceAmount: number; // Net amount (can be input or calculated)
   invoiceNumber?: string;
   invoiceDate?: string;
 }
@@ -105,6 +107,8 @@ interface PurchasePageStore {
   // Computed values
   getSellerSubtotal: (sellerId: string) => number;
   getSellerTotal: (sellerId: string) => number;
+  getSellerNetAmount: (sellerId: string) => number;
+  getSellerDueAmount: (sellerId: string) => number;
   getGrandTotal: () => number;
   getTotalItemCount: () => number;
 
@@ -122,8 +126,10 @@ interface PurchasePageStore {
   setPurchaseType: (sellerId: string, type: "instant" | "order") => void;
   setPaymentInfo: (sellerId: string, info: PurchasePaymentInfo | null) => void;
   setNotes: (sellerId: string, notes: string) => void;
+  setDiscountType: (sellerId: string, type: "percentage" | "fixed") => void;
+  setDiscountValue: (sellerId: string, value: number) => void;
   setAdditionalDiscount: (sellerId: string, discount: number) => void;
-  setDiscountType: (sellerId: string, type: DiscountType) => void;
+  setInvoiceAmount: (sellerId: string, amount: number) => void;
   setInvoiceNumber: (sellerId: string, invoiceNumber: string) => void;
   setInvoiceDate: (sellerId: string, invoiceDate: string) => void;
 
@@ -160,8 +166,10 @@ const createEmptySeller = (): SellerSession => ({
   purchaseType: "instant",
   paymentInfo: null,
   notes: "",
-  additionalDiscount: 0,
   discountType: "fixed",
+  discountValue: 0,
+  additionalDiscount: 0,
+  invoiceAmount: 0,
   invoiceNumber: "",
   invoiceDate: "",
 });
@@ -176,39 +184,46 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       getSellerSubtotal: (sellerId: string) => {
         const seller = get().sellers.find((s) => s.id === sellerId);
         if (!seller) return 0;
-        return seller.items.reduce((sum, item) => sum + item.total, 0);
+        // Sum of all items (quantity * costPrice)
+        return seller.items.reduce((sum, item) => sum + (item.quantity * item.costPrice), 0);
       },
 
       getSellerTotal: (sellerId: string) => {
         const seller = get().sellers.find((s) => s.id === sellerId);
         if (!seller) return 0;
-        const subtotal = seller.items.reduce((sum, item) => sum + item.total, 0);
-        const discountValue = seller.additionalDiscount || 0;
-        
-        // Calculate discount based on type
-        let discountAmount = 0;
-        if (seller.discountType === "percentage") {
-          discountAmount = (subtotal * discountValue) / 100;
-        } else {
-          discountAmount = discountValue;
-        }
-        
+        const subtotal = seller.items.reduce((sum, item) => sum + (item.quantity * item.costPrice), 0);
+        // additionalDiscount is always fixed amount
+        const discountAmount = Math.min(seller.additionalDiscount || 0, subtotal);
         return Math.max(0, subtotal - discountAmount);
+      },
+
+      getSellerNetAmount: (sellerId: string) => {
+        const seller = get().sellers.find((s) => s.id === sellerId);
+        if (!seller) return 0;
+        // If invoiceAmount is set, use it; otherwise calculate from subtotal - discount
+        if (seller.invoiceAmount > 0) {
+          return seller.invoiceAmount;
+        }
+        return get().getSellerTotal(sellerId);
+      },
+
+      getSellerDueAmount: (sellerId: string) => {
+        const seller = get().sellers.find((s) => s.id === sellerId);
+        if (!seller) return 0;
+        const netAmount = get().getSellerNetAmount(sellerId);
+        const paidAmount = seller.paymentInfo?.paidAmount || 0;
+        return Math.max(0, netAmount - paidAmount);
       },
 
       getGrandTotal: () => {
         return get().sellers.reduce((sum, seller) => {
-          const subtotal = seller.items.reduce((s, item) => s + item.total, 0);
-          const discountValue = seller.additionalDiscount || 0;
-          
-          // Calculate discount based on type
-          let discountAmount = 0;
-          if (seller.discountType === "percentage") {
-            discountAmount = (subtotal * discountValue) / 100;
-          } else {
-            discountAmount = discountValue;
+          // If invoiceAmount is set, use it; otherwise calculate
+          if (seller.invoiceAmount > 0) {
+            return sum + seller.invoiceAmount;
           }
-          
+          const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
+          // additionalDiscount is always fixed amount
+          const discountAmount = Math.min(seller.additionalDiscount || 0, subtotal);
           return sum + Math.max(0, subtotal - discountAmount);
         }, 0);
       },
@@ -293,16 +308,6 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
         }));
       },
 
-      setAdditionalDiscount: (sellerId, discount) => {
-        set((state) => ({
-          sellers: state.sellers.map((seller) =>
-            seller.id === sellerId
-              ? { ...seller, additionalDiscount: discount }
-              : seller
-          ),
-        }));
-      },
-
       setDiscountType: (sellerId, type) => {
         set((state) => ({
           sellers: state.sellers.map((seller) =>
@@ -310,6 +315,49 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
               ? { ...seller, discountType: type }
               : seller
           ),
+        }));
+      },
+
+      setDiscountValue: (sellerId, value) => {
+        set((state) => ({
+          sellers: state.sellers.map((seller) =>
+            seller.id === sellerId
+              ? { ...seller, discountValue: value }
+              : seller
+          ),
+        }));
+      },
+
+      setAdditionalDiscount: (sellerId, discount) => {
+        set((state) => ({
+          sellers: state.sellers.map((seller) => {
+            if (seller.id !== sellerId) return seller;
+            // When additionalDiscount changes, recalculate invoiceAmount if it's auto-calculated
+            const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
+            const discountAmount = Math.min(discount, subtotal);
+            const newInvoiceAmount = Math.max(0, subtotal - discountAmount);
+            return { 
+              ...seller, 
+              additionalDiscount: discount,
+              invoiceAmount: newInvoiceAmount,
+            };
+          }),
+        }));
+      },
+
+      setInvoiceAmount: (sellerId, amount) => {
+        set((state) => ({
+          sellers: state.sellers.map((seller) => {
+            if (seller.id !== sellerId) return seller;
+            // When invoiceAmount changes, recalculate additionalDiscount
+            const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
+            const newDiscount = Math.max(0, subtotal - amount);
+            return { 
+              ...seller, 
+              invoiceAmount: amount,
+              additionalDiscount: newDiscount,
+            };
+          }),
         }));
       },
 

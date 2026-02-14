@@ -859,19 +859,23 @@ export interface CreatePurchaseOrderItemDto {
   convertedQuantity?: number;
 }
 
+// Single Purchase Order DTO
 export interface CreatePurchaseOrderDto {
   supplierId: string;
   items: CreatePurchaseOrderItemDto[];
+  additionalDiscount?: number; // Changed from discountType/discountValue
   status?: PurchaseOrderStatus;
   invoiceNumber?: string;
   invoiceDate?: string;
-  discountType?: PurchaseOrderDiscountType;
-  discountValue?: number;
+  invoiceAmount?: number; // Added
   taxTotal?: number;
-  notes?: string;
-  // Payment info for instant purchase (backend expects 'payment' not 'paymentInfo')
   payment?: PurchasePaymentInfo;
+  dueAmount?: number; // Added
+  notes?: string;
 }
+
+// Array of Purchase Orders (for batch creation)
+export type CreatePurchaseOrdersDto = CreatePurchaseOrderDto[];
 
 export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> {}
 
@@ -891,7 +895,7 @@ export interface ReceivePurchaseOrderDto {
 export interface PurchasePaymentInfo {
   paymentMethod: string;
   accountId: string;
-  amount?: number;
+  paidAmount?: number;
 }
 
 export interface AddPurchasePaymentDto {

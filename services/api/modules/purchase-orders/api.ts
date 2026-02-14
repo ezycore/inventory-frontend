@@ -3,6 +3,7 @@ import type {
   AddPurchasePaymentDto,
   ApiResponse,
   CreatePurchaseOrderDto,
+  CreatePurchaseOrdersDto,
   CreatePurchaseReturnDto,
   PaginatedResponse,
   PurchaseOrder,
@@ -39,7 +40,7 @@ export const purchaseOrdersApi = {
   /**
    * Create a new purchase order
    */
-  create: (data: CreatePurchaseOrderDto): Promise<ApiResponse<PurchaseOrder>> =>
+  create: (data: CreatePurchaseOrdersDto): Promise<ApiResponse<PurchaseOrder>> =>
     apiClient.post("/purchases/orders", data),
 
   /**

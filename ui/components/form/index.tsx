@@ -56,6 +56,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     actionsPlacement = 'bottom',
     resetAfterSubmit = true,
     hideCancel = false,
+    hideSubmit = false,
 
     // Disabled fields in edit mode
     disabledFieldsInEdit,
@@ -168,7 +169,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                 Close
             </Button>
         </div>
-    ) : viewMode ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
+    ) : viewMode ? null : (hideCancel && hideSubmit) ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
         {
             !hideCancel && (
                 <Button type="button" variant="outline" onClick={handleContainerCancel}>
@@ -176,9 +177,13 @@ const DynamicForm: FC<DynamicFormProps> = ({
                 </Button>
             )
         }
-        <Button type="button" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
-            {isActuallySubmitting ? 'Submitting...' : submitLabel}
-        </Button>
+        {
+            !hideSubmit && (
+                <Button type="button" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
+                    {isActuallySubmitting ? 'Submitting...' : submitLabel}
+                </Button>
+            )
+        }
     </div>)
 
     // Render modal mode
