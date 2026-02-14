@@ -70,12 +70,14 @@ export default function ProductsPage() {
 
                 return {
                   id: variant._id || `${attributeKey}-${attributeValue}`,
+                  _id: variant._id, // preserve MongoDB _id for smart merge
                   attributeName: attributeKey || "",
                   value: attributeValue || "",
                   sku: variant.sku || "",
                   costPrice: variant.costPrice || 0,
                   price: variant.price || 0,
                   enabled: variant.status === "active",
+                  images: variant.images || [], // preserve existing variant images
                 };
               }) || [];
 
