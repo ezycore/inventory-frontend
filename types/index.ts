@@ -264,6 +264,60 @@ export interface CustomerLedger {
   hasPrev: boolean;
 }
 
+// Supplier Ledger Types
+export interface SupplierLedgerPurchaseOrder {
+  _id: string;
+  orderNumber: string;
+  invoiceNumber?: string;
+  invoiceAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  createdAt: string;
+  status: "draft" | "ordered" | "partial" | "received" | "cancelled";
+}
+
+export interface SupplierLedgerPayment {
+  _id: string;
+  type: "purchase" | "purchase_return" | "purchase_cancelled";
+  amount: number;
+  createdAt: string;
+  accountId?: {
+    _id: string;
+    name: string;
+  };
+  referenceId?: {
+    _id: string;
+    orderNumber: string;
+    invoiceNumber?: string;
+  };
+}
+
+export interface SupplierLedgerReturn {
+  _id: string;
+  returnNumber: string;
+  orderNumber: string;
+  totalRefundAmount: number;
+  refundedAmount: number;
+  createdAt: string;
+  purchaseOrderId?: {
+    _id: string;
+    orderNumber: string;
+    invoiceNumber?: string;
+  };
+}
+
+export interface SupplierLedger {
+  purchaseOrders: SupplierLedgerPurchaseOrder[];
+  payments: SupplierLedgerPayment[];
+  returns: SupplierLedgerReturn[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 // Supplier interfaces
 export interface Supplier extends BaseEntity {
   name: string;
