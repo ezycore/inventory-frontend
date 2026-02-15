@@ -1,34 +1,30 @@
 "use client";
 
 import {
-  salesColumns,
+  getSalesColumns,
   extractCustomerValue,
-  extractProductValue,
   formatCurrency,
   getCustomerFormConfig,
-  getProductFormConfig,
+  getPaymentFormConfig,
+  ProductSearch,
   type CreateSalesOrderData,
 } from "@/components/sales";
 import { useCreateSalesOrder } from "@/services/api";
 import { useAuthStore, useSellPageStore } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
+import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
-import { DataTable } from "@/ui/components/dataTable";
-import type { CustomAction } from "@/types/DataTable";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/ui/components/collapsible";
+import { Card, CardContent } from "@/ui/components/card";
+import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
+import { Input } from "@/ui/components/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/ui/components/popover";
 import { Separator } from "@/ui/components/separator";
-import { CheckCircleIcon, ChevronDown, ChevronUp, Trash2, User } from "lucide-react";
+import { CheckCircleIcon, ClipboardList } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,7 +34,6 @@ import { toast } from "sonner";
 // =====================
 
 export default function SalesPage() {
-  const [isOrderOpen, setIsOrderOpen] = useState(true);
   const [showSuccessPopover, setShowSuccessPopover] = useState(false);
   const [paidAmount, setPaidAmount] = useState(0);
   const [localAdditionalDiscount, setLocalAdditionalDiscount] = useState(0);
@@ -63,6 +58,7 @@ export default function SalesPage() {
     setAdditionalDiscount,
     setNotes,
     addItem,
+    updateItem,
     removeItem,
     clearAll,
   } = useSellPageStore();
@@ -73,10 +69,15 @@ export default function SalesPage() {
   // Form configurations
   const customerFormConfig = useMemo(
     () => getCustomerFormConfig(isAccountsEnabled),
-    [isAccountsEnabled]
+    [isAccountsEnabled],
   );
 
-  // Customer form (must be defined before productFormConfig uses it)
+  const paymentFormConfig = useMemo(
+    () => getPaymentFormConfig(isAccountsEnabled),
+    [isAccountsEnabled],
+  );
+
+  // Customer form (also holds payment fields)
   const customerForm = useForm({
     defaultValues: {
       customerId: customerId
@@ -90,177 +91,134 @@ export default function SalesPage() {
     },
   });
 
-  // Product form (must be defined before productFormConfig uses it)
-  const productForm = useForm({
-    defaultValues: {
-      productId: "",
-      quantity: 1,
-      costPrice: 0,
-      unitPrice: 0,
-      discountAmount: 0,
-      salePrice: 0,
-    },
-  });
-
-  // Product form config (depends on both forms being defined)
-  const productFormConfig = useMemo(
-    () => getProductFormConfig(customerForm, productForm),
-    [customerForm, productForm]
-  );
-
   // Sync local additional discount with store
   useEffect(() => {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
 
+  // Handle inline discount change in table
+  const handleUpdateDiscount = useCallback(
+    (id: string, discountPercent: number) => {
+      const item = items.find((i) => i.id === id);
+      if (!item) return;
+      const discountAmount = item.unitPrice * (discountPercent / 100);
+      const salePrice = Math.max(0, item.unitPrice - discountAmount);
+      updateItem(id, {
+        discountType: "percentage",
+        discountValue: discountPercent,
+        discountAmount,
+        salePrice,
+      });
+    },
+    [items, updateItem],
+  );
+
+  // Columns with quantity controls, discount editing, and remove
+  const salesColumns = useMemo(
+    () =>
+      getSalesColumns(
+        (id, quantity) => updateItem(id, { quantity }),
+        handleUpdateDiscount,
+        removeItem,
+      ),
+    [updateItem, handleUpdateDiscount, removeItem],
+  );
+
   // =====================
   // Event Handlers
   // =====================
 
-  /**
-   * Handle customer field changes - auto-fill discount from customer
-   */
   const handleCustomerFieldChange = useCallback(
     (fieldName: string, value: unknown) => {
       if (fieldName === "customerId") {
         const customer = extractCustomerValue(value);
-
-        // Update store
         setCustomer(
           customer.value,
           customer.label,
           customer.discountType,
           customer.discountValue,
         );
-
-        // Auto-fill discount fields when customer is selected
         if (customer.value) {
           customerForm.setValue("discountType", customer.discountType);
           customerForm.setValue("discountValue", customer.discountValue);
         }
       } else if (fieldName === "discountType") {
-        // Read current discount value directly from form
         const currentDiscountValue = customerForm.getValues("discountValue");
         setOrderDiscount(value as DiscountType, currentDiscountValue);
       } else if (fieldName === "discountValue") {
-        // Read current discount type directly from form
         const currentDiscountType = customerForm.getValues("discountType");
         setOrderDiscount(currentDiscountType, value as number);
-      } else if (fieldName === "paidAmount") {
-        // Update local state for reactive display
+      }
+    },
+    [customerForm, setCustomer, setOrderDiscount],
+  );
+
+  const handlePaymentFieldChange = useCallback(
+    (fieldName: string, value: unknown) => {
+      if (fieldName === "paidAmount") {
         setPaidAmount(value as number);
       } else if (fieldName === "notes") {
         setNotes(value as string);
       }
     },
-    [customerForm, setCustomer, setOrderDiscount, setNotes],
+    [setNotes],
   );
 
-  /**
-   * Handle product field changes - recalculate when unitPrice is auto-filled
-   */
-  const handleProductFieldChange = useCallback(
-    (fieldName: string, value: unknown) => {
-      // When unitPrice is auto-filled from product selection, recalculate discount and sale price
-      if (fieldName === 'unitPrice' && value) {
-        const currentDiscountType = customerForm.getValues("discountType");
-        const currentDiscountValue = customerForm.getValues("discountValue");
-        const { discountAmount, salePrice } = applyDiscountWithPriority({
-          unitPrice: value as number,
-          orderDiscountType: currentDiscountType,
-          orderDiscountValue: currentDiscountValue,
-        });
-        productForm.setValue("discountAmount", discountAmount);
-        productForm.setValue("salePrice", salePrice);
-      }
-    },
-    [customerForm, productForm],
-  );
-
-  /**
-   * Handle add to order
-   */
-  const handleAddToOrder = useCallback(
-    (data: any) => {
-      const product = extractProductValue(data.productId);
-      if (!product) {
-        toast.error("Please select a product");
+  const handleProductSelect = useCallback(
+    (product: any) => {
+      if (!product) return;
+      if (product.availableQuantity <= 0) {
+        toast.error(`${product.label} is out of stock`);
         return;
       }
-
-      // Validate quantity
-      if (data.quantity > product.availableQuantity) {
-        toast.error(`Only ${product.availableQuantity} items available`);
-        return;
-      }
-
-      // Add item to store
+      const discountType = customerForm.getValues("discountType");
+      const discountValue = customerForm.getValues("discountValue");
+      const { discountAmount, salePrice } = applyDiscountWithPriority({
+        unitPrice: product.unitPrice,
+        orderDiscountType: discountType,
+        orderDiscountValue: discountValue,
+      });
       addItem({
         inventoryId: product.value,
         productId: product.productId,
         variantId: product.variantId,
         productName: product.label,
-        quantity: data.quantity,
-        costPrice: data.costPrice,
-        unitPrice: data.unitPrice,
-        discountType: customerForm.getValues("discountType"),
-        discountValue: customerForm.getValues("discountValue"),
-        discountAmount: data.discountAmount,
-        salePrice: data.salePrice,
+        quantity: 1,
+        costPrice: product.costPrice,
+        unitPrice: product.unitPrice,
+        discountType,
+        discountValue,
+        discountAmount,
+        salePrice,
         availableQuantity: product.availableQuantity,
       });
-
-      toast.success(`${product.label} added to order`);
-
-      // Reset product form
-      productForm.reset({
-        productId: "",
-        quantity: 1,
-        costPrice: 0,
-        unitPrice: 0,
-        discountAmount: 0,
-        salePrice: 0,
-      });
+      toast.success(`${product.label} added`);
     },
-    [addItem, productForm, customerForm],
+    [addItem, customerForm],
   );
 
-  /**
-   * Handle mark as sold
-   */
   const handleMarkAsSold = useCallback(async () => {
     if (items.length === 0) {
       toast.error("Please add items to the order");
       return;
     }
-
-    // Get form values
     const accountId = customerForm.getValues("accountId");
     const paidAmount = customerForm.getValues("paidAmount") || 0;
     const formAdditionalDiscount = localAdditionalDiscount;
-
-    // Extract account ID if it's an object
     const extractedAccountId =
-      typeof accountId === "object" &&
-        accountId !== null &&
-        "value" in accountId
+      typeof accountId === "object" && accountId !== null && "value" in accountId
         ? accountId.value
         : typeof accountId === "string"
           ? accountId
           : null;
-
-    // Validate: if accounts enabled and payment provided, accountId is required
     if (isAccountsEnabled && paidAmount > 0 && !extractedAccountId) {
       toast.error("Please select a payment account");
       return;
     }
-
     try {
       const totalSalePrice = getTotalSalePrice();
       const totalCostPrice = getTotalCostPrice();
       const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
-
-      // Prepare order data
       const orderData: CreateSalesOrderData = {
         customerId: customerId || undefined,
         locationId: "default",
@@ -279,25 +237,14 @@ export default function SalesPage() {
         costPrice: totalCostPrice,
         notes: notes || undefined,
       };
-
-      // Add payment info if accounts enabled and payment is provided
       if (isAccountsEnabled && extractedAccountId && paidAmount > 0) {
-        orderData.payment = {
-          paidAmount,
-          accountId: extractedAccountId,
-        };
+        orderData.payment = { paidAmount, accountId: extractedAccountId };
         orderData.dueAmount = dueAmount;
       }
-
-      // Create and complete order
       const createResult = await createOrderMutation.mutateAsync(orderData);
-
       if (createResult.data?._id) {
-        // Show success
         setShowSuccessPopover(true);
         setTimeout(() => setShowSuccessPopover(false), 3000);
-
-        // Reset all
         clearAll();
         customerForm.reset({
           customerId: null,
@@ -307,7 +254,6 @@ export default function SalesPage() {
           paidAmount: 0,
           notes: "",
         });
-        productForm.reset();
         setPaidAmount(0);
         setLocalAdditionalDiscount(0);
       }
@@ -325,208 +271,216 @@ export default function SalesPage() {
     createOrderMutation,
     clearAll,
     customerForm,
-    productForm,
     localAdditionalDiscount,
   ]);
 
   const isLoading = createOrderMutation.isPending;
+  const itemsSubtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const totalSalePrice = getTotalSalePrice();
+  const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
 
-  // Custom actions for removing items
-  const customActions: CustomAction[] = useMemo(
-    () => [
-      {
-        type: "remove",
-        placement: "cell",
-        variant: "destructive",
-        icon: <Trash2 className="h-2 w-2" />,
-        onClick: (row) => removeItem(row.id),
-      },
-    ],
-    [removeItem]
-  );
+  // =====================
+  // Render
+  // =====================
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Sales</h1>
-        <p className="text-muted-foreground">
-          Create a new sale and record stock movement
-        </p>
-      </div>
+    <div className="container mx-auto p-4 md:p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* ==================== LEFT COLUMN ==================== */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Step 1: Select Customer */}
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  1
+                </span>
+                <h3 className="font-semibold text-sm">Select Customer</h3>
+              </div>
+              <DynamicForm
+                form={customerForm}
+                config={customerFormConfig}
+                onFieldChange={handleCustomerFieldChange}
+                hideCancel
+              />
+            </CardContent>
+          </Card>
 
-      {/* Section 1: Customer & Order Discount */}
-     
-          <DynamicForm
-            form={customerForm}
-            config={customerFormConfig}
-            onFieldChange={handleCustomerFieldChange}
-            hideCancel
-          />
+          {/* Step 2: Add Products */}
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  2
+                </span>
+                <h3 className="font-semibold text-sm">Add Products</h3>
+              </div>
+              <ProductSearch onSelect={handleProductSelect} />
+            </CardContent>
+          </Card>
 
-      {/* Section 2: Product Selection */}
-   
-          <DynamicForm
-            form={productForm}
-            config={productFormConfig}
-            onSubmit={handleAddToOrder}
-            onFieldChange={handleProductFieldChange}
-            submitLabel="Add to Order"
-            hideCancel
-          />
-     
-
-      {/* Section 4: Order Summary */}
-      {items.length > 0 && (
-        <Card>
-          <Collapsible open={isOrderOpen} onOpenChange={setIsOrderOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    {customerName || "Walk-in Customer"}
-                    <span className="text-sm font-normal text-muted-foreground">
-                      ({items.length} item{items.length !== 1 ? "s" : ""})
+          {/* Step 3: Order Items Table */}
+          {items.length > 0 && (
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      3
                     </span>
-                  </CardTitle>
-                  {isOrderOpen ? (
-                    <ChevronUp className="h-5 w-5" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-
-            <CollapsibleContent>
-              <CardContent>
-                {/* Items Table */}
-                <DataTable
-                  cardTitle=""
-                  columns={salesColumns as any}
-                  data={items as any}
-                  customActions={customActions}
-                />
-
-                <Separator className="my-4" />
-
-                {/* Summary Footer */}
-                <div className="space-y-3">
-                  {/* Items Subtotal */}
-                  <div className="flex justify-between text-sm py-2">
-                    <span className="text-muted-foreground">
-                      Items Subtotal
-                    </span>
-                    <span className="font-medium">{formatCurrency(items.reduce((sum, item) => sum + item.total, 0))}</span>
+                    <h3 className="font-semibold text-sm">Order Items</h3>
+                    <Badge variant="secondary" className="text-xs">
+                      {items.length} {items.length === 1 ? "item" : "items"}
+                    </Badge>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAll}
+                    className="text-muted-foreground hover:text-destructive text-xs h-7"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+                <CardTable
+                  columns={salesColumns}
+                  data={items}
+                  emptyMessage="No items added yet"
+                  showCard={false}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-                  {/* Additional Discount Input */}
-                  <div className="flex justify-between items-center gap-4 py-2 px-3 bg-muted/50 rounded-lg">
-                    <label htmlFor="additionalDiscount" className="text-sm font-medium text-foreground">
-                      Additional Discount
-                    </label>
-                    <input
-                      id="additionalDiscount"
+        {/* ==================== RIGHT COLUMN (Sticky Sidebar) ==================== */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-20">
+            <Card>
+              <CardContent className="pt-4 space-y-4">
+                {/* Header */}
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="font-semibold text-base">Order Summary</h3>
+                </div>
+
+                {/* Subtotal */}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="tabular-nums">
+                    {formatCurrency(itemsSubtotal)}
+                  </span>
+                </div>
+
+                {/* Additional Discount */}
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground font-medium">
+                    Additional Discount
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Input
                       type="number"
                       min="0"
                       step="0.01"
-                      value={localAdditionalDiscount}
+                      value={localAdditionalDiscount || ""}
                       onChange={(e) => {
                         const value = Math.max(0, Number(e.target.value) || 0);
                         setLocalAdditionalDiscount(value);
                         setAdditionalDiscount(value);
                       }}
                       placeholder="0"
-                      className="w-32 px-3 py-2 text-sm border border-input bg-background rounded-md text-right focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                      className="w-20 h-7 text-right text-sm"
                     />
+                    <span className="text-xs text-muted-foreground">%</span>
                   </div>
-
-                  <Separator className="my-2" />
-
-                  {/* Total Sale Price (After Discount) */}
-                  <div className="flex justify-between items-center py-3 px-4 bg-primary/10 rounded-lg">
-                    <span className="text-lg font-bold text-foreground">Total Sale Price</span>
-                    <span className="text-2xl font-bold text-primary">
-                      {formatCurrency(getTotalSalePrice())}
-                    </span>
-                  </div>
-
-                  {/* Total Cost Price */}
-                  <div className="flex justify-between text-sm py-2 px-2">
-                    <span className="text-muted-foreground">
-                      Total Cost Price
-                    </span>
-                    <span className="font-medium text-muted-foreground">{formatCurrency(getTotalCostPrice())}</span>
-                  </div>
-
-                  {/* Payment Info - only show if accounts enabled */}
-                  {isAccountsEnabled && (
-                    <>
-                      <Separator className="my-3" />
-                      <div className="space-y-2">
-                        <div className="flex justify-between py-2 px-2">
-                          <span className="text-sm text-muted-foreground">
-                            Paid Amount
-                          </span>
-                          <span className="text-sm font-semibold text-green-600 dark:text-green-500">
-                            {formatCurrency(paidAmount || 0)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between py-2 px-2">
-                          <span className="text-sm text-muted-foreground">
-                            Due Amount
-                          </span>
-                          <span className="text-sm font-semibold text-orange-600 dark:text-orange-500">
-                            {formatCurrency(
-                              Math.max(
-                                getTotalSalePrice() - (paidAmount || 0),
-                                0,
-                              ),
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </div>
 
-                <Separator className="my-4" />
+                {/* Total */}
+                <div className="flex justify-between items-center pt-1">
+                  <span className="font-semibold">Total Amount</span>
+                  <span className="text-lg font-bold text-primary tabular-nums">
+                    {formatCurrency(totalSalePrice)}
+                  </span>
+                </div>
 
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <Popover open={showSuccessPopover}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        onClick={handleMarkAsSold}
-                        disabled={isLoading || items.length === 0}
-                        className="flex-1 text-base font-semibold"
+                <Separator />
+
+                {/* Payment Form */}
+                <DynamicForm
+                  form={customerForm}
+                  config={paymentFormConfig}
+                  onFieldChange={handlePaymentFieldChange}
+                  hideCancel
+                />
+
+                {/* Payment Summary */}
+                {isAccountsEnabled && paidAmount > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Paid</span>
+                      <span className="font-semibold text-green-600 dark:text-green-500 tabular-nums">
+                        {formatCurrency(paidAmount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Due</span>
+                      <span
+                        className={`font-semibold tabular-nums ${
+                          dueAmount > 0
+                            ? "text-orange-600 dark:text-orange-500"
+                            : "text-green-600 dark:text-green-500"
+                        }`}
                       >
-                        {isLoading ? "Processing..." : "Mark as Sold"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto">
-                      <div className="flex items-center gap-2 text-green-600">
-                        <CheckCircleIcon className="h-5 w-5" />
-                        <span className="font-medium">
-                          Sale completed successfully!
+                        {formatCurrency(dueAmount)}
+                      </span>
+                    </div>
+                    {paidAmount > totalSalePrice && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Change</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
+                          {formatCurrency(paidAmount - totalSalePrice)}
                         </span>
                       </div>
-                    </PopoverContent>
-                  </Popover>
-                  <Button
-                    variant="outline"
-                    onClick={clearAll}
-                    disabled={isLoading}
-                  >
-                    Clear All
-                  </Button>
-                </div>
+                    )}
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* Confirm Order */}
+                <Popover open={showSuccessPopover}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      onClick={handleMarkAsSold}
+                      disabled={isLoading || items.length === 0}
+                      size="lg"
+                      className="w-full font-semibold"
+                    >
+                      <CheckCircleIcon className="h-5 w-5 mr-2" />
+                      {isLoading ? "Processing..." : "Confirm Order"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircleIcon className="h-5 w-5" />
+                      <span className="font-medium">
+                        Sale completed successfully!
+                      </span>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
+                {items.length > 0 && (
+                  <p className="text-center text-xs text-muted-foreground">
+                    {items.length} {items.length === 1 ? "item" : "items"} in
+                    order
+                  </p>
+                )}
               </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
-      )}
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
