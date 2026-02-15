@@ -1,9 +1,22 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import type { ColumnDef } from "@tanstack/react-table";
+import { useCurrency } from "@/lib/currency";
+import {
+  useAccounts,
+  useAddPurchasePayment,
+  usePurchaseOrderPayments,
+  usePurchaseOrders,
+  usePurchaseOrdersSummary,
+} from "@/services/api";
+import { useAuthStore } from "@/services/stores/use-auth-store";
+import type {
+  AddPurchasePaymentDto,
+  PurchaseOrder,
+  PurchaseOrderFilters,
+  PurchaseOrderStatus,
+} from "@/types";
+import type { FilterField } from "@/types/filter";
+import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
   Card,
@@ -12,14 +25,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/components/card";
-import { Badge } from "@/ui/components/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/ui/components/sheet";
+import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
+import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +35,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/components/dialog";
+import { Input } from "@/ui/components/input";
+import { Label } from "@/ui/components/label";
 import {
   Select,
   SelectContent,
@@ -35,42 +44,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/components/select";
-import { Input } from "@/ui/components/input";
-import { Label } from "@/ui/components/label";
-import { Textarea } from "@/ui/components/textarea";
 import { Separator } from "@/ui/components/separator";
 import {
-  Plus,
-  CreditCard,
-  Receipt,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  AlertCircle,
-  Wallet,
-  Package,
-  Truck,
-} from "lucide-react";
-import {
-  usePurchaseOrders,
-  usePurchaseOrderPayments,
-  useAddPurchasePayment,
-  useAccounts,
-  usePurchaseOrdersSummary,
-} from "@/services/api";
-import { useAuthStore } from "@/services/stores/use-auth-store";
-import { toast } from "sonner";
-import type {
-  PurchaseOrder,
-  PurchaseOrderStatus,
-  PurchaseOrderFilters,
-  AddPurchasePaymentDto,
-} from "@/types";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/ui/components/sheet";
 import { Skeleton } from "@/ui/components/skeleton";
-import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
-import { useCurrency } from "@/lib/currency";
-import type { FilterField } from "@/types/filter";
+import { Textarea } from "@/ui/components/textarea";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Package,
+  Plus,
+  Receipt,
+  Wallet,
+  XCircle,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 // Status configuration for badges
 const statusConfig: Record<
@@ -131,7 +130,9 @@ export default function PurchaseHistoryPage() {
   const [filters, setFilters] = useState<PurchaseOrderFilters>({});
 
   // State for modals/drawers
-  const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(
+    null,
+  );
   const [paymentsDrawerOpen, setPaymentsDrawerOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
@@ -143,7 +144,11 @@ export default function PurchaseHistoryPage() {
   const [paymentNotes, setPaymentNotes] = useState<string>("");
 
   // Data fetching - only received, partial, cancelled for history
-  const { data: purchaseData, isLoading, refetch } = usePurchaseOrders({
+  const {
+    data: purchaseData,
+    isLoading,
+    refetch,
+  } = usePurchaseOrders({
     page,
     limit,
     ...filters,
@@ -212,9 +217,11 @@ export default function PurchaseHistoryPage() {
       await addPaymentMutation.mutateAsync({
         id: selectedOrder._id,
         data: {
-          amount,
+          paidAmount: amount,
+          amount: amount,
           accountId: paymentAccountId,
-          paymentMethod: paymentMethod as AddPurchasePaymentDto["paymentMethod"],
+          paymentMethod:
+            paymentMethod as AddPurchasePaymentDto["paymentMethod"],
           notes: paymentNotes || undefined,
         },
       });
@@ -279,7 +286,7 @@ export default function PurchaseHistoryPage() {
         header: () => <span className="flex justify-end">Total</span>,
         cell: ({ row }) => (
           <span className="flex justify-end font-medium">
-            {formatCurrency(row.original.grandTotal)}
+            {formatCurrency(row.original.invoiceAmount || 0)}
           </span>
         ),
       },
@@ -322,7 +329,7 @@ export default function PurchaseHistoryPage() {
         },
       },
     ],
-    [formatCurrency]
+    [formatCurrency],
   );
 
   // Custom actions for each row
@@ -359,7 +366,12 @@ export default function PurchaseHistoryPage() {
           ]
         : []),
     ],
-    [handleViewDetails, handleViewPayments, handleMakePayment, isAccountsEnabled]
+    [
+      handleViewDetails,
+      handleViewPayments,
+      handleMakePayment,
+      isAccountsEnabled,
+    ],
   );
 
   // Filter configuration
@@ -394,7 +406,7 @@ export default function PurchaseHistoryPage() {
         setPage(1);
       },
     }),
-    []
+    [],
   );
 
   return (
@@ -403,7 +415,9 @@ export default function PurchaseHistoryPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Purchase History</h1>
-          <p className="text-muted-foreground">View and manage your purchases</p>
+          <p className="text-muted-foreground">
+            View and manage your purchases
+          </p>
         </div>
         <Button onClick={() => router.push("/purchases")}>
           <Plus className="h-4 w-4 mr-2" />
@@ -425,7 +439,7 @@ export default function PurchaseHistoryPage() {
               {isSummaryLoading ? (
                 <Skeleton className="h-8 w-24" />
               ) : (
-                summary?.totalOrders ?? 0
+                (summary?.totalOrders ?? 0)
               )}
             </CardTitle>
           </CardHeader>
@@ -471,7 +485,9 @@ export default function PurchaseHistoryPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Amount paid to suppliers</p>
+              <p className="text-xs text-muted-foreground">
+                Amount paid to suppliers
+              </p>
             </CardContent>
           </Card>
         )}
@@ -483,7 +499,9 @@ export default function PurchaseHistoryPage() {
               <CardDescription>Total Due</CardDescription>
               <CardTitle
                 className={`text-2xl ${
-                  (summary?.totalDue ?? 0) > 0 ? "text-red-600" : "text-green-600"
+                  (summary?.totalDue ?? 0) > 0
+                    ? "text-red-600"
+                    : "text-green-600"
                 }`}
               >
                 {isSummaryLoading ? (
@@ -494,7 +512,9 @@ export default function PurchaseHistoryPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Outstanding balance</p>
+              <p className="text-xs text-muted-foreground">
+                Outstanding balance
+              </p>
             </CardContent>
           </Card>
         )}
@@ -586,13 +606,18 @@ export default function PurchaseHistoryPage() {
                       className="rounded-lg border p-3 flex justify-between"
                     >
                       <div>
-                        <p className="font-medium">{item.productName || "Product"}</p>
+                        <p className="font-medium">
+                          {item.productName || "Product"}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          Qty: {item.quantity} × {formatCurrency(item.unitPrice)}
+                          Qty: {item.quantity} ×{" "}
+                          {formatCurrency(item.unitPrice)}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">{formatCurrency(item.total)}</p>
+                        <p className="font-medium">
+                          {formatCurrency(item.total)}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -664,7 +689,9 @@ export default function PurchaseHistoryPage() {
               <Receipt className="h-5 w-5" />
               Payments - {selectedOrder?.orderNumber}
             </SheetTitle>
-            <SheetDescription>Payment history for this purchase</SheetDescription>
+            <SheetDescription>
+              Payment history for this purchase
+            </SheetDescription>
           </SheetHeader>
 
           {selectedOrder && (
@@ -792,7 +819,9 @@ export default function PurchaseHistoryPage() {
               {/* Due Amount Info */}
               <div className="rounded-lg bg-muted p-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Due Amount</span>
+                  <span className="text-sm text-muted-foreground">
+                    Due Amount
+                  </span>
                   <span className="text-lg font-bold text-red-600">
                     {formatCurrency(selectedOrder.dueAmount || 0)}
                   </span>
@@ -817,7 +846,10 @@ export default function PurchaseHistoryPage() {
               {/* Payment Account */}
               <div className="space-y-2">
                 <Label htmlFor="account">Payment Account</Label>
-                <Select value={paymentAccountId} onValueChange={setPaymentAccountId}>
+                <Select
+                  value={paymentAccountId}
+                  onValueChange={setPaymentAccountId}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select account" />
                   </SelectTrigger>
@@ -873,7 +905,9 @@ export default function PurchaseHistoryPage() {
             <Button
               onClick={handlePaymentSubmit}
               disabled={
-                addPaymentMutation.isPending || !paymentAccountId || !paymentAmount
+                addPaymentMutation.isPending ||
+                !paymentAccountId ||
+                !paymentAmount
               }
             >
               {addPaymentMutation.isPending ? "Processing..." : "Add Payment"}

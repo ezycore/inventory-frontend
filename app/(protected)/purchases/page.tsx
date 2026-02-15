@@ -1,71 +1,73 @@
 "use client";
 
+import { useCurrency } from "@/lib/currency";
 import { useCreatePurchaseOrder } from "@/services/api";
 import {
   type PurchaseOrderItem,
   useAuthStore,
   usePurchasePageStore,
 } from "@/services/stores";
+import type {
+  CreatePurchaseOrderDto,
+  CreatePurchaseOrderItemDto,
+} from "@/types";
 import { Button } from "@/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
+import { Checkbox } from "@/ui/components/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/ui/components/collapsible";
 import { CardTable } from "@/ui/components/custom/card-table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/ui/components/dialog";
 import DynamicForm from "@/ui/components/form";
 import type {
   DynamicFormConfig,
   FormFieldConfig,
   SelectOption,
 } from "@/ui/components/form/type";
+import { Input } from "@/ui/components/input";
+import { Label } from "@/ui/components/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/ui/components/popover";
 import { Separator } from "@/ui/components/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/ui/components/dialog";
-import { Input } from "@/ui/components/input";
-import { Label } from "@/ui/components/label";
-import { Checkbox } from "@/ui/components/checkbox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   ChevronDown,
   ChevronUp,
+  Edit2,
   Package,
   Trash2,
   Truck,
-  Edit2,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useCurrency } from "@/lib/currency";
-import type { CreatePurchaseOrderDto, CreatePurchaseOrderItemDto } from "@/types";
 
 // =====================
 // Schema Definitions
 // =====================
 
 const supplierFormSchema = z.object({
-  supplierId: z
-    .union([
-      z.string().min(1, "Supplier is required"),
-      z.object({
-        label: z.string(),
-        value: z.string(),
-      }),
-    ]),
+  supplierId: z.union([
+    z.string().min(1, "Supplier is required"),
+    z.object({
+      label: z.string(),
+      value: z.string(),
+    }),
+  ]),
   purchaseType: z.enum(["instant", "order"]),
   discountType: z.enum(["percentage", "fixed"]).optional(),
   discountValue: z.number().min(0).optional(),
@@ -159,7 +161,7 @@ interface AccountApiResponse {
 // =====================
 
 const supplierItemsCreateCallback = (
-  response: SupplierApiResponse
+  response: SupplierApiResponse,
 ): SelectOption[] => {
   const items = response?.data?.items || [];
   return items.map((item) => ({
@@ -171,7 +173,7 @@ const supplierItemsCreateCallback = (
 };
 
 const productItemsCreateCallback = (
-  response: ProductApiResponse
+  response: ProductApiResponse,
 ): SelectOption[] => {
   const items = response?.data || [];
   return items.map((item) => ({
@@ -185,7 +187,7 @@ const productItemsCreateCallback = (
 };
 
 const accountItemsCreateCallback = (
-  response: AccountApiResponse
+  response: AccountApiResponse,
 ): SelectOption[] => {
   const items = response?.data?.items || [];
   return items.map((item) => ({
@@ -207,10 +209,15 @@ interface ExtractedSupplier {
 }
 
 const extractSupplierValue = (
-  val: SupplierFormData["supplierId"]
+  val: SupplierFormData["supplierId"],
 ): ExtractedSupplier => {
   if (!val) {
-    return { value: null, label: null, defaultDiscountType: "fixed", defaultDiscountValue: 0 };
+    return {
+      value: null,
+      label: null,
+      defaultDiscountType: "fixed",
+      defaultDiscountValue: 0,
+    };
   }
   if (typeof val === "object" && "value" in val) {
     return {
@@ -220,7 +227,12 @@ const extractSupplierValue = (
       defaultDiscountValue: (val as any).defaultDiscountValue || 0,
     };
   }
-  return { value: val as string, label: null, defaultDiscountType: "fixed", defaultDiscountValue: 0 };
+  return {
+    value: val as string,
+    label: null,
+    defaultDiscountType: "fixed",
+    defaultDiscountValue: 0,
+  };
 };
 
 interface ExtractedProduct {
@@ -233,7 +245,7 @@ interface ExtractedProduct {
 }
 
 const extractProductValue = (
-  val: ProductFormData["productId"]
+  val: ProductFormData["productId"],
 ): ExtractedProduct | null => {
   if (!val) return null;
   if (typeof val === "object" && "value" in val) {
@@ -256,8 +268,12 @@ const extractProductValue = (
 export default function PurchasesPage() {
   const { format: formatCurrency } = useCurrency();
   const [showSuccessPopover, setShowSuccessPopover] = useState(false);
-  const [expandedSellers, setExpandedSellers] = useState<Set<string>>(new Set());
-  const [editingItem, setEditingItem] = useState<PurchaseOrderItem | null>(null);
+  const [expandedSellers, setExpandedSellers] = useState<Set<string>>(
+    new Set(),
+  );
+  const [editingItem, setEditingItem] = useState<PurchaseOrderItem | null>(
+    null,
+  );
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSellerId, setEditingSellerId] = useState<string | null>(null);
 
@@ -319,7 +335,10 @@ export default function PurchasesPage() {
     resolver: zodResolver(supplierFormSchema),
     defaultValues: {
       supplierId: activeSeller?.supplierId
-        ? { value: activeSeller.supplierId, label: activeSeller.supplierName || "" }
+        ? {
+            value: activeSeller.supplierId,
+            label: activeSeller.supplierName || "",
+          }
         : null,
       purchaseType: activeSeller?.purchaseType || "instant",
       discountType: activeSeller?.discountType || "fixed",
@@ -361,12 +380,36 @@ export default function PurchasesPage() {
   });
 
   // Watch edit form values for reactive updates
-  const editQuantity = useWatch({ control: editForm.control, name: "quantity", defaultValue: 1 });
-  const editConvertedQuantity = useWatch({ control: editForm.control, name: "convertedQuantity", defaultValue: 1 });
-  const editPrice = useWatch({ control: editForm.control, name: "price", defaultValue: 0 });
-  const editDiscount = useWatch({ control: editForm.control, name: "discount", defaultValue: 0 });
-  const editCostPrice = useWatch({ control: editForm.control, name: "costPrice", defaultValue: 0 });
-  const editRememberCostPrice = useWatch({ control: editForm.control, name: "rememberCostPrice", defaultValue: false });
+  const editQuantity = useWatch({
+    control: editForm.control,
+    name: "quantity",
+    defaultValue: 1,
+  });
+  const editConvertedQuantity = useWatch({
+    control: editForm.control,
+    name: "convertedQuantity",
+    defaultValue: 1,
+  });
+  const editPrice = useWatch({
+    control: editForm.control,
+    name: "price",
+    defaultValue: 0,
+  });
+  const editDiscount = useWatch({
+    control: editForm.control,
+    name: "discount",
+    defaultValue: 0,
+  });
+  const editCostPrice = useWatch({
+    control: editForm.control,
+    name: "costPrice",
+    defaultValue: 0,
+  });
+  const editRememberCostPrice = useWatch({
+    control: editForm.control,
+    name: "rememberCostPrice",
+    defaultValue: false,
+  });
 
   // =====================
   // Form Configurations
@@ -455,7 +498,7 @@ export default function PurchasesPage() {
           placeholder: "0",
           columnSpan: 6,
           validation: { min: 0 },
-        }
+        },
       );
     }
 
@@ -553,7 +596,7 @@ export default function PurchasesPage() {
         type: "checkbox",
         required: false,
         columnSpan: isUOMEnabled ? 2 : 2,
-      }
+      },
     );
 
     return {
@@ -579,13 +622,20 @@ export default function PurchasesPage() {
       if (!activeSeller) return;
 
       if (fieldName === "supplierId") {
-        const supplier = extractSupplierValue(value as SupplierFormData["supplierId"]);
+        const supplier = extractSupplierValue(
+          value as SupplierFormData["supplierId"],
+        );
 
         // Check if supplier changed and current seller has items
-        if (activeSeller.items.length > 0 && supplier.value !== activeSeller.supplierId) {
+        if (
+          activeSeller.items.length > 0 &&
+          supplier.value !== activeSeller.supplierId
+        ) {
           // Check if there's already a seller for this supplier
-          const existingSellerIndex = sellers.findIndex(s => s.supplierId === supplier.value);
-          
+          const existingSellerIndex = sellers.findIndex(
+            (s) => s.supplierId === supplier.value,
+          );
+
           if (existingSellerIndex !== -1) {
             // Switch to existing seller for this supplier
             setActiveSeller(existingSellerIndex);
@@ -650,7 +700,7 @@ export default function PurchasesPage() {
       setDiscountType,
       setDiscountValue,
       supplierForm,
-    ]
+    ],
   );
 
   /**
@@ -659,23 +709,26 @@ export default function PurchasesPage() {
   const handleProductFieldChange = useCallback(
     (fieldName: string, value: unknown) => {
       if (fieldName === "productId") {
-        const product = extractProductValue(value as ProductFormData["productId"]);
+        const product = extractProductValue(
+          value as ProductFormData["productId"],
+        );
         if (product) {
           const quantity = productForm.getValues("quantity") || 1;
           const conversionFactor = product.conversionFactor || 1;
           const convertedQuantity = quantity * conversionFactor;
-          
+
           // Calculate per-unit price from product
           const perUnitPrice = product.price;
-          
+
           // Calculate box-level price (what user sees when UOM enabled)
           // Box price = per-unit price * conversionFactor
           const boxPrice = perUnitPrice * conversionFactor;
-          
+
           // Get supplier discount from form
-          const discountType = supplierForm.getValues("discountType") || "fixed";
+          const discountType =
+            supplierForm.getValues("discountType") || "fixed";
           const discountValue = supplierForm.getValues("discountValue") || 0;
-          
+
           // Calculate discount per box based on supplier discount settings
           let boxDiscount = 0;
           if (discountType === "percentage") {
@@ -684,10 +737,10 @@ export default function PurchasesPage() {
             // Fixed discount is per box
             boxDiscount = discountValue;
           }
-          
+
           // Box cost price = box price - box discount
           const boxCostPrice = Math.max(0, boxPrice - boxDiscount);
-          
+
           // Update form values with box-level prices (what user sees)
           productForm.setValue("convertedQuantity", convertedQuantity);
           productForm.setValue("price", boxPrice);
@@ -700,7 +753,7 @@ export default function PurchasesPage() {
           const quantity = (value as number) || 1;
           const conversionFactor = product.conversionFactor || 1;
           const convertedQuantity = quantity * conversionFactor;
-          
+
           // Update converted quantity only - box price and costPrice stay the same
           productForm.setValue("convertedQuantity", convertedQuantity);
         }
@@ -718,7 +771,7 @@ export default function PurchasesPage() {
         productForm.setValue("discount", boxDiscount);
       }
     },
-    [productForm, supplierForm]
+    [productForm, supplierForm],
   );
 
   /**
@@ -729,7 +782,7 @@ export default function PurchasesPage() {
       // Check if supplier is selected from the form
       const supplierValue = supplierForm.getValues("supplierId");
       const supplier = extractSupplierValue(supplierValue);
-      
+
       if (!supplier.value) {
         toast.error("Please select a supplier first");
         return;
@@ -738,14 +791,14 @@ export default function PurchasesPage() {
       // Get current state from store to avoid stale closure
       const storeState = usePurchasePageStore.getState();
       let currentSeller = storeState.sellers[storeState.activeSellerIndex];
-      
+
       // If current seller doesn't have the selected supplier, find or create one
       if (!currentSeller || currentSeller.supplierId !== supplier.value) {
         // Find existing seller for this supplier
         const existingSellerIndex = storeState.sellers.findIndex(
-          (s) => s.supplierId === supplier.value
+          (s) => s.supplierId === supplier.value,
         );
-        
+
         if (existingSellerIndex !== -1) {
           setActiveSeller(existingSellerIndex);
           currentSeller = storeState.sellers[existingSellerIndex];
@@ -772,7 +825,7 @@ export default function PurchasesPage() {
       // Box price = per-unit price * conversionFactor
       const conversionFactor = product.conversionFactor || 1;
       const boxPrice = product.price * conversionFactor;
-      
+
       addItem(currentSeller.id, {
         inventoryId: product.value,
         productId: product.productId,
@@ -799,40 +852,50 @@ export default function PurchasesPage() {
         rememberCostPrice: false,
       });
     },
-    [addItem, productForm, supplierForm, setActiveSeller, setSupplier, addSeller]
+    [
+      addItem,
+      productForm,
+      supplierForm,
+      setActiveSeller,
+      setSupplier,
+      addSeller,
+    ],
   );
 
   /**
    * Handle edit item
    */
-  const handleEditItem = useCallback((sellerId: string, item: PurchaseOrderItem) => {
-    setEditingItem(item);
-    setEditingSellerId(sellerId);
-    
-    const convertedQuantity = item.convertedQuantity || item.quantity;
-    // item.unitPrice is already box price (per purchase unit)
-    // Use it directly for display
-    const boxPrice = item.unitPrice;
-    
-    editForm.reset({
-      productId: {
-        value: item.inventoryId,
-        label: item.productName,
-        price: boxPrice, // Store box price for calculations
-        conversionFactor: item.conversionFactor || 1,
-        productId: item.productId,
-        variantId: item.variantId,
-      },
-      quantity: item.quantity,
-      convertedQuantity: convertedQuantity,
-      price: boxPrice, // Display box price
-      discount: item.discount, // Box discount
-      costPrice: item.costPrice, // Box cost price
-      rememberCostPrice: false,
-    });
-    
-    setIsEditDialogOpen(true);
-  }, [editForm]);
+  const handleEditItem = useCallback(
+    (sellerId: string, item: PurchaseOrderItem) => {
+      setEditingItem(item);
+      setEditingSellerId(sellerId);
+
+      const convertedQuantity = item.convertedQuantity || item.quantity;
+      // item.unitPrice is already box price (per purchase unit)
+      // Use it directly for display
+      const boxPrice = item.unitPrice;
+
+      editForm.reset({
+        productId: {
+          value: item.inventoryId,
+          label: item.productName,
+          price: boxPrice, // Store box price for calculations
+          conversionFactor: item.conversionFactor || 1,
+          productId: item.productId,
+          variantId: item.variantId,
+        },
+        quantity: item.quantity,
+        convertedQuantity: convertedQuantity,
+        price: boxPrice, // Display box price
+        discount: item.discount, // Box discount
+        costPrice: item.costPrice, // Box cost price
+        rememberCostPrice: false,
+      });
+
+      setIsEditDialogOpen(true);
+    },
+    [editForm],
+  );
 
   /**
    * Handle save edit
@@ -841,7 +904,7 @@ export default function PurchasesPage() {
     if (!editingItem || !editingSellerId) return;
 
     const data = editForm.getValues();
-    
+
     updateItem(editingSellerId, editingItem.id, {
       quantity: data.quantity,
       discount: data.discount,
@@ -866,7 +929,7 @@ export default function PurchasesPage() {
           const quantity = (value as number) || 1;
           const conversionFactor = product.conversionFactor || 1;
           const convertedQuantity = quantity * conversionFactor;
-          
+
           // Box price stays the same - only convertedQuantity changes
           // product.price here is already the box price (stored in form)
           editForm.setValue("convertedQuantity", convertedQuantity);
@@ -879,25 +942,32 @@ export default function PurchasesPage() {
         editForm.setValue("costPrice", boxCostPrice);
       }
     },
-    [editForm]
+    [editForm],
   );
 
   /**
    * Handle delete seller
    */
-  const handleDeleteSeller = useCallback((sellerId: string) => {
-    if (confirm("Are you sure you want to delete all items for this supplier?")) {
-      removeSeller(sellerId);
-      toast.success("Supplier removed");
-    }
-  }, [removeSeller]);
+  const handleDeleteSeller = useCallback(
+    (sellerId: string) => {
+      if (
+        confirm("Are you sure you want to delete all items for this supplier?")
+      ) {
+        removeSeller(sellerId);
+        toast.success("Supplier removed");
+      }
+    },
+    [removeSeller],
+  );
 
   /**
    * Handle complete order
    */
   const handleCompleteOrder = useCallback(async () => {
     // Filter sellers with items and valid supplier
-    const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
+    const validSellers = sellers.filter(
+      (s) => s.items.length > 0 && s.supplierId,
+    );
     console.log("Valid sellers for order:", validSellers);
     if (validSellers.length === 0) {
       toast.error("Please add items to at least one supplier");
@@ -908,7 +978,9 @@ export default function PurchasesPage() {
     const accountId = supplierForm.getValues("accountId");
     const paidAmount = supplierForm.getValues("paidAmount") || 0;
     const extractedAccountId =
-      typeof accountId === "object" && accountId !== null && "value" in accountId
+      typeof accountId === "object" &&
+      accountId !== null &&
+      "value" in accountId
         ? accountId.value
         : typeof accountId === "string"
           ? accountId
@@ -916,66 +988,66 @@ export default function PurchasesPage() {
 
     try {
       // Create array of purchase orders (one per supplier)
-      const ordersData: CreatePurchaseOrderDto[] = validSellers.map((seller) => {
-        const items: CreatePurchaseOrderItemDto[] = seller.items.map((item) => {
-          // Convert box-level prices to per-unit prices for backend
-          // Frontend stores box prices (e.g., price for 1 box of 12 units)
-          // Backend needs per-unit prices (price for 1 unit)
-          const conversionFactor = item.conversionFactor || 1;
-          const perUnitPrice = item.unitPrice / conversionFactor;
-          const perUnitCostPrice = item.costPrice / conversionFactor;
-          const perUnitDiscount = item.discount / conversionFactor;
-          
-          const itemDto: CreatePurchaseOrderItemDto = {
-            productId: item.productId,
-            variantId: item.variantId,
-            inventoryId: item.inventoryId,
-            quantity: item.quantity,
-            unitPrice: perUnitPrice, // Per-unit price for backend
-            costPrice: perUnitCostPrice, // Per-unit cost price for backend
-            discount: perUnitDiscount, // Per-unit discount for backend
-            productName: item.productName,
+      const ordersData: CreatePurchaseOrderDto[] = validSellers.map(
+        (seller) => {
+          const items: CreatePurchaseOrderItemDto[] = seller.items.map(
+            (item) => {
+              // Convert box-level prices to per-unit prices for backend
+              // Frontend stores box prices (e.g., price for 1 box of 12 units)
+              // Backend needs per-unit prices (price for 1 unit)
+              const conversionFactor = item.conversionFactor || 1;
+              const perUnitPrice = item.unitPrice / conversionFactor;
+              const perUnitCostPrice = item.costPrice / conversionFactor;
+              const perUnitDiscount = item.discount / conversionFactor;
+
+              const itemDto: CreatePurchaseOrderItemDto = {
+                productId: item.productId,
+                variantId: item.variantId,
+                inventoryId: item.inventoryId,
+                quantity: item.quantity,
+                unitPrice: perUnitPrice, // Per-unit price for backend
+                costPrice: perUnitCostPrice, // Per-unit cost price for backend
+                discount: perUnitDiscount, // Per-unit discount for backend
+                productName: item.productName,
+              };
+
+              // Add UOM fields if present
+              if (item.conversionFactor && item.conversionFactor !== 1) {
+                itemDto.conversionFactor = item.conversionFactor;
+              }
+
+              return itemDto;
+            },
+          );
+
+          const status =
+            seller.purchaseType === "instant" ? "received" : "ordered";
+          const netAmount = getSellerNetAmount(seller.id);
+
+          const orderData: CreatePurchaseOrderDto = {
+            supplierId: seller.supplierId || "",
+            items,
+            additionalDiscount: seller.additionalDiscount || 0,
+            status,
+            invoiceNumber: seller.invoiceNumber || undefined,
+            invoiceDate: seller.invoiceDate || undefined,
+            taxTotal: 0, // Tax is not implemented yet
+            notes: seller.notes || undefined,
           };
-          
-          // Add UOM fields if present
-          if (item.conversionFactor && item.conversionFactor !== 1) {
-            itemDto.conversionFactor = item.conversionFactor;
-            itemDto.convertedQuantity = item.convertedQuantity;
+
+          // Add payment info if accounts enabled and payment provided
+          if (isAccountsEnabled && extractedAccountId && paidAmount > 0) {
+            orderData.payment = {
+              paymentMethod: "cash",
+              accountId: extractedAccountId,
+              paidAmount: Math.min(paidAmount, netAmount),
+            };
           }
-          
-          return itemDto;
-        });
 
-        const status = seller.purchaseType === "instant" ? "received" : "ordered";
-        const netAmount = getSellerNetAmount(seller.id);
-        const dueAmount = getSellerDueAmount(seller.id);
+          return orderData;
+        },
+      );
 
-        const orderData: CreatePurchaseOrderDto = {
-          supplierId: seller.supplierId || "",
-          items,
-          additionalDiscount: seller.additionalDiscount || 0,
-          status,
-          invoiceNumber: seller.invoiceNumber || undefined,
-          invoiceDate: seller.invoiceDate || undefined,
-          invoiceAmount: netAmount,
-          taxTotal: 0, // Tax is not implemented yet
-          dueAmount,
-          notes: seller.notes || undefined,
-        };
-
-        // Add payment info if accounts enabled and payment provided
-        if (isAccountsEnabled && extractedAccountId && paidAmount > 0) {
-          orderData.payment = {
-            paymentMethod: "cash",
-            accountId: extractedAccountId,
-            paidAmount: Math.min(paidAmount, netAmount),
-          };
-        }
-
-        return orderData;
-      });
-
-      console.log("Submitting orders data:", ordersData);
       await createOrderMutation.mutateAsync(ordersData);
 
       // Show success
@@ -1013,71 +1085,74 @@ export default function PurchasesPage() {
   // Table Columns
   // =====================
 
-  const createColumns = useCallback((sellerId: string): ColumnDef<PurchaseOrderItem>[] => [
-    {
-      accessorKey: "productName",
-      header: "Product",
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.productName}</span>
-      ),
-    },
-    {
-      accessorKey: "quantity",
-      header: "Qty",
-      cell: ({ row }) => row.original.quantity,
-    },
-    ...(isUOMEnabled
-      ? [
-          {
-            accessorKey: "convertedQuantity" as const,
-            header: "Stock Qty",
-            cell: ({ row }: { row: any }) => {
-              const item = row.original;
-              return item.convertedQuantity
-                ? item.convertedQuantity.toFixed(2)
-                : "-";
+  const createColumns = useCallback(
+    (sellerId: string): ColumnDef<PurchaseOrderItem>[] => [
+      {
+        accessorKey: "productName",
+        header: "Product",
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.productName}</span>
+        ),
+      },
+      {
+        accessorKey: "quantity",
+        header: "Qty",
+        cell: ({ row }) => row.original.quantity,
+      },
+      ...(isUOMEnabled
+        ? [
+            {
+              accessorKey: "convertedQuantity" as const,
+              header: "Stock Qty",
+              cell: ({ row }: { row: any }) => {
+                const item = row.original;
+                return item.convertedQuantity
+                  ? item.convertedQuantity.toFixed(2)
+                  : "-";
+              },
             },
-          },
-        ]
-      : []),
-    {
-      accessorKey: "unitPrice",
-      header: "Unit Price",
-      cell: ({ row }) => formatCurrency(row.original.unitPrice),
-    },
-    {
-      accessorKey: "discount",
-      header: "Discount",
-      cell: ({ row }) => formatCurrency(row.original.discount),
-    },
-    {
-      accessorKey: "costPrice",
-      header: "Cost Price",
-      cell: ({ row }) => formatCurrency(row.original.costPrice),
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleEditItem(sellerId, row.original)}
-          >
-            <Edit2 className="h-4 w-4 text-blue-600" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => removeItem(sellerId, row.original.id)}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        </div>
-      ),
-    },
-  ], [formatCurrency, handleEditItem, removeItem, isUOMEnabled]);
+          ]
+        : []),
+      {
+        accessorKey: "unitPrice",
+        header: "Unit Price",
+        cell: ({ row }) => formatCurrency(row.original.unitPrice),
+      },
+      {
+        accessorKey: "discount",
+        header: "Discount",
+        cell: ({ row }) => formatCurrency(row.original.discount),
+      },
+      {
+        accessorKey: "costPrice",
+        header: "Cost Price",
+        cell: ({ row }) => formatCurrency(row.original.costPrice),
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEditItem(sellerId, row.original)}
+            >
+              <Edit2 className="h-4 w-4 text-blue-600" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeItem(sellerId, row.original.id)}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [formatCurrency, handleEditItem, removeItem, isUOMEnabled],
+  );
 
   // =====================
   // Computed Values
@@ -1086,7 +1161,7 @@ export default function PurchasesPage() {
   // Get sellers with items for display
   const sellersWithItems = useMemo(
     () => sellers.filter((s) => s.items.length > 0),
-    [sellers]
+    [sellers],
   );
 
   const isLoading = createOrderMutation.isPending;
@@ -1146,10 +1221,12 @@ export default function PurchasesPage() {
                     <Truck className="h-5 w-5" />
                     {seller.supplierName || "Walk-in Supplier"}
                     <span className="text-sm font-normal text-muted-foreground">
-                      ({seller.purchaseType === "instant" ? "Instant" : "Order"})
+                      ({seller.purchaseType === "instant" ? "Instant" : "Order"}
+                      )
                     </span>
                     <span className="text-sm font-normal text-muted-foreground">
-                      - {seller.items.length} item{seller.items.length !== 1 ? "s" : ""}
+                      - {seller.items.length} item
+                      {seller.items.length !== 1 ? "s" : ""}
                     </span>
                   </CardTitle>
                   <div className="flex items-center gap-2">
@@ -1193,7 +1270,10 @@ export default function PurchasesPage() {
 
                   {/* Additional Discount */}
                   <div className="flex justify-between items-center">
-                    <Label htmlFor={`discount-${seller.id}`} className="text-sm">
+                    <Label
+                      htmlFor={`discount-${seller.id}`}
+                      className="text-sm"
+                    >
                       Additional Discount
                     </Label>
                     <Input
@@ -1212,7 +1292,10 @@ export default function PurchasesPage() {
 
                   {/* Invoice Amount / Net Price */}
                   <div className="flex justify-between items-center">
-                    <Label htmlFor={`invoice-amount-${seller.id}`} className="text-sm">
+                    <Label
+                      htmlFor={`invoice-amount-${seller.id}`}
+                      className="text-sm"
+                    >
                       Net Amount (Invoice)
                     </Label>
                     <Input
@@ -1243,7 +1326,13 @@ export default function PurchasesPage() {
                   {isAccountsEnabled && (
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Due Amount</span>
-                      <span className={getSellerDueAmount(seller.id) > 0 ? "text-destructive" : "text-green-600"}>
+                      <span
+                        className={
+                          getSellerDueAmount(seller.id) > 0
+                            ? "text-destructive"
+                            : "text-green-600"
+                        }
+                      >
                         {formatCurrency(getSellerDueAmount(seller.id))}
                       </span>
                     </div>
@@ -1315,7 +1404,7 @@ export default function PurchasesPage() {
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
           </DialogHeader>
-          
+
           {editingItem && (
             <div className="space-y-4 py-4">
               {/* Product Name (readonly) */}
@@ -1412,7 +1501,10 @@ export default function PurchasesPage() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleSaveEdit}>Save Changes</Button>

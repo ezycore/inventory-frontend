@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { PurchaseOrderStatus } from "@/types";
 
 /**
  * Supplier option with metadata
@@ -121,7 +120,7 @@ interface PurchasePageStore {
   setSupplier: (
     sellerId: string,
     supplierId: string | null,
-    supplierName: string | null
+    supplierName: string | null,
   ) => void;
   setPurchaseType: (sellerId: string, type: "instant" | "order") => void;
   setPaymentInfo: (sellerId: string, info: PurchasePaymentInfo | null) => void;
@@ -134,11 +133,14 @@ interface PurchasePageStore {
   setInvoiceDate: (sellerId: string, invoiceDate: string) => void;
 
   // Item actions
-  addItem: (sellerId: string, item: Omit<PurchaseOrderItem, "id" | "total">) => void;
+  addItem: (
+    sellerId: string,
+    item: Omit<PurchaseOrderItem, "id" | "total">,
+  ) => void;
   updateItem: (
     sellerId: string,
     itemId: string,
-    data: Partial<Omit<PurchaseOrderItem, "id">>
+    data: Partial<Omit<PurchaseOrderItem, "id">>,
   ) => void;
   removeItem: (sellerId: string, itemId: string) => void;
   clearSellerItems: (sellerId: string) => void;
@@ -150,7 +152,9 @@ interface PurchasePageStore {
 /**
  * Calculate total for a purchase item
  */
-const calculateItemTotal = (item: Omit<PurchaseOrderItem, "id" | "total">): number => {
+const calculateItemTotal = (
+  item: Omit<PurchaseOrderItem, "id" | "total">,
+): number => {
   const subtotal = item.quantity * item.unitPrice;
   return Math.max(0, subtotal - (item.discount || 0));
 };
@@ -185,7 +189,10 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
         const seller = get().sellers.find((s) => s.id === sellerId);
         if (!seller) return 0;
         // Sum of all items (quantity * costPrice)
-        return seller.items.reduce((sum, item) => sum + (item.quantity * item.costPrice), 0);
+        return seller.items.reduce(
+          (sum, item) => sum + item.quantity * item.costPrice,
+          0,
+        );
       },
 
       getSellerTotal: (sellerId: string) => {
@@ -229,7 +236,10 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       },
 
       getTotalItemCount: () => {
-        return get().sellers.reduce((sum, seller) => sum + seller.items.length, 0);
+        return get().sellers.reduce(
+          (sum, seller) => sum + seller.items.length,
+          0,
+        );
       },
 
       // Session actions
@@ -253,7 +263,10 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             };
           }
           // Adjust active index if needed
-          const newIndex = Math.min(state.activeSellerIndex, newSellers.length - 1);
+          const newIndex = Math.min(
+            state.activeSellerIndex,
+            newSellers.length - 1,
+          );
           return {
             sellers: newSellers,
             activeSellerIndex: newIndex,
@@ -263,7 +276,10 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
 
       setActiveSeller: (index: number) => {
         set((state) => ({
-          activeSellerIndex: Math.min(Math.max(0, index), state.sellers.length - 1),
+          activeSellerIndex: Math.min(
+            Math.max(0, index),
+            state.sellers.length - 1,
+          ),
         }));
       },
 
@@ -273,7 +289,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
           sellers: state.sellers.map((seller) =>
             seller.id === sellerId
               ? { ...seller, supplierId, supplierName }
-              : seller
+              : seller,
           ),
         }));
       },
@@ -281,9 +297,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       setPurchaseType: (sellerId, type) => {
         set((state) => ({
           sellers: state.sellers.map((seller) =>
-            seller.id === sellerId
-              ? { ...seller, purchaseType: type }
-              : seller
+            seller.id === sellerId ? { ...seller, purchaseType: type } : seller,
           ),
         }));
       },
@@ -291,9 +305,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       setPaymentInfo: (sellerId, info) => {
         set((state) => ({
           sellers: state.sellers.map((seller) =>
-            seller.id === sellerId
-              ? { ...seller, paymentInfo: info }
-              : seller
+            seller.id === sellerId ? { ...seller, paymentInfo: info } : seller,
           ),
         }));
       },
@@ -301,9 +313,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       setNotes: (sellerId, notes) => {
         set((state) => ({
           sellers: state.sellers.map((seller) =>
-            seller.id === sellerId
-              ? { ...seller, notes }
-              : seller
+            seller.id === sellerId ? { ...seller, notes } : seller,
           ),
         }));
       },
@@ -311,9 +321,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       setDiscountType: (sellerId, type) => {
         set((state) => ({
           sellers: state.sellers.map((seller) =>
-            seller.id === sellerId
-              ? { ...seller, discountType: type }
-              : seller
+            seller.id === sellerId ? { ...seller, discountType: type } : seller,
           ),
         }));
       },
@@ -323,7 +331,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
           sellers: state.sellers.map((seller) =>
             seller.id === sellerId
               ? { ...seller, discountValue: value }
-              : seller
+              : seller,
           ),
         }));
       },
@@ -364,9 +372,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       setInvoiceNumber: (sellerId, invoiceNumber) => {
         set((state) => ({
           sellers: state.sellers.map((seller) =>
-            seller.id === sellerId
-              ? { ...seller, invoiceNumber }
-              : seller
+            seller.id === sellerId ? { ...seller, invoiceNumber } : seller,
           ),
         }));
       },
@@ -374,9 +380,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       setInvoiceDate: (sellerId, invoiceDate) => {
         set((state) => ({
           sellers: state.sellers.map((seller) =>
-            seller.id === sellerId
-              ? { ...seller, invoiceDate }
-              : seller
+            seller.id === sellerId ? { ...seller, invoiceDate } : seller,
           ),
         }));
       },
@@ -391,7 +395,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
 
             // Check if item with same inventory ID already exists
             const existingIndex = seller.items.findIndex(
-              (existing) => existing.inventoryId === item.inventoryId
+              (existing) => existing.inventoryId === item.inventoryId,
             );
 
             if (existingIndex !== -1) {
@@ -468,6 +472,6 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
     }),
     {
       name: "purchase-page-storage", // localStorage key
-    }
-  )
+    },
+  ),
 );

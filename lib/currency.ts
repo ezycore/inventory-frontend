@@ -62,6 +62,10 @@ export function useCurrency() {
     currency,
     symbol,
     format: (amount: number, options?: Intl.NumberFormatOptions) => {
+      // Handle undefined/null/NaN values
+      if (amount == null || isNaN(amount)) {
+        return symbol ? `${symbol}0.00` : "0.00";
+      }
       const formatted = amount.toLocaleString("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -79,8 +83,13 @@ export function useCurrency() {
 export function formatCurrency(
   amount: number,
   currencyCode?: string,
-  options?: Intl.NumberFormatOptions
+  options?: Intl.NumberFormatOptions,
 ): string {
+  // Handle undefined/null/NaN values
+  if (amount == null || isNaN(amount)) {
+    const symbol = getCurrencySymbol(currencyCode);
+    return symbol ? `${symbol}0.00` : "0.00";
+  }
   const symbol = getCurrencySymbol(currencyCode);
   const formatted = amount.toLocaleString("en-IN", {
     minimumFractionDigits: 2,

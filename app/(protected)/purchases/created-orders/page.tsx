@@ -1,8 +1,21 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import type { ColumnDef } from "@tanstack/react-table";
+import { useCurrency } from "@/lib/currency";
+import {
+  useCancelPurchaseOrder,
+  usePurchaseOrder,
+  usePurchaseOrders,
+  useReceivePurchaseOrder,
+} from "@/services/api";
+import { useAuthStore } from "@/services/stores/use-auth-store";
+import type {
+  PurchaseOrder,
+  PurchaseOrderFilters,
+  PurchaseOrderStatus,
+  ReceivePurchaseOrderDto,
+} from "@/types";
+import type { FilterField } from "@/types/filter";
+import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
   Card,
@@ -11,7 +24,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/components/card";
-import { Badge } from "@/ui/components/badge";
+import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
+import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +34,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/components/dialog";
+import { Input } from "@/ui/components/input";
+import { Separator } from "@/ui/components/separator";
 import {
   Sheet,
   SheetContent,
@@ -27,9 +43,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/ui/components/sheet";
-import { Input } from "@/ui/components/input";
-import { Label } from "@/ui/components/label";
-import { Separator } from "@/ui/components/separator";
+import { Skeleton } from "@/ui/components/skeleton";
 import {
   Table,
   TableBody,
@@ -38,39 +52,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/components/table";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
-  Plus,
+  AlertCircle,
   CheckCircle2,
   Clock,
-  Package,
-  Truck,
-  Edit,
   Eye,
+  Package,
   PackageCheck,
+  Plus,
+  Truck,
   XCircle,
-  AlertCircle,
 } from "lucide-react";
-import {
-  usePurchaseOrders,
-  usePurchaseOrder,
-  useReceivePurchaseOrder,
-  useCancelPurchaseOrder,
-  useUpdatePurchaseOrder,
-} from "@/services/api";
-import { useAuthStore } from "@/services/stores/use-auth-store";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import type {
-  PurchaseOrder,
-  PurchaseOrderStatus,
-  PurchaseOrderFilters,
-  PurchaseOrderItem,
-  ReceivePurchaseOrderDto,
-} from "@/types";
-import { Skeleton } from "@/ui/components/skeleton";
-import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
-import { useCurrency } from "@/lib/currency";
-import type { FilterField } from "@/types/filter";
 
 // Status configuration for badges
 const statusConfig: Record<
@@ -151,9 +147,8 @@ export default function CreatedOrdersPage() {
   });
 
   // Fetch selected order details
-  const { data: orderDetailData, isLoading: isLoadingDetail } = usePurchaseOrder(
-    selectedOrderId || ""
-  );
+  const { data: orderDetailData, isLoading: isLoadingDetail } =
+    usePurchaseOrder(selectedOrderId || "");
 
   const selectedOrder = orderDetailData?.data;
 
@@ -184,13 +179,10 @@ export default function CreatedOrdersPage() {
   }, []);
 
   // Handlers
-  const handleViewOrder = useCallback(
-    (order: PurchaseOrder) => {
-      setSelectedOrderId(order._id);
-      setViewDrawerOpen(true);
-    },
-    []
-  );
+  const handleViewOrder = useCallback((order: PurchaseOrder) => {
+    setSelectedOrderId(order._id);
+    setViewDrawerOpen(true);
+  }, []);
 
   const handleConfirmOrder = useCallback(
     (order: PurchaseOrder) => {
@@ -198,7 +190,7 @@ export default function CreatedOrdersPage() {
       initializeReceiveItems(order);
       setConfirmDialogOpen(true);
     },
-    [initializeReceiveItems]
+    [initializeReceiveItems],
   );
 
   const handleCancelOrder = useCallback((order: PurchaseOrder) => {
@@ -259,13 +251,13 @@ export default function CreatedOrdersPage() {
           ...updated[index],
           receivedQuantity: Math.min(
             Math.max(0, quantity),
-            updated[index].maxQuantity
+            updated[index].maxQuantity,
           ),
         };
         return updated;
       });
     },
-    []
+    [],
   );
 
   // Table columns
@@ -286,10 +278,10 @@ export default function CreatedOrdersPage() {
         cell: ({ row }) => <DateCell value={row.original.createdAt} />,
       },
       {
-        accessorKey: "supplier",
+        accessorKey: "supplierId",
         header: "Supplier",
         cell: ({ row }) => {
-          const supplier = row.original.supplier;
+          const supplier = row.original.supplierId;
           return (
             <div className="flex items-center gap-2">
               <Truck className="h-4 w-4 text-muted-foreground" />
@@ -310,11 +302,11 @@ export default function CreatedOrdersPage() {
         ),
       },
       {
-        accessorKey: "grandTotal",
+        accessorKey: "invoiceAmount",
         header: () => <span className="flex justify-end">Total Amount</span>,
         cell: ({ row }) => (
           <span className="flex justify-end font-medium">
-            {formatCurrency(row.original.grandTotal)}
+            {formatCurrency(row.original.invoiceAmount)}
           </span>
         ),
       },
@@ -333,7 +325,7 @@ export default function CreatedOrdersPage() {
         },
       },
     ],
-    [formatCurrency]
+    [formatCurrency],
   );
 
   // Custom actions for each row
@@ -368,7 +360,7 @@ export default function CreatedOrdersPage() {
           row.status !== "ordered" && row.status !== "draft",
       },
     ],
-    [handleViewOrder, handleConfirmOrder, handleCancelOrder]
+    [handleViewOrder, handleConfirmOrder, handleCancelOrder],
   );
 
   // Filter configuration
@@ -402,7 +394,7 @@ export default function CreatedOrdersPage() {
         setPage(1);
       },
     }),
-    []
+    [],
   );
 
   return (
@@ -435,9 +427,7 @@ export default function CreatedOrdersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
-              Awaiting delivery
-            </p>
+            <p className="text-xs text-muted-foreground">Awaiting delivery</p>
           </CardContent>
         </Card>
 
@@ -453,9 +443,7 @@ export default function CreatedOrdersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
-              Partially received
-            </p>
+            <p className="text-xs text-muted-foreground">Partially received</p>
           </CardContent>
         </Card>
 
@@ -467,15 +455,13 @@ export default function CreatedOrdersPage() {
                 <Skeleton className="h-8 w-24" />
               ) : (
                 formatCurrency(
-                  orders.reduce((sum, o) => sum + o.grandTotal, 0)
+                  orders.reduce((sum, o) => sum + o.totalAmount, 0),
                 )
               )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
-              Of pending orders
-            </p>
+            <p className="text-xs text-muted-foreground">Of pending orders</p>
           </CardContent>
         </Card>
       </div>
@@ -525,9 +511,7 @@ export default function CreatedOrdersPage() {
               <Package className="h-5 w-5" />
               Order Details - {selectedOrder?.orderNumber}
             </SheetTitle>
-            <SheetDescription>
-              View purchase order information
-            </SheetDescription>
+            <SheetDescription>View purchase order information</SheetDescription>
           </SheetHeader>
 
           {isLoadingDetail ? (
@@ -551,7 +535,7 @@ export default function CreatedOrdersPage() {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Supplier</span>
                   <span className="font-medium">
-                    {selectedOrder.supplier?.name || "Unknown"}
+                    {selectedOrder.supplierId?.name || "Unknown"}
                   </span>
                 </div>
                 {selectedOrder.invoiceNumber && (
@@ -567,17 +551,13 @@ export default function CreatedOrdersPage() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>{formatCurrency(selectedOrder.subtotal)}</span>
                 </div>
-                {selectedOrder.discountValue > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Discount</span>
-                    <span className="text-red-600">
-                      -{formatCurrency(selectedOrder.discountValue)}
-                    </span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>{formatCurrency(selectedOrder.taxAmount)}</span>
+                </div>
                 <div className="flex justify-between font-semibold">
-                  <span>Grand Total</span>
-                  <span>{formatCurrency(selectedOrder.grandTotal)}</span>
+                  <span>Total Amount</span>
+                  <span>{formatCurrency(selectedOrder.invoiceAmount)}</span>
                 </div>
               </div>
 
@@ -589,9 +569,8 @@ export default function CreatedOrdersPage() {
                     <TableRow>
                       <TableHead>Product</TableHead>
                       <TableHead className="text-right">Qty</TableHead>
-                      <TableHead className="text-right">Received</TableHead>
                       <TableHead className="text-right">Unit Price</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-right">Cost Price</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -607,25 +586,20 @@ export default function CreatedOrdersPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           {item.quantity}
+                          {item.conversionFactor > 1 &&
+                            ` X ${item.conversionFactor} = ${item.quantity * item.conversionFactor}`}
                         </TableCell>
                         <TableCell className="text-right">
-                          <span
-                            className={
-                              item.receivedQuantity === item.quantity
-                                ? "text-green-600"
-                                : item.receivedQuantity > 0
-                                  ? "text-yellow-600"
-                                  : "text-muted-foreground"
-                            }
-                          >
-                            {item.receivedQuantity}
-                          </span>
+                          {formatCurrency(
+                            item.unitPrice *
+                              (item.quantity * (item.conversionFactor || 1)),
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(item.unitPrice)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(item.total)}
+                          {formatCurrency(
+                            item.costPrice *
+                              (item.quantity * (item.conversionFactor || 1)),
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -684,9 +658,7 @@ export default function CreatedOrdersPage() {
                 <TableRow>
                   <TableHead>Product</TableHead>
                   <TableHead className="text-right">Remaining</TableHead>
-                  <TableHead className="text-right w-32">
-                    Receive Qty
-                  </TableHead>
+                  <TableHead className="text-right w-32">Receive Qty</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -707,7 +679,7 @@ export default function CreatedOrdersPage() {
                         onChange={(e) =>
                           updateReceiveQuantity(
                             index,
-                            parseInt(e.target.value) || 0
+                            parseInt(e.target.value) || 0,
                           )
                         }
                         className="w-24 text-right ml-auto"
@@ -726,7 +698,7 @@ export default function CreatedOrdersPage() {
                 <span className="font-medium">
                   {receiveItems.reduce(
                     (sum, item) => sum + item.receivedQuantity,
-                    0
+                    0,
                   )}
                 </span>
               </div>

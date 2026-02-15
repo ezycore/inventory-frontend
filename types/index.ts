@@ -800,63 +800,39 @@ export interface PurchaseOrderItem {
   receivedQuantity: number;
   unitPrice: number;
   costPrice?: number;
-  discount: number;
   subtotal: number;
-  total: number;
-  profit?: number;
   productName?: string;
-  variantName?: string;
-  product?: Product;
-  variant?: Variant;
-  // UOM fields
-  purchaseUnitId?: string;
-  purchaseUnitName?: string;
   conversionFactor?: number;
-  convertedQuantity?: number;
 }
 
 export interface PurchaseOrder extends BaseEntity {
   organizationId: string;
   orderNumber: string;
-  supplierId: string;
+  supplierId: Supplier;
   locationId: string;
   items: PurchaseOrderItem[];
   status: PurchaseOrderStatus;
-  invoiceNumber?: string;
   invoiceDate?: string;
-  discountType: PurchaseOrderDiscountType;
-  discountValue: number;
   subtotal: number;
   taxTotal: number;
-  grandTotal: number;
   notes?: string;
-  receivedAt?: string;
   createdBy?: string;
-  supplier?: Supplier;
-  location?: Location;
-  // Payment fields
   paymentStatus?: "unpaid" | "partial" | "paid";
   paidAmount?: number;
   dueAmount?: number;
-  refundedAmount?: number;
-  totalProfit?: number;
+  invoiceNumber?: string;
 }
 
 export interface CreatePurchaseOrderItemDto {
   productId: string;
   variantId?: string | null;
   inventoryId?: string;
+  productName?: string;
   quantity: number;
   unitPrice: number;
   costPrice?: number;
   discount?: number;
-  productName?: string;
-  variantName?: string;
-  // UOM fields
-  purchaseUnitId?: string;
-  purchaseUnitName?: string;
   conversionFactor?: number;
-  convertedQuantity?: number;
 }
 
 // Single Purchase Order DTO
@@ -867,10 +843,8 @@ export interface CreatePurchaseOrderDto {
   status?: PurchaseOrderStatus;
   invoiceNumber?: string;
   invoiceDate?: string;
-  invoiceAmount?: number; // Added
   taxTotal?: number;
   payment?: PurchasePaymentInfo;
-  dueAmount?: number; // Added
   notes?: string;
 }
 
@@ -1268,12 +1242,12 @@ export type SalesReturnStatus = "pending" | "completed" | "cancelled";
 /**
  * Sales return reason enum
  */
-export type SalesReturnReason = 
-  | "damaged" 
-  | "defective" 
-  | "wrong_item" 
-  | "customer_changed_mind" 
-  | "expired" 
+export type SalesReturnReason =
+  | "damaged"
+  | "defective"
+  | "wrong_item"
+  | "customer_changed_mind"
+  | "expired"
   | "other";
 
 /**
@@ -1352,4 +1326,3 @@ export interface CustomerPendingDue {
   totalAmount: number;
   saleDate: string;
 }
-
