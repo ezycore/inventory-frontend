@@ -1,27 +1,26 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
-  CornerUpLeft,
-  Search,
-  Package,
-  Wallet,
-  Trash2,
-  Plus,
-  Minus,
   CheckCircle,
-  XCircle,
   Clock,
+  CornerUpLeft,
   FileText,
+  Minus,
+  Package,
+  Plus,
+  Search,
   Truck,
+  XCircle,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
+import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
   Card,
@@ -30,6 +29,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/components/card";
+import { Checkbox } from "@/ui/components/checkbox";
+import { CardTable } from "@/ui/components/custom/card-table";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import {
@@ -39,20 +40,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/components/select";
-import { Textarea } from "@/ui/components/textarea";
-import { Checkbox } from "@/ui/components/checkbox";
-import { CardTable } from "@/ui/components/custom/card-table";
-import { Badge } from "@/ui/components/badge";
 import { Separator } from "@/ui/components/separator";
 import { Skeleton } from "@/ui/components/skeleton";
+import { Textarea } from "@/ui/components/textarea";
 
+import { useCurrency } from "@/lib/currency";
 import {
+  useAccounts,
+  useCreatePurchaseReturn,
   usePurchaseOrder,
   usePurchaseReturns,
-  useCreatePurchaseReturn,
-  useSupplierPendingDues,
-  useAccounts,
   usePurchaseReturnsSummary,
+  useSupplierPendingDues,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type {
@@ -61,7 +60,6 @@ import type {
   PurchaseReturn,
   PurchaseReturnReason,
 } from "@/types";
-import { useCurrency } from "@/lib/currency";
 
 // =====================
 // Schema Definitions
@@ -142,7 +140,7 @@ export default function PurchaseReturnsPage() {
   // State
   const [searchId, setSearchId] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(
-    searchParams.get("orderId")
+    searchParams.get("orderId"),
   );
   const [returnableItems, setReturnableItems] = useState<ReturnableItem[]>([]);
   const [reason, setReason] = useState<PurchaseReturnReason>("damaged");
@@ -161,9 +159,11 @@ export default function PurchaseReturnsPage() {
     isLoading: isLoadingOrder,
     refetch: refetchOrder,
   } = usePurchaseOrder(selectedOrderId || "");
-  const { data: returnsData, isLoading: isLoadingReturns } = usePurchaseReturns({
-    limit: 50,
-  });
+  const { data: returnsData, isLoading: isLoadingReturns } = usePurchaseReturns(
+    {
+      limit: 50,
+    },
+  );
   const { data: accountsData } = useAccounts();
   const { data: summaryData, isLoading: isSummaryLoading } =
     usePurchaseReturnsSummary();
@@ -174,13 +174,26 @@ export default function PurchaseReturnsPage() {
   const accounts = (accountsData?.items || []) as any[];
   const summary = summaryData?.data;
 
+  // Extract supplier ID - handle both populated object and string formats
+  const orderSupplierId = useMemo(() => {
+    if (!order) return "";
+    // supplierId might be populated object or string
+    if (typeof order.supplierId === "object" && order.supplierId?._id) {
+      return order.supplierId._id;
+    }
+    if (typeof order.supplierId === "string") {
+      return order.supplierId;
+    }
+    return order.supplierId?._id || "";
+  }, [order]);
+
   const { data: pendingDuesData } = useSupplierPendingDues(
-    order?.supplierId || order?.supplier?._id || "",
-    selectedOrderId || ""
+    orderSupplierId,
+    selectedOrderId || "",
   );
   const pendingDues = useMemo(
     () => (pendingDuesData as any)?.data || [],
-    [pendingDuesData]
+    [pendingDuesData],
   );
 
   const createReturnMutation = useCreatePurchaseReturn();
@@ -231,7 +244,7 @@ export default function PurchaseReturnsPage() {
       returnableItems
         .filter((i) => i.selected)
         .reduce((sum, i) => sum + i.returnQty, 0),
-    [returnableItems]
+    [returnableItems],
   );
 
   const totalRefundAmount = useMemo(
@@ -239,7 +252,7 @@ export default function PurchaseReturnsPage() {
       returnableItems
         .filter((i) => i.selected)
         .reduce((sum, i) => sum + i.refundAmount, 0),
-    [returnableItems]
+    [returnableItems],
   );
 
   // Order due amount that can be adjusted
@@ -256,7 +269,7 @@ export default function PurchaseReturnsPage() {
       dueAllocations
         .filter((d) => d.selected)
         .reduce((sum, d) => sum + d.allocatedAmount, 0),
-    [dueAllocations]
+    [dueAllocations],
   );
 
   // Remaining amount after due adjustments (for account refund)
@@ -296,10 +309,18 @@ export default function PurchaseReturnsPage() {
       const updated = [...prev];
       const item = updated[index];
       const validQty = Math.max(0, Math.min(qty, item.maxReturnableQty));
+
+      // Calculate refund based on conversionFactor if available
+      // When conversionFactor exists: refund = qty × conversionFactor × costPrice
+      // Otherwise: refund = qty × costPrice (or unitPrice if costPrice not available)
+      const conversionFactor = item.conversionFactor || 1;
+      const pricePerUnit = item.costPrice || item.unitPrice;
+      const calculatedRefund = validQty * conversionFactor * pricePerUnit;
+
       updated[index] = {
         ...item,
         returnQty: validQty,
-        refundAmount: validQty * (item.unitPrice - (item.discount || 0)),
+        refundAmount: calculatedRefund,
         selected: validQty > 0,
       };
       return updated;
@@ -310,7 +331,12 @@ export default function PurchaseReturnsPage() {
     setReturnableItems((prev) => {
       const updated = [...prev];
       const item = updated[index];
-      const maxRefund = item.returnQty * (item.unitPrice - (item.discount || 0));
+
+      // Calculate max refund based on conversionFactor if available
+      const conversionFactor = item.conversionFactor || 1;
+      const pricePerUnit = item.costPrice || item.unitPrice;
+      const maxRefund = item.returnQty * conversionFactor * pricePerUnit;
+
       updated[index] = {
         ...item,
         refundAmount: Math.max(0, Math.min(amount, maxRefund)),
@@ -350,7 +376,7 @@ export default function PurchaseReturnsPage() {
     }
 
     const selectedItems = returnableItems.filter(
-      (i) => i.selected && i.returnQty > 0
+      (i) => i.selected && i.returnQty > 0,
     );
     if (selectedItems.length === 0) {
       toast.error("Please select at least one item to return");
@@ -367,6 +393,10 @@ export default function PurchaseReturnsPage() {
       unitPrice: item.unitPrice,
       costPrice: item.costPrice || item.unitPrice,
       discount: item.discount,
+      // Include conversionFactor if available (for UoM conversion on return)
+      ...(item.conversionFactor && item.conversionFactor > 1
+        ? { conversionFactor: item.conversionFactor }
+        : {}),
     }));
 
     // Build refund allocation (only if accounts enabled)
@@ -376,17 +406,18 @@ export default function PurchaseReturnsPage() {
 
       // Calculate total amounts allocated to other dues
       const selectedDues = dueAllocations.filter(
-        (d) => d.selected && d.allocatedAmount > 0
+        (d) => d.selected && d.allocatedAmount > 0,
       );
       const totalOtherDueAllocation = selectedDues.reduce(
         (sum, d) => sum + d.allocatedAmount,
-        0
+        0,
       );
 
       // Adjust supplier due (combines current order due + selected other dues)
       // Backend expects single adjustSupplierDue field for the supplier
       const totalDueAdjustment =
-        Math.min(adjustOrderDueAmount, orderDueAmount) + totalOtherDueAllocation;
+        Math.min(adjustOrderDueAmount, orderDueAmount) +
+        totalOtherDueAllocation;
       if (totalDueAdjustment > 0) {
         refundAllocation.adjustSupplierDue = totalDueAdjustment;
       }
@@ -472,8 +503,7 @@ export default function PurchaseReturnsPage() {
               cell: ({ row }: { row: { original: PurchaseReturn } }) => {
                 const ret = row.original;
                 const cashRefund = ret.refundedAmount || 0;
-                const dueAdjusted =
-                  (ret.totalRefundAmount || 0) - cashRefund;
+                const dueAdjusted = (ret.totalRefundAmount || 0) - cashRefund;
 
                 if (cashRefund > 0 && dueAdjusted > 0) {
                   return (
@@ -495,9 +525,7 @@ export default function PurchaseReturnsPage() {
                     <span className="text-xs text-blue-600">Due Adjusted</span>
                   );
                 }
-                return (
-                  <span className="text-xs text-muted-foreground">-</span>
-                );
+                return <span className="text-xs text-muted-foreground">-</span>;
               },
             },
           ]
@@ -526,7 +554,7 @@ export default function PurchaseReturnsPage() {
         ),
       },
     ],
-    [isAccountsEnabled, formatCurrency]
+    [isAccountsEnabled, formatCurrency],
   );
 
   // Items table columns
@@ -551,13 +579,21 @@ export default function PurchaseReturnsPage() {
         cell: ({ row }) => (
           <div>
             <span className="font-medium">
-              {row.original.productName || row.original.product?.name || "Unknown"}
+              {row.original.productName ||
+                row.original.product?.name ||
+                "Unknown"}
             </span>
             {row.original.variantName && (
               <span className="text-muted-foreground text-sm ml-1">
                 ({row.original.variantName})
               </span>
             )}
+            {row.original.conversionFactor &&
+              row.original.conversionFactor > 1 && (
+                <div className="text-xs text-muted-foreground">
+                  1 unit = {row.original.conversionFactor} pcs
+                </div>
+              )}
           </div>
         ),
       },
@@ -591,9 +627,7 @@ export default function PurchaseReturnsPage() {
               onClick={() =>
                 handleItemQtyChange(row.index, row.original.returnQty - 1)
               }
-              disabled={
-                !row.original.selected || row.original.returnQty === 0
-              }
+              disabled={!row.original.selected || row.original.returnQty === 0}
             >
               <Minus className="h-3 w-3" />
             </Button>
@@ -615,9 +649,7 @@ export default function PurchaseReturnsPage() {
               onClick={() =>
                 handleItemQtyChange(row.index, row.original.returnQty + 1)
               }
-              disabled={
-                row.original.returnQty >= row.original.maxReturnableQty
-              }
+              disabled={row.original.returnQty >= row.original.maxReturnableQty}
             >
               <Plus className="h-3 w-3" />
             </Button>
@@ -627,29 +659,71 @@ export default function PurchaseReturnsPage() {
       {
         accessorKey: "unitPrice",
         header: "Unit Price",
-        cell: ({ row }) => formatCurrency(row.original.unitPrice),
+        cell: ({ row }) => {
+          const item = row.original;
+          const displayPrice = item.costPrice || item.unitPrice;
+
+          // If there's a conversion factor, show both per-unit and per-piece prices
+          if (item.conversionFactor && item.conversionFactor > 1) {
+            const pricePerPiece = displayPrice;
+            const pricePerUnit = displayPrice * item.conversionFactor;
+            return (
+              <div className="text-right">
+                <div className="font-medium">
+                  {formatCurrency(pricePerUnit)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {formatCurrency(pricePerPiece)}/pc
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="text-right">{formatCurrency(displayPrice)}</div>
+          );
+        },
       },
       {
         id: "refundAmount",
-        header: "Refund",
-        cell: ({ row }) => (
-          <Input
-            type="number"
-            className="w-24 h-7 text-right"
-            value={row.original.refundAmount}
-            onChange={(e) =>
-              handleRefundAmountChange(
-                row.index,
-                parseFloat(e.target.value) || 0
-              )
-            }
-            disabled={!row.original.selected}
-            min={0}
-          />
-        ),
+        header: "Refund Amount",
+        cell: ({ row }) => {
+          const item = row.original;
+          const conversionFactor = item.conversionFactor || 1;
+          const pricePerUnit = item.costPrice || item.unitPrice;
+          const maxRefund = item.returnQty * conversionFactor * pricePerUnit;
+
+          return (
+            <div className="space-y-1">
+              <Input
+                type="number"
+                className="w-28 h-7 text-right"
+                value={row.original.refundAmount}
+                onChange={(e) =>
+                  handleRefundAmountChange(
+                    row.index,
+                    parseFloat(e.target.value) || 0,
+                  )
+                }
+                disabled={!row.original.selected}
+                min={0}
+                max={maxRefund}
+              />
+              {item.selected &&
+                item.returnQty > 0 &&
+                item.conversionFactor &&
+                item.conversionFactor > 1 && (
+                  <div className="text-xs text-muted-foreground">
+                    {item.returnQty} \u00d7 {item.conversionFactor} \u00d7{" "}
+                    {formatCurrency(pricePerUnit)}
+                  </div>
+                )}
+            </div>
+          );
+        },
       },
     ],
-    [formatCurrency]
+    [formatCurrency],
   );
 
   return (
@@ -671,7 +745,7 @@ export default function PurchaseReturnsPage() {
               {isSummaryLoading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                summary?.totalReturns ?? 0
+                (summary?.totalReturns ?? 0)
               )}
             </CardTitle>
           </CardHeader>
@@ -703,7 +777,7 @@ export default function PurchaseReturnsPage() {
               {isSummaryLoading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                summary?.pendingReturns ?? 0
+                (summary?.pendingReturns ?? 0)
               )}
             </CardTitle>
           </CardHeader>
@@ -778,7 +852,7 @@ export default function PurchaseReturnsPage() {
                   <CardDescription>
                     <span className="flex items-center gap-2">
                       <Truck className="h-4 w-4" />
-                      Supplier: {order.supplier?.name || "Unknown"}
+                      Supplier: {order.supplierId?.name || "Unknown"}
                     </span>
                   </CardDescription>
                 </CardHeader>
@@ -787,7 +861,9 @@ export default function PurchaseReturnsPage() {
                     <div>
                       <span className="text-muted-foreground">Total:</span>
                       <span className="ml-2 font-medium">
-                        {formatCurrency(order.grandTotal)}
+                        {formatCurrency(
+                          order.grandTotal || order.totalAmount || 0,
+                        )}
                       </span>
                     </div>
                     <div>
@@ -872,7 +948,9 @@ export default function PurchaseReturnsPage() {
                       <>
                         <Separator />
                         <div>
-                          <h4 className="font-medium mb-4">Refund Allocation</h4>
+                          <h4 className="font-medium mb-4">
+                            Refund Allocation
+                          </h4>
 
                           {/* Adjust current order due */}
                           {orderDueAmount > 0 && (
@@ -910,7 +988,7 @@ export default function PurchaseReturnsPage() {
                                     onCheckedChange={(checked) =>
                                       handleDueAllocationToggle(
                                         index,
-                                        checked as boolean
+                                        checked as boolean,
                                       )
                                     }
                                   />
@@ -929,7 +1007,7 @@ export default function PurchaseReturnsPage() {
                                     onChange={(e) =>
                                       handleDueAllocationAmountChange(
                                         index,
-                                        parseFloat(e.target.value) || 0
+                                        parseFloat(e.target.value) || 0,
                                       )
                                     }
                                     disabled={!due.selected}
@@ -981,8 +1059,8 @@ export default function PurchaseReturnsPage() {
                                       setAccountRefundAmount(
                                         Math.min(
                                           parseFloat(e.target.value) || 0,
-                                          remainingForRefund
-                                        )
+                                          remainingForRefund,
+                                        ),
                                       )
                                     }
                                     min={0}

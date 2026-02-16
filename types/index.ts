@@ -857,6 +857,9 @@ export interface PurchaseOrderItem {
   subtotal: number;
   productName?: string;
   conversionFactor?: number;
+  discount?: number;
+  variantName?: string;
+  product?: { name: string };
 }
 
 export interface PurchaseOrder extends BaseEntity {
@@ -875,6 +878,12 @@ export interface PurchaseOrder extends BaseEntity {
   paidAmount?: number;
   dueAmount?: number;
   invoiceNumber?: string;
+  // Additional fields from API
+  supplier?: Supplier;
+  grandTotal?: number;
+  totalAmount?: number;
+  additionalDiscount?: number;
+  invoiceAmount?: number;
 }
 
 export interface CreatePurchaseOrderItemDto {
@@ -989,6 +998,7 @@ export interface PurchaseReturnItem {
   discount?: number;
   refundAmount: number;
   lineTotal: number;
+  conversionFactor?: number; // For UoM conversion (e.g., 1 box = 100 pieces)
 }
 
 /**
@@ -1038,6 +1048,7 @@ export interface CreatePurchaseReturnItemDto {
   unitPrice: number;
   costPrice: number;
   discount?: number;
+  conversionFactor?: number; // For UoM conversion (e.g., 1 box = 100 pieces)
 }
 
 /**
