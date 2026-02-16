@@ -54,6 +54,7 @@ import {
   useSalePayments,
   useAddSalePayment,
   useAccounts,
+  useSalesSummary,
 } from '@/services/api';
 import { useAuthStore } from '@/services/stores/use-auth-store';
 import { toast } from 'sonner';
@@ -73,6 +74,7 @@ const statusConfig: Record<
   partial: { label: 'Partial', variant: 'outline', icon: <AlertCircle className="h-3 w-3" /> },
   paid: { label: 'Paid', variant: 'default', icon: <CheckCircle2 className="h-3 w-3" /> },
   cancelled: { label: 'Cancelled', variant: 'destructive', icon: <XCircle className="h-3 w-3" /> },
+  due: { label: 'Due', variant: 'outline', icon: <AlertCircle className="h-3 w-3" /> },
 };
 
 export default function SalesHistoryPage() {
@@ -110,6 +112,10 @@ export default function SalesHistoryPage() {
 
   const { data: accountsData } = useAccounts();
   const addPaymentMutation = useAddSalePayment();
+  
+  // Summary data
+  const { data: summaryData, isLoading: isSummaryLoading } = useSalesSummary();
+  const summary = summaryData?.data;
 
   const sales: Sale[] = salesData?.data?.items || [];
   const payments: Payment[] = paymentsData?.data || [];
@@ -184,7 +190,7 @@ export default function SalesHistoryPage() {
       {
         accessorKey: 'saleDate',
         header: 'Sale Date',
-        cell: ({ row }) => <DateCell value={row.original.saleDate} />,
+        cell: ({ row }) => <DateCell value={row.original.createdAt} />,
       },
       {
         accessorKey: 'customerId',
@@ -236,9 +242,9 @@ export default function SalesHistoryPage() {
           const status = row.original.status;
           const config = statusConfig[status];
           return (
-            <Badge variant={config.variant} className="flex gap-1 w-fit">
-              {config.icon}
-              {config.label}
+            <Badge variant={config?.variant} className="flex gap-1 w-fit">
+              {config?.icon}
+              {config?.label}
             </Badge>
           );
         },
@@ -334,6 +340,89 @@ export default function SalesHistoryPage() {
           <Plus className="h-4 w-4 mr-2" />
           New Sale
         </Button>
+      </div>
+
+      {/* Summary Stats Cards */}
+      <div className={`grid gap-4 ${isAccountsEnabled ? 'md:grid-cols-4' : 'md:grid-cols-2'}`}>
+        {/* Today's Sales */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Today</CardDescription>
+            <CardTitle className="text-2xl">
+              {isSummaryLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                formatCurrency(summary?.today?.totalSales ?? 0)
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              {isSummaryLoading ? '...' : `${summary?.today?.salesCount ?? 0} sale(s)`}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* This Month's Sales */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>This Month</CardDescription>
+            <CardTitle className="text-2xl">
+              {isSummaryLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                formatCurrency(summary?.thisMonth?.totalSales ?? 0)
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              {isSummaryLoading ? '...' : `${summary?.thisMonth?.salesCount ?? 0} sale(s)`}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Total Paid - Only when accounts enabled */}
+        {isAccountsEnabled && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total Paid (All Time)</CardDescription>
+              <CardTitle className="text-2xl text-green-600">
+                {isSummaryLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  formatCurrency(summary?.allTime?.totalPaid ?? 0)
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                From {isSummaryLoading ? '...' : `${summary?.allTime?.salesCount ?? 0}`} sale(s)
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Total Due - Only when accounts enabled */}
+        {isAccountsEnabled && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total Due (All Time)</CardDescription>
+              <CardTitle className={`text-2xl ${(summary?.allTime?.totalDue ?? 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                {isSummaryLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  formatCurrency(summary?.allTime?.totalDue ?? 0)
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Outstanding balance
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Data Table */}
@@ -451,7 +540,7 @@ export default function SalesHistoryPage() {
                               +{formatCurrency(payment.amount)}
                             </span>
                             <div className="text-sm text-muted-foreground">
-                              {formatDateTime(payment.paymentDate)}
+                              {formatDateTime(payment.createdAt)}
                             </div>
                           </div>
                           <Badge variant="outline" className="capitalize">

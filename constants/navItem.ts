@@ -70,7 +70,7 @@ export const navItems: NavItem[] = [
       },
       {
         title: "Sales Returns",
-        url: "/sales/returns-bulk",
+        url: "/sales/returns",
         icon: "corner-up-left",
         features: ["sales", "returns"],
       },
@@ -92,18 +92,18 @@ export const navItems: NavItem[] = [
     items: [
       {
         title: "Receive Stock",
-        url: "/purchases/receive-bulk",
+        url: "/purchases",
         icon: "packages",
       },
       {
-        title: "Purchase Orders",
-        url: "/purchases/orders/create",
-        icon: "file-text",
+        title: "Created Orders",
+        url: "/purchases/created-orders",
+        icon: "file-plus",
       },
       { title: "Purchase History", url: "/purchases/history", icon: "clock" },
       {
         title: "Purchase Returns",
-        url: "/purchases/returns-bulk",
+        url: "/purchases/returns",
         icon: "package-minus",
         features: ["returns"],
       },

@@ -1,25 +1,33 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
+import { FileText } from "lucide-react";
 
 // Types
 import type { Customer } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
+import type { CustomAction } from "@/types/DataTable";
 
 // UI Components
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { DataTable } from "@/ui/components/dataTable";
+import { StatCard } from "@/components/dashboard/stat-card";
 
 // Hooks & API
 import {
   useCreateCustomer,
   useDeleteCustomer,
   useUpdateCustomer,
+  useCustomersSummary,
 } from "@/services/api";
 import { customersApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
+import { useAuthStore } from "@/services/stores/use-auth-store";
+import { useCurrency } from "@/lib/currency";
+import { CustomerLedgerSheet } from "@/components/customers";
 
 // Column definitions
 const columns: ColumnDef<Customer>[] = [
@@ -170,11 +178,86 @@ const defaultValues = {
 }
 
 export default function CustomersPage() {
+  const { user } = useAuthStore();
+  const { format: formatCurrency } = useCurrency();
+  const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  const isReturnsEnabled = user?.organization?.features?.returns ?? false;
+
+  // State for ledger sheet
+  const [ledgerSheetOpen, setLedgerSheetOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  // Fetch customers summary
+  const { data: summaryData, isLoading: isSummaryLoading } = useCustomersSummary();
+  const summary = summaryData?.data;
+
+  // Handle view ledger action
+  const handleViewLedger = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setLedgerSheetOpen(true);
+  };
+
+  // Custom actions for each row
+  const customActions: CustomAction[] = useMemo(() => [
+    {
+      type: "ledger",
+      placement: "cell",
+      icon: <FileText className="h-4 w-4" />,
+      tooltip: "View Ledger",
+      onClick: (row: Customer) => handleViewLedger(row),
+    },
+  ], []);
+
+  // Determine grid columns based on enabled features
+  const getGridCols = () => {
+    if (isAccountsEnabled && isReturnsEnabled) return "md:grid-cols-4";
+    if (isAccountsEnabled || isReturnsEnabled) return "md:grid-cols-3";
+    return "md:grid-cols-1 max-w-sm";
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <PageHeader title="Customers" subTitle="Manage your customers (sales)" />
+
+      {/* Summary Stats Cards */}
+      <div className={`grid gap-4 ${getGridCols()}`}>
+        <StatCard
+          title="Total Sales"
+          value={isSummaryLoading ? "..." : formatCurrency(summary?.totalSales ?? 0)}
+          icon="DollarSign"
+          loading={isSummaryLoading}
+          subtitle={isSummaryLoading ? undefined : `${summary?.salesCount ?? 0} transactions`}
+        />
+        {isAccountsEnabled && (
+          <>
+            <StatCard
+              title="Total Paid"
+              value={isSummaryLoading ? "..." : formatCurrency(summary?.totalPaid ?? 0)}
+              icon="TrendingUp"
+              loading={isSummaryLoading}
+              valueColor="success"
+            />
+            <StatCard
+              title="Total Due"
+              value={isSummaryLoading ? "..." : formatCurrency(summary?.totalDue ?? 0)}
+              icon="AlertTriangle"
+              loading={isSummaryLoading}
+              valueColor={(summary?.totalDue ?? 0) > 0 ? "danger" : "success"}
+            />
+          </>
+        )}
+        {isReturnsEnabled && (
+          <StatCard
+            title="Total Refunds"
+            value={isSummaryLoading ? "..." : formatCurrency(summary?.totalRefunds ?? 0)}
+            icon="RotateCcw"
+            loading={isSummaryLoading}
+            subtitle={isSummaryLoading ? undefined : `${summary?.returnsCount ?? 0} returns`}
+            valueColor="warning"
+          />
+        )}
+      </div>
 
       <DataTable
         cardTitle={(dataLength: number) => `All Customers (${dataLength})`}
@@ -190,6 +273,7 @@ export default function CustomersPage() {
         rowClassName={(row: Customer) =>
           row.status === "inactive" ? "bg-red-50 opacity-70" : ""
         }
+        customActions={customActions}
         operations={{
           formConfig: customerFormConfig,
           defaultValues: defaultValues,
@@ -208,6 +292,14 @@ export default function CustomersPage() {
             ...(isEdit && item ? { id: item._id } : {}),
           }),
         }}
+      />
+
+      {/* Customer Ledger Sheet */}
+      <CustomerLedgerSheet
+        open={ledgerSheetOpen}
+        onOpenChange={setLedgerSheetOpen}
+        customer={selectedCustomer}
+        isAccountsEnabled={isAccountsEnabled}
       />
     </div>
   );

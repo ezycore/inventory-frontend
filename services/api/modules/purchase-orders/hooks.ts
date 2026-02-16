@@ -1,13 +1,21 @@
-import { PurchaseOrderFilters, purchaseOrdersApi } from "@/services/api";
+import { purchaseOrdersApi, purchaseReturnsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
-import {
+import type {
+  AddPurchasePaymentDto,
   CreatePurchaseOrderDto,
-  PurchaseOrderStatus,
+  CreatePurchaseOrdersDto,
+  CreatePurchaseReturnDto,
+  PurchaseOrderFilters,
+  PurchaseReturnFilters,
   ReceivePurchaseOrderDto,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { handleMutationError } from "@/lib/error-handling";
+
+// ============================
+// Purchase Orders Hooks
+// ============================
 
 // List purchase orders
 export const usePurchaseOrders = (filters?: PurchaseOrderFilters) => {
@@ -28,15 +36,36 @@ export const usePurchaseOrder = (id: string) => {
   });
 };
 
+// Get purchase orders summary
+export const usePurchaseOrdersSummary = () => {
+  return useQuery({
+    queryKey: queryKeys.purchaseOrders.summary(),
+    queryFn: () => purchaseOrdersApi.getSummary(),
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+// Get purchase order payments
+export const usePurchaseOrderPayments = (id: string) => {
+  return useQuery({
+    queryKey: queryKeys.purchaseOrders.payments(id),
+    queryFn: () => purchaseOrdersApi.getPayments(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 // Create purchase order
 export const useCreatePurchaseOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreatePurchaseOrderDto) => purchaseOrdersApi.create(data),
+    mutationFn: (data: CreatePurchaseOrdersDto) => purchaseOrdersApi.create(data),
     onSuccess: (data) => {
       toast.success(data.message || "Purchase order created successfully");
       queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() });
     },
     onError: handleMutationError,
   });
@@ -54,24 +83,6 @@ export const useUpdatePurchaseOrder = () => {
       purchaseOrdersApi.update(id, data),
     onSuccess: (data, variables) => {
       toast.success(data.message || "Purchase order updated successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseOrders.detail(variables.id),
-      });
-    },
-    onError: handleMutationError,
-  });
-};
-
-// Update purchase order status
-export const useUpdatePurchaseOrderStatus = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: PurchaseOrderStatus }) =>
-      purchaseOrdersApi.updateStatus(id, status),
-    onSuccess: (data, variables) => {
-      toast.success(data.message || "Status updated successfully");
       queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.purchaseOrders.detail(variables.id),
@@ -113,20 +124,30 @@ export const useCancelPurchaseOrder = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.purchaseOrders.detail(id),
       });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
     },
     onError: handleMutationError,
   });
 };
 
-// Delete purchase order
-export const useDeletePurchaseOrder = () => {
+// Add payment to purchase order
+export const useAddPurchasePayment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => purchaseOrdersApi.delete(id),
-    onSuccess: (data) => {
-      toast.success(data.message || "Purchase order deleted successfully");
+    mutationFn: ({ id, data }: { id: string; data: AddPurchasePaymentDto }) =>
+      purchaseOrdersApi.addPayment(id, data),
+    onSuccess: (data, variables) => {
+      toast.success(data.message || "Payment added successfully");
       queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.purchaseOrders.detail(variables.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.purchaseOrders.payments(variables.id),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() });
     },
     onError: handleMutationError,
   });
@@ -134,3 +155,82 @@ export const useDeletePurchaseOrder = () => {
 
 // Aliases for consistency with other modules
 export const useAddPurchaseOrder = useCreatePurchaseOrder;
+
+// ============================
+// Purchase Returns Hooks
+// ============================
+
+// List purchase returns
+export const usePurchaseReturns = (filters?: PurchaseReturnFilters) => {
+  return useQuery({
+    queryKey: queryKeys.purchaseReturns.list(filters),
+    queryFn: () => purchaseReturnsApi.getAll(filters),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Get single purchase return
+export const usePurchaseReturn = (id: string) => {
+  return useQuery({
+    queryKey: queryKeys.purchaseReturns.detail(id),
+    queryFn: () => purchaseReturnsApi.getById(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Get returns for a specific purchase order
+export const usePurchaseOrderReturns = (purchaseOrderId: string) => {
+  return useQuery({
+    queryKey: queryKeys.purchaseReturns.byPurchaseOrder(purchaseOrderId),
+    queryFn: () => purchaseReturnsApi.getByPurchaseOrderId(purchaseOrderId),
+    enabled: !!purchaseOrderId,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Get supplier pending dues for refund allocation
+export const useSupplierPendingDues = (supplierId: string, excludePurchaseOrderId?: string) => {
+  return useQuery({
+    queryKey: queryKeys.purchaseReturns.supplierDues(supplierId, excludePurchaseOrderId),
+    queryFn: () => purchaseReturnsApi.getSupplierPendingDues(supplierId, excludePurchaseOrderId),
+    enabled: !!supplierId,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Get purchase returns summary
+export const usePurchaseReturnsSummary = () => {
+  return useQuery({
+    queryKey: queryKeys.purchaseReturns.summary(),
+    queryFn: () => purchaseReturnsApi.getSummary(),
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+// Create purchase return
+export const useCreatePurchaseReturn = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreatePurchaseReturnDto) => purchaseReturnsApi.create(data),
+    onSuccess: (response) => {
+      const result = (response as any)?.data;
+      toast.success("Purchase return created successfully");
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseReturns.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() });
+      if (result?.purchaseOrderId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.purchaseReturns.byPurchaseOrder(result.purchaseOrderId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.purchaseOrders.detail(result.purchaseOrderId),
+        });
+      }
+    },
+    onError: handleMutationError,
+  });
+};
