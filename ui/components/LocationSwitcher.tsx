@@ -90,7 +90,7 @@ export function LocationSwitcher() {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="group relative h-11 gap-2 px-4 rounded-full border border-gray-200/60 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-gray-300 transition-all duration-300"
+          className="group relative h-9 gap-2 px-4 rounded-full border border-gray-400 backdrop-blur-sm hover:border-gray-300 transition-all duration-300"
         >
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -98,7 +98,7 @@ export function LocationSwitcher() {
               <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
             </div>
             <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold text-gray-900">
+              <span className="text-sm font-semibold">
                 {currentLocation?.name || "Select Location"}
               </span>
             </div>
