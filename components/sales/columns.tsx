@@ -73,7 +73,7 @@ export const getSalesColumns = (
               );
               onUpdateQuantity(item.id, val);
             }}
-            className="h-7 w-12 text-center text-sm tabular-nums px-1"
+            className="h-7 w-12 text-center text-sm tabular-nums px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <Button
             variant="outline"

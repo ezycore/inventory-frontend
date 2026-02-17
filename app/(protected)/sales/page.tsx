@@ -28,6 +28,7 @@ import { CheckCircleIcon, ClipboardList } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useCurrency } from "@/lib/currency";
 
 // =====================
 // Main Component
@@ -37,6 +38,7 @@ export default function SalesPage() {
   const [showSuccessPopover, setShowSuccessPopover] = useState(false);
   const [paidAmount, setPaidAmount] = useState(0);
   const [localAdditionalDiscount, setLocalAdditionalDiscount] = useState(0);
+  const { symbol } = useCurrency();
 
   // Get organization features
   const { user } = useAuthStore();
@@ -375,13 +377,12 @@ export default function SalesPage() {
                 {/* Additional Discount */}
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground font-medium">
-                    Additional Discount
+                    Additional Discount ({symbol})
                   </span>
                   <div className="flex items-center gap-1">
                     <Input
                       type="number"
                       min="0"
-                      step="0.01"
                       value={localAdditionalDiscount || ""}
                       onChange={(e) => {
                         const value = Math.max(0, Number(e.target.value) || 0);
@@ -391,7 +392,6 @@ export default function SalesPage() {
                       placeholder="0"
                       className="w-20 h-7 text-right text-sm"
                     />
-                    <span className="text-xs text-muted-foreground">%</span>
                   </div>
                 </div>
 
