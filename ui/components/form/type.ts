@@ -238,6 +238,7 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   isSubmitting?: boolean;
   resetAfterSubmit?: boolean;
   hideCancel?: boolean;
+  hideSubmit?: boolean;
 
   // Mutation-based form submission (alternative to onSubmit)
   mutationHook?: {

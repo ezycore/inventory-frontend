@@ -1,6 +1,13 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiResponse, CustomerLedger, CustomersSummary, PaginatedResponse } from "@/types";
 import { buildQueryParams, type BaseFilters } from "../../utils";
+
+export interface CustomerLedgerFilters {
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
 
 export const customersApi = {
   getAll: (filters: BaseFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
@@ -17,4 +24,12 @@ export const customersApi = {
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/sales/customers/${id}`),
+
+  // Get aggregated summary for all customers (totals)
+  getSummary: (): Promise<ApiResponse<CustomersSummary>> =>
+    apiClient.get("/sales/customers/summary"),
+
+  // Get customer ledger (transaction history)
+  getLedger: (customerId: string, filters: CustomerLedgerFilters = {}): Promise<ApiResponse<CustomerLedger>> =>
+    apiClient.get(`/sales/customers/${customerId}/ledger${buildQueryParams(filters)}`),
 };

@@ -16,7 +16,7 @@ export function isFeatureEnabled(
  */
 export function areAllFeaturesEnabled(
   features: OrganizationFeatures | undefined,
-  requiredFeatures: FeatureName[]
+  requiredFeatures: FeatureName[],
 ): boolean {
   if (!features) return false;
   return requiredFeatures.every((feature) => features[feature] === true);
@@ -27,7 +27,7 @@ export function areAllFeaturesEnabled(
  */
 export function isAnyFeatureEnabled(
   features: OrganizationFeatures | undefined,
-  allowedFeatures: FeatureName[]
+  allowedFeatures: FeatureName[],
 ): boolean {
   if (!features) return false;
   return allowedFeatures.some((feature) => features[feature] === true);
@@ -37,11 +37,11 @@ export function isAnyFeatureEnabled(
  * Get list of enabled features
  */
 export function getEnabledFeatures(
-  features: OrganizationFeatures | undefined
+  features: OrganizationFeatures | undefined,
 ): FeatureName[] {
   if (!features) return [];
   return (Object.keys(features) as FeatureName[]).filter(
-    (key) => features[key] === true
+    (key) => features[key] === true,
   );
 }
 
@@ -49,11 +49,11 @@ export function getEnabledFeatures(
  * Get list of disabled features
  */
 export function getDisabledFeatures(
-  features: OrganizationFeatures | undefined
+  features: OrganizationFeatures | undefined,
 ): FeatureName[] {
   if (!features) return [];
   return (Object.keys(features) as FeatureName[]).filter(
-    (key) => features[key] === false
+    (key) => features[key] === false,
   );
 }
 
@@ -67,27 +67,21 @@ export const FEATURE_DISPLAY_NAMES: Record<FeatureName, string> = {
   barcodeSystem: "Barcode System",
   invoicePrinting: "Invoice Printing",
   returns: "Returns Management",
-  uomConversion: "Unit of Measure Conversion"
+  uomConversion: "Unit Conversion",
 };
 
 /**
  * Feature descriptions for UI
  */
 export const FEATURE_DESCRIPTIONS: Record<FeatureName, string> = {
-  sales:
-    "Enable sales orders, customer invoices, and sales history tracking",
+  sales: "Enable sales orders, customer invoices, and sales history tracking",
   accounts:
     "Enable account management, payment tracking, and financial records",
-  expiryTracking:
-    "Track product expiry dates with batch management and alerts",
-  barcodeSystem:
-    "Enable barcode scanning and SKU-based product lookup",
-  invoicePrinting:
-    "Generate and print invoices for sales and purchases",
-  returns:
-    "Enable sales returns, purchase returns, and credit management",
-    uomConversion:
-    "Enable unit of measure conversion for products with multiple units",
+  expiryTracking: "Track product expiry dates with batch management and alerts",
+  barcodeSystem: "Enable barcode scanning and SKU-based product lookup",
+  invoicePrinting: "Generate and print invoices for sales and purchases",
+  returns: "Enable sales returns, purchase returns, and credit management",
+  uomConversion: "Enable unit of measure conversion for products",
 };
 
 /**
@@ -100,5 +94,5 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   barcodeSystem: "scan-barcode",
   invoicePrinting: "printer",
   returns: "undo-2",
-  uomConversion: "repeat"
+  uomConversion: "repeat",
 };

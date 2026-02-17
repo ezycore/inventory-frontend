@@ -1,25 +1,30 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { FileText } from "lucide-react";
+import { useMemo, useState } from "react";
 
 // Types
 import type { Supplier } from "@/types";
+import type { CustomAction } from "@/types/DataTable";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { DataTable } from "@/ui/components/dataTable";
+import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 
 // Hooks & API
+import { SupplierLedgerSheet } from "@/components/suppliers";
 import {
+  suppliersApi,
   useCreateSupplier,
   useDeleteSupplier,
   useUpdateSupplier,
 } from "@/services/api";
-import { suppliersApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
-import PageHeader from "@/ui/components/header";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { FilterConfig } from "@/types/DataTable";
+import PageHeader from "@/ui/components/header";
 
 // Column definitions
 const columns: ColumnDef<Supplier>[] = [
@@ -148,7 +153,7 @@ const supplierFilterConfig: FilterConfig = {
       columnSpan: 2,
     },
   ],
-  viewMode: 'popover',
+  viewMode: "popover",
   columns: 2,
   applyOnChange: false,
   showResetButton: true,
@@ -167,14 +172,45 @@ const defaultValues = {
   address: "",
   defaultDiscountId: "",
   status: "active" as const,
-}
+};
 
 export default function SuppliersPage() {
+  const { user } = useAuthStore();
+  const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+
+  // State for ledger sheet
+  const [ledgerSheetOpen, setLedgerSheetOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+    null,
+  );
+
+  // Handle view ledger action
+  const handleViewLedger = (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setLedgerSheetOpen(true);
+  };
+
+  // Custom actions for each row
+  const customActions: CustomAction[] = useMemo(
+    () => [
+      {
+        type: "ledger",
+        placement: "cell",
+        icon: <FileText className="h-4 w-4" />,
+        tooltip: "View Ledger",
+        onClick: (row: Supplier) => handleViewLedger(row),
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <PageHeader title="Suppliers" subTitle="Manage your suppliers (purchases)" />
+      <PageHeader
+        title="Suppliers"
+        subTitle="Manage your suppliers (purchases)"
+      />
 
       <DataTable
         cardTitle={(dataLength: number) => `All Suppliers (${dataLength})`}
@@ -190,6 +226,7 @@ export default function SuppliersPage() {
         rowClassName={(row: Supplier) =>
           row.status === "inactive" ? "bg-red-50 opacity-70" : ""
         }
+        customActions={customActions}
         operations={{
           formConfig: supplierFormConfig,
           defaultValues: defaultValues,
@@ -203,11 +240,23 @@ export default function SuppliersPage() {
           editTooltip: "Edit Supplier",
           deleteTooltip: "Delete Supplier",
           viewTooltip: "View Supplier Details",
-          prepareSubmitData: (data: Supplier, isEdit: boolean, item: Supplier) => ({
+          prepareSubmitData: (
+            data: Supplier,
+            isEdit: boolean,
+            item: Supplier,
+          ) => ({
             ...data,
             ...(isEdit && item ? { id: item._id } : {}),
           }),
         }}
+      />
+
+      {/* Supplier Ledger Sheet */}
+      <SupplierLedgerSheet
+        open={ledgerSheetOpen}
+        onOpenChange={setLedgerSheetOpen}
+        supplier={selectedSupplier}
+        isAccountsEnabled={isAccountsEnabled}
       />
     </div>
   );

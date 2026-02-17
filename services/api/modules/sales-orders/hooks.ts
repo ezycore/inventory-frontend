@@ -37,6 +37,17 @@ export const useSale = (id: string) => {
 };
 
 /**
+ * Get sales summary statistics (for sales history page)
+ */
+export const useSalesSummary = () => {
+  return useQuery({
+    queryKey: [...queryKeys.salesOrders.all(), "summary"],
+    queryFn: () => salesApi.getSummary(),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+/**
  * Get payments for a specific sale
  */
 export const useSalePayments = (saleId: string) => {
