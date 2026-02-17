@@ -1,12 +1,5 @@
 'use client'
-
-// Types
-import type { Category } from '@/types'
-
-// UI Components
 import { DataTable } from '@/ui/components/dataTable'
-
-// Hooks & API
 import { categoryColumns } from '@/components/categories/columns'
 import { categoryFilterConfig } from '@/components/categories/filters'
 import { categoryFormConfig } from '@/components/categories/form-config'
@@ -50,13 +43,13 @@ export default function CategoriesPage() {
         enableRowHover={true}
         rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
         operations={{
+          isViewAvailable: false,
           formConfig: filteredFormConfig,
           getAllData: categoriesApi.getAll,
           createMutation: useCreateCategory(),
           updateMutation: useUpdateCategory(),
           deleteMutation: useDeleteCategory(),
           queryKey: [...queryKeys.categories.all()],
-          isViewAvailable: true,
           entityName: "Category"
         }}
       />

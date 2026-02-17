@@ -14,24 +14,18 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const verifyMe = useMe();
-  const [defaultOpen, setDefaultOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [defaultOpen] = useState(() => {
+    // Only read cookie on client-side
+    if (typeof window === 'undefined') return true; // or your default value
+    const cookieValue = getCookie("sidebar_state");
+    return cookieValue !== "false";
+  });
 
   useEffect(() => {
     verifyMe.mutate();
   }, []);
 
-  useEffect(() => {
-    // Read cookie only on client-side after mount
-    const cookieValue = getCookie("sidebar_state");
-    setDefaultOpen(cookieValue !== "false");
-    setMounted(true);
-  }, []);
 
-  // Prevent rendering until mounted to avoid hydration mismatch
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <KBar>
