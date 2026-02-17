@@ -3,10 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
-  * {
-        scrollbar-width: thin;
-        scrollbar-color: var(--border)transparent
-    }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
 
 :root {
   --radius: 0.65rem;
