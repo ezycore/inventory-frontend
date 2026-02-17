@@ -56,8 +56,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     actionsPlacement = 'bottom',
     resetAfterSubmit = true,
     hideCancel = false,
-    hideSubmit = false,
-
+    
     // Disabled fields in edit mode
     disabledFieldsInEdit,
     isEditMode = false,
@@ -163,13 +162,15 @@ const DynamicForm: FC<DynamicFormProps> = ({
         full: 'sm:max-w-[90vw]'
     }[modalSize]
 
+    console.log("DynamicForm render", hideCancel  , !onSubmit , !mutationHook)
+
     const formActions = (viewMode && isModalMode) ? (
         <div className={cn("flex justify-end")}>
             <Button type="button" variant="outline" onClick={handleContainerCancel}>
                 Close
             </Button>
         </div>
-    ) : viewMode ? null : (hideCancel && hideSubmit) ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
+    ) : viewMode ? null : (hideCancel && !onSubmit && !mutationHook) ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
         {
             !hideCancel && (
                 <Button type="button" variant="outline" onClick={handleContainerCancel}>

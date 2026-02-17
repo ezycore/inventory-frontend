@@ -7,9 +7,10 @@ import {
   getCustomerFormConfig,
   getPaymentFormConfig,
   ProductSearch,
+  accountItemsCreateCallback,
   type CreateSalesOrderData,
 } from "@/components/sales";
-import { useCreateSalesOrder } from "@/services/api";
+import { useCreateSalesOrder, useSelectOptions } from "@/services/api";
 import { useAuthStore, useSellPageStore } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { Badge } from "@/ui/components/badge";
@@ -98,21 +99,30 @@ export default function SalesPage() {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
 
-  // Handle inline discount change in table
+  // Fetch accounts and auto-select default
+  const { data: accountOptions } = useSelectOptions(
+    isAccountsEnabled ? "/accounts" : null,
+    accountItemsCreateCallback,
+  );
+
+  useEffect(() => {
+    if (!isAccountsEnabled || !accountOptions) return;
+    const defaultAccount = accountOptions.find((opt: any) => opt.isDefault);
+    if (defaultAccount && !customerForm.getValues("accountId")) {
+      customerForm.setValue("accountId", defaultAccount.value);
+    }
+  }, [accountOptions, isAccountsEnabled, customerForm]);
+
+  // Handle inline discount change in table (direct amount)
   const handleUpdateDiscount = useCallback(
-    (id: string, discountPercent: number) => {
-      const item = items.find((i) => i.id === id);
-      if (!item) return;
-      const discountAmount = item.unitPrice * (discountPercent / 100);
-      const salePrice = Math.max(0, item.unitPrice - discountAmount);
+    (id: string, discountAmount: number, unitPrice: number) => {
+      const salePrice = Math.max(0, unitPrice - discountAmount);
       updateItem(id, {
-        discountType: "percentage",
-        discountValue: discountPercent,
         discountAmount,
         salePrice,
       });
     },
-    [items, updateItem],
+    [updateItem],
   );
 
   // Columns with quantity controls, discount editing, and remove
@@ -122,8 +132,9 @@ export default function SalesPage() {
         (id, quantity) => updateItem(id, { quantity }),
         handleUpdateDiscount,
         removeItem,
+        symbol,
       ),
-    [updateItem, handleUpdateDiscount, removeItem],
+    [updateItem, handleUpdateDiscount, removeItem, symbol],
   );
 
   // =====================
@@ -290,34 +301,33 @@ export default function SalesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ==================== LEFT COLUMN ==================== */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Step 1: Select Customer */}
+          {/* Customer & Product Search */}
           <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                  1
-                </span>
-                <h3 className="font-semibold text-sm">Select Customer</h3>
+            <CardContent className="pt-4 pb-3 space-y-4">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                    1
+                  </span>
+                  <h3 className="font-semibold text-sm">Select Customer</h3>
+                </div>
+                <DynamicForm
+                  form={customerForm}
+                  config={customerFormConfig}
+                  onFieldChange={handleCustomerFieldChange}
+                  hideCancel
+                />
               </div>
-              <DynamicForm
-                form={customerForm}
-                config={customerFormConfig}
-                onFieldChange={handleCustomerFieldChange}
-                hideCancel
-              />
-            </CardContent>
-          </Card>
-
-          {/* Step 2: Add Products */}
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                  2
-                </span>
-                <h3 className="font-semibold text-sm">Add Products</h3>
+              <Separator  className="my-6" />
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                    2
+                  </span>
+                  <h3 className="font-semibold text-sm">Add Products</h3>
+                </div>
+                <ProductSearch onSelect={handleProductSelect} />
               </div>
-              <ProductSearch onSelect={handleProductSelect} />
             </CardContent>
           </Card>
 
@@ -377,9 +387,10 @@ export default function SalesPage() {
                 {/* Additional Discount */}
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground font-medium">
-                    Additional Discount ({symbol})
+                    Additional Discount
                   </span>
                   <div className="flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground">{symbol}</span>
                     <Input
                       type="number"
                       min="0"

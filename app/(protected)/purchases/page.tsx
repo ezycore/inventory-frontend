@@ -1188,7 +1188,6 @@ export default function PurchasesPage() {
             config={supplierFormConfig}
             onFieldChange={handleSupplierFieldChange}
             hideCancel
-            hideSubmit
           />
         </CardContent>
       </Card>
