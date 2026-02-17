@@ -346,6 +346,8 @@ export enum UnitCategory {
   WEIGHT = "weight", // kg, g, lb
   VOLUME = "volume", // l, ml, gal
   LENGTH = "length", // m, cm, ft
+  AREA = "area", // sqm, sqft
+  TIME = "time", // hr, day, mo
   CUSTOM = "custom", // user-defined
 }
 
