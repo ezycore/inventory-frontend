@@ -51,6 +51,19 @@ export const currencyOptions = [
   { label: "AED - UAE Dirham (د.إ)", value: "AED" },
 ];
 
+export const INDUSTRY_OPTIONS = [
+  { label: "Pharmacy", value: "PHARMACY" },
+  { label: "Grocery Store", value: "GROCERY_STORE" },
+  { label: "Electronics Store", value: "ELECTRONICS_STORE" },
+  { label: "Fashion Apparel", value: "FASHION_APPAREL" },
+  { label: "Hardware Store", value: "HARDWARE_STORE" },
+  { label: "Manufacturing Unit", value: "MANUFACTURING_UNIT" },
+  { label: "Wholesale Distributor", value: "WHOLESALE_DISTRIBUTOR" },
+  { label: "Restaurant / F&B", value: "RESTAURANT_FNB" },
+  { label: "Service Business", value: "SERVICE_BUSINESS" },
+  { label: "Other", value: "OTHER" },
+];
+
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
     {
@@ -137,17 +150,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select industry",
           required: true,
-          options: [
-            { label: "Manufacturing", value: "Manufacturing" },
-            { label: "Retail", value: "Retail" },
-            { label: "Wholesale", value: "Wholesale" },
-            { label: "Services", value: "Services" },
-            { label: "Technology", value: "Technology" },
-            { label: "Healthcare", value: "Healthcare" },
-            { label: "Education", value: "Education" },
-            { label: "Food & Beverage", value: "Food & Beverage" },
-            { label: "Other", value: "Other" },
-          ],
+          options: INDUSTRY_OPTIONS,
         },
         {
           name: "country",
