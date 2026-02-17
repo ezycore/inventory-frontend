@@ -26,6 +26,7 @@ export function useLogin(show2FASetter: (show: boolean) => void) {
   const router = useRouter();
   const { setUser } = useAuthStore();
   const queryClient = useQueryClient();
+  
 
   return useMutation({
     mutationFn: (credentials: {
@@ -53,8 +54,10 @@ export function useLogin(show2FASetter: (show: boolean) => void) {
 
       handleMutationSuccess("Login successful!");
 
-      // Redirect to dashboard after successful login
-      router.push("/dashboard");
+      // Redirect to the intended page or dashboard after successful login
+      const params = new URLSearchParams(window.location.search);
+      const callbackUrl = params.get("callbackUrl") || "/dashboard";
+      router.push(callbackUrl);
     },
     onError: handleMutationError,
   });
