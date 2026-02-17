@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@ui/components/select";
 import { cn } from "@ui/lib/utils";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import React, { useState, useMemo } from "react";
 import { Button } from "./button";
 import { MultiSelect } from "./multi-select";
@@ -303,37 +303,59 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   const singleValue = Array.isArray(actualValue)
     ? actualValue[0] || ""
     : actualValue || "";
+
+  const handleClearValue = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the select
+    handleValueChange(undefined);
+  };
+
   return (
     <>
       <div className="flex gap-2 w-full">
-        <Select
-          value={singleValue}
-          onValueChange={handleValueChange}
-          disabled={disabled}
-        >
-          <SelectTrigger
-            className={cn("w-full", error ? "border-red-500" : "", className)}
+        <div className="relative w-full group">
+          <Select
+            value={singleValue}
+            onValueChange={handleValueChange}
+            disabled={disabled}
           >
-            <SelectValue placeholder={placeholder || "Select an option..."} />
-          </SelectTrigger>
-          <SelectContent>
-            {finalOptions.length === 0 ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
-                No data available
-              </div>
-            ) : (
-              finalOptions.map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  disabled={option.disabled}
-                >
-                  {option.label}
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              className={cn(
+                "w-full",
+                error ? "border-red-500" : "",
+                singleValue && !disabled && "[&>svg]:group-hover:opacity-0",
+                className
+              )}
+            >
+              <SelectValue placeholder={placeholder || "Select an option..."} />
+            </SelectTrigger>
+            <SelectContent>
+              {finalOptions.length === 0 ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  No data available
+                </div>
+              ) : (
+                finalOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.disabled}
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          {singleValue && !disabled && (
+            <button
+              type="button"
+              onClick={handleClearValue}
+              className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer"
+            >
+              <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+        </div>
 
         {creatable && moduleConfig && (
           <Button

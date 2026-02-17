@@ -23,21 +23,32 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@ui/components/dialog'
 import { Checkbox } from '@ui/components/checkbox'
 import { toast } from 'sonner'
-import { Plus, PlusCircle } from 'lucide-react'
+import { Plus, PlusCircle, Upload, X, ImageIcon } from 'lucide-react'
 import { useVariantAttributes, useCreateVariantAttribute } from '@/services/api'
 import type { VariantAttribute } from '@/types'
 import DynamicForm from '@/ui/components/form'
 import variantAttributeFormConfig from '../variants/form-config'
 import useDynamicForm from '@/hooks/use-dynamic-form'
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemPreview,
+  FileUploadList,
+} from '@ui/components/file-upload'
+import { SafeImage } from '@/ui/components/safeImage'
 
 interface VariantRow {
   id: string
+  _id?: string // MongoDB _id for smart merge on update
   attributeName: string
   value: string
   sku: string
   costPrice: number
   price: number
   enabled: boolean
+  images?: (File | { url: string; thumbnailUrl?: string; mediumUrl?: string; publicId: string })[]
 }
 
 interface VariantManagerProps {
@@ -54,6 +65,7 @@ interface EditModalData {
   barcode?: string
   weight?: string
   dimensions?: string
+  images?: (File | { url: string; thumbnailUrl?: string; mediumUrl?: string; publicId: string })[]
 }
 
 export default function VariantManager({
@@ -134,6 +146,7 @@ export default function VariantManager({
       sku: variant.sku,
       costPrice: variant.costPrice,
       price: variant.price,
+      images: variant.images || [],
     })
     setEditModalOpen(true)
   }
@@ -148,6 +161,7 @@ export default function VariantManager({
               sku: editingVariant.sku,
               costPrice: editingVariant.costPrice,
               price: editingVariant.price,
+              images: editingVariant.images || [],
             }
             : v
         )
@@ -260,6 +274,7 @@ export default function VariantManager({
           <Table>
             <TableHeader>
               <TableRow className="h-9">
+                <TableHead className="w-[50px] py-2 text-xs"></TableHead>
                 <TableHead className="w-[160px] py-2 text-xs">Variant Value</TableHead>
                 <TableHead className="w-[180px] py-2 text-xs">SKU</TableHead>
                 <TableHead className="w-[120px] py-2 text-xs">Price</TableHead>
@@ -272,6 +287,25 @@ export default function VariantManager({
                   key={variant.id}
                   className={`h-10 ${!variant.enabled ? 'opacity-50 bg-gray-50' : ''}`}
                 >
+                  <TableCell className="py-1">
+                    {variant.images && variant.images.length > 0 ? (
+                      (() => {
+                        const firstImg = variant.images[0]
+                        const src = firstImg instanceof File
+                          ? URL.createObjectURL(firstImg)
+                          : (firstImg as any).thumbnailUrl || (firstImg as any).url
+                        return (
+                          <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                            <SafeImage src={src} alt={variant.value} className="w-full h-full object-cover" />
+                          </div>
+                        )
+                      })()
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <ImageIcon className="w-4 h-4 text-gray-400" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="font-medium py-1 text-sm">{variant.value}</TableCell>
                   <TableCell className="py-1">
                     <Input
@@ -290,20 +324,6 @@ export default function VariantManager({
                         handleInlineUpdate(
                           variant.id,
                           'price',
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      className="h-7 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                  </TableCell>
-                  <TableCell className="py-1">
-                    <Input
-                      type="number"
-                      value={variant.costPrice || ''}
-                      onChange={e =>
-                        handleInlineUpdate(
-                          variant.id,
-                          'costPrice',
                           parseFloat(e.target.value) || 0
                         )
                       }
@@ -339,7 +359,7 @@ export default function VariantManager({
 
       {/* Edit Modal for Additional Information */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Additional Variant Information</DialogTitle>
           </DialogHeader>
@@ -415,6 +435,87 @@ export default function VariantManager({
                   }
                   placeholder="e.g., 10x5x3 cm"
                 />
+              </div>
+
+              {/* Variant Image Upload */}
+              <div className="space-y-2">
+                <Label>Variant Images</Label>
+                <FileUpload
+                  value={(editingVariant.images || []) as (File | string)[]}
+                  onValueChange={(files) =>
+                    setEditingVariant({ ...editingVariant, images: files as any[] })
+                  }
+                  accept="image/*"
+                  maxFiles={3}
+                  maxSize={5 * 1024 * 1024}
+                >
+                  {(!editingVariant.images || editingVariant.images.length < 3) && (
+                    <FileUploadDropzone className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors">
+                      <div className="flex flex-col items-center gap-2">
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <div className="text-sm">
+                          <span className="font-semibold text-primary">Click to upload</span>
+                          <span className="text-muted-foreground"> or drag and drop</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          PNG, JPG, GIF up to 5MB (Max 3 images)
+                        </p>
+                      </div>
+                    </FileUploadDropzone>
+                  )}
+
+                  {editingVariant.images && editingVariant.images.length > 0 && (
+                    <FileUploadList className="mt-3">
+                      {editingVariant.images.map((file: any, index: number) => {
+                        let fileKey: string
+                        let fileName: string
+                        let fileSize: string
+                        let previewUrl: string | null = null
+
+                        if (file instanceof File) {
+                          fileKey = `${file.name}-${index}`
+                          fileName = file.name
+                          fileSize = `${(file.size / 1024 / 1024).toFixed(2)} MB`
+                          previewUrl = URL.createObjectURL(file)
+                        } else if (file && typeof file === 'object' && file.publicId) {
+                          fileKey = `${file.publicId}-${index}`
+                          fileName = file.publicId?.split('/').pop() || 'Existing image'
+                          fileSize = 'Uploaded'
+                          previewUrl = file.thumbnailUrl || file.url
+                        } else {
+                          return null
+                        }
+
+                        return (
+                          <FileUploadItem
+                            key={fileKey}
+                            value={file}
+                            className="flex items-center gap-3 p-2 border rounded-lg"
+                          >
+                            {previewUrl ? (
+                              <SafeImage
+                                src={previewUrl}
+                                alt={fileName}
+                                className="h-12 w-12 rounded object-cover bg-gray-100"
+                              />
+                            ) : (
+                              <FileUploadItemPreview className="h-12 w-12 rounded overflow-hidden bg-gray-100" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{fileName}</p>
+                              <p className="text-xs text-muted-foreground">{fileSize}</p>
+                            </div>
+                            <FileUploadItemDelete asChild>
+                              <Button type="button" variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </FileUploadItemDelete>
+                          </FileUploadItem>
+                        )
+                      })}
+                    </FileUploadList>
+                  )}
+                </FileUpload>
               </div>
             </div>
           )}
