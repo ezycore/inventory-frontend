@@ -136,6 +136,27 @@
       color: var(--foreground);
     }
     .mobile-toggle svg { width: 24px; height: 24px; }
+
+     /* Language Select */
+    .lang-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.375rem 1.5rem 0.375rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--foreground);
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      transition: border-color 0.2s;
+    }
+    .lang-select:focus { outline: none; border-color: var(--accent); }
+    .lang-select:hover { border-color: var(--accent); }
+
     .mobile-menu {
       display: none;
       flex-direction: column;
@@ -782,15 +803,20 @@
     <div class="container navbar-inner">
       <a href="#" class="logo">EasyStock<span>ERP</span></a>
       <div class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#integrations">Integrations</a>
-        <a href="#resources">Resources</a>
-        <a href="#trust">About</a>
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#integrations" data-i18n="nav.integrations">Integrations</a>
+        <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
+        <a href="#resources" data-i18n="nav.resources">Resources</a>
+        <a href="#trust" data-i18n="nav.about">About</a>
       </div>
       <div class="nav-ctas">
-        <a href="http://localhost:3000/login" class="btn btn-outline-dark" style="background: transparent;">Log In</a>
-        <a href="http://localhost:3000/signup" class="btn btn-primary">Request a Demo</a>
+        <select class="lang-select" id="lang-selector" onchange="changeLanguage(this.value)">
+          <option value="en" selected>English</option>
+          <option value="bn">বাংলা</option>
+          <!-- <option value="es">Español</option> -->
+        </select>
+        <a href="http://localhost:3000/login" class="btn btn-outline-dark" style="background: transparent;" data-i18n="nav.login">Log In</a>
+        <a href="http://localhost:3000/signup" class="btn btn-primary" data-i18n="nav.demo">Request a Demo</a>
       </div>
       <button class="mobile-toggle" onclick="toggleMobile()" aria-label="Toggle menu">
         <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -798,12 +824,17 @@
       </button>
     </div>
     <div class="mobile-menu" id="mobile-menu">
-      <a href="#features" onclick="toggleMobile()">Features</a>
-      <a href="#pricing" onclick="toggleMobile()">Pricing</a>
-      <a href="#integrations" onclick="toggleMobile()">Integrations</a>
-      <a href="#resources" onclick="toggleMobile()">Resources</a>
-      <a href="#trust" onclick="toggleMobile()">About</a>
-      <a href="#lead-capture" class="btn btn-primary" onclick="toggleMobile()">Request a Demo</a>
+      <select class="lang-select" id="lang-selector-mobile" onchange="changeLanguage(this.value)" style="margin-top:0.5rem;">
+        <option value="en" selected>English</option>
+        <option value="bn">বাংলা</option>
+        <!-- <option value="es">Español</option> -->
+      </select>
+      <a href="#features" onclick="toggleMobile()" data-i18n="nav.features">Features</a>
+      <a href="#integrations" onclick="toggleMobile()" data-i18n="nav.integrations">Integrations</a>
+      <a href="#pricing" onclick="toggleMobile()" data-i18n="nav.pricing">Pricing</a>
+      <a href="#resources" onclick="toggleMobile()" data-i18n="nav.resources">Resources</a>
+      <a href="#trust" onclick="toggleMobile()" data-i18n="nav.about">About</a>
+      <a href="#lead-capture" class="btn btn-primary" onclick="toggleMobile()" data-i18n="nav.demo">Request a Demo</a>
     </div>
   </nav>
 
@@ -813,16 +844,16 @@
       <div class="container">
         <div class="hero-grid">
           <div>
-            <span class="hero-badge">All-in-One Business Platform</span>
-            <h1>Run Your Entire Business from <span class="text-gradient">One Platform</span></h1>
-            <p>Streamline operations, automate workflows, and gain real-time visibility across every department — built for growing businesses.</p>
+            <span class="hero-badge" data-i18n="hero.badge">All-in-One Business Platform</span>
+            <h1 data-i18n="hero.title">Run Your Entire Business from <span class="text-gradient">One Platform</span></h1>
+            <p data-i18n="hero.subtitle">Streamline operations, automate workflows, and gain real-time visibility across every department — built for growing businesses.</p>
             <div class="hero-ctas">
-              <a href="#lead-capture" class="btn btn-primary">Request a Demo <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-              <button class="btn btn-outline"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg> Watch Overview</button>
+              <a href="#lead-capture" class="btn btn-primary" data-i18n="hero.cta1">Request a Demo <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              <button class="btn btn-outline" data-i18n="hero.cta2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg> Watch Overview</button>
             </div>
             <div class="hero-checks">
-              <span>✓ No credit card required</span>
-              <span>✓ 14-day free trial</span>
+              <span data-i18n="hero.check1">✓ No credit card required</span>
+              <span data-i18n="hero.check2">✓ 14-day free trial</span>
             </div>
           </div>
           <div style="position: relative;">
@@ -832,8 +863,8 @@
             <div class="hero-badge-card">
               <div class="uptime-circle">98%</div>
               <div class="uptime-text">
-                <p>Uptime SLA</p>
-                <p>Enterprise-grade</p>
+                <p data-i18n="hero.uptime">Uptime SLA</p>
+                <p data-i18n="hero.uptimeDesc">Enterprise-grade</p>
               </div>
             </div>
           </div>
@@ -845,35 +876,35 @@
     <section class="benefits section-padding" id="benefits">
       <div class="container">
         <div class="section-header">
-          <span class="section-badge">Why EasyStockERP</span>
-          <h2>Built for Business Outcomes</h2>
-          <p>Everything you need to run smarter, move faster, and grow your business with confidence.</p>
+          <span class="section-badge" data-i18n="benefits.badge">Why EasyStockERP</span>
+          <h2 data-i18n="benefits.title">Built for Business Outcomes</h2>
+          <p data-i18n="benefits.subtitle">Everything you need to run smarter, move faster, and grow your business with confidence.</p>
         </div>
         <div class="benefits-grid">
           <div class="benefit-card">
             <div class="benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-            <h3>Automate Workflows</h3>
-            <p>Eliminate manual tasks and reduce errors with intelligent process automation.</p>
+            <h3 data-i18n="benefits.card1.title">Automate Workflows</h3>
+            <p data-i18n="benefits.card1.desc">Eliminate manual tasks and reduce errors with intelligent process automation.</p>
           </div>
           <div class="benefit-card">
             <div class="benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg></div>
-            <h3>Boost Efficiency</h3>
-            <p>Streamline operations and get more done with fewer resources.</p>
+            <h3 data-i18n="benefits.card2.title">Boost Efficiency</h3>
+            <p data-i18n="benefits.card2.desc">Streamline operations and get more done with fewer resources.</p>
           </div>
           <div class="benefit-card">
             <div class="benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg></div>
-            <h3>Cut Costs by 40%</h3>
-            <p>Reduce operational costs by consolidating multiple tools into one.</p>
+            <h3 data-i18n="benefits.card3.title">Cut Costs by 40%</h3>
+            <p data-i18n="benefits.card3.desc">Reduce operational costs by consolidating multiple tools into one.</p>
           </div>
           <div class="benefit-card">
             <div class="benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16h8"/><path d="M7 11h12"/><path d="M7 6h3"/></svg></div>
-            <h3>Real-Time Insights</h3>
-            <p>Make data-driven decisions with live dashboards and analytics.</p>
+            <h3 data-i18n="benefits.card4.title">Real-Time Insights</h3>
+            <p data-i18n="benefits.card4.desc">Make data-driven decisions with live dashboards and analytics.</p>
           </div>
           <div class="benefit-card">
             <div class="benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-            <h3>Team Collaboration</h3>
-            <p>Connect every department with shared data and unified workflows.</p>
+            <h3 data-i18n="benefits.card5.title">Team Collaboration</h3>
+            <p data-i18n="benefits.card5.desc">Connect every department with shared data and unified workflows.</p>
           </div>
         </div>
       </div>
@@ -883,67 +914,67 @@
     <section class="features section-padding" id="features">
       <div class="container">
         <div class="section-header">
-          <span class="section-badge">Core Modules</span>
-          <h2>Everything Your Business Needs</h2>
-          <p>Six powerful modules that work together seamlessly to run your operations end to end.</p>
+          <span class="section-badge" data-i18n="features.badge">Core Modules</span>
+          <h2 data-i18n="features.title">Everything Your Business Needs</h2>
+          <p data-i18n="features.subtitle">Six powerful modules that work together seamlessly to run your operations end to end.</p>
         </div>
         <div class="features-layout">
           <div class="feature-tabs">
-            <button class="feature-tab active" data-tab="0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>Accounting</button>
-            <button class="feature-tab" data-tab="1"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Inventory</button>
-            <button class="feature-tab" data-tab="2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>HR & Payroll</button>
-            <button class="feature-tab" data-tab="3"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>Sales & CRM</button>
-            <button class="feature-tab" data-tab="4"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>Procurement</button>
-            <button class="feature-tab" data-tab="5"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>Reporting</button>
+            <button class="feature-tab active" data-tab="0" data-i18n="features.tab1"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>Accounting</button>
+            <button class="feature-tab" data-tab="1" data-i18n="features.tab2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Inventory</button>
+            <button class="feature-tab" data-tab="2" data-i18n="features.tab3"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>HR & Payroll</button>
+            <button class="feature-tab" data-tab="3" data-i18n="features.tab4"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>Sales & CRM</button>
+            <button class="feature-tab" data-tab="4" data-i18n="features.tab5"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>Procurement</button>
+            <button class="feature-tab" data-tab="5" data-i18n="features.tab6"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>Reporting</button>
           </div>
           <div>
             <div class="feature-content active" data-content="0">
               <div class="feature-content-header">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
-                <h3>Accounting</h3>
+                <h3 data-i18n="features.tab1">Accounting</h3>
               </div>
-              <p>Automate invoicing, track expenses, and manage your general ledger with real-time financial reporting.</p>
-              <a href="#lead-capture">Learn more about Accounting →</a>
+              <p data-i18n="features.content1.desc">Automate invoicing, track expenses, and manage your general ledger with real-time financial reporting.</p>
+              <a href="#lead-capture" data-i18n="features.content1.link">Learn more about Accounting →</a>
             </div>
             <div class="feature-content" data-content="1">
               <div class="feature-content-header">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                <h3>Inventory</h3>
+                <h3 data-i18n="features.tab2">Inventory</h3>
               </div>
-              <p>Track stock levels, manage warehouses, and optimize your supply chain with demand forecasting.</p>
-              <a href="#lead-capture">Learn more about Inventory →</a>
+              <p data-i18n="features.content2.desc">Track stock levels, manage warehouses, and optimize your supply chain with demand forecasting.</p>
+              <a href="#lead-capture" data-i18n="features.content2.link">Learn more about Inventory →</a>
             </div>
             <div class="feature-content" data-content="2">
               <div class="feature-content-header">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <h3>HR & Payroll</h3>
+                <h3 data-i18n="features.tab3">HR & Payroll</h3>
               </div>
-              <p>Manage employees, run payroll, and handle benefits—all from a single, integrated platform.</p>
-              <a href="#lead-capture">Learn more about HR & Payroll →</a>
+              <p data-i18n="features.content3.desc">Manage employees, run payroll, and handle benefits—all from a single, integrated platform.</p>
+              <a href="#lead-capture" data-i18n="features.content3.link">Learn more about HR & Payroll →</a>
             </div>
             <div class="feature-content" data-content="3">
               <div class="feature-content-header">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                <h3>Sales & CRM</h3>
+                <h3 data-i18n="features.tab4">Sales & CRM</h3>
               </div>
-              <p>Track leads, manage pipelines, and close deals faster with built-in CRM and quoting tools.</p>
-              <a href="#lead-capture">Learn more about Sales & CRM →</a>
+              <p data-i18n="features.content4.desc">Track leads, manage pipelines, and close deals faster with built-in CRM and quoting tools.</p>
+              <a href="#lead-capture" data-i18n="features.content4.link">Learn more about Sales & CRM →</a>
             </div>
             <div class="feature-content" data-content="4">
               <div class="feature-content-header">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
-                <h3>Procurement</h3>
+                <h3 data-i18n="features.tab5">Procurement</h3>
               </div>
-              <p>Streamline purchasing with automated POs, vendor management, and approval workflows.</p>
-              <a href="#lead-capture">Learn more about Procurement →</a>
+              <p data-i18n="features.content5.desc">Streamline purchasing with automated POs, vendor management, and approval workflows.</p>
+              <a href="#lead-capture" data-i18n="features.content5.link">Learn more about Procurement →</a>
             </div>
             <div class="feature-content" data-content="5">
               <div class="feature-content-header">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                <h3>Reporting</h3>
+                <h3 data-i18n="features.tab6">Reporting</h3>
               </div>
-              <p>Build custom reports and dashboards that give you real-time visibility across your entire business.</p>
-              <a href="#lead-capture">Learn more about Reporting →</a>
+              <p data-i18n="features.content6.desc">Build custom reports and dashboards that give you real-time visibility across your entire business.</p>
+              <a href="#lead-capture" data-i18n="features.content6.link">Learn more about Reporting →</a>
             </div>
           </div>
         </div>
@@ -954,17 +985,17 @@
     <section class="integrations section-padding" id="integrations">
       <div class="container">
         <div class="section-header">
-          <span class="section-badge">Connected Ecosystem</span>
-          <h2>One Platform, Every Department</h2>
-          <p>EasyStockERP connects your entire business with seamless data flow between departments and third-party tools.</p>
+          <span class="section-badge" data-i18n="integrations.badge">Connected Ecosystem</span>
+          <h2 data-i18n="integrations.title">One Platform, Every Department</h2>
+          <p data-i18n="integrations.subtitle">EasyStockERP connects your entire business with seamless data flow between departments and third-party tools.</p>
         </div>
         <div class="integration-card">
           <div class="integration-hub">
             <div class="hub-icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
             </div>
-            <h3>EasyStockERP Core</h3>
-            <p>Central data hub</p>
+            <h3 data-i18n="integrations.coreTitle">EasyStockERP Core</h3>
+            <p data-i18n="integrations.coreDesc">Central data hub</p>
           </div>
           <div class="departments-grid">
             <div class="dept-card">
@@ -989,7 +1020,7 @@
             </div>
           </div>
           <div class="integrations-list">
-            <p>Integrates with your favorite tools</p>
+            <p data-i18n="integrations.integratesText">Integrates with your favorite tools</p>
             <div class="integration-logos">
               <span>Stripe</span>
               <span>QuickBooks</span>
@@ -1009,9 +1040,9 @@
     <section class="pricing section-padding" id="pricing">
       <div class="container">
         <div class="section-header">
-          <span class="section-badge">Pricing</span>
-          <h2>Simple, Transparent Pricing</h2>
-          <p>Choose the plan that fits your business. No hidden fees, cancel anytime.</p>
+          <span class="section-badge" data-i18n="pricing.badge">Pricing</span>
+          <h2 data-i18n="pricing.title">Simple, Transparent Pricing</h2>
+          <p data-i18n="pricing.subtitle">Choose the plan that fits your business. No hidden fees, cancel anytime.</p>
         </div>
         <div class="pricing-grid">
           <div class="pricing-card">
@@ -1244,8 +1275,8 @@
           <h4>Product</h4>
           <ul>
             <li><a href="#">Features</a></li>
-            <li><a href="#">Pricing</a></li>
             <li><a href="#">Integrations</a></li>
+            <li><a href="#">Pricing</a></li>
             <li><a href="#">Security</a></li>
             <li><a href="#">What's New</a></li>
           </ul>
@@ -1289,6 +1320,227 @@
   </footer>
 
   <script>
+    // Translations
+    const translations = {
+      en: {
+        'nav.features': 'Features',
+        'nav.integrations': 'Integrations',
+        'nav.pricing': 'Pricing',
+        'nav.resources': 'Resources',
+        'nav.about': 'About',
+        'nav.login': 'Log In',
+        'nav.demo': 'Request a Demo',
+        'hero.badge': 'All-in-One Business Platform',
+        'hero.title': 'Run Your Entire Business from <span class="text-gradient">One Platform</span>',
+        'hero.subtitle': 'Streamline operations, automate workflows, and gain real-time visibility across every department — built for growing businesses.',
+        'hero.cta1': 'Request a Demo <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
+        'hero.cta2': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg> Watch Overview',
+        'hero.check1': '✓ No credit card required',
+        'hero.check2': '✓ 14-day free trial',
+        'hero.uptime': 'Uptime SLA',
+        'hero.uptimeDesc': 'Enterprise-grade',
+        'benefits.badge': 'Why EasyStockERP',
+        'benefits.title': 'Built for Business Outcomes',
+        'benefits.subtitle': 'Everything you need to run smarter, move faster, and grow your business with confidence.',
+        'benefits.card1.title': 'Automate Workflows',
+        'benefits.card1.desc': 'Eliminate manual tasks and reduce errors with intelligent process automation.',
+        'benefits.card2.title': 'Boost Efficiency',
+        'benefits.card2.desc': 'Streamline operations and get more done with fewer resources.',
+        'benefits.card3.title': 'Cut Costs by 40%',
+        'benefits.card3.desc': 'Reduce operational costs by consolidating multiple tools into one.',
+        'benefits.card4.title': 'Real-Time Insights',
+        'benefits.card4.desc': 'Make data-driven decisions with live dashboards and analytics.',
+        'benefits.card5.title': 'Team Collaboration',
+        'benefits.card5.desc': 'Connect every department with shared data and unified workflows.',
+        'features.badge': 'Core Modules',
+        'features.title': 'Everything Your Business Needs',
+        'features.subtitle': 'Six powerful modules that work together seamlessly to run your operations end to end.',
+        'features.tab1': 'Accounting',
+        'features.tab2': 'Inventory',
+        'features.tab3': 'HR & Payroll',
+        'features.tab4': 'Sales & CRM',
+        'features.tab5': 'Procurement',
+        'features.tab6': 'Reporting',
+        'features.content1.desc': 'Automate invoicing, track expenses, and manage your general ledger with real-time financial reporting.',
+        'features.content1.link': 'Learn more about Accounting →',
+        'features.content2.desc': 'Track stock levels, manage warehouses, and optimize your supply chain with demand forecasting.',
+        'features.content2.link': 'Learn more about Inventory →',
+        'features.content3.desc': 'Manage employees, run payroll, and handle benefits—all from a single, integrated platform.',
+        'features.content3.link': 'Learn more about HR & Payroll →',
+        'features.content4.desc': 'Track leads, manage pipelines, and close deals faster with built-in CRM and quoting tools.',
+        'features.content4.link': 'Learn more about Sales & CRM →',
+        'features.content5.desc': 'Streamline purchasing with automated POs, vendor management, and approval workflows.',
+        'features.content5.link': 'Learn more about Procurement →',
+        'features.content6.desc': 'Build custom reports and dashboards that give you real-time visibility across your entire business.',
+        'features.content6.link': 'Learn more about Reporting →',
+        'integrations.badge': 'Connected Ecosystem',
+        'integrations.title': 'One Platform, Every Department',
+        'integrations.subtitle': 'EasyStockERP connects your entire business with seamless data flow between departments and third-party tools.',
+        'integrations.coreTitle': 'EasyStockERP Core',
+        'integrations.coreDesc': 'Central data hub',
+        'integrations.integratesText': 'Integrates with your favorite tools',
+        'pricing.badge': 'Pricing',
+        'pricing.title': 'Simple, Transparent Pricing',
+        'pricing.subtitle': 'Choose the plan that fits your business. No hidden fees, cancel anytime.',
+      },
+      bn: {
+        'nav.features': 'বৈশিষ্ট্য',
+        'nav.integrations': 'একীকরণ',
+        'nav.pricing': 'মূল্য',
+        'nav.resources': 'সম্পদ',
+        'nav.about': 'সম্পর্কে',
+        'nav.login': 'লগ ইন',
+        'nav.demo': 'ডেমো অনুরোধ করুন',
+        'hero.badge': 'সব-এক-এ ব্যবসায়িক প্ল্যাটফর্ম',
+        'hero.title': '<span class="text-gradient">একটি প্ল্যাটফর্ম</span> থেকে আপনার সম্পূর্ণ ব্যবসা পরিচালনা করুন',
+        'hero.subtitle': 'ক্রমবর্ধমান ব্যবসার জন্য তৈরি — প্রতিটি বিভাগ জুড়ে অপারেশনকে সুগম করুন, ওয়ার্কফ্লো স্বয়ংক্রিয় করুন এবং রিয়েল-টাইম দৃশ্যমানতা অর্জন করুন।',
+        'hero.cta1': 'ডেমো অনুরোধ করুন <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
+        'hero.cta2': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg> ভিডিও দেখুন',
+        'hero.check1': '✓ কোন ক্রেডিট কার্ডের প্রয়োজন নেই',
+        'hero.check2': '✓ ১৪-দিনের বিনামূল্যে ট্রায়াল',
+        'hero.uptime': 'আপটাইম এসএলএ',
+        'hero.uptimeDesc': 'এন্টারপ্রাইজ-গ্রেড',
+        'benefits.badge': 'কেন EasyStockERP',
+        'benefits.title': 'ব্যবসায়িক ফলাফলের জন্য তৈরি',
+        'benefits.subtitle': 'আত্মবিশ্বাসের সাথে স্মার্ট চালানো, দ্রুত অগ্রসর হওয়া এবং আপনার ব্যবসা বৃদ্ধির জন্য আপনার যা প্রয়োজন তার সবকিছু।',
+        'benefits.card1.title': 'ওয়ার্কফ্লো স্বয়ংক্রিয় করুন',
+        'benefits.card1.desc': 'বুদ্ধিমান প্রক্রিয়া অটোমেশনের মাধ্যমে ম্যানুয়াল কাজগুলি দূর করুন এবং ত্রুটি হ্রাস করুন।',
+        'benefits.card2.title': 'দক্ষতা বৃদ্ধি করুন',
+        'benefits.card2.desc': 'অপারেশনগুলি সুগম করুন এবং কম সম্পদ দিয়ে আরও কাজ সম্পন্ন করুন।',
+        'benefits.card3.title': '৪০% খরচ কমান',
+        'benefits.card3.desc': 'একটিতে একাধিক টুল একত্রিত করে অপারেশনাল খরচ হ্রাস করুন।',
+        'benefits.card4.title': 'রিয়েল-টাইম অন্তর্দৃষ্টি',
+        'benefits.card4.desc': 'লাইভ ড্যাশবোর্ড এবং বিশ্লেষণের সাথে ডেটা-চালিত সিদ্ধান্ত নিন।',
+        'benefits.card5.title': 'টিম সহযোগিতা',
+        'benefits.card5.desc': 'ভাগ করা ডেটা এবং একীভূত ওয়ার্কফ্লো সহ প্রতিটি বিভাগকে সংযুক্ত করুন।',
+        'features.badge': 'মূল মডিউল',
+        'features.title': 'আপনার ব্যবসার প্রয়োজনীয় সবকিছু',
+        'features.subtitle': 'ছয়টি শক্তিশালী মডিউল যা আপনার অপারেশনগুলি শেষ থেকে শেষ পর্যন্ত চালানোর জন্য নির্বিঘ্নে একসাথে কাজ করে।',
+        'features.tab1': 'অ্যাকাউন্টিং',
+        'features.tab2': 'ইনভেন্টরি',
+        'features.tab3': 'এইচআর ও পেরোল',
+        'features.tab4': 'বিক্রয় ও সিআরএম',
+        'features.tab5': 'ক্রয়',
+        'features.tab6': 'রিপোর্টিং',
+        'features.content1.desc': 'রিয়েল-টাইম আর্থিক রিপোর্টিং সহ ইনভয়েসিং স্বয়ংক্রিয় করুন, খরচ ট্র্যাক করুন এবং আপনার সাধারণ খাতা পরিচালনা করুন।',
+        'features.content1.link': 'অ্যাকাউন্টিং সম্পর্কে আরও জানুন →',
+        'features.content2.desc': 'স্টক স্তর ট্র্যাক করুন, গুদাম পরিচালনা করুন এবং চাহিদা পূর্বাভাস সহ আপনার সরবরাহ চেইন অপ্টিমাইজ করুন।',
+        'features.content2.link': 'ইনভেন্টরি সম্পর্কে আরও জানুন →',
+        'features.content3.desc': 'কর্মচারীদের পরিচালনা করুন, পেরোল চালান এবং সুবিধাগুলি পরিচালনা করুন — সবকিছু একটি একক, সমন্বিত প্ল্যাটফর্ম থেকে।',
+        'features.content3.link': 'এইচআর ও পেরোল সম্পর্কে আরও জানুন →',
+        'features.content4.desc': 'লিড ট্র্যাক করুন, পাইপলাইন পরিচালনা করুন এবং বিল্ট-ইন সিআরএম এবং কোটেশন টুল দিয়ে দ্রুত ডিল বন্ধ করুন।',
+        'features.content4.link': 'বিক্রয় ও সিআরএম সম্পর্কে আরও জানুন →',
+        'features.content5.desc': 'স্বয়ংক্রিয় পিও, বিক্রেতা ব্যবস্থাপনা এবং অনুমোদন ওয়ার্কফ্লো দিয়ে ক্রয় সুগম করুন।',
+        'features.content5.link': 'ক্রয় সম্পর্কে আরও জানুন →',
+        'features.content6.desc': 'কাস্টম রিপোর্ট এবং ড্যাশবোর্ড তৈরি করুন যা আপনার সম্পূর্ণ ব্যবসা জুড়ে রিয়েল-টাইম দৃশ্যমানতা দেয়।',
+        'features.content6.link': 'রিপোর্টিং সম্পর্কে আরও জানুন →',
+        'integrations.badge': 'সংযুক্ত ইকোসিস্টেম',
+        'integrations.title': 'একটি প্ল্যাটফর্ম, প্রতিটি বিভাগ',
+        'integrations.subtitle': 'EasyStockERP বিভাগ এবং তৃতীয়-পক্ষ টুলগুলির মধ্যে নির্বিঘ্ন ডেটা প্রবাহ সহ আপনার সম্পূর্ণ ব্যবসাকে সংযুক্ত করে।',
+        'integrations.coreTitle': 'EasyStockERP কোর',
+        'integrations.coreDesc': 'কেন্দ্রীয় ডেটা হাব',
+        'integrations.integratesText': 'আপনার পছন্দের টুলগুলির সাথে একীভূত হয়',
+        'pricing.badge': 'মূল্য',
+        'pricing.title': 'সহজ, স্বচ্ছ মূল্য',
+        'pricing.subtitle': 'আপনার ব্যবসার উপযুক্ত পরিকল্পনা চয়ন করুন। কোন লুকানো ফি নেই, যেকোনো সময় বাতিল করুন।',
+      },
+      es: {
+        'nav.features': 'Características',
+        'nav.integrations': 'Integraciones',
+        'nav.pricing': 'Precios',
+        'nav.resources': 'Recursos',
+        'nav.about': 'Acerca de',
+        'nav.login': 'Iniciar sesión',
+        'nav.demo': 'Solicitar demo',
+        'hero.badge': 'Plataforma empresarial todo en uno',
+        'hero.title': 'Administre todo su negocio desde <span class="text-gradient">una plataforma</span>',
+        'hero.subtitle': 'Optimice las operaciones, automatice los flujos de trabajo y obtenga visibilidad en tiempo real en cada departamento, diseñado para empresas en crecimiento.',
+        'hero.cta1': 'Solicitar demo <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
+        'hero.cta2': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg> Ver video',
+        'hero.check1': '✓ No se requiere tarjeta de crédito',
+        'hero.check2': '✓ Prueba gratuita de 14 días',
+        'hero.uptime': 'SLA de tiempo de actividad',
+        'hero.uptimeDesc': 'Nivel empresarial',
+        'benefits.badge': 'Por qué EasyStockERP',
+        'benefits.title': 'Construido para resultados empresariales',
+        'benefits.subtitle': 'Todo lo que necesita para trabajar de forma más inteligente, avanzar más rápido y hacer crecer su negocio con confianza.',
+        'benefits.card1.title': 'Automatizar flujos de trabajo',
+        'benefits.card1.desc': 'Elimine tareas manuales y reduzca errores con automatización inteligente de procesos.',
+        'benefits.card2.title': 'Aumentar la eficiencia',
+        'benefits.card2.desc': 'Optimice las operaciones y haga más con menos recursos.',
+        'benefits.card3.title': 'Reducir costos en un 40%',
+        'benefits.card3.desc': 'Reduzca los costos operativos consolidando múltiples herramientas en una.',
+        'benefits.card4.title': 'Información en tiempo real',
+        'benefits.card4.desc': 'Tome decisiones basadas en datos con paneles y análisis en tiempo real.',
+        'benefits.card5.title': 'Colaboración en equipo',
+        'benefits.card5.desc': 'Conecte cada departamento con datos compartidos y flujos de trabajo unificados.',
+        'features.badge': 'Módulos principales',
+        'features.title': 'Todo lo que su negocio necesita',
+        'features.subtitle': 'Seis módulos potentes que funcionan juntos sin problemas para ejecutar sus operaciones de principio a fin.',
+        'features.tab1': 'Contabilidad',
+        'features.tab2': 'Inventario',
+        'features.tab3': 'RR.HH. y nómina',
+        'features.tab4': 'Ventas y CRM',
+        'features.tab5': 'Adquisiciones',
+        'features.tab6': 'Informes',
+        'features.content1.desc': 'Automatice la facturación, rastree los gastos y administre su libro mayor con informes financieros en tiempo real.',
+        'features.content1.link': 'Más información sobre Contabilidad →',
+        'features.content2.desc': 'Rastree los niveles de existencias, administre almacenes y optimice su cadena de suministro con pronósticos de demanda.',
+        'features.content2.link': 'Más información sobre Inventario →',
+        'features.content3.desc': 'Administre empleados, ejecute nóminas y gestione beneficios, todo desde una sola plataforma integrada.',
+        'features.content3.link': 'Más información sobre RR.HH. y nómina →',
+        'features.content4.desc': 'Rastree clientes potenciales, administre canales y cierre acuerdos más rápido con CRM y herramientas de cotización integradas.',
+        'features.content4.link': 'Más información sobre Ventas y CRM →',
+        'features.content5.desc': 'Optimice las compras con órdenes de compra automatizadas, gestión de proveedores y flujos de trabajo de aprobación.',
+        'features.content5.link': 'Más información sobre Adquisiciones →',
+        'features.content6.desc': 'Cree informes personalizados y paneles que le brinden visibilidad en tiempo real en todo su negocio.',
+        'features.content6.link': 'Más información sobre Informes →',
+        'integrations.badge': 'Ecosistema conectado',
+        'integrations.title': 'Una plataforma, cada departamento',
+        'integrations.subtitle': 'EasyStockERP conecta toda su empresa con un flujo de datos fluido entre departamentos y herramientas de terceros.',
+        'integrations.coreTitle': 'EasyStockERP Core',
+        'integrations.coreDesc': 'Centro de datos central',
+        'integrations.integratesText': 'Se integra con sus herramientas favoritas',
+        'pricing.badge': 'Precios',
+        'pricing.title': 'Precios simples y transparentes',
+        'pricing.subtitle': 'Elija el plan que se ajuste a su negocio. Sin tarifas ocultas, cancele en cualquier momento.',
+      }
+    };
+
+    // Language management
+    let currentLang = localStorage.getItem('lang') || 'en';
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('lang', lang);
+      document.documentElement.lang = lang; // Update HTML lang attribute
+      applyTranslations();
+      // Sync both dropdowns
+      const desktopSelector = document.querySelector('#lang-selector');
+      const mobileSelector = document.querySelector('#lang-selector-mobile');
+      if (desktopSelector) desktopSelector.value = lang;
+      if (mobileSelector) mobileSelector.value = lang;
+    }
+
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[currentLang] && translations[currentLang][key]) {
+          element.innerHTML = translations[currentLang][key];
+        }
+      });
+    }
+
+    // Initialize language on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      document.documentElement.lang = currentLang; // Set HTML lang attribute
+      const desktopSelector = document.querySelector('#lang-selector');
+      const mobileSelector = document.querySelector('#lang-selector-mobile');
+      if (desktopSelector) desktopSelector.value = currentLang;
+      if (mobileSelector) mobileSelector.value = currentLang;
+      applyTranslations();
+    });
+
     // Mobile menu toggle
     function toggleMobile() {
       const menu = document.getElementById('mobile-menu');
