@@ -163,83 +163,83 @@ export function TwoFactorTab() {
 
       {/* Enable 2FA Dialog */}
       <Dialog open={showEnableDialog} onOpenChange={setShowEnableDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Set Up Two-Factor Authentication</DialogTitle>
-            <DialogDescription>
-              Scan the QR code below with your authenticator app, then enter the
-              6-digit code to complete setup.
-            </DialogDescription>
-          </DialogHeader>
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Set Up Two-Factor Authentication</DialogTitle>
+      <DialogDescription>
+        Scan the QR code below with your authenticator app, then enter the
+        6-digit code to complete setup.
+      </DialogDescription>
+    </DialogHeader>
 
-          <div className="space-y-4">
-            {/* QR Code */}
-            {qrCode && (
-              <div className="flex flex-col items-center space-y-3">
-                <div className="rounded-lg border-2 p-4 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qrCode} alt="2FA QR Code" className="h-48 w-48" />
-                </div>
-                <div className="w-full">
-                  <Label className="text-xs text-muted-foreground">
-                    Or enter this code manually:
-                  </Label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <code className="flex-1 rounded bg-muted px-3 py-2 text-sm font-mono">
-                      {secret}
-                    </code>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyToClipboard(secret)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Verification Input */}
-            <div className="space-y-2">
-              <Label htmlFor="verify-code">Verification Code</Label>
-              <Input
-                id="verify-code"
-                placeholder="Enter 6-digit code"
-                value={verificationToken}
-                onChange={(e) =>
-                  setVerificationToken(e.target.value.replace(/\D/g, ""))
-                }
-                maxLength={6}
-              />
+    <div className="space-y-4">
+      {/* QR Code */}
+      {qrCode && (
+        <div className="flex flex-col items-center space-y-3">
+          <div className="rounded-lg border-2 p-4 bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={qrCode} alt="2FA QR Code" className="h-48 w-48" />
+          </div>
+          <div className="w-full min-w-0">
+            <Label className="text-xs text-muted-foreground">
+              Or enter this code manually:
+            </Label>
+            <div className="mt-1 flex items-center gap-2 min-w-0">
+              <code className="flex-1 min-w-0 rounded bg-muted px-3 py-2 text-sm font-mono break-all">
+                {secret}
+              </code>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => copyToClipboard(secret)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
             </div>
           </div>
+        </div>
+      )}
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowEnableDialog(false);
-                setVerificationToken("");
-                setQrCode("");
-                setSecret("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleVerify}
-              disabled={
-                isVerifying ||
-                !verificationToken ||
-                verificationToken.length !== 6
-              }
-            >
-              {isVerifying ? "Verifying..." : "Verify & Enable"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Verification Input */}
+      <div className="space-y-2">
+        <Label htmlFor="verify-code">Verification Code</Label>
+        <Input
+          id="verify-code"
+          placeholder="Enter 6-digit code"
+          value={verificationToken}
+          onChange={(e) =>
+            setVerificationToken(e.target.value.replace(/\D/g, ""))
+          }
+          maxLength={6}
+        />
+      </div>
+    </div>
+
+    <DialogFooter>
+      <Button
+        variant="outline"
+        onClick={() => {
+          setShowEnableDialog(false);
+          setVerificationToken("");
+          setQrCode("");
+          setSecret("");
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        onClick={handleVerify}
+        disabled={
+          isVerifying ||
+          !verificationToken ||
+          verificationToken.length !== 6
+        }
+      >
+        {isVerifying ? "Verifying..." : "Verify & Enable"}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
       {/* Backup Codes Dialog */}
       <Dialog open={showBackupCodes} onOpenChange={setShowBackupCodes}>
