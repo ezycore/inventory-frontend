@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -18,9 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/components/select";
-import { MapPin } from "lucide-react";
+import { MapPin, Info, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Label } from "@/ui/components/label";
 
 export function ChangeDefaultLocationDialog() {
   const { user } = useAuthStore();
@@ -45,73 +47,92 @@ export function ChangeDefaultLocationDialog() {
       setOpen(false);
       // Reload the page to update the auth context
       window.location.reload();
-    } catch (error) {
+    } catch {
       // Error already handled by mutation
     }
   };
 
   return locations.length === 1 ? (
-    <>
-      {
-        <div className="text-sm text-muted-foreground">
-          You only have access to one location. Your default location cannot be
-          changed.
-        </div>
-      }
-    </>
+    <div className="text-sm text-muted-foreground flex items-center gap-2">
+      <Info className="h-4 w-4 shrink-0" />
+      <span>You only have access to one location.</span>
+    </div>
   ) : (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <MapPin className="h-4 w-4" />
-          Change Default Location
+          <span className="hidden sm:inline">Change Location</span>
+          <span className="sm:hidden">Change</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[95vw] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Change Default Location</DialogTitle>
           <DialogDescription>
-            Select your default location. This will be used when you log in.
+            Select your default location for when you log in.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+
+        <div className="space-y-4 py-2">
           {isAdmin && (
-            <div className="text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950 p-3 rounded-md border border-blue-200 dark:border-blue-800">
-              As an admin, you have access to all locations. Your default
-              location is used when you first log in.
+            <div className="text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800 flex items-start gap-2">
+              <Info className="h-4 w-4 shrink-0 mt-0.5 text-blue-500" />
+              <span>
+                As an admin, you have access to all locations. Your default is
+                used on first login.
+              </span>
             </div>
           )}
+
           <div className="space-y-2">
-            <label className="text-sm font-medium">Select Location</label>
+            <Label htmlFor="location-select" className="text-sm font-medium">
+              Select Location
+            </Label>
             <Select
               value={selectedLocationId}
               onValueChange={setSelectedLocationId}
               disabled={isLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger id="location-select">
                 <SelectValue placeholder="Choose a location..." />
               </SelectTrigger>
               <SelectContent>
                 {locations.map((location) => (
                   <SelectItem key={location._id} value={location._id}>
-                    {location.name} ({location.locationType})
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span>{location.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({location.locationType})
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={!selectedLocationId || updateDefaultMutation.isPending}
-            >
-              {updateDefaultMutation.isPending ? "Saving..." : "Save"}
-            </Button>
-          </div>
         </div>
+
+        <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="w-full sm:w-auto"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={!selectedLocationId || updateDefaultMutation.isPending}
+            className="w-full sm:w-auto"
+          >
+            {updateDefaultMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Save
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
