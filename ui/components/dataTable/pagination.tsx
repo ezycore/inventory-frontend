@@ -101,7 +101,7 @@ export function DataTablePagination<TData>({
           className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           aria-label="First page"
         >
-          <ChevronsLeft className="w-4 h-4 text-gray-600" />
+          <ChevronsLeft className="w-4 h-4 text-secondary-foreground" />
         </button>
         <button
           onClick={() => table.previousPage()}
@@ -109,7 +109,7 @@ export function DataTablePagination<TData>({
           className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           aria-label="Previous page"
         >
-          <ChevronLeft className="w-4 h-4 text-gray-600" />
+          <ChevronLeft className="w-4 h-4 text-secondary-foreground" />
         </button>
 
         {getPageNumbers().map((page, index) => {
@@ -144,7 +144,7 @@ export function DataTablePagination<TData>({
           className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           aria-label="Next page"
         >
-          <ChevronRight className="w-4 h-4 text-gray-600" />
+          <ChevronRight className="w-4 h-4 text-secondary-foreground" />
         </button>
         <button
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}
@@ -152,7 +152,7 @@ export function DataTablePagination<TData>({
           className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           aria-label="Last page"
         >
-          <ChevronsRight className="w-4 h-4 text-gray-600" />
+          <ChevronsRight className="w-4 h-4 text-secondary-foreground" />
         </button>
       </div>
 

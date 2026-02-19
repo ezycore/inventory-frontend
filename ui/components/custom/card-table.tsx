@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { Button } from "@/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/ui/components/card";
 import {
   Table,
   TableBody,
@@ -9,28 +16,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/components/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/ui/components/card";
-import { Button } from "@/ui/components/button";
+import { cn } from "@/ui/lib/utils";
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { cn } from "@/ui/lib/utils";
-import { EasyAlertDialog } from "./easy-alert-dialog";
 import { Loader2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { EasyAlertDialog } from "./easy-alert-dialog";
 
 interface TableAction {
   label: string;
   onClick: () => void;
-  variant?: "default" | "outline" | "destructive" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "outline"
+    | "destructive"
+    | "secondary"
+    | "ghost"
+    | "link";
   icon?: React.ReactNode;
   disabled?: boolean;
   loading?: boolean;
@@ -46,18 +52,18 @@ interface CardTableProps<TData, TValue = any> {
   title?: React.ReactNode;
   description?: React.ReactNode;
   headerAction?: React.ReactNode;
-  
+
   // Table Props
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   emptyMessage?: string;
   isLoading?: boolean;
   rowClassName?: string | ((row: TData) => string);
-  
+
   // Footer Actions
   actions?: TableAction[];
   footerContent?: React.ReactNode;
-  
+
   // Styling
   className?: string;
   tableClassName?: string;
@@ -66,7 +72,7 @@ interface CardTableProps<TData, TValue = any> {
 
 /**
  * CardTable - Comprehensive table component with Card wrapper
- * 
+ *
  * Features:
  * - Card wrapper with title, description, and header actions
  * - Table with columns and data
@@ -74,7 +80,7 @@ interface CardTableProps<TData, TValue = any> {
  * - Built-in confirmation dialogs
  * - Loading and empty states
  * - Fully customizable styling
- * 
+ *
  * @example
  * ```tsx
  * <CardTable
@@ -162,7 +168,7 @@ export function CardTable<TData, TValue = any>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -178,7 +184,9 @@ export function CardTable<TData, TValue = any>({
                 >
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    <span className="ml-2 text-muted-foreground">Loading...</span>
+                    <span className="ml-2 text-muted-foreground">
+                      Loading...
+                    </span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -196,7 +204,7 @@ export function CardTable<TData, TValue = any>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -237,7 +245,9 @@ export function CardTable<TData, TValue = any>({
                     </>
                   ) : (
                     <>
-                      {action.icon && <span className="mr-2">{action.icon}</span>}
+                      {action.icon && (
+                        <span className="mr-2">{action.icon}</span>
+                      )}
                       {action.label}
                     </>
                   )}
@@ -280,9 +290,7 @@ export function CardTable<TData, TValue = any>({
           onOpenChange={(open) =>
             setConfirmationState({ open, action: confirmationState.action })
           }
-          title={
-            confirmationState.action.confirmationTitle || "Confirm Action"
-          }
+          title={confirmationState.action.confirmationTitle || "Confirm Action"}
           description={
             confirmationState.action.confirmationDescription ||
             "Are you sure you want to proceed?"

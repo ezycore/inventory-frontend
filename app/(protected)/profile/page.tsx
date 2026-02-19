@@ -1,20 +1,20 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
-import { User, Lock, Shield, Building2, KeyRound, UserCog } from "lucide-react";
 import {
-  ProfileHeader,
-  ProfileInfoTab,
+  OrganizationTab,
   PasswordChangeTab,
   PermissionsTab,
-  OrganizationTab,
-  TwoFactorTab,
+  ProfileHeader,
+  ProfileInfoTab,
   TransferOwnershipTab,
+  TwoFactorTab,
 } from "@/components/profile";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { useMemo, useState } from "react";
 import { ScrollArea, ScrollBar } from "@/ui/components/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { cn } from "@/ui/lib/utils";
+import { Building2, KeyRound, Lock, Shield, User, UserCog } from "lucide-react";
+import { useMemo, useState } from "react";
 
 const tabItems = [
   {
@@ -77,7 +77,6 @@ export default function ProfilePage() {
   }, [user?.organization?.ownerId, user?.id]);
 
   const visibleTabs = tabItems.filter((tab) => !tab.ownerOnly || isOwner);
-  const activeTabData = visibleTabs.find((tab) => tab.value === activeTab);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
@@ -109,7 +108,7 @@ export default function ProfilePage() {
                               "w-full justify-start gap-3 px-4 py-3 text-left font-medium",
                               "rounded-lg transition-all",
                               "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm",
-                              "hover:bg-muted data-[state=active]:hover:bg-primary"
+                              "hover:bg-muted data-[state=active]:hover:bg-primary",
                             )}
                           >
                             <Icon className="h-4 w-4 shrink-0" />
@@ -140,7 +139,7 @@ export default function ProfilePage() {
                           className={cn(
                             "flex items-center gap-2 px-4 py-2.5 rounded-lg shrink-0",
                             "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
-                            "transition-all"
+                            "transition-all",
                           )}
                         >
                           <Icon className="h-4 w-4" />
