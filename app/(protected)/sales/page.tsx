@@ -19,11 +19,6 @@ import { Card, CardContent } from "@/ui/components/card";
 import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
 import { Input } from "@/ui/components/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/ui/components/popover";
 import { Separator } from "@/ui/components/separator";
 import { CheckCircleIcon, ClipboardList } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -36,7 +31,6 @@ import { useCurrency } from "@/lib/currency";
 // =====================
 
 export default function SalesPage() {
-  const [showSuccessPopover, setShowSuccessPopover] = useState(false);
   const [paidAmount, setPaidAmount] = useState(0);
   const [localAdditionalDiscount, setLocalAdditionalDiscount] = useState(0);
   const { symbol } = useCurrency();
@@ -44,6 +38,7 @@ export default function SalesPage() {
   // Get organization features
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  const defaultAccountType = user.defaultAccountType;
 
   // Store state
   const {
@@ -98,20 +93,6 @@ export default function SalesPage() {
   useEffect(() => {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
-
-  // Fetch accounts and auto-select default
-  const { data: accountOptions } = useSelectOptions(
-    isAccountsEnabled ? "/accounts" : null,
-    accountItemsCreateCallback,
-  );
-
-  useEffect(() => {
-    if (!isAccountsEnabled || !accountOptions) return;
-    const defaultAccount = accountOptions.find((opt: any) => opt.isDefault);
-    if (defaultAccount && !customerForm.getValues("accountId")) {
-      customerForm.setValue("accountId", defaultAccount.value);
-    }
-  }, [accountOptions, isAccountsEnabled, customerForm]);
 
   // Handle inline discount change in table (direct amount)
   const handleUpdateDiscount = useCallback(
@@ -228,6 +209,10 @@ export default function SalesPage() {
       toast.error("Please select a payment account");
       return;
     }
+    if(!customerId){
+      toast.error("Please select a customer for the order");
+      return;
+    }
     try {
       const totalSalePrice = getTotalSalePrice();
       const totalCostPrice = getTotalCostPrice();
@@ -255,10 +240,9 @@ export default function SalesPage() {
         orderData.dueAmount = dueAmount;
       }
       const createResult = await createOrderMutation.mutateAsync(orderData);
-      if (createResult.data?._id) {
-        setShowSuccessPopover(true);
-        setTimeout(() => setShowSuccessPopover(false), 3000);
+      if (createResult.data?.sale?._id) {
         clearAll();
+        toast.success("Order created successfully");
         customerForm.reset({
           customerId: null,
           discountType: "percentage",
@@ -318,7 +302,7 @@ export default function SalesPage() {
                   hideCancel
                 />
               </div>
-              <Separator  className="my-6" />
+              <Separator className="my-6" />
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
@@ -436,11 +420,10 @@ export default function SalesPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Due</span>
                       <span
-                        className={`font-semibold tabular-nums ${
-                          dueAmount > 0
-                            ? "text-orange-600 dark:text-orange-500"
-                            : "text-green-600 dark:text-green-500"
-                        }`}
+                        className={`font-semibold tabular-nums ${dueAmount > 0
+                          ? "text-orange-600 dark:text-orange-500"
+                          : "text-green-600 dark:text-green-500"
+                          }`}
                       >
                         {formatCurrency(dueAmount)}
                       </span>
@@ -457,29 +440,16 @@ export default function SalesPage() {
                 )}
 
                 <Separator />
+                <Button
+                  onClick={handleMarkAsSold}
+                  disabled={isLoading || items.length === 0}
+                  size="lg"
+                  className="w-full font-semibold"
+                >
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  {isLoading ? "Processing..." : "Confirm Order"}
+                </Button>
 
-                {/* Confirm Order */}
-                <Popover open={showSuccessPopover}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      onClick={handleMarkAsSold}
-                      disabled={isLoading || items.length === 0}
-                      size="lg"
-                      className="w-full font-semibold"
-                    >
-                      <CheckCircleIcon className="h-5 w-5 mr-2" />
-                      {isLoading ? "Processing..." : "Confirm Order"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto">
-                    <div className="flex items-center gap-2 text-green-600">
-                      <CheckCircleIcon className="h-5 w-5" />
-                      <span className="font-medium">
-                        Sale completed successfully!
-                      </span>
-                    </div>
-                  </PopoverContent>
-                </Popover>
 
                 {items.length > 0 && (
                   <p className="text-center text-xs text-muted-foreground">
