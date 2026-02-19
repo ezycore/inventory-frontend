@@ -20,7 +20,7 @@ export const getCustomerFormConfig = (
             required: false,
             optionsApi: "/sales/customers",
             placeholder: "Search or select customer...",
-            labelInValue: true,
+            // labelInValue: true,
             itemsCreateCallback: customerItemsCreateCallback,
             columnSpan: 6,
           },

@@ -38,7 +38,8 @@ export default function SalesPage() {
   // Get organization features
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
-  const defaultAccountType = user.defaultAccountType;
+  const defaultCustomer = user.defaultData?.customerId;
+  const defaultAccountType = user.defaultData?.accountId;
 
   // Store state
   const {
@@ -78,12 +79,10 @@ export default function SalesPage() {
   // Customer form (also holds payment fields)
   const customerForm = useForm({
     defaultValues: {
-      customerId: customerId
-        ? { value: customerId, label: customerName || "" }
-        : null,
+      customerId: defaultCustomer || customerId,
       discountType: orderDiscountType,
       discountValue: orderDiscountValue,
-      accountId: null,
+      accountId: defaultAccountType,
       paidAmount: 0,
       notes: notes,
     },
