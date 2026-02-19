@@ -23,6 +23,7 @@ function VerifyEmailForm() {
     if (token) {
       verifyEmailMutation.mutate({ token });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run when token changes, not mutation object
   }, [token]);
 
   return (

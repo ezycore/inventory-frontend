@@ -127,6 +127,7 @@ export function CardTable<TData, TValue = any>({
 
   // Note: React Compiler warning about useReactTable is expected and safe to ignore
   // This is a known behavior with TanStack Table - the component will work correctly
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table is known to work correctly despite this warning
   const table = useReactTable({
     data,
     columns: memoizedColumns,

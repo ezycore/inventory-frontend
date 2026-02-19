@@ -12,6 +12,7 @@ export default function Toaster({ ...props }: ToasterProps) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: tracking mount state for portal rendering
     setIsInitialized(true);
   }, []);
 

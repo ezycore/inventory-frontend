@@ -30,6 +30,7 @@ export default function ProtectedLayout({
 
   useEffect(() => {
     verifyMe.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run once on mount
   }, []);
 
   return (
