@@ -24,7 +24,7 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex gap-8">
             <Link
-              href="/landing/features"
+              href="#features"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Features
@@ -36,22 +36,22 @@ export function Navbar() {
               Integrations
             </Link>
             <Link
-              href="/landing/pricing"
+              href="#pricing"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Pricing
             </Link>
             <Link
-              href="#resources"
+              href="#social-proof"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Resources
+              Testimonials
             </Link>
             <Link
-              href="/landing/about"
+              href="#lead-capture"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              About
+              Contact
             </Link>
           </div>
 
@@ -107,7 +107,7 @@ export function Navbar() {
               <option value="bn">বাংলা</option>
             </select>
             <Link
-              href="/features"
+              href="#features"
               className="py-3 text-sm font-medium text-muted-foreground"
               onClick={toggleMobile}
             >
@@ -121,25 +121,25 @@ export function Navbar() {
               Integrations
             </Link>
             <Link
-              href="/pricing"
+              href="#pricing"
               className="py-3 text-sm font-medium text-muted-foreground"
               onClick={toggleMobile}
             >
               Pricing
             </Link>
             <Link
-              href="#resources"
+              href="#social-proof"
               className="py-3 text-sm font-medium text-muted-foreground"
               onClick={toggleMobile}
             >
-              Resources
+              Testimonials
             </Link>
             <Link
-              href="/about"
+              href="#lead-capture"
               className="py-3 text-sm font-medium text-muted-foreground"
               onClick={toggleMobile}
             >
-              About
+              Contact
             </Link>
             <Link href="/signup" onClick={toggleMobile}>
               <Button className="w-full btn-gradient border-0 mt-2">

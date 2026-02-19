@@ -41,7 +41,7 @@ export function Footer() {
             <ul className="flex flex-col gap-2.5">
               <li>
                 <Link
-                  href="/features"
+                  href="#features"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
                   Features
@@ -57,7 +57,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/pricing"
+                  href="#pricing"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
                   Pricing
@@ -135,7 +135,7 @@ export function Footer() {
             <ul className="flex flex-col gap-2.5">
               <li>
                 <Link
-                  href="/about"
+                  href="#trust"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
                   About Us
@@ -151,7 +151,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href="#lead-capture"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
                   Contact

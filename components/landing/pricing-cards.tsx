@@ -52,7 +52,7 @@ const pricingPlans = [
       "SSO & SAML",
     ],
     cta: "Contact Sales",
-    ctaLink: "/contact",
+    ctaLink: "#lead-capture",
     popular: false,
   },
 ];

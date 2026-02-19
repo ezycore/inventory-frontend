@@ -34,7 +34,7 @@ const benefits = [
 
 export function BenefitsSection() {
   return (
-    <section className="section-padding bg-background">
+    <section className="section-padding bg-background" id="benefits">
       <div className="container mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="section-badge">Why EasyStockERP</span>

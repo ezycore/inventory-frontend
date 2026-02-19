@@ -18,7 +18,7 @@ const features = [
     title: "Accounting",
     description:
       "Automate invoicing, track expenses, and manage your general ledger with real-time financial reporting.",
-    link: "/contact",
+    link: "#lead-capture",
   },
   {
     id: 1,
@@ -26,7 +26,7 @@ const features = [
     title: "Inventory",
     description:
       "Track stock levels, manage warehouses, and optimize your supply chain with demand forecasting.",
-    link: "/contact",
+    link: "#lead-capture",
   },
   {
     id: 2,
@@ -34,7 +34,7 @@ const features = [
     title: "HR & Payroll",
     description:
       "Manage employees, run payroll, and handle benefits—all from a single, integrated platform.",
-    link: "/contact",
+    link: "#lead-capture",
   },
   {
     id: 3,
@@ -42,7 +42,7 @@ const features = [
     title: "Sales & CRM",
     description:
       "Track leads, manage pipelines, and close deals faster with built-in CRM and quoting tools.",
-    link: "/contact",
+    link: "#lead-capture",
   },
   {
     id: 4,
@@ -50,7 +50,7 @@ const features = [
     title: "Procurement",
     description:
       "Streamline purchasing with automated POs, vendor management, and approval workflows.",
-    link: "/contact",
+    link: "#lead-capture",
   },
   {
     id: 5,
@@ -58,7 +58,7 @@ const features = [
     title: "Reporting",
     description:
       "Build custom reports and dashboards that give you real-time visibility across your entire business.",
-    link: "/contact",
+    link: "#lead-capture",
   },
 ];
 
