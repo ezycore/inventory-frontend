@@ -50,6 +50,7 @@ export function SimpleTable<TData, TValue = any>({
   // Memoize columns to prevent unnecessary re-renders
   const memoizedColumns = useMemo(() => columns, [columns]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table is known to work correctly despite this warning
   const table = useReactTable({
     data,
     columns: memoizedColumns,

@@ -1075,7 +1075,6 @@ export default function PurchasesPage() {
     supplierForm,
     isAccountsEnabled,
     getSellerNetAmount,
-    getSellerDueAmount,
     createOrderMutation,
     clearAll,
     productForm,

@@ -7,6 +7,7 @@ export function SafeImage({ src, alt, ...props }: any) {
   if (useNative || !src) {
    const propsWithoutFill = { ...props };
    delete propsWithoutFill.fill;
+    // eslint-disable-next-line @next/next/no-img-element -- Fallback for when Next.js Image fails
     return <img src={src} alt={alt} {...propsWithoutFill} />;
   }
 

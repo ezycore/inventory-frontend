@@ -14,22 +14,32 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const verifyMe = useMe();
-  const [defaultOpen] = useState(() => {
-    // Only read cookie on client-side
-    if (typeof window === 'undefined') return true; // or your default value
+  
+  // Use consistent default for SSR, then update after mount
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // Read cookie only after component mounts to avoid hydration mismatch
     const cookieValue = getCookie("sidebar_state");
-    return cookieValue !== "false";
-  });
+    if (cookieValue === "false") {
+      setSidebarOpen(false);
+    }
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     verifyMe.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run once on mount
   }, []);
-
-
 
   return (
     <KBar>
-      <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProvider 
+        defaultOpen={sidebarOpen}
+        open={isMounted ? sidebarOpen : undefined}
+        onOpenChange={isMounted ? setSidebarOpen : undefined}
+      >
         <AppSidebar />
         <SidebarInset>
           <Header />

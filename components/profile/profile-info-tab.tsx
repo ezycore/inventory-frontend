@@ -6,7 +6,7 @@ import { Label } from "@/ui/components/label";
 import { useUpdateProfile } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useState, useMemo, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin, User, Mail, Phone } from "lucide-react";
 import { ChangeDefaultLocationDialog } from "./ChangeDefaultLocationDialog";
 
 export function ProfileInfoTab() {
@@ -14,12 +14,15 @@ export function ProfileInfoTab() {
   const updateProfile = useUpdateProfile();
 
   // Initialize form data using useMemo to avoid cascading renders
-  const initialFormData = useMemo(() => ({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-  }), [user?.firstName, user?.lastName, user?.email, user?.phone]);
+  const initialFormData = useMemo(
+    () => ({
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+    }),
+    [user?.firstName, user?.lastName, user?.email, user?.phone]
+  );
 
   const [formData, setFormData] = useState(initialFormData);
 
@@ -33,12 +36,12 @@ export function ProfileInfoTab() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const data = new FormData();
     data.append("firstName", formData.firstName);
     data.append("lastName", formData.lastName);
     data.append("phone", formData.phone || "");
-    
+
     updateProfile.mutate(data);
   };
 
@@ -49,80 +52,96 @@ export function ProfileInfoTab() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* First Name */}
-        <div className="space-y-2">
-          <Label htmlFor="firstName">
-            First Name <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="firstName"
-            value={formData.firstName}
-            onChange={(e) => handleChange("firstName", e.target.value)}
-            placeholder="Enter first name"
-            required
-          />
+      {/* Personal Information Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <User className="h-4 w-4" />
+          <span>Personal Information</span>
         </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">
+              First Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="firstName"
+              value={formData.firstName}
+              onChange={(e) => handleChange("firstName", e.target.value)}
+              placeholder="Enter first name"
+              required
+            />
+          </div>
 
-        {/* Last Name */}
-        <div className="space-y-2">
-          <Label htmlFor="lastName">
-            Last Name
-          </Label>
-          <Input
-            id="lastName"
-            value={formData.lastName}
-            onChange={(e) => handleChange("lastName", e.target.value)}
-            placeholder="Enter last name"
-            required
-          />
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              value={formData.lastName}
+              onChange={(e) => handleChange("lastName", e.target.value)}
+              placeholder="Enter last name"
+            />
+          </div>
         </div>
+      </div>
 
-        {/* Email (Disabled) */}
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            value={formData.email}
-            disabled
-            className="bg-muted cursor-not-allowed"
-          />
-          <p className="text-xs text-muted-foreground">
-            Email cannot be changed
-          </p>
+      {/* Contact Information Section */}
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Mail className="h-4 w-4" />
+          <span>Contact Information</span>
         </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              id="email"
+              value={formData.email}
+              disabled
+              className="bg-muted/50 cursor-not-allowed"
+            />
+            <p className="text-xs text-muted-foreground">
+              Email cannot be changed
+            </p>
+          </div>
 
-        {/* Phone Number */}
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => handleChange("phone", e.target.value)}
-            placeholder="Enter phone number"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => handleChange("phone", e.target.value)}
+              placeholder="Enter phone number"
+            />
+          </div>
         </div>
       </div>
 
       {/* Default Location Section */}
-      <div className="border-t pt-6">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-medium">Default Location</h3>
-            <p className="text-sm text-muted-foreground">
-              Change your default location for when you log in
-            </p>
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <MapPin className="h-4 w-4" />
+          <span>Default Location</span>
+        </div>
+        <div className="rounded-lg border bg-muted/30 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Preferred Login Location</p>
+              <p className="text-xs text-muted-foreground">
+                This location will be selected by default when you log in
+              </p>
+            </div>
+            <ChangeDefaultLocationDialog />
           </div>
-          <ChangeDefaultLocationDialog />
         </div>
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-4 border-t">
         <Button
           type="submit"
           disabled={!hasChanges || updateProfile.isPending}
+          className="w-full sm:w-auto"
         >
           {updateProfile.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -15,7 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -133,7 +133,7 @@ const getStatusBadge = (status: string) => {
 // Main Component
 // =====================
 
-export default function PurchaseReturnsPage() {
+function PurchaseReturnsPageContent() {
   const searchParams = useSearchParams();
   const { format: formatCurrency } = useCurrency();
 
@@ -1144,5 +1144,22 @@ export default function PurchaseReturnsPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Wrap in Suspense boundary to handle useSearchParams
+export default function PurchaseReturnsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6 p-6">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-96 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      }
+    >
+      <PurchaseReturnsPageContent />
+    </Suspense>
   );
 }

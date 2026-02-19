@@ -13,7 +13,11 @@ export function useFilteredColumns<T = any>(
   module: string
 ): ColumnDef<T>[] {
   const user = useAuthStore((state) => state.user)
-  const excludedColumns = user?.organization?.settings?.excludedColumns?.[module] || []
+  
+  const excludedColumns = useMemo(
+    () => user?.organization?.settings?.excludedColumns?.[module] || [],
+    [user?.organization?.settings?.excludedColumns, module]
+  )
 
   return useMemo(() => {
     if (!excludedColumns || excludedColumns.length === 0) {
