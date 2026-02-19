@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -9,13 +8,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/components/table";
+import { cn } from "@/ui/lib/utils";
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { cn } from "@/ui/lib/utils";
+import { useMemo } from "react";
 
 interface SimpleTableProps<TData, TValue = any> {
   columns: ColumnDef<TData, TValue>[];
@@ -28,12 +28,12 @@ interface SimpleTableProps<TData, TValue = any> {
 
 /**
  * SimpleTable - Lightweight table component for displaying local data
- * 
+ *
  * Use this when:
  * - Displaying local state (Zustand, useState, etc.)
  * - No need for API fetching, pagination, or complex filtering
  * - Want a simple, performant table
- * 
+ *
  * Use DataTable when:
  * - Need API integration with queries
  * - Need pagination, filtering, sorting
@@ -77,7 +77,7 @@ export function SimpleTable<TData, TValue = any>({
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                 </TableHead>
               ))}
