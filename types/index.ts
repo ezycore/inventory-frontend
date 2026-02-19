@@ -34,6 +34,8 @@ export interface OrganizationFeatures {
   barcodeSystem: boolean;
   invoicePrinting: boolean;
   returns: boolean;
+  /** Enable UOM conversion (purchase in boxes, sell in pieces, etc.) */
+  uomConversion: boolean;
 }
 
 /**
@@ -46,6 +48,7 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   barcodeSystem: false,
   invoicePrinting: false,
   returns: true,
+  uomConversion: false,
 };
 
 /**
@@ -152,6 +155,169 @@ export interface CreateCustomerDto {
 
 export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}
 
+// Customer Summary (aggregated stats - includes returns data)
+export interface CustomersSummary {
+  totalSales: number;
+  totalPaid: number;
+  totalDue: number;
+  salesCount: number;
+  // Returns data
+  totalRefunds: number;
+  totalCashRefunded: number;
+  totalDueAdjusted: number;
+  returnsCount: number;
+}
+
+// Sales Summary (for sales history page)
+export interface SalesSummary {
+  allTime: {
+    totalSales: number;
+    totalPaid: number;
+    totalDue: number;
+    salesCount: number;
+  };
+  today: {
+    totalSales: number;
+    salesCount: number;
+  };
+  thisWeek: {
+    totalSales: number;
+    salesCount: number;
+  };
+  thisMonth: {
+    totalSales: number;
+    salesCount: number;
+  };
+}
+
+// Sales Returns Summary (for returns page)
+export interface SalesReturnsSummary {
+  allTime: {
+    totalRefunds: number;
+    totalCashRefunded: number;
+    totalDueAdjusted: number;
+    returnsCount: number;
+    totalItems: number;
+  };
+  today: {
+    totalRefunds: number;
+    returnsCount: number;
+  };
+  thisWeek: {
+    totalRefunds: number;
+    returnsCount: number;
+  };
+  thisMonth: {
+    totalRefunds: number;
+    returnsCount: number;
+  };
+}
+
+// Customer Ledger Types
+export interface CustomerLedgerSale {
+  _id: string;
+  invoiceNumber: string;
+  totalAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  createdAt: string;
+  status: "draft" | "partial" | "paid" | "cancelled";
+}
+
+export interface CustomerLedgerPayment {
+  _id: string;
+  type: "sale" | "salesRefund";
+  amount: number;
+  createdAt: string;
+  accountId?: {
+    _id: string;
+    name: string;
+  };
+  referenceId?: {
+    _id: string;
+    invoiceNumber: string;
+  };
+}
+
+export interface CustomerLedgerReturn {
+  _id: string;
+  returnNumber: string;
+  invoiceNumber: string;
+  totalRefundAmount: number;
+  refundedAmount: number;
+  createdAt: string;
+  saleId?: {
+    _id: string;
+    invoiceNumber: string;
+  };
+}
+
+export interface CustomerLedger {
+  sales: CustomerLedgerSale[];
+  payments: CustomerLedgerPayment[];
+  returns: CustomerLedgerReturn[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+// Supplier Ledger Types
+export interface SupplierLedgerPurchaseOrder {
+  _id: string;
+  orderNumber: string;
+  invoiceNumber?: string;
+  invoiceAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  createdAt: string;
+  status: "draft" | "ordered" | "partial" | "received" | "cancelled";
+}
+
+export interface SupplierLedgerPayment {
+  _id: string;
+  type: "purchase" | "purchase_return" | "purchase_cancelled";
+  amount: number;
+  createdAt: string;
+  accountId?: {
+    _id: string;
+    name: string;
+  };
+  referenceId?: {
+    _id: string;
+    orderNumber: string;
+    invoiceNumber?: string;
+  };
+}
+
+export interface SupplierLedgerReturn {
+  _id: string;
+  returnNumber: string;
+  orderNumber: string;
+  totalRefundAmount: number;
+  refundedAmount: number;
+  createdAt: string;
+  purchaseOrderId?: {
+    _id: string;
+    orderNumber: string;
+    invoiceNumber?: string;
+  };
+}
+
+export interface SupplierLedger {
+  purchaseOrders: SupplierLedgerPurchaseOrder[];
+  payments: SupplierLedgerPayment[];
+  returns: SupplierLedgerReturn[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 // Supplier interfaces
 export interface Supplier extends BaseEntity {
   name: string;
@@ -174,16 +340,30 @@ export interface CreateSupplierDto {
 
 export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {}
 
+// Unit Category for grouping units
+export enum UnitCategory {
+  COUNT = "count", // pieces, boxes, packs
+  WEIGHT = "weight", // kg, g, lb
+  VOLUME = "volume", // l, ml, gal
+  LENGTH = "length", // m, cm, ft
+  AREA = "area", // sqm, sqft
+  TIME = "time", // hr, day, mo
+  CUSTOM = "custom", // user-defined
+}
+
 // Unit interfaces
 export interface Unit extends BaseEntity {
   name: string;
   shortName?: string;
+  category: UnitCategory;
+  isSystemUnit: boolean;
   status: "active" | "inactive";
 }
 
 export interface CreateUnitDto {
   name: string;
   shortName?: string;
+  category?: UnitCategory;
   status?: "active" | "inactive";
 }
 
@@ -241,7 +421,7 @@ export interface Inventory extends BaseEntity {
   status: "active" | "inactive";
   product?: Product;
   variant?: Variant;
-  location?: Location;
+  costPrice: number;
 }
 
 export interface CreateInventoryDto {
@@ -320,12 +500,25 @@ export interface Product extends BaseEntity {
   base_sku?: string;
   categoryId?: string;
   brandId?: string;
+  unitId?: string;
   status: ProductStatus;
   images?: string[];
   tags?: string[];
   custom_fields?: CustomField[];
   category?: Category;
   brand?: Brand;
+  unit?: Unit;
+
+  // UOM Conversion fields
+  enableUOMConversion?: boolean;
+  purchaseUnit?: {
+    unitId: string;
+    conversionFactor: number;
+  };
+  saleUnit?: {
+    unitId: string;
+    conversionFactor: number;
+  };
 }
 
 export interface ProductWithVariants extends Product {
@@ -658,71 +851,264 @@ export type PurchaseOrderDiscountType = "percentage" | "fixed";
 export interface PurchaseOrderItem {
   productId: string;
   variantId?: string | null;
+  inventoryId?: string;
   quantity: number;
-  unitPrice: number;
-  discount: number;
-  total: number;
   receivedQuantity: number;
+  unitPrice: number;
+  costPrice?: number;
+  subtotal: number;
   productName?: string;
+  conversionFactor?: number;
+  discount?: number;
   variantName?: string;
-  product?: Product;
-  variant?: Variant;
+  product?: { name: string };
 }
 
 export interface PurchaseOrder extends BaseEntity {
   organizationId: string;
   orderNumber: string;
-  supplierId: string;
+  supplierId: Supplier;
   locationId: string;
   items: PurchaseOrderItem[];
   status: PurchaseOrderStatus;
-  invoiceNumber?: string;
   invoiceDate?: string;
-  discountType: PurchaseOrderDiscountType;
-  discountValue: number;
   subtotal: number;
   taxTotal: number;
-  grandTotal: number;
   notes?: string;
-  receivedAt?: string;
   createdBy?: string;
+  paymentStatus?: "unpaid" | "partial" | "paid";
+  paidAmount?: number;
+  dueAmount?: number;
+  invoiceNumber?: string;
+  // Additional fields from API
   supplier?: Supplier;
-  location?: Location;
+  grandTotal?: number;
+  totalAmount?: number;
+  additionalDiscount?: number;
+  invoiceAmount?: number;
 }
 
 export interface CreatePurchaseOrderItemDto {
   productId: string;
   variantId?: string | null;
+  inventoryId?: string;
+  productName?: string;
   quantity: number;
   unitPrice: number;
+  costPrice?: number;
   discount?: number;
-  productName?: string;
-  variantName?: string;
+  conversionFactor?: number;
 }
 
+// Single Purchase Order DTO
 export interface CreatePurchaseOrderDto {
   supplierId: string;
-  locationId: string;
   items: CreatePurchaseOrderItemDto[];
+  additionalDiscount?: number; // Changed from discountType/discountValue
   status?: PurchaseOrderStatus;
   invoiceNumber?: string;
   invoiceDate?: string;
-  discountType?: PurchaseOrderDiscountType;
-  discountValue?: number;
   taxTotal?: number;
+  payment?: PurchasePaymentInfo;
   notes?: string;
 }
+
+// Array of Purchase Orders (for batch creation)
+export type CreatePurchaseOrdersDto = CreatePurchaseOrderDto[];
 
 export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> {}
 
 export interface ReceivePurchaseOrderItemDto {
   productId: string;
   variantId?: string | null;
+  inventoryId?: string;
   receivedQuantity: number;
 }
 
 export interface ReceivePurchaseOrderDto {
   items: ReceivePurchaseOrderItemDto[];
+  paymentInfo?: PurchasePaymentInfo;
+}
+
+// Purchase Payment Types
+export interface PurchasePaymentInfo {
+  paymentMethod: string;
+  accountId: string;
+  paidAmount?: number;
+}
+
+export interface AddPurchasePaymentDto {
+  paymentMethod: string;
+  accountId: string;
+  amount: number;
+  notes?: string;
+}
+
+export interface PurchaseOrdersSummary {
+  totalOrders: number;
+  orderedOrders: number;
+  receivedOrders: number;
+  partialOrders: number;
+  cancelledOrders: number;
+  draftOrders: number;
+  totalAmount: number;
+  totalPaid: number;
+  totalDue: number;
+}
+
+export interface PurchaseOrderFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: PurchaseOrderStatus;
+  supplierId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+// ============================
+// Purchase Return Types
+// ============================
+
+/**
+ * Purchase return status enum
+ */
+export type PurchaseReturnStatus = "pending" | "completed" | "cancelled";
+
+/**
+ * Purchase return reason enum
+ */
+export type PurchaseReturnReason =
+  | "damaged"
+  | "defective"
+  | "wrong_item"
+  | "excess_quantity"
+  | "expired"
+  | "other";
+
+/**
+ * Purchase return item interface
+ */
+export interface PurchaseReturnItem {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount?: number;
+  refundAmount: number;
+  lineTotal: number;
+  conversionFactor?: number; // For UoM conversion (e.g., 1 box = 100 pieces)
+}
+
+/**
+ * Purchase return interface
+ */
+export interface PurchaseReturn extends BaseEntity {
+  returnNumber: string;
+  organizationId: string;
+  locationId: string;
+  purchaseOrderId: string | { _id: string; orderNumber: string };
+  orderNumber: string;
+  supplierId?: string;
+  items: PurchaseReturnItem[];
+  totalRefundAmount: number;
+  refundedAmount: number;
+  totalCostAmount?: number;
+  reason: PurchaseReturnReason;
+  notes?: string;
+  status: PurchaseReturnStatus;
+  returnDate: string;
+  processedBy?: string;
+  refundAllocation?: {
+    adjustPurchaseDue?: number;
+    adjustOtherDues?: Array<{
+      dueId: string;
+      purchaseOrderId: string;
+      amount: number;
+    }>;
+    accountRefund?: {
+      accountId: string;
+      amount: number;
+      paymentMethod: string;
+    };
+  };
+  supplier?: Supplier;
+}
+
+/**
+ * Create purchase return item DTO
+ */
+export interface CreatePurchaseReturnItemDto {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName?: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount?: number;
+  conversionFactor?: number; // For UoM conversion (e.g., 1 box = 100 pieces)
+}
+
+/**
+ * Create purchase return DTO
+ */
+export interface CreatePurchaseReturnDto {
+  purchaseOrderId: string;
+  items: CreatePurchaseReturnItemDto[];
+  reason: PurchaseReturnReason;
+  notes?: string;
+  refundAllocation?: {
+    // Backend expects 'adjustSupplierDue' not 'adjustPurchaseDue'
+    adjustSupplierDue?: number;
+    accountRefund?: {
+      accountId: string;
+      amount: number;
+      paymentMethod: string;
+    };
+  };
+}
+
+/**
+ * Purchase return filters for queries
+ */
+export interface PurchaseReturnFilters {
+  page?: number;
+  limit?: number;
+  purchaseOrderId?: string;
+  supplierId?: string;
+  status?: PurchaseReturnStatus;
+  reason?: PurchaseReturnReason;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+}
+
+/**
+ * Supplier pending due from a purchase order
+ */
+export interface SupplierPendingDue {
+  id: string;
+  purchaseOrderId: string;
+  orderNumber: string;
+  dueAmount: number;
+  totalAmount: number;
+  purchaseDate: string;
+}
+
+/**
+ * Purchase returns summary
+ */
+export interface PurchaseReturnsSummary {
+  totalReturns: number;
+  totalRefundAmount: number;
+  totalRefundedAmount: number;
+  pendingRefunds: number;
+  completedReturns: number;
+  pendingReturns: number;
 }
 
 // Sales Order Types
@@ -791,6 +1177,219 @@ export interface CreateSalesOrderDto {
 
 export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> {}
 
-export interface FulfillSalesOrderDto {
+// ============================================
+// Sale Types (Backend Sale Model)
+// ============================================
+
+/**
+ * Sale status definitions:
+ * - draft: Sale saved but not finalized
+ * - partial: Sale has partial payment (due amount > 0)
+ * - paid: Sale fully paid (due amount = 0)
+ * - cancelled: Sale cancelled
+ * - due: Sale has an outstanding due amount
+ */
+export type SaleStatus = "draft" | "partial" | "paid" | "cancelled" | "due";
+
+export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other";
+
+/**
+ * Sale item interface - represents an item in a sale
+ */
+export interface SaleItem {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount: number;
+  subtotal: number;
+}
+
+/**
+ * Customer reference in sale
+ */
+export interface SaleCustomer {
+  _id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+}
+
+/**
+ * Created by user reference
+ */
+export interface SaleCreatedBy {
+  _id: string;
+  firstName: string;
+  lastName: string;
+}
+
+/**
+ * Sale interface - represents a completed sale
+ */
+export interface Sale extends BaseEntity {
+  invoiceNumber: string;
+  organizationId: string;
+  locationId: string;
+  customerId: SaleCustomer;
+  items: SaleItem[];
+  subtotal: number;
+  additionalDiscount: number;
+  totalAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  costPrice: number;
+  status: SaleStatus;
   notes?: string;
+  createdBy?: SaleCreatedBy;
+}
+
+/**
+ * Payment account reference
+ */
+export interface PaymentAccount {
+  _id: string;
+  name: string;
+  type?: string;
+}
+
+/**
+ * Payment interface - represents a payment for a sale
+ */
+export interface Payment extends BaseEntity {
+  organizationId: string;
+  locationId: string;
+  type: "sale" | "purchase";
+  referenceId: string;
+  customerId?: string;
+  supplierId?: string;
+  accountId: PaymentAccount;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  notes?: string;
+  status: "completed" | "cancelled";
+  createdBy?: SaleCreatedBy;
+}
+
+/**
+ * DTO for creating/adding a payment
+ */
+export interface AddPaymentDto {
+  amount: number;
+  accountId: string;
+  paymentMethod?: PaymentMethod;
+  notes?: string;
+}
+
+/**
+ * Sale query filters
+ */
+export interface SaleFilters {
+  page?: number;
+  limit?: number;
+  status?: SaleStatus | string;
+  customerId?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+// ============================
+// Sales Return Types
+// ============================
+
+/**
+ * Sales return status enum
+ */
+export type SalesReturnStatus = "pending" | "completed" | "cancelled";
+
+/**
+ * Sales return reason enum
+ */
+export type SalesReturnReason =
+  | "damaged"
+  | "defective"
+  | "wrong_item"
+  | "customer_changed_mind"
+  | "expired"
+  | "other";
+
+/**
+ * Sales return item interface
+ */
+export interface SalesReturnItem {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  costPrice: number;
+  discount?: number;
+  refundAmount: number;
+  lineTotal: number;
+}
+
+/**
+ * Sales return interface
+ */
+export interface SalesReturn extends BaseEntity {
+  returnNumber: string;
+  organizationId: string;
+  locationId: string;
+  saleId: string | { _id: string; invoiceNumber: string };
+  invoiceNumber: string;
+  customerId?: string;
+  items: SalesReturnItem[];
+  totalRefundAmount: number;
+  refundedAmount: number; // Actual cash refunded
+  totalCostAmount?: number;
+  reason: SalesReturnReason;
+  notes?: string;
+  status: SalesReturnStatus;
+  returnDate: string;
+  processedBy?: string;
+  refundAllocation?: {
+    adjustSaleDue?: number;
+    adjustOtherDues?: Array<{
+      dueId: string;
+      saleId: string;
+      amount: number;
+    }>;
+    accountRefund?: {
+      accountId: string;
+      amount: number;
+      paymentMethod: string;
+    };
+  };
+}
+
+/**
+ * Sales return filters for queries
+ */
+export interface SalesReturnFilters {
+  page?: number;
+  limit?: number;
+  saleId?: string;
+  customerId?: string;
+  status?: SalesReturnStatus;
+  reason?: SalesReturnReason;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+}
+
+/**
+ * Customer pending due from a sale
+ */
+export interface CustomerPendingDue {
+  id: string;
+  saleId: string;
+  invoiceNumber: string;
+  dueAmount: number;
+  totalAmount: number;
+  saleDate: string;
 }

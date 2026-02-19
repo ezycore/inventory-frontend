@@ -42,7 +42,10 @@ export function proxy(request: NextRequest) {
 
   // If no token and trying to access protected route, redirect to login
   if (!isAuthenticated && !isPublicRoute && !pathname.startsWith("/api")) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    const callbackUrl = pathname + request.nextUrl.search;
+    loginUrl.searchParams.set("callbackUrl", callbackUrl);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Allow access

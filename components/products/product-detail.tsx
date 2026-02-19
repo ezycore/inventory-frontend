@@ -11,8 +11,8 @@ import { formatDistanceToNow } from 'date-fns'
 import Image from 'next/image'
 import { useProduct } from '@/services/api'
 
-type Status = 
-  | "active" | "inactive" | "expired" | "pending" | "completed" 
+type Status =
+  | "active" | "inactive" | "expired" | "pending" | "completed"
   | "approved" | "rejected" | "processing" | "failed" | "cancelled"
   | "draft" | "published" | "disabled" | "enabled" | "paused"
   | "warning" | "error" | "success" | "info" | "new" | "scheduled"
@@ -58,7 +58,7 @@ interface ProductDetailProps {
 }
 
 export function ProductDetail({ productId, onClose }: ProductDetailProps) {
-  const { data, isLoading, error } = useProduct(productId)
+  const { data: product, isLoading, error } = useProduct(productId)
 
   if (isLoading) {
     return (
@@ -74,7 +74,7 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
     )
   }
 
-  if (error || !data?.data) {
+  if (error || !product) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
@@ -87,7 +87,6 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
     )
   }
 
-  const product = data.data
   const hasVariants = product.productType === 'variable' && product.variants && product.variants.length > 0
 
   const formatPrice = (price: number) => {
@@ -102,8 +101,8 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
     return (((price - cost) / price) * 100).toFixed(1)
   }
 
-  const imageUrl = product.images && Array.isArray(product.images) && product.images.length > 0 
-    ? product.images[0].url 
+  const imageUrl = product.images && Array.isArray(product.images) && product.images.length > 0
+    ? product.images[0].url
     : null
 
   return (
@@ -223,7 +222,7 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
                 <div>
                   <p className="text-sm font-medium">Discount Applied</p>
                   <p className="text-sm text-muted-foreground">
-                    {product.discountType === 'fixed' 
+                    {product.discountType === 'fixed'
                       ? formatPrice(product.discountValue)
                       : `${product.discountValue}%`} off
                   </p>
@@ -240,7 +239,7 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Layers className="w-5 h-5" />
-              Product Variants ({product.variant_count})
+              Product Variants ({product.variants?.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -264,6 +263,25 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
                         <p className="text-sm text-muted-foreground font-mono">
                           SKU: {variant.sku}
                         </p>
+                      )}
+                      {/* Variant images */}
+                      {variant.images && Array.isArray(variant.images) && variant.images.length > 0 && (
+                        <div className="flex items-center gap-2 mt-2">
+                          {variant.images.map((img: any, imgIdx: number) => (
+                            <div
+                              key={img.publicId || imgIdx}
+                              className="w-14 h-14 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 relative border"
+                            >
+                              <Image
+                                src={img.thumbnailUrl || img.url}
+                                alt={`${Object.values(variant.attributes).join(' ')} image ${imgIdx + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="56px"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                     <div className="text-right">

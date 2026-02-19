@@ -1,6 +1,25 @@
 export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
   const formData = new FormData()
+  if(data.enableUOMConversion){
+    const purchaseUnit = {
+      unitId: data.purchaseUnitId || null,
+      conversionFactor: data.purchaseConversionFactor || 1,
+  }
+    const saleUnit = {
+      unitId: data.saleUnitId || null,
+      conversionFactor: data.saleConversionFactor || 1,
+    }
 
+    if(!purchaseUnit.unitId && !saleUnit.unitId){
+      throw new Error("At least one unit (purchase or sale) must be configured when UOM conversion is enabled")
+    }
+    formData.append("purchaseUnit", JSON.stringify(purchaseUnit))
+    formData.append("saleUnit", JSON.stringify(saleUnit))
+    delete data.purchaseUnitId
+    delete data.purchaseConversionFactor
+    delete data.saleUnitId
+    delete data.saleConversionFactor
+  }
   // Note: ID is automatically injected by DataTable for edit mode
 
   // Add all fields except images, variants, and _id
@@ -47,14 +66,31 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
 
   // Handle variants for variable products
   if (data.productType === "variable" && data.variants && data.variants.length > 0) {
-    const variantsData = data.variants.map((v: any) => ({
-      attributes: {
-        [v.attributeName]: v.value
-      },
-      costPrice: v.costPrice,
-      price: v.price,
-      status: v.enabled ? 'active' : 'inactive',
-    }))
+    const variantsData = data.variants.map((v: any, idx: number) => {
+      // Separate existing images (server objects) from new File uploads
+      const allImages = v.images || []
+      const existingImages = allImages.filter((img: any) => !(img instanceof File))
+      const newFiles = allImages.filter((img: any) => img instanceof File)
+
+      // Append new variant image files with indexed field names
+      newFiles.forEach((file: File) => {
+        formData.append(`variantImages_${idx}`, file)
+      })
+
+      // Determine _id for smart merge (existing variants have MongoDB _id)
+      const variantId = v._id || undefined
+
+      return {
+        ...(variantId ? { _id: variantId } : {}),
+        attributes: {
+          [v.attributeName]: v.value
+        },
+        costPrice: v.costPrice,
+        price: v.price,
+        images: existingImages, // only existing images go in JSON
+        status: v.enabled ? 'active' : 'inactive',
+      }
+    })
     formData.append('variants', JSON.stringify(variantsData))
   }
 

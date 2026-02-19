@@ -6,23 +6,40 @@ import Header from "@/components/layout/header";
 import { useMe } from "@/services/api";
 import { SidebarInset, SidebarProvider } from "@ui/components/sidebar";
 import { getCookie } from "cookies-next";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const defaultOpen = getCookie("sidebar_state") !== "false";
   const verifyMe = useMe();
+  
+  // Use consistent default for SSR, then update after mount
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // Read cookie only after component mounts to avoid hydration mismatch
+    const cookieValue = getCookie("sidebar_state");
+    if (cookieValue === "false") {
+      setSidebarOpen(false);
+    }
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     verifyMe.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run once on mount
   }, []);
-  
+
   return (
     <KBar>
-      <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProvider 
+        defaultOpen={sidebarOpen}
+        open={isMounted ? sidebarOpen : undefined}
+        onOpenChange={isMounted ? setSidebarOpen : undefined}
+      >
         <AppSidebar />
         <SidebarInset>
           <Header />

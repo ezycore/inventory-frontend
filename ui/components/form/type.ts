@@ -8,6 +8,7 @@ export type FormFieldType =
   | "select"
   | "radio-group"
   | "checkbox"
+  | "switch"
   | "file-upload"
   | "date"
   | "number"
@@ -15,7 +16,7 @@ export type FormFieldType =
   | "custom-fields"
   | "password";
 
-export type ColumnSpan = 1 | 2 | 3 | 4 | 6 | 12;
+export type ColumnSpan = 1 | 2 | 3 | 4 | 6 | 8 | 12;
 
 export interface SelectOption {
   value: string;
@@ -182,6 +183,11 @@ export interface FormFieldConfig {
   // Custom properties
   customComponent?: React.ComponentType<any>;
   customProps?: Record<string, any>;
+
+  // Auto-fill dependent fields (for select fields)
+  // Array of field names that will be auto-filled from the selected option's matching properties
+  // Example: autoFillFields: ['costPrice', 'unitPrice', 'salePrice']
+  autoFillFields?: string[];
 
   // Change handlers
   onChange?: (value: any) => void;

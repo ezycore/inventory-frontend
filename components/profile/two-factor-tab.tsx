@@ -18,7 +18,17 @@ import {
 } from "@/ui/components/dialog";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
-import { CheckCircle2, Copy, Key, Shield, ShieldCheck } from "lucide-react";
+import { cn } from "@/ui/lib/utils";
+import {
+  CheckCircle2,
+  Copy,
+  Key,
+  Shield,
+  ShieldCheck,
+  ShieldOff,
+  Smartphone,
+  Loader2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -94,7 +104,7 @@ export function TwoFactorTab() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Code copied to clipboard");
+    toast.success("Copied to clipboard");
   };
 
   const copyAllBackupCodes = () => {
@@ -104,94 +114,164 @@ export function TwoFactorTab() {
 
   return (
     <div className="space-y-6">
-      {/* Status Card */}
-      <div className="rounded-lg border bg-card p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex gap-4">
-            <div
-              className={`rounded-lg p-3 ${is2FAEnabled ? "bg-green-100 dark:bg-green-900/20" : "bg-muted"}`}
-            >
-              {is2FAEnabled ? (
-                <ShieldCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-              ) : (
-                <Shield className="h-6 w-6 text-muted-foreground" />
-              )}
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">
-                Two-Factor Authentication
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {is2FAEnabled
-                  ? "Your account is protected with 2FA"
-                  : "Add an extra layer of security to your account"}
-              </p>
-              {is2FAEnabled && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>2FA is currently enabled</span>
-                </div>
-              )}
-            </div>
+      {/* Status Section */}
+      <div
+        className={cn(
+          "rounded-lg border-2 p-4 sm:p-6 transition-colors",
+          is2FAEnabled
+            ? "border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20"
+            : "border-muted bg-muted/30"
+        )}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+          <div
+            className={cn(
+              "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl mx-auto sm:mx-0",
+              is2FAEnabled
+                ? "bg-green-100 dark:bg-green-900/40"
+                : "bg-muted"
+            )}
+          >
+            {is2FAEnabled ? (
+              <ShieldCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+            ) : (
+              <ShieldOff className="h-6 w-6 text-muted-foreground" />
+            )}
           </div>
-          <div>
+
+          <div className="flex-1 text-center sm:text-left">
+            <h3 className="text-lg font-semibold">
+              Two-Factor Authentication
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {is2FAEnabled
+                ? "Your account is protected with an additional layer of security."
+                : "Add an extra layer of security by requiring a verification code when signing in."}
+            </p>
+
+            {is2FAEnabled && (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-green-100 dark:bg-green-900/40 px-3 py-1 text-sm text-green-700 dark:text-green-300">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>2FA is active</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-center sm:justify-end">
             {is2FAEnabled ? (
               <Button
                 variant="destructive"
                 onClick={() => setShowDisableDialog(true)}
+                className="gap-2"
               >
-                Disable 2FA
+                <ShieldOff className="h-4 w-4" />
+                <span className="hidden sm:inline">Disable 2FA</span>
+                <span className="sm:hidden">Disable</span>
               </Button>
             ) : (
-              <Button onClick={handleEnable} disabled={isEnabling}>
-                {isEnabling ? "Setting up..." : "Enable 2FA"}
+              <Button onClick={handleEnable} disabled={isEnabling} className="gap-2">
+                {isEnabling ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ShieldCheck className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">Enable 2FA</span>
+                <span className="sm:hidden">Enable</span>
               </Button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Information */}
+      {/* How it works Section */}
+      <div className="rounded-lg border bg-card p-4 sm:p-6">
+        <h4 className="font-medium mb-4 flex items-center gap-2">
+          <Smartphone className="h-4 w-4 text-primary" />
+          How it works
+        </h4>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            {
+              step: "1",
+              title: "Download App",
+              desc: "Get an authenticator app like Google Authenticator or Authy",
+            },
+            {
+              step: "2",
+              title: "Scan QR Code",
+              desc: "Scan the QR code with your authenticator app",
+            },
+            {
+              step: "3",
+              title: "Enter Code",
+              desc: "Enter the 6-digit code from your app to verify",
+            },
+          ].map((item) => (
+            <div key={item.step} className="flex gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                {item.step}
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-sm">{item.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Information Alert */}
       <Alert>
         <Key className="h-4 w-4" />
-        <AlertDescription>
-          Two-factor authentication adds an additional layer of security to your
-          account. In addition to your password, you&apos;ll need to enter a
-          code from your authenticator app when signing in.
+        <AlertDescription className="text-sm">
+          Two-factor authentication adds a second verification step when signing
+          in. Even if someone gets your password, they won&apos;t be able to
+          access your account without the verification code.
         </AlertDescription>
       </Alert>
 
       {/* Enable 2FA Dialog */}
       <Dialog open={showEnableDialog} onOpenChange={setShowEnableDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Set Up Two-Factor Authentication</DialogTitle>
             <DialogDescription>
-              Scan the QR code below with your authenticator app, then enter the
-              6-digit code to complete setup.
+              Scan the QR code with your authenticator app, then enter the
+              verification code.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* QR Code */}
             {qrCode && (
-              <div className="flex flex-col items-center space-y-3">
-                <div className="rounded-lg border-2 p-4 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qrCode} alt="2FA QR Code" className="h-48 w-48" />
+              <div className="space-y-4">
+                {/* QR Code */}
+                <div className="flex justify-center">
+                  <div className="rounded-xl border-2 p-3 bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={qrCode}
+                      alt="2FA QR Code"
+                      className="h-40 w-40 sm:h-48 sm:w-48"
+                    />
+                  </div>
                 </div>
-                <div className="w-full">
+
+                {/* Manual Code */}
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">
                     Or enter this code manually:
                   </Label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <code className="flex-1 rounded bg-muted px-3 py-2 text-sm font-mono">
+                  <div className="flex gap-2">
+                    <code className="flex-1 rounded-lg bg-muted px-3 py-2 text-xs sm:text-sm font-mono break-all">
                       {secret}
                     </code>
                     <Button
-                      size="sm"
+                      size="icon"
                       variant="outline"
                       onClick={() => copyToClipboard(secret)}
+                      className="shrink-0"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
@@ -211,11 +291,12 @@ export function TwoFactorTab() {
                   setVerificationToken(e.target.value.replace(/\D/g, ""))
                 }
                 maxLength={6}
+                className="text-center text-lg tracking-widest"
               />
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={() => {
@@ -224,6 +305,7 @@ export function TwoFactorTab() {
                 setQrCode("");
                 setSecret("");
               }}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -234,8 +316,12 @@ export function TwoFactorTab() {
                 !verificationToken ||
                 verificationToken.length !== 6
               }
+              className="w-full sm:w-auto"
             >
-              {isVerifying ? "Verifying..." : "Verify & Enable"}
+              {isVerifying ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              Verify & Enable
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -243,20 +329,19 @@ export function TwoFactorTab() {
 
       {/* Backup Codes Dialog */}
       <Dialog open={showBackupCodes} onOpenChange={setShowBackupCodes}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Save Your Backup Codes</DialogTitle>
             <DialogDescription>
-              Store these backup codes in a safe place. You can use them to
-              access your account if you lose access to your authenticator app.
+              Store these codes safely. Use them to access your account if you
+              lose your authenticator device.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <Alert>
               <AlertDescription className="text-sm">
-                <strong>Important:</strong> Each backup code can only be used
-                once. Keep them secure and accessible.
+                <strong>Important:</strong> Each code can only be used once.
               </AlertDescription>
             </Alert>
 
@@ -264,7 +349,7 @@ export function TwoFactorTab() {
               {backupCodes.map((code, index) => (
                 <div
                   key={index}
-                  className="rounded bg-muted px-3 py-2 text-center font-mono text-sm"
+                  className="rounded-lg bg-muted px-3 py-2 text-center font-mono text-sm"
                 >
                   {code}
                 </div>
@@ -273,10 +358,10 @@ export function TwoFactorTab() {
 
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full gap-2"
               onClick={copyAllBackupCodes}
             >
-              <Copy className="mr-2 h-4 w-4" />
+              <Copy className="h-4 w-4" />
               Copy All Codes
             </Button>
           </div>
@@ -288,6 +373,7 @@ export function TwoFactorTab() {
                 setShowEnableDialog(false);
                 setBackupCodes([]);
               }}
+              className="w-full sm:w-auto"
             >
               I&apos;ve Saved My Codes
             </Button>
@@ -297,7 +383,7 @@ export function TwoFactorTab() {
 
       {/* Disable 2FA Dialog */}
       <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
             <DialogDescription>
@@ -319,13 +405,14 @@ export function TwoFactorTab() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={() => {
                 setShowDisableDialog(false);
                 setDisablePassword("");
               }}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -333,8 +420,12 @@ export function TwoFactorTab() {
               variant="destructive"
               onClick={handleDisable}
               disabled={isDisabling || !disablePassword}
+              className="w-full sm:w-auto"
             >
-              {isDisabling ? "Disabling..." : "Disable 2FA"}
+              {isDisabling ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              Disable 2FA
             </Button>
           </DialogFooter>
         </DialogContent>

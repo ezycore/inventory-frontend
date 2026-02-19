@@ -51,7 +51,11 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
   module: string
 ): T {
   const user = useAuthStore((state) => state.user)
-  const excludedFields = user?.organization?.settings?.excludedFields?.[module] || []
+  
+  const excludedFields = useMemo(
+    () => user?.organization?.settings?.excludedFields?.[module] || [],
+    [user?.organization?.settings?.excludedFields, module]
+  )
 
   return useMemo(() => {
     return filterFormConfig(formConfig, excludedFields)

@@ -71,10 +71,11 @@ export const productFormConfig: DynamicFormConfig = {
         {
           name: "unitId",
           type: "select",
-          label: "Unit",
+          label: "Base Unit",
           columnSpan: 6,
           optionsApi: `/units`,
-          placeholder: "Select unit"
+          placeholder: "Select base unit",
+          helperText: "All inventory will be tracked in this unit"
         },
         {
           name: "sellingType",
@@ -122,26 +123,25 @@ export const productFormConfig: DynamicFormConfig = {
           validation: { min: 0 },
           step: 0.1,
         },
-        // {
-        //   name: "hasExpiry",
-        //   type: "radio-group",
-        //   label: "Has Expiry",
-        //   columnSpan: 6,
-        //   defaultValue: false,
-        //   options: [
-        //     { value: true, label: 'Yes' },
-        //     { value: false, label: 'No' }
-        //   ]
-        // },
-        // {
-        //   name: "expiryAlertDays",
-        //   type: "number",
-        //   label: "Expiry Alert Days",
-        //   columnSpan: 6,
-        //   placeholder: "0",
-        //   defaultValue: 0,
-        //   validation: { min: 0 },
-        // },
+        {
+          name: "hasExpiry",
+          type: "checkbox",
+          label: "Has Expiry",
+          columnSpan: 12,
+        },
+        {
+          name: "expiryAlertDays",
+          type: "number",
+          label: "Expiry Alert Days",
+          columnSpan: 6,
+          placeholder: "0",
+          defaultValue: 0,
+          dependsOn: {
+            field: "hasExpiry",
+            condition: "truthy",
+            action: "show"
+          },
+        },
         {
           name: "description",
           type: "textarea",
@@ -189,24 +189,6 @@ export const productFormConfig: DynamicFormConfig = {
             action: "show"
           }
         },
-        {
-          name: "costPrice",
-          type: "number",
-          label: "Cost Price",
-
-          columnSpan: 6,
-          placeholder: "0.00",
-          defaultValue: 0,
-          validation: { min: 0 },
-          step: 1,
-          dependsOn: {
-            field: "productType",
-            value: "single",
-            condition: "eq",
-            action: "show"
-          }
-        },
-
         // Variant Manager custom field - shows when variable product is selected
         {
           name: "variants",
@@ -217,6 +199,88 @@ export const productFormConfig: DynamicFormConfig = {
           dependsOn: {
             field: "productType",
             value: "variable",
+            condition: "eq",
+            action: "show"
+          }
+        }
+      ]
+    },
+    {
+      title: "UOM Conversion",
+      icon: <span className="text-orange-600 font-semibold">📦</span>,
+      description: "Configure different units for purchase and sale (e.g., buy in boxes, sell in pieces)",
+      collapsible: true,
+      defaultOpen: false,
+      // featureFlag: "uomConversion", // Uncomment when feature flag system is ready
+      fields: [
+        {
+          name: "enableUOMConversion",
+          type: "checkbox",
+          label: "Enable UOM Conversion",
+          columnSpan: 12,
+          defaultValue: true,
+          helperText: "Allow different units for purchase and sale"
+        },
+        {
+          name: "purchaseUnitId",
+          type: "select",
+          label: "Purchase Unit",
+          columnSpan: 6,
+          optionsApi: `/units`,
+          placeholder: "Select purchase unit",
+          helperText: "Unit used when purchasing (e.g., Box)",
+          dependsOn: {
+            field: "enableUOMConversion",
+            value: true,
+            condition: "eq",
+            action: "show"
+          }
+        },
+        {
+          name: "purchaseConversionFactor",
+          type: "number",
+          label: "Purchase Conversion Factor",
+          columnSpan: 4,
+          placeholder: "e.g., 100",
+          defaultValue: 1,
+          validation: { min: 0.0001 },
+          step: 0.01,
+          helperText: "How many base units in 1 purchase unit",
+          dependsOn: {
+            field: "enableUOMConversion",
+            value: true,
+            condition: "eq",
+            action: "show"
+          }
+        },
+        {
+          name: "saleUnitId",
+          type: "select",
+          label: "Sale Unit",
+          columnSpan: 6,
+          optionsApi: `/units`,
+          placeholder: "Select sale unit",
+          helperText: "Unit used when selling (e.g., Piece)",
+          dependsOn: {
+            field: "enableUOMConversion",
+            value: true,
+            condition: "eq",
+            action: "show"
+          }
+        },
+        {
+          name: "saleConversionFactor",
+          type: "number",
+          label: "Sale Conversion Factor",
+          columnSpan: 4,
+          placeholder: "e.g., 1",
+          defaultValue: 1,
+          validation: { min: 0.0001 },
+          step: 0.01,
+          helperText: "How many base units in 1 sale unit",
+          dependsOn: {
+            field: "enableUOMConversion",
+            value: true,
             condition: "eq",
             action: "show"
           }

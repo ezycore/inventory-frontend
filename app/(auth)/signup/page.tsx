@@ -2,54 +2,29 @@
 
 "use client";
 
+import {
+  COUNTRY_OPTIONS,
+  CURRENCY_OPTIONS,
+  getCountryDefaults,
+  INDUSTRY_OPTIONS,
+  TIMEZONE_OPTIONS,
+} from "@/constants/organization-options";
 import { useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import { Card, CardContent } from "@/ui/components/card";
 import DynamicForm from "@/ui/components/form";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { Building2, Globe, User } from "lucide-react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
-export const countryOptions = [
-  { label: "🇺🇸 United States", value: "US" },
-  { label: "🇬🇧 United Kingdom", value: "UK" },
-  { label: "🇨🇦 Canada", value: "CA" },
-  { label: "🇦🇺 Australia", value: "AU" },
-  { label: "🇩🇪 Germany", value: "DE" },
-  { label: "🇫🇷 France", value: "FR" },
-  { label: "🇮🇳 India", value: "IN" },
-  { label: "🇯🇵 Japan", value: "JP" },
-  { label: "🇧🇷 Brazil", value: "BR" },
-  { label: "🇨🇳 China", value: "CN" },
-  { label: "🇧🇩 Bangladesh", value: "BD" },
-];
-
-export const timezoneOptions = [
-  { label: "Eastern Time (ET)", value: "America/New_York" },
-  { label: "Central Time (CT)", value: "America/Chicago" },
-  { label: "Mountain Time (MT)", value: "America/Denver" },
-  { label: "Pacific Time (PT)", value: "America/Los_Angeles" },
-  { label: "London (GMT)", value: "Europe/London" },
-  { label: "Central European (CET)", value: "Europe/Paris" },
-  { label: "Dubai (GST)", value: "Asia/Dubai" },
-  { label: "India (IST)", value: "Asia/Kolkata" },
-  { label: "Bangladesh (BST)", value: "Asia/Dhaka" },
-  { label: "Singapore (SGT)", value: "Asia/Singapore" },
-  { label: "Sydney (AEDT)", value: "Australia/Sydney" },
-];
-
-export const currencyOptions = [
-  { label: "USD - US Dollar ($)", value: "USD" },
-  { label: "EUR - Euro (€)", value: "EUR" },
-  { label: "GBP - British Pound (£)", value: "GBP" },
-  { label: "CAD - Canadian Dollar (C$)", value: "CAD" },
-  { label: "AUD - Australian Dollar (A$)", value: "AUD" },
-  { label: "INR - Indian Rupee (₹)", value: "INR" },
-  { label: "BDT - Bangladeshi Taka (৳)", value: "BDT" },
-  { label: "PKR - Pakistani Rupee (₨)", value: "PKR" },
-  { label: "SGD - Singapore Dollar (S$)", value: "SGD" },
-  { label: "AED - UAE Dirham (د.إ)", value: "AED" },
-];
+// Re-export for backward compatibility with organization-tab.tsx
+export {
+  COUNTRY_OPTIONS as countryOptions,
+  CURRENCY_OPTIONS as currencyOptions,
+  INDUSTRY_OPTIONS,
+  TIMEZONE_OPTIONS as timezoneOptions,
+} from "@/constants/organization-options";
 
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
@@ -137,17 +112,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select industry",
           required: true,
-          options: [
-            { label: "Manufacturing", value: "Manufacturing" },
-            { label: "Retail", value: "Retail" },
-            { label: "Wholesale", value: "Wholesale" },
-            { label: "Services", value: "Services" },
-            { label: "Technology", value: "Technology" },
-            { label: "Healthcare", value: "Healthcare" },
-            { label: "Education", value: "Education" },
-            { label: "Food & Beverage", value: "Food & Beverage" },
-            { label: "Other", value: "Other" },
-          ],
+          options: INDUSTRY_OPTIONS,
         },
         {
           name: "country",
@@ -156,7 +121,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select country",
           required: true,
-          options: countryOptions,
+          options: COUNTRY_OPTIONS,
         },
         {
           name: "timezone",
@@ -165,7 +130,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select timezone",
           required: true,
-          options: timezoneOptions,
+          options: TIMEZONE_OPTIONS,
         },
         {
           name: "currency",
@@ -174,7 +139,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Select currency",
           required: true,
-          options: currencyOptions,
+          options: CURRENCY_OPTIONS,
         },
       ],
     },
@@ -184,6 +149,27 @@ const ownerSetupFormConfig: DynamicFormConfig = {
 export default function Signup() {
   const createOwnerMutation = useSignupAPi();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
+
+  // Watch country field and auto-suggest timezone/currency
+  const selectedCountry = form.watch("country");
+
+  useEffect(() => {
+    if (selectedCountry) {
+      const defaults = getCountryDefaults(selectedCountry);
+      if (defaults) {
+        // Only set if fields are empty (don't override user selections)
+        const currentTimezone = form.getValues("timezone");
+        const currentCurrency = form.getValues("currency");
+
+        if (!currentTimezone) {
+          form.setValue("timezone", defaults.timezone);
+        }
+        if (!currentCurrency) {
+          form.setValue("currency", defaults.currency);
+        }
+      }
+    }
+  }, [selectedCountry, form]);
 
   const handleSubmit = (data: Record<string, any>) => {
     // Validate passwords match

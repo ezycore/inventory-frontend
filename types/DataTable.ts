@@ -55,6 +55,8 @@ export interface CustomAction {
 
   /** Custom render function for complete control over rendering */
   render?: (row?: any) => React.ReactNode;
+
+  disabled?: boolean | ((row: any) => boolean);
 }
 
 /**

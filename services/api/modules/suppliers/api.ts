@@ -1,9 +1,18 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiResponse, PaginatedResponse, SupplierLedger } from "@/types";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
+export interface SupplierLedgerFilters {
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
+
 export const suppliersApi = {
-  getAll: (filters: BaseFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  getAll: (
+    filters: BaseFilters = {},
+  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/purchases/suppliers${buildQueryParams(filters)}`),
 
   getById: (id: string): Promise<ApiResponse<any>> =>
@@ -17,4 +26,13 @@ export const suppliersApi = {
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/purchases/suppliers/${id}`),
+
+  // Get supplier ledger (transaction history)
+  getLedger: (
+    supplierId: string,
+    filters: SupplierLedgerFilters = {},
+  ): Promise<ApiResponse<SupplierLedger>> =>
+    apiClient.get(
+      `/purchases/suppliers/${supplierId}/ledger${buildQueryParams(filters)}`,
+    ),
 };
