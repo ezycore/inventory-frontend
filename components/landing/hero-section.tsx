@@ -21,7 +21,7 @@ export function HeroSection() {
               visibility across every department — built for growing businesses.
             </p>
             <div className="flex flex-wrap gap-4 mb-8">
-              <Link href="/contact">
+              <Link href="/landing/contact">
                 <Button size="lg" className="btn-gradient border-0">
                   Request a Demo
                   <ArrowRight className="ml-2 h-4 w-4" />

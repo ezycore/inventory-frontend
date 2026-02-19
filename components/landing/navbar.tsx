@@ -17,14 +17,14 @@ export function Navbar() {
       <div className="container mx-auto">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="font-bold text-xl">
+          <Link href="/landing" className="font-bold text-xl">
             EasyStock<span className="text-[hsl(185,72%,40%)]">ERP</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex gap-8">
             <Link
-              href="/features"
+              href="/landing/features"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Features
@@ -36,7 +36,7 @@ export function Navbar() {
               Integrations
             </Link>
             <Link
-              href="/pricing"
+              href="/landing/pricing"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Pricing
@@ -48,7 +48,7 @@ export function Navbar() {
               Resources
             </Link>
             <Link
-              href="/about"
+              href="/landing/about"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               About
