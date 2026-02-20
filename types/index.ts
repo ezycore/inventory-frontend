@@ -674,6 +674,7 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   hasNext: boolean;
   hasPrev: boolean;
+  totalProducts?: number; // For brands listing API to include total products count
 }
 
 export interface ApiError {

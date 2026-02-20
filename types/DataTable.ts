@@ -174,7 +174,7 @@ export interface DataTableApiConfig<TData = any> {
 interface Operations<TData = any> {
   formConfig?: DynamicFormConfig; // DynamicFormConfig
   defaultValues?: any;
-  getAllData: any;
+  getAllData?: any;
   createMutation?: any;
   updateMutation?: any;
   deleteMutation?: any;
@@ -207,6 +207,7 @@ export interface DataTableProps<TData, TValue = any> {
   enableColumnVisibility?: boolean;
   enableRowHover?: boolean;
   rowClassName?: string | ((row: TData) => string);
+  loading?: boolean;
   toolbarAction?: {
     label: string;
     icon?: React.ReactNode;

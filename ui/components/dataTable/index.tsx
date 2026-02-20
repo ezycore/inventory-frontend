@@ -15,7 +15,7 @@ import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 export function DataTable<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>
 ) {
-  const { cardTitle, defaultPageSize, pageSizes,filterConfig, operations,  toolbarAction, data: externalData, customActions, manageColumns, module, ...restProps } = props;
+  const { cardTitle, defaultPageSize, pageSizes,filterConfig, operations,  toolbarAction, data: externalData, customActions, manageColumns, module, loading = false, ...restProps } = props;
 
   const {formConfig, defaultValues, openInside, getAllData, createMutation, updateMutation, deleteMutation, bulkDeleteMutation, queryKey, entityName, isViewAvailable, editTooltip, deleteTooltip, viewTooltip, transformEditData, prepareSubmitData, disabledFieldsInEdit} = operations || {};
   
@@ -165,7 +165,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           <BaseDataTable
             {...restProps}
             data={data}
-            isLoading={isLoading}
+            isLoading={isLoading || loading}
             pagination={paginationConfig}
             filterConfig={mergedFilterConfig}
             actions={mergedActions}
