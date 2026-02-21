@@ -15,7 +15,29 @@ import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 export function DataTable<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>
 ) {
-  const { cardTitle, defaultPageSize, pageSizes,filterConfig, operations,  toolbarAction, data: externalData, customActions, manageColumns, module, loading = false, ...restProps } = props;
+  const { 
+    cardTitle, 
+    defaultPageSize, 
+    pageSizes, 
+    filterConfig, 
+    operations,  
+    toolbarAction, 
+    data: externalData, 
+    customActions, 
+    manageColumns, 
+    module, 
+    loading = false,
+    // Table styling props
+    variant,
+    headless,
+    borderless,
+    rowSpacing,
+    zebra,
+    roundedRows,
+    stickyHeader,
+    rowBgColor,
+    ...restProps 
+  } = props;
 
   const {formConfig, defaultValues, openInside, getAllData, createMutation, updateMutation, deleteMutation, bulkDeleteMutation, queryKey, entityName, isViewAvailable, editTooltip, deleteTooltip, viewTooltip, transformEditData, prepareSubmitData, disabledFieldsInEdit} = operations || {};
   
@@ -153,15 +175,15 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   });
 
   return (
-      <Card>
+      <Card className="border-none shadow-none">
         {
           cardTitle && (
-            <CardHeader>
+            <CardHeader className="px-0">
               <CardTitle>{typeof cardTitle === "function" ? cardTitle(data?.length || 0) : cardTitle}</CardTitle>
             </CardHeader>
           )
         }
-        <CardContent>
+        <CardContent className="p-0">
           <BaseDataTable
             {...restProps}
             data={data}
@@ -176,6 +198,14 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             toolbarAction={mergedToolbarAction}
             customActions={customActions}
             manageColumns={manageColumns}
+            variant={variant}
+            headless={headless}
+            borderless={borderless}
+            rowSpacing={rowSpacing}
+            zebra={zebra}
+            roundedRows={roundedRows}
+            stickyHeader={stickyHeader}
+            rowBgColor={rowBgColor}
             module={module}
             fullColumns={props.columns}
           />

@@ -44,6 +44,15 @@ export function BaseDataTable<TData, TValue>({
   manageColumns = false,
   module,
   fullColumns,
+  // Table styling props
+  variant = 'default',
+  headless = false,
+  borderless = false,
+  rowSpacing = 'none',
+  zebra = false,
+  roundedRows = false,
+  stickyHeader = false,
+  rowBgColor,
 }: BaseDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -157,6 +166,14 @@ export function BaseDataTable<TData, TValue>({
         isLoading={isLoading}
         enableRowHover={enableRowHover}
         rowClassName={rowClassName}
+        variant={variant}
+        headless={headless}
+        borderless={borderless}
+        rowSpacing={rowSpacing}
+        zebra={zebra}
+        roundedRows={roundedRows}
+        stickyHeader={stickyHeader}
+        rowBgColor={rowBgColor}
       />
 
       {/* Pagination */}

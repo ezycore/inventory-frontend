@@ -8,6 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "../table";
+import { TableVariant, RowSpacing } from "@/types/DataTable";
+import { cn } from "@/ui/lib/utils";
 
 interface DataTableBodyProps<TData, TValue> {
   table: TanStackTable<TData>;
@@ -15,7 +17,32 @@ interface DataTableBodyProps<TData, TValue> {
   isLoading?: boolean;
   enableRowHover?: boolean;
   rowClassName?: string | ((row: TData) => string);
+  /** Table styling props */
+  variant?: TableVariant;
+  headless?: boolean;
+  borderless?: boolean;
+  rowSpacing?: RowSpacing;
+  zebra?: boolean;
+  roundedRows?: boolean;
+  stickyHeader?: boolean;
+  rowBgColor?: string | ((row: TData) => string);
 }
+
+// Variant-based cell padding
+const variantStyles: Record<TableVariant, string> = {
+  default: '',
+  compact: '[&_td]:py-2 [&_th]:py-2 text-sm',
+  relaxed: '[&_td]:py-5 [&_th]:py-4',
+  card: '[&_td]:py-4 [&_th]:py-3',
+};
+
+// Row spacing styles
+const rowSpacingStyles: Record<RowSpacing, string> = {
+  none: '',
+  sm: 'border-spacing-y-1',
+  md: 'border-spacing-y-2',
+  lg: 'border-spacing-y-3',
+};
 
 export function DataTableBody<TData, TValue>({
   table,
@@ -23,45 +50,109 @@ export function DataTableBody<TData, TValue>({
   isLoading,
   enableRowHover,
   rowClassName,
+  variant = 'default',
+  headless = false,
+  borderless = false,
+  rowSpacing = 'none',
+  zebra = false,
+  roundedRows = false,
+  stickyHeader = false,
+  rowBgColor,
 }: DataTableBodyProps<TData, TValue>) {
+  
+  // Calculate row background color
+  const getRowBgColor = (row: TData): string => {
+    if (typeof rowBgColor === 'function') {
+      return rowBgColor(row);
+    }
+    return rowBgColor || '';
+  };
+
+  // Build wrapper classes
+  const wrapperClasses = cn(
+    "overflow-hidden",
+    !borderless && "rounded-md border",
+    stickyHeader && "max-h-[600px] overflow-y-auto"
+  );
+
+  // Build table classes
+  const tableClasses = cn(
+    variantStyles[variant],
+    rowSpacing !== 'none' && `border-separate ${rowSpacingStyles[rowSpacing]}`
+  );
+
+  // Build header classes
+  const headerClasses = cn(
+    stickyHeader && "sticky top-0 z-10 bg-background"
+  );
+
+  // Build row classes for a specific row
+  const getRowClasses = (row: TData, index: number, isSelected: boolean) => {
+    return cn(
+      // Base row background
+      getRowBgColor(row),
+      // Zebra striping
+      zebra && index % 2 === 1 && "bg-muted/30",
+      // Rounded rows (only works with border-separate)
+      roundedRows && rowSpacing !== 'none' && "[&>td:first-child]:rounded-l-md [&>td:last-child]:rounded-r-md",
+      // Row shadow for spacing mode
+      rowSpacing !== 'none' && "shadow-sm bg-background",
+      // Hover effect
+      enableRowHover && "hover:bg-muted/50 transition-colors",
+      // Selection state
+      isSelected && "bg-muted",
+      // Custom row class
+      typeof rowClassName === "function" ? rowClassName(row) : rowClassName
+    );
+  };
+
+  // Build cell classes
+  const cellClasses = cn(
+    borderless && "border-0",
+    roundedRows && rowSpacing !== 'none' && "border-y first:border-l last:border-r"
+  );
+
   return (
-    <div className="overflow-hidden rounded-md border">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className={
-                          header.column.getCanSort()
-                            ? "flex items-center gap-2 cursor-pointer select-none"
-                            : ""
-                        }
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getCanSort() && (
-                          <span className="ml-2">
-                            {header.column.getIsSorted() === "asc" ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : header.column.getIsSorted() === "desc" ? (
-                              <ChevronDown className="h-4 w-4 rotate-180" />
-                            ) : (
-                              <ChevronsUpDown className="h-4 w-4 opacity-50" />
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
+    <div className={wrapperClasses}>
+      <Table className={tableClasses}>
+        {/* Table Header - hidden when headless */}
+        {!headless && (
+          <TableHeader className={headerClasses}>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className={borderless ? "border-0" : ""}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} className={borderless ? "border-0" : ""}>
+                      {header.isPlaceholder ? null : (
+                        <div
+                          className={
+                            header.column.getCanSort()
+                              ? "flex items-center gap-2 cursor-pointer select-none"
+                              : ""
+                          }
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getCanSort() && (
+                            <span className="ml-2">
+                              {header.column.getIsSorted() === "asc" ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : header.column.getIsSorted() === "desc" ? (
+                                <ChevronDown className="h-4 w-4 rotate-180" />
+                              ) : (
+                                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+        )}
         <TableBody>
           {isLoading ? (
             <TableRow>
@@ -72,24 +163,14 @@ export function DataTableBody<TData, TValue>({
               </TableCell>
             </TableRow>
           ) : table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
+            table.getRowModel().rows.map((row, index) => (
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className={
-                  enableRowHover
-                    ? `${
-                        typeof rowClassName === "function"
-                          ? rowClassName(row.original)
-                          : rowClassName || ""
-                      } hover:bg-muted/50 transition-colors`
-                    : typeof rowClassName === "function"
-                    ? rowClassName(row.original)
-                    : rowClassName
-                }
+                className={getRowClasses(row.original, index, row.getIsSelected())}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className={cellClasses}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
