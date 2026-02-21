@@ -2,6 +2,7 @@ import { DiscountType, calculateLineTotal } from "@/utils/discount";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { CustomerApiItem } from './../../components/sales/types';
 
 /**
  * Customer option with discount metadata
@@ -39,7 +40,7 @@ export interface SellOrderItem {
   productName: string;
   quantity: number;
   costPrice: number;
-  unitPrice: number;
+  price: number;
   discountType: DiscountType;
   discountValue: number;
   discountAmount: number;
@@ -74,12 +75,7 @@ interface SellPageStore {
   getTotalSalePrice: () => number;
 
   // Actions
-  setCustomer: (
-    customerId: string | null,
-    customerName: string | null,
-    discountType: DiscountType,
-    discountValue: number,
-  ) => void;
+  setCustomer: (CustomerApiItem: CustomerApiItem) => void;
   setOrderDiscount: (discountType: DiscountType, discountValue: number) => void;
   setAdditionalDiscount: (discount: number) => void;
   setNotes: (notes: string) => void;
@@ -131,13 +127,8 @@ export const useSellPageStore = create<SellPageStore>()(
         return Math.max(0, itemsTotal - additionalDiscount);
       },
 
-      setCustomer: (customerId, customerName, discountType, discountValue) =>
-        set({
-          customerId,
-          customerName,
-          orderDiscountType: discountType,
-          orderDiscountValue: discountValue,
-        }),
+      setCustomer: (customer) =>
+        set(customer),
 
       setOrderDiscount: (discountType, discountValue) =>
         set({

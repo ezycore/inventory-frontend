@@ -60,7 +60,6 @@ export default function ProductsPage() {
           openInside: "drawer",
           editTooltip: "Edit Product",
           deleteTooltip: "Delete Product",
-          viewTooltip: "View Product",
           transformEditData: (item: any) => {
             // Transform variants and images (images auto-handled in form helper)
             const transformedVariants =

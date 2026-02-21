@@ -19,8 +19,6 @@ export interface ProductApiItem {
   price: number;
   costPrice: number;
   quantity: number;
-  discountType?: DiscountType;
-  discountValue?: number;
   productId: string;
   variantId: string | null;
 }

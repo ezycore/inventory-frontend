@@ -75,9 +75,7 @@ export function calculateDiscount({
  * @param params - Discount calculation parameters
  * @returns Object containing discountAmount and salePrice
  */
-export function calculateDiscountWithPrice(
-  params: DiscountParams,
-): DiscountResult {
+export function calculateDiscountWithPrice(params: DiscountParams): DiscountResult {
   const discountAmount = calculateDiscount(params);
   const salePrice = Math.round((params.price - discountAmount) * 100) / 100;
 
@@ -89,7 +87,7 @@ export function calculateDiscountWithPrice(
 
 export interface ApplyDiscountParams {
   /** Unit price of the product */
-  unitPrice: number;
+  price: number;
   /** Order-level discount type (fallback) */
   orderDiscountType?: DiscountType;
   /** Order-level discount value (fallback) */
@@ -107,7 +105,7 @@ export interface ApplyDiscountParams {
  * @returns Discount calculation result
  */
 export function applyDiscountWithPriority({
-  unitPrice,
+  price,
   orderDiscountType,
   orderDiscountValue,
 }: ApplyDiscountParams): DiscountResult {
@@ -115,7 +113,7 @@ export function applyDiscountWithPriority({
   const discountType = orderDiscountType ?? "fixed";
   const discountValue = orderDiscountValue ?? 0;
   return calculateDiscountWithPrice({
-    price: unitPrice,
+    price,
     discountType,
     discountValue,
   });

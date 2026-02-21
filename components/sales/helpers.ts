@@ -22,8 +22,8 @@ export const customerItemsCreateCallback = (
   return items.map((item) => ({
     value: item._id,
     label: item.name,
-    defaultDiscountValue: item.defaultDiscount?.value ?? 0,
-    defaultDiscountType: item.defaultDiscount?.type ?? "fixed",
+    discountType: item.defaultDiscount?.value ?? 0,
+    discountValue: item.defaultDiscount?.type ?? "fixed",
   })) as SelectOption[];
 };
 
@@ -63,33 +63,6 @@ export const accountItemsCreateCallback = (
 // Helper Functions
 // =====================
 
-/**
- * Extract customer value from form data
- */
-export const extractCustomerValue = (val: any): ExtractedCustomer => {
-  if (!val) {
-    return {
-      value: null,
-      label: null,
-      discountType: "percentage",
-      discountValue: 0,
-    };
-  }
-  if (typeof val === "object" && "value" in val) {
-    return {
-      value: val.value,
-      label: val.label,
-      discountType: (val.defaultDiscountType as DiscountType) ?? "percentage",
-      discountValue: val.defaultDiscountValue ?? 0,
-    };
-  }
-  return {
-    value: val as string,
-    label: null,
-    discountType: "percentage",
-    discountValue: 0,
-  };
-};
 
 /**
  * Extract product value from form data

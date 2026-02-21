@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  getSalesColumns,
-  extractCustomerValue,
-  formatCurrency,
-  getCustomerFormConfig,
-  getPaymentFormConfig,
-  ProductSearch,
-  accountItemsCreateCallback,
-  type CreateSalesOrderData,
-} from "@/components/sales";
-import { useCreateSalesOrder, useSelectOptions } from "@/services/api";
+import { getSalesColumns, formatCurrency, getPaymentFormConfig, ProductSearch, type CreateSalesOrderData, customerFormConfig, ProductApiItem } from "@/components/sales";
+import { useCreateSalesOrder } from "@/services/api";
 import { useAuthStore, useSellPageStore } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { Badge } from "@/ui/components/badge";
@@ -25,10 +16,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useCurrency } from "@/lib/currency";
-
-// =====================
-// Main Component
-// =====================
 
 export default function SalesPage() {
   const [paidAmount, setPaidAmount] = useState(0);
@@ -63,13 +50,7 @@ export default function SalesPage() {
   } = useSellPageStore();
 
   // API mutations
-  const createOrderMutation = useCreateSalesOrder();
-
-  // Form configurations
-  const customerFormConfig = useMemo(
-    () => getCustomerFormConfig(isAccountsEnabled),
-    [isAccountsEnabled],
-  );
+  const { mutateAsync, isPending } = useCreateSalesOrder();
 
   const paymentFormConfig = useMemo(
     () => getPaymentFormConfig(isAccountsEnabled),
@@ -122,18 +103,13 @@ export default function SalesPage() {
   // =====================
 
   const handleCustomerFieldChange = useCallback(
-    (fieldName: string, value: unknown) => {
+    (fieldName: string, value: any) => {
       if (fieldName === "customerId") {
-        const customer = extractCustomerValue(value);
-        setCustomer(
-          customer.value,
-          customer.label,
-          customer.discountType,
-          customer.discountValue,
-        );
-        if (customer.value) {
-          customerForm.setValue("discountType", customer.discountType);
-          customerForm.setValue("discountValue", customer.discountValue);
+       console.log("Selected customer:", value);
+        setCustomer(value);
+        if (value.value) {
+          customerForm.setValue("discountType", value.discountType);
+          customerForm.setValue("discountValue", value.discountValue);
         }
       } else if (fieldName === "discountType") {
         const currentDiscountValue = customerForm.getValues("discountValue");
@@ -158,34 +134,33 @@ export default function SalesPage() {
   );
 
   const handleProductSelect = useCallback(
-    (product: any) => {
+    (product: ProductApiItem) => {
       if (!product) return;
-      if (product.availableQuantity <= 0) {
-        toast.error(`${product.label} is out of stock`);
+      if (product.quantity <= 0) {
+        toast.error(`${product.name} is out of stock`);
         return;
       }
       const discountType = customerForm.getValues("discountType");
       const discountValue = customerForm.getValues("discountValue");
       const { discountAmount, salePrice } = applyDiscountWithPriority({
-        unitPrice: product.unitPrice,
+        price: product.price,
         orderDiscountType: discountType,
         orderDiscountValue: discountValue,
       });
       addItem({
-        inventoryId: product.value,
+        inventoryId: product._id,
         productId: product.productId,
         variantId: product.variantId,
-        productName: product.label,
+        productName: product.name,
         quantity: 1,
         costPrice: product.costPrice,
-        unitPrice: product.unitPrice,
+        price: product.price,
         discountType,
         discountValue,
         discountAmount,
         salePrice,
-        availableQuantity: product.availableQuantity,
+        availableQuantity: product.quantity,
       });
-      toast.success(`${product.label} added`);
     },
     [addItem, customerForm],
   );
@@ -198,17 +173,11 @@ export default function SalesPage() {
     const accountId = customerForm.getValues("accountId");
     const paidAmount = customerForm.getValues("paidAmount") || 0;
     const formAdditionalDiscount = localAdditionalDiscount;
-    const extractedAccountId =
-      typeof accountId === "object" && accountId !== null && "value" in accountId
-        ? accountId.value
-        : typeof accountId === "string"
-          ? accountId
-          : null;
-    if (isAccountsEnabled && paidAmount > 0 && !extractedAccountId) {
+    if (isAccountsEnabled && paidAmount > 0 && !accountId) {
       toast.error("Please select a payment account");
       return;
     }
-    if(!customerId){
+    if (!customerId) {
       toast.error("Please select a customer for the order");
       return;
     }
@@ -224,7 +193,7 @@ export default function SalesPage() {
           inventoryId: item.inventoryId,
           variantId: item.variantId,
           quantity: item.quantity,
-          unitPrice: item.unitPrice,
+          unitPrice: item.price,
           costPrice: item.costPrice,
           discount: item.discountAmount,
           productName: item.productName,
@@ -234,11 +203,13 @@ export default function SalesPage() {
         costPrice: totalCostPrice,
         notes: notes || undefined,
       };
-      if (isAccountsEnabled && extractedAccountId && paidAmount > 0) {
-        orderData.payment = { paidAmount, accountId: extractedAccountId };
+      if (isAccountsEnabled && accountId && paidAmount > 0) {
+        orderData.payment = { paidAmount, accountId };
         orderData.dueAmount = dueAmount;
       }
-      const createResult = await createOrderMutation.mutateAsync(orderData);
+      console.log("Submitting order data:", orderData);
+      return
+      const createResult = await mutateAsync(orderData);
       if (createResult.data?.sale?._id) {
         clearAll();
         toast.success("Order created successfully");
@@ -264,20 +235,14 @@ export default function SalesPage() {
     isAccountsEnabled,
     getTotalSalePrice,
     getTotalCostPrice,
-    createOrderMutation,
     clearAll,
     customerForm,
     localAdditionalDiscount,
   ]);
 
-  const isLoading = createOrderMutation.isPending;
   const itemsSubtotal = items.reduce((sum, item) => sum + item.total, 0);
   const totalSalePrice = getTotalSalePrice();
   const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
-
-  // =====================
-  // Render
-  // =====================
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -373,7 +338,7 @@ export default function SalesPage() {
                     Additional Discount
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-muted-foreground">{symbol}</span>
+                    <span className="text-base text-muted-foreground">{symbol}</span>
                     <Input
                       type="number"
                       min="0"
@@ -441,21 +406,13 @@ export default function SalesPage() {
                 <Separator />
                 <Button
                   onClick={handleMarkAsSold}
-                  disabled={isLoading || items.length === 0}
+                  disabled={isPending || items.length === 0}
                   size="lg"
                   className="w-full font-semibold"
                 >
-                  <CheckCircleIcon className="h-5 w-5 mr-2" />
-                  {isLoading ? "Processing..." : "Confirm Order"}
+                  <CheckCircleIcon className="h-5 w-5" />
+                  {isPending ? "Processing..." : "Confirm Order"}
                 </Button>
-
-
-                {items.length > 0 && (
-                  <p className="text-center text-xs text-muted-foreground">
-                    {items.length} {items.length === 1 ? "item" : "items"} in
-                    order
-                  </p>
-                )}
               </CardContent>
             </Card>
           </div>
