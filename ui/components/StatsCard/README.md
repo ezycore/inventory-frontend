@@ -35,7 +35,7 @@ import { Users, DollarSign } from "lucide-react";
       prefix: "$",
     },
   ]}
-/>
+/>;
 ```
 
 ## Advanced Usage
@@ -88,12 +88,7 @@ import { Users, DollarSign } from "lucide-react";
 
 ```tsx
 import StatsCard from "@/ui/components/StatsCard";
-import { 
-  Users, 
-  ShoppingCart, 
-  DollarSign, 
-  TrendingUp 
-} from "lucide-react";
+import { Users, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
 
 export default function Dashboard() {
   return (
@@ -163,25 +158,25 @@ export default function Dashboard() {
 
 ### StatsCardProps
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `data` | `StatData[]` | required | Array of stat objects |
-| `isLoading` | `boolean` | `false` | Show loading skeletons |
-| `columns` | `object` | auto | Grid column configuration |
+| Prop        | Type         | Default  | Description               |
+| ----------- | ------------ | -------- | ------------------------- |
+| `data`      | `StatData[]` | required | Array of stat objects     |
+| `isLoading` | `boolean`    | `false`  | Show loading skeletons    |
+| `columns`   | `object`     | auto     | Grid column configuration |
 
 ### StatData
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | `string` | required | Stat label/title |
-| `value` | `number \| string` | required | Main value to display |
-| `icon` | `LucideIcon` | - | Icon component |
-| `variant` | `StatVariant` | `"default"` | Color variant |
-| `description` | `string` | - | Additional description |
-| `prefix` | `string` | - | Prefix (e.g., "$") |
-| `suffix` | `string` | - | Suffix (e.g., "%") |
-| `trend` | `object` | - | Trend indicator |
-| `chart` | `object` | - | Mini chart data |
+| Prop          | Type               | Default     | Description            |
+| ------------- | ------------------ | ----------- | ---------------------- |
+| `label`       | `string`           | required    | Stat label/title       |
+| `value`       | `number \| string` | required    | Main value to display  |
+| `icon`        | `LucideIcon`       | -           | Icon component         |
+| `variant`     | `StatVariant`      | `"default"` | Color variant          |
+| `description` | `string`           | -           | Additional description |
+| `prefix`      | `string`           | -           | Prefix (e.g., "$")     |
+| `suffix`      | `string`           | -           | Suffix (e.g., "%")     |
+| `trend`       | `object`           | -           | Trend indicator        |
+| `chart`       | `object`           | -           | Mini chart data        |
 
 ### Variants
 
@@ -217,11 +212,11 @@ export default function Dashboard() {
 <StatsCard
   data={stats}
   columns={{
-    default: 1,  // 1 column on mobile
-    sm: 2,       // 2 columns on small screens
-    md: 2,       // 2 columns on medium screens
-    lg: 4,       // 4 columns on large screens
-    xl: 4,       // 4 columns on xl screens
+    default: 1, // 1 column on mobile
+    sm: 2, // 2 columns on small screens
+    md: 2, // 2 columns on medium screens
+    lg: 4, // 4 columns on large screens
+    xl: 4, // 4 columns on xl screens
   }}
 />
 ```
@@ -241,6 +236,7 @@ All colors respect light/dark mode automatically!
 ## Examples in Your App
 
 ### Brands Page
+
 ```tsx
 <StatsCard
   data={[
@@ -265,6 +261,7 @@ All colors respect light/dark mode automatically!
 ```
 
 ### Sales Dashboard
+
 ```tsx
 <StatsCard
   data={[
@@ -284,6 +281,7 @@ All colors respect light/dark mode automatically!
 ## Migration from Old API
 
 **Old API (hardcoded colors):**
+
 ```tsx
 <StatsCard
   data={[
@@ -299,6 +297,7 @@ All colors respect light/dark mode automatically!
 ```
 
 **New API (theme-aware):**
+
 ```tsx
 <StatsCard
   data={[
@@ -316,7 +315,11 @@ All colors respect light/dark mode automatically!
 ## TypeScript Support
 
 ```tsx
-import { StatData, StatVariant, TrendDirection } from "@/ui/components/StatsCard";
+import {
+  StatData,
+  StatVariant,
+  TrendDirection,
+} from "@/ui/components/StatsCard";
 
 const myStats: StatData[] = [
   {

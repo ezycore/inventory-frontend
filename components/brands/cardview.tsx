@@ -8,10 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { Edit2, Eye, MoreVertical, Package, Trash2 } from "lucide-react";
+import { Edit2, MoreVertical, Package, Trash2 } from "lucide-react";
 import Link from "next/link";
 
-const BrandCardView = (brand, { onEdit, onView, onDelete }) => {
+const BrandCardView = (brand, { onEdit, onDelete }) => {
   const {
     name,
     description,
@@ -66,10 +66,10 @@ const BrandCardView = (brand, { onEdit, onView, onDelete }) => {
             <MoreVertical className="h-4 w-4 cursor-pointer" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onView}>
+            {/* <DropdownMenuItem onClick={onView}>
               <Eye className="h-4 w-4 mr-2" />
               View
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuItem onClick={onEdit}>
               <Edit2 className="h-4 w-4 mr-2" />
               Edit
