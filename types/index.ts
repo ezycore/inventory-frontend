@@ -674,7 +674,6 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   hasNext: boolean;
   hasPrev: boolean;
-  stats: Record<string, any>;
 }
 
 export interface ApiError {
