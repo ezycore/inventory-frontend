@@ -5,13 +5,10 @@ import { Tag } from 'lucide-react'
 
 // Types
 import type { VariantAttribute } from '@/types'
-import type { DynamicFormConfig } from '@/ui/components/form/type'
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
 import { DateCell } from '@/ui/components/dataTable/cells/date-cell'
-import { AvatarCell } from '@/ui/components/dataTable/cells/avatar-cell'
 
 // Hooks & API
 import {
