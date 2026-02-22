@@ -1,4 +1,6 @@
 import { Brand } from "@/types";
+import { StatData } from "@/ui/components/StatsCard";
+import { CheckCircle2, ShoppingBag, Tags, XCircle } from "lucide-react";
 
 export const prepareSubmitData = (
   data: Brand,
@@ -51,3 +53,36 @@ export const prepareSubmitData = (
 
   return formData;
 };
+
+export const getBrandStats = (
+  stats: Record<string, any> | undefined,
+): StatData[] => [
+  {
+    label: "Total Brands",
+    value: stats?.total || 0,
+    icon: Tags,
+    variant: "primary",
+    description: "All registered brands",
+  },
+  {
+    label: "Active Brands",
+    value: stats?.active || 0,
+    icon: CheckCircle2,
+    variant: "success",
+    description: "Currently active",
+  },
+  {
+    label: "Inactive Brands",
+    value: stats?.inactive || 0,
+    icon: XCircle,
+    variant: "warning",
+    description: "Currently inactive",
+  },
+  {
+    label: "Total Products",
+    value: stats?.totalProducts || 0,
+    icon: ShoppingBag,
+    variant: "info",
+    description: "Across all brands",
+  },
+];

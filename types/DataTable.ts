@@ -7,6 +7,29 @@ import { ColumnDef, VisibilityState } from "@tanstack/react-table";
 import { FilterField } from "./filter";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 
+/**
+ * Table styling configuration for different view styles
+ */
+export type TableVariant = 'default' | 'compact' | 'relaxed' | 'card';
+export type RowSpacing = 'none' | 'sm' | 'md' | 'lg';
+
+export interface TableStyleConfig {
+  /** Overall table style variant */
+  variant?: TableVariant;
+  /** Hide table header row */
+  headless?: boolean;
+  /** Remove all borders */
+  borderless?: boolean;
+  /** Space between rows */
+  rowSpacing?: RowSpacing;
+  /** Alternating row colors */
+  zebra?: boolean;
+  /** Rounded row corners (works best with rowSpacing) */
+  roundedRows?: boolean;
+  /** Sticky header on scroll */
+  stickyHeader?: boolean;
+}
+
 
 export interface ImageObject {
   thumbnail: {
@@ -174,7 +197,7 @@ export interface DataTableApiConfig<TData = any> {
 interface Operations<TData = any> {
   formConfig?: DynamicFormConfig; // DynamicFormConfig
   defaultValues?: any;
-  getAllData: any;
+  getAllData?: any;
   createMutation?: any;
   updateMutation?: any;
   deleteMutation?: any;
@@ -207,6 +230,17 @@ export interface DataTableProps<TData, TValue = any> {
   enableColumnVisibility?: boolean;
   enableRowHover?: boolean;
   rowClassName?: string | ((row: TData) => string);
+  loading?: boolean;
+  /** Table styling configuration */
+  variant?: TableVariant;
+  headless?: boolean;
+  borderless?: boolean;
+  rowSpacing?: RowSpacing;
+  zebra?: boolean;
+  roundedRows?: boolean;
+  stickyHeader?: boolean;
+  /** Custom row background color */
+  rowBgColor?: string | ((row: TData) => string);
   toolbarAction?: {
     label: string;
     icon?: React.ReactNode;
@@ -248,6 +282,16 @@ export interface BaseDataTableProps<TData, TValue = any> {
   defaultColumnVisibility?: VisibilityState;
   enableRowHover?: boolean;
   onSelectionChange?: (selectedRows: TData[]) => void;
+  /** Table styling configuration */
+  variant?: TableVariant;
+  headless?: boolean;
+  borderless?: boolean;
+  rowSpacing?: RowSpacing;
+  zebra?: boolean;
+  roundedRows?: boolean;
+  stickyHeader?: boolean;
+  /** Custom row background color */
+  rowBgColor?: string | ((row: TData) => string);
   /** Custom actions that can override or extend built-in actions */
   customActions?: CustomAction[];
   /** Enable column management settings */
