@@ -127,11 +127,9 @@ const StatCardItem = ({
     return (
       <Card className="p-6">
         <div className="flex items-start justify-between mb-4">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-10 w-10 rounded-lg" />
+          <Skeleton className="h-6 w-10 rounded-lg" />
         </div>
-        <Skeleton className="h-8 w-32 mb-2" />
-        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-6 w-32 mb-2" />
       </Card>
     );
   }
