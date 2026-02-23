@@ -85,9 +85,13 @@ const BrandCardView = (brand, { onEdit, onDelete }) => {
 
       <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
         <Package className="h-4 w-4" />
-        <Link href={`/products?brand=${_id}`} className="hover:underline">
-          {productCount || 0} Products
-        </Link>
+        {productCount > 0 ? (
+          <Link href={`/products?brandId=${_id}`} className="hover:underline">
+            {productCount || 0} Products
+          </Link>
+        ) : (
+          <span>{productCount || 0} Products</span>
+        )}
       </div>
 
       <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-muted-foreground">

@@ -3,15 +3,15 @@
  * Import these types when using the DataTable component
  */
 
+import { DynamicFormConfig } from "@/ui/components/form/type";
 import { ColumnDef, VisibilityState } from "@tanstack/react-table";
 import { FilterField } from "./filter";
-import { DynamicFormConfig } from "@/ui/components/form/type";
 
 /**
  * Table styling configuration for different view styles
  */
-export type TableVariant = 'default' | 'compact' | 'relaxed' | 'card';
-export type RowSpacing = 'none' | 'sm' | 'md' | 'lg';
+export type TableVariant = "default" | "compact" | "relaxed" | "card";
+export type RowSpacing = "none" | "sm" | "md" | "lg";
 
 export interface TableStyleConfig {
   /** Overall table style variant */
@@ -30,33 +30,32 @@ export interface TableStyleConfig {
   stickyHeader?: boolean;
 }
 
-
 export interface ImageObject {
   thumbnail: {
     url: string;
     secureUrl: string;
     width: number;
-  },
+  };
   medium: {
     url: string;
     secureUrl: string;
     width: number;
-  },
+  };
   original: {
     url: string;
     secureUrl: string;
     width: number;
-  }
+  };
 }
 /**
  * Custom action configuration that can override or extend built-in actions
  */
 export interface CustomAction {
   /** Action type - use built-in types to replace default behavior */
-  type: 'edit' | 'view' | 'delete' | 'create' | string;
+  type: "edit" | "view" | "delete" | "create" | string;
 
   /** Placement of the action */
-  placement: 'header' | 'cell';
+  placement: "header" | "cell";
 
   /** Link href (for Next.js Link) - takes precedence over onClick */
   href?: string | ((row?: any) => string);
@@ -74,7 +73,13 @@ export interface CustomAction {
   tooltip?: string;
 
   /** Button variant */
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
 
   /** Custom render function for complete control over rendering */
   render?: (row?: any) => React.ReactNode;
@@ -110,7 +115,13 @@ export interface DataTableAction {
     onClick: (row: any) => void;
 
     /** Button variant */
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    variant?:
+      | "default"
+      | "destructive"
+      | "outline"
+      | "secondary"
+      | "ghost"
+      | "link";
   }>;
 }
 
@@ -131,7 +142,10 @@ export interface DataTablePagination {
   totalItems: number;
 
   /** Callback when pagination changes */
-  onPaginationChange: (pagination: { pageIndex: number; pageSize: number }) => void;
+  onPaginationChange: (pagination: {
+    pageIndex: number;
+    pageSize: number;
+  }) => void;
 
   /** Enable server-side pagination */
   manualPagination: boolean;
@@ -168,7 +182,9 @@ export interface FilterConfig {
   applyOnChange?: boolean; // Auto-apply on field change
   showResetButton?: boolean;
   showApplyButton?: boolean;
-  viewMode?: 'drawer' | 'popover'; // Display mode
+  viewMode?: "drawer" | "popover"; // Display mode
+  // Initial values (e.g., from URL params)
+  initialValues?: Record<string, any>;
   // Callbacks
   onApply?: (filters: Record<string, any>) => void;
   onReset?: () => void;
@@ -193,7 +209,7 @@ export interface DataTableApiConfig<TData = any> {
   pageSizeOptions?: number[];
 }
 
-// operations 
+// operations
 interface Operations<TData = any> {
   formConfig?: DynamicFormConfig; // DynamicFormConfig
   defaultValues?: any;
@@ -208,7 +224,11 @@ interface Operations<TData = any> {
   editTooltip?: string;
   deleteTooltip?: string;
   viewTooltip?: string;
-  prepareSubmitData?: (data: TData, isEdit: boolean, originalItem?: TData) => any;
+  prepareSubmitData?: (
+    data: TData,
+    isEdit: boolean,
+    originalItem?: TData,
+  ) => any;
   transformEditData?: (item: TData) => any;
   openInside?: "modal" | "drawer";
   disabledFieldsInEdit?: string[];
@@ -245,7 +265,13 @@ export interface DataTableProps<TData, TValue = any> {
     label: string;
     icon?: React.ReactNode;
     onClick: () => void;
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    variant?:
+      | "default"
+      | "destructive"
+      | "outline"
+      | "secondary"
+      | "ghost"
+      | "link";
   };
   data?: TData[];
   operations?: Operations<TData>;
@@ -272,7 +298,13 @@ export interface BaseDataTableProps<TData, TValue = any> {
     label: string;
     icon?: React.ReactNode;
     onClick: () => void;
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    variant?:
+      | "default"
+      | "destructive"
+      | "outline"
+      | "secondary"
+      | "ghost"
+      | "link";
   };
   selectable?: boolean;
   searchConfig?: DataTableSearchConfig;
@@ -303,23 +335,23 @@ export interface BaseDataTableProps<TData, TValue = any> {
 }
 /**
  * Example usage:
- * 
+ *
  * ```tsx
  * import { DataTable } from "@/ui/components/DataTable";
  * import type { DataTableProps, DataTableAction } from "@/ui/components/DataTable.types";
- * 
+ *
  * interface Product {
  *   id: string;
  *   name: string;
  * }
- * 
+ *
  * const MyTable: React.FC = () => {
  *   const props: DataTableProps<Product> = {
  *     columns: [...],
  *     data: [...],
  *     selectable: true,
  *   };
- *   
+ *
  *   return <DataTable {...props} />;
  * };
  * ```
