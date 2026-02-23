@@ -30,7 +30,7 @@ export interface ReturnItem {
   inventoryId: string;
   productName: string;
   quantity: number;
-  unitPrice: number;
+  price: number;
   costPrice: number;
   discount?: number;
   refundAmount?: number;

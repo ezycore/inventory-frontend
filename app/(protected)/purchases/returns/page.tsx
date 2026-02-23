@@ -312,9 +312,9 @@ function PurchaseReturnsPageContent() {
 
       // Calculate refund based on conversionFactor if available
       // When conversionFactor exists: refund = qty × conversionFactor × costPrice
-      // Otherwise: refund = qty × costPrice (or unitPrice if costPrice not available)
+      // Otherwise: refund = qty × costPrice (or price if costPrice not available)
       const conversionFactor = item.conversionFactor || 1;
-      const pricePerUnit = item.costPrice || item.unitPrice;
+      const pricePerUnit = item.costPrice || item.price;
       const calculatedRefund = validQty * conversionFactor * pricePerUnit;
 
       updated[index] = {
@@ -334,7 +334,7 @@ function PurchaseReturnsPageContent() {
 
       // Calculate max refund based on conversionFactor if available
       const conversionFactor = item.conversionFactor || 1;
-      const pricePerUnit = item.costPrice || item.unitPrice;
+      const pricePerUnit = item.costPrice || item.price;
       const maxRefund = item.returnQty * conversionFactor * pricePerUnit;
 
       updated[index] = {
@@ -390,8 +390,8 @@ function PurchaseReturnsPageContent() {
       inventoryId: item.inventoryId,
       productName: item.productName || item.product?.name,
       quantity: item.returnQty,
-      unitPrice: item.unitPrice,
-      costPrice: item.costPrice || item.unitPrice,
+      price: item.price,
+      costPrice: item.costPrice || item.price,
       discount: item.discount,
       // Include conversionFactor if available (for UoM conversion on return)
       ...(item.conversionFactor && item.conversionFactor > 1
@@ -657,11 +657,11 @@ function PurchaseReturnsPageContent() {
         ),
       },
       {
-        accessorKey: "unitPrice",
-        header: "Unit Price",
+        accessorKey: "price",
+        header: "Price (MRP)",
         cell: ({ row }) => {
           const item = row.original;
-          const displayPrice = item.costPrice || item.unitPrice;
+          const displayPrice = item.costPrice || item.price;
 
           // If there's a conversion factor, show both per-unit and per-piece prices
           if (item.conversionFactor && item.conversionFactor > 1) {
@@ -690,7 +690,7 @@ function PurchaseReturnsPageContent() {
         cell: ({ row }) => {
           const item = row.original;
           const conversionFactor = item.conversionFactor || 1;
-          const pricePerUnit = item.costPrice || item.unitPrice;
+          const pricePerUnit = item.costPrice || item.price;
           const maxRefund = item.returnQty * conversionFactor * pricePerUnit;
 
           return (

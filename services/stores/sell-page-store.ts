@@ -2,7 +2,7 @@ import { DiscountType, calculateLineTotal } from "@/utils/discount";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { CustomerApiItem } from './../../components/sales/types';
+import { CustomerApiItem, OrderItem } from './../../components/sales/types';
 
 /**
  * Customer option with discount metadata
@@ -32,18 +32,10 @@ export interface ProductSelectOption {
 /**
  * Sale item in the order list
  */
-export interface SellOrderItem {
+export type SellOrderItem = OrderItem & {
   id: string; // local ID for tracking
-  productId: string;
-  variantId?: string | null;
-  inventoryId: string;
-  productName: string;
-  quantity: number;
-  costPrice: number;
-  price: number;
   discountType: DiscountType;
   discountValue: number;
-  discountAmount: number;
   salePrice: number;
   total: number;
   availableQuantity: number;

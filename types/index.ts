@@ -854,7 +854,7 @@ export interface PurchaseOrderItem {
   inventoryId?: string;
   quantity: number;
   receivedQuantity: number;
-  unitPrice: number;
+  price: number;
   costPrice?: number;
   subtotal: number;
   productName?: string;
@@ -894,7 +894,7 @@ export interface CreatePurchaseOrderItemDto {
   inventoryId?: string;
   productName?: string;
   quantity: number;
-  unitPrice: number;
+  price: number;
   costPrice?: number;
   discount?: number;
   conversionFactor?: number;
@@ -995,7 +995,7 @@ export interface PurchaseReturnItem {
   inventoryId: string;
   productName: string;
   quantity: number;
-  unitPrice: number;
+  price: number;
   costPrice: number;
   discount?: number;
   refundAmount: number;
@@ -1047,7 +1047,7 @@ export interface CreatePurchaseReturnItemDto {
   inventoryId: string;
   productName?: string;
   quantity: number;
-  unitPrice: number;
+  price: number;
   costPrice: number;
   discount?: number;
   conversionFactor?: number; // For UoM conversion (e.g., 1 box = 100 pieces)
@@ -1124,7 +1124,7 @@ export interface SalesOrderItem {
   productId: string;
   variantId?: string | null;
   quantity: number;
-  unitPrice: number;
+  price: number;
   discount: number;
   total: number;
   productName?: string;
@@ -1157,7 +1157,7 @@ export interface CreateSalesOrderItemDto {
   productId: string;
   variantId?: string | null;
   quantity: number;
-  unitPrice: number;
+  price: number;
   discount?: number;
   productName?: string;
   variantName?: string;
@@ -1202,7 +1202,7 @@ export interface SaleItem {
   inventoryId: string;
   productName: string;
   quantity: number;
-  unitPrice: number;
+  price: number;
   costPrice: number;
   discount: number;
   subtotal: number;
@@ -1326,7 +1326,7 @@ export interface SalesReturnItem {
   inventoryId: string;
   productName: string;
   quantity: number;
-  unitPrice: number;
+  price: number;
   costPrice: number;
   discount?: number;
   refundAmount: number;

@@ -76,7 +76,7 @@ export interface OrderItem {
   inventoryId: string;
   variantId: string | null;
   quantity: number;
-  unitPrice: number;
+  price: number;
   costPrice: number;
   discount: number;
   productName: string;

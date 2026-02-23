@@ -16,7 +16,7 @@ export interface DiscountParams {
 
 export interface DiscountResult {
   /** Calculated discount amount */
-  discountAmount: number;
+  discount: number;
   /** Final price after discount */
   salePrice: number;
 }
@@ -73,14 +73,14 @@ export function calculateDiscount({
  * Calculate both discount amount and final sale price
  *
  * @param params - Discount calculation parameters
- * @returns Object containing discountAmount and salePrice
+ * @returns Object containing discount and salePrice
  */
 export function calculateDiscountWithPrice(params: DiscountParams): DiscountResult {
-  const discountAmount = calculateDiscount(params);
-  const salePrice = Math.round((params.price - discountAmount) * 100) / 100;
+  const discount = calculateDiscount(params);
+  const salePrice = Math.round((params.price - discount) * 100) / 100;
 
   return {
-    discountAmount,
+    discount,
     salePrice: Math.max(salePrice, 0), // Ensure non-negative
   };
 }
@@ -123,18 +123,18 @@ export function applyDiscountWithPriority({
  * Calculate total discount for a line item
  *
  * @param quantity - Number of items
- * @param unitPrice - Price per item
+ * @param price - Price per item
  * @param discountType - Type of discount
  * @param discountValue - Discount value
  * @returns Total discount amount for the line
  */
 export function calculateLineDiscount(
   quantity: number,
-  unitPrice: number,
+  price: number,
   discountType: DiscountType,
   discountValue: number,
 ): number {
-  const lineTotal = quantity * unitPrice;
+  const lineTotal = quantity * price;
   return calculateDiscount({
     price: lineTotal,
     discountType,
@@ -146,21 +146,21 @@ export function calculateLineDiscount(
  * Calculate line total after discount
  *
  * @param quantity - Number of items
- * @param unitPrice - Price per item
+ * @param price - Price per item
  * @param discountType - Type of discount
  * @param discountValue - Discount value
  * @returns Line total after discount
  */
 export function calculateLineTotal(
   quantity: number,
-  unitPrice: number,
+  price: number,
   discountType: DiscountType,
   discountValue: number,
 ): number {
-  const lineTotal = quantity * unitPrice;
+  const lineTotal = quantity * price;
   const discount = calculateLineDiscount(
     quantity,
-    unitPrice,
+    price,
     discountType,
     discountValue,
   );

@@ -20,7 +20,7 @@ interface SellableProduct {
   value: string;
   label: string;
   costPrice: number;
-  unitPrice: number;
+  price: number;
   availableQuantity: number;
   productId: string;
   variantId: string | null;
@@ -144,7 +144,7 @@ export function ProductSearch({
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-medium text-sm">
-                          {formatCurrency(product.unitPrice || 0)}
+                          {formatCurrency(product.price || 0)}
                         </div>
                         <div
                           className={`text-xs font-medium ${

@@ -7,6 +7,7 @@ import type {
   ExtractedProduct,
   ProductApiResponse,
 } from "./types";
+import { sanitize } from "@/utils";
 
 // =====================
 // Transform Callbacks
@@ -22,23 +23,22 @@ export const customerItemsCreateCallback = (
   return items.map((item) => ({
     value: item._id,
     label: item.name,
-    discountType: item.defaultDiscount?.value ?? 0,
-    discountValue: item.defaultDiscount?.type ?? "fixed",
+    discountValue: item.defaultDiscount?.value ?? 0,
+    discountType: item.defaultDiscount?.type ?? "fixed",
   })) as SelectOption[];
 };
 
 /**
  * Transform inventory API response to select options with pricing metadata
  */
-export const productItemsCreateCallback = (
-  response: ProductApiResponse,
-): SelectOption[] => {
+export const productItemsCreateCallback = (response: ProductApiResponse): SelectOption[] => {
   const items = response?.data || [];
   return items.map((item) => ({
+    ...sanitize(item),
     value: item._id, // inventoryId
     label: item.name,
     costPrice: item.costPrice,
-    unitPrice: item.price, // Match form field name
+    price: item.price, // Match form field name
     availableQuantity: item.quantity,
     productId: item.productId,
     variantId: item.variantId,

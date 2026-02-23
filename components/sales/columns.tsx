@@ -10,7 +10,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
  */
 export const getSalesColumns = (
   onUpdateQuantity: (id: string, quantity: number) => void,
-  onUpdateDiscount: (id: string, discountAmount: number, unitPrice: number) => void,
+  onUpdateDiscount: (id: string, discount: number, price: number) => void,
   onRemove: (id: string) => void,
   currencySymbol?: string,
 ): ColumnDef<SellOrderItem>[] => [
@@ -36,11 +36,11 @@ export const getSalesColumns = (
     ),
   },
   {
-    accessorKey: "unitPrice",
-    header: "Unit Price",
+    accessorKey: "price",
+    header: "Price (MRP)",
     cell: ({ row }) => (
       <span className="text-sm tabular-nums">
-        {formatCurrency(row.original.unitPrice)}
+        {formatCurrency(row.original.price)}
       </span>
     ),
   },
@@ -90,7 +90,7 @@ export const getSalesColumns = (
     },
   },
   {
-    accessorKey: "discountAmount",
+    accessorKey: "discount",
     header: `Discount (${currencySymbol || ""})`,
     cell: ({ row }) => {
       const item = row.original;
@@ -98,14 +98,14 @@ export const getSalesColumns = (
         <Input
           type="number"
           min={0}
-          max={item.unitPrice}
-          value={item.discountAmount || 0}
+          max={item.price}
+          value={item.discount || 0}
           onChange={(e) => {
             const val = Math.max(
               0,
-              Math.min(item.unitPrice, Number(e.target.value) || 0),
+              Math.min(item.price, Number(e.target.value) || 0),
             );
-            onUpdateDiscount(item.id, val, item.unitPrice);
+            onUpdateDiscount(item.id, val, item.price);
           }}
           className="h-7 w-16 text-center text-sm tabular-nums px-1"
         />

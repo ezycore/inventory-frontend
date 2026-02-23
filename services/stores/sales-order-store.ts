@@ -7,7 +7,7 @@ export interface SalesOrderItem {
   productId: string;
   variantId?: string | null;
   quantity: number;
-  unitPrice: number;
+  price: number;
   discount: number; // percentage discount
   total: number;
   // Display fields
@@ -54,10 +54,10 @@ interface SalesOrderStore {
 }
 
 // Helper to calculate item total
-const calculateItemTotal = (quantity: number, unitPrice: number, discount: number): number => {
-  const subtotal = quantity * unitPrice;
-  const discountAmount = (subtotal * discount) / 100;
-  return Math.round((subtotal - discountAmount) * 100) / 100;
+const calculateItemTotal = (quantity: number, price: number, discount: number): number => {
+  const subtotal = quantity * price;
+  const discount = (subtotal * discount) / 100;
+  return Math.round((subtotal - discount) * 100) / 100;
 };
 
 export const useSalesOrderStore = create<SalesOrderStore>()(
@@ -104,7 +104,7 @@ export const useSalesOrderStore = create<SalesOrderStore>()(
 
       addItem: (item) =>
         set((state) => {
-          const total = calculateItemTotal(item.quantity, item.unitPrice, item.discount);
+          const total = calculateItemTotal(item.quantity, item.price, item.discount);
           
           // Check if item with same product and variant already exists
           const existingIndex = state.items.findIndex(
@@ -139,7 +139,7 @@ export const useSalesOrderStore = create<SalesOrderStore>()(
             // Recalculate total
             updatedItem.total = calculateItemTotal(
               updatedItem.quantity,
-              updatedItem.unitPrice,
+              updatedItem.price,
               updatedItem.discount
             );
             
@@ -165,7 +165,7 @@ export const useSalesOrderStore = create<SalesOrderStore>()(
             const updatedItem = { ...item, discount: state.customerDiscount };
             updatedItem.total = calculateItemTotal(
               updatedItem.quantity,
-              updatedItem.unitPrice,
+              updatedItem.price,
               updatedItem.discount
             );
             return updatedItem;

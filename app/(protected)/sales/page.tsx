@@ -27,6 +27,7 @@ export default function SalesPage() {
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const defaultCustomer = user.defaultData?.customerId;
   const defaultAccountType = user.defaultData?.accountId;
+  const defaultLocationId = user.defaultData?.locationId;
 
   // Store state
   const {
@@ -61,9 +62,9 @@ export default function SalesPage() {
   const customerForm = useForm({
     defaultValues: {
       customerId: defaultCustomer || customerId,
-      discountType: orderDiscountType,
-      discountValue: orderDiscountValue,
       accountId: defaultAccountType,
+      discountType: orderDiscountType || "percentage",
+      discountValue: orderDiscountValue || 0,
       paidAmount: 0,
       notes: notes,
     },
@@ -74,12 +75,29 @@ export default function SalesPage() {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
 
+  // Recalculate all item discounts when customer discount changes
+  useEffect(() => {
+    if (items.length === 0) return;
+    items.forEach((item) => {
+      const { discount, salePrice } = applyDiscountWithPriority({
+        price: item.price,
+        orderDiscountType: orderDiscountType,
+        orderDiscountValue: orderDiscountValue,
+      });
+      if (item.discount !== discount || item.salePrice !== salePrice) {
+        updateItem(item.id, { discount, salePrice });
+      }
+    });
+    // Only react to discount type/value changes, not items
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderDiscountType, orderDiscountValue, updateItem]);
+
   // Handle inline discount change in table (direct amount)
   const handleUpdateDiscount = useCallback(
-    (id: string, discountAmount: number, unitPrice: number) => {
-      const salePrice = Math.max(0, unitPrice - discountAmount);
+    (id: string, discount: number, price: number) => {
+      const salePrice = Math.max(0, price - discount);
       updateItem(id, {
-        discountAmount,
+        discount,
         salePrice,
       });
     },
@@ -102,23 +120,22 @@ export default function SalesPage() {
   // Event Handlers
   // =====================
 
-  const handleCustomerFieldChange = useCallback(
-    (fieldName: string, value: any) => {
-      if (fieldName === "customerId") {
-       console.log("Selected customer:", value);
-        setCustomer(value);
-        if (value.value) {
-          customerForm.setValue("discountType", value.discountType);
-          customerForm.setValue("discountValue", value.discountValue);
-        }
-      } else if (fieldName === "discountType") {
-        const currentDiscountValue = customerForm.getValues("discountValue");
-        setOrderDiscount(value as DiscountType, currentDiscountValue);
-      } else if (fieldName === "discountValue") {
-        const currentDiscountType = customerForm.getValues("discountType");
-        setOrderDiscount(currentDiscountType, value as number);
-      }
-    },
+  const handleCustomerFieldChange = useCallback((fieldName: string, value: any) => {
+    if (fieldName === "customerId") {
+      setCustomer(value);
+      // if (value.value) {
+      //   console.log("Selected customer:", value);
+      //   customerForm.setValue("discountType", value.discountType);
+      //   customerForm.setValue("discountValue", value.discountValue);
+      // }
+    } else if (fieldName === "discountType") {
+      const currentDiscountValue = customerForm.getValues("discountValue");
+      setOrderDiscount(value as DiscountType, currentDiscountValue);
+    } else if (fieldName === "discountValue") {
+      const currentDiscountType = customerForm.getValues("discountType");
+      setOrderDiscount(currentDiscountType, value as number);
+    }
+  },
     [customerForm, setCustomer, setOrderDiscount],
   );
 
@@ -140,26 +157,17 @@ export default function SalesPage() {
         toast.error(`${product.name} is out of stock`);
         return;
       }
+      const { _id: inventoryId, name: productName, price, costPrice, productId, variantId, quantity: availableQuantity } = product;
       const discountType = customerForm.getValues("discountType");
       const discountValue = customerForm.getValues("discountValue");
-      const { discountAmount, salePrice } = applyDiscountWithPriority({
+      const { discount, salePrice } = applyDiscountWithPriority({
         price: product.price,
         orderDiscountType: discountType,
         orderDiscountValue: discountValue,
       });
+      console.log("Adding product to order:", product)
       addItem({
-        inventoryId: product._id,
-        productId: product.productId,
-        variantId: product.variantId,
-        productName: product.name,
-        quantity: 1,
-        costPrice: product.costPrice,
-        price: product.price,
-        discountType,
-        discountValue,
-        discountAmount,
-        salePrice,
-        availableQuantity: product.quantity,
+        inventoryId, productId, variantId, productName, quantity: 1, costPrice, price, discountType, discountValue, discount, salePrice, availableQuantity,
       });
     },
     [addItem, customerForm],
@@ -186,30 +194,30 @@ export default function SalesPage() {
       const totalCostPrice = getTotalCostPrice();
       const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
       const orderData: CreateSalesOrderData = {
-        customerId: customerId || undefined,
-        locationId: "default",
+        customerId,
+        locationId: defaultLocationId || "default",
         items: items.map((item) => ({
           productId: item.productId,
           inventoryId: item.inventoryId,
           variantId: item.variantId,
           quantity: item.quantity,
-          unitPrice: item.price,
+          price: item.price,
           costPrice: item.costPrice,
-          discount: item.discountAmount,
+          discount: item.discount,
           productName: item.productName,
         })),
         additionalDiscount: formAdditionalDiscount,
         totalPrice: totalSalePrice,
         costPrice: totalCostPrice,
-        notes: notes || undefined,
+        notes,
       };
       if (isAccountsEnabled && accountId && paidAmount > 0) {
         orderData.payment = { paidAmount, accountId };
         orderData.dueAmount = dueAmount;
       }
-      console.log("Submitting order data:", orderData);
-      return
+      
       const createResult = await mutateAsync(orderData);
+      console.log("Submitting order data:", createResult);
       if (createResult.data?.sale?._id) {
         clearAll();
         toast.success("Order created successfully");
@@ -243,6 +251,8 @@ export default function SalesPage() {
   const itemsSubtotal = items.reduce((sum, item) => sum + item.total, 0);
   const totalSalePrice = getTotalSalePrice();
   const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
+
+  console.log("Rendering SalesPage with state:", items)
 
   return (
     <div className="container mx-auto p-4 md:p-6">

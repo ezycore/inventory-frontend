@@ -85,7 +85,7 @@ interface ReturnableItem extends SaleItem {
   returnQty: number;
   refundAmount: number;
   selected: boolean;
-  salePrice: number; // calculated: unitPrice - discount
+  salePrice: number; // calculated: price - discount
 }
 
 interface DueAllocation {
@@ -192,7 +192,7 @@ export default function SalesReturnsPage() {
       returnQty: 0,
       refundAmount: 0,
       selected: false,
-      salePrice: item.unitPrice - (item.discount || 0),
+      salePrice: item.price - (item.discount || 0),
     }));
   }, [sale]);
 
@@ -295,7 +295,7 @@ export default function SalesReturnsPage() {
       updated[index] = {
         ...item,
         returnQty: validQty,
-        refundAmount: validQty * (item.salePrice || item.unitPrice),
+        refundAmount: validQty * (item.salePrice || item.price),
         selected: validQty > 0,
       };
       return updated;
@@ -306,7 +306,7 @@ export default function SalesReturnsPage() {
     setReturnableItems(prev => {
       const updated = [...prev];
       const item = updated[index];
-      const maxRefund = item.returnQty * (item.salePrice || item.unitPrice);
+      const maxRefund = item.returnQty * (item.salePrice || item.price);
       updated[index] = {
         ...item,
         refundAmount: Math.max(0, Math.min(amount, maxRefund)),
@@ -354,7 +354,7 @@ export default function SalesReturnsPage() {
       inventoryId: item.inventoryId,
       productName: item.productName,
       quantity: item.returnQty,
-      unitPrice: item.unitPrice,
+      price: item.price,
       costPrice: item.costPrice,
       discount: item.discount,
       refundAmount: item.refundAmount,
@@ -658,7 +658,7 @@ export default function SalesReturnsPage() {
                     <div className="flex-1">
                       <div className="font-medium">{item.productName}</div>
                       <div className="text-sm text-muted-foreground">
-                        Unit Price: {formatCurrency(item.unitPrice)}
+                        Unit Price: {formatCurrency(item.price)}
                         {' • '}
                         Max Returnable: {item.maxReturnableQty}
                       </div>

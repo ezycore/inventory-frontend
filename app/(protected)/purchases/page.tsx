@@ -832,7 +832,7 @@ export default function PurchasesPage() {
         variantId: product.variantId,
         productName: product.label,
         quantity: data.quantity,
-        unitPrice: boxPrice, // Store box price for display
+        price: boxPrice, // Store box price for display
         costPrice: data.costPrice, // Box cost price
         discount: data.discount, // Box discount
         conversionFactor: conversionFactor,
@@ -871,9 +871,9 @@ export default function PurchasesPage() {
       setEditingSellerId(sellerId);
 
       const convertedQuantity = item.convertedQuantity || item.quantity;
-      // item.unitPrice is already box price (per purchase unit)
+      // item.price is already box price (per purchase unit)
       // Use it directly for display
-      const boxPrice = item.unitPrice;
+      const boxPrice = item.price;
 
       editForm.reset({
         productId: {
@@ -996,7 +996,7 @@ export default function PurchasesPage() {
               // Frontend stores box prices (e.g., price for 1 box of 12 units)
               // Backend needs per-unit prices (price for 1 unit)
               const conversionFactor = item.conversionFactor || 1;
-              const perUnitPrice = item.unitPrice / conversionFactor;
+              const perUnitPrice = item.price / conversionFactor;
               const perUnitCostPrice = item.costPrice / conversionFactor;
               const perUnitDiscount = item.discount / conversionFactor;
 
@@ -1005,7 +1005,7 @@ export default function PurchasesPage() {
                 variantId: item.variantId,
                 inventoryId: item.inventoryId,
                 quantity: item.quantity,
-                unitPrice: perUnitPrice, // Per-unit price for backend
+                price: perUnitPrice, // Per-unit price for backend
                 costPrice: perUnitCostPrice, // Per-unit cost price for backend
                 discount: perUnitDiscount, // Per-unit discount for backend
                 productName: item.productName,
@@ -1113,9 +1113,9 @@ export default function PurchasesPage() {
           ]
         : []),
       {
-        accessorKey: "unitPrice",
-        header: "Unit Price",
-        cell: ({ row }) => formatCurrency(row.original.unitPrice),
+        accessorKey: "price",
+        header: "Price (MRP)",
+        cell: ({ row }) => formatCurrency(row.original.price),
       },
       {
         accessorKey: "discount",

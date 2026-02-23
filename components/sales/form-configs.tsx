@@ -19,6 +19,7 @@ export const customerFormConfig: DynamicFormConfig = {
       placeholder: "Search or select customer...",
       itemsCreateCallback: customerItemsCreateCallback,
       labelInValue: true, // To capture both ID and discount metadata
+      autoFillFields: ["discountType", "discountValue"], // Auto-fill discount fields based on selected customer
       columnSpan: 6,
     },
     {

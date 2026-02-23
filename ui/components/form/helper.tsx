@@ -375,38 +375,35 @@ const FormField: FC<{
               // Destructure field to exclude props that shouldn't be passed to AdvancedSelect
               const { dependsOn, autoFillFields, ...selectProps } = field;
 
+              // Shared autofill handler used by both onMount and onValueChange
+              const handleAutoFill = (value: any) => {
+                console.log("Auto-fill triggered for field:", field.name, "with value:", value);
+                if (autoFillFields && Array.isArray(autoFillFields) && value) {
+                  const selectedOption = typeof value === 'object' && value !== null ? value : null;
+                  if (selectedOption) {
+                    autoFillFields.forEach((fieldName) => {
+                      const valueToSet = (selectedOption as Record<string, any>)[fieldName];
+                      if (valueToSet !== undefined) {
+                        setValue(fieldName, valueToSet, {
+                          shouldValidate: false,
+                          shouldDirty: true,
+                        });
+                        if (onFieldChange) onFieldChange(fieldName, valueToSet);
+                      }
+                    });
+                  }
+                }
+              };
+
               return (
                 <AdvancedSelect
                   value={controllerField.value}
+                  onMount={(mountedValue) => handleAutoFill(mountedValue)}
                   onValueChange={(value) => {
                     controllerField.onChange(value);
                     handleChange(value);
                     if (field.onValueChange) field.onValueChange(value);
-
-                    // Auto-fill dependent fields if configured
-                    if (autoFillFields && Array.isArray(autoFillFields) && value) {
-                      const selectedOption = typeof value === 'object' && value !== null ? value : null;
-
-                      if (selectedOption) {
-                        // Iterate through each field name and copy matching property from option
-                        autoFillFields.forEach((fieldName) => {
-                          const valueToSet = selectedOption[fieldName];
-
-                          // Set the value if it exists in the option
-                          if (valueToSet !== undefined) {
-                            setValue(fieldName, valueToSet, {
-                              shouldValidate: false,
-                              shouldDirty: true
-                            });
-
-                            // Also trigger onFieldChange if provided
-                            if (onFieldChange) {
-                              onFieldChange(fieldName, valueToSet);
-                            }
-                          }
-                        });
-                      }
-                    }
+                    handleAutoFill(value);
                   }}
                   className={error ? "border-red-500" : ""}
                   {...selectProps}
