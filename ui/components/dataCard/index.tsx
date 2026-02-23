@@ -2,6 +2,7 @@
 
 import { useCrudModal } from "@/hooks/use-crud-handlers";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
+import { useUrlFilters } from "@/hooks/use-url-filters";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type { DataCardProps } from "@/types/DataCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
@@ -67,15 +68,19 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     disabledFieldsInEdit,
   } = operations || {};
 
+  // Read initial filter values from URL query params
+  const urlFilters = useUrlFilters(filterConfig);
+
   // Internal state for self-contained mode
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(defaultPageSize || 12);
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
 
   // Data fetching (self-contained mode)
   const {
     data: queryData,
     isLoading,
+    isFetching,
     error,
     refetch,
   } = useQuery<ApiResponse<PaginatedResponse<TData>>>({
@@ -88,6 +93,9 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     enabled: !!getAllData && !externalData, // Only fetch if getAllData is provided and externalData is not
     placeholderData: (previousData) => previousData,
   });
+
+  // Combine loading states: isLoading (first load), isFetching (subsequent fetches), and external loading prop
+  const isLoadingData = isLoading || isFetching || loading;
 
   // Determine data source and loading state
   const data = useMemo(() => {
@@ -148,6 +156,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     if (!filterConfig) return undefined;
     return {
       ...(filterConfig || {}),
+      initialValues: urlFilters,
       onApply: (newFilters: Record<string, any>) => {
         setFilters(newFilters);
         setPage(1); // Reset to first page when filters change
@@ -157,7 +166,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
         setPage(1); // Reset to first page when filters are cleared
       },
     };
-  }, [filterConfig]);
+  }, [filterConfig, urlFilters]);
 
   const { form } = useDynamicForm(formConfig || { fields: [] }, defaultValues);
 
@@ -267,7 +276,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
         <BaseDataCard
           {...restProps}
           data={data}
-          isLoading={isLoading || loading}
+          isLoading={isLoadingData}
           pagination={paginationConfig}
           filterConfig={mergedFilterConfig}
           actions={mergedActions}

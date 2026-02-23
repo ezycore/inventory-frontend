@@ -9,9 +9,9 @@ import { FilterField } from "./filter";
 /**
  * Card layout configuration
  */
-export type CardLayout = 'grid' | 'masonry' | 'list';
-export type CardVariant = 'default' | 'compact' | 'detailed';
-export type CardSize = 'sm' | 'md' | 'lg';
+export type CardLayout = "grid" | "masonry" | "list";
+export type CardVariant = "default" | "compact" | "detailed";
+export type CardSize = "sm" | "md" | "lg";
 
 export interface CardLayoutConfig {
   /** Layout type for displaying cards */
@@ -25,7 +25,7 @@ export interface CardLayoutConfig {
     xl?: number;
   };
   /** Gap between cards */
-  gap?: 'sm' | 'md' | 'lg';
+  gap?: "sm" | "md" | "lg";
 }
 
 /**
@@ -33,10 +33,10 @@ export interface CardLayoutConfig {
  */
 export interface CardCustomAction {
   /** Action type - use built-in types to replace default behavior */
-  type: 'edit' | 'view' | 'delete' | 'create' | string;
+  type: "edit" | "view" | "delete" | "create" | string;
 
   /** Placement of the action */
-  placement: 'header' | 'footer' | 'menu';
+  placement: "header" | "footer" | "menu";
 
   /** Link href (for Next.js Link) - takes precedence over onClick */
   href?: string | ((row?: any) => string);
@@ -54,7 +54,13 @@ export interface CardCustomAction {
   tooltip?: string;
 
   /** Button variant */
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
 
   /** Custom render function for complete control over rendering */
   render?: (row?: any) => React.ReactNode;
@@ -91,7 +97,13 @@ export interface DataCardAction {
     onClick: (row: any) => void;
 
     /** Button variant */
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    variant?:
+      | "default"
+      | "destructive"
+      | "outline"
+      | "secondary"
+      | "ghost"
+      | "link";
   }>;
 }
 
@@ -112,7 +124,10 @@ export interface DataCardPagination {
   totalItems: number;
 
   /** Callback when pagination changes */
-  onPaginationChange: (pagination: { pageIndex: number; pageSize: number }) => void;
+  onPaginationChange: (pagination: {
+    pageIndex: number;
+    pageSize: number;
+  }) => void;
 
   /** Enable server-side pagination */
   manualPagination: boolean;
@@ -149,7 +164,9 @@ export interface FilterConfig {
   applyOnChange?: boolean; // Auto-apply on field change
   showResetButton?: boolean;
   showApplyButton?: boolean;
-  viewMode?: 'drawer' | 'popover'; // Display mode
+  viewMode?: "drawer" | "popover"; // Display mode
+  // Initial values (e.g., from URL params)
+  initialValues?: Record<string, any>;
   // Callbacks
   onApply?: (filters: Record<string, any>) => void;
   onReset?: () => void;
@@ -172,7 +189,9 @@ export interface CardFieldConfig<TData = any> {
   /** Show as badge */
   isBadge?: boolean;
   /** Badge variant based on value */
-  badgeVariant?: (value: any) => "default" | "secondary" | "destructive" | "outline";
+  badgeVariant?: (
+    value: any,
+  ) => "default" | "secondary" | "destructive" | "outline";
   /** Show in footer */
   inFooter?: boolean;
   /** Hide this field */
@@ -190,13 +209,13 @@ export interface CardImageConfig<TData = any> {
   /** Alt text field or static text */
   alt?: keyof TData | string;
   /** Aspect ratio */
-  aspectRatio?: 'square' | 'video' | 'wide' | 'portrait';
+  aspectRatio?: "square" | "video" | "wide" | "portrait";
   /** Fallback image or initials */
   fallback?: React.ReactNode | ((row: TData) => React.ReactNode);
   /** Show image as avatar */
   asAvatar?: boolean;
   /** Position in card */
-  position?: 'top' | 'left' | 'right' | 'background';
+  position?: "top" | "left" | "right" | "background";
 }
 
 // Operations interface (same as DataTable)
@@ -214,7 +233,11 @@ interface Operations<TData = any> {
   editTooltip?: string;
   deleteTooltip?: string;
   viewTooltip?: string;
-  prepareSubmitData?: (data: TData, isEdit: boolean, originalItem?: TData) => any;
+  prepareSubmitData?: (
+    data: TData,
+    isEdit: boolean,
+    originalItem?: TData,
+  ) => any;
   transformEditData?: (item: TData) => any;
   openInside?: "modal" | "drawer";
   disabledFieldsInEdit?: string[];
@@ -238,13 +261,13 @@ export interface DataCardProps<TData, TValue = any> {
   searchConfig?: DataCardSearchConfig;
   /** Loading state */
   loading?: boolean;
-  
+
   // Card Layout Configuration
   /** Layout configuration for cards */
   layoutConfig?: CardLayoutConfig;
   /** Card size variant */
   cardSize?: CardSize;
-  
+
   // Card Styling
   /** Built-in card variant */
   variant?: CardVariant;
@@ -253,10 +276,10 @@ export interface DataCardProps<TData, TValue = any> {
   /** Enable card hover effect */
   enableCardHover?: boolean;
   /** Custom card border radius */
-  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
   /** Card shadow */
-  shadow?: 'none' | 'sm' | 'md' | 'lg';
-  
+  shadow?: "none" | "sm" | "md" | "lg";
+
   // Custom Rendering
   /** Completely custom card render function */
   renderCard?: (
@@ -265,24 +288,30 @@ export interface DataCardProps<TData, TValue = any> {
       onEdit?: () => void;
       onView?: () => void;
       onDelete?: () => void;
-    }
+    },
   ) => React.ReactNode;
-  
+
   // Field Configuration (for built-in variants)
   /** Fields to display in cards */
   fields?: CardFieldConfig<TData>[];
   /** Image configuration */
   imageConfig?: CardImageConfig<TData>;
-  
+
   // Toolbar
   /** Toolbar action button */
   toolbarAction?: {
     label: string;
     icon?: React.ReactNode;
     onClick: () => void;
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    variant?:
+      | "default"
+      | "destructive"
+      | "outline"
+      | "secondary"
+      | "ghost"
+      | "link";
   };
-  
+
   // Data
   /** External data source */
   data?: TData[];
@@ -290,14 +319,14 @@ export interface DataCardProps<TData, TValue = any> {
   operations?: Operations<TData>;
   /** Custom actions that can override or extend built-in actions */
   customActions?: CardCustomAction[];
-  
+
   // Module
-  /** 
+  /**
    * Module name for settings (reserved for future use)
    * @deprecated Not currently implemented - reserved for storing user preferences like column visibility
    */
   module?: string;
-  
+
   // Empty State
   /** Custom empty state component */
   emptyState?: React.ReactNode;
@@ -324,23 +353,29 @@ export interface BaseDataCardProps<TData> {
     label: string;
     icon?: React.ReactNode;
     onClick: () => void;
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    variant?:
+      | "default"
+      | "destructive"
+      | "outline"
+      | "secondary"
+      | "ghost"
+      | "link";
   };
   selectable?: boolean;
   searchConfig?: DataCardSearchConfig;
   onSelectionChange?: (selectedRows: TData[]) => void;
-  
+
   // Layout
   layoutConfig?: CardLayoutConfig;
   cardSize?: CardSize;
-  
+
   // Styling
   variant?: CardVariant;
   cardClassName?: string | ((row: TData) => string);
   enableCardHover?: boolean;
-  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  shadow?: 'none' | 'sm' | 'md' | 'lg';
-  
+  rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
+  shadow?: "none" | "sm" | "md" | "lg";
+
   // Custom Rendering
   renderCard?: (
     row: TData,
@@ -348,19 +383,19 @@ export interface BaseDataCardProps<TData> {
       onEdit?: () => void;
       onView?: () => void;
       onDelete?: () => void;
-    }
+    },
   ) => React.ReactNode;
-  
+
   // Fields (for built-in variants)
   fields?: CardFieldConfig<TData>[];
   imageConfig?: CardImageConfig<TData>;
-  
+
   // Custom actions
   customActions?: CardCustomAction[];
-  
+
   // Module (reserved for future use - not currently implemented)
   module?: string;
-  
+
   // Empty State
   emptyState?: React.ReactNode;
   emptyMessage?: string;
@@ -376,8 +411,8 @@ export interface CardItemProps<TData> {
   cardSize?: CardSize;
   cardClassName?: string;
   enableCardHover?: boolean;
-  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  shadow?: 'none' | 'sm' | 'md' | 'lg';
+  rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
+  shadow?: "none" | "sm" | "md" | "lg";
   fields?: CardFieldConfig<TData>[];
   imageConfig?: CardImageConfig<TData>;
   actions?: DataCardAction;
@@ -394,6 +429,6 @@ export interface CardItemProps<TData> {
       onEdit?: () => void;
       onView?: () => void;
       onDelete?: () => void;
-    }
+    },
   ) => React.ReactNode;
 }
