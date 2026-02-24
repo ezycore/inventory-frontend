@@ -125,7 +125,7 @@ const StatCardItem = ({
 
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <Card className="p-5">
         <div className="flex items-start justify-between mb-4">
           <Skeleton className="h-6 w-10 rounded-lg" />
         </div>
@@ -142,7 +142,7 @@ const StatCardItem = ({
         : "text-muted-foreground";
 
   return (
-    <Card className="p-6 hover:shadow-md transition-shadow">
+    <Card className="p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium text-muted-foreground">
@@ -168,7 +168,7 @@ const StatCardItem = ({
               {stat.prefix}
             </span>
           )}
-          <h3 className={cn("text-3xl font-bold tracking-tight", styles.text)}>
+          <h3 className={cn("text-2xl font-bold tracking-tight", styles.text)}>
             {stat.value.toLocaleString()}
           </h3>
           {stat.suffix && (
