@@ -14,7 +14,7 @@ export const productFilterConfig: FilterConfig = {
       label: "Filter by Brand",
       type: "select",
       placeholder: "All brands",
-      optionsApi: "/brands",
+      optionsApi: "/brands?all=true", // API endpoint to fetch brand options
     },
     {
       name: "status",

@@ -5,22 +5,24 @@ import { useState } from 'react'
 import { EyeIcon } from 'lucide-react'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
-import { productsApi } from '@/services/api'
+import { productsApi, useProductStats } from '@/services/api'
 import { productFormConfig } from '@/components/products/form-config'
 import { productColumns } from '@/components/products/columns'
 import { productFilterConfig } from '@/components/products/filters'
-import { prepareSubmitData } from '@/components/products/helpers'
+import { getProductStats, prepareSubmitData } from '@/components/products/helpers'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/services/api'
 import { Sheet, SheetContent } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
 import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
+import StatsCard from '@/ui/components/StatsCard';
 
 export default function ProductsPage() {
 
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
   const filteredColumns = useFilteredColumns(productColumns, 'product')
+  const { data, isLoading } = useProductStats();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -29,12 +31,18 @@ export default function ProductsPage() {
         subTitle="Manage your products and their details."
         actions={<FieldSettingsLink module="product" />}
       />
+
+      {/* Stats Cards */}
+      <StatsCard data={getProductStats(data)} isLoading={isLoading} />
+
       <DataTable
-        cardTitle={(dataLength: number) => `All Products (${dataLength})`}
+        cardTitle={`All Products`}
         columns={filteredColumns}
         selectable={true}
         manageColumns={true}
         module="product"
+        variant='card'
+        stickyHeader={true}
         searchConfig={{
           globalSearch: true,
           placeholder: "Search products by name...",
@@ -55,6 +63,7 @@ export default function ProductsPage() {
           createMutation: useCreateProduct(),
           updateMutation: useUpdateProduct(),
           deleteMutation: useDeleteProduct(),
+          isViewAvailable: false,
           queryKey: [...queryKeys.products.all()],
           entityName: "Product",
           openInside: "drawer",
