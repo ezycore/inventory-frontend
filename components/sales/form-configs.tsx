@@ -7,45 +7,42 @@ import {
 /**
  * Customer form configuration (Step 1 - Select Customer)
  */
-export const getCustomerFormConfig = (
-  isAccountsEnabled: boolean,
-): DynamicFormConfig => {
-  return {
+export const customerFormConfig: DynamicFormConfig = {
 
-        fields: [
-          {
-            name: "customerId",
-            label: "Customer",
-            type: "select",
-            required: false,
-            optionsApi: "/sales/customers",
-            placeholder: "Search or select customer...",
-            labelInValue: true,
-            itemsCreateCallback: customerItemsCreateCallback,
-            columnSpan: 6,
-          },
-          {
-            name: "discountType",
-            label: "Discount Type",
-            type: "select",
-            required: true,
-            options: [
-              { value: "percentage", label: "Percentage (%)" },
-              { value: "fixed", label: "Fixed Amount" },
-            ],
-            columnSpan: 3,
-          },
-          {
-            name: "discountValue",
-            label: "Discount Value",
-            type: "number",
-            required: false,
-            placeholder: "0",
-            columnSpan: 3,
-            validation: { min: 0 },
-          },
-        ],
-  };
+  fields: [
+    {
+      name: "customerId",
+      label: "Customer",
+      type: "select",
+      required: true,
+      optionsApi: "/sales/customers",
+      placeholder: "Search or select customer...",
+      itemsCreateCallback: customerItemsCreateCallback,
+      labelInValue: true, // To capture both ID and discount metadata
+      autoFillFields: ["discountType", "discountValue"], // Auto-fill discount fields based on selected customer
+      columnSpan: 6,
+    },
+    {
+      name: "discountType",
+      label: "Discount Type",
+      type: "select",
+      required: true,
+      options: [
+        { value: "percentage", label: "Percentage (%)" },
+        { value: "fixed", label: "Fixed Amount" },
+      ],
+      columnSpan: 3,
+    },
+    {
+      name: "discountValue",
+      label: "Discount Value",
+      type: "number",
+      required: false,
+      placeholder: "0",
+      columnSpan: 3,
+      validation: { min: 0 },
+    },
+  ],
 };
 
 /**
@@ -65,7 +62,6 @@ export const getPaymentFormConfig = (
         required: false,
         optionsApi: "/accounts",
         placeholder: "Select account",
-        labelInValue: true,
         itemsCreateCallback: accountItemsCreateCallback,
         columnSpan: 12,
       },
@@ -92,7 +88,6 @@ export const getPaymentFormConfig = (
   });
 
   return {
-        fields,
-  
+    fields,
   };
 };

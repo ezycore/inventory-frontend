@@ -591,7 +591,7 @@ export default function CreatedOrdersPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(
-                            item.unitPrice *
+                            item.price *
                               (item.quantity * (item.conversionFactor || 1)),
                           )}
                         </TableCell>

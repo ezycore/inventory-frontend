@@ -31,6 +31,11 @@ export interface User {
     };
     features?: OrganizationFeatures;
   };
+  defaultData: {
+    customerId?: string;
+    accountId?: string;
+    locationId?: string;
+  }
 }
 
 // Auth state interface

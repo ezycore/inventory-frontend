@@ -1,3 +1,6 @@
+import { StatData } from "@/ui/components/StatsCard"
+import { Building2, CheckCircle2, XCircle } from "lucide-react"
+
 export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
   const formData = new FormData()
   if(data.enableUOMConversion){
@@ -96,3 +99,29 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
 
   return formData
 }
+
+export const getProductStats = (
+  stats: Record<string, any> | undefined,
+): StatData[] => [
+  {
+    label: "Total Products",
+    value: stats?.total || 0,
+    icon: Building2,
+    variant: "primary",
+    description: "All registered products",
+  },
+  {
+    label: "Active Products",
+    value: stats?.active || 0,
+    icon: CheckCircle2,
+    variant: "success",
+    description: "Currently active",
+  },
+  {
+    label: "Inactive Products",
+    value: stats?.inactive || 0,
+    icon: XCircle,
+    variant: "warning",
+    description: "Currently inactive",
+  },
+];

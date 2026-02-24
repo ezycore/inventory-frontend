@@ -35,7 +35,7 @@ import {
 } from "@ui/components/select";
 import { cn } from "@ui/lib/utils";
 import { Loader2, Plus, X } from "lucide-react";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "./button";
 import { MultiSelect } from "./multi-select";
 
@@ -73,8 +73,6 @@ interface AdvancedSelectProps {
 
   // Unified dependency system
   dependsOn?: FieldDependency;
-  dependsOnValue?: string | null | LabelValueOption;
-
   // Multi-select specific props
   variant?: "default" | "secondary" | "destructive" | "inverted";
   maxCount?: number;
@@ -85,6 +83,9 @@ interface AdvancedSelectProps {
   creatable?: boolean;
   quickAddModule?: string;
   itemsCreateCallback?: (response: any) => SelectOption[];
+
+  // Called once on mount with the current value (used for auto-fill on initial render)
+  onMount?: (value: SelectValue | undefined) => void;
 }
 
 export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
@@ -98,7 +99,6 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   options,
   optionsApi,
   dependsOn,
-  dependsOnValue,
   variant = "default",
   maxCount,
   modalPopover,
@@ -107,6 +107,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   creatable = false,
   quickAddModule,
   itemsCreateCallback,
+  onMount,
 }) => {
   // Quick-add modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -118,20 +119,20 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   const createMutation = moduleConfig?.useMutation();
 
   // Helper: Extract value string from dependsOnValue (handles labelInValue format)
-  const extractDependsOnValue = (
-    depValue: string | null | LabelValueOption | undefined,
-  ): any => {
-    if (!depValue) return null;
-    if (typeof depValue === "object") {
-      // Extract using matchWithProp if specified in dependency
-      if (dependsOn?.matchWithProp) {
-        return extractValueFromObject(depValue, dependsOn.matchWithProp);
-      }
-      // Default to value property
-      return depValue.value || depValue;
-    }
-    return depValue;
-  };
+  // const extractDependsOnValue = (
+  //   depValue: string | null | LabelValueOption | undefined,
+  // ): any => {
+  //   if (!depValue) return null;
+  //   if (typeof depValue === "object") {
+  //     // Extract using matchWithProp if specified in dependency
+  //     if (dependsOn?.matchWithProp) {
+  //       return extractValueFromObject(depValue, dependsOn.matchWithProp);
+  //     }
+  //     // Default to value property
+  //     return depValue.value || depValue;
+  //   }
+  //   return depValue;
+  // };
 
   // Helper: Extract actual value string(s) from SelectValue (handles labelInValue format)
   const extractValue = (val: SelectValue | undefined): string | string[] => {
@@ -174,6 +175,24 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   // Determine which options to use
   const finalOptions = optionsApi ? apiOptions || [] : options || [];
   const apiError = queryError ? (queryError as Error).message : null;
+
+  // Fire onMount once after options are available so labelInValue enrichment works
+  const hasMountedRef = useRef(false);
+  useEffect(() => {
+    if (hasMountedRef.current) return;
+    if (!onMount) return;
+    // For API-driven selects, wait until options have loaded
+    if (optionsApi && finalOptions.length === 0) return;
+
+    const rawVal = extractValue(value);
+    if (!rawVal || (Array.isArray(rawVal) && rawVal.length === 0)) return;
+
+    hasMountedRef.current = true;
+    // Return the labelInValue-enriched value (full option object) if applicable
+    const enriched = labelInValue ? formatValue(rawVal) : value;
+    onMount(enriched);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalOptions]);
 
   // Extract actual value strings for rendering
   const actualValue = extractValue(value);

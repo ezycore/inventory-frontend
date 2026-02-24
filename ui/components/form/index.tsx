@@ -162,8 +162,6 @@ const DynamicForm: FC<DynamicFormProps> = ({
         full: 'sm:max-w-[90vw]'
     }[modalSize]
 
-    console.log("DynamicForm render", hideCancel  , !onSubmit , !mutationHook)
-
     const formActions = (viewMode && isModalMode) ? (
         <div className={cn("flex justify-end")}>
             <Button type="button" variant="outline" onClick={handleContainerCancel}>

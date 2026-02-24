@@ -3,6 +3,10 @@ import type { ApiResponse, PaginatedResponse, CreateProductDto, UpdateProductDto
 import { buildQueryParams } from "../../utils";
 
 export const productsApi = {
+
+  getStats: (): Promise<ApiResponse<{ stats: { name: string; value: number }[] }>> =>
+    apiClient.get("/products/stats"),
+
   getAll: (filters: ProductFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/products${buildQueryParams(filters)}`),
 

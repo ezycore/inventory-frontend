@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  getSalesColumns,
-  extractCustomerValue,
-  formatCurrency,
-  getCustomerFormConfig,
-  getPaymentFormConfig,
-  ProductSearch,
-  accountItemsCreateCallback,
-  type CreateSalesOrderData,
-} from "@/components/sales";
-import { useCreateSalesOrder, useSelectOptions } from "@/services/api";
+import { getSalesColumns, formatCurrency, getPaymentFormConfig, ProductSearch, type CreateSalesOrderData, customerFormConfig, ProductApiItem, ExtractedProduct } from "@/components/sales";
+import { useCreateSalesOrder } from "@/services/api";
 import { useAuthStore, useSellPageStore } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { Badge } from "@/ui/components/badge";
@@ -19,11 +10,6 @@ import { Card, CardContent } from "@/ui/components/card";
 import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
 import { Input } from "@/ui/components/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/ui/components/popover";
 import { Separator } from "@/ui/components/separator";
 import { CheckCircleIcon, ClipboardList } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -31,12 +17,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useCurrency } from "@/lib/currency";
 
-// =====================
-// Main Component
-// =====================
-
 export default function SalesPage() {
-  const [showSuccessPopover, setShowSuccessPopover] = useState(false);
   const [paidAmount, setPaidAmount] = useState(0);
   const [localAdditionalDiscount, setLocalAdditionalDiscount] = useState(0);
   const { symbol } = useCurrency();
@@ -44,6 +25,9 @@ export default function SalesPage() {
   // Get organization features
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  const defaultCustomer = user.defaultData?.customerId;
+  const defaultAccountType = user.defaultData?.accountId;
+  const defaultLocationId = user.defaultData?.locationId;
 
   // Store state
   const {
@@ -67,13 +51,7 @@ export default function SalesPage() {
   } = useSellPageStore();
 
   // API mutations
-  const createOrderMutation = useCreateSalesOrder();
-
-  // Form configurations
-  const customerFormConfig = useMemo(
-    () => getCustomerFormConfig(isAccountsEnabled),
-    [isAccountsEnabled],
-  );
+  const { mutateAsync, isPending } = useCreateSalesOrder();
 
   const paymentFormConfig = useMemo(
     () => getPaymentFormConfig(isAccountsEnabled),
@@ -83,12 +61,10 @@ export default function SalesPage() {
   // Customer form (also holds payment fields)
   const customerForm = useForm({
     defaultValues: {
-      customerId: customerId
-        ? { value: customerId, label: customerName || "" }
-        : null,
-      discountType: orderDiscountType,
-      discountValue: orderDiscountValue,
-      accountId: null,
+      customerId: defaultCustomer,
+      accountId: defaultAccountType,
+      discountType: orderDiscountType || "percentage",
+      discountValue: orderDiscountValue || 0,
       paidAmount: 0,
       notes: notes,
     },
@@ -99,26 +75,29 @@ export default function SalesPage() {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
 
-  // Fetch accounts and auto-select default
-  const { data: accountOptions } = useSelectOptions(
-    isAccountsEnabled ? "/accounts" : null,
-    accountItemsCreateCallback,
-  );
-
+  // Recalculate all item discounts when customer discount changes
   useEffect(() => {
-    if (!isAccountsEnabled || !accountOptions) return;
-    const defaultAccount = accountOptions.find((opt: any) => opt.isDefault);
-    if (defaultAccount && !customerForm.getValues("accountId")) {
-      customerForm.setValue("accountId", defaultAccount.value);
-    }
-  }, [accountOptions, isAccountsEnabled, customerForm]);
+    if (items.length === 0) return;
+    items.forEach((item) => {
+      const { discount, salePrice } = applyDiscountWithPriority({
+        price: item.price,
+        orderDiscountType: orderDiscountType,
+        orderDiscountValue: orderDiscountValue,
+      });
+      if (item.discount !== discount || item.salePrice !== salePrice) {
+        updateItem(item.id, { discount, salePrice });
+      }
+    });
+    // Only react to discount type/value changes, not items
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderDiscountType, orderDiscountValue, updateItem]);
 
   // Handle inline discount change in table (direct amount)
   const handleUpdateDiscount = useCallback(
-    (id: string, discountAmount: number, unitPrice: number) => {
-      const salePrice = Math.max(0, unitPrice - discountAmount);
+    (id: string, discount: number, price: number) => {
+      const salePrice = Math.max(0, price - discount);
       updateItem(id, {
-        discountAmount,
+        discount,
         salePrice,
       });
     },
@@ -141,71 +120,46 @@ export default function SalesPage() {
   // Event Handlers
   // =====================
 
-  const handleCustomerFieldChange = useCallback(
-    (fieldName: string, value: unknown) => {
-      if (fieldName === "customerId") {
-        const customer = extractCustomerValue(value);
-        setCustomer(
-          customer.value,
-          customer.label,
-          customer.discountType,
-          customer.discountValue,
-        );
-        if (customer.value) {
-          customerForm.setValue("discountType", customer.discountType);
-          customerForm.setValue("discountValue", customer.discountValue);
-        }
-      } else if (fieldName === "discountType") {
-        const currentDiscountValue = customerForm.getValues("discountValue");
-        setOrderDiscount(value as DiscountType, currentDiscountValue);
-      } else if (fieldName === "discountValue") {
-        const currentDiscountType = customerForm.getValues("discountType");
-        setOrderDiscount(currentDiscountType, value as number);
-      }
-    },
-    [customerForm, setCustomer, setOrderDiscount],
+  const handleFieldChange = useCallback((fieldName: string, value: any) => {
+    if (fieldName === "customerId") {
+      console.log("Selected customer ID:", value);
+      setCustomer(value);
+    } else if (fieldName === "discountType") {
+      const currentDiscountValue = customerForm.getValues("discountValue");
+      setOrderDiscount(value as DiscountType, currentDiscountValue);
+    } else if (fieldName === "discountValue") {
+      const currentDiscountType = customerForm.getValues("discountType");
+      setOrderDiscount(currentDiscountType, value as number);
+    }
+    else if (fieldName === "paidAmount") {
+      setPaidAmount(value as number);
+    } else if (fieldName === "notes") {
+      setNotes(value as string);
+    }
+  },
+    [customerForm, setCustomer, setNotes, setOrderDiscount],
   );
 
-  const handlePaymentFieldChange = useCallback(
-    (fieldName: string, value: unknown) => {
-      if (fieldName === "paidAmount") {
-        setPaidAmount(value as number);
-      } else if (fieldName === "notes") {
-        setNotes(value as string);
-      }
-    },
-    [setNotes],
-  );
 
   const handleProductSelect = useCallback(
-    (product: any) => {
+    (product: ExtractedProduct) => {
       if (!product) return;
       if (product.availableQuantity <= 0) {
         toast.error(`${product.label} is out of stock`);
         return;
       }
+
+      const { value: inventoryId, label: productName, price, costPrice, productId, variantId, availableQuantity } = product;
       const discountType = customerForm.getValues("discountType");
       const discountValue = customerForm.getValues("discountValue");
-      const { discountAmount, salePrice } = applyDiscountWithPriority({
-        unitPrice: product.unitPrice,
+      const { discount, salePrice } = applyDiscountWithPriority({
+        price: product.price,
         orderDiscountType: discountType,
         orderDiscountValue: discountValue,
       });
       addItem({
-        inventoryId: product.value,
-        productId: product.productId,
-        variantId: product.variantId,
-        productName: product.label,
-        quantity: 1,
-        costPrice: product.costPrice,
-        unitPrice: product.unitPrice,
-        discountType,
-        discountValue,
-        discountAmount,
-        salePrice,
-        availableQuantity: product.availableQuantity,
+        inventoryId, productId, variantId, productName, quantity: 1, costPrice, price, discountType, discountValue, discount, salePrice, availableQuantity,
       });
-      toast.success(`${product.label} added`);
     },
     [addItem, customerForm],
   );
@@ -216,16 +170,16 @@ export default function SalesPage() {
       return;
     }
     const accountId = customerForm.getValues("accountId");
+    let updatedCustomerId = customerForm.getValues("customerId") as any;
+    updatedCustomerId = updatedCustomerId?.value || customerId
     const paidAmount = customerForm.getValues("paidAmount") || 0;
     const formAdditionalDiscount = localAdditionalDiscount;
-    const extractedAccountId =
-      typeof accountId === "object" && accountId !== null && "value" in accountId
-        ? accountId.value
-        : typeof accountId === "string"
-          ? accountId
-          : null;
-    if (isAccountsEnabled && paidAmount > 0 && !extractedAccountId) {
+    if (isAccountsEnabled && paidAmount > 0 && !accountId) {
       toast.error("Please select a payment account");
+      return;
+    }
+    if (!updatedCustomerId) {
+      toast.error("Please select a customer for the order");
       return;
     }
     try {
@@ -233,37 +187,32 @@ export default function SalesPage() {
       const totalCostPrice = getTotalCostPrice();
       const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
       const orderData: CreateSalesOrderData = {
-        customerId: customerId || undefined,
-        locationId: "default",
+        customerId: updatedCustomerId,
+        locationId: defaultLocationId || "default",
         items: items.map((item) => ({
           productId: item.productId,
           inventoryId: item.inventoryId,
           variantId: item.variantId,
           quantity: item.quantity,
-          unitPrice: item.unitPrice,
+          price: item.price,
           costPrice: item.costPrice,
-          discount: item.discountAmount,
+          discount: item.discount,
           productName: item.productName,
         })),
         additionalDiscount: formAdditionalDiscount,
         totalPrice: totalSalePrice,
         costPrice: totalCostPrice,
-        notes: notes || undefined,
+        notes,
       };
-      if (isAccountsEnabled && extractedAccountId && paidAmount > 0) {
-        orderData.payment = { paidAmount, accountId: extractedAccountId };
+      if (isAccountsEnabled && accountId && paidAmount > 0) {
+        orderData.payment = { paidAmount, accountId };
         orderData.dueAmount = dueAmount;
       }
-      const createResult = await createOrderMutation.mutateAsync(orderData);
-      if (createResult.data?._id) {
-        setShowSuccessPopover(true);
-        setTimeout(() => setShowSuccessPopover(false), 3000);
+
+      const createResult = await mutateAsync(orderData);
+      if (createResult.data?.sale?._id) {
         clearAll();
         customerForm.reset({
-          customerId: null,
-          discountType: "percentage",
-          discountValue: 0,
-          accountId: null,
           paidAmount: 0,
           notes: "",
         });
@@ -274,27 +223,11 @@ export default function SalesPage() {
       console.error("Failed to complete sale:", error);
       toast.error("Failed to complete sale");
     }
-  }, [
-    items,
-    customerId,
-    notes,
-    isAccountsEnabled,
-    getTotalSalePrice,
-    getTotalCostPrice,
-    createOrderMutation,
-    clearAll,
-    customerForm,
-    localAdditionalDiscount,
-  ]);
+  }, [items, customerId, notes, isAccountsEnabled, getTotalSalePrice, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount]);
 
-  const isLoading = createOrderMutation.isPending;
   const itemsSubtotal = items.reduce((sum, item) => sum + item.total, 0);
   const totalSalePrice = getTotalSalePrice();
   const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
-
-  // =====================
-  // Render
-  // =====================
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -314,11 +247,11 @@ export default function SalesPage() {
                 <DynamicForm
                   form={customerForm}
                   config={customerFormConfig}
-                  onFieldChange={handleCustomerFieldChange}
+                  onFieldChange={handleFieldChange}
                   hideCancel
                 />
               </div>
-              <Separator  className="my-6" />
+              <Separator className="my-6" />
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
@@ -390,7 +323,7 @@ export default function SalesPage() {
                     Additional Discount
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-muted-foreground">{symbol}</span>
+                    <span className="text-base text-muted-foreground">{symbol}</span>
                     <Input
                       type="number"
                       min="0"
@@ -420,7 +353,7 @@ export default function SalesPage() {
                 <DynamicForm
                   form={customerForm}
                   config={paymentFormConfig}
-                  onFieldChange={handlePaymentFieldChange}
+                  onFieldChange={handleFieldChange}
                   hideCancel
                 />
 
@@ -436,11 +369,10 @@ export default function SalesPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Due</span>
                       <span
-                        className={`font-semibold tabular-nums ${
-                          dueAmount > 0
-                            ? "text-orange-600 dark:text-orange-500"
-                            : "text-green-600 dark:text-green-500"
-                        }`}
+                        className={`font-semibold tabular-nums ${dueAmount > 0
+                          ? "text-orange-600 dark:text-orange-500"
+                          : "text-green-600 dark:text-green-500"
+                          }`}
                       >
                         {formatCurrency(dueAmount)}
                       </span>
@@ -457,36 +389,15 @@ export default function SalesPage() {
                 )}
 
                 <Separator />
-
-                {/* Confirm Order */}
-                <Popover open={showSuccessPopover}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      onClick={handleMarkAsSold}
-                      disabled={isLoading || items.length === 0}
-                      size="lg"
-                      className="w-full font-semibold"
-                    >
-                      <CheckCircleIcon className="h-5 w-5 mr-2" />
-                      {isLoading ? "Processing..." : "Confirm Order"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto">
-                    <div className="flex items-center gap-2 text-green-600">
-                      <CheckCircleIcon className="h-5 w-5" />
-                      <span className="font-medium">
-                        Sale completed successfully!
-                      </span>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
-                {items.length > 0 && (
-                  <p className="text-center text-xs text-muted-foreground">
-                    {items.length} {items.length === 1 ? "item" : "items"} in
-                    order
-                  </p>
-                )}
+                <Button
+                  onClick={handleMarkAsSold}
+                  disabled={isPending || items.length === 0}
+                  size="lg"
+                  className="w-full font-semibold"
+                >
+                  <CheckCircleIcon className="h-5 w-5" />
+                  {isPending ? "Processing..." : "Confirm Order"}
+                </Button>
               </CardContent>
             </Card>
           </div>

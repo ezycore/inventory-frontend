@@ -15,36 +15,31 @@ import { Package, Search } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { productItemsCreateCallback } from "./helpers";
+import { ExtractedProduct } from "./types";
 
 interface SellableProduct {
   value: string;
   label: string;
   costPrice: number;
-  unitPrice: number;
+  price: number;
   availableQuantity: number;
   productId: string;
   variantId: string | null;
 }
 
 interface ProductSearchProps {
-  onSelect: (product: SellableProduct) => void;
+  onSelect: (product: ExtractedProduct) => void;
   placeholder?: string;
 }
 
-export function ProductSearch({
-  onSelect,
-  placeholder = "Search products by name or category...",
-}: ProductSearchProps) {
+export function ProductSearch({ onSelect, placeholder = "Search products by name or category..." }: ProductSearchProps) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: products = [], isLoading } = useSelectOptions(
-    "/inventory/sellable-products",
-    productItemsCreateCallback,
-  );
+  const { data: products = [], isLoading } = useSelectOptions("/inventory/sellable-products", productItemsCreateCallback);
 
-  const castProducts = products as unknown as SellableProduct[];
+  const castProducts = products as unknown as ExtractedProduct[];
 
   // Create Fuse instance for fuzzy search
   const fuse = useMemo(
@@ -144,16 +139,15 @@ export function ProductSearch({
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-medium text-sm">
-                          {formatCurrency(product.unitPrice || 0)}
+                          {formatCurrency(product.price || 0)}
                         </div>
                         <div
-                          className={`text-xs font-medium ${
-                            product.availableQuantity <= 5
-                              ? "text-red-500"
-                              : product.availableQuantity <= 20
-                                ? "text-orange-500"
-                                : "text-green-600"
-                          }`}
+                          className={`text-xs font-medium ${product.availableQuantity <= 5
+                            ? "text-red-500"
+                            : product.availableQuantity <= 20
+                              ? "text-orange-500"
+                              : "text-green-600"
+                            }`}
                         >
                           {product.availableQuantity} in stock
                         </div>

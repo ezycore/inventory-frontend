@@ -41,7 +41,7 @@ export interface PurchaseOrderItem {
   productName: string;
   quantity: number;
   costPrice: number; // purchase price (what we pay)
-  unitPrice: number; // unit price for the purchase
+  price: number; // unit price for the purchase
   discount: number;
   total: number;
   // Calculated fields
@@ -155,7 +155,7 @@ interface PurchasePageStore {
 const calculateItemTotal = (
   item: Omit<PurchaseOrderItem, "id" | "total">,
 ): number => {
-  const subtotal = item.quantity * item.unitPrice;
+  const subtotal = item.quantity * item.price;
   return Math.max(0, subtotal - (item.discount || 0));
 };
 
@@ -200,8 +200,8 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
         if (!seller) return 0;
         const subtotal = seller.items.reduce((sum, item) => sum + (item.quantity * item.costPrice), 0);
         // additionalDiscount is always fixed amount
-        const discountAmount = Math.min(seller.additionalDiscount || 0, subtotal);
-        return Math.max(0, subtotal - discountAmount);
+        const discount = Math.min(seller.additionalDiscount || 0, subtotal);
+        return Math.max(0, subtotal - discount);
       },
 
       getSellerNetAmount: (sellerId: string) => {
@@ -230,8 +230,8 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
           }
           const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
           // additionalDiscount is always fixed amount
-          const discountAmount = Math.min(seller.additionalDiscount || 0, subtotal);
-          return sum + Math.max(0, subtotal - discountAmount);
+          const discount = Math.min(seller.additionalDiscount || 0, subtotal);
+          return sum + Math.max(0, subtotal - discount);
         }, 0);
       },
 
@@ -342,8 +342,8 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             if (seller.id !== sellerId) return seller;
             // When additionalDiscount changes, recalculate invoiceAmount if it's auto-calculated
             const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
-            const discountAmount = Math.min(discount, subtotal);
-            const newInvoiceAmount = Math.max(0, subtotal - discountAmount);
+            const discount = Math.min(discount, subtotal);
+            const newInvoiceAmount = Math.max(0, subtotal - discount);
             return { 
               ...seller, 
               additionalDiscount: discount,
@@ -431,7 +431,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
                 const updatedItem = { ...item, ...data };
                 // Recalculate total
                 updatedItem.total =
-                  updatedItem.quantity * updatedItem.unitPrice -
+                  updatedItem.quantity * updatedItem.price -
                   (updatedItem.discount || 0);
 
                 return updatedItem;

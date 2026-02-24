@@ -611,7 +611,7 @@ export default function PurchaseHistoryPage() {
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Qty: {item.quantity} ×{" "}
-                          {formatCurrency(item.unitPrice)}
+                          {formatCurrency(item.price)}
                         </p>
                       </div>
                       <div className="text-right">

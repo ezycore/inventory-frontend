@@ -8,6 +8,7 @@ const productHooks = createResourceHooks<Product, CreateProductDto>(
   queryKeys.products
 )
 
+export const useProductStats = productHooks.useStats
 export const useProducts = productHooks.useList
 export const useProduct = productHooks.useDetail
 export const useProductBySlug = productHooks.useBySlug!

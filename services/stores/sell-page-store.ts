@@ -2,6 +2,7 @@ import { DiscountType, calculateLineTotal } from "@/utils/discount";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { CustomerApiItem, ExtractedCustomer, OrderItem } from './../../components/sales/types';
 
 /**
  * Customer option with discount metadata
@@ -31,18 +32,10 @@ export interface ProductSelectOption {
 /**
  * Sale item in the order list
  */
-export interface SellOrderItem {
+export type SellOrderItem = OrderItem & {
   id: string; // local ID for tracking
-  productId: string;
-  variantId?: string | null;
-  inventoryId: string;
-  productName: string;
-  quantity: number;
-  costPrice: number;
-  unitPrice: number;
   discountType: DiscountType;
   discountValue: number;
-  discountAmount: number;
   salePrice: number;
   total: number;
   availableQuantity: number;
@@ -74,12 +67,7 @@ interface SellPageStore {
   getTotalSalePrice: () => number;
 
   // Actions
-  setCustomer: (
-    customerId: string | null,
-    customerName: string | null,
-    discountType: DiscountType,
-    discountValue: number,
-  ) => void;
+  setCustomer: (CustomerApiItem: ExtractedCustomer) => void;
   setOrderDiscount: (discountType: DiscountType, discountValue: number) => void;
   setAdditionalDiscount: (discount: number) => void;
   setNotes: (notes: string) => void;
@@ -131,12 +119,12 @@ export const useSellPageStore = create<SellPageStore>()(
         return Math.max(0, itemsTotal - additionalDiscount);
       },
 
-      setCustomer: (customerId, customerName, discountType, discountValue) =>
+      setCustomer: (customer) =>
         set({
-          customerId,
-          customerName,
-          orderDiscountType: discountType,
-          orderDiscountValue: discountValue,
+          customerId: customer.value,
+          customerName: customer.label,
+          orderDiscountType: customer.discountType,
+          orderDiscountValue: customer.discountValue,
         }),
 
       setOrderDiscount: (discountType, discountValue) =>

@@ -12,7 +12,7 @@ import {
   useUpdateBrand,
 } from "@/services/api";
 
-import BrandCardView from "@/components/brands/cardView";
+import BrandCardView from "@/components/brands/cardview";
 import { useFilteredFormConfig } from "@/hooks/use-filters";
 import { queryKeys } from "@/services/api/query-keys";
 import { DataCard } from "@/ui/components/dataCard";

@@ -186,7 +186,7 @@ export interface FormFieldConfig {
 
   // Auto-fill dependent fields (for select fields)
   // Array of field names that will be auto-filled from the selected option's matching properties
-  // Example: autoFillFields: ['costPrice', 'unitPrice', 'salePrice']
+  // Example: autoFillFields: ['costPrice', 'price', 'salePrice']
   autoFillFields?: string[];
 
   // Change handlers
