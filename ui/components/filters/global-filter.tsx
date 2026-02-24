@@ -1,9 +1,14 @@
 "use client";
 
-import React from 'react';
-import { useFilters } from '@/hooks/use-filters';
-import { Button } from '@ui/components/button';
-import { Badge } from '@ui/components/badge';
+import { useFilters } from "@/hooks/use-filters";
+import { FilterConfig } from "@/types/DataTable";
+import { Badge } from "@ui/components/badge";
+import { Button } from "@ui/components/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@ui/components/popover";
 import {
   Sheet,
   SheetContent,
@@ -11,44 +16,32 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter,
-} from '@ui/components/sheet';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@ui/components/popover';
-import { Filter, X } from 'lucide-react';
-import { cn } from '@ui/lib/utils';
-import { FilterFieldRenderer } from './filter-field-renderer';
-import { FilterConfig } from '@/types/DataTable';
+} from "@ui/components/sheet";
+import { cn } from "@ui/lib/utils";
+import { Filter } from "lucide-react";
+import React from "react";
+import { FilterFieldRenderer } from "./filter-field-renderer";
 
 interface GlobalFilterProps {
   config: FilterConfig;
   trigger?: React.ReactNode;
 }
 
-export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
+export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
   const {
     fields,
     columns = 2,
-    viewMode = 'sheet',
+    viewMode = "sheet",
     applyOnChange = false,
     showResetButton = true,
     showApplyButton = true,
+    initialValues,
     onApply,
     onReset,
   } = config;
 
-  const {
-    values,
-    updateField,
-    apply,
-    reset,
-    activeCount,
-    isOpen,
-    setIsOpen,
-  } = useFilters(fields, onApply, applyOnChange);
+  const { values, updateField, apply, reset, activeCount, isOpen, setIsOpen } =
+    useFilters(fields, onApply, applyOnChange, initialValues);
 
   const handleReset = () => {
     reset();
@@ -73,7 +66,6 @@ export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
 
   const filterContent = (
     <>
-
       {/* Filter Fields */}
       <div
         className={cn(
@@ -81,7 +73,7 @@ export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
           columns === 1 && "grid-cols-1",
           columns === 2 && "grid-cols-1 sm:grid-cols-2",
           columns === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-          columns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+          columns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
         )}
       >
         {fields.map((field) => {
@@ -96,7 +88,7 @@ export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
               className={cn(
                 field.columnSpan === 2 && "sm:col-span-2",
                 field.columnSpan === 3 && "lg:col-span-3",
-                field.columnSpan === 4 && "lg:col-span-4"
+                field.columnSpan === 4 && "lg:col-span-4",
               )}
             >
               <FilterFieldRenderer
@@ -110,22 +102,29 @@ export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
       </div>
 
       {/* Footer Actions */}
-      <div className={cn(
-        "mt-6 gap-2 flex",
-        viewMode === 'sheet' ? 'flex-col sm:flex-row sm:justify-end' : 'flex-row justify-end'
-      )}>
+      <div
+        className={cn(
+          "mt-6 gap-2 flex",
+          viewMode === "sheet"
+            ? "flex-col sm:flex-row sm:justify-end"
+            : "flex-row justify-end",
+        )}
+      >
         {showResetButton && (
           <Button
             variant="outline"
             onClick={handleReset}
             disabled={activeCount === 0}
-            className={viewMode === 'sheet' ? 'w-full sm:w-auto' : 'w-auto'}
+            className={viewMode === "sheet" ? "w-full sm:w-auto" : "w-auto"}
           >
             Reset All
           </Button>
         )}
         {showApplyButton && !applyOnChange && (
-          <Button onClick={handleApply} className={viewMode === 'sheet' ? 'w-full sm:w-auto' : 'w-auto'}>
+          <Button
+            onClick={handleApply}
+            className={viewMode === "sheet" ? "w-full sm:w-auto" : "w-auto"}
+          >
             Apply Filters
           </Button>
         )}
@@ -133,17 +132,20 @@ export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
     </>
   );
 
-  if (viewMode === 'popover') {
+  if (viewMode === "popover") {
     return (
       <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          {triggerButton}
-        </PopoverTrigger>
-        <PopoverContent className="w-[600px] max-w-[95vw] p-6 mr-6" align="start">
+        <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+        <PopoverContent
+          className="w-[600px] max-w-[95vw] p-6 mr-6"
+          align="start"
+        >
           <div className="space-y-4">
             <div>
               <h4 className="font-semibold text-lg mb-1">Filter Options</h4>
-              <p className="text-sm text-muted-foreground">Apply filters to refine your results</p>
+              <p className="text-sm text-muted-foreground">
+                Apply filters to refine your results
+              </p>
             </div>
             {filterContent}
           </div>
@@ -154,9 +156,7 @@ export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        {triggerButton}
-      </SheetTrigger>
+      <SheetTrigger asChild>{triggerButton}</SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Filter Options</SheetTitle>
@@ -164,9 +164,7 @@ export function  GlobalFilter({ config, trigger }: GlobalFilterProps) {
             Apply filters to refine your results
           </SheetDescription>
         </SheetHeader>
-        <div className="mx-4 mt-6">
-          {filterContent}
-        </div>
+        <div className="mx-4 mt-6">{filterContent}</div>
       </SheetContent>
     </Sheet>
   );

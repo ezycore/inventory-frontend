@@ -1,5 +1,5 @@
-import { FilterConfig } from '@/types/DataTable'
-import { ProductStatus } from '@/types'
+import { ProductStatus } from "@/types";
+import { FilterConfig } from "@/types/DataTable";
 
 export const productFilterConfig: FilterConfig = {
   fields: [
@@ -8,6 +8,13 @@ export const productFilterConfig: FilterConfig = {
       label: "Search product",
       type: "text",
       placeholder: "Search by product name...",
+    },
+    {
+      name: "brandId",
+      label: "Filter by Brand",
+      type: "select",
+      placeholder: "All brands",
+      optionsApi: "/brands",
     },
     {
       name: "status",
