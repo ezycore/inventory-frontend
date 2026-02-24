@@ -10,73 +10,65 @@ import {
   ClipboardList,
   FileText,
 } from "lucide-react";
-
-const features = [
-  {
-    id: 0,
-    icon: Calculator,
-    title: "Accounting",
-    description:
-      "Automate invoicing, track expenses, and manage your general ledger with real-time financial reporting.",
-    link: "#lead-capture",
-  },
-  {
-    id: 1,
-    icon: Settings,
-    title: "Inventory",
-    description:
-      "Track stock levels, manage warehouses, and optimize your supply chain with demand forecasting.",
-    link: "#lead-capture",
-  },
-  {
-    id: 2,
-    icon: Users,
-    title: "HR & Payroll",
-    description:
-      "Manage employees, run payroll, and handle benefits—all from a single, integrated platform.",
-    link: "#lead-capture",
-  },
-  {
-    id: 3,
-    icon: ShoppingCart,
-    title: "Sales & CRM",
-    description:
-      "Track leads, manage pipelines, and close deals faster with built-in CRM and quoting tools.",
-    link: "#lead-capture",
-  },
-  {
-    id: 4,
-    icon: ClipboardList,
-    title: "Procurement",
-    description:
-      "Streamline purchasing with automated POs, vendor management, and approval workflows.",
-    link: "#lead-capture",
-  },
-  {
-    id: 5,
-    icon: FileText,
-    title: "Reporting",
-    description:
-      "Build custom reports and dashboards that give you real-time visibility across your entire business.",
-    link: "#lead-capture",
-  },
-];
+import { useLandingTranslations } from "@/hooks/use-landing-translations";
 
 export function FeaturesSection() {
   const [activeTab, setActiveTab] = useState(0);
+  const { t } = useLandingTranslations();
+
+  const features = [
+    {
+      id: 0,
+      icon: Settings,
+      title: t.features.inventory,
+      description: t.features.inventoryDesc,
+      link: "#lead-capture",
+    },
+    {
+      id: 1,
+      icon: Users,
+      title: t.features.sales,
+      description: t.features.salesDesc,
+      link: "#lead-capture",
+    },
+    {
+      id: 2,
+      icon: Calculator,
+      title: t.features.finance,
+      description: t.features.financeDesc,
+      link: "#lead-capture",
+    },
+    {
+      id: 3,
+      icon: ShoppingCart,
+      title: t.features.purchasing,
+      description: t.features.purchasingDesc,
+      link: "#lead-capture",
+    },
+    {
+      id: 4,
+      icon: FileText,
+      title: t.features.reporting,
+      description: t.features.reportingDesc,
+      link: "#lead-capture",
+    },
+  ];
+
   const activeFeature = features[activeTab];
 
   return (
     <section className="section-padding section-alt" id="features">
       <div className="container mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="section-badge">Core Modules</span>
+          <span className="section-badge">{t.features.badge}</span>
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Everything Your Business Needs
+            {t.features.title}
+            {t.features.titleAccent && (
+              <span className="text-gradient">{t.features.titleAccent}</span>
+            )}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Six powerful modules that work together seamlessly to run your
-            operations end to end.
+            {t.features.subtitle}
           </p>
         </div>
 
@@ -112,7 +104,7 @@ export function FeaturesSection() {
               href={activeFeature.link}
               className="text-[hsl(185,72%,40%)] font-semibold text-sm hover:underline"
             >
-              Learn more about {activeFeature.title} →
+              {t.features.learnMore}
             </Link>
           </div>
         </div>

@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useLandingTranslations } from "@/hooks/use-landing-translations";
 
 export function Footer() {
+  const { t } = useLandingTranslations();
+
   return (
     <footer className="bg-[hsl(215,65%,22%)] text-[hsl(210,40%,98%)] py-16">
       <div className="container mx-auto">
@@ -11,7 +16,7 @@ export function Footer() {
               EasyStock<span className="text-[hsl(185,72%,40%)]">ERP</span>
             </div>
             <p className="text-sm text-[hsl(210,40%,98%)]/60 leading-relaxed mb-6">
-              The all-in-one ERP platform built for small to medium enterprises.
+              {t.footer.tagline}
             </p>
             <div className="flex gap-3">
               <a
@@ -37,14 +42,14 @@ export function Footer() {
 
           {/* Product */}
           <div>
-            <h4 className="text-sm font-semibold mb-4">Product</h4>
+            <h4 className="text-sm font-semibold mb-4">{t.footer.product}</h4>
             <ul className="flex flex-col gap-2.5">
               <li>
                 <Link
                   href="#features"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Features
+                  {t.footer.features}
                 </Link>
               </li>
               <li>
@@ -52,7 +57,7 @@ export function Footer() {
                   href="#integrations"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Integrations
+                  {t.footer.integrations}
                 </Link>
               </li>
               <li>
@@ -60,7 +65,7 @@ export function Footer() {
                   href="#pricing"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Pricing
+                  {t.footer.pricing}
                 </Link>
               </li>
               <li>
@@ -68,7 +73,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Security
+                  {t.footer.security}
                 </Link>
               </li>
               <li>
@@ -76,7 +81,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  What&apos;s New
+                  {t.footer.updates}
                 </Link>
               </li>
             </ul>
@@ -84,14 +89,14 @@ export function Footer() {
 
           {/* Resources */}
           <div>
-            <h4 className="text-sm font-semibold mb-4">Resources</h4>
+            <h4 className="text-sm font-semibold mb-4">{t.footer.resources}</h4>
             <ul className="flex flex-col gap-2.5">
               <li>
                 <Link
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Case Studies
+                  {t.footer.docs}
                 </Link>
               </li>
               <li>
@@ -99,7 +104,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Blog
+                  {t.footer.apiReference}
                 </Link>
               </li>
               <li>
@@ -107,7 +112,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Whitepapers
+                  {t.footer.guides}
                 </Link>
               </li>
               <li>
@@ -115,7 +120,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  API Docs
+                  {t.footer.community}
                 </Link>
               </li>
               <li>
@@ -123,7 +128,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Help Center
+                  {t.footer.support}
                 </Link>
               </li>
             </ul>
@@ -131,14 +136,14 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="text-sm font-semibold mb-4">Company</h4>
+            <h4 className="text-sm font-semibold mb-4">{t.footer.company}</h4>
             <ul className="flex flex-col gap-2.5">
               <li>
                 <Link
                   href="#trust"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  About Us
+                  {t.footer.about}
                 </Link>
               </li>
               <li>
@@ -146,7 +151,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Careers
+                  {t.footer.careers}
                 </Link>
               </li>
               <li>
@@ -154,7 +159,7 @@ export function Footer() {
                   href="#lead-capture"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Contact
+                  {t.footer.contact}
                 </Link>
               </li>
               <li>
@@ -162,7 +167,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Partners
+                  {t.footer.blog}
                 </Link>
               </li>
               <li>
@@ -170,7 +175,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Press
+                  {t.footer.press}
                 </Link>
               </li>
             </ul>
@@ -178,14 +183,14 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold mb-4">Legal</h4>
+            <h4 className="text-sm font-semibold mb-4">{t.footer.legal}</h4>
             <ul className="flex flex-col gap-2.5">
               <li>
                 <Link
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Privacy Policy
+                  {t.footer.privacy}
                 </Link>
               </li>
               <li>
@@ -193,7 +198,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Terms of Service
+                  {t.footer.terms}
                 </Link>
               </li>
               <li>
@@ -201,7 +206,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  Cookie Policy
+                  {t.footer.security}
                 </Link>
               </li>
               <li>
@@ -209,15 +214,7 @@ export function Footer() {
                   href="#"
                   className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
                 >
-                  GDPR
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-[hsl(210,40%,98%)]/60 hover:text-[hsl(210,40%,98%)] transition-colors"
-                >
-                  SLA
+                  {t.footer.compliance}
                 </Link>
               </li>
             </ul>
@@ -227,10 +224,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
           <p className="text-sm text-[hsl(210,40%,98%)]/50">
-            © 2026 EasyStockERP. All rights reserved.
-          </p>
-          <p className="text-sm text-[hsl(210,40%,98%)]/50">
-            Made with precision for growing businesses.
+            {t.footer.copyright}
           </p>
         </div>
       </div>

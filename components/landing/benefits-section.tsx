@@ -1,49 +1,52 @@
-import { Zap, TrendingUp, DollarSign, BarChart3, Users } from "lucide-react";
+"use client";
 
-const benefits = [
-  {
-    icon: Zap,
-    title: "Automate Workflows",
-    description:
-      "Eliminate manual tasks and reduce errors with intelligent process automation.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Boost Efficiency",
-    description: "Streamline operations and get more done with fewer resources.",
-  },
-  {
-    icon: DollarSign,
-    title: "Cut Costs by 40%",
-    description:
-      "Reduce operational costs by consolidating multiple tools into one.",
-  },
-  {
-    icon: BarChart3,
-    title: "Real-Time Insights",
-    description:
-      "Make data-driven decisions with live dashboards and analytics.",
-  },
-  {
-    icon: Users,
-    title: "Team Collaboration",
-    description:
-      "Connect every department with shared data and unified workflows.",
-  },
-];
+import { Zap, Database, Bot, Smartphone, Shield } from "lucide-react";
+import { useLandingTranslations } from "@/hooks/use-landing-translations";
 
 export function BenefitsSection() {
+  const { t } = useLandingTranslations();
+
+  const benefits = [
+    {
+      icon: Zap,
+      title: t.benefits.realtime,
+      description: t.benefits.realtimeDesc,
+    },
+    {
+      icon: Database,
+      title: t.benefits.unified,
+      description: t.benefits.unifiedDesc,
+    },
+    {
+      icon: Bot,
+      title: t.benefits.automation,
+      description: t.benefits.automationDesc,
+    },
+    {
+      icon: Smartphone,
+      title: t.benefits.mobile,
+      description: t.benefits.mobileDesc,
+    },
+    {
+      icon: Shield,
+      title: t.benefits.secure,
+      description: t.benefits.secureDesc,
+    },
+  ];
+
   return (
     <section className="section-padding bg-background" id="benefits">
       <div className="container mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="section-badge">Why EasyStockERP</span>
+          <span className="section-badge">{t.benefits.badge}</span>
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Built for Business Outcomes
+            {t.benefits.title}
+            {t.benefits.titleAccent && (
+              <span className="text-gradient">{t.benefits.titleAccent}</span>
+            )}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Everything you need to run smarter, move faster, and grow your
-            business with confidence.
+            {t.benefits.subtitle}
           </p>
         </div>
 

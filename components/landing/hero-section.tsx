@@ -1,29 +1,35 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/ui/components/button";
+import { useLandingTranslations } from "@/hooks/use-landing-translations";
 
 export function HeroSection() {
+  const { t } = useLandingTranslations();
+
   return (
     <section className="hero-section">
       <div className="container mx-auto relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[hsl(185,72%,40%)] mb-4">
-              All-in-One Business Platform
+              {t.hero.badge}
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[hsl(210,40%,98%)] leading-tight mb-6">
-              Run Your Entire Business from{" "}
-              <span className="text-gradient">One Platform</span>
+              {t.hero.title}
+              {t.hero.titleAccent && (
+                <span className="text-gradient">{t.hero.titleAccent}</span>
+              )}
             </h1>
             <p className="text-lg text-[hsl(210,40%,98%)]/70 max-w-2xl mb-8">
-              Streamline operations, automate workflows, and gain real-time
-              visibility across every department — built for growing businesses.
+              {t.hero.subtitle}
             </p>
             <div className="flex flex-wrap gap-4 mb-8">
               <Link href="#lead-capture">
                 <Button size="lg" className="btn-gradient border-0">
-                  Request a Demo
+                  {t.hero.ctaDemo}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -33,12 +39,12 @@ export function HeroSection() {
                 className="border-white/30 text-white hover:bg-white/10"
               >
                 <Play className="mr-2 h-4 w-4 fill-white" />
-                Watch Overview
+                {t.hero.ctaVideo}
               </Button>
             </div>
             <div className="flex flex-wrap gap-6 text-sm text-[hsl(210,40%,98%)]/60">
-              <span>✓ No credit card required</span>
-              <span>✓ 14-day free trial</span>
+              <span>✓ {t.hero.check1}</span>
+              <span>✓ {t.hero.check2}</span>
             </div>
           </div>
 
@@ -58,8 +64,8 @@ export function HeroSection() {
                 98%
               </div>
               <div>
-                <p className="text-xs font-semibold">Uptime SLA</p>
-                <p className="text-xs text-muted-foreground">Enterprise-grade</p>
+                <p className="text-xs font-semibold">{t.hero.uptimeLabel}</p>
+                <p className="text-xs text-muted-foreground">{t.hero.uptimeDesc}</p>
               </div>
             </div>
           </div>

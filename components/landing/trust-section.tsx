@@ -1,43 +1,48 @@
+"use client";
+
 import { Shield, Clock, Phone, Lock } from "lucide-react";
-
-const badges = [
-  { icon: Shield, label: "GDPR Compliant" },
-  { icon: Shield, label: "SOC 2 Type II" },
-  { icon: Shield, label: "ISO 27001" },
-  { icon: Lock, label: "256-bit Encryption" },
-];
-
-const guarantees = [
-  {
-    icon: Clock,
-    title: "99.9% Uptime",
-    description: "Enterprise-grade infrastructure with guaranteed availability.",
-  },
-  {
-    icon: Phone,
-    title: "24/7 Support",
-    description:
-      "Dedicated support team available around the clock via chat, email, and phone.",
-  },
-  {
-    icon: Lock,
-    title: "Data Security",
-    description:
-      "Your data is encrypted at rest and in transit with bank-level security protocols.",
-  },
-];
+import { useLandingTranslations } from "@/hooks/use-landing-translations";
 
 export function TrustSection() {
+  const { t } = useLandingTranslations();
+
+  const badges = [
+    { icon: Shield, label: t.trust.soc2 },
+    { icon: Shield, label: t.trust.gdpr },
+    { icon: Shield, label: t.trust.iso },
+  ];
+
+  const guarantees = [
+    {
+      icon: Clock,
+      title: t.trust.guarantee1,
+      description: t.trust.guarantee1Desc,
+    },
+    {
+      icon: Lock,
+      title: t.trust.guarantee2,
+      description: t.trust.guarantee2Desc,
+    },
+    {
+      icon: Phone,
+      title: t.trust.guarantee3,
+      description: t.trust.guarantee3Desc,
+    },
+  ];
+
   return (
     <section className="section-padding bg-background" id="trust">
       <div className="container mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="section-badge">Trust & Security</span>
+          <span className="section-badge">{t.trust.badge}</span>
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Your Data is Safe With Us
+            {t.trust.title}
+            {t.trust.titleAccent && (
+              <span className="text-gradient">{t.trust.titleAccent}</span>
+            )}
           </h2>
           <p className="text-lg text-muted-foreground">
-            We take security seriously so you can focus on growing your business.
+            {t.trust.subtitle}
           </p>
         </div>
 

@@ -8,6 +8,9 @@ export * from "../utils";
 export { useCrudModal } from "./use-crud-handlers";
 export { usePaginationHandler } from "./use-pagination-handler";
 
+// Export landing page hooks
+export { useLandingTranslations } from "./use-landing-translations";
+
 // Re-export TanStack Query utilities for convenience
 export {
   useInfiniteQuery,

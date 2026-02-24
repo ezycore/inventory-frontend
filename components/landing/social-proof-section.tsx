@@ -3,48 +3,37 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { Button } from "@/ui/components/button";
-
-const metrics = [
-  { value: "2,500+", label: "Companies Trust Us" },
-  { value: "40%", label: "Average Cost Reduction" },
-  { value: "99.9%", label: "Uptime Guaranteed" },
-  { value: "4.8/5", label: "Customer Rating" },
-];
-
-const testimonials = [
-  {
-    quote:
-      "EasyStockERP cut our monthly close time from 10 days to 3. The financial reporting alone was worth the switch.",
-    name: "Sarah Chen",
-    role: "CFO, GreenLeaf Co.",
-  },
-  {
-    quote:
-      "We consolidated 5 different tools into EasyStockERP. Our team's productivity jumped 40% in the first quarter.",
-    name: "Marcus Rodriguez",
-    role: "Operations Director, BrightPath",
-  },
-  {
-    quote:
-      "The implementation was seamless. We were up and running in weeks, not months. Outstanding support team.",
-    name: "Emily Watson",
-    role: "CEO, NovaTech Solutions",
-  },
-];
-
-const clients = [
-  "TechVista",
-  "GreenLeaf",
-  "BrightPath",
-  "NovaTech",
-  "Meridian",
-  "SkyBridge",
-  "CoreSync",
-  "PeakFlow",
-];
+import { useLandingTranslations } from "@/hooks/use-landing-translations";
 
 export function SocialProofSection() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const { t } = useLandingTranslations();
+
+  const metrics = [
+    { value: t.social.metric1, label: t.social.metric1Label },
+    { value: t.social.metric2, label: t.social.metric2Label },
+    { value: t.social.metric3, label: t.social.metric3Label },
+    { value: t.social.metric4, label: t.social.metric4Label },
+  ];
+
+  const testimonials = [
+    {
+      quote: t.social.testimonial,
+      name: t.social.author,
+      role: t.social.role,
+    },
+  ];
+
+  const clients = [
+    "TechVista",
+    "GreenLeaf",
+    "BrightPath",
+    "NovaTech",
+    "Meridian",
+    "SkyBridge",
+    "CoreSync",
+    "PeakFlow",
+  ];
 
   const nextTestimonial = () => {
     setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
