@@ -34,7 +34,6 @@ export const customerItemsCreateCallback = (
 export const productItemsCreateCallback = (response: ProductApiResponse): SelectOption[] => {
   const items = response?.data || [];
   return items.map((item) => ({
-    ...sanitize(item),
     value: item._id, // inventoryId
     label: item.name,
     costPrice: item.costPrice,

@@ -81,7 +81,7 @@ export interface CreateCategoryDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {}
+export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
 
 // Brand image metadata
 export interface Image {
@@ -121,7 +121,7 @@ export interface CreateLocationDto {
   default?: boolean;
 }
 
-export interface UpdateLocationDto extends Partial<CreateLocationDto> {}
+export interface UpdateLocationDto extends Partial<CreateLocationDto> { }
 
 export interface CreateBrandDto {
   name: string;
@@ -131,7 +131,7 @@ export interface CreateBrandDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateBrandDto extends Partial<CreateBrandDto> {}
+export interface UpdateBrandDto extends Partial<CreateBrandDto> { }
 
 // Customer interfaces
 export interface Customer extends BaseEntity {
@@ -153,7 +153,7 @@ export interface CreateCustomerDto {
   defaultDiscountId?: string;
 }
 
-export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}
+export interface UpdateCustomerDto extends Partial<CreateCustomerDto> { }
 
 // Customer Summary (aggregated stats - includes returns data)
 export interface CustomersSummary {
@@ -338,7 +338,7 @@ export interface CreateSupplierDto {
   defaultDiscountId?: string;
 }
 
-export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {}
+export interface UpdateSupplierDto extends Partial<CreateSupplierDto> { }
 
 // Unit Category for grouping units
 export enum UnitCategory {
@@ -367,7 +367,7 @@ export interface CreateUnitDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateUnitDto extends Partial<CreateUnitDto> {}
+export interface UpdateUnitDto extends Partial<CreateUnitDto> { }
 
 // Tax interfaces
 export interface Tax extends BaseEntity {
@@ -384,7 +384,7 @@ export interface CreateTaxDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateTaxDto extends Partial<CreateTaxDto> {}
+export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
 
 // Discount interfaces
 export type DiscountType = "percentage" | "fixed";
@@ -408,7 +408,7 @@ export interface CreateDiscountDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateDiscountDto extends Partial<CreateDiscountDto> {}
+export interface UpdateDiscountDto extends Partial<CreateDiscountDto> { }
 
 // Inventory interfaces
 export interface Inventory extends BaseEntity {
@@ -433,7 +433,7 @@ export interface CreateInventoryDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateInventoryDto extends Partial<CreateInventoryDto> {}
+export interface UpdateInventoryDto extends Partial<CreateInventoryDto> { }
 
 // Receive Stock / Purchase DTO
 export interface ReceiveStockDto {
@@ -456,7 +456,7 @@ export interface CreateVariantAttributeDto {
   status?: "active" | "inactive";
 }
 
-export interface UpdateVariantAttributeDto extends Partial<CreateVariantAttributeDto> {}
+export interface UpdateVariantAttributeDto extends Partial<CreateVariantAttributeDto> { }
 
 // Custom field types
 export enum CustomFieldType {
@@ -538,7 +538,7 @@ export interface CreateProductDto {
   custom_fields?: CustomField[];
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 export interface ProductFilters {
   search?: string;
@@ -596,7 +596,7 @@ export interface CreateVariantDto {
 
 export interface UpdateVariantDto extends Partial<
   Omit<CreateVariantDto, "productId">
-> {}
+> { }
 
 export interface VariantFilters {
   productId?: string | undefined;
@@ -643,7 +643,7 @@ export interface CreateStockMovementDto {
 
 export interface UpdateStockMovementDto extends Partial<
   Omit<CreateStockMovementDto, "variantId">
-> {}
+> { }
 
 export interface StockMovementFilters {
   variantId?: string;
@@ -730,7 +730,7 @@ export interface OrganizationData {
   address: string;
 }
 
-export interface UpdateOrganizationDto extends Partial<OrganizationData> {}
+export interface UpdateOrganizationDto extends Partial<OrganizationData> { }
 
 // Account interfaces
 export type AccountType = "cash" | "bank" | "mfs" | "custom";
@@ -756,7 +756,7 @@ export interface CreateAccountDto {
 
 export interface UpdateAccountDto extends Partial<
   Omit<CreateAccountDto, "initialBalance">
-> {}
+> { }
 
 export interface AccountSummary {
   totalBalance: number;
@@ -916,7 +916,7 @@ export interface CreatePurchaseOrderDto {
 // Array of Purchase Orders (for batch creation)
 export type CreatePurchaseOrdersDto = CreatePurchaseOrderDto[];
 
-export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> {}
+export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> { }
 
 export interface ReceivePurchaseOrderItemDto {
   productId: string;
@@ -1175,7 +1175,7 @@ export interface CreateSalesOrderDto {
   notes?: string;
 }
 
-export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> {}
+export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> { }
 
 // ============================================
 // Sale Types (Backend Sale Model)
@@ -1231,20 +1231,23 @@ export interface SaleCreatedBy {
  * Sale interface - represents a completed sale
  */
 export interface Sale extends BaseEntity {
-  invoiceNumber: string;
-  organizationId: string;
-  locationId: string;
-  customerId: SaleCustomer;
-  items: SaleItem[];
-  subtotal: number;
-  additionalDiscount: number;
-  totalAmount: number;
-  paidAmount: number;
-  dueAmount: number;
-  costPrice: number;
-  status: SaleStatus;
-  notes?: string;
-  createdBy?: SaleCreatedBy;
+  sale: {
+    _id: string;
+    invoiceNumber: string;
+    organizationId: string;
+    locationId: string;
+    customerId: SaleCustomer;
+    items: SaleItem[];
+    subtotal: number;
+    additionalDiscount: number;
+    totalAmount: number;
+    paidAmount: number;
+    dueAmount: number;
+    costPrice: number;
+    status: SaleStatus;
+    notes?: string;
+    createdBy?: SaleCreatedBy;
+  }
 }
 
 /**
