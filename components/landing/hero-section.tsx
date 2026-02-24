@@ -36,7 +36,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white/30 text-white hover:bg-white/10"
+                className="border-white/30 text-white bg-transparent hover:bg-white/10 "
               >
                 <Play className="mr-2 h-4 w-4 fill-white" />
                 {t.hero.ctaVideo}
