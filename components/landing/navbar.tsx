@@ -77,11 +77,11 @@ export function Navbar() {
               <option value="en">English</option>
               <option value="bn">বাংলা</option>
             </select>
-            <Link href="/login">
+            {/* <Link href="/login">
               <Button variant="outline" size="sm">
                 {t.nav.login}
               </Button>
-            </Link>
+            </Link> */}
             <Link href="/signup">
               <Button size="sm" className="btn-gradient border-0">
                 {t.nav.demo}
