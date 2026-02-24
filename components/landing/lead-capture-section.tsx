@@ -16,7 +16,7 @@ export function LeadCaptureSection() {
   };
 
   return (
-    <section className="hero-section py-16 sm:py-20" id="lead-capture">
+    <section className="hero-section py-16 sm:py-20">
       <div className="container-narrow mx-auto relative z-10">
         <div className="bg-card rounded-2xl shadow-2xl p-8 sm:p-12 max-w-2xl mx-auto">
           {!isSubmitted ? (

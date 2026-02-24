@@ -31,7 +31,7 @@ export function TrustSection() {
   ];
 
   return (
-    <section className="section-padding bg-background" id="trust">
+    <section className="section-padding bg-background" id="lead-capture">
       <div className="container mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="section-badge">{t.trust.badge}</span>
