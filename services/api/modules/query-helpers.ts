@@ -19,6 +19,7 @@ interface ResourceApi<T, CreateDto, UpdateDto> {
   update?: (id: string, data: FormData | UpdateDto) => Promise<ApiResponse<T>>;
   delete?: (id: string) => Promise<ApiResponse<any>>;
   bulkDelete?: (ids: string[]) => Promise<ApiResponse<any>>;
+  getStats?: (filters?: Record<string, any>) => Promise<ApiResponse<any>>;
 }
 
 interface QueryKeys {
@@ -53,6 +54,17 @@ export function createResourceHooks<
   options: FactoryOptions = {},
 ) {
   const { staleTime = 10 * 60 * 1000, relatedQueryKeys = [] } = options;
+
+  const useStats = api.getStats
+    ? () => {
+        return useQuery({
+          queryKey: queryKeys.list(),
+          queryFn: () => api.getStats!({}),
+          select: (data) => data.data,
+          staleTime,
+        });
+      }
+    : undefined;
 
   // Query hook for list
   const useList = api.getAll
@@ -192,5 +204,6 @@ export function createResourceHooks<
     useUpdate,
     useDelete,
     useBulkDelete,
+    useStats,
   };
 }

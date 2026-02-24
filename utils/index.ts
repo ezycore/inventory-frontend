@@ -12,5 +12,14 @@ const sanitize = <T>(data: T | undefined, type: 'object' | 'array' | 'string' = 
 	}
 };
 
-export { sanitize };
+const breakdrownData = (items: {	status: string }[], key: string = "status") => {
+	const breakdown: Record<string, number> = {};
+	items.forEach((item) => {
+		const status = item[key] || 'unknown';
+		breakdown[status] = (breakdown[status] || 0) + 1;
+	});
+	return breakdown;
+}
+
+export { sanitize, breakdrownData };
 export * from './discount';

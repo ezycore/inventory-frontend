@@ -1,6 +1,6 @@
-import { useMemo } from "react"
-import { useAuthStore } from "@/services/stores/use-auth-store"
-import type { ColumnDef } from "@tanstack/react-table"
+import { useAuthStore } from "@/services/stores/use-auth-store";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useMemo } from "react";
 
 /**
  * Hook to filter table columns based on excluded columns from settings
@@ -10,23 +10,23 @@ import type { ColumnDef } from "@tanstack/react-table"
  */
 export function useFilteredColumns<T = any>(
   columns: ColumnDef<T>[],
-  module: string
+  module: string,
 ): ColumnDef<T>[] {
-  const user = useAuthStore((state) => state.user)
-  
+  const user = useAuthStore((state) => state.user);
+
   const excludedColumns = useMemo(
     () => user?.organization?.settings?.excludedColumns?.[module] || [],
-    [user?.organization?.settings?.excludedColumns, module]
-  )
+    [user?.organization?.settings?.excludedColumns, module],
+  );
 
   return useMemo(() => {
     if (!excludedColumns || excludedColumns.length === 0) {
-      return columns
+      return columns;
     }
 
     return columns.filter((column: any) => {
-      const columnKey = column.accessorKey || column.id
-      return !excludedColumns.includes(columnKey)
-    })
-  }, [columns, excludedColumns])
+      const columnKey = column.accessorKey || column.id;
+      return !excludedColumns.includes(columnKey);
+    });
+  }, [columns, excludedColumns]);
 }

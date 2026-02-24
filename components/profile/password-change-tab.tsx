@@ -1,21 +1,22 @@
 "use client";
 
+import { useUpdatePassword } from "@/services/api";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
-import { useUpdatePassword } from "@/services/api";
-import { useState } from "react";
+import { cn } from "@/ui/lib/utils";
 import {
+  Check,
   Eye,
   EyeOff,
-  Loader2,
-  Shield,
-  Check,
-  X,
   KeyRound,
+  Loader2,
   Lock,
+  Shield,
+  X,
 } from "lucide-react";
-import { cn } from "@/ui/lib/utils";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function PasswordChangeTab() {
   const updatePassword = useUpdatePassword();
@@ -39,6 +40,10 @@ export function PasswordChangeTab() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (formData.newPassword === formData.currentPassword) {
+      return toast.error("New password cannot be the same as current password");
+    }
+
     updatePassword.mutate(
       {
         currentPassword: formData.currentPassword,
@@ -52,7 +57,7 @@ export function PasswordChangeTab() {
             confirmPassword: "",
           });
         },
-      }
+      },
     );
   };
 
@@ -172,7 +177,7 @@ export function PasswordChangeTab() {
                   formData.confirmPassword &&
                     (passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
-                      : "border-destructive focus-visible:ring-destructive")
+                      : "border-destructive focus-visible:ring-destructive"),
                 )}
               />
               <button
@@ -191,7 +196,7 @@ export function PasswordChangeTab() {
               <p
                 className={cn(
                   "text-xs flex items-center gap-1",
-                  passwordsMatch ? "text-green-600" : "text-destructive"
+                  passwordsMatch ? "text-green-600" : "text-destructive",
                 )}
               >
                 {passwordsMatch ? (
@@ -221,7 +226,7 @@ export function PasswordChangeTab() {
                   key={index}
                   className={cn(
                     "flex items-center gap-2 text-xs transition-colors",
-                    req.met ? "text-green-600" : "text-muted-foreground"
+                    req.met ? "text-green-600" : "text-muted-foreground",
                   )}
                 >
                   {req.met ? (

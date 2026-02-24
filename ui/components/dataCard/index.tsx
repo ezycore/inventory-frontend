@@ -4,39 +4,47 @@ import { useCrudModal } from "@/hooks/use-crud-handlers";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import type { ApiResponse, PaginatedResponse } from "@/types";
-import { DataTableProps } from "@/types/DataTable";
+import type { DataCardProps } from "@/types/DataCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
+import { ErrorBoundaryFallback } from "@/ui/components/error-boundary-fallback";
 import DynamicForm from "@/ui/components/form";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../card";
-import { ErrorBoundaryFallback } from "../error-boundary-fallback";
-import { BaseDataTable } from "./base-data-table ";
+import { BaseDataCard } from "./base-data-card";
 
-export function DataTable<TData extends { _id: string }, TValue = any>(
-  props: DataTableProps<TData, TValue>,
+export function DataCard<TData extends { _id: string }, TValue = any>(
+  props: DataCardProps<TData, TValue>,
 ) {
   const {
     cardTitle,
     defaultPageSize,
     pageSizes,
     filterConfig,
-    operations,
     toolbarAction,
     data: externalData,
     customActions,
-    manageColumns,
     module,
     loading = false,
-    // Table styling props
+    // Card layout props
+    layoutConfig,
+    cardSize,
+    // Card styling props
     variant,
-    headless,
-    borderless,
-    rowSpacing,
-    zebra,
-    roundedRows,
-    stickyHeader,
-    rowBgColor,
+    cardClassName,
+    enableCardHover,
+    rounded,
+    shadow,
+    // Custom rendering
+    renderCard,
+    // Fields
+    fields,
+    imageConfig,
+    // Empty state
+    emptyState,
+    emptyMessage,
+    emptyIcon,
+    operations,
     ...restProps
   } = props;
 
@@ -65,7 +73,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
 
   // Internal state for self-contained mode
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(defaultPageSize || 10);
+  const [limit, setLimit] = useState(defaultPageSize || 12);
   const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
 
   // Data fetching (self-contained mode)
@@ -77,12 +85,12 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     refetch,
   } = useQuery<ApiResponse<PaginatedResponse<TData>>>({
     queryKey: getAllData
-      ? [...queryKey, { page, limit, ...(filters || {}) }]
+      ? [...(queryKey || []), { page, limit, ...(filters || {}) }]
       : [],
     queryFn: getAllData
       ? () => getAllData({ page, limit, ...filters })
       : () => Promise.resolve(undefined),
-    enabled: !!getAllData,
+    enabled: !!getAllData && !externalData, // Only fetch if getAllData is provided and externalData is not
     placeholderData: (previousData) => previousData,
   });
 
@@ -99,6 +107,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
 
   // Pagination configuration
   const paginationConfig = useMemo(() => {
+    // Server-side pagination (using getAllData)
     if (queryData && queryData.data) {
       const { totalPages, total, hasNext, hasPrev } = queryData.data;
       return {
@@ -109,7 +118,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         hasNext: hasNext,
         hasPrev: hasPrev,
         manualPagination: true,
-        pageSizeOptions: pageSizes || [10, 20, 50, 100],
+        pageSizeOptions: pageSizes || [12, 24, 48, 96],
         onPaginationChange: ({
           pageIndex,
           pageSize,
@@ -122,7 +131,25 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         },
       };
     }
-  }, [page, limit, queryData, pageSizes]);
+
+    // Client-side pagination (using external data)
+    if (externalData && externalData.length > 0) {
+      const pageOptions = pageSizes || [12, 24, 48, 96];
+      return {
+        pageIndex: 0,
+        pageSize: pageOptions[0],
+        totalPages: 0, // Will be calculated by BaseDataCard
+        totalItems: externalData.length,
+        hasNext: false,
+        hasPrev: false,
+        manualPagination: false, // Client-side pagination
+        pageSizeOptions: pageOptions,
+        onPaginationChange: () => {}, // Handled internally by BaseDataCard
+      };
+    }
+
+    return undefined;
+  }, [page, limit, queryData, pageSizes, externalData]);
 
   // Filter configuration with callbacks
   const mergedFilterConfig = useMemo(() => {
@@ -159,16 +186,12 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     transformEditData,
     onDeleteFn: deleteMutation?.mutateAsync,
     onBulkDeleteFn: bulkDeleteMutation?.mutateAsync,
-    entityName: "Brand",
+    entityName: entityName || "Item",
   });
 
   if (error) {
     return <ErrorBoundaryFallback error={error} onRetry={refetch} />;
   }
-
-  // if((!data || data.length === 0) && !isLoading){
-  //   return <div className="p-6 text-center text-gray-500">No data available.</div>
-  // }
 
   // Prepare submit data
   const readyDataForSubmit = (data: any) => {
@@ -250,7 +273,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         </CardHeader>
       )}
       <CardContent className="p-0">
-        <BaseDataTable
+        <BaseDataCard
           {...restProps}
           data={data}
           isLoading={isLoadingData}
@@ -263,17 +286,25 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           onBulkDelete={bulkDeleteMutation ? handleBulkDelete : undefined}
           toolbarAction={mergedToolbarAction}
           customActions={customActions}
-          manageColumns={manageColumns}
-          variant={variant}
-          headless={headless}
-          borderless={borderless}
-          rowSpacing={rowSpacing}
-          zebra={zebra}
-          roundedRows={roundedRows}
-          stickyHeader={stickyHeader}
-          rowBgColor={rowBgColor}
           module={module}
-          fullColumns={props.columns}
+          // Layout
+          layoutConfig={layoutConfig}
+          cardSize={cardSize}
+          // Styling
+          variant={variant}
+          cardClassName={cardClassName}
+          enableCardHover={enableCardHover}
+          rounded={rounded}
+          shadow={shadow}
+          // Custom rendering
+          renderCard={renderCard}
+          // Fields
+          fields={fields}
+          imageConfig={imageConfig}
+          // Empty state
+          emptyState={emptyState}
+          emptyMessage={emptyMessage}
+          emptyIcon={emptyIcon}
         />
 
         {/* Integrated CRUD Form Modal */}
@@ -309,3 +340,8 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     </Card>
   );
 }
+
+// Re-export for convenience
+export type * from "@/types/DataCard";
+export { BaseDataCard } from "./base-data-card";
+export { CardEmptyState, CardItem, CardSkeleton } from "./card-variants";
