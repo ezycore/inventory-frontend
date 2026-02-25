@@ -239,7 +239,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         });
 
   return (
-    <Card className="border-none shadow-none">
+    <Card className="border-none shadow-none py-0 gap-3">
       {cardTitle && (
         <CardHeader className="px-0">
           <CardTitle>

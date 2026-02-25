@@ -36,8 +36,8 @@ const BrandCardView = (brand, { onEdit, onDelete }) => {
   });
 
   return (
-    <Card className="p-5 hover:shadow-lg transition-all duration-200 group">
-      <div className="flex items-start gap-4 mb-4">
+    <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-4">
+      <div className="flex items-start gap-4">
         <Avatar className="h-12 w-12 rounded-lg">
           <AvatarImage src={images?.[0]?.url} alt={name} />
           <AvatarFallback className="rounded-lg bg-gradient-to-br from-primary to-chart-4 text-primary-foreground">
@@ -46,7 +46,7 @@ const BrandCardView = (brand, { onEdit, onDelete }) => {
         </Avatar>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2">
             <h3 className="font-semibold text-lg truncate">{name}</h3>
             <Badge
               variant={status === "active" ? "default" : "secondary"}
@@ -55,11 +55,11 @@ const BrandCardView = (brand, { onEdit, onDelete }) => {
               {status}
             </Badge>
           </div>
-          {description && (
+          {description ? (
             <p className="text-sm text-muted-foreground line-clamp-2">
               {description}
             </p>
-          )}
+          ) : "-"}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors">
@@ -83,7 +83,7 @@ const BrandCardView = (brand, { onEdit, onDelete }) => {
         </DropdownMenu>
       </div>
 
-      <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Package className="h-4 w-4" />
         {productCount > 0 ? (
           <Link href={`/products?brandId=${_id}`} className="hover:underline">
