@@ -140,7 +140,7 @@ export function BaseDataTable<TData, TValue>({
   };
 
   return (
-    <div className={`w-full space-y-4 `}>
+    <div className={`w-full space-y-6 `}>
       {/* Toolbar */}
       <DataTableToolbar
         table={table}
