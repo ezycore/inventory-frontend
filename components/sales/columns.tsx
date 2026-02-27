@@ -4,6 +4,57 @@ import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+/**
+ * Editable number input that allows clearing and commits on blur/Enter
+ */
+function EditableNumberCell({
+  value,
+  min,
+  max,
+  fallback,
+  onChange,
+  className,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  fallback: number;
+  onChange: (val: number) => void;
+  className?: string;
+}) {
+  const [localValue, setLocalValue] = useState(String(value));
+
+  useEffect(() => {
+    setLocalValue(String(value));
+  }, [value]);
+
+  const commit = () => {
+    const num = Number(localValue);
+    const clamped = isNaN(num) || localValue === "" ? fallback : Math.max(min, Math.min(max, num));
+    onChange(clamped);
+    setLocalValue(String(clamped));
+  };
+
+  return (
+    <Input
+      type="number"
+      min={min}
+      max={max}
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          commit();
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      className={className}
+    />
+  );
+}
 
 /**
  * Generate sales order columns with inline quantity/discount controls
@@ -62,18 +113,12 @@ export const getSalesColumns = (
           >
             <Minus className="h-3 w-3" />
           </Button>
-          <Input
-            type="number"
+          <EditableNumberCell
+            value={item.quantity}
             min={1}
             max={item.availableQuantity}
-            value={item.quantity}
-            onChange={(e) => {
-              const val = Math.max(
-                1,
-                Math.min(item.availableQuantity, Number(e.target.value) || 1),
-              );
-              onUpdateQuantity(item.id, val);
-            }}
+            fallback={1}
+            onChange={(val) => onUpdateQuantity(item.id, val)}
             className="h-7 w-12 text-center text-sm tabular-nums px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <Button
@@ -95,18 +140,12 @@ export const getSalesColumns = (
     cell: ({ row }) => {
       const item = row.original;
       return (
-        <Input
-          type="number"
+        <EditableNumberCell
+          value={item.discount || 0}
           min={0}
           max={item.price}
-          value={item.discount || 0}
-          onChange={(e) => {
-            const val = Math.max(
-              0,
-              Math.min(item.price, Number(e.target.value) || 0),
-            );
-            onUpdateDiscount(item.id, val, item.price);
-          }}
+          fallback={0}
+          onChange={(val) => onUpdateDiscount(item.id, val, item.price)}
           className="h-7 w-16 text-center text-sm tabular-nums px-1"
         />
       );
