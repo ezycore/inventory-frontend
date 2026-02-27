@@ -1,9 +1,5 @@
 import type { DynamicFormConfig, FormFieldConfig } from "@/ui/components/form/type";
-import {
-  supplierItemsCreateCallback,
-  productItemsCreateCallback,
-  accountItemsCreateCallback,
-} from "./helpers";
+import { accountItemsCreateCallback, customerItemsCreateCallback, productItemsCreateCallback } from "../sales";
 
 /**
  * Supplier form configuration (Step 1 - Select Supplier & Purchase Settings)
@@ -18,7 +14,7 @@ export const getSupplierFormConfig = (): DynamicFormConfig => {
       optionsApi: "/purchases/suppliers",
       placeholder: "Search or select supplier...",
       labelInValue: true,
-      itemsCreateCallback: supplierItemsCreateCallback,
+      itemsCreateCallback: customerItemsCreateCallback,
       autoFillFields: ["discountType", "discountValue"],
       columnSpan: 6,
     },
@@ -87,7 +83,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       placeholder: "Select product",
       labelInValue: true,
       itemsCreateCallback: productItemsCreateCallback,
-      columnSpan: 4,
+      columnSpan: 6,
     },
     {
       name: "quantity",
@@ -95,7 +91,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       type: "number",
       required: true,
       placeholder: "1",
-      columnSpan: 2,
+      columnSpan: 3,
       validation: { min: 1 },
     },
   ];
@@ -108,7 +104,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       type: "number",
       required: false,
       disabled: true,
-      columnSpan: 2,
+      columnSpan: 3,
       helperText: "Qty × Conversion Factor",
     });
   }
@@ -121,7 +117,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       type: "number",
       required: true,
       placeholder: "0",
-      columnSpan: isUOMEnabled ? 2 : 3,
+      columnSpan: 4,
       validation: { min: 0 },
       disabled: true,
     },
@@ -131,7 +127,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       type: "number",
       required: false,
       placeholder: "0",
-      columnSpan: isUOMEnabled ? 2 : 3,
+      columnSpan: 4,
       validation: { min: 0 },
     },
     {
@@ -140,7 +136,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       type: "number",
       required: false,
       placeholder: "0",
-      columnSpan: isUOMEnabled ? 2 : 2,
+      columnSpan: 4,
       validation: { min: 0 },
     },
     {
@@ -148,7 +144,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       label: "Remember Cost Price",
       type: "checkbox",
       required: false,
-      columnSpan: isUOMEnabled ? 2 : 2,
+      columnSpan: 12,
     },
   );
 

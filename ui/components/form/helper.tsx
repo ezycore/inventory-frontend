@@ -7,6 +7,7 @@ import { AdvancedSelect } from "../advanced-select";
 import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import { Checkbox } from "../checkbox";
+import { DatePicker } from "../date-picker";
 import { Switch } from "../switch";
 import {
   Collapsible,
@@ -498,19 +499,28 @@ const FormField: FC<{
             rules={{
               required: field.required ? `${field.label} is required` : false,
             }}
-            render={({ field: controllerField }) => (
-              <Input
-                value={controllerField.value ?? ""}
-                {...controllerField}
-                type="date"
-                disabled={field.disabled}
-                onChange={(e) => {
-                  controllerField.onChange(e.target.value);
-                  handleChange(e.target.value);
-                }}
-                className={cn("w-full min-w-0", error ? "border-red-500" : "")}
-              />
-            )}
+            render={({ field: controllerField }) => {
+              // Convert stored value (string or Date) to Date for the picker
+              const dateValue = controllerField.value
+                ? controllerField.value instanceof Date
+                  ? controllerField.value
+                  : new Date(controllerField.value)
+                : undefined;
+
+              return (
+                <DatePicker
+                  date={dateValue && !isNaN(dateValue.getTime()) ? dateValue : undefined}
+                  onSelect={(selected) => {
+                    // Store as ISO date string for form compatibility
+                    const value = selected ? selected.toISOString().split("T")[0] : "";
+                    controllerField.onChange(value);
+                    handleChange(value);
+                  }}
+                  placeholder={field.placeholder || "Pick a date"}
+                  disabled={effectiveDisabled}
+                />
+              );
+            }}
           />
         );
 

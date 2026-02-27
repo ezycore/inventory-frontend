@@ -215,7 +215,7 @@ export default function SalesPage() {
       }
 
       const createResult = await mutateAsync(orderData);
-      if (createResult.data?.sale?._id) {
+      if (createResult.data?._id) {
         clearAll();
         customerForm.reset({
           paidAmount: 0,

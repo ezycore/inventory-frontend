@@ -1231,23 +1231,20 @@ export interface SaleCreatedBy {
  * Sale interface - represents a completed sale
  */
 export interface Sale extends BaseEntity {
-  sale: {
-    _id: string;
-    invoiceNumber: string;
-    organizationId: string;
-    locationId: string;
-    customerId: SaleCustomer;
-    items: SaleItem[];
-    subtotal: number;
-    additionalDiscount: number;
-    totalAmount: number;
-    paidAmount: number;
-    dueAmount: number;
-    costPrice: number;
-    status: SaleStatus;
-    notes?: string;
-    createdBy?: SaleCreatedBy;
-  }
+  invoiceNumber: string;
+  organizationId: string;
+  locationId: string;
+  customerId: SaleCustomer;
+  items: SaleItem[];
+  subtotal: number;
+  additionalDiscount: number;
+  totalAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  costPrice: number;
+  status: SaleStatus;
+  notes?: string;
+  createdBy?: SaleCreatedBy;
 }
 
 /**
