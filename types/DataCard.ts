@@ -9,7 +9,7 @@ import { FilterField } from "./filter";
 /**
  * Card layout configuration
  */
-export type CardLayout = "grid" | "masonry" | "list";
+export type CardLayout = "grid" | "list";
 export type CardVariant = "default" | "compact" | "detailed";
 export type CardSize = "sm" | "md" | "lg";
 

@@ -214,13 +214,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   // Get layout-specific grid classes
   const layoutClasses = useMemo(() => {
     if (layout === "list") {
-      return "flex flex-col gap-2";
-    }
-    if (layout === "masonry") {
-      return cn(
-        "columns-1 sm:columns-2 lg:columns-3 xl:columns-4",
-        gapClasses[layoutConfig?.gap || "md"]
-      );
+      return "flex flex-col gap-3";
     }
     // Grid layout
     return cn(
@@ -309,7 +303,7 @@ export function BaseDataCard<TData extends { _id: string }>({
         {paginatedData.map((item) => (
           <div
             key={item._id}
-            className={layout === "masonry" ? "break-inside-avoid mb-4" : ""}
+            className=""
           >
             <CardItem
               data={item}

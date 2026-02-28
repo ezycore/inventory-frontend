@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X, Trash2, LayoutGrid, List, Grid3X3 } from "lucide-react";
+import { Search, X, Trash2, LayoutGrid, List } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/ui/components/input";
 import { Button } from "@/ui/components/button";
@@ -108,22 +108,11 @@ export function DataCardToolbar({
               size="sm"
               onClick={() => onLayoutChange("list")}
               className={cn(
-                "h-9 px-3 rounded-none border-x",
+                "h-9 px-3 rounded-l-none border-l",
                 layout === "list" && "bg-accent"
               )}
             >
               <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onLayoutChange("masonry")}
-              className={cn(
-                "h-9 px-3 rounded-l-none",
-                layout === "masonry" && "bg-accent"
-              )}
-            >
-              <Grid3X3 className="h-4 w-4" />
             </Button>
           </div>
         )}

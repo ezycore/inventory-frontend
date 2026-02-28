@@ -1,5 +1,5 @@
 import { StatData } from "@/ui/components/StatsCard"
-import { Building2, CheckCircle2, XCircle } from "lucide-react"
+import { Box, CheckCircle2, XCircle, Layers } from "lucide-react"
 
 export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
   const formData = new FormData()
@@ -106,7 +106,7 @@ export const getProductStats = (
   {
     label: "Total Products",
     value: stats?.total || 0,
-    icon: Building2,
+    icon: Box,
     variant: "primary",
     description: "All registered products",
   },
@@ -121,7 +121,7 @@ export const getProductStats = (
     label: "Inactive Products",
     value: stats?.inactive || 0,
     icon: XCircle,
-    variant: "warning",
+    variant: stats?.inactive > 0 ? "warning" : "default",
     description: "Currently inactive",
   },
 ];
