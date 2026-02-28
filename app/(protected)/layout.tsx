@@ -14,7 +14,7 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const verifyMe = useMe();
-  
+
   // Use consistent default for SSR, then update after mount
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -35,7 +35,7 @@ export default function ProtectedLayout({
 
   return (
     <KBar>
-      <SidebarProvider 
+      <SidebarProvider
         defaultOpen={sidebarOpen}
         open={isMounted ? sidebarOpen : undefined}
         onOpenChange={isMounted ? setSidebarOpen : undefined}
@@ -43,7 +43,11 @@ export default function ProtectedLayout({
         <AppSidebar />
         <SidebarInset>
           <Header />
-          {children}
+          <div className="min-h-screen">
+            <div className="container mx-auto p-6">
+              {children}
+            </div>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </KBar>

@@ -122,14 +122,22 @@ const StatCardItem = ({
   const variant = stat.variant || "default";
   const styles = variantStyles[variant];
   const Icon = stat.icon;
-
+  console.log("Rendering StatCardItem:", stat);
   if (isLoading) {
     return (
       <Card className="p-5">
-        <div className="flex items-start justify-between mb-4">
-          <Skeleton className="h-6 w-10 rounded-lg" />
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-24" />
+            {stat.description && <Skeleton className="h-3 w-20" />}
+          </div>
+          {stat.icon && <Skeleton className="h-10 w-10 rounded-lg" />}
         </div>
-        <Skeleton className="h-6 w-32 mb-2" />
+        <div className="space-y-1 mt-1">
+          <Skeleton className="h-7 w-28" />
+          {stat.trend && <Skeleton className="h-4 w-32" />}
+        </div>
+        {stat.chart && <Skeleton className="h-10 w-full mt-2 rounded" />}
       </Card>
     );
   }
@@ -196,17 +204,59 @@ const StatCardItem = ({
   );
 };
 
+// Static grid-cols mappings (Tailwind can't detect dynamic classes)
+const colsMap: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+  5: "grid-cols-5",
+  6: "grid-cols-6",
+};
+const smColsMap: Record<number, string> = {
+  1: "sm:grid-cols-1",
+  2: "sm:grid-cols-2",
+  3: "sm:grid-cols-3",
+  4: "sm:grid-cols-4",
+  5: "sm:grid-cols-5",
+  6: "sm:grid-cols-6",
+};
+const mdColsMap: Record<number, string> = {
+  1: "md:grid-cols-1",
+  2: "md:grid-cols-2",
+  3: "md:grid-cols-3",
+  4: "md:grid-cols-4",
+  5: "md:grid-cols-5",
+  6: "md:grid-cols-6",
+};
+const lgColsMap: Record<number, string> = {
+  1: "lg:grid-cols-1",
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+  5: "lg:grid-cols-5",
+  6: "lg:grid-cols-6",
+};
+const xlColsMap: Record<number, string> = {
+  1: "xl:grid-cols-1",
+  2: "xl:grid-cols-2",
+  3: "xl:grid-cols-3",
+  4: "xl:grid-cols-4",
+  5: "xl:grid-cols-5",
+  6: "xl:grid-cols-6",
+};
+
 const StatsCard = ({ data, isLoading, columns }: StatsCardProps) => {
   if (!data) return null;
 
   const gridCols = columns || { default: 1, sm: 2, lg: data.length };
   const gridClass = cn(
     "grid gap-4",
-    `grid-cols-${gridCols.default || 1}`,
-    gridCols.sm && `sm:grid-cols-${gridCols.sm}`,
-    gridCols.md && `md:grid-cols-${gridCols.md}`,
-    gridCols.lg && `lg:grid-cols-${gridCols.lg}`,
-    gridCols.xl && `xl:grid-cols-${gridCols.xl}`,
+    colsMap[gridCols.default || 1] || "grid-cols-1",
+    gridCols.sm && (smColsMap[gridCols.sm] || ""),
+    gridCols.md && (mdColsMap[gridCols.md] || ""),
+    gridCols.lg && (lgColsMap[gridCols.lg] || ""),
+    gridCols.xl && (xlColsMap[gridCols.xl] || ""),
   );
 
   return (
