@@ -64,7 +64,7 @@ export const productColumns: ColumnDef<any>[] = [
       const price = row.getValue("price") as number
       return (
         <span className="text-sm font-semibold tabular-nums">
-          {price ? `৳${Number(price).toLocaleString()}` : '-'}
+          {price ? Number(price).toLocaleString() : '-'}
         </span>
       )
     }
