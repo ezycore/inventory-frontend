@@ -75,6 +75,13 @@ export default function SalesPage() {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
 
+  // Auto-fill paid amount with total sale price
+  useEffect(() => {
+    const total = getTotalSalePrice();
+    setPaidAmount(total);
+    customerForm.setValue("paidAmount", total);
+  }, [items, additionalDiscount, getTotalSalePrice, customerForm]);
+
   // Recalculate all item discounts when customer discount changes
   useEffect(() => {
     if (items.length === 0) return;
@@ -105,16 +112,14 @@ export default function SalesPage() {
   );
 
   // Columns with quantity controls, discount editing, and remove
-  const salesColumns = useMemo(
-    () =>
+  const salesColumns = useMemo(() =>
       getSalesColumns(
         (id, quantity) => updateItem(id, { quantity }),
         handleUpdateDiscount,
         removeItem,
         symbol,
       ),
-    [updateItem, handleUpdateDiscount, removeItem, symbol],
-  );
+    [updateItem, handleUpdateDiscount, removeItem, symbol]);
 
   // =====================
   // Event Handlers
@@ -210,7 +215,7 @@ export default function SalesPage() {
       }
 
       const createResult = await mutateAsync(orderData);
-      if (createResult.data?.sale?._id) {
+      if (createResult.data?._id) {
         clearAll();
         customerForm.reset({
           paidAmount: 0,

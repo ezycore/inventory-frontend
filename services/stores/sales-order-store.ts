@@ -56,8 +56,8 @@ interface SalesOrderStore {
 // Helper to calculate item total
 const calculateItemTotal = (quantity: number, price: number, discount: number): number => {
   const subtotal = quantity * price;
-  const discount = (subtotal * discount) / 100;
-  return Math.round((subtotal - discount) * 100) / 100;
+  const finalDiscount = (subtotal * discount) / 100;
+  return Math.round((subtotal - finalDiscount) * 100) / 100;
 };
 
 export const useSalesOrderStore = create<SalesOrderStore>()(

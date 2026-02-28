@@ -342,11 +342,11 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             if (seller.id !== sellerId) return seller;
             // When additionalDiscount changes, recalculate invoiceAmount if it's auto-calculated
             const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
-            const discount = Math.min(discount, subtotal);
-            const newInvoiceAmount = Math.max(0, subtotal - discount);
+            const finalDiscount = Math.min(discount, subtotal);
+            const newInvoiceAmount = Math.max(0, subtotal - finalDiscount);
             return { 
               ...seller, 
-              additionalDiscount: discount,
+              additionalDiscount: finalDiscount,
               invoiceAmount: newInvoiceAmount,
             };
           }),

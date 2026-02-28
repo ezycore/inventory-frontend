@@ -38,7 +38,7 @@ export function DatePicker({
           disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? <span className="flex-1">{format(date, "PPP")}</span> : <span>{placeholder}</span>}
+          {date ? <span className="flex-1">{format(date, "dd-MM-yyyy")}</span> : <span>{placeholder}</span>}
           {date && (
             <div
               onClick={() => onSelect?.(undefined)}
@@ -49,13 +49,13 @@ export function DatePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-6">
+      <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
           selected={date}
           onSelect={onSelect}
           initialFocus
-          className="[--cell-size:4rem] text-xl p-4"
+
         />
       </PopoverContent>
     </Popover>

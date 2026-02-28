@@ -21,6 +21,7 @@ export interface ProductApiItem {
   quantity: number;
   productId: string;
   variantId: string | null;
+  conversionFactor?: number;
 }
 
 export interface AccountApiItem {
@@ -45,11 +46,6 @@ export interface AccountApiResponse {
     items?: AccountApiItem[];
   };
 }
-
-// =====================
-// Helper Return Types
-// =====================
-
 export interface ExtractedCustomer {
   value: string | null;
   label: string | null;
@@ -65,12 +61,8 @@ export interface ExtractedProduct {
   availableQuantity: number;
   productId: string;
   variantId: string | null;
+  conversionFactor?: number;
 }
-
-// =====================
-// Order Data Types
-// =====================
-
 export interface OrderItem {
   productId: string;
   inventoryId: string;
