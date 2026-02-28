@@ -1,7 +1,19 @@
 "use client";
 
 import type { FilterConfig } from "@/types/DataTable";
-import { useSearchParams } from "next/navigation";
+import { ReadonlyURLSearchParams, useSearchParams } from "next/navigation";
+
+/**
+ * Safely get search params — returns null during SSR/prerendering
+ * when no Suspense boundary is present.
+ */
+function useSafeSearchParams(): ReadonlyURLSearchParams | null {
+  try {
+    return useSearchParams();
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Hook to read initial filter values from URL query parameters.
@@ -13,9 +25,9 @@ import { useSearchParams } from "next/navigation";
 export function useUrlFilters(
   filterConfig?: FilterConfig,
 ): Record<string, any> {
-  const searchParams = useSearchParams();
+  const searchParams = useSafeSearchParams();
 
-  if (!filterConfig?.fields) return {};
+  if (!searchParams || !filterConfig?.fields) return {};
 
   const filters: Record<string, any> = {};
 
