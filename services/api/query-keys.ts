@@ -275,6 +275,7 @@ export const queryKeys = {
   dashboard: {
     all: () => ["dashboard"] as const,
     stats: () => [...queryKeys.dashboard.all(), "stats"] as const,
+    overview: (params?: Record<string, any>) => [...queryKeys.dashboard.all(), "overview", params || {}] as const,
   },
 
   // Accounts query keys
