@@ -25,6 +25,7 @@ export interface User {
     slug: string;
     ownerId?: string;
     currency?: string;
+    timezone?: string;
     settings: {
       excludedFields?: { [key: string]: string[] };
       excludedColumns?: { [key: string]: string[] };
