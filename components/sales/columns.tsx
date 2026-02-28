@@ -65,113 +65,113 @@ export const getSalesColumns = (
   onRemove: (id: string) => void,
   currencySymbol?: string,
 ): ColumnDef<SellOrderItem>[] => [
-  {
-    accessorKey: "productName",
-    header: "Product",
-    cell: ({ row }) => (
-      <div className="min-w-[100px]">
-        <span className="font-medium text-sm">{row.original.productName}</span>
-        <div className="text-xs text-muted-foreground">
-          Available: {row.original.availableQuantity}
+    {
+      accessorKey: "productName",
+      header: "Product",
+      cell: ({ row }) => (
+        <div className="min-w-[100px]">
+          <span className="font-medium text-sm">{row.original.productName}</span>
+          <div className="text-xs text-muted-foreground">
+            Available: {row.original.availableQuantity}
+          </div>
         </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "costPrice",
-    header: "Cost Price",
-    cell: ({ row }) => (
-      <span className="text-sm tabular-nums">
-        {formatCurrency(row.original.costPrice)}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "price",
-    header: "Price (MRP)",
-    cell: ({ row }) => (
-      <span className="text-sm tabular-nums">
-        {formatCurrency(row.original.price)}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "quantity",
-    header: "Quantity",
-    cell: ({ row }) => {
-      const item = row.original;
-      return (
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 shrink-0"
-            onClick={() =>
-              onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))
-            }
-            disabled={item.quantity <= 1}
-          >
-            <Minus className="h-3 w-3" />
-          </Button>
+      ),
+    },
+    {
+      accessorKey: "price",
+      header: "Price (MRP)",
+      cell: ({ row }) => (
+        <span className="text-sm tabular-nums">
+          {formatCurrency(row.original.price)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "costPrice",
+      header: "Cost Price",
+      cell: ({ row }) => (
+        <span className="text-sm tabular-nums">
+          {formatCurrency(row.original.costPrice)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "quantity",
+      header: "Quantity",
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              onClick={() =>
+                onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))
+              }
+              disabled={item.quantity <= 1}
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+            <EditableNumberCell
+              value={item.quantity}
+              min={1}
+              max={item.availableQuantity}
+              fallback={1}
+              onChange={(val) => onUpdateQuantity(item.id, val)}
+              className="h-7 w-12 text-center text-sm tabular-nums px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+              disabled={item.quantity >= item.availableQuantity}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "discount",
+      header: `Discount (${currencySymbol || ""})`,
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
           <EditableNumberCell
-            value={item.quantity}
-            min={1}
-            max={item.availableQuantity}
-            fallback={1}
-            onChange={(val) => onUpdateQuantity(item.id, val)}
-            className="h-7 w-12 text-center text-sm tabular-nums px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            value={item.discount || 0}
+            min={0}
+            max={item.price}
+            fallback={0}
+            onChange={(val) => onUpdateDiscount(item.id, val, item.price)}
+            className="h-7 w-16 text-center text-sm tabular-nums px-1"
           />
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 shrink-0"
-            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-            disabled={item.quantity >= item.availableQuantity}
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-        </div>
-      );
+        );
+      },
     },
-  },
-  {
-    accessorKey: "discount",
-    header: `Discount (${currencySymbol || ""})`,
-    cell: ({ row }) => {
-      const item = row.original;
-      return (
-        <EditableNumberCell
-          value={item.discount || 0}
-          min={0}
-          max={item.price}
-          fallback={0}
-          onChange={(val) => onUpdateDiscount(item.id, val, item.price)}
-          className="h-7 w-16 text-center text-sm tabular-nums px-1"
-        />
-      );
+    {
+      accessorKey: "total",
+      header: "Total",
+      cell: ({ row }) => (
+        <span className="text-sm font-semibold tabular-nums">
+          {formatCurrency(row.original.total)}
+        </span>
+      ),
     },
-  },
-  {
-    accessorKey: "total",
-    header: "Total",
-    cell: ({ row }) => (
-      <span className="text-sm font-semibold tabular-nums">
-        {formatCurrency(row.original.total)}
-      </span>
-    ),
-  },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row }) => (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-        onClick={() => onRemove(row.original.id)}
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </Button>
-    ),
-  },
-];
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          onClick={() => onRemove(row.original.id)}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      ),
+    },
+  ];

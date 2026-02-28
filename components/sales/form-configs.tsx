@@ -24,14 +24,14 @@ export const customerFormConfig: DynamicFormConfig = {
     },
     {
       name: "discountType",
-      label: "Discount Type",
+      label: "Discount Type (Per Item)",
       type: "select",
       required: true,
       options: [
         { value: "percentage", label: "Percentage (%)" },
         { value: "fixed", label: "Fixed Amount" },
       ],
-      columnSpan: 3,
+      columnSpan: 4,
     },
     {
       name: "discountValue",
@@ -39,7 +39,7 @@ export const customerFormConfig: DynamicFormConfig = {
       type: "number",
       required: false,
       placeholder: "0",
-      columnSpan: 3,
+      columnSpan: 2,
       validation: { min: 0 },
     },
   ],

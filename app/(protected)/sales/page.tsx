@@ -113,21 +113,17 @@ export default function SalesPage() {
 
   // Columns with quantity controls, discount editing, and remove
   const salesColumns = useMemo(() =>
-      getSalesColumns(
-        (id, quantity) => updateItem(id, { quantity }),
-        handleUpdateDiscount,
-        removeItem,
-        symbol,
-      ),
+    getSalesColumns(
+      (id, quantity) => updateItem(id, { quantity }),
+      handleUpdateDiscount,
+      removeItem,
+      symbol,
+    ),
     [updateItem, handleUpdateDiscount, removeItem, symbol]);
 
-  // =====================
-  // Event Handlers
-  // =====================
 
   const handleFieldChange = useCallback((fieldName: string, value: any) => {
     if (fieldName === "customerId") {
-      console.log("Selected customer ID:", value);
       setCustomer(value);
     } else if (fieldName === "discountType") {
       const currentDiscountValue = customerForm.getValues("discountValue");
@@ -176,7 +172,8 @@ export default function SalesPage() {
     }
     const accountId = customerForm.getValues("accountId");
     let updatedCustomerId = customerForm.getValues("customerId") as any;
-    updatedCustomerId = updatedCustomerId?.value || customerId
+    console.log("Selected customer ID:", updatedCustomerId, customerId);
+    updatedCustomerId = updatedCustomerId?.value || updatedCustomerId || customerId
     const paidAmount = customerForm.getValues("paidAmount") || 0;
     const formAdditionalDiscount = localAdditionalDiscount;
     if (isAccountsEnabled && paidAmount > 0 && !accountId) {
@@ -215,7 +212,7 @@ export default function SalesPage() {
       }
 
       const createResult = await mutateAsync(orderData);
-      if (createResult.data?._id) {
+      if (createResult.data?.sale?._id) {
         clearAll();
         customerForm.reset({
           paidAmount: 0,
@@ -237,7 +234,6 @@ export default function SalesPage() {
   return (
     <div className="container mx-auto p-4 md:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* ==================== LEFT COLUMN ==================== */}
         <div className="lg:col-span-2 space-y-4">
           {/* Customer & Product Search */}
           <Card>
@@ -337,6 +333,12 @@ export default function SalesPage() {
                         const value = Math.max(0, Number(e.target.value) || 0);
                         setLocalAdditionalDiscount(value);
                         setAdditionalDiscount(value);
+                        // Sync paidAmount immediately to prevent payment summary flicker.
+                        // Zustand updates are synchronous, so getTotalSalePrice() already
+                        // reflects the new discount — no need to wait for the useEffect.
+                        const newTotal = getTotalSalePrice();
+                        setPaidAmount(newTotal);
+                        customerForm.setValue("paidAmount", newTotal);
                       }}
                       placeholder="0"
                       className="w-20 h-7 text-right text-sm"
