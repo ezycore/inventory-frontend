@@ -418,10 +418,16 @@ export interface Inventory extends BaseEntity {
   quantity: number;
   quantityAlert: number;
   isLowStock: boolean;
+  quantityBreakdown?: {
+    displayText: string; // e.g., "2 boxes + 5 pieces"
+  }
   status: "active" | "inactive";
   product?: Product;
   variant?: Variant;
+  location?: Location;
   costPrice: number;
+  restockStatus?: "normal" | "ordered" | "hidden";
+  neededQuantity?: number;
 }
 
 export interface CreateInventoryDto {
