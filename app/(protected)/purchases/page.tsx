@@ -1,15 +1,7 @@
 ﻿"use client";
 
-import {
-  getPurchaseColumns,
-  getSupplierFormConfig,
-  getProductFormConfig,
-  getPaymentFormConfig,
-  extractSupplierValue,
-  extractProductValue,
-  type SupplierFormData,
-  type ProductFormData,
-} from "@/components/purchases";
+import { getPurchaseColumns, getSupplierFormConfig, getProductFormConfig, getPaymentFormConfig, extractSupplierValue, SupplierFormData } from "@/components/purchases";
+import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
 import { useCreatePurchaseOrder } from "@/services/api";
 import {
@@ -42,16 +34,11 @@ import {
   CheckCircleIcon,
   ClipboardList,
   Trash2,
-  Truck,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-// =====================
-// Schema Definitions
-// =====================
 
 const productFormSchema = z.object({
   productId: z.union([
@@ -72,10 +59,6 @@ const productFormSchema = z.object({
   costPrice: z.number().min(0),
   rememberCostPrice: z.boolean().optional(),
 });
-
-// =====================
-// Main Component
-// =====================
 
 export default function PurchasesPage() {
   const { format: formatCurrency, symbol } = useCurrency();
@@ -125,17 +108,9 @@ export default function PurchasesPage() {
   // API mutations
   const { mutateAsync, isPending } = useCreatePurchaseOrder();
 
-  // =====================
-  // Form Configurations (memoized)
-  // =====================
-
   const supplierFormConfig = useMemo(() => getSupplierFormConfig(), []);
   const productFormConfig = useMemo(() => getProductFormConfig(isUOMEnabled), [isUOMEnabled]);
   const paymentFormConfig = useMemo(() => getPaymentFormConfig(isAccountsEnabled), [isAccountsEnabled]);
-
-  // =====================
-  // Forms
-  // =====================
 
   const supplierForm = useForm({
     defaultValues: {
@@ -283,7 +258,7 @@ export default function PurchasesPage() {
   const handleProductFieldChange = useCallback(
     (fieldName: string, value: unknown) => {
       if (fieldName === "productId") {
-        const product = extractProductValue(value as ProductFormData["productId"]);
+        const product = extractProductValue(value);
         if (product) {
           const quantity = productForm.getValues("quantity") || 1;
           const conversionFactor = product.conversionFactor || 1;
@@ -573,10 +548,6 @@ export default function PurchasesPage() {
   const grandTotal = getGrandTotal();
   const paidAmount = activeSeller?.paymentInfo?.paidAmount || 0;
 
-  // =====================
-  // Render
-  // =====================
-
   return (
     <div className="container mx-auto p-4 md:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -584,41 +555,39 @@ export default function PurchasesPage() {
         <div className="lg:col-span-2 space-y-4">
           {/* Step 1: Supplier & Purchase Settings */}
           <Card>
-            <CardContent className="pt-4 pb-3 space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                    1
-                  </span>
-                  <h3 className="font-semibold text-sm">Select Supplier</h3>
-                </div>
-                <DynamicForm
-                  form={supplierForm}
-                  config={supplierFormConfig}
-                  onFieldChange={handleSupplierFieldChange}
-                  hideCancel
-                />
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  1
+                </span>
+                <h3 className="font-semibold text-sm">Select Supplier</h3>
               </div>
+              <DynamicForm
+                form={supplierForm}
+                config={supplierFormConfig}
+                onFieldChange={handleSupplierFieldChange}
+                hideCancel
+              />
+            </CardContent>
+          </Card>
 
-              <Separator className="my-6" />
-
-              {/* Step 2: Add Products */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                    2
-                  </span>
-                  <h3 className="font-semibold text-sm">Add Products</h3>
-                </div>
-                <DynamicForm
-                  form={productForm}
-                  config={productFormConfig}
-                  onSubmit={handleAddToOrder}
-                  onFieldChange={handleProductFieldChange}
-                  submitLabel="Add to Order"
-                  hideCancel
-                />
+          {/* Step 2: Add Products */}
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  2
+                </span>
+                <h3 className="font-semibold text-sm">Add Products</h3>
               </div>
+              <DynamicForm
+                form={productForm}
+                config={productFormConfig}
+                onSubmit={handleAddToOrder}
+                onFieldChange={handleProductFieldChange}
+                submitLabel="Add to Order"
+                hideCancel
+              />
             </CardContent>
           </Card>
 
@@ -631,14 +600,13 @@ export default function PurchasesPage() {
                     <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
                       3
                     </span>
-                    <Truck className="h-4 w-4 text-muted-foreground" />
                     <h3 className="font-semibold text-sm">
-                      {seller.supplierName || "Walk-in Supplier"}
+                      {seller.supplierName || "—"}
                     </h3>
                     <Badge variant="secondary" className="text-xs">
                       {seller.items.length} {seller.items.length === 1 ? "item" : "items"}
                     </Badge>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge className="text-xs bg-primary/15 text-primary hover:bg-primary/20 border-0">
                       {seller.purchaseType === "instant" ? "Instant" : "Order"}
                     </Badge>
                   </div>
@@ -743,24 +711,6 @@ export default function PurchasesPage() {
                   <span className="tabular-nums">{totalItemCount}</span>
                 </div>
 
-                {/* Per-seller totals */}
-                {sellersWithItems.length > 0 && (
-                  <div className="space-y-2">
-                    {sellersWithItems.map((seller) => (
-                      <div key={seller.id} className="flex justify-between text-sm">
-                        <span className="text-muted-foreground truncate max-w-[140px]">
-                          {seller.supplierName || "Walk-in"}
-                        </span>
-                        <span className="tabular-nums font-medium">
-                          {formatCurrency(getSellerNetAmount(seller.id))}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <Separator />
-
                 {/* Grand Total */}
                 <div className="flex justify-between items-center pt-1">
                   <span className="font-semibold">Grand Total</span>
@@ -791,11 +741,10 @@ export default function PurchasesPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Due</span>
                       <span
-                        className={`font-semibold tabular-nums ${
-                          grandTotal - paidAmount > 0
-                            ? "text-orange-600 dark:text-orange-500"
-                            : "text-green-600 dark:text-green-500"
-                        }`}
+                        className={`font-semibold tabular-nums ${grandTotal - paidAmount > 0
+                          ? "text-orange-600 dark:text-orange-500"
+                          : "text-green-600 dark:text-green-500"
+                          }`}
                       >
                         {formatCurrency(Math.max(0, grandTotal - paidAmount))}
                       </span>

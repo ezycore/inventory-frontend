@@ -147,8 +147,7 @@ export default function CreatedOrdersPage() {
   });
 
   // Fetch selected order details
-  const { data: orderDetailData, isLoading: isLoadingDetail } =
-    usePurchaseOrder(selectedOrderId || "");
+  const { data: orderDetailData, isLoading: isLoadingDetail } = usePurchaseOrder(selectedOrderId || "");
 
   const selectedOrder = orderDetailData?.data;
 
@@ -592,13 +591,13 @@ export default function CreatedOrdersPage() {
                         <TableCell className="text-right">
                           {formatCurrency(
                             item.price *
-                              (item.quantity * (item.conversionFactor || 1)),
+                            (item.quantity * (item.conversionFactor || 1)),
                           )}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(
                             item.costPrice *
-                              (item.quantity * (item.conversionFactor || 1)),
+                            (item.quantity * (item.conversionFactor || 1)),
                           )}
                         </TableCell>
                       </TableRow>
@@ -620,20 +619,20 @@ export default function CreatedOrdersPage() {
               {/* Actions */}
               {(selectedOrder.status === "ordered" ||
                 selectedOrder.status === "partial") && (
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      setViewDrawerOpen(false);
-                      initializeReceiveItems(selectedOrder);
-                      setConfirmDialogOpen(true);
-                    }}
-                  >
-                    <PackageCheck className="h-4 w-4 mr-2" />
-                    Receive Items
-                  </Button>
-                </div>
-              )}
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
+                      onClick={() => {
+                        setViewDrawerOpen(false);
+                        initializeReceiveItems(selectedOrder);
+                        setConfirmDialogOpen(true);
+                      }}
+                    >
+                      <PackageCheck className="h-4 w-4 mr-2" />
+                      Receive Items
+                    </Button>
+                  </div>
+                )}
             </div>
           ) : null}
         </SheetContent>

@@ -1,0 +1,429 @@
+'use client';
+
+import { useState, useMemo, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from 'sonner';
+
+import {
+  useSale,
+  useSalesReturns,
+  useCreateSalesReturn,
+  useCustomerPendingDues,
+  useAccounts,
+  useSalesReturnsSummary,
+} from '@/services/api';
+import type { RefundAllocation } from '@/services/api/modules/sales-returns/api';
+import { useAuthStore } from '@/services/stores';
+import { useCurrency } from '@/lib/currency';
+import type {
+  Sale,
+  SaleItem,
+  SalesReturn,
+  SalesReturnReason,
+  SalesReturnsSummary,
+  Account,
+  ApiResponse,
+  PaginatedResponse,
+} from '@/types';
+
+import type {
+  ReturnableItem,
+  DueAllocation,
+  PendingDueRaw,
+} from './types';
+import { getReturnsColumns } from './columns';
+
+// ── Search schema ───────────────────────────────────────────────────
+
+const saleSearchSchema = z.object({
+  saleId: z.string().min(1, 'Please enter a sale ID or invoice number'),
+});
+
+type SaleSearchData = z.infer<typeof saleSearchSchema>;
+
+// ── Hook ────────────────────────────────────────────────────────────
+
+export function useSalesReturnPage() {
+  // ── State ─────────────────────────────────────────────────────
+  const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
+  const [returnableItems, setReturnableItems] = useState<ReturnableItem[]>([]);
+  const [reason, setReason] = useState<SalesReturnReason>('customer_changed_mind');
+  const [notes, setNotes] = useState('');
+  const [dueAllocations, setDueAllocations] = useState<DueAllocation[]>([]);
+  const [accountRefundAmount, setAccountRefundAmount] = useState(0);
+  const [selectedAccountId, setSelectedAccountId] = useState('');
+
+  // ── Auth & Features ───────────────────────────────────────────
+  const { user } = useAuthStore();
+  const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  const { format: formatCurrency } = useCurrency();
+
+  // ── API Queries ───────────────────────────────────────────────
+  const { data: saleData, isLoading: isLoadingSale } = useSale(
+    selectedSaleId ?? '',
+  );
+  const { data: returnsData, isLoading: isLoadingReturns } = useSalesReturns({
+    limit: 50,
+  });
+  const { data: accountsData } = useAccounts(
+    isAccountsEnabled ? { status: 'active', limit: 100 } : undefined,
+  );
+  const { data: summaryData, isLoading: isSummaryLoading } =
+    useSalesReturnsSummary();
+  const createReturnMutation = useCreateSalesReturn();
+
+  // ── Derived data ──────────────────────────────────────────────
+  const sale = (saleData as ApiResponse<Sale>)?.data;
+  const returns: SalesReturn[] =
+    (returnsData as ApiResponse<PaginatedResponse<SalesReturn>>)?.data?.items ?? [];
+  const accounts: Account[] =
+    (accountsData as PaginatedResponse<Account>)?.items ?? [];
+  const summary = (summaryData as ApiResponse<SalesReturnsSummary>)?.data;
+
+  const { data: pendingDuesData } = useCustomerPendingDues(
+    sale?.customerId?._id ?? '',
+    selectedSaleId ?? '',
+  );
+  const pendingDues = useMemo(
+    () =>
+      (pendingDuesData as ApiResponse<{ dues: PendingDueRaw[] }>)?.data?.dues ?? [],
+    [pendingDuesData],
+  );
+
+  // ── Form ──────────────────────────────────────────────────────
+  const searchForm = useForm<SaleSearchData>({
+    resolver: zodResolver(saleSearchSchema),
+    defaultValues: { saleId: '' },
+  });
+
+  // ── Build returnable items from fetched sale ──────────────────
+  const buildReturnableItems = useCallback(
+    (saleItems: SaleItem[]): ReturnableItem[] =>
+      saleItems.map((item) => {
+        const salePrice = item.price - (item.discount ?? 0);
+        return {
+          ...item,
+          inventoryId: item.inventoryId ?? item.productId,
+          maxReturnableQty:
+            item.quantity -
+            ((item as SaleItem & { returnedQuantity?: number }).returnedQuantity ?? 0),
+          returnQty: 0,
+          refundAmount: 0,
+          selected: false,
+          salePrice,
+        };
+      }),
+    [],
+  );
+
+  // ── Build due allocations from pending dues ───────────────────
+  const buildDueAllocations = useCallback(
+    (dues: PendingDueRaw[]): DueAllocation[] =>
+      dues.map((due) => {
+        const extractedSaleId =
+          typeof due.saleId === 'object' && due.saleId?._id
+            ? due.saleId._id
+            : String(due.saleId);
+        const extractedInvoice =
+          typeof due.saleId === 'object' && due.saleId?.invoiceNumber
+            ? due.saleId.invoiceNumber
+            : (due.invoiceNumber ?? '');
+        return {
+          dueId: due.id ?? due._id ?? '',
+          saleId: extractedSaleId,
+          invoiceNumber: extractedInvoice,
+          dueAmount: due.currentAmount,
+          allocatedAmount: 0,
+          selected: false,
+        };
+      }),
+    [],
+  );
+
+  // ── Computed totals ───────────────────────────────────────────
+  const selectedItems = useMemo(
+    () => returnableItems.filter((i) => i.selected && i.returnQty > 0),
+    [returnableItems],
+  );
+  const totalReturnQty = useMemo(
+    () => selectedItems.reduce((sum, i) => sum + i.returnQty, 0),
+    [selectedItems],
+  );
+  const totalRefundAmount = useMemo(
+    () => selectedItems.reduce((sum, i) => sum + i.refundAmount, 0),
+    [selectedItems],
+  );
+  const saleDueAmount = sale?.dueAmount ?? 0;
+  const adjustSaleDueAmount = useMemo(
+    () => Math.min(totalRefundAmount, saleDueAmount),
+    [totalRefundAmount, saleDueAmount],
+  );
+  const totalOtherDuesAllocated = useMemo(
+    () =>
+      dueAllocations
+        .filter((d) => d.selected)
+        .reduce((sum, d) => sum + d.allocatedAmount, 0),
+    [dueAllocations],
+  );
+  const remainingForRefund = useMemo(() => {
+    const afterSaleDue = totalRefundAmount - adjustSaleDueAmount;
+    return Math.max(0, afterSaleDue - totalOtherDuesAllocated);
+  }, [totalRefundAmount, adjustSaleDueAmount, totalOtherDuesAllocated]);
+
+  // ── Handlers ──────────────────────────────────────────────────
+
+  const handleSearch = useCallback(
+    (data: SaleSearchData) => setSelectedSaleId(data.saleId.trim()),
+    [],
+  );
+
+  const handleClearSearch = useCallback(() => {
+    setSelectedSaleId(null);
+    setReturnableItems([]);
+    setDueAllocations([]);
+    setAccountRefundAmount(0);
+    setSelectedAccountId('');
+    setNotes('');
+    searchForm.reset();
+  }, [searchForm]);
+
+  /** Call after sale data loads to populate returnable items */
+  const initFromSale = useCallback(
+    (s: Sale | undefined) => {
+      if (s?.items) {
+        setReturnableItems(buildReturnableItems(s.items));
+      }
+    },
+    [buildReturnableItems],
+  );
+
+  /** Call after pending dues data loads to populate allocations */
+  const initFromPendingDues = useCallback(
+    (dues: PendingDueRaw[]) => {
+      if (dues.length) {
+        setDueAllocations(buildDueAllocations(dues));
+      }
+    },
+    [buildDueAllocations],
+  );
+
+  const handleItemSelect = useCallback(
+    (index: number, selected: boolean) => {
+      setReturnableItems((prev) => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          selected,
+          ...(selected ? {} : { returnQty: 0, refundAmount: 0 }),
+        };
+        return updated;
+      });
+    },
+    [],
+  );
+
+  const handleItemQtyChange = useCallback((index: number, qty: number) => {
+    setReturnableItems((prev) => {
+      const updated = [...prev];
+      const item = updated[index];
+      const validQty = Math.max(0, Math.min(qty, item.maxReturnableQty));
+      updated[index] = {
+        ...item,
+        returnQty: validQty,
+        refundAmount: validQty * (item.salePrice || item.price),
+        selected: validQty > 0,
+      };
+      return updated;
+    });
+  }, []);
+
+  const handleRefundAmountChange = useCallback(
+    (index: number, amount: number) => {
+      setReturnableItems((prev) => {
+        const updated = [...prev];
+        const item = updated[index];
+        const maxRefund = item.returnQty * (item.salePrice || item.price);
+        updated[index] = {
+          ...item,
+          refundAmount: Math.max(0, Math.min(amount, maxRefund)),
+        };
+        return updated;
+      });
+    },
+    [],
+  );
+
+  const handleDueAllocationToggle = useCallback(
+    (index: number, selected: boolean) => {
+      setDueAllocations((prev) => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          selected,
+          allocatedAmount: selected ? updated[index].dueAmount : 0,
+        };
+        return updated;
+      });
+    },
+    [],
+  );
+
+  const handleDueAllocationAmountChange = useCallback(
+    (index: number, amount: number) => {
+      setDueAllocations((prev) => {
+        const updated = [...prev];
+        const due = updated[index];
+        updated[index] = {
+          ...due,
+          allocatedAmount: Math.max(0, Math.min(amount, due.dueAmount)),
+        };
+        return updated;
+      });
+    },
+    [],
+  );
+
+  const handleSubmitReturn = useCallback(async () => {
+    if (!selectedSaleId || !sale) {
+      toast.error('Please select a sale first');
+      return;
+    }
+
+    const items = selectedItems.map((item) => ({
+      productId: item.productId,
+      variantId: item.variantId || undefined,
+      inventoryId: item.inventoryId,
+      productName: item.productName,
+      quantity: item.returnQty,
+      price: item.price,
+      costPrice: item.costPrice,
+      discount: item.discount,
+      refundAmount: item.refundAmount,
+    }));
+
+    if (items.length === 0) {
+      toast.error('Please select at least one item to return');
+      return;
+    }
+
+    let refundAllocation: RefundAllocation | undefined;
+
+    if (isAccountsEnabled && totalRefundAmount > 0) {
+      refundAllocation = {};
+
+      if (adjustSaleDueAmount > 0 && saleDueAmount > 0) {
+        refundAllocation.adjustSaleDue = Math.min(adjustSaleDueAmount, saleDueAmount);
+      }
+
+      const selectedDues = dueAllocations.filter(
+        (d) => d.selected && d.allocatedAmount > 0,
+      );
+      if (selectedDues.length > 0) {
+        refundAllocation.adjustOtherDues = selectedDues.map((d) => ({
+          dueId: d.dueId,
+          saleId: d.saleId,
+          amount: d.allocatedAmount,
+        }));
+      }
+
+      if (accountRefundAmount > 0 && selectedAccountId) {
+        refundAllocation.accountRefund = {
+          accountId: selectedAccountId,
+          amount: accountRefundAmount,
+          paymentMethod: 'cash',
+        };
+      }
+    }
+
+    try {
+      await createReturnMutation.mutateAsync({
+        saleId: selectedSaleId,
+        items,
+        reason,
+        notes: notes || undefined,
+        refundAllocation,
+      });
+      handleClearSearch();
+    } catch {
+      // Error handled by mutation
+    }
+  }, [
+    selectedSaleId,
+    sale,
+    selectedItems,
+    isAccountsEnabled,
+    totalRefundAmount,
+    adjustSaleDueAmount,
+    saleDueAmount,
+    dueAllocations,
+    accountRefundAmount,
+    selectedAccountId,
+    createReturnMutation,
+    reason,
+    notes,
+    handleClearSearch,
+  ]);
+
+  // ── Columns (memoised) ────────────────────────────────────────
+  const returnsColumns = useMemo(
+    () => getReturnsColumns(formatCurrency, isAccountsEnabled),
+    [formatCurrency, isAccountsEnabled],
+  );
+
+  // ── Public API ────────────────────────────────────────────────
+  return {
+    // state
+    selectedSaleId,
+    returnableItems,
+    reason,
+    setReason,
+    notes,
+    setNotes,
+    dueAllocations,
+    accountRefundAmount,
+    setAccountRefundAmount,
+    selectedAccountId,
+    setSelectedAccountId,
+
+    // derived
+    sale,
+    returns,
+    accounts,
+    summary,
+    pendingDues,
+    isAccountsEnabled,
+    formatCurrency,
+    isLoadingSale,
+    isLoadingReturns,
+    isSummaryLoading,
+    isSubmitting: createReturnMutation.isPending,
+
+    // computed totals
+    totalReturnQty,
+    totalRefundAmount,
+    saleDueAmount,
+    adjustSaleDueAmount,
+    totalOtherDuesAllocated,
+    remainingForRefund,
+
+    // form
+    searchForm,
+
+    // columns
+    returnsColumns,
+
+    // handlers
+    handleSearch,
+    handleClearSearch,
+    initFromSale,
+    initFromPendingDues,
+    handleItemSelect,
+    handleItemQtyChange,
+    handleRefundAmountChange,
+    handleDueAllocationToggle,
+    handleDueAllocationAmountChange,
+    handleSubmitReturn,
+  } as const;
+}

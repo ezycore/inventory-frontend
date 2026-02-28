@@ -39,6 +39,7 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     costPrice: item.costPrice,
     price: item.price, // Match form field name
     availableQuantity: item.quantity,
+    conversionFactor: item?.conversionFactor,
     productId: item.productId,
     variantId: item.variantId,
   })) as SelectOption[];
@@ -58,10 +59,6 @@ export const accountItemsCreateCallback = (
   })) as SelectOption[];
 };
 
-// =====================
-// Helper Functions
-// =====================
-
 
 /**
  * Extract product value from form data
@@ -77,6 +74,7 @@ export const extractProductValue = (val: any): ExtractedProduct | null => {
       availableQuantity: val.availableQuantity ?? 0,
       productId: (val as any).productId ?? "",
       variantId: (val as any).variantId ?? null,
+      conversionFactor: (val as any).conversionFactor ?? 1,
     };
   }
   return null;
