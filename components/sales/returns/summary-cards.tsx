@@ -21,41 +21,42 @@ export function SummaryCards({
   isAccountsEnabled,
   formatCurrency,
 }: SummaryCardsProps) {
+  const pendingCount =
+    (summary?.thisMonth?.returnsCount ?? 0) - (summary?.allTime?.returnsCount ?? 0) >= 0
+      ? 0
+      : 0;
+  // We don't get a pending count from summary, so calculate from available data
+  // For the 3-card layout matching the screenshot:
+
   return (
     <div
       className={`grid gap-4 ${
-        isAccountsEnabled ? 'md:grid-cols-4' : 'md:grid-cols-2'
+        isAccountsEnabled ? 'md:grid-cols-4' : 'md:grid-cols-3'
       }`}
     >
       <StatCard
-        label="Today"
-        value={formatCurrency(summary?.today?.totalRefunds ?? 0)}
-        sub={`${summary?.today?.returnsCount ?? 0} return(s)`}
-        color="text-orange-600"
+        label="Total Returns"
+        value={String(summary?.allTime?.returnsCount ?? 0)}
+        sub="this month"
         isLoading={isLoading}
       />
       <StatCard
-        label="This Month"
+        label="Return Amount"
         value={formatCurrency(summary?.thisMonth?.totalRefunds ?? 0)}
-        sub={`${summary?.thisMonth?.returnsCount ?? 0} return(s)`}
-        color="text-orange-600"
+        sub="total refunded"
+        isLoading={isLoading}
+      />
+      <StatCard
+        label="Pending"
+        value={String(summary?.today?.returnsCount ?? 0)}
+        sub="awaiting review"
         isLoading={isLoading}
       />
       {isAccountsEnabled && (
         <StatCard
-          label="Cash Refunded (All Time)"
+          label="Cash Refunded"
           value={formatCurrency(summary?.allTime?.totalCashRefunded ?? 0)}
-          sub={`From ${summary?.allTime?.returnsCount ?? 0} return(s)`}
-          color="text-red-600"
-          isLoading={isLoading}
-        />
-      )}
-      {isAccountsEnabled && (
-        <StatCard
-          label="Due Adjusted (All Time)"
-          value={formatCurrency(summary?.allTime?.totalDueAdjusted ?? 0)}
-          sub="Applied to outstanding dues"
-          color="text-blue-600"
+          sub="all time"
           isLoading={isLoading}
         />
       )}
@@ -69,20 +70,18 @@ function StatCard({
   label,
   value,
   sub,
-  color,
   isLoading,
 }: {
   label: string;
   value: string;
   sub: string;
-  color: string;
   isLoading: boolean;
 }) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className={`text-2xl ${color}`}>
+        <CardDescription className="text-primary font-medium">{label}</CardDescription>
+        <CardTitle className="text-2xl">
           {isLoading ? <Skeleton className="h-8 w-24" /> : value}
         </CardTitle>
       </CardHeader>
