@@ -67,7 +67,7 @@ export const salesApi = {
   getSummary: (): Promise<ApiResponse<SalesSummary>> =>
     apiClient.get("/sales/summary"),
 
-    //create sales order
-    createSalesOrder: (data: CreateSalesOrderDto): Promise<ApiResponse<Sale>> =>
+  //create sales order
+  createSalesOrder: (data: CreateSalesOrderDto): Promise<ApiResponse<{ sale: Sale }>> =>
     apiClient.post(`/sales`, data),
 };
