@@ -1,28 +1,28 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-
 // Types
-import type { Discount } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
-import { DataTable } from "@/ui/components/dataTable";
 import { DataCard } from "@/ui/components/dataCard";
-import { DateCell } from "@/ui/components/dataTable/cells";
 import PageHeader from "@/ui/components/header";
 import StatsCard, { type StatData } from "@/ui/components/StatsCard";
-import ViewToggle from "@/ui/components/ViewToggle";
 import DiscountCardView from "@/components/discounts/cardview";
+import DiscountCardLoading from "@/components/discounts/card-loading";
 
 // Hooks & API
-import { useCreateDiscount, useDeleteDiscount, useUpdateDiscount, useDiscountStats } from "@/services/api";
+import {
+  useCreateDiscount,
+  useDeleteDiscount,
+  useUpdateDiscount,
+  useDiscountStats,
+} from "@/services/api";
 import { discountsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
-import { useViewMode } from "@/hooks/use-view-mode";
-import { CheckCircle2, Hash, Percent, Tag, XCircle } from "lucide-react";
+import { CheckCircle2, Hash, Percent, Tag } from "lucide-react";
 
+// ── Stats helper ────────────────────────────────────────────────────────
 function getDiscountStats(stats: Record<string, any> | undefined): StatData[] {
   return [
     {
@@ -56,46 +56,7 @@ function getDiscountStats(stats: Record<string, any> | undefined): StatData[] {
   ];
 }
 
-const columns: ColumnDef<Discount>[] = [
-  { accessorKey: "name", header: "Discount Name" },
-  {
-    accessorKey: "value",
-    header: "Value",
-    cell: ({ row }) => {
-      const type = row.getValue("type") as string;
-      const value = row.getValue("value") as number;
-      return type === "percentage" ? `${value}%` : `₹${value}`;
-    },
-  },
-  {
-    accessorKey: "type",
-    header: "Type",
-    cell: ({ row }) => {
-      const type = row.getValue("type") as string;
-      return type === "percentage" ? "Percentage" : "Fixed";
-    },
-  },
-  {
-    accessorKey: "applicableTo",
-    header: "Applicable To",
-    cell: ({ row }) => {
-      const applicable = row.getValue("applicableTo") as string;
-      const labels: Record<string, string> = {
-        sales: "Sales",
-        purchase: "Purchase",
-        both: "Both",
-      };
-      return labels[applicable] || applicable;
-    },
-  },
-  { accessorKey: "status", header: "Status" },
-  {
-    accessorKey: "createdAt",
-    header: "Created Date",
-    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
-  },
-];
-
+// ── Form config ─────────────────────────────────────────────────────────
 const discountFormConfig: DynamicFormConfig = {
   fields: [
     {
@@ -158,6 +119,7 @@ const discountFormConfig: DynamicFormConfig = {
   ],
 };
 
+// ── Filter config ───────────────────────────────────────────────────────
 const discountFilterConfig: FilterConfig = {
   fields: [
     {
@@ -210,9 +172,13 @@ const defaultValues = {
   description: "",
 };
 
+const searchConfig = {
+  globalSearch: true,
+  placeholder: "Search discounts by name...",
+};
+
 export default function DiscountsPage() {
-  const [viewMode, setViewMode] = useViewMode("discounts");
-  const { data: statsData, isLoading: statsLoading } = useDiscountStats?.() ?? { data: undefined, isLoading: false };
+  const { data: statsData, isLoading: statsLoading } = useDiscountStats();
 
   const sharedOperations = {
     formConfig: discountFormConfig,
@@ -222,46 +188,39 @@ export default function DiscountsPage() {
     updateMutation: useUpdateDiscount(),
     deleteMutation: useDeleteDiscount(),
     queryKey: [...queryKeys.discounts.all()],
-    entityName: "Discount",
+    entityName: "Discount" as const,
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
       <PageHeader
-        title="Discounts"
-        subTitle="Manage discount rates for sales and purchases"
-        actions={<ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />}
+        title="Discount Management"
+        subTitle="Configure discount rates for sales and purchase transactions"
       />
 
+      {/* Stats Cards */}
       <StatsCard
-        stats={getDiscountStats(statsData?.data)}
+        data={getDiscountStats(statsData)}
         isLoading={statsLoading}
       />
 
-      {viewMode === "table" ? (
-        <DataTable
-          cardTitle={(n: number) => `All Discounts (${n})`}
-          defaultPageSize={10}
-          pageSizes={[10, 20, 50, 100]}
-          filterConfig={discountFilterConfig}
-          columns={columns}
-          selectable
-          searchConfig={{
-            globalSearch: true,
-            placeholder: "Search discounts by name...",
-          }}
-          enableSorting
-          operations={sharedOperations}
-        />
-      ) : (
-        <DataCard
-          cardTitle={(n: number) => `All Discounts (${n})`}
-          filterConfig={discountFilterConfig}
-          renderCard={DiscountCardView}
-          gridClassName="grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-          operations={sharedOperations}
-        />
-      )}
+      {/* Card View */}
+      <DataCard
+        cardTitle={(n) => `All Discounts (${n})`}
+        defaultPageSize={12}
+        pageSizes={[12, 24, 48]}
+        layoutConfig={{
+          layout: "grid",
+          columns: { default: 1, sm: 2, lg: 3 },
+          gap: "md",
+        }}
+        filterConfig={discountFilterConfig}
+        searchConfig={searchConfig}
+        renderCard={DiscountCardView}
+        loadingRenderCard={DiscountCardLoading}
+        operations={sharedOperations}
+      />
     </div>
   );
 }

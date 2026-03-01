@@ -1,15 +1,13 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-
 // Types
-import type { Tax } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
-import { DataTable } from "@/ui/components/dataTable";
-import { DateCell } from "@/ui/components/dataTable/cells";
+import { DataCard } from "@/ui/components/dataCard";
 import PageHeader from "@/ui/components/header";
+import TaxCardView from "@/components/taxes/cardview";
+import TaxCardLoading from "@/components/taxes/card-loading";
 
 // Hooks & API
 import { useCreateTax, useDeleteTax, useUpdateTax } from "@/services/api";
@@ -17,18 +15,7 @@ import { taxesApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
-const columns: ColumnDef<Tax>[] = [
-  { accessorKey: "name", header: "Tax Name" },
-  { accessorKey: "rate", header: "Rate" },
-  { accessorKey: "type", header: "Type" },
-  { accessorKey: "status", header: "Status" },
-  {
-    accessorKey: "createdAt",
-    header: "Created Date",
-    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
-  },
-];
-
+// ── Form config ─────────────────────────────────────────────────────────
 const taxFormConfig: DynamicFormConfig = {
   fields: [
     {
@@ -72,6 +59,7 @@ const taxFormConfig: DynamicFormConfig = {
   ],
 };
 
+// ── Filter config ───────────────────────────────────────────────────────
 const taxFilterConfig: FilterConfig = {
   fields: [
     {
@@ -79,6 +67,16 @@ const taxFilterConfig: FilterConfig = {
       label: "Search taxes",
       type: "text",
       placeholder: "Search taxes...",
+    },
+    {
+      name: "type",
+      label: "Type",
+      type: "select",
+      placeholder: "All types",
+      options: [
+        { label: "Percentage", value: "percentage" },
+        { label: "Fixed", value: "fixed" },
+      ],
     },
     {
       name: "status",
@@ -101,33 +99,46 @@ const defaultValues = {
   status: "active" as const,
 };
 
+const searchConfig = {
+  globalSearch: true,
+  placeholder: "Search taxes by name or rate...",
+};
+
 export default function TaxesPage() {
+  const sharedOperations = {
+    formConfig: taxFormConfig,
+    defaultValues,
+    getAllData: taxesApi.getAll,
+    createMutation: useCreateTax(),
+    updateMutation: useUpdateTax(),
+    deleteMutation: useDeleteTax(),
+    queryKey: [...queryKeys.taxes.all()],
+    entityName: "Tax" as const,
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <PageHeader title="Taxes" subTitle="Manage tax rates" />
+      {/* Header */}
+      <PageHeader
+        title="Tax Management"
+        subTitle="Configure and manage tax rates applied to your transactions"
+      />
 
-      <DataTable
-        cardTitle={(n: number) => `All Taxes (${n})`}
-        defaultPageSize={10}
-        pageSizes={[10, 20, 50, 100]}
+      {/* Card View */}
+      <DataCard
+        cardTitle={(n) => `All Taxes (${n})`}
+        defaultPageSize={12}
+        pageSizes={[12, 24, 48]}
+        layoutConfig={{
+          layout: "grid",
+          columns: { default: 1, sm: 2, lg: 3 },
+          gap: "md",
+        }}
         filterConfig={taxFilterConfig}
-        columns={columns}
-        selectable
-        searchConfig={{
-          globalSearch: true,
-          placeholder: "Search taxes by name or rate...",
-        }}
-        enableSorting
-        operations={{
-          formConfig: taxFormConfig,
-          defaultValues,
-          getAllData: taxesApi.getAll,
-          createMutation: useCreateTax(),
-          updateMutation: useUpdateTax(),
-          deleteMutation: useDeleteTax(),
-          queryKey: [...queryKeys.taxes.all()],
-          entityName: "Tax",
-        }}
+        searchConfig={searchConfig}
+        renderCard={TaxCardView}
+        loadingRenderCard={TaxCardLoading}
+        operations={sharedOperations}
       />
     </div>
   );

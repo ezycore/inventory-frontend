@@ -7,29 +7,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { Edit2, Hash, MoreVertical, Percent, Trash2 } from "lucide-react";
+import { Edit2, MoreVertical, Percent, Hash, Trash2 } from "lucide-react";
 
-const applicableLabels: Record<string, string> = {
-  sales: "Sales",
-  purchase: "Purchase",
-  both: "Both",
+const typeStyles: Record<string, { bg: string; icon: typeof Percent }> = {
+  percentage: { bg: "bg-violet-100 text-violet-700", icon: Percent },
+  fixed: { bg: "bg-amber-100 text-amber-700", icon: Hash },
 };
 
-const applicableColors: Record<string, string> = {
-  sales: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  purchase: "bg-blue-100 text-blue-800 border-blue-200",
-  both: "bg-purple-100 text-purple-800 border-purple-200",
-};
-
-const DiscountCardView = (
-  discount: any,
+const TaxCardView = (
+  tax: any,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
 ) => {
-  const { name, value, type, applicableTo, status, description, createdAt } =
-    discount;
+  const { name, rate, type, status, createdAt } = tax;
 
-  const displayValue =
-    type === "percentage" ? `${value}%` : `৳${Number(value).toLocaleString()}`;
+  const typeConfig = typeStyles[type] || typeStyles.percentage;
+  const TypeIcon = typeConfig.icon;
+  const displayValue = type === "percentage" ? `${rate}%` : `৳${Number(rate).toLocaleString()}`;
 
   const createdDate = new Date(createdAt).toLocaleDateString(undefined, {
     year: "numeric",
@@ -37,16 +30,14 @@ const DiscountCardView = (
     day: "numeric",
   });
 
-  const TypeIcon = type === "percentage" ? Percent : Hash;
-
   return (
     <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 border-border/60">
-      {/* Top color accent */}
+      {/* Top color accent bar */}
       <div
         className={`h-1 w-full ${
           type === "percentage"
-            ? "bg-gradient-to-r from-emerald-500 to-teal-500"
-            : "bg-gradient-to-r from-orange-500 to-rose-500"
+            ? "bg-gradient-to-r from-violet-500 to-purple-500"
+            : "bg-gradient-to-r from-amber-500 to-orange-500"
         }`}
       />
 
@@ -54,13 +45,9 @@ const DiscountCardView = (
         {/* Header row */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5 min-w-0">
-            {/* Icon */}
+            {/* Icon badge */}
             <div
-              className={`flex h-12 w-12 items-center justify-center rounded-xl shrink-0 ${
-                type === "percentage"
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-orange-100 text-orange-700"
-              }`}
+              className={`flex h-12 w-12 items-center justify-center rounded-xl shrink-0 ${typeConfig.bg}`}
             >
               <TypeIcon className="h-5.5 w-5.5" />
             </div>
@@ -76,11 +63,9 @@ const DiscountCardView = (
                 >
                   {status === "active" ? "Active" : "Inactive"}
                 </Badge>
-                <span
-                  className={`inline-flex items-center px-2 py-0 rounded-full text-[11px] font-medium border ${applicableColors[applicableTo] || ""}`}
-                >
-                  {applicableLabels[applicableTo] || applicableTo}
-                </span>
+                <Badge variant="outline" className="text-[11px] px-2 py-0 capitalize">
+                  {type}
+                </Badge>
               </div>
             </div>
           </div>
@@ -104,25 +89,12 @@ const DiscountCardView = (
           </DropdownMenu>
         </div>
 
-        {/* Value highlight */}
-        <div className="rounded-lg bg-muted/50 px-4 py-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground font-medium">
-              Discount Value
-            </span>
-            <span className="text-xl font-bold tracking-tight text-foreground">
-              {displayValue}
-            </span>
-          </div>
-          {description ? (
-            <p className="text-xs text-muted-foreground line-clamp-1 mt-1.5">
-              {description}
-            </p>
-          ) : (
-            <p className="text-xs text-muted-foreground/50 italic mt-1.5">
-              No description
-            </p>
-          )}
+        {/* Rate highlight */}
+        <div className="rounded-lg bg-muted/50 px-4 py-3 flex items-center justify-between">
+          <span className="text-sm text-muted-foreground font-medium">Tax Rate</span>
+          <span className="text-xl font-bold tracking-tight text-foreground">
+            {displayValue}
+          </span>
         </div>
 
         {/* Footer */}
@@ -146,4 +118,4 @@ const DiscountCardView = (
   );
 };
 
-export default DiscountCardView;
+export default TaxCardView;
