@@ -10,6 +10,7 @@ export const useCategory = categoriesHooks.useDetail;
 export const useCreateCategory = categoriesHooks.useCreate;
 export const useUpdateCategory = categoriesHooks.useUpdate;
 export const useDeleteCategory = categoriesHooks.useDelete;
+export const useCategoryStats = categoriesHooks.useStats;
 
 // Alias for backward compatibility
 export const useAddCategory = useCreateCategory;

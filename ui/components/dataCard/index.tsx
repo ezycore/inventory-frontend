@@ -37,6 +37,8 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     shadow,
     // Custom rendering
     renderCard,
+    // Loading card
+    loadingRenderCard,
     // Fields
     fields,
     imageConfig,
@@ -298,6 +300,8 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
           shadow={shadow}
           // Custom rendering
           renderCard={renderCard}
+          // Loading card
+          loadingRenderCard={loadingRenderCard}
           // Fields
           fields={fields}
           imageConfig={imageConfig}

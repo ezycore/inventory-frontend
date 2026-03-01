@@ -306,5 +306,7 @@ export const queryKeys = {
       ] as const,
     summary: (filters?: Record<string, any>) =>
       [...queryKeys.transactions.all(), "summary", filters || {}] as const,
+    stats: (params?: Record<string, any>) =>
+      [...queryKeys.transactions.all(), "stats", params || {}] as const,
   },
 } as const;

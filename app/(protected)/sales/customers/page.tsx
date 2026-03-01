@@ -12,7 +12,6 @@ import type { CustomAction } from "@/types/DataTable";
 // UI Components
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { DataTable } from "@/ui/components/dataTable";
-import { StatCard } from "@/components/dashboard/stat-card";
 
 // Hooks & API
 import {
@@ -221,7 +220,7 @@ export default function CustomersPage() {
       <PageHeader title="Customers" subTitle="Manage your customers (sales)" />
 
       {/* Summary Stats Cards */}
-      <div className={`grid gap-4 ${getGridCols()}`}>
+      {/* <div className={`grid gap-4 ${getGridCols()}`}>
         <StatCard
           title="Total Sales"
           value={isSummaryLoading ? "..." : formatCurrency(summary?.totalSales ?? 0)}
@@ -257,7 +256,7 @@ export default function CustomersPage() {
             valueColor="warning"
           />
         )}
-      </div>
+      </div> */}
 
       <DataTable
         cardTitle={(dataLength: number) => `All Customers (${dataLength})`}

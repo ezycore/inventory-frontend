@@ -13,6 +13,9 @@ export const locationsApi = {
     //used in CreatePurchaseOrderPage (will removed later) & locations page table getAllData
     apiClient.get(`/locations${buildQueryParams(filters)}`),
 
+  getStats: (): Promise<ApiResponse<any>> =>
+    apiClient.get("/locations/stats"),
+
   create: (data: any): Promise<ApiResponse<any>> =>
     //used in locations page
     apiClient.post("/locations", data),

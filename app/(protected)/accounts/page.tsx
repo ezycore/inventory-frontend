@@ -1,23 +1,26 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-
 // Types
 import type { Account } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
-import { DataTable } from "@/ui/components/dataTable";
-import { DateCell } from "@/ui/components/dataTable/cells";
+import { DataCard } from "@/ui/components/dataCard";
 import PageHeader from "@/ui/components/header";
-import { Badge } from "@/ui/components/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
-import { Wallet, Building2, Smartphone, ArrowRightLeft } from "lucide-react";
+import AccountCardView, { AccountCardSkeleton } from "@/components/accounts/cardview";
+import {
+  Wallet,
+  Building2,
+  Smartphone,
+  ArrowRightLeft,
+  TrendingUp,
+} from "lucide-react";
 import { Button } from "@/ui/components/button";
 import Link from "next/link";
 import { useCurrency } from "@/lib/currency";
+import { cn } from "@/ui/lib/utils";
 
-// Hooks & API// Hooks & API
+// Hooks & API
 import {
   useAccountSummary,
   useCreateAccount,
@@ -28,34 +31,129 @@ import { accountsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
-const getAccountTypeIcon = (type: string) => {
-  switch (type) {
-    case "cash":
-      return <Wallet className="h-4 w-4" />;
-    case "bank":
-      return <Building2 className="h-4 w-4" />;
-    case "mfs":
-    case "custom":
-      return <Smartphone className="h-4 w-4" />;
-    default:
-      return <Wallet className="h-4 w-4" />;
-  }
-};
+// ── Summary stat card config ──────────────────────────────────────────
+interface SummaryItem {
+  label: string;
+  value: string;
+  icon: typeof Wallet;
+  gradient: string;
+  iconBg: string;
+  iconColor: string;
+  description: string;
+}
 
-const getAccountTypeLabel = (type: string) => {
-  switch (type) {
-    case "cash":
-      return "Cash";
-    case "bank":
-      return "Bank";
-    case "mfs":
-      return "Mobile Financial Service";
-    case "custom":
-      return "Custom";
-    default:
-      return type;
+function getAccountStats(
+  summary: Record<string, any> | undefined,
+  format: (v: number) => string,
+): SummaryItem[] {
+  return [
+    {
+      label: "Total Balance",
+      value: format(summary?.totalBalance || 0),
+      icon: TrendingUp,
+      gradient: "from-primary/10 to-primary/5",
+      iconBg: "bg-primary/10",
+      iconColor: "text-primary",
+      description: `Across ${summary?.accountCount || 0} accounts`,
+    },
+    {
+      label: "Cash",
+      value: format(summary?.byType?.cash || 0),
+      icon: Wallet,
+      gradient: "from-emerald-500/10 to-emerald-500/5",
+      iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      description: "Cash accounts",
+    },
+    {
+      label: "Bank",
+      value: format(summary?.byType?.bank || 0),
+      icon: Building2,
+      gradient: "from-blue-500/10 to-blue-500/5",
+      iconBg: "bg-blue-50 dark:bg-blue-950/40",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      description: "Bank balances",
+    },
+    {
+      label: "Mobile Banking",
+      value: format(summary?.byType?.mfs || 0),
+      icon: Smartphone,
+      gradient: "from-violet-500/10 to-violet-500/5",
+      iconBg: "bg-violet-50 dark:bg-violet-950/40",
+      iconColor: "text-violet-600 dark:text-violet-400",
+      description: "Mobile Financial Service",
+    },
+  ];
+}
+
+// ── Premium summary banner ─────────────────────────────────────────────
+function AccountSummaryBanner({
+  stats,
+  isLoading,
+}: {
+  stats: SummaryItem[];
+  isLoading: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[108px] rounded-2xl border bg-card animate-pulse"
+          />
+        ))}
+      </div>
+    );
   }
-};
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <div
+            key={stat.label}
+            className={cn(
+              "relative overflow-hidden rounded-2xl border bg-card p-5",
+              "transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
+            )}
+          >
+            {/* subtle gradient bg */}
+            <div
+              className={cn(
+                "absolute inset-0 bg-gradient-to-br opacity-60",
+                stat.gradient,
+              )}
+            />
+            <div className="relative flex items-start justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground/70">
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-bold tracking-tight">
+                  {stat.value}
+                </p>
+                <p className="text-[11px] text-muted-foreground/60">
+                  {stat.description}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                  stat.iconBg,
+                  "ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
+                )}
+              >
+                <Icon className={cn("h-5 w-5", stat.iconColor)} />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 const accountFormConfig: DynamicFormConfig = {
   fields: [
@@ -166,197 +264,62 @@ const defaultValues = {
   description: "",
 };
 
-function AccountSummaryCards() {
-  const { data: summary, isLoading } = useAccountSummary();
-  const { format } = useCurrency();
-
-  if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-32 bg-muted animate-pulse rounded" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  if (!summary) return null;
-
-  return (
-    <div className="grid gap-4 md:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-          <Wallet className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {format(summary.totalBalance)}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Across {summary.accountCount} accounts
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Cash</CardTitle>
-          <Wallet className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {format(summary.byType.cash)}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Bank Accounts</CardTitle>
-          <Building2 className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {format(summary.byType.bank)}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Mobile Wallets</CardTitle>
-          <Smartphone className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {format(summary.byType.mfs)}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Mobile Financial Service
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
 export default function AccountsPage() {
   const { format } = useCurrency();
-  
-  const columns: ColumnDef<Account>[] = [
-    {
-      accessorKey: "name",
-      header: "Account Name",
-      cell: ({ row }) => {
-        const account = row.original;
-        return (
-          <div className="flex items-center gap-2">
-            {getAccountTypeIcon(account.type)}
-            <span className="font-medium">{account.name}</span>
-            {account.isDefault && (
-              <Badge variant="secondary" className="text-xs">
-                Default
-              </Badge>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "type",
-      header: "Type",
-      cell: ({ row }) => {
-        const type = row.getValue("type") as string;
-        return (
-          <Badge variant="outline">{getAccountTypeLabel(type)}</Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "balance",
-      header: "Balance",
-      cell: ({ row }) => {
-        const balance = row.getValue("balance") as number;
-        return (
-          <span className={`font-semibold ${balance < 0 ? "text-red-500" : "text-green-600"}`}>
-            {format(balance)}
-          </span>
-        );
-      },
-    },
-    {
-      accessorKey: "accountNumber",
-      header: "Account Number",
-      cell: ({ row }) => row.getValue("accountNumber") || "-",
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        return (
-          <Badge variant={status === "active" ? "default" : "secondary"}>
-            {status === "active" ? "Active" : "Inactive"}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Created",
-      cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
-    },
-  ];
-  
+  const { data: summary, isLoading: summaryLoading } = useAccountSummary();
+
+  const sharedOperations = {
+    formConfig: accountFormConfig,
+    defaultValues,
+    getAllData: accountsApi.getAll,
+    createMutation: useCreateAccount(),
+    updateMutation: useUpdateAccount(),
+    deleteMutation: useDeleteAccount(),
+    queryKey: [...queryKeys.accounts.all()],
+    entityName: "Account",
+  };
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-8">
+      {/* ── Page header ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <PageHeader
           title="Accounts"
           subTitle="Manage your cash, bank, and mobile wallet accounts"
         />
-        <div className="flex gap-2">
-          <Link href="/accounts/transactions">
-            <Button variant="outline">
-              <ArrowRightLeft className="mr-2 h-4 w-4" />
-              Transactions
-            </Button>
-          </Link>
-        </div>
+        <Link href="/accounts/transactions">
+          <Button variant="outline" className="rounded-xl">
+            <ArrowRightLeft className="mr-2 h-4 w-4" />
+            Transactions
+          </Button>
+        </Link>
       </div>
 
-      <AccountSummaryCards />
+      {/* ── Stats summary ───────────────────────────────────────── */}
+      <AccountSummaryBanner
+        stats={getAccountStats(summary, format)}
+        isLoading={summaryLoading}
+      />
 
-      <DataTable
+      {/* ── Account cards ───────────────────────────────────────── */}
+      <DataCard
         cardTitle={(n: number) => `All Accounts (${n})`}
-        defaultPageSize={10}
-        pageSizes={[10, 20, 50, 100]}
         filterConfig={accountFilterConfig}
-        columns={columns}
-        selectable
-        searchConfig={{
-          globalSearch: true,
-          placeholder: "Search accounts by name...",
+        renderCard={(row: Account, actions) => (
+          <AccountCardView
+            item={row}
+            actions={{
+              onEdit: () => actions.onEdit?.(),
+              onDelete: () => actions.onDelete?.(),
+            }}
+          />
+        )}
+        loadingRenderCard={() => <AccountCardSkeleton />}
+        layoutConfig={{
+          columns: { default: 1, md: 2, xl: 3 },
+          gap: "lg",
         }}
-        enableSorting
-        operations={{
-          formConfig: accountFormConfig,
-          defaultValues,
-          getAllData: accountsApi.getAll,
-          createMutation: useCreateAccount(),
-          updateMutation: useUpdateAccount(),
-          deleteMutation: useDeleteAccount(),
-          queryKey: [...queryKeys.accounts.all()],
-          entityName: "Account",
-        }}
+        operations={sharedOperations}
       />
     </div>
   );

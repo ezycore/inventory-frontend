@@ -70,6 +70,8 @@ export function BaseDataCard<TData extends { _id: string }>({
   shadow = "sm",
   // Custom Rendering
   renderCard,
+  // Loading card
+  loadingRenderCard,
   // Fields
   fields,
   imageConfig,
@@ -245,7 +247,12 @@ export function BaseDataCard<TData extends { _id: string }>({
           onLayoutChange={handleLayoutChange}
         />
         <div className={layoutClasses}>
-          <CardSkeleton variant={variant} count={paginationState.pageSize} />
+          {loadingRenderCard
+            ? Array.from({ length: paginationState.pageSize }).map((_, i) => (
+                <div key={i}>{loadingRenderCard()}</div>
+              ))
+            : <CardSkeleton variant={variant} count={paginationState.pageSize} />
+          }
         </div>
       </div>
     );

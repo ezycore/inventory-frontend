@@ -25,6 +25,10 @@ export const usersApi = {
   ): Promise<ApiResponse<PaginatedResponse<User>>> =>
     apiClient.get(`/users${buildQueryParams(filters)}`),
 
+  // GET /api/users/stats - Get user statistics
+  getStats: (): Promise<ApiResponse<any>> =>
+    apiClient.get("/users/stats"),
+
   // POST /api/users - Create new user
   // Used in: useCreateUser → users/page.tsx
   create: (data: CreateUserDto): Promise<ApiResponse<User>> =>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,14 +8,15 @@ import { z } from "zod";
 
 // Types
 import type { Transaction } from "@/types";
+import type { StatData } from "@/ui/components/StatsCard";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
+import type { DashboardPeriod } from "@/services/api";
 
 // UI Components
 import { DataTable } from "@/ui/components/dataTable";
 import { DateCell } from "@/ui/components/dataTable/cells";
 import PageHeader from "@/ui/components/header";
 import { Badge } from "@/ui/components/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
 import {
   Dialog,
@@ -25,6 +26,8 @@ import {
   DialogTrigger,
 } from "@/ui/components/dialog";
 import DynamicForm from "@/ui/components/form";
+import StatsCard from "@/ui/components/StatsCard";
+import { AreaChart } from "@/ui/components/charts";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -32,16 +35,21 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowLeft,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { useCurrency } from "@/lib/currency";
+
+// Dashboard reusables
+import { PeriodFilter } from "@/components/dashboard/period-filter";
+import { formatPeriodLabel } from "@/components/dashboard/helpers";
 
 // Hooks & API
 import {
   useCreateIncome,
   useCreateExpense,
   useCreateTransfer,
-  useTransactionSummary,
+  useTransactionStats,
 } from "@/services/api";
 import { FilterConfig } from "@/types/DataTable";
 import { transactionsApi } from "@/services/api";
@@ -290,85 +298,105 @@ const transferFormConfig: DynamicFormConfig = {
   ],
 };
 
-function TransactionSummaryCards() {
-  const { data: summary, isLoading } = useTransactionSummary();
+function TransactionStatsSection({
+  statsParams,
+}: {
+  statsParams?: { period?: string; weekStartDay?: number; startDate?: string; endDate?: string };
+}) {
+  const { data: stats, isLoading } = useTransactionStats(statsParams);
   const { format } = useCurrency();
-  if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-32 bg-muted animate-pulse rounded" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
 
-  if (!summary) return null;
+  // Dynamic trend label based on period
+  const trendLabel = stats?.period
+    ? `vs previous ${stats.period.chartGrouping === "hourly" ? "day" : stats.period.key === "thisWeek" ? "week" : stats.period.key === "thisMonth" ? "month" : "period"}`
+    : "vs previous period";
+
+  // Dynamic chart subtitle
+  const chartSubtitle = stats?.period
+    ? `${formatPeriodLabel(stats.period)} – ${stats.period.chartGrouping} breakdown`
+    : "";
+
+  const statData: StatData[] = [
+    {
+      label: "Total Income",
+      value: stats ? format(stats.totalIncome) : "0",
+      icon: TrendingUp,
+      variant: "success",
+      trend: stats
+        ? {
+            value: `${stats.incomeTrend >= 0 ? "+" : ""}${stats.incomeTrend}%`,
+            direction: stats.incomeTrend >= 0 ? "up" : "down",
+            label: trendLabel,
+          }
+        : undefined,
+      prefix: "+",
+    },
+    {
+      label: "Total Expense",
+      value: stats ? format(stats.totalExpense) : "0",
+      icon: TrendingDown,
+      variant: "destructive",
+      trend: stats
+        ? {
+            value: `${stats.expenseTrend >= 0 ? "+" : ""}${stats.expenseTrend}%`,
+            direction: stats.expenseTrend >= 0 ? "up" : "down",
+            label: trendLabel,
+          }
+        : undefined,
+      prefix: "-",
+    },
+    {
+      label: "Transfers",
+      value: stats ? format(stats.totalTransfers) : "0",
+      icon: ArrowRightLeft,
+      variant: "info",
+    },
+    {
+      label: "Net Change",
+      value: stats ? format(Math.abs(stats.netChange)) : "0",
+      icon: Wallet,
+      variant: stats && stats.netChange >= 0 ? "success" : "destructive",
+      trend: stats
+        ? {
+            value: `${stats.netTrend >= 0 ? "+" : ""}${stats.netTrend}%`,
+            direction: stats.netTrend >= 0 ? "up" : "down",
+            label: trendLabel,
+          }
+        : undefined,
+      prefix: stats && stats.netChange >= 0 ? "+" : "-",
+    },
+  ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-          <TrendingUp className="h-4 w-4 text-green-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">
-            +{format(summary.totalIncome)}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <StatsCard
+        data={statData}
+        isLoading={isLoading}
+        columns={{ default: 1, sm: 2, lg: 4 }}
+      />
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Expense</CardTitle>
-          <TrendingDown className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-500">
-            -{format(summary.totalExpense)}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Transfers</CardTitle>
-          <ArrowRightLeft className="h-4 w-4 text-blue-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-blue-500">
-            {format(summary.totalTransferOut || 0)}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Net Change</CardTitle>
-          {summary.netChange >= 0 ? (
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          ) : (
-            <TrendingDown className="h-4 w-4 text-red-500" />
-          )}
-        </CardHeader>
-        <CardContent>
-          <div
-            className={`text-2xl font-bold ${
-              summary.netChange >= 0 ? "text-green-600" : "text-red-500"
-            }`}
-          >
-            {summary.netChange >= 0 ? "+" : ""}{format(summary.netChange)}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Income vs Expense Area Chart */}
+      <AreaChart
+        data={stats?.chartData || []}
+        series={[
+          {
+            dataKey: "income",
+            name: "Income",
+            color: "var(--color-chart-2)",
+          },
+          {
+            dataKey: "expense",
+            name: "Expense",
+            color: "var(--color-destructive)",
+          },
+        ]}
+        title="Income vs Expense"
+        subtitle={chartSubtitle}
+        height={280}
+        className="overflow-hidden"
+        tooltipFormatter={(v) => format(v)}
+      />
     </div>
   );
 }
@@ -529,11 +557,44 @@ function TransferDialog() {
 export default function TransactionsPage() {
   const { format } = useCurrency();
 
+  // ── Period filter state (reuses dashboard pattern) ──
+  const [period, setPeriod] = useState<DashboardPeriod>("thisMonth");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+
+  const isCustomValid = period !== "custom" || (!!customStart && !!customEnd);
+
+  const statsParams = useMemo(() => {
+    if (!isCustomValid) return undefined;
+    const params: {
+      period: string;
+      weekStartDay: number;
+      startDate?: string;
+      endDate?: string;
+    } = { period, weekStartDay: 1 };
+    if (period === "custom" && customStart && customEnd) {
+      params.startDate = customStart;
+      params.endDate = customEnd;
+    }
+    return params;
+  }, [period, customStart, customEnd, isCustomValid]);
+
+  // Fetch stats to get resolved date range for table filtering
+  const { data: stats } = useTransactionStats(statsParams);
+
+  const typeColorMap: Record<string, string> = {
+    income: "border-l-4 border-l-green-500",
+    expense: "border-l-4 border-l-red-500",
+    transfer: "border-l-4 border-l-blue-500",
+  };
+
   const columns: ColumnDef<Transaction>[] = [
     {
       accessorKey: "createdAt",
       header: "Date",
-      cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
+      cell: ({ row }) => (
+        <DateCell value={row.getValue("createdAt")} isShowDateOnly={false} />
+      ),
     },
     {
       accessorKey: "type",
@@ -600,6 +661,18 @@ export default function TransactionsPage() {
     },
   ];
 
+  // Wrap getAllData to inject period date range so the table only shows filtered rows
+  const getAllDataWithPeriod = useMemo(() => {
+    return (filters: Record<string, any>) => {
+      const merged = { ...filters };
+      if (stats?.period) {
+        merged.startDate = stats.period.startDate;
+        merged.endDate = stats.period.endDate;
+      }
+      return transactionsApi.getAll(merged);
+    };
+  }, [stats?.period]);
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -621,7 +694,18 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <TransactionSummaryCards />
+      {/* Period Filter */}
+      <PeriodFilter
+        period={period}
+        setPeriod={setPeriod}
+        customStart={customStart}
+        setCustomStart={setCustomStart}
+        customEnd={customEnd}
+        setCustomEnd={setCustomEnd}
+        periodInfo={stats?.period ? { ...stats.period, key: stats.period.key as DashboardPeriod } : undefined}
+      />
+
+      <TransactionStatsSection statsParams={statsParams} />
 
       <DataTable
         cardTitle={(n: number) => `All Transactions (${n})`}
@@ -634,9 +718,10 @@ export default function TransactionsPage() {
           placeholder: "Search transactions...",
         }}
         enableSorting
+        rowClassName={(row) => typeColorMap[row.type] || ""}
         operations={{
-          getAllData: transactionsApi.getAll,
-          queryKey: [...queryKeys.transactions.all()],
+          getAllData: getAllDataWithPeriod,
+          queryKey: [...queryKeys.transactions.all(), { periodStart: stats?.period?.startDate, periodEnd: stats?.period?.endDate }],
           entityName: "Transaction",
         }}
       />

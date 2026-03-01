@@ -291,6 +291,9 @@ export interface DataCardProps<TData, TValue = any> {
     },
   ) => React.ReactNode;
 
+  /** Custom loading card render function – shown in place of the default skeleton */
+  loadingRenderCard?: () => React.ReactNode;
+
   // Field Configuration (for built-in variants)
   /** Fields to display in cards */
   fields?: CardFieldConfig<TData>[];
@@ -385,6 +388,9 @@ export interface BaseDataCardProps<TData> {
       onDelete?: () => void;
     },
   ) => React.ReactNode;
+
+  /** Custom loading card render function – shown in place of the default skeleton */
+  loadingRenderCard?: () => React.ReactNode;
 
   // Fields (for built-in variants)
   fields?: CardFieldConfig<TData>[];

@@ -844,6 +844,24 @@ export interface TransactionSummary {
   netChange: number;
 }
 
+export interface TransactionStats {
+  totalIncome: number;
+  totalExpense: number;
+  totalTransfers: number;
+  netChange: number;
+  transactionCount: number;
+  incomeTrend: number;
+  expenseTrend: number;
+  netTrend: number;
+  chartData: Array<{ label: string; income: number; expense: number }>;
+  period: {
+    key: string;
+    startDate: string;
+    endDate: string;
+    chartGrouping: "hourly" | "daily" | "weekly" | "monthly";
+  };
+}
+
 // Purchase Order Types
 export type PurchaseOrderStatus =
   | "draft"

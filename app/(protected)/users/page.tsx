@@ -5,6 +5,7 @@ import {
   useDeleteUser,
   useToggleUserStatus,
   useUpdateUser,
+  useUserStats,
 } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -13,9 +14,14 @@ import type { User } from "@/types/users";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { DataTable } from "@/ui/components/dataTable";
+import { DataCard } from "@/ui/components/dataCard";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import PageHeader from "@/ui/components/header";
+import StatsCard, { type StatData } from "@/ui/components/StatsCard";
+import ViewToggle from "@/ui/components/ViewToggle";
+import UserCardView from "@/components/users/cardview";
+import UserCardLoading from "@/components/users/card-loading";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   AlertCircle,
@@ -24,11 +30,49 @@ import {
   CheckCircle2,
   Mail,
   MailCheck,
+  Shield,
+  UserCheck,
+  Users,
+  XCircle,
 } from "lucide-react";
 import LocationCountCell from "@/components/locations/LocationCountCell";
 import { usersApi } from "@/services/api";
 import { ApiResponse, Location, PaginatedResponse } from "@/types";
 import { sanitize } from "@/utils";
+import { useViewMode } from "@/hooks/use-view-mode";
+
+function getUserStats(stats: Record<string, any> | undefined): StatData[] {
+  return [
+    {
+      label: "Total Users",
+      value: stats?.total || 0,
+      icon: Users,
+      variant: "primary",
+      description: "All registered users",
+    },
+    {
+      label: "Active",
+      value: stats?.active || 0,
+      icon: CheckCircle2,
+      variant: "success",
+      description: "Currently active",
+    },
+    {
+      label: "Admins",
+      value: stats?.admins || 0,
+      icon: Shield,
+      variant: "danger",
+      description: "Admin users",
+    },
+    {
+      label: "Staff",
+      value: stats?.staff || 0,
+      icon: UserCheck,
+      variant: "info",
+      description: "Staff members",
+    },
+  ];
+}
 
 // Form configuration for user management
 const userFormConfig: DynamicFormConfig = {
@@ -225,19 +269,20 @@ const defaultValues = {
 
 export default function UsersPage() {
   const { user: currentUser } = useAuthStore();
+  const [viewMode, setViewMode] = useViewMode("users", "card");
 
   // All hooks must be called unconditionally at the top level
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
   const deleteMutation = useDeleteUser();
   const toggleStatusMutation = useToggleUserStatus();
+  const { data: statsData, isLoading: statsLoading } = useUserStats?.() ?? { data: undefined, isLoading: false };
 
   // Check if current user is admin or manager
   const isAdminOrManager =
     currentUser?.role === "admin" || currentUser?.role === "manager";
 
   // Custom actions for toggling user status
-  // We'll create a render function that shows the appropriate button
   const customActions: CustomAction[] = [
     {
       type: "toggle-status",
@@ -245,7 +290,6 @@ export default function UsersPage() {
       onClick: (row: User) => {
         toggleStatusMutation.mutate(row._id);
       },
-      // Custom render to show different button based on status
       render: (row: User) => {
         const isActive = row.status === "active";
         return (
@@ -273,45 +317,71 @@ export default function UsersPage() {
     },
   ];
 
+  const sharedOperations = {
+    formConfig: userFormConfig,
+    disabledFieldsInEdit: ["email"],
+    defaultValues: defaultValues,
+    getAllData: usersApi.getAll,
+    createMutation,
+    updateMutation,
+    deleteMutation,
+    queryKey: [...queryKeys.users.all()],
+    entityName: "User",
+    isViewAvailable: false,
+    editTooltip: "Edit User",
+    deleteTooltip: "Delete User (must be deactivated first)",
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
       <PageHeader
         title="User Management"
         subTitle="Manage users, roles, and permissions in your organization."
+        actions={isAdminOrManager ? <ViewToggle storageKey="users" defaultView={viewMode} onChange={setViewMode} /> : undefined}
       />
 
-      {/* Only show table if user is admin or manager */}
       {isAdminOrManager ? (
-        <DataTable
-          cardTitle={(dataLength: number) => `All Users (${dataLength})`}
-          defaultPageSize={10}
-          pageSizes={[10, 20, 50, 100]}
-          columns={columns}
-          selectable={false}
-          searchConfig={searchConfig}
-          enableSorting={true}
-          defaultColumnVisibility={{ phone: false }}
-          enableRowHover={true}
-          rowClassName={(row: User) =>
-            row.status === "inactive" ? "bg-red-50 opacity-70" : ""
-          }
-          customActions={customActions}
-          operations={{
-            formConfig: userFormConfig,
-            disabledFieldsInEdit: ["email"],
-            defaultValues: defaultValues,
-            getAllData: usersApi.getAll,
-            createMutation: createMutation,
-            updateMutation: updateMutation,
-            deleteMutation: deleteMutation,
-            queryKey: [...queryKeys.users.all()],
-            entityName: "User",
-            isViewAvailable: false,
-            editTooltip: "Edit User",
-            deleteTooltip: "Delete User (must be deactivated first)"
-          }}
-        />
+        <>
+          <StatsCard
+            stats={getUserStats(statsData?.data)}
+            isLoading={statsLoading}
+          />
+
+          {viewMode === "table" ? (
+            <DataTable
+              cardTitle={(dataLength: number) => `All Users (${dataLength})`}
+              defaultPageSize={10}
+              pageSizes={[10, 20, 50, 100]}
+              columns={columns}
+              selectable={false}
+              searchConfig={searchConfig}
+              enableSorting={true}
+              defaultColumnVisibility={{ phone: false }}
+              enableRowHover={true}
+              rowClassName={(row: User) =>
+                row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+              }
+              customActions={customActions}
+              operations={sharedOperations}
+            />
+          ) : (
+            <DataCard
+              cardTitle={(n: number) => `All Users (${n})`}
+              defaultPageSize={12}
+              pageSizes={[12, 24, 48]}
+              layoutConfig={{
+                layout: "grid",
+                columns: { default: 1, sm: 2, lg: 3 },
+                gap: "md",
+              }}
+              searchConfig={searchConfig}
+              renderCard={UserCardView}
+              loadingRenderCard={UserCardLoading}
+              customActions={customActions}
+              operations={sharedOperations}
+            />
+          )}
+        </>
       ) : (
         <div className="flex items-center justify-center p-12 border rounded-lg">
           <div className="text-center">
