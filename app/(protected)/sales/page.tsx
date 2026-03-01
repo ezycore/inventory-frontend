@@ -25,9 +25,9 @@ export default function SalesPage() {
   // Get organization features
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
-  const defaultCustomer = user.defaultData?.customerId;
-  const defaultAccountType = user.defaultData?.accountId;
-  const defaultLocationId = user.defaultData?.locationId;
+  const defaultCustomer = user?.defaultData?.customerId;
+  const defaultAccountType = user?.defaultData?.accountId;
+  const defaultLocationId = user?.defaultData?.locationId;
 
   // Store state
   const {

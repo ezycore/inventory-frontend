@@ -2,7 +2,7 @@
 
 import { cn } from "@/ui/lib/utils";
 import { LayoutGrid, LayoutList } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "../button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 
@@ -16,25 +16,39 @@ interface ViewToggleProps {
   className?: string;
 }
 
+/**
+ * Read the persisted view mode from localStorage synchronously.
+ */
+function getStoredView(storageKey: string, defaultView: ViewMode): ViewMode {
+  if (typeof window === "undefined") return defaultView;
+  try {
+    const stored = localStorage.getItem(`view-toggle-${storageKey}`);
+    if (stored === "table" || stored === "card") return stored;
+  } catch {
+    // localStorage may be unavailable
+  }
+  return defaultView;
+}
+
 const ViewToggle = ({
   storageKey,
   defaultView = "table",
   onChange,
   className,
 }: ViewToggleProps) => {
-  const [view, setView] = useState<ViewMode>(defaultView);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(`view-toggle-${storageKey}`);
-    if (stored === "table" || stored === "card") {
-      setView(stored);
-    }
-  }, [storageKey]);
+  // Read from localStorage synchronously to avoid a flash/blink on first render
+  const [view, setView] = useState<ViewMode>(() =>
+    getStoredView(storageKey, defaultView),
+  );
 
   const handleChange = useCallback(
     (newView: ViewMode) => {
       setView(newView);
-      localStorage.setItem(`view-toggle-${storageKey}`, newView);
+      try {
+        localStorage.setItem(`view-toggle-${storageKey}`, newView);
+      } catch {
+        // ignore
+      }
       onChange?.(newView);
     },
     [storageKey, onChange],

@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { EyeIcon } from 'lucide-react'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
+import { DataCard } from '@/ui/components/dataCard'
 import { productsApi, useProductStats } from '@/services/api'
 import { productFormConfig } from '@/components/products/form-config'
 import { productColumns } from '@/components/products/columns'
@@ -15,90 +16,148 @@ import { Sheet, SheetContent } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
 import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
-import StatsCard from '@/ui/components/StatsCard';
+import StatsCard from '@/ui/components/StatsCard'
+import ViewToggle from '@/ui/components/ViewToggle'
+import { useViewMode } from '@/hooks/use-view-mode'
+import { ProductCard } from '@/components/products/product-card'
 
 export default function ProductsPage() {
-
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useViewMode('products')
   const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
   const filteredColumns = useFilteredColumns(productColumns, 'product')
-  const { data, isLoading } = useProductStats();
+  const { data: statsData, isLoading: statsLoading } = useProductStats()
+
+  // Product stats (only product-relevant data, no inventory stats)
+  const productStats = getProductStats(statsData)
+
+  // Shared operations config
+  const sharedOperations = {
+    formConfig: filteredFormConfig,
+    getAllData: productsApi.getAll,
+    createMutation: useCreateProduct(),
+    updateMutation: useUpdateProduct(),
+    deleteMutation: useDeleteProduct(),
+    isViewAvailable: false,
+    queryKey: [...queryKeys.products.all()],
+    entityName: "Product" as const,
+    openInside: "drawer" as const,
+    editTooltip: "Edit Product",
+    deleteTooltip: "Delete Product",
+    transformEditData: (item: any) => {
+      const transformedVariants =
+        item.variants?.map((variant: any) => {
+          const attributeKey = Object.keys(variant.attributes || {})[0]
+          const attributeValue = variant.attributes?.[attributeKey]
+          return {
+            id: variant._id || `${attributeKey}-${attributeValue}`,
+            _id: variant._id,
+            attributeName: attributeKey || "",
+            value: attributeValue || "",
+            sku: variant.sku || "",
+            costPrice: variant.costPrice || 0,
+            price: variant.price || 0,
+            enabled: variant.status === "active",
+            images: variant.images || [],
+          }
+        }) || []
+      return { ...item, variants: transformedVariants }
+    },
+    prepareSubmitData,
+  }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6">
       <PageHeader
         title="Products Management"
         subTitle="Manage your products and their details."
-        actions={<FieldSettingsLink module="product" />}
+        actions={
+          <div className="flex items-center gap-3">
+            <ViewToggle
+              storageKey="products"
+              defaultView={viewMode}
+              onChange={setViewMode}
+            />
+            <FieldSettingsLink module="product" />
+          </div>
+        }
       />
 
       {/* Stats Cards */}
-      <StatsCard data={getProductStats(data)} isLoading={isLoading} />
-
-      <DataTable
-        cardTitle={`All Products`}
-        columns={filteredColumns}
-        selectable={true}
-        manageColumns={true}
-        module="product"
-        variant='card'
-        stickyHeader={true}
-        searchConfig={{
-          globalSearch: true,
-          placeholder: "Search products by name...",
-        }}
-        filterConfig={productFilterConfig}
-        customActions={[
-          {
-            icon: <EyeIcon />,
-            tooltip: "View Product Details",
-            onClick: (row) => setSelectedProductId(row._id),
-            placement: "cell",
-            type: "custom",
-          },
-        ]}
-        operations={{
-          formConfig: filteredFormConfig,
-          getAllData: productsApi.getAll,
-          createMutation: useCreateProduct(),
-          updateMutation: useUpdateProduct(),
-          deleteMutation: useDeleteProduct(),
-          isViewAvailable: false,
-          queryKey: [...queryKeys.products.all()],
-          entityName: "Product",
-          openInside: "drawer",
-          editTooltip: "Edit Product",
-          deleteTooltip: "Delete Product",
-          transformEditData: (item: any) => {
-            // Transform variants and images (images auto-handled in form helper)
-            const transformedVariants =
-              item.variants?.map((variant: any) => {
-                const attributeKey = Object.keys(variant.attributes || {})[0];
-                const attributeValue = variant.attributes?.[attributeKey];
-
-                return {
-                  id: variant._id || `${attributeKey}-${attributeValue}`,
-                  _id: variant._id, // preserve MongoDB _id for smart merge
-                  attributeName: attributeKey || "",
-                  value: attributeValue || "",
-                  sku: variant.sku || "",
-                  costPrice: variant.costPrice || 0,
-                  price: variant.price || 0,
-                  enabled: variant.status === "active",
-                  images: variant.images || [], // preserve existing variant images
-                };
-              }) || [];
-
-            return {
-              ...item,
-              variants: transformedVariants,
-            };
-          },
-          prepareSubmitData,
-        }}
-        enableSorting={true}
-        enableRowHover={true}
+      <StatsCard
+        data={productStats}
+        isLoading={statsLoading}
+        columns={{ default: 1, lg: productStats.length }}
       />
+
+      {/* Table View */}
+      {viewMode === 'table' && (
+        <DataTable
+          cardTitle="All Products"
+          columns={filteredColumns}
+          selectable={true}
+          manageColumns={true}
+          module="product"
+          variant="card"
+          stickyHeader={true}
+          searchConfig={{
+            globalSearch: true,
+            placeholder: "Search products by name...",
+          }}
+          filterConfig={productFilterConfig}
+          customActions={[
+            {
+              icon: <EyeIcon />,
+              tooltip: "View Product Details",
+              onClick: (row) => setSelectedProductId(row._id),
+              placement: "cell",
+              type: "custom",
+            },
+          ]}
+          operations={sharedOperations}
+          enableSorting={true}
+          enableRowHover={true}
+        />
+      )}
+
+      {/* Card View */}
+      {viewMode === 'card' && (
+        <DataCard
+          cardTitle="All Products"
+          defaultPageSize={12}
+          pageSizes={[12, 24, 48]}
+          layoutConfig={{
+            layout: 'grid',
+            columns: { default: 1, sm: 2, md: 3, lg: 4 },
+            gap: 'md',
+          }}
+          variant="default"
+          enableCardHover={true}
+          searchConfig={{
+            globalSearch: true,
+            placeholder: "Search products by name...",
+          }}
+          filterConfig={productFilterConfig}
+          renderCard={(row: any, actions) => (
+            <ProductCard
+              product={row}
+              onEdit={actions.onEdit}
+              onView={() => setSelectedProductId(row._id)}
+              onDelete={actions.onDelete}
+            />
+          )}
+          customActions={[
+            {
+              icon: <EyeIcon className="h-4 w-4" />,
+              tooltip: "View Details",
+              onClick: (row: any) => setSelectedProductId(row._id),
+              placement: "header",
+              type: "custom",
+            },
+          ]}
+          operations={sharedOperations}
+        />
+      )}
 
       <Sheet
         open={!!selectedProductId}
@@ -117,5 +176,5 @@ export default function ProductsPage() {
         </SheetContent>
       </Sheet>
     </div>
-  );
+  )
 }

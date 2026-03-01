@@ -62,8 +62,9 @@ export function useEnhancedColumns<TData, TValue>({
       } as ColumnDef<TData, TValue>);
     }
     
-    // Add actions column
-    if (actions && !cols.some((col: any) => col.id === "actions")) {
+    // Add actions column (only if there are actual action buttons to show)
+    const hasActions = actions && (actions.viewable || actions.editable || actions.deletable);
+    if (hasActions && !cols.some((col: any) => col.id === "actions")) {
       cols.push({
         id: "actions",
         header: "Actions",

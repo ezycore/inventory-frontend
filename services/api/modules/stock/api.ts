@@ -6,6 +6,15 @@ import type {
 } from "@/types";
 import { buildQueryParams } from "../../utils";
 
+// ── Period type (shared with dashboard/reports) ──
+export type StockMovementPeriod =
+  | "today"
+  | "thisWeek"
+  | "thisMonth"
+  | "last6Months"
+  | "lastYear"
+  | "custom";
+
 interface StockMovementFilters {
   variantId?: string;
   productId?: string;
@@ -13,8 +22,10 @@ interface StockMovementFilters {
   type?: string;
   reason?: string;
   movementType?: string;
-  start_date?: string;
-  end_date?: string;
+  period?: StockMovementPeriod;
+  weekStartDay?: number;
+  startDate?: string;  // YYYY-MM-DD (only for period="custom")
+  endDate?: string;    // YYYY-MM-DD (only for period="custom")
   page?: number;
   limit?: number;
   sort_by?: string;
@@ -58,6 +69,11 @@ export const stockMovementsApi = {
     filters: StockMovementFilters = {},
   ): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/inventory-movements${buildQueryParams(filters)}`),
+
+  getStats: (
+    filters: StockMovementFilters = {},
+  ): Promise<ApiResponse<any>> =>
+    apiClient.get(`/inventory-movements/stats${buildQueryParams(filters)}`),
 
   getInventoryHistory: (
     productId: string,

@@ -8,14 +8,53 @@ import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
 import { DataTable } from "@/ui/components/dataTable";
+import { DataCard } from "@/ui/components/dataCard";
 import { DateCell } from "@/ui/components/dataTable/cells";
 import PageHeader from "@/ui/components/header";
+import StatsCard, { type StatData } from "@/ui/components/StatsCard";
+import ViewToggle from "@/ui/components/ViewToggle";
+import DiscountCardView from "@/components/discounts/cardview";
 
 // Hooks & API
-import { useCreateDiscount, useDeleteDiscount, useUpdateDiscount } from "@/services/api";
+import { useCreateDiscount, useDeleteDiscount, useUpdateDiscount, useDiscountStats } from "@/services/api";
 import { discountsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
+import { useViewMode } from "@/hooks/use-view-mode";
+import { CheckCircle2, Hash, Percent, Tag, XCircle } from "lucide-react";
+
+function getDiscountStats(stats: Record<string, any> | undefined): StatData[] {
+  return [
+    {
+      label: "Total Discounts",
+      value: stats?.total || 0,
+      icon: Tag,
+      variant: "primary",
+      description: "All registered discounts",
+    },
+    {
+      label: "Active",
+      value: stats?.active || 0,
+      icon: CheckCircle2,
+      variant: "success",
+      description: "Currently active",
+    },
+    {
+      label: "Percentage",
+      value: stats?.percentage || 0,
+      icon: Percent,
+      variant: "info",
+      description: "Percentage type",
+    },
+    {
+      label: "Fixed Amount",
+      value: stats?.fixed || 0,
+      icon: Hash,
+      variant: "warning",
+      description: "Fixed amount type",
+    },
+  ];
+}
 
 const columns: ColumnDef<Discount>[] = [
   { accessorKey: "name", header: "Discount Name" },
@@ -172,36 +211,57 @@ const defaultValues = {
 };
 
 export default function DiscountsPage() {
+  const [viewMode, setViewMode] = useViewMode("discounts");
+  const { data: statsData, isLoading: statsLoading } = useDiscountStats?.() ?? { data: undefined, isLoading: false };
+
+  const sharedOperations = {
+    formConfig: discountFormConfig,
+    defaultValues,
+    getAllData: discountsApi.getAll,
+    createMutation: useCreateDiscount(),
+    updateMutation: useUpdateDiscount(),
+    deleteMutation: useDeleteDiscount(),
+    queryKey: [...queryKeys.discounts.all()],
+    entityName: "Discount",
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <PageHeader
         title="Discounts"
         subTitle="Manage discount rates for sales and purchases"
+        actions={<ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />}
       />
 
-      <DataTable
-        cardTitle={(n: number) => `All Discounts (${n})`}
-        defaultPageSize={10}
-        pageSizes={[10, 20, 50, 100]}
-        filterConfig={discountFilterConfig}
-        columns={columns}
-        selectable
-        searchConfig={{
-          globalSearch: true,
-          placeholder: "Search discounts by name...",
-        }}
-        enableSorting
-        operations={{
-          formConfig: discountFormConfig,
-          defaultValues,
-          getAllData: discountsApi.getAll,
-          createMutation: useCreateDiscount(),
-          updateMutation: useUpdateDiscount(),
-          deleteMutation: useDeleteDiscount(),
-          queryKey: [...queryKeys.discounts.all()],
-          entityName: "Discount",
-        }}
+      <StatsCard
+        stats={getDiscountStats(statsData?.data)}
+        isLoading={statsLoading}
       />
+
+      {viewMode === "table" ? (
+        <DataTable
+          cardTitle={(n: number) => `All Discounts (${n})`}
+          defaultPageSize={10}
+          pageSizes={[10, 20, 50, 100]}
+          filterConfig={discountFilterConfig}
+          columns={columns}
+          selectable
+          searchConfig={{
+            globalSearch: true,
+            placeholder: "Search discounts by name...",
+          }}
+          enableSorting
+          operations={sharedOperations}
+        />
+      ) : (
+        <DataCard
+          cardTitle={(n: number) => `All Discounts (${n})`}
+          filterConfig={discountFilterConfig}
+          renderCard={DiscountCardView}
+          gridClassName="grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+          operations={sharedOperations}
+        />
+      )}
     </div>
   );
 }

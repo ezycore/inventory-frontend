@@ -46,6 +46,22 @@ export function useTransactionSummary(
   });
 }
 
+// Get transaction stats (period-based chart + trends)
+export function useTransactionStats(
+  params: {
+    period?: string;
+    weekStartDay?: number;
+    startDate?: string;
+    endDate?: string;
+  } = {}
+) {
+  return useQuery({
+    queryKey: queryKeys.transactions.stats(params),
+    queryFn: () => transactionsApi.getStats(params),
+    select: (data) => data.data,
+  });
+}
+
 // Create income transaction
 export function useCreateIncome() {
   const queryClient = useQueryClient();

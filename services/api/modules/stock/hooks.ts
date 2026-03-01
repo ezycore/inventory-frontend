@@ -17,8 +17,9 @@ export const useStockMovements = (filters: {
  locationId?: string;
  reason?: string;
  movementType?: string;
- start_date?: string;
- end_date?: string;
+ period?: string;
+ startDate?: string;
+ endDate?: string;
  page?: number;
  limit?: number;
 } = {}) => {
@@ -26,6 +27,22 @@ export const useStockMovements = (filters: {
   queryKey: queryKeys.stockMovements.list(filters),
   queryFn: () => stockMovementsApi.getAll(filters),
  });
+};
+
+export const useStockMovementStats = (filters: {
+  productId?: string;
+  variantId?: string;
+  locationId?: string;
+  reason?: string;
+  movementType?: string;
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+} = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.stockMovements.all(), "stats", filters],
+    queryFn: () => stockMovementsApi.getStats(filters),
+  });
 };
 
 export const useInventoryHistory = (

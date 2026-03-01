@@ -70,6 +70,8 @@ export function BaseDataCard<TData extends { _id: string }>({
   shadow = "sm",
   // Custom Rendering
   renderCard,
+  // Loading card
+  loadingRenderCard,
   // Fields
   fields,
   imageConfig,
@@ -214,13 +216,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   // Get layout-specific grid classes
   const layoutClasses = useMemo(() => {
     if (layout === "list") {
-      return "flex flex-col gap-2";
-    }
-    if (layout === "masonry") {
-      return cn(
-        "columns-1 sm:columns-2 lg:columns-3 xl:columns-4",
-        gapClasses[layoutConfig?.gap || "md"]
-      );
+      return "flex flex-col gap-3";
     }
     // Grid layout
     return cn(
@@ -251,7 +247,12 @@ export function BaseDataCard<TData extends { _id: string }>({
           onLayoutChange={handleLayoutChange}
         />
         <div className={layoutClasses}>
-          <CardSkeleton variant={variant} count={paginationState.pageSize} />
+          {loadingRenderCard
+            ? Array.from({ length: paginationState.pageSize }).map((_, i) => (
+                <div key={i}>{loadingRenderCard()}</div>
+              ))
+            : <CardSkeleton variant={variant} count={paginationState.pageSize} />
+          }
         </div>
       </div>
     );
@@ -309,7 +310,7 @@ export function BaseDataCard<TData extends { _id: string }>({
         {paginatedData.map((item) => (
           <div
             key={item._id}
-            className={layout === "masonry" ? "break-inside-avoid mb-4" : ""}
+            className=""
           >
             <CardItem
               data={item}

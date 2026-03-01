@@ -13,6 +13,7 @@ export const useDiscount = discountHooks.useDetail;
 export const useCreateDiscount = discountHooks.useCreate;
 export const useUpdateDiscount = discountHooks.useUpdate;
 export const useDeleteDiscount = discountHooks.useDelete;
+export const useDiscountStats = discountHooks.useStats;
 
 // Alias
 export const useAddDiscount = useCreateDiscount;

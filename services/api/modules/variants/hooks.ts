@@ -85,3 +85,15 @@ export const useDeleteVariantAttribute = () => {
     onError: handleMutationError,
   })
 }
+
+/**
+ * Hook for fetching variant attribute statistics
+ */
+export const useVariantStats = () => {
+  return useQuery({
+    queryKey: [...queryKeys.variantAttributes.all(), 'stats'],
+    queryFn: () => variantAttributesApi.getStats(),
+    select: (data) => data.data,
+    staleTime: 10 * 60 * 1000,
+  })
+}

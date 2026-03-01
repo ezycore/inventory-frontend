@@ -100,7 +100,7 @@ export default function SalesReturnsPage() {
                 {...ctx.searchForm.register('saleId')}
               />
             </div>
-            <Button type="submit" disabled={ctx.isLoadingSale}>
+            <Button type="submit" disabled={ctx.isLoadingSale || !ctx.searchForm.watch('saleId')}>
               <Search className="h-4 w-4 mr-2" />
               Search
             </Button>

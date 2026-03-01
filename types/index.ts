@@ -418,10 +418,16 @@ export interface Inventory extends BaseEntity {
   quantity: number;
   quantityAlert: number;
   isLowStock: boolean;
+  quantityBreakdown?: {
+    displayText: string; // e.g., "2 boxes + 5 pieces"
+  }
   status: "active" | "inactive";
   product?: Product;
   variant?: Variant;
+  location?: Location;
   costPrice: number;
+  restockStatus?: "normal" | "ordered" | "hidden";
+  neededQuantity?: number;
 }
 
 export interface CreateInventoryDto {
@@ -836,6 +842,24 @@ export interface TransactionSummary {
   totalTransferOut: number;
   totalTransferIn: number;
   netChange: number;
+}
+
+export interface TransactionStats {
+  totalIncome: number;
+  totalExpense: number;
+  totalTransfers: number;
+  netChange: number;
+  transactionCount: number;
+  incomeTrend: number;
+  expenseTrend: number;
+  netTrend: number;
+  chartData: Array<{ label: string; income: number; expense: number }>;
+  period: {
+    key: string;
+    startDate: string;
+    endDate: string;
+    chartGrouping: "hourly" | "daily" | "weekly" | "monthly";
+  };
 }
 
 // Purchase Order Types
