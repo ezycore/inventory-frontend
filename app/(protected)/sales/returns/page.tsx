@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { CornerUpLeft, Search, Package, FileText } from 'lucide-react';
+import { CornerUpLeft, Search, Package, FileText, Plus, Eye } from 'lucide-react';
 
 import { Button } from '@/ui/components/button';
 import {
@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/ui/components/select';
 import { Textarea } from '@/ui/components/textarea';
-import { CardTable } from '@/ui/components/custom/card-table';
+import { BaseDataTable } from '@/ui/components/dataTable/base-data-table ';
 import type { SalesReturnReason } from '@/types';
 
 import {
@@ -63,11 +63,17 @@ export default function SalesReturnsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Sales Returns</h1>
-        <p className="text-muted-foreground">
-          Process customer returns and manage refunds
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Sales Returns</h1>
+          <p className="text-muted-foreground">
+            Manage product returns and refunds
+          </p>
+        </div>
+        <Button onClick={() => ctx.setShowNewReturn(!ctx.showNewReturn)}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Return
+        </Button>
       </div>
 
       {/* Summary Stats */}
@@ -127,11 +133,11 @@ export default function SalesReturnsPage() {
                 {ctx.sale.customerId?.name
                   ? `Customer: ${ctx.sale.customerId.name}`
                   : 'Walk-in Customer'}
-                {' • '}Total: {ctx.formatCurrency(ctx.sale.totalAmount)}
-                {' • '}Paid: {ctx.formatCurrency(ctx.sale.paidAmount)}
+                {' \u2022 '}Total: {ctx.formatCurrency(ctx.sale.totalAmount)}
+                {' \u2022 '}Paid: {ctx.formatCurrency(ctx.sale.paidAmount)}
                 {ctx.sale.dueAmount > 0 && (
                   <span className="text-destructive">
-                    {' '}• Due: {ctx.formatCurrency(ctx.sale.dueAmount)}
+                    {' \u2022 '}Due: {ctx.formatCurrency(ctx.sale.dueAmount)}
                   </span>
                 )}
               </CardDescription>
@@ -146,7 +152,8 @@ export default function SalesReturnsPage() {
                 Select Items to Return
               </CardTitle>
               <CardDescription>
-                Choose which items the customer is returning and specify quantities
+                Choose which items the customer is returning and specify
+                quantities
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -169,7 +176,7 @@ export default function SalesReturnsPage() {
                   <div className="flex justify-between text-lg font-medium">
                     <span>Total Return:</span>
                     <span>
-                      {ctx.totalReturnQty} items •{' '}
+                      {ctx.totalReturnQty} items &bull;{' '}
                       {ctx.formatCurrency(ctx.totalRefundAmount)}
                     </span>
                   </div>
@@ -192,7 +199,9 @@ export default function SalesReturnsPage() {
                   <Label>Reason for Return</Label>
                   <Select
                     value={ctx.reason}
-                    onValueChange={(v) => ctx.setReason(v as SalesReturnReason)}
+                    onValueChange={(v) =>
+                      ctx.setReason(v as SalesReturnReason)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -256,15 +265,45 @@ export default function SalesReturnsPage() {
         </>
       )}
 
-      {/* Returns History */}
-      <CardTable
-        title="Recent Returns"
-        description="View and manage processed sales returns"
-        columns={ctx.returnsColumns}
-        data={ctx.returns}
-        emptyMessage="No sales returns found"
-        isLoading={ctx.isLoadingReturns}
-      />
+      {/* ─── Returns History Table ─── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Returns</CardTitle>
+          <CardDescription>
+            {ctx.paginationInfo
+              ? `${ctx.paginationInfo.total} return(s) found`
+              : 'Loading...'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BaseDataTable
+            columns={ctx.returnsColumns}
+            data={ctx.returns}
+            isLoading={ctx.isLoadingReturns}
+            filterConfig={ctx.filterConfig}
+            searchConfig={{
+              globalSearch: true,
+              placeholder: 'Search returns...',
+            }}
+            actions={{}}
+            pagination={{
+              pageIndex: ctx.page - 1,
+              pageSize: ctx.limit,
+              totalPages: ctx.paginationInfo?.totalPages ?? 1,
+              totalItems: ctx.paginationInfo?.total ?? 0,
+              hasNext: ctx.paginationInfo?.hasNext ?? false,
+              hasPrev: ctx.paginationInfo?.hasPrev ?? false,
+              manualPagination: true,
+              pageSizeOptions: [10, 20, 50, 100],
+              onPaginationChange: ({ pageIndex, pageSize }) => {
+                ctx.setPage(pageIndex + 1);
+                if (pageSize !== ctx.limit) ctx.setLimit(pageSize);
+              },
+            }}
+            enableSorting
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

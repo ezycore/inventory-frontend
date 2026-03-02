@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { CheckCircle, Clock, XCircle } from 'lucide-react';
 import { Badge } from '@/ui/components/badge';
+import { DateCell } from '@/ui/components/dataTable/cells/date-cell';
 import type { SalesReturn } from '@/types';
 
 // ── Status badge helper ─────────────────────────────────────────────
@@ -9,21 +9,19 @@ export function getStatusBadge(status: string) {
   switch (status) {
     case 'completed':
       return (
-        <Badge variant="default" className="gap-1">
-          <CheckCircle className="h-3 w-3" /> Completed
+        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0">
+          Processed
         </Badge>
       );
     case 'pending':
       return (
-        <Badge variant="secondary" className="gap-1">
-          <Clock className="h-3 w-3" /> Pending
+        <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-0">
+          Pending
         </Badge>
       );
     case 'cancelled':
       return (
-        <Badge variant="destructive" className="gap-1">
-          <XCircle className="h-3 w-3" /> Cancelled
-        </Badge>
+        <Badge variant="destructive">Cancelled</Badge>
       );
     default:
       return <Badge variant="outline">{status}</Badge>;
@@ -34,106 +32,81 @@ export function getStatusBadge(status: string) {
 
 export function getReturnsColumns(
   formatCurrency: (n: number) => string,
-  isAccountsEnabled: boolean,
+  _isAccountsEnabled: boolean,
 ): ColumnDef<SalesReturn>[] {
   return [
     {
       accessorKey: 'returnNumber',
-      header: 'Return #',
+      header: 'Return ID',
       cell: ({ row }) => (
-        <span className="font-mono text-sm">{row.original.returnNumber}</span>
+        <span className="font-mono text-sm text-primary font-medium">
+          {row.original.returnNumber}
+        </span>
       ),
     },
     {
-      accessorKey: 'saleId',
-      header: 'Original Sale',
+      accessorKey: 'createdAt',
+      header: 'Date',
+      cell: ({ row }) => <DateCell value={row.original.createdAt} />,
+    },
+    {
+      accessorKey: 'invoiceNumber',
+      header: 'Invoice',
       cell: ({ row }) => {
         const { saleId, invoiceNumber } = row.original;
         const display =
           typeof saleId === 'object' && saleId?.invoiceNumber
             ? saleId.invoiceNumber
             : invoiceNumber || String(saleId);
-        return <span className="font-mono text-sm">{display}</span>;
+        return (
+          <span className="font-mono text-sm text-primary">{display}</span>
+        );
+      },
+    },
+    {
+      id: 'customer',
+      header: 'Customer',
+      cell: ({ row }) => {
+        // customerId can be a string ID or a populated object { _id, name }
+        const cid = row.original.customerId as unknown;
+        if (!cid) return <span className="text-muted-foreground">Walk-in</span>;
+        if (typeof cid === 'object' && cid !== null && 'name' in cid) {
+          return <span className="text-sm">{(cid as { name: string }).name}</span>;
+        }
+        return <span className="text-sm text-muted-foreground">{String(cid)}</span>;
       },
     },
     {
       accessorKey: 'items',
       header: 'Items',
       cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.items?.length ?? 0} item(s)
+        <span className="text-sm font-medium text-center">
+          {row.original.items?.length ?? 0}
         </span>
       ),
     },
     {
       accessorKey: 'totalRefundAmount',
-      header: 'Refund Amount',
+      header: 'Amount',
       cell: ({ row }) => (
-        <span className="font-medium text-orange-600">
+        <span className="font-medium">
           {formatCurrency(row.original.totalRefundAmount ?? 0)}
         </span>
       ),
     },
-    // Allocation column only shows when accounts feature is enabled
-    ...(isAccountsEnabled
-      ? [
-          {
-            id: 'allocation',
-            header: 'Allocation',
-            cell: ({ row }: { row: { original: SalesReturn } }) => {
-              const ret = row.original;
-              const cashRefund = ret.refundedAmount ?? 0;
-              const dueAdjusted = (ret.totalRefundAmount ?? 0) - cashRefund;
-
-              if (cashRefund > 0 && dueAdjusted > 0) {
-                return (
-                  <div className="text-xs space-y-0.5">
-                    <div className="text-red-600">
-                      Cash: {formatCurrency(cashRefund)}
-                    </div>
-                    <div className="text-blue-600">
-                      Due Adj: {formatCurrency(dueAdjusted)}
-                    </div>
-                  </div>
-                );
-              }
-              if (cashRefund > 0)
-                return (
-                  <span className="text-xs text-red-600">Cash Refund</span>
-                );
-              if (dueAdjusted > 0)
-                return (
-                  <span className="text-xs text-blue-600">Due Adjusted</span>
-                );
-              return (
-                <span className="text-xs text-muted-foreground">-</span>
-              );
-            },
-          },
-        ]
-      : []),
     {
       accessorKey: 'reason',
       header: 'Reason',
       cell: ({ row }) => (
-        <Badge variant="outline" className="capitalize text-xs">
+        <span className="text-sm capitalize">
           {row.original.reason?.replace(/_/g, ' ')}
-        </Badge>
+        </span>
       ),
     },
     {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => getStatusBadge(row.original.status),
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Date',
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {new Date(row.original.createdAt).toLocaleDateString()}
-        </span>
-      ),
     },
   ];
 }

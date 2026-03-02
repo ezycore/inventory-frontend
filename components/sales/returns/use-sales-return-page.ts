@@ -23,10 +23,12 @@ import type {
   SalesReturn,
   SalesReturnReason,
   SalesReturnsSummary,
+  SalesReturnFilters,
   Account,
   ApiResponse,
   PaginatedResponse,
 } from '@/types';
+import type { FilterField } from '@/types/filter';
 
 import type {
   ReturnableItem,
@@ -47,6 +49,7 @@ type SaleSearchData = z.infer<typeof saleSearchSchema>;
 
 export function useSalesReturnPage() {
   // ── State ─────────────────────────────────────────────────────
+  const [showNewReturn, setShowNewReturn] = useState(false);
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
   const [returnableItems, setReturnableItems] = useState<ReturnableItem[]>([]);
   const [reason, setReason] = useState<SalesReturnReason>('customer_changed_mind');
@@ -54,6 +57,11 @@ export function useSalesReturnPage() {
   const [dueAllocations, setDueAllocations] = useState<DueAllocation[]>([]);
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState('');
+
+  // ── Table pagination & filter state ───────────────────────────
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [filters, setFilters] = useState<SalesReturnFilters>({});
 
   // ── Auth & Features ───────────────────────────────────────────
   const { user } = useAuthStore();
@@ -65,7 +73,9 @@ export function useSalesReturnPage() {
     selectedSaleId ?? '',
   );
   const { data: returnsData, isLoading: isLoadingReturns } = useSalesReturns({
-    limit: 50,
+    page,
+    limit,
+    ...filters,
   });
   const { data: accountsData } = useAccounts(
     isAccountsEnabled ? { status: 'active', limit: 100 } : undefined,
@@ -76,11 +86,22 @@ export function useSalesReturnPage() {
 
   // ── Derived data ──────────────────────────────────────────────
   const sale = (saleData as ApiResponse<Sale>)?.data;
-  const returns: SalesReturn[] =
-    (returnsData as ApiResponse<PaginatedResponse<SalesReturn>>)?.data?.items ?? [];
+  const returnsResponse = (returnsData as ApiResponse<PaginatedResponse<SalesReturn>>)?.data;
+  const returns: SalesReturn[] = returnsResponse?.items ?? [];
   const accounts: Account[] =
     (accountsData as PaginatedResponse<Account>)?.items ?? [];
   const summary = (summaryData as ApiResponse<SalesReturnsSummary>)?.data;
+
+  // ── Pagination info ───────────────────────────────────────────
+  const paginationInfo = useMemo(() => {
+    if (!returnsResponse) return null;
+    return {
+      total: returnsResponse.total ?? 0,
+      totalPages: returnsResponse.totalPages ?? 1,
+      hasNext: returnsResponse.hasNext ?? false,
+      hasPrev: returnsResponse.hasPrev ?? false,
+    };
+  }, [returnsResponse]);
 
   const { data: pendingDuesData } = useCustomerPendingDues(
     sale?.customerId?._id ?? '',
@@ -186,8 +207,51 @@ export function useSalesReturnPage() {
     setAccountRefundAmount(0);
     setSelectedAccountId('');
     setNotes('');
+    setShowNewReturn(false);
     searchForm.reset();
   }, [searchForm]);
+
+  // ── Table filter config ───────────────────────────────────────
+  const filterConfig = useMemo(
+    () => ({
+      fields: [
+        {
+          name: 'status',
+          label: 'Status',
+          type: 'select' as const,
+          options: [
+            { label: 'All Statuses', value: '' },
+            { label: 'Pending', value: 'pending' },
+            { label: 'Processed', value: 'completed' },
+            { label: 'Cancelled', value: 'cancelled' },
+          ],
+        },
+        {
+          name: 'reason',
+          label: 'Reason',
+          type: 'select' as const,
+          options: [
+            { label: 'All Reasons', value: '' },
+            { label: 'Damaged', value: 'damaged' },
+            { label: 'Defective', value: 'defective' },
+            { label: 'Wrong Item', value: 'wrong_item' },
+            { label: 'Customer Changed Mind', value: 'customer_changed_mind' },
+            { label: 'Expired', value: 'expired' },
+            { label: 'Other', value: 'other' },
+          ],
+        },
+      ] as FilterField[],
+      onApply: (newFilters: Record<string, unknown>) => {
+        setFilters(newFilters as SalesReturnFilters);
+        setPage(1);
+      },
+      onReset: () => {
+        setFilters({});
+        setPage(1);
+      },
+    }),
+    [],
+  );
 
   /** Call after sale data loads to populate returnable items */
   const initFromSale = useCallback(
@@ -374,7 +438,11 @@ export function useSalesReturnPage() {
 
   // ── Public API ────────────────────────────────────────────────
   return {
-    // state
+    // UI state
+    showNewReturn,
+    setShowNewReturn,
+
+    // return form state
     selectedSaleId,
     returnableItems,
     reason,
@@ -399,6 +467,14 @@ export function useSalesReturnPage() {
     isLoadingReturns,
     isSummaryLoading,
     isSubmitting: createReturnMutation.isPending,
+
+    // table pagination & filters
+    page,
+    limit,
+    paginationInfo,
+    filterConfig,
+    setPage,
+    setLimit,
 
     // computed totals
     totalReturnQty,
