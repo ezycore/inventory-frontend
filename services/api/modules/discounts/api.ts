@@ -22,6 +22,9 @@ export const discountsApi = {
   getById: (id: string): Promise<ApiResponse<Discount>> =>
     apiClient.get(`/discounts/${id}`),
 
+  getStats: (): Promise<ApiResponse<any>> =>
+    apiClient.get("/discounts/stats"),
+
   getSalesDiscounts: (
     filters: BaseFilters = {}
   ): Promise<ApiResponse<PaginatedResponse<Discount>>> =>

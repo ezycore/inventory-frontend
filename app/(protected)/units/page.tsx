@@ -1,15 +1,13 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-
 // Types
-import type { Unit } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
-import { DataTable } from "@/ui/components/dataTable";
-import { DateCell } from "@/ui/components/dataTable/cells";
+import { DataCard } from "@/ui/components/dataCard";
 import PageHeader from "@/ui/components/header";
+import UnitCardView from "@/components/units/cardview";
+import UnitCardLoading from "@/components/units/card-loading";
 
 // Hooks & API
 import { useCreateUnit, useDeleteUnit, useUpdateUnit } from "@/services/api";
@@ -17,22 +15,7 @@ import { unitsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
-const columns: ColumnDef<Unit>[] = [
-  { accessorKey: "name", header: "Unit Name" },
-  { accessorKey: "shortName", header: "Short Name" },
-  { accessorKey: "status", header: "Status" },
-  {
-    accessorKey: "createdAt",
-    header: "Created Date",
-    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
-  },
-  {
-    accessorKey: "updatedAt",
-    header: "Updated Date",
-    cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
-  },
-];
-
+// ── Form config ─────────────────────────────────────────────────────────
 const unitFormConfig: DynamicFormConfig = {
   fields: [
     {
@@ -64,6 +47,7 @@ const unitFormConfig: DynamicFormConfig = {
   ],
 };
 
+// ── Filter config ───────────────────────────────────────────────────────
 const unitFilterConfig: FilterConfig = {
   fields: [
     {
@@ -88,33 +72,46 @@ const unitFilterConfig: FilterConfig = {
 
 const defaultValues = { name: "", shortName: "", status: "active" as const };
 
+const searchConfig = {
+  globalSearch: true,
+  placeholder: "Search units by name or short name...",
+};
+
 export default function UnitsPage() {
+  const sharedOperations = {
+    formConfig: unitFormConfig,
+    defaultValues,
+    getAllData: unitsApi.getAll,
+    createMutation: useCreateUnit(),
+    updateMutation: useUpdateUnit(),
+    deleteMutation: useDeleteUnit(),
+    queryKey: [...queryKeys.units.all()],
+    entityName: "Unit" as const,
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <PageHeader title="Units" subTitle="Manage measurement units" />
+      {/* Header */}
+      <PageHeader
+        title="Unit Management"
+        subTitle="Define measurement units used across your products and inventory"
+      />
 
-      <DataTable
-        cardTitle={(n: number) => `All Units (${n})`}
-        defaultPageSize={10}
-        pageSizes={[2, 10, 20, 50, 100]}
+      {/* Card View */}
+      <DataCard
+        cardTitle={(n) => `All Units (${n})`}
+        defaultPageSize={12}
+        pageSizes={[12, 24, 48]}
+        layoutConfig={{
+          layout: "grid",
+          columns: { default: 1, sm: 2, lg: 3 },
+          gap: "md",
+        }}
         filterConfig={unitFilterConfig}
-        columns={columns}
-        selectable
-        searchConfig={{
-          globalSearch: true,
-          placeholder: "Search units by name or short name...",
-        }}
-        enableSorting
-        operations={{
-          formConfig: unitFormConfig,
-          defaultValues,
-          getAllData: unitsApi.getAll,
-          createMutation: useCreateUnit(),
-          updateMutation: useUpdateUnit(),
-          deleteMutation: useDeleteUnit(),
-          queryKey: [...queryKeys.units.all()],
-          entityName: "Unit",
-        }}
+        searchConfig={searchConfig}
+        renderCard={UnitCardView}
+        loadingRenderCard={UnitCardLoading}
+        operations={sharedOperations}
       />
     </div>
   );

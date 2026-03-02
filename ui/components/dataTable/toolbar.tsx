@@ -65,6 +65,9 @@ export function DataTableToolbar<TData>({
   manageColumns,
   onColumnSettingsClick,
 }: DataTableToolbarProps<TData>) {
+
+  if(!searchConfig?.globalSearch || !searchConfig?.searchableColumn || !(filterConfig && Object.keys(filterConfig).length > 0) || !(selectable && hasSelection && deletable) || !enableColumnVisibility || !manageColumns)  return null;
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
       {/* Search */}

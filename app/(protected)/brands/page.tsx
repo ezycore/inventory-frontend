@@ -1,8 +1,11 @@
 "use client";
 // Hooks & API
+import { brandColumns } from "@/components/brands/columns";
 import { brandFilterConfig } from "@/components/brands/filters";
 import { brandFormConfig } from "@/components/brands/form-config";
 import { getBrandStats, prepareSubmitData } from "@/components/brands/helpers";
+import BrandCardView from "@/components/brands/cardview";
+import BrandCardLoading from "@/components/brands/card-loading";
 import { FieldSettingsLink } from "@/components/shared/field-settings-link";
 import {
   brandsApi,
@@ -12,12 +15,14 @@ import {
   useUpdateBrand,
 } from "@/services/api";
 
-import BrandCardView from "@/components/brands/cardview";
-import { useFilteredFormConfig } from "@/hooks/use-filters";
+import { useFilteredFormConfig, useFilteredColumns } from "@/hooks/use-filters";
+import { useViewMode } from "@/hooks/use-view-mode";
 import { queryKeys } from "@/services/api/query-keys";
 import { DataCard } from "@/ui/components/dataCard";
+import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
 import StatsCard from "@/ui/components/StatsCard";
+import ViewToggle from "@/ui/components/ViewToggle";
 
 const searchConfig = {
   globalSearch: true,
@@ -32,8 +37,24 @@ const defaultValues = {
 };
 
 export default function BrandsPage() {
+  const [viewMode, setViewMode] = useViewMode("brands", "card");
   const filteredFormConfig = useFilteredFormConfig(brandFormConfig, "brand");
+  const filteredColumns = useFilteredColumns(brandColumns, "brand");
   const { data, isLoading } = useBrandStats();
+
+  const sharedOperations = {
+    formConfig: filteredFormConfig,
+    defaultValues: defaultValues,
+    getAllData: brandsApi.getAll,
+    createMutation: useCreateBrand(),
+    updateMutation: useUpdateBrand(),
+    deleteMutation: useDeleteBrand(),
+    queryKey: [...queryKeys.brands.all()],
+    entityName: "Brand" as const,
+    isViewAvailable: false,
+    prepareSubmitData,
+    disabledFieldsInEdit: ["description"],
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -41,77 +62,58 @@ export default function BrandsPage() {
       <PageHeader
         title="Brands Management"
         subTitle="Manage your product brands and their details."
-        actions={<FieldSettingsLink module="brand" />}
+        actions={
+          <div className="flex items-center gap-3">
+            <ViewToggle
+              storageKey="brands"
+              defaultView={viewMode}
+              onChange={setViewMode}
+            />
+            <FieldSettingsLink module="brand" />
+          </div>
+        }
       />
 
       {/* Stats Cards */}
       <StatsCard data={getBrandStats(data)} isLoading={isLoading} />
 
-      <DataCard
-        cardTitle={(n) => `All Brands (${n})`}
-        defaultPageSize={6}
-        pageSizes={[6, 12, 24]}
-        filterConfig={brandFilterConfig}
-        layoutConfig={{
-          layout: "grid",
-          columns: { default: 1, sm: 2, lg: 3 },
-          gap: "md",
-        }}
-        searchConfig={searchConfig}
-        renderCard={BrandCardView}
-        operations={{
-          formConfig: filteredFormConfig,
-          defaultValues: defaultValues,
-          getAllData: brandsApi.getAll,
-          createMutation: useCreateBrand(),
-          updateMutation: useUpdateBrand(),
-          deleteMutation: useDeleteBrand(),
-          queryKey: [...queryKeys.brands.all()],
-          entityName: "Brand",
-          isViewAvailable: false,
-          prepareSubmitData,
-          disabledFieldsInEdit: ["description"],
-        }}
-      />
+      {/* Table View */}
+      {viewMode === "table" && (
+        <DataTable
+          cardTitle={(dataLength: number) => `All Brands (${dataLength})`}
+          defaultPageSize={10}
+          pageSizes={[10, 20, 50, 100]}
+          filterConfig={brandFilterConfig}
+          columns={filteredColumns}
+          manageColumns={true}
+          module="brand"
+          selectable={true}
+          searchConfig={searchConfig}
+          enableSorting={true}
+          defaultColumnVisibility={{ status: false }}
+          enableRowHover={true}
+          operations={sharedOperations}
+        />
+      )}
+
+      {/* Card View */}
+      {viewMode === "card" && (
+        <DataCard
+          cardTitle={(n) => `All Brands (${n})`}
+          defaultPageSize={12}
+          pageSizes={[12, 24, 48]}
+          filterConfig={brandFilterConfig}
+          layoutConfig={{
+            layout: "grid",
+            columns: { default: 1, sm: 2, lg: 3 },
+            gap: "md",
+          }}
+          searchConfig={searchConfig}
+          renderCard={BrandCardView}
+          loadingRenderCard={BrandCardLoading}
+          operations={sharedOperations}
+        />
+      )}
     </div>
   );
-}
-
-{
-  /* <DataTable
-        cardTitle={(dataLength: number) => `All Brands (${dataLength})`}
-        defaultPageSize={10}
-        pageSizes={[2, 10, 20, 50, 100]}
-        filterConfig={brandFilterConfig}
-        columns={filteredColumns}
-        manageColumns={true}
-        module="brand"
-        data={data?.items || []}
-        selectable={true}
-        searchConfig={searchConfig}
-        enableSorting={true}
-        defaultColumnVisibility={{ status: false }}
-        enableRowHover={true}
-        loading={isLoading}
-        rowClassName={(row: Brand) =>
-          row.status === "inactive" ? "bg-red-50 opacity-70" : ""
-        }
-        operations={{
-          formConfig: filteredFormConfig,
-          defaultValues: defaultValues,
-          // getAllData: brandsApi.getAll,
-          createMutation: useCreateBrand(),
-          updateMutation: useUpdateBrand(),
-          deleteMutation: useDeleteBrand(),
-          disabledFieldsInEdit: ["name"],
-          bulkDeleteMutation: useBulkDeleteBrand(),
-          queryKey: [...queryKeys.brands.all()],
-          entityName: "Brand",
-          isViewAvailable: true,
-          editTooltip: "Edit Brand",
-          deleteTooltip: "Delete Brand",
-          viewTooltip: "Custom tooltip View Brand",
-          prepareSubmitData,
-        }}
-      /> */
 }

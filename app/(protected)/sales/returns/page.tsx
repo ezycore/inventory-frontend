@@ -84,10 +84,45 @@ export default function SalesReturnsPage() {
         formatCurrency={ctx.formatCurrency}
       />
 
-      {/* ─── New Return Form (collapsible) ─── */}
-      {ctx.showNewReturn && (
-        <div className="space-y-4">
-          {/* Search Sale */}
+      {/* Search Sale */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5 text-primary" />
+            Find Sale
+          </CardTitle>
+          <CardDescription>
+            Enter a sale ID or invoice number to process a return
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={ctx.searchForm.handleSubmit(ctx.handleSearch)}
+            className="flex gap-4"
+          >
+            <div className="flex-1">
+              <Input
+                placeholder="Enter sale ID or invoice number..."
+                {...ctx.searchForm.register('saleId')}
+              />
+            </div>
+            <Button type="submit" disabled={ctx.isLoadingSale || !ctx.searchForm.watch('saleId')}>
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+            {ctx.selectedSaleId && (
+              <Button type="button" variant="outline" onClick={ctx.handleClearSearch}>
+                Clear
+              </Button>
+            )}
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Sale Details & Return Form */}
+      {ctx.sale && (
+        <>
+          {/* Sale Summary */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

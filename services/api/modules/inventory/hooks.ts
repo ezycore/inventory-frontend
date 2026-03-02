@@ -8,7 +8,6 @@ import { toast } from 'sonner'
 export interface BulkAdjustmentItem {
   productId: string
   variantId?: string | null
-  locationId: string
   newQuantity: number
   notes?: string
 }
@@ -64,8 +63,8 @@ export const useBulkAdjustStock = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (adjustments: BulkAdjustmentItem[]) =>
-      inventoryApi.bulkAdjustStock(adjustments),
+    mutationFn: ({ adjustments, reason }: { adjustments: BulkAdjustmentItem[]; reason?: string }) =>
+      inventoryApi.bulkAdjustStock(adjustments, reason),
     onSuccess: (data) => {
       const result = data?.data
       if (result?.success) {

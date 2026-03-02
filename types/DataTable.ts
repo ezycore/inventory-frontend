@@ -238,7 +238,7 @@ interface Operations<TData = any> {
  * Main DataTable component props
  */
 export interface DataTableProps<TData, TValue = any> {
-  cardTitle: string | ((length: number) => string);
+  cardTitle?: string | ((length: number) => string);
   defaultPageSize?: number;
   pageSizes?: number[];
   filterConfig?: FilterConfig;

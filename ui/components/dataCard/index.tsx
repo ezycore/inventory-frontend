@@ -37,6 +37,8 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     shadow,
     // Custom rendering
     renderCard,
+    // Loading card
+    loadingRenderCard,
     // Fields
     fields,
     imageConfig,
@@ -262,7 +264,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
         });
 
   return (
-    <Card className="border-none shadow-none py-0 gap-3">
+    <Card className="border-none shadow-none py-0 gap-3 bg-transparent">
       {cardTitle && (
         <CardHeader className="px-0">
           <CardTitle>
@@ -298,6 +300,8 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
           shadow={shadow}
           // Custom rendering
           renderCard={renderCard}
+          // Loading card
+          loadingRenderCard={loadingRenderCard}
           // Fields
           fields={fields}
           imageConfig={imageConfig}

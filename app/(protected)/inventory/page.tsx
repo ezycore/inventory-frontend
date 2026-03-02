@@ -1,286 +1,95 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+// Components & Configs
+import { inventoryColumns } from "@/components/inventory/columns";
+import { inventoryFilterConfig, inventorySearchConfig } from "@/components/inventory/filters";
+import { inventoryFormConfig, inventoryDefaultValues } from "@/components/inventory/form-config";
+import { prepareSubmitData } from "@/components/inventory/helpers";
+import { getInventoryKpiStats, getInventorySummaryMetrics } from "@/components/inventory/stats";
 
 // Types
 import type { Inventory } from "@/types";
-import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // UI Components
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { DataTable } from "@/ui/components/dataTable";
-import { Badge } from "@/ui/components/badge";
+import PageHeader from "@/ui/components/header";
+import StatsCard from "@/ui/components/StatsCard";
+import SummaryBanner from "@/ui/components/SummaryBanner";
+import { SparkLine } from "@/ui/components/charts";
 
 // Hooks & API
 import {
   useCreateInventory,
   useDeleteInventory,
   useUpdateInventory,
-  useBulkDeleteInventory
+  useBulkDeleteInventory,
+  useDashboardStats,
 } from "@/services/api";
-import { inventoryApi, productsApi } from "@/services/api";
+import { inventoryApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
-import PageHeader from "@/ui/components/header";
-import { FilterConfig } from "@/types/DataTable";
-import { PlusIcon } from "lucide-react";
-
-// Column definitions
-const columns: ColumnDef<Inventory>[] = [
-  {
-    accessorKey: "product",
-    header: "Product",
-    cell: ({ row }) => {
-      const product = row.original.product;
-      return product ? product.name : "-";
-    },
-  },
-  {
-    accessorKey: "variant",
-    header: "Variant",
-    cell: ({ row }) => {
-      const variant = row.original.variant;
-      if (!variant) return "-";
-
-      // Display variant attributes if available
-      if (variant.attributes) {
-        const attrs = Object.entries(variant.attributes)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(", ");
-        return attrs || "-";
-      }
-      return variant.sku || "-";
-    },
-  },
-  {
-    accessorKey: "quantity",
-    header: "Quantity",
-    cell: ({ row }) => {
-      const quantity = row.getValue("quantity") as number;
-      const isLowStock = row.original.isLowStock;
-      return (
-        <span className={isLowStock ? "text-red-600 font-semibold" : ""}>
-          {quantity}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "quantityAlert",
-    header: "Alert Level",
-  },
-  {
-    accessorKey: "isLowStock",
-    header: "Stock Status",
-    cell: ({ row }) => {
-      const isLowStock = row.getValue("isLowStock");
-      return isLowStock ? (
-        <Badge variant="destructive">Low Stock</Badge>
-      ) : (
-        <Badge variant="default">Normal</Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      return (
-        <Badge variant={status === "active" ? "default" : "secondary"}>
-          {status}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created Date",
-    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
-  },
-  {
-    accessorKey: "updatedAt",
-    header: "Updated Date",
-    cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
-  },
-];
-
-// Form configuration with dependent select
-const inventoryFormConfig: DynamicFormConfig = {
-  fields: [
-    {
-      name: "productId",
-      type: "select",
-      label: "Product",
-      placeholder: "Select product",
-      action: {
-        icon: <PlusIcon className="h-5 w-5" />,
-        href: "/products",
-      },
-
-      required: true,
-      columnSpan: 6,
-      optionsApi: "/products",
-      validation: { minLength: 1 },
-    },
-    {
-      name: "variantId",
-      type: "select",
-      label: "Variant",
-      placeholder: "Select variant",
-      columnSpan: 6,
-      optionsApi: "/products/{{_id}}/variants",
-      dependsOn: {
-        field: "productId",
-        condition: "gt",
-        action: "disable",
-        matchWithProp: "variant_count",
-        value: 0
-      }
-    },
-    {
-      name: "costPrice",
-      type: "number",
-      label: "Cost Price",
-      placeholder: "Enter cost price",
-      columnSpan: 6,
-      validation: { min: 0 },
-    },
-    {
-      name: "quantity",
-      type: "number",
-      label: "Quantity",
-      placeholder: "Enter quantity",
-      columnSpan: 6,
-      validation: { min: 0 },
-    },
-    {
-      name: "quantityAlert",
-      type: "number",
-      label: "Alert Level",
-      placeholder: "Enter alert level",
-      required: true,
-      columnSpan: 6,
-      validation: { min: 0 },
-    },
-    {
-      name: "status",
-      type: "select",
-      label: "Status",
-      required: true,
-      columnSpan: 12,
-      options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-      ],
-    },
-  ],
-};
-
-// Filter configuration
-const inventoryFilterConfig: FilterConfig = {
-  fields: [
-    {
-      name: "productId",
-      label: "Product",
-      type: "select",
-      placeholder: "All products",
-      columnSpan: 1,
-      options: [], // Will be populated dynamically via API
-    },
-    {
-      name: "locationId",
-      label: "Location",
-      type: "select",
-      placeholder: "All locations",
-      columnSpan: 1,
-      options: [], // Will be populated dynamically via API
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      placeholder: "All statuses",
-      columnSpan: 1,
-      options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
-      ],
-    },
-  ],
-  viewMode: "popover",
-  columns: 2,
-  applyOnChange: false,
-  showResetButton: true,
-  showApplyButton: true,
-};
-
-const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search inventory by product, location, or variant...",
-};
-
-const defaultValues = {
-  productId: "",
-  variantId: "",
-  locationId: "",
-  costPrice: 0,
-  quantity: 0,
-  quantityAlert: 0,
-  status: "active" as const,
-};
-
-const prepareSubmitData = (
-  data: Inventory,
-  isEdit: boolean,
-  item: Inventory
-) => {
-  const submitData: any = {
-    productId: data.productId,
-    locationId: data.locationId,
-    quantity: Number(data.quantity),
-    quantityAlert: Number(data.quantityAlert),
-    status: data.status,
-    costPrice: Number(data.costPrice),
-  };
-
-  // Only include variantId if it has a value
-  if (data.variantId && data.variantId !== "") {
-    submitData.variantId = data.variantId;
-  }
-
-  if (isEdit && item) {
-    submitData.id = item._id;
-  }
-
-  return submitData;
-};
+import { useCurrency } from "@/lib/currency";
 
 export default function InventoryPage() {
+  const { data: dashboardData, isLoading: dashLoading } = useDashboardStats();
+  const { format: formatCurrency } = useCurrency();
+  const stats = dashboardData?.data;
+
+  const kpiStats = getInventoryKpiStats(stats, formatCurrency);
+  const summaryMetrics = getInventorySummaryMetrics(stats, formatCurrency);
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <PageHeader
         title="Inventory Management"
-        subTitle="Manage your inventory levels across all locations."
+        subTitle="Track stock levels, monitor alerts, and manage inventory."
+      />
+
+      {/* Quick Summary Banner */}
+      <SummaryBanner
+        metrics={summaryMetrics}
+        isLoading={dashLoading}
+        chart={
+          <SparkLine
+            data={[12, 19, 8, 15, 22, 18, 25, 20, 28, 24, 30, 27]}
+            color="var(--color-primary)"
+            width={120}
+            height={50}
+            filled
+          />
+        }
+      />
+
+      {/* KPI Stats Cards */}
+      <StatsCard
+        data={kpiStats}
+        isLoading={dashLoading}
+        columns={{ default: 2, lg: 4 }}
       />
 
       <DataTable
-        cardTitle={(dataLength: number) => `All Inventory (${dataLength})`}
+        cardTitle={(dataLength: number) => `Inventory Items (${dataLength})`}
         defaultPageSize={10}
         pageSizes={[10, 20, 50, 100]}
         filterConfig={inventoryFilterConfig}
-        columns={columns}
+        columns={inventoryColumns}
         selectable={true}
-        searchConfig={searchConfig}
+        searchConfig={inventorySearchConfig}
         enableSorting={true}
-        defaultColumnVisibility={{ status: false }}
+        defaultColumnVisibility={{ 
+          costPrice: false 
+        }}
         enableRowHover={true}
         rowClassName={(row: Inventory) =>
-          row.isLowStock ? "bg-red-50 opacity-90" : ""
+          row.quantity === 0
+            ? "bg-destructive/5 border-l-2 border-l-destructive"
+            : row.isLowStock
+              ? "bg-chart-1/5 border-l-2 border-l-chart-1"
+              : ""
         }
         operations={{
           formConfig: inventoryFormConfig,
-          defaultValues,
+          defaultValues: inventoryDefaultValues,
           getAllData: inventoryApi.getAll,
           disabledFieldsInEdit: ['quantity'],
           createMutation: useCreateInventory(),

@@ -6,6 +6,7 @@ import type {
   CreateTransferDto,
   PaginatedResponse,
   Transaction,
+  TransactionStats,
   TransactionSummary,
 } from "@/types";
 import { buildQueryParams, type BaseFilters } from "../../utils";
@@ -37,6 +38,16 @@ export const transactionsApi = {
     filters: Pick<TransactionFilters, "startDate" | "endDate"> = {}
   ): Promise<ApiResponse<TransactionSummary>> =>
     apiClient.get(`/transactions/summary${buildQueryParams(filters)}`),
+
+  getStats: (
+    params: {
+      period?: string;
+      weekStartDay?: number;
+      startDate?: string;
+      endDate?: string;
+    } = {}
+  ): Promise<ApiResponse<TransactionStats>> =>
+    apiClient.get(`/transactions/stats${buildQueryParams(params)}`),
 
   createIncome: (data: CreateIncomeDto): Promise<ApiResponse<Transaction>> =>
     apiClient.post("/transactions/income", data),

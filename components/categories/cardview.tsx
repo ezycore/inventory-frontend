@@ -1,0 +1,88 @@
+import { Badge } from "@/ui/components/badge";
+import { Card } from "@/ui/components/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/ui/components/dropdown-menu";
+import { Edit2, MoreVertical, Tag, Trash2 } from "lucide-react";
+
+const CategoryCardView = (
+  category: any,
+  { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
+) => {
+  const { name, description, status, createdAt, updatedAt } = category;
+
+  const createdDate = new Date(createdAt).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+  const updatedDate = new Date(updatedAt).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+  return (
+    <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-3">
+      <div className="flex items-start gap-4">
+        {/* Icon */}
+        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+          <Tag className="h-5 w-5 text-primary" />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-base truncate">{name}</h3>
+            <Badge
+              variant={status === "active" ? "default" : "secondary"}
+              className="text-xs shrink-0"
+            >
+              {status}
+            </Badge>
+          </div>
+          {description ? (
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
+              {description}
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground/50 italic mt-0.5">
+              No description
+            </p>
+          )}
+        </div>
+
+        {/* Actions menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors opacity-0 group-hover:opacity-100">
+            <MoreVertical className="h-4 w-4 cursor-pointer" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>
+              <Edit2 className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={onDelete}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-muted-foreground">
+        <span>Created: {createdDate}</span>
+        <span>Updated: {updatedDate}</span>
+      </div>
+    </Card>
+  );
+};
+
+export default CategoryCardView;

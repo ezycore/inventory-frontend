@@ -10,20 +10,156 @@ import type { User } from "@/types/users";
 
 // UI Components
 import { UserCountCell } from "@/components/locations/UserCountCell";
+import LocationCardView, {
+  LocationCardSkeleton,
+} from "@/components/locations/cardview";
 import { DataTable } from "@/ui/components/dataTable";
+import { DataCard } from "@/ui/components/dataCard";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import ViewToggle from "@/ui/components/ViewToggle";
 
 // Hooks & API
 import {
   useCreateLocation,
   useDeleteLocation,
   useUpdateLocation,
+  useLocationStats,
 } from "@/services/api";
 import { locationsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 import PageHeader from "@/ui/components/header";
 import { sanitize } from "@/utils";
+import { useViewMode } from "@/hooks/use-view-mode";
+import { cn } from "@/ui/lib/utils";
+import {
+  CheckCircle2,
+  MapPin,
+  Store,
+  Warehouse,
+} from "lucide-react";
+
+// ── Summary stat config ───────────────────────────────────────────────
+interface SummaryItem {
+  label: string;
+  value: number;
+  icon: typeof MapPin;
+  gradient: string;
+  iconBg: string;
+  iconColor: string;
+  description: string;
+}
+
+function getLocationStats(
+  stats: Record<string, any> | undefined,
+): SummaryItem[] {
+  return [
+    {
+      label: "Total Locations",
+      value: stats?.total || 0,
+      icon: MapPin,
+      gradient: "from-primary/10 to-primary/5",
+      iconBg: "bg-primary/10",
+      iconColor: "text-primary",
+      description: "All registered locations",
+    },
+    {
+      label: "Active",
+      value: stats?.active || 0,
+      icon: CheckCircle2,
+      gradient: "from-emerald-500/10 to-emerald-500/5",
+      iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      description: "Currently active",
+    },
+    {
+      label: "Stores",
+      value: stats?.stores || 0,
+      icon: Store,
+      gradient: "from-blue-500/10 to-blue-500/5",
+      iconBg: "bg-blue-50 dark:bg-blue-950/40",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      description: "Retail locations",
+    },
+    {
+      label: "Warehouses",
+      value: stats?.warehouses || 0,
+      icon: Warehouse,
+      gradient: "from-amber-500/10 to-amber-500/5",
+      iconBg: "bg-amber-50 dark:bg-amber-950/40",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      description: "Storage locations",
+    },
+  ];
+}
+
+// ── Premium summary banner ─────────────────────────────────────────────
+function LocationSummaryBanner({
+  stats,
+  isLoading,
+}: {
+  stats: SummaryItem[];
+  isLoading: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[108px] rounded-2xl border bg-card animate-pulse"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <div
+            key={stat.label}
+            className={cn(
+              "relative overflow-hidden rounded-2xl border bg-card p-5",
+              "transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
+            )}
+          >
+            <div
+              className={cn(
+                "absolute inset-0 bg-gradient-to-br opacity-60",
+                stat.gradient,
+              )}
+            />
+            <div className="relative flex items-start justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground/70">
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-bold tracking-tight tabular-nums">
+                  {stat.value}
+                </p>
+                <p className="text-[11px] text-muted-foreground/60">
+                  {stat.description}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                  stat.iconBg,
+                  "ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
+                )}
+              >
+                <Icon className={cn("h-5 w-5", stat.iconColor)} />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 // Column definitions
 const columns: ColumnDef<LocationType>[] = [
@@ -166,51 +302,90 @@ const defaultValues = {
 };
 
 export default function LocationsPage() {
+  const [viewMode, setViewMode] = useViewMode("locations", 'card');
+  const { data: statsData, isLoading: statsLoading } = useLocationStats?.() ?? { data: undefined, isLoading: false };
+
+  const sharedOperations = {
+    formConfig: locationFormConfig,
+    defaultValues: defaultValues,
+    getAllData: locationsApi.getAll,
+    createMutation: useCreateLocation(),
+    updateMutation: useUpdateLocation(),
+    deleteMutation: useDeleteLocation(),
+    queryKey: [...queryKeys.locations.all()],
+    entityName: "Location" as const,
+    isViewAvailable: false,
+    editTooltip: "Edit Location",
+    deleteTooltip: "Delete Location",
+    prepareSubmitData: (
+      data: LocationType,
+      isEdit: boolean,
+      item: LocationType,
+    ) => ({
+      ...data,
+      ...(isEdit && item ? { id: item._id } : {}),
+    }),
+  };
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-8">
       {/* Header */}
       <PageHeader
         title="Locations Management"
         subTitle="Manage your stores and warehouses in one place."
+        actions={
+          <ViewToggle
+            storageKey="locations"
+            defaultView={viewMode}
+            onChange={setViewMode}
+          />
+        }
       />
 
-      <DataTable
-        cardTitle={(dataLength: number) => `All Locations (${dataLength})`}
-        defaultPageSize={10}
-        pageSizes={[10, 20, 50, 100]}
-        filterConfig={locationFilterConfig}
-        columns={columns}
-        selectable={true}
-        searchConfig={searchConfig}
-        enableSorting={true}
-        defaultColumnVisibility={{ status: false }}
-        enableRowHover={true}
-        rowClassName={(row: LocationType) =>
-          row.status === "inactive" ? "bg-red-50 opacity-70" : ""
-        }
-        operations={{
-          formConfig: locationFormConfig,
-          defaultValues: defaultValues,
-          getAllData: locationsApi.getAll,
-          createMutation: useCreateLocation(),
-          updateMutation: useUpdateLocation(),
-          deleteMutation: useDeleteLocation(),
-          queryKey: [...queryKeys.locations.all()],
-          entityName: "Location",
-          isViewAvailable: true,
-          editTooltip: "Edit Location",
-          deleteTooltip: "Delete Location",
-          viewTooltip: "View Location Details",
-          prepareSubmitData: (
-            data: LocationType,
-            isEdit: boolean,
-            item: LocationType,
-          ) => ({
-            ...data,
-            ...(isEdit && item ? { id: item._id } : {}),
-          }),
-        }}
+      {/* Stats Banner */}
+      <LocationSummaryBanner
+        stats={getLocationStats(statsData)}
+        isLoading={statsLoading}
       />
+
+      {/* Table View */}
+      {viewMode === "table" && (
+        <DataTable
+          cardTitle={(dataLength: number) => `All Locations (${dataLength})`}
+          defaultPageSize={10}
+          pageSizes={[10, 20, 50, 100]}
+          filterConfig={locationFilterConfig}
+          columns={columns}
+          selectable={true}
+          searchConfig={searchConfig}
+          enableSorting={true}
+          defaultColumnVisibility={{ status: false }}
+          enableRowHover={true}
+          rowClassName={(row: LocationType) =>
+            row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+          }
+          operations={sharedOperations}
+        />
+      )}
+
+      {/* Card View */}
+      {viewMode === "card" && (
+        <DataCard
+          cardTitle={(n) => `All Locations (${n})`}
+          defaultPageSize={12}
+          pageSizes={[12, 24, 48]}
+          filterConfig={locationFilterConfig}
+          layoutConfig={{
+            layout: "grid",
+            columns: { default: 1, sm: 2, lg: 3 },
+            gap: "lg",
+          }}
+          searchConfig={searchConfig}
+          renderCard={LocationCardView}
+          loadingRenderCard={() => <LocationCardSkeleton />}
+          operations={sharedOperations}
+        />
+      )}
     </div>
   );
 }

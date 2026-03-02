@@ -12,3 +12,4 @@ export const useLocations = locationHooks.useList; // used in CreatePurchaseOrde
 export const useCreateLocation = locationHooks.useCreate; //used in locations page
 export const useUpdateLocation = locationHooks.useUpdate; //used in locations page
 export const useDeleteLocation = locationHooks.useDelete; //used in locations page
+export const useLocationStats = locationHooks.useStats;

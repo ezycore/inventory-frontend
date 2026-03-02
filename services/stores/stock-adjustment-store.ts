@@ -4,38 +4,42 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface AdjustmentItem {
   id: string; // local ID
+  inventoryId: string; // the inventory record _id
   productId: string;
   variantId?: string | null;
-  locationId: string;
-  old_quantity: number;
-  newQuantity: number;
+  currentQuantity: number;
+  newQuantity: number; // always in base units
   notes?: string;
   // Display fields
   product_name: string;
-  variant_attributes?: Record<string, any> | null;
-  location_name: string;
+  price: number;
+  // UOM conversion fields (only when product supports UOM)
+  enableUOMConversion?: boolean;
+  conversionFactor?: number;
+  purchaseUnitName?: string;
+  baseUnitName?: string;
 }
 
 interface StockAdjustmentStore {
   items: AdjustmentItem[];
+  reason: string;
   addItem: (item: Omit<AdjustmentItem, 'id'>) => void;
   updateItem: (id: string, data: Partial<AdjustmentItem>) => void;
   removeItem: (id: string) => void;
+  setReason: (reason: string) => void;
   clearAll: () => void;
 }
 
 export const useStockAdjustmentStore = create<StockAdjustmentStore>()(persist(
   (set) => ({
     items: [],
+    reason: '',
 
     addItem: (item) =>
       set((state) => {
-        // Check if item with same product, variant, and location already exists
+        // Check if item with same inventoryId already exists
         const existingIndex = state.items.findIndex(
-          (existing) =>
-            existing.productId === item.productId &&
-            existing.locationId === item.locationId &&
-            (existing.variantId || null) === (item.variantId || null)
+          (existing) => existing.inventoryId === item.inventoryId
         );
 
         if (existingIndex !== -1) {
@@ -61,7 +65,9 @@ export const useStockAdjustmentStore = create<StockAdjustmentStore>()(persist(
         items: state.items.filter((item) => item.id !== id),
       })),
 
-    clearAll: () => set({ items: [] }),
+    setReason: (reason) => set({ reason }),
+
+    clearAll: () => set({ items: [], reason: '' }),
   }),
   {
     name: 'stock-adjustment-storage', // localStorage key

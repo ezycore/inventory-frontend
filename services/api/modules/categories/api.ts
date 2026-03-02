@@ -13,6 +13,9 @@ export const categoriesApi = {
   getById: (id: string): Promise<ApiResponse<any>> =>
     apiClient.get(`/categories/${id}`),
 
+  getStats: (): Promise<ApiResponse<any>> =>
+    apiClient.get("/categories/stats"),
+
   create: (data: CreateCategoryDto): Promise<ApiResponse<any>> =>
     apiClient.post("/categories", data),
 
