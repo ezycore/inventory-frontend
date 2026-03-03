@@ -5,51 +5,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Separator } from '@ui/components/separator'
 import { Skeleton } from '@ui/components/skeleton'
 import { Button } from '@ui/components/button'
-import { Package, Tag, Building2, DollarSign, TrendingDown, Layers, AlertCircle } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ui/components/tabs'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ui/components/table'
+import { Package, Tag, TrendingUp, DollarSign, BarChart3, MapPin, Clock, ShoppingCart, Truck, AlertCircle, ShieldCheck, Info, Layers } from 'lucide-react'
 import { StatusBadge } from '@/ui/components/status-badge'
-import { formatDistanceToNow } from 'date-fns'
+import { format } from 'date-fns'
 import Image from 'next/image'
-import { useProduct } from '@/services/api'
+import { useProduct, inventoryApi, salesApi, purchaseOrdersApi, stockApi } from '@/services/api'
+import { useCurrency } from '@/lib/currency'
+import { useQuery } from '@tanstack/react-query'
 
-type Status =
-  | "active" | "inactive" | "expired" | "pending" | "completed"
-  | "approved" | "rejected" | "processing" | "failed" | "cancelled"
-  | "draft" | "published" | "disabled" | "enabled" | "paused"
-  | "warning" | "error" | "success" | "info" | "new" | "scheduled"
-  | "online" | "offline" | "verified" | "blocked" | "deleted"
-  | "suspended" | "review" | "moderate" | "confirmed" | "premium"
-  | "featured" | "vip" | "in_progress" | "in-progress"
-
-interface ProductVariant {
+interface InventoryItem {
   _id: string
-  attributes: Record<string, string>
-  price: number
-  costPrice: number
-  status: Status
-  sku?: string
-  images?: any
-}
-
-interface Product {
-  _id: string
-  name: string
-  description?: string
-  images?: Array<{ url: string }> | null
-  status: Status
-  productType: string
-  sellingType: string
-  discountType?: string
-  discountValue?: number
-  hasExpiry: boolean
-  price: number
-  costPrice: number
-  slug: string
-  createdAt: string
-  updatedAt: string
-  category?: { _id: string; name: string }
-  brand?: { _id: string; name: string }
-  variants?: ProductVariant[]
-  variant_count?: number
+  productId: string
+  variantId?: string | null
+  locationId: string
+  quantity: number
+  quantityAlert: number
+  isLowStock: boolean
+  location?: {
+    _id: string
+    name: string
+  }
+  variant?: {
+    sku?: string
+  }
+  shelf?: string
 }
 
 interface ProductDetailProps {
@@ -59,17 +40,64 @@ interface ProductDetailProps {
 
 export function ProductDetail({ productId, onClose }: ProductDetailProps) {
   const { data: product, isLoading, error } = useProduct(productId)
+  const { format: formatCurrency, symbol } = useCurrency()
+
+  // Fetch inventory for this product (stock by location)
+  const { data: inventoryData } = useQuery({
+    queryKey: ['inventory', 'product', productId],
+    queryFn: () => inventoryApi.getAll({ productId }),
+    enabled: !!productId,
+    select: (data) => data.data,
+  })
+
+  // Fetch stock overview for stats
+  const { data: stockOverview } = useQuery({
+    queryKey: ['stock', 'overview', productId],
+    queryFn: () => stockApi.getOverview(productId),
+    enabled: !!productId,
+    select: (data) => data.data,
+  })
+
+  // Fetch recent sales
+  const { data: salesData } = useQuery({
+    queryKey: ['sales', 'product', productId],
+    queryFn: () => salesApi.getAll({ limit: 5 }),
+    enabled: !!productId,
+    select: (data) => data.data,
+  })
+
+  // Fetch recent purchases
+  const { data: purchasesData } = useQuery({
+    queryKey: ['purchases', 'product', productId],
+    queryFn: () => purchaseOrdersApi.getAll({ limit: 5 }),
+    enabled: !!productId,
+    select: (data) => data.data,
+  })
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-64" />
-        <div className="grid grid-cols-3 gap-4">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8 rounded" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
         </div>
-        <Skeleton className="h-64" />
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Skeleton className="h-28 rounded-xl" />
+          <Skeleton className="h-28 rounded-xl" />
+          <Skeleton className="h-28 rounded-xl" />
+          <Skeleton className="h-28 rounded-xl" />
+        </div>
+        {/* Content skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-80 rounded-xl" />
+          <Skeleton className="h-80 rounded-xl" />
+        </div>
+        <Skeleton className="h-64 rounded-xl" />
       </div>
     )
   }
@@ -89,156 +117,229 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
 
   const hasVariants = product.productType === 'variable' && product.variants && product.variants.length > 0
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(price)
+  // Compute inventory stats
+  const inventoryItems: InventoryItem[] = inventoryData?.items || (inventoryData as any) || []
+  const totalStock = product.totalStock ?? inventoryItems.reduce((sum: number, item: InventoryItem) => sum + (item.quantity || 0), 0)
+  const locationCount = inventoryItems.length
+  const totalSold = product.totalSold ?? stockOverview?.totalSold ?? 0
+  const totalRevenue = product.totalRevenue ?? stockOverview?.totalRevenue ?? 0
+  const profitPerUnit = product.price && product.costPrice ? product.price - product.costPrice : 0
+  const profitMarginPercent = product.profitMargin ?? (product.price > 0 ? Math.round(((product.price - product.costPrice) / product.price) * 100) : 0)
+  const taxRate = product.taxRate ?? product.tax?.rate ?? 0
+  const sku = product.base_sku || product.variants?.[0]?.sku || '—'
+  const barcode = product.barcode || product.variants?.[0]?.barcode || ''
+
+  // Recent sales extraction
+  const recentSales = salesData?.items || []
+  // Recent purchases extraction
+  const recentPurchases = purchasesData?.items || []
+
+  const formatDate = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), 'yyyy-MM-dd')
+    } catch {
+      return dateStr
+    }
   }
 
-  const getMargin = (price: number, cost: number) => {
-    if (cost === 0) return 0
-    return (((price - cost) / price) * 100).toFixed(1)
+  // Quantity badge color based on value
+  const getQuantityColor = (qty: number) => {
+    if (qty >= 50) return 'bg-emerald-100 text-emerald-700'
+    if (qty >= 20) return 'bg-amber-100 text-amber-700'
+    return 'bg-red-100 text-red-700'
   }
-
-  const imageUrl = product.images && Array.isArray(product.images) && product.images.length > 0
-    ? product.images[0].url
-    : null
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
+      {/* ===== Header Section ===== */}
       <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          {imageUrl ? (
-            <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 relative">
-              <Image
-                src={imageUrl}
-                alt={product.name}
-                fill
-                className="object-cover"
-                sizes="80px"
-              />
-            </div>
-          ) : (
-            <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <Package className="w-10 h-10 text-gray-400" />
-            </div>
-          )}
-          <div>
+        <div>
+          <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{product.name}</h1>
-            {product.description && (
-              <p className="text-muted-foreground mt-1">{product.description}</p>
-            )}
-            <div className="flex items-center gap-2 mt-2">
-              <StatusBadge status={product.status} />
-              <Badge variant="outline">{product.productType}</Badge>
-              <Badge variant="outline">{product.sellingType}</Badge>
-            </div>
+            <StatusBadge status={product.status} />
           </div>
+          <p className="text-muted-foreground mt-1">
+            {product.description ? `${product.description}` : ''}
+            {product.description && sku !== '—' ? ' · ' : ''}
+            {sku !== '—' && <span className="font-mono">SKU: {sku}</span>}
+          </p>
         </div>
       </div>
 
-      <Separator />
-
-      {/* Main Info Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Category */}
+      {/* ===== Stats Row ===== */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* In Stock */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Tag className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Category</p>
-                <p className="font-semibold">{product.category?.name || 'N/A'}</p>
-              </div>
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <ShieldCheck className="w-4 h-4" />
+              <span className="text-sm font-medium">In Stock</span>
             </div>
+            <p className="text-3xl font-bold">{totalStock.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              across {locationCount} {locationCount === 1 ? 'location' : 'locations'}
+            </p>
           </CardContent>
         </Card>
 
-        {/* Brand */}
+        {/* Total Sold */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Building2 className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Brand</p>
-                <p className="font-semibold">{product.brand?.name || 'N/A'}</p>
-              </div>
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <TrendingUp className="w-4 h-4" />
+              <span className="text-sm font-medium">Total Sold</span>
             </div>
+            <p className="text-3xl font-bold">{totalSold.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {totalSold > 0 ? `~${Math.round(totalSold / 12)}/month avg` : 'No sales yet'}
+            </p>
           </CardContent>
         </Card>
 
-        {/* SKU/Slug */}
+        {/* Revenue */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Package className="w-5 h-5 text-gray-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Slug</p>
-                <p className="font-semibold font-mono text-sm">{product.slug}</p>
-              </div>
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <DollarSign className="w-4 h-4" />
+              <span className="text-sm font-medium">Revenue</span>
             </div>
+            <p className="text-3xl font-bold">{formatCurrency(totalRevenue)}</p>
+            <p className="text-xs text-muted-foreground mt-1">lifetime earnings</p>
+          </CardContent>
+        </Card>
+
+        {/* Profit Margin */}
+        <Card>
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <BarChart3 className="w-4 h-4" />
+              <span className="text-sm font-medium">Profit Margin</span>
+            </div>
+            <p className="text-3xl font-bold">{profitMarginPercent}%</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatCurrency(profitPerUnit)} per unit
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Pricing Section */}
-      {!hasVariants && (
+      {/* ===== Two Column Layout: Product Info + Stock by Location ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Product Information Card */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5" />
-              Pricing Information
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Info className="w-4 h-4 text-emerald-600" />
+              Product Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-0">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Product Type</span>
+                <span className="text-sm font-medium capitalize">{product.productType}</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Brand</span>
+                <span className="text-sm font-medium">{product.brand?.name || '—'}</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Category</span>
+                <span className="text-sm font-medium">{product.category?.name || '—'}</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Unit</span>
+                <span className="text-sm font-medium">{product.unit?.name || '—'}</span>
+              </div>
+              {barcode && (
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-sm text-muted-foreground">Barcode</span>
+                  <span className="text-sm font-medium font-mono">{barcode}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Low Stock Alert */}
+            {inventoryItems.length > 0 && (
+              <>
+                <Separator className="my-4" />
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-sm text-muted-foreground">Low Stock Alert</span>
+                  <span className="text-sm font-medium">
+                    ≤ {inventoryItems[0]?.quantityAlert ?? 0} units
+                  </span>
+                </div>
+              </>
+            )}
+
+            {/* Description */}
+            {product.description && (
+              <>
+                <Separator className="my-4" />
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Description</p>
+                  <p className="text-sm leading-relaxed">{product.description}</p>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Stock by Location Card */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MapPin className="w-4 h-4 text-emerald-600" />
+              Stock by Location
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Selling Price</p>
-                <p className="text-2xl font-bold text-green-600">{formatPrice(product.price)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Cost Price</p>
-                <p className="text-2xl font-bold">{formatPrice(product.costPrice)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Profit Margin</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {getMargin(product.price, product.costPrice)}%
-                </p>
-              </div>
-            </div>
-
-            {product.discountValue && product.discountValue > 0 && (
-              <div className="mt-4 p-3 bg-orange-50 rounded-lg flex items-center gap-2">
-                <TrendingDown className="w-5 h-5 text-orange-600" />
-                <div>
-                  <p className="text-sm font-medium">Discount Applied</p>
-                  <p className="text-sm text-muted-foreground">
-                    {product.discountType === 'fixed'
-                      ? formatPrice(product.discountValue)
-                      : `${product.discountValue}%`} off
-                  </p>
-                </div>
+            {inventoryItems.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Shelf</TableHead>
+                    <TableHead className="text-right">Quantity</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {inventoryItems.map((item: InventoryItem) => (
+                    <TableRow key={item._id}>
+                      <TableCell className="font-medium">
+                        {item.location?.name || '—'}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">
+                        {item.shelf || '—'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge
+                          variant="secondary"
+                          className={`${getQuantityColor(item.quantity)} border-0 font-semibold`}
+                        >
+                          {item.quantity}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Package className="w-10 h-10 text-muted-foreground/40 mb-2" />
+                <p className="text-sm text-muted-foreground">No stock data available</p>
               </div>
             )}
           </CardContent>
         </Card>
-      )}
+      </div>
 
-      {/* Variants Section */}
+      {/* ===== Variants Section (if variable product) ===== */}
       {hasVariants && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Layers className="w-5 h-5" />
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Layers className="w-4 h-4 text-emerald-600" />
               Product Variants ({product.variants?.length})
             </CardTitle>
           </CardHeader>
@@ -247,7 +348,7 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
               {product.variants?.map((variant) => (
                 <div
                   key={variant._id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -264,7 +365,6 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
                           SKU: {variant.sku}
                         </p>
                       )}
-                      {/* Variant images */}
                       {variant.images && Array.isArray(variant.images) && variant.images.length > 0 && (
                         <div className="flex items-center gap-2 mt-2">
                           {variant.images.map((img: any, imgIdx: number) => (
@@ -285,15 +385,17 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-green-600">
-                        {formatPrice(variant.price)}
+                      <p className="text-lg font-bold text-emerald-600">
+                        {formatCurrency(variant.price)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Cost: {formatPrice(variant.costPrice)}
+                        Cost: {formatCurrency(variant.costPrice)}
                       </p>
-                      <p className="text-xs text-blue-600 font-medium">
-                        {getMargin(variant.price, variant.costPrice)}% margin
-                      </p>
+                      {variant.costPrice > 0 && (
+                        <p className="text-xs text-blue-600 font-medium">
+                          {(((variant.price - variant.costPrice) / variant.price) * 100).toFixed(1)}% margin
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -303,34 +405,185 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
         </Card>
       )}
 
-      {/* Additional Info */}
+      {/* ===== Recent Sales & Purchases Tabs ===== */}
       <Card>
-        <CardHeader>
-          <CardTitle>Additional Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Has Expiry</p>
-              <p className="font-medium">{product.hasExpiry ? 'Yes' : 'No'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Product Type</p>
-              <p className="font-medium capitalize">{product.productType}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Selling Type</p>
-              <p className="font-medium capitalize">{product.sellingType}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Created</p>
-              <p className="font-medium">
-                {formatDistanceToNow(new Date(product.createdAt), { addSuffix: true })}
-              </p>
-            </div>
-          </div>
+        <CardContent className="pt-6">
+          <Tabs defaultValue="sales">
+            <TabsList className="w-full justify-center">
+              <TabsTrigger value="sales" className="gap-2">
+                <ShoppingCart className="w-4 h-4" />
+                Recent Sales
+              </TabsTrigger>
+              <TabsTrigger value="purchases" className="gap-2">
+                <Truck className="w-4 h-4" />
+                Recent Purchases
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Recent Sales Tab */}
+            <TabsContent value="sales">
+              {Array.isArray(recentSales) && recentSales.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Invoice</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead className="text-right">Qty</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentSales.slice(0, 5).map((sale: any) => (
+                      <TableRow key={sale._id}>
+                        <TableCell className="font-mono text-sm">
+                          {sale.invoiceNumber || '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {sale.createdAt ? formatDate(sale.createdAt) : '—'}
+                        </TableCell>
+                        <TableCell>
+                          {sale.customerId?.name || sale.customer?.name || 'Walk-in'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {sale.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || '—'}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(sale.totalAmount || 0)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <ShoppingCart className="w-10 h-10 text-muted-foreground/40 mb-2" />
+                  <p className="text-sm text-muted-foreground">No recent sales</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Recent Purchases Tab */}
+            <TabsContent value="purchases">
+              {Array.isArray(recentPurchases) && recentPurchases.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Supplier</TableHead>
+                      <TableHead className="text-right">Qty</TableHead>
+                      <TableHead className="text-right">Cost</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentPurchases.slice(0, 5).map((po: any) => (
+                      <TableRow key={po._id}>
+                        <TableCell className="font-mono text-sm">
+                          {po.orderNumber || '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {po.createdAt ? formatDate(po.createdAt) : '—'}
+                        </TableCell>
+                        <TableCell>
+                          {po.supplierId?.name || po.supplier?.name || '—'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {po.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || '—'}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(po.grandTotal || po.totalAmount || po.subtotal || 0)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Truck className="w-10 h-10 text-muted-foreground/40 mb-2" />
+                  <p className="text-sm text-muted-foreground">No recent purchases</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
+
+      {/* ===== Bottom Row: Pricing + Timeline ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pricing Card */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Tag className="w-4 h-4 text-emerald-600" />
+              Pricing
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Cost Price</span>
+                <span className="text-sm font-medium">{formatCurrency(product.costPrice)}</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Selling Price</span>
+                <span className="text-sm font-semibold text-emerald-600">{formatCurrency(product.price)}</span>
+              </div>
+              {product.mrp != null && product.mrp > 0 && (
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-sm text-muted-foreground">MRP</span>
+                  <span className="text-sm font-medium">{formatCurrency(product.mrp)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Profit/Unit</span>
+                <span className="text-sm font-medium">{formatCurrency(profitPerUnit)}</span>
+              </div>
+              {taxRate > 0 && (
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-sm text-muted-foreground">Tax Rate</span>
+                  <span className="text-sm font-medium">{taxRate}%</span>
+                </div>
+              )}
+              {product.discountValue != null && product.discountValue > 0 && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Discount</span>
+                    <span className="text-sm font-medium text-orange-600">
+                      {product.discountType === 'fixed'
+                        ? formatCurrency(product.discountValue)
+                        : `${product.discountValue}%`} off
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Timeline Card */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Clock className="w-4 h-4 text-emerald-600" />
+              Timeline
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Created</span>
+                <span className="text-sm font-medium">{formatDate(product.createdAt)}</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Last Updated</span>
+                <span className="text-sm font-medium">{formatDate(product.updatedAt)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
