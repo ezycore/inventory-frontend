@@ -122,7 +122,7 @@ const StatCardItem = ({
   const variant = stat.variant || "default";
   const styles = variantStyles[variant];
   const Icon = stat.icon;
-  console.log("Rendering StatCardItem:", stat);
+
   if (isLoading) {
     return (
       <Card className="p-5">
