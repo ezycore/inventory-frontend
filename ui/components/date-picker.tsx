@@ -14,8 +14,8 @@ import {
 } from "@ui/components/popover";
 
 interface DatePickerProps {
-  date?: Date;
-  onSelect?: (date: Date | undefined) => void;
+  date?: Date | string;
+  onSelect?: (date: string | undefined) => void;
   placeholder?: string;
   disabled?: boolean;
 }
@@ -26,6 +26,26 @@ export function DatePicker({
   placeholder = "Pick a date",
   disabled = false,
 }: DatePickerProps) {
+  // Convert string to Date if needed
+  const dateValue = React.useMemo(() => {
+    if (!date) return undefined;
+    if (date instanceof Date) return date;
+    if (typeof date === 'string') {
+      const parsed = new Date(date);
+      return isNaN(parsed.getTime()) ? undefined : parsed;
+    }
+    return undefined;
+  }, [date]);
+
+  // Handle date selection and convert to ISO string
+  const handleSelect = (selectedDate: Date | undefined) => {
+    if (!selectedDate) {
+      onSelect?.(undefined);
+    } else {
+      onSelect?.(selectedDate.toISOString());
+    }
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -33,13 +53,13 @@ export function DatePicker({
           variant={"outline"}
           className={cn(
             "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground"
+            !dateValue && "text-muted-foreground"
           )}
           disabled={disabled}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? <span className="flex-1">{format(date, "dd-MM-yyyy")}</span> : <span>{placeholder}</span>}
-          {date && (
+          <CalendarIcon className="h-4 w-4" />
+          {dateValue ? <span className="flex-1">{format(dateValue, "dd-MM-yyyy")}</span> : <span>{placeholder}</span>}
+          {dateValue && (
             <div
               onClick={() => onSelect?.(undefined)}
               className="cursor-pointer"
@@ -52,10 +72,9 @@ export function DatePicker({
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
-          selected={date}
-          onSelect={onSelect}
-          initialFocus
-
+          selected={dateValue}
+          onSelect={handleSelect}
+          autoFocus
         />
       </PopoverContent>
     </Popover>
