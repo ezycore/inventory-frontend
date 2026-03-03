@@ -500,19 +500,10 @@ const FormField: FC<{
               required: field.required ? `${field.label} is required` : false,
             }}
             render={({ field: controllerField }) => {
-              // Convert stored value (string or Date) to Date for the picker
-              const dateValue = controllerField.value
-                ? controllerField.value instanceof Date
-                  ? controllerField.value
-                  : new Date(controllerField.value)
-                : undefined;
-
               return (
                 <DatePicker
-                  date={dateValue && !isNaN(dateValue.getTime()) ? dateValue : undefined}
-                  onSelect={(selected) => {
-                    // Store as ISO date string for form compatibility
-                    const value = selected ? selected.toISOString().split("T")[0] : "";
+                  date={controllerField.value}
+                  onSelect={(value) => {
                     controllerField.onChange(value);
                     handleChange(value);
                   }}
