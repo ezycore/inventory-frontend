@@ -45,7 +45,7 @@ export function PeriodFilter({
           <DatePicker
             date={customStart}
             onSelect={setCustomStart}
-            format="yyyy-MM-dd"
+            outputFormat="yyyy-MM-dd"
             timezone="Asia/Dhaka"
             placeholder="Start date"
             className="w-40"
@@ -57,7 +57,7 @@ export function PeriodFilter({
             onSelect={setCustomEnd}
             placeholder="End date"
             className='w-40'
-            format="yyyy-MM-dd"
+            outputFormat="yyyy-MM-dd"
             timezone="Asia/Dhaka"
           />
         </div>

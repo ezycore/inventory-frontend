@@ -53,7 +53,7 @@ export default function DashboardPage() {
     return params
   }, [period, customStart, customEnd, isCustomValid])
 
-  const { data: overviewData, isLoading: overviewLoading } = useDashboardOverview(overviewParams)
+  const { data: overviewData, isFetching: overviewLoading } = useDashboardOverview(overviewParams)
   const { data: stockMovements, isLoading: movementsLoading } =
     useStockMovements({ page: 1, limit: 4 })
 
