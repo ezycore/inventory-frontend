@@ -2,18 +2,20 @@
 
 import { memo, useEffect, useState } from 'react'
 import { getGreetingMessage } from './helpers'
+import { Spinner } from '@/ui/components/spinner'
 
 // ── Live Clock (isolated to prevent full-page re-renders) ──
 const LiveClock = memo(function LiveClock({ timezone }: { timezone?: string }) {
-  const [time, setTime] = useState<Date>(new Date())
-
+  const [time, setTime] = useState<Date | null>()
+  
   useEffect(() => {
+    setTime(new Date()) // Set initial time immediately on mount
     const tick = () => setTime(new Date())
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [])
 
-  const formatted = time.toLocaleString('en-US', {
+  const formatted = !time ? <Spinner /> :  time.toLocaleString('en-US', {
     timeZone: timezone || 'Asia/Dhaka',
     weekday: 'long',
     year: 'numeric',
