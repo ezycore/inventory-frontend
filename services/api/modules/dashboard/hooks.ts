@@ -25,6 +25,7 @@ export const useDashboardOverview = (params?: DashboardOverviewParams) => {
     queryFn: () => dashboardApi.getOverview(params),
     enabled: !!params, // Don't fetch when params are undefined (e.g. custom without dates)
     staleTime: 2 * 60 * 1000,
+    placeholderData: data => data,
     refetchInterval: 5 * 60 * 1000,
   })
 }
