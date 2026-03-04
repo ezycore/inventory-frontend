@@ -2,7 +2,6 @@
 
 import PageHeader from '@/ui/components/header'
 import { useState } from 'react'
-import { EyeIcon } from 'lucide-react'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
@@ -20,7 +19,7 @@ import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
 import { ProductCard } from '@/components/products/product-card'
-import { Skeleton } from '@/ui/components/skeleton';
+import MountingHandler from '@/components/MountingHandler';
 
 export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
@@ -67,10 +66,8 @@ export default function ProductsPage() {
     prepareSubmitData,
   }
 
-  if(!isMounted) {
-    return (
-      <Skeleton className="w-full h-[calc(100vh-100px)] rounded-md" />
-    )
+ if(!isMounted) {
+    return <MountingHandler />
   }
 
   return (
@@ -114,15 +111,6 @@ export default function ProductsPage() {
             placeholder: "Search products by name...",
           }}
           filterConfig={productFilterConfig}
-          customActions={[
-            {
-              icon: <EyeIcon />,
-              tooltip: "View Product Details",
-              onClick: (row) => setSelectedProductId(row._id),
-              placement: "cell",
-              type: "custom",
-            },
-          ]}
           operations={sharedOperations}
           enableSorting={true}
           enableRowHover={true}
@@ -155,15 +143,6 @@ export default function ProductsPage() {
               onDelete={actions.onDelete}
             />
           )}
-          customActions={[
-            {
-              icon: <EyeIcon className="h-4 w-4" />,
-              tooltip: "View Details",
-              onClick: (row: any) => setSelectedProductId(row._id),
-              placement: "header",
-              type: "custom",
-            },
-          ]}
           operations={sharedOperations}
         />
       )}

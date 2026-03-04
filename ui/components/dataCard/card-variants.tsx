@@ -864,7 +864,7 @@ export function CardSkeleton({ variant = "default", count = 6 }: CardSkeletonPro
   return (
     <>
       {skeletons.map((_, idx) => (
-        <Card key={idx} className="animate-pulse">
+        <Card key={idx} className="animate-pulse p-0">
           <div className="aspect-video bg-muted rounded-t-lg" />
           <div className="p-4 space-y-3">
             <div className="flex justify-between items-start">

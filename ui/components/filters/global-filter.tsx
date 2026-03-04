@@ -53,7 +53,7 @@ export function GlobalFilter({ config, trigger }: GlobalFilterProps) {
   };
 
   const triggerButton = trigger || (
-    <Button variant="outline" className="gap-2">
+    <Button variant="outline" className="gap-2 h-8">
       <Filter className="h-4 w-4" />
       Filters
       {activeCount > 0 && (

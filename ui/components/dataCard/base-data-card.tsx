@@ -229,7 +229,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   // Render loading state
   if (isLoading) {
     return (
-      <div className="w-full space-y-6">
+      <div className="w-full space-y-4">
         <DataCardToolbar
           searchConfig={searchConfig}
           filterConfig={filterConfig}
@@ -261,7 +261,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   // Render empty state
   if (!paginatedData || paginatedData.length === 0) {
     return (
-      <div className="w-full space-y-6">
+      <div className="w-full space-y-4">
         <DataCardToolbar
           searchConfig={searchConfig}
           filterConfig={filterConfig}
@@ -286,7 +286,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       {/* Toolbar */}
       <DataCardToolbar
         searchConfig={searchConfig}

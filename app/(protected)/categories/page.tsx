@@ -15,48 +15,16 @@ import PageHeader from '@/ui/components/header'
 import StatsCard, { type StatData } from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
-import { CheckCircle2, Tag, XCircle, ShoppingBag } from 'lucide-react'
+import MountingHandler from '@/components/MountingHandler'
+import { getCategoryStats } from '@/components/categories/helper'
 
 const searchConfig = {
   globalSearch: true,
   placeholder: "Search categories by name, description, or status...",
 }
 
-function getCategoryStats(stats: Record<string, any> | undefined): StatData[] {
-  return [
-    {
-      label: "Total Categories",
-      value: stats?.total || 0,
-      icon: Tag,
-      variant: "primary",
-      description: "All registered categories",
-    },
-    {
-      label: "Active",
-      value: stats?.active || 0,
-      icon: CheckCircle2,
-      variant: "success",
-      description: "Currently active",
-    },
-    {
-      label: "Inactive",
-      value: stats?.inactive || 0,
-      icon: XCircle,
-      variant: "warning",
-      description: "Currently inactive",
-    },
-    {
-      label: "Total Products",
-      value: stats?.totalProducts || 0,
-      icon: ShoppingBag,
-      variant: "info",
-      description: "Across all categories",
-    },
-  ]
-}
-
 export default function CategoriesPage() {
-  const [viewMode, setViewMode] = useViewMode('categories', 'card')
+  const [viewMode, setViewMode, isMounted] = useViewMode('categories', 'card')
   const filteredFormConfig = useFilteredFormConfig(categoryFormConfig, 'category')
   const filteredColumns = useFilteredColumns(categoryColumns, 'category')
   const { data: statsData, isLoading: statsLoading } = useCategoryStats?.() ?? { data: undefined, isLoading: false }
@@ -72,8 +40,12 @@ export default function CategoriesPage() {
     entityName: "Category" as const,
   }
 
+  if(!isMounted) {
+    return <MountingHandler />
+  }
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader 
         title="Categories" 
