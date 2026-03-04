@@ -8,18 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
 import { Edit2, MoreVertical, Palette, Trash2 } from "lucide-react";
-
-// Color palette for value badges
-const badgeColors = [
-  "bg-blue-100 text-blue-800 border-blue-200",
-  "bg-green-100 text-green-800 border-green-200",
-  "bg-purple-100 text-purple-800 border-purple-200",
-  "bg-orange-100 text-orange-800 border-orange-200",
-  "bg-pink-100 text-pink-800 border-pink-200",
-  "bg-teal-100 text-teal-800 border-teal-200",
-  "bg-indigo-100 text-indigo-800 border-indigo-200",
-  "bg-amber-100 text-amber-800 border-amber-200",
-];
+import { ValuesPopover } from "@/components/shared/values-popover";
 
 const VariantCardView = (
   variant: any,
@@ -78,17 +67,10 @@ const VariantCardView = (
         </DropdownMenu>
       </div>
 
-      {/* Values grid - show ALL values (unlike table which truncates to 3) */}
+      {/* Values grid - show 5 values then popover for the rest */}
       {allValues.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 pt-2">
-          {allValues.map((value: string, index: number) => (
-            <span
-              key={index}
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${badgeColors[index % badgeColors.length]}`}
-            >
-              {value}
-            </span>
-          ))}
+        <div className="pt-2">
+          <ValuesPopover values={allValues} maxVisible={5} colorized />
         </div>
       )}
 

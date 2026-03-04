@@ -23,6 +23,7 @@ import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
 import StatsCard from "@/ui/components/StatsCard";
 import ViewToggle from "@/ui/components/ViewToggle";
+import MountingHandler from "@/components/MountingHandler";
 
 const searchConfig = {
   globalSearch: true,
@@ -37,7 +38,7 @@ const defaultValues = {
 };
 
 export default function BrandsPage() {
-  const [viewMode, setViewMode] = useViewMode("brands", "card");
+  const [viewMode, setViewMode, isMounted] = useViewMode("brands", "card");
   const filteredFormConfig = useFilteredFormConfig(brandFormConfig, "brand");
   const filteredColumns = useFilteredColumns(brandColumns, "brand");
   const { data, isLoading } = useBrandStats();
@@ -56,8 +57,12 @@ export default function BrandsPage() {
     disabledFieldsInEdit: ["description"],
   };
 
+  if(!isMounted) {
+    return <MountingHandler />
+  }
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader
         title="Brands Management"

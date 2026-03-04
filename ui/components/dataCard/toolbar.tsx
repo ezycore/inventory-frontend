@@ -65,13 +65,13 @@ export function DataCardToolbar({
       {/* Search */}
       <div className="flex items-center gap-2 sm:gap-4 flex-1">
         {searchConfig?.globalSearch || searchConfig?.searchableKey ? (
-          <div className="relative flex-1 w-full sm:max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm h-8">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder={searchConfig.placeholder || "Search..."}
               value={globalFilter ?? ""}
               onChange={(event) => onGlobalFilterChange?.(event.target.value)}
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 h-8"
             />
             {globalFilter && (
               <Button
@@ -91,13 +91,13 @@ export function DataCardToolbar({
       <div className="flex flex-wrap items-center gap-2 sm:gap-2 sm:justify-end">
         {/* Layout Switcher */}
         {showLayoutSwitcher && onLayoutChange && (
-          <div className="hidden sm:flex items-center border rounded-md">
+          <div className="hidden sm:flex items-center border rounded-md h-8">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onLayoutChange("grid")}
               className={cn(
-                "h-9 px-3 rounded-r-none",
+                "h-8 px-3 rounded-r-none",
                 layout === "grid" && "bg-accent"
               )}
             >
@@ -108,7 +108,7 @@ export function DataCardToolbar({
               size="sm"
               onClick={() => onLayoutChange("list")}
               className={cn(
-                "h-9 px-3 rounded-l-none border-l",
+                "h-8 px-3 rounded-l-none border-l",
                 layout === "list" && "bg-accent"
               )}
             >

@@ -30,7 +30,7 @@ export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardPr
   const productType = product.productType;
 
   return (
-    <Card className="group overflow-hidden rounded-xl border border-border/60 bg-card transition-all duration-300 hover:shadow-lg hover:border-border hover:-translate-y-0.5">
+    <Card className="p-0 gap-0 group overflow-hidden rounded-xl border border-border/60 bg-card transition-all duration-300 hover:shadow-lg hover:border-border hover:-translate-y-0.5">
       {/* Image Section */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted/30">
         {thumbnailUrl ? (
@@ -114,7 +114,7 @@ export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardPr
       {/* Content Section */}
       <div className="p-3.5 space-y-2.5">
         {/* Category */}
-        <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium truncate">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium truncate mb-1">
           {categoryName}
         </p>
 

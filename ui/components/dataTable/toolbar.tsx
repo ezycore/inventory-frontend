@@ -66,20 +66,20 @@ export function DataTableToolbar<TData>({
   onColumnSettingsClick,
 }: DataTableToolbarProps<TData>) {
 
-  if(!searchConfig?.globalSearch || !searchConfig?.searchableColumn || !(filterConfig && Object.keys(filterConfig).length > 0) || !(selectable && hasSelection && deletable) || !enableColumnVisibility || !manageColumns)  return null;
+  if(!searchConfig?.globalSearch && !(filterConfig && Object.keys(filterConfig).length > 0) && !manageColumns)  return null;
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
       {/* Search */}
       <div className="flex items-center gap-2 sm:gap-4 flex-1">
         {searchConfig?.globalSearch ? (
-          <div className="relative flex-1 w-full sm:max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm h-8">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder={searchConfig.placeholder || "Search all columns..."}
               value={globalFilter ?? ""}
               onChange={(event) => onGlobalFilterChange?.(event.target.value)}
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 h-8"
             />
             {globalFilter && (
               <Button
@@ -93,7 +93,7 @@ export function DataTableToolbar<TData>({
             )}
           </div>
         ) : searchConfig?.searchableColumn ? (
-          <div className="relative flex-1 w-full sm:max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm h-8">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder={searchConfig.placeholder || "Search..."}
@@ -107,7 +107,7 @@ export function DataTableToolbar<TData>({
                   .getColumn(searchConfig.searchableColumn as string)
                   ?.setFilterValue(event.target.value)
               }
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 h-8"
             />
             {table.getColumn(searchConfig.searchableColumn as string)?.getFilterValue() && (
               <Button
