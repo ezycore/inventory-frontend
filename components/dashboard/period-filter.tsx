@@ -31,10 +31,13 @@ export function PeriodFilter({
       {PERIOD_OPTIONS.map((opt) => (
         <Button
           key={opt.value}
-          variant={period === opt.value ? 'default' : 'outline'}
+          variant="outline"
           size="sm"
           onClick={() => setPeriod(opt.value)}
-          className="text-xs"
+          className={`text-xs transition-colors ${period === opt.value
+              ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:border-primary'
+              : 'bg-transparent text-foreground border-border hover:bg-accent dark:border-white/20 dark:hover:bg-accent'
+            }`}
         >
           {opt.value === 'custom' && <Calendar className="h-3 w-3 mr-1" />}
           {opt.label}
@@ -48,7 +51,7 @@ export function PeriodFilter({
             outputFormat="yyyy-MM-dd"
             timezone="Asia/Dhaka"
             placeholder="Start date"
-            className="w-40"
+            className="w-40 h-8"
           />
 
           <span className="text-xs text-muted-foreground">to</span>
@@ -56,14 +59,14 @@ export function PeriodFilter({
             date={customEnd}
             onSelect={setCustomEnd}
             placeholder="End date"
-            className='w-40'
+            className='w-40 h-8'
             outputFormat="yyyy-MM-dd"
             timezone="Asia/Dhaka"
           />
         </div>
       )}
       {periodInfo && (
-        <Badge variant="secondary" className="text-[11px] h-8 font-normal gap-1 ml-1">
+        <Badge variant="secondary" className="text-[11px] h-8 font-normal gap-1">
           <Info className="h-3 w-3" />
           {formatPeriodLabel(periodInfo)}
         </Badge>
