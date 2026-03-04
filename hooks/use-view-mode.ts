@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type ViewMode = "table" | "card";
 
@@ -27,10 +27,19 @@ function getStoredView(storageKey: string, defaultView: ViewMode): ViewMode {
 export function useViewMode(
   storageKey: string,
   defaultView: ViewMode = "table",
-): [ViewMode, (v: ViewMode) => void] {
-  const [view, setViewInternal] = useState<ViewMode>(() =>
-    getStoredView(storageKey, defaultView),
-  );
+): [ViewMode, (v: ViewMode) => void, boolean] {
+  const [view, setViewInternal] = useState<ViewMode>();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true);
+      const storedView = getStoredView(storageKey, defaultView);
+      if (storedView !== view) {
+        setViewInternal(storedView);
+      }
+    }
+  }, [storageKey, defaultView, view, isMounted]);
 
   const setView = useCallback(
     (v: ViewMode) => {
@@ -44,5 +53,5 @@ export function useViewMode(
     [storageKey],
   );
 
-  return [view, setView];
+  return [view, setView, isMounted];
 }

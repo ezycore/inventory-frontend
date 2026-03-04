@@ -20,10 +20,11 @@ import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
 import { ProductCard } from '@/components/products/product-card'
+import { Skeleton } from '@/ui/components/skeleton';
 
 export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useViewMode('products')
+  const [viewMode, setViewMode, isMounted] = useViewMode('products')
   const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
   const filteredColumns = useFilteredColumns(productColumns, 'product')
   const { data: statsData, isLoading: statsLoading } = useProductStats()
@@ -66,6 +67,12 @@ export default function ProductsPage() {
     prepareSubmitData,
   }
 
+  if(!isMounted) {
+    return (
+      <Skeleton className="w-full h-[calc(100vh-100px)] rounded-md" />
+    )
+  }
+
   return (
     <div className="container mx-auto space-y-6">
       <PageHeader
@@ -89,6 +96,8 @@ export default function ProductsPage() {
         isLoading={statsLoading}
         columns={{ default: 1, lg: productStats.length }}
       />
+
+
 
       {/* Table View */}
       {viewMode === 'table' && (
