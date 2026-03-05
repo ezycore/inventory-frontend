@@ -136,7 +136,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
 
     // Client-side pagination (using external data)
     if (externalData && externalData.length > 0) {
-      const pageOptions = pageSizes || [12, 24, 48, 96];
+      const pageOptions = pageSizes || [6, 12, 24, 48, 96];
       return {
         pageIndex: 0,
         pageSize: pageOptions[0],

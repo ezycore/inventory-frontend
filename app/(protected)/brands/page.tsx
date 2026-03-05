@@ -106,7 +106,7 @@ export default function BrandsPage() {
         <DataCard
           cardTitle={(n) => `All Brands (${n})`}
           defaultPageSize={12}
-          pageSizes={[12, 24, 48]}
+          pageSizes={[6, 12, 24, 48]}
           filterConfig={brandFilterConfig}
           layoutConfig={{
             layout: "grid",

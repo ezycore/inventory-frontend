@@ -126,7 +126,8 @@ export function DataTablePagination<TData>({
           return (
             <button
               key={page}
-              onClick={() => table.setPageIndex(page as number)}
+              // onClick={() => table.setPageIndex(page as number)}
+              onClick={() => table.setPageIndex((page as number) - 1)}
               className={`min-w-[36px] px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 currentPage === page
                   ? "bg-blue-600 text-white font-medium shadow-sm"
