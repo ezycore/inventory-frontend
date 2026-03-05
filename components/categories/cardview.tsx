@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
 import { Edit2, MoreVertical, Tag, Trash2 } from "lucide-react";
+import { TruncatedText } from "@/components/shared/truncated-text";
 
 const CategoryCardView = (
   category: any,
@@ -47,9 +48,11 @@ const CategoryCardView = (
             </Badge>
           </div>
           {description ? (
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
-              {description}
-            </p>
+            <TruncatedText
+              text={description}
+              lines={1}
+              className="text-sm text-muted-foreground mt-0.5"
+            />
           ) : (
             <p className="text-sm text-muted-foreground/50 italic mt-0.5">
               No description
