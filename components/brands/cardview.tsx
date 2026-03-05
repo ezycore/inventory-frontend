@@ -10,6 +10,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { Edit2, MoreVertical, Package, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { TruncatedText } from "@/components/shared/truncated-text";
 
 const BrandCardView = (brand, { onEdit, onDelete }) => {
   const {
@@ -56,10 +57,14 @@ const BrandCardView = (brand, { onEdit, onDelete }) => {
             </Badge>
           </div>
           {description ? (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {description}
-            </p>
-          ) : "-"}
+            <TruncatedText
+              text={description}
+              lines={1}
+              className="text-sm text-muted-foreground mt-0.5"
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground/50 italic mt-0.5">-</p>
+          )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors">
