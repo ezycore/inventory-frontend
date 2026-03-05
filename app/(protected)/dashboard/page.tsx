@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const { format: formatCurrency } = useCurrency()
 
   // ── Period state ──
-  const [period, setPeriod] = useState<DashboardPeriod>('thisMonth')
+  const [period, setPeriod] = useState<DashboardPeriod>('today')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
 

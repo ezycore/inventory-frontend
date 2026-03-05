@@ -12,7 +12,7 @@ import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategorySta
 import { categoriesApi } from '@/services/api'
 import { queryKeys } from '@/lib/query-keys'
 import PageHeader from '@/ui/components/header'
-import StatsCard, { type StatData } from '@/ui/components/StatsCard'
+import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
@@ -20,7 +20,8 @@ import { getCategoryStats } from '@/components/categories/helper'
 
 const searchConfig = {
   globalSearch: true,
-  placeholder: "Search categories by name, description, or status...",
+  placeholder: "Search categories by name",
+  searchableColumns: ["name"],
 }
 
 export default function CategoriesPage() {
@@ -38,6 +39,16 @@ export default function CategoriesPage() {
     deleteMutation: useDeleteCategory(),
     queryKey: [...queryKeys.categories.all()],
     entityName: "Category" as const,
+  }
+  
+  const sortingConfig = {
+    sortOptions: [
+      { field: "name", label: "Name" },
+      { field: "createdAt", label: "Date Created" },
+      { field: "updatedAt", label: "Last Updated" },
+    ],
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc" as const,
   }
 
   if(!isMounted) {
@@ -73,6 +84,7 @@ export default function CategoriesPage() {
           pageSizes={[10, 20, 50, 100]}
           filterConfig={categoryFilterConfig}
           columns={filteredColumns}
+          sortingConfig={sortingConfig}
           manageColumns={true}
           module="category"
           selectable={true}
@@ -90,13 +102,14 @@ export default function CategoriesPage() {
         <DataCard
           cardTitle={(n) => `All Categories (${n})`}
           defaultPageSize={12}
-          pageSizes={[12, 24, 48]}
+          pageSizes={[6, 12, 24, 48]}
           filterConfig={categoryFilterConfig}
           layoutConfig={{
             layout: "grid",
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "md",
           }}
+          sortingConfig={sortingConfig}
           searchConfig={searchConfig}
           renderCard={CategoryCardView}
           loadingRenderCard={CategoryCardLoading}

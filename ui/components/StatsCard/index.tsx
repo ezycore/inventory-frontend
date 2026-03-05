@@ -125,7 +125,7 @@ const StatCardItem = ({
 
   if (isLoading) {
     return (
-      <Card className="p-5">
+      <Card className="p-5 gap-2">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <Skeleton className="h-4 w-24" />
@@ -150,7 +150,7 @@ const StatCardItem = ({
         : "text-muted-foreground";
 
   return (
-    <Card className="p-5 hover:shadow-md transition-shadow">
+    <Card className="p-5 hover:shadow-md transition-shadow gap-2">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium text-muted-foreground">
