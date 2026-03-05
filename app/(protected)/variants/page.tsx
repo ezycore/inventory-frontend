@@ -92,7 +92,7 @@ export default function VariantsPage() {
         <DataCard
           cardTitle={(n) => `All Variants (${n})`}
           defaultPageSize={12}
-          pageSizes={[12, 24, 48]}
+          pageSizes={[6, 12, 24, 48]}
           layoutConfig={{
             layout: "grid",
             columns: { default: 1, sm: 2, lg: 3 },

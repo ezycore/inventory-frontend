@@ -69,15 +69,14 @@ export interface Category extends BaseEntity {
   name: string;
   slug: string;
   description?: string;
-  parent_id?: string;
   status: "active" | "inactive";
+  productCount: number; // For displaying number of products in category
 }
 
 export interface CreateCategoryDto {
   name: string;
   slug?: string;
   description?: string;
-  parent_id?: string;
   status?: "active" | "inactive";
 }
 
@@ -98,6 +97,7 @@ export interface Brand extends BaseEntity {
   description?: string;
   images: Image[];
   status: "active" | "inactive";
+  productCount: number; // For displaying number of products in brand
 }
 
 // Location interfaces (unified for stores and warehouses)

@@ -23,6 +23,10 @@ const CategoryCardLoading = () => {
         <div className="h-8 w-8 bg-muted rounded-md" />
       </div>
 
+       <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="h-3 w-24 bg-muted rounded" />
+      </div>
+
       {/* Footer skeleton */}
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <div className="h-3 w-24 bg-muted rounded" />
