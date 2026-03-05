@@ -9,6 +9,7 @@ import { EasyAlertDialog } from "@/ui/components/custom/easy-alert-dialog";
 import type {
   BaseDataCardProps,
   CardLayout,
+  CardSortingConfig,
   DataCardPagination as PaginationConfig,
 } from "@/types/DataCard";
 
@@ -59,6 +60,11 @@ export function BaseDataCard<TData extends { _id: string }>({
   selectable = false,
   searchConfig,
   onSelectionChange,
+  // Sorting
+  sortBy,
+  sortOrder,
+  onSortChange,
+  sortingConfig,
   // Layout
   layoutConfig,
   cardSize,
@@ -245,6 +251,10 @@ export function BaseDataCard<TData extends { _id: string }>({
           customActions={customActions}
           layout={layout}
           onLayoutChange={handleLayoutChange}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={onSortChange}
+          sortingConfig={sortingConfig}
         />
         <div className={layoutClasses}>
           {loadingRenderCard
@@ -277,6 +287,10 @@ export function BaseDataCard<TData extends { _id: string }>({
           customActions={customActions}
           layout={layout}
           onLayoutChange={handleLayoutChange}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={onSortChange}
+          sortingConfig={sortingConfig}
         />
         <CardEmptyState message={emptyMessage} icon={emptyIcon}>
           {emptyState}
@@ -303,6 +317,10 @@ export function BaseDataCard<TData extends { _id: string }>({
         customActions={customActions}
         layout={layout}
         onLayoutChange={handleLayoutChange}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={onSortChange}
+        sortingConfig={sortingConfig}
       />
 
       {/* Cards Grid */}

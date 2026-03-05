@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X, Trash2, LayoutGrid, List } from "lucide-react";
+import { Search, X, Trash2, LayoutGrid, List, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/ui/components/input";
 import { Button } from "@/ui/components/button";
@@ -15,8 +15,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/ui/components/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/ui/components/dropdown-menu";
 import { GlobalFilter } from "@/ui/components/filters/global-filter";
-import { DataCardSearchConfig, FilterConfig, CardCustomAction, CardLayout } from "@/types/DataCard";
+import { DataCardSearchConfig, FilterConfig, CardCustomAction, CardLayout, CardSortingConfig } from "@/types/DataCard";
 import { cn } from "@/ui/lib/utils";
 
 interface DataCardToolbarProps {
@@ -41,6 +48,11 @@ interface DataCardToolbarProps {
   layout?: CardLayout;
   onLayoutChange?: (layout: CardLayout) => void;
   showLayoutSwitcher?: boolean;
+  // Sorting
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  onSortChange?: (sortBy: string, sortOrder: "asc" | "desc") => void;
+  sortingConfig?: CardSortingConfig;
 }
 
 export function DataCardToolbar({
@@ -59,6 +71,10 @@ export function DataCardToolbar({
   layout,
   onLayoutChange,
   showLayoutSwitcher = true,
+  sortBy,
+  sortOrder,
+  onSortChange,
+  sortingConfig,
 }: DataCardToolbarProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
@@ -89,6 +105,65 @@ export function DataCardToolbar({
 
       {/* Right side actions */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-2 sm:justify-end">
+        {/* Sort Dropdown */}
+        {sortingConfig && onSortChange && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 gap-1">
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">
+                  {sortBy
+                    ? sortingConfig.sortOptions.find((o) => o.field === sortBy)?.label || "Sort"
+                    : "Sort"}
+                </span>
+                {sortBy && (
+                  sortOrder === "asc"
+                    ? <ArrowUp className="h-3 w-3" />
+                    : <ArrowDown className="h-3 w-3" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {sortingConfig.sortOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.field}
+                  onClick={() => {
+                    if (sortBy === option.field) {
+                      // Toggle direction
+                      onSortChange(option.field, sortOrder === "asc" ? "desc" : "asc");
+                    } else {
+                      // New field — default to ascending
+                      onSortChange(option.field, "asc");
+                    }
+                  }}
+                  className={cn(
+                    "flex items-center justify-between",
+                    sortBy === option.field && "font-medium"
+                  )}
+                >
+                  {option.label}
+                  {sortBy === option.field && (
+                    sortOrder === "asc"
+                      ? <ArrowUp className="h-3.5 w-3.5 ml-2" />
+                      : <ArrowDown className="h-3.5 w-3.5 ml-2" />
+                    )}
+                </DropdownMenuItem>
+              ))}
+              {sortBy && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => onSortChange("", "desc")}
+                    className="text-muted-foreground"
+                  >
+                    Clear sort
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         {/* Layout Switcher */}
         {showLayoutSwitcher && onLayoutChange && (
           <div className="hidden sm:flex items-center border rounded-md h-8">
