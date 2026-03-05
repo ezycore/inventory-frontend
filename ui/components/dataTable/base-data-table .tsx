@@ -44,6 +44,11 @@ export function BaseDataTable<TData, TValue>({
   manageColumns = false,
   module,
   fullColumns,
+  // Server-side sorting props
+  manualSorting = false,
+  sortingState: externalSortingState,
+  onSortingChange: externalOnSortingChange,
+  serverSortableFields,
   // Table styling props
   variant = 'default',
   headless = false,
@@ -54,7 +59,9 @@ export function BaseDataTable<TData, TValue>({
   stickyHeader = false,
   rowBgColor,
 }: BaseDataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [internalSorting, setInternalSorting] = useState<SortingState>([]);
+  const sorting = manualSorting && externalSortingState ? externalSortingState : internalSorting;
+  const setSorting = manualSorting && externalOnSortingChange ? externalOnSortingChange : setInternalSorting;
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
   const [rowSelection, setRowSelection] = useState({});
@@ -80,22 +87,27 @@ export function BaseDataTable<TData, TValue>({
     onEdit,
     openDeleteDialog,
     customActions,
+    serverSortableFields: manualSorting ? serverSortableFields : undefined,
   });
 
   const table = useReactTable({
     data,
     columns: enhancedColumns,
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const newSorting = typeof updater === "function" ? updater(sorting) : updater;
+      setSorting(newSorting);
+    },
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: pagination?.manualPagination ? undefined : getPaginationRowModel(),
-    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
+    getSortedRowModel: (enableSorting && !manualSorting) ? getSortedRowModel() : undefined,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: handlePaginationChange,
     manualPagination: pagination?.manualPagination,
+    manualSorting,
     pageCount: pagination?.manualPagination ? (pagination?.totalPages ?? -1) : undefined,
     state: {
       sorting,

@@ -57,7 +57,7 @@ export default function BrandsPage() {
     disabledFieldsInEdit: ["description"],
   };
 
-  if(!isMounted) {
+  if (!isMounted) {
     return <MountingHandler />
   }
 
@@ -86,6 +86,16 @@ export default function BrandsPage() {
       {viewMode === "table" && (
         <DataTable
           cardTitle={(dataLength: number) => `All Brands (${dataLength})`}
+          sortingConfig={{
+            sortOptions: [
+              { field: "name", label: "Name" },
+              { field: "createdAt", label: "Date Created" },
+              { field: "status", label: "Status" },
+              { field: "updatedAt", label: "Last Updated" },
+            ],
+            defaultSortBy: "createdAt",
+            defaultSortOrder: "desc",
+          }}
           defaultPageSize={10}
           pageSizes={[10, 20, 50, 100]}
           filterConfig={brandFilterConfig}
@@ -96,6 +106,7 @@ export default function BrandsPage() {
           searchConfig={searchConfig}
           enableSorting={true}
           defaultColumnVisibility={{ status: false }}
+          rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
           enableRowHover={true}
           operations={sharedOperations}
         />
@@ -108,6 +119,16 @@ export default function BrandsPage() {
           defaultPageSize={12}
           pageSizes={[6, 12, 24, 48]}
           filterConfig={brandFilterConfig}
+          sortingConfig={{
+            sortOptions: [
+              { field: "name", label: "Name" },
+              { field: "createdAt", label: "Date Created" },
+              { field: "status", label: "Status" },
+              { field: "updatedAt", label: "Last Updated" },
+            ],
+            defaultSortBy: "createdAt",
+            defaultSortOrder: "desc",
+          }}
           layoutConfig={{
             layout: "grid",
             columns: { default: 1, sm: 2, lg: 3 },

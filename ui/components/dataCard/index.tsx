@@ -10,7 +10,7 @@ import { ErrorBoundaryFallback } from "@/ui/components/error-boundary-fallback";
 import DynamicForm from "@/ui/components/form";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { BaseDataCard } from "./base-data-card";
 
 export function DataCard<TData extends { _id: string }, TValue = any>(
@@ -26,6 +26,8 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     customActions,
     module,
     loading = false,
+    // Sorting config
+    sortingConfig,
     // Card layout props
     layoutConfig,
     cardSize,
@@ -78,6 +80,20 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
   const [limit, setLimit] = useState(defaultPageSize || 12);
   const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
 
+  // Server-side sorting state
+  const isServerSorting = !!sortingConfig && !!getAllData;
+  const [sortBy, setSortBy] = useState<string | undefined>(sortingConfig?.defaultSortBy);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(sortingConfig?.defaultSortOrder || "desc");
+
+  const handleSortChange = useCallback(
+    (newSortBy: string, newSortOrder: "asc" | "desc") => {
+      setSortBy(newSortBy);
+      setSortOrder(newSortOrder);
+      if (isServerSorting) setPage(1);
+    },
+    [isServerSorting],
+  );
+
   // Data fetching (self-contained mode)
   const {
     data: queryData,
@@ -87,10 +103,10 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     refetch,
   } = useQuery<ApiResponse<PaginatedResponse<TData>>>({
     queryKey: getAllData
-      ? [...(queryKey || []), { page, limit, ...(filters || {}) }]
+      ? [...(queryKey || []), { page, limit, ...(filters || {}), ...(isServerSorting ? { sort_by: sortBy, sort_order: sortOrder } : {}) }]
       : [],
     queryFn: getAllData
-      ? () => getAllData({ page, limit, ...filters })
+      ? () => getAllData({ page, limit, ...filters, ...(isServerSorting ? { sort_by: sortBy, sort_order: sortOrder } : {}) })
       : () => Promise.resolve(undefined),
     enabled: !!getAllData && !externalData, // Only fetch if getAllData is provided and externalData is not
     placeholderData: (previousData) => previousData,
@@ -289,6 +305,11 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
           toolbarAction={mergedToolbarAction}
           customActions={customActions}
           module={module}
+          // Sorting
+          sortBy={isServerSorting ? sortBy : undefined}
+          sortOrder={isServerSorting ? sortOrder : undefined}
+          onSortChange={isServerSorting ? handleSortChange : undefined}
+          sortingConfig={isServerSorting ? sortingConfig : undefined}
           // Layout
           layoutConfig={layoutConfig}
           cardSize={cardSize}

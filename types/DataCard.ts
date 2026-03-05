@@ -5,6 +5,7 @@
 
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { FilterField } from "./filter";
+import { SortingConfig } from "./DataTable";
 
 /**
  * Card layout configuration
@@ -259,6 +260,8 @@ export interface DataCardProps<TData, TValue = any> {
   selectable?: boolean;
   /** Search configuration */
   searchConfig?: DataCardSearchConfig;
+  /** Server-side sorting configuration. Renders a sort dropdown in the toolbar */
+  sortingConfig?: SortingConfig;
   /** Loading state */
   loading?: boolean;
 
@@ -348,6 +351,14 @@ export interface BaseDataCardProps<TData> {
   pagination?: DataCardPagination;
   filterConfig?: FilterConfig;
   actions?: DataCardAction;
+  /** Current sort field */
+  sortBy?: string;
+  /** Current sort order */
+  sortOrder?: "asc" | "desc";
+  /** Callback when sort changes */
+  onSortChange?: (sortBy: string, sortOrder: "asc" | "desc") => void;
+  /** Sorting configuration for rendering the sort dropdown */
+  sortingConfig?: SortingConfig;
   onEdit?: (row: TData) => void;
   onView?: (row: TData) => void;
   onDelete?: (row: TData) => void;
