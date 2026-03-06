@@ -24,6 +24,12 @@ const VariantCardView = (
     day: "numeric",
   });
 
+  const updatedDate = new Date(variant.updatedAt).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
   return (
     <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-3">
       <div className="flex items-start gap-4">
@@ -50,7 +56,7 @@ const VariantCardView = (
 
         {/* Actions menu */}
         <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors opacity-0 group-hover:opacity-100">
+          <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors">
             <MoreVertical className="h-4 w-4 cursor-pointer" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -77,6 +83,7 @@ const VariantCardView = (
       {/* Footer */}
       <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-muted-foreground">
         <span>Created: {createdDate}</span>
+        <span>Updated: {updatedDate}</span>
       </div>
     </Card>
   );
