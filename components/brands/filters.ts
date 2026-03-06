@@ -29,7 +29,7 @@ export const brandFilterConfig: FilterConfig = {
     {
       name: "updatedAt",
       label: "Updated Date",
-      type: "date",
+      type: "date-range",
       placeholder: "Select date",
       columnSpan: 2,
     },

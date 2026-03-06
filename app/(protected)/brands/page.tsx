@@ -27,7 +27,8 @@ import MountingHandler from "@/components/MountingHandler";
 
 const searchConfig = {
   globalSearch: true,
-  placeholder: "Search brands by name, description, or status...",
+  placeholder: "Search brands by name",
+  searchableColumns: ["name"],
 };
 
 const defaultValues = {
