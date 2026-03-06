@@ -26,11 +26,12 @@ import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
 import { getVariantStats } from '@/components/variants/helper'
 import { variantColumns } from '@/components/variants/columns'
+import { variantFilterConfig } from '@/components/variants/filter'
 
 
 const searchConfig = {
   globalSearch: true,
-  placeholder: "Search attributes by name...",
+  placeholder: "Search attributes by name, values",
 }
 
 export default function VariantsPage() {
@@ -48,7 +49,17 @@ export default function VariantsPage() {
     transformEditData: variantAttributesApi.transformForEdit,
   }
 
-  if(!isMounted) {
+  const sortingConfig = {
+    sortOptions: [
+      { field: "name", label: "Name" },
+      { field: "createdAt", label: "Date Created" },
+      { field: "updatedAt", label: "Last Updated" },
+    ],
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc" as const,
+  }
+
+  if (!isMounted) {
     return <MountingHandler />
   }
 
@@ -78,7 +89,9 @@ export default function VariantsPage() {
           selectable={true}
           searchConfig={searchConfig}
           operations={sharedOperations}
+          filterConfig={variantFilterConfig}
           enableSorting={true}
+          sortingConfig={sortingConfig}
           defaultColumnVisibility={{ status: false }}
           enableRowHover={true}
           rowClassName={(row) =>
@@ -92,12 +105,14 @@ export default function VariantsPage() {
         <DataCard
           cardTitle={(n) => `All Variants (${n})`}
           defaultPageSize={12}
+          sortingConfig={sortingConfig}
           pageSizes={[6, 12, 24, 48]}
           layoutConfig={{
             layout: "grid",
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "md",
           }}
+          filterConfig={variantFilterConfig}
           searchConfig={searchConfig}
           renderCard={VariantCardView}
           loadingRenderCard={VariantCardLoading}

@@ -34,6 +34,7 @@ const VariantCardLoading = () => {
       {/* Footer skeleton */}
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <div className="h-3 w-24 bg-muted rounded" />
+        <div className="h-3 w-24 bg-muted rounded" />
       </div>
     </Card>
   );
