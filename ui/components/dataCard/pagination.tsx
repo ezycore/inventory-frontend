@@ -185,7 +185,13 @@ export function DataCardPagination({
       {/* Total Items Info */}
       <div className="hidden sm:flex items-center gap-2 order-2 sm:order-3">
         <span className="text-sm text-muted-foreground">
-          {pagination?.totalItems || totalItems} items
+          {paginationState.pageIndex * paginationState.pageSize + 1}-
+
+          {Math.min(
+            (paginationState.pageIndex + 1) * paginationState.pageSize,
+            pagination?.totalItems || 0,
+          )}{" "}
+          of {pagination?.totalItems || 0}
         </span>
       </div>
     </div>
