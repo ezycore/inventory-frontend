@@ -175,7 +175,7 @@ export function BaseDataTable<TData, TValue>({
       <DataTableBody
         table={table}
         columns={enhancedColumns}
-        isLoading={isLoading}
+        isLoading={isLoading || isDeleting}
         enableRowHover={enableRowHover}
         rowClassName={rowClassName}
         variant={variant}

@@ -9,8 +9,6 @@ import { EasyAlertDialog } from "@/ui/components/custom/easy-alert-dialog";
 import type {
   BaseDataCardProps,
   CardLayout,
-  CardSortingConfig,
-  DataCardPagination as PaginationConfig,
 } from "@/types/DataCard";
 
 // Grid column classes based on config
@@ -233,7 +231,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   }, [layout, layoutConfig]);
 
   // Render loading state
-  if (isLoading) {
+  if (isLoading || isDeleting) {
     return (
       <div className="w-full space-y-4">
         <DataCardToolbar
