@@ -285,7 +285,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
         <CardHeader className="px-0">
           <CardTitle>
             {typeof cardTitle === "function"
-              ? cardTitle(data?.length || 0)
+              ? cardTitle(queryData?.data.total || 0)
               : cardTitle}
           </CardTitle>
         </CardHeader>
