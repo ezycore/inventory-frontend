@@ -265,13 +265,13 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           variant: "default" as const,
         });
 
-  return (
+        return (
     <Card className="border-none shadow-none py-0 gap-3 bg-transparent">
       {cardTitle && (
         <CardHeader className="px-0">
           <CardTitle>
             {typeof cardTitle === "function"
-              ? cardTitle(data?.length || 0)
+              ? cardTitle(queryData?.data.total || 0)
               : cardTitle}
           </CardTitle>
         </CardHeader>
