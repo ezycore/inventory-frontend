@@ -55,7 +55,7 @@ export default function BrandsPage() {
     entityName: "Brand" as const,
     isViewAvailable: false,
     prepareSubmitData,
-    disabledFieldsInEdit: ["description"],
+    // disabledFieldsInEdit: ["description"],
   };
 
   const sortingConfig = {
