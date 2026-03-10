@@ -5,50 +5,16 @@ import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/ui/components/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/ui/components/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/card';
 import { Badge } from '@/ui/components/badge';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/ui/components/sheet';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/ui/components/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/ui/components/select';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/ui/components/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/ui/components/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/components/select';
 import { Input } from '@/ui/components/input';
 import { Label } from '@/ui/components/label';
 import { Textarea } from '@/ui/components/textarea';
 import { Separator } from '@/ui/components/separator';
-import {
-  Plus,
-  CreditCard,
-  Receipt,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  AlertCircle,
-  Wallet,
-} from 'lucide-react';
+import { Plus, CreditCard, Receipt, CheckCircle2, XCircle, Clock, AlertCircle, Wallet } from 'lucide-react';
 import {
   useSales,
   useSalePayments,
@@ -112,7 +78,7 @@ export default function SalesHistoryPage() {
 
   const { data: accountsData } = useAccounts();
   const addPaymentMutation = useAddSalePayment();
-  
+
   // Summary data
   const { data: summaryData, isLoading: isSummaryLoading } = useSalesSummary();
   const summary = summaryData?.data;
@@ -227,9 +193,8 @@ export default function SalesHistoryPage() {
         header: () => <span className="flex justify-end">Due</span>,
         cell: ({ row }) => (
           <span
-            className={`flex justify-end ${
-              row.original.dueAmount > 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'
-            }`}
+            className={`flex justify-end ${row.original.dueAmount > 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'
+              }`}
           >
             {formatCurrency(row.original.dueAmount)}
           </span>
@@ -278,16 +243,16 @@ export default function SalesHistoryPage() {
       },
       ...(isAccountsEnabled
         ? [
-            {
-              type: 'custom' as const,
-              placement: 'cell' as const,
-              icon: <CreditCard className="h-4 w-4" />,
-              label: 'Make Payment',
-              tooltip: 'Add payment for this sale',
-              onClick: (row: Sale) => handleMakePayment(row),
-              disabled: (row: Sale) => row.dueAmount <= 0 || row.status === 'cancelled',
-            },
-          ]
+          {
+            type: 'custom' as const,
+            placement: 'cell' as const,
+            icon: <CreditCard className="h-4 w-4" />,
+            label: 'Make Payment',
+            tooltip: 'Add payment for this sale',
+            onClick: (row: Sale) => handleMakePayment(row),
+            disabled: (row: Sale) => row.dueAmount <= 0 || row.status === 'cancelled',
+          },
+        ]
         : []),
     ],
     [handleViewPayments, handleMakePayment, isAccountsEnabled]
@@ -439,7 +404,6 @@ export default function SalesHistoryPage() {
             data={sales}
             isLoading={isLoading}
             filterConfig={filterConfig}
-            actions={{}}
             customActions={customActions}
             pagination={{
               pageIndex: page - 1,
@@ -489,9 +453,8 @@ export default function SalesHistoryPage() {
                 <div className="flex justify-between">
                   <span className="font-medium">Due Amount</span>
                   <span
-                    className={`font-bold ${
-                      selectedSale.dueAmount > 0 ? 'text-red-600' : 'text-green-600'
-                    }`}
+                    className={`font-bold ${selectedSale.dueAmount > 0 ? 'text-red-600' : 'text-green-600'
+                      }`}
                   >
                     {formatCurrency(selectedSale.dueAmount)}
                   </span>
