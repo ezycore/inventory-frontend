@@ -5,6 +5,7 @@ import { Badge } from '@ui/components/badge'
 import { Calendar, Info } from 'lucide-react'
 import type { DashboardPeriod, DashboardOverview } from '@/services/api'
 import { PERIOD_OPTIONS, formatPeriodLabel } from './helpers'
+import { DatePicker } from '@/ui/components/date-picker'
 
 interface PeriodFilterProps {
   period: DashboardPeriod
@@ -30,10 +31,13 @@ export function PeriodFilter({
       {PERIOD_OPTIONS.map((opt) => (
         <Button
           key={opt.value}
-          variant={period === opt.value ? 'default' : 'outline'}
+          variant="outline"
           size="sm"
           onClick={() => setPeriod(opt.value)}
-          className="text-xs"
+          className={`text-xs transition-colors ${period === opt.value
+              ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:border-primary'
+              : 'bg-transparent text-foreground border-border hover:bg-accent dark:border-white/20 dark:hover:bg-accent'
+            }`}
         >
           {opt.value === 'custom' && <Calendar className="h-3 w-3 mr-1" />}
           {opt.label}
@@ -41,23 +45,28 @@ export function PeriodFilter({
       ))}
       {period === 'custom' && (
         <div className="flex items-center gap-2 ml-1">
-          <input
-            type="date"
-            value={customStart}
-            onChange={(e) => setCustomStart(e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+          <DatePicker
+            date={customStart}
+            onSelect={setCustomStart}
+            outputFormat="yyyy-MM-dd"
+            timezone="Asia/Dhaka"
+            placeholder="Start date"
+            className="w-40 h-8"
           />
+
           <span className="text-xs text-muted-foreground">to</span>
-          <input
-            type="date"
-            value={customEnd}
-            onChange={(e) => setCustomEnd(e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+          <DatePicker
+            date={customEnd}
+            onSelect={setCustomEnd}
+            placeholder="End date"
+            className='w-40 h-8'
+            outputFormat="yyyy-MM-dd"
+            timezone="Asia/Dhaka"
           />
         </div>
       )}
       {periodInfo && (
-        <Badge variant="secondary" className="text-[11px] font-normal gap-1 ml-1">
+        <Badge variant="secondary" className="text-[11px] h-8 font-normal gap-1">
           <Info className="h-3 w-3" />
           {formatPeriodLabel(periodInfo)}
         </Badge>

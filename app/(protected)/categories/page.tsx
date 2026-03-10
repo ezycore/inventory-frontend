@@ -12,51 +12,20 @@ import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategorySta
 import { categoriesApi } from '@/services/api'
 import { queryKeys } from '@/lib/query-keys'
 import PageHeader from '@/ui/components/header'
-import StatsCard, { type StatData } from '@/ui/components/StatsCard'
+import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
-import { CheckCircle2, Tag, XCircle, ShoppingBag } from 'lucide-react'
+import MountingHandler from '@/components/MountingHandler'
+import { getCategoryStats } from '@/components/categories/helper'
 
 const searchConfig = {
   globalSearch: true,
-  placeholder: "Search categories by name, description, or status...",
-}
-
-function getCategoryStats(stats: Record<string, any> | undefined): StatData[] {
-  return [
-    {
-      label: "Total Categories",
-      value: stats?.total || 0,
-      icon: Tag,
-      variant: "primary",
-      description: "All registered categories",
-    },
-    {
-      label: "Active",
-      value: stats?.active || 0,
-      icon: CheckCircle2,
-      variant: "success",
-      description: "Currently active",
-    },
-    {
-      label: "Inactive",
-      value: stats?.inactive || 0,
-      icon: XCircle,
-      variant: "warning",
-      description: "Currently inactive",
-    },
-    {
-      label: "Total Products",
-      value: stats?.totalProducts || 0,
-      icon: ShoppingBag,
-      variant: "info",
-      description: "Across all categories",
-    },
-  ]
+  placeholder: "Search categories by name",
+  searchableColumns: ["name"],
 }
 
 export default function CategoriesPage() {
-  const [viewMode, setViewMode] = useViewMode('categories', 'card')
+  const [viewMode, setViewMode, isMounted] = useViewMode('categories', 'card')
   const filteredFormConfig = useFilteredFormConfig(categoryFormConfig, 'category')
   const filteredColumns = useFilteredColumns(categoryColumns, 'category')
   const { data: statsData, isLoading: statsLoading } = useCategoryStats?.() ?? { data: undefined, isLoading: false }
@@ -71,9 +40,23 @@ export default function CategoriesPage() {
     queryKey: [...queryKeys.categories.all()],
     entityName: "Category" as const,
   }
+  
+  const sortingConfig = {
+    sortOptions: [
+      { field: "name", label: "Name" },
+      { field: "createdAt", label: "Date Created" },
+      { field: "updatedAt", label: "Last Updated" },
+    ],
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc" as const,
+  }
+
+  if(!isMounted) {
+    return <MountingHandler />
+  }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader 
         title="Categories" 
@@ -101,6 +84,7 @@ export default function CategoriesPage() {
           pageSizes={[10, 20, 50, 100]}
           filterConfig={categoryFilterConfig}
           columns={filteredColumns}
+          sortingConfig={sortingConfig}
           manageColumns={true}
           module="category"
           selectable={true}
@@ -118,13 +102,14 @@ export default function CategoriesPage() {
         <DataCard
           cardTitle={(n) => `All Categories (${n})`}
           defaultPageSize={12}
-          pageSizes={[12, 24, 48]}
+          pageSizes={[6, 12, 24, 48]}
           filterConfig={categoryFilterConfig}
           layoutConfig={{
             layout: "grid",
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "md",
           }}
+          sortingConfig={sortingConfig}
           searchConfig={searchConfig}
           renderCard={CategoryCardView}
           loadingRenderCard={CategoryCardLoading}

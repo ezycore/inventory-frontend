@@ -132,8 +132,7 @@ export function useResetPassword() {
 
 //verify me
 export function useMe() {
-  const { setUser, token, clearAuth } = useAuthStore();
-  const router = useRouter();
+  const { setUser, token } = useAuthStore();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => authApi.me(),
@@ -145,8 +144,6 @@ export function useMe() {
     },
     onError: (error) => {
       handleMutationError(error);
-      clearAuth();
-      router.push("/login");
       queryClient.clear();
     },
   });

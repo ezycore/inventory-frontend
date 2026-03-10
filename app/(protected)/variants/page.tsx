@@ -1,18 +1,13 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-import { CheckCircle2, Hash, Palette, XCircle } from 'lucide-react'
-
 // Types
 import type { VariantAttribute } from '@/types'
 
 // UI Components
-import { Badge } from '@ui/components/badge'
-import { DateCell } from '@/ui/components/dataTable/cells/date-cell'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
 import PageHeader from '@/ui/components/header'
-import StatsCard, { type StatData } from '@/ui/components/StatsCard'
+import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import VariantCardView from '@/components/variants/cardview'
 import VariantCardLoading from '@/components/variants/card-loading'
@@ -28,96 +23,19 @@ import { variantAttributesApi } from '@/services/api'
 import { queryKeys } from '@/lib/query-keys'
 import variantAttributeFormConfig from '@/components/variants/form-config'
 import { useViewMode } from '@/hooks/use-view-mode'
-import { sanitize } from '@/hooks'
+import MountingHandler from '@/components/MountingHandler'
+import { getVariantStats } from '@/components/variants/helper'
+import { variantColumns } from '@/components/variants/columns'
+import { variantFilterConfig } from '@/components/variants/filter'
 
-function getVariantStats(stats: Record<string, any> | undefined): StatData[] {
-  return [
-    {
-      label: "Total Attributes",
-      value: stats?.total || 0,
-      icon: Palette,
-      variant: "primary",
-      description: "All variant attributes",
-    },
-    {
-      label: "Active",
-      value: stats?.active || 0,
-      icon: CheckCircle2,
-      variant: "success",
-      description: "Currently active",
-    },
-    {
-      label: "Inactive",
-      value: stats?.inactive || 0,
-      icon: XCircle,
-      variant: "warning",
-      description: "Currently inactive",
-    },
-    {
-      label: "Total Values",
-      value: stats?.totalValues || 0,
-      icon: Hash,
-      variant: "info",
-      description: "Across all attributes",
-    },
-  ]
-}
-
-// Column definitions
-const columns: ColumnDef<VariantAttribute>[] = [
-  {
-    accessorKey: "name",
-    header: "Attribute Name"
-  },
-  {
-    accessorKey: "values",
-    header: "Values",
-    cell: ({ row }) => {
-      const values = sanitize(row.getValue("values"), 'array') as string[];
-      return (
-        <div className="flex flex-wrap gap-1">
-          {values.slice(0, 3).map((value, index) => (
-            <Badge key={index} variant="outline" className="text-xs">
-              {value}
-            </Badge>
-          ))}
-          {values.length > 3 && (
-            <Badge variant="secondary" className="text-xs">
-              +{values.length - 3} more
-            </Badge>
-          )}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge variant={row.getValue("status") === "active" ? "default" : "secondary"}>
-        {row.getValue("status") as string}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created Date",
-    cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
-  },
-  {
-    accessorKey: "updatedAt",
-    header: "Updated Date",
-    cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
-  },
-];
 
 const searchConfig = {
   globalSearch: true,
-  placeholder: "Search attributes by name...",
+  placeholder: "Search attributes by name, values",
 }
 
 export default function VariantsPage() {
-  const [viewMode, setViewMode] = useViewMode('variants', 'card')
+  const [viewMode, setViewMode, isMounted] = useViewMode('variants', 'card')
   const { data: statsData, isLoading: statsLoading } = useVariantStats()
 
   const sharedOperations = {
@@ -131,8 +49,22 @@ export default function VariantsPage() {
     transformEditData: variantAttributesApi.transformForEdit,
   }
 
+  const sortingConfig = {
+    sortOptions: [
+      { field: "name", label: "Name" },
+      { field: "createdAt", label: "Date Created" },
+      { field: "updatedAt", label: "Last Updated" },
+    ],
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc" as const,
+  }
+
+  if (!isMounted) {
+    return <MountingHandler />
+  }
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader
         title="Variant Management"
@@ -153,11 +85,13 @@ export default function VariantsPage() {
       {viewMode === 'table' && (
         <DataTable<VariantAttribute>
           cardTitle={(dataLength: number) => `All Variants (${dataLength})`}
-          columns={columns}
+          columns={variantColumns}
           selectable={true}
           searchConfig={searchConfig}
           operations={sharedOperations}
+          filterConfig={variantFilterConfig}
           enableSorting={true}
+          sortingConfig={sortingConfig}
           defaultColumnVisibility={{ status: false }}
           enableRowHover={true}
           rowClassName={(row) =>
@@ -171,12 +105,14 @@ export default function VariantsPage() {
         <DataCard
           cardTitle={(n) => `All Variants (${n})`}
           defaultPageSize={12}
-          pageSizes={[12, 24, 48]}
+          sortingConfig={sortingConfig}
+          pageSizes={[6, 12, 24, 48]}
           layoutConfig={{
             layout: "grid",
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "md",
           }}
+          filterConfig={variantFilterConfig}
           searchConfig={searchConfig}
           renderCard={VariantCardView}
           loadingRenderCard={VariantCardLoading}

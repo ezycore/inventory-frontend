@@ -2,7 +2,6 @@
 
 import PageHeader from '@/ui/components/header'
 import { useState } from 'react'
-import { EyeIcon } from 'lucide-react'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
@@ -20,10 +19,11 @@ import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
 import { ProductCard } from '@/components/products/product-card'
+import MountingHandler from '@/components/MountingHandler';
 
 export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useViewMode('products')
+  const [viewMode, setViewMode, isMounted] = useViewMode('products')
   const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
   const filteredColumns = useFilteredColumns(productColumns, 'product')
   const { data: statsData, isLoading: statsLoading } = useProductStats()
@@ -66,6 +66,10 @@ export default function ProductsPage() {
     prepareSubmitData,
   }
 
+ if(!isMounted) {
+    return <MountingHandler />
+  }
+
   return (
     <div className="container mx-auto space-y-6">
       <PageHeader
@@ -90,6 +94,8 @@ export default function ProductsPage() {
         columns={{ default: 1, lg: productStats.length }}
       />
 
+
+
       {/* Table View */}
       {viewMode === 'table' && (
         <DataTable
@@ -105,15 +111,6 @@ export default function ProductsPage() {
             placeholder: "Search products by name...",
           }}
           filterConfig={productFilterConfig}
-          customActions={[
-            {
-              icon: <EyeIcon />,
-              tooltip: "View Product Details",
-              onClick: (row) => setSelectedProductId(row._id),
-              placement: "cell",
-              type: "custom",
-            },
-          ]}
           operations={sharedOperations}
           enableSorting={true}
           enableRowHover={true}
@@ -146,15 +143,6 @@ export default function ProductsPage() {
               onDelete={actions.onDelete}
             />
           )}
-          customActions={[
-            {
-              icon: <EyeIcon className="h-4 w-4" />,
-              tooltip: "View Details",
-              onClick: (row: any) => setSelectedProductId(row._id),
-              placement: "header",
-              type: "custom",
-            },
-          ]}
           operations={sharedOperations}
         />
       )}

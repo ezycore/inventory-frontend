@@ -7,8 +7,9 @@ import type { ApiResponse, PaginatedResponse } from "@/types";
 import { DataTableProps } from "@/types/DataTable";
 import DynamicForm from "@/ui/components/form";
 import { useQuery } from "@tanstack/react-query";
+import type { SortingState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 import { BaseDataTable } from "./base-data-table ";
@@ -28,6 +29,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     manageColumns,
     module,
     loading = false,
+    sortingConfig,
     // Table styling props
     variant,
     headless,
@@ -68,6 +70,31 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   const [limit, setLimit] = useState(defaultPageSize || 10);
   const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
 
+  // Server-side sorting state — only active when sortOptions has entries
+  const sortableFields = useMemo(
+    () => sortingConfig?.sortOptions?.map((o) => o.field) ?? [],
+    [sortingConfig],
+  );
+  const isServerSorting = sortableFields.length > 0 && !!getAllData;
+  const [sorting, setSorting] = useState<SortingState>(
+    sortingConfig?.defaultSortBy
+      ? [{ id: sortingConfig.defaultSortBy, desc: sortingConfig.defaultSortOrder === "desc" }]
+      : [],
+  );
+
+  // Derive sort_by / sort_order from TanStack SortingState
+  const sortBy = sorting.length > 0 ? sorting[0].id : undefined;
+  const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : undefined;
+
+  // Server sorting change handler — also resets to page 1
+  const handleSortingChange = useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting);
+      if (isServerSorting) setPage(1);
+    },
+    [isServerSorting],
+  );
+
   // Data fetching (self-contained mode)
   const {
     data: queryData,
@@ -77,10 +104,10 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     refetch,
   } = useQuery<ApiResponse<PaginatedResponse<TData>>>({
     queryKey: getAllData
-      ? [...queryKey, { page, limit, ...(filters || {}) }]
+      ? [...queryKey, { page, limit, ...(filters || {}), ...(isServerSorting ? { sort_by: sortBy, sort_order: sortOrder } : {}) }]
       : [],
     queryFn: getAllData
-      ? () => getAllData({ page, limit, ...filters })
+      ? () => getAllData({ page, limit, ...filters, ...(isServerSorting ? { sort_by: sortBy, sort_order: sortOrder } : {}) })
       : () => Promise.resolve(undefined),
     enabled: !!getAllData,
     placeholderData: (previousData) => previousData,
@@ -238,13 +265,13 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           variant: "default" as const,
         });
 
-  return (
+        return (
     <Card className="border-none shadow-none py-0 gap-3 bg-transparent">
       {cardTitle && (
         <CardHeader className="px-0">
           <CardTitle>
             {typeof cardTitle === "function"
-              ? cardTitle(data?.length || 0)
+              ? cardTitle(queryData?.data.total || 0)
               : cardTitle}
           </CardTitle>
         </CardHeader>
@@ -264,6 +291,10 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           toolbarAction={mergedToolbarAction}
           customActions={customActions}
           manageColumns={manageColumns}
+          manualSorting={isServerSorting}
+          sortingState={isServerSorting ? sorting : undefined}
+          onSortingChange={isServerSorting ? handleSortingChange : undefined}
+          serverSortableFields={isServerSorting ? sortableFields : undefined}
           variant={variant}
           headless={headless}
           borderless={borderless}

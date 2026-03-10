@@ -7,13 +7,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { Edit2, MoreVertical, Tag, Trash2 } from "lucide-react";
+import { Edit2, MoreVertical, Package, Tag, Trash2 } from "lucide-react";
+import { TruncatedText } from "@/components/shared/truncated-text";
+import Link from "next/link";
 
 const CategoryCardView = (
   category: any,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
 ) => {
-  const { name, description, status, createdAt, updatedAt } = category;
+  const { name, description, status, createdAt, updatedAt, productCount, _id } = category;
 
   const createdDate = new Date(createdAt).toLocaleDateString(undefined, {
     year: "numeric",
@@ -47,9 +49,11 @@ const CategoryCardView = (
             </Badge>
           </div>
           {description ? (
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
-              {description}
-            </p>
+            <TruncatedText
+              text={description}
+              lines={1}
+              className="text-sm text-muted-foreground mt-0.5"
+            />
           ) : (
             <p className="text-sm text-muted-foreground/50 italic mt-0.5">
               No description
@@ -59,7 +63,7 @@ const CategoryCardView = (
 
         {/* Actions menu */}
         <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors opacity-0 group-hover:opacity-100">
+          <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors group-hover:opacity-100">
             <MoreVertical className="h-4 w-4 cursor-pointer" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -74,6 +78,17 @@ const CategoryCardView = (
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
+
+       <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Package className="h-4 w-4" />
+        {productCount > 0 ? (
+          <Link href={`/products?categoryId=${_id}`} className="hover:underline">
+            {productCount || 0} Products
+          </Link>
+        ) : (
+          <span>{productCount || 0} Products</span>
+        )}
       </div>
 
       {/* Footer */}

@@ -174,6 +174,26 @@ export interface DataTableSearchConfig<TData = any> {
   globalSearch?: boolean;
 }
 
+/**
+ * Configuration for server-side sorting
+ * When provided, sorting is handled by the backend instead of client-side TanStack Table sorting
+ */
+export interface SortOption {
+  /** The backend field name to sort by */
+  field: string;
+  /** Display label for the sort option */
+  label: string;
+}
+
+export interface SortingConfig {
+  /** Available sort options (field name → display label) */
+  sortOptions: SortOption[];
+  /** Default sort field */
+  defaultSortBy?: string;
+  /** Default sort order */
+  defaultSortOrder?: "asc" | "desc";
+}
+
 export interface FilterConfig {
   fields?: FilterField[];
   // Layout
@@ -246,6 +266,8 @@ export interface DataTableProps<TData, TValue = any> {
   selectable?: boolean;
   searchConfig?: DataTableSearchConfig;
   enableSorting?: boolean;
+  /** Server-side sorting configuration. When provided, sorting clicks on column headers trigger backend requests instead of client-side sorting */
+  sortingConfig?: SortingConfig;
   defaultColumnVisibility?: VisibilityState;
   enableColumnVisibility?: boolean;
   enableRowHover?: boolean;
@@ -294,6 +316,14 @@ export interface BaseDataTableProps<TData, TValue = any> {
   onView?: (row: TData) => void;
   onDelete?: (row: TData) => void;
   onBulkDelete?: (ids: string[]) => Promise<void>;
+  /** Server-side sorting: when true, disables client-side sorting model */
+  manualSorting?: boolean;
+  /** Current server-side sorting state */
+  sortingState?: { id: string; desc: boolean }[];
+  /** Callback when sorting changes (for server-side sorting) */
+  onSortingChange?: (sorting: { id: string; desc: boolean }[]) => void;
+  /** Column IDs/accessorKeys that support server-side sorting. Columns not in this list will have sorting disabled when manualSorting is true. */
+  serverSortableFields?: string[];
   toolbarAction?: {
     label: string;
     icon?: React.ReactNode;

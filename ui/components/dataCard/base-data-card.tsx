@@ -9,7 +9,6 @@ import { EasyAlertDialog } from "@/ui/components/custom/easy-alert-dialog";
 import type {
   BaseDataCardProps,
   CardLayout,
-  DataCardPagination as PaginationConfig,
 } from "@/types/DataCard";
 
 // Grid column classes based on config
@@ -59,6 +58,11 @@ export function BaseDataCard<TData extends { _id: string }>({
   selectable = false,
   searchConfig,
   onSelectionChange,
+  // Sorting
+  sortBy,
+  sortOrder,
+  onSortChange,
+  sortingConfig,
   // Layout
   layoutConfig,
   cardSize,
@@ -227,9 +231,9 @@ export function BaseDataCard<TData extends { _id: string }>({
   }, [layout, layoutConfig]);
 
   // Render loading state
-  if (isLoading) {
+  if (isLoading || isDeleting) {
     return (
-      <div className="w-full space-y-6">
+      <div className="w-full space-y-4">
         <DataCardToolbar
           searchConfig={searchConfig}
           filterConfig={filterConfig}
@@ -245,6 +249,10 @@ export function BaseDataCard<TData extends { _id: string }>({
           customActions={customActions}
           layout={layout}
           onLayoutChange={handleLayoutChange}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={onSortChange}
+          sortingConfig={sortingConfig}
         />
         <div className={layoutClasses}>
           {loadingRenderCard
@@ -261,7 +269,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   // Render empty state
   if (!paginatedData || paginatedData.length === 0) {
     return (
-      <div className="w-full space-y-6">
+      <div className="w-full space-y-4">
         <DataCardToolbar
           searchConfig={searchConfig}
           filterConfig={filterConfig}
@@ -277,6 +285,10 @@ export function BaseDataCard<TData extends { _id: string }>({
           customActions={customActions}
           layout={layout}
           onLayoutChange={handleLayoutChange}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={onSortChange}
+          sortingConfig={sortingConfig}
         />
         <CardEmptyState message={emptyMessage} icon={emptyIcon}>
           {emptyState}
@@ -286,7 +298,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       {/* Toolbar */}
       <DataCardToolbar
         searchConfig={searchConfig}
@@ -303,6 +315,10 @@ export function BaseDataCard<TData extends { _id: string }>({
         customActions={customActions}
         layout={layout}
         onLayoutChange={handleLayoutChange}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={onSortChange}
+        sortingConfig={sortingConfig}
       />
 
       {/* Cards Grid */}

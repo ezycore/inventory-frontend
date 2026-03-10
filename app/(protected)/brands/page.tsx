@@ -23,10 +23,12 @@ import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
 import StatsCard from "@/ui/components/StatsCard";
 import ViewToggle from "@/ui/components/ViewToggle";
+import MountingHandler from "@/components/MountingHandler";
 
 const searchConfig = {
   globalSearch: true,
-  placeholder: "Search brands by name, description, or status...",
+  placeholder: "Search brands by name",
+  searchableColumns: ["name"],
 };
 
 const defaultValues = {
@@ -37,7 +39,7 @@ const defaultValues = {
 };
 
 export default function BrandsPage() {
-  const [viewMode, setViewMode] = useViewMode("brands", "card");
+  const [viewMode, setViewMode, isMounted] = useViewMode("brands", "card");
   const filteredFormConfig = useFilteredFormConfig(brandFormConfig, "brand");
   const filteredColumns = useFilteredColumns(brandColumns, "brand");
   const { data, isLoading } = useBrandStats();
@@ -53,11 +55,25 @@ export default function BrandsPage() {
     entityName: "Brand" as const,
     isViewAvailable: false,
     prepareSubmitData,
-    disabledFieldsInEdit: ["description"],
+    // disabledFieldsInEdit: ["description"],
   };
 
+  const sortingConfig = {
+    sortOptions: [
+      { field: "name", label: "Name" },
+      { field: "createdAt", label: "Date Created" },
+      { field: "updatedAt", label: "Last Updated" },
+    ],
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc" as const,
+  }
+
+  if (!isMounted) {
+    return <MountingHandler />
+  }
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader
         title="Brands Management"
@@ -81,6 +97,7 @@ export default function BrandsPage() {
       {viewMode === "table" && (
         <DataTable
           cardTitle={(dataLength: number) => `All Brands (${dataLength})`}
+          sortingConfig={sortingConfig}
           defaultPageSize={10}
           pageSizes={[10, 20, 50, 100]}
           filterConfig={brandFilterConfig}
@@ -91,6 +108,7 @@ export default function BrandsPage() {
           searchConfig={searchConfig}
           enableSorting={true}
           defaultColumnVisibility={{ status: false }}
+          rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
           enableRowHover={true}
           operations={sharedOperations}
         />
@@ -101,8 +119,9 @@ export default function BrandsPage() {
         <DataCard
           cardTitle={(n) => `All Brands (${n})`}
           defaultPageSize={12}
-          pageSizes={[12, 24, 48]}
+          pageSizes={[6, 12, 24, 48]}
           filterConfig={brandFilterConfig}
+          sortingConfig={sortingConfig}
           layoutConfig={{
             layout: "grid",
             columns: { default: 1, sm: 2, lg: 3 },

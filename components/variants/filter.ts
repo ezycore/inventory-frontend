@@ -1,19 +1,18 @@
 import { FilterConfig } from "@/types/DataTable";
 
-export const brandFilterConfig: FilterConfig = {
+export const variantFilterConfig: FilterConfig = {
   fields: [
     {
       name: "name",
-      label: "Search brand",
+      label: "Search category",
       type: "text",
-      placeholder: "Search by brand...",
+      placeholder: "Search by category name...",
     },
     {
       name: "status",
       label: "Status",
       type: "select",
       placeholder: "All statuses",
-      columnSpan: 1,
       options: [
         { label: "Active", value: "active" },
         { label: "Inactive", value: "inactive" },
@@ -34,7 +33,7 @@ export const brandFilterConfig: FilterConfig = {
       columnSpan: 2,
     },
   ],
-  viewMode: "popover",
+  viewMode: 'popover',
   columns: 2,
   applyOnChange: false,
   showResetButton: true,

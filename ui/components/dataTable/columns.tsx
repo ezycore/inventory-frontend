@@ -19,6 +19,8 @@ interface UseEnhancedColumnsProps<TData, TValue> {
   onEdit?: (row: TData) => void;
   openDeleteDialog?: (row: TData) => void;
   customActions?: CustomAction[];
+  /** When server-side sorting is active, only these column fields may be sorted */
+  serverSortableFields?: string[];
 }
 
 export function useEnhancedColumns<TData, TValue>({
@@ -29,9 +31,20 @@ export function useEnhancedColumns<TData, TValue>({
   onEdit,
   openDeleteDialog,
   customActions,
+  serverSortableFields,
 }: UseEnhancedColumnsProps<TData, TValue>) {
   return useMemo(() => {
-    const cols = [...columns];
+    // When server-side sorting is active, restrict sortable columns to allowed fields only
+    const cols = serverSortableFields
+      ? columns.map((col) => {
+          const colId = (col as any).accessorKey ?? (col as any).id ?? "";
+          const isAllowed = serverSortableFields.includes(colId);
+          if (!isAllowed) {
+            return { ...col, enableSorting: false };
+          }
+          return col;
+        })
+      : [...columns];
     
     // Add selection column
     if (selectable && !cols.some((col: any) => col.id === "select")) {
@@ -209,5 +222,5 @@ export function useEnhancedColumns<TData, TValue>({
     }
     
     return cols;
-  }, [columns, selectable, actions, onView, onEdit, openDeleteDialog, customActions]);
+  }, [columns, selectable, actions, onView, onEdit, openDeleteDialog, customActions, serverSortableFields]);
 }
