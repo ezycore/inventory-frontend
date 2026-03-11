@@ -221,7 +221,7 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   config: DynamicFormConfig;
   form: UseFormReturn<any>; // Complete form object from useForm
   className?: string;
-  onFieldChange?: (fieldName: string, value: any) => void;
+  onFieldChange?: (fieldName: string, value: any, allValues: any) => void;
 
   // View mode - makes form read-only for viewing data
   viewMode?: boolean;

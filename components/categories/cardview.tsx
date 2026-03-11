@@ -30,7 +30,7 @@ const CategoryCardView = (
   });
 
   return (
-    <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-3">
+    <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-4">
       <div className="flex items-start gap-4">
         {/* Icon */}
         <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 shrink-0">
