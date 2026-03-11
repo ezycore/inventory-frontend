@@ -334,6 +334,9 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             onSuccess={handleCloseModal}
             disabledFieldsInEdit={disabledFieldsInEdit}
             isEditMode={!!editingItem}
+            onFieldChange={(fieldName, value, all) => {
+             console.log("Field changed:", fieldName, value, all);
+            }}
           />
         )}
       </CardContent>
