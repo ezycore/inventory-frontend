@@ -15,7 +15,12 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
   // Add all fields except images, variants, and _id
   for (const key in data) {
     if (key !== 'images' && key !== 'variants' && key !== '_id' && data[key] !== undefined) {
-      formData.append(key, data[key])
+      const value = data[key]
+      if (value !== null && typeof value === 'object' && !(value instanceof File) && !(value instanceof Blob)) {
+        formData.append(key, JSON.stringify(value))
+      } else {
+        formData.append(key, value)
+      }
     }
   }
 
