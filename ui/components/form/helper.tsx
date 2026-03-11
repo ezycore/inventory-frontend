@@ -37,6 +37,17 @@ import { SafeImage } from '@/ui/components/safeImage';
 import { evaluateFieldDependency, resolveApiTemplate } from "./dependency-utils";
 import { useSelectOptions } from "@/services/api";
 
+// Helper to get a nested value from an object by dot-separated path
+const getNestedValue = (obj: any, path: string): any => {
+  const keys = path.split('.');
+  let current = obj;
+  for (const key of keys) {
+    if (current === undefined || current === null) return undefined;
+    current = current[key];
+  }
+  return current;
+};
+
 // Helper function to get grid column classes with responsive breakpoints
 const getColumnClass = (span: ColumnSpan): string => {
   const spanMap: Record<ColumnSpan, string> = {
@@ -75,7 +86,7 @@ const FormField: FC<{
   isEditMode = false,
   allFields = [],
 }) => {
-  const error = formState.errors[field.name]?.message;
+  const error = getNestedValue(formState.errors, field.name)?.message;
 
   // Check if field should be disabled in edit mode
   const isFieldDisabledInEdit = isEditMode && disabledFieldsInEdit?.includes(field.name);

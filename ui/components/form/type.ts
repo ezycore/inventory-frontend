@@ -272,6 +272,7 @@ export const generateSchemaFromConfig = (
   config: DynamicFormConfig,
 ): z.ZodSchema<any> => {
   const schemaObject: Record<string, z.ZodTypeAny> = {};
+  const nestedMap: Record<string, Record<string, any>> = {};
 
   // Get all fields - either from sections or plain fields
   const allFields: FormFieldConfig[] = [];
@@ -467,8 +468,45 @@ export const generateSchemaFromConfig = (
       fieldSchema = fieldSchema.optional();
     }
 
-    schemaObject[field.name] = fieldSchema;
+    // Support dot-notation field names for nested schemas
+    const keys = field.name.split('.');
+    if (keys.length === 1) {
+      schemaObject[field.name] = fieldSchema;
+    } else {
+      // Collect nested fields in a separate plain-object tree
+      const rootKey = keys[0];
+      if (!nestedMap[rootKey]) {
+        nestedMap[rootKey] = {};
+      }
+      let current = nestedMap[rootKey];
+      for (let i = 1; i < keys.length - 1; i++) {
+        if (!current[keys[i]] || current[keys[i]] instanceof z.ZodType) {
+          current[keys[i]] = {};
+        }
+        current = current[keys[i]] as Record<string, any>;
+      }
+      current[keys[keys.length - 1]] = fieldSchema;
+    }
   });
+
+  // Recursively build z.object() from a nested plain-object map
+  const buildZodObject = (map: Record<string, any>): z.ZodObject<any> => {
+    const shape: Record<string, z.ZodTypeAny> = {};
+    for (const [key, value] of Object.entries(map)) {
+      if (value instanceof z.ZodType) {
+        shape[key] = value;
+      } else {
+        // Nested object group — make it optional so partial fills don't fail
+        shape[key] = buildZodObject(value).optional();
+      }
+    }
+    return z.object(shape);
+  };
+
+  // Merge nested groups into schemaObject
+  for (const [key, nested] of Object.entries(nestedMap)) {
+    schemaObject[key] = buildZodObject(nested).optional();
+  }
 
   return z.object(schemaObject);
 };
