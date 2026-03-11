@@ -81,7 +81,6 @@ export const productFormConfig: DynamicFormConfig = {
           name: "sellingType",
           type: "select",
           label: "Selling Type",
-          required: true,
           columnSpan: 6,
           options: sellingTypeOptions,
           placeholder: "Select selling type",
@@ -102,26 +101,6 @@ export const productFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           optionsApi: '/taxes',
           placeholder: "Select",
-        },
-        {
-          name: "discountType",
-          type: "select",
-          label: "Discount Type",
-
-          columnSpan: 6,
-          options: discountTypeOptions,
-          placeholder: "Select",
-          defaultValue: "fixed",
-        },
-        {
-          name: "discountValue",
-          type: "number",
-          label: "Discount Value",
-          columnSpan: 6,
-          placeholder: "0",
-          defaultValue: 0,
-          validation: { min: 0 },
-          step: 0.1,
         },
         {
           name: "hasExpiry",
@@ -222,11 +201,11 @@ export const productFormConfig: DynamicFormConfig = {
           helperText: "Allow different units for purchase and sale"
         },
         {
-          name: "purchaseUnitId",
+          name: "purchaseUnit.unitId",
           type: "select",
           label: "Purchase Unit",
           columnSpan: 6,
-          optionsApi: `/units`,
+          optionsApi: `/units?all=true`, // Fetch all units for selection
           placeholder: "Select purchase unit",
           helperText: "Unit used when purchasing (e.g., Box)",
           dependsOn: {
@@ -237,7 +216,7 @@ export const productFormConfig: DynamicFormConfig = {
           }
         },
         {
-          name: "purchaseConversionFactor",
+          name: "purchaseUnit.conversionFactor",
           type: "number",
           label: "Purchase Conversion Factor",
           columnSpan: 4,
@@ -254,11 +233,11 @@ export const productFormConfig: DynamicFormConfig = {
           }
         },
         {
-          name: "saleUnitId",
+          name: "saleUnit.unitId",
           type: "select",
           label: "Sale Unit",
           columnSpan: 6,
-          optionsApi: `/units`,
+          optionsApi: `/units?all=true`, // Fetch all units for selection
           placeholder: "Select sale unit",
           helperText: "Unit used when selling (e.g., Piece)",
           dependsOn: {
@@ -266,10 +245,10 @@ export const productFormConfig: DynamicFormConfig = {
             value: true,
             condition: "eq",
             action: "show"
-          }
+          },
         },
         {
-          name: "saleConversionFactor",
+          name: "saleUnit.conversionFactor",
           type: "number",
           label: "Sale Conversion Factor",
           columnSpan: 4,

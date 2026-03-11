@@ -58,7 +58,7 @@ const FormField: FC<{
   formState: any;
   watch: any;
   setValue: any;
-  onFieldChange?: (fieldName: string, value: any) => void;
+  onFieldChange?: (fieldName: string, value: any, allValues: any) => void;
   viewMode?: boolean;
   disabledFieldsInEdit?: string[];
   isEditMode?: boolean;
@@ -142,7 +142,11 @@ const FormField: FC<{
 
   const handleChange = (value: any) => {
     if (field.onChange) field.onChange(value);
-    if (onFieldChange) onFieldChange(field.name, value);
+    if (onFieldChange) {
+      // Get all current form values
+      const allValues = watch();
+      onFieldChange(field.name, value, allValues);
+    }
   };
 
   // Render read-only display in view mode
@@ -378,7 +382,7 @@ const FormField: FC<{
 
               // Shared autofill handler used by both onMount and onValueChange
               const handleAutoFill = (value: any) => {
-                console.log("Auto-fill triggered for field:", field.name, "with value:", value);
+                const allValues = watch();
                 if (autoFillFields && Array.isArray(autoFillFields) && value) {
                   const selectedOption = typeof value === 'object' && value !== null ? value : null;
                   if (selectedOption) {
@@ -389,7 +393,7 @@ const FormField: FC<{
                           shouldValidate: false,
                           shouldDirty: true,
                         });
-                        if (onFieldChange) onFieldChange(fieldName, valueToSet);
+                        if (onFieldChange) onFieldChange(fieldName, valueToSet, allValues);
                       }
                     });
                   }

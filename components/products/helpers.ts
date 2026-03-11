@@ -1,27 +1,14 @@
 import { StatData } from "@/ui/components/StatsCard"
 import { Box, CheckCircle2, XCircle, Layers } from "lucide-react"
+import { toast } from "sonner"
 
 export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
   const formData = new FormData()
   if(data.enableUOMConversion){
-    const purchaseUnit = {
-      unitId: data.purchaseUnitId || null,
-      conversionFactor: data.purchaseConversionFactor || 1,
-  }
-    const saleUnit = {
-      unitId: data.saleUnitId || null,
-      conversionFactor: data.saleConversionFactor || 1,
+    if(!data.purchaseUnit?.unitId && !data.saleUnit?.unitId){
+      toast.error("Please select at least one unit (purchase or sale) when UOM conversion is enabled.")
+      throw new Error("Validation error: No units selected for UOM conversion.")
     }
-
-    if(!purchaseUnit.unitId && !saleUnit.unitId){
-      throw new Error("At least one unit (purchase or sale) must be configured when UOM conversion is enabled")
-    }
-    formData.append("purchaseUnit", JSON.stringify(purchaseUnit))
-    formData.append("saleUnit", JSON.stringify(saleUnit))
-    delete data.purchaseUnitId
-    delete data.purchaseConversionFactor
-    delete data.saleUnitId
-    delete data.saleConversionFactor
   }
   // Note: ID is automatically injected by DataTable for edit mode
 
@@ -109,6 +96,13 @@ export const getProductStats = (
     icon: Box,
     variant: "primary",
     description: "All registered products",
+  },
+  {
+    label: "Variant Products",
+    value: stats?.variantProducts || 0,
+    icon: Box,
+    variant: "default",
+    description: "Products with variants",
   },
   {
     label: "Active Products",
