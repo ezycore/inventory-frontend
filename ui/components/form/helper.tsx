@@ -389,7 +389,7 @@ const FormField: FC<{
               }
 
               // Destructure field to exclude props that shouldn't be passed to AdvancedSelect
-              const { dependsOn, autoFillFields, ...selectProps } = field;
+              const { dependsOn, autoFillFields, copyValueTo, ...selectProps } = field;
 
               // Shared autofill handler used by both onMount and onValueChange
               const handleAutoFill = (value: any) => {
@@ -408,6 +408,17 @@ const FormField: FC<{
                       }
                     });
                   }
+                }
+                // Copy the raw selected value to other fields
+                if (copyValueTo && Array.isArray(copyValueTo) && value !== undefined) {
+                  const rawValue = typeof value === 'object' && value !== null ? value : value;
+                  copyValueTo.forEach((targetField) => {
+                    setValue(targetField, rawValue, {
+                      shouldValidate: false,
+                      shouldDirty: true,
+                    });
+                    if (onFieldChange) onFieldChange(targetField, rawValue, allValues);
+                  });
                 }
               };
 
