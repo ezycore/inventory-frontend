@@ -11,7 +11,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const router = useRouter()
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto">
       <div className="mb-6">
         <Button
           variant="ghost"

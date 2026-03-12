@@ -74,6 +74,7 @@ export const productFormConfig: DynamicFormConfig = {
           label: "Base Unit",
           columnSpan: 6,
           optionsApi: `/units`,
+          copyValueTo: ["saleUnit.unitId"],
           placeholder: "Select base unit",
           helperText: "All inventory will be tracked in this unit"
         },

@@ -189,6 +189,10 @@ export interface FormFieldConfig {
   // Example: autoFillFields: ['costPrice', 'price', 'salePrice']
   autoFillFields?: string[];
 
+  // Copy the selected value to other fields (supports dot-notation paths)
+  // Example: copyValueTo: ['saleUnit.unitId'] will set saleUnit.unitId to this field's value
+  copyValueTo?: string[];
+
   // Change handlers
   onChange?: (value: any) => void;
   onValueChange?: (value: any) => void; // For select components
