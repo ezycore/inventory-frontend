@@ -220,7 +220,6 @@ export function useSalesReturnPage() {
           label: 'Status',
           type: 'select' as const,
           options: [
-            { label: 'All Statuses', value: '' },
             { label: 'Pending', value: 'pending' },
             { label: 'Processed', value: 'completed' },
             { label: 'Cancelled', value: 'cancelled' },
@@ -231,7 +230,6 @@ export function useSalesReturnPage() {
           label: 'Reason',
           type: 'select' as const,
           options: [
-            { label: 'All Reasons', value: '' },
             { label: 'Damaged', value: 'damaged' },
             { label: 'Defective', value: 'defective' },
             { label: 'Wrong Item', value: 'wrong_item' },
