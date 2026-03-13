@@ -451,6 +451,7 @@ const FormField: FC<{
             render={({ field: controllerField }) => (
               <div className="flex items-center space-x-2">
                 <Checkbox
+                  defaultChecked={field.defaultValue}
                   id={field.name}
                   checked={controllerField.value}
                   onCheckedChange={(checked) => {

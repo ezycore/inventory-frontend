@@ -36,6 +36,7 @@ export interface User {
     customerId?: string;
     accountId?: string;
     locationId?: string;
+    unitId?: string;
   }
 }
 

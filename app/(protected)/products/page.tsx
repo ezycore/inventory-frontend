@@ -20,6 +20,7 @@ import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
 import { ProductCard } from '@/components/products/product-card'
 import MountingHandler from '@/components/MountingHandler';
+import { useAuthStore } from '@/services/stores';
 
 export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
@@ -27,6 +28,8 @@ export default function ProductsPage() {
   const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
   const filteredColumns = useFilteredColumns(productColumns, 'product')
   const { data: statsData, isLoading: statsLoading } = useProductStats()
+  const { user } = useAuthStore();
+  const defaultUnitId = user?.defaultData?.unitId;
 
   // Product stats (only product-relevant data, no inventory stats)
   const productStats = getProductStats(statsData)
@@ -38,6 +41,7 @@ export default function ProductsPage() {
     createMutation: useCreateProduct(),
     updateMutation: useUpdateProduct(),
     deleteMutation: useDeleteProduct(),
+    defaultValues: { unitId: defaultUnitId },
     isViewAvailable: false,
     queryKey: [...queryKeys.products.all()],
     entityName: "Product" as const,
