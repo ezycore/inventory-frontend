@@ -10,12 +10,12 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
-    {
-      rules: {
-        'react-compiler/react-compiler': 'off',
-      }
-    }
   ]),
+  {
+    rules: {
+      'react-compiler/react-compiler': 'off',
+    }
+  },
 ])
  
 export default eslintConfig
