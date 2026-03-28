@@ -3,13 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/ui/components/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/ui/components/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/card';
 import { BaseDataTable } from '@/ui/components/dataTable/base-data-table ';
 
 import {
