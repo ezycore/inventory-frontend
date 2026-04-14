@@ -242,7 +242,7 @@ export default function ShortlistPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <PageHeader
-        title="Inventory Shortlist"
+        title="Low Stock Products"
         subTitle="View stock levels and identify items that need restocking by location"
       />
 
@@ -254,7 +254,7 @@ export default function ShortlistPage() {
       />
 
       <DataTable<ShortlistItem>
-        cardTitle={(dataLength: number) => `Shortlist Items (${dataLength})`}
+        cardTitle={(dataLength: number) => `Items (${dataLength})`}
         columns={columns}
         filterConfig={shortlistFilterConfig}
         searchConfig={searchConfig}
