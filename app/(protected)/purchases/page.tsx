@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { getPurchaseColumns, getSupplierFormConfig, getProductFormConfig, getPaymentFormConfig, extractSupplierValue, SupplierFormData } from "@/components/purchases";
+import { getPurchaseColumns, getSupplierFormConfig, getProductFormConfig, getPaymentFormConfig, extractSupplierValue, SupplierFormData, ImportLowStockDialog, type ImportedLowStockItem } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
 import { useCreatePurchaseOrder } from "@/services/api";
@@ -33,6 +33,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   CheckCircleIcon,
   ClipboardList,
+  Download,
   Trash2,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -67,6 +68,9 @@ export default function PurchasesPage() {
   const [editingItem, setEditingItem] = useState<PurchaseOrderItem | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSellerId, setEditingSellerId] = useState<string | null>(null);
+
+  // Import low stock dialog state
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   // Get organization features
   const { user } = useAuthStore();
@@ -436,6 +440,59 @@ export default function PurchasesPage() {
     [editForm],
   );
 
+  const handleImportLowStock = useCallback(
+    (importedItems: ImportedLowStockItem[]) => {
+      const supplierValue = supplierForm.getValues("supplierId");
+      const supplier = extractSupplierValue(supplierValue);
+
+      if (!supplier.value) {
+        toast.error("Please select a supplier first");
+        return;
+      }
+
+      const storeState = usePurchasePageStore.getState();
+      let currentSeller = storeState.sellers[storeState.activeSellerIndex];
+
+      if (!currentSeller || currentSeller.supplierId !== supplier.value) {
+        const existingSellerIndex = storeState.sellers.findIndex(
+          (s) => s.supplierId === supplier.value,
+        );
+
+        if (existingSellerIndex !== -1) {
+          setActiveSeller(existingSellerIndex);
+          currentSeller = storeState.sellers[existingSellerIndex];
+        } else if (currentSeller && currentSeller.items.length === 0) {
+          setSupplier(currentSeller.id, supplier.value, supplier.label);
+        } else {
+          const newSellerId = addSeller();
+          setSupplier(newSellerId, supplier.value, supplier.label);
+          const newState = usePurchasePageStore.getState();
+          currentSeller = newState.sellers[newState.activeSellerIndex];
+        }
+      }
+
+      let addedCount = 0;
+      for (const item of importedItems) {
+        addItem(currentSeller.id, {
+          inventoryId: item.inventoryId,
+          productId: item.productId,
+          variantId: item.variantId,
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+          costPrice: item.costPrice,
+          discount: item.discount,
+          conversionFactor: item.conversionFactor,
+          convertedQuantity: item.convertedQuantity,
+        });
+        addedCount++;
+      }
+
+      toast.success(`${addedCount} ${addedCount === 1 ? "product" : "products"} imported to order`);
+    },
+    [addItem, supplierForm, setActiveSeller, setSupplier, addSeller],
+  );
+
   const handleCompleteOrder = useCallback(async () => {
     const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
     if (validSellers.length === 0) {
@@ -576,11 +633,23 @@ export default function PurchasesPage() {
           {/* Step 2: Add Products */}
           <Card>
             <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                  2
-                </span>
-                <h3 className="font-semibold text-sm">Add Products</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                    2
+                  </span>
+                  <h3 className="font-semibold text-sm">Add Products</h3>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsImportDialogOpen(true)}
+                  className="gap-1.5 text-xs"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Import Low Stock
+                </Button>
               </div>
               <DynamicForm
                 form={productForm}
@@ -779,6 +848,13 @@ export default function PurchasesPage() {
           </div>
         </div>
       </div>
+
+      {/* ==================== Import Low Stock Dialog ==================== */}
+      <ImportLowStockDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        onImport={handleImportLowStock}
+      />
 
       {/* ==================== Edit Product Dialog ==================== */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
