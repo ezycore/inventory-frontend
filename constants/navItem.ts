@@ -34,8 +34,8 @@ export const navItems: NavItem[] = [
     items: [
       { title: "Inventory List", url: "/inventory", icon: "list" },
       {
-        title: "Shortlist",
-        url: "/inventory/shortlist",
+        title: "Low Stock",
+        url: "/inventory/lowstock",
         icon: "clipboard-list",
       },
       { title: "Stock Adjustment", url: "/inventory/adjust", icon: "edit" },
