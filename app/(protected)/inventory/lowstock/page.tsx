@@ -66,13 +66,6 @@ const columns: ColumnDef<ShortlistItem>[] = [
     },
   },
   {
-    accessorKey: "location",
-    header: "Location",
-    cell: ({ row }) => {
-      return <span>{row.getValue("location")?.name}</span>;
-    },
-  },
-  {
     accessorKey: "quantity",
     header: "Stock Level",
     cell: ({ row }) => {
