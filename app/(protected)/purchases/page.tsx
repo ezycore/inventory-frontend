@@ -36,7 +36,7 @@ import {
   Download,
   Trash2,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -71,6 +71,24 @@ export default function PurchasesPage() {
 
   // Import low stock dialog state
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [preSelectedLowStockIds, setPreSelectedLowStockIds] = useState<string[]>([]);
+
+  // Auto-open import dialog if redirected from low stock page
+  useEffect(() => {
+    const stored = sessionStorage.getItem("lowstock-import-ids");
+    if (stored) {
+      try {
+        const ids = JSON.parse(stored) as string[];
+        if (Array.isArray(ids) && ids.length > 0) {
+          setPreSelectedLowStockIds(ids);
+          setIsImportDialogOpen(true);
+        }
+      } catch {
+        // ignore invalid data
+      }
+      sessionStorage.removeItem("lowstock-import-ids");
+    }
+  }, []);
 
   // Dashboard stats for low stock badge count
   const { data: dashboardData } = useDashboardStats();
@@ -474,7 +492,7 @@ export default function PurchasesPage() {
           currentSeller = newState.sellers[newState.activeSellerIndex];
         }
       }
-
+      
       let addedCount = 0;
       for (const item of importedItems) {
         addItem(currentSeller.id, {
@@ -861,8 +879,12 @@ export default function PurchasesPage() {
       {/* ==================== Import Low Stock Dialog ==================== */}
       <ImportLowStockDialog
         open={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
+        onOpenChange={(open) => {
+          setIsImportDialogOpen(open);
+          if (!open) setPreSelectedLowStockIds([]);
+        }}
         onImport={handleImportLowStock}
+        preSelectedIds={preSelectedLowStockIds}
       />
 
       {/* ==================== Edit Product Dialog ==================== */}

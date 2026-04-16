@@ -1,10 +1,13 @@
 "use client";
 
+import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 
 // UI Components
 import { DataTable } from "@/ui/components/dataTable";
 import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
 import { Progress } from "@/ui/components/progress";
 import PageHeader from "@/ui/components/header";
 import { FilterConfig } from "@/types/DataTable";
@@ -17,6 +20,7 @@ import {
   AlertTriangle,
   AlertOctagon,
   Package,
+  ShoppingCart,
   TrendingDown,
 } from "lucide-react";
 
@@ -211,8 +215,20 @@ const searchConfig = {
 };
 
 export default function LowStock() {
+  const router = useRouter();
+  const [selectedItems, setSelectedItems] = useState<ShortlistItem[]>([]);
   const { data: dashboardData, isLoading: dashLoading } = useDashboardStats();
   const stats = dashboardData?.data;
+
+  const handleSelectionChange = useCallback((rows: ShortlistItem[]) => {
+    setSelectedItems(rows);
+  }, []);
+
+  const handleCreatePurchase = useCallback(() => {
+    const ids = selectedItems.map((item) => item._id);
+    sessionStorage.setItem("lowstock-import-ids", JSON.stringify(ids));
+    router.push("/purchases");
+  }, [selectedItems, router]);
 
   const shortlistStats: StatData[] = [
     {
@@ -244,6 +260,17 @@ export default function LowStock() {
       <PageHeader
         title="Low Stock Products"
         subTitle="View stock levels and identify items that need restocking by location"
+        actions={
+          selectedItems.length > 0 ? (
+            <Button onClick={handleCreatePurchase} className="gap-1.5">
+              <ShoppingCart className="h-4 w-4" />
+              Create Purchase Order
+              <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-[10px] rounded-full">
+                {selectedItems.length}
+              </Badge>
+            </Button>
+          ) : undefined
+        }
       />
 
       {/* Stats Row */}
@@ -275,6 +302,7 @@ export default function LowStock() {
         defaultPageSize={50}
         pageSizes={[10, 25, 50, 100]}
         selectable={true}
+        onSelectionChange={handleSelectionChange}
       />
     </div>
   );

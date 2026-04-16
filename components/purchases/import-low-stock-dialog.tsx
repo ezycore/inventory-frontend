@@ -40,15 +40,21 @@ interface ShortlistProduct {
   name: string;
   brand?: { _id: string; name: string } | null;
   category?: { _id: string; name: string } | null;
-  sellingPrice?: number;
-  costPrice?: number;
+  purchaseUnit?: {
+    unitId?: { _id: string; name: string; shortName: string };
+    conversionFactor?: number;
+  };
+  saleUnit?: {
+    unitId?: { _id: string; name: string; shortName: string };
+    conversionFactor?: number;
+  };
+  enableUOMConversion?: boolean;
 }
 
 interface ShortlistVariant {
   _id: string;
   attributes?: Record<string, any> | null;
-  sellingPrice?: number;
-  costPrice?: number;
+  price?: number;
 }
 
 interface ShortlistLocation {
@@ -66,6 +72,7 @@ export interface ShortlistItem {
   neededQuantity: number;
   isLowStock: boolean;
   restockStatus: string;
+  costPrice?: number;
 }
 
 export interface ImportedLowStockItem {
@@ -87,6 +94,8 @@ interface ImportLowStockDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImport: (items: ImportedLowStockItem[]) => void;
+  /** Pre-select items by their inventory IDs (e.g. from low stock page redirect) */
+  preSelectedIds?: string[];
 }
 
 // ---------- Helpers ----------
@@ -140,6 +149,7 @@ export function ImportLowStockDialog({
   open,
   onOpenChange,
   onImport,
+  preSelectedIds,
 }: ImportLowStockDialogProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
@@ -184,13 +194,17 @@ export function ImportLowStockDialog({
   // Reset state when dialog opens
   useEffect(() => {
     if (open) {
-      setSelectedIds(new Set());
+      setSelectedIds(
+        preSelectedIds && preSelectedIds.length > 0
+          ? new Set(preSelectedIds)
+          : new Set(),
+      );
       setSearchQuery("");
       setBrandFilter("all");
       setCategoryFilter("all");
       setOrderQuantities({});
     }
-  }, [open]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filtered items
   const filteredItems = useMemo(() => {
@@ -267,10 +281,16 @@ export function ImportLowStockDialog({
     const selectedItems = items.filter((i) => selectedIds.has(i._id));
     const importItems: ImportedLowStockItem[] = selectedItems.map((item) => {
       const qty = orderQuantities[item._id] || Math.max(1, item.neededQuantity || 1);
-      const price =
-        item.variant?.sellingPrice ??
-        item.product?.sellingPrice ??
-        0;
+
+      // Per-unit price: use inventory costPrice, fall back to variant price
+      const perUnitPrice = item.costPrice ?? item.variant?.price ?? 0;
+
+      // Purchase unit conversion factor (e.g. 1 Box = 100 Pieces)
+      const conversionFactor = item.product?.purchaseUnit?.conversionFactor || 1;
+
+      // Box price = per-unit price * conversionFactor (matches Add to Order logic)
+      const boxPrice = perUnitPrice * conversionFactor;
+      const convertedQuantity = qty * conversionFactor;
 
       return {
         inventoryId: item._id,
@@ -278,11 +298,11 @@ export function ImportLowStockDialog({
         variantId: item.variant?._id || null,
         productName: getProductDisplayName(item),
         quantity: qty,
-        price,
-        costPrice: price,
+        price: boxPrice,
+        costPrice: boxPrice,
         discount: 0,
-        conversionFactor: 1,
-        convertedQuantity: qty,
+        conversionFactor,
+        convertedQuantity,
       };
     });
 

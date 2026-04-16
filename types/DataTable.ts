@@ -303,6 +303,8 @@ export interface DataTableProps<TData, TValue = any> {
   manageColumns?: boolean;
   /** Module name for column settings (required if manageColumns is true) */
   module?: string;
+  /** Callback when row selection changes */
+  onSelectionChange?: (selectedRows: TData[]) => void;
 }
 
 export interface BaseDataTableProps<TData, TValue = any> {
