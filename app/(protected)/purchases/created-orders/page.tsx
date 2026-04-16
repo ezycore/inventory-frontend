@@ -1,5 +1,17 @@
 "use client";
 
+import {
+  getCreatedOrderActions,
+  getCreatedOrdersColumns,
+  buildCreatedOrdersFilterConfig,
+  defaultCreatedOrderFilters,
+  buildReceiveItemsFromOrder,
+  buildReceivePayload,
+  clampReceiveQuantity,
+  hasAnyReceivableItems,
+} from "@/components/purchases/created-orders";
+import type { ItemReceiveState } from "@/components/purchases/created-orders";
+import { statusConfig } from "@/components/purchases/status-config";
 import { useCurrency } from "@/lib/currency";
 import {
   useCancelPurchaseOrder,
@@ -7,14 +19,10 @@ import {
   usePurchaseOrders,
   useReceivePurchaseOrder,
 } from "@/services/api";
-import { useAuthStore } from "@/services/stores/use-auth-store";
 import type {
   PurchaseOrder,
   PurchaseOrderFilters,
-  PurchaseOrderStatus,
-  ReceivePurchaseOrderDto,
 } from "@/types";
-import type { FilterField } from "@/types/filter";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
@@ -25,7 +33,6 @@ import {
   CardTitle,
 } from "@/ui/components/card";
 import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
-import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import {
   Dialog,
   DialogContent,
@@ -52,90 +59,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/components/table";
-import type { ColumnDef } from "@tanstack/react-table";
 import {
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  Eye,
   Package,
   PackageCheck,
   Plus,
-  Truck,
   XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-// Status configuration for badges
-const statusConfig: Record<
-  PurchaseOrderStatus,
-  {
-    label: string;
-    variant: "default" | "secondary" | "destructive" | "outline";
-    icon: React.ReactNode;
-  }
-> = {
-  draft: {
-    label: "Draft",
-    variant: "secondary",
-    icon: <Clock className="h-3 w-3" />,
-  },
-  ordered: {
-    label: "Ordered",
-    variant: "outline",
-    icon: <Package className="h-3 w-3" />,
-  },
-  partial: {
-    label: "Partial",
-    variant: "outline",
-    icon: <AlertCircle className="h-3 w-3" />,
-  },
-  received: {
-    label: "Received",
-    variant: "default",
-    icon: <CheckCircle2 className="h-3 w-3" />,
-  },
-  cancelled: {
-    label: "Cancelled",
-    variant: "destructive",
-    icon: <XCircle className="h-3 w-3" />,
-  },
-};
-
-// Item with receive quantity state
-interface ItemReceiveState {
-  productId: string;
-  variantId?: string | null;
-  inventoryId?: string;
-  receivedQuantity: number;
-  maxQuantity: number;
-  productName: string;
-}
-
 export default function CreatedOrdersPage() {
   const router = useRouter();
   const { format: formatCurrency } = useCurrency();
-  const { user } = useAuthStore();
 
-  // State for pagination and filters
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
-  const [filters, setFilters] = useState<PurchaseOrderFilters>({
-    status: "ordered", // Default filter to show only ordered items
-  });
+  const [filters, setFilters] = useState<PurchaseOrderFilters>(
+    defaultCreatedOrderFilters,
+  );
 
-  // State for modals/drawers
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-
-  // State for receive quantities
   const [receiveItems, setReceiveItems] = useState<ItemReceiveState[]>([]);
 
-  // Data fetching
   const {
     data: ordersData,
     isLoading,
@@ -146,38 +95,30 @@ export default function CreatedOrdersPage() {
     ...filters,
   });
 
-  // Fetch selected order details
-  const { data: orderDetailData, isLoading: isLoadingDetail } = usePurchaseOrder(selectedOrderId || "");
+  const { data: orderDetailData, isLoading: isLoadingDetail } =
+    usePurchaseOrder(selectedOrderId || "");
 
   const selectedOrder = orderDetailData?.data;
-
-  // Mutations
   const receiveMutation = useReceivePurchaseOrder();
   const cancelMutation = useCancelPurchaseOrder();
-
   const orders: PurchaseOrder[] = ordersData?.data?.items || [];
 
-  // Pagination info
+  const getOrderDisplayTotal = useCallback(
+    (order: PurchaseOrder) =>
+      order.invoiceAmount || order.grandTotal || order.totalAmount || order.subtotal || 0,
+    [],
+  );
+
   const paginationInfo = useMemo(() => {
     if (!ordersData?.data) return null;
     const { total, totalPages, hasNext, hasPrev } = ordersData.data;
     return { total, totalPages, hasNext, hasPrev };
   }, [ordersData]);
 
-  // Initialize receive items when order is selected
   const initializeReceiveItems = useCallback((order: PurchaseOrder) => {
-    const items: ItemReceiveState[] = order.items.map((item) => ({
-      productId: item.productId,
-      variantId: item.variantId,
-      inventoryId: item.inventoryId,
-      receivedQuantity: item.quantity - item.receivedQuantity, // Default to remaining quantity
-      maxQuantity: item.quantity - item.receivedQuantity,
-      productName: item.productName || item.product?.name || "Unknown Product",
-    }));
-    setReceiveItems(items);
+    setReceiveItems(buildReceiveItemsFromOrder(order));
   }, []);
 
-  // Handlers
   const handleViewOrder = useCallback((order: PurchaseOrder) => {
     setSelectedOrderId(order._id);
     setViewDrawerOpen(true);
@@ -200,31 +141,19 @@ export default function CreatedOrdersPage() {
   const handleReceiveSubmit = useCallback(async () => {
     if (!selectedOrderId) return;
 
-    // Validate that at least one item has quantity > 0
-    const hasItems = receiveItems.some((item) => item.receivedQuantity > 0);
-    if (!hasItems) {
+    if (!hasAnyReceivableItems(receiveItems)) {
       toast.error("Please enter quantity for at least one item");
       return;
     }
 
-    // Build receive data
-    const data: ReceivePurchaseOrderDto = {
-      items: receiveItems
-        .filter((item) => item.receivedQuantity > 0)
-        .map((item) => ({
-          productId: item.productId,
-          variantId: item.variantId,
-          inventoryId: item.inventoryId,
-          receivedQuantity: item.receivedQuantity,
-        })),
-    };
+    const data = buildReceivePayload(receiveItems);
 
     try {
       await receiveMutation.mutateAsync({ id: selectedOrderId, data });
       setConfirmDialogOpen(false);
       setSelectedOrderId(null);
       refetch();
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }, [selectedOrderId, receiveItems, receiveMutation, refetch]);
@@ -237,7 +166,7 @@ export default function CreatedOrdersPage() {
       setCancelDialogOpen(false);
       setSelectedOrderId(null);
       refetch();
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }, [selectedOrderId, cancelMutation, refetch]);
@@ -245,13 +174,12 @@ export default function CreatedOrdersPage() {
   const updateReceiveQuantity = useCallback(
     (index: number, quantity: number) => {
       setReceiveItems((prev) => {
+        if (!prev[index]) return prev;
+
         const updated = [...prev];
         updated[index] = {
           ...updated[index],
-          receivedQuantity: Math.min(
-            Math.max(0, quantity),
-            updated[index].maxQuantity,
-          ),
+          receivedQuantity: clampReceiveQuantity(quantity, updated[index].maxQuantity),
         };
         return updated;
       });
@@ -259,140 +187,33 @@ export default function CreatedOrdersPage() {
     [],
   );
 
-  // Table columns
-  const columns: ColumnDef<PurchaseOrder>[] = useMemo(
-    () => [
-      {
-        accessorKey: "orderNumber",
-        header: "Order #",
-        cell: ({ row }) => (
-          <span className="font-mono font-medium">
-            {row.original.orderNumber}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "createdAt",
-        header: "Date",
-        cell: ({ row }) => <DateCell value={row.original.createdAt} />,
-      },
-      {
-        accessorKey: "supplierId",
-        header: "Supplier",
-        cell: ({ row }) => {
-          const supplier = row.original.supplierId;
-          return (
-            <div className="flex items-center gap-2">
-              <Truck className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">
-                {supplier?.name || (
-                  <span className="text-muted-foreground">Unknown</span>
-                )}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "items",
-        header: "Items",
-        cell: ({ row }) => (
-          <Badge variant="outline">{row.original.items.length} items</Badge>
-        ),
-      },
-      {
-        accessorKey: "invoiceAmount",
-        header: () => <span className="flex justify-end">Total Amount</span>,
-        cell: ({ row }) => (
-          <span className="flex justify-end font-medium">
-            {formatCurrency(row.original.invoiceAmount)}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const status = row.original.status;
-          const config = statusConfig[status];
-          return (
-            <Badge variant={config.variant} className="flex gap-1 w-fit">
-              {config.icon}
-              {config.label}
-            </Badge>
-          );
-        },
-      },
-    ],
+  const columns = useMemo(
+    () => getCreatedOrdersColumns({ formatCurrency }),
     [formatCurrency],
   );
 
-  // Custom actions for each row
   const customActions = useMemo(
-    () => [
-      {
-        type: "custom" as const,
-        placement: "cell" as const,
-        icon: <Eye className="h-4 w-4" />,
-        label: "View Details",
-        tooltip: "View order details",
-        onClick: (row: PurchaseOrder) => handleViewOrder(row),
-      },
-      {
-        type: "custom" as const,
-        placement: "cell" as const,
-        icon: <PackageCheck className="h-4 w-4" />,
-        label: "Confirm Order",
-        tooltip: "Receive items from this order",
-        onClick: (row: PurchaseOrder) => handleConfirmOrder(row),
-        disabled: (row: PurchaseOrder) =>
-          row.status !== "ordered" && row.status !== "partial",
-      },
-      {
-        type: "custom" as const,
-        placement: "cell" as const,
-        icon: <XCircle className="h-4 w-4" />,
-        label: "Cancel Order",
-        tooltip: "Cancel this order",
-        onClick: (row: PurchaseOrder) => handleCancelOrder(row),
-        disabled: (row: PurchaseOrder) =>
-          row.status !== "ordered" && row.status !== "draft",
-      },
-    ],
+    () =>
+      getCreatedOrderActions({
+        onViewOrder: handleViewOrder,
+        onConfirmOrder: handleConfirmOrder,
+        onCancelOrder: handleCancelOrder,
+      }),
     [handleViewOrder, handleConfirmOrder, handleCancelOrder],
   );
 
-  // Filter configuration
   const filterConfig = useMemo(
-    () => ({
-      fields: [
-        {
-          name: "status",
-          label: "Status",
-          type: "select" as const,
-          options: [
-            { label: "Ordered", value: "ordered" },
-            { label: "Partial", value: "partial" },
-            { label: "Draft", value: "draft" },
-            { label: "All Statuses", value: "" },
-          ],
+    () =>
+      buildCreatedOrdersFilterConfig({
+        onApply: (newFilters) => {
+          setFilters(newFilters);
+          setPage(1);
         },
-        {
-          name: "search",
-          label: "Search",
-          type: "text" as const,
-          placeholder: "Order number...",
+        onReset: () => {
+          setFilters(defaultCreatedOrderFilters);
+          setPage(1);
         },
-      ] as FilterField[],
-      onApply: (newFilters: Record<string, unknown>) => {
-        setFilters(newFilters as PurchaseOrderFilters);
-        setPage(1);
-      },
-      onReset: () => {
-        setFilters({ status: "ordered" });
-        setPage(1);
-      },
-    }),
+      }),
     [],
   );
 
@@ -454,7 +275,10 @@ export default function CreatedOrdersPage() {
                 <Skeleton className="h-8 w-24" />
               ) : (
                 formatCurrency(
-                  orders.reduce((sum, o) => sum + o.totalAmount, 0),
+                  orders.reduce(
+                    (sum, order) => sum + getOrderDisplayTotal(order),
+                    0,
+                  ),
                 )
               )}
             </CardTitle>
@@ -552,11 +376,11 @@ export default function CreatedOrdersPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax</span>
-                  <span>{formatCurrency(selectedOrder.taxAmount)}</span>
+                  <span>{formatCurrency(selectedOrder.taxTotal || 0)}</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Total Amount</span>
-                  <span>{formatCurrency(selectedOrder.invoiceAmount)}</span>
+                  <span>{formatCurrency(getOrderDisplayTotal(selectedOrder))}</span>
                 </div>
               </div>
 
@@ -574,7 +398,9 @@ export default function CreatedOrdersPage() {
                   </TableHeader>
                   <TableBody>
                     {selectedOrder.items.map((item, index) => (
-                      <TableRow key={index}>
+                      <TableRow
+                        key={`${item.productId}-${item.variantId || "no-variant"}-${index}`}
+                      >
                         <TableCell className="font-medium">
                           {item.productName || item.product?.name || "Unknown"}
                           {item.variantName && (
@@ -662,7 +488,9 @@ export default function CreatedOrdersPage() {
               </TableHeader>
               <TableBody>
                 {receiveItems.map((item, index) => (
-                  <TableRow key={index}>
+                  <TableRow
+                    key={`${item.productId}-${item.variantId || "no-variant"}-${index}`}
+                  >
                     <TableCell className="font-medium">
                       {item.productName}
                     </TableCell>

@@ -1,0 +1,206 @@
+/* Landing Page Styles - Based on original HTML design */
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* Account for fixed navbar */
+}
+
+
+/* CSS Variables */
+:root {
+  --hero-gradient: linear-gradient(135deg, hsl(215, 65%, 18%), hsl(215, 55%, 28%));
+  --accent-gradient: linear-gradient(135deg, hsl(185, 72%, 40%), hsl(190, 80%, 50%));
+  --card-shadow: 0 1px 3px hsla(215, 30%, 20%, 0.06), 0 4px 12px hsla(215, 30%, 20%, 0.04);
+  --card-shadow-hover: 0 4px 16px hsla(215, 30%, 20%, 0.1), 0 8px 32px hsla(215, 30%, 20%, 0.06);
+  --section-alt: hsl(210, 25%, 96%);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Utility classes */
+.text-gradient {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.container-narrow {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.section-padding {
+  padding: 4rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .container, .container-narrow {
+    padding: 0 1.5rem;
+  }
+  .section-padding {
+    padding: 5rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container, .container-narrow {
+    padding: 0 2rem;
+  }
+  .section-padding {
+    padding: 6rem 2rem;
+  }
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  background: var(--hero-gradient);
+  padding-top: 7rem;
+  padding-bottom: 4rem;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .hero-section {
+    padding-top: 9rem;
+    padding-bottom: 6rem;
+  }
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 5rem;
+  left: 2rem;
+  width: 18rem;
+  height: 18rem;
+  background: hsla(185, 72%, 40%, 0.15);
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  width: 24rem;
+  height: 24rem;
+  background: hsla(185, 72%, 40%, 0.1);
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+/* Cards */
+.card-shadow {
+  box-shadow: var(--card-shadow);
+}
+
+.card-shadow-hover {
+  transition: box-shadow 0.2s;
+}
+
+.card-shadow-hover:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* Section alternating backgrounds */
+.section-alt {
+  background: var(--section-alt);
+}
+
+/* Gradients for buttons */
+.btn-gradient {
+  background: var(--accent-gradient);
+}
+
+.btn-gradient:hover {
+  opacity: 0.9;
+}
+
+/* Badge styles */
+.section-badge {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: hsl(185, 72%, 40%);
+  margin-bottom: 0.5rem;
+}
+
+/* Pricing badge */
+.popular-badge {
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-gradient);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 1rem;
+  border-radius: 9999px;
+}
+
+/* Feature tab styles */
+.feature-tab {
+  transition: all 0.2s;
+}
+
+.feature-tab.active {
+  background: hsl(185, 72%, 40%);
+  color: white;
+  box-shadow: 0 4px 12px hsla(185, 72%, 40%, 0.3);
+}
+
+/* Integration icons with colors */
+.dept-icon.finance {
+  background: hsla(185, 72%, 40%, 0.1);
+  color: hsl(185, 72%, 40%);
+}
+
+.dept-icon.sales {
+  background: hsla(152, 60%, 40%, 0.1);
+  color: hsl(152, 60%, 40%);
+}
+
+.dept-icon.ops {
+  background: hsla(215, 65%, 22%, 0.1);
+  color: hsl(215, 65%, 22%);
+}
+
+.dept-icon.hr {
+  background: hsla(0, 84%, 60%, 0.1);
+  color: hsl(0, 84%, 60%);
+}
+
+.dept-icon.mgmt {
+  background: hsla(185, 72%, 40%, 0.1);
+  color: hsl(185, 72%, 40%);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
