@@ -581,7 +581,7 @@ export default function PurchasesPage() {
         return orderData;
       });
       console.log("Submitting orders:", ordersData);
-      return
+      
 
       await mutateAsync(ordersData);
 

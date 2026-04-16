@@ -75,6 +75,15 @@ export const getPurchaseColumns = (
       ),
     },
     {
+      accessorKey: "total",
+      header: "Total",
+      cell: ({ row }) => (
+        <span className="text-sm tabular-nums">
+          {formatCurrency(row.original.total)}
+        </span>
+      ),
+    },
+    {
       id: "actions",
       header: "",
       cell: ({ row }) => (

@@ -155,8 +155,9 @@ interface PurchasePageStore {
 const calculateItemTotal = (
   item: Omit<PurchaseOrderItem, "id" | "total">,
 ): number => {
+  console.log("Calculating total for item:", item);
   const subtotal = item.quantity * item.price;
-  return Math.max(0, subtotal - (item.discount || 0));
+  return Math.max(0, subtotal - ((item.discount * item.quantity) || 0));
 };
 
 /**
@@ -344,8 +345,8 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
             const finalDiscount = Math.min(discount, subtotal);
             const newInvoiceAmount = Math.max(0, subtotal - finalDiscount);
-            return { 
-              ...seller, 
+            return {
+              ...seller,
               additionalDiscount: finalDiscount,
               invoiceAmount: newInvoiceAmount,
             };
@@ -360,8 +361,8 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             // When invoiceAmount changes, recalculate additionalDiscount
             const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
             const newDiscount = Math.max(0, subtotal - amount);
-            return { 
-              ...seller, 
+            return {
+              ...seller,
               invoiceAmount: amount,
               additionalDiscount: newDiscount,
             };

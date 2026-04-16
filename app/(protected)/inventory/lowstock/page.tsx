@@ -24,45 +24,88 @@ import {
   TrendingDown,
 } from "lucide-react";
 
-// Shortlist item type
+// Shortlist item type (flat structure from API)
 interface ShortlistItem {
   _id: string;
-  product: Record<string, any> | null;
-  variant: Record<string, any> | null;
-  location: Record<string, any> | null;
+  productId: string;
+  variantId?: string;
+  name: string;
+  productType: string;
+  price?: number;
+  costPrice?: number;
+  enableUOMConversion?: boolean;
+  unit?: { _id: string; name: string; shortName: string } | null;
+  purchaseUnit?: {
+    unitId?: { _id: string; name: string; shortName: string };
+    conversionFactor?: number;
+  };
+  saleUnit?: {
+    unitId?: { _id: string; name: string; shortName: string };
+    conversionFactor?: number;
+  };
+  variant: { _id: string; attributes?: Record<string, any> | null; price?: number } | null;
+  location: { _id: string; name: string } | null;
   quantity: number;
   quantityAlert: number;
   neededQuantity: number;
   isLowStock: boolean;
   restockStatus: string;
+  categoryId?: string;
+  brandId?: string;
+  quantityBreakdown?: {
+    enabled: boolean;
+    purchaseUnitQuantity: number;
+    purchaseUnitName: string;
+    remainderQuantity: number;
+    baseUnitName: string;
+    conversionFactor: number;
+    displayText: string;
+  } | null;
+}
+
+/** Get display name: product name + variant attributes */
+function getDisplayName(item: ShortlistItem): string {
+  let name = item.name || "Unknown Product";
+  if (item.variant?.attributes) {
+    const attrs = Object.values(item.variant.attributes).join(", ");
+    if (attrs) name = `${name} (${attrs})`;
+  }
+  return name;
+}
+
+/** Get base unit short name */
+function getUnitShortName(item: ShortlistItem): string {
+  return item.unit?.shortName || "pcs";
+}
+
+/** Format needed quantity with appropriate unit */
+function getNeededQtyDisplay(item: ShortlistItem): string {
+  const needed = item.neededQuantity;
+  if (needed <= 0) return `0 ${getUnitShortName(item)}`;
+
+  // If purchaseUnit exists with unitId, show in purchase units
+  if (item.purchaseUnit?.unitId && item.purchaseUnit.conversionFactor && item.purchaseUnit.conversionFactor > 1) {
+    const purchaseQty = Math.ceil(needed / item.purchaseUnit.conversionFactor);
+    return `${purchaseQty} ${item.purchaseUnit.unitId.shortName}`;
+  }
+
+  return `${needed} ${getUnitShortName(item)}`;
 }
 
 // Column definitions for shortlist with enhanced visuals
 const columns: ColumnDef<ShortlistItem>[] = [
   {
-    accessorKey: "product",
+    accessorKey: "name",
     header: "Product",
     cell: ({ row }) => {
       return (
-        <span className="font-medium">{row.getValue("product")?.name}</span>
+        <div>
+          <span className="font-medium">{getDisplayName(row.original)}</span>
+          {row.original.location?.name && (
+            <div className="text-xs text-muted-foreground">{row.original.location.name}</div>
+          )}
+        </div>
       );
-    },
-  },
-  {
-    accessorKey: "variant",
-    header: "Variant",
-    cell: ({ row }) => {
-      const attributes = row.getValue("variant")?.attributes as Record<
-        string,
-        any
-      > | null;
-      if (!attributes)
-        return <span className="text-muted-foreground">-</span>;
-
-      const attrs = Object.entries(attributes)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(", ");
-      return <span className="text-sm text-muted-foreground">{attrs}</span>;
     },
   },
   {
@@ -71,6 +114,7 @@ const columns: ColumnDef<ShortlistItem>[] = [
     cell: ({ row }) => {
       const quantity = row.getValue("quantity") as number;
       const alertQty = row.original.quantityAlert || 1;
+      const unitName = getUnitShortName(row.original);
       const ratio = Math.min((quantity / alertQty) * 100, 100);
       const isCritical = quantity === 0;
 
@@ -84,10 +128,10 @@ const columns: ColumnDef<ShortlistItem>[] = [
                   : "text-chart-1 font-semibold"
               }
             >
-              {quantity}
+              {quantity} {unitName}
             </span>
             <span className="text-xs text-muted-foreground">
-              alert: {alertQty}
+              alert: {alertQty} ({unitName})
             </span>
           </div>
           <Progress
@@ -106,26 +150,20 @@ const columns: ColumnDef<ShortlistItem>[] = [
     },
   },
   {
-    accessorKey: "quantityAlert",
-    header: "Alert Qty",
-    cell: ({ row }) => {
-      return (
-        <span className="font-medium">{row.getValue("quantityAlert")}</span>
-      );
-    },
-  },
-  {
     accessorKey: "neededQuantity",
     header: "Needed Qty",
     cell: ({ row }) => {
-      const needed = row.getValue("neededQuantity") as number;
+      const { neededQuantity, enableUOMConversion } = row.original;
+      const unitLabel = getNeededQtyDisplay(row.original);
+      const display = enableUOMConversion ? `${neededQuantity} ${getUnitShortName(row.original)} (${unitLabel})` : `${neededQuantity} ${getUnitShortName(row.original)}`;
       return (
         <Badge
-          variant={needed > 0 ? "destructive" : "secondary"}
+          variant={neededQuantity > 0 ? "destructive" : "secondary"}
           className="font-semibold gap-1"
         >
-          {needed > 0 && <TrendingDown className="h-3 w-3" />}
-          {needed > 0 ? `+${needed}` : needed}
+          {neededQuantity > 0 && <TrendingDown className="h-3 w-3" />}
+          {neededQuantity > 0 ? `+${display}` : display}
+
         </Badge>
       );
     },
@@ -241,7 +279,7 @@ export default function LowStock() {
     },
     {
       label: "Total Alerts",
-      value: stats?.stock?.lowStockAlerts || 0,
+      value: (stats?.variants?.lowStock || 0) + (stats?.variants?.outOfStock || 0),
       icon: Package,
       variant: "info",
       description: "Across all locations",
