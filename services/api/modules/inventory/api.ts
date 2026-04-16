@@ -9,7 +9,7 @@ interface InventoryFilters extends BaseFilters {
 }
 
 interface ShortlistFilters extends BaseFilters {
-  locationId: string;
+  locationId?: string;
   productId?: string;
   low_stock_only?: string;
 }

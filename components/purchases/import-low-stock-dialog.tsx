@@ -10,7 +10,7 @@ import {
   Search,
 } from "lucide-react";
 
-import { inventoryApi, useDashboardStats } from "@/services/api";
+import { inventoryApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -147,21 +147,15 @@ export function ImportLowStockDialog({
   const [brandFilter, setBrandFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
-  // Fetch low stock items
+  // Fetch ALL low stock items (no pagination)
   const { data: shortlistData, isLoading } = useQuery({
     queryKey: [...queryKeys.inventory.lowStock(), "import-dialog"],
     queryFn: () =>
       inventoryApi.getShortlist({
-        locationId: "",
-        low_stock_only: "true",
-        limit: 200,
-      } as any),
+        all: "true",
+      }),
     enabled: open,
   });
-
-  // Fetch dashboard stats for summary cards
-  const { data: dashboardData } = useDashboardStats();
-  const stats = dashboardData?.data;
 
   // Fetch brands and categories for filters
   const { data: brandOptions } = useSelectOptions(open ? "/brands" : null);
@@ -234,14 +228,14 @@ export function ImportLowStockDialog({
     });
   }, [items, searchQuery, brandFilter, categoryFilter]);
 
-  // Stats
+  // Stats computed from fetched data
   const outOfStockCount = useMemo(
-    () => stats?.variants?.outOfStock || items.filter((i) => i.quantity === 0).length,
-    [stats, items],
+    () => items.filter((i) => i.quantity === 0).length,
+    [items],
   );
   const lowStockCount = useMemo(
-    () => stats?.variants?.lowStock || items.length,
-    [stats, items],
+    () => items.length,
+    [items],
   );
 
   // Handlers
@@ -420,9 +414,8 @@ export function ImportLowStockDialog({
                   return (
                     <tr
                       key={item._id}
-                      className={`border-b transition-colors cursor-pointer hover:bg-muted/30 ${
-                        isSelected ? "bg-primary/5" : ""
-                      } ${isCritical ? "bg-destructive/5" : ""}`}
+                      className={`border-b transition-colors cursor-pointer hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""
+                        } ${isCritical ? "bg-destructive/5" : ""}`}
                       onClick={() => toggleSelect(item._id)}
                     >
                       <td className="p-2">
@@ -487,7 +480,7 @@ export function ImportLowStockDialog({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

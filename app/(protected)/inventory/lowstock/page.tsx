@@ -210,7 +210,7 @@ const searchConfig = {
   placeholder: "Search by product, variant, or location...",
 };
 
-export default function ShortlistPage() {
+export default function LowStock() {
   const { data: dashboardData, isLoading: dashLoading } = useDashboardStats();
   const stats = dashboardData?.data;
 

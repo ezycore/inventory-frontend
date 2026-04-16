@@ -3,7 +3,7 @@
 import { getPurchaseColumns, getSupplierFormConfig, getProductFormConfig, getPaymentFormConfig, extractSupplierValue, SupplierFormData, ImportLowStockDialog, type ImportedLowStockItem } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
-import { useCreatePurchaseOrder } from "@/services/api";
+import { useCreatePurchaseOrder, useDashboardStats } from "@/services/api";
 import {
   type PurchaseOrderItem,
   useAuthStore,
@@ -71,6 +71,10 @@ export default function PurchasesPage() {
 
   // Import low stock dialog state
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+
+  // Dashboard stats for low stock badge count
+  const { data: dashboardData } = useDashboardStats();
+  const lowStockCount = dashboardData?.data?.variants?.lowStock || 0;
 
   // Get organization features
   const { user } = useAuthStore();
@@ -649,6 +653,11 @@ export default function PurchasesPage() {
                 >
                   <Download className="h-3.5 w-3.5" />
                   Import Low Stock
+                  {lowStockCount > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 min-w-5 px-1.5 text-[10px] rounded-full">
+                      {lowStockCount}
+                    </Badge>
+                  )}
                 </Button>
               </div>
               <DynamicForm
