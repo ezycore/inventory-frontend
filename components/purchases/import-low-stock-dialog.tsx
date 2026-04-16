@@ -150,6 +150,7 @@ export function ImportLowStockDialog({
   onOpenChange,
   onImport,
   preSelectedIds,
+  discountInfo
 }: ImportLowStockDialogProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
@@ -280,10 +281,11 @@ export function ImportLowStockDialog({
   const handleImport = useCallback(() => {
     const selectedItems = items.filter((i) => selectedIds.has(i._id));
     const importItems: ImportedLowStockItem[] = selectedItems.map((item) => {
+      console.log("Processing item:", item);
       const qty = orderQuantities[item._id] || Math.max(1, item.neededQuantity || 1);
 
       // Per-unit price: use inventory costPrice, fall back to variant price
-      const perUnitPrice = item.costPrice ?? item.variant?.price ?? 0;
+      const perUnitPrice = item.price ?? item.variant?.price ?? 0;
 
       // Purchase unit conversion factor (e.g. 1 Box = 100 Pieces)
       const conversionFactor = item.product?.purchaseUnit?.conversionFactor || 1;
@@ -291,6 +293,8 @@ export function ImportLowStockDialog({
       // Box price = per-unit price * conversionFactor (matches Add to Order logic)
       const boxPrice = perUnitPrice * conversionFactor;
       const convertedQuantity = qty * conversionFactor;
+      const discount = discountInfo ? (discountInfo.type === "percentage" ? (boxPrice * discountInfo.value) / 100 : discountInfo.value) : 0;
+      const costPrice = boxPrice - discount;
 
       return {
         inventoryId: item._id,
@@ -299,12 +303,14 @@ export function ImportLowStockDialog({
         productName: getProductDisplayName(item),
         quantity: qty,
         price: boxPrice,
-        costPrice: boxPrice,
-        discount: 0,
+        costPrice: costPrice,
+        discount: discount,
         conversionFactor,
         convertedQuantity,
       };
     });
+
+    console.log("Importing items:", importItems);
 
     onImport(importItems);
     onOpenChange(false);

@@ -150,7 +150,7 @@ export default function PurchasesPage() {
       invoiceDate: activeSeller?.invoiceDate || "",
     },
   });
-
+  
   const productForm = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
@@ -492,7 +492,6 @@ export default function PurchasesPage() {
           currentSeller = newState.sellers[newState.activeSellerIndex];
         }
       }
-      
       let addedCount = 0;
       for (const item of importedItems) {
         addItem(currentSeller.id, {
@@ -884,6 +883,12 @@ export default function PurchasesPage() {
           if (!open) setPreSelectedLowStockIds([]);
         }}
         onImport={handleImportLowStock}
+        discountInfo = {
+          {
+            type: supplierForm.getValues("discountType") || "fixed",
+          value: supplierForm.getValues("discountValue") || 0,
+          }
+        }
         preSelectedIds={preSelectedLowStockIds}
       />
 
