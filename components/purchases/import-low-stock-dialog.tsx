@@ -35,22 +35,6 @@ import { useSelectOptions } from "@/services/api";
 
 // ---------- Types ----------
 
-interface ShortlistProduct {
-  _id: string;
-  name: string;
-  brand?: { _id: string; name: string } | null;
-  category?: { _id: string; name: string } | null;
-  purchaseUnit?: {
-    unitId?: { _id: string; name: string; shortName: string };
-    conversionFactor?: number;
-  };
-  saleUnit?: {
-    unitId?: { _id: string; name: string; shortName: string };
-    conversionFactor?: number;
-  };
-  enableUOMConversion?: boolean;
-}
-
 interface ShortlistVariant {
   _id: string;
   attributes?: Record<string, any> | null;
@@ -64,7 +48,22 @@ interface ShortlistLocation {
 
 export interface ShortlistItem {
   _id: string;
-  product: ShortlistProduct | null;
+  productId: string;
+  variantId?: string;
+  name: string;
+  productType: string;
+  price?: number;
+  costPrice?: number;
+  enableUOMConversion?: boolean;
+  unit?: { _id: string; name: string; shortName: string } | null;
+  purchaseUnit?: {
+    unitId?: { _id: string; name: string; shortName: string };
+    conversionFactor?: number;
+  };
+  saleUnit?: {
+    unitId?: { _id: string; name: string; shortName: string };
+    conversionFactor?: number;
+  };
   variant: ShortlistVariant | null;
   location: ShortlistLocation | null;
   quantity: number;
@@ -72,7 +71,8 @@ export interface ShortlistItem {
   neededQuantity: number;
   isLowStock: boolean;
   restockStatus: string;
-  costPrice?: number;
+  categoryId?: string;
+  brandId?: string;
 }
 
 export interface ImportedLowStockItem {
@@ -86,6 +86,7 @@ export interface ImportedLowStockItem {
   discount: number;
   conversionFactor: number;
   convertedQuantity: number;
+  total: number;
 }
 
 // ---------- Props ----------
@@ -96,6 +97,7 @@ interface ImportLowStockDialogProps {
   onImport: (items: ImportedLowStockItem[]) => void;
   /** Pre-select items by their inventory IDs (e.g. from low stock page redirect) */
   preSelectedIds?: string[];
+  discountInfo?: { type: "percentage" | "fixed"; value: number } | null;
 }
 
 // ---------- Helpers ----------
@@ -132,8 +134,24 @@ function getUrgencyBadge(quantity: number, alertQty: number) {
   );
 }
 
+/** Get the unit shortName to display for order qty (purchaseUnit if exists, else root unit) */
+function getOrderUnitShortName(item: ShortlistItem): string {
+  return item.purchaseUnit?.unitId?.shortName || item.unit?.shortName || "";
+}
+
+/** Get the base unit shortName */
+function getBaseUnitShortName(item: ShortlistItem): string {
+  return item.unit?.shortName || "";
+}
+
+/** Default order qty = ceil(neededQuantity / conversionFactor) */
+function getDefaultOrderQty(item: ShortlistItem): number {
+  const conversionFactor = item.purchaseUnit?.conversionFactor || 1;
+  return Math.max(1, Math.ceil((item.neededQuantity || 1) / conversionFactor));
+}
+
 function getProductDisplayName(item: ShortlistItem): string {
-  const name = item.product?.name || "Unknown Product";
+  const name = item.name || "Unknown Product";
   if (item.variant?.attributes) {
     const attrs = Object.entries(item.variant.attributes)
       .map(([k, v]) => `${k}: ${v}`)
@@ -150,6 +168,7 @@ export function ImportLowStockDialog({
   onOpenChange,
   onImport,
   preSelectedIds,
+  discountInfo
 }: ImportLowStockDialogProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
@@ -182,7 +201,7 @@ export function ImportLowStockDialog({
       const quantities: Record<string, number> = {};
       for (const item of items) {
         if (!(item._id in orderQuantities)) {
-          quantities[item._id] = Math.max(1, item.neededQuantity || 1);
+          quantities[item._id] = getDefaultOrderQty(item);
         }
       }
       if (Object.keys(quantities).length > 0) {
@@ -212,7 +231,7 @@ export function ImportLowStockDialog({
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const productName = item.product?.name?.toLowerCase() || "";
+        const productName = item.name?.toLowerCase() || "";
         const variantAttrs = item.variant?.attributes
           ? Object.values(item.variant.attributes).join(" ").toLowerCase()
           : "";
@@ -228,14 +247,12 @@ export function ImportLowStockDialog({
 
       // Brand filter
       if (brandFilter && brandFilter !== "all") {
-        const itemBrandId = item.product?.brand?._id;
-        if (itemBrandId !== brandFilter) return false;
+        if (item.brandId !== brandFilter) return false;
       }
 
       // Category filter
       if (categoryFilter && categoryFilter !== "all") {
-        const itemCategoryId = item.product?.category?._id;
-        if (itemCategoryId !== categoryFilter) return false;
+        if (item.categoryId !== categoryFilter) return false;
       }
 
       return true;
@@ -280,35 +297,43 @@ export function ImportLowStockDialog({
   const handleImport = useCallback(() => {
     const selectedItems = items.filter((i) => selectedIds.has(i._id));
     const importItems: ImportedLowStockItem[] = selectedItems.map((item) => {
-      const qty = orderQuantities[item._id] || Math.max(1, item.neededQuantity || 1);
+      const conversionFactor = item.purchaseUnit?.conversionFactor || 1;
+      const quantity = orderQuantities[item._id] || getDefaultOrderQty(item);
 
-      // Per-unit price: use inventory costPrice, fall back to variant price
-      const perUnitPrice = item.costPrice ?? item.variant?.price ?? 0;
+      // price = item.price * conversionFactor
+      const price = (item.price ?? 0) * conversionFactor;
 
-      // Purchase unit conversion factor (e.g. 1 Box = 100 Pieces)
-      const conversionFactor = item.product?.purchaseUnit?.conversionFactor || 1;
+      // discount from supplier discount info
+      const discount = discountInfo
+        ? discountInfo.type === "percentage"
+          ? (price * discountInfo.value) / 100
+          : discountInfo.value
+        : 0;
 
-      // Box price = per-unit price * conversionFactor (matches Add to Order logic)
-      const boxPrice = perUnitPrice * conversionFactor;
-      const convertedQuantity = qty * conversionFactor;
+      // costPrice = price - discount
+      const costPrice = price - discount;
+
+      const convertedQuantity = quantity * conversionFactor;
+      const total = convertedQuantity * costPrice;
 
       return {
         inventoryId: item._id,
-        productId: item.product?._id || "",
+        productId: item.productId || "",
         variantId: item.variant?._id || null,
         productName: getProductDisplayName(item),
-        quantity: qty,
-        price: boxPrice,
-        costPrice: boxPrice,
-        discount: 0,
+        quantity,
+        price,
+        costPrice,
+        discount,
         conversionFactor,
         convertedQuantity,
+        total,
       };
     });
 
     onImport(importItems);
     onOpenChange(false);
-  }, [items, selectedIds, orderQuantities, onImport, onOpenChange]);
+  }, [items, selectedIds, orderQuantities, onImport, onOpenChange, discountInfo]);
 
   const isAllSelected =
     filteredItems.length > 0 && selectedIds.size === filteredItems.length;
@@ -409,7 +434,7 @@ export function ImportLowStockDialog({
                 </th>
                 <th className="p-2 text-left font-medium">Product</th>
                 <th className="p-2 text-right font-medium">Stock</th>
-                <th className="p-2 text-right font-medium">Alert Qty</th>
+                <th className="p-2 text-right font-medium">Needed Qty</th>
                 <th className="p-2 text-center font-medium">Order Qty</th>
                 <th className="p-2 text-center font-medium">Urgency</th>
               </tr>
@@ -447,15 +472,8 @@ export function ImportLowStockDialog({
                       <td className="p-2">
                         <div>
                           <span className="font-medium">
-                            {item.product?.name || "Unknown"}
+                            {getProductDisplayName(item)}
                           </span>
-                          {item.variant?.attributes && (
-                            <span className="text-xs text-muted-foreground ml-1.5">
-                              {Object.entries(item.variant.attributes)
-                                .map(([k, v]) => `${k}: ${v}`)
-                                .join(", ")}
-                            </span>
-                          )}
                         </div>
                         {item.location?.name && (
                           <div className="text-xs text-muted-foreground">
@@ -471,22 +489,27 @@ export function ImportLowStockDialog({
                               : "text-chart-1 font-semibold"
                           }
                         >
-                          {item.quantity}
+                          {item.quantity} <span className="text-xs text-muted-foreground">{getBaseUnitShortName(item)}</span>
                         </span>
                       </td>
                       <td className="p-2 text-right tabular-nums">
-                        {item.quantityAlert}
+                        <span className="font-medium">
+                          {item.neededQuantity || 0} <span className="text-xs text-muted-foreground">{getBaseUnitShortName(item)}</span>
+                        </span>
                       </td>
                       <td className="p-2 text-center" onClick={(e) => e.stopPropagation()}>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={orderQuantities[item._id] ?? Math.max(1, item.neededQuantity || 1)}
-                          onChange={(e) =>
-                            updateOrderQty(item._id, Number(e.target.value) || 1)
-                          }
-                          className="w-16 h-7 text-center mx-auto text-sm"
-                        />
+                        <div className="flex items-center justify-center gap-1">
+                          <Input
+                            type="number"
+                            min={1}
+                            value={orderQuantities[item._id] ?? getDefaultOrderQty(item)}
+                            onChange={(e) =>
+                              updateOrderQty(item._id, Number(e.target.value) || 1)
+                            }
+                            className="w-16 h-7 text-center text-sm"
+                          />
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">{getOrderUnitShortName(item)}</span>
+                        </div>
                       </td>
                       <td className="p-2 text-center">
                         {getUrgencyBadge(item.quantity, item.quantityAlert || 1)}
