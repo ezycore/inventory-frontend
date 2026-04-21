@@ -20,12 +20,11 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
     accessorKey: "product",
     header: "Product",
     cell: ({ row }) => {
-      const product = row.original.product;
       const variant = row.original.variant;
       return (
         <div className="min-w-[180px]">
           <div className="font-medium text-foreground">
-            {product ? product.name : "-"}
+            {row.original.name ? row.original.name : "-"}
           </div>
           {variant && variant.attributes && (
             <div className="flex flex-wrap gap-1 mt-1">
