@@ -411,7 +411,7 @@ export interface CreateDiscountDto {
 export interface UpdateDiscountDto extends Partial<CreateDiscountDto> { }
 
 // Inventory interfaces
-export interface Inventory extends BaseEntity {
+export interface Inventory extends Product {
   productId: string;
   variantId?: string | null;
   locationId: string;
@@ -421,8 +421,8 @@ export interface Inventory extends BaseEntity {
   quantityBreakdown?: {
     displayText: string; // e.g., "2 boxes + 5 pieces"
   }
-  status: "active" | "inactive";
-  product?: Product;
+  // status: "active" | "inactive";
+  // product?: Product;
   variant?: Variant;
   location?: Location;
   costPrice: number;

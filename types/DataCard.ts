@@ -8,6 +8,28 @@ import { FilterField } from "./filter";
 import { SortingConfig } from "./DataTable";
 
 /**
+ * Sort option for card sorting
+ */
+export interface CardSortOption {
+  /** Field name to sort by */
+  field: string;
+  /** Display label */
+  label: string;
+}
+
+/**
+ * Sorting configuration for DataCard
+ */
+export interface CardSortingConfig {
+  /** Available sort options */
+  sortOptions: CardSortOption[];
+  /** Default sort field */
+  defaultSortBy?: string;
+  /** Default sort order */
+  defaultSortOrder?: "asc" | "desc";
+}
+
+/**
  * Card layout configuration
  */
 export type CardLayout = "grid" | "list";

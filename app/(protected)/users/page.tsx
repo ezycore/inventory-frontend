@@ -33,7 +33,6 @@ import {
   Shield,
   UserCheck,
   Users,
-  XCircle,
 } from "lucide-react";
 import LocationCountCell from "@/components/locations/LocationCountCell";
 import { usersApi } from "@/services/api";

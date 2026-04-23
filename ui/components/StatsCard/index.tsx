@@ -11,6 +11,7 @@ type StatVariant =
   | "success"
   | "warning"
   | "destructive"
+  | "danger"
   | "info";
 
 interface StatData {
@@ -44,10 +45,7 @@ interface StatsCardProps {
   };
 }
 
-const variantStyles: Record<
-  StatVariant,
-  { bg: string; text: string; icon: string }
-> = {
+const variantStyles: Record<StatVariant, { bg: string; text: string; icon: string }> = {
   default: {
     bg: "bg-muted/50",
     text: "text-foreground",
@@ -69,6 +67,11 @@ const variantStyles: Record<
     icon: "text-chart-1",
   },
   destructive: {
+    bg: "bg-destructive/10",
+    text: "text-destructive",
+    icon: "text-destructive",
+  },
+  danger: {
     bg: "bg-destructive/10",
     text: "text-destructive",
     icon: "text-destructive",
