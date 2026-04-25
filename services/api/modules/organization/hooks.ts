@@ -19,7 +19,7 @@ export const useUpdateOrganization = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: FormData) => organizationApi.update(data),
+    mutationFn: (data: Record<string, string>) => organizationApi.update(data),
     onSuccess: (result) => {
       handleMutationSuccess(
         result.message || "Organization updated successfully!",

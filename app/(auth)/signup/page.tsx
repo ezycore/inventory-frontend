@@ -41,6 +41,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "John",
           required: true,
+          validation: { minLength: 2, maxLength: 100 },
         },
         {
           name: "lastName",
@@ -48,6 +49,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           label: "Last Name",
           columnSpan: 6,
           placeholder: "Doe",
+          validation: { maxLength: 100 },
         },
         {
           name: "email",
@@ -56,6 +58,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "john@company.com",
           required: true,
+          validation: { email: true },
         },
         {
           name: "phone",
@@ -63,14 +66,16 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           label: "Phone Number",
           columnSpan: 6,
           placeholder: "+1 (234) 567-8900",
+          validation: { maxLength: 20 },
         },
         {
           name: "password",
           type: "password",
           label: "Password",
           columnSpan: 6,
-          placeholder: "Min. 6 characters",
+          placeholder: "Min. 8 characters",
           required: true,
+          validation: { minLength: 8 },
         },
         {
           name: "confirmPassword",
@@ -79,6 +84,7 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "Re-enter password",
           required: true,
+          validation: { minLength: 8 },
         },
       ],
     },
@@ -90,10 +96,11 @@ const ownerSetupFormConfig: DynamicFormConfig = {
         {
           name: "organizationName",
           type: "input",
-          label: "Name",
+          label: "Organization Name",
           columnSpan: 6,
           placeholder: "ABC Manufacturing Ltd",
           required: true,
+          validation: { minLength: 2, maxLength: 200 },
         },
         {
           name: "organizationSlug",
@@ -102,6 +109,13 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "abc-manufacturing-ltd",
           required: true,
+          validation: {
+            minLength: 2,
+            maxLength: 100,
+            pattern: /^[a-z0-9-]+$/,
+            patternMessage:
+              "Only lowercase letters, numbers, and hyphens allowed",
+          },
           description:
             "Used in URLs and must be unique. Only lowercase letters, numbers, and hyphens allowed.",
         },
@@ -162,10 +176,10 @@ export default function Signup() {
         const currentCurrency = form.getValues("currency");
 
         if (!currentTimezone) {
-          form.setValue("timezone", defaults.timezone);
+          form.setValue("timezone", defaults.timezone, { shouldValidate: true });
         }
         if (!currentCurrency) {
-          form.setValue("currency", defaults.currency);
+          form.setValue("currency", defaults.currency, { shouldValidate: true });
         }
       }
     }
@@ -178,9 +192,9 @@ export default function Signup() {
       return;
     }
 
-    // Validate password length
-    if (data.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    // Validate password length (schema already enforces this, belt-and-suspenders)
+    if (data.password.length < 8) {
+      toast.error("Password must be at least 8 characters");
       return;
     }
 

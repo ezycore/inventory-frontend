@@ -5,3 +5,4 @@ export { PermissionsTab } from "./permissions-tab";
 export { OrganizationTab } from "./organization-tab";
 export { TwoFactorTab } from "./two-factor-tab";
 export { TransferOwnershipTab } from "./transfer-ownership-tab";
+export { ChangeDefaultLocationDialog } from "./change-default-location-dialog";

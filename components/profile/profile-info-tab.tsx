@@ -3,15 +3,30 @@
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
-import { useUpdateProfile } from "@/services/api";
+import { useUpdateProfile, useMyLocations } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useState, useMemo, useEffect } from "react";
-import { Loader2, MapPin, User, Mail, Phone } from "lucide-react";
-import { ChangeDefaultLocationDialog } from "./ChangeDefaultLocationDialog";
+import { Loader2, MapPin, User, Mail } from "lucide-react";
+import { ChangeDefaultLocationDialog } from "./change-default-location-dialog";
 
 export function ProfileInfoTab() {
   const { user } = useAuthStore();
   const updateProfile = useUpdateProfile();
+  const { data: locationsData } = useMyLocations();
+
+  // Find the user's current default location to show its name in the UI.
+  const currentDefaultLocation = useMemo(() => {
+    const locations = locationsData?.data || [];
+    if (!user?.defaultLocationId) return null;
+    return (
+      locations.find(
+        (loc: any) =>
+          loc._id === user.defaultLocationId || loc.id === user.defaultLocationId,
+      ) ?? null
+    );
+  }, [locationsData?.data, user?.defaultLocationId]);
+
+  const hasMultipleLocations = (locationsData?.data?.length ?? 0) > 1;
 
   // Initialize form data using useMemo to avoid cascading renders
   const initialFormData = useMemo(
@@ -125,13 +140,17 @@ export function ProfileInfoTab() {
         </div>
         <div className="rounded-lg border bg-muted/30 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="space-y-1">
-              <p className="text-sm font-medium">Preferred Login Location</p>
+            <div className="space-y-1 min-w-0">
+              <p className="text-sm font-medium truncate">
+                {currentDefaultLocation?.name ?? "No default location set"}
+              </p>
               <p className="text-xs text-muted-foreground">
-                This location will be selected by default when you log in
+                {currentDefaultLocation
+                  ? "This location is selected by default when you log in"
+                  : "Pick a location to be selected by default at login"}
               </p>
             </div>
-            <ChangeDefaultLocationDialog />
+            {hasMultipleLocations && <ChangeDefaultLocationDialog />}
           </div>
         </div>
       </div>

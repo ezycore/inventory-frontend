@@ -29,6 +29,7 @@ import {
   currencyOptions,
   timezoneOptions,
 } from "@/app/(auth)/signup/page";
+import { getCountryDefaults } from "@/constants/organization-options";
 import { useGetOrganizationApi } from "@/hooks";
 
 export function OrganizationTab() {
@@ -62,23 +63,50 @@ export function OrganizationTab() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // When country changes, auto-fill timezone & currency from country defaults
+  // — but only when those fields are still empty, so we don't overwrite the
+  // user's explicit choices. Mirrors the behaviour of the signup form.
+  const handleCountryChange = (value: string) => {
+    setFormData((prev) => {
+      const next = { ...prev, country: value };
+      const defaults = getCountryDefaults(value);
+      if (defaults) {
+        if (!prev.timezone) next.timezone = defaults.timezone;
+        if (!prev.currency) next.currency = defaults.currency;
+      }
+      return next;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const data = new FormData();
-    data.append("name", formData.name);
-    data.append("address", formData.address);
-    data.append("country", formData.country);
-    data.append("timezone", formData.timezone);
-    data.append("currency", formData.currency);
-    updateOrganization.mutate(data);
+    if (!formData.country || !formData.timezone || !formData.currency) {
+      return;
+    }
+    // Send as JSON — the backend PUT /api/organization has no multer middleware
+    // and reads req.body (JSON), not multipart/form-data.
+    updateOrganization.mutate({
+      name: formData.name,
+      address: formData.address,
+      country: formData.country,
+      timezone: formData.timezone,
+      currency: formData.currency,
+    });
   };
 
   const hasChanges =
     formData.name !== name ||
-    formData.address !== address ||
+    formData.address !== (address || "") ||
     formData.country !== country ||
     formData.timezone !== timezone ||
     formData.currency !== currency;
+
+  const canSubmit =
+    hasChanges &&
+    !!formData.name &&
+    !!formData.country &&
+    !!formData.timezone &&
+    !!formData.currency;
 
   if (!isAdmin) {
     return (
@@ -147,11 +175,11 @@ export function OrganizationTab() {
           <div className="space-y-2">
             <Label htmlFor="country" className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5" />
-              Country
+              Country <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.country}
-              onValueChange={(value) => handleChange("country", value)}
+              onValueChange={handleCountryChange}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select country" />
@@ -169,7 +197,7 @@ export function OrganizationTab() {
           <div className="space-y-2">
             <Label htmlFor="currency" className="flex items-center gap-1.5">
               <DollarSign className="h-3.5 w-3.5" />
-              Currency
+              Currency <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.currency}
@@ -191,7 +219,7 @@ export function OrganizationTab() {
           <div className="space-y-2 sm:col-span-2 lg:col-span-1">
             <Label htmlFor="timezone" className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5" />
-              Timezone
+              Timezone <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.timezone}
@@ -236,7 +264,7 @@ export function OrganizationTab() {
       <div className="flex justify-end pt-4 border-t">
         <Button
           type="submit"
-          disabled={!hasChanges || updateOrganization.isPending}
+          disabled={!canSubmit || updateOrganization.isPending}
           className="w-full sm:w-auto"
         >
           {updateOrganization.isPending && (

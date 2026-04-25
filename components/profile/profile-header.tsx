@@ -164,7 +164,7 @@ export function ProfileHeader() {
             </div>
 
             {/* User Info */}
-            <div className="flex-1 min-w-0 pt-2 sm:pt-4 text-center sm:text-left space-y-3">
+            <div className="flex-1 min-w-0 pt-2 sm:pt-4 text-center sm:text-left space-y-3 md:space-y-1">
               <div className="space-y-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <h1 className="text-xl sm:text-2xl font-bold truncate">

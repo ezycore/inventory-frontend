@@ -35,7 +35,8 @@ export const organizationApi = {
 
   // PUT /api/organization - Update organization details
   // Used in: useUpdateOrganization → organization-tab.tsx
-  update: (data: FormData): Promise<ApiResponse<any>> =>
+  // Sends JSON — backend has no multer, reads req.body directly.
+  update: (data: Record<string, string>): Promise<ApiResponse<any>> =>
     apiClient.put(`/organization`, data),
 
   // PUT /api/organization/form-settings - Update form field visibility settings

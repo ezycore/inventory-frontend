@@ -1,7 +1,7 @@
 import { cn } from "@ui/lib/utils";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
 import { FC, memo, useMemo, useState } from "react";
-import { Controller, useWatch } from "react-hook-form";
+import { Controller, useWatch, useFormState } from "react-hook-form";
 import Link from "next/link";
 import { AdvancedSelect } from "../advanced-select";
 import { Button } from "../button";
@@ -86,7 +86,13 @@ const FormField: FC<{
   isEditMode = false,
   allFields = [],
 }) => {
-  const error = getNestedValue(formState.errors, field.name)?.message;
+  // IMPORTANT: subscribe to this field's error directly via useFormState.
+  // The `formState` prop passed from the parent is stale (parent doesn't
+  // re-render when errors change), which caused validation messages to
+  // lag one keystroke behind. Reading from useFormState ensures this
+  // component re-renders the moment its own error changes.
+  const { errors: liveErrors } = useFormState({ control, name: field.name });
+  const error = getNestedValue(liveErrors, field.name)?.message;
 
   // Check if field should be disabled in edit mode
   const isFieldDisabledInEdit = isEditMode && disabledFieldsInEdit?.includes(field.name);
@@ -240,21 +246,6 @@ const FormField: FC<{
           <Controller
             name={field.name}
             control={control}
-            rules={{
-              required: field.required ? `${field.label} is required` : false,
-              min: field.validation?.min
-                ? {
-                  value: field.validation.min,
-                  message: `Minimum value is ${field.validation.min}`,
-                }
-                : undefined,
-              max: field.validation?.max
-                ? {
-                  value: field.validation.max,
-                  message: `Maximum value is ${field.validation.max}`,
-                }
-                : undefined,
-            }}
             render={({ field: controllerField }) => (
               <Input
                 {...controllerField}
@@ -295,9 +286,6 @@ const FormField: FC<{
           <Controller
             name={field.name}
             control={control}
-            rules={{
-              required: field.required ? `${field.label} is required` : false,
-            }}
             render={({ field: controllerField }) => (
               <Textarea
                 {...controllerField}
@@ -343,22 +331,6 @@ const FormField: FC<{
           <Controller
             name={field.name}
             control={control}
-            rules={{
-              required: field.required ? `${field.label} is required` : false,
-              validate: field.required
-                ? (value: any) => {
-                  if (
-                    !value ||
-                    value === "" ||
-                    value === "__loading__" ||
-                    value === "__error__"
-                  ) {
-                    return `${field.label} is required`;
-                  }
-                  return true;
-                }
-                : undefined,
-            }}
             render={({ field: controllerField }) => {
               // Resolve API endpoint with dependency checking
               let resolvedOptionsApi = field.optionsApi;
@@ -490,9 +462,6 @@ const FormField: FC<{
           <Controller
             name={field.name}
             control={control}
-            rules={{
-              required: field.required ? `${field.label} is required` : false,
-            }}
             render={({ field: controllerField }) => (
               <RadioGroup
                 className="flex items-center gap-5"
@@ -522,9 +491,6 @@ const FormField: FC<{
           <Controller
             name={field.name}
             control={control}
-            rules={{
-              required: field.required ? `${field.label} is required` : false,
-            }}
             render={({ field: controllerField }) => {
               return (
                 <DatePicker
@@ -546,9 +512,6 @@ const FormField: FC<{
           <Controller
             name={field.name}
             control={control}
-            rules={{
-              required: field.required ? `${field.label} is required` : false,
-            }}
             render={({ field: controllerField }) => {
               let files: (File | string | any)[] = controllerField.value || [];
 
@@ -566,7 +529,6 @@ const FormField: FC<{
               const shouldHideDropzone = isSingleFileMode && hasFiles;
 
               const handleFileChange = (selectedFiles: (File | string)[]) => {
-                console.log("File upload changed:", selectedFiles); // Debug log
                 controllerField.onChange(selectedFiles);
                 handleChange(selectedFiles);
               };
@@ -844,11 +806,15 @@ const FormField: FC<{
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison for memo - only re-render if these specific props change
+  // Custom comparison for memo. Errors are read live via useFormState
+  // inside the component, so we don't need to compare them here. Only
+  // re-render when the field config, view mode, or edit-disabled state
+  // actually changes.
   return (
-    prevProps.field.name === nextProps.field.name &&
-    prevProps.formState.errors[prevProps.field.name] === nextProps.formState.errors[nextProps.field.name] &&
-    prevProps.viewMode === nextProps.viewMode
+    prevProps.field === nextProps.field &&
+    prevProps.viewMode === nextProps.viewMode &&
+    prevProps.isEditMode === nextProps.isEditMode &&
+    prevProps.disabledFieldsInEdit === nextProps.disabledFieldsInEdit
   );
 });
 
