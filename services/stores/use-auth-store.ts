@@ -24,6 +24,7 @@ export interface User {
     ownerId?: string;
     currency?: string;
     timezone?: string;
+    logo?: Image;
     settings: {
       excludedFields?: { [key: string]: string[] };
       excludedColumns?: { [key: string]: string[] };
