@@ -661,17 +661,18 @@ export default function TransactionsPage() {
     },
   ];
 
-  // Wrap getAllData to inject period date range so the table only shows filtered rows
-  const getAllDataWithPeriod = useMemo(() => {
-    return (filters: Record<string, any>) => {
-      const merged = { ...filters };
-      if (stats?.period) {
-        merged.startDate = stats.period.startDate;
-        merged.endDate = stats.period.endDate;
-      }
-      return transactionsApi.getAll(merged);
-    };
-  }, [stats?.period]);
+  // Wrap getAllData to inject period date range so the table only shows filtered rows.
+  // No manual memoization: the React Compiler infers a more precise dependency
+  // (the full `stats` object) than `[stats?.period]`, so we let the compiler
+  // memoize this for us instead of fighting the lint rule.
+  const getAllDataWithPeriod = (filters: Record<string, unknown>) => {
+    const merged: Record<string, unknown> = { ...filters };
+    if (stats?.period) {
+      merged.startDate = stats.period.startDate;
+      merged.endDate = stats.period.endDate;
+    }
+    return transactionsApi.getAll(merged);
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">

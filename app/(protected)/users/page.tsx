@@ -10,6 +10,7 @@ import {
 import { queryKeys } from "@/services/api/query-keys";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { CustomAction } from "@/types/DataTable";
+import type { CardCustomAction } from "@/types/DataCard";
 import type { User } from "@/types/users";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -342,7 +343,7 @@ export default function UsersPage() {
       {isAdminOrManager ? (
         <>
           <StatsCard
-            stats={getUserStats(statsData?.data)}
+            data={getUserStats(statsData?.data)}
             isLoading={statsLoading}
           />
 
@@ -376,7 +377,7 @@ export default function UsersPage() {
               searchConfig={searchConfig}
               renderCard={UserCardView}
               loadingRenderCard={UserCardLoading}
-              customActions={customActions}
+              customActions={customActions.map((a) => ({ ...a, placement: a.placement === "cell" ? "menu" : a.placement })) as CardCustomAction[]}
               operations={sharedOperations}
             />
           )}

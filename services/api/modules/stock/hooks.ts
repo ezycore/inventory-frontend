@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { stockMovementsApi, stockApi } from "@/services/api";
+import type { StockMovementPeriod } from "@/services/api/modules/stock/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationError } from '@/lib/error-handling'
 import type { StockAdjustmentDto } from '@/types/products'
@@ -17,7 +18,7 @@ export const useStockMovements = (filters: {
  locationId?: string;
  reason?: string;
  movementType?: string;
- period?: string;
+ period?: StockMovementPeriod;
  startDate?: string;
  endDate?: string;
  page?: number;
@@ -35,7 +36,7 @@ export const useStockMovementStats = (filters: {
   locationId?: string;
   reason?: string;
   movementType?: string;
-  period?: string;
+  period?: StockMovementPeriod;
   startDate?: string;
   endDate?: string;
 } = {}) => {

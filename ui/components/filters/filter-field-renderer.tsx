@@ -120,7 +120,7 @@ export function FilterFieldRenderer({
         return (
           <DatePicker
             date={value ? new Date(value) : null}
-            onSelect={(date) => onChange(date ? date.toLocaleDateString('en-CA') : undefined)}
+            onSelect={(date) => onChange(date ? new Date(date).toLocaleDateString('en-CA') : undefined)}
             placeholder={field.placeholder || 'Select date'}
           />
         );

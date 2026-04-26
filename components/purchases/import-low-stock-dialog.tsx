@@ -195,7 +195,10 @@ export function ImportLowStockDialog({
     [shortlistData],
   );
 
-  // Initialize order quantities when items load
+  // Initialize order quantities when items load.
+  // The setState-in-effect rule is intentionally suppressed: we are
+  // synchronizing locally-edited state with newly fetched server data
+  // without overwriting user edits.
   useEffect(() => {
     if (items.length > 0) {
       const quantities: Record<string, number> = {};
@@ -208,9 +211,12 @@ export function ImportLowStockDialog({
         setOrderQuantities((prev) => ({ ...quantities, ...prev }));
       }
     }
-  }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
 
-  // Reset state when dialog opens
+  // Reset state when dialog opens.
+  // Setting state in effect is the intentional behavior here: we want a
+  // clean slate every time the dialog is re-opened.
   useEffect(() => {
     if (open) {
       setSelectedIds(
@@ -223,7 +229,8 @@ export function ImportLowStockDialog({
       setCategoryFilter("all");
       setOrderQuantities({});
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // Filtered items
   const filteredItems = useMemo(() => {

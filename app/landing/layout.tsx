@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
-import "./landing.css";
+import "@ui/styles/globals.css";
 
 export const metadata: Metadata = {
   title: "EasyStock – All-in-One ERP for Growing Businesses",

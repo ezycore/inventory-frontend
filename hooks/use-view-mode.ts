@@ -28,18 +28,20 @@ export function useViewMode(
   storageKey: string,
   defaultView: ViewMode = "table",
 ): [ViewMode, (v: ViewMode) => void, boolean] {
-  const [view, setViewInternal] = useState<ViewMode>();
+  // Lazy initializer reads localStorage synchronously on the very first render,
+  // so there is no flash and no setState-in-effect anti-pattern.
+  const [view, setViewInternal] = useState<ViewMode>(() =>
+    getStoredView(storageKey, defaultView),
+  );
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (!isMounted) {
-      setIsMounted(true);
-      const storedView = getStoredView(storageKey, defaultView);
-      if (storedView !== view) {
-        setViewInternal(storedView);
-      }
-    }
-  }, [storageKey, defaultView, view, isMounted]);
+    // Mark as mounted so consumers can defer rendering until after hydration.
+    // This is the standard SSR-safe "hasMounted" pattern; setState here is
+    // intentional and runs exactly once.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
 
   const setView = useCallback(
     (v: ViewMode) => {
