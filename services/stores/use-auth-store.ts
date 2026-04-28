@@ -43,13 +43,20 @@ export interface User {
 interface AuthState extends LoadingState {
   user: User | null;
   token: string | null;
+  /** YoCore-issued refresh token. `null` on the legacy auth path. */
+  refreshToken: string | null;
   isAuthenticated: boolean;
   activeLocationId: string | null;
 }
 
 // Auth actions interface
 interface AuthActions {
-  setUser: (user: User, token: string) => void;
+  setUser: (user: User, token: string, refreshToken?: string | null) => void;
+  /**
+   * Phase 3.3c — rotate access + (optionally) refresh tokens after a
+   * `/auth/refresh` round-trip without touching the persisted user object.
+   */
+  setTokens: (token: string, refreshToken?: string | null) => void;
   updateUser: (updates: Partial<User>) => void;
   clearAuth: () => void;
   hydrateAuth: () => void;
@@ -65,8 +72,21 @@ const initialState: AuthState = {
   ...initialLoadingState,
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   activeLocationId: null,
+};
+
+// Cookie names — read by `proxy.ts` (auth-token) and the api-client refresh
+// interceptor (auth-refresh-token).
+const AUTH_TOKEN_COOKIE = "auth-token";
+const REFRESH_TOKEN_COOKIE = "auth-refresh-token";
+const ACTIVE_LOCATION_COOKIE = "active-location";
+const COOKIE_OPTS = {
+  maxAge: 60 * 60 * 24 * 7,
+  path: "/",
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
 };
 
 // Create the auth store with persistence
@@ -76,29 +96,42 @@ export const useAuthStore = create<AuthStore>()(
       (set, get) => ({
         ...initialState,
 
-        setUser: (user: User, token: string) => {
+        setUser: (
+          user: User,
+          token: string,
+          refreshToken: string | null = null,
+        ) => {
           // Determine active location: user's default or organization's default
           const activeLocationId = user.defaultLocationId || null;
 
           // Store in Zustand
-          set({ user, token, isAuthenticated: true, activeLocationId });
+          set({
+            user,
+            token,
+            refreshToken,
+            isAuthenticated: true,
+            activeLocationId,
+          });
 
           // Store token in cookie for middleware access
-          setCookie("auth-token", token, {
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: "/",
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
-          });
+          setCookie(AUTH_TOKEN_COOKIE, token, COOKIE_OPTS);
+          if (refreshToken) {
+            setCookie(REFRESH_TOKEN_COOKIE, refreshToken, COOKIE_OPTS);
+          } else {
+            deleteCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
+          }
 
           // Store active location in cookie for API interceptor
           if (activeLocationId) {
-            setCookie("active-location", activeLocationId, {
-              maxAge: 60 * 60 * 24 * 7, // 7 days
-              path: "/",
-              sameSite: "lax",
-              secure: process.env.NODE_ENV === "production",
-            });
+            setCookie(ACTIVE_LOCATION_COOKIE, activeLocationId, COOKIE_OPTS);
+          }
+        },
+
+        setTokens: (token: string, refreshToken: string | null = null) => {
+          set({ token, refreshToken });
+          setCookie(AUTH_TOKEN_COOKIE, token, COOKIE_OPTS);
+          if (refreshToken) {
+            setCookie(REFRESH_TOKEN_COOKIE, refreshToken, COOKIE_OPTS);
           }
         },
 
@@ -111,12 +144,11 @@ export const useAuthStore = create<AuthStore>()(
             // Update active location if default changed
             if (updates.defaultLocationId) {
               set({ activeLocationId: updates.defaultLocationId });
-              setCookie("active-location", updates.defaultLocationId, {
-                maxAge: 60 * 60 * 24 * 7,
-                path: "/",
-                sameSite: "lax",
-                secure: process.env.NODE_ENV === "production",
-              });
+              setCookie(
+                ACTIVE_LOCATION_COOKIE,
+                updates.defaultLocationId,
+                COOKIE_OPTS,
+              );
             }
           }
         },
@@ -138,22 +170,22 @@ export const useAuthStore = create<AuthStore>()(
         clearAuth: () => {
           set(initialState);
 
-          // Remove token cookie
-          deleteCookie("auth-token", { path: "/" });
-          // Remove active location cookie
-          deleteCookie("active-location", { path: "/" });
+          deleteCookie(AUTH_TOKEN_COOKIE, { path: "/" });
+          deleteCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
+          deleteCookie(ACTIVE_LOCATION_COOKIE, { path: "/" });
         },
 
         hydrateAuth: () => {
           // Check if token exists in cookie but not in state (after hard refresh)
-          const cookieToken = getCookie("auth-token");
+          const cookieToken = getCookie(AUTH_TOKEN_COOKIE);
           const { token: stateToken } = get();
 
           if (cookieToken && !stateToken) {
             // Cookie exists but state is empty - should not happen normally
             // Clear the cookie to stay in sync
-            deleteCookie("auth-token", { path: "/" });
-            deleteCookie("active-location", { path: "/" });
+            deleteCookie(AUTH_TOKEN_COOKIE, { path: "/" });
+            deleteCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
+            deleteCookie(ACTIVE_LOCATION_COOKIE, { path: "/" });
           } else if (!cookieToken && stateToken) {
             // State exists but cookie doesn't - clear state
             set(initialState);
@@ -178,12 +210,7 @@ export const useAuthStore = create<AuthStore>()(
           set({ activeLocationId: locationId });
 
           // Update cookie for API interceptor
-          setCookie("active-location", locationId, {
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: "/",
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
-          });
+          setCookie(ACTIVE_LOCATION_COOKIE, locationId, COOKIE_OPTS);
         },
       }),
       {
@@ -191,6 +218,7 @@ export const useAuthStore = create<AuthStore>()(
         partialize: (state) => ({
           user: state.user,
           token: state.token,
+          refreshToken: state.refreshToken,
           isAuthenticated: state.isAuthenticated,
           activeLocationId: state.activeLocationId,
         }),

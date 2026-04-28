@@ -3,6 +3,7 @@
 import KBar from "@/components/kbar";
 import AppSidebar from "@/components/layout/app-sidebar";
 import Header from "@/components/layout/header";
+import { MfaReenrolBanner } from "@/components/shared/mfa-reenrol-banner";
 import { useMe } from "@/services/api";
 import { SidebarInset, SidebarProvider } from "@ui/components/sidebar";
 import { getCookie } from "cookies-next";
@@ -45,6 +46,7 @@ export default function ProtectedLayout({
           <Header />
           <div className="min-h-screen">
             <div className="container mx-auto p-6">
+              <MfaReenrolBanner />
               {children}
             </div>
           </div>

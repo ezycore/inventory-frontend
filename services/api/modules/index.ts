@@ -7,6 +7,7 @@
 // Re-export all modules
 export * from './accounts'
 export * from './auth'
+export * from './billing'
 export * from './brands'
 export * from './categories'
 export * from './customers'

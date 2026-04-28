@@ -249,7 +249,7 @@ export const navItems: NavItem[] = [
       },
       {
         title: "Subscription / Billing",
-        url: "/dashboard/billing",
+        url: "/billing",
         icon: "credit-card",
       },
     ],

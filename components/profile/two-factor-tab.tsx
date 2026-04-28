@@ -4,6 +4,7 @@ import {
   use2FAStatus,
   useDisable2FA,
   useEnable2FA,
+  useRegenerateRecoveryCodes,
   useVerify2FA,
 } from "@/services/api";
 import { Alert, AlertDescription } from "@/ui/components/alert";
@@ -23,6 +24,7 @@ import {
   CheckCircle2,
   Copy,
   Key,
+  RefreshCw,
   Shield,
   ShieldCheck,
   ShieldOff,
@@ -34,10 +36,19 @@ import { toast } from "sonner";
 
 export function TwoFactorTab() {
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+  const [recoveryCodesRemaining, setRecoveryCodesRemaining] = useState<
+    number | undefined
+  >(undefined);
   const [showEnableDialog, setShowEnableDialog] = useState(false);
   const [showDisableDialog, setShowDisableDialog] = useState(false);
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   const [qrCode, setQrCode] = useState<string>("");
   const [secret, setSecret] = useState<string>("");
+  /**
+   * Phase 3.3c — YoCore returns an enrolmentId from `/2fa/enable` that must
+   * be echoed back to `/2fa/verify`. Legacy auth ignores it.
+   */
+  const [enrolmentId, setEnrolmentId] = useState<string | undefined>(undefined);
   const [verificationToken, setVerificationToken] = useState("");
   const [disablePassword, setDisablePassword] = useState("");
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
@@ -47,11 +58,16 @@ export function TwoFactorTab() {
   const { mutate: enable2FA, isPending: isEnabling } = useEnable2FA();
   const { mutate: verify2FA, isPending: isVerifying } = useVerify2FA();
   const { mutate: disable2FA, isPending: isDisabling } = useDisable2FA();
+  const {
+    mutate: regenerateRecoveryCodes,
+    isPending: isRegenerating,
+  } = useRegenerateRecoveryCodes();
 
   useEffect(() => {
     checkStatus(undefined, {
       onSuccess: (data) => {
         setIs2FAEnabled(data.enabled);
+        setRecoveryCodesRemaining(data.recoveryCodesRemaining);
       },
     });
   }, [checkStatus]);
@@ -61,6 +77,7 @@ export function TwoFactorTab() {
       onSuccess: (data) => {
         setQrCode(data.qrCode);
         setSecret(data.secret);
+        setEnrolmentId(data.enrolmentId);
         setShowEnableDialog(true);
       },
       onError: () => {
@@ -75,16 +92,20 @@ export function TwoFactorTab() {
       return;
     }
 
-    verify2FA(verificationToken, {
-      onSuccess: (response) => {
-        setBackupCodes(response.data.backupCodes);
-        setShowBackupCodes(true);
-        setIs2FAEnabled(true);
-        setVerificationToken("");
-        setQrCode("");
-        setSecret("");
+    verify2FA(
+      { token: verificationToken, enrolmentId },
+      {
+        onSuccess: (response) => {
+          setBackupCodes(response.data.backupCodes);
+          setShowBackupCodes(true);
+          setIs2FAEnabled(true);
+          setVerificationToken("");
+          setQrCode("");
+          setSecret("");
+          setEnrolmentId(undefined);
+        },
       },
-    });
+    );
   };
 
   const handleDisable = () => {
@@ -96,8 +117,19 @@ export function TwoFactorTab() {
     disable2FA(disablePassword, {
       onSuccess: () => {
         setIs2FAEnabled(false);
+        setRecoveryCodesRemaining(undefined);
         setShowDisableDialog(false);
         setDisablePassword("");
+      },
+    });
+  };
+
+  const handleRegenerateRecoveryCodes = () => {
+    regenerateRecoveryCodes(undefined, {
+      onSuccess: (response) => {
+        setBackupCodes(response.data.backupCodes);
+        setShowRegenerateDialog(false);
+        setShowBackupCodes(true);
       },
     });
   };
@@ -231,6 +263,53 @@ export function TwoFactorTab() {
           access your account without the verification code.
         </AlertDescription>
       </Alert>
+
+      {/* Recovery Codes Section (only when 2FA is enabled) */}
+      {is2FAEnabled && (
+        <div className="rounded-lg border bg-card p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <h4 className="font-medium flex items-center gap-2">
+                <Key className="h-4 w-4 text-primary" />
+                Recovery Codes
+              </h4>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Use these one-time codes to sign in if you lose access to your
+                authenticator app.
+              </p>
+              {recoveryCodesRemaining !== undefined && (
+                <p
+                  className={cn(
+                    "mt-2 text-sm",
+                    recoveryCodesRemaining <= 2
+                      ? "text-destructive font-medium"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {recoveryCodesRemaining} code
+                  {recoveryCodesRemaining === 1 ? "" : "s"} remaining
+                  {recoveryCodesRemaining <= 2 &&
+                    " — regenerate now to avoid being locked out."}
+                </p>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowRegenerateDialog(true)}
+              disabled={isRegenerating}
+              className="gap-2 shrink-0"
+            >
+              {isRegenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">Regenerate Codes</span>
+              <span className="sm:hidden">Regenerate</span>
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Enable 2FA Dialog */}
       <Dialog open={showEnableDialog} onOpenChange={setShowEnableDialog}>
@@ -376,6 +455,52 @@ export function TwoFactorTab() {
               className="w-full sm:w-auto"
             >
               I&apos;ve Saved My Codes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Regenerate Recovery Codes Dialog */}
+      <Dialog
+        open={showRegenerateDialog}
+        onOpenChange={setShowRegenerateDialog}
+      >
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Regenerate Recovery Codes</DialogTitle>
+            <DialogDescription>
+              This will invalidate your existing recovery codes and generate a
+              fresh set. Make sure to save the new codes — you will not be
+              able to use the old ones again.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Alert>
+            <AlertDescription className="text-sm">
+              <strong>Tip:</strong> Regenerate codes if you have used most of
+              your existing ones, or if you suspect they have been exposed.
+            </AlertDescription>
+          </Alert>
+
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowRegenerateDialog(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRegenerateRecoveryCodes}
+              disabled={isRegenerating}
+              className="w-full sm:w-auto gap-2"
+            >
+              {isRegenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              Regenerate
             </Button>
           </DialogFooter>
         </DialogContent>

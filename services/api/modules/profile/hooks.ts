@@ -1,7 +1,7 @@
 import { organizationApi, profileApi } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationSuccess } from "../query-helpers";
 
 // Query keys
@@ -153,7 +153,8 @@ export function useVerify2FA() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (token: string) => profileApi.verify2FA({ token }),
+    mutationFn: (input: { token: string; enrolmentId?: string }) =>
+      profileApi.verify2FA(input),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
         queryKey: profileKeys.twoFactorStatus(),
@@ -179,6 +180,41 @@ export function useDisable2FA() {
       });
       queryClient.invalidateQueries({ queryKey: profileKeys.all() });
       handleMutationSuccess(response.message || "2FA disabled successfully");
+    },
+    onError: handleMutationError,
+  });
+}
+
+// Phase 3.6b — Auto-fetch 2FA status (used by the post-cutover re-enrol
+// banner and inside the two-factor tab).
+export function useTwoFactorStatusQuery() {
+  return useQuery({
+    queryKey: profileKeys.twoFactorStatus(),
+    queryFn: async () => {
+      const response = await profileApi.get2FAStatus();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Phase 3.6b — Regenerate recovery codes. Returns a fresh batch and
+// invalidates the previous one server-side.
+export function useRegenerateRecoveryCodes() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await profileApi.regenerateRecoveryCodes();
+      return response;
+    },
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({
+        queryKey: profileKeys.twoFactorStatus(),
+      });
+      handleMutationSuccess(
+        response.message || "Recovery codes regenerated successfully",
+      );
     },
     onError: handleMutationError,
   });

@@ -99,8 +99,16 @@ export function withOrganizationSlug<T extends Record<string, any>>(
 /**
  * Check if organization slug field should be shown in forms
  * @returns true if field should be visible, false if it should be hidden
+ *
+ * Hidden when:
+ *   - The page is loaded under a tenant subdomain (the slug is implicit), OR
+ *   - `NEXT_PUBLIC_AUTH_PROVIDER === "yocore"` — under the YoCore auth model,
+ *     workspace selection happens AFTER login via the workspace picker, not
+ *     via a slug field. Set this env at build time during the Phase 3.5
+ *     cutover (must match the backend's `AUTH_PROVIDER`).
  */
 export function shouldShowOrganizationSlugField(): boolean {
+  if (process.env.NEXT_PUBLIC_AUTH_PROVIDER === "yocore") return false;
   return !isSubdomainMode();
 }
 

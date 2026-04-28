@@ -1,5 +1,6 @@
 "use client";
-import { useLogin } from "@/services/api";
+import { useLogin, useSelectWorkspace } from "@/services/api";
+import type { PendingWorkspaceSelection } from "@/services/api/modules/auth/hooks";
 import {
   getOrganizationSlugDescription,
   getOrganizationSlugPlaceholder,
@@ -18,7 +19,7 @@ import {
 import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
-import { ArrowLeft, Loader2, Mail, Shield } from "lucide-react";
+import { ArrowLeft, Building2, Loader2, Mail, Shield } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -35,7 +36,10 @@ export function LoginForm({
     password: "",
   });
   const [show2FA, setShow2FA] = useState(false);
-  const loginMutation = useLogin(setShow2FA);
+  const [pendingWorkspaces, setPendingWorkspaces] =
+    useState<PendingWorkspaceSelection | null>(null);
+  const loginMutation = useLogin(setShow2FA, setPendingWorkspaces);
+  const selectWorkspaceMutation = useSelectWorkspace();
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [useBackupCode, setUseBackupCode] = useState(false);
 
@@ -65,6 +69,72 @@ export function LoginForm({
     setUseBackupCode(false);
     loginMutation.reset();
   };
+
+  const handleBackFromWorkspacePicker = () => {
+    setPendingWorkspaces(null);
+    selectWorkspaceMutation.reset();
+    loginMutation.reset();
+  };
+
+  // Phase 3.3c — multi-workspace picker (YoCore mode only).
+  if (pendingWorkspaces) {
+    return (
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              <CardTitle>Choose a workspace</CardTitle>
+            </div>
+            <CardDescription>
+              You have access to multiple workspaces. Pick one to continue.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              {pendingWorkspaces.workspaces.map((ws) => (
+                <Button
+                  key={ws.id}
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-between h-auto py-3"
+                  disabled={selectWorkspaceMutation.isPending}
+                  onClick={() =>
+                    selectWorkspaceMutation.mutate({
+                      workspaceId: ws.id,
+                      pendingAccessToken: pendingWorkspaces.pendingAccessToken,
+                      pendingRefreshToken:
+                        pendingWorkspaces.pendingRefreshToken,
+                    })
+                  }
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">{ws.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {ws.slug}
+                      {ws.role ? ` • ${ws.role}` : ""}
+                    </span>
+                  </div>
+                  {selectWorkspaceMutation.isPending && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                </Button>
+              ))}
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full mt-2"
+                onClick={handleBackFromWorkspacePicker}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to login
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // If 2FA is required, show 2FA form
   if (show2FA) {

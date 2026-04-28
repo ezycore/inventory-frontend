@@ -17,6 +17,45 @@ export const setGlobal401Handler = (handler: () => void) => {
   handle401 = handler;
 };
 
+/**
+ * Phase 3.3c — single-flight refresh-token rotation.
+ *
+ * On the first 401 we POST `/auth/refresh` with the stored refresh token
+ * (YoCore mode) and retry the original request once. Concurrent 401s during
+ * an in-flight refresh await the same promise so we never spawn N refreshes.
+ *
+ * On the legacy auth path the BE returns `501 REFRESH_NOT_SUPPORTED_LEGACY`
+ * which we map to a hard logout (the previous behaviour).
+ */
+let refreshInFlight: Promise<string | null> | null = null;
+
+async function performTokenRefresh(baseURL: string): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const authStore = await import("@/services/stores/use-auth-store");
+  const state = authStore.useAuthStore.getState();
+  const refreshToken = state.refreshToken;
+  if (!refreshToken) return null;
+
+  try {
+    const res = await fetch(`${baseURL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      data?: { token?: string; refreshToken?: string };
+    };
+    const newToken = json.data?.token;
+    const newRefresh = json.data?.refreshToken ?? refreshToken;
+    if (!newToken) return null;
+    state.setTokens(newToken, newRefresh);
+    return newToken;
+  } catch {
+    return null;
+  }
+}
+
 export class ApiClient {
   private baseURL: string;
 
@@ -30,6 +69,7 @@ export class ApiClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
+    isRetry = false,
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const authStore = await import("@/services/stores/use-auth-store");
@@ -80,8 +120,28 @@ export class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        // 🚨 Handle 401 Unauthorized - user deleted, disabled, or token invalid
+        // 🚨 Handle 401 Unauthorized
         if (response.status === 401) {
+          // Phase 3.3c: try a one-shot refresh-token rotation before bailing.
+          // Skip on the refresh endpoint itself (avoid infinite loop) and on
+          // /auth/login (a 401 there means bad credentials, not session expiry).
+          const isAuthEndpoint =
+            endpoint.startsWith("/auth/refresh") ||
+            endpoint.startsWith("/auth/login");
+          if (!isRetry && !isAuthEndpoint && isAuthenticated) {
+            if (!refreshInFlight) {
+              refreshInFlight = performTokenRefresh(this.baseURL).finally(
+                () => {
+                  refreshInFlight = null;
+                },
+              );
+            }
+            const newToken = await refreshInFlight;
+            if (newToken) {
+              return this.request<T>(endpoint, options, true);
+            }
+          }
+
           if (handle401) {
             handle401();
           }

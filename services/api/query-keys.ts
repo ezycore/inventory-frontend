@@ -278,6 +278,12 @@ export const queryKeys = {
     overview: (params?: Record<string, any>) => [...queryKeys.dashboard.all(), "overview", params || {}] as const,
   },
 
+  // Billing query keys (read-only mirror of YoCore subscription)
+  billing: {
+    all: () => ["billing"] as const,
+    subscription: () => [...queryKeys.billing.all(), "subscription"] as const,
+  },
+
   // Accounts query keys
   accounts: {
     all: () => ["accounts"] as const,

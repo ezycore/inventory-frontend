@@ -62,4 +62,44 @@ export const authApi = {
     newPassword: string;
   }): Promise<ApiResponse<any>> =>
     apiClient.post("/auth/reset-password", data),
+
+  // POST /api/auth/select-workspace - Phase 3.3 (YoCore mode)
+  // Finalises a multi-workspace login: trade {pendingAccessToken,
+  // pendingRefreshToken, workspaceId} for a workspace-scoped token pair + user.
+  selectWorkspace: (data: {
+    workspaceId: string;
+    pendingAccessToken: string;
+    pendingRefreshToken: string;
+  }): Promise<ApiResponse<any>> =>
+    apiClient.post("/auth/select-workspace", data),
+
+  // POST /api/auth/refresh - Phase 3.3 (YoCore mode) — token rotation.
+  // Note: also called from `lib/api-client.ts` outside this module.
+  refresh: (data: { refreshToken: string }): Promise<ApiResponse<any>> =>
+    apiClient.post("/auth/refresh", data),
+
+  // GET /api/auth/workspaces - Phase 3.6c
+  // List workspaces the active session can switch into.
+  listWorkspaces: (): Promise<
+    ApiResponse<{
+      workspaces: Array<{
+        id: string;
+        name: string;
+        slug: string;
+        role?: string;
+      }>;
+    }>
+  > => apiClient.get("/auth/workspaces"),
+
+  // POST /api/auth/switch-workspace - Phase 3.6c
+  // Mid-session workspace switch. Returns a fresh workspace-scoped token pair
+  // and user payload.
+  switchWorkspace: (data: {
+    workspaceId: string;
+    refreshToken: string;
+  }): Promise<ApiResponse<any>> =>
+    apiClient.post("/auth/switch-workspace", data),
+
+  // POST /api/auth/logout - Server-side session revoke (YoCore) / no-op (legacy)
+  logout: (): Promise<ApiResponse<any>> => apiClient.post("/auth/logout", {}),
 };

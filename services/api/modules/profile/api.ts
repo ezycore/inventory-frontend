@@ -34,18 +34,28 @@ export const profileApi = {
 
   // GET /api/profile/2fa/status - Get 2FA enabled status
   // Used in: use2FAStatus → two-factor-tab.tsx
-  get2FAStatus: (): Promise<ApiResponse<{ enabled: boolean }>> =>
-    apiClient.get("/profile/2fa/status"),
+  // Phase 3.3b: response now also carries `type` and `recoveryCodesRemaining`.
+  get2FAStatus: (): Promise<
+    ApiResponse<{
+      enabled: boolean;
+      type?: "totp" | null;
+      recoveryCodesRemaining?: number;
+    }>
+  > => apiClient.get("/profile/2fa/status"),
 
   // POST /api/profile/2fa/enable - Enable 2FA and get QR code
   // Used in: useEnable2FA → two-factor-tab.tsx
-  enable2FA: (): Promise<ApiResponse<{ secret: string; qrCode: string }>> =>
-    apiClient.post("/profile/2fa/enable", {}),
+  enable2FA: (): Promise<
+    ApiResponse<{ secret: string; qrCode: string; enrolmentId?: string }>
+  > => apiClient.post("/profile/2fa/enable", {}),
 
   // POST /api/profile/2fa/verify - Verify 2FA token and get backup codes
   // Used in: useVerify2FA → two-factor-tab.tsx
+  // Phase 3.3c: `enrolmentId` is required on the YoCore auth path; legacy
+  // ignores the extra field.
   verify2FA: (data: {
     token: string;
+    enrolmentId?: string;
   }): Promise<ApiResponse<{ message: string; backupCodes: string[] }>> =>
     apiClient.post("/profile/2fa/verify", data),
 
@@ -53,6 +63,13 @@ export const profileApi = {
   // Used in: useDisable2FA → two-factor-tab.tsx
   disable2FA: (data: { password: string }): Promise<ApiResponse<any>> =>
     apiClient.post("/profile/2fa/disable", data),
+
+  // POST /api/profile/2fa/recovery-codes - Regenerate recovery codes
+  // Phase 3.6b — invalidates the previous batch and returns a fresh set.
+  // Used in: useRegenerateRecoveryCodes → two-factor-tab.tsx
+  regenerateRecoveryCodes: (): Promise<
+    ApiResponse<{ backupCodes: string[] }>
+  > => apiClient.post("/profile/2fa/recovery-codes", {}),
 
   // ============= Organization Ownership Methods =============
 
