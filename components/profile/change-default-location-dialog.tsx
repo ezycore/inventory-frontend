@@ -2,6 +2,7 @@
 
 import { useMyLocations, useUpdateMyDefaultLocation } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/ui/components/button";
 import {
   Dialog,
@@ -20,12 +21,13 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import { MapPin, Info, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Label } from "@/ui/components/label";
 
 export function ChangeDefaultLocationDialog() {
-  const { user } = useAuthStore();
+  const { user, setActiveLocation, updateUser } = useAuthStore();
+  const queryClient = useQueryClient();
   const { data: locationsData, isLoading } = useMyLocations();
   const updateDefaultMutation = useUpdateMyDefaultLocation();
   const [open, setOpen] = useState(false);
@@ -44,9 +46,13 @@ export function ChangeDefaultLocationDialog() {
 
     try {
       await updateDefaultMutation.mutateAsync(selectedLocationId);
+      // 1. Update user.defaultLocationId in the auth store so the Default
+      //    Location card on the profile page refreshes immediately.
+      updateUser({ defaultLocationId: selectedLocationId });
+      // 2. Also sync the active-location cookie/state.
+      setActiveLocation(selectedLocationId);
+      await queryClient.invalidateQueries();
       setOpen(false);
-      // Reload the page to update the auth context
-      window.location.reload();
     } catch {
       // Error already handled by mutation
     }
@@ -58,7 +64,14 @@ export function ChangeDefaultLocationDialog() {
       <span>You only have access to one location.</span>
     </div>
   ) : (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={() => {
+      setOpen((prev) => !prev);
+      if(!open) {
+        // Reset selection when opening the dialog
+        setSelectedLocationId(user?.defaultLocationId || "");
+      }
+    }
+    }>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <MapPin className="h-4 w-4" />

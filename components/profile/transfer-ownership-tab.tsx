@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import {
-  UserCog,
   AlertTriangle,
   ArrowRightLeft,
   Shield,
@@ -32,7 +31,7 @@ import { toast } from "sonner";
 import { useOrganizationUsers, useTransferOwnership } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Badge } from "@/ui/components/badge";
-import { cn } from "@/ui/lib/utils";
+import { useRouter } from "next/dist/client/components/navigation";
 
 interface OrganizationUser {
   _id: string;
@@ -50,6 +49,7 @@ export function TransferOwnershipTab() {
   const [selectedUser, setSelectedUser] = useState<OrganizationUser | null>(
     null
   );
+  const router = useRouter();
 
   const { mutate: fetchUsers, isPending: isLoadingUsers } =
     useOrganizationUsers();
@@ -88,6 +88,15 @@ export function TransferOwnershipTab() {
         setShowConfirmDialog(false);
         setSelectedUserId("");
         setSelectedUser(null);
+        // After a successful transfer, the current user is no longer the owner.
+        // The Transfer tab will be filtered out of the sidebar, leaving the
+        // page on a tab that no longer exists. Redirect to the Profile tab so
+        // the UI lands on a valid view.
+        // if (typeof window !== "undefined") {
+        //   router.push("/profile#profile");
+        //   // window.location.hash = "profile";
+
+        // }
       },
     });
   };

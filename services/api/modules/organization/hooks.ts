@@ -4,6 +4,7 @@ import type { OrganizationFeatures } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
 import { handleMutationSuccess } from "../query-helpers";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 
 // GET /api/organization - Get organization details
 export const useGetOrganizationApi = () => {
@@ -14,16 +15,44 @@ export const useGetOrganizationApi = () => {
   });
 };
 
-// PUT /api/organization - Update organization details
+// PUT /api/organization - Update organization details (supports logo upload via FormData)
 export const useUpdateOrganization = () => {
   const queryClient = useQueryClient();
+  const { user, updateUser } = useAuthStore();
 
   return useMutation({
-    mutationFn: (data: FormData) => organizationApi.update(data),
+    mutationFn: (data: FormData | Record<string, any>) =>
+      organizationApi.update(data),
     onSuccess: (result) => {
       handleMutationSuccess(
         result.message || "Organization updated successfully!",
       );
+
+      // Sync the auth store so the sidebar (logo + name) reflects the change
+      // immediately without waiting for the next /auth/me refresh.
+      const updated = result.data as
+        | {
+            name?: string;
+            slug?: string;
+            currency?: string;
+            timezone?: string;
+            logo?: { url: string; mediumUrl: string; thumbnailUrl: string; publicId: string } | null;
+          }
+        | undefined;
+      if (user && updated) {
+        updateUser({
+          organization: {
+            ...user.organization,
+            ...(updated.name !== undefined && { name: updated.name }),
+            ...(updated.slug !== undefined && { slug: updated.slug }),
+            ...(updated.currency !== undefined && { currency: updated.currency }),
+            ...(updated.timezone !== undefined && { timezone: updated.timezone }),
+            // Always sync logo (including removal where it becomes null/undefined)
+            logo: updated.logo ?? undefined,
+          },
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },
     onError: handleMutationError,

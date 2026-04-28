@@ -151,6 +151,7 @@ export function PasswordChangeTab() {
                 )}
               </button>
             </div>
+              <p className="text-sm text-muted-foreground">At least 8 characters.</p>
           </div>
 
           {/* Confirm Password */}
@@ -213,34 +214,6 @@ export function PasswordChangeTab() {
           </div>
         </div>
 
-        {/* Password Requirements */}
-        {formData.newPassword && (
-          <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="text-sm font-medium mb-3 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-primary" />
-              Password Requirements
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {requirements.map((req, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    "flex items-center gap-2 text-xs transition-colors",
-                    req.met ? "text-green-600" : "text-muted-foreground",
-                  )}
-                >
-                  {req.met ? (
-                    <Check className="h-3 w-3" />
-                  ) : (
-                    <X className="h-3 w-3" />
-                  )}
-                  {req.label}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Submit Button */}
         <div className="flex justify-end pt-4 border-t">
           <Button
@@ -255,32 +228,6 @@ export function PasswordChangeTab() {
           </Button>
         </div>
       </form>
-
-      {/* Security Tips */}
-      <div className="rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10 p-4 sm:p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Shield className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Security Tips</h3>
-        </div>
-        <ul className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-          <li className="flex gap-2">
-            <span className="text-primary shrink-0">•</span>
-            <span>Use a mix of letters, numbers, and symbols</span>
-          </li>
-          <li className="flex gap-2">
-            <span className="text-primary shrink-0">•</span>
-            <span>Avoid personal information</span>
-          </li>
-          <li className="flex gap-2">
-            <span className="text-primary shrink-0">•</span>
-            <span>Don&apos;t reuse passwords</span>
-          </li>
-          <li className="flex gap-2">
-            <span className="text-primary shrink-0">•</span>
-            <span>Consider using a password manager</span>
-          </li>
-        </ul>
-      </div>
     </div>
   );
 }

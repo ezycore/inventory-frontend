@@ -14,7 +14,7 @@ import { ScrollArea, ScrollBar } from "@/ui/components/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { cn } from "@/ui/lib/utils";
 import { Building2, KeyRound, Lock, Shield, User, UserCog } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 const tabItems = [
   {
@@ -70,13 +70,52 @@ const tabItems = [
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState("profile");
 
   const isOwner = useMemo(() => {
+    if(!user) return false;
     return user?.organization?.ownerId === user?.id;
   }, [user?.organization?.ownerId, user?.id]);
 
   const visibleTabs = tabItems.filter((tab) => !tab.ownerOnly || isOwner);
+  const validTabValues = useMemo(
+    () => visibleTabs.map((t) => t.value),
+    [visibleTabs],
+  );
+
+  // Always start with "profile" — consistent between server render and the
+  // client's first (hydration) render, so React never sees a mismatch.
+  // The correct hash-based tab is applied in the effect below, which runs
+  // after hydration completes (client-only, no SSR execution).
+  const [activeTab, setActiveTab] = useState<string>("profile");
+
+  // Apply the URL hash after hydration, and keep in sync with hash changes.
+  useLayoutEffect(() => {
+    const applyHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash && validTabValues.includes(hash)) {
+        setActiveTab(hash);
+      } else if (!hash) {
+        setActiveTab("profile");
+      } else {
+        // Hash present but not a valid/visible tab (e.g. ownerOnly) → reset
+        setActiveTab("profile");
+      }
+    };
+
+    // Sync to current hash immediately on mount
+    applyHash();
+
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, [validTabValues]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (typeof window !== "undefined") {
+      const url = `${window.location.pathname}#${value}`;
+      window.history.replaceState(null, "", url);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
@@ -88,7 +127,7 @@ export default function ProfilePage() {
         <div className="mt-6">
           <Tabs
             value={activeTab}
-            onValueChange={setActiveTab}
+            onValueChange={handleTabChange}
             className="space-y-0"
           >
             {/* Desktop Sidebar + Content Layout */}

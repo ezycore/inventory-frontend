@@ -26,6 +26,14 @@ const extractDefaultValues = (config: DynamicFormConfig): Record<string, any> =>
   const processField = (field: FormFieldConfig) => {
     if (field.defaultValue !== undefined) {
       setNestedValue(defaults, field.name, field.defaultValue)
+    } else if (field.required) {
+      // Default required text/select fields to "" so Zod receives an empty
+      // string instead of undefined — this produces friendly "X is required"
+      // messages instead of "Invalid input: expected string, received undefined".
+      const textLike = ['input', 'textarea', 'password', 'select', 'radio-group'];
+      if (textLike.includes(field.type as string)) {
+        setNestedValue(defaults, field.name, '')
+      }
     }
   }
 
@@ -69,6 +77,8 @@ export const useDynamicForm = <T = any>(
   const form = useForm<T>({
     resolver: zodResolver(schema) as any,
     defaultValues: mergedDefaults as any,
+    mode: "onTouched",     // validate after first blur; avoids errors on mount
+    reValidateMode: "onChange",
   })
 
   return {

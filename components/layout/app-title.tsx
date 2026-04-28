@@ -1,64 +1,70 @@
-import { Menu, X } from 'lucide-react'
+"use client";
+
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@ui/components/sidebar'
-import Link from 'next/link'
-import { Button } from '@ui/components/button'
-import { cn } from '@ui/lib/utils'
+} from "@ui/components/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
+import { useAuthStore } from "@/services/stores/use-auth-store";
+import Link from "next/link";
 
 export function AppTitle() {
-  const { setOpenMobile } = useSidebar()
+  const { setOpenMobile } = useSidebar();
+  const user = useAuthStore((state) => state.user);
+
+  const orgName = user?.organization?.name || "Easeventory";
+  const logoUrl =
+    user?.organization?.logo?.thumbnailUrl ||
+    user?.organization?.logo?.url ||
+    null;
+
+  // Deterministic initials for the fallback tile (max 2 chars).
+  const initials = orgName
+    .split(" ")
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
-          size='lg'
-          className='gap-0 py-0 hover:bg-transparent active:bg-transparent'
+          size="lg"
+          className="gap-2 hover:bg-transparent active:bg-transparent"
           asChild
         >
-          <div>
-            <Link
-              href='/'
-              onClick={() => setOpenMobile(false)}
-              className='grid flex-1 text-start text-sm leading-tight'
-            >
-              <span className='truncate font-bold'>Easeventory</span>
-              <span className='truncate text-xs'>Make life easier</span>
-            </Link>
-            {/* <ToggleSidebar /> */}
-          </div>
+          <Link
+            href="/"
+            onClick={() => setOpenMobile(false)}
+            className="flex items-center gap-2 overflow-hidden"
+          >
+            <Avatar className="h-8 w-8 shrink-0 rounded-md">
+              {logoUrl ? (
+                <AvatarImage
+                  key={logoUrl}
+                  src={logoUrl}
+                  alt={orgName}
+                  className="object-contain bg-muted"
+                />
+              ) : null}
+              <AvatarFallback className="rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs font-semibold">
+                {initials || "ES"}
+              </AvatarFallback>
+            </Avatar>
+            {/* Hidden when sidebar collapses to icon mode so nothing overflows */}
+            <div className="grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden">
+              <span className="truncate font-bold">{orgName}</span>
+              <span className="truncate text-xs text-muted-foreground">
+                Make life easier
+              </span>
+            </div>
+          </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
-}
-
-function ToggleSidebar({
-  className,
-  onClick,
-  ...props
-}: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
-
-  return (
-    <Button
-      data-sidebar='trigger'
-      data-slot='sidebar-trigger'
-      variant='ghost'
-      size='icon'
-      className={cn('aspect-square size-8 max-md:scale-125', className)}
-      onClick={(event) => {
-        onClick?.(event)
-        toggleSidebar()
-      }}
-      {...props}
-    >
-      <X className='md:hidden' />
-      <Menu className='max-md:hidden' />
-      <span className='sr-only'>Toggle Sidebar</span>
-    </Button>
-  )
+  );
 }

@@ -35,8 +35,10 @@ export const organizationApi = {
 
   // PUT /api/organization - Update organization details
   // Used in: useUpdateOrganization → organization-tab.tsx
-  update: (data: FormData): Promise<ApiResponse<any>> =>
-    apiClient.put(`/organization`, data),
+  // Accepts FormData (when uploading a logo) or a plain JSON object.
+  update: (
+    data: FormData | Record<string, any>,
+  ): Promise<ApiResponse<any>> => apiClient.put(`/organization`, data),
 
   // PUT /api/organization/form-settings - Update form field visibility settings
   // Used in: Form field management components

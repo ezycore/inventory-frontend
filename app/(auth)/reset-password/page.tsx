@@ -12,7 +12,7 @@ import {
 import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
-import { KeyRound, Loader2 } from "lucide-react";
+import { KeyRound, Loader2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -26,15 +26,56 @@ function ResetPasswordForm() {
     confirmPassword: "",
   });
 
+  const passwordsMismatch =
+    Boolean(formData.newPassword) &&
+    Boolean(formData.confirmPassword) &&
+    formData.newPassword !== formData.confirmPassword;
+
+  if (!token) {
+    return (
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-center mb-4">
+                <div
+                  className="rounded-full bg-destructive/10 p-3"
+                  aria-hidden="true"
+                >
+                  <AlertTriangle className="h-6 w-6 text-destructive" />
+                </div>
+              </div>
+              <CardTitle className="text-center">Invalid reset link</CardTitle>
+              <CardDescription className="text-center">
+                This password reset link is missing a token or is malformed.
+                Please request a new link.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <Link
+                href="/forgot-password"
+                className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Request new link
+              </Link>
+              <Link
+                href="/login"
+                className="text-center text-sm underline underline-offset-4"
+              >
+                Back to login
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (formData.newPassword !== formData.confirmPassword) {
+    if (passwordsMismatch) {
       return; // Toast will be shown from validation
-    }
-
-    if (!token) {
-      return; // Token is required
     }
 
     resetPasswordMutation.mutate({
@@ -94,21 +135,26 @@ function ResetPasswordForm() {
                       }
                       required
                       minLength={8}
+                      aria-invalid={passwordsMismatch}
+                      aria-describedby={
+                        passwordsMismatch ? "password-mismatch-error" : undefined
+                      }
                     />
                   </div>
-                  {formData.newPassword &&
-                    formData.confirmPassword &&
-                    formData.newPassword !== formData.confirmPassword && (
-                      <p className="text-sm text-red-600 dark:text-red-500">
-                        Passwords do not match
-                      </p>
-                    )}
+                  {passwordsMismatch && (
+                    <p
+                      id="password-mismatch-error"
+                      role="alert"
+                      className="text-sm text-destructive"
+                    >
+                      Passwords do not match
+                    </p>
+                  )}
                   <Button
                     type="submit"
                     className="w-full"
                     disabled={
-                      resetPasswordMutation.isPending ||
-                      formData.newPassword !== formData.confirmPassword
+                      resetPasswordMutation.isPending || passwordsMismatch
                     }
                   >
                     {resetPasswordMutation.isPending && (

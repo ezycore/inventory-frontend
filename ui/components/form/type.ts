@@ -109,6 +109,7 @@ export interface FormFieldConfig {
     minLength?: number;
     maxLength?: number;
     pattern?: RegExp;
+    patternMessage?: string;
     custom?: (value: any) => string | undefined;
     email?: boolean;
     url?: boolean;
@@ -364,15 +365,33 @@ export const generateSchemaFromConfig = (
             fieldSchema = z.array(z.string());
           }
         } else {
-          // Single select
-          if (field.enumValues) {
-            fieldSchema = z.enum(field.enumValues as [string, ...string[]]);
-          } else if (field.options) {
-            const values = field.options.map((opt) => opt.value) as [
-              string,
-              ...string[],
-            ];
-            fieldSchema = z.enum(values);
+          // Single select — use string + refine instead of z.enum() so Zod
+          // produces readable messages instead of
+          // "Invalid option: expected one of 'PHARMACY'|'GROCERY_STORE'|..."
+          const selectValues: string[] = field.enumValues
+            ? (field.enumValues as string[])
+            : field.options
+              ? field.options.map((opt) => opt.value)
+              : [];
+          const selectLabel = field.label ?? "option";
+
+          if (selectValues.length > 0) {
+            if (field.required) {
+              // Required: empty string fails first with a friendly message
+              fieldSchema = z
+                .string()
+                .min(1, `Please select ${selectLabel}`)
+                .refine((val) => selectValues.includes(val), {
+                  message: `Please select a valid ${selectLabel.toLowerCase()}`,
+                });
+            } else {
+              // Optional: allow empty/undefined; if a value is given it must be valid
+              fieldSchema = z
+                .string()
+                .refine((val) => !val || selectValues.includes(val), {
+                  message: `Please select a valid ${selectLabel.toLowerCase()}`,
+                });
+            }
           } else {
             fieldSchema = z.string();
           }
@@ -413,7 +432,19 @@ export const generateSchemaFromConfig = (
       case "input":
       case "textarea":
         let stringSchema = z.string();
-        if (field.validation?.minLength !== undefined) {
+        // "Required" check must come FIRST so an empty submission shows
+        // "X is required" before any length/pattern check fires.
+        if (field.required) {
+          const isTextLike =
+            field.zodType !== "number" &&
+            field.zodType !== "boolean" &&
+            field.zodType !== "array" &&
+            field.zodType !== "date";
+          if (isTextLike) {
+            stringSchema = stringSchema.min(1, `${field.label} is required`);
+          }
+        }
+        if (field.validation?.minLength !== undefined && field.validation.minLength > 1) {
           stringSchema = stringSchema.min(
             field.validation.minLength,
             `Minimum ${field.validation.minLength} characters required`,
@@ -428,7 +459,7 @@ export const generateSchemaFromConfig = (
         if (field.validation?.pattern) {
           stringSchema = stringSchema.regex(
             field.validation.pattern,
-            "Invalid format",
+            field.validation.patternMessage ?? "Invalid format",
           );
         }
         if (field.validation?.email) {
@@ -448,7 +479,6 @@ export const generateSchemaFromConfig = (
 
     // Handle required/optional
     if (field.required) {
-      // Only add required validation for explicit string types that don't already have validation
       const isStringField =
         (field.type === "input" || field.type === "textarea") &&
         field.zodType !== "number" &&
@@ -456,10 +486,11 @@ export const generateSchemaFromConfig = (
         field.zodType !== "array" &&
         field.zodType !== "date";
 
-      // Don't add string validation to select fields (they use enums) or fields with existing validation
+      // String fields already had required injected inside the switch block above.
+      // Only add it here for non-string required fields that don't have options/enums
+      // (selects handle required inline too).
       if (
-        isStringField &&
-        !field.validation?.minLength &&
+        !isStringField &&
         !field.options &&
         !field.enumValues
       ) {

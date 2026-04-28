@@ -6,10 +6,13 @@ import { Spinner } from '@/ui/components/spinner'
 
 // ── Live Clock (isolated to prevent full-page re-renders) ──
 const LiveClock = memo(function LiveClock({ timezone }: { timezone?: string }) {
-  const [time, setTime] = useState<Date | null>()
-  
+  // Lazy initializer avoids the SSR hydration mismatch and the
+  // "setState in effect" anti-pattern (initial value computed once on mount).
+  const [time, setTime] = useState<Date | null>(() =>
+    typeof window === 'undefined' ? null : new Date(),
+  )
+
   useEffect(() => {
-    setTime(new Date()) // Set initial time immediately on mount
     const tick = () => setTime(new Date())
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)

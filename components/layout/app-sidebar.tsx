@@ -33,6 +33,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  useSidebar,
 } from "@ui/components/sidebar";
 import {
   BellIcon,
@@ -48,11 +49,107 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { AppTitle } from "./app-title";
+import type { NavItem } from "@/types/layout";
 export const company = {
   name: "Acme Inc",
   logo: PanelsRightBottom,
   plan: "Enterprise",
 };
+
+/**
+ * Renders a parent nav item with sub-items. When the sidebar is expanded we
+ * use the standard inline Collapsible; when collapsed to icon-only we render
+ * a hover/click DropdownMenu so nested items remain reachable.
+ */
+function NestedNavItem({
+  item,
+  pathname,
+}: {
+  item: NavItem;
+  pathname: string;
+}) {
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = state === "collapsed" && !isMobile;
+  const subItems = item.items || [];
+  const isParentActive =
+    pathname === item.url || subItems.some((s) => pathname === s.url);
+
+  if (isCollapsed) {
+    // Icon-only mode: show a dropdown to the right with the nested items.
+    return (
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              tooltip={item.title}
+              isActive={isParentActive}
+            >
+              {item.icon && <DynamicIcon name={item.icon as any} />}
+              <span>{item.title}</span>
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="right"
+            align="start"
+            sideOffset={4}
+            className="min-w-48"
+          >
+            <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {subItems.map((subItem) => (
+              <DropdownMenuItem key={subItem.title} asChild>
+                <Link
+                  href={subItem.url}
+                  data-active={pathname === subItem.url}
+                  className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+                >
+                  {subItem.title}
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <Collapsible
+      asChild
+      defaultOpen={item.isActive || isParentActive}
+      className="group/collapsible"
+    >
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            tooltip={item.title}
+            isActive={pathname === item.url}
+          >
+            {item.icon && <DynamicIcon name={item.icon as any} />}
+            <span>{item.title}</span>
+            <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {subItems.map((subItem) => (
+              <SidebarMenuSubItem key={subItem.title}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={pathname === subItem.url}
+                >
+                  <Link href={subItem.url}>
+                    <span>{subItem.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  );
+}
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -90,41 +187,11 @@ export default function AppSidebar() {
           <SidebarMenu>
             {filteredNavItems.map((item) => {
               return item?.items && item?.items?.length > 0 ? (
-                <Collapsible
+                <NestedNavItem
                   key={item.title}
-                  asChild
-                  defaultOpen={item.isActive}
-                  className="group/collapsible"
-                >
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton
-                        tooltip={item.title}
-                        isActive={pathname === item.url}
-                      >
-                        {item.icon && <DynamicIcon name={item.icon as any} />}
-                        <span>{item.title}</span>
-                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.items?.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={pathname === subItem.url}
-                            >
-                              <Link href={subItem.url}>
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </SidebarMenuItem>
-                </Collapsible>
+                  item={item}
+                  pathname={pathname}
+                />
               ) : (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
