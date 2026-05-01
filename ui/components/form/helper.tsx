@@ -100,6 +100,13 @@ const FormField: FC<{
   // Use useWatch for better performance - only subscribes to specific fields
   const fieldValue = useWatch({ control, name: field.name });
 
+  // Watch all form values when suffix/prefix/helperText is a function so they can react.
+  const needsAllValues =
+    typeof field.suffix === "function" ||
+    typeof field.prefix === "function" ||
+    typeof field.helperText === "function";
+  const allValues = useWatch({ control, disabled: !needsAllValues }) || {};
+
   // Watch dependent field value if dependency exists
   const dependencyRawValue = useWatch({
     control,
@@ -241,45 +248,71 @@ const FormField: FC<{
   const renderField = () => {
     switch (field.type) {
       case "input":
-      case "number":
+      case "number": {
+        const suffixValue =
+          typeof field.suffix === "function"
+            ? field.suffix(allValues)
+            : field.suffix;
+        const prefixValue =
+          typeof field.prefix === "function"
+            ? field.prefix(allValues)
+            : field.prefix;
         return (
           <Controller
             name={field.name}
             control={control}
             render={({ field: controllerField }) => (
-              <Input
-                {...controllerField}
-                value={controllerField.value ?? ""}
-                type={field.type === "number" ? "number" : "text"}
-                placeholder={field.placeholder}
-                disabled={effectiveDisabled}
-                min={field.validation?.min}
-                max={field.validation?.max}
-                step={field.step}
-                onChange={(e) => {
-                  const rawValue = e.target.value;
-                  let value;
+              <div className="relative w-full">
+                {prefixValue && (
+                  <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-xs text-muted-foreground select-none">
+                    {prefixValue}
+                  </span>
+                )}
+                <Input
+                  {...controllerField}
+                  value={controllerField.value ?? ""}
+                  type={field.type === "number" ? "number" : "text"}
+                  placeholder={field.placeholder}
+                  disabled={effectiveDisabled}
+                  min={field.validation?.min}
+                  max={field.validation?.max}
+                  step={field.step}
+                  onChange={(e) => {
+                    const rawValue = e.target.value;
+                    let value;
 
-                  if (field.type === "number") {
-                    // Allow empty string for clearing the field
-                    if (rawValue === "" || rawValue === null || rawValue === undefined) {
-                      value = "";
+                    if (field.type === "number") {
+                      // Allow empty string for clearing the field
+                      if (rawValue === "" || rawValue === null || rawValue === undefined) {
+                        value = "";
+                      } else {
+                        const parsed = parseFloat(rawValue);
+                        value = isNaN(parsed) ? "" : parsed;
+                      }
                     } else {
-                      const parsed = parseFloat(rawValue);
-                      value = isNaN(parsed) ? "" : parsed;
+                      value = rawValue;
                     }
-                  } else {
-                    value = rawValue;
-                  }
 
-                  controllerField.onChange(value);
-                  handleChange(value);
-                }}
-                className={cn("w-full", error ? "border-red-500" : "")}
-              />
+                    controllerField.onChange(value);
+                    handleChange(value);
+                  }}
+                  className={cn(
+                    "w-full",
+                    prefixValue ? "pl-8" : "",
+                    suffixValue ? "pr-14" : "",
+                    error ? "border-red-500" : ""
+                  )}
+                />
+                {suffixValue && (
+                  <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs font-medium text-muted-foreground select-none">
+                    {suffixValue}
+                  </span>
+                )}
+              </div>
             )}
           />
         );
+      }
 
       case "textarea":
         return (
@@ -797,9 +830,15 @@ const FormField: FC<{
           viewMode ? renderViewMode() : renderField()
         )}
       </div>
-      {field.helperText && (
-        <p className="text-xs text-muted-foreground">{field.helperText}</p>
-      )}
+      {(() => {
+        const helperTextValue =
+          typeof field.helperText === "function"
+            ? field.helperText(allValues)
+            : field.helperText;
+        return helperTextValue ? (
+          <p className="text-xs text-muted-foreground">{helperTextValue}</p>
+        ) : null;
+      })()}
       {!viewMode && error && (
         <p className="text-sm text-red-500 mt-1">{error}</p>
       )}

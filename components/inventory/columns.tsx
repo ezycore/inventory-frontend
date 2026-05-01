@@ -13,7 +13,7 @@ import {
   PackageX,
 } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
-import { getStockLevelInfo, getRestockInfo } from "./helpers";
+import { getStockLevelInfo, getRestockInfo, getStockLevelLines } from "./helpers";
 
 export const inventoryColumns: ColumnDef<Inventory>[] = [
   {
@@ -53,7 +53,6 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
     header: "Stock Level",
     cell: ({ row }) => {
       const quantity = row.getValue("quantity") as number;
-      const quantityBreakdown = row.original.quantityBreakdown as Inventory["quantityBreakdown"];
       const alertLevel = row.original.quantityAlert || 0;
       const { status, color, progressColor } = getStockLevelInfo(
         quantity,
@@ -61,16 +60,35 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
       );
       const maxDisplay = Math.max(alertLevel * 2, quantity, 100);
       const percentage = Math.min((quantity / maxDisplay) * 100, 100);
+      const lines = getStockLevelLines(row.original as any);
+      const baseUnitLabel = lines[0]?.text.split(" ").slice(1).join(" ") || "units";
 
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="space-y-1.5 min-w-[140px] cursor-help">
-              <div className="flex items-center justify-between">
-                <span className={cn("text-lg font-bold tabular-nums", color)}>
-                  {quantity.toLocaleString()} {quantityBreakdown && <span className="text-xs text-muted-foreground ml-1">{quantityBreakdown.displayText}</span>}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium">
+            <div className="space-y-1.5 min-w-[160px] cursor-help">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-col leading-tight">
+                  {lines.map((line, idx) => (
+                    <span
+                      key={`${line.hint}-${idx}`}
+                      className={cn(
+                        "tabular-nums",
+                        idx === 0
+                          ? cn("text-base font-bold", color)
+                          : "text-[11px] text-muted-foreground"
+                      )}
+                    >
+                      {idx === 0 ? line.text : `≈ ${line.text}`}
+                      {idx > 0 && (
+                        <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                          ({line.hint})
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+                <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
                   Alert: {alertLevel}
                 </span>
               </div>
@@ -88,8 +106,8 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
           </TooltipTrigger>
           <TooltipContent>
             <div className="text-xs space-y-1">
-              <p>Current: {quantity.toLocaleString()} units</p>
-              <p>Alert Threshold: {alertLevel} units</p>
+              <p>Current: {quantity.toLocaleString()} {baseUnitLabel}</p>
+              <p>Alert Threshold: {alertLevel} {baseUnitLabel}</p>
               <p>Status: {status}</p>
             </div>
           </TooltipContent>

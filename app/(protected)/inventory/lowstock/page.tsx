@@ -118,20 +118,49 @@ const columns: ColumnDef<ShortlistItem>[] = [
       const ratio = Math.min((quantity / alertQty) * 100, 100);
       const isCritical = quantity === 0;
 
+      const breakdown = row.original.quantityBreakdown;
+      const saleUnitObj = row.original.saleUnit?.unitId;
+      const saleFactor = Number(row.original.saleUnit?.conversionFactor || 0);
+      const baseUnitId = row.original.unit?._id;
+      const showSale =
+        saleUnitObj &&
+        saleFactor > 1 &&
+        saleUnitObj._id &&
+        saleUnitObj._id !== baseUnitId;
+      const saleQty = showSale ? Math.floor(quantity / saleFactor) : 0;
+
       return (
-        <div className="space-y-1 min-w-[120px]">
-          <div className="flex items-center justify-between text-sm">
-            <span
-              className={
-                isCritical
-                  ? "text-destructive font-bold"
-                  : "text-chart-1 font-semibold"
-              }
-            >
-              {quantity} {unitName}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              alert: {alertQty} ({unitName})
+        <div className="space-y-1 min-w-[140px]">
+          <div className="flex items-start justify-between text-sm gap-2">
+            <div className="flex flex-col leading-tight">
+              <span
+                className={
+                  isCritical
+                    ? "text-destructive font-bold"
+                    : "text-chart-1 font-semibold"
+                }
+              >
+                {quantity} {unitName}
+              </span>
+              {breakdown?.enabled && (breakdown?.conversionFactor ?? 0) > 1 && (
+                <span className="text-[11px] text-muted-foreground tabular-nums">
+                  ≈ {breakdown.displayText}
+                  <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                    (purchase)
+                  </span>
+                </span>
+              )}
+              {showSale && saleQty > 0 && (
+                <span className="text-[11px] text-muted-foreground tabular-nums">
+                  ≈ {saleQty} {saleUnitObj?.shortName || saleUnitObj?.name}
+                  <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                    (sale)
+                  </span>
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              alert: {alertQty} {unitName}
             </span>
           </div>
           <Progress

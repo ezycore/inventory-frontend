@@ -50,6 +50,7 @@ export interface PurchaseOrderItem {
   // UOM fields
   purchaseUnitId?: string;
   purchaseUnitName?: string;
+  unitName?: string;
   conversionFactor?: number;
   convertedQuantity?: number;
 }

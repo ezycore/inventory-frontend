@@ -130,6 +130,11 @@ export const getSalesColumns = (
             >
               <Plus className="h-3 w-3" />
             </Button>
+            {item.unitName ? (
+              <span className="ml-1 text-xs text-muted-foreground whitespace-nowrap">
+                {item.unitName}
+              </span>
+            ) : null}
           </div>
         );
       },

@@ -91,7 +91,7 @@ export default function InventoryPage() {
           formConfig: inventoryFormConfig,
           defaultValues: inventoryDefaultValues,
           getAllData: inventoryApi.getAll,
-          disabledFieldsInEdit: ['quantity'],
+          disabledFieldsInEdit: ['productId', 'variantId'],
           createMutation: useCreateInventory(),
           updateMutation: useUpdateInventory(),
           deleteMutation: useDeleteInventory(),

@@ -416,6 +416,8 @@ export default function PurchasesPage() {
         discount: data.discount,
         conversionFactor,
         convertedQuantity: data.convertedQuantity,
+        unitName: product.unitName ?? undefined,
+        purchaseUnitName: (product as any).purchaseUnitName ?? undefined,
       });
 
       toast.success(`${product.label} added to order`);

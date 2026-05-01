@@ -152,7 +152,13 @@ export interface FormFieldConfig {
   maxSize?: number; // For file upload (in bytes)
   multiple?: boolean; // For file upload and select
   step?: number; // For number inputs
-  helperText?: string;
+  helperText?: string | ((values: Record<string, any>) => string | undefined);
+
+  // Static suffix/prefix appended/prepended inside the input.
+  // Useful for unit labels (e.g., "pcs", "$", "1 box = 10 pcs").
+  // Function form receives the current form values for dynamic computation.
+  suffix?: string | ((values: Record<string, any>) => string | undefined);
+  prefix?: string | ((values: Record<string, any>) => string | undefined);
 
   // Multi-select specific properties
   maxCount?: number; // Maximum number of selected items

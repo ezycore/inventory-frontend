@@ -6,6 +6,7 @@ import {
   discountTypeOptions,
 } from './product-form-options'
 import VariantManager from './variant-manager'
+import PriceFieldWithUnit from './price-field-with-unit'
 
 // Export as constant instead of function to prevent recreation on every render
 export const productFormConfig: DynamicFormConfig = {
@@ -154,7 +155,7 @@ export const productFormConfig: DynamicFormConfig = {
         // Single product fields - conditional (not required when variable product)
         {
           name: "price",
-          type: "number",
+          type: "custom",
           zodType: "number",
           label: "Price",
 
@@ -162,6 +163,7 @@ export const productFormConfig: DynamicFormConfig = {
           placeholder: "0.00",
           validation: { min: 0, max: 999999 },
           step: 1,
+          customComponent: PriceFieldWithUnit,
           dependsOn: {
             field: "productType",
             value: "single",

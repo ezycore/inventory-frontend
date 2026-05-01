@@ -419,6 +419,12 @@ export interface Inventory extends Product {
   quantityAlert: number;
   isLowStock: boolean;
   quantityBreakdown?: {
+    enabled?: boolean;
+    purchaseUnitQuantity?: number;
+    purchaseUnitName?: string;
+    remainderQuantity?: number;
+    baseUnitName?: string;
+    conversionFactor?: number;
     displayText: string; // e.g., "2 boxes + 5 pieces"
   }
   // status: "active" | "inactive";

@@ -77,13 +77,18 @@ export const prepareSubmitData = (
   isEdit: boolean,
   item: Inventory
 ) => {
+  // productId may be a labelInValue option object or a plain id string.
+  const rawProductId: any = data.productId;
+  const productId =
+    rawProductId && typeof rawProductId === "object"
+      ? rawProductId.value
+      : rawProductId;
+
   const submitData: any = {
-    productId: data.productId,
+    productId,
     locationId: data.locationId,
-    quantity: Number(data.quantity),
     quantityAlert: Number(data.quantityAlert),
     status: data.status,
-    costPrice: Number(data.costPrice),
   };
 
   // Only include variantId if it has a value
@@ -96,4 +101,77 @@ export const prepareSubmitData = (
   }
 
   return submitData;
+};
+
+/**
+ * Build the multi-line stock-level display for an inventory row.
+ * - Always shows the base-unit quantity.
+ * - If UOM is enabled and a purchase unit is set, shows the purchase
+ *   breakdown (e.g. "3 box and 14 pcs").
+ * - Shows the sale-unit quantity only when the sale unit differs from
+ *   the base unit (and conversion factor > 1).
+ */
+export interface StockLevelLine {
+  text: string;
+  hint: string;
+}
+
+const getUnitShortLabel = (
+  u?: { name?: string; shortName?: string } | null,
+): string => u?.shortName || u?.name || "";
+
+export const getStockLevelLines = (
+  item: Inventory & {
+    purchaseUnit?: { unitId?: any; conversionFactor?: number };
+    saleUnit?: { unitId?: any; conversionFactor?: number };
+  },
+): StockLevelLine[] => {
+  const quantity = Number(item.quantity || 0);
+  const baseUnitLabel = getUnitShortLabel(item.unit) || "pcs";
+  const lines: StockLevelLine[] = [
+    {
+      text: `${quantity.toLocaleString()} ${baseUnitLabel}`,
+      hint: "base",
+    },
+  ];
+
+  const breakdown = item.quantityBreakdown;
+  const hasPurchaseBreakdown =
+    breakdown?.enabled &&
+    (breakdown?.conversionFactor ?? 0) > 1 &&
+    breakdown?.displayText;
+
+  if (hasPurchaseBreakdown) {
+    lines.push({
+      text: breakdown!.displayText,
+      hint: "purchase",
+    });
+  }
+
+  // Sale unit line: only when sale unit is configured and different
+  // from the base unit (i.e. conversionFactor > 1).
+  const saleUnit = item.saleUnit;
+  const saleUnitObj = saleUnit?.unitId as
+    | { _id?: string; name?: string; shortName?: string }
+    | undefined;
+  const saleFactor = Number(saleUnit?.conversionFactor || 0);
+  const baseUnitId = (item.unit as any)?._id;
+
+  if (
+    saleUnitObj &&
+    saleFactor > 1 &&
+    saleUnitObj._id &&
+    saleUnitObj._id !== baseUnitId
+  ) {
+    const saleQty = Math.floor(quantity / saleFactor);
+    const saleLabel = getUnitShortLabel(saleUnitObj) || "unit";
+    if (saleQty > 0) {
+      lines.push({
+        text: `${saleQty.toLocaleString()} ${saleLabel}`,
+        hint: "sale",
+      });
+    }
+  }
+
+  return lines;
 };
