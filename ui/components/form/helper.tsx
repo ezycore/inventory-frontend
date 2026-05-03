@@ -887,6 +887,17 @@ const FormSectionComponent: FC<{
 }) => {
     const [isOpen, setIsOpen] = useState(section.defaultOpen ?? true);
 
+    // Section-level dependency evaluation — hide the whole section when condition not met
+    const sectionDepValue = useWatch({
+      control,
+      name: section.dependsOn?.field || '__none__',
+      disabled: !section.dependsOn,
+    });
+    if (section.dependsOn) {
+      const { shouldHide } = evaluateFieldDependency(sectionDepValue, section.dependsOn);
+      if (shouldHide) return null;
+    }
+
     const content = (
       <CardContent className={cn("space-y-4 pt-4", section.className)}>
         <div className="grid grid-cols-12 gap-3 sm:gap-4 w-full">

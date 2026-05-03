@@ -58,11 +58,16 @@ export default function ProductsPage() {
             _id: variant._id,
             attributeName: attributeKey || "",
             value: attributeValue || "",
-            sku: variant.sku || "",
-            costPrice: variant.costPrice || 0,
             price: variant.price || 0,
             enabled: variant.status === "active",
             images: variant.images || [],
+            enableUOMConversion: !!variant.enableUOMConversion,
+            purchaseUnit: variant.purchaseUnit
+              ? { unitId: variant.purchaseUnit.unitId, conversionFactor: variant.purchaseUnit.conversionFactor }
+              : undefined,
+            saleUnit: variant.saleUnit
+              ? { unitId: variant.saleUnit.unitId, conversionFactor: variant.saleUnit.conversionFactor }
+              : undefined,
           }
         }) || []
       return { ...item, variants: transformedVariants }

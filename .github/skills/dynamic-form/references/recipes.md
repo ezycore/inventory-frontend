@@ -39,6 +39,40 @@
 }
 ```
 
+## Hide/show an entire section
+
+When multiple related fields should appear/disappear together, apply `dependsOn` at the **section level** instead of repeating it on every field:
+
+```ts
+{
+  title: "UOM Conversion",
+  icon: <span>📦</span>,
+  collapsible: true,
+  dependsOn: {
+    field: "productType",
+    value: "single",
+    condition: "eq",
+    action: "show",  // show section only for single products
+  },
+  fields: [
+    {
+      name: "enableUOMConversion",
+      type: "checkbox",
+      label: "Enable UOM Conversion",
+    },
+    {
+      name: "purchaseUnit.unitId",
+      type: "select",
+      label: "Purchase Unit",
+      dependsOn: { field: "enableUOMConversion", condition: "truthy", action: "show" },  // field-level dependency still works
+    },
+    // ... more UOM fields
+  ]
+}
+```
+
+When the section's condition is not met, the entire card is hidden (no fields render). This is cleaner than adding `dependsOn` to every field in the section.
+
 ## Auto-fill from selected option
 
 ```ts

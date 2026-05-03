@@ -52,7 +52,6 @@ export const useSelectOptions = (
         label: item.name || item.label,
         disabled: item.disabled || false,
       }));
-
       return options;
     },
     enabled: !!url, // Only run query if URL is provided

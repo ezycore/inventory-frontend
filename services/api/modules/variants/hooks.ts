@@ -39,6 +39,7 @@ export const useCreateVariantAttribute = () => {
       variantAttributesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
     },
     onError: handleMutationError,
   })
@@ -66,6 +67,7 @@ export const useUpdateVariantAttribute = () => {
         : variables.id;
       queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
       queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.detail(id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
     },
     onError: handleMutationError,
   })
@@ -81,6 +83,7 @@ export const useDeleteVariantAttribute = () => {
     mutationFn: (id: string) => variantAttributesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
     },
     onError: handleMutationError,
   })

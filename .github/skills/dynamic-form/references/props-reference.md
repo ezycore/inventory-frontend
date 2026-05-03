@@ -61,6 +61,21 @@ dependsOn: {
 }
 ```
 
+## `FormSection`
+
+| Prop | Type | Default | Notes |
+|------|------|---------|-------|
+| `title` | `string` | required | Section heading |
+| `description` | `string` | — | Helper text below title |
+| `icon` | `ReactNode` | — | Icon left of title |
+| `fields` | `FormFieldConfig[]` | required | All fields in this section |
+| `collapsible` | `boolean` | `false` | Render as collapsible card |
+| `defaultOpen` | `boolean` | `true` | Initially expanded |
+| `className` | `string` | — | Custom CSS classes |
+| `dependsOn` | `FieldDependency` | — | Hide/show entire section based on another field |
+
+**Section-level `dependsOn`:** When condition is not met, the entire section (card + all fields) returns `null`. Useful for grouping UOM, advanced, or conditional sections. See recipes for example.
+
 ### Dynamic UI
 `suffix` · `prefix` · `helperText` (each accepts `string` OR `(allValues) => string|undefined`)
 

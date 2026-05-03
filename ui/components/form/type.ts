@@ -213,6 +213,8 @@ export interface FormSection {
   defaultOpen?: boolean;
   fields: FormFieldConfig[];
   className?: string;
+  /** Hide/show the entire section based on another field's value */
+  dependsOn?: FieldDependency;
 }
 
 export interface DynamicFormConfig {
@@ -370,6 +372,24 @@ export const generateSchemaFromConfig = (
           } else {
             fieldSchema = z.array(z.string());
           }
+        } else if (field.labelInValue) {
+          // labelInValue: true — form stores the full option object, not a plain ID string.
+          // Validate that a selection was made by checking the nested .value property.
+          const labelInValueLabel = field.label ?? "option";
+          if (field.required) {
+            fieldSchema = z.any().refine(
+              (val) =>
+                val !== null &&
+                val !== undefined &&
+                val !== "" &&
+                (typeof val === "object"
+                  ? typeof val.value === "string" && val.value.length > 0
+                  : typeof val === "string" && val.length > 0),
+              { message: `Please select ${labelInValueLabel}` },
+            );
+          } else {
+            fieldSchema = z.any().optional();
+          }
         } else {
           // Single select — use string + refine instead of z.enum() so Zod
           // produces readable messages instead of
@@ -494,11 +514,12 @@ export const generateSchemaFromConfig = (
 
       // String fields already had required injected inside the switch block above.
       // Only add it here for non-string required fields that don't have options/enums
-      // (selects handle required inline too).
+      // (selects handle required inline too; labelInValue selects use z.any().refine()).
       if (
         !isStringField &&
         !field.options &&
-        !field.enumValues
+        !field.enumValues &&
+        !field.labelInValue
       ) {
         fieldSchema = (fieldSchema as z.ZodString).min(
           1,

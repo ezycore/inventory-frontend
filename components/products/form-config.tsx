@@ -95,6 +95,7 @@ export const productFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           options: taxTypeOptions,
           placeholder: "Select",
+          defaultValue: "inclusive",
         },
         {
           name: "taxId",
@@ -193,6 +194,12 @@ export const productFormConfig: DynamicFormConfig = {
       description: "Configure different units for purchase and sale (e.g., buy in boxes, sell in pieces)",
       collapsible: true,
       defaultOpen: false,
+      dependsOn: {
+        field: "productType",
+        value: "single",
+        condition: "eq",
+        action: "show",
+      },
       // featureFlag: "uomConversion", // Uncomment when feature flag system is ready
       fields: [
         {
@@ -200,8 +207,8 @@ export const productFormConfig: DynamicFormConfig = {
           type: "checkbox",
           label: "Enable UOM Conversion",
           columnSpan: 12,
-          defaultValue: true,
-          helperText: "Allow different units for purchase and sale"
+          defaultValue: false,
+          helperText: "Allow different units for purchase and sale",
         },
         {
           name: "purchaseUnit.unitId",

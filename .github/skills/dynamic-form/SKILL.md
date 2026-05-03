@@ -45,6 +45,9 @@ See [./references/quick-start.md](./references/quick-start.md) and [./references
 1. Set `type: "select"`, `optionsApi: "/path"`. Response `{success,data,…}` is unwrapped automatically; the default mapping expects `data.items` shaped like `{ value, label, ... }`.
 2. If your API shape differs, provide `itemsCreateCallback: (response) => SelectOption[]`.
 3. To get the **full option object** as the form value (needed for `autoFillFields`, `dependsOn` with `matchWithProp`, or template URLs), set `labelInValue: true`.
+   - When `labelInValue: true`, the form value is the **entire option object** (with `value`, `label`, and any extra fields). The schema generator produces `z.any().refine(val => val?.value?.length > 0)` so Zod accepts the object while still enforcing "required".
+   - In `prepareSubmitData`, always extract the ID: `const id = typeof raw === "object" ? raw.value : raw`.
+   - **Never** send the raw object to the API — it must be unwrapped before mutation.
 4. For dependent selects (e.g., variants per product), use template syntax: `optionsApi: "/products/{{productId}}/variants"` plus a `dependsOn` clause. Placeholder is resolved from the watched field's value (or `value`/`_id`/`id` if it's an object). Resolves to `null` when missing → API not called.
 
 ## Procedure: Add field dependency
@@ -65,6 +68,31 @@ See [./references/quick-start.md](./references/quick-start.md) and [./references
 ```
 
 Action semantics: `disable`/`hide` apply when condition is **NOT** met; `enable`/`show` apply when condition **IS** met. `evaluateFieldDependency` enriches the watched value with the full option (from static `options` or cached API options) so `matchWithProp` works on string IDs too.
+
+## Procedure: Hide/show an entire section
+
+If you have a group of related fields that should only appear under certain conditions (e.g., "UOM Conversion" only for single products), use **section-level `dependsOn`** instead of repeating `dependsOn` on every field in the section:
+
+```ts
+{
+  title: "UOM Conversion",
+  icon: <span>📦</span>,
+  collapsible: true,
+  dependsOn: {
+    field: "productType",
+    value: "single",
+    condition: "eq",
+    action: "show",    // show section when productType === "single"
+  },
+  fields: [
+    { name: "enableUOMConversion", type: "checkbox", ... },
+    { name: "purchaseUnit.unitId", type: "select", dependsOn: { field: "enableUOMConversion", condition: "truthy", action: "show" }, ... },
+    // ... more UOM fields
+  ]
+}
+```
+
+When the section's `dependsOn` condition is not met, the **entire section renders as `null`** — all its fields are hidden. Individual field `dependsOn` still works within the section (no need to add section-level to every field).
 
 ## Procedure: Enable inline "quick add"
 
@@ -107,6 +135,7 @@ Required text fields produce `"<Label> is required"` (not Zod's default). Select
 
 ## Common Pitfalls
 
+- **`labelInValue` field submits a full object instead of an ID** — `labelInValue: true` intentionally stores the whole option object in form state. Always unwrap in `prepareSubmitData`: `const id = typeof raw === "object" ? raw.value : raw`. Without `prepareSubmitData`, the full object reaches the API. The schema generator handles this by using `z.any().refine(...)` for required `labelInValue` selects so Zod won't reject the object.
 - **"Submit button stays disabled"** — submit is gated on `formState.isDirty`. Either change a value or set `defaultValues` differently from current values during edit.
 - **"expected string, received undefined"** — required field without `defaultValue` and not in the auto-`""` list (e.g., `number`). Add `defaultValue: 0` or remove `required`.
 - **API not called for templated `optionsApi`** — placeholder value is missing/empty, OR the dependency `condition` is not met (template only resolves when `shouldDisable === false`).
