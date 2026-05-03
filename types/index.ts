@@ -414,7 +414,6 @@ export interface UpdateDiscountDto extends Partial<CreateDiscountDto> { }
 export interface Inventory extends Product {
   productId: string;
   variantId?: string | null;
-  locationId: string;
   quantity: number;
   quantityAlert: number;
   isLowStock: boolean;
@@ -425,15 +424,12 @@ export interface Inventory extends Product {
     remainderQuantity?: number;
     baseUnitName?: string;
     conversionFactor?: number;
-    displayText: string; // e.g., "2 boxes + 5 pieces"
+    displayText: string;
   }
-  // status: "active" | "inactive";
-  // product?: Product;
-  variant?: Variant;
-  location?: Location;
+  // Variable products only: variant attributes promoted to root
+  attributes?: Record<string, any> | null;
   costPrice: number;
   restockStatus?: "normal" | "ordered" | "hidden";
-  neededQuantity?: number;
 }
 
 export interface CreateInventoryDto {

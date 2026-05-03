@@ -20,15 +20,15 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
     accessorKey: "product",
     header: "Product",
     cell: ({ row }) => {
-      const variant = row.original.variant;
+      const attributes = row.original.attributes;
       return (
         <div className="min-w-[180px]">
           <div className="font-medium text-foreground">
             {row.original.name ? row.original.name : "-"}
           </div>
-          {variant && variant.attributes && (
+          {attributes && (
             <div className="flex flex-wrap gap-1 mt-1">
-              {Object.entries(variant.attributes).map(([key, value]) => (
+              {Object.entries(attributes).map(([key, value]) => (
                 <span
                   key={key}
                   className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
@@ -37,11 +37,6 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
                 </span>
               ))}
             </div>
-          )}
-          {variant?.sku && (
-            <p className="text-xs text-muted-foreground mt-0.5">
-              SKU: {variant.sku}
-            </p>
           )}
         </div>
       );
@@ -62,6 +57,7 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
       const percentage = Math.min((quantity / maxDisplay) * 100, 100);
       const lines = getStockLevelLines(row.original as any);
       const baseUnitLabel = lines[0]?.text.split(" ").slice(1).join(" ") || "units";
+      const unitName = row.original.unit?.shortName || "pcs";
 
       return (
         <Tooltip>
@@ -89,7 +85,7 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
                   ))}
                 </div>
                 <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
-                  Alert: {alertLevel}
+                  Alert: {alertLevel} {unitName}
                 </span>
               </div>
               <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">

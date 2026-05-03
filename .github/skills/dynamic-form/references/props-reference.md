@@ -61,6 +61,21 @@ dependsOn: {
 }
 ```
 
+### Conditional required
+```ts
+// Makes the field required ONLY when condition is met.
+// The asterisk renders live; Zod validates via superRefine.
+// No action field — action is always "require".
+requiredWhen: {
+  field: string;
+  matchWithProp?: string;
+  condition?: "eq"|"ne"|"gt"|"gte"|"lt"|"lte"|"in"|"notIn"|"truthy"|"falsy";
+  value?: any;
+}
+```
+
+Combine with `dependsOn` to both enable and require the field under the same condition (see the `variantId` recipe in `SKILL.md`).
+
 ## `FormSection`
 
 | Prop | Type | Default | Notes |

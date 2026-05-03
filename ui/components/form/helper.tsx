@@ -34,7 +34,7 @@ import type {
 } from "@/ui/components/form/type";
 import { Password } from "../input-password";
 import { SafeImage } from '@/ui/components/safeImage';
-import { evaluateFieldDependency, resolveApiTemplate } from "./dependency-utils";
+import { evaluateFieldDependency, resolveApiTemplate, evaluateDependencyCondition } from "./dependency-utils";
 import { useSelectOptions } from "@/services/api";
 
 // Helper to get a nested value from an object by dot-separated path
@@ -157,6 +157,24 @@ const FormField: FC<{
     dependencyWatchedValue,
     field.dependsOn
   );
+
+  // Watch requiredWhen dependency field for conditional required state
+  const requiredWhenRawValue = useWatch({
+    control,
+    name: field.requiredWhen?.field ?? field.name,
+    disabled: !field.requiredWhen,
+  });
+
+  // Evaluate whether the field is currently required based on requiredWhen
+  const isConditionallyRequired = useMemo(() => {
+    if (!field.requiredWhen) return false;
+    // Reuse the already-enriched value when requiredWhen watches the same field as dependsOn
+    const val =
+      field.requiredWhen.field === field.dependsOn?.field
+        ? dependencyWatchedValue
+        : requiredWhenRawValue;
+    return evaluateDependencyCondition(val, field.requiredWhen);
+  }, [field.requiredWhen, field.dependsOn, requiredWhenRawValue, dependencyWatchedValue]);
 
   // Determine effective disabled state
   const effectiveDisabled = field.disabled || isFieldDisabledInEdit || shouldDisable;
@@ -792,7 +810,7 @@ const FormField: FC<{
             className="text-sm gap-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             {field.label}
-            {!viewMode && field.required && (
+            {!viewMode && (field.required || isConditionallyRequired) && (
               <span className="text-red-500">*</span>
             )}
           </Label>

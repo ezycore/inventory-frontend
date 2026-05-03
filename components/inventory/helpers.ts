@@ -86,7 +86,6 @@ export const prepareSubmitData = (
 
   const submitData: any = {
     productId,
-    locationId: data.locationId,
     quantityAlert: Number(data.quantityAlert),
     status: data.status,
   };

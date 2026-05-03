@@ -9,7 +9,7 @@ export const inventoryFormConfig: DynamicFormConfig = {
       placeholder: "Select product",
       required: true,
       columnSpan: 6,
-      optionsApi: "/products",
+      optionsApi: "/products?fields=_id,name,unitId,productType",
       labelInValue: true,
       validation: { minLength: 1 },
     },
@@ -19,14 +19,20 @@ export const inventoryFormConfig: DynamicFormConfig = {
       label: "Variant",
       placeholder: "Select variant",
       columnSpan: 6,
-      optionsApi: "/products/{{_id}}/variants",
+      optionsApi: "/products/{{_id}}/variants?fields=_id,attributes",
       dependsOn: {
         field: "productId",
         condition: "gt",
         action: "disable",
         matchWithProp: "variant_count",
         value: 0
-      }
+      },
+      requiredWhen: {
+        field: "productId",
+        condition: "gt",
+        matchWithProp: "variant_count",
+        value: 0,
+      },
     },
     {
       name: "quantityAlert",

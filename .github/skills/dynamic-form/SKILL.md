@@ -69,6 +69,38 @@ See [./references/quick-start.md](./references/quick-start.md) and [./references
 
 Action semantics: `disable`/`hide` apply when condition is **NOT** met; `enable`/`show` apply when condition **IS** met. `evaluateFieldDependency` enriches the watched value with the full option (from static `options` or cached API options) so `matchWithProp` works on string IDs too.
 
+## Procedure: Make a field conditionally required
+
+Use `requiredWhen` when a field should become both enabled **and** required based on another field's value (e.g., `variantId` is required only when the selected product has variants).
+
+```ts
+{
+  name: "variantId",
+  type: "select",
+  label: "Variant",
+  optionsApi: "/products/{{_id}}/variants",
+  // Disable when product has no variants (variant_count <= 0)
+  dependsOn: {
+    field: "productId",
+    condition: "gt",
+    matchWithProp: "variant_count",
+    value: 0,
+    action: "disable",
+  },
+  // Required when product HAS variants (variant_count > 0)
+  requiredWhen: {
+    field: "productId",
+    condition: "gt",
+    matchWithProp: "variant_count",
+    value: 0,
+  },
+}
+```
+
+- The `*` asterisk appears in the label only when the condition is met (live UI update).
+- The Zod schema uses `superRefine` for cross-field validation — the field's own schema stays optional, and the refinement enforces the required check at form submission.
+- `requiredWhen` shares the same `FieldDependency` shape as `dependsOn` (same `condition`/`matchWithProp`/`value` options). No `action` field is needed — action is always "require".
+
 ## Procedure: Hide/show an entire section
 
 If you have a group of related fields that should only appear under certain conditions (e.g., "UOM Conversion" only for single products), use **section-level `dependsOn`** instead of repeating `dependsOn` on every field in the section:

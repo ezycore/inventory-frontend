@@ -98,15 +98,6 @@ export default function InventoryPage() {
           bulkDeleteMutation: useBulkDeleteInventory(),
           queryKey: [...queryKeys.inventory.all()],
           entityName: "Inventory",
-          transformEditData: (item: Inventory) => {
-            console.log("Transforming edit data for item:", item);
-            return {
-              ...item,
-              productId: item.productId || "",
-              variantId: item.variantId || "",
-              locationId: item.locationId || "",
-            };
-          },
           prepareSubmitData: (data: Inventory, isEdit: boolean, item: Inventory) =>
             prepareSubmitData(data, isEdit, item),
         }}
