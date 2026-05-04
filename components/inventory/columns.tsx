@@ -17,7 +17,7 @@ import { getStockLevelInfo, getRestockInfo, getStockLevelLines } from "./helpers
 
 export const inventoryColumns: ColumnDef<Inventory>[] = [
   {
-    accessorKey: "product",
+    accessorKey: "name",
     header: "Product",
     cell: ({ row }) => {
       const attributes = row.original.attributes;

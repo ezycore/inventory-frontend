@@ -79,6 +79,10 @@ export default function InventoryPage() {
         defaultColumnVisibility={{ 
           costPrice: false 
         }}
+         searchConfig={{
+            globalSearch: true,
+            placeholder: "Search products by name...",
+          }}
         enableRowHover={true}
         rowClassName={(row: Inventory) =>
           row.quantity === 0
