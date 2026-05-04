@@ -14,14 +14,14 @@ export const productFilterConfig: FilterConfig = {
       label: "Filter by Brand",
       type: "select",
       placeholder: "All brands",
-      optionsApi: "/brands?all=true", // API endpoint to fetch brand options
+      optionsApi: "/brands?all=true&fields=_id,name", // API endpoint to fetch brand options
     },
     {
       name: "categoryId",
       label: "Filter by Category",
       type: "select",
       placeholder: "All categories",
-      optionsApi: "/categories?all=true", // API endpoint to fetch brand options
+      optionsApi: "/categories?all=true&fields=_id,name", // API endpoint to fetch category options
     },
     {
       name: "status",

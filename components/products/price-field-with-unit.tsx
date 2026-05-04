@@ -36,7 +36,7 @@ export default function PriceFieldWithUnit({
   unitFieldName = "unitId",
 }: PriceFieldWithUnitProps) {
   const unitId = useWatch({ control, name: unitFieldName });
-  const { data: unitOptions = [] } = useSelectOptions("/units");
+  const { data: unitOptions = [] } = useSelectOptions("/units?all=true&fields=_id,name,shortName");
 
   const selected = unitOptions.find(
     (opt: any) => opt.value === unitId || (opt as any)._id === unitId,

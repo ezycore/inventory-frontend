@@ -3,20 +3,20 @@ import { FilterConfig } from "@/types/DataTable";
 export const inventoryFilterConfig: FilterConfig = {
   fields: [
     {
-      name: "productId",
-      label: "Product",
+      name: "brandId",
+      label: "Brand",
       type: "select",
-      placeholder: "All products",
+      placeholder: "All brands",
       columnSpan: 1,
-      options: [], // Will be populated dynamically via API
+      optionsApi: "/brands?all=true&fields=_id,name", // API endpoint to fetch brand options
     },
     {
-      name: "locationId",
-      label: "Location",
+      name: "categoryId",
+      label: "Category",
       type: "select",
-      placeholder: "All locations",
+      placeholder: "All categories",
       columnSpan: 1,
-      options: [], // Will be populated dynamically via API
+      optionsApi: "/categories?all=true&fields=_id,name", // API endpoint to fetch category options
     },
     {
       name: "isLowStock",
@@ -50,5 +50,5 @@ export const inventoryFilterConfig: FilterConfig = {
 
 export const inventorySearchConfig = {
   globalSearch: true,
-  placeholder: "Search by product name, SKU, or location...",
+  placeholder: "Search by names",
 };

@@ -98,7 +98,7 @@ export default function VariantManager({
   const createVariantAttribute = useCreateVariantAttribute()
 
   // Unit options for UOM selectors
-  const { data: unitOptions = [] } = useSelectOptions('/units')
+  const { data: unitOptions = [] } = useSelectOptions('/units?all=true&fields=_id,name')
   const baseUnit = unitOptions.find(
     (opt: any) => opt.value === baseUnitId || (opt as any)._id === baseUnitId,
   )

@@ -429,6 +429,7 @@ export interface Inventory extends Product {
   // Variable products only: variant attributes promoted to root
   attributes?: Record<string, any> | null;
   costPrice: number;
+  price?: number;
   restockStatus?: "normal" | "ordered" | "hidden";
 }
 

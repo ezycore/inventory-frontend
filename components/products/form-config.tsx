@@ -3,7 +3,6 @@ import { ProductStatus } from '@/types'
 import {
   sellingTypeOptions,
   taxTypeOptions,
-  discountTypeOptions,
 } from './product-form-options'
 import VariantManager from './variant-manager'
 import PriceFieldWithUnit from './price-field-with-unit'
@@ -55,7 +54,7 @@ export const productFormConfig: DynamicFormConfig = {
           required: true,
           columnSpan: 6,
           placeholder: "Choose category",
-          optionsApi: `/categories`,
+          optionsApi: `/categories?all=true&fields=_id,name`,
           creatable: true,
           quickAddModule: "category",
         },
@@ -64,7 +63,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Brand",
           columnSpan: 6,
-          optionsApi: `/brands`,
+          optionsApi: `/brands?all=true&fields=_id,name`,
           placeholder: "Select brand",
           creatable: true,
           quickAddModule: "brand",
@@ -74,7 +73,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Base Unit",
           columnSpan: 6,
-          optionsApi: `/units`,
+          optionsApi: `/units?all=true&fields=_id,name`,
           copyValueTo: ["saleUnit.unitId"],
           placeholder: "Select base unit",
           helperText: "All inventory will be tracked in this unit"
@@ -102,7 +101,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Tax",
           columnSpan: 6,
-          optionsApi: '/taxes',
+          optionsApi: '/taxes?all=true&fields=_id,name,rate',
           placeholder: "Select",
         },
         {
@@ -215,7 +214,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Purchase Unit",
           columnSpan: 6,
-          optionsApi: `/units?all=true`, // Fetch all units for selection
+          optionsApi: `/units?all=true&fields=_id,name`, // Fetch all units for selection
           placeholder: "Select purchase unit",
           helperText: "Unit used when purchasing (e.g., Box)",
           dependsOn: {
@@ -247,7 +246,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Sale Unit",
           columnSpan: 6,
-          optionsApi: `/units?all=true`, // Fetch all units for selection
+          optionsApi: `/units?all=true&fields=_id,name`, // Fetch all units for selection
           placeholder: "Select sale unit",
           helperText: "Unit used when selling (e.g., Piece)",
           dependsOn: {

@@ -74,7 +74,7 @@ export default function InventoryPage() {
         filterConfig={inventoryFilterConfig}
         columns={inventoryColumns}
         selectable={true}
-        searchConfig={inventorySearchConfig}
+        // searchConfig={inventorySearchConfig}
         enableSorting={true}
         defaultColumnVisibility={{ 
           costPrice: false 

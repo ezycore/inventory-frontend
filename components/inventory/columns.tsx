@@ -111,69 +111,69 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
       );
     },
   },
-  {
-    accessorKey: "isLowStock",
-    header: "Status",
-    cell: ({ row }) => {
-      const quantity = row.original.quantity || 0;
-      const alertLevel = row.original.quantityAlert || 0;
-      const { status, variant, bgColor, color } = getStockLevelInfo(
-        quantity,
-        alertLevel
-      );
+  // {
+  //   accessorKey: "isLowStock",
+  //   header: "Status",
+  //   cell: ({ row }) => {
+  //     const quantity = row.original.quantity || 0;
+  //     const alertLevel = row.original.quantityAlert || 0;
+  //     const { status, variant, bgColor, color } = getStockLevelInfo(
+  //       quantity,
+  //       alertLevel
+  //     );
 
-      return (
-        <Badge
-          variant={variant}
-          className={cn(
-            "gap-1 font-medium",
-            variant === "secondary" && bgColor,
-            variant === "secondary" && color,
-            variant === "secondary" && "border"
-          )}
-        >
-          {quantity === 0 ? (
-            <PackageX className="h-3 w-3" />
-          ) : quantity <= alertLevel ? (
-            <AlertTriangle className="h-3 w-3" />
-          ) : (
-            <Package className="h-3 w-3" />
-          )}
-          {status}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "restockStatus",
-    header: "Restock",
-    cell: ({ row }) => {
-      const restockStatus = row.original.restockStatus || "normal";
-      const { label, color, bgColor, icon: Icon } = getRestockInfo(
-        restockStatus
-      );
+  //     return (
+  //       <Badge
+  //         variant={variant}
+  //         className={cn(
+  //           "gap-1 font-medium",
+  //           variant === "secondary" && bgColor,
+  //           variant === "secondary" && color,
+  //           variant === "secondary" && "border"
+  //         )}
+  //       >
+  //         {quantity === 0 ? (
+  //           <PackageX className="h-3 w-3" />
+  //         ) : quantity <= alertLevel ? (
+  //           <AlertTriangle className="h-3 w-3" />
+  //         ) : (
+  //           <Package className="h-3 w-3" />
+  //         )}
+  //         {status}
+  //       </Badge>
+  //     );
+  //   },
+  // },
+  // {
+  //   accessorKey: "restockStatus",
+  //   header: "Restock",
+  //   cell: ({ row }) => {
+  //     const restockStatus = row.original.restockStatus || "normal";
+  //     const { label, color, bgColor, icon: Icon } = getRestockInfo(
+  //       restockStatus
+  //     );
 
-      return (
-        <div
-          className={cn(
-            "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border",
-            bgColor,
-            color
-          )}
-        >
-          <Icon className="h-3 w-3" />
-          {label}
-        </div>
-      );
-    },
-  },
+  //     return (
+  //       <div
+  //         className={cn(
+  //           "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border",
+  //           bgColor,
+  //           color
+  //         )}
+  //       >
+  //         <Icon className="h-3 w-3" />
+  //         {label}
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "stockValue",
     header: "Stock Value",
     cell: ({ row }) => {
       const quantity = row.original.quantity || 0;
-      const costPrice = row.original.costPrice || 0;
-      const stockValue = quantity * costPrice;
+      const price = row.original.price || 0;
+      const stockValue = quantity * price;
 
       return (
         <Tooltip>
@@ -186,14 +186,14 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
                 })}
               </p>
               <p className="text-[10px] text-muted-foreground">
-                @৳{costPrice.toFixed(2)} each
+                @৳{price.toFixed(2)} each
               </p>
             </div>
           </TooltipTrigger>
           <TooltipContent>
             <div className="text-xs space-y-1">
               <p>Quantity: {quantity.toLocaleString()}</p>
-              <p>Cost Price: ৳{costPrice.toFixed(2)}</p>
+              <p>Cost Price: {price.toFixed(2)}</p>
               <p>Total Value: ৳{stockValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
           </TooltipContent>

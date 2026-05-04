@@ -9,7 +9,7 @@ export const inventoryFormConfig: DynamicFormConfig = {
       placeholder: "Select product",
       required: true,
       columnSpan: 6,
-      optionsApi: "/products?fields=_id,name,unitId,productType",
+      optionsApi: "/products?all=true&fields=_id,name,unitId,productType",
       labelInValue: true,
       validation: { minLength: 1 },
     },
