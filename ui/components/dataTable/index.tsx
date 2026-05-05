@@ -168,7 +168,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     };
   }, [filterConfig, urlFilters]);
 
-  const { form } = useDynamicForm(formConfig || { fields: [] }, defaultValues);
+  const { form, defaultValues: mergedDefaults } = useDynamicForm(formConfig || { fields: [] }, defaultValues);
 
   const {
     isModalOpen,
@@ -182,7 +182,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     handleCloseModal,
   } = useCrudModal<TData>({
     form,
-    defaultValues,
+    defaultValues: mergedDefaults as TData,
     transformEditData,
     onDeleteFn: deleteMutation?.mutateAsync,
     onBulkDeleteFn: bulkDeleteMutation?.mutateAsync,

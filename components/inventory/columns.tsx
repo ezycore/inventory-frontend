@@ -13,22 +13,22 @@ import {
   PackageX,
 } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
-import { getStockLevelInfo, getRestockInfo } from "./helpers";
+import { getStockLevelInfo, getRestockInfo, getStockLevelLines } from "./helpers";
 
 export const inventoryColumns: ColumnDef<Inventory>[] = [
   {
-    accessorKey: "product",
+    accessorKey: "name",
     header: "Product",
     cell: ({ row }) => {
-      const variant = row.original.variant;
+      const attributes = row.original.attributes;
       return (
         <div className="min-w-[180px]">
           <div className="font-medium text-foreground">
             {row.original.name ? row.original.name : "-"}
           </div>
-          {variant && variant.attributes && (
+          {attributes && (
             <div className="flex flex-wrap gap-1 mt-1">
-              {Object.entries(variant.attributes).map(([key, value]) => (
+              {Object.entries(attributes).map(([key, value]) => (
                 <span
                   key={key}
                   className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
@@ -37,11 +37,6 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
                 </span>
               ))}
             </div>
-          )}
-          {variant?.sku && (
-            <p className="text-xs text-muted-foreground mt-0.5">
-              SKU: {variant.sku}
-            </p>
           )}
         </div>
       );
@@ -53,7 +48,6 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
     header: "Stock Level",
     cell: ({ row }) => {
       const quantity = row.getValue("quantity") as number;
-      const quantityBreakdown = row.original.quantityBreakdown as Inventory["quantityBreakdown"];
       const alertLevel = row.original.quantityAlert || 0;
       const { status, color, progressColor } = getStockLevelInfo(
         quantity,
@@ -61,17 +55,37 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
       );
       const maxDisplay = Math.max(alertLevel * 2, quantity, 100);
       const percentage = Math.min((quantity / maxDisplay) * 100, 100);
+      const lines = getStockLevelLines(row.original as any);
+      const baseUnitLabel = lines[0]?.text.split(" ").slice(1).join(" ") || "units";
+      const unitName = row.original.unit?.shortName || "pcs";
 
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="space-y-1.5 min-w-[140px] cursor-help">
-              <div className="flex items-center justify-between">
-                <span className={cn("text-lg font-bold tabular-nums", color)}>
-                  {quantity.toLocaleString()} {quantityBreakdown && <span className="text-xs text-muted-foreground ml-1">{quantityBreakdown.displayText}</span>}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium">
-                  Alert: {alertLevel}
+            <div className="space-y-1.5 min-w-[160px] cursor-help">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-col leading-tight">
+                  {lines.map((line, idx) => (
+                    <span
+                      key={`${line.hint}-${idx}`}
+                      className={cn(
+                        "tabular-nums",
+                        idx === 0
+                          ? cn("text-base font-bold", color)
+                          : "text-[11px] text-muted-foreground"
+                      )}
+                    >
+                      {idx === 0 ? line.text : `≈ ${line.text}`}
+                      {idx > 0 && (
+                        <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                          ({line.hint})
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+                <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
+                  Alert: {alertLevel} {unitName}
                 </span>
               </div>
               <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
@@ -88,8 +102,8 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
           </TooltipTrigger>
           <TooltipContent>
             <div className="text-xs space-y-1">
-              <p>Current: {quantity.toLocaleString()} units</p>
-              <p>Alert Threshold: {alertLevel} units</p>
+              <p>Current: {quantity.toLocaleString()} {baseUnitLabel}</p>
+              <p>Alert Threshold: {alertLevel} {baseUnitLabel}</p>
               <p>Status: {status}</p>
             </div>
           </TooltipContent>
@@ -97,69 +111,69 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
       );
     },
   },
-  {
-    accessorKey: "isLowStock",
-    header: "Status",
-    cell: ({ row }) => {
-      const quantity = row.original.quantity || 0;
-      const alertLevel = row.original.quantityAlert || 0;
-      const { status, variant, bgColor, color } = getStockLevelInfo(
-        quantity,
-        alertLevel
-      );
+  // {
+  //   accessorKey: "isLowStock",
+  //   header: "Status",
+  //   cell: ({ row }) => {
+  //     const quantity = row.original.quantity || 0;
+  //     const alertLevel = row.original.quantityAlert || 0;
+  //     const { status, variant, bgColor, color } = getStockLevelInfo(
+  //       quantity,
+  //       alertLevel
+  //     );
 
-      return (
-        <Badge
-          variant={variant}
-          className={cn(
-            "gap-1 font-medium",
-            variant === "secondary" && bgColor,
-            variant === "secondary" && color,
-            variant === "secondary" && "border"
-          )}
-        >
-          {quantity === 0 ? (
-            <PackageX className="h-3 w-3" />
-          ) : quantity <= alertLevel ? (
-            <AlertTriangle className="h-3 w-3" />
-          ) : (
-            <Package className="h-3 w-3" />
-          )}
-          {status}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "restockStatus",
-    header: "Restock",
-    cell: ({ row }) => {
-      const restockStatus = row.original.restockStatus || "normal";
-      const { label, color, bgColor, icon: Icon } = getRestockInfo(
-        restockStatus
-      );
+  //     return (
+  //       <Badge
+  //         variant={variant}
+  //         className={cn(
+  //           "gap-1 font-medium",
+  //           variant === "secondary" && bgColor,
+  //           variant === "secondary" && color,
+  //           variant === "secondary" && "border"
+  //         )}
+  //       >
+  //         {quantity === 0 ? (
+  //           <PackageX className="h-3 w-3" />
+  //         ) : quantity <= alertLevel ? (
+  //           <AlertTriangle className="h-3 w-3" />
+  //         ) : (
+  //           <Package className="h-3 w-3" />
+  //         )}
+  //         {status}
+  //       </Badge>
+  //     );
+  //   },
+  // },
+  // {
+  //   accessorKey: "restockStatus",
+  //   header: "Restock",
+  //   cell: ({ row }) => {
+  //     const restockStatus = row.original.restockStatus || "normal";
+  //     const { label, color, bgColor, icon: Icon } = getRestockInfo(
+  //       restockStatus
+  //     );
 
-      return (
-        <div
-          className={cn(
-            "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border",
-            bgColor,
-            color
-          )}
-        >
-          <Icon className="h-3 w-3" />
-          {label}
-        </div>
-      );
-    },
-  },
+  //     return (
+  //       <div
+  //         className={cn(
+  //           "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border",
+  //           bgColor,
+  //           color
+  //         )}
+  //       >
+  //         <Icon className="h-3 w-3" />
+  //         {label}
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "stockValue",
     header: "Stock Value",
     cell: ({ row }) => {
       const quantity = row.original.quantity || 0;
-      const costPrice = row.original.costPrice || 0;
-      const stockValue = quantity * costPrice;
+      const price = row.original.price || 0;
+      const stockValue = quantity * price;
 
       return (
         <Tooltip>
@@ -172,14 +186,14 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
                 })}
               </p>
               <p className="text-[10px] text-muted-foreground">
-                @৳{costPrice.toFixed(2)} each
+                @৳{price.toFixed(2)} each
               </p>
             </div>
           </TooltipTrigger>
           <TooltipContent>
             <div className="text-xs space-y-1">
               <p>Quantity: {quantity.toLocaleString()}</p>
-              <p>Cost Price: ৳{costPrice.toFixed(2)}</p>
+              <p>Cost Price: {price.toFixed(2)}</p>
               <p>Total Value: ৳{stockValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
           </TooltipContent>

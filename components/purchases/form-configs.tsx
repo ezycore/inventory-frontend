@@ -93,6 +93,10 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       placeholder: "1",
       columnSpan: 3,
       validation: { min: 1 },
+      suffix: (values: any) =>
+        values?.productId?.purchaseUnitName ||
+        values?.productId?.unitName ||
+        "",
     },
   ];
 
@@ -105,7 +109,16 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       required: false,
       disabled: true,
       columnSpan: 3,
-      helperText: "Qty × Conversion Factor",
+      suffix: (values: any) => values?.productId?.unitName || "",
+      helperText: (values: any) => {
+        const factor = values?.productId?.conversionFactor;
+        const baseUnit = values?.productId?.unitName;
+        const purchaseUnit = values?.productId?.purchaseUnitName;
+        if (factor && baseUnit && purchaseUnit) {
+          return `1 ${purchaseUnit} = ${factor} ${baseUnit}`;
+        }
+        return "Qty × Conversion Factor";
+      },
     });
   }
 

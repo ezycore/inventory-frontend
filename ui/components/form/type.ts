@@ -146,13 +146,35 @@ export interface FormFieldConfig {
    */
   dependsOn?: FieldDependency;
 
+  /**
+   * Makes this field required only when the specified condition is met.
+   * Works independently of dependsOn — use this when the field is enabled
+   * by a dependency and should also become required at the same time.
+   *
+   * @example
+   * // variantId is required only when the selected product has variants
+   * requiredWhen: {
+   *   field: 'productId',
+   *   matchWithProp: 'variant_count',
+   *   condition: 'gt',
+   *   value: 0,
+   * }
+   */
+  requiredWhen?: FieldDependency;
+
   rows?: number; // For textarea
   accept?: string; // For file upload
   maxFiles?: number; // For file upload
   maxSize?: number; // For file upload (in bytes)
   multiple?: boolean; // For file upload and select
   step?: number; // For number inputs
-  helperText?: string;
+  helperText?: string | ((values: Record<string, any>) => string | undefined);
+
+  // Static suffix/prefix appended/prepended inside the input.
+  // Useful for unit labels (e.g., "pcs", "$", "1 box = 10 pcs").
+  // Function form receives the current form values for dynamic computation.
+  suffix?: string | ((values: Record<string, any>) => string | undefined);
+  prefix?: string | ((values: Record<string, any>) => string | undefined);
 
   // Multi-select specific properties
   maxCount?: number; // Maximum number of selected items
@@ -207,6 +229,8 @@ export interface FormSection {
   defaultOpen?: boolean;
   fields: FormFieldConfig[];
   className?: string;
+  /** Hide/show the entire section based on another field's value */
+  dependsOn?: FieldDependency;
 }
 
 export interface DynamicFormConfig {
@@ -364,6 +388,24 @@ export const generateSchemaFromConfig = (
           } else {
             fieldSchema = z.array(z.string());
           }
+        } else if (field.labelInValue) {
+          // labelInValue: true — form stores the full option object, not a plain ID string.
+          // Validate that a selection was made by checking the nested .value property.
+          const labelInValueLabel = field.label ?? "option";
+          if (field.required) {
+            fieldSchema = z.any().refine(
+              (val) =>
+                val !== null &&
+                val !== undefined &&
+                val !== "" &&
+                (typeof val === "object"
+                  ? typeof val.value === "string" && val.value.length > 0
+                  : typeof val === "string" && val.length > 0),
+              { message: `Please select ${labelInValueLabel}` },
+            );
+          } else {
+            fieldSchema = z.any().optional();
+          }
         } else {
           // Single select — use string + refine instead of z.enum() so Zod
           // produces readable messages instead of
@@ -488,11 +530,12 @@ export const generateSchemaFromConfig = (
 
       // String fields already had required injected inside the switch block above.
       // Only add it here for non-string required fields that don't have options/enums
-      // (selects handle required inline too).
+      // (selects handle required inline too; labelInValue selects use z.any().refine()).
       if (
         !isStringField &&
         !field.options &&
-        !field.enumValues
+        !field.enumValues &&
+        !field.labelInValue
       ) {
         fieldSchema = (fieldSchema as z.ZodString).min(
           1,
@@ -543,7 +586,66 @@ export const generateSchemaFromConfig = (
     schemaObject[key] = buildZodObject(nested).optional();
   }
 
-  return z.object(schemaObject);
+  const baseSchema = z.object(schemaObject);
+
+  // Handle requiredWhen — fields that become required based on another field's value.
+  // Uses superRefine for cross-field validation (avoids circular dep with dependency-utils.ts).
+  const requiredWhenFields = allFields.filter((f) => f.requiredWhen);
+  if (requiredWhenFields.length === 0) {
+    return baseSchema;
+  }
+
+  // Inline condition evaluator (mirrors evaluateDependencyCondition in dependency-utils.ts)
+  const evalRequiredWhen = (data: Record<string, any>, field: FormFieldConfig): boolean => {
+    const dep = field.requiredWhen!;
+    const rawWatched = data[dep.field];
+    let watched = rawWatched;
+    if (dep.matchWithProp && rawWatched && typeof rawWatched === "object") {
+      watched = rawWatched[dep.matchWithProp] ?? rawWatched;
+    }
+    const cmp = dep.value;
+    switch (dep.condition ?? "eq") {
+      case "eq":     return watched === cmp;
+      case "ne":     return watched !== cmp;
+      case "gt":     return Number(watched) > Number(cmp);
+      case "gte":    return Number(watched) >= Number(cmp);
+      case "lt":     return Number(watched) < Number(cmp);
+      case "lte":    return Number(watched) <= Number(cmp);
+      case "in":     return Array.isArray(cmp) && cmp.includes(watched);
+      case "notIn":  return Array.isArray(cmp) && !cmp.includes(watched);
+      case "truthy":
+        if (watched === null || watched === undefined) return false;
+        if (typeof watched === "string" && watched.trim() === "") return false;
+        return Boolean(watched);
+      case "falsy":
+        if (watched === null || watched === undefined) return true;
+        if (typeof watched === "string" && watched.trim() === "") return true;
+        return !Boolean(watched);
+      default:       return false;
+    }
+  };
+
+  return baseSchema.superRefine((data, ctx) => {
+    for (const field of requiredWhenFields) {
+      if (!evalRequiredWhen(data as Record<string, any>, field)) continue;
+      const fieldValue = (data as Record<string, any>)[field.name];
+      const isEmpty =
+        fieldValue === null ||
+        fieldValue === undefined ||
+        fieldValue === "" ||
+        (typeof fieldValue === "object" &&
+          fieldValue !== null &&
+          typeof fieldValue.value === "string" &&
+          fieldValue.value === "");
+      if (isEmpty) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Please select ${field.label}`,
+          path: [field.name],
+        });
+      }
+    }
+  });
 };
 
 // Hook to use generated schema

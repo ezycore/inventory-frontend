@@ -52,11 +52,13 @@ const QuantityChangeCell = ({
   current,
   type,
   quantity,
+  unitLabel,
 }: {
   previous: number;
   current: number;
   type: string;
   quantity: number;
+  unitLabel?: string;
 }) => {
   const isIn = type === "in";
   return (
@@ -76,6 +78,9 @@ const QuantityChangeCell = ({
       >
         {isIn ? "+" : "-"}
         {quantity}
+        {unitLabel ? (
+          <span className="ml-1 font-normal opacity-80">{unitLabel}</span>
+        ) : null}
       </Badge>
     </div>
   );
@@ -142,14 +147,22 @@ export const columns: ColumnDef<any>[] = [
   {
     accessorKey: "quantity",
     header: "Qty Change",
-    cell: ({ row }) => (
-      <QuantityChangeCell
-        previous={row.original.previousQuantity}
-        current={row.original.newQuantity}
-        type={row.original.movementType}
-        quantity={row.getValue("quantity") as number}
-      />
-    ),
+    cell: ({ row }) => {
+      const product = row.original.productId as
+        | { unitId?: { name?: string; shortName?: string } }
+        | undefined;
+      const unitLabel =
+        product?.unitId?.shortName || product?.unitId?.name || undefined;
+      return (
+        <QuantityChangeCell
+          previous={row.original.previousQuantity}
+          current={row.original.newQuantity}
+          type={row.original.movementType}
+          quantity={row.getValue("quantity") as number}
+          unitLabel={unitLabel}
+        />
+      );
+    },
   },
   {
     accessorKey: "notes",

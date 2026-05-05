@@ -62,9 +62,16 @@ export const productColumns: ColumnDef<any>[] = [
     accessorKey: 'price',
     cell: ({ row }) => {
       const price = row.getValue("price") as number
+      const unit = row.original.unit as { name?: string; shortName?: string } | undefined
+      const unitLabel = unit?.shortName || unit?.name
       return (
         <span className="text-sm font-semibold tabular-nums">
           {price ? Number(price).toLocaleString() : '-'}
+          {price && unitLabel ? (
+            <span className="ml-1 text-xs font-normal text-muted-foreground">
+              / {unitLabel}
+            </span>
+          ) : null}
         </span>
       )
     }

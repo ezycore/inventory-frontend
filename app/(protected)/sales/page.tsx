@@ -151,6 +151,7 @@ export default function SalesPage() {
       }
 
       const { value: inventoryId, label: productName, price, costPrice, productId, variantId, availableQuantity } = product;
+      const unitName = product.saleUnitName || product.unitName || null;
       const discountType = customerForm.getValues("discountType");
       const discountValue = customerForm.getValues("discountValue");
       const { discount, salePrice } = applyDiscountWithPriority({
@@ -159,7 +160,7 @@ export default function SalesPage() {
         orderDiscountValue: discountValue,
       });
       addItem({
-        inventoryId, productId, variantId, productName, quantity: 1, costPrice, price, discountType, discountValue, discount, salePrice, availableQuantity,
+        inventoryId, productId, variantId, productName, quantity: 1, costPrice, price, discountType, discountValue, discount, salePrice, availableQuantity, unitName,
       });
     },
     [addItem, customerForm],

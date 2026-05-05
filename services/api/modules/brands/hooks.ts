@@ -6,6 +6,7 @@ import { createResourceHooks } from "../query-helpers";
 const brandHooks = createResourceHooks<Brand, CreateBrandDto>(
   brandsApi,
   queryKeys.brands,
+  { relatedQueryKeys: [queryKeys.products.all()] },
 );
 
 export const useBrandStats = brandHooks.useStats;

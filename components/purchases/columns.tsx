@@ -25,7 +25,14 @@ export const getPurchaseColumns = (
       accessorKey: "quantity",
       header: "Qty",
       cell: ({ row }) => (
-        <span className="text-sm tabular-nums">{row.original.quantity}</span>
+        <span className="text-sm tabular-nums">
+          {row.original.quantity}
+          {row.original.purchaseUnitName || row.original.unitName ? (
+            <span className="ml-1 text-xs text-muted-foreground">
+              {row.original.purchaseUnitName || row.original.unitName}
+            </span>
+          ) : null}
+        </span>
       ),
     },
   ];
@@ -40,6 +47,11 @@ export const getPurchaseColumns = (
         return (
           <span className="text-sm tabular-nums">
             {item.convertedQuantity ? item.convertedQuantity.toFixed(2) : "-"}
+            {item.unitName ? (
+              <span className="ml-1 text-xs text-muted-foreground">
+                {item.unitName}
+              </span>
+            ) : null}
           </span>
         );
       },

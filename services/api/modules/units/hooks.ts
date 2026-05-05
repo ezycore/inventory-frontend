@@ -5,7 +5,8 @@ import { createResourceHooks } from "../query-helpers";
 
 const unitHooks = createResourceHooks<Unit, CreateUnitDto>(
   unitsApi,
-  queryKeys.units
+  queryKeys.units,
+  { relatedQueryKeys: [queryKeys.products.all()] },
 );
 
 export const useUnits = unitHooks.useList;

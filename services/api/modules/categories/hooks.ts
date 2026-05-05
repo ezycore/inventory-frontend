@@ -3,7 +3,11 @@ import { createResourceHooks } from "../query-helpers";
 import { categoriesApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 
-const categoriesHooks = createResourceHooks<Category, CreateCategoryDto>(categoriesApi, queryKeys.categories);
+const categoriesHooks = createResourceHooks<Category, CreateCategoryDto>(
+  categoriesApi,
+  queryKeys.categories,
+  { relatedQueryKeys: [queryKeys.products.all()] },
+);
 
 export const useCategories = categoriesHooks.useList;
 export const useCategory = categoriesHooks.useDetail;

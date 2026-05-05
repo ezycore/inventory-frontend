@@ -12,9 +12,23 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
   }
   // Note: ID is automatically injected by DataTable for edit mode
 
+  // Strip top-level UOM payload when conversion is disabled or units are not set.
+  // Backend's purchaseUnit/saleUnit require a valid unitId; sending empty objects fails validation.
+  const skipUOMKeys = new Set<string>()
+  if (!data.enableUOMConversion || !data.purchaseUnit?.unitId) skipUOMKeys.add("purchaseUnit")
+  if (!data.enableUOMConversion || !data.saleUnit?.unitId) skipUOMKeys.add("saleUnit")
+  // Variable products manage UOM per-variant — root enableUOMConversion is irrelevant
+  if (data.productType === "variable") skipUOMKeys.add("enableUOMConversion")
+
   // Add all fields except images, variants, and _id
   for (const key in data) {
-    if (key !== 'images' && key !== 'variants' && key !== '_id' && data[key] !== undefined) {
+    if (
+      key !== 'images' &&
+      key !== 'variants' &&
+      key !== '_id' &&
+      !skipUOMKeys.has(key) &&
+      data[key] !== undefined
+    ) {
       const value = data[key]
       if (value !== null && typeof value === 'object' && !(value instanceof File) && !(value instanceof Blob)) {
         formData.append(key, JSON.stringify(value))
@@ -61,7 +75,8 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
 
   // Handle variants for variable products
   if (data.productType === "variable" && data.variants && data.variants.length > 0) {
-    const variantsData = data.variants.map((v: any, idx: number) => {
+    const activeVariants = data.variants.filter((v: any) => v.enabled)
+    const variantsData = activeVariants.map((v: any, idx: number) => {
       // Separate existing images (server objects) from new File uploads
       const allImages = v.images || []
       const existingImages = allImages.filter((img: any) => !(img instanceof File))
@@ -80,10 +95,20 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
         attributes: {
           [v.attributeName]: v.value
         },
-        costPrice: v.costPrice,
         price: v.price,
         images: existingImages, // only existing images go in JSON
         status: v.enabled ? 'active' : 'inactive',
+        enableUOMConversion: !!v.enableUOMConversion,
+        ...(v.enableUOMConversion
+          ? {
+              ...(v.purchaseUnit?.unitId
+                ? { purchaseUnit: { unitId: v.purchaseUnit.unitId, conversionFactor: v.purchaseUnit.conversionFactor ?? 1 } }
+                : {}),
+              ...(v.saleUnit?.unitId
+                ? { saleUnit: { unitId: v.saleUnit.unitId, conversionFactor: v.saleUnit.conversionFactor ?? 1 } }
+                : {}),
+            }
+          : {}),
       }
     })
     formData.append('variants', JSON.stringify(variantsData))

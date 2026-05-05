@@ -23,6 +23,7 @@ import {
   ShoppingCart,
   TrendingDown,
 } from "lucide-react";
+import { inventoryFilterConfig } from "@/components/inventory/filters";
 
 // Shortlist item type (flat structure from API)
 interface ShortlistItem {
@@ -31,6 +32,7 @@ interface ShortlistItem {
   variantId?: string;
   name: string;
   productType: string;
+  attributes?: Record<string, any> | null;
   price?: number;
   costPrice?: number;
   enableUOMConversion?: boolean;
@@ -80,7 +82,7 @@ function getUnitShortName(item: ShortlistItem): string {
 
 /** Format needed quantity with appropriate unit */
 function getNeededQtyDisplay(item: ShortlistItem): string {
-  const needed = item.neededQuantity;
+  const needed = item.quantityAlert - item.quantity + 1;
   if (needed <= 0) return `0 ${getUnitShortName(item)}`;
 
   // If purchaseUnit exists with unitId, show in purchase units
@@ -98,11 +100,24 @@ const columns: ColumnDef<ShortlistItem>[] = [
     accessorKey: "name",
     header: "Product",
     cell: ({ row }) => {
+      const attributes = row.original.attributes;
       return (
-        <div>
+        <div className="min-w-[180px]">
           <span className="font-medium">{getDisplayName(row.original)}</span>
           {row.original.location?.name && (
             <div className="text-xs text-muted-foreground">{row.original.location.name}</div>
+          )}
+          {attributes && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {Object.entries(attributes).map(([key, value]) => (
+                <span
+                  key={key}
+                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
+                >
+                  {key}: {String(value)}
+                </span>
+              ))}
+            </div>
           )}
         </div>
       );
@@ -118,20 +133,49 @@ const columns: ColumnDef<ShortlistItem>[] = [
       const ratio = Math.min((quantity / alertQty) * 100, 100);
       const isCritical = quantity === 0;
 
+      const breakdown = row.original.quantityBreakdown;
+      const saleUnitObj = row.original.saleUnit?.unitId;
+      const saleFactor = Number(row.original.saleUnit?.conversionFactor || 0);
+      const baseUnitId = row.original.unit?._id;
+      const showSale =
+        saleUnitObj &&
+        saleFactor > 1 &&
+        saleUnitObj._id &&
+        saleUnitObj._id !== baseUnitId;
+      const saleQty = showSale ? Math.floor(quantity / saleFactor) : 0;
+
       return (
-        <div className="space-y-1 min-w-[120px]">
-          <div className="flex items-center justify-between text-sm">
-            <span
-              className={
-                isCritical
-                  ? "text-destructive font-bold"
-                  : "text-chart-1 font-semibold"
-              }
-            >
-              {quantity} {unitName}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              alert: {alertQty} ({unitName})
+        <div className="space-y-1 min-w-[140px]">
+          <div className="flex items-start justify-between text-sm gap-2">
+            <div className="flex flex-col leading-tight">
+              <span
+                className={
+                  isCritical
+                    ? "text-destructive font-bold"
+                    : "text-chart-1 font-semibold"
+                }
+              >
+                {quantity} {unitName}
+              </span>
+              {breakdown?.enabled && (breakdown?.conversionFactor ?? 0) > 1 && (
+                <span className="text-[11px] text-muted-foreground tabular-nums">
+                  ≈ {breakdown.displayText}
+                  <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                    (purchase)
+                  </span>
+                </span>
+              )}
+              {showSale && saleQty > 0 && (
+                <span className="text-[11px] text-muted-foreground tabular-nums">
+                  ≈ {saleQty} {saleUnitObj?.shortName || saleUnitObj?.name}
+                  <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                    (sale)
+                  </span>
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              alert: {alertQty} {unitName}
             </span>
           </div>
           <Progress
@@ -153,7 +197,8 @@ const columns: ColumnDef<ShortlistItem>[] = [
     accessorKey: "neededQuantity",
     header: "Needed Qty",
     cell: ({ row }) => {
-      const { neededQuantity, enableUOMConversion } = row.original;
+      const { enableUOMConversion } = row.original;
+      const neededQuantity =  (row.original.quantityAlert as number) - (row.original.quantity as number) + 1;
       const unitLabel = getNeededQtyDisplay(row.original);
       const display = enableUOMConversion ? `${neededQuantity} ${getUnitShortName(row.original)} (${unitLabel})` : `${neededQuantity} ${getUnitShortName(row.original)}`;
       return (
@@ -204,41 +249,6 @@ const columns: ColumnDef<ShortlistItem>[] = [
     },
   },
 ];
-
-// Filter configuration
-const shortlistFilterConfig: FilterConfig = {
-  fields: [
-    {
-      name: "locationId",
-      label: "Location",
-      type: "select",
-      placeholder: "Select location",
-      columnSpan: 1,
-      optionsApi: "/locations",
-    },
-    {
-      name: "productId",
-      label: "Product",
-      type: "select",
-      placeholder: "All products",
-      columnSpan: 1,
-      optionsApi: "/products",
-    },
-    {
-      name: "low_stock_only",
-      label: "Stock Filter",
-      type: "select",
-      placeholder: "All items",
-      columnSpan: 1,
-      options: [{ label: "Low stock only", value: "true" }],
-    },
-  ],
-  viewMode: "popover",
-  columns: 2,
-  applyOnChange: false,
-  showResetButton: true,
-  showApplyButton: true,
-};
 
 const searchConfig = {
   globalSearch: true,
@@ -314,7 +324,7 @@ export default function LowStock() {
       <DataTable<ShortlistItem>
         cardTitle={(dataLength: number) => `Items (${dataLength})`}
         columns={columns}
-        filterConfig={shortlistFilterConfig}
+        filterConfig={inventoryFilterConfig}
         searchConfig={searchConfig}
         enableSorting={true}
         enableRowHover={true}

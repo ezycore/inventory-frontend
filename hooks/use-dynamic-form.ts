@@ -84,7 +84,8 @@ export const useDynamicForm = <T = any>(
   return {
     form,
     schema,
-    config
+    config,
+    defaultValues: mergedDefaults,
   }
 }
 

@@ -74,11 +74,15 @@ export default function InventoryPage() {
         filterConfig={inventoryFilterConfig}
         columns={inventoryColumns}
         selectable={true}
-        searchConfig={inventorySearchConfig}
+        // searchConfig={inventorySearchConfig}
         enableSorting={true}
         defaultColumnVisibility={{ 
           costPrice: false 
         }}
+         searchConfig={{
+            globalSearch: true,
+            placeholder: "Search products by name...",
+          }}
         enableRowHover={true}
         rowClassName={(row: Inventory) =>
           row.quantity === 0
@@ -91,22 +95,13 @@ export default function InventoryPage() {
           formConfig: inventoryFormConfig,
           defaultValues: inventoryDefaultValues,
           getAllData: inventoryApi.getAll,
-          disabledFieldsInEdit: ['quantity'],
+          disabledFieldsInEdit: ['productId', 'variantId'],
           createMutation: useCreateInventory(),
           updateMutation: useUpdateInventory(),
           deleteMutation: useDeleteInventory(),
           bulkDeleteMutation: useBulkDeleteInventory(),
           queryKey: [...queryKeys.inventory.all()],
           entityName: "Inventory",
-          transformEditData: (item: Inventory) => {
-            console.log("Transforming edit data for item:", item);
-            return {
-              ...item,
-              productId: item.productId || "",
-              variantId: item.variantId || "",
-              locationId: item.locationId || "",
-            };
-          },
           prepareSubmitData: (data: Inventory, isEdit: boolean, item: Inventory) =>
             prepareSubmitData(data, isEdit, item),
         }}

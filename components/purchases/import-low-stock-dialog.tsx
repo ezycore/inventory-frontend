@@ -180,15 +180,15 @@ export function ImportLowStockDialog({
   const { data: shortlistData, isLoading } = useQuery({
     queryKey: [...queryKeys.inventory.lowStock(), "import-dialog"],
     queryFn: () =>
-      inventoryApi.getShortlist({
+      inventoryApi.getAll({
         all: "true",
       }),
     enabled: open,
   });
 
   // Fetch brands and categories for filters
-  const { data: brandOptions } = useSelectOptions(open ? "/brands" : null);
-  const { data: categoryOptions } = useSelectOptions(open ? "/categories" : null);
+  const { data: brandOptions } = useSelectOptions(open ? "/brands?all=true&fields=id,name" : null);
+  const { data: categoryOptions } = useSelectOptions(open ? "/categories?all=true&fields=id,name" : null);
 
   const items: ShortlistItem[] = useMemo(
     () => shortlistData?.data?.items || [],
@@ -251,7 +251,6 @@ export function ImportLowStockDialog({
           return false;
         }
       }
-
       // Brand filter
       if (brandFilter && brandFilter !== "all") {
         if (item.brandId !== brandFilter) return false;
@@ -463,6 +462,20 @@ export function ImportLowStockDialog({
                 filteredItems.map((item) => {
                   const isSelected = selectedIds.has(item._id);
                   const isCritical = item.quantity === 0;
+                  const purchaseUnit = item.purchaseUnit?.unitId?.shortName || "";
+                  const purchaseConversion = item.purchaseUnit?.conversionFactor || 1;
+                  const neededQty = Math.max(0, item.quantityAlert - item.quantity + 1);
+                  const convertedQty = item.quantity / purchaseConversion;
+                  const formattedQty = Number.isInteger(convertedQty)
+                    ? convertedQty
+                    : convertedQty.toFixed(2);
+
+                  const quantityDisplay = purchaseUnit
+                    ? `${item.quantity} ${item.unit?.shortName || ""} (${formattedQty} ${purchaseUnit})`
+                    : `${item.quantity} ${item.unit?.shortName || ""}`;
+                  const baseUnitShortName = getBaseUnitShortName(item);
+                  const purcahseUnitQty = Math.ceil(neededQty / purchaseConversion);
+                  const neededQtyDisplay = purchaseUnit ? `${purcahseUnitQty} ${purchaseUnit} (${neededQty} ${baseUnitShortName})` : `${neededQty} ${baseUnitShortName}`;
                   return (
                     <tr
                       key={item._id}
@@ -496,12 +509,14 @@ export function ImportLowStockDialog({
                               : "text-chart-1 font-semibold"
                           }
                         >
-                          {item.quantity} <span className="text-xs text-muted-foreground">{getBaseUnitShortName(item)}</span>
+                          {/* {item.quantity} <span className="text-xs text-muted-foreground">{getBaseUnitShortName(item)}</span>  */}
+                          {quantityDisplay}
                         </span>
                       </td>
                       <td className="p-2 text-right tabular-nums">
                         <span className="font-medium">
-                          {item.neededQuantity || 0} <span className="text-xs text-muted-foreground">{getBaseUnitShortName(item)}</span>
+                          {/* {item.neededQuantity || 0} <span className="text-xs text-muted-foreground">{getBaseUnitShortName(item)}</span> */}
+                          {neededQtyDisplay}
                         </span>
                       </td>
                       <td className="p-2 text-center" onClick={(e) => e.stopPropagation()}>
@@ -509,7 +524,8 @@ export function ImportLowStockDialog({
                           <Input
                             type="number"
                             min={1}
-                            value={orderQuantities[item._id] ?? getDefaultOrderQty(item)}
+                            // value={orderQuantities[item._id] ?? getDefaultOrderQty(item)}
+                            value={purcahseUnitQty || neededQty}
                             onChange={(e) =>
                               updateOrderQty(item._id, Number(e.target.value) || 1)
                             }

@@ -22,6 +22,9 @@ export interface ProductApiItem {
   productId: string;
   variantId: string | null;
   conversionFactor?: number;
+  unitName?: string | null;
+  saleUnitName?: string | null;
+  purchaseUnitName?: string | null;
 }
 
 export interface AccountApiItem {
@@ -62,6 +65,8 @@ export interface ExtractedProduct {
   productId: string;
   variantId: string | null;
   conversionFactor?: number;
+  unitName?: string | null;
+  saleUnitName?: string | null;
 }
 export interface OrderItem {
   productId: string;
@@ -72,6 +77,7 @@ export interface OrderItem {
   costPrice: number;
   discount: number;
   productName: string;
+  unitName?: string | null;
 }
 
 export interface OrderPayment {

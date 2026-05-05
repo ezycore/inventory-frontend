@@ -3,9 +3,9 @@ import { ProductStatus } from '@/types'
 import {
   sellingTypeOptions,
   taxTypeOptions,
-  discountTypeOptions,
 } from './product-form-options'
 import VariantManager from './variant-manager'
+import PriceFieldWithUnit from './price-field-with-unit'
 
 // Export as constant instead of function to prevent recreation on every render
 export const productFormConfig: DynamicFormConfig = {
@@ -54,7 +54,7 @@ export const productFormConfig: DynamicFormConfig = {
           required: true,
           columnSpan: 6,
           placeholder: "Choose category",
-          optionsApi: `/categories`,
+          optionsApi: `/categories?all=true&fields=_id,name`,
           creatable: true,
           quickAddModule: "category",
         },
@@ -63,7 +63,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Brand",
           columnSpan: 6,
-          optionsApi: `/brands`,
+          optionsApi: `/brands?all=true&fields=_id,name`,
           placeholder: "Select brand",
           creatable: true,
           quickAddModule: "brand",
@@ -73,7 +73,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Base Unit",
           columnSpan: 6,
-          optionsApi: `/units`,
+          optionsApi: `/units?all=true&fields=_id,name`,
           copyValueTo: ["saleUnit.unitId"],
           placeholder: "Select base unit",
           helperText: "All inventory will be tracked in this unit"
@@ -94,13 +94,14 @@ export const productFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           options: taxTypeOptions,
           placeholder: "Select",
+          defaultValue: "inclusive",
         },
         {
           name: "taxId",
           type: "select",
           label: "Tax",
           columnSpan: 6,
-          optionsApi: '/taxes',
+          optionsApi: '/taxes?all=true&fields=_id,name,rate',
           placeholder: "Select",
         },
         {
@@ -154,7 +155,7 @@ export const productFormConfig: DynamicFormConfig = {
         // Single product fields - conditional (not required when variable product)
         {
           name: "price",
-          type: "number",
+          type: "custom",
           zodType: "number",
           label: "Price",
 
@@ -162,6 +163,7 @@ export const productFormConfig: DynamicFormConfig = {
           placeholder: "0.00",
           validation: { min: 0, max: 999999 },
           step: 1,
+          customComponent: PriceFieldWithUnit,
           dependsOn: {
             field: "productType",
             value: "single",
@@ -191,6 +193,12 @@ export const productFormConfig: DynamicFormConfig = {
       description: "Configure different units for purchase and sale (e.g., buy in boxes, sell in pieces)",
       collapsible: true,
       defaultOpen: false,
+      dependsOn: {
+        field: "productType",
+        value: "single",
+        condition: "eq",
+        action: "show",
+      },
       // featureFlag: "uomConversion", // Uncomment when feature flag system is ready
       fields: [
         {
@@ -198,15 +206,15 @@ export const productFormConfig: DynamicFormConfig = {
           type: "checkbox",
           label: "Enable UOM Conversion",
           columnSpan: 12,
-          defaultValue: true,
-          helperText: "Allow different units for purchase and sale"
+          defaultValue: false,
+          helperText: "Allow different units for purchase and sale",
         },
         {
           name: "purchaseUnit.unitId",
           type: "select",
           label: "Purchase Unit",
           columnSpan: 6,
-          optionsApi: `/units?all=true`, // Fetch all units for selection
+          optionsApi: `/units?all=true&fields=_id,name`, // Fetch all units for selection
           placeholder: "Select purchase unit",
           helperText: "Unit used when purchasing (e.g., Box)",
           dependsOn: {
@@ -238,7 +246,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Sale Unit",
           columnSpan: 6,
-          optionsApi: `/units?all=true`, // Fetch all units for selection
+          optionsApi: `/units?all=true&fields=_id,name`, // Fetch all units for selection
           placeholder: "Select sale unit",
           helperText: "Unit used when selling (e.g., Piece)",
           dependsOn: {
