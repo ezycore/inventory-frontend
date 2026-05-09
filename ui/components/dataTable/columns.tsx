@@ -76,7 +76,7 @@ export function useEnhancedColumns<TData, TValue>({
     }
     
     // Add actions column (only if there are actual action buttons to show)
-    const hasActions = actions && (actions.viewable || actions.editable || actions.deletable);
+    const hasActions = (actions && (actions.viewable || actions.editable || actions.deletable)) || (customActions && customActions.length > 0);
     if (hasActions && !cols.some((col: any) => col.id === "actions")) {
       cols.push({
         id: "actions",
@@ -85,7 +85,7 @@ export function useEnhancedColumns<TData, TValue>({
           const rowData = row.original;
           return (
             <div className="flex items-center gap-2">
-              {actions.viewable && (
+              {actions?.viewable && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -99,7 +99,7 @@ export function useEnhancedColumns<TData, TValue>({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {typeof actions.viewable === "object" && actions.viewable.tooltip
+                      {typeof actions?.viewable === "object" && actions?.viewable?.tooltip
                         ? actions.viewable.tooltip
                         : "View details"}
                     </TooltipContent>
@@ -110,7 +110,7 @@ export function useEnhancedColumns<TData, TValue>({
               {(() => {
                 const customEdit = customActions?.find(a => a.type === 'edit');
         
-                return (actions.editable || customEdit) ? (
+                return (actions?.editable || customEdit) ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -124,7 +124,7 @@ export function useEnhancedColumns<TData, TValue>({
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {typeof actions.editable === "object" && actions.editable.tooltip
+                        {typeof actions?.editable === "object" && actions?.editable?.tooltip
                           ? actions.editable.tooltip
                           : customEdit?.tooltip || "Edit"}
                       </TooltipContent>
@@ -133,7 +133,7 @@ export function useEnhancedColumns<TData, TValue>({
                 ) : null;
               })()}
               
-              {actions.deletable && (
+              {actions?.deletable && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -147,7 +147,7 @@ export function useEnhancedColumns<TData, TValue>({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {typeof actions.deletable === "object" && actions.deletable.tooltip
+                      {typeof actions?.deletable === "object" && actions?.deletable?.tooltip
                         ? actions.deletable.tooltip
                         : "Delete"}
                     </TooltipContent>
@@ -155,7 +155,7 @@ export function useEnhancedColumns<TData, TValue>({
                 </TooltipProvider>
               )}
               
-              {actions.custom?.map((action, index) => (
+              {actions?.custom?.map((action, index) => (
                 <TooltipProvider key={index}>
                   <Tooltip>
                     <TooltipTrigger asChild>

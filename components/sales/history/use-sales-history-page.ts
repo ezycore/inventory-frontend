@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -9,10 +9,11 @@ import {
   useAddSalePayment,
   useAccounts,
   useSalesSummary,
+  useSaleReturns,
 } from '@/services/api';
 import { useAuthStore } from '@/services/stores/use-auth-store';
 import { useCurrency } from '@/lib/currency';
-import type { Sale, Payment, SaleFilters, AddPaymentDto } from '@/types';
+import type { Sale, Payment, SaleFilters, AddPaymentDto, SalesReturn } from '@/types';
 import type { FilterField } from '@/types/filter';
 
 import { getSalesHistoryColumns, getSalesHistoryActions } from './columns';
@@ -32,8 +33,9 @@ export function useSalesHistoryPage() {
 
   // ── Modal state ───────────────────────────────────────────────
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-  const [paymentsDrawerOpen, setPaymentsDrawerOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<'summary' | 'payment'>('summary');
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   // ── Payment form state ────────────────────────────────────────
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -46,6 +48,9 @@ export function useSalesHistoryPage() {
   const { data: paymentsData, isLoading: isLoadingPayments } = useSalePayments(
     selectedSale?._id || '',
   );
+  const { data: saleReturnsData, isLoading: isLoadingReturns } = useSaleReturns(
+    selectedSale?._id || '',
+  );
   const { data: accountsData } = useAccounts();
   const { data: summaryData, isLoading: isSummaryLoading } = useSalesSummary();
   const addPaymentMutation = useAddSalePayment();
@@ -53,6 +58,7 @@ export function useSalesHistoryPage() {
   // ── Derived data ──────────────────────────────────────────────
   const sales: Sale[] = salesData?.data?.items || [];
   const payments: Payment[] = paymentsData?.data || [];
+  const saleReturns: SalesReturn[] = (saleReturnsData as any)?.data?.returns || [];
   const accounts = accountsData?.items || [];
   const summary = summaryData?.data;
 
@@ -64,18 +70,20 @@ export function useSalesHistoryPage() {
 
   // ── Handlers ──────────────────────────────────────────────────
 
-  const handleViewPayments = useCallback((sale: Sale) => {
+  const handleViewSummary = useCallback((sale: Sale) => {
     setSelectedSale(sale);
-    setPaymentsDrawerOpen(true);
+    setDrawerMode('summary');
+    setDrawerOpen(true);
   }, []);
 
   const handleMakePayment = useCallback((sale: Sale) => {
     setSelectedSale(sale);
+    setDrawerMode('payment');
     setPaymentAmount(sale.dueAmount.toFixed(2));
     setPaymentAccountId('');
     setPaymentMethod('cash');
     setPaymentNotes('');
-    setPaymentDialogOpen(true);
+    setDrawerOpen(true);
   }, []);
 
   const handlePaymentSubmit = useCallback(async () => {
@@ -93,14 +101,19 @@ export function useSalesHistoryPage() {
       return;
     }
     try {
-      await addPaymentMutation.mutateAsync({
+      const response = await addPaymentMutation.mutateAsync({
         saleId: selectedSale._id,
         amount,
         accountId: paymentAccountId,
         paymentMethod: paymentMethod as AddPaymentDto['paymentMethod'],
         notes: paymentNotes || undefined,
       });
-      setPaymentDialogOpen(false);
+      if (response.data?.sale) {
+        setSelectedSale(response.data.sale);
+      }
+      setDrawerMode('summary');
+      setPaymentAmount('');
+      toast.success('Payment recorded successfully');
       refetch();
     } catch {
       // Handled by mutation's onError
@@ -121,7 +134,7 @@ export function useSalesHistoryPage() {
           options: [
             { label: 'Paid', value: 'paid' },
             { label: 'Partial', value: 'partial' },
-            { label: 'Draft', value: 'draft' },
+            { label: 'Due', value: 'due' },
             { label: 'Cancelled', value: 'cancelled' },
           ],
         },
@@ -146,13 +159,13 @@ export function useSalesHistoryPage() {
 
   // ── Table columns & actions (memoised) ────────────────────────
   const columns = useMemo(
-    () => getSalesHistoryColumns(formatCurrency, isAccountsEnabled, handleViewPayments, handleMakePayment),
-    [formatCurrency, isAccountsEnabled, handleViewPayments, handleMakePayment],
+    () => getSalesHistoryColumns(formatCurrency, isAccountsEnabled, handleViewSummary, handleMakePayment),
+    [formatCurrency, isAccountsEnabled, handleViewSummary, handleMakePayment],
   );
 
   const customActions = useMemo(
-    () => getSalesHistoryActions(isAccountsEnabled, handleViewPayments, handleMakePayment),
-    [isAccountsEnabled, handleViewPayments, handleMakePayment],
+    () => getSalesHistoryActions(isAccountsEnabled, handleViewSummary, handleMakePayment),
+    [isAccountsEnabled, handleViewSummary, handleMakePayment],
   );
 
   // ── Public API ────────────────────────────────────────────────
@@ -177,14 +190,19 @@ export function useSalesHistoryPage() {
     summary,
     isSummaryLoading,
 
-    // payments drawer
+    // drawer
     selectedSale,
+    drawerOpen,
+    setDrawerOpen,
+    drawerMode,
+    setDrawerMode,
+    drawerRef,
     payments,
     isLoadingPayments,
-    paymentsDrawerOpen,
-    setPaymentsDrawerOpen,
+    saleReturns,
+    isLoadingReturns,
 
-    // payment dialog
+    // payment form
     accounts,
     paymentAmount,
     setPaymentAmount,
@@ -194,12 +212,10 @@ export function useSalesHistoryPage() {
     setPaymentMethod,
     paymentNotes,
     setPaymentNotes,
-    paymentDialogOpen,
-    setPaymentDialogOpen,
     isSubmittingPayment: addPaymentMutation.isPending,
 
     // handlers
-    handleViewPayments,
+    handleViewSummary,
     handleMakePayment,
     handlePaymentSubmit,
   } as const;

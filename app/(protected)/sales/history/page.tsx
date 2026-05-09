@@ -10,13 +10,11 @@ import {
   useSalesHistoryPage,
   SummaryCards,
   PaymentsDrawer,
-  PaymentDialog,
 } from '@/components/sales/history';
 
 export default function SalesHistoryPage() {
   const router = useRouter();
   const ctx = useSalesHistoryPage();
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -75,25 +73,17 @@ export default function SalesHistoryPage() {
         </CardContent>
       </Card>
 
-      {/* View Payments Drawer */}
+      {/* Sale Details & Payment Drawer */}
       <PaymentsDrawer
-        open={ctx.paymentsDrawerOpen}
-        onOpenChange={ctx.setPaymentsDrawerOpen}
+        open={ctx.drawerOpen}
+        onOpenChange={ctx.setDrawerOpen}
         sale={ctx.selectedSale}
         payments={ctx.payments}
         isLoadingPayments={ctx.isLoadingPayments}
         isAccountsEnabled={ctx.isAccountsEnabled}
         formatCurrency={ctx.formatCurrency}
-        onMakePayment={ctx.handleMakePayment}
-      />
-
-      {/* Make Payment Dialog */}
-      <PaymentDialog
-        open={ctx.paymentDialogOpen}
-        onOpenChange={ctx.setPaymentDialogOpen}
-        sale={ctx.selectedSale}
+        mode={ctx.drawerMode}
         accounts={ctx.accounts}
-        formatCurrency={ctx.formatCurrency}
         paymentAmount={ctx.paymentAmount}
         setPaymentAmount={ctx.setPaymentAmount}
         paymentAccountId={ctx.paymentAccountId}
@@ -102,8 +92,12 @@ export default function SalesHistoryPage() {
         setPaymentMethod={ctx.setPaymentMethod}
         paymentNotes={ctx.paymentNotes}
         setPaymentNotes={ctx.setPaymentNotes}
-        isSubmitting={ctx.isSubmittingPayment}
-        onSubmit={ctx.handlePaymentSubmit}
+        isSubmittingPayment={ctx.isSubmittingPayment}
+        onMakePayment={ctx.handleMakePayment}
+        onSubmitPayment={ctx.handlePaymentSubmit}
+        drawerRef={ctx.drawerRef}
+        saleReturns={ctx.saleReturns}
+        isLoadingReturns={ctx.isLoadingReturns}
       />
     </div>
   );

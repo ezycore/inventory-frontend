@@ -1192,7 +1192,6 @@ export interface CreateSalesOrderItemDto {
 
 export interface CreateSalesOrderDto {
   customerId?: string | null;
-  locationId: string;
   items: CreateSalesOrderItemDto[];
   status?: SalesOrderStatus;
   invoiceNumber?: string;

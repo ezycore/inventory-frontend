@@ -1,8 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Receipt, CreditCard } from 'lucide-react';
+import { Eye, CreditCard, Copy } from 'lucide-react';
 import { Badge } from '@/ui/components/badge';
+import { Button } from '@/ui/components/button';
 import { DateCell } from '@/ui/components/dataTable/cells/date-cell';
 import type { Sale, SaleStatus } from '@/types';
+import { toast } from 'sonner';
 
 // ── Status config ───────────────────────────────────────────────────
 
@@ -30,9 +32,23 @@ export function getSalesHistoryColumns(
       accessorKey: 'invoiceNumber',
       header: 'Invoice #',
       cell: ({ row }) => (
-        <span className="font-mono font-medium">
-          {row.original.invoiceNumber}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono font-medium">
+            {row.original.invoiceNumber}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => {
+              navigator.clipboard.writeText(row.original.invoiceNumber);
+              toast.success('Invoice number copied');
+            }}
+            title="Copy invoice number"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       ),
     },
     {
@@ -118,17 +134,17 @@ export function getSalesHistoryColumns(
 
 export function getSalesHistoryActions(
   isAccountsEnabled: boolean,
-  onViewPayments: (sale: Sale) => void,
+  onViewSummary: (sale: Sale) => void,
   onMakePayment: (sale: Sale) => void,
 ) {
   return [
     {
       type: 'custom' as const,
       placement: 'cell' as const,
-      icon: <Receipt className="h-4 w-4" />,
-      label: 'View Payments',
-      tooltip: 'View payment history',
-      onClick: (row: Sale) => onViewPayments(row),
+      icon: <Eye className="h-4 w-4" />,
+      label: 'Summary',
+      tooltip: 'View sale summary and items',
+      onClick: (row: Sale) => onViewSummary(row),
     },
     ...(isAccountsEnabled
       ? [
@@ -136,8 +152,8 @@ export function getSalesHistoryActions(
             type: 'custom' as const,
             placement: 'cell' as const,
             icon: <CreditCard className="h-4 w-4" />,
-            label: 'Make Payment',
-            tooltip: 'Add payment for this sale',
+            label: 'Payment',
+            tooltip: 'Record payment',
             onClick: (row: Sale) => onMakePayment(row),
             disabled: (row: Sale) =>
               row.dueAmount <= 0 || row.status === 'cancelled',

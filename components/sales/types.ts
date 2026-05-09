@@ -78,6 +78,7 @@ export interface OrderItem {
   discount: number;
   productName: string;
   unitName?: string | null;
+  saleUnitName?: string | null;
 }
 
 export interface OrderPayment {
@@ -87,7 +88,6 @@ export interface OrderPayment {
 
 export interface CreateSalesOrderData {
   customerId?: string;
-  locationId: string;
   items: OrderItem[];
   additionalDiscount: number;
   totalPrice: number;

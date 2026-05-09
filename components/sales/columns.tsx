@@ -72,7 +72,7 @@ export const getSalesColumns = (
         <div className="min-w-[100px]">
           <span className="font-medium text-sm">{row.original.productName}</span>
           <div className="text-xs text-muted-foreground">
-            Available: {row.original.availableQuantity}
+            Available: {row.original.availableQuantity} {row.original.unitName || "units"}
           </div>
         </div>
       ),
