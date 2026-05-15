@@ -29,6 +29,7 @@ import {
   SummaryCards,
   ReturnItemRow,
   RefundAllocationCard,
+  ReturnDetailsSheet,
   RETURN_REASONS,
 } from '@/components/sales/returns';
 
@@ -304,6 +305,14 @@ export default function SalesReturnsPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Return Details Sheet */}
+      <ReturnDetailsSheet
+        open={ctx.detailsSheetOpen}
+        onOpenChange={ctx.setDetailsSheetOpen}
+        salesReturn={ctx.selectedReturn}
+        formatCurrency={ctx.formatCurrency}
+      />
     </div>
   );
 }

@@ -1,5 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 import { Badge } from '@/ui/components/badge';
+import { Button } from '@/ui/components/button';
 import { DateCell } from '@/ui/components/dataTable/cells/date-cell';
 import type { SalesReturn } from '@/types';
 
@@ -33,6 +35,7 @@ export function getStatusBadge(status: string) {
 export function getReturnsColumns(
   formatCurrency: (n: number) => string,
   _isAccountsEnabled: boolean,
+  onViewDetails?: (ret: SalesReturn) => void,
 ): ColumnDef<SalesReturn>[] {
   return [
     {
@@ -108,5 +111,24 @@ export function getReturnsColumns(
       header: 'Status',
       cell: ({ row }) => getStatusBadge(row.original.status),
     },
+    ...(onViewDetails
+      ? [
+          {
+            id: 'actions',
+            header: '',
+            cell: ({ row }: { row: { original: SalesReturn } }) => (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                title="View Details"
+                onClick={() => onViewDetails(row.original)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            ),
+          } satisfies ColumnDef<SalesReturn>,
+        ]
+      : []),
   ];
 }

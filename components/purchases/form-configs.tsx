@@ -83,7 +83,15 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       placeholder: "Select product",
       labelInValue: true,
       itemsCreateCallback: productItemsCreateCallback,
-      columnSpan: 6,
+      columnSpan: 4,
+    },
+    {
+      name: "stock",
+      label: "Stock",
+      type: "input",
+      disabled: true,
+      placeholder: "1",
+      columnSpan: 4,
     },
     {
       name: "quantity",
@@ -91,7 +99,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       type: "number",
       required: true,
       placeholder: "1",
-      columnSpan: 3,
+      columnSpan: 4,
       validation: { min: 1 },
       suffix: (values: any) =>
         values?.productId?.purchaseUnitName ||
@@ -100,33 +108,11 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
     },
   ];
 
-  // Add UOM converted quantity field if enabled
-  if (isUOMEnabled) {
-    fields.push({
-      name: "convertedQuantity",
-      label: "Stock Quantity",
-      type: "number",
-      required: false,
-      disabled: true,
-      columnSpan: 3,
-      suffix: (values: any) => values?.productId?.unitName || "",
-      helperText: (values: any) => {
-        const factor = values?.productId?.conversionFactor;
-        const baseUnit = values?.productId?.unitName;
-        const purchaseUnit = values?.productId?.purchaseUnitName;
-        if (factor && baseUnit && purchaseUnit) {
-          return `1 ${purchaseUnit} = ${factor} ${baseUnit}`;
-        }
-        return "Qty × Conversion Factor";
-      },
-    });
-  }
-
   // Add pricing fields
   fields.push(
     {
       name: "price",
-      label: "Total Price",
+      label: "Price",
       type: "number",
       required: true,
       placeholder: "0",

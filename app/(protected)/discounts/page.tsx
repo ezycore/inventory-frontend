@@ -81,9 +81,10 @@ const discountFormConfig: DynamicFormConfig = {
       label: "Type",
       required: true,
       columnSpan: 6,
+      defaultValue: "percentage",
       options: [
         { value: "percentage", label: "Percentage" },
-        { value: "fixed", label: "Fixed Amount" },
+        // { value: "fixed", label: "Fixed Amount" },
       ],
     },
     {

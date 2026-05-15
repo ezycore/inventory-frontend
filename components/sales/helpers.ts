@@ -45,6 +45,7 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     unitName: item.unitName ?? null,
     saleUnitName: item.saleUnitName ?? null,
     purchaseUnitName: (item as any).purchaseUnitName ?? null,
+    quantityAlert: item.quantityAlert,
   })) as SelectOption[];
 };
 
@@ -80,6 +81,8 @@ export const extractProductValue = (val: any): ExtractedProduct | null => {
       conversionFactor: (val as any).conversionFactor ?? 1,
       unitName: (val as any).unitName ?? null,
       saleUnitName: (val as any).saleUnitName ?? null,
+      purchaseUnitName: (val as any).purchaseUnitName ?? null,
+      quantityAlert: (val as any).quantityAlert ?? 0,
     };
   }
   return null;

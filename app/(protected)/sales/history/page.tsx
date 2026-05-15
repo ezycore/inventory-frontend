@@ -88,8 +88,6 @@ export default function SalesHistoryPage() {
         setPaymentAmount={ctx.setPaymentAmount}
         paymentAccountId={ctx.paymentAccountId}
         setPaymentAccountId={ctx.setPaymentAccountId}
-        paymentMethod={ctx.paymentMethod}
-        setPaymentMethod={ctx.setPaymentMethod}
         paymentNotes={ctx.paymentNotes}
         setPaymentNotes={ctx.setPaymentNotes}
         isSubmittingPayment={ctx.isSubmittingPayment}

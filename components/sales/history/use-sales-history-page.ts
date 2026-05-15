@@ -40,7 +40,6 @@ export function useSalesHistoryPage() {
   // ── Payment form state ────────────────────────────────────────
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentAccountId, setPaymentAccountId] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paymentNotes, setPaymentNotes] = useState('');
 
   // ── API queries ───────────────────────────────────────────────
@@ -81,7 +80,6 @@ export function useSalesHistoryPage() {
     setDrawerMode('payment');
     setPaymentAmount(sale.dueAmount.toFixed(2));
     setPaymentAccountId('');
-    setPaymentMethod('cash');
     setPaymentNotes('');
     setDrawerOpen(true);
   }, []);
@@ -105,7 +103,6 @@ export function useSalesHistoryPage() {
         saleId: selectedSale._id,
         amount,
         accountId: paymentAccountId,
-        paymentMethod: paymentMethod as AddPaymentDto['paymentMethod'],
         notes: paymentNotes || undefined,
       });
       if (response.data?.sale) {
@@ -120,7 +117,7 @@ export function useSalesHistoryPage() {
     }
   }, [
     selectedSale, paymentAmount, paymentAccountId,
-    paymentMethod, paymentNotes, addPaymentMutation, refetch,
+    paymentNotes, addPaymentMutation, refetch,
   ]);
 
   // ── Filter config ─────────────────────────────────────────────
@@ -208,8 +205,6 @@ export function useSalesHistoryPage() {
     setPaymentAmount,
     paymentAccountId,
     setPaymentAccountId,
-    paymentMethod,
-    setPaymentMethod,
     paymentNotes,
     setPaymentNotes,
     isSubmittingPayment: addPaymentMutation.isPending,

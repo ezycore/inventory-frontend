@@ -24,7 +24,8 @@ export const getPurchaseColumns = (
     {
       accessorKey: "quantity",
       header: "Qty",
-      cell: ({ row }) => (
+      cell: ({ row }) => {
+        return (
         <span className="text-sm tabular-nums">
           {row.original.quantity}
           {row.original.purchaseUnitName || row.original.unitName ? (
@@ -33,30 +34,10 @@ export const getPurchaseColumns = (
             </span>
           ) : null}
         </span>
-      ),
+      )
+      },
     },
   ];
-
-  // Add UOM column if enabled
-  if (isUOMEnabled) {
-    columns.push({
-      accessorKey: "convertedQuantity",
-      header: "Stock Qty",
-      cell: ({ row }) => {
-        const item = row.original;
-        return (
-          <span className="text-sm tabular-nums">
-            {item.convertedQuantity ? item.convertedQuantity.toFixed(2) : "-"}
-            {item.unitName ? (
-              <span className="ml-1 text-xs text-muted-foreground">
-                {item.unitName}
-              </span>
-            ) : null}
-          </span>
-        );
-      },
-    });
-  }
 
   columns.push(
     {

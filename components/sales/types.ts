@@ -25,6 +25,7 @@ export interface ProductApiItem {
   unitName?: string | null;
   saleUnitName?: string | null;
   purchaseUnitName?: string | null;
+  quantityAlert: number;
 }
 
 export interface AccountApiItem {
@@ -67,6 +68,8 @@ export interface ExtractedProduct {
   conversionFactor?: number;
   unitName?: string | null;
   saleUnitName?: string | null;
+  purchaseUnitName?: string | null;
+  quantityAlert: number;
 }
 export interface OrderItem {
   productId: string;

@@ -51,8 +51,6 @@ interface PaymentsDrawerProps {
   setPaymentAmount: (value: string) => void;
   paymentAccountId: string;
   setPaymentAccountId: (value: string) => void;
-  paymentMethod: string;
-  setPaymentMethod: (value: string) => void;
   paymentNotes: string;
   setPaymentNotes: (value: string) => void;
   isSubmittingPayment: boolean;
@@ -88,8 +86,6 @@ export function PaymentsDrawer({
   setPaymentAmount,
   paymentAccountId,
   setPaymentAccountId,
-  paymentMethod,
-  setPaymentMethod,
   paymentNotes,
   setPaymentNotes,
   isSubmittingPayment,
@@ -167,22 +163,6 @@ export function PaymentsDrawer({
                               {account.type ? ` (${account.type})` : ''}
                             </SelectItem>
                           ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="pay-method">Payment Method</Label>
-                      <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                        <SelectTrigger id="pay-method">
-                          <SelectValue placeholder="Select method" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="card">Card</SelectItem>
-                          <SelectItem value="bank">Bank Transfer</SelectItem>
-                          <SelectItem value="mfs">Mobile Banking</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -333,7 +313,7 @@ export function PaymentsDrawer({
                         <div className="grid gap-2 sm:grid-cols-3">
                           {renderField(
                             'Reason',
-                            ret.reason.replace(/_/g, ' '),
+                            <span className="capitalize">{ret.reason.replace(/_/g, ' ')}</span>,
                           )}
                           {renderField(
                             'Items',
@@ -346,6 +326,31 @@ export function PaymentsDrawer({
                             </span>,
                           )}
                         </div>
+
+                        {/* Item-level breakdown */}
+                        {ret.items.length > 0 && (
+                          <div className="mt-2 rounded-md bg-muted/50 p-2 space-y-1">
+                            <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                              Returned Items
+                            </div>
+                            {ret.items.map((item, idx) => (
+                              <div
+                                key={`${item.productId}-${idx}`}
+                                className="flex items-center justify-between text-xs py-1.5 border-b last:border-0 border-muted"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <span className="font-medium truncate block">{item.productName}</span>
+                                </div>
+                                <div className="flex items-center gap-3 ml-2 shrink-0 text-muted-foreground">
+                                  <span>Qty: <span className="text-foreground font-medium">{item.quantity}</span></span>
+                                  <span>@ {formatCurrency(item.price)}</span>
+                                  <span className="text-red-600 font-medium">-{formatCurrency(item.refundAmount)}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
                         {ret.notes && (
                           <p className="text-xs text-muted-foreground">{ret.notes}</p>
                         )}
