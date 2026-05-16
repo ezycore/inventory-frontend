@@ -266,6 +266,7 @@ export interface DataTableProps<TData, TValue = any> {
   selectable?: boolean;
   searchConfig?: DataTableSearchConfig;
   enableSorting?: boolean;
+  fullColumns?: ColumnDef<TData, TValue>[];
   /** Server-side sorting configuration. When provided, sorting clicks on column headers trigger backend requests instead of client-side sorting */
   sortingConfig?: SortingConfig;
   defaultColumnVisibility?: VisibilityState;
@@ -311,6 +312,8 @@ export interface BaseDataTableProps<TData, TValue = any> {
   data: TData[];
   columns: ColumnDef<TData, TValue>[];
   isLoading: boolean;
+  /** True when refetching with existing data (sort/filter/page change) — shows overlay instead of replacing rows */
+  isFetching?: boolean;
   pagination?: DataTablePagination;
   filterConfig?: FilterConfig;
   actions?: DataTableAction;

@@ -16,16 +16,8 @@ import { BaseDataCard } from "./base-data-card";
 export function DataCard<TData extends { _id: string }, TValue = any>(
   props: DataCardProps<TData, TValue>,
 ) {
-  const {
-    cardTitle,
-    defaultPageSize,
-    pageSizes,
-    filterConfig,
-    toolbarAction,
-    data: externalData,
-    customActions,
-    module,
-    loading = false,
+  const { cardTitle, defaultPageSize, pageSizes, filterConfig, toolbarAction, data: externalData, customActions,
+    module, loading = false,
     // Sorting config
     sortingConfig,
     // Card layout props
@@ -162,7 +154,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
         hasPrev: false,
         manualPagination: false, // Client-side pagination
         pageSizeOptions: pageOptions,
-        onPaginationChange: () => {}, // Handled internally by BaseDataCard
+        onPaginationChange: () => { }, // Handled internally by BaseDataCard
       };
     }
 
@@ -247,24 +239,24 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     ...(!deleteMutation
       ? {}
       : {
-          deletable: deleteTooltip
-            ? { tooltip: deleteTooltip }
-            : { tooltip: `Delete ${entityName}` },
-        }),
+        deletable: deleteTooltip
+          ? { tooltip: deleteTooltip }
+          : { tooltip: `Delete ${entityName}` },
+      }),
     ...(!isViewAvailable
       ? {}
       : {
-          viewable: viewTooltip
-            ? { tooltip: viewTooltip }
-            : { tooltip: `View ${entityName}` },
-        }),
+        viewable: viewTooltip
+          ? { tooltip: viewTooltip }
+          : { tooltip: `View ${entityName}` },
+      }),
     ...(!updateMutation
       ? {}
       : {
-          editable: editTooltip
-            ? { tooltip: editTooltip }
-            : { tooltip: `Edit ${entityName}` },
-        }),
+        editable: editTooltip
+          ? { tooltip: editTooltip }
+          : { tooltip: `Edit ${entityName}` },
+      }),
   };
 
   // Merge toolbar action
@@ -273,11 +265,11 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     (!createMutation
       ? undefined
       : {
-          label: `Add ${entityName}`,
-          icon: <Plus className="h-4 w-4" />,
-          onClick: handleAdd,
-          variant: "default" as const,
-        });
+        label: `Add ${entityName}`,
+        icon: <Plus className="h-4 w-4" />,
+        onClick: handleAdd,
+        variant: "default" as const,
+      });
 
   return (
     <Card className="border-none shadow-none py-0 gap-3 bg-transparent">
