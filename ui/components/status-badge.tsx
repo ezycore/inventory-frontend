@@ -86,7 +86,7 @@ function StatusBadge({ className, status, size, ...props }: StatusBadgeProps) {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
-
+  
   return (
     <div 
       className={cn(statusBadgeVariants({ status, size }), className)} 

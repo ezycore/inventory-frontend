@@ -6,7 +6,7 @@ import { queryKeys } from "@/services/api/query-keys";
 const categoriesHooks = createResourceHooks<Category, CreateCategoryDto>(
   categoriesApi,
   queryKeys.categories,
-  { relatedQueryKeys: [queryKeys.products.all()] },
+  { relatedQueryKeys: [queryKeys.products.all(), ["select-options", "/categories?all=true&fields=_id,name"]] },
 );
 
 export const useCategories = categoriesHooks.useList;

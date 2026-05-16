@@ -6,6 +6,7 @@ import {
 } from './product-form-options'
 import VariantManager from './variant-manager'
 import PriceFieldWithUnit from './price-field-with-unit'
+import { NumberInput } from '@/ui/components/numberInput'
 
 // Export as constant instead of function to prevent recreation on every render
 export const productFormConfig: DynamicFormConfig = {
@@ -73,7 +74,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Base Unit",
           columnSpan: 6,
-          optionsApi: `/units?all=true&fields=_id,name`,
+          optionsApi: `/units?all=true&fields=_id,name,shortName`,
           copyValueTo: ["saleUnit.unitId"],
           placeholder: "Select base unit",
           helperText: "All inventory will be tracked in this unit"
@@ -162,7 +163,7 @@ export const productFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "0.00",
           validation: { min: 0, max: 999999 },
-          step: 1,
+          // step: 1,
           customComponent: PriceFieldWithUnit,
           dependsOn: {
             field: "productType",
@@ -214,7 +215,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Purchase Unit",
           columnSpan: 6,
-          optionsApi: `/units?all=true&fields=_id,name`, // Fetch all units for selection
+          optionsApi: `/units?all=true&fields=_id,name,shortName`, // Fetch all units for selection
           placeholder: "Select purchase unit",
           helperText: "Unit used when purchasing (e.g., Box)",
           dependsOn: {
@@ -226,13 +227,13 @@ export const productFormConfig: DynamicFormConfig = {
         },
         {
           name: "purchaseUnit.conversionFactor",
-          type: "number",
+          type: "custom",
+          zodType: "number",
           label: "Purchase Conversion Factor",
           columnSpan: 4,
           placeholder: "e.g., 100",
           defaultValue: 1,
-          validation: { min: 0.0001 },
-          step: 0.01,
+          customComponent: NumberInput,
           helperText: "How many base units in 1 purchase unit",
           dependsOn: {
             field: "enableUOMConversion",
@@ -241,38 +242,38 @@ export const productFormConfig: DynamicFormConfig = {
             action: "show"
           }
         },
-        {
-          name: "saleUnit.unitId",
-          type: "select",
-          label: "Sale Unit",
-          columnSpan: 6,
-          optionsApi: `/units?all=true&fields=_id,name`, // Fetch all units for selection
-          placeholder: "Select sale unit",
-          helperText: "Unit used when selling (e.g., Piece)",
-          dependsOn: {
-            field: "enableUOMConversion",
-            value: true,
-            condition: "eq",
-            action: "show"
-          },
-        },
-        {
-          name: "saleUnit.conversionFactor",
-          type: "number",
-          label: "Sale Conversion Factor",
-          columnSpan: 4,
-          placeholder: "e.g., 1",
-          defaultValue: 1,
-          validation: { min: 0.0001 },
-          step: 0.01,
-          helperText: "How many base units in 1 sale unit",
-          dependsOn: {
-            field: "enableUOMConversion",
-            value: true,
-            condition: "eq",
-            action: "show"
-          }
-        }
+        // {
+        //   name: "saleUnit.unitId",
+        //   type: "select",
+        //   label: "Sale Unit",
+        //   columnSpan: 6,
+        //   optionsApi: `/units?all=true&fields=_id,name`, // Fetch all units for selection
+        //   placeholder: "Select sale unit",
+        //   helperText: "Unit used when selling (e.g., Piece)",
+        //   dependsOn: {
+        //     field: "enableUOMConversion",
+        //     value: true,
+        //     condition: "eq",
+        //     action: "show"
+        //   },
+        // },
+        // {
+        //   name: "saleUnit.conversionFactor",
+        //   type: "number",
+        //   label: "Sale Conversion Factor",
+        //   columnSpan: 4,
+        //   placeholder: "e.g., 1",
+        //   defaultValue: 1,
+        //   validation: { min: 0.0001 },
+        //   step: 0.01,
+        //   helperText: "How many base units in 1 sale unit",
+        //   dependsOn: {
+        //     field: "enableUOMConversion",
+        //     value: true,
+        //     condition: "eq",
+        //     action: "show"
+        //   }
+        // }
       ]
     },
     {

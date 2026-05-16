@@ -6,6 +6,7 @@ export type FormFieldType =
   | "input"
   | "textarea"
   | "select"
+  | "fuseSelect"
   | "radio-group"
   | "checkbox"
   | "switch"

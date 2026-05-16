@@ -98,7 +98,7 @@ export default function VariantManager({
   const createVariantAttribute = useCreateVariantAttribute()
 
   // Unit options for UOM selectors
-  const { data: unitOptions = [] } = useSelectOptions('/units?all=true&fields=_id,name')
+  const { data: unitOptions = [] } = useSelectOptions('/units?all=true&fields=_id,name,shortName')
   const baseUnit = unitOptions.find(
     (opt: any) => opt.value === baseUnitId || (opt as any)._id === baseUnitId,
   )
@@ -373,7 +373,7 @@ export default function VariantManager({
                           handleInlineUpdate(
                             variant.id,
                             'price',
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || ''
                           )
                         }
                         className="h-7 text-sm pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -473,7 +473,7 @@ export default function VariantManager({
                           })
                         }
                       >
-                        <SelectTrigger className="h-9">
+                        <SelectTrigger className="h-9 w-full">
                           <SelectValue placeholder="Select unit" />
                         </SelectTrigger>
                         <SelectContent>
@@ -501,10 +501,10 @@ export default function VariantManager({
                             },
                           })
                         }
-                        className="h-9"
+                        className="h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </div>
-                    <div className="space-y-1">
+                    {/* <div className="space-y-1">
                       <Label className="text-xs">Sale Unit</Label>
                       <Select
                         value={editingVariant.saleUnit?.unitId || ''}
@@ -545,7 +545,7 @@ export default function VariantManager({
                         }
                         className="h-9"
                       />
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>

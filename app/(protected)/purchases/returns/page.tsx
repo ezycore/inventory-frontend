@@ -1,15 +1,14 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import {
   CornerUpLeft,
   FileText,
   Package,
+  Plus,
   Search,
-  Truck,
 } from "lucide-react";
 
-import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
   Card,
@@ -18,8 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/components/card";
-import { Checkbox } from "@/ui/components/checkbox";
-import { CardTable } from "@/ui/components/custom/card-table";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import {
@@ -29,69 +26,101 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/components/select";
-import { Separator } from "@/ui/components/separator";
-import { Skeleton } from "@/ui/components/skeleton";
 import { Textarea } from "@/ui/components/textarea";
+import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
 
 import {
   usePurchaseReturnsPage,
   SummaryCards,
+  ReturnItemRow,
+  RefundAllocationCard,
+  ReturnDetailsSheet,
   RETURN_REASONS,
 } from "@/components/purchases/returns";
 import type { PurchaseReturnReason } from "@/types";
 
 function PurchaseReturnsPageContent() {
-  const h = usePurchaseReturnsPage();
+  const ctx = usePurchaseReturnsPage();
+  const { order, pendingDues, initFromOrder, initFromPendingDues } = ctx;
+
+  const prevOrderRef = useRef(order);
+  const prevDuesRef = useRef(pendingDues);
+
+  useEffect(() => {
+    if (order && order !== prevOrderRef.current) initFromOrder(order);
+    prevOrderRef.current = order;
+  }, [order, initFromOrder]);
+
+  useEffect(() => {
+    if (pendingDues !== prevDuesRef.current && pendingDues.length > 0) {
+      initFromPendingDues(pendingDues);
+    }
+    prevDuesRef.current = pendingDues;
+  }, [pendingDues, initFromPendingDues]);
+
+  const supplierName =
+    (order?.supplierId as { name?: string } | undefined)?.name ||
+    (order as unknown as { supplier?: { name?: string } } | undefined)?.supplier
+      ?.name ||
+    "Unknown Supplier";
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Purchase Returns</h1>
-        <p className="text-muted-foreground">
-          Return items to suppliers and manage refunds
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Purchase Returns</h1>
+          <p className="text-muted-foreground">
+            Manage product returns and refunds
+          </p>
+        </div>
+        <Button onClick={() => ctx.setShowNewReturn(!ctx.showNewReturn)}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Return
+        </Button>
       </div>
 
       {/* Summary Stats */}
       <SummaryCards
-        isSummaryLoading={h.isSummaryLoading}
-        summary={h.summary}
-        formatCurrency={h.formatCurrency}
+        isSummaryLoading={ctx.isSummaryLoading}
+        summary={ctx.summary}
+        formatCurrency={ctx.formatCurrency}
       />
 
-      {/* Search Section */}
+      {/* Search Order */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
+            <Search className="h-5 w-5 text-primary" />
             Find Purchase Order
           </CardTitle>
           <CardDescription>
-            Search by order ID or order number to initiate a return
+            Enter an order ID or order number to process a return
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form
-            onSubmit={h.searchForm.handleSubmit(h.handleSearch)}
+            onSubmit={ctx.searchForm.handleSubmit(ctx.handleSearch)}
             className="flex gap-4"
           >
             <div className="flex-1">
               <Input
-                {...h.searchForm.register("orderId")}
                 placeholder="Enter order ID or order number..."
-                className="w-full"
+                {...ctx.searchForm.register("orderId")}
               />
             </div>
-            <Button type="submit" disabled={h.isLoadingOrder}>
+            <Button
+              type="submit"
+              disabled={ctx.isLoadingOrder || !ctx.searchForm.watch("orderId")}
+            >
               <Search className="h-4 w-4 mr-2" />
               Search
             </Button>
-            {h.selectedOrderId && (
+            {ctx.selectedOrderId && (
               <Button
                 type="button"
                 variant="outline"
-                onClick={h.handleClearSearch}
+                onClick={ctx.handleClearSearch}
               >
                 Clear
               </Button>
@@ -101,343 +130,203 @@ function PurchaseReturnsPageContent() {
       </Card>
 
       {/* Order Details & Return Form */}
-      {h.selectedOrderId && (
+      {ctx.order && (
         <>
-          {h.isLoadingOrder ? (
-            <Card>
-              <CardContent className="py-8">
-                <div className="space-y-4">
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-32 w-full" />
-                  <Skeleton className="h-20 w-full" />
-                </div>
-              </CardContent>
-            </Card>
-          ) : h.order ? (
-            <>
-              {/* Order Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Order: {h.order.orderNumber}
-                  </CardTitle>
-                  <CardDescription>
-                    <span className="flex items-center gap-2">
-                      <Truck className="h-4 w-4" />
-                      Supplier: {h.order.supplierId?.name || "Unknown"}
-                    </span>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Total:</span>
-                      <span className="ml-2 font-medium">
-                        {h.formatCurrency(
-                          h.order.grandTotal || h.order.totalAmount || 0,
-                        )}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Paid:</span>
-                      <span className="ml-2 font-medium text-green-600">
-                        {h.formatCurrency(h.order.paidAmount || 0)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Due:</span>
-                      <span
-                        className={`ml-2 font-medium ${(h.order.dueAmount || 0) > 0 ? "text-red-600" : ""}`}
-                      >
-                        {h.formatCurrency(h.order.dueAmount || 0)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Status:</span>
-                      <Badge variant="outline" className="ml-2">
-                        {h.order.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Order Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Order: {ctx.order.orderNumber}
+              </CardTitle>
+              <CardDescription>
+                Supplier: {supplierName}
+                {" \u2022 "}Total: {ctx.formatCurrency(ctx.order.invoiceAmount ?? 0)}
+                {" \u2022 "}Paid: {ctx.formatCurrency(ctx.order.paidAmount ?? 0)}
+                {(ctx.order.dueAmount ?? 0) > 0 && (
+                  <span className="text-destructive">
+                    {" \u2022 "}Due: {ctx.formatCurrency(ctx.order.dueAmount ?? 0)}
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+          </Card>
 
-              {/* Items Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Select Items to Return</CardTitle>
-                  <CardDescription>
-                    Choose items and enter return quantities
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <CardTable
-                    columns={h.itemsColumns}
-                    data={h.returnableItems}
+          {/* Items Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-primary" />
+                Select Items to Return
+              </CardTitle>
+              <CardDescription>
+                Choose which items to return to the supplier and specify
+                quantities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {ctx.returnableItems.map((item, index) => (
+                  <ReturnItemRow
+                    key={item.inventoryId ?? item.productId ?? index}
+                    item={item}
+                    index={index}
+                    formatCurrency={ctx.formatCurrency}
+                    onSelect={ctx.handleItemSelect}
+                    onQtyChange={ctx.handleItemQtyChange}
+                    onRefundChange={ctx.handleRefundAmountChange}
                   />
-                </CardContent>
-              </Card>
+                ))}
+              </div>
 
-              {/* Return Details */}
-              {h.totalReturnQty > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Return Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Reason & Notes */}
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Reason for Return</Label>
-                        <Select
-                          value={h.reason}
-                          onValueChange={(v) =>
-                            h.setReason(v as PurchaseReturnReason)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {RETURN_REASONS.map((r) => (
-                              <SelectItem key={r.value} value={r.value}>
-                                {r.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Notes (Optional)</Label>
-                        <Textarea
-                          value={h.notes}
-                          onChange={(e) => h.setNotes(e.target.value)}
-                          placeholder="Additional notes..."
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Refund Allocation (if accounts enabled) */}
-                    {h.isAccountsEnabled && h.totalRefundAmount > 0 && (
-                      <>
-                        <Separator />
-                        <div>
-                          <h4 className="font-medium mb-4">
-                            Refund Allocation
-                          </h4>
-
-                          {/* Adjust current order due */}
-                          {h.orderDueAmount > 0 && (
-                            <div className="rounded-lg border p-4 mb-4">
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <p className="font-medium">
-                                    Adjust This Order&apos;s Due
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Current due:{" "}
-                                    {h.formatCurrency(h.orderDueAmount)}
-                                  </p>
-                                </div>
-                                <span className="font-medium text-blue-600">
-                                  -{h.formatCurrency(h.adjustOrderDueAmount)}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Adjust other dues */}
-                          {h.dueAllocations.length > 0 && (
-                            <div className="space-y-2 mb-4">
-                              <p className="text-sm font-medium">
-                                Adjust Other Dues to This Supplier
-                              </p>
-                              {h.dueAllocations.map((due, index) => (
-                                <div
-                                  key={due.dueId}
-                                  className="flex items-center gap-4 p-3 rounded-lg border"
-                                >
-                                  <Checkbox
-                                    checked={due.selected}
-                                    onCheckedChange={(checked) =>
-                                      h.handleDueAllocationToggle(
-                                        index,
-                                        checked as boolean,
-                                      )
-                                    }
-                                  />
-                                  <div className="flex-1">
-                                    <span className="font-mono text-sm">
-                                      {due.orderNumber}
-                                    </span>
-                                    <span className="text-muted-foreground text-sm ml-2">
-                                      (Due:{" "}
-                                      {h.formatCurrency(due.dueAmount)})
-                                    </span>
-                                  </div>
-                                  <Input
-                                    type="number"
-                                    className="w-28 text-right"
-                                    value={due.allocatedAmount}
-                                    onChange={(e) =>
-                                      h.handleDueAllocationAmountChange(
-                                        index,
-                                        parseFloat(e.target.value) || 0,
-                                      )
-                                    }
-                                    disabled={!due.selected}
-                                    min={0}
-                                    max={due.dueAmount}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Cash refund to account */}
-                          {h.remainingForRefund > 0 && (
-                            <div className="rounded-lg border p-4">
-                              <p className="text-sm font-medium mb-3">
-                                Cash Refund to Account
-                              </p>
-                              <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label>Account</Label>
-                                  <Select
-                                    value={h.selectedAccountId}
-                                    onValueChange={h.setSelectedAccountId}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select account" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {h.accounts.map((acc: any) => (
-                                        <SelectItem
-                                          key={acc._id}
-                                          value={acc._id}
-                                        >
-                                          {acc.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="space-y-2">
-                                  <Label>
-                                    Amount (Max:{" "}
-                                    {h.formatCurrency(h.remainingForRefund)})
-                                  </Label>
-                                  <Input
-                                    type="number"
-                                    value={h.accountRefundAmount}
-                                    onChange={(e) =>
-                                      h.setAccountRefundAmount(
-                                        Math.min(
-                                          parseFloat(e.target.value) || 0,
-                                          h.remainingForRefund,
-                                        ),
-                                      )
-                                    }
-                                    min={0}
-                                    max={h.remainingForRefund}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                    {/* Summary & Submit */}
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">
-                          Returning {h.totalReturnQty} item(s)
-                        </p>
-                        <p className="text-lg font-semibold">
-                          Total Refund:{" "}
-                          {h.formatCurrency(h.totalRefundAmount)}
-                        </p>
-                      </div>
-                      <Button
-                        size="lg"
-                        onClick={h.handleSubmitReturn}
-                        disabled={
-                          h.createReturnMutation.isPending ||
-                          h.totalReturnQty === 0
-                        }
-                      >
-                        {h.createReturnMutation.isPending ? (
-                          "Processing..."
-                        ) : (
-                          <>
-                            <CornerUpLeft className="h-4 w-4 mr-2" />
-                            Submit Return
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              {ctx.totalReturnQty > 0 && (
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                  <div className="flex justify-between text-lg font-medium">
+                    <span>Total Return:</span>
+                    <span>
+                      {ctx.totalReturnQty} items &bull;{" "}
+                      {ctx.formatCurrency(ctx.totalRefundAmount)}
+                    </span>
+                  </div>
+                </div>
               )}
-            </>
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Order not found</p>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
+
+          {/* Return Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CornerUpLeft className="h-5 w-5 text-primary" />
+                Return Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Reason for Return</Label>
+                  <Select
+                    value={ctx.reason}
+                    onValueChange={(v) =>
+                      ctx.setReason(v as PurchaseReturnReason)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RETURN_REASONS.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>
+                          {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label>Notes (Optional)</Label>
+                <Textarea
+                  placeholder="Additional notes about the return..."
+                  value={ctx.notes}
+                  onChange={(e) => ctx.setNotes(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Refund Allocation */}
+          {ctx.isAccountsEnabled && ctx.totalRefundAmount > 0 && (
+            <RefundAllocationCard
+              formatCurrency={ctx.formatCurrency}
+              totalRefundAmount={ctx.totalRefundAmount}
+              orderDueAmount={ctx.orderDueAmount}
+              adjustOrderDueAmount={ctx.adjustOrderDueAmount}
+              hasPendingDues={ctx.pendingDues.length > 0}
+              dueAllocations={ctx.dueAllocations}
+              onDueToggle={ctx.handleDueAllocationToggle}
+              onDueAmountChange={ctx.handleDueAllocationAmountChange}
+              remainingForRefund={ctx.remainingForRefund}
+              accounts={ctx.accounts}
+              selectedAccountId={ctx.selectedAccountId}
+              onAccountChange={ctx.setSelectedAccountId}
+              accountRefundAmount={ctx.accountRefundAmount}
+              onAccountRefundChange={ctx.setAccountRefundAmount}
+              totalOtherDuesAllocated={ctx.totalOtherDuesAllocated}
+            />
           )}
+
+          {/* Submit */}
+          <div className="flex justify-end gap-4">
+            <Button variant="outline" onClick={ctx.handleClearSearch}>
+              Cancel
+            </Button>
+            <Button
+              onClick={ctx.handleSubmitReturn}
+              disabled={ctx.totalReturnQty === 0 || ctx.isSubmitting}
+            >
+              <CornerUpLeft className="h-4 w-4 mr-2" />
+              {ctx.isSubmitting ? "Processing..." : "Process Return"}
+            </Button>
+          </div>
         </>
       )}
 
-      {/* Recent Returns Table */}
+      {/* ─── Returns History Table ─── */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Recent Returns
-          </CardTitle>
-          <CardDescription>History of purchase returns</CardDescription>
+          <CardTitle>Returns</CardTitle>
+          <CardDescription>
+            {ctx.paginationInfo
+              ? `${ctx.paginationInfo.total} return(s) found`
+              : "Loading..."}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {h.isLoadingReturns ? (
-            <div className="space-y-3">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : h.returns.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <CornerUpLeft className="h-10 w-10 mx-auto mb-3 opacity-50" />
-              <p>No returns recorded yet</p>
-            </div>
-          ) : (
-            <CardTable columns={h.returnsColumns} data={h.returns} />
-          )}
+          <BaseDataTable
+            columns={ctx.returnsColumns}
+            data={ctx.returns}
+            isLoading={ctx.isLoadingReturns}
+            filterConfig={ctx.filterConfig}
+            searchConfig={{
+              globalSearch: true,
+              placeholder: "Search returns...",
+            }}
+            actions={{}}
+            pagination={{
+              pageIndex: ctx.page - 1,
+              pageSize: ctx.limit,
+              totalPages: ctx.paginationInfo?.totalPages ?? 1,
+              totalItems: ctx.paginationInfo?.total ?? 0,
+              hasNext: ctx.paginationInfo?.hasNext ?? false,
+              hasPrev: ctx.paginationInfo?.hasPrev ?? false,
+              manualPagination: true,
+              pageSizeOptions: [10, 20, 50, 100],
+              onPaginationChange: ({ pageIndex, pageSize }) => {
+                ctx.setPage(pageIndex + 1);
+                if (pageSize !== ctx.limit) ctx.setLimit(pageSize);
+              },
+            }}
+            enableSorting
+          />
         </CardContent>
       </Card>
+
+      {/* Return Details Sheet */}
+      <ReturnDetailsSheet
+        open={ctx.detailsSheetOpen}
+        onOpenChange={ctx.setDetailsSheetOpen}
+        purchaseReturn={ctx.selectedReturn}
+        formatCurrency={ctx.formatCurrency}
+      />
     </div>
   );
 }
 
-// Wrap in Suspense boundary to handle useSearchParams
 export default function PurchaseReturnsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="space-y-6 p-6">
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-96 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
       <PurchaseReturnsPageContent />
     </Suspense>
   );

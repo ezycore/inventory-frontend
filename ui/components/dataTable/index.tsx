@@ -114,7 +114,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   });
 
   // Combine loading states: isLoading (first load), isFetching (subsequent fetches), and external loading prop
-  const isLoadingData = isLoading || isFetching || loading;
+  const isLoadingData = (isLoading || isFetching || loading) && !error;
 
   // Determine data source and loading state
   const data = useMemo(() => {
