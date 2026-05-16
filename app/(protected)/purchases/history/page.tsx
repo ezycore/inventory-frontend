@@ -4,8 +4,6 @@ import {
   usePurchaseHistoryPage,
   SummaryCards,
   PaymentsDrawer,
-  PaymentDialog,
-  DetailDrawer,
 } from "@/components/purchases/history";
 import { Button } from "@/ui/components/button";
 import {
@@ -21,7 +19,7 @@ import { useRouter } from "next/navigation";
 
 export default function PurchaseHistoryPage() {
   const router = useRouter();
-  const h = usePurchaseHistoryPage();
+  const ctx = usePurchaseHistoryPage();
 
   return (
     <div className="space-y-6">
@@ -41,10 +39,10 @@ export default function PurchaseHistoryPage() {
 
       {/* Summary Stats */}
       <SummaryCards
-        isAccountsEnabled={h.isAccountsEnabled}
-        isSummaryLoading={h.isSummaryLoading}
-        summary={h.summary}
-        formatCurrency={h.formatCurrency}
+        isAccountsEnabled={ctx.isAccountsEnabled}
+        isSummaryLoading={ctx.isSummaryLoading}
+        summary={ctx.summary}
+        formatCurrency={ctx.formatCurrency}
       />
 
       {/* Data Table */}
@@ -52,31 +50,30 @@ export default function PurchaseHistoryPage() {
         <CardHeader>
           <CardTitle>Purchase Orders</CardTitle>
           <CardDescription>
-            {h.paginationInfo
-              ? `${h.paginationInfo.total} order(s) found`
+            {ctx.paginationInfo
+              ? `${ctx.paginationInfo.total} order(s) found`
               : "Loading..."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <BaseDataTable
-            columns={h.columns}
-            data={h.purchases}
-            isLoading={h.isLoading}
-            filterConfig={h.filterConfig}
-            actions={{}}
-            customActions={h.customActions}
+            columns={ctx.columns}
+            data={ctx.purchases}
+            isLoading={ctx.isLoading}
+            filterConfig={ctx.filterConfig}
+            customActions={ctx.customActions}
             pagination={{
-              pageIndex: h.page - 1,
-              pageSize: h.limit,
-              totalPages: h.paginationInfo?.totalPages || 1,
-              totalItems: h.paginationInfo?.total || 0,
-              hasNext: h.paginationInfo?.hasNext || false,
-              hasPrev: h.paginationInfo?.hasPrev || false,
+              pageIndex: ctx.page - 1,
+              pageSize: ctx.limit,
+              totalPages: ctx.paginationInfo?.totalPages ?? 1,
+              totalItems: ctx.paginationInfo?.total ?? 0,
+              hasNext: ctx.paginationInfo?.hasNext ?? false,
+              hasPrev: ctx.paginationInfo?.hasPrev ?? false,
               manualPagination: true,
               pageSizeOptions: [10, 20, 50, 100],
               onPaginationChange: ({ pageIndex, pageSize }) => {
-                h.setPage(pageIndex + 1);
-                if (pageSize !== h.limit) h.setLimit(pageSize);
+                ctx.setPage(pageIndex + 1);
+                if (pageSize !== ctx.limit) ctx.setLimit(pageSize);
               },
             }}
             enableSorting
@@ -84,46 +81,31 @@ export default function PurchaseHistoryPage() {
         </CardContent>
       </Card>
 
-      {/* Order Details Drawer */}
-      <DetailDrawer
-        open={h.detailDrawerOpen}
-        onOpenChange={h.setDetailDrawerOpen}
-        selectedOrder={h.selectedOrder}
-        isAccountsEnabled={h.isAccountsEnabled}
-        formatCurrency={h.formatCurrency}
-        formatDateTime={h.formatDateTime}
-      />
-
-      {/* Payments Drawer */}
+      {/* Purchase Summary & Payment Drawer */}
       <PaymentsDrawer
-        open={h.paymentsDrawerOpen}
-        onOpenChange={h.setPaymentsDrawerOpen}
-        selectedOrder={h.selectedOrder}
-        payments={h.payments}
-        isLoadingPayments={h.isLoadingPayments}
-        isAccountsEnabled={h.isAccountsEnabled}
-        formatCurrency={h.formatCurrency}
-        formatDateTime={h.formatDateTime}
-        onMakePayment={h.handleMakePayment}
-      />
-
-      {/* Payment Dialog */}
-      <PaymentDialog
-        open={h.paymentModalOpen}
-        onOpenChange={h.setPaymentModalOpen}
-        selectedOrder={h.selectedOrder}
-        formatCurrency={h.formatCurrency}
-        paymentAmount={h.paymentAmount}
-        setPaymentAmount={h.setPaymentAmount}
-        paymentAccountId={h.paymentAccountId}
-        setPaymentAccountId={h.setPaymentAccountId}
-        paymentMethod={h.paymentMethod}
-        setPaymentMethod={h.setPaymentMethod}
-        paymentNotes={h.paymentNotes}
-        setPaymentNotes={h.setPaymentNotes}
-        accounts={h.accounts}
-        isPending={h.addPaymentMutation.isPending}
-        onSubmit={h.handlePaymentSubmit}
+        open={ctx.drawerOpen}
+        onOpenChange={ctx.setDrawerOpen}
+        selectedOrder={ctx.selectedOrder}
+        payments={ctx.payments}
+        isLoadingPayments={ctx.isLoadingPayments}
+        isAccountsEnabled={ctx.isAccountsEnabled}
+        formatCurrency={ctx.formatCurrency}
+        mode={ctx.drawerMode}
+        accounts={ctx.accounts}
+        paymentAmount={ctx.paymentAmount}
+        setPaymentAmount={ctx.setPaymentAmount}
+        paymentAccountId={ctx.paymentAccountId}
+        setPaymentAccountId={ctx.setPaymentAccountId}
+        paymentMethod={ctx.paymentMethod}
+        setPaymentMethod={ctx.setPaymentMethod}
+        paymentNotes={ctx.paymentNotes}
+        setPaymentNotes={ctx.setPaymentNotes}
+        isSubmittingPayment={ctx.isSubmittingPayment}
+        onMakePayment={ctx.handleMakePayment}
+        onSubmitPayment={ctx.handlePaymentSubmit}
+        drawerRef={ctx.drawerRef}
+        purchaseReturns={ctx.purchaseReturns}
+        isLoadingReturns={ctx.isLoadingReturns}
       />
     </div>
   );

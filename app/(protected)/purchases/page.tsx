@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { getPurchaseColumns, getSupplierFormConfig, getProductFormConfig, getPaymentFormConfig, extractSupplierValue, SupplierFormData, ImportLowStockDialog, type ImportedLowStockItem } from "@/components/purchases";
+import { getPurchaseColumns, getSupplierFormConfig, getProductFormConfig, getPaymentFormConfig, extractSupplierValue, SupplierFormData, ImportLowStockDialog, type ImportResult } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
 import { useCreatePurchaseOrder, useDashboardStats } from "@/services/api";
@@ -51,6 +51,7 @@ const productFormSchema = z.object({
       conversionFactor: z.number().optional(),
       productId: z.string().optional(),
       variantId: z.string().nullable().optional(),
+      purchaseUnitName: z.string().nullable().optional(),
     }),
   ]),
   quantity: z.number().min(1, "Quantity must be at least 1"),
@@ -59,6 +60,7 @@ const productFormSchema = z.object({
   discount: z.number().min(0),
   costPrice: z.number().min(0),
   rememberCostPrice: z.boolean().optional(),
+  stock: z.string().optional(),
 });
 
 export default function PurchasesPage() {
@@ -97,8 +99,8 @@ export default function PurchasesPage() {
   );
 
   // Dashboard stats for low stock badge count
-  const { data: dashboardData } = useDashboardStats();
-  const lowStockCount = dashboardData?.data?.variants?.lowStock || 0;
+  // const { data: dashboardData } = useDashboardStats();
+  // const lowStockCount = dashboardData?.data?.variants?.lowStock || 0;
 
   // Get organization features
   const { user } = useAuthStore();
@@ -156,7 +158,7 @@ export default function PurchasesPage() {
       invoiceDate: activeSeller?.invoiceDate || "",
     },
   });
-  
+
   const productForm = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
@@ -167,6 +169,7 @@ export default function PurchasesPage() {
       discount: 0,
       costPrice: 0,
       rememberCostPrice: false,
+      stock: "",
     },
   });
 
@@ -292,15 +295,18 @@ export default function PurchasesPage() {
       if (fieldName === "productId") {
         const product = extractProductValue(value);
         if (product) {
+          const availableStock = product.availableQuantity || 0;
+          const neededQuantity = Math.max(0, product.quantityAlert - (availableStock) + 1);
+          const purchaseQuantity = Math.ceil(neededQuantity / product.conversionFactor || 1);
+
           const quantity = productForm.getValues("quantity") || 1;
           const conversionFactor = product.conversionFactor || 1;
           const convertedQuantity = quantity * conversionFactor;
           const perUnitPrice = product.price;
           const boxPrice = perUnitPrice * conversionFactor;
-
           const discountType = supplierForm.getValues("discountType") || "fixed";
           const discountValue = supplierForm.getValues("discountValue") || 0;
-
+          const stock = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
           let boxDiscount = 0;
           if (discountType === "percentage") {
             boxDiscount = (boxPrice * discountValue) / 100;
@@ -309,7 +315,8 @@ export default function PurchasesPage() {
           }
 
           const boxCostPrice = Math.max(0, boxPrice - boxDiscount);
-
+          productForm.setValue("stock", stock);
+          productForm.setValue("quantity", purchaseQuantity);
           productForm.setValue("convertedQuantity", convertedQuantity);
           productForm.setValue("price", boxPrice);
           productForm.setValue("discount", boxDiscount);
@@ -395,7 +402,6 @@ export default function PurchasesPage() {
           currentSeller = newState.sellers[newState.activeSellerIndex];
         }
       }
-
       const product = extractProductValue(data.productId);
       if (!product) {
         toast.error("Please select a product");
@@ -404,7 +410,6 @@ export default function PurchasesPage() {
 
       const conversionFactor = product.conversionFactor || 1;
       const boxPrice = product.price * conversionFactor;
-
       addItem(currentSeller.id, {
         inventoryId: product.value,
         productId: product.productId,
@@ -471,37 +476,40 @@ export default function PurchasesPage() {
   );
 
   const handleImportLowStock = useCallback(
-    (importedItems: ImportedLowStockItem[]) => {
-      const supplierValue = supplierForm.getValues("supplierId");
-      const supplier = extractSupplierValue(supplierValue);
-
-      if (!supplier.value) {
-        toast.error("Please select a supplier first");
-        return;
-      }
-
+    (result: ImportResult) => {
       const storeState = usePurchasePageStore.getState();
       let currentSeller = storeState.sellers[storeState.activeSellerIndex];
 
-      if (!currentSeller || currentSeller.supplierId !== supplier.value) {
+      if (!currentSeller || currentSeller.supplierId !== result.supplierId) {
         const existingSellerIndex = storeState.sellers.findIndex(
-          (s) => s.supplierId === supplier.value,
+          (s) => s.supplierId === result.supplierId,
         );
 
         if (existingSellerIndex !== -1) {
           setActiveSeller(existingSellerIndex);
           currentSeller = storeState.sellers[existingSellerIndex];
         } else if (currentSeller && currentSeller.items.length === 0) {
-          setSupplier(currentSeller.id, supplier.value, supplier.label);
+          setSupplier(currentSeller.id, result.supplierId, result.supplierName);
+          currentSeller = usePurchasePageStore.getState().sellers[usePurchasePageStore.getState().activeSellerIndex];
         } else {
           const newSellerId = addSeller();
-          setSupplier(newSellerId, supplier.value, supplier.label);
+          setSupplier(newSellerId, result.supplierId, result.supplierName);
           const newState = usePurchasePageStore.getState();
           currentSeller = newState.sellers[newState.activeSellerIndex];
         }
       }
+
+      // Sync purchase type + discount into the store and supplier form
+      setPurchaseType(currentSeller.id, result.purchaseType);
+      setDiscountType(currentSeller.id, result.discountType);
+      setDiscountValue(currentSeller.id, result.discountValue);
+      supplierForm.setValue("supplierId", { value: result.supplierId, label: result.supplierName } as any);
+      supplierForm.setValue("purchaseType", result.purchaseType);
+      supplierForm.setValue("discountType", result.discountType);
+      supplierForm.setValue("discountValue", result.discountValue);
+
       let addedCount = 0;
-      for (const item of importedItems) {
+      for (const item of result.items) {
         addItem(currentSeller.id, {
           inventoryId: item.inventoryId,
           productId: item.productId,
@@ -519,7 +527,7 @@ export default function PurchasesPage() {
 
       toast.success(`${addedCount} ${addedCount === 1 ? "product" : "products"} imported to order`);
     },
-    [addItem, supplierForm, setActiveSeller, setSupplier, addSeller],
+    [addItem, supplierForm, setActiveSeller, setSupplier, addSeller, setPurchaseType, setDiscountType, setDiscountValue],
   );
 
   const handleCompleteOrder = useCallback(async () => {
@@ -555,6 +563,7 @@ export default function PurchasesPage() {
             costPrice: perUnitCostPrice,
             discount: perUnitDiscount,
             productName: item.productName,
+            purchaseUnitName: item.purchaseUnitName,
           };
 
           if (item.conversionFactor && item.conversionFactor !== 1) {
@@ -580,7 +589,6 @@ export default function PurchasesPage() {
 
         if (isAccountsEnabled && extractedAccountId && paidAmount > 0) {
           orderData.payment = {
-            paymentMethod: "cash",
             accountId: extractedAccountId,
             paidAmount: Math.min(paidAmount, netAmount),
           };
@@ -588,8 +596,6 @@ export default function PurchasesPage() {
 
         return orderData;
       });
-      console.log("Submitting orders:", ordersData);
-      
 
       await mutateAsync(ordersData);
 
@@ -678,11 +684,11 @@ export default function PurchasesPage() {
                 >
                   <Download className="h-3.5 w-3.5" />
                   Import Low Stock
-                  {lowStockCount > 0 && (
+                  {/* {lowStockCount > 0 && (
                     <Badge variant="destructive" className="ml-1 h-5 min-w-5 px-1.5 text-[10px] rounded-full">
                       {lowStockCount}
                     </Badge>
-                  )}
+                  )} */}
                 </Button>
               </div>
               <DynamicForm
@@ -891,13 +897,12 @@ export default function PurchasesPage() {
           if (!open) setPreSelectedLowStockIds([]);
         }}
         onImport={handleImportLowStock}
-        discountInfo = {
-          {
-            type: supplierForm.getValues("discountType") || "fixed",
-          value: supplierForm.getValues("discountValue") || 0,
-          }
-        }
         preSelectedIds={preSelectedLowStockIds}
+        initialSupplierId={activeSeller?.supplierId || ""}
+        initialSupplierName={activeSeller?.supplierName || ""}
+        initialPurchaseType={activeSeller?.purchaseType || "instant"}
+        initialDiscountType={activeSeller?.discountType || "fixed"}
+        initialDiscountValue={activeSeller?.discountValue || 0}
       />
 
       {/* ==================== Edit Product Dialog ==================== */}
@@ -929,22 +934,8 @@ export default function PurchasesPage() {
                 />
               </div>
 
-              {isUOMEnabled && (
-                <div className="space-y-2">
-                  <Label>Stock Quantity</Label>
-                  <Input
-                    value={editConvertedQuantity?.toFixed(2) || "0"}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Conversion Factor: {editingItem.conversionFactor || 1}
-                  </p>
-                </div>
-              )}
-
               <div className="space-y-2">
-                <Label>Total Price</Label>
+                <Label>Price</Label>
                 <Input
                   value={formatCurrency(editPrice || 0)}
                   disabled

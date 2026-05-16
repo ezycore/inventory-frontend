@@ -27,7 +27,6 @@ export default function SalesPage() {
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const defaultCustomer = user?.defaultData?.customerId;
   const defaultAccountType = user?.defaultData?.accountId;
-  const defaultLocationId = user?.defaultData?.locationId;
 
   // Store state
   const {
@@ -77,7 +76,7 @@ export default function SalesPage() {
 
   // Auto-fill paid amount with total sale price
   useEffect(() => {
-    const total = getTotalSalePrice();
+    const total = Number(getTotalSalePrice().toFixed(2) || 0);
     setPaidAmount(total);
     customerForm.setValue("paidAmount", total);
   }, [items, additionalDiscount, getTotalSalePrice, customerForm]);
@@ -151,7 +150,6 @@ export default function SalesPage() {
       }
 
       const { value: inventoryId, label: productName, price, costPrice, productId, variantId, availableQuantity } = product;
-      const unitName = product.saleUnitName || product.unitName || null;
       const discountType = customerForm.getValues("discountType");
       const discountValue = customerForm.getValues("discountValue");
       const { discount, salePrice } = applyDiscountWithPriority({
@@ -160,7 +158,7 @@ export default function SalesPage() {
         orderDiscountValue: discountValue,
       });
       addItem({
-        inventoryId, productId, variantId, productName, quantity: 1, costPrice, price, discountType, discountValue, discount, salePrice, availableQuantity, unitName,
+        inventoryId, productId, variantId, productName, quantity: 1, costPrice, price, discountType, discountValue, discount, salePrice, availableQuantity, unitName: product.unitName, saleUnitName: product.saleUnitName,
       });
     },
     [addItem, customerForm],
@@ -173,7 +171,6 @@ export default function SalesPage() {
     }
     const accountId = customerForm.getValues("accountId");
     let updatedCustomerId = customerForm.getValues("customerId") as any;
-    console.log("Selected customer ID:", updatedCustomerId, customerId);
     updatedCustomerId = updatedCustomerId?.value || updatedCustomerId || customerId
     const paidAmount = customerForm.getValues("paidAmount") || 0;
     const formAdditionalDiscount = localAdditionalDiscount;
@@ -191,7 +188,6 @@ export default function SalesPage() {
       const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
       const orderData: CreateSalesOrderData = {
         customerId: updatedCustomerId,
-        locationId: defaultLocationId || "default",
         items: items.map((item) => ({
           productId: item.productId,
           inventoryId: item.inventoryId,
@@ -211,7 +207,6 @@ export default function SalesPage() {
         orderData.payment = { paidAmount, accountId };
         orderData.dueAmount = dueAmount;
       }
-
       const createResult = await mutateAsync(orderData);
       if (createResult.data?.sale?._id) {
         clearAll();
@@ -226,7 +221,7 @@ export default function SalesPage() {
       console.error("Failed to complete sale:", error);
       toast.error("Failed to complete sale");
     }
-  }, [items, customerId, notes, isAccountsEnabled, getTotalSalePrice, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, defaultLocationId, mutateAsync]);
+  }, [items, customerId, notes, isAccountsEnabled, getTotalSalePrice, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, mutateAsync]);
 
   const itemsSubtotal = items.reduce((sum, item) => sum + item.total, 0);
   const totalSalePrice = getTotalSalePrice();

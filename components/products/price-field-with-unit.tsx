@@ -54,7 +54,7 @@ export default function PriceFieldWithUnit({
         placeholder={placeholder}
         disabled={disabled}
         min={0}
-        step={1}
+        // step={1}
         onChange={(e) => {
           const raw = e.target.value;
           if (raw === "") {
@@ -68,6 +68,7 @@ export default function PriceFieldWithUnit({
           "w-full",
           suffix ? "pr-16" : "",
           error ? "border-red-500" : "",
+          "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         )}
       />
       {suffix && (

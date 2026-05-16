@@ -83,6 +83,8 @@ export const useAddSalePayment = () => {
       queryClient.invalidateQueries({
         queryKey: [...queryKeys.salesOrders.detail(variables.saleId), "payments"],
       });
+      // Invalidate all customer queries to refresh ledger data
+      queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
       // Also invalidate accounts since balance changed
       queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
     },

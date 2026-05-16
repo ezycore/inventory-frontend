@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -8,6 +8,7 @@ import {
   useAccounts,
   useAddPurchasePayment,
   usePurchaseOrderPayments,
+  usePurchaseOrderReturns,
   usePurchaseOrders,
   usePurchaseOrdersSummary,
 } from "@/services/api";
@@ -17,6 +18,7 @@ import type {
   AddPurchasePaymentDto,
   PurchaseOrder,
   PurchaseOrderFilters,
+  PurchaseReturn,
 } from "@/types";
 import type { Payment } from "./types";
 
@@ -33,11 +35,15 @@ export function usePurchaseHistoryPage() {
   const [limit, setLimit] = useState(20);
   const [filters, setFilters] = useState<PurchaseOrderFilters>({});
 
-  // Modal / drawer state
-  const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
-  const [paymentsDrawerOpen, setPaymentsDrawerOpen] = useState(false);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
+  // Drawer state (single drawer with summary | payment mode)
+  const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(
+    null,
+  );
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<"summary" | "payment">(
+    "summary",
+  );
+  const drawerRef = useRef<HTMLDivElement | null>(null);
 
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -46,13 +52,15 @@ export function usePurchaseHistoryPage() {
   const [paymentNotes, setPaymentNotes] = useState("");
 
   // API queries
-  const { data: purchaseData, isLoading, refetch } = usePurchaseOrders({
-    page,
-    limit,
-    ...filters,
-  });
+  const {
+    data: purchaseData,
+    isLoading,
+    refetch,
+  } = usePurchaseOrders({ page, limit, ...filters });
   const { data: paymentsData, isLoading: isLoadingPayments } =
     usePurchaseOrderPayments(selectedOrder?._id || "");
+  const { data: returnsData, isLoading: isLoadingReturns } =
+    usePurchaseOrderReturns(selectedOrder?._id || "");
   const { data: accountsData } = useAccounts();
   const addPaymentMutation = useAddPurchasePayment();
   const { data: summaryData, isLoading: isSummaryLoading } =
@@ -62,6 +70,12 @@ export function usePurchaseHistoryPage() {
   const summary = summaryData?.data;
   const purchases: PurchaseOrder[] = purchaseData?.data?.items || [];
   const payments: Payment[] = (paymentsData?.data || []) as Payment[];
+  const purchaseReturns: PurchaseReturn[] =
+    ((returnsData as { data?: PurchaseReturn[] | { returns?: PurchaseReturn[] } } | undefined)
+      ?.data as PurchaseReturn[] | undefined) instanceof Array
+      ? ((returnsData as { data: PurchaseReturn[] }).data)
+      : (((returnsData as { data?: { returns?: PurchaseReturn[] } } | undefined)
+          ?.data?.returns as PurchaseReturn[]) || []);
   const accounts = accountsData?.items || [];
 
   const paginationInfo = useMemo(() => {
@@ -71,23 +85,20 @@ export function usePurchaseHistoryPage() {
   }, [purchaseData]);
 
   // Handlers
-  const handleViewPayments = useCallback((order: PurchaseOrder) => {
+  const handleViewSummary = useCallback((order: PurchaseOrder) => {
     setSelectedOrder(order);
-    setPaymentsDrawerOpen(true);
-  }, []);
-
-  const handleViewDetails = useCallback((order: PurchaseOrder) => {
-    setSelectedOrder(order);
-    setDetailDrawerOpen(true);
+    setDrawerMode("summary");
+    setDrawerOpen(true);
   }, []);
 
   const handleMakePayment = useCallback((order: PurchaseOrder) => {
     setSelectedOrder(order);
+    setDrawerMode("payment");
     setPaymentAmount((order.dueAmount || 0).toFixed(2));
     setPaymentAccountId("");
     setPaymentMethod("cash");
     setPaymentNotes("");
-    setPaymentModalOpen(true);
+    setDrawerOpen(true);
   }, []);
 
   const handlePaymentSubmit = useCallback(async () => {
@@ -108,7 +119,7 @@ export function usePurchaseHistoryPage() {
     }
 
     try {
-      await addPaymentMutation.mutateAsync({
+      const response = await addPaymentMutation.mutateAsync({
         id: selectedOrder._id,
         data: {
           amount,
@@ -118,10 +129,17 @@ export function usePurchaseHistoryPage() {
           notes: paymentNotes || undefined,
         },
       });
-      setPaymentModalOpen(false);
+      const updated = (
+        response as { data?: { order?: PurchaseOrder } } | undefined
+      )?.data?.order;
+      if (updated) {
+        setSelectedOrder(updated);
+      }
+      setDrawerMode("summary");
+      setPaymentAmount("");
       refetch();
     } catch {
-      // Error handled by mutation's onError
+      // mutation onError handles toast
     }
   }, [
     selectedOrder,
@@ -145,12 +163,11 @@ export function usePurchaseHistoryPage() {
   const customActions = useMemo(
     () =>
       getPurchaseHistoryActions({
-        onViewDetails: handleViewDetails,
-        onViewPayments: handleViewPayments,
+        onViewSummary: handleViewSummary,
         onMakePayment: handleMakePayment,
         isAccountsEnabled,
       }),
-    [handleViewDetails, handleViewPayments, handleMakePayment, isAccountsEnabled],
+    [handleViewSummary, handleMakePayment, isAccountsEnabled],
   );
 
   const filterConfig = useMemo(
@@ -172,6 +189,7 @@ export function usePurchaseHistoryPage() {
     // Data
     purchases,
     payments,
+    purchaseReturns,
     accounts,
     summary,
     selectedOrder,
@@ -180,6 +198,7 @@ export function usePurchaseHistoryPage() {
     // Loading states
     isLoading,
     isLoadingPayments,
+    isLoadingReturns,
     isSummaryLoading,
 
     // Table config
@@ -193,13 +212,12 @@ export function usePurchaseHistoryPage() {
     setPage,
     setLimit,
 
-    // Drawers / dialogs
-    detailDrawerOpen,
-    setDetailDrawerOpen,
-    paymentsDrawerOpen,
-    setPaymentsDrawerOpen,
-    paymentModalOpen,
-    setPaymentModalOpen,
+    // Drawer (single)
+    drawerOpen,
+    setDrawerOpen,
+    drawerMode,
+    setDrawerMode,
+    drawerRef,
 
     // Payment form
     paymentAmount,
@@ -210,9 +228,10 @@ export function usePurchaseHistoryPage() {
     setPaymentMethod,
     paymentNotes,
     setPaymentNotes,
-    addPaymentMutation,
+    isSubmittingPayment: addPaymentMutation.isPending,
     handlePaymentSubmit,
     handleMakePayment,
+    handleViewSummary,
 
     // Features
     isAccountsEnabled,

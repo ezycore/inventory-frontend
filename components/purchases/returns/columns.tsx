@@ -1,18 +1,13 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import {
-  CheckCircle,
-  Clock,
-  Minus,
-  Plus,
-  XCircle,
-} from "lucide-react";
+import { Eye, Minus, Plus } from "lucide-react";
 
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Checkbox } from "@/ui/components/checkbox";
 import { Input } from "@/ui/components/input";
+import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import type { PurchaseReturn } from "@/types";
 import type { ReturnableItem } from "./types";
 import { calculateMaxRefund } from "./helpers";
@@ -21,26 +16,22 @@ import { calculateMaxRefund } from "./helpers";
 // Status Badge
 // =====================
 
-const getStatusBadge = (status: string) => {
+export const getStatusBadge = (status: string) => {
   switch (status) {
     case "completed":
       return (
-        <Badge variant="default" className="gap-1">
-          <CheckCircle className="h-3 w-3" /> Completed
+        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0">
+          Processed
         </Badge>
       );
     case "pending":
       return (
-        <Badge variant="secondary" className="gap-1">
-          <Clock className="h-3 w-3" /> Pending
+        <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-0">
+          Pending
         </Badge>
       );
     case "cancelled":
-      return (
-        <Badge variant="destructive" className="gap-1">
-          <XCircle className="h-3 w-3" /> Cancelled
-        </Badge>
-      );
+      return <Badge variant="destructive">Cancelled</Badge>;
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
@@ -51,96 +42,77 @@ const getStatusBadge = (status: string) => {
 // =====================
 
 export function getReturnsColumns(
-  isAccountsEnabled: boolean,
   formatCurrency: (n: number) => string,
+  _isAccountsEnabled: boolean,
+  onViewDetails?: (ret: PurchaseReturn) => void,
 ): ColumnDef<PurchaseReturn>[] {
   return [
     {
       accessorKey: "returnNumber",
-      header: "Return #",
+      header: "Return ID",
       cell: ({ row }) => (
-        <span className="font-mono text-sm">{row.original.returnNumber}</span>
+        <span className="font-mono text-sm text-primary font-medium">
+          {row.original.returnNumber}
+        </span>
       ),
     },
     {
-      accessorKey: "purchaseOrderId",
-      header: "Original Order",
+      accessorKey: "createdAt",
+      header: "Date",
+      cell: ({ row }) => <DateCell value={row.original.createdAt} />,
+    },
+    {
+      accessorKey: "orderNumber",
+      header: "Invoice",
       cell: ({ row }) => {
-        const purchaseOrderId = row.original.purchaseOrderId;
-        let orderNumber: string;
-        if (
-          typeof purchaseOrderId === "object" &&
-          purchaseOrderId?.orderNumber
-        ) {
-          orderNumber = purchaseOrderId.orderNumber;
-        } else if (row.original.orderNumber) {
-          orderNumber = row.original.orderNumber;
-        } else {
-          orderNumber = String(purchaseOrderId);
+        const { purchaseOrderId, orderNumber } = row.original;
+        const display =
+          typeof purchaseOrderId === "object" && purchaseOrderId?.orderNumber
+            ? purchaseOrderId.orderNumber
+            : orderNumber || String(purchaseOrderId);
+        return (
+          <span className="font-mono text-sm text-primary">{display}</span>
+        );
+      },
+    },
+    {
+      id: "supplier",
+      header: "Supplier",
+      cell: ({ row }) => {
+        const sup =
+          (row.original.supplier as { name?: string } | undefined) ||
+          (row.original.supplierId as unknown as { name?: string } | undefined);
+        if (sup && typeof sup === "object" && sup.name) {
+          return <span className="text-sm">{sup.name}</span>;
         }
-        return <span className="font-mono text-sm">{orderNumber}</span>;
+        return <span className="text-sm text-muted-foreground">Unknown</span>;
       },
     },
     {
       accessorKey: "items",
       header: "Items",
       cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.items?.length || 0} item(s)
+        <span className="text-sm font-medium text-center">
+          {row.original.items?.length ?? 0}
         </span>
       ),
     },
     {
       accessorKey: "totalRefundAmount",
-      header: "Refund Amount",
+      header: "Amount",
       cell: ({ row }) => (
-        <span className="font-medium text-orange-600">
-          {formatCurrency(row.original.totalRefundAmount || 0)}
+        <span className="font-medium">
+          {formatCurrency(row.original.totalRefundAmount ?? 0)}
         </span>
       ),
     },
-    ...(isAccountsEnabled
-      ? [
-          {
-            accessorKey: "refundAllocation" as const,
-            header: "Allocation",
-            cell: ({ row }: { row: { original: PurchaseReturn } }) => {
-              const ret = row.original;
-              const cashRefund = ret.refundedAmount || 0;
-              const dueAdjusted = (ret.totalRefundAmount || 0) - cashRefund;
-
-              if (cashRefund > 0 && dueAdjusted > 0) {
-                return (
-                  <div className="text-xs space-y-0.5">
-                    <div className="text-red-600">
-                      Cash: {formatCurrency(cashRefund)}
-                    </div>
-                    <div className="text-blue-600">
-                      Due Adj: {formatCurrency(dueAdjusted)}
-                    </div>
-                  </div>
-                );
-              } else if (cashRefund > 0) {
-                return (
-                  <span className="text-xs text-red-600">Cash Refund</span>
-                );
-              } else if (dueAdjusted > 0) {
-                return (
-                  <span className="text-xs text-blue-600">Due Adjusted</span>
-                );
-              }
-              return <span className="text-xs text-muted-foreground">-</span>;
-            },
-          },
-        ]
-      : []),
     {
       accessorKey: "reason",
       header: "Reason",
       cell: ({ row }) => (
-        <Badge variant="outline" className="capitalize text-xs">
+        <span className="text-sm capitalize">
           {row.original.reason?.replace(/_/g, " ")}
-        </Badge>
+        </span>
       ),
     },
     {
@@ -148,20 +120,30 @@ export function getReturnsColumns(
       header: "Status",
       cell: ({ row }) => getStatusBadge(row.original.status),
     },
-    {
-      accessorKey: "createdAt",
-      header: "Date",
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {new Date(row.original.createdAt).toLocaleDateString()}
-        </span>
-      ),
-    },
+    ...(onViewDetails
+      ? [
+          {
+            id: "actions",
+            header: "",
+            cell: ({ row }: { row: { original: PurchaseReturn } }) => (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                title="View Details"
+                onClick={() => onViewDetails(row.original)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            ),
+          } satisfies ColumnDef<PurchaseReturn>,
+        ]
+      : []),
   ];
 }
 
 // =====================
-// Items Table Columns
+// Items Table Columns (legacy — kept for backwards compat)
 // =====================
 
 export function getItemsColumns(

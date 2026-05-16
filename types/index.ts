@@ -886,6 +886,7 @@ export interface PurchaseOrderItem {
   subtotal: number;
   productName?: string;
   conversionFactor?: number;
+  purchaseUnitName?: string;
   discount?: number;
   variantName?: string;
   product?: { name: string };
@@ -902,7 +903,7 @@ export interface PurchaseOrder extends BaseEntity {
   subtotal: number;
   taxTotal: number;
   notes?: string;
-  createdBy?: string;
+  createdBy?: string | { _id?: string; email?: string; firstName?: string; lastName?: string };
   paymentStatus?: "unpaid" | "partial" | "paid";
   paidAmount?: number;
   dueAmount?: number;
@@ -925,6 +926,7 @@ export interface CreatePurchaseOrderItemDto {
   costPrice?: number;
   discount?: number;
   conversionFactor?: number;
+  purchaseUnitName?: string;
 }
 
 // Single Purchase Order DTO
@@ -954,12 +956,11 @@ export interface ReceivePurchaseOrderItemDto {
 
 export interface ReceivePurchaseOrderDto {
   items: ReceivePurchaseOrderItemDto[];
-  paymentInfo?: PurchasePaymentInfo;
+  payment?: PurchasePaymentInfo;
 }
 
 // Purchase Payment Types
 export interface PurchasePaymentInfo {
-  paymentMethod: string;
   accountId: string;
   paidAmount?: number;
 }
@@ -1192,7 +1193,6 @@ export interface CreateSalesOrderItemDto {
 
 export interface CreateSalesOrderDto {
   customerId?: string | null;
-  locationId: string;
   items: CreateSalesOrderItemDto[];
   status?: SalesOrderStatus;
   invoiceNumber?: string;

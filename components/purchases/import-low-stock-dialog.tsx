@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   AlertOctagon,
   AlertTriangle,
@@ -24,6 +25,7 @@ import {
   DialogDescription,
 } from "@/ui/components/dialog";
 import { Input } from "@/ui/components/input";
+import { Label } from "@/ui/components/label";
 import {
   Select,
   SelectContent,
@@ -89,15 +91,29 @@ export interface ImportedLowStockItem {
   total: number;
 }
 
+export interface ImportResult {
+  items: ImportedLowStockItem[];
+  supplierId: string;
+  supplierName: string;
+  purchaseType: "instant" | "order";
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+}
+
 // ---------- Props ----------
 
 interface ImportLowStockDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImport: (items: ImportedLowStockItem[]) => void;
+  onImport: (result: ImportResult) => void;
   /** Pre-select items by their inventory IDs (e.g. from low stock page redirect) */
   preSelectedIds?: string[];
-  discountInfo?: { type: "percentage" | "fixed"; value: number } | null;
+  /** Pre-fill from the parent's active supplier form */
+  initialSupplierId?: string;
+  initialSupplierName?: string;
+  initialPurchaseType?: "instant" | "order";
+  initialDiscountType?: "percentage" | "fixed";
+  initialDiscountValue?: number;
 }
 
 // ---------- Helpers ----------
@@ -144,10 +160,11 @@ function getBaseUnitShortName(item: ShortlistItem): string {
   return item.unit?.shortName || "";
 }
 
-/** Default order qty = ceil(neededQuantity / conversionFactor) */
+/** Default order qty = ceil((quantityAlert - quantity + 1) / conversionFactor), matching the Needed Qty column */
 function getDefaultOrderQty(item: ShortlistItem): number {
   const conversionFactor = item.purchaseUnit?.conversionFactor || 1;
-  return Math.max(1, Math.ceil((item.neededQuantity || 1) / conversionFactor));
+  const neededQty = Math.max(0, item.quantityAlert - item.quantity + 1);
+  return Math.max(1, Math.ceil(neededQty / conversionFactor));
 }
 
 function getProductDisplayName(item: ShortlistItem): string {
@@ -168,13 +185,24 @@ export function ImportLowStockDialog({
   onOpenChange,
   onImport,
   preSelectedIds,
-  discountInfo
+  initialSupplierId = "",
+  initialSupplierName = "",
+  initialPurchaseType = "instant",
+  initialDiscountType = "fixed",
+  initialDiscountValue = 0,
 }: ImportLowStockDialogProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [brandFilter, setBrandFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+  // Purchase settings state
+  const [supplierId, setSupplierId] = useState<string>(initialSupplierId);
+  const [supplierName, setSupplierName] = useState<string>(initialSupplierName);
+  const [purchaseType, setPurchaseTypeState] = useState<"instant" | "order">(initialPurchaseType);
+  const [discountType, setDiscountTypeState] = useState<"percentage" | "fixed">(initialDiscountType);
+  const [discountValue, setDiscountValueState] = useState<number>(initialDiscountValue);
 
   // Fetch ALL low stock items (no pagination)
   const { data: shortlistData, isLoading } = useQuery({
@@ -185,6 +213,27 @@ export function ImportLowStockDialog({
       }),
     enabled: open,
   });
+
+  // Fetch supplier options for the purchase settings section
+  const { data: supplierOptions } = useSelectOptions(open ? "/purchases/suppliers" : null);
+
+  const handleSupplierChange = useCallback(
+    (value: string) => {
+      const option = supplierOptions?.find((o) => o.value === value) as any;
+      setSupplierId(value);
+      setSupplierName(option?.label || "");
+      if (option) {
+        // Support both flat fields (discountType/discountValue) and nested (defaultDiscount.type/value)
+        const dt: "percentage" | "fixed" =
+          option.discountType || option.defaultDiscount?.type || option.defaultDiscountType || "fixed";
+        const dv: number =
+          option.discountValue ?? option.defaultDiscount?.value ?? option.defaultDiscountValue ?? 0;
+        setDiscountTypeState(dt);
+        setDiscountValueState(dv);
+      }
+    },
+    [supplierOptions],
+  );
 
   // Fetch brands and categories for filters
   const { data: brandOptions } = useSelectOptions(open ? "/brands?all=true&fields=id,name" : null);
@@ -219,6 +268,11 @@ export function ImportLowStockDialog({
   // clean slate every time the dialog is re-opened.
   useEffect(() => {
     if (open) {
+      setSupplierId(initialSupplierId || "");
+      setSupplierName(initialSupplierName || "");
+      setPurchaseTypeState(initialPurchaseType || "instant");
+      setDiscountTypeState(initialDiscountType || "fixed");
+      setDiscountValueState(initialDiscountValue || 0);
       setSelectedIds(
         preSelectedIds && preSelectedIds.length > 0
           ? new Set(preSelectedIds)
@@ -301,6 +355,11 @@ export function ImportLowStockDialog({
   }, []);
 
   const handleImport = useCallback(() => {
+    if (!supplierId) {
+      toast.error("Please select a supplier first");
+      return;
+    }
+
     const selectedItems = items.filter((i) => selectedIds.has(i._id));
     const importItems: ImportedLowStockItem[] = selectedItems.map((item) => {
       const conversionFactor = item.purchaseUnit?.conversionFactor || 1;
@@ -309,19 +368,17 @@ export function ImportLowStockDialog({
       // price = item.price * conversionFactor
       const price = (item.price ?? 0) * conversionFactor;
 
-      // discount from supplier discount info
-      const discount = discountInfo
-        ? discountInfo.type === "percentage"
-          ? (price * discountInfo.value) / 100
-          : discountInfo.value
-        : 0;
+      // discount from local discount settings
+      const discount =
+        discountType === "percentage"
+          ? (price * discountValue) / 100
+          : discountValue;
 
       // costPrice = price - discount
-      const costPrice = price - discount;
+      const costPrice = Math.max(0, price - discount);
 
       const convertedQuantity = quantity * conversionFactor;
       const total = convertedQuantity * costPrice;
-
       return {
         inventoryId: item._id,
         productId: item.productId || "",
@@ -337,9 +394,16 @@ export function ImportLowStockDialog({
       };
     });
 
-    onImport(importItems);
+    onImport({
+      items: importItems,
+      supplierId,
+      supplierName,
+      purchaseType,
+      discountType,
+      discountValue,
+    });
     onOpenChange(false);
-  }, [items, selectedIds, orderQuantities, onImport, onOpenChange, discountInfo]);
+  }, [items, selectedIds, orderQuantities, supplierId, supplierName, purchaseType, discountType, discountValue, onImport, onOpenChange]);
 
   const isAllSelected =
     filteredItems.length > 0 && selectedIds.size === filteredItems.length;
@@ -356,6 +420,80 @@ export function ImportLowStockDialog({
             Select products that need restocking and import them into your purchase order.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Purchase Settings */}
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Purchase Settings
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Supplier */}
+            <div className="space-y-1 w-full">
+              <Label className="text-xs">
+                Supplier <span className="text-destructive">*</span>
+              </Label>
+              <Select value={supplierId} onValueChange={handleSupplierChange}>
+                <SelectTrigger className="h-9 w-full">
+                  <SelectValue placeholder="Select supplier..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {supplierOptions?.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Purchase Type */}
+            <div className="space-y-1 w-full">
+              <Label className="text-xs">Purchase Type</Label>
+              <Select
+                value={purchaseType}
+                onValueChange={(v) => setPurchaseTypeState(v as "instant" | "order")}
+              >
+                <SelectTrigger className="h-9 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="instant">Instant Purchase (Receive Now)</SelectItem>
+                  <SelectItem value="order">Create Order (Receive Later)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Discount Type */}
+            <div className="space-y-1 w-full">
+              <Label className="text-xs">Discount Type</Label>
+              <Select
+                value={discountType}
+                onValueChange={(v) => setDiscountTypeState(v as "percentage" | "fixed")}
+              >
+                <SelectTrigger className="h-9 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Fixed</SelectItem>
+                  <SelectItem value="percentage">Percentage (%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Discount Value */}
+            <div className="space-y-1 w-full">
+              <Label className="text-xs">Discount Value</Label>
+              <Input
+                type="number"
+                min={0}
+                value={discountValue}
+                onChange={(e) => setDiscountValueState(Number(e.target.value) || 0)}
+                className="h-9"
+                placeholder="0"
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3">
@@ -463,19 +601,15 @@ export function ImportLowStockDialog({
                   const isSelected = selectedIds.has(item._id);
                   const isCritical = item.quantity === 0;
                   const purchaseUnit = item.purchaseUnit?.unitId?.shortName || "";
+                  const unitName = item.unit?.shortName || "";
                   const purchaseConversion = item.purchaseUnit?.conversionFactor || 1;
                   const neededQty = Math.max(0, item.quantityAlert - item.quantity + 1);
-                  const convertedQty = item.quantity / purchaseConversion;
-                  const formattedQty = Number.isInteger(convertedQty)
-                    ? convertedQty
-                    : convertedQty.toFixed(2);
+                  
+                  const stock = purchaseUnit ? `${Math.floor(item.quantity / purchaseConversion)} ${purchaseUnit} ${item.quantity % purchaseConversion > 0 ? `${item.quantity % purchaseConversion} ${unitName}` : ""}` : `${item.quantity} ${unitName}`;
 
-                  const quantityDisplay = purchaseUnit
-                    ? `${item.quantity} ${item.unit?.shortName || ""} (${formattedQty} ${purchaseUnit})`
-                    : `${item.quantity} ${item.unit?.shortName || ""}`;
                   const baseUnitShortName = getBaseUnitShortName(item);
-                  const purcahseUnitQty = Math.ceil(neededQty / purchaseConversion);
-                  const neededQtyDisplay = purchaseUnit ? `${purcahseUnitQty} ${purchaseUnit} (${neededQty} ${baseUnitShortName})` : `${neededQty} ${baseUnitShortName}`;
+                  const purchaseUnitQty = Math.ceil(neededQty / purchaseConversion);
+                  const neededQtyDisplay = purchaseUnit ? `${purchaseUnitQty} ${purchaseUnit} (${neededQty} ${baseUnitShortName})` : `${neededQty} ${baseUnitShortName}`;
                   return (
                     <tr
                       key={item._id}
@@ -483,7 +617,7 @@ export function ImportLowStockDialog({
                         } ${isCritical ? "bg-destructive/5" : ""}`}
                       onClick={() => toggleSelect(item._id)}
                     >
-                      <td className="p-2">
+                      <td className="p-2" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => toggleSelect(item._id)}
@@ -495,11 +629,6 @@ export function ImportLowStockDialog({
                             {getProductDisplayName(item)}
                           </span>
                         </div>
-                        {item.location?.name && (
-                          <div className="text-xs text-muted-foreground">
-                            {item.location.name}
-                          </div>
-                        )}
                       </td>
                       <td className="p-2 text-right tabular-nums">
                         <span
@@ -509,8 +638,7 @@ export function ImportLowStockDialog({
                               : "text-chart-1 font-semibold"
                           }
                         >
-                          {/* {item.quantity} <span className="text-xs text-muted-foreground">{getBaseUnitShortName(item)}</span>  */}
-                          {quantityDisplay}
+                          {stock}
                         </span>
                       </td>
                       <td className="p-2 text-right tabular-nums">
@@ -524,8 +652,7 @@ export function ImportLowStockDialog({
                           <Input
                             type="number"
                             min={1}
-                            // value={orderQuantities[item._id] ?? getDefaultOrderQty(item)}
-                            value={purcahseUnitQty || neededQty}
+                            value={orderQuantities[item._id] ?? purchaseUnitQty}
                             onChange={(e) =>
                               updateOrderQty(item._id, Number(e.target.value) || 1)
                             }

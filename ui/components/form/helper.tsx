@@ -4,6 +4,7 @@ import { FC, memo, useMemo, useState } from "react";
 import { Controller, useWatch, useFormState } from "react-hook-form";
 import Link from "next/link";
 import { AdvancedSelect } from "../advanced-select";
+import { FuseAdvancedSelect } from "../fuse-advanced-select";
 import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import { Checkbox } from "../checkbox";
@@ -462,6 +463,79 @@ const FormField: FC<{
                   error={error}
                 />
               )
+            }}
+          />
+        );
+
+      case "fuseSelect":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => {
+              // Resolve API endpoint with dependency checking (same logic as "select")
+              let resolvedOptionsApi = field.optionsApi;
+
+              if (field.optionsApi && field.dependsOn && field.optionsApi.includes('{{')) {
+                if (dependencyWatchedValue) {
+                  const { shouldDisable } = evaluateFieldDependency(
+                    dependencyWatchedValue,
+                    field.dependsOn
+                  );
+                  if (!shouldDisable) {
+                    resolvedOptionsApi = resolveApiTemplate(
+                      field.optionsApi,
+                      dependencyWatchedValue
+                    );
+                  } else {
+                    resolvedOptionsApi = undefined;
+                  }
+                } else {
+                  resolvedOptionsApi = undefined;
+                }
+              }
+
+              const { dependsOn, autoFillFields, copyValueTo, ...selectProps } = field;
+
+              const handleAutoFill = (value: any) => {
+                const allValues = watch();
+                if (autoFillFields && Array.isArray(autoFillFields) && value) {
+                  const selectedOption = typeof value === 'object' && value !== null ? value : null;
+                  if (selectedOption) {
+                    autoFillFields.forEach((fieldName) => {
+                      const valueToSet = (selectedOption as Record<string, any>)[fieldName];
+                      if (valueToSet !== undefined) {
+                        setValue(fieldName, valueToSet, { shouldValidate: false, shouldDirty: true });
+                        if (onFieldChange) onFieldChange(fieldName, valueToSet, allValues);
+                      }
+                    });
+                  }
+                }
+                if (copyValueTo && Array.isArray(copyValueTo) && value !== undefined) {
+                  copyValueTo.forEach((targetField) => {
+                    setValue(targetField, value, { shouldValidate: false, shouldDirty: true });
+                    if (onFieldChange) onFieldChange(targetField, value, allValues);
+                  });
+                }
+              };
+
+              return (
+                <FuseAdvancedSelect
+                  value={controllerField.value}
+                  onMount={(mountedValue) => handleAutoFill(mountedValue)}
+                  onValueChange={(value) => {
+                    controllerField.onChange(value);
+                    handleChange(value);
+                    if (field.onValueChange) field.onValueChange(value);
+                    handleAutoFill(value);
+                  }}
+                  className={error ? "border-red-500" : ""}
+                  {...selectProps}
+                  optionsApi={resolvedOptionsApi}
+                  disabled={effectiveDisabled}
+                  error={error}
+                />
+              );
             }}
           />
         );

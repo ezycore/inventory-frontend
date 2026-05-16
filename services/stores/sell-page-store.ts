@@ -105,18 +105,18 @@ export const useSellPageStore = create<SellPageStore>()(
 
       getTotalCostPrice: () => {
         return get().items.reduce(
-          (sum, item) => sum + item.costPrice * item.quantity,
+          (sum, item) => sum + (item.costPrice || 0) * item.quantity,
           0,
         );
       },
 
       getTotalSalePrice: () => {
         const itemsTotal = get().items.reduce(
-          (sum, item) => sum + item.total,
+          (sum, item) => sum + (item.total),
           0,
         );
         const additionalDiscount = get().additionalDiscount;
-        return Math.max(0, itemsTotal - additionalDiscount);
+        return Math.max(0, Number(itemsTotal.toFixed(2)) - additionalDiscount);
       },
 
       setCustomer: (customer) =>
@@ -141,7 +141,6 @@ export const useSellPageStore = create<SellPageStore>()(
       addItem: (item) =>
         set((state) => {
           const total = item.quantity * item.salePrice;
-
           // Check if item with same inventory ID already exists
           const existingIndex = state.items.findIndex(
             (existing) => existing.inventoryId === item.inventoryId,

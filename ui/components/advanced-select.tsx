@@ -118,22 +118,6 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   const { form } = useDynamicForm(moduleConfig?.formConfig || { fields: [] });
   const createMutation = moduleConfig?.useMutation();
 
-  // Helper: Extract value string from dependsOnValue (handles labelInValue format)
-  // const extractDependsOnValue = (
-  //   depValue: string | null | LabelValueOption | undefined,
-  // ): any => {
-  //   if (!depValue) return null;
-  //   if (typeof depValue === "object") {
-  //     // Extract using matchWithProp if specified in dependency
-  //     if (dependsOn?.matchWithProp) {
-  //       return extractValueFromObject(depValue, dependsOn.matchWithProp);
-  //     }
-  //     // Default to value property
-  //     return depValue.value || depValue;
-  //   }
-  //   return depValue;
-  // };
-
   // Helper: Extract actual value string(s) from SelectValue (handles labelInValue format)
   const extractValue = (val: SelectValue | undefined): string | string[] => {
     if (!val) return "";
@@ -141,12 +125,6 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
       return val.map((v) => (typeof v === "object" ? v.value : v));
     }
     return typeof val === "object" ? val.value : val;
-  };
-
-  // Helper: Find label for a value from options
-  const findLabelForValue = (valueStr: string): string => {
-    const option = finalOptions.find((opt) => opt.value === valueStr);
-    return option?.label || valueStr;
   };
 
   // Helper: Find full option object for a value
@@ -158,7 +136,6 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   // Helper: Convert value string(s) to labelInValue format if needed
   const formatValue = (rawValue: string | string[]): SelectValue => {
     if (!labelInValue) return rawValue;
-
     if (Array.isArray(rawValue)) {
       return rawValue.map((v) => findOptionForValue(v));
     }
@@ -171,7 +148,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     isLoading: loading,
     error: queryError,
   } = useSelectOptions(optionsApi || null, itemsCreateCallback);
-  
+
   // Determine which options to use
   const finalOptions = optionsApi ? apiOptions || [] : options || [];
   const apiError = queryError ? (queryError as Error).message : null;

@@ -31,8 +31,6 @@ interface PaymentDialogProps {
   setPaymentAmount: (v: string) => void;
   paymentAccountId: string;
   setPaymentAccountId: (v: string) => void;
-  paymentMethod: string;
-  setPaymentMethod: (v: string) => void;
   paymentNotes: string;
   setPaymentNotes: (v: string) => void;
   isSubmitting: boolean;
@@ -49,8 +47,6 @@ export function PaymentDialog({
   setPaymentAmount,
   paymentAccountId,
   setPaymentAccountId,
-  paymentMethod,
-  setPaymentMethod,
   paymentNotes,
   setPaymentNotes,
   isSubmitting,
@@ -114,23 +110,6 @@ export function PaymentDialog({
                       {account.name} ({account.type})
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Method */}
-            <div className="space-y-2">
-              <Label htmlFor="pay-method">Payment Method</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="card">Card</SelectItem>
-                  <SelectItem value="bank">Bank Transfer</SelectItem>
-                  <SelectItem value="mfs">Mobile Banking</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>

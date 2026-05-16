@@ -22,6 +22,8 @@ export const navItems: NavItem[] = [
       { title: "Categories", url: "/categories", icon: "tag" },
       { title: "Brands", url: "/brands", icon: "star" },
       { title: "Variants", url: "/variants", icon: "layers" },
+      { title: "Units", url: "/units", icon: "grid" },
+      { title: "Taxes", url: "/taxes", icon: "percent" },
     ],
   },
 
@@ -44,7 +46,7 @@ export const navItems: NavItem[] = [
         url: "/stock/movements",
         icon: "arrow-right-left",
       },
-      { title: "Stock Transfer", url: "/stock/transfers", icon: "truck" },
+      // { title: "Stock Transfer", url: "/stock/transfers", icon: "truck" },
     ],
   },
 
@@ -215,8 +217,6 @@ export const navItems: NavItem[] = [
     icon: "settings",
     isActive: false,
     items: [
-      { title: "Units", url: "/units", icon: "grid" },
-      { title: "Taxes", url: "/taxes", icon: "percent" },
       { title: "Discounts", url: "/discounts", icon: "tag" },
       {
         title: "Field Settings",

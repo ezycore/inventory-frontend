@@ -58,6 +58,10 @@ export function useSalesReturnPage() {
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState('');
 
+  // ── Return details sheet state ────────────────────────────────
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
+  const [selectedReturn, setSelectedReturn] = useState<SalesReturn | null>(null);
+
   // ── Table pagination & filter state ───────────────────────────
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -429,9 +433,14 @@ export function useSalesReturnPage() {
   ]);
 
   // ── Columns (memoised) ────────────────────────────────────────
+  const handleViewDetails = useCallback((ret: SalesReturn) => {
+    setSelectedReturn(ret);
+    setDetailsSheetOpen(true);
+  }, []);
+
   const returnsColumns = useMemo(
-    () => getReturnsColumns(formatCurrency, isAccountsEnabled),
-    [formatCurrency, isAccountsEnabled],
+    () => getReturnsColumns(formatCurrency, isAccountsEnabled, handleViewDetails),
+    [formatCurrency, isAccountsEnabled, handleViewDetails],
   );
 
   // ── Public API ────────────────────────────────────────────────
@@ -499,5 +508,11 @@ export function useSalesReturnPage() {
     handleDueAllocationToggle,
     handleDueAllocationAmountChange,
     handleSubmitReturn,
+
+    // details sheet
+    detailsSheetOpen,
+    setDetailsSheetOpen,
+    selectedReturn,
+    handleViewDetails,
   } as const;
 }

@@ -121,7 +121,7 @@ function FieldPreview({ field, isExcluded }: FieldPreviewProps) {
       </div>
       {renderPreview()}
       {field.helperText && (
-        <p className="text-xs text-muted-foreground">{field.helperText}</p>
+        <p className="text-xs text-muted-foreground">{typeof field.helperText === "function" ? field.helperText({}) : field.helperText}</p>
       )}
     </div>
   )
@@ -459,7 +459,7 @@ function FieldToggleItem({
             </Badge>
           </div>
           {field.helperText && (
-            <p className="text-xs text-muted-foreground mt-0.5">{field.helperText}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{typeof field.helperText === "function" ? field.helperText({}) : field.helperText}</p>
           )}
         </div>
       </div>

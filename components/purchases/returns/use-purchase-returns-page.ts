@@ -18,10 +18,13 @@ import {
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type {
+  Account,
   PurchaseOrder,
   PurchaseReturn,
+  PurchaseReturnFilters,
   PurchaseReturnReason,
 } from "@/types";
+import type { FilterField } from "@/types/filter";
 
 import type { ReturnableItem, DueAllocation } from "./types";
 import {
@@ -31,7 +34,7 @@ import {
   calculateItemRefund,
   calculateMaxRefund,
 } from "./helpers";
-import { getReturnsColumns, getItemsColumns } from "./columns";
+import { getReturnsColumns } from "./columns";
 
 // =====================
 // Schema
@@ -51,7 +54,8 @@ export function usePurchaseReturnsPage() {
   const searchParams = useSearchParams();
   const { format: formatCurrency } = useCurrency();
 
-  // State
+  // ── State ─────────────────────────────────────────────────────
+  const [showNewReturn, setShowNewReturn] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(
     searchParams.get("orderId"),
   );
@@ -62,67 +66,108 @@ export function usePurchaseReturnsPage() {
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
 
-  // Auth & Features
+  // ── Details sheet ─────────────────────────────────────────────
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
+  const [selectedReturn, setSelectedReturn] = useState<PurchaseReturn | null>(
+    null,
+  );
+
+  // ── Pagination + filters ──────────────────────────────────────
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [filters, setFilters] = useState<PurchaseReturnFilters>({});
+
+  const handleViewDetails = useCallback((ret: PurchaseReturn) => {
+    setSelectedReturn(ret);
+    setDetailsSheetOpen(true);
+  }, []);
+
+  // ── Auth & Features ───────────────────────────────────────────
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
 
-  // API Hooks
-  const {
-    data: orderData,
-    isLoading: isLoadingOrder,
-  } = usePurchaseOrder(selectedOrderId || "");
-  const { data: returnsData, isLoading: isLoadingReturns } =
-    usePurchaseReturns({ limit: 50 });
-  const { data: accountsData } = useAccounts();
+  // ── API Hooks ─────────────────────────────────────────────────
+  const { data: orderData, isLoading: isLoadingOrder } = usePurchaseOrder(
+    selectedOrderId || "",
+  );
+  const { data: returnsData, isLoading: isLoadingReturns } = usePurchaseReturns(
+    { page, limit, ...filters },
+  );
+  const { data: accountsData } = useAccounts(
+    isAccountsEnabled ? { status: "active", limit: 100 } : undefined,
+  );
   const { data: summaryData, isLoading: isSummaryLoading } =
     usePurchaseReturnsSummary();
 
-  // Derived Data
+  // ── Derived ───────────────────────────────────────────────────
   const order = orderData?.data as PurchaseOrder | undefined;
-  const returns = (returnsData?.data?.items || []) as PurchaseReturn[];
-  const accounts = (accountsData?.items || []) as any[];
+  const returnsResponse = returnsData?.data as
+    | {
+        items?: PurchaseReturn[];
+        total?: number;
+        totalPages?: number;
+        hasNext?: boolean;
+        hasPrev?: boolean;
+      }
+    | undefined;
+  const returns: PurchaseReturn[] = returnsResponse?.items ?? [];
+  const accounts = ((accountsData as { items?: Account[] } | undefined)?.items ??
+    []) as Account[];
   const summary = summaryData?.data;
 
-  // Supplier ID
-  const orderSupplierId = useMemo(() => extractSupplierId(order), [order]);
+  const paginationInfo = useMemo(() => {
+    if (!returnsResponse) return null;
+    return {
+      total: returnsResponse.total ?? 0,
+      totalPages: returnsResponse.totalPages ?? 1,
+      hasNext: returnsResponse.hasNext ?? false,
+      hasPrev: returnsResponse.hasPrev ?? false,
+    };
+  }, [returnsResponse]);
 
+  // ── Supplier pending dues ─────────────────────────────────────
+  const orderSupplierId = useMemo(() => extractSupplierId(order), [order]);
   const { data: pendingDuesData } = useSupplierPendingDues(
     orderSupplierId,
     selectedOrderId || "",
   );
   const pendingDues = useMemo(
-    () => (pendingDuesData as any)?.data || [],
+    () =>
+      ((pendingDuesData as { data?: unknown } | undefined)?.data as Array<
+        Record<string, unknown>
+      >) || [],
     [pendingDuesData],
   );
 
   const createReturnMutation = useCreatePurchaseReturn();
 
-  // Form
+  // ── Form ──────────────────────────────────────────────────────
   const searchForm = useForm<OrderSearchData>({
     resolver: zodResolver(orderSearchSchema),
     defaultValues: { orderId: "" },
   });
 
-  // Initialize returnable items & due allocations
-  const initialReturnableItems = useMemo(
-    () => (order ? buildReturnableItems(order) : []),
-    [order],
+  // ── Init helpers ──────────────────────────────────────────────
+  const initFromOrder = useCallback((o: PurchaseOrder | undefined) => {
+    if (o) setReturnableItems(buildReturnableItems(o));
+  }, []);
+
+  const initFromPendingDues = useCallback(
+    (dues: Array<Record<string, unknown>>) => {
+      if (dues.length) setDueAllocations(buildDueAllocations(dues));
+    },
+    [],
   );
 
-  const initialDueAllocations = useMemo(
-    () => buildDueAllocations(pendingDues),
-    [pendingDues],
-  );
-
+  // Auto-sync (legacy support)
   useEffect(() => {
-    setReturnableItems(initialReturnableItems);
-  }, [initialReturnableItems]);
-
+    if (order) setReturnableItems(buildReturnableItems(order));
+  }, [order]);
   useEffect(() => {
-    setDueAllocations(initialDueAllocations);
-  }, [initialDueAllocations]);
+    setDueAllocations(buildDueAllocations(pendingDues));
+  }, [pendingDues]);
 
-  // Totals
+  // ── Computed totals ───────────────────────────────────────────
   const totalReturnQty = useMemo(
     () =>
       returnableItems
@@ -130,7 +175,6 @@ export function usePurchaseReturnsPage() {
         .reduce((sum, i) => sum + i.returnQty, 0),
     [returnableItems],
   );
-
   const totalRefundAmount = useMemo(
     () =>
       returnableItems
@@ -138,14 +182,11 @@ export function usePurchaseReturnsPage() {
         .reduce((sum, i) => sum + i.refundAmount, 0),
     [returnableItems],
   );
-
   const orderDueAmount = order?.dueAmount || 0;
-
   const adjustOrderDueAmount = useMemo(
     () => Math.min(totalRefundAmount, orderDueAmount),
     [totalRefundAmount, orderDueAmount],
   );
-
   const totalOtherDuesAllocated = useMemo(
     () =>
       dueAllocations
@@ -153,67 +194,59 @@ export function usePurchaseReturnsPage() {
         .reduce((sum, d) => sum + d.allocatedAmount, 0),
     [dueAllocations],
   );
-
   const remainingForRefund = useMemo(() => {
     const afterOrderDue = totalRefundAmount - adjustOrderDueAmount;
     return Math.max(0, afterOrderDue - totalOtherDuesAllocated);
   }, [totalRefundAmount, adjustOrderDueAmount, totalOtherDuesAllocated]);
 
-  // Handlers
-  const handleSearch = useCallback(
-    (data: OrderSearchData) => {
-      setSelectedOrderId(data.orderId.trim());
-    },
-    [],
-  );
+  // ── Handlers ──────────────────────────────────────────────────
+  const handleSearch = useCallback((data: OrderSearchData) => {
+    setSelectedOrderId(data.orderId.trim());
+  }, []);
 
   const handleClearSearch = useCallback(() => {
     setSelectedOrderId(null);
     setReturnableItems([]);
     setDueAllocations([]);
     setAccountRefundAmount(0);
+    setSelectedAccountId("");
     setNotes("");
+    setShowNewReturn(false);
     searchForm.reset();
   }, [searchForm]);
 
-  const handleItemSelect = useCallback(
-    (index: number, selected: boolean) => {
-      setReturnableItems((prev) => {
-        const updated = [...prev];
-        updated[index] = { ...updated[index], selected };
-        if (!selected) {
-          updated[index].returnQty = 0;
-          updated[index].refundAmount = 0;
-        }
-        return updated;
-      });
-    },
-    [],
-  );
+  const handleItemSelect = useCallback((index: number, selected: boolean) => {
+    setReturnableItems((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        selected,
+        ...(selected ? {} : { returnQty: 0, refundAmount: 0 }),
+      };
+      return updated;
+    });
+  }, []);
 
-  const handleItemQtyChange = useCallback(
-    (index: number, qty: number) => {
-      setReturnableItems((prev) => {
-        const updated = [...prev];
-        const item = updated[index];
-        const validQty = Math.max(0, Math.min(qty, item.maxReturnableQty));
-        const calculatedRefund = calculateItemRefund(
-          validQty,
-          item.conversionFactor,
-          item.costPrice,
-          item.price,
-        );
-        updated[index] = {
-          ...item,
-          returnQty: validQty,
-          refundAmount: calculatedRefund,
-          selected: validQty > 0,
-        };
-        return updated;
-      });
-    },
-    [],
-  );
+  const handleItemQtyChange = useCallback((index: number, qty: number) => {
+    setReturnableItems((prev) => {
+      const updated = [...prev];
+      const item = updated[index];
+      const validQty = Math.max(0, Math.min(qty, item.maxReturnableQty));
+      const refund = calculateItemRefund(
+        validQty,
+        item.conversionFactor,
+        item.costPrice,
+        item.price,
+      );
+      updated[index] = {
+        ...item,
+        returnQty: validQty,
+        refundAmount: refund,
+        selected: validQty > 0,
+      };
+      return updated;
+    });
+  }, []);
 
   const handleRefundAmountChange = useCallback(
     (index: number, amount: number) => {
@@ -266,6 +299,7 @@ export function usePurchaseReturnsPage() {
     [],
   );
 
+  // ── Submit ────────────────────────────────────────────────────
   const handleSubmitReturn = useCallback(async () => {
     if (!selectedOrderId || !order) {
       toast.error("Please select an order first");
@@ -294,25 +328,33 @@ export function usePurchaseReturnsPage() {
         : {}),
     }));
 
-    let refundAllocation: any = undefined;
+    let refundAllocation:
+      | {
+          adjustSupplierDue?: number;
+          accountRefund?: {
+            accountId: string;
+            amount: number;
+            paymentMethod: string;
+          };
+        }
+      | undefined;
+
     if (isAccountsEnabled && totalRefundAmount > 0) {
       refundAllocation = {};
 
       const selectedDues = dueAllocations.filter(
         (d) => d.selected && d.allocatedAmount > 0,
       );
-      const totalOtherDueAllocation = selectedDues.reduce(
+      const otherDueTotal = selectedDues.reduce(
         (sum, d) => sum + d.allocatedAmount,
         0,
       );
-
       const totalDueAdjustment =
-        Math.min(adjustOrderDueAmount, orderDueAmount) +
-        totalOtherDueAllocation;
+        Math.min(adjustOrderDueAmount, orderDueAmount) + otherDueTotal;
+
       if (totalDueAdjustment > 0) {
         refundAllocation.adjustSupplierDue = totalDueAdjustment;
       }
-
       if (accountRefundAmount > 0 && selectedAccountId) {
         refundAllocation.accountRefund = {
           accountId: selectedAccountId,
@@ -332,7 +374,7 @@ export function usePurchaseReturnsPage() {
       });
       handleClearSearch();
     } catch {
-      // Error handled by the mutation
+      // mutation handles error toast
     }
   }, [
     selectedOrderId,
@@ -351,24 +393,59 @@ export function usePurchaseReturnsPage() {
     handleClearSearch,
   ]);
 
-  // Columns (memoized)
+  // ── Filter config ─────────────────────────────────────────────
+  const filterConfig = useMemo(
+    () => ({
+      fields: [
+        {
+          name: "status",
+          label: "Status",
+          type: "select" as const,
+          options: [
+            { label: "Pending", value: "pending" },
+            { label: "Processed", value: "completed" },
+            { label: "Cancelled", value: "cancelled" },
+          ],
+        },
+        {
+          name: "reason",
+          label: "Reason",
+          type: "select" as const,
+          options: [
+            { label: "Damaged", value: "damaged" },
+            { label: "Defective", value: "defective" },
+            { label: "Wrong Item", value: "wrong_item" },
+            { label: "Expired", value: "expired" },
+            { label: "Quality Issue", value: "quality_issue" },
+            { label: "Other", value: "other" },
+          ],
+        },
+      ] as FilterField[],
+      onApply: (newFilters: Record<string, unknown>) => {
+        setFilters(newFilters as PurchaseReturnFilters);
+        setPage(1);
+      },
+      onReset: () => {
+        setFilters({});
+        setPage(1);
+      },
+    }),
+    [],
+  );
+
+  // ── Columns ───────────────────────────────────────────────────
   const returnsColumns = useMemo(
-    () => getReturnsColumns(isAccountsEnabled, formatCurrency),
-    [isAccountsEnabled, formatCurrency],
-  );
-
-  const itemsColumns = useMemo(
     () =>
-      getItemsColumns(
-        formatCurrency,
-        handleItemSelect,
-        handleItemQtyChange,
-        handleRefundAmountChange,
-      ),
-    [formatCurrency, handleItemSelect, handleItemQtyChange, handleRefundAmountChange],
+      getReturnsColumns(formatCurrency, isAccountsEnabled, handleViewDetails),
+    [formatCurrency, isAccountsEnabled, handleViewDetails],
   );
 
+  // ── Public API ────────────────────────────────────────────────
   return {
+    // UI state
+    showNewReturn,
+    setShowNewReturn,
+
     // Search
     searchForm,
     handleSearch,
@@ -383,10 +460,21 @@ export function usePurchaseReturnsPage() {
     returns,
     isLoadingReturns,
     returnsColumns,
+    paginationInfo,
+    page,
+    limit,
+    setPage,
+    setLimit,
+    filterConfig,
+
+    // Details sheet
+    detailsSheetOpen,
+    setDetailsSheetOpen,
+    selectedReturn,
+    handleViewDetails,
 
     // Items
     returnableItems,
-    itemsColumns,
     handleItemSelect,
     handleItemQtyChange,
     handleRefundAmountChange,
@@ -407,11 +495,17 @@ export function usePurchaseReturnsPage() {
     handleDueAllocationToggle,
     handleDueAllocationAmountChange,
     remainingForRefund,
+    totalOtherDuesAllocated,
     accountRefundAmount,
     setAccountRefundAmount,
     selectedAccountId,
     setSelectedAccountId,
     accounts,
+    pendingDues,
+
+    // Init helpers
+    initFromOrder,
+    initFromPendingDues,
 
     // Summary
     summary,
@@ -420,8 +514,9 @@ export function usePurchaseReturnsPage() {
     // Submit
     handleSubmitReturn,
     createReturnMutation,
+    isSubmitting: createReturnMutation.isPending,
 
     // Utils
     formatCurrency,
-  };
+  } as const;
 }

@@ -10,4 +10,6 @@ export {
   clampReceiveQuantity,
   hasAnyReceivableItems,
 } from "./helpers";
+export { OrderDetailsDrawer } from "./order-details-drawer";
+export { ReceiveItemsDialog } from "./receive-items-dialog";
 export type { ItemReceiveState } from "./types";

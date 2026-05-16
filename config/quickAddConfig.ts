@@ -31,14 +31,14 @@ export const quickAddConfig: Record<string, QuickAddModuleConfig> = {
     useMutation: useCreateCategory,
     title: "Add New Category",
     submitLabel: "Create Category",
-    optionsApiPath: "/categories",
+    optionsApiPath: "/categories?all=true&fields=_id,name",
   },
   brand: {
     formConfig: brandFormConfig,
     useMutation: useCreateBrand,
     title: "Add New Brand",
     submitLabel: "Create Brand",
-    optionsApiPath: "/brands",
+    optionsApiPath: "/brands?all=true&fields=_id,name",
   },
 
   // Add more modules as needed:

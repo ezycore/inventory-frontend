@@ -2,6 +2,7 @@ import { ProductStatus } from "@/types";
 import { FilterConfig } from "@/types/DataTable";
 
 export const productFilterConfig: FilterConfig = {
+  viewMode: 'popover',
   fields: [
     {
       name: "name",
