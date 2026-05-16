@@ -17,7 +17,8 @@ import { DataTableToolbar } from "./toolbar";
 import { DataTableBody } from "./table-body";
 import { DataTablePagination } from "./pagination";
 import { BaseDataTableProps } from "@/types/DataTable";
-import { EasyAlertDialog } from "../easy-alert-dialog";
+import { EasyAlertDialog } from "../custom/easy-alert-dialog";
+import { ColumnSettingsDialog } from "@/components/shared/column-settings-dialog";
 
 export function BaseDataTable<TData, TValue>({
   columns,
@@ -29,6 +30,7 @@ export function BaseDataTable<TData, TValue>({
   actions,
   onEdit,
   onDelete,
+  onBulkDelete,
   onView,
   pagination,
   isLoading = false,
@@ -39,12 +41,32 @@ export function BaseDataTable<TData, TValue>({
   toolbarAction,
   rowClassName,
   customActions,
+  manageColumns = false,
+  module,
+  fullColumns,
+  // Server-side sorting props
+  manualSorting = false,
+  sortingState: externalSortingState,
+  onSortingChange: externalOnSortingChange,
+  serverSortableFields,
+  // Table styling props
+  variant = 'default',
+  headless = false,
+  borderless = false,
+  rowSpacing = 'none',
+  zebra = false,
+  roundedRows = false,
+  stickyHeader = false,
+  rowBgColor,
 }: BaseDataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [internalSorting, setInternalSorting] = useState<SortingState>([]);
+  const sorting = manualSorting && externalSortingState ? externalSortingState : internalSorting;
+  const setSorting = manualSorting && externalOnSortingChange ? externalOnSortingChange : setInternalSorting;
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
+  const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
 
   // Custom hooks
   const { paginationState, handlePaginationChange } = usePaginationState(pagination);
@@ -65,22 +87,27 @@ export function BaseDataTable<TData, TValue>({
     onEdit,
     openDeleteDialog,
     customActions,
+    serverSortableFields: manualSorting ? serverSortableFields : undefined,
   });
 
   const table = useReactTable({
     data,
     columns: enhancedColumns,
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const newSorting = typeof updater === "function" ? updater(sorting) : updater;
+      setSorting(newSorting);
+    },
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: pagination?.manualPagination ? undefined : getPaginationRowModel(),
-    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
+    getSortedRowModel: (enableSorting && !manualSorting) ? getSortedRowModel() : undefined,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: handlePaginationChange,
     manualPagination: pagination?.manualPagination,
+    manualSorting,
     pageCount: pagination?.manualPagination ? (pagination?.totalPages ?? -1) : undefined,
     state: {
       sorting,
@@ -109,9 +136,18 @@ export function BaseDataTable<TData, TValue>({
     if (!hasSelection) return;
 
     const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
-    for (const row of selectedRows) {
-      await onDelete?.(row);
+    
+    // Use bulk delete API if available
+    if (onBulkDelete) {
+      const ids = selectedRows.map((row: any) => row._id);
+      await onBulkDelete(ids);
+    } else {
+      // Fallback: delete one by one
+      for (const row of selectedRows) {
+        await onDelete?.(row);
+      }
     }
+    
     table.resetRowSelection();
   };
 
@@ -132,16 +168,24 @@ export function BaseDataTable<TData, TValue>({
         isDeleting={isDeleting}
         enableColumnVisibility={enableColumnVisibility}
         actionButton={toolbarAction}
-        customActions={customActions}
-      />
+        customActions={customActions}        manageColumns={manageColumns}
+        onColumnSettingsClick={() => setColumnSettingsOpen(true)}      />
 
       {/* Table */}
       <DataTableBody
         table={table}
         columns={enhancedColumns}
-        isLoading={isLoading}
+        isLoading={isLoading || isDeleting}
         enableRowHover={enableRowHover}
         rowClassName={rowClassName}
+        variant={variant}
+        headless={headless}
+        borderless={borderless}
+        rowSpacing={rowSpacing}
+        zebra={zebra}
+        roundedRows={roundedRows}
+        stickyHeader={stickyHeader}
+        rowBgColor={rowBgColor}
       />
 
       {/* Pagination */}
@@ -166,6 +210,16 @@ export function BaseDataTable<TData, TValue>({
         isConfirming={isDeleting}
         confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
       />
+
+      {/* Column Settings Modal */}
+      {manageColumns && module && fullColumns && (
+        <ColumnSettingsDialog
+          open={columnSettingsOpen}
+          onOpenChange={setColumnSettingsOpen}
+          columns={fullColumns}
+          module={module}
+        />
+      )}
     </div>
   );
 }

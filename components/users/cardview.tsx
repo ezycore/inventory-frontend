@@ -1,0 +1,193 @@
+"use client";
+
+import type { User } from "@/types/users";
+import { Card } from "@/ui/components/card";
+import { Badge } from "@/ui/components/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/ui/components/dropdown-menu";
+import {
+  AlertCircle,
+  Calendar,
+  Edit2,
+  Mail,
+  MailCheck,
+  MapPin,
+  MoreVertical,
+  Phone,
+  Shield,
+  Trash2,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
+const roleConfig: Record<string, { color: string; icon: string }> = {
+  admin: {
+    color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800",
+    icon: "🛡️",
+  },
+  manager: {
+    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800",
+    icon: "👔",
+  },
+  staff: {
+    color: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800",
+    icon: "👤",
+  },
+  viewer: {
+    color: "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-900/40 dark:text-gray-400 dark:border-gray-700",
+    icon: "👁️",
+  },
+};
+
+const avatarGradients = [
+  "from-blue-500 to-indigo-600",
+  "from-emerald-500 to-teal-600",
+  "from-violet-500 to-purple-600",
+  "from-amber-500 to-orange-600",
+  "from-rose-500 to-pink-600",
+  "from-cyan-500 to-sky-600",
+  "from-indigo-500 to-blue-600",
+  "from-teal-500 to-emerald-600",
+];
+
+function getAvatarGradient(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return avatarGradients[Math.abs(hash) % avatarGradients.length];
+}
+
+/**
+ * User card view – used as `renderCard` inside DataCard.
+ * Signature: (item, { onEdit, onView, onDelete }) => ReactNode
+ */
+const UserCardView = (
+  item: User,
+  { onEdit, onDelete }: { onEdit?: () => void; onView?: () => void; onDelete?: () => void },
+) => {
+  const fullName = `${item.firstName} ${item.lastName}`;
+  const initials = `${item.firstName?.charAt(0) || ""}${item.lastName?.charAt(0) || ""}`.toUpperCase();
+  const gradient = getAvatarGradient(fullName);
+  const isActive = item.status === "active";
+  const role = roleConfig[item.role] || roleConfig.viewer;
+  const locationCount = item.role === "admin" ? "All" : (item.locations?.length || 0);
+
+  return (
+    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-border">
+      {/* Status indicator strip */}
+      <div
+        className={`absolute top-0 left-0 right-0 h-0.5 ${isActive ? "bg-emerald-500" : "bg-red-400"}`}
+      />
+
+      <div className="p-5">
+        {/* Header: Avatar + Identity + Actions */}
+        <div className="flex items-start gap-3.5 mb-4">
+          <div className="relative shrink-0">
+            <div
+              className={`h-12 w-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-sm shadow-sm`}
+            >
+              {initials}
+            </div>
+            {/* Online status dot */}
+            <span
+              className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background ${isActive ? "bg-emerald-500" : "bg-gray-400"}`}
+            />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm leading-tight truncate">
+              {fullName}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate flex items-center gap-1">
+              <Mail className="h-3 w-3 shrink-0" />
+              {item.email}
+            </p>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md opacity-0 group-hover:opacity-100 hover:bg-accent transition-all shrink-0">
+              <MoreVertical className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onEdit}>
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={onDelete}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Badges */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-4">
+          <span
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${role.color}`}
+          >
+            <Shield className="h-3 w-3" />
+            {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
+          </span>
+          <Badge
+            variant={isActive ? "default" : "destructive"}
+            className="text-xs font-medium"
+          >
+            {isActive ? "Active" : "Inactive"}
+          </Badge>
+          <span
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs border ${
+              item.emailVerified
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800"
+                : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800"
+            }`}
+          >
+            {item.emailVerified ? (
+              <MailCheck className="h-3 w-3" />
+            ) : (
+              <AlertCircle className="h-3 w-3" />
+            )}
+            {item.emailVerified ? "Verified" : "Unverified"}
+          </span>
+        </div>
+
+        {/* Info rows */}
+        <div className="space-y-2 text-xs">
+          {item.phone && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Phone className="h-3.5 w-3.5 shrink-0" />
+              <span>{item.phone}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {typeof locationCount === "string"
+                ? "All locations (Admin)"
+                : `${locationCount} location${locationCount !== 1 ? "s" : ""}`}
+            </span>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-4 pt-3 border-t border-border/60 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Calendar className="h-3 w-3 shrink-0" />
+          <span>
+            Joined{" "}
+            {formatDistanceToNow(new Date(item.createdAt), {
+              addSuffix: true,
+            })}
+          </span>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default UserCardView;

@@ -1,9 +1,15 @@
-'use client';
+"use client";
+import { UserAvatarProfile } from "@/components/user-avatar-profile";
+import { navItems } from "@/constants/navItem";
+import { useLogout } from "@/hooks";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { filterNavItems } from "@/lib/nav-utils";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger
-} from '@ui/components/collapsible';
+  CollapsibleTrigger,
+} from "@ui/components/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@ui/components/dropdown-menu';
+  DropdownMenuTrigger,
+} from "@ui/components/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -26,97 +32,166 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarRail
-} from '@ui/components/sidebar';
-import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { useMediaQuery } from '@/hooks/use-media-query';
+  SidebarRail,
+  useSidebar,
+} from "@ui/components/sidebar";
 import {
   BellIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  ChevronsRightIcon,
   CreditCardIcon,
-  LayoutDashboardIcon,
   LogOutIcon,
-  LucideIcon,
   PanelsRightBottom,
-  UserCircleIcon
-} from 'lucide-react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import * as React from 'react';
-import { AppTitle } from './app-title';
+  UserCircleIcon,
+} from "lucide-react";
+import { DynamicIcon } from "lucide-react/dynamic";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import * as React from "react";
+import { AppTitle } from "./app-title";
+import type { NavItem } from "@/types/layout";
 export const company = {
-  name: 'Acme Inc',
+  name: "Acme Inc",
   logo: PanelsRightBottom,
-  plan: 'Enterprise'
+  plan: "Enterprise",
 };
-import { DynamicIcon } from 'lucide-react/dynamic';
-import { navItems } from '@/constants/navItem';
+
+/**
+ * Renders a parent nav item with sub-items. When the sidebar is expanded we
+ * use the standard inline Collapsible; when collapsed to icon-only we render
+ * a hover/click DropdownMenu so nested items remain reachable.
+ */
+function NestedNavItem({
+  item,
+  pathname,
+}: {
+  item: NavItem;
+  pathname: string;
+}) {
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = state === "collapsed" && !isMobile;
+  const subItems = item.items || [];
+  const isParentActive =
+    pathname === item.url || subItems.some((s) => pathname === s.url);
+
+  if (isCollapsed) {
+    // Icon-only mode: show a dropdown to the right with the nested items.
+    return (
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              tooltip={item.title}
+              isActive={isParentActive}
+            >
+              {item.icon && <DynamicIcon name={item.icon as any} />}
+              <span>{item.title}</span>
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="right"
+            align="start"
+            sideOffset={4}
+            className="min-w-48"
+          >
+            <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {subItems.map((subItem) => (
+              <DropdownMenuItem key={subItem.title} asChild>
+                <Link
+                  href={subItem.url}
+                  data-active={pathname === subItem.url}
+                  className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+                >
+                  {subItem.title}
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <Collapsible
+      asChild
+      defaultOpen={item.isActive || isParentActive}
+      className="group/collapsible"
+    >
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            tooltip={item.title}
+            isActive={pathname === item.url}
+          >
+            {item.icon && <DynamicIcon name={item.icon as any} />}
+            <span>{item.title}</span>
+            <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {subItems.map((subItem) => (
+              <SidebarMenuSubItem key={subItem.title}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={pathname === subItem.url}
+                >
+                  <Link href={subItem.url}>
+                    <span>{subItem.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  );
+}
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
   const router = useRouter();
-  const user = {
-    firstName: 'John',
-    lastName: 'Doe',
-    emailAddresses: [{ emailAddress: 'john@example.com' }]
-  }
-  const handleSwitchTenant = (_tenantId: string) => {
-    // Tenant switching functionality would be implemented here
-  };
+  const user = useAuthStore((state) => state.user);
+  const { features } = user?.organization || {};
+  const logout = useLogout();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   React.useEffect(() => {
     // Side effects based on sidebar state changes
   }, [isOpen]);
 
+  // Filter navigation items based on user role, permissions, and features
+  const filteredNavItems = React.useMemo(() => {
+    if (!user?.role) return navItems;
+
+    return filterNavItems(
+      navItems,
+      user.role,
+      user.permissions || [],
+      features,
+    );
+  }, [user, features]);
+
   return (
-    <Sidebar collapsible='icon'>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
-       <AppTitle />
+        <AppTitle />
       </SidebarHeader>
-      <SidebarContent className='overflow-x-hidden'>
+      <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               return item?.items && item?.items?.length > 0 ? (
-                <Collapsible
+                <NestedNavItem
                   key={item.title}
-                  asChild
-                  defaultOpen={item.isActive}
-                  className='group/collapsible'
-                >
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton
-                        tooltip={item.title}
-                        isActive={pathname === item.url}
-                      >
-                        {item.icon && <DynamicIcon name={item.icon as any} />}
-                        <span>{item.title}</span>
-                        <ChevronRightIcon className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.items?.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={pathname === subItem.url}
-                            >
-                              <Link href={subItem.url}>
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </SidebarMenuItem>
-                </Collapsible>
+                  item={item}
+                  pathname={pathname}
+                />
               ) : (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
@@ -135,70 +210,66 @@ export default function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size='lg'
-                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-                >
-                  {user && (
+      {isAuthenticated && user && (
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton
+                    size="lg"
+                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                  >
                     <UserAvatarProfile
-                      className='h-8 w-8 rounded-lg'
+                      className="h-8 w-8 rounded-lg"
                       showInfo
                       user={user}
                     />
-                  )}
-                  <ChevronDownIcon className='ml-auto size-4' />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-                side='bottom'
-                align='end'
-                sideOffset={4}
-              >
-                <DropdownMenuLabel className='p-0 font-normal'>
-                  <div className='px-1 py-1.5'>
-                 
+                    <ChevronDownIcon className="ml-auto size-4" />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                  side="bottom"
+                  align="end"
+                  sideOffset={4}
+                >
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="px-1 py-1.5">
                       <UserAvatarProfile
-                        className='h-8 w-8 rounded-lg'
+                        className="h-8 w-8 rounded-lg"
                         showInfo
                         user={user}
                       />
-                  
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
 
-                <DropdownMenuGroup>
-                  <DropdownMenuItem
-                    onClick={() => router.push('/profile')}
-                  >
-                    <UserCircleIcon className='mr-2 h-4 w-4' />
-                    Profile
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => router.push("/profile")}>
+                      <UserCircleIcon className="mr-2 h-4 w-4" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <CreditCardIcon className="mr-2 h-4 w-4" />
+                      Billing
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <BellIcon className="mr-2 h-4 w-4" />
+                      Notifications
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOutIcon className="mr-2 h-4 w-4" />
+                    Logout
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <CreditCardIcon className='mr-2 h-4 w-4' />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BellIcon className='mr-2 h-4 w-4' />
-                    Notifications
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOutIcon className='mr-2 h-4 w-4' />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      )}
       <SidebarRail />
     </Sidebar>
   );

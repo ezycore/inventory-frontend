@@ -1,11 +1,15 @@
 import { cn } from "@ui/lib/utils";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
-import React from "react";
-import { Controller } from "react-hook-form";
+import { FC, memo, useMemo, useState } from "react";
+import { Controller, useWatch, useFormState } from "react-hook-form";
+import Link from "next/link";
 import { AdvancedSelect } from "../advanced-select";
+import { FuseAdvancedSelect } from "../fuse-advanced-select";
 import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import { Checkbox } from "../checkbox";
+import { DatePicker } from "../date-picker";
+import { Switch } from "../switch";
 import {
   Collapsible,
   CollapsibleContent,
@@ -29,8 +33,21 @@ import type {
   FormFieldConfig,
   FormSection,
 } from "@/ui/components/form/type";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
-import { ImageObject } from "@/types/DataTable";
+import { Password } from "../input-password";
+import { SafeImage } from '@/ui/components/safeImage';
+import { evaluateFieldDependency, resolveApiTemplate, evaluateDependencyCondition } from "./dependency-utils";
+import { useSelectOptions } from "@/services/api";
+
+// Helper to get a nested value from an object by dot-separated path
+const getNestedValue = (obj: any, path: string): any => {
+  const keys = path.split('.');
+  let current = obj;
+  for (const key of keys) {
+    if (current === undefined || current === null) return undefined;
+    current = current[key];
+  }
+  return current;
+};
 
 // Helper function to get grid column classes with responsive breakpoints
 const getColumnClass = (span: ColumnSpan): string => {
@@ -40,21 +57,25 @@ const getColumnClass = (span: ColumnSpan): string => {
     3: "col-span-12 sm:col-span-6 lg:col-span-3",
     4: "col-span-12 sm:col-span-6 lg:col-span-4",
     6: "col-span-12 sm:col-span-6 lg:col-span-6",
+    8: "col-span-12 sm:col-span-6 lg:col-span-8",
     12: "col-span-12",
   };
   return spanMap[span] || "col-span-12";
 };
 
-// Individual field components
-const FormField: React.FC<{
+// Individual field components - Memoized for performance
+const FormField: FC<{
   field: FormFieldConfig;
   control: any;
   formState: any;
   watch: any;
   setValue: any;
-  onFieldChange?: (fieldName: string, value: any) => void;
+  onFieldChange?: (fieldName: string, value: any, allValues: any) => void;
   viewMode?: boolean;
-}> = ({
+  disabledFieldsInEdit?: string[];
+  isEditMode?: boolean;
+  allFields?: FormFieldConfig[]; // All fields to look up dependency field config
+}> = memo(({
   field,
   control,
   formState,
@@ -62,591 +83,876 @@ const FormField: React.FC<{
   setValue,
   onFieldChange,
   viewMode = false,
+  disabledFieldsInEdit,
+  isEditMode = false,
+  allFields = [],
 }) => {
-    const error = formState.errors[field.name]?.message;
-    const fieldValue = watch(field.name);
+  // IMPORTANT: subscribe to this field's error directly via useFormState.
+  // The `formState` prop passed from the parent is stale (parent doesn't
+  // re-render when errors change), which caused validation messages to
+  // lag one keystroke behind. Reading from useFormState ensures this
+  // component re-renders the moment its own error changes.
+  const { errors: liveErrors } = useFormState({ control, name: field.name });
+  const error = getNestedValue(liveErrors, field.name)?.message;
 
-    // Check conditional display
-    if (field.showWhen) {
-      const watchedValue = watch(field.showWhen.field);
-      const { value, operator = "equals" } = field.showWhen;
+  // Check if field should be disabled in edit mode
+  const isFieldDisabledInEdit = isEditMode && disabledFieldsInEdit?.includes(field.name);
 
-      let shouldShow = false;
-      switch (operator) {
-        case "equals":
-          shouldShow = watchedValue === value;
-          break;
-        case "not-equals":
-          shouldShow = watchedValue !== value;
-          break;
-        case "includes":
-          shouldShow = Array.isArray(watchedValue)
-            ? watchedValue.includes(value)
-            : false;
-          break;
-        case "not-includes":
-          shouldShow = Array.isArray(watchedValue)
-            ? !watchedValue.includes(value)
-            : true;
-          break;
-      }
+  // Use useWatch for better performance - only subscribes to specific fields
+  const fieldValue = useWatch({ control, name: field.name });
 
-      if (!shouldShow) return null;
+  // Watch all form values when suffix/prefix/helperText is a function so they can react.
+  const needsAllValues =
+    typeof field.suffix === "function" ||
+    typeof field.prefix === "function" ||
+    typeof field.helperText === "function";
+  const allValues = useWatch({ control, disabled: !needsAllValues }) || {};
+
+  // Watch dependent field value if dependency exists
+  const dependencyRawValue = useWatch({
+    control,
+    name: field.dependsOn?.field || field.name,
+    disabled: !field.dependsOn
+  });
+
+  // Find the dependency field's configuration
+  const dependencyField = useMemo(() => {
+    if (!field.dependsOn) return null;
+    return allFields.find(f => f.name === field.dependsOn!.field);
+  }, [field.dependsOn, allFields]);
+
+  // Fetch API options for dependency field if it uses optionsApi
+  // This will use cached data from TanStack Query if already fetched
+  const { data: dependencyApiOptions } = useSelectOptions(
+    dependencyField?.optionsApi || null,
+    dependencyField?.itemsCreateCallback
+  );
+
+  // Enrich dependency value with full option data if it's a select field
+  const dependencyWatchedValue = useMemo(() => {
+    if (!field.dependsOn || !dependencyRawValue) return dependencyRawValue;
+
+    // If value is already an object with all the data we need, use it
+    if (typeof dependencyRawValue === 'object' && dependencyRawValue !== null) {
+      return dependencyRawValue;
     }
 
-    if (field.hidden) return null;
+    // If dependency field has static options, look up from config
+    if (dependencyField?.type === 'select' && dependencyField.options) {
+      const fullOption = dependencyField.options.find(opt => opt.value === dependencyRawValue);
+      return fullOption || dependencyRawValue;
+    }
 
-    const handleChange = (value: any) => {
-      if (field.onChange) field.onChange(value);
-      if (onFieldChange) onFieldChange(field.name, value);
-    };
+    // If dependency field has optionsApi, look up from API data
+    if (dependencyField?.type === 'select' && dependencyApiOptions) {
+      const fullOption = dependencyApiOptions.find(opt => opt.value === dependencyRawValue);
+      return fullOption || dependencyRawValue;
+    }
 
-    // Render read-only display in view mode
-    const renderViewMode = () => {
-      let displayValue = fieldValue;
+    return dependencyRawValue;
+  }, [dependencyRawValue, field.dependsOn, dependencyField, dependencyApiOptions]);
 
-      if (field.type === "select" && field.options) {
-        const option = field.options.find((opt) => opt.value === fieldValue);
-        displayValue = option?.label || fieldValue;
-      } else if (field.type === "checkbox") {
-        displayValue = fieldValue ? "Yes" : "No";
-      } else if (field.type === "file-upload") {
-        // Handle file-upload view mode
-        if (!fieldValue || (Array.isArray(fieldValue) && fieldValue.length === 0)) {
-          return <p className="text-sm text-muted-foreground">No file uploaded</p>;
-        }
 
-        let files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-        if (files.length) {
-          const modifiedFiles = (files as unknown as (File | ImageObject)[]).map(file => {
-            if (typeof file === "string") {
-              return file; // existing URL
-            } else if (file instanceof File) {
-              return file; // new File object
-            } else if ( typeof file === "object" && file.original && file.original.url) {
-              return file.original.url; // existing file object with URL
-            }
-          });
-          files = modifiedFiles;
-        }
-        
-        return (
-          <div className="space-y-2">
-            {files.map((file: File | string, index: number) => {
-              if (typeof file === "string") {
-                // Display existing URL
-                return (
-                  <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <img
-                      src={file}
-                      alt="Uploaded file"
-                      className="h-16 w-16 object-cover rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {file.split('/').pop() || 'Existing file'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Uploaded</p>
-                    </div>
-                    <a
-                      href={file}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline"
-                    >
-                      View
-                    </a>
-                  </div>
-                );
-              } else if (file instanceof File) {
-                // Display File object
-                return (
-                  <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <div className="h-16 w-16 rounded bg-gray-100 flex items-center justify-center">
-                      <Upload className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })}
-          </div>
-        );
+  // Evaluate dependency and determine field state
+  const { shouldHide, shouldDisable } = evaluateFieldDependency(
+    dependencyWatchedValue,
+    field.dependsOn
+  );
+
+  // Watch requiredWhen dependency field for conditional required state
+  const requiredWhenRawValue = useWatch({
+    control,
+    name: field.requiredWhen?.field ?? field.name,
+    disabled: !field.requiredWhen,
+  });
+
+  // Evaluate whether the field is currently required based on requiredWhen
+  const isConditionallyRequired = useMemo(() => {
+    if (!field.requiredWhen) return false;
+    // Reuse the already-enriched value when requiredWhen watches the same field as dependsOn
+    const val =
+      field.requiredWhen.field === field.dependsOn?.field
+        ? dependencyWatchedValue
+        : requiredWhenRawValue;
+    return evaluateDependencyCondition(val, field.requiredWhen);
+  }, [field.requiredWhen, field.dependsOn, requiredWhenRawValue, dependencyWatchedValue]);
+
+  // Determine effective disabled state
+  const effectiveDisabled = field.disabled || isFieldDisabledInEdit || shouldDisable;
+
+  // Hide field if dependency condition requires it
+  if (field.hidden || shouldHide) return null;
+
+  const handleChange = (value: any) => {
+    if (field.onChange) field.onChange(value);
+    if (onFieldChange) {
+      // Get all current form values
+      const allValues = watch();
+      onFieldChange(field.name, value, allValues);
+    }
+  };
+
+  // Render read-only display in view mode
+  const renderViewMode = () => {
+    let displayValue = fieldValue;
+
+    if (field.type === "select" && field.options) {
+      const option = field.options.find((opt) => opt.value === fieldValue);
+      displayValue = option?.label || fieldValue;
+    } else if (field.type === "checkbox") {
+      displayValue = fieldValue ? "Yes" : "No";
+    } else if (field.type === "file-upload") {
+      // Handle file-upload view mode
+      if (!fieldValue || (Array.isArray(fieldValue) && fieldValue.length === 0)) {
+        return <p className="text-sm text-muted-foreground">No file uploaded</p>;
       }
 
-      return (
-        <p className="text-sm text-muted-foreground">{displayValue || "-"}</p>
-      );
-    };
+      let files = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
 
-    const renderField = () => {
-      switch (field.type) {
-        case "input":
-        case "number":
-          return (
-            <Controller
-              name={field.name}
-              control={control}
-              rules={{
-                required: field.required ? `${field.label} is required` : false,
-                min: field.validation?.min
-                  ? {
-                    value: field.validation.min,
-                    message: `Minimum value is ${field.validation.min}`,
-                  }
-                  : undefined,
-                max: field.validation?.max
-                  ? {
-                    value: field.validation.max,
-                    message: `Maximum value is ${field.validation.max}`,
-                  }
-                  : undefined,
-              }}
-              render={({ field: controllerField }) => (
+      return (
+        <div className="space-y-2">
+          {files.map((file: any, index: number) => {
+            let displayUrl: string | null = null;
+            let displayName = 'Uploaded file';
+
+            if (typeof file === "string") {
+              // Simple string URL
+              displayUrl = file;
+              displayName = file.split('/').pop() || 'Existing file';
+            } else if (file instanceof File) {
+              // File object (newly uploaded)
+              displayUrl = URL.createObjectURL(file);
+              displayName = file.name;
+            } else if (file && typeof file === "object") {
+              // Image interface: { url, thumbnailUrl?, mediumUrl?, publicId }
+              displayUrl = file.thumbnailUrl || file.url;
+              displayName = file.publicId?.split('/').pop() || 'Existing file';
+            }
+
+            if (!displayUrl) return null;
+
+            return (
+              <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                <SafeImage
+                  src={displayUrl}
+                  alt={displayName}
+                  className="h-16 w-16 object-cover rounded"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{displayName}</p>
+                  <p className="text-xs text-muted-foreground">Uploaded</p>
+                </div>
+                {typeof file === "string" || (file && file.url) ? (
+                  <a
+                    href={displayUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline"
+                  >
+                    View
+                  </a>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return (
+      <p className="text-sm text-muted-foreground">{displayValue || "-"}</p>
+    );
+  };
+
+  const renderField = () => {
+    switch (field.type) {
+      case "input":
+      case "number": {
+        const suffixValue =
+          typeof field.suffix === "function"
+            ? field.suffix(allValues)
+            : field.suffix;
+        const prefixValue =
+          typeof field.prefix === "function"
+            ? field.prefix(allValues)
+            : field.prefix;
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => (
+              <div className="relative w-full">
+                {prefixValue && (
+                  <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-xs text-muted-foreground select-none">
+                    {prefixValue}
+                  </span>
+                )}
                 <Input
                   {...controllerField}
+                  value={controllerField.value ?? ""}
                   type={field.type === "number" ? "number" : "text"}
                   placeholder={field.placeholder}
-                  disabled={field.disabled}
+                  disabled={effectiveDisabled}
                   min={field.validation?.min}
                   max={field.validation?.max}
                   step={field.step}
                   onChange={(e) => {
-                    const value =
-                      field.type === "number"
-                        ? parseFloat(e.target.value) || 0
-                        : e.target.value;
+                    const rawValue = e.target.value;
+                    let value;
+
+                    if (field.type === "number") {
+                      // Allow empty string for clearing the field
+                      if (rawValue === "" || rawValue === null || rawValue === undefined) {
+                        value = "";
+                      } else {
+                        const parsed = parseFloat(rawValue);
+                        value = isNaN(parsed) ? "" : parsed;
+                      }
+                    } else {
+                      value = rawValue;
+                    }
+
                     controllerField.onChange(value);
                     handleChange(value);
                   }}
-                  className={cn("w-full", error ? "border-red-500" : "")}
+                  className={cn(
+                    "w-full",
+                    prefixValue ? "pl-8" : "",
+                    suffixValue ? "pr-14" : "",
+                    error ? "border-red-500" : ""
+                  )}
                 />
-              )}
-            />
-          );
+                {suffixValue && (
+                  <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs font-medium text-muted-foreground select-none">
+                    {suffixValue}
+                  </span>
+                )}
+              </div>
+            )}
+          />
+        );
+      }
 
-        case "textarea":
-          return (
-            <Controller
-              name={field.name}
-              control={control}
-              rules={{
-                required: field.required ? `${field.label} is required` : false,
-              }}
-              render={({ field: controllerField }) => (
-                <Textarea
-                  {...controllerField}
-                  placeholder={field.placeholder}
-                  disabled={field.disabled}
-                  rows={field.rows || 3}
-                  onChange={(e) => {
-                    controllerField.onChange(e.target.value);
-                    handleChange(e.target.value);
-                  }}
-                  className={cn("w-full", error ? "border-red-500" : "")}
-                />
-              )}
-            />
-          );
+      case "textarea":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => (
+              <Textarea
+                {...controllerField}
+                value={controllerField.value ?? ""}
+                placeholder={field.placeholder}
+                disabled={effectiveDisabled}
+                rows={field.rows || 3}
+                onChange={(e) => {
+                  controllerField.onChange(e.target.value);
+                  handleChange(e.target.value);
+                }}
+                className={cn("w-full", error ? "border-red-500" : "")}
+              />
+            )}
+          />
+        );
 
-        case "select":
-          return (
-            <Controller
-              name={field.name}
-              control={control}
-              rules={{
-                required: field.required ? `${field.label} is required` : false,
-                validate: field.required
-                  ? (value: any) => {
-                    if (
-                      !value ||
-                      value === "" ||
-                      value === "__loading__" ||
-                      value === "__error__"
-                    ) {
-                      return `${field.label} is required`;
-                    }
-                    return true;
+      case "password":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => (
+              <Password
+                {...controllerField}
+                type={"password"}
+                placeholder={field.placeholder}
+                disabled={effectiveDisabled}
+                min={field.validation?.min}
+                max={field.validation?.max}
+                onChange={(e) => {
+                  controllerField.onChange(e.target.value);
+                  handleChange(e.target.value);
+                }}
+                className={cn("w-full", error ? "border-red-500" : "")}
+              />
+            )}
+          />
+        );
+
+      case "select":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => {
+              // Resolve API endpoint with dependency checking
+              let resolvedOptionsApi = field.optionsApi;
+
+              if (field.optionsApi && field.dependsOn && field.optionsApi.includes('{{')) {
+                // Only process if there's a watched value
+                if (dependencyWatchedValue) {
+                  // Check if dependency condition is met
+                  const { shouldDisable } = evaluateFieldDependency(
+                    dependencyWatchedValue,
+                    field.dependsOn
+                  );
+
+                  // Only resolve template if condition is met (shouldDisable = false means condition met)
+                  if (!shouldDisable) {
+                    resolvedOptionsApi = resolveApiTemplate(
+                      field.optionsApi,
+                      dependencyWatchedValue
+                    );
+                  } else {
+                    // Condition not met, don't call API
+                    resolvedOptionsApi = undefined;
                   }
-                  : undefined,
-              }}
-              render={({ field: controllerField }) => (
+                } else {
+                  // No watched value yet, don't call API
+                  resolvedOptionsApi = undefined;
+                }
+              }
+
+              // Destructure field to exclude props that shouldn't be passed to AdvancedSelect
+              const { dependsOn, autoFillFields, copyValueTo, ...selectProps } = field;
+
+              // Shared autofill handler used by both onMount and onValueChange
+              const handleAutoFill = (value: any) => {
+                const allValues = watch();
+                if (autoFillFields && Array.isArray(autoFillFields) && value) {
+                  const selectedOption = typeof value === 'object' && value !== null ? value : null;
+                  if (selectedOption) {
+                    autoFillFields.forEach((fieldName) => {
+                      const valueToSet = (selectedOption as Record<string, any>)[fieldName];
+                      if (valueToSet !== undefined) {
+                        setValue(fieldName, valueToSet, {
+                          shouldValidate: false,
+                          shouldDirty: true,
+                        });
+                        if (onFieldChange) onFieldChange(fieldName, valueToSet, allValues);
+                      }
+                    });
+                  }
+                }
+                // Copy the raw selected value to other fields
+                if (copyValueTo && Array.isArray(copyValueTo) && value !== undefined) {
+                  const rawValue = typeof value === 'object' && value !== null ? value : value;
+                  copyValueTo.forEach((targetField) => {
+                    setValue(targetField, rawValue, {
+                      shouldValidate: false,
+                      shouldDirty: true,
+                    });
+                    if (onFieldChange) onFieldChange(targetField, rawValue, allValues);
+                  });
+                }
+              };
+
+              return (
                 <AdvancedSelect
                   value={controllerField.value}
+                  onMount={(mountedValue) => handleAutoFill(mountedValue)}
                   onValueChange={(value) => {
                     controllerField.onChange(value);
                     handleChange(value);
                     if (field.onValueChange) field.onValueChange(value);
+                    handleAutoFill(value);
                   }}
                   className={error ? "border-red-500" : ""}
-                  {...field}
+                  {...selectProps}
+                  optionsApi={resolvedOptionsApi}
+                  disabled={effectiveDisabled}
                   error={error}
                 />
-              )}
-            />
-          );
+              )
+            }}
+          />
+        );
 
-        case "checkbox":
-          return (
-            <Controller
-              name={field.name}
-              control={control}
-              render={({ field: controllerField }) => (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={field.name}
-                    checked={controllerField.value}
-                    onCheckedChange={(checked) => {
-                      controllerField.onChange(checked);
-                      handleChange(checked);
-                    }}
-                    disabled={field.disabled}
-                  />
-                  <Label htmlFor={field.name}>{field.label}</Label>
-                </div>
-              )}
-            />
-          );
+      case "fuseSelect":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => {
+              // Resolve API endpoint with dependency checking (same logic as "select")
+              let resolvedOptionsApi = field.optionsApi;
 
-        case "radio-group":
-          return (
-            <Controller
-              name={field.name}
-              control={control}
-              rules={{
-                required: field.required ? `${field.label} is required` : false,
-              }}
-              render={({ field: controllerField }) => (
-                <RadioGroup
-                className="flex items-center gap-5"
+              if (field.optionsApi && field.dependsOn && field.optionsApi.includes('{{')) {
+                if (dependencyWatchedValue) {
+                  const { shouldDisable } = evaluateFieldDependency(
+                    dependencyWatchedValue,
+                    field.dependsOn
+                  );
+                  if (!shouldDisable) {
+                    resolvedOptionsApi = resolveApiTemplate(
+                      field.optionsApi,
+                      dependencyWatchedValue
+                    );
+                  } else {
+                    resolvedOptionsApi = undefined;
+                  }
+                } else {
+                  resolvedOptionsApi = undefined;
+                }
+              }
+
+              const { dependsOn, autoFillFields, copyValueTo, ...selectProps } = field;
+
+              const handleAutoFill = (value: any) => {
+                const allValues = watch();
+                if (autoFillFields && Array.isArray(autoFillFields) && value) {
+                  const selectedOption = typeof value === 'object' && value !== null ? value : null;
+                  if (selectedOption) {
+                    autoFillFields.forEach((fieldName) => {
+                      const valueToSet = (selectedOption as Record<string, any>)[fieldName];
+                      if (valueToSet !== undefined) {
+                        setValue(fieldName, valueToSet, { shouldValidate: false, shouldDirty: true });
+                        if (onFieldChange) onFieldChange(fieldName, valueToSet, allValues);
+                      }
+                    });
+                  }
+                }
+                if (copyValueTo && Array.isArray(copyValueTo) && value !== undefined) {
+                  copyValueTo.forEach((targetField) => {
+                    setValue(targetField, value, { shouldValidate: false, shouldDirty: true });
+                    if (onFieldChange) onFieldChange(targetField, value, allValues);
+                  });
+                }
+              };
+
+              return (
+                <FuseAdvancedSelect
                   value={controllerField.value}
+                  onMount={(mountedValue) => handleAutoFill(mountedValue)}
                   onValueChange={(value) => {
                     controllerField.onChange(value);
                     handleChange(value);
+                    if (field.onValueChange) field.onValueChange(value);
+                    handleAutoFill(value);
                   }}
+                  className={error ? "border-red-500" : ""}
+                  {...selectProps}
+                  optionsApi={resolvedOptionsApi}
+                  disabled={effectiveDisabled}
+                  error={error}
+                />
+              );
+            }}
+          />
+        );
+
+      case "checkbox":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id={field.name}
+                  checked={controllerField.value ?? field.defaultValue ?? false}
+                  onCheckedChange={(checked) => {
+                    controllerField.onChange(checked);
+                    handleChange(checked);
+                  }}
+                  disabled={effectiveDisabled}
+                />
+                <Label htmlFor={field.name}>{field.label}</Label>
+              </div>
+            )}
+          />
+        );
+      case "switch":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => (
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id={field.name}
+                  checked={controllerField.value}
+                  onCheckedChange={(checked) => {
+                    controllerField.onChange(checked);
+                    handleChange(checked);
+                  }}
+                  disabled={effectiveDisabled}
+                />
+                {/* <Label htmlFor={field.name}>{field.label}</Label> */}
+              </div>
+            )}
+          />
+        );
+      case "radio-group":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => (
+              <RadioGroup
+                className="flex items-center gap-5"
+                value={controllerField.value}
+                onValueChange={(value) => {
+                  controllerField.onChange(value);
+                  handleChange(value);
+                }}
+                disabled={effectiveDisabled}
+              >
+                {field.options?.map((option) => (
+                  <div
+                    key={option.value}
+                    className="flex items-center gap-2"
+                  >
+                    <RadioGroupItem value={option.value} id={option.value} />
+                    <Label htmlFor={option.value}>{option.label}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
+          />
+        );
+
+      case "date":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => {
+              return (
+                <DatePicker
+                  date={controllerField.value}
+                  onSelect={(value) => {
+                    controllerField.onChange(value);
+                    handleChange(value);
+                  }}
+                  placeholder={field.placeholder || "Pick a date"}
+                  disabled={effectiveDisabled}
+                />
+              );
+            }}
+          />
+        );
+
+      case "file-upload":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => {
+              let files: (File | string | any)[] = controllerField.value || [];
+
+              // Normalize to array format
+              if (!Array.isArray(files)) {
+                files = files ? [files] : [];
+              }
+
+              const acceptedTypes = field.accept || "*";
+              const maxFiles = field.maxFiles || 1;
+              const maxSize = field.maxSize || 5 * 1024 * 1024; // 5MB default
+              const showPreview = field.showPreview !== false;
+              const hasFiles = files.length > 0;
+              const isSingleFileMode = maxFiles === 1;
+              const shouldHideDropzone = isSingleFileMode && hasFiles;
+
+              const handleFileChange = (selectedFiles: (File | string)[]) => {
+                controllerField.onChange(selectedFiles);
+                handleChange(selectedFiles);
+              };
+              return (
+                <FileUpload
+                  value={files}
+                  onValueChange={handleFileChange}
+                  accept={acceptedTypes}
+                  maxFiles={maxFiles}
+                  maxSize={maxSize}
+                  multiple={field.multiple}
                   disabled={field.disabled}
                 >
-                  {field.options?.map((option) => (
-                    <div
-                      key={option.value}
-                      className="flex items-center gap-2"
-                    >
-                      <RadioGroupItem value={option.value} id={option.value} />
-                      <Label htmlFor={option.value}>{option.label}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              )}
-            />
-          );
+                  {!shouldHideDropzone && (
+                    <FileUploadDropzone className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
+                      <div className="flex flex-col items-center gap-2">
+                        <Upload className="h-10 w-10 text-muted-foreground" />
+                        <div className="text-sm">
+                          <span className="font-semibold text-primary">
+                            Click to upload
+                          </span>
+                          <span className="text-muted-foreground">
+                            {" "}
+                            or drag and drop
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {field.dropzoneText ||
+                            `${acceptedTypes.toUpperCase()} up to ${(
+                              maxSize /
+                              1024 /
+                              1024
+                            ).toFixed(0)}MB ${maxFiles > 1 ? `(Max ${maxFiles} files)` : ""
+                            }`}
+                        </p>
+                      </div>
+                    </FileUploadDropzone>
+                  )}
 
-        case "date":
+                  {shouldHideDropzone && (
+                    <div className="text-sm text-muted-foreground mb-2">
+                      Remove the existing file to upload a new one
+                    </div>
+                  )}
+
+                  {showPreview && files.length > 0 && (
+                    <FileUploadList className="mt-4">
+                      {files.map((file: any, index: number) => {
+                        let fileKey: string;
+                        let fileName: string;
+                        let fileSize: string;
+                        let previewUrl: string | null = null;
+
+                        if (file instanceof File) {
+                          // New File object
+                          fileKey = `${file.name}-${index}`;
+                          fileName = file.name;
+                          fileSize = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                          previewUrl = URL.createObjectURL(file);
+                        } else if (typeof file === "string") {
+                          // Simple string URL
+                          fileKey = `${file}-${index}`;
+                          fileName = file.split('/').pop() || 'Existing file';
+                          fileSize = 'Uploaded';
+                          previewUrl = file;
+                        } else if (file && typeof file === "object") {
+                          // Image interface: { url, thumbnailUrl?, mediumUrl?, publicId }
+                          fileKey = `${file.publicId || index}-${index}`;
+                          fileName = file.publicId?.split('/').pop() || 'Existing file';
+                          fileSize = 'Uploaded';
+                          previewUrl = file.thumbnailUrl || file.url;
+                        } else {
+                          return null;
+                        }
+
+                        return (
+                          <FileUploadItem
+                            key={fileKey}
+                            value={file}
+                            className="flex items-center gap-3 p-3 border rounded-lg"
+                          >
+                            {previewUrl ? (
+                              <SafeImage
+                                src={previewUrl}
+                                alt={fileName}
+                                className="h-16 w-16 rounded object-cover bg-gray-100"
+                              />
+                            ) : (
+                              <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {fileName}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {fileSize}
+                              </p>
+                              {index === 0 && maxFiles > 1 && (
+                                <span className="inline-block mt-1 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
+                                  Primary
+                                </span>
+                              )}
+                            </div>
+                            <FileUploadItemDelete asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </FileUploadItemDelete>
+                          </FileUploadItem>
+                        );
+                      })}
+                    </FileUploadList>
+                  )}
+                </FileUpload>
+              );
+            }}
+          />
+        );
+
+      case "custom":
+        // First check for customComponent prop
+        if (field.customComponent) {
+          const CustomComponent = field.customComponent;
           return (
             <Controller
               name={field.name}
               control={control}
-              rules={{
-                required: field.required ? `${field.label} is required` : false,
-              }}
               render={({ field: controllerField }) => (
-                <Input
+                <CustomComponent
                   {...controllerField}
-                  type="date"
-                  disabled={field.disabled}
-                  onChange={(e) => {
-                    controllerField.onChange(e.target.value);
-                    handleChange(e.target.value);
+                  {...field.customProps}
+                  control={control}
+                  onChange={(value: any) => {
+                    controllerField.onChange(value);
+                    handleChange(value);
                   }}
-                  className={cn("w-full min-w-0", error ? "border-red-500" : "")}
+                  error={error}
                 />
               )}
             />
           );
+        }
 
-        case "file-upload":
-          return (
-            <Controller
-              name={field.name}
-              control={control}
-              rules={{
-                required: field.required ? `${field.label} is required` : false,
-              }}
-              render={({ field: controllerField }) => {
-                let files: (File | string)[] = controllerField.value || [];
-                if(Array.isArray(files) && files.length) {
-                  const modifiedFiles = (files as unknown as (File | ImageObject)[]).map(file => {
-                    if (typeof file === "string") {
-                      return file; // existing URL
-                    } else if (file instanceof File) {
-                      return file; // new File object
-                    } else if ( typeof file === "object" && file.original && file.original.url) {
-                      return file.original.url; // existing file object with URL
-                    }
-                  });
-                  files = modifiedFiles;
-                }
-                const acceptedTypes = field.accept || "*";
-                const maxFiles = field.maxFiles || 1;
-                const maxSize = field.maxSize || 5 * 1024 * 1024; // 5MB default
-                const showPreview = field.showPreview !== false;
-                const hasFiles = files.length > 0;
-                const isSingleFileMode = maxFiles === 1;
-                const shouldHideDropzone = isSingleFileMode && hasFiles;
-
-                const handleFileChange = (selectedFiles: (File | string)[]) => {
-                  console.log("File upload changed:", selectedFiles); // Debug log
-                  controllerField.onChange(selectedFiles);
-                  handleChange(selectedFiles);
-                };
-
-                return (
-                  <FileUpload
-                    value={files}
-                    onValueChange={handleFileChange}
-                    accept={acceptedTypes}
-                    maxFiles={maxFiles}
-                    maxSize={maxSize}
-                    multiple={field.multiple}
-                    disabled={field.disabled}
-                  >
-                    {!shouldHideDropzone && (
-                      <FileUploadDropzone className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                        <div className="flex flex-col items-center gap-2">
-                          <Upload className="h-10 w-10 text-muted-foreground" />
-                          <div className="text-sm">
-                            <span className="font-semibold text-primary">
-                              Click to upload
-                            </span>
-                            <span className="text-muted-foreground">
-                              {" "}
-                              or drag and drop
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {field.dropzoneText ||
-                              `${acceptedTypes.toUpperCase()} up to ${(
-                                maxSize /
-                                1024 /
-                                1024
-                              ).toFixed(0)}MB ${maxFiles > 1 ? `(Max ${maxFiles} files)` : ""
-                              }`}
-                          </p>
-                        </div>
-                      </FileUploadDropzone>
-                    )}
-
-                    {shouldHideDropzone && (
-                      <div className="text-sm text-muted-foreground mb-2">
-                        Remove the existing file to upload a new one
-                      </div>
-                    )}
-
-                    {showPreview && files.length > 0 && (
-                      <FileUploadList className="mt-4">
-                        {files.map((file: File | string, index: number) => {
-                          const fileKey = file instanceof File
-                            ? `${file.name}-${index}`
-                            : `${file}-${index}`;
-
-                          const fileName = file instanceof File
-                            ? file.name
-                            : file.split('/').pop() || 'Existing file';
-
-                          const fileSize = file instanceof File
-                            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
-                            : 'Uploaded';
-
-                          return (
-                            <FileUploadItem
-                              key={fileKey}
-                              value={file}
-                              className="flex items-center gap-3 p-3 border rounded-lg"
-                            >
-                              <FileUploadItemPreview className="h-16 w-16 rounded overflow-hidden bg-gray-100" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">
-                                  {fileName}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {fileSize}
-                                </p>
-                                {index === 0 && maxFiles > 1 && (
-                                  <span className="inline-block mt-1 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
-                                    Primary
-                                  </span>
-                                )}
-                              </div>
-                              <FileUploadItemDelete asChild>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </FileUploadItemDelete>
-                            </FileUploadItem>
-                          );
-                        })}
-                      </FileUploadList>
-                    )}
-                  </FileUpload>
-                );
-              }}
-            />
-          );
-
-        case "custom":
-          // First check for customComponent prop
-          if (field.customComponent) {
-            const CustomComponent = field.customComponent;
+        // Check for registered custom field renderer by field name
+        if (
+          typeof window !== "undefined" &&
+          (window as any).__customFieldRenderers
+        ) {
+          const renderers = (window as any).__customFieldRenderers;
+          const CustomRenderer = renderers[field.name];
+          if (CustomRenderer) {
             return (
-              <Controller
-                name={field.name}
+              <CustomRenderer
                 control={control}
-                render={({ field: controllerField }) => (
-                  <CustomComponent
-                    {...controllerField}
-                    {...field.customProps}
-                    control={control}
-                    onChange={(value: any) => {
-                      controllerField.onChange(value);
-                      handleChange(value);
-                    }}
-                    error={error}
-                  />
-                )}
+                name={field.name}
+                maxCount={field.maxCount}
+                error={error}
               />
             );
           }
+        }
+        return null;
 
-          // Check for registered custom field renderer by field name
-          if (
-            typeof window !== "undefined" &&
-            (window as any).__customFieldRenderers
-          ) {
-            const renderers = (window as any).__customFieldRenderers;
-            const CustomRenderer = renderers[field.name];
-            if (CustomRenderer) {
-              return (
-                <CustomRenderer
-                  control={control}
-                  name={field.name}
-                  maxCount={field.maxCount}
-                  error={error}
-                />
-              );
-            }
+      case "custom-fields":
+        // Use a component registry approach - check if a custom field renderer is provided
+        if (
+          typeof window !== "undefined" &&
+          (window as any).__customFieldRenderers
+        ) {
+          const renderers = (window as any).__customFieldRenderers;
+          const CustomRenderer = renderers[field.name];
+          if (CustomRenderer) {
+            return (
+              <CustomRenderer
+                control={control}
+                name={field.name}
+                maxCount={field.maxCount}
+                error={error}
+              />
+            );
           }
-          return null;
+        }
 
-        case "custom-fields":
-          // Use a component registry approach - check if a custom field renderer is provided
-          if (
-            typeof window !== "undefined" &&
-            (window as any).__customFieldRenderers
-          ) {
-            const renderers = (window as any).__customFieldRenderers;
-            const CustomRenderer = renderers[field.name];
-            if (CustomRenderer) {
-              return (
-                <CustomRenderer
-                  control={control}
-                  name={field.name}
-                  maxCount={field.maxCount}
-                  error={error}
-                />
-              );
-            }
-          }
-
-          // Fallback to placeholder if no custom renderer found
-          return (
-            <Controller
-              name={field.name}
-              control={control}
-              render={({ field: controllerField }) => (
-                <div className="p-4 border-2 border-dashed border-muted rounded-lg">
-                  <p className="text-center text-muted-foreground">
-                    Custom field: {field.name}
-                  </p>
-                  <p className="text-xs text-center text-muted-foreground mt-1">
-                    Type: {field.type} | Register a custom renderer to display
-                    this field
-                  </p>
-                  <p className="text-xs text-center text-muted-foreground mt-2">
-                    Current value: {JSON.stringify(controllerField.value) || "[]"}
-                  </p>
-                </div>
-              )}
-            />
-          );
-
-        default:
-          return null;
-      }
-    };
-
-    return (
-      <div
-        className={cn(
-          getColumnClass(field.columnSpan || 12),
-          "w-full min-w-0 flex flex-col",
-          field.className
-        )}
-      >
-        {field.type !== "checkbox" && (
-          <div className="flex items-center justify-between mb-2">
-            <Label
-              htmlFor={field.name}
-              className="text-sm gap-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              {field.label}
-              {!viewMode && field.required && (
-                <span className="text-red-500">*</span>
-              )}
-            </Label>
-            {field.action && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant={field.action.variant || "ghost"}
-                    size="icon"
-                    className="h-3 w-6 p-0 shrink-0 hover:bg-transparent"
-                    onClick={() => field.action?.onClick?.(field)}
-                    disabled={field.action.disabled}
-                  >
-                    {field.action.icon}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{field.action.label}</TooltipContent>
-              </Tooltip>
+        // Fallback to placeholder if no custom renderer found
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => (
+              <div className="p-4 border-2 border-dashed border-muted rounded-lg">
+                <p className="text-center text-muted-foreground">
+                  Custom field: {field.name}
+                </p>
+                <p className="text-xs text-center text-muted-foreground mt-1">
+                  Type: {field.type} | Register a custom renderer to display
+                  this field
+                </p>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Current value: {JSON.stringify(controllerField.value) || "[]"}
+                </p>
+              </div>
             )}
-          </div>
-        )}
-        <div className="w-full min-w-0 flex-1">
-          {viewMode ? renderViewMode() : renderField()}
-        </div>
-        {field.helperText && (
-          <p className="text-xs text-muted-foreground">{field.helperText}</p>
-        )}
-        {!viewMode && error && (
-          <p className="text-sm text-red-500 mt-1">{error}</p>
-        )}
-      </div>
-    );
+          />
+        );
+
+      default:
+        return null;
+    }
   };
 
+  return (
+    <div
+      className={cn(
+        getColumnClass(field.columnSpan || 12),
+        "w-full min-w-0 flex flex-col",
+        field.className
+      )}
+    >
+      {field.type !== "checkbox" && (
+        <div className="flex items-center justify-between mb-2">
+          <Label
+            htmlFor={field.name}
+            className="text-sm gap-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {field.label}
+            {!viewMode && (field.required || isConditionallyRequired) && (
+              <span className="text-red-500">*</span>
+            )}
+          </Label>
+        </div>
+      )}        <div className="w-full min-w-0 flex-1">
+        {field.type === "select" && field.action ? (
+          <div className="flex gap-2 w-full">
+            {viewMode ? renderViewMode() : renderField()}
+            {!viewMode && field.action.renderItem ? (
+              field.action.renderItem()
+            ) : field.action.href ? (
+              <Link href={field.action.href}>
+                <Button
+                  type="button"
+                  variant={field.action.variant || "outline"}
+                  size="icon"
+                  disabled={field.action.disabled}
+                >
+                  {field.action.icon}
+                </Button>
+              </Link>
+            ) : field.action.onClick ? (
+              <Button
+                type="button"
+                variant={field.action.variant || "outline"}
+                size="icon"
+                onClick={field.action.onClick}
+                disabled={field.action.disabled}
+              >
+                {field.action.icon}
+              </Button>
+            ) : null}
+          </div>
+        ) : (
+          viewMode ? renderViewMode() : renderField()
+        )}
+      </div>
+      {(() => {
+        const helperTextValue =
+          typeof field.helperText === "function"
+            ? field.helperText(allValues)
+            : field.helperText;
+        return helperTextValue ? (
+          <p className="text-xs text-muted-foreground">{helperTextValue}</p>
+        ) : null;
+      })()}
+      {!viewMode && error && (
+        <p className="text-sm text-red-500 mt-1">{error}</p>
+      )}
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison for memo. Errors are read live via useFormState
+  // inside the component, so we don't need to compare them here. Only
+  // re-render when the field config, view mode, or edit-disabled state
+  // actually changes.
+  return (
+    prevProps.field === nextProps.field &&
+    prevProps.viewMode === nextProps.viewMode &&
+    prevProps.isEditMode === nextProps.isEditMode &&
+    prevProps.disabledFieldsInEdit === nextProps.disabledFieldsInEdit
+  );
+});
+
+FormField.displayName = 'FormField';
+
 // Section component
-const FormSectionComponent: React.FC<{
+const FormSectionComponent: FC<{
   section: FormSection;
   control: any;
   formState: any;
@@ -655,6 +961,9 @@ const FormSectionComponent: React.FC<{
   onFieldChange?: (fieldName: string, value: any) => void;
   maxColumns: number;
   viewMode?: boolean;
+  disabledFieldsInEdit?: string[];
+  isEditMode?: boolean;
+  allFields?: FormFieldConfig[];
 }> = ({
   section,
   control,
@@ -664,8 +973,22 @@ const FormSectionComponent: React.FC<{
   onFieldChange,
   maxColumns,
   viewMode = false,
+  disabledFieldsInEdit,
+  isEditMode = false,
+  allFields = [],
 }) => {
-    const [isOpen, setIsOpen] = React.useState(section.defaultOpen ?? true);
+    const [isOpen, setIsOpen] = useState(section.defaultOpen ?? true);
+
+    // Section-level dependency evaluation — hide the whole section when condition not met
+    const sectionDepValue = useWatch({
+      control,
+      name: section.dependsOn?.field || '__none__',
+      disabled: !section.dependsOn,
+    });
+    if (section.dependsOn) {
+      const { shouldHide } = evaluateFieldDependency(sectionDepValue, section.dependsOn);
+      if (shouldHide) return null;
+    }
 
     const content = (
       <CardContent className={cn("space-y-4 pt-4", section.className)}>
@@ -680,6 +1003,9 @@ const FormSectionComponent: React.FC<{
               setValue={setValue}
               onFieldChange={onFieldChange}
               viewMode={viewMode}
+              disabledFieldsInEdit={disabledFieldsInEdit}
+              isEditMode={isEditMode}
+              allFields={allFields}
             />
           ))}
         </div>
@@ -752,7 +1078,7 @@ const FormSectionComponent: React.FC<{
 
 // Main DynamicForm component
 // Form content component (extracted for reuse)
-const FormContent: React.FC<{
+const FormContent: FC<{
   config: any;
   control: any;
   formState: any;
@@ -761,6 +1087,8 @@ const FormContent: React.FC<{
   onFieldChange?: any;
   className?: string;
   viewMode?: boolean;
+  disabledFieldsInEdit?: string[];
+  isEditMode?: boolean;
 }> = ({
   config,
   control,
@@ -770,7 +1098,17 @@ const FormContent: React.FC<{
   onFieldChange,
   className,
   viewMode = false,
+  disabledFieldsInEdit,
+  isEditMode = false,
 }) => {
+    // Collect all fields from config (sections or plain fields)
+    const allFields = useMemo(() => {
+      if (config.sections) {
+        return config.sections.flatMap((section: FormSection) => section.fields);
+      }
+      return config.fields || [];
+    }, [config]);
+
     return (
       <div className={cn("space-y-4 sm:space-y-6", className)}>
         {/* Render sections if available */}
@@ -786,6 +1124,9 @@ const FormContent: React.FC<{
               onFieldChange={onFieldChange}
               maxColumns={12}
               viewMode={viewMode}
+              disabledFieldsInEdit={disabledFieldsInEdit}
+              isEditMode={isEditMode}
+              allFields={allFields}
             />
           ))}
 
@@ -802,6 +1143,9 @@ const FormContent: React.FC<{
                 setValue={setValue}
                 onFieldChange={onFieldChange}
                 viewMode={viewMode}
+                disabledFieldsInEdit={disabledFieldsInEdit}
+                isEditMode={isEditMode}
+                allFields={allFields}
               />
             ))}
           </div>

@@ -5,19 +5,39 @@ import type { DynamicFormConfig, FormFieldConfig } from '@/ui/components/form/ty
 import { generateSchemaFromConfig } from '@/ui/components/form/type'
 
 /**
- * Extract default values from form configuration - optimized version
+ * Extract default values from form configuration
  */
+// Helper to set a nested value in an object by dot-separated path
+const setNestedValue = (obj: Record<string, any>, path: string, value: any): void => {
+  const keys = path.split('.')
+  let current = obj
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+      current[keys[i]] = {}
+    }
+    current = current[keys[i]]
+  }
+  current[keys[keys.length - 1]] = value
+}
+
 const extractDefaultValues = (config: DynamicFormConfig): Record<string, any> => {
   const defaults: Record<string, any> = {}
-  
-  // Single pass through fields with early returns
+
   const processField = (field: FormFieldConfig) => {
     if (field.defaultValue !== undefined) {
-      defaults[field.name] = field.defaultValue
+      setNestedValue(defaults, field.name, field.defaultValue)
+    } else if (field.required) {
+      // Default required text/select fields to "" so Zod receives an empty
+      // string instead of undefined — this produces friendly "X is required"
+      // messages instead of "Invalid input: expected string, received undefined".
+      const textLike = ['input', 'textarea', 'password', 'select', 'radio-group'];
+      if (textLike.includes(field.type as string)) {
+        setNestedValue(defaults, field.name, '')
+      }
     }
   }
-  
-  // Process fields efficiently based on structure
+
+  // Process fields based on config structure
   if (config.fields) {
     config.fields.forEach(processField)
   } else if (config.sections) {
@@ -25,13 +45,18 @@ const extractDefaultValues = (config: DynamicFormConfig): Record<string, any> =>
       section.fields.forEach(processField)
     }
   }
-  
+
   return defaults
 }
 
 /**
  * Custom hook that creates a form with auto-generated schema from config
- * @param config - The dynamic form configuration
+ * 
+ * PERFORMANCE NOTE: To avoid recreating the schema on every render, ensure your config
+ * is stable (defined outside component or memoized). The config object reference
+ * should not change unless the form structure actually changes.
+ * 
+ * @param config - The dynamic form configuration (should be stable reference)
  * @param defaultValues - Default form values (will override config defaults)
  * @returns React Hook Form instance with generated schema validation
  */
@@ -39,23 +64,28 @@ export const useDynamicForm = <T = any>(
   config: DynamicFormConfig,
   defaultValues?: Partial<T>
 ) => {
-  // Memoize expensive operations to prevent recalculation on re-renders
+  // Memoize expensive operations
   const schema = useMemo(() => generateSchemaFromConfig(config), [config])
   const configDefaults = useMemo(() => extractDefaultValues(config), [config])
+  
+  // Merge config defaults with provided defaults (provided defaults take precedence)
   const mergedDefaults = useMemo(() => 
     ({ ...configDefaults, ...defaultValues }), 
     [configDefaults, defaultValues]
   )
-  
+
   const form = useForm<T>({
     resolver: zodResolver(schema) as any,
     defaultValues: mergedDefaults as any,
+    mode: "onTouched",     // validate after first blur; avoids errors on mount
+    reValidateMode: "onChange",
   })
 
   return {
     form,
     schema,
-    config
+    config,
+    defaultValues: mergedDefaults,
   }
 }
 

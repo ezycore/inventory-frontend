@@ -22,7 +22,7 @@ export type {
 
 // Frontend-specific types that are not in shared-types
 export interface StockAdjustmentDto {
-  variant_id: string
+  variantId: string
   type: 'adjustment' | 'purchase' | 'sale' | 'transfer' | 'damage' | 'return'
   quantity: number
   reason?: string

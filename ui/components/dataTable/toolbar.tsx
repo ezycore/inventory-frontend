@@ -1,4 +1,4 @@
-import { Search, X, Trash2, ChevronDown } from "lucide-react";
+import { Search, X, Trash2, ChevronDown, Settings } from "lucide-react";
 import { Table } from "@tanstack/react-table";
 import Link from "next/link";
 import { Input } from "../input";
@@ -43,6 +43,8 @@ interface DataTableToolbarProps<TData> {
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   };
   customActions?: CustomAction[];
+  manageColumns?: boolean;
+  onColumnSettingsClick?: () => void;
 }
 
 export function DataTableToolbar<TData>({
@@ -60,19 +62,24 @@ export function DataTableToolbar<TData>({
   enableColumnVisibility,
   actionButton,
   customActions,
+  manageColumns,
+  onColumnSettingsClick,
 }: DataTableToolbarProps<TData>) {
+
+  if(!searchConfig?.globalSearch && !(filterConfig && Object.keys(filterConfig).length > 0) && !manageColumns)  return null;
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
       {/* Search */}
       <div className="flex items-center gap-2 sm:gap-4 flex-1">
         {searchConfig?.globalSearch ? (
-          <div className="relative flex-1 w-full sm:max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm h-8">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder={searchConfig.placeholder || "Search all columns..."}
               value={globalFilter ?? ""}
               onChange={(event) => onGlobalFilterChange?.(event.target.value)}
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 h-8"
             />
             {globalFilter && (
               <Button
@@ -86,7 +93,7 @@ export function DataTableToolbar<TData>({
             )}
           </div>
         ) : searchConfig?.searchableColumn ? (
-          <div className="relative flex-1 w-full sm:max-w-sm">
+          <div className="relative flex-1 w-full sm:max-w-sm h-8">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder={searchConfig.placeholder || "Search..."}
@@ -100,7 +107,7 @@ export function DataTableToolbar<TData>({
                   .getColumn(searchConfig.searchableColumn as string)
                   ?.setFilterValue(event.target.value)
               }
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 h-8"
             />
             {table.getColumn(searchConfig.searchableColumn as string)?.getFilterValue() && (
               <Button
@@ -131,7 +138,7 @@ export function DataTableToolbar<TData>({
                 disabled={isDeleting}
                 className="whitespace-nowrap"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4" />
                 Delete {selectedRowsCount}
               </Button>
             </AlertDialogTrigger>
@@ -182,6 +189,19 @@ export function DataTableToolbar<TData>({
               })}
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
+
+        {/* Column Settings Button */}
+        {manageColumns && onColumnSettingsClick && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onColumnSettingsClick}
+            className="whitespace-nowrap"
+          >
+            <Settings className="h-4 w-4" />
+            Columns
+          </Button>
         )}
 
         {

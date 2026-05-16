@@ -2,127 +2,256 @@ import { NavItem } from "@/types/layout";
 
 export const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
-    url: '/',
-    icon: 'home',
+    title: "Dashboard",
+    url: "/",
+    icon: "home",
     isActive: false,
-    shortcut: ['d', 'd'],
-    items: []
+    shortcut: ["d", "d"],
+    items: [],
   },
 
   // PRODUCTS
   {
-    title: 'Products',
-    url: '/products',
-    icon: 'package',
+    title: "Products",
+    url: "/products",
+    icon: "package",
     isActive: false,
-    shortcut: ['p', 'p'],
+    shortcut: ["p", "p"],
     items: [
-      { title: 'All Products', url: '/products', icon: 'list' },
-      { title: 'Categories', url: '/categories', icon: 'tag' },
-      { title: 'Brands', url: '/brands', icon: 'star' },
-      { title: 'Variants', url: '/variants', icon: 'layers' }
-    ]
+      { title: "All Products", url: "/products", icon: "list" },
+      { title: "Categories", url: "/categories", icon: "tag" },
+      { title: "Brands", url: "/brands", icon: "star" },
+      { title: "Variants", url: "/variants", icon: "layers" },
+      { title: "Units", url: "/units", icon: "grid" },
+      { title: "Taxes", url: "/taxes", icon: "percent" },
+    ],
   },
 
-  // STOCK MANAGEMENT
+  // INVENTORY
   {
-    title: 'Stock Management',
-    url: '/stock',
-    icon: 'layers',
+    title: "Inventory",
+    url: "/inventory",
+    icon: "database",
     isActive: false,
     items: [
-      { title: 'Stock Overview', url: '/stock', icon: 'eye' },
-      { title: 'Stock Movements', url: '/stock/movements', icon: 'arrow-right-left' },
-      { title: 'Stock Adjustments', url: '/stock/adjustments', icon: 'edit' },
-      { title: 'Low Stock Alert', url: '/stock/alerts', icon: 'alert-triangle' },
-      { title: 'Stock Transfer', url: '/stock/transfers', icon: 'truck' }
-    ]
+      { title: "Inventory List", url: "/inventory", icon: "list" },
+      {
+        title: "Low Stock",
+        url: "/inventory/lowstock",
+        icon: "clipboard-list",
+      },
+      { title: "Stock Adjustment", url: "/inventory/adjust", icon: "edit" },
+      {
+        title: "Stock Movements",
+        url: "/stock/movements",
+        icon: "arrow-right-left",
+      },
+      // { title: "Stock Transfer", url: "/stock/transfers", icon: "truck" },
+    ],
   },
 
-  // SALES
+  // SALES (requires sales feature)
   {
-    title: 'Sales',
-    url: '/sales',
-    icon: 'shopping-cart',
+    title: "Sales",
+    url: "/sales",
+    icon: "shopping-cart",
     isActive: false,
+    features: ["sales"],
     items: [
-      { title: 'New Sale / POS', url: '/sales', icon: 'credit-card' },
-      { title: 'Sales History', url: '/sales/history', icon: 'clock' },
-      { title: 'Sales Return', url: '/sales/returns', icon: 'corner-up-left' },
-      { title: 'Customers', url: '/sales/customers', icon: 'users' }
-    ]
+      {
+        title: "Sell Stock",
+        url: "/sales",
+        icon: "shopping-cart",
+        features: ["sales"],
+      },
+      {
+        title: "Sales History",
+        url: "/sales/history",
+        icon: "clock",
+        features: ["sales"],
+      },
+      {
+        title: "Sales Returns",
+        url: "/sales/returns",
+        icon: "corner-up-left",
+        features: ["sales", "returns"],
+      },
+      {
+        title: "Customers",
+        url: "/sales/customers",
+        icon: "users",
+        features: ["sales"],
+      },
+    ],
   },
 
   // PURCHASES
   {
-    title: 'Purchases',
-    url: '/purchases',
-    icon: 'shopping-bag',
+    title: "Purchases",
+    url: "/purchases",
+    icon: "shopping-bag",
     isActive: false,
     items: [
-      { title: 'New Purchase', url: '/purchases/new', icon: 'plus' },
-      { title: 'Purchase Orders', url: '/purchases/orders', icon: 'file-text' },
-      { title: 'Purchase Returns', url: '/purchases/returns', icon: 'corner-down-left' },
-      { title: 'Suppliers', url: '/purchases/suppliers', icon: 'truck' }
-    ]
+      {
+        title: "Receive Stock",
+        url: "/purchases",
+        icon: "packages",
+      },
+      {
+        title: "Created Orders",
+        url: "/purchases/created-orders",
+        icon: "file-plus",
+      },
+      { title: "Purchase History", url: "/purchases/history", icon: "clock" },
+      {
+        title: "Purchase Returns",
+        url: "/purchases/returns",
+        icon: "package-minus",
+        features: ["returns"],
+      },
+      { title: "Suppliers", url: "/purchases/suppliers", icon: "truck" },
+    ],
   },
 
-  // WAREHOUSES
+  // LOCATIONS
   {
-    title: 'Warehouses',
-    url: '/warehouses',
-    icon: 'box',
+    title: "Locations",
+    url: "/locations",
+    icon: "box",
     isActive: false,
     items: [
-      { title: 'View All Warehouses', url: '/warehouses', icon: 'list' },
-      { title: 'Warehouse Stock Report', url: '/warehouses/stock-report', icon: 'bar-chart-2' },
-      { title: 'Transfer Requests', url: '/warehouses/transfer-requests', icon: 'truck' }
-    ]
+      { title: "View All Locations", url: "/locations", icon: "list" },
+      {
+        title: "Location Stock Report",
+        url: "/locations/stock-report",
+        icon: "bar-chart-2",
+      },
+      {
+        title: "Transfer Requests",
+        url: "/locations/transfer-requests",
+        icon: "truck",
+      },
+    ],
   },
 
-  //stores
+  // ACCOUNTS (requires accounts feature)
   {
-    title: 'Stores',
-    url: '/stores',
-    icon: 'shopping-bag',
+    title: "Accounts",
+    url: "/accounts",
+    icon: "wallet",
     isActive: false,
+    features: ["accounts"],
     items: [
-      { title: 'View All Stores', url: '/stores', icon: 'list' },
-      { title: 'Store Stock Report', url: '/stores/stock-report', icon: 'bar-chart-2' },
-      { title: 'Store Transfer Requests', url: '/stores/transfer-requests', icon: 'truck' }
-    ]
+      {
+        title: "All Accounts",
+        url: "/accounts",
+        icon: "list",
+        features: ["accounts"],
+      },
+      {
+        title: "Transactions",
+        url: "/accounts/transactions",
+        icon: "arrow-right-left",
+        features: ["accounts"],
+      },
+    ],
   },
 
   // REPORTS
   {
-    title: 'Reports',
-    url: '/dashboard/reports',
-    icon: 'file-text',
+    title: "Reports",
+    url: "/dashboard/reports",
+    icon: "file-text",
     isActive: false,
     items: [
-      { title: 'Inventory Report', url: '/dashboard/reports/inventory', icon: 'file-text' },
-      { title: 'Sales Report', url: '/dashboard/reports/sales', icon: 'bar-chart-2' },
-      { title: 'Purchase Report', url: '/dashboard/reports/purchases', icon: 'file-text' },
-      { title: 'Cash Report', url: '/dashboard/reports/cash', icon: 'credit-card' },
-      { title: 'Stock Product Value', url: '/dashboard/reports/valuation', icon: 'database' },
-      { title: 'Expiry Report', url: '/dashboard/reports/expiry', icon: 'calendar' },
-      { title: 'Employee Report', url: '/dashboard/reports/employees', icon: 'user-check' },
-      { title: 'Export Data', url: '/dashboard/reports/export', icon: 'download-cloud' }
-    ]
+      {
+        title: "Inventory Report",
+        url: "/dashboard/reports/inventory",
+        icon: "file-text",
+      },
+      {
+        title: "Sales Report",
+        url: "/dashboard/reports/sales",
+        icon: "bar-chart-2",
+        features: ["sales"],
+      },
+      {
+        title: "Purchase Report",
+        url: "/dashboard/reports/purchases",
+        icon: "file-text",
+      },
+      {
+        title: "Cash Report",
+        url: "/dashboard/reports/cash",
+        icon: "credit-card",
+        features: ["accounts"],
+      },
+      {
+        title: "Stock Product Value",
+        url: "/dashboard/reports/valuation",
+        icon: "database",
+      },
+      {
+        title: "Expiry Report",
+        url: "/dashboard/reports/expiry",
+        icon: "calendar",
+        features: ["expiryTracking"],
+      },
+      {
+        title: "Employee Report",
+        url: "/dashboard/reports/employees",
+        icon: "user-check",
+      },
+      {
+        title: "Export Data",
+        url: "/dashboard/reports/export",
+        icon: "download-cloud",
+      },
+    ],
   },
 
-  // ADMIN / ACCOUNT
+  // SETTINGS
   {
-    title: 'Account',
-    url: '#',
-    icon: 'user',
+    title: "Settings",
+    url: "#",
+    icon: "settings",
     isActive: false,
     items: [
-      { title: 'Profile', url: '/profile', icon: 'user' },
-      { title: 'Employees / Users', url: '/dashboard/users', icon: 'users' },
-      { title: 'Settings', url: '/dashboard/settings', icon: 'settings' },
-      { title: 'Subscription / Billing', url: '/dashboard/billing', icon: 'credit-card' },
-    ]
-  }
+      { title: "Discounts", url: "/discounts", icon: "tag" },
+      {
+        title: "Field Settings",
+        url: "/settings/fields",
+        icon: "sliders",
+        permissions: ["organization.edit"],
+      },
+      {
+        title: "Feature Settings",
+        url: "/settings/features",
+        icon: "toggle-left",
+        permissions: ["organization.edit"],
+      },
+    ],
+  },
+
+  // ACCOUNT
+  {
+    title: "Account",
+    url: "#",
+    icon: "user",
+    isActive: false,
+    items: [
+      { title: "Profile", url: "/profile", icon: "user" },
+      {
+        title: "Employees / Users",
+        url: "/users",
+        icon: "users",
+        roles: ["admin", "manager"],
+      },
+      {
+        title: "Subscription / Billing",
+        url: "/dashboard/billing",
+        icon: "credit-card",
+      },
+    ],
+  },
 ];

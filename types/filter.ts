@@ -24,6 +24,7 @@ export interface FilterField {
  columnSpan?: number; // Number of columns to span (1-4)
  // For API field mapping
  apiKey?: string; // Map to different API parameter name
+ optionsApi?: string; // API endpoint to fetch options dynamically
  // Validation
  min?: number;
  max?: number;

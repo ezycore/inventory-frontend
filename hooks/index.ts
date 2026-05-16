@@ -1,26 +1,29 @@
 // Export all organized query hooks by domain
-export * from './queries'
+export * from "../services/api";
 
 // Export utility hooks
-export * from './utils'
+export * from "../utils";
 
 // Export page management hooks
-export { useCrudModal } from './use-crud-handlers'
-export { usePaginationHandler } from './use-pagination-handler'
+export { useCrudModal } from "./use-crud-handlers";
+export { usePaginationHandler } from "./use-pagination-handler";
+
+// Export landing page hooks
+export { useLandingTranslations } from "./use-landing-translations";
 
 // Re-export TanStack Query utilities for convenience
 export {
-  useQuery,
-  useMutation,
-  useQueryClient,
   useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
   useSuspenseQuery,
-  type UseQueryResult,
-  type UseMutationResult,
   type QueryClient,
-} from '@tanstack/react-query'
+  type UseMutationResult,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 
 // Export query keys and API client
-export { queryKeys } from '@/lib/query-keys'
-export { apiClient } from '@/lib/api-client'
-export { getErrorMessage, handleMutationError } from '@/lib/error-handling'
+export { apiClient } from "@/services/api";
+export { getErrorMessage, handleMutationError } from "@/lib/error-handling";
+export { queryKeys } from "@/services/api/query-keys";

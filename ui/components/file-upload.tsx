@@ -2,6 +2,7 @@
 "use client";
 
 import { Slot } from "@radix-ui/react-slot";
+import { cn } from "@ui/lib/utils";
 import {
   FileArchiveIcon,
   FileAudioIcon,
@@ -12,7 +13,6 @@ import {
   FileVideoIcon,
 } from "lucide-react";
 import * as React from "react";
-import { cn } from "@ui/lib/utils";
 
 const ROOT_NAME = "FileUpload";
 const DROPZONE_NAME = "FileUploadDropzone";
@@ -291,8 +291,10 @@ function useFileUploadContext(consumerName: string) {
   return context;
 }
 
-interface FileUploadRootProps
-  extends Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> {
+interface FileUploadRootProps extends Omit<
+  React.ComponentProps<"div">,
+  "defaultValue" | "onChange"
+> {
   value?: (File | string)[];
   defaultValue?: (File | string)[];
   onValueChange?: (files: (File | string)[]) => void;
@@ -354,10 +356,15 @@ function FileUploadRoot(props: FileUploadRootProps) {
 
   const dir = useDirection(dirProp);
   const listeners = useLazyRef(() => new Set<() => void>()).current;
-  const files = useLazyRef<Map<File | string, FileState>>(() => new Map()).current;
+  const files = useLazyRef<Map<File | string, FileState>>(
+    () => new Map(),
+  ).current;
   const urlCache = useLazyRef(() => new WeakMap<File, string>()).current;
   const inputRef = React.useRef<HTMLInputElement>(null);
   const isControlled = value !== undefined;
+
+  // Auto-determine multiple from maxFiles if not explicitly set
+  const isMultiple = multiple || (maxFiles !== undefined && maxFiles > 1);
 
   const store = React.useMemo(
     () => createStore(listeners, files, urlCache, invalid, onValueChange),
@@ -630,7 +637,7 @@ function FileUploadRoot(props: FileUploadRootProps) {
             name={name}
             className="sr-only"
             disabled={disabled}
-            multiple={multiple}
+            multiple={isMultiple}
             required={required}
             onChange={onInputChange}
           />
@@ -812,11 +819,10 @@ function FileUploadDropzone(props: FileUploadDropzoneProps) {
 
   return (
     <DropzonePrimitive
-      role="region"
+      role="button"
       id={context.dropzoneId}
       aria-controls={`${context.inputId} ${context.listId}`}
       aria-disabled={context.disabled}
-      aria-invalid={invalid}
       data-disabled={context.disabled ? "" : undefined}
       data-dragging={dragOver ? "" : undefined}
       data-invalid={invalid ? "" : undefined}
@@ -900,7 +906,6 @@ function FileUploadList(props: FileUploadListProps) {
     <ListPrimitive
       role="list"
       id={context.listId}
-      aria-orientation={orientation}
       data-orientation={orientation}
       data-slot="file-upload-list"
       data-state={shouldRender ? "active" : "inactive"}
@@ -1088,6 +1093,7 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
       if (typeof file === "string") {
         return (
           // biome-ignore lint/performance/noImgElement: dynamic file URLs from user uploads don't work well with Next.js Image optimization
+          /* eslint-disable-next-line @next/next/no-img-element -- Dynamic user upload URLs */
           <img src={file} alt="Preview" className="size-full object-cover" />
         );
       }
@@ -1102,6 +1108,7 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
 
         return (
           // biome-ignore lint/performance/noImgElement: dynamic file URLs from user uploads don't work well with Next.js Image optimization
+          /* eslint-disable-next-line @next/next/no-img-element -- Dynamic user upload URLs */
           <img src={url} alt={file.name} className="size-full object-cover" />
         );
       }
@@ -1164,13 +1171,15 @@ function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
   const ItemMetadataPrimitive = asChild ? Slot : "div";
 
   // Extract file name and size based on type
-  const fileName = itemContext.fileState.file instanceof File
-    ? itemContext.fileState.file.name
-    : itemContext.fileState.file.split('/').pop() || 'Existing file';
+  const fileName =
+    itemContext.fileState.file instanceof File
+      ? itemContext.fileState.file.name
+      : itemContext.fileState.file.split("/").pop() || "Existing file";
 
-  const fileSize = itemContext.fileState.file instanceof File
-    ? formatBytes(itemContext.fileState.file.size)
-    : 'Uploaded';
+  const fileSize =
+    itemContext.fileState.file instanceof File
+      ? formatBytes(itemContext.fileState.file.size)
+      : "Uploaded";
 
   return (
     <ItemMetadataPrimitive
@@ -1433,27 +1442,27 @@ function FileUploadClear(props: FileUploadClearProps) {
 }
 
 export {
+  FileUploadClear as Clear,
+  FileUploadDropzone as Dropzone,
   FileUploadRoot as FileUpload,
-  FileUploadDropzone,
-  FileUploadTrigger,
-  FileUploadList,
-  FileUploadItem,
-  FileUploadItemPreview,
-  FileUploadItemMetadata,
-  FileUploadItemProgress,
-  FileUploadItemDelete,
   FileUploadClear,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadItemProgress,
+  FileUploadList,
+  FileUploadTrigger,
+  FileUploadItem as Item,
+  FileUploadItemDelete as ItemDelete,
+  FileUploadItemMetadata as ItemMetadata,
+  FileUploadItemPreview as ItemPreview,
+  FileUploadItemProgress as ItemProgress,
+  FileUploadList as List,
   //
   FileUploadRoot as Root,
-  FileUploadDropzone as Dropzone,
   FileUploadTrigger as Trigger,
-  FileUploadList as List,
-  FileUploadItem as Item,
-  FileUploadItemPreview as ItemPreview,
-  FileUploadItemMetadata as ItemMetadata,
-  FileUploadItemProgress as ItemProgress,
-  FileUploadItemDelete as ItemDelete,
-  FileUploadClear as Clear,
   //
   useStore as useFileUpload,
   //

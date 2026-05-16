@@ -19,6 +19,8 @@ interface UseEnhancedColumnsProps<TData, TValue> {
   onEdit?: (row: TData) => void;
   openDeleteDialog?: (row: TData) => void;
   customActions?: CustomAction[];
+  /** When server-side sorting is active, only these column fields may be sorted */
+  serverSortableFields?: string[];
 }
 
 export function useEnhancedColumns<TData, TValue>({
@@ -29,9 +31,20 @@ export function useEnhancedColumns<TData, TValue>({
   onEdit,
   openDeleteDialog,
   customActions,
+  serverSortableFields,
 }: UseEnhancedColumnsProps<TData, TValue>) {
   return useMemo(() => {
-    const cols = [...columns];
+    // When server-side sorting is active, restrict sortable columns to allowed fields only
+    const cols = serverSortableFields
+      ? columns.map((col) => {
+          const colId = (col as any).accessorKey ?? (col as any).id ?? "";
+          const isAllowed = serverSortableFields.includes(colId);
+          if (!isAllowed) {
+            return { ...col, enableSorting: false };
+          }
+          return col;
+        })
+      : [...columns];
     
     // Add selection column
     if (selectable && !cols.some((col: any) => col.id === "select")) {
@@ -62,8 +75,9 @@ export function useEnhancedColumns<TData, TValue>({
       } as ColumnDef<TData, TValue>);
     }
     
-    // Add actions column
-    if (actions && !cols.some((col: any) => col.id === "actions")) {
+    // Add actions column (only if there are actual action buttons to show)
+    const hasActions = (actions && (actions.viewable || actions.editable || actions.deletable)) || (customActions && customActions.length > 0);
+    if (hasActions && !cols.some((col: any) => col.id === "actions")) {
       cols.push({
         id: "actions",
         header: "Actions",
@@ -71,7 +85,7 @@ export function useEnhancedColumns<TData, TValue>({
           const rowData = row.original;
           return (
             <div className="flex items-center gap-2">
-              {actions.viewable && (
+              {actions?.viewable && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -85,7 +99,7 @@ export function useEnhancedColumns<TData, TValue>({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {typeof actions.viewable === "object" && actions.viewable.tooltip
+                      {typeof actions?.viewable === "object" && actions?.viewable?.tooltip
                         ? actions.viewable.tooltip
                         : "View details"}
                     </TooltipContent>
@@ -96,7 +110,7 @@ export function useEnhancedColumns<TData, TValue>({
               {(() => {
                 const customEdit = customActions?.find(a => a.type === 'edit');
         
-                return (actions.editable || customEdit) ? (
+                return (actions?.editable || customEdit) ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -106,20 +120,20 @@ export function useEnhancedColumns<TData, TValue>({
                           onClick={() => customEdit?.onClick ? customEdit.onClick(rowData) : onEdit?.(rowData)}
                           className="h-8 w-8 p-0"
                         >
-                          <Edit className="h-4 w-4" />
+                          {customEdit?.icon || <Edit className="h-4 w-4" />}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {typeof actions.editable === "object" && actions.editable.tooltip
+                        {typeof actions?.editable === "object" && actions?.editable?.tooltip
                           ? actions.editable.tooltip
-                          : "Edit"}
+                          : customEdit?.tooltip || "Edit"}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 ) : null;
               })()}
               
-              {actions.deletable && (
+              {actions?.deletable && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -133,7 +147,7 @@ export function useEnhancedColumns<TData, TValue>({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {typeof actions.deletable === "object" && actions.deletable.tooltip
+                      {typeof actions?.deletable === "object" && actions?.deletable?.tooltip
                         ? actions.deletable.tooltip
                         : "Delete"}
                     </TooltipContent>
@@ -141,7 +155,7 @@ export function useEnhancedColumns<TData, TValue>({
                 </TooltipProvider>
               )}
               
-              {actions.custom?.map((action, index) => (
+              {actions?.custom?.map((action, index) => (
                 <TooltipProvider key={index}>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -161,12 +175,27 @@ export function useEnhancedColumns<TData, TValue>({
               
               {/* Custom cell actions (excluding built-in types) */}
               {customActions?.filter(a => a.placement === 'cell' && !['edit', 'view', 'delete'].includes(a.type)).map((action, index) => {
+                // If custom render is provided, use it
+                if (action.render) {
+                  return (
+                    <div key={`custom-${index}`}>
+                      {action.render(rowData)}
+                    </div>
+                  );
+                }
+                
+                // Check if button should be disabled
+                const isDisabled = action.disabled ? 
+                  (typeof action.disabled === 'function' ? action.disabled(rowData) : action.disabled) 
+                  : false;
+                
                 const href = typeof action.href === 'function' ? action.href(rowData) : action.href;
                 const ButtonComponent = (
                   <Button
                     variant={action.variant || "ghost"}
                     size="sm"
                     onClick={action.onClick ? () => action.onClick?.(rowData) : undefined}
+                    disabled={isDisabled}
                     className="h-8 w-8 p-0"
                   >
                     {action.icon || <MoreHorizontal className="h-4 w-4" />}
@@ -179,7 +208,7 @@ export function useEnhancedColumns<TData, TValue>({
                       <TooltipTrigger asChild>
                         {href ? <Link href={href}>{ButtonComponent}</Link> : ButtonComponent}
                       </TooltipTrigger>
-                      {action.tooltip && <TooltipContent>{action.tooltip}</TooltipContent>}
+                      {(action.tooltip || action.label) && <TooltipContent>{action.tooltip || action.label}</TooltipContent>}
                     </Tooltip>
                   </TooltipProvider>
                 );
@@ -193,5 +222,5 @@ export function useEnhancedColumns<TData, TValue>({
     }
     
     return cols;
-  }, [columns, selectable, actions, onView, onEdit, openDeleteDialog, customActions]);
+  }, [columns, selectable, actions, onView, onEdit, openDeleteDialog, customActions, serverSortableFields]);
 }

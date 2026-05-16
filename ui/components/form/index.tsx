@@ -54,10 +54,14 @@ const DynamicForm: FC<DynamicFormProps> = ({
 
     // Regular form actions props
     actionsPlacement = 'bottom',
-    resetAfterSubmit = false,
+    resetAfterSubmit = true,
+    hideCancel = false,
+    
+    // Disabled fields in edit mode
+    disabledFieldsInEdit,
+    isEditMode = false,
     ...props
 }) => {
-
     const { control, formState, setValue, watch, handleSubmit } = form as any;
     const isDrawerMode = openInside === 'drawer';
     const isModalMode = openInside === 'modal';
@@ -144,6 +148,8 @@ const DynamicForm: FC<DynamicFormProps> = ({
             onFieldChange={onFieldChange}
             className={className}
             viewMode={viewMode}
+            disabledFieldsInEdit={disabledFieldsInEdit}
+            isEditMode={isEditMode}
         />
     )
 
@@ -162,13 +168,20 @@ const DynamicForm: FC<DynamicFormProps> = ({
                 Close
             </Button>
         </div>
-    ) : viewMode ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
-        <Button type="button" variant="outline" onClick={handleContainerCancel}>
-            {cancelLabel}
-        </Button>
-        <Button type="submit" disabled={isActuallySubmitting || contentLoading} onClick={handleContainerSubmit}>
-            {isActuallySubmitting ? 'Submitting...' : submitLabel}
-        </Button>
+    ) : viewMode ? null : (hideCancel && !onSubmit && !mutationHook) ? null : (<div className={cn("flex justify-end space-x-4", (actionsPlacement === 'top' && openInside === 'drawer') ? '' : 'mt-6')}>
+        {
+            !hideCancel && (
+                <Button type="button" variant="outline" onClick={handleContainerCancel}>
+                    {cancelLabel}
+                </Button>
+            )
+        }
+        {/* Only show submit button if there's an onSubmit handler or mutationHook */}
+        {(onSubmit || mutationHook) && (
+            <Button type="button" disabled={isActuallySubmitting || contentLoading || !form.formState.isDirty} onClick={handleContainerSubmit}>
+                {isActuallySubmitting ? 'Submitting...' : submitLabel}
+            </Button>
+        )}
     </div>)
 
     // Render modal mode
