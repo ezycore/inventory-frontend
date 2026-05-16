@@ -94,6 +94,15 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       columnSpan: 4,
     },
     {
+      name: "purchaseUnitName",
+      label: "Purchase Unit",
+      type: "input",
+      disabled: true,
+      placeholder: "1",
+      columnSpan: 4,
+      hidden: true
+    },
+    {
       name: "quantity",
       label: "Purchase Quantity",
       type: "number",

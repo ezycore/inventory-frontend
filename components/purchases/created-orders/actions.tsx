@@ -1,17 +1,15 @@
 import type { PurchaseOrder } from "@/types";
 import type { CustomAction } from "@/types/DataTable";
-import { Eye, PackageCheck, XCircle } from "lucide-react";
+import { Edit3, Eye } from "lucide-react";
 
 interface GetCreatedOrderActionsParams {
   onViewOrder: (order: PurchaseOrder) => void;
-  onConfirmOrder: (order: PurchaseOrder) => void;
-  onCancelOrder: (order: PurchaseOrder) => void;
+  onEditOrder: (order: PurchaseOrder) => void;
 }
 
 export const getCreatedOrderActions = ({
   onViewOrder,
-  onConfirmOrder,
-  onCancelOrder,
+  onEditOrder,
 }: GetCreatedOrderActionsParams): CustomAction[] => [
   {
     type: "custom",
@@ -24,24 +22,13 @@ export const getCreatedOrderActions = ({
   {
     type: "custom",
     placement: "cell",
-    icon: <PackageCheck className="h-4 w-4" />,
-    label: "Confirm Order",
-    tooltip: "Receive items from this order",
-    onClick: (row) => onConfirmOrder(row as PurchaseOrder),
+    icon: <Edit3 className="h-4 w-4" />,
+    label: "Edit Order",
+    tooltip: "Edit items, quantities and prices",
+    onClick: (row) => onEditOrder(row as PurchaseOrder),
     disabled: (row) => {
       const order = row as PurchaseOrder;
-      return order.status !== "ordered" && order.status !== "partial";
-    },
-  },
-  {
-    type: "custom",
-    placement: "cell",
-    icon: <XCircle className="h-4 w-4" />,
-    label: "Cancel Order",
-    tooltip: "Cancel this order",
-    onClick: (row) => onCancelOrder(row as PurchaseOrder),
-    disabled: (row) => {
-      const order = row as PurchaseOrder;
+      // Only draft / ordered orders are editable (backend rule).
       return order.status !== "ordered" && order.status !== "draft";
     },
   },

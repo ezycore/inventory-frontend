@@ -51,6 +51,7 @@ const productFormSchema = z.object({
       conversionFactor: z.number().optional(),
       productId: z.string().optional(),
       variantId: z.string().nullable().optional(),
+      purchaseUnitName: z.string().nullable().optional(),
     }),
   ]),
   quantity: z.number().min(1, "Quantity must be at least 1"),
@@ -303,11 +304,9 @@ export default function PurchasesPage() {
           const convertedQuantity = quantity * conversionFactor;
           const perUnitPrice = product.price;
           const boxPrice = perUnitPrice * conversionFactor;
-
           const discountType = supplierForm.getValues("discountType") || "fixed";
           const discountValue = supplierForm.getValues("discountValue") || 0;
-          // need to calculate stock,if purchaseUnitName is aviable then  quantity/conversionFactor purcaseUnitName and remaining baseUnit
-          const stock = isUOMEnabled && product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
+          const stock = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
           let boxDiscount = 0;
           if (discountType === "percentage") {
             boxDiscount = (boxPrice * discountValue) / 100;
@@ -403,7 +402,6 @@ export default function PurchasesPage() {
           currentSeller = newState.sellers[newState.activeSellerIndex];
         }
       }
-
       const product = extractProductValue(data.productId);
       if (!product) {
         toast.error("Please select a product");
@@ -412,7 +410,6 @@ export default function PurchasesPage() {
 
       const conversionFactor = product.conversionFactor || 1;
       const boxPrice = product.price * conversionFactor;
-
       addItem(currentSeller.id, {
         inventoryId: product.value,
         productId: product.productId,
@@ -566,6 +563,7 @@ export default function PurchasesPage() {
             costPrice: perUnitCostPrice,
             discount: perUnitDiscount,
             productName: item.productName,
+            purchaseUnitName: item.purchaseUnitName,
           };
 
           if (item.conversionFactor && item.conversionFactor !== 1) {
@@ -591,7 +589,6 @@ export default function PurchasesPage() {
 
         if (isAccountsEnabled && extractedAccountId && paidAmount > 0) {
           orderData.payment = {
-            paymentMethod: "cash",
             accountId: extractedAccountId,
             paidAmount: Math.min(paidAmount, netAmount),
           };
