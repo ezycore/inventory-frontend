@@ -54,6 +54,7 @@ export function useSalesReturnPage() {
   const [returnableItems, setReturnableItems] = useState<ReturnableItem[]>([]);
   const [reason, setReason] = useState<SalesReturnReason>('customer_changed_mind');
   const [notes, setNotes] = useState('');
+  const [deductionAmount, setDeductionAmount] = useState(0);
   const [dueAllocations, setDueAllocations] = useState<DueAllocation[]>([]);
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState('');
@@ -176,9 +177,13 @@ export function useSalesReturnPage() {
     () => selectedItems.reduce((sum, i) => sum + i.returnQty, 0),
     [selectedItems],
   );
-  const totalRefundAmount = useMemo(
+  const grossRefundAmount = useMemo(
     () => selectedItems.reduce((sum, i) => sum + i.refundAmount, 0),
     [selectedItems],
+  );
+  const totalRefundAmount = useMemo(
+    () => Math.max(0, grossRefundAmount - deductionAmount),
+    [grossRefundAmount, deductionAmount],
   );
   const saleDueAmount = sale?.dueAmount ?? 0;
   const adjustSaleDueAmount = useMemo(
@@ -208,6 +213,7 @@ export function useSalesReturnPage() {
     setSelectedSaleId(null);
     setReturnableItems([]);
     setDueAllocations([]);
+    setDeductionAmount(0);
     setAccountRefundAmount(0);
     setSelectedAccountId('');
     setNotes('');
@@ -409,6 +415,7 @@ export function useSalesReturnPage() {
         items,
         reason,
         notes: notes || undefined,
+        deductionAmount: deductionAmount > 0 ? deductionAmount : undefined,
         refundAllocation,
       });
       handleClearSearch();
@@ -429,6 +436,7 @@ export function useSalesReturnPage() {
     createReturnMutation,
     reason,
     notes,
+    deductionAmount,
     handleClearSearch,
   ]);
 
@@ -456,6 +464,8 @@ export function useSalesReturnPage() {
     setReason,
     notes,
     setNotes,
+    deductionAmount,
+    setDeductionAmount,
     dueAllocations,
     accountRefundAmount,
     setAccountRefundAmount,
@@ -485,6 +495,7 @@ export function useSalesReturnPage() {
 
     // computed totals
     totalReturnQty,
+    grossRefundAmount,
     totalRefundAmount,
     saleDueAmount,
     adjustSaleDueAmount,

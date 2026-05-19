@@ -12,4 +12,3 @@ export type { ReturnableItem, DueAllocation } from "./types";
 export { RETURN_REASONS } from "./types";
 export { ReturnDetailsSheet } from "./return-details-sheet";
 export { RefundAllocationCard } from "./refund-allocation-card";
-export { ReturnItemRow } from "./return-item-row";

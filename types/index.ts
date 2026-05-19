@@ -1040,9 +1040,10 @@ export interface PurchaseReturn extends BaseEntity {
   locationId: string;
   purchaseOrderId: string | { _id: string; orderNumber: string };
   orderNumber: string;
-  supplierId?: string;
+  supplierId?: string | { _id: string; name: string; email?: string; phone?: string };
   items: PurchaseReturnItem[];
   totalRefundAmount: number;
+  deductionAmount?: number; // Optional fee withheld from gross refund
   refundedAmount: number;
   totalCostAmount?: number;
   reason: PurchaseReturnReason;
@@ -1089,6 +1090,7 @@ export interface CreatePurchaseReturnDto {
   items: CreatePurchaseReturnItemDto[];
   reason: PurchaseReturnReason;
   notes?: string;
+  deductionAmount?: number;
   refundAllocation?: {
     // Backend expects 'adjustSupplierDue' not 'adjustPurchaseDue'
     adjustSupplierDue?: number;
@@ -1369,9 +1371,10 @@ export interface SalesReturn extends BaseEntity {
   locationId: string;
   saleId: string | { _id: string; invoiceNumber: string };
   invoiceNumber: string;
-  customerId?: string;
+  customerId?: string | { _id: string; name: string; phone?: string; email?: string };
   items: SalesReturnItem[];
   totalRefundAmount: number;
+  deductionAmount?: number; // Optional fee withheld from gross refund
   refundedAmount: number; // Actual cash refunded
   totalCostAmount?: number;
   reason: SalesReturnReason;
