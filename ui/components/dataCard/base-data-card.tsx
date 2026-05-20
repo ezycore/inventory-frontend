@@ -47,6 +47,7 @@ const gapClasses: Record<string, string> = {
 export function BaseDataCard<TData extends { _id: string }>({
   data,
   isLoading,
+  isFetching,
   pagination,
   filterConfig,
   actions,
@@ -322,7 +323,13 @@ export function BaseDataCard<TData extends { _id: string }>({
       />
 
       {/* Cards Grid */}
-      <div className={layoutClasses}>
+      <div className={cn(layoutClasses, "relative")}>
+        {/* Overlay spinner for sort/filter/pagination refetches — keeps existing cards visible */}
+        {isFetching && !isLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/60 backdrop-blur-[1px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
+          </div>
+        )}
         {paginatedData.map((item) => (
           <div
             key={item._id}

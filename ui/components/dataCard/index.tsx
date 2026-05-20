@@ -104,8 +104,10 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     placeholderData: (previousData) => previousData,
   });
 
-  // Combine loading states: isLoading (first load), isFetching (subsequent fetches), and external loading prop
-  const isLoadingData = isLoading || isFetching || loading;
+  // Initial load (no cached data yet) — replaces cards with skeletons
+  const isInitialLoading = (isLoading || loading) && !error;
+  // Subsequent fetches while data already exists (sort / filter / page) — shows overlay spinner
+  const isRefetching = isFetching && !isLoading && !loading && !error;
 
   // Determine data source and loading state
   const data = useMemo(() => {
@@ -286,7 +288,8 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
         <BaseDataCard
           {...restProps}
           data={data}
-          isLoading={isLoadingData}
+          isLoading={isInitialLoading}
+          isFetching={isRefetching}
           pagination={paginationConfig}
           filterConfig={mergedFilterConfig}
           actions={mergedActions}
