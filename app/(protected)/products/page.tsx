@@ -151,6 +151,7 @@ export default function ProductsPage() {
             gap: 'md',
             
           }}
+          sortingConfig={sortingConfig}
           variant="default"
           enableCardHover={true}
           searchConfig={{
