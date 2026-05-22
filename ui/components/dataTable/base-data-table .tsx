@@ -34,6 +34,7 @@ export function BaseDataTable<TData, TValue>({
   onView,
   pagination,
   isLoading = false,
+  isFetching = false,
   enableSorting = true,
   enableColumnVisibility = false,
   defaultColumnVisibility,
@@ -176,6 +177,7 @@ export function BaseDataTable<TData, TValue>({
         table={table}
         columns={enhancedColumns}
         isLoading={isLoading || isDeleting}
+        isFetching={isFetching}
         enableRowHover={enableRowHover}
         rowClassName={rowClassName}
         variant={variant}

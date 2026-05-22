@@ -370,6 +370,8 @@ export interface DataCardProps<TData, TValue = any> {
 export interface BaseDataCardProps<TData> {
   data: TData[];
   isLoading: boolean;
+  /** True when refetching with existing data (sort/filter/page change) — shows overlay instead of replacing cards */
+  isFetching?: boolean;
   pagination?: DataCardPagination;
   filterConfig?: FilterConfig;
   actions?: DataCardAction;

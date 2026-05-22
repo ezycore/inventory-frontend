@@ -79,7 +79,7 @@ function FieldSettingsForm() {
             <TabsTrigger
               key={module.key}
               value={module.key}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 cursor-pointer data-[state=active]:border-primary"
             >
               <module.icon className="h-4 w-4" />
               {module.label}

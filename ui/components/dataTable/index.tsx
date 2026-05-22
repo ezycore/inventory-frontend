@@ -113,8 +113,10 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     placeholderData: (previousData) => previousData,
   });
 
-  // Combine loading states: isLoading (first load), isFetching (subsequent fetches), and external loading prop
-  const isLoadingData = (isLoading || isFetching || loading) && !error;
+  // Initial load (no cached data yet) — replaces table rows with skeleton
+  const isInitialLoading = (isLoading || loading) && !error;
+  // Subsequent fetches while data already exists (sort / filter / page) — shows overlay spinner
+  const isRefetching = isFetching && !isLoading && !loading && !error;
 
   // Determine data source and loading state
   const data = useMemo(() => {
@@ -280,7 +282,8 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         <BaseDataTable
           {...restProps}
           data={data}
-          isLoading={isLoadingData}
+          isLoading={isInitialLoading}
+          isFetching={isRefetching}
           pagination={paginationConfig}
           filterConfig={mergedFilterConfig}
           actions={mergedActions}
@@ -304,7 +307,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           stickyHeader={stickyHeader}
           rowBgColor={rowBgColor}
           module={module}
-          fullColumns={props.columns}
+          fullColumns={props.fullColumns || props.columns}
         />
 
         {/* Integrated CRUD Form Modal */}
