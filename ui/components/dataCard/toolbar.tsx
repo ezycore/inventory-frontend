@@ -87,7 +87,7 @@ export function DataCardToolbar({
               placeholder={searchConfig.placeholder || "Search..."}
               value={globalFilter ?? ""}
               onChange={(event) => onGlobalFilterChange?.(event.target.value)}
-              className="pl-10 pr-10 h-8"
+              className="pl-10 pr-6 h-8"
             />
             {globalFilter && (
               <Button
