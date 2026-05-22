@@ -22,6 +22,17 @@ import { ProductCard } from '@/components/products/product-card'
 import MountingHandler from '@/components/MountingHandler';
 import { useAuthStore } from '@/services/stores';
 
+
+ const sortingConfig = {
+    sortOptions: [
+      { field: "name", label: "Name" },
+      { field: "price", label: "Price" },
+      {field: "status", label: "Status"},
+    ],
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc" as const,
+  }
+
 export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [viewMode, setViewMode, isMounted] = useViewMode('products')
@@ -110,6 +121,7 @@ export default function ProductsPage() {
         <DataTable
           cardTitle="All Products"
           columns={filteredColumns}
+          fullColumns={productColumns}
           selectable={true}
           manageColumns={true}
           module="product"
@@ -122,6 +134,7 @@ export default function ProductsPage() {
           filterConfig={productFilterConfig}
           operations={sharedOperations}
           enableSorting={true}
+          sortingConfig={sortingConfig}
           enableRowHover={true}
         />
       )}
@@ -136,7 +149,9 @@ export default function ProductsPage() {
             layout: 'grid',
             columns: { default: 1, sm: 2, md: 3, lg: 4 },
             gap: 'md',
+            
           }}
+          sortingConfig={sortingConfig}
           variant="default"
           enableCardHover={true}
           searchConfig={{

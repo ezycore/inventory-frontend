@@ -70,7 +70,7 @@ export function DataCardToolbar({
   customActions,
   layout,
   onLayoutChange,
-  showLayoutSwitcher = true,
+  showLayoutSwitcher = false,
   sortBy,
   sortOrder,
   onSortChange,
