@@ -22,12 +22,18 @@ interface RefundAllocationCardProps {
   accountRefundAmount: number;
   onAccountRefundChange: (amount: number) => void;
   totalOtherDuesAllocated: number;
+  customerCreditAmount?: number;
+  onCustomerCreditChange?: (amount: number) => void;
+  currentCustomerCreditBalance?: number;
 }
 
 export function RefundAllocationCard({
   saleDueAmount,
   adjustSaleDueAmount,
   dueAllocations,
+  customerCreditAmount,
+  onCustomerCreditChange,
+  currentCustomerCreditBalance,
   ...rest
 }: RefundAllocationCardProps) {
   return (
@@ -39,6 +45,10 @@ export function RefundAllocationCard({
       documentDueSubtitle="Current due on this sale:"
       otherDuesTitle="Adjust Other Customer Dues"
       adjustmentColorClass="text-green-600"
+      showCustomerCredit={!!onCustomerCreditChange}
+      customerCreditAmount={customerCreditAmount}
+      onCustomerCreditChange={onCustomerCreditChange}
+      currentCustomerCreditBalance={currentCustomerCreditBalance}
       dueAllocations={dueAllocations.map((d) => ({
         dueId: d.dueId,
         dueAmount: d.dueAmount,

@@ -90,12 +90,16 @@ export default function SalesHistoryPage() {
         setPaymentAccountId={ctx.setPaymentAccountId}
         paymentNotes={ctx.paymentNotes}
         setPaymentNotes={ctx.setPaymentNotes}
+        useCreditBalance={ctx.useCreditBalance}
+        setUseCreditBalance={ctx.setUseCreditBalance}
         isSubmittingPayment={ctx.isSubmittingPayment}
         onMakePayment={ctx.handleMakePayment}
         onSubmitPayment={ctx.handlePaymentSubmit}
         drawerRef={ctx.drawerRef}
         saleReturns={ctx.saleReturns}
         isLoadingReturns={ctx.isLoadingReturns}
+        transactions={ctx.transactions}
+        isLoadingTransactions={ctx.isLoadingTransactions}
       />
     </div>
   );

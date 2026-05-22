@@ -8,8 +8,13 @@ import {
   Truck,
   Wallet,
   ClipboardList,
+  Copy,
+  Check,
 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/ui/components/badge';
+import { Button } from '@/ui/components/button';
 import { Separator } from '@/ui/components/separator';
 import {
   Sheet,
@@ -54,8 +59,10 @@ export interface ReturnDetailsData {
   refundAllocation?: {
     /** Mapped from adjustSaleDue or adjustPurchaseDue */
     adjustDocumentDue?: number;
-    adjustOtherDues?: { amount: number }[];
+    adjustOtherDues?: { amount: number; referenceLabel?: string }[];
     accountRefund?: { amount: number; paymentMethod: string };
+    /** Sales-only: refund converted into customer store credit. */
+    customerCredit?: { amount: number };
   };
 }
 
@@ -338,9 +345,14 @@ export function ReturnDetailsSheet({
                     </div>
                   )}
                   {returnData.refundAllocation.adjustOtherDues?.map((due, idx) => (
-                    <div key={idx} className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Adjusted against other due
+                    <div key={idx} className="flex justify-between items-center">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        Adjusted against
+                        {due.referenceLabel ? (
+                          <CopyableRef value={due.referenceLabel} />
+                        ) : (
+                          'other due'
+                        )}
                       </span>
                       <span className="font-medium text-blue-600">
                         {formatCurrency(due.amount)}
@@ -359,6 +371,14 @@ export function ReturnDetailsSheet({
                       </span>
                     </div>
                   )}
+                  {(returnData.refundAllocation.customerCredit?.amount ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Converted to store credit</span>
+                      <span className="font-medium text-blue-600">
+                        {formatCurrency(returnData.refundAllocation.customerCredit!.amount)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -366,5 +386,34 @@ export function ReturnDetailsSheet({
         ) : null}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function CopyableRef({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      toast.success(`Copied ${value}`);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error('Failed to copy');
+    }
+  };
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="font-mono font-medium text-primary">{value}</span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-5 w-5"
+        onClick={handleCopy}
+        aria-label={`Copy ${value}`}
+      >
+        {copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+      </Button>
+    </span>
   );
 }

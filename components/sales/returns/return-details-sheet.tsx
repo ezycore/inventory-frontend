@@ -41,8 +41,12 @@ function normalizeSalesReturn(r: SalesReturn): ReturnDetailsData {
     refundAllocation: r.refundAllocation
       ? {
           adjustDocumentDue: r.refundAllocation.adjustSaleDue,
-          adjustOtherDues: r.refundAllocation.adjustOtherDues,
+          adjustOtherDues: r.refundAllocation.adjustOtherDues?.map((d) => ({
+            amount: d.amount,
+            referenceLabel: d.invoiceNumber,
+          })),
           accountRefund: r.refundAllocation.accountRefund,
+          customerCredit: r.refundAllocation.customerCredit,
         }
       : undefined,
   };

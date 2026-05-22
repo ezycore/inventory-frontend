@@ -1,4 +1,4 @@
-import { Wallet } from 'lucide-react';
+import { Wallet, Gift } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -61,6 +61,14 @@ export interface RefundAllocationCardProps {
   onAccountRefundChange: (amount: number) => void;
   totalOtherDuesAllocated: number;
 
+  // ── Customer store credit (optional, sales only) ───────────────────
+  /** When true, render the "Convert to store credit" section. */
+  showCustomerCredit?: boolean;
+  customerCreditAmount?: number;
+  onCustomerCreditChange?: (amount: number) => void;
+  /** Customer's existing store-credit balance, shown for context. */
+  currentCustomerCreditBalance?: number;
+
   // ── Visual customisation ───────────────────────────────────────────
   /** Tailwind color class for adjustment rows, e.g. "text-green-600" or "text-blue-600" */
   adjustmentColorClass?: string;
@@ -87,6 +95,10 @@ export function RefundAllocationCard({
   accountRefundAmount,
   onAccountRefundChange,
   totalOtherDuesAllocated,
+  showCustomerCredit = false,
+  customerCreditAmount = 0,
+  onCustomerCreditChange,
+  currentCustomerCreditBalance,
   adjustmentColorClass = 'text-green-600',
   descriptionSuffix = '',
 }: RefundAllocationCardProps) {
@@ -172,6 +184,46 @@ export function RefundAllocationCard({
           </div>
         )}
 
+        {/* Convert to store credit */}
+        {showCustomerCredit && onCustomerCreditChange && (
+          <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/40">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-medium flex items-center gap-2">
+                <Gift className="h-4 w-4 text-blue-600" />
+                Convert to Store Credit
+              </div>
+              {currentCustomerCreditBalance != null && (
+                <span className="text-xs text-muted-foreground">
+                  Current credit: {formatCurrency(currentCustomerCreditBalance)}
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground mb-3">
+              Refund into the customer’s store credit instead of cash.
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Credit Amount</Label>
+                <Input
+                  type="number"
+                  value={customerCreditAmount}
+                  onChange={(e) => {
+                    const next = parseFloat(e.target.value) || 0;
+                    const cap = remainingForRefund + customerCreditAmount;
+                    onCustomerCreditChange(Math.max(0, Math.min(next, cap)));
+                  }}
+                  max={remainingForRefund + customerCreditAmount}
+                />
+              </div>
+              <div className="flex items-end">
+                <div className="text-xs text-muted-foreground">
+                  Max available: {formatCurrency(remainingForRefund + customerCreditAmount)}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Cash refund to account */}
         {remainingForRefund > 0 && (
           <div className="p-4 border rounded-lg bg-yellow-50 dark:bg-yellow-950">
@@ -249,6 +301,12 @@ export function RefundAllocationCard({
             <div className="flex justify-between text-green-600">
               <span>Cash Refund:</span>
               <span>{formatCurrency(accountRefundAmount)}</span>
+            </div>
+          )}
+          {customerCreditAmount > 0 && (
+            <div className="flex justify-between text-blue-600">
+              <span>Store Credit:</span>
+              <span>{formatCurrency(customerCreditAmount)}</span>
             </div>
           )}
         </div>

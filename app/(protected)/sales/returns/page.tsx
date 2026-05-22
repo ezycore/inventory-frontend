@@ -148,6 +148,9 @@ export default function SalesReturnsPage() {
               accountRefundAmount={ctx.accountRefundAmount}
               onAccountRefundChange={ctx.setAccountRefundAmount}
               totalOtherDuesAllocated={ctx.totalOtherDuesAllocated}
+              customerCreditAmount={ctx.customerCreditAmount}
+              onCustomerCreditChange={ctx.setCustomerCreditAmount}
+              currentCustomerCreditBalance={ctx.sale?.customerId?.creditBalance}
             />
           )}
 

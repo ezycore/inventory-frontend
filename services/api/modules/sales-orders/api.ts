@@ -9,6 +9,7 @@ import type {
   SaleFilters,
   SalesOrderStatus,
   SalesSummary,
+  SaleTransactionsResponse,
 } from "@/types";
 import { buildQueryParams } from "../../utils";
 
@@ -51,6 +52,13 @@ export const salesApi = {
    */
   getPayments: (saleId: string): Promise<ApiResponse<Payment[]>> =>
     apiClient.get(`/sales/${saleId}/payments`),
+
+  /**
+   * Get merged transactions timeline for a sale:
+   * payments + cash refunds + own return credits + cross-invoice inbound credits.
+   */
+  getTransactions: (saleId: string): Promise<ApiResponse<SaleTransactionsResponse>> =>
+    apiClient.get(`/sales/${saleId}/transactions`),
 
   /**
    * Add payment to a sale

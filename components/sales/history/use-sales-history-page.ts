@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import {
   useSales,
   useSalePayments,
+  useSaleTransactions,
   useAddSalePayment,
   useAccounts,
   useSalesSummary,
@@ -40,11 +41,13 @@ export function useSalesHistoryPage() {
   // ── Payment form state ────────────────────────────────────────
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentAccountId, setPaymentAccountId] = useState('');
-  const [paymentNotes, setPaymentNotes] = useState('');
-
+  const [paymentNotes, setPaymentNotes] = useState('');  const [useCreditBalance, setUseCreditBalance] = useState(false);
   // ── API queries ───────────────────────────────────────────────
   const { data: salesData, isLoading, refetch } = useSales({ page, limit, ...filters });
   const { data: paymentsData, isLoading: isLoadingPayments } = useSalePayments(
+    selectedSale?._id || '',
+  );
+  const { data: transactionsData, isLoading: isLoadingTransactions } = useSaleTransactions(
     selectedSale?._id || '',
   );
   const { data: saleReturnsData, isLoading: isLoadingReturns } = useSaleReturns(
@@ -56,8 +59,7 @@ export function useSalesHistoryPage() {
 
   // ── Derived data ──────────────────────────────────────────────
   const sales: Sale[] = salesData?.data?.items || [];
-  const payments: Payment[] = paymentsData?.data || [];
-  const saleReturns: SalesReturn[] = (saleReturnsData as any)?.data?.returns || [];
+  const payments: Payment[] = paymentsData?.data || [];  const transactions = transactionsData?.data;  const saleReturns: SalesReturn[] = (saleReturnsData as any)?.data?.returns || [];
   const accounts = accountsData?.items || [];
   const summary = summaryData?.data;
 
@@ -81,11 +83,13 @@ export function useSalesHistoryPage() {
     setPaymentAmount(sale.dueAmount.toFixed(2));
     setPaymentAccountId('');
     setPaymentNotes('');
+    setUseCreditBalance(false);
     setDrawerOpen(true);
   }, []);
 
   const handlePaymentSubmit = useCallback(async () => {
-    if (!selectedSale || !paymentAccountId) {
+    if (!selectedSale) return;
+    if (!useCreditBalance && !paymentAccountId) {
       toast.error('Please select a payment account');
       return;
     }
@@ -99,17 +103,16 @@ export function useSalesHistoryPage() {
       return;
     }
     try {
-      const response = await addPaymentMutation.mutateAsync({
-        saleId: selectedSale._id,
-        amount,
-        accountId: paymentAccountId,
-        notes: paymentNotes || undefined,
-      });
+      const payload: AddPaymentDto & { saleId: string } = useCreditBalance
+        ? { saleId: selectedSale._id, amount, useCreditBalance: true, notes: paymentNotes || undefined }
+        : { saleId: selectedSale._id, amount, accountId: paymentAccountId, notes: paymentNotes || undefined };
+      const response = await addPaymentMutation.mutateAsync(payload);
       if (response.data?.sale) {
         setSelectedSale(response.data.sale);
       }
       setDrawerMode('summary');
       setPaymentAmount('');
+      setUseCreditBalance(false);
       toast.success('Payment recorded successfully');
       refetch();
     } catch {
@@ -117,7 +120,7 @@ export function useSalesHistoryPage() {
     }
   }, [
     selectedSale, paymentAmount, paymentAccountId,
-    paymentNotes, addPaymentMutation, refetch,
+    paymentNotes, useCreditBalance, addPaymentMutation, refetch,
   ]);
 
   // ── Filter config ─────────────────────────────────────────────
@@ -196,6 +199,8 @@ export function useSalesHistoryPage() {
     drawerRef,
     payments,
     isLoadingPayments,
+    transactions,
+    isLoadingTransactions,
     saleReturns,
     isLoadingReturns,
 
@@ -207,6 +212,8 @@ export function useSalesHistoryPage() {
     setPaymentAccountId,
     paymentNotes,
     setPaymentNotes,
+    useCreditBalance,
+    setUseCreditBalance,
     isSubmittingPayment: addPaymentMutation.isPending,
 
     // handlers

@@ -142,6 +142,8 @@ export interface Customer extends BaseEntity {
   status: "active" | "inactive";
   defaultDiscountId?: string;
   defaultDiscount?: Discount;
+  /** Store credit currently available to apply against this customer's dues. */
+  creditBalance?: number;
 }
 
 export interface CreateCustomerDto {
@@ -158,7 +160,10 @@ export interface UpdateCustomerDto extends Partial<CreateCustomerDto> { }
 // Customer Summary (aggregated stats - includes returns data)
 export interface CustomersSummary {
   totalSales: number;
+  /** REAL CASH RECEIVED — backend computes as Σ(paidAmount − refundedAmount). */
   totalPaid: number;
+  /** Σ Sale.refundCreditApplied (due cleared via return credit, no cash). */
+  totalRefundCredit?: number;
   totalDue: number;
   salesCount: number;
   // Returns data
@@ -172,7 +177,12 @@ export interface CustomersSummary {
 export interface SalesSummary {
   allTime: {
     totalSales: number;
+    /** REAL CASH RECEIVED — Σ(paidAmount − refundedAmount). */
     totalPaid: number;
+    /** Σ Sale.refundedAmount (cash sent back to customer). */
+    totalCashRefunded?: number;
+    /** Σ Sale.refundCreditApplied. */
+    totalRefundCredit?: number;
     totalDue: number;
     salesCount: number;
   };
@@ -252,10 +262,27 @@ export interface CustomerLedgerReturn {
   };
 }
 
+export interface CustomerLedgerInboundCredit {
+  returnId: string;
+  returnNumber: string;
+  /** The sale the return originated from. */
+  sourceSaleId: string;
+  sourceInvoiceNumber: string;
+  /** Sale in the current page whose due was reduced by this credit. */
+  targetSaleId: string;
+  targetInvoiceNumber?: string;
+  amount: number;
+  date: string;
+}
+
 export interface CustomerLedger {
   sales: CustomerLedgerSale[];
   payments: CustomerLedgerPayment[];
   returns: CustomerLedgerReturn[];
+  /** Cross-invoice rows: other-sale returns that paid down sales in this page via adjustOtherDues. */
+  inboundCredits?: CustomerLedgerInboundCredit[];
+  /** Customer store-credit balance available to apply. */
+  creditBalance?: number;
   total: number;
   page: number;
   limit: number;
@@ -1220,7 +1247,7 @@ export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> { }
  */
 export type SaleStatus = "draft" | "partial" | "paid" | "cancelled" | "due";
 
-export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other";
+export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other" | "credit";
 
 /**
  * Sale item interface - represents an item in a sale
@@ -1245,6 +1272,8 @@ export interface SaleCustomer {
   name: string;
   email?: string;
   phone?: string;
+  /** Customer store-credit balance (echoed by backend on populate). */
+  creditBalance?: number;
 }
 
 /**
@@ -1270,6 +1299,10 @@ export interface Sale extends BaseEntity {
   totalAmount: number;
   paidAmount: number;
   dueAmount: number;
+  /** Total cash actually refunded to the customer across all returns. */
+  refundedAmount?: number;
+  /** Total amount of return credit applied to THIS sale's due (self + cross-invoice). */
+  refundCreditApplied?: number;
   costPrice: number;
   status: SaleStatus;
   notes?: string;
@@ -1295,7 +1328,8 @@ export interface Payment extends BaseEntity {
   referenceId: string;
   customerId?: string;
   supplierId?: string;
-  accountId: PaymentAccount;
+  /** Optional — absent for credit-balance payments (paymentMethod === "credit"). */
+  accountId?: PaymentAccount;
   amount: number;
   paymentMethod: PaymentMethod;
   notes?: string;
@@ -1308,9 +1342,62 @@ export interface Payment extends BaseEntity {
  */
 export interface AddPaymentDto {
   amount: number;
-  accountId: string;
+  /** Required unless `useCreditBalance` is true. */
+  accountId?: string;
   paymentMethod?: PaymentMethod;
   notes?: string;
+  /** When true, deduct from customer.creditBalance instead of charging an account. */
+  useCreditBalance?: boolean;
+}
+
+/**
+ * Per-sale transaction timeline entry returned by GET /sales/:id/transactions.
+ * Backend merges payments + cash refunds + return credits + cross-invoice inbound credits.
+ */
+export type SaleTransactionKind =
+  | "payment"
+  | "credit_balance_payment"
+  | "cash_refund"
+  | "credit_applied_self"
+  | "credit_applied_from_other";
+
+export interface SaleTransactionEntry {
+  id: string;
+  kind: SaleTransactionKind;
+  direction: "in" | "out" | "neutral";
+  amount: number;
+  date: string;
+  paymentMethod?: string;
+  accountName?: string;
+  reference?: {
+    kind: "payment" | "salesReturn";
+    id: string;
+    label: string;
+  };
+  /** Present for `credit_applied_from_other` — the sale whose return generated the credit. */
+  sourceSale?: { id: string; invoiceNumber: string };
+  notes?: string;
+}
+
+export interface SaleTransactionsSummary {
+  saleTotal: number;
+  cashPaid: number;
+  creditBalancePaid: number;
+  cashRefunded: number;
+  /** Self + from-other credit applied. */
+  refundCreditApplied: number;
+  /** cashPaid − cashRefunded — the real money kept. */
+  netReceived: number;
+  paidAmount: number;
+  refundedAmount: number;
+  refundCreditAppliedOnSale: number;
+  dueAmount: number;
+  status: SaleStatus;
+}
+
+export interface SaleTransactionsResponse {
+  transactions: SaleTransactionEntry[];
+  summary: SaleTransactionsSummary;
 }
 
 /**
@@ -1387,12 +1474,17 @@ export interface SalesReturn extends BaseEntity {
     adjustOtherDues?: Array<{
       dueId: string;
       saleId: string;
+      invoiceNumber: string;
       amount: number;
     }>;
     accountRefund?: {
       accountId: string;
       amount: number;
       paymentMethod: string;
+    };
+    /** Refund amount converted to customer store credit. */
+    customerCredit?: {
+      amount: number;
     };
   };
 }
