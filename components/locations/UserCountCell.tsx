@@ -10,7 +10,7 @@ import {
 import { Users } from "lucide-react";
 
 interface UserCountCellProps {
-  users: { _id: string; firstName: string; lastName: string; email: string; role?: string }[];
+  users: { _id: string; name: string; role?: string }[];
 }
 
 export function UserCountCell({ users }: UserCountCellProps) {
@@ -40,15 +40,11 @@ export function UserCountCell({ users }: UserCountCellProps) {
                 key={user._id}
                 className="flex items-start justify-between p-2 rounded-md hover:bg-muted/50 transition-colors"
               >
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">
-                    {user.firstName} {user.lastName}
-                  </div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {user.email}
-                  </div>
+                <div className="font-medium text-sm truncate">
+                  {user.name}
                 </div>
-                <Badge
+
+                {user.role && <Badge
                   variant={
                     user.role === "admin"
                       ? "default"
@@ -59,7 +55,7 @@ export function UserCountCell({ users }: UserCountCellProps) {
                   className="ml-2 shrink-0"
                 >
                   {user.role}
-                </Badge>
+                </Badge>}
               </div>
             ))}
           </div>
