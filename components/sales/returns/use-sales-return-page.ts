@@ -54,9 +54,11 @@ export function useSalesReturnPage() {
   const [returnableItems, setReturnableItems] = useState<ReturnableItem[]>([]);
   const [reason, setReason] = useState<SalesReturnReason>('customer_changed_mind');
   const [notes, setNotes] = useState('');
+  const [deductionAmount, setDeductionAmount] = useState(0);
   const [dueAllocations, setDueAllocations] = useState<DueAllocation[]>([]);
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState('');
+  const [customerCreditAmount, setCustomerCreditAmount] = useState(0);
 
   // ── Return details sheet state ────────────────────────────────
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
@@ -176,9 +178,13 @@ export function useSalesReturnPage() {
     () => selectedItems.reduce((sum, i) => sum + i.returnQty, 0),
     [selectedItems],
   );
-  const totalRefundAmount = useMemo(
+  const grossRefundAmount = useMemo(
     () => selectedItems.reduce((sum, i) => sum + i.refundAmount, 0),
     [selectedItems],
+  );
+  const totalRefundAmount = useMemo(
+    () => Math.max(0, grossRefundAmount - deductionAmount),
+    [grossRefundAmount, deductionAmount],
   );
   const saleDueAmount = sale?.dueAmount ?? 0;
   const adjustSaleDueAmount = useMemo(
@@ -194,8 +200,16 @@ export function useSalesReturnPage() {
   );
   const remainingForRefund = useMemo(() => {
     const afterSaleDue = totalRefundAmount - adjustSaleDueAmount;
-    return Math.max(0, afterSaleDue - totalOtherDuesAllocated);
-  }, [totalRefundAmount, adjustSaleDueAmount, totalOtherDuesAllocated]);
+    return Math.max(
+      0,
+      afterSaleDue - totalOtherDuesAllocated - customerCreditAmount,
+    );
+  }, [
+    totalRefundAmount,
+    adjustSaleDueAmount,
+    totalOtherDuesAllocated,
+    customerCreditAmount,
+  ]);
 
   // ── Handlers ──────────────────────────────────────────────────
 
@@ -208,8 +222,10 @@ export function useSalesReturnPage() {
     setSelectedSaleId(null);
     setReturnableItems([]);
     setDueAllocations([]);
+    setDeductionAmount(0);
     setAccountRefundAmount(0);
     setSelectedAccountId('');
+    setCustomerCreditAmount(0);
     setNotes('');
     setShowNewReturn(false);
     searchForm.reset();
@@ -401,6 +417,10 @@ export function useSalesReturnPage() {
           paymentMethod: 'cash',
         };
       }
+
+      if (customerCreditAmount > 0) {
+        refundAllocation.customerCredit = { amount: customerCreditAmount };
+      }
     }
 
     try {
@@ -409,6 +429,7 @@ export function useSalesReturnPage() {
         items,
         reason,
         notes: notes || undefined,
+        deductionAmount: deductionAmount > 0 ? deductionAmount : undefined,
         refundAllocation,
       });
       handleClearSearch();
@@ -426,9 +447,11 @@ export function useSalesReturnPage() {
     dueAllocations,
     accountRefundAmount,
     selectedAccountId,
+    customerCreditAmount,
     createReturnMutation,
     reason,
     notes,
+    deductionAmount,
     handleClearSearch,
   ]);
 
@@ -456,11 +479,15 @@ export function useSalesReturnPage() {
     setReason,
     notes,
     setNotes,
+    deductionAmount,
+    setDeductionAmount,
     dueAllocations,
     accountRefundAmount,
     setAccountRefundAmount,
     selectedAccountId,
     setSelectedAccountId,
+    customerCreditAmount,
+    setCustomerCreditAmount,
 
     // derived
     sale,
@@ -485,6 +512,7 @@ export function useSalesReturnPage() {
 
     // computed totals
     totalReturnQty,
+    grossRefundAmount,
     totalRefundAmount,
     saleDueAmount,
     adjustSaleDueAmount,

@@ -431,8 +431,20 @@ export function PaymentsDrawer({
                             "Items",
                             `${ret.items.reduce((s, i) => s + i.quantity, 0)} unit(s) across ${ret.items.length} product(s)`,
                           )}
+                          {(ret.deductionAmount ?? 0) > 0 && renderField(
+                            "Gross Refund",
+                            <span className="text-muted-foreground">
+                              -{formatCurrency(ret.totalRefundAmount + ret.deductionAmount!)}
+                            </span>,
+                          )}
+                          {(ret.deductionAmount ?? 0) > 0 && renderField(
+                            "Deduction / Fee",
+                            <span className="text-destructive">
+                              -{formatCurrency(ret.deductionAmount!)}
+                            </span>,
+                          )}
                           {renderField(
-                            "Refund Amount",
+                            (ret.deductionAmount ?? 0) > 0 ? "Net Refund" : "Refund Amount",
                             <span className="text-red-600">
                               -{formatCurrency(ret.totalRefundAmount)}
                             </span>,
@@ -465,6 +477,46 @@ export function PaymentsDrawer({
                                 </div>
                               </div>
                             ))}
+                          </div>
+                        )}
+
+                        {/* Refund Allocation Breakdown */}
+                        {ret.refundAllocation && (
+                          (ret.refundAllocation.adjustPurchaseDue ?? 0) > 0 ||
+                          (ret.refundAllocation.adjustOtherDues?.length ?? 0) > 0 ||
+                          ret.refundAllocation.accountRefund
+                        ) && (
+                          <div className="mt-1.5 rounded-md bg-blue-50 dark:bg-blue-950/20 px-2.5 py-2 space-y-1">
+                            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                              Refund Allocation
+                            </div>
+                            {(ret.refundAllocation.adjustPurchaseDue ?? 0) > 0 && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Adjusted against order due</span>
+                                <span className="font-medium text-blue-600">
+                                  {formatCurrency(ret.refundAllocation.adjustPurchaseDue!)}
+                                </span>
+                              </div>
+                            )}
+                            {ret.refundAllocation.adjustOtherDues?.map((d, i) => (
+                              <div key={i} className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Adjusted against other due</span>
+                                <span className="font-medium text-blue-600">{formatCurrency(d.amount)}</span>
+                              </div>
+                            ))}
+                            {ret.refundAllocation.accountRefund && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">
+                                  Cash refund
+                                  {ret.refundAllocation.accountRefund.paymentMethod
+                                    ? ` (${ret.refundAllocation.accountRefund.paymentMethod})`
+                                    : ""}
+                                </span>
+                                <span className="font-medium text-green-600">
+                                  {formatCurrency(ret.refundAllocation.accountRefund.amount)}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         )}
 

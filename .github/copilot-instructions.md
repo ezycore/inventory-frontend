@@ -318,3 +318,20 @@ Reference these before duplicating content:
 - Don't read cookies directly for auth — use `useAuthStore` selectors.
 - Don't define form configs inside components — define them outside for stable references.
 - Don't write manual Zod schemas for DynamicForm — use `generateSchemaFromConfig`.
+
+---
+
+## ⚠️ Sales-flow maintenance discipline (MANDATORY)
+
+The Sale → Sales Return → Payment → Customer Ledger → Customer Credit Balance flow is documented as a skill: [`.github/skills/sales-flow/SKILL.md`](./skills/sales-flow/SKILL.md). The backend has a mirror at `easystock-backend/.github/skills/sales-flow/SKILL.md`.
+
+**Before touching ANY of these files**, read the sales-flow skill first:
+- `app/(protected)/sales/**`, `app/(protected)/customers/**`
+- `components/sales/**`, `components/customers/**`, `components/shared/returns/**`
+- `services/api/modules/{sales,sales-returns,customers,payments}/**`
+- `types/index.ts` (Sale / SalesReturn / Customer / Payment / RefundAllocation / CustomerLedger)
+
+**After any change** to those files you MUST, in the same commit/PR:
+1. Update `.github/skills/sales-flow/SKILL.md` (file map, display contract, allocation, UX, pitfalls — whichever applies).
+2. Update `easystock-backend/.github/skills/sales-flow/SKILL.md` if the contract crosses the wire.
+3. Never let the skill drift from the code. Either both move or neither moves.

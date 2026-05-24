@@ -61,6 +61,8 @@ export interface RefundAllocation {
   adjustSaleDue?: number;
   adjustOtherDues?: DueAdjustment[];
   accountRefund?: AccountRefund;
+  /** Convert refund into customer store credit. */
+  customerCredit?: { amount: number };
 }
 
 /**
@@ -71,6 +73,7 @@ export interface CreateSalesReturnDto {
   items: ReturnItem[];
   reason: "damaged" | "defective" | "wrong_item" | "customer_changed_mind" | "expired" | "other";
   notes?: string;
+  deductionAmount?: number;
   refundAllocation?: RefundAllocation;
 }
 

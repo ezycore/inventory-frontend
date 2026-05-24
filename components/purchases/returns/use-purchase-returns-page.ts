@@ -62,6 +62,7 @@ export function usePurchaseReturnsPage() {
   const [returnableItems, setReturnableItems] = useState<ReturnableItem[]>([]);
   const [reason, setReason] = useState<PurchaseReturnReason>("damaged");
   const [notes, setNotes] = useState("");
+  const [deductionAmount, setDeductionAmount] = useState(0);
   const [dueAllocations, setDueAllocations] = useState<DueAllocation[]>([]);
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
@@ -175,12 +176,16 @@ export function usePurchaseReturnsPage() {
         .reduce((sum, i) => sum + i.returnQty, 0),
     [returnableItems],
   );
-  const totalRefundAmount = useMemo(
+  const grossRefundAmount = useMemo(
     () =>
       returnableItems
         .filter((i) => i.selected)
         .reduce((sum, i) => sum + i.refundAmount, 0),
     [returnableItems],
+  );
+  const totalRefundAmount = useMemo(
+    () => Math.max(0, grossRefundAmount - deductionAmount),
+    [grossRefundAmount, deductionAmount],
   );
   const orderDueAmount = order?.dueAmount || 0;
   const adjustOrderDueAmount = useMemo(
@@ -208,6 +213,7 @@ export function usePurchaseReturnsPage() {
     setSelectedOrderId(null);
     setReturnableItems([]);
     setDueAllocations([]);
+    setDeductionAmount(0);
     setAccountRefundAmount(0);
     setSelectedAccountId("");
     setNotes("");
@@ -370,6 +376,7 @@ export function usePurchaseReturnsPage() {
         items,
         reason,
         notes: notes || undefined,
+        deductionAmount: deductionAmount > 0 ? deductionAmount : undefined,
         refundAllocation,
       });
       handleClearSearch();
@@ -390,6 +397,7 @@ export function usePurchaseReturnsPage() {
     createReturnMutation,
     reason,
     notes,
+    deductionAmount,
     handleClearSearch,
   ]);
 
@@ -484,7 +492,10 @@ export function usePurchaseReturnsPage() {
     setReason,
     notes,
     setNotes,
+    deductionAmount,
+    setDeductionAmount,
     totalReturnQty,
+    grossRefundAmount,
     totalRefundAmount,
 
     // Refund allocation

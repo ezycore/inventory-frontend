@@ -1,0 +1,419 @@
+'use client';
+
+import { format } from 'date-fns';
+import {
+  Package,
+  RotateCcw,
+  User,
+  Truck,
+  Wallet,
+  ClipboardList,
+  Copy,
+  Check,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Badge } from '@/ui/components/badge';
+import { Button } from '@/ui/components/button';
+import { Separator } from '@/ui/components/separator';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/ui/components/sheet';
+import { Skeleton } from '@/ui/components/skeleton';
+
+// ── Normalized data types ────────────────────────────────────────────────────
+
+export interface ReturnDetailsItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  /** Present for sales returns (shown as "Sale Price") */
+  price?: number;
+  costPrice: number;
+  discount?: number;
+  /** Present for purchase returns (UoM conversion) */
+  conversionFactor?: number;
+  refundAmount: number;
+}
+
+export interface ReturnDetailsData {
+  returnNumber: string;
+  status: string;
+  /** invoiceNumber for sales, orderNumber for purchases */
+  documentRef: string;
+  /** customerName or supplierName */
+  counterpartyName: string | null;
+  /** ISO date string */
+  date: string;
+  reason?: string;
+  totalRefundAmount: number;
+  deductionAmount?: number;
+  refundedAmount?: number;
+  totalCostAmount?: number;
+  notes?: string;
+  items: ReturnDetailsItem[];
+  refundAllocation?: {
+    /** Mapped from adjustSaleDue or adjustPurchaseDue */
+    adjustDocumentDue?: number;
+    adjustOtherDues?: { amount: number; referenceLabel?: string }[];
+    accountRefund?: { amount: number; paymentMethod: string };
+    /** Sales-only: refund converted into customer store credit. */
+    customerCredit?: { amount: number };
+  };
+}
+
+// ── Internal helpers ─────────────────────────────────────────────────────────
+
+function InfoField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1 rounded-lg border bg-muted/30 p-3">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="break-words text-sm font-medium">{children}</div>
+    </div>
+  );
+}
+
+function getStatusBadge(status: string) {
+  switch (status) {
+    case 'completed':
+      return (
+        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0">
+          Processed
+        </Badge>
+      );
+    case 'pending':
+      return (
+        <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-0">
+          Pending
+        </Badge>
+      );
+    case 'cancelled':
+      return <Badge variant="destructive">Cancelled</Badge>;
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
+}
+
+// ── Variant config ───────────────────────────────────────────────────────────
+
+const VARIANT_CONFIG = {
+  sales: {
+    counterpartyLabel: 'Customer',
+    CounterpartyIcon: User,
+    counterpartyFallback: 'Walk-in Customer',
+    documentLabel: 'Original Invoice',
+    sheetDescription: 'Full details of this sales return transaction',
+    totalRefundColor: 'text-red-600',
+    totalRefundPrefix: '-',
+    cashRefundColor: 'text-orange-600',
+    adjustDocumentDueLabel: 'Adjusted against sale due',
+    refundAmountColor: 'text-red-600',
+    refundBgClass: 'bg-red-50 dark:bg-red-950/30',
+    showSalePrice: true,
+  },
+  purchases: {
+    counterpartyLabel: 'Supplier',
+    CounterpartyIcon: Truck,
+    counterpartyFallback: 'Unknown supplier',
+    documentLabel: 'Original Order',
+    sheetDescription: 'Full details of this purchase return transaction',
+    totalRefundColor: 'text-orange-600',
+    totalRefundPrefix: '',
+    cashRefundColor: 'text-green-600',
+    adjustDocumentDueLabel: 'Adjusted against supplier due',
+    refundAmountColor: 'text-orange-600',
+    refundBgClass: 'bg-orange-50 dark:bg-orange-950/30',
+    showSalePrice: false,
+  },
+} as const;
+
+// ── Component ────────────────────────────────────────────────────────────────
+
+interface ReturnDetailsSheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  returnData: ReturnDetailsData | null;
+  formatCurrency: (n: number) => string;
+  isLoading?: boolean;
+  variant: 'sales' | 'purchases';
+}
+
+export function ReturnDetailsSheet({
+  open,
+  onOpenChange,
+  returnData,
+  formatCurrency,
+  isLoading,
+  variant,
+}: ReturnDetailsSheetProps) {
+  if (!returnData && !isLoading) return null;
+
+  const cfg = VARIANT_CONFIG[variant];
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-[680px] sm:max-w-[680px] flex flex-col overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <RotateCcw className="h-5 w-5" />
+            Return Details
+            {returnData?.returnNumber ? ` — ${returnData.returnNumber}` : ''}
+          </SheetTitle>
+          <SheetDescription>{cfg.sheetDescription}</SheetDescription>
+        </SheetHeader>
+
+        {isLoading ? (
+          <div className="mt-6 space-y-4 px-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
+        ) : returnData ? (
+          <div className="mt-6 space-y-6 px-2">
+            {/* Header fields */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <InfoField label="Return ID">
+                <span className="font-mono">{returnData.returnNumber}</span>
+              </InfoField>
+              <InfoField label="Status">
+                {getStatusBadge(returnData.status)}
+              </InfoField>
+              <InfoField label={cfg.documentLabel}>
+                <span className="font-mono text-primary">{returnData.documentRef}</span>
+              </InfoField>
+              <InfoField label="Return Date">
+                {format(new Date(returnData.date), 'dd MMM yyyy HH:mm')}
+              </InfoField>
+            </div>
+
+            {/* Counterparty & reason */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <InfoField label={cfg.counterpartyLabel}>
+                <div className="flex items-center gap-2">
+                  <cfg.CounterpartyIcon className="h-4 w-4 text-muted-foreground" />
+                  {returnData.counterpartyName ?? cfg.counterpartyFallback}
+                </div>
+              </InfoField>
+              <InfoField label="Reason">
+                <span className="capitalize">
+                  {returnData.reason?.replace(/_/g, ' ')}
+                </span>
+              </InfoField>
+            </div>
+
+            {/* Money summary */}
+            <div className="grid gap-4 lg:grid-cols-3">
+              {(returnData.deductionAmount ?? 0) > 0 && (
+                <InfoField label="Gross Refund">
+                  <span className="text-muted-foreground">
+                    {formatCurrency((returnData.totalRefundAmount) + returnData.deductionAmount!)}
+                  </span>
+                </InfoField>
+              )}
+              {(returnData.deductionAmount ?? 0) > 0 && (
+                <InfoField label="Deduction / Fee">
+                  <span className="text-destructive">
+                    -{formatCurrency(returnData.deductionAmount!)}
+                  </span>
+                </InfoField>
+              )}
+              <InfoField label={(returnData.deductionAmount ?? 0) > 0 ? 'Net Refund' : 'Total Refund'}>
+                <span className={cfg.totalRefundColor}>
+                  {cfg.totalRefundPrefix}{formatCurrency(returnData.totalRefundAmount)}
+                </span>
+              </InfoField>
+              {returnData.refundedAmount != null && (
+                <InfoField label="Cash Refunded">
+                  <span className={cfg.cashRefundColor}>
+                    {formatCurrency(returnData.refundedAmount)}
+                  </span>
+                </InfoField>
+              )}
+              {returnData.totalCostAmount != null && (
+                <InfoField label="Cost Amount">
+                  {formatCurrency(returnData.totalCostAmount)}
+                </InfoField>
+              )}
+            </div>
+
+            {/* Notes */}
+            {returnData.notes && (
+              <div className="rounded-lg border p-4 space-y-2">
+                <div className="flex items-center gap-2 font-medium text-sm">
+                  <ClipboardList className="h-4 w-4" />
+                  Notes
+                </div>
+                <p className="text-sm text-muted-foreground">{returnData.notes}</p>
+              </div>
+            )}
+
+            {/* Returned items */}
+            <div className="rounded-lg border p-4 space-y-4">
+              <div className="flex items-center gap-2 font-medium">
+                <Package className="h-4 w-4" />
+                Returned Items ({returnData.items?.length ?? 0})
+              </div>
+
+              <Separator />
+
+              {returnData.items?.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No items recorded
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {returnData.items.map((item, index) => (
+                    <div
+                      key={`${item.productId}-${index}`}
+                      className="rounded-lg bg-muted/30 p-3 space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="font-medium text-sm">{item.productName}</div>
+                        <Badge variant="outline" className="shrink-0">
+                          Qty {item.quantity}
+                        </Badge>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+                        {cfg.showSalePrice && item.price != null && (
+                          <div className="space-y-1 rounded border bg-muted/20 p-2">
+                            <div className="text-muted-foreground uppercase tracking-wide">
+                              Sale Price
+                            </div>
+                            <div className="font-medium">{formatCurrency(item.price)}</div>
+                          </div>
+                        )}
+                        <div className="space-y-1 rounded border bg-muted/20 p-2">
+                          <div className="text-muted-foreground uppercase tracking-wide">
+                            Cost Price
+                          </div>
+                          <div className="font-medium">{formatCurrency(item.costPrice)}</div>
+                        </div>
+                        {(item.discount ?? 0) > 0 && (
+                          <div className="space-y-1 rounded border bg-muted/20 p-2">
+                            <div className="text-muted-foreground uppercase tracking-wide">
+                              Discount
+                            </div>
+                            <div className="font-medium">
+                              {formatCurrency(item.discount ?? 0)}
+                            </div>
+                          </div>
+                        )}
+                        {item.conversionFactor != null && item.conversionFactor > 1 && (
+                          <div className="space-y-1 rounded border bg-muted/20 p-2">
+                            <div className="text-muted-foreground uppercase tracking-wide">
+                              Conv. Factor
+                            </div>
+                            <div className="font-medium">{item.conversionFactor}</div>
+                          </div>
+                        )}
+                        <div className={`space-y-1 rounded border ${cfg.refundBgClass} p-2`}>
+                          <div className="text-muted-foreground uppercase tracking-wide">
+                            Refund
+                          </div>
+                          <div className={`font-medium ${cfg.refundAmountColor}`}>
+                            {cfg.totalRefundPrefix}{formatCurrency(item.refundAmount)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Refund Allocation */}
+            {returnData.refundAllocation && (
+              <div className="rounded-lg border p-4 space-y-3">
+                <div className="flex items-center gap-2 font-medium">
+                  <Wallet className="h-4 w-4" />
+                  Refund Allocation
+                </div>
+                <Separator />
+                <div className="space-y-2 text-sm">
+                  {(returnData.refundAllocation.adjustDocumentDue ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {cfg.adjustDocumentDueLabel}
+                      </span>
+                      <span className="font-medium text-blue-600">
+                        {formatCurrency(returnData.refundAllocation.adjustDocumentDue!)}
+                      </span>
+                    </div>
+                  )}
+                  {returnData.refundAllocation.adjustOtherDues?.map((due, idx) => (
+                    <div key={idx} className="flex justify-between items-center">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        Adjusted against
+                        {due.referenceLabel ? (
+                          <CopyableRef value={due.referenceLabel} />
+                        ) : (
+                          'other due'
+                        )}
+                      </span>
+                      <span className="font-medium text-blue-600">
+                        {formatCurrency(due.amount)}
+                      </span>
+                    </div>
+                  ))}
+                  {returnData.refundAllocation.accountRefund && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Cash refund (
+                        {returnData.refundAllocation.accountRefund.paymentMethod})
+                      </span>
+                      <span className={`font-medium ${cfg.totalRefundColor}`}>
+                        {cfg.totalRefundPrefix}
+                        {formatCurrency(returnData.refundAllocation.accountRefund.amount)}
+                      </span>
+                    </div>
+                  )}
+                  {(returnData.refundAllocation.customerCredit?.amount ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Converted to store credit</span>
+                      <span className="font-medium text-blue-600">
+                        {formatCurrency(returnData.refundAllocation.customerCredit!.amount)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function CopyableRef({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      toast.success(`Copied ${value}`);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error('Failed to copy');
+    }
+  };
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="font-mono font-medium text-primary">{value}</span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-5 w-5"
+        onClick={handleCopy}
+        aria-label={`Copy ${value}`}
+      >
+        {copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+      </Button>
+    </span>
+  );
+}

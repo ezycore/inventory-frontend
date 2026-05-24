@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import { Textarea } from "@/ui/components/textarea";
+import { Switch } from "@/ui/components/switch";
 import {
   FileText,
   CreditCard,
@@ -37,7 +38,14 @@ import {
 } from "lucide-react";
 import { useCustomerLedger, useAddSalePayment, useAccounts } from "@/services/api";
 import { useCurrency } from "@/lib/currency";
-import type { Customer, CustomerLedgerSale, CustomerLedgerPayment, CustomerLedgerReturn, AddPaymentDto } from "@/types";
+import type {
+  Customer,
+  CustomerLedgerSale,
+  CustomerLedgerPayment,
+  CustomerLedgerReturn,
+  CustomerLedgerInboundCredit,
+  AddPaymentDto,
+} from "@/types";
 import { cn } from "@/ui/lib/utils";
 
 interface CustomerLedgerSheetProps {
@@ -73,6 +81,7 @@ export function CustomerLedgerSheet({
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentAccountId, setPaymentAccountId] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
+  const [useCreditBalance, setUseCreditBalance] = useState(false);
 
   const { data: ledgerData, isLoading } = useCustomerLedger(
     customer?._id ?? null,
@@ -87,18 +96,26 @@ export function CustomerLedgerSheet({
   const sales = ledger?.sales || [];
   const payments = ledger?.payments || [];
   const returns = ledger?.returns || [];
+  const inboundCredits = ledger?.inboundCredits || [];
+  const creditBalance = ledger?.creditBalance ?? customer?.creditBalance ?? 0;
   const accounts = (accountsData as { items?: { _id: string; name: string; type?: string }[] })?.items ?? [];
 
   // Calculate summary from ledger data
   const totalPurchase = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
   const totalPaid = sales.reduce((sum, sale) => sum + sale.paidAmount, 0);
   const totalDue = sales.reduce((sum, sale) => sum + sale.dueAmount, 0);
+  const totalRefunded = returns.reduce((sum, r) => sum + (r.refundedAmount ?? 0), 0);
+  const totalRefundCredit = returns.reduce(
+    (sum, r) => sum + Math.max(0, (r.totalRefundAmount ?? 0) - (r.refundedAmount ?? 0)),
+    0,
+  );
 
   const handleStartPayment = (sale: CustomerLedgerSale) => {
     setPaymentSale(sale);
     setPaymentAmount(sale.dueAmount.toFixed(2));
     setPaymentAccountId("");
     setPaymentNotes("");
+    setUseCreditBalance(false);
   };
 
   const handleCancelPayment = () => {
@@ -106,30 +123,31 @@ export function CustomerLedgerSheet({
     setPaymentAmount("");
     setPaymentAccountId("");
     setPaymentNotes("");
+    setUseCreditBalance(false);
   };
 
   const handleSubmitPayment = async () => {
-    if (!paymentSale || !paymentAccountId) return;
+    if (!paymentSale) return;
+    if (!useCreditBalance && !paymentAccountId) return;
     const amount = parseFloat(paymentAmount);
     if (isNaN(amount) || amount <= 0) return;
     try {
-      await addPaymentMutation.mutateAsync({
-        saleId: paymentSale._id,
-        amount,
-        accountId: paymentAccountId,
-        notes: paymentNotes || undefined,
-      });
+      const payload: AddPaymentDto & { saleId: string } = useCreditBalance
+        ? { saleId: paymentSale._id, amount, useCreditBalance: true, notes: paymentNotes || undefined }
+        : { saleId: paymentSale._id, amount, accountId: paymentAccountId, notes: paymentNotes || undefined };
+      await addPaymentMutation.mutateAsync(payload);
       handleCancelPayment();
     } catch {
       // Error handled by mutation
     }
   };
 
-  // Combine sales, payments, and returns into a unified ledger view
-  type LedgerEntry = 
+  // Combine sales, payments, returns, and inbound credits into a unified ledger view
+  type LedgerEntry =
     | { type: "sale"; data: CustomerLedgerSale; date: Date }
     | { type: "payment"; data: CustomerLedgerPayment; date: Date }
-    | { type: "return"; data: CustomerLedgerReturn; date: Date };
+    | { type: "return"; data: CustomerLedgerReturn; date: Date }
+    | { type: "inboundCredit"; data: CustomerLedgerInboundCredit; date: Date };
 
   const ledgerEntries: LedgerEntry[] = [
     ...sales.map((sale) => ({
@@ -146,6 +164,11 @@ export function CustomerLedgerSheet({
       type: "return" as const,
       data: returnItem,
       date: new Date(returnItem.createdAt),
+    })),
+    ...inboundCredits.map((credit) => ({
+      type: "inboundCredit" as const,
+      data: credit,
+      date: new Date(credit.date),
     })),
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
@@ -169,17 +192,7 @@ export function CustomerLedgerSheet({
         <div className="flex-1 overflow-hidden flex flex-col">
           {/* Summary Cards */}
           <div className="px-6 py-4 border-b bg-muted/30">
-            <div className="grid grid-cols-3 gap-4">
-              {/* <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Total Purchase</p>
-                <p className="text-lg font-semibold">
-                  {isLoading ? (
-                    <Skeleton className="h-6 w-20" />
-                  ) : (
-                    formatCurrency(totalPurchase)
-                  )}
-                </p>
-              </div> */}
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {isAccountsEnabled && (
                 <>
                   <div className="space-y-1">
@@ -204,6 +217,41 @@ export function CustomerLedgerSheet({
                         <Skeleton className="h-6 w-20" />
                       ) : (
                         formatCurrency(totalDue)
+                      )}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Refunded</p>
+                    <p
+                      className={cn(
+                        "text-lg font-semibold",
+                        totalRefunded > 0 ? "text-red-600" : "text-muted-foreground",
+                      )}
+                    >
+                      {isLoading ? (
+                        <Skeleton className="h-6 w-20" />
+                      ) : (
+                        formatCurrency(totalRefunded)
+                      )}
+                    </p>
+                    {totalRefundCredit > 0 && (
+                      <p className="text-[11px] text-muted-foreground">
+                        + {formatCurrency(totalRefundCredit)} credit
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Store Credit</p>
+                    <p
+                      className={cn(
+                        "text-lg font-semibold",
+                        creditBalance > 0 ? "text-blue-600" : "text-muted-foreground"
+                      )}
+                    >
+                      {isLoading ? (
+                        <Skeleton className="h-6 w-20" />
+                      ) : (
+                        formatCurrency(creditBalance)
                       )}
                     </p>
                   </div>
@@ -247,6 +295,22 @@ export function CustomerLedgerSheet({
 
                 <Separator />
 
+                {creditBalance > 0 && (
+                  <div className="flex items-center justify-between rounded-md border bg-blue-50 px-3 py-2 dark:bg-blue-950/20">
+                    <div className="text-sm">
+                      <div className="font-medium">Use store credit</div>
+                      <div className="text-xs text-muted-foreground">
+                        Available: {formatCurrency(creditBalance)}
+                      </div>
+                    </div>
+                    <Switch
+                      checked={useCreditBalance}
+                      onCheckedChange={setUseCreditBalance}
+                      disabled={addPaymentMutation.isPending}
+                    />
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="cust-pay-amount">Payment Amount</Label>
@@ -255,29 +319,31 @@ export function CustomerLedgerSheet({
                       type="number"
                       step="0.01"
                       min="0.01"
-                      max={paymentSale.dueAmount}
+                      max={useCreditBalance ? Math.min(paymentSale.dueAmount, creditBalance) : paymentSale.dueAmount}
                       value={paymentAmount}
                       onChange={(e) => setPaymentAmount(e.target.value)}
                       placeholder="Enter amount"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cust-pay-account">Payment Account</Label>
-                    <Select value={paymentAccountId} onValueChange={setPaymentAccountId}>
-                      <SelectTrigger id="cust-pay-account">
-                        <SelectValue placeholder="Select account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accounts.map((account) => (
-                          <SelectItem key={account._id} value={account._id}>
-                            {account.name}
-                            {account.type ? ` (${account.type})` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {!useCreditBalance && (
+                    <div className="space-y-2">
+                      <Label htmlFor="cust-pay-account">Payment Account</Label>
+                      <Select value={paymentAccountId} onValueChange={setPaymentAccountId}>
+                        <SelectTrigger id="cust-pay-account">
+                          <SelectValue placeholder="Select account" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {accounts.map((account) => (
+                            <SelectItem key={account._id} value={account._id}>
+                              {account.name}
+                              {account.type ? ` (${account.type})` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="cust-pay-notes">Notes (optional)</Label>
@@ -304,8 +370,8 @@ export function CustomerLedgerSheet({
                       onClick={handleSubmitPayment}
                       disabled={
                         addPaymentMutation.isPending ||
-                        !paymentAccountId ||
-                        !paymentAmount
+                        !paymentAmount ||
+                        (!useCreditBalance && !paymentAccountId)
                       }
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
@@ -333,7 +399,7 @@ export function CustomerLedgerSheet({
               ) : (
                 ledgerEntries.map((entry, index) => (
                   <div
-                    key={`${entry.type}-${entry.type === "sale" ? entry.data._id : entry.type === "return" ? entry.data._id : entry.data._id}-${index}`}
+                    key={`${entry.type}-${entry.type === "sale" ? entry.data._id : entry.type === "return" ? entry.data._id : entry.type === "inboundCredit" ? entry.data.returnId : entry.data._id}-${index}`}
                     className="rounded-lg border p-4 space-y-2"
                   >
                     {entry.type === "sale" ? (
@@ -399,6 +465,47 @@ export function CustomerLedgerSheet({
                               </Button>
                             </div>
                           )}
+                      </>
+                    ) : entry.type === "inboundCredit" ? (
+                      // Inbound credit applied from another sale's return
+                      <>
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-2">
+                            <Undo2 className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium text-blue-600">
+                              Credit Applied
+                            </span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {format(entry.date, "dd MMM yyyy")}
+                          </span>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div>
+                            <span className="text-muted-foreground">From return:</span>{" "}
+                            <span className="font-mono">{entry.data.returnNumber}</span>
+                            {entry.data.sourceInvoiceNumber && (
+                              <>
+                                {" "}
+                                <span className="text-muted-foreground">(sale</span>{" "}
+                                <span className="font-mono">{entry.data.sourceInvoiceNumber}</span>
+                                <span className="text-muted-foreground">)</span>
+                              </>
+                            )}
+                          </div>
+                          {entry.data.targetInvoiceNumber && (
+                            <div>
+                              <span className="text-muted-foreground">Applied to:</span>{" "}
+                              <span className="font-mono">{entry.data.targetInvoiceNumber}</span>
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-muted-foreground">Amount:</span>{" "}
+                            <span className="font-medium text-blue-600">
+                              {formatCurrency(entry.data.amount)}
+                            </span>
+                          </div>
+                        </div>
                       </>
                     ) : entry.type === "return" ? (
                       // Return entry

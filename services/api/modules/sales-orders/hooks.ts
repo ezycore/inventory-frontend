@@ -60,6 +60,19 @@ export const useSalePayments = (saleId: string) => {
 };
 
 /**
+ * Get merged transactions timeline for a sale:
+ * payments + cash refunds + self return credits + cross-invoice inbound credits.
+ */
+export const useSaleTransactions = (saleId: string) => {
+  return useQuery({
+    queryKey: [...queryKeys.salesOrders.detail(saleId), "transactions"],
+    queryFn: () => salesApi.getTransactions(saleId),
+    enabled: !!saleId,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
  * Add payment to a sale
  */
 export const useAddSalePayment = () => {
@@ -82,6 +95,10 @@ export const useAddSalePayment = () => {
       // Invalidate payments list for this sale
       queryClient.invalidateQueries({
         queryKey: [...queryKeys.salesOrders.detail(variables.saleId), "payments"],
+      });
+      // Invalidate transactions timeline for this sale
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.salesOrders.detail(variables.saleId), "transactions"],
       });
       // Invalidate all customer queries to refresh ledger data
       queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
