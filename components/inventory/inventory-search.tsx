@@ -159,7 +159,7 @@ export function InventorySearch({
               </div>
             ) : (
               <>
-                <CommandEmpty>No products found</CommandEmpty>
+                <CommandEmpty className="p-2">No products found</CommandEmpty>
                 <CommandGroup>
                   {filteredProducts.map((product) => (
                     <CommandItem
