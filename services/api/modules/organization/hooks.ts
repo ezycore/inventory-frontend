@@ -106,6 +106,7 @@ export const useUpdateFeatures = () => {
 // PUT /api/organization/column-settings - Update table column visibility
 export const useUpdateColumnSettings = () => {
   const queryClient = useQueryClient();
+  const { user, updateUser } = useAuthStore();
 
   return useMutation({
     mutationFn: (data: ExcludedColumnsSettings) =>
@@ -114,6 +115,23 @@ export const useUpdateColumnSettings = () => {
       handleMutationSuccess(
         result.message || "Column settings updated successfully!",
       );
+
+      // Sync the auth store so useFilteredColumns reacts immediately
+      if (user && result.data?.excludedColumns) {
+        updateUser({
+          organization: {
+            ...user.organization,
+            settings: {
+              ...user.organization?.settings,
+              excludedColumns: {
+                ...user.organization?.settings?.excludedColumns,
+                ...result.data.excludedColumns,
+              },
+            },
+          },
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },
     onError: handleMutationError,

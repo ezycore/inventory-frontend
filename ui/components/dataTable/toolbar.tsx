@@ -79,7 +79,7 @@ export function DataTableToolbar<TData>({
               placeholder={searchConfig.placeholder || "Search all columns..."}
               value={globalFilter ?? ""}
               onChange={(event) => onGlobalFilterChange?.(event.target.value)}
-              className="pl-10 pr-10 h-8"
+              className="pl-10 pr-6 h-8"
             />
             {globalFilter && (
               <Button
@@ -107,7 +107,7 @@ export function DataTableToolbar<TData>({
                   .getColumn(searchConfig.searchableColumn as string)
                   ?.setFilterValue(event.target.value)
               }
-              className="pl-10 pr-10 h-8"
+              className="pl-10 pr-6 h-8"
             />
             {table.getColumn(searchConfig.searchableColumn as string)?.getFilterValue() && (
               <Button

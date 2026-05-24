@@ -291,7 +291,7 @@ const locationFilterConfig: FilterConfig = {
 
 const searchConfig = {
   globalSearch: true,
-  placeholder: "Search locations by name, address, manager, or status...",
+  placeholder: "Search locations by name, address, or status...",
 };
 
 const defaultValues = {
