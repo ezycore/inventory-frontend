@@ -148,7 +148,7 @@ Both directions powered by `GET /sales/:id/transactions` (backend merges & links
 
 - **Customer page chip**: header of CustomerLedgerSheet shows `creditBalance` with badge.
 - **Payments drawer (payment mode)**: when customer has `creditBalance > 0`, show a "Use credit balance" toggle. When on, hide account picker; cap amount at `min(due, creditBalance)`.
-- **Sell page**: same toggle on the payment block.
+- **Sell page** ([app/(protected)/sales/page.tsx](../../../app/(protected)/sales/page.tsx)): when a customer is selected, the Order Summary header shows two chips — outstanding **Due** (orange) and store **Credit** (emerald) — sourced from `useCustomerPendingDues(customerId)` (`{ totalDue, creditBalance }`). When `creditBalance > 0` and `total > 0`, an emerald **"Use store credit"** Switch + capped number Input appears below the payment form (max = `min(creditBalance, total)`). Toggling on auto-fills the max and subtracts it from the auto-filled `paidAmount`. The Payment Summary then renders a `Store credit applied −{amount}` row. On submit, the amount is sent as `CreateSalesOrderData.creditBalanceAmount` on `POST /sales` (NOT a separate `addPayment` call) — BE applies it atomically inside the createSale transaction (deducts wallet, sets `Sale.refundCreditApplied`, writes a `Payment{ paymentMethod:"credit" }`). Reset on customer change + after successful sale.
 - **Return creation form**: shared `RefundAllocationCard` exposes `showCustomerCredit` slot (sales adapter turns it on). Hook state: `customerCreditAmount` is subtracted from `remainingForRefund` and submitted as `refundAllocation.customerCredit.amount`. Header shows the customer’s current credit balance (`sale.customerId.creditBalance`) for context.
 
 ---
@@ -163,6 +163,7 @@ Both directions powered by `GET /sales/:id/transactions` (backend merges & links
 | "Where did 200 tk go?" complaint | Return sheet not rendering reconciliation block | Render all 4 parts of `refundAllocation` (§4) |
 | Cross-invoice link missing | Backend `/transactions` not joining via `refundAllocation.adjustOtherDues.saleId` | See BE sister skill §6 |
 | Credit balance not deducted on payment | Forgot to send `useCreditBalance: true` | Wire toggle into mutation payload |
+| Store credit not applied on a new sale (wallet unchanged, sale shows full due) | Sell page forgot to send `creditBalanceAmount` in `CreateSalesOrderData` | Include `creditBalanceAmount` in the `POST /sales` body — do NOT chain a separate `addPayment` call for credit on creation |
 | Customer ledger out of order | Page boundaries cut across sale/payment/return | BE returns raw `sales[] + payments[] + returns[] + inboundCredits[]` — merge & sort client-side by `createdAt` for display, use `creditBalance` for the header chip |
 
 ---

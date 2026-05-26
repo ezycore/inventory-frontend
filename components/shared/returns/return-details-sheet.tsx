@@ -24,6 +24,7 @@ import {
   SheetTitle,
 } from '@/ui/components/sheet';
 import { Skeleton } from '@/ui/components/skeleton';
+import { InfoField } from '@/components/shared/info-field';
 
 // ── Normalized data types ────────────────────────────────────────────────────
 
@@ -67,15 +68,6 @@ export interface ReturnDetailsData {
 }
 
 // ── Internal helpers ─────────────────────────────────────────────────────────
-
-function InfoField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1 rounded-lg border bg-muted/30 p-3">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="break-words text-sm font-medium">{children}</div>
-    </div>
-  );
-}
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -176,67 +168,60 @@ export function ReturnDetailsSheet({
           <div className="mt-6 space-y-6 px-2">
             {/* Header fields */}
             <div className="grid gap-4 lg:grid-cols-2">
-              <InfoField label="Return ID">
-                <span className="font-mono">{returnData.returnNumber}</span>
-              </InfoField>
-              <InfoField label="Status">
-                {getStatusBadge(returnData.status)}
-              </InfoField>
-              <InfoField label={cfg.documentLabel}>
-                <span className="font-mono text-primary">{returnData.documentRef}</span>
-              </InfoField>
-              <InfoField label="Return Date">
-                {format(new Date(returnData.date), 'dd MMM yyyy HH:mm')}
-              </InfoField>
+              <InfoField label="Return ID" value={<span className="font-mono">{returnData.returnNumber}</span>} />
+              <InfoField label="Status" value={getStatusBadge(returnData.status)} />
+              <InfoField label={cfg.documentLabel} value={<span className="font-mono text-primary">{returnData.documentRef}</span>} />
+              <InfoField label="Return Date" value={format(new Date(returnData.date), 'dd MMM yyyy HH:mm')} />
             </div>
 
             {/* Counterparty & reason */}
             <div className="grid gap-4 lg:grid-cols-2">
-              <InfoField label={cfg.counterpartyLabel}>
-                <div className="flex items-center gap-2">
-                  <cfg.CounterpartyIcon className="h-4 w-4 text-muted-foreground" />
-                  {returnData.counterpartyName ?? cfg.counterpartyFallback}
-                </div>
-              </InfoField>
-              <InfoField label="Reason">
-                <span className="capitalize">
-                  {returnData.reason?.replace(/_/g, ' ')}
-                </span>
-              </InfoField>
+              <InfoField
+                label={cfg.counterpartyLabel}
+                value={
+                  <div className="flex items-center gap-2">
+                    <cfg.CounterpartyIcon className="h-4 w-4 text-muted-foreground" />
+                    {returnData.counterpartyName ?? cfg.counterpartyFallback}
+                  </div>
+                }
+              />
+              <InfoField
+                label="Reason"
+                value={returnData.reason?.replace(/_/g, ' ')}
+                valueClassName="capitalize"
+              />
             </div>
 
             {/* Money summary */}
             <div className="grid gap-4 lg:grid-cols-3">
               {(returnData.deductionAmount ?? 0) > 0 && (
-                <InfoField label="Gross Refund">
-                  <span className="text-muted-foreground">
-                    {formatCurrency((returnData.totalRefundAmount) + returnData.deductionAmount!)}
-                  </span>
-                </InfoField>
+                <InfoField
+                  label="Gross Refund"
+                  value={formatCurrency(returnData.totalRefundAmount + returnData.deductionAmount!)}
+                  valueClassName="text-muted-foreground"
+                />
               )}
               {(returnData.deductionAmount ?? 0) > 0 && (
-                <InfoField label="Deduction / Fee">
-                  <span className="text-destructive">
-                    -{formatCurrency(returnData.deductionAmount!)}
-                  </span>
-                </InfoField>
+                <InfoField
+                  label="Deduction / Fee"
+                  value={`-${formatCurrency(returnData.deductionAmount!)}`}
+                  valueClassName="text-destructive"
+                />
               )}
-              <InfoField label={(returnData.deductionAmount ?? 0) > 0 ? 'Net Refund' : 'Total Refund'}>
-                <span className={cfg.totalRefundColor}>
-                  {cfg.totalRefundPrefix}{formatCurrency(returnData.totalRefundAmount)}
-                </span>
-              </InfoField>
+              <InfoField
+                label={(returnData.deductionAmount ?? 0) > 0 ? 'Net Refund' : 'Total Refund'}
+                value={`${cfg.totalRefundPrefix}${formatCurrency(returnData.totalRefundAmount)}`}
+                valueClassName={cfg.totalRefundColor}
+              />
               {returnData.refundedAmount != null && (
-                <InfoField label="Cash Refunded">
-                  <span className={cfg.cashRefundColor}>
-                    {formatCurrency(returnData.refundedAmount)}
-                  </span>
-                </InfoField>
+                <InfoField
+                  label="Cash Refunded"
+                  value={formatCurrency(returnData.refundedAmount)}
+                  valueClassName={cfg.cashRefundColor}
+                />
               )}
               {returnData.totalCostAmount != null && (
-                <InfoField label="Cost Amount">
-                  {formatCurrency(returnData.totalCostAmount)}
-                </InfoField>
+                <InfoField label="Cost Amount" value={formatCurrency(returnData.totalCostAmount)} />
               )}
             </div>
 
@@ -277,47 +262,22 @@ export function ReturnDetailsSheet({
                           Qty {item.quantity}
                         </Badge>
                       </div>
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         {cfg.showSalePrice && item.price != null && (
-                          <div className="space-y-1 rounded border bg-muted/20 p-2">
-                            <div className="text-muted-foreground uppercase tracking-wide">
-                              Sale Price
-                            </div>
-                            <div className="font-medium">{formatCurrency(item.price)}</div>
-                          </div>
+                          <InfoField label="Sale Price" value={item.price} showCurrency quantity={item.quantity}/>
                         )}
-                        <div className="space-y-1 rounded border bg-muted/20 p-2">
-                          <div className="text-muted-foreground uppercase tracking-wide">
-                            Cost Price
-                          </div>
-                          <div className="font-medium">{formatCurrency(item.costPrice)}</div>
-                        </div>
+                        <InfoField label="Cost Price" value={item.costPrice} showCurrency quantity={item.quantity}/>
                         {(item.discount ?? 0) > 0 && (
-                          <div className="space-y-1 rounded border bg-muted/20 p-2">
-                            <div className="text-muted-foreground uppercase tracking-wide">
-                              Discount
-                            </div>
-                            <div className="font-medium">
-                              {formatCurrency(item.discount ?? 0)}
-                            </div>
-                          </div>
+                          <InfoField label="Discount" value={item.discount ?? 0} showCurrency />
                         )}
                         {item.conversionFactor != null && item.conversionFactor > 1 && (
-                          <div className="space-y-1 rounded border bg-muted/20 p-2">
-                            <div className="text-muted-foreground uppercase tracking-wide">
-                              Conv. Factor
-                            </div>
-                            <div className="font-medium">{item.conversionFactor}</div>
-                          </div>
+                          <InfoField label="Conv. Factor" value={item.conversionFactor} />
                         )}
-                        <div className={`space-y-1 rounded border ${cfg.refundBgClass} p-2`}>
-                          <div className="text-muted-foreground uppercase tracking-wide">
-                            Refund
-                          </div>
-                          <div className={`font-medium ${cfg.refundAmountColor}`}>
-                            {cfg.totalRefundPrefix}{formatCurrency(item.refundAmount)}
-                          </div>
-                        </div>
+                        <InfoField
+                          label="Refund"
+                          value={`${cfg.totalRefundPrefix}${formatCurrency(item.refundAmount)}`}
+                          valueClassName={cfg.refundAmountColor}
+                        />
                       </div>
                     </div>
                   ))}

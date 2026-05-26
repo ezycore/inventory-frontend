@@ -540,11 +540,19 @@ export function CustomerLedgerSheet({
                               </span>
                             </div>
                           )}
-                          {isAccountsEnabled && entry.data.totalRefundAmount > entry.data.refundedAmount && (
+                          {isAccountsEnabled && (entry.data.refundAllocation?.adjustSaleDue ?? 0) > 0 && (
                             <div>
                               <span className="text-muted-foreground">Due Adjusted:</span>{" "}
                               <span className="font-medium text-blue-600">
-                                {formatCurrency(entry.data.totalRefundAmount - entry.data.refundedAmount)}
+                                {formatCurrency(entry.data.refundAllocation!.adjustSaleDue!)}
+                              </span>
+                            </div>
+                          )}
+                          {(entry.data.refundAllocation?.customerCredit?.amount ?? 0) > 0 && (
+                            <div>
+                              <span className="text-muted-foreground">Credit Added:</span>{" "}
+                              <span className="font-medium text-green-600">
+                                +{formatCurrency(entry.data.refundAllocation!.customerCredit!.amount)}
                               </span>
                             </div>
                           )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { getSalesColumns, formatCurrency, getPaymentFormConfig, ProductSearch, type CreateSalesOrderData, customerFormConfig, ProductApiItem, ExtractedProduct } from "@/components/sales";
-import { useCreateSalesOrder } from "@/services/api";
+import { useCreateSalesOrder, useCustomerPendingDues } from "@/services/api";
 import { useAuthStore, useSellPageStore } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { Badge } from "@/ui/components/badge";
@@ -11,7 +11,9 @@ import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
 import { Input } from "@/ui/components/input";
 import { Separator } from "@/ui/components/separator";
-import { CheckCircleIcon, ClipboardList } from "lucide-react";
+import { Switch } from "@/ui/components/switch";
+import { Label } from "@/ui/components/label";
+import { CheckCircleIcon, ClipboardList, WalletIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -20,6 +22,8 @@ import { useCurrency } from "@/lib/currency";
 export default function SalesPage() {
   const [paidAmount, setPaidAmount] = useState(0);
   const [localAdditionalDiscount, setLocalAdditionalDiscount] = useState(0);
+  const [useCreditBalance, setUseCreditBalance] = useState(false);
+  const [creditBalanceAmount, setCreditBalanceAmount] = useState(0);
   const { symbol } = useCurrency();
 
   // Get organization features
@@ -52,6 +56,12 @@ export default function SalesPage() {
   // API mutations
   const { mutateAsync, isPending } = useCreateSalesOrder();
 
+  // Customer outstanding due + store credit (reused from refund-allocation endpoint)
+  const { data: pendingDuesResp } = useCustomerPendingDues(customerId || "");
+  const customerInfo = (pendingDuesResp as any)?.data ?? {};
+  const customerOutstandingDue: number = customerInfo.totalDue ?? 0;
+  const customerCreditBalance: number = customerInfo.creditBalance ?? 0;
+
   const paymentFormConfig = useMemo(
     () => getPaymentFormConfig(isAccountsEnabled),
     [isAccountsEnabled],
@@ -74,12 +84,31 @@ export default function SalesPage() {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
 
-  // Auto-fill paid amount with total sale price
+  // Auto-fill paid amount with total sale price minus credit applied
   useEffect(() => {
     const total = Number(getTotalSalePrice().toFixed(2) || 0);
-    setPaidAmount(total);
-    customerForm.setValue("paidAmount", total);
-  }, [items, additionalDiscount, getTotalSalePrice, customerForm]);
+    const remaining = Math.max(0, total - creditBalanceAmount);
+    setPaidAmount(remaining);
+    customerForm.setValue("paidAmount", remaining);
+  }, [items, additionalDiscount, creditBalanceAmount, getTotalSalePrice, customerForm]);
+
+  // When customer changes, reset credit selection
+  useEffect(() => {
+    setUseCreditBalance(false);
+    setCreditBalanceAmount(0);
+  }, [customerId]);
+
+  // Cap credit applied to min(creditBalance, total)
+  useEffect(() => {
+    const total = getTotalSalePrice();
+    const cap = Math.min(customerCreditBalance, total);
+    if (!useCreditBalance) {
+      if (creditBalanceAmount !== 0) setCreditBalanceAmount(0);
+      return;
+    }
+    if (creditBalanceAmount > cap) setCreditBalanceAmount(cap);
+    else if (creditBalanceAmount === 0 && cap > 0) setCreditBalanceAmount(cap);
+  }, [useCreditBalance, customerCreditBalance, items, additionalDiscount, getTotalSalePrice, creditBalanceAmount]);
 
   // Recalculate all item discounts when customer discount changes
   useEffect(() => {
@@ -185,7 +214,8 @@ export default function SalesPage() {
     try {
       const totalSalePrice = getTotalSalePrice();
       const totalCostPrice = getTotalCostPrice();
-      const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
+      const creditApplied = useCreditBalance ? Math.min(creditBalanceAmount, customerCreditBalance, totalSalePrice) : 0;
+      const dueAmount = Math.max(totalSalePrice - paidAmount - creditApplied, 0);
       const orderData: CreateSalesOrderData = {
         customerId: updatedCustomerId,
         items: items.map((item) => ({
@@ -207,6 +237,10 @@ export default function SalesPage() {
         orderData.payment = { paidAmount, accountId };
         orderData.dueAmount = dueAmount;
       }
+      if (isAccountsEnabled && creditApplied > 0) {
+        orderData.creditBalanceAmount = creditApplied;
+        orderData.dueAmount = dueAmount;
+      }
       const createResult = await mutateAsync(orderData);
       if (createResult.data?.sale?._id) {
         clearAll();
@@ -216,16 +250,23 @@ export default function SalesPage() {
         });
         setPaidAmount(0);
         setLocalAdditionalDiscount(0);
+        setUseCreditBalance(false);
+        setCreditBalanceAmount(0);
       }
     } catch (error) {
       console.error("Failed to complete sale:", error);
       toast.error("Failed to complete sale");
     }
-  }, [items, customerId, notes, isAccountsEnabled, getTotalSalePrice, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, mutateAsync]);
+  }, [items, customerId, notes, isAccountsEnabled, getTotalSalePrice, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync]);
 
   const itemsSubtotal = items.reduce((sum, item) => sum + item.total, 0);
   const totalSalePrice = getTotalSalePrice();
-  const dueAmount = Math.max(totalSalePrice - paidAmount, 0);
+  const appliedCredit = useCreditBalance
+    ? Math.min(creditBalanceAmount, customerCreditBalance, totalSalePrice)
+    : 0;
+  const dueAmount = Math.max(totalSalePrice - paidAmount - appliedCredit, 0);
+  const showCustomerBalances = !!customerId && (customerOutstandingDue > 0 || customerCreditBalance > 0);
+  const maxCreditApplicable = Math.min(customerCreditBalance, totalSalePrice);
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -306,6 +347,23 @@ export default function SalesPage() {
                   <h3 className="font-semibold text-base">Order Summary</h3>
                 </div>
 
+                {/* Customer balance chips */}
+                {showCustomerBalances && (
+                  <div className="flex flex-wrap gap-2 -mt-1">
+                    {customerOutstandingDue > 0 && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 px-2.5 py-1 text-xs font-medium text-orange-700 dark:text-orange-300">
+                        Due: {formatCurrency(customerOutstandingDue)}
+                      </span>
+                    )}
+                    {customerCreditBalance > 0 && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                        <WalletIcon className="h-3 w-3" />
+                        Credit: {formatCurrency(customerCreditBalance)}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* Subtotal */}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -333,8 +391,9 @@ export default function SalesPage() {
                         // Zustand updates are synchronous, so getTotalSalePrice() already
                         // reflects the new discount — no need to wait for the useEffect.
                         const newTotal = getTotalSalePrice();
-                        setPaidAmount(newTotal);
-                        customerForm.setValue("paidAmount", newTotal);
+                        const remaining = Math.max(0, newTotal - creditBalanceAmount);
+                        setPaidAmount(remaining);
+                        customerForm.setValue("paidAmount", remaining);
                       }}
                       placeholder="0"
                       className="w-20 h-7 text-right text-sm"
@@ -360,8 +419,48 @@ export default function SalesPage() {
                   hideCancel
                 />
 
+                {/* Store credit application */}
+                {isAccountsEnabled && customerCreditBalance > 0 && totalSalePrice > 0 && (
+                  <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/20 p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Label htmlFor="use-store-credit" className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                        <WalletIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        Use store credit
+                      </Label>
+                      <Switch
+                        id="use-store-credit"
+                        checked={useCreditBalance}
+                        onCheckedChange={(checked) => {
+                          setUseCreditBalance(checked);
+                          if (!checked) setCreditBalanceAmount(0);
+                          else setCreditBalanceAmount(maxCreditApplicable);
+                        }}
+                      />
+                    </div>
+                    {useCreditBalance && (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          Available {formatCurrency(customerCreditBalance)}
+                        </span>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={maxCreditApplicable}
+                          step="0.01"
+                          value={creditBalanceAmount}
+                          onChange={(e) => {
+                            const v = Math.max(0, Math.min(maxCreditApplicable, Number(e.target.value) || 0));
+                            setCreditBalanceAmount(v);
+                          }}
+                          className="w-28 h-8 text-right text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Payment Summary */}
-                {isAccountsEnabled && paidAmount > 0 && (
+                {isAccountsEnabled && (paidAmount > 0 || appliedCredit > 0) && (
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Paid</span>
@@ -369,6 +468,14 @@ export default function SalesPage() {
                         {formatCurrency(paidAmount)}
                       </span>
                     </div>
+                    {appliedCredit > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Store credit applied</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                          −{formatCurrency(appliedCredit)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Due</span>
                       <span

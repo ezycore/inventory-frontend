@@ -260,6 +260,23 @@ export interface CustomerLedgerReturn {
     _id: string;
     invoiceNumber: string;
   };
+  refundAllocation?: {
+    adjustSaleDue?: number;
+    adjustOtherDues?: Array<{
+      dueId: string;
+      saleId: string;
+      invoiceNumber: string;
+      amount: number;
+    }>;
+    accountRefund?: {
+      accountId: string;
+      amount: number;
+      paymentMethod: string;
+    };
+    customerCredit?: {
+      amount: number;
+    };
+  };
 }
 
 export interface CustomerLedgerInboundCredit {

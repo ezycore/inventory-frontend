@@ -98,4 +98,6 @@ export interface CreateSalesOrderData {
   notes?: string;
   payment?: OrderPayment;
   dueAmount?: number;
+  /** Apply this much of customer's store-credit to the sale at creation time. */
+  creditBalanceAmount?: number;
 }
