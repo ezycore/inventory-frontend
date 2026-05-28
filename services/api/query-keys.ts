@@ -103,6 +103,8 @@ export const queryKeys = {
     summary: () => [...queryKeys.purchaseOrders.all(), "summary"] as const,
     payments: (id: string) =>
       [...queryKeys.purchaseOrders.all(), "payments", id] as const,
+    transactions: (id: string) =>
+      [...queryKeys.purchaseOrders.all(), "transactions", id] as const,
   },
 
   // Purchase Returns query keys

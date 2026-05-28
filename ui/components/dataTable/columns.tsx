@@ -175,6 +175,10 @@ export function useEnhancedColumns<TData, TValue>({
               
               {/* Custom cell actions (excluding built-in types) */}
               {customActions?.filter(a => a.placement === 'cell' && !['edit', 'view', 'delete'].includes(a.type)).map((action, index) => {
+                const isHidden = action.hidden ?
+                  (typeof action.hidden === 'function' ? action.hidden(rowData) : action.hidden)
+                  : false;
+                if (isHidden) return null;
                 // If custom render is provided, use it
                 if (action.render) {
                   return (

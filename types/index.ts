@@ -140,7 +140,8 @@ export interface Customer extends BaseEntity {
   phone?: string;
   address?: string;
   status: "active" | "inactive";
-  defaultDiscountId?: string;
+  /** Either a raw id or a populated discount when the response nest-populates it. */
+  defaultDiscountId?: string | Discount | null;
   defaultDiscount?: Discount;
   /** Store credit currently available to apply against this customer's dues. */
   creditBalance?: number;
@@ -350,10 +351,27 @@ export interface SupplierLedgerReturn {
   };
 }
 
+export interface SupplierLedgerInboundCredit {
+  returnId: string;
+  returnNumber: string;
+  /** The purchase order the return originated from. */
+  sourcePurchaseOrderId: string;
+  sourceOrderNumber: string;
+  /** PO in the current page whose due was reduced by this credit. */
+  targetPurchaseOrderId: string;
+  targetOrderNumber?: string;
+  amount: number;
+  date: string;
+}
+
 export interface SupplierLedger {
   purchaseOrders: SupplierLedgerPurchaseOrder[];
   payments: SupplierLedgerPayment[];
   returns: SupplierLedgerReturn[];
+  /** Cross-PO rows: other-PO returns that paid down POs in this page via adjustOtherDues. */
+  inboundCredits?: SupplierLedgerInboundCredit[];
+  /** Supplier refund-credit balance available to apply. */
+  creditBalance?: number;
   total: number;
   page: number;
   limit: number;
@@ -369,8 +387,11 @@ export interface Supplier extends BaseEntity {
   phone?: string;
   address?: string;
   status: "active" | "inactive";
-  defaultDiscountId?: string;
+  /** Either a raw id or a populated discount when the response nest-populates it. */
+  defaultDiscountId?: string | Discount | null;
   defaultDiscount?: Discount;
+  /** Credit accumulated from purchase-return overpayments. Spendable on future POs. */
+  creditBalance?: number;
 }
 
 export interface CreateSupplierDto {
@@ -984,12 +1005,39 @@ export interface CreatePurchaseOrderDto {
   taxTotal?: number;
   payment?: PurchasePaymentInfo;
   notes?: string;
+  /** Supplier credit balance to apply at PO creation (mirrors sale.creditBalanceAmount) */
+  creditBalanceAmount?: number;
 }
 
 // Array of Purchase Orders (for batch creation)
 export type CreatePurchaseOrdersDto = CreatePurchaseOrderDto[];
 
 export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> { }
+
+/** PATCH /purchases/orders/:id body — only allowed when the order is still a draft. */
+export interface UpdatePurchaseOrderDraftDto {
+  supplierId?: string;
+  items?: CreatePurchaseOrderItemDto[];
+  additionalDiscount?: number;
+  taxTotal?: number;
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  notes?: string;
+}
+
+/** POST /purchases/orders/:id/finalize body — promotes a draft to a real PO. */
+export interface FinalizePurchaseOrderDto {
+  supplierId?: string;
+  items?: CreatePurchaseOrderItemDto[];
+  additionalDiscount?: number;
+  taxTotal?: number;
+  status?: "received" | "ordered";
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  payment?: PurchasePaymentInfo;
+  creditBalanceAmount?: number;
+  notes?: string;
+}
 
 export interface ReceivePurchaseOrderItemDto {
   productId: string;
@@ -1010,10 +1058,61 @@ export interface PurchasePaymentInfo {
 }
 
 export interface AddPurchasePaymentDto {
-  paymentMethod: string;
-  accountId: string;
+  paymentMethod?: string;
+  /** Required unless `useSupplierCredit` is true. */
+  accountId?: string;
   amount: number;
   notes?: string;
+  /** When true, deduct from supplier.creditBalance instead of charging an account. */
+  useSupplierCredit?: boolean;
+}
+
+/**
+ * Per-purchase-order transaction timeline entry returned by GET /purchases/orders/:id/transactions.
+ * Backend merges payments + cash refunds + return credits + cross-PO inbound credits.
+ */
+export type PurchaseTransactionKind =
+  | "payment"
+  | "credit_balance_payment"
+  | "cash_refund"
+  | "credit_applied_self"
+  | "credit_applied_from_other";
+
+export interface PurchaseTransactionEntry {
+  id: string;
+  kind: PurchaseTransactionKind;
+  direction: "in" | "out" | "neutral";
+  amount: number;
+  date: string;
+  paymentMethod?: string;
+  accountName?: string;
+  reference?: {
+    kind: "payment" | "purchaseReturn";
+    id: string;
+    label: string;
+  };
+  /** Present for `credit_applied_from_other` — the PO whose return generated the credit. */
+  sourcePurchase?: { id: string; orderNumber: string };
+  notes?: string;
+}
+
+export interface PurchaseTransactionsSummary {
+  purchaseTotal: number;
+  cashPaid: number;
+  supplierCreditPaid: number;
+  cashRefunded: number;
+  refundCreditApplied: number;
+  netPaid: number;
+  paidAmount: number;
+  refundedAmount: number;
+  refundCreditAppliedOnOrder: number;
+  dueAmount: number;
+  status: string;
+}
+
+export interface PurchaseTransactionsResponse {
+  transactions: PurchaseTransactionEntry[];
+  summary: PurchaseTransactionsSummary;
 }
 
 export interface PurchaseOrdersSummary {
@@ -1174,6 +1273,16 @@ export interface SupplierPendingDue {
 }
 
 /**
+ * Supplier pending dues + credit balance response
+ */
+export interface SupplierPendingDuesResponse {
+  dues: SupplierPendingDue[];
+  totalDue: number;
+  count: number;
+  creditBalance: number;
+}
+
+/**
  * Purchase returns summary
  */
 export interface PurchaseReturnsSummary {
@@ -1251,6 +1360,44 @@ export interface CreateSalesOrderDto {
 export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> { }
 
 // ============================================
+// Draft Sale (backend Sale model) DTOs
+// ============================================
+
+/** Item payload accepted by POST /sales (matches backend CreateSaleDto.items[]) */
+export interface SaleItemPayload {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  costPrice: number;
+  discount: number;
+}
+
+/** PATCH /sales/:id body — only allowed when the sale is still a draft. */
+export interface UpdateSaleDraftDto {
+  customerId?: string;
+  items?: SaleItemPayload[];
+  additionalDiscount?: number;
+  notes?: string;
+}
+
+/** POST /sales/:id/finalize body — promotes a draft to a real sale. */
+export interface FinalizeSaleDto {
+  customerId?: string;
+  items?: SaleItemPayload[];
+  additionalDiscount?: number;
+  payment?: {
+    paidAmount: number;
+    accountId: string;
+    paymentMethod?: "cash" | "card" | "bank" | "mfs" | "other";
+  };
+  creditBalanceAmount?: number;
+  notes?: string;
+}
+
+// ============================================
 // Sale Types (Backend Sale Model)
 // ============================================
 
@@ -1291,6 +1438,8 @@ export interface SaleCustomer {
   phone?: string;
   /** Customer store-credit balance (echoed by backend on populate). */
   creditBalance?: number;
+  /** Populated default discount (when backend nest-populates defaultDiscountId). */
+  defaultDiscountId?: { _id: string; value: number; type: "percentage" | "fixed" } | null;
 }
 
 /**

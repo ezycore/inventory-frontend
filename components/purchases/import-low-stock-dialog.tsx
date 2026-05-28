@@ -215,7 +215,7 @@ export function ImportLowStockDialog({
   });
 
   // Fetch supplier options for the purchase settings section
-  const { data: supplierOptions } = useSelectOptions(open ? "/purchases/suppliers" : null);
+  const { data: supplierOptions } = useSelectOptions(open ? "/suppliers" : null);
 
   const handleSupplierChange = useCallback(
     (value: string) => {
@@ -225,7 +225,7 @@ export function ImportLowStockDialog({
       if (option) {
         // Support both flat fields (discountType/discountValue) and nested (defaultDiscount.type/value)
         const dt: "percentage" | "fixed" =
-          option.discountType || option.defaultDiscount?.type || option.defaultDiscountType || "fixed";
+          option.discountType || option.defaultDiscount?.type || option.defaultDiscountType || "percentage";
         const dv: number =
           option.discountValue ?? option.defaultDiscount?.value ?? option.defaultDiscountValue ?? 0;
         setDiscountTypeState(dt);
@@ -271,7 +271,7 @@ export function ImportLowStockDialog({
       setSupplierId(initialSupplierId || "");
       setSupplierName(initialSupplierName || "");
       setPurchaseTypeState(initialPurchaseType || "instant");
-      setDiscountTypeState(initialDiscountType || "fixed");
+      setDiscountTypeState(initialDiscountType || "percentage");
       setDiscountValueState(initialDiscountValue || 0);
       setSelectedIds(
         preSelectedIds && preSelectedIds.length > 0
@@ -461,24 +461,7 @@ export function ImportLowStockDialog({
                   <SelectItem value="order">Create Order (Receive Later)</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Discount Type */}
-            <div className="space-y-1 w-full">
-              <Label className="text-xs">Discount Type</Label>
-              <Select
-                value={discountType}
-                onValueChange={(v) => setDiscountTypeState(v as "percentage" | "fixed")}
-              >
-                <SelectTrigger className="h-9 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed">Fixed</SelectItem>
-                  <SelectItem value="percentage">Percentage (%)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            </div>            
 
             {/* Discount Value */}
             <div className="space-y-1 w-full">

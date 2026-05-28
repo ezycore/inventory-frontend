@@ -3,6 +3,7 @@ import type {
   AddPaymentDto,
   ApiResponse,
   CreateSalesOrderDto,
+  FinalizeSaleDto,
   PaginatedResponse,
   Payment,
   Sale,
@@ -10,6 +11,7 @@ import type {
   SalesOrderStatus,
   SalesSummary,
   SaleTransactionsResponse,
+  UpdateSaleDraftDto,
 } from "@/types";
 import { buildQueryParams } from "../../utils";
 
@@ -78,4 +80,31 @@ export const salesApi = {
   //create sales order
   createSalesOrder: (data: CreateSalesOrderDto): Promise<ApiResponse<{ sale: Sale }>> =>
     apiClient.post(`/sales`, data),
+
+  /**
+   * Update a draft sale (only allowed while status === "draft").
+   * No inventory / payment / due side effects fire.
+   */
+  updateDraftSale: (
+    id: string,
+    data: UpdateSaleDraftDto,
+  ): Promise<ApiResponse<Sale>> => apiClient.patch(`/sales/${id}`, data),
+
+  /**
+   * Finalize a draft sale: promotes it to a real sale and runs the full
+   * pipeline (inventory deduct, payment, credit, customer due).
+   */
+  finalizeDraftSale: (
+    id: string,
+    data: FinalizeSaleDto = {},
+  ): Promise<ApiResponse<{ sale: Sale; payment?: Payment }>> =>
+    apiClient.post(`/sales/${id}/finalize`, data),
+
+  /**
+   * Hard-delete a draft sale. Finalized sales must use the returns/cancel flow.
+   */
+  deleteDraftSale: (
+    id: string,
+  ): Promise<ApiResponse<{ deleted: true; invoiceNumber: string }>> =>
+    apiClient.delete(`/sales/${id}`),
 };

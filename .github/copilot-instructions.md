@@ -335,3 +335,22 @@ The Sale → Sales Return → Payment → Customer Ledger → Customer Credit Ba
 1. Update `.github/skills/sales-flow/SKILL.md` (file map, display contract, allocation, UX, pitfalls — whichever applies).
 2. Update `easystock-backend/.github/skills/sales-flow/SKILL.md` if the contract crosses the wire.
 3. Never let the skill drift from the code. Either both move or neither moves.
+
+---
+
+## ⚠️ Purchase-flow maintenance discipline (MANDATORY)
+
+The PurchaseOrder → Purchase Return → Payment → Supplier Ledger → Supplier Credit Balance flow is documented as a skill: [`.github/skills/purchase-flow/SKILL.md`](./skills/purchase-flow/SKILL.md). The backend has a mirror at `easystock-backend/.github/skills/purchase-flow/SKILL.md`.
+
+Money flow is the **inverse** of sales-flow (we pay supplier; supplier may refund us).
+
+**Before touching ANY of these files**, read the purchase-flow skill first:
+- `app/(protected)/purchases/**`, `app/(protected)/suppliers/**`
+- `components/purchases/**`, `components/suppliers/**`
+- `services/api/modules/{purchase-orders,purchase-returns,suppliers,payments}/**`
+- `types/index.ts` (PurchaseOrder / PurchaseReturn / Supplier / Payment / PurchaseRefundAllocation / SupplierLedgerEntry)
+
+**After any change** to those files you MUST, in the same commit/PR:
+1. Update `.github/skills/purchase-flow/SKILL.md`.
+2. Update `easystock-backend/.github/skills/purchase-flow/SKILL.md` if the contract crosses the wire.
+3. Never let the skill drift from the code.

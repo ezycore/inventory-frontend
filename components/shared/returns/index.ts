@@ -30,3 +30,10 @@ export type { ReturnHistoryTableProps } from './return-history-table';
 
 export { ReturnDetailsSheet } from './return-details-sheet';
 export type { ReturnDetailsData, ReturnDetailsItem } from './return-details-sheet';
+
+export { ReturnsHistoryList } from './returns-history-list';
+export type {
+  NormalizedReturn,
+  NormalizedReturnAllocation,
+  ReturnedItem,
+} from './returns-history-list';

@@ -1,9 +1,9 @@
 ﻿"use client";
 
-import { getPurchaseColumns, getSupplierFormConfig, getProductFormConfig, getPaymentFormConfig, extractSupplierValue, SupplierFormData, ImportLowStockDialog, type ImportResult } from "@/components/purchases";
+import { getPurchaseColumns, getSupplierFormConfig, getProductFormConfig, extractSupplierValue, SupplierFormData, ImportLowStockDialog, SellerPaymentSection, type ImportResult } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
-import { useCreatePurchaseOrder, useDashboardStats } from "@/services/api";
+import { useCreatePurchaseOrder, useDashboardStats, useFinalizeDraftPurchaseOrder, usePurchaseOrder, useUpdateDraftPurchaseOrder } from "@/services/api";
 import {
   type PurchaseOrderItem,
   useAuthStore,
@@ -12,6 +12,7 @@ import {
 import type {
   CreatePurchaseOrderDto,
   CreatePurchaseOrderItemDto,
+  PurchaseOrder,
 } from "@/types";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -36,7 +37,8 @@ import {
   Download,
   Trash2,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -122,8 +124,6 @@ export default function PurchasesPage() {
     setActiveSeller,
     setSupplier,
     setPurchaseType,
-    setPaymentInfo,
-    setNotes,
     setAdditionalDiscount,
     setInvoiceAmount,
     setInvoiceNumber,
@@ -141,10 +141,20 @@ export default function PurchasesPage() {
 
   // API mutations
   const { mutateAsync, isPending } = useCreatePurchaseOrder();
+  const updateDraftMutation = useUpdateDraftPurchaseOrder();
+  const finalizeDraftMutation = useFinalizeDraftPurchaseOrder();
+
+  // Draft hydration: ?draftId=... loads an existing draft into the page
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const draftId = searchParams.get("draftId");
+  const isDraftMode = !!draftId;
+  const draftResp = usePurchaseOrder(draftId || "");
+  const draftOrder = draftResp?.data?.data as PurchaseOrder | undefined;
+  const hydratedDraftIdRef = useRef<string | null>(null);
 
   const supplierFormConfig = useMemo(() => getSupplierFormConfig(), []);
   const productFormConfig = useMemo(() => getProductFormConfig(isUOMEnabled), [isUOMEnabled]);
-  const paymentFormConfig = useMemo(() => getPaymentFormConfig(isAccountsEnabled), [isAccountsEnabled]);
 
   const supplierForm = useForm({
     defaultValues: {
@@ -152,7 +162,7 @@ export default function PurchasesPage() {
         ? { value: activeSeller.supplierId, label: activeSeller.supplierName || "" }
         : null,
       purchaseType: activeSeller?.purchaseType || "instant",
-      discountType: activeSeller?.discountType || "fixed",
+      discountType: activeSeller?.discountType || "percentage",
       discountValue: activeSeller?.discountValue || 0,
       invoiceNumber: activeSeller?.invoiceNumber || "",
       invoiceDate: activeSeller?.invoiceDate || "",
@@ -173,14 +183,6 @@ export default function PurchasesPage() {
     },
   });
 
-  const paymentForm = useForm({
-    defaultValues: {
-      accountId: null as any,
-      paidAmount: 0,
-      notes: activeSeller?.notes || "",
-    },
-  });
-
   // Edit product form
   const editForm = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
@@ -194,6 +196,106 @@ export default function PurchasesPage() {
       rememberCostPrice: false,
     },
   });
+
+  // Hydrate page state from a draft PO when ?draftId is present
+  useEffect(() => {
+    if (!draftId || !draftOrder) return;
+    if (draftOrder._id !== draftId) return;
+    if (draftOrder.status !== "draft") return;
+    if (hydratedDraftIdRef.current === draftId) return;
+    hydratedDraftIdRef.current = draftId;
+
+    clearAll();
+    const state = usePurchasePageStore.getState();
+    const sellerId = state.sellers[0]?.id;
+    if (!sellerId) return;
+
+    const supplierObj =
+      typeof draftOrder.supplierId === "object" && draftOrder.supplierId
+        ? (draftOrder.supplierId as {
+            _id: string;
+            name?: string;
+            defaultDiscountId?: { value: number; type: "percentage" | "fixed" } | string | null;
+          })
+        : null;
+    const supId = supplierObj?._id || (draftOrder.supplierId as unknown as string);
+    const supName = supplierObj?.name || "";
+    // Reuse the same logic as the supplier-select handler: read the supplier's
+    // populated defaultDiscount from `defaultDiscountId` (BE nest-populates it).
+    const supDiscount =
+      supplierObj?.defaultDiscountId && typeof supplierObj.defaultDiscountId === "object"
+        ? supplierObj.defaultDiscountId
+        : null;
+    const discountType: "percentage" | "fixed" = supDiscount?.type ?? "percentage";
+    const discountValue = supDiscount?.value ?? 0;
+
+    setSupplier(sellerId, supId, supName);
+    setPurchaseType(sellerId, "instant");
+    setAdditionalDiscount(sellerId, draftOrder.additionalDiscount || 0);
+    if (draftOrder.invoiceNumber) {
+      setInvoiceNumber(sellerId, draftOrder.invoiceNumber);
+    }
+    if (draftOrder.invoiceDate) {
+      setInvoiceDate(sellerId, String(draftOrder.invoiceDate).slice(0, 10));
+    }
+    setDiscountType(sellerId, discountType);
+    setDiscountValue(sellerId, discountValue);
+
+    for (const it of draftOrder.items || []) {
+      const productIdStr =
+        typeof it.productId === "object" && it.productId
+          ? (it.productId as { _id: string })._id
+          : (it.productId as string);
+      const variantIdStr = it.variantId
+        ? typeof it.variantId === "object"
+          ? (it.variantId as { _id: string })._id
+          : (it.variantId as string)
+        : null;
+      const inventoryIdStr =
+        typeof it.inventoryId === "object" && it.inventoryId
+          ? (it.inventoryId as { _id: string })._id
+          : (it.inventoryId as string);
+      const cf = it.conversionFactor ?? 1;
+      // BE PO items don't store `discount` separately — per-unit discount is
+      // implicit as (price - costPrice). Multiply by cf for the per-package UI.
+      const perUnitDiscount = Math.max(0, (it.price || 0) - (it.costPrice || 0));
+      addItem(sellerId, {
+        productId: productIdStr,
+        variantId: variantIdStr,
+        inventoryId: inventoryIdStr,
+        productName: it.productName,
+        quantity: it.quantity,
+        costPrice: it.costPrice * cf,
+        price: it.price * cf,
+        discount: perUnitDiscount * cf,
+        conversionFactor: cf,
+        purchaseUnitName: it.purchaseUnitName ?? undefined,
+      });
+    }
+    // Reset the supplier form together so all fields (supplierId, discount,
+    // invoice number/date) initialise in sync — avoids race with field components.
+    supplierForm.reset({
+      supplierId: { value: supId, label: supName } as never,
+      purchaseType: "instant",
+      discountType,
+      discountValue,
+      invoiceNumber: draftOrder.invoiceNumber || "",
+      invoiceDate: draftOrder.invoiceDate ? String(draftOrder.invoiceDate).slice(0, 10) : "",
+    });
+  }, [
+    draftId,
+    draftOrder,
+    addItem,
+    clearAll,
+    setAdditionalDiscount,
+    setDiscountType,
+    setDiscountValue,
+    setInvoiceDate,
+    setInvoiceNumber,
+    setPurchaseType,
+    setSupplier,
+    supplierForm,
+  ]);
 
   // Watch edit form values for reactive updates
   const editQuantity = useWatch({ control: editForm.control, name: "quantity", defaultValue: 1 });
@@ -243,41 +345,44 @@ export default function PurchasesPage() {
 
   const handleSupplierFieldChange = useCallback(
     (fieldName: string, value: unknown) => {
-      if (!activeSeller) return;
+      // Always read the latest store state to avoid stale-closure bugs where
+      // `activeSeller` (captured at render time) doesn't reflect items added
+      // between the previous and current field-change event.
+      const state = usePurchasePageStore.getState();
+      const current = state.sellers[state.activeSellerIndex];
+      if (!current) return;
 
       if (fieldName === "supplierId") {
         const supplier = extractSupplierValue(value as SupplierFormData["supplierId"]);
 
-        if (activeSeller.items.length > 0 && supplier.value !== activeSeller.supplierId) {
-          const existingSellerIndex = sellers.findIndex((s) => s.supplierId === supplier.value);
+        let targetSellerId = current.id;
+        if (current.items.length > 0 && supplier.value !== current.supplierId) {
+          const existingSellerIndex = state.sellers.findIndex((s) => s.supplierId === supplier.value);
           if (existingSellerIndex !== -1) {
             setActiveSeller(existingSellerIndex);
+            targetSellerId = state.sellers[existingSellerIndex].id;
           } else {
-            const newSellerId = addSeller();
-            setSupplier(newSellerId, supplier.value, supplier.label);
+            targetSellerId = addSeller();
           }
-        } else {
-          setSupplier(activeSeller.id, supplier.value, supplier.label);
         }
-        setDiscountType(activeSeller.id, supplier.defaultDiscountType);
-        setDiscountValue(activeSeller.id, supplier.defaultDiscountValue);
+        setSupplier(targetSellerId, supplier.value, supplier.label);
+        setDiscountType(targetSellerId, supplier.defaultDiscountType);
+        setDiscountValue(targetSellerId, supplier.defaultDiscountValue);
         supplierForm.setValue("discountType", supplier.defaultDiscountType);
         supplierForm.setValue("discountValue", supplier.defaultDiscountValue);
       } else if (fieldName === "discountType") {
-        setDiscountType(activeSeller.id, value as "percentage" | "fixed");
+        setDiscountType(current.id, value as "percentage" | "fixed");
       } else if (fieldName === "discountValue") {
-        setDiscountValue(activeSeller.id, value as number);
+        setDiscountValue(current.id, value as number);
       } else if (fieldName === "purchaseType") {
-        setPurchaseType(activeSeller.id, value as "instant" | "order");
+        setPurchaseType(current.id, value as "instant" | "order");
       } else if (fieldName === "invoiceNumber") {
-        setInvoiceNumber(activeSeller.id, value as string);
+        setInvoiceNumber(current.id, value as string);
       } else if (fieldName === "invoiceDate") {
-        setInvoiceDate(activeSeller.id, value as string);
+        setInvoiceDate(current.id, value as string);
       }
     },
     [
-      activeSeller,
-      sellers,
       addSeller,
       setActiveSeller,
       setSupplier,
@@ -304,7 +409,7 @@ export default function PurchasesPage() {
           const convertedQuantity = quantity * conversionFactor;
           const perUnitPrice = product.price;
           const boxPrice = perUnitPrice * conversionFactor;
-          const discountType = supplierForm.getValues("discountType") || "fixed";
+          const discountType = supplierForm.getValues("discountType") || "percentage";
           const discountValue = supplierForm.getValues("discountValue") || 0;
           const stock = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
           let boxDiscount = 0;
@@ -340,36 +445,6 @@ export default function PurchasesPage() {
       }
     },
     [productForm, supplierForm],
-  );
-
-  const handlePaymentFieldChange = useCallback(
-    (fieldName: string, value: unknown) => {
-      if (!activeSeller) return;
-
-      if (fieldName === "notes") {
-        setNotes(activeSeller.id, value as string);
-      } else if (fieldName === "paidAmount" || fieldName === "accountId") {
-        const currentPaid = paymentForm.getValues("paidAmount") || 0;
-        const currentAccount = paymentForm.getValues("accountId");
-        const extractedAccountId =
-          typeof currentAccount === "object" && currentAccount !== null
-            ? currentAccount.value
-            : typeof currentAccount === "string"
-              ? currentAccount
-              : "";
-
-        if (extractedAccountId && currentPaid > 0) {
-          setPaymentInfo(activeSeller.id, {
-            paymentMethod: "cash",
-            accountId: extractedAccountId,
-            paidAmount: currentPaid,
-          });
-        } else {
-          setPaymentInfo(activeSeller.id, null);
-        }
-      }
-    },
-    [activeSeller, paymentForm, setNotes, setPaymentInfo],
   );
 
   const handleAddToOrder = useCallback(
@@ -537,15 +612,6 @@ export default function PurchasesPage() {
       return;
     }
 
-    const accountId = paymentForm.getValues("accountId");
-    const paidAmount = paymentForm.getValues("paidAmount") || 0;
-    const extractedAccountId =
-      typeof accountId === "object" && accountId !== null && "value" in accountId
-        ? accountId.value
-        : typeof accountId === "string"
-          ? accountId
-          : null;
-
     try {
       const ordersData: CreatePurchaseOrderDto[] = validSellers.map((seller) => {
         const items: CreatePurchaseOrderItemDto[] = seller.items.map((item) => {
@@ -575,6 +641,9 @@ export default function PurchasesPage() {
 
         const status = seller.purchaseType === "instant" ? "received" : "ordered";
         const netAmount = getSellerNetAmount(seller.id);
+        const sellerPaid = seller.paymentInfo?.paidAmount || 0;
+        const sellerAccountId = seller.paymentInfo?.accountId || "";
+        const sellerCredit = seller.creditApplied || 0;
 
         const orderData: CreatePurchaseOrderDto = {
           supplierId: seller.supplierId || "",
@@ -587,15 +656,55 @@ export default function PurchasesPage() {
           notes: seller.notes || undefined,
         };
 
-        if (isAccountsEnabled && extractedAccountId && paidAmount > 0) {
+        if (isAccountsEnabled && sellerAccountId && sellerPaid > 0) {
           orderData.payment = {
-            accountId: extractedAccountId,
-            paidAmount: Math.min(paidAmount, netAmount),
+            accountId: sellerAccountId,
+            paidAmount: Math.min(sellerPaid, Math.max(0, netAmount - sellerCredit)),
           };
+        }
+
+        if (isAccountsEnabled && sellerCredit > 0) {
+          orderData.creditBalanceAmount = sellerCredit;
         }
 
         return orderData;
       });
+
+      if (isDraftMode && draftId) {
+        // Finalize the existing draft (single PO) instead of bulk create
+        const first = ordersData[0];
+        await finalizeDraftMutation.mutateAsync({
+          id: draftId,
+          data: {
+            supplierId: first.supplierId,
+            items: first.items,
+            additionalDiscount: first.additionalDiscount,
+            taxTotal: first.taxTotal,
+            status:
+              first.status === "received" || first.status === "ordered"
+                ? first.status
+                : "ordered",
+            invoiceNumber: first.invoiceNumber,
+            invoiceDate: first.invoiceDate,
+            payment: first.payment,
+            creditBalanceAmount: first.creditBalanceAmount,
+            notes: first.notes,
+          },
+        });
+        hydratedDraftIdRef.current = null;
+        clearAll();
+        supplierForm.reset({
+          supplierId: null,
+          purchaseType: "instant",
+          discountType: "percentage",
+          discountValue: 0,
+          invoiceNumber: "",
+          invoiceDate: "",
+        });
+        productForm.reset();
+        router.replace("/purchases/history");
+        return;
+      }
 
       await mutateAsync(ordersData);
 
@@ -603,30 +712,130 @@ export default function PurchasesPage() {
       supplierForm.reset({
         supplierId: null,
         purchaseType: "instant",
-        discountType: "fixed",
+        discountType: "percentage",
         discountValue: 0,
         invoiceNumber: "",
         invoiceDate: "",
       });
       productForm.reset();
-      paymentForm.reset({
-        accountId: null,
-        paidAmount: 0,
-        notes: "",
-      });
     } catch (error) {
       console.error("Failed to complete purchase:", error);
       toast.error("Failed to complete purchase");
     }
   }, [
     sellers,
-    paymentForm,
     isAccountsEnabled,
     getSellerNetAmount,
     mutateAsync,
     clearAll,
     supplierForm,
     productForm,
+    isDraftMode,
+    draftId,
+    finalizeDraftMutation,
+    router,
+  ]);
+
+  // Save as draft: persist without inventory / payment side-effects.
+  // Drafts can be resumed via the history page Edit action.
+  const handleSaveAsDraft = useCallback(async () => {
+    const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
+    if (validSellers.length === 0) {
+      toast.error("Please add items to at least one supplier");
+      return;
+    }
+    try {
+      const ordersData: CreatePurchaseOrderDto[] = validSellers.map((seller) => {
+        const items: CreatePurchaseOrderItemDto[] = seller.items.map((item) => {
+          const conversionFactor = item.conversionFactor || 1;
+          const perUnitPrice = item.price / conversionFactor;
+          const perUnitCostPrice = item.costPrice / conversionFactor;
+          const perUnitDiscount = item.discount / conversionFactor;
+          const itemDto: CreatePurchaseOrderItemDto = {
+            productId: item.productId,
+            variantId: item.variantId,
+            inventoryId: item.inventoryId,
+            quantity: item.quantity,
+            price: perUnitPrice,
+            costPrice: perUnitCostPrice,
+            discount: perUnitDiscount,
+            productName: item.productName,
+            purchaseUnitName: item.purchaseUnitName,
+          };
+          if (item.conversionFactor && item.conversionFactor !== 1) {
+            itemDto.conversionFactor = item.conversionFactor;
+          }
+          return itemDto;
+        });
+        return {
+          supplierId: seller.supplierId || "",
+          items,
+          additionalDiscount: seller.additionalDiscount || 0,
+          status: "draft" as const,
+          invoiceNumber: seller.invoiceNumber || undefined,
+          invoiceDate: seller.invoiceDate || undefined,
+          taxTotal: 0,
+          notes: seller.notes || undefined,
+        };
+      });
+
+      if (isDraftMode && draftId) {
+        // Update single existing draft (first valid seller)
+        const first = ordersData[0];
+        await updateDraftMutation.mutateAsync({
+          id: draftId,
+          data: {
+            supplierId: first.supplierId,
+            items: first.items,
+            additionalDiscount: first.additionalDiscount,
+            taxTotal: first.taxTotal,
+            invoiceNumber: first.invoiceNumber,
+            invoiceDate: first.invoiceDate,
+            notes: first.notes,
+          },
+        });
+        hydratedDraftIdRef.current = null;
+        clearAll();
+        supplierForm.reset({
+          supplierId: null,
+          purchaseType: "instant",
+          discountType: "percentage",
+          discountValue: 0,
+          invoiceNumber: "",
+          invoiceDate: "",
+        });
+        productForm.reset();
+        router.push("/purchases/history?status=draft");
+        return;
+      }
+
+      await mutateAsync(ordersData);
+
+      clearAll();
+      supplierForm.reset({
+        supplierId: null,
+        purchaseType: "instant",
+        discountType: "percentage",
+        discountValue: 0,
+        invoiceNumber: "",
+        invoiceDate: "",
+      });
+      productForm.reset();
+      router.push("/purchases/history?status=draft");
+    } catch (error) {
+      console.error("Failed to save purchase draft:", error);
+      toast.error("Failed to save draft");
+    }
+  }, [
+    sellers,
+    mutateAsync,
+    clearAll,
+    supplierForm,
+    productForm,
+    isDraftMode,
+    draftId,
+    updateDraftMutation,
+    router,
   ]);
 
   // =====================
@@ -640,7 +849,28 @@ export default function PurchasesPage() {
 
   const totalItemCount = getTotalItemCount();
   const grandTotal = getGrandTotal();
-  const paidAmount = activeSeller?.paymentInfo?.paidAmount || 0;
+
+  // Aggregate payment totals across all sellers
+  const grandPaid = useMemo(
+    () =>
+      sellersWithItems.reduce(
+        (sum, s) => sum + (s.paymentInfo?.paidAmount || 0),
+        0,
+      ),
+    [sellersWithItems],
+  );
+  const grandCreditApplied = useMemo(
+    () => sellersWithItems.reduce((sum, s) => sum + (s.creditApplied || 0), 0),
+    [sellersWithItems],
+  );
+  const grandDue = useMemo(
+    () =>
+      sellersWithItems.reduce(
+        (sum, s) => sum + getSellerDueAmount(s.id),
+        0,
+      ),
+    [sellersWithItems, getSellerDueAmount],
+  );
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -796,6 +1026,14 @@ export default function PurchasesPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Per-seller payment + credit + notes */}
+                <SellerPaymentSection
+                  seller={seller}
+                  netAmount={getSellerNetAmount(seller.id)}
+                  isAccountsEnabled={isAccountsEnabled}
+                  formatCurrency={formatCurrency}
+                />
               </CardContent>
             </Card>
           ))}
@@ -832,42 +1070,34 @@ export default function PurchasesPage() {
 
                 <Separator />
 
-                {/* Payment Form */}
-                <DynamicForm
-                  form={paymentForm}
-                  config={paymentFormConfig}
-                  onFieldChange={handlePaymentFieldChange}
-                  hideCancel
-                />
-
-                {/* Payment Summary */}
-                {isAccountsEnabled && paidAmount > 0 && (
+                {/* Aggregate Payment Summary */}
+                {isAccountsEnabled && (grandPaid > 0 || grandCreditApplied > 0) && (
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Paid</span>
+                      <span className="text-muted-foreground">Total Paid</span>
                       <span className="font-semibold text-green-600 dark:text-green-500 tabular-nums">
-                        {formatCurrency(paidAmount)}
+                        {formatCurrency(grandPaid)}
                       </span>
                     </div>
+                    {grandCreditApplied > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Credit Applied</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                          −{formatCurrency(grandCreditApplied)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Due</span>
+                      <span className="text-muted-foreground">Total Due</span>
                       <span
-                        className={`font-semibold tabular-nums ${grandTotal - paidAmount > 0
+                        className={`font-semibold tabular-nums ${grandDue > 0
                           ? "text-orange-600 dark:text-orange-500"
                           : "text-green-600 dark:text-green-500"
                           }`}
                       >
-                        {formatCurrency(Math.max(0, grandTotal - paidAmount))}
+                        {formatCurrency(grandDue)}
                       </span>
                     </div>
-                    {paidAmount > grandTotal && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Change</span>
-                        <span className="font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
-                          {formatCurrency(paidAmount - grandTotal)}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -876,12 +1106,38 @@ export default function PurchasesPage() {
                 {/* Complete Order Button */}
                 <Button
                   onClick={handleCompleteOrder}
-                  disabled={isPending || sellersWithItems.length === 0}
+                  disabled={
+                    isPending ||
+                    finalizeDraftMutation.isPending ||
+                    sellersWithItems.length === 0
+                  }
                   size="lg"
                   className="w-full font-semibold"
                 >
                   <CheckCircleIcon className="h-5 w-5" />
-                  {isPending ? "Processing..." : "Complete Order"}
+                  {isPending || finalizeDraftMutation.isPending
+                    ? "Processing..."
+                    : isDraftMode
+                    ? "Finalize Order"
+                    : "Complete Order"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSaveAsDraft}
+                  disabled={
+                    isPending ||
+                    updateDraftMutation.isPending ||
+                    sellersWithItems.length === 0
+                  }
+                  size="lg"
+                  className="w-full font-semibold mt-2"
+                >
+                  {updateDraftMutation.isPending
+                    ? "Saving..."
+                    : isDraftMode
+                    ? "Update Draft"
+                    : "Save as Draft"}
                 </Button>
               </CardContent>
             </Card>
@@ -901,7 +1157,7 @@ export default function PurchasesPage() {
         initialSupplierId={activeSeller?.supplierId || ""}
         initialSupplierName={activeSeller?.supplierName || ""}
         initialPurchaseType={activeSeller?.purchaseType || "instant"}
-        initialDiscountType={activeSeller?.discountType || "fixed"}
+        initialDiscountType={activeSeller?.discountType || "percentage"}
         initialDiscountValue={activeSeller?.discountValue || 0}
       />
 

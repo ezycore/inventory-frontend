@@ -109,7 +109,7 @@ export const navItems: NavItem[] = [
         icon: "package-minus",
         features: ["returns"],
       },
-      { title: "Suppliers", url: "/purchases/suppliers", icon: "truck" },
+      { title: "Suppliers", url: "/suppliers", icon: "truck" },
     ],
   },
 

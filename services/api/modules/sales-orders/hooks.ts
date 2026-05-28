@@ -3,7 +3,9 @@ import { queryKeys } from "@/services/api/query-keys";
 import {
   AddPaymentDto,
   CreateSalesOrderDto,
+  FinalizeSaleDto,
   SaleFilters,
+  UpdateSaleDraftDto,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -116,6 +118,71 @@ export const useCreateSalesOrder = () => {
     mutationFn: (data: CreateSalesOrderDto) => salesApi.createSalesOrder(data),
     onSuccess: (data) => {
       toast.success(data.message || "Sales order created successfully");
+      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// ============================================
+// Draft sale lifecycle (update / finalize / delete)
+// ============================================
+
+/**
+ * Update a draft sale (only works while status === "draft").
+ * Does NOT touch inventory / payments / customer dues.
+ */
+export const useUpdateDraftSale = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateSaleDraftDto & { id: string }) =>
+      salesApi.updateDraftSale(id, data),
+    onSuccess: (data, variables) => {
+      toast.success(data.message || "Draft updated");
+      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.salesOrders.detail(variables.id),
+      });
+    },
+    onError: handleMutationError,
+  });
+};
+
+/**
+ * Finalize a draft sale: runs the full sale pipeline (inventory deduct,
+ * payment, credit, customer due) and transitions status away from "draft".
+ */
+export const useFinalizeDraftSale = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, ...data }: FinalizeSaleDto & { id: string }) =>
+      salesApi.finalizeDraftSale(id, data),
+    onSuccess: (data, variables) => {
+      toast.success(data.message || "Sale finalized");
+      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.salesOrders.detail(variables.id),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+/**
+ * Hard-delete a draft sale.
+ */
+export const useDeleteDraftSale = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => salesApi.deleteDraftSale(id),
+    onSuccess: (data) => {
+      toast.success(data.message || "Draft deleted");
       queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
     },
     onError: handleMutationError,

@@ -100,4 +100,6 @@ export interface CreateSalesOrderData {
   dueAmount?: number;
   /** Apply this much of customer's store-credit to the sale at creation time. */
   creditBalanceAmount?: number;
+  /** When "draft", BE skips inventory / payment / credit side-effects. */
+  status?: "draft";
 }

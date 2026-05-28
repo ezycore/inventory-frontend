@@ -83,6 +83,8 @@ export interface SellerSession {
   invoiceAmount: number; // Net amount (can be input or calculated)
   invoiceNumber?: string;
   invoiceDate?: string;
+  // Supplier credit balance applied to this PO (advance/refund consumed at creation)
+  creditApplied: number;
 }
 
 /**
@@ -132,6 +134,7 @@ interface PurchasePageStore {
   setInvoiceAmount: (sellerId: string, amount: number) => void;
   setInvoiceNumber: (sellerId: string, invoiceNumber: string) => void;
   setInvoiceDate: (sellerId: string, invoiceDate: string) => void;
+  setCreditApplied: (sellerId: string, amount: number) => void;
 
   // Item actions
   addItem: (
@@ -172,12 +175,13 @@ const createEmptySeller = (): SellerSession => ({
   purchaseType: "instant",
   paymentInfo: null,
   notes: "",
-  discountType: "fixed",
+  discountType: "percentage",
   discountValue: 0,
   additionalDiscount: 0,
   invoiceAmount: 0,
   invoiceNumber: "",
   invoiceDate: "",
+  creditApplied: 0,
 });
 
 export const usePurchasePageStore = create<PurchasePageStore>()(
@@ -221,7 +225,8 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
         if (!seller) return 0;
         const netAmount = get().getSellerNetAmount(sellerId);
         const paidAmount = seller.paymentInfo?.paidAmount || 0;
-        return Math.max(0, netAmount - paidAmount);
+        const creditApplied = seller.creditApplied || 0;
+        return Math.max(0, netAmount - paidAmount - creditApplied);
       },
 
       getGrandTotal: () => {
@@ -346,10 +351,14 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
             const finalDiscount = Math.min(discount, subtotal);
             const newInvoiceAmount = Math.max(0, subtotal - finalDiscount);
+            const updatedPaymentInfo = seller.paymentInfo
+              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount - (seller.creditApplied || 0)) }
+              : seller.paymentInfo;
             return {
               ...seller,
               additionalDiscount: finalDiscount,
               invoiceAmount: newInvoiceAmount,
+              paymentInfo: updatedPaymentInfo,
             };
           }),
         }));
@@ -362,10 +371,14 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             // When invoiceAmount changes, recalculate additionalDiscount
             const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
             const newDiscount = Math.max(0, subtotal - amount);
+            const updatedPaymentInfo = seller.paymentInfo
+              ? { ...seller.paymentInfo, paidAmount: Math.max(0, amount - (seller.creditApplied || 0)) }
+              : seller.paymentInfo;
             return {
               ...seller,
               invoiceAmount: amount,
               additionalDiscount: newDiscount,
+              paymentInfo: updatedPaymentInfo,
             };
           }),
         }));
@@ -387,6 +400,16 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
         }));
       },
 
+      setCreditApplied: (sellerId, amount) => {
+        set((state) => ({
+          sellers: state.sellers.map((seller) =>
+            seller.id === sellerId
+              ? { ...seller, creditApplied: Math.max(0, amount) }
+              : seller,
+          ),
+        }));
+      },
+
       // Item actions
       addItem: (sellerId, item) => {
         set((state) => ({
@@ -394,6 +417,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             if (seller.id !== sellerId) return seller;
 
             const total = calculateItemTotal(item);
+            let newItems: PurchaseOrderItem[];
 
             // Check if item with same inventory ID already exists
             const existingIndex = seller.items.findIndex(
@@ -408,14 +432,22 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
                 id: seller.items[existingIndex].id,
                 total,
               };
-              return { ...seller, items: updatedItems };
+              newItems = updatedItems;
+            } else {
+              // Add new item
+              newItems = [...seller.items, { ...item, id: uuidv4(), total }];
             }
 
-            // Add new item
-            return {
-              ...seller,
-              items: [...seller.items, { ...item, id: uuidv4(), total }],
-            };
+            // Recalculate invoiceAmount from new subtotal so netAmount stays live
+            const newSubtotal = newItems.reduce((s, i) => s + i.quantity * i.costPrice, 0);
+            const newInvoiceAmount = Math.round(Math.max(0, newSubtotal - (seller.additionalDiscount || 0)) * 100) / 100;
+
+            // Sync paidAmount to new netAmount
+            const newPaymentInfo = seller.paymentInfo
+              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount - (seller.creditApplied || 0)) }
+              : seller.paymentInfo;
+
+            return { ...seller, items: newItems, invoiceAmount: newInvoiceAmount, paymentInfo: newPaymentInfo };
           }),
         }));
       },
@@ -425,20 +457,28 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
           sellers: state.sellers.map((seller) => {
             if (seller.id !== sellerId) return seller;
 
-            return {
-              ...seller,
-              items: seller.items.map((item) => {
-                if (item.id !== itemId) return item;
+            const newItems = seller.items.map((item) => {
+              if (item.id !== itemId) return item;
 
-                const updatedItem = { ...item, ...data };
-                // Recalculate total
-                updatedItem.total =
-                  updatedItem.quantity * updatedItem.price -
-                  (updatedItem.discount || 0);
+              const updatedItem = { ...item, ...data };
+              // Recalculate total
+              updatedItem.total =
+                updatedItem.quantity * updatedItem.price -
+                (updatedItem.discount || 0);
 
-                return updatedItem;
-              }),
-            };
+              return updatedItem;
+            });
+
+            // Recalculate invoiceAmount from new subtotal so netAmount stays live
+            const newSubtotal = newItems.reduce((s, i) => s + i.quantity * i.costPrice, 0);
+            const newInvoiceAmount = Math.round(Math.max(0, newSubtotal - (seller.additionalDiscount || 0)) * 100) / 100;
+
+            // Sync paidAmount to new netAmount
+            const newPaymentInfo = seller.paymentInfo
+              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount - (seller.creditApplied || 0)) }
+              : seller.paymentInfo;
+
+            return { ...seller, items: newItems, invoiceAmount: newInvoiceAmount, paymentInfo: newPaymentInfo };
           }),
         }));
       },
@@ -447,10 +487,15 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
         set((state) => ({
           sellers: state.sellers.map((seller) => {
             if (seller.id !== sellerId) return seller;
-            return {
-              ...seller,
-              items: seller.items.filter((item) => item.id !== itemId),
-            };
+            const newItems = seller.items.filter((item) => item.id !== itemId);
+            // Recalculate invoiceAmount from new subtotal so netAmount stays live
+            const newSubtotal = newItems.reduce((s, i) => s + i.quantity * i.costPrice, 0);
+            const newInvoiceAmount = Math.round(Math.max(0, newSubtotal - (seller.additionalDiscount || 0)) * 100) / 100;
+            // Sync paidAmount to new netAmount
+            const newPaymentInfo = seller.paymentInfo
+              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount - (seller.creditApplied || 0)) }
+              : seller.paymentInfo;
+            return { ...seller, items: newItems, invoiceAmount: newInvoiceAmount, paymentInfo: newPaymentInfo };
           }),
         }));
       },
@@ -459,7 +504,10 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
         set((state) => ({
           sellers: state.sellers.map((seller) => {
             if (seller.id !== sellerId) return seller;
-            return { ...seller, items: [] };
+            const clearedPaymentInfo = seller.paymentInfo
+              ? { ...seller.paymentInfo, paidAmount: 0 }
+              : seller.paymentInfo;
+            return { ...seller, items: [], invoiceAmount: 0, paymentInfo: clearedPaymentInfo };
           }),
         }));
       },

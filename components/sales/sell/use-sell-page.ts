@@ -1,0 +1,492 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import {
+  getSalesColumns,
+  getPaymentFormConfig,
+  type CreateSalesOrderData,
+  type ExtractedCustomer,
+  type ExtractedProduct,
+} from "@/components/sales";
+import {
+  useCreateSalesOrder,
+  useCustomerPendingDues,
+  useSale,
+  useUpdateDraftSale,
+  useFinalizeDraftSale,
+} from "@/services/api";
+import { useAuthStore, useSellPageStore } from "@/services/stores";
+import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
+import { useCurrency } from "@/lib/currency";
+import type { Sale } from "@/types";
+
+export function useSellPage() {
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [localAdditionalDiscount, setLocalAdditionalDiscount] = useState(0);
+  const [useCreditBalance, setUseCreditBalance] = useState(false);
+  const [creditBalanceAmount, setCreditBalanceAmount] = useState(0);
+  const { symbol } = useCurrency();
+
+  const { user } = useAuthStore();
+  const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  const defaultCustomer = user?.defaultData?.customerId;
+  const defaultAccountType = user?.defaultData?.accountId;
+
+  const {
+    customerId,
+    orderDiscountType,
+    orderDiscountValue,
+    additionalDiscount,
+    notes,
+    items,
+    getTotalCostPrice,
+    getTotalSalePrice,
+    setCustomer,
+    setOrderDiscount,
+    setAdditionalDiscount,
+    setNotes,
+    addItem,
+    updateItem,
+    removeItem,
+    clearAll,
+  } = useSellPageStore();
+
+  const { mutateAsync, isPending } = useCreateSalesOrder();
+  const updateDraftMutation = useUpdateDraftSale();
+  const finalizeDraftMutation = useFinalizeDraftSale();
+
+  // ── Draft loading ─────────────────────────────────────────────
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const draftId = searchParams.get("draftId");
+  const isDraftMode = !!draftId;
+  const { data: draftResp } = useSale(draftId || "");
+  const draftSale = draftResp?.data as Sale | undefined;
+  const hydratedDraftIdRef = useRef<string | null>(null);
+
+  const { data: pendingDuesResp } = useCustomerPendingDues(customerId || "");
+  const customerInfo = pendingDuesResp?.data;
+  const customerOutstandingDue: number = customerInfo?.totalDue ?? 0;
+  const customerCreditBalance: number = customerInfo?.creditBalance ?? 0;
+
+  const paymentFormConfig = useMemo(
+    () => getPaymentFormConfig(isAccountsEnabled),
+    [isAccountsEnabled],
+  );
+
+  const customerForm = useForm({
+    defaultValues: {
+      customerId: defaultCustomer,
+      accountId: defaultAccountType,
+      discountType: orderDiscountType || "percentage",
+      discountValue: orderDiscountValue || 0,
+      paidAmount: 0,
+      notes: notes,
+    },
+  });
+
+  useEffect(() => {
+    setLocalAdditionalDiscount(additionalDiscount);
+  }, [additionalDiscount]);
+
+  // Hydrate sell-page store from a draft sale when ?draftId is present
+  useEffect(() => {
+    if (!draftId) return;
+    if (!draftSale || draftSale._id !== draftId) return;
+    if (draftSale.status !== "draft") return;
+    if (hydratedDraftIdRef.current === draftId) return;
+    hydratedDraftIdRef.current = draftId;
+    clearAll();
+
+    // Reuse the same logic as the customer-select handler: read the customer's
+    // defaultDiscount and apply it. BE nest-populates `defaultDiscountId` as
+    // `{ value, type }` on the sale's customer reference.
+    const cust = draftSale.customerId;
+    const cd = cust?.defaultDiscountId;
+    const discountType: "percentage" | "fixed" = cd?.type ?? "percentage";
+    const discountValue = cd?.value ?? 0;
+
+    if (cust) {
+      setCustomer({
+        value: cust._id,
+        label: cust.name,
+        discountType,
+        discountValue,
+      });
+    }
+    setOrderDiscount(discountType, discountValue);
+    setAdditionalDiscount(draftSale.additionalDiscount || 0);
+    setLocalAdditionalDiscount(draftSale.additionalDiscount || 0);
+    setNotes(draftSale.notes || "");
+
+    // Use reset so all fields (customerId, discountValue, notes) initialise
+    // together — setValue on its own can race with the dynamic field components.
+    customerForm.reset({
+      customerId: cust
+        ? ({ value: cust._id, label: cust.name } as never)
+        : (defaultCustomer as never),
+      accountId: defaultAccountType,
+      discountType,
+      discountValue,
+      paidAmount: 0,
+      notes: draftSale.notes || "",
+    });
+
+    for (const item of draftSale.items) {
+      const salePrice = Math.max(0, item.price - (item.discount || 0));
+      addItem({
+        productId: item.productId,
+        inventoryId: item.inventoryId,
+        variantId: item.variantId ?? null,
+        productName: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+        costPrice: item.costPrice,
+        discount: item.discount || 0,
+        discountType: "fixed",
+        discountValue: item.discount || 0,
+        salePrice,
+        availableQuantity: 999999,
+      });
+    }
+  }, [draftId, draftSale, clearAll, setCustomer, setOrderDiscount, setAdditionalDiscount, setNotes, addItem, customerForm, defaultCustomer, defaultAccountType]);
+
+  useEffect(() => {
+    const total = Number(getTotalSalePrice().toFixed(2) || 0);
+    const remaining = Math.max(0, total - creditBalanceAmount);
+    setPaidAmount(remaining);
+    customerForm.setValue("paidAmount", remaining);
+  }, [items, additionalDiscount, creditBalanceAmount, getTotalSalePrice, customerForm]);
+
+  useEffect(() => {
+    setUseCreditBalance(false);
+    setCreditBalanceAmount(0);
+  }, [customerId]);
+
+  useEffect(() => {
+    const total = getTotalSalePrice();
+    const cap = Math.min(customerCreditBalance, total);
+    if (!useCreditBalance) {
+      if (creditBalanceAmount !== 0) setCreditBalanceAmount(0);
+      return;
+    }
+    if (creditBalanceAmount > cap) setCreditBalanceAmount(cap);
+    else if (creditBalanceAmount === 0 && cap > 0) setCreditBalanceAmount(cap);
+  }, [useCreditBalance, customerCreditBalance, items, additionalDiscount, getTotalSalePrice, creditBalanceAmount]);
+
+  useEffect(() => {
+    if (items.length === 0) return;
+    items.forEach((item) => {
+      const { discount, salePrice } = applyDiscountWithPriority({
+        price: item.price,
+        orderDiscountType,
+        orderDiscountValue,
+      });
+      if (item.discount !== discount || item.salePrice !== salePrice) {
+        updateItem(item.id, { discount, salePrice });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderDiscountType, orderDiscountValue, updateItem]);
+
+  const handleUpdateDiscount = useCallback(
+    (id: string, discount: number, price: number) => {
+      const salePrice = Math.max(0, price - discount);
+      updateItem(id, { discount, salePrice });
+    },
+    [updateItem],
+  );
+
+  const salesColumns = useMemo(
+    () =>
+      getSalesColumns(
+        (id, quantity) => updateItem(id, { quantity }),
+        handleUpdateDiscount,
+        removeItem,
+        symbol,
+      ),
+    [updateItem, handleUpdateDiscount, removeItem, symbol],
+  );
+
+  const handleFieldChange = useCallback(
+    (fieldName: string, value: unknown) => {
+      if (fieldName === "customerId") {
+        setCustomer(value as ExtractedCustomer);
+      } else if (fieldName === "discountType") {
+        const currentDiscountValue = customerForm.getValues("discountValue");
+        setOrderDiscount(value as DiscountType, currentDiscountValue);
+      } else if (fieldName === "discountValue") {
+        const currentDiscountType = customerForm.getValues("discountType");
+        setOrderDiscount(currentDiscountType, value as number);
+      } else if (fieldName === "paidAmount") {
+        setPaidAmount(value as number);
+      } else if (fieldName === "notes") {
+        setNotes(value as string);
+      }
+    },
+    [customerForm, setCustomer, setNotes, setOrderDiscount],
+  );
+
+  const handleProductSelect = useCallback(
+    (product: ExtractedProduct) => {
+      if (!product) return;
+      if (product.availableQuantity <= 0) {
+        toast.error(`${product.label} is out of stock`);
+        return;
+      }
+      const { value: inventoryId, label: productName, price, costPrice, productId, variantId, availableQuantity } = product;
+      const discountType = customerForm.getValues("discountType");
+      const discountValue = customerForm.getValues("discountValue");
+      const { discount, salePrice } = applyDiscountWithPriority({
+        price: product.price,
+        orderDiscountType: discountType,
+        orderDiscountValue: discountValue,
+      });
+      addItem({
+        inventoryId, productId, variantId, productName, quantity: 1, costPrice, price,
+        discountType, discountValue, discount, salePrice, availableQuantity,
+        unitName: product.unitName, saleUnitName: product.saleUnitName,
+      });
+    },
+    [addItem, customerForm],
+  );
+
+  const handleAdditionalDiscountChange = useCallback(
+    (value: number) => {
+      const v = Math.max(0, value || 0);
+      setLocalAdditionalDiscount(v);
+      setAdditionalDiscount(v);
+      // Zustand updates are synchronous, so getTotalSalePrice() already reflects the new discount
+      const newTotal = getTotalSalePrice();
+      const remaining = Math.max(0, newTotal - creditBalanceAmount);
+      setPaidAmount(remaining);
+      customerForm.setValue("paidAmount", remaining);
+    },
+    [creditBalanceAmount, customerForm, getTotalSalePrice, setAdditionalDiscount],
+  );
+
+  const handleMarkAsSold = useCallback(async () => {
+    if (items.length === 0) {
+      toast.error("Please add items to the order");
+      return;
+    }
+    const accountId = customerForm.getValues("accountId");
+    let updatedCustomerId = customerForm.getValues("customerId") as unknown as { value?: string } | string | undefined;
+    updatedCustomerId =
+      (typeof updatedCustomerId === "object" && updatedCustomerId?.value) ||
+      (updatedCustomerId as string) ||
+      customerId;
+    const formPaidAmount = customerForm.getValues("paidAmount") || 0;
+    const formAdditionalDiscount = localAdditionalDiscount;
+    if (isAccountsEnabled && formPaidAmount > 0 && !accountId) {
+      toast.error("Please select a payment account");
+      return;
+    }
+    if (!updatedCustomerId) {
+      toast.error("Please select a customer for the order");
+      return;
+    }
+    try {
+      const totalSalePrice = getTotalSalePrice();
+      const totalCostPrice = getTotalCostPrice();
+      const creditApplied = useCreditBalance
+        ? Math.min(creditBalanceAmount, customerCreditBalance, totalSalePrice)
+        : 0;
+      const dueAmount = Math.max(totalSalePrice - formPaidAmount - creditApplied, 0);
+      const orderData: CreateSalesOrderData = {
+        customerId: updatedCustomerId as string,
+        items: items.map((item) => ({
+          productId: item.productId,
+          inventoryId: item.inventoryId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          price: item.price,
+          costPrice: item.costPrice,
+          discount: item.discount,
+          productName: item.productName,
+        })),
+        additionalDiscount: formAdditionalDiscount,
+        totalPrice: totalSalePrice,
+        costPrice: totalCostPrice,
+        notes,
+      };
+      if (isAccountsEnabled && accountId && formPaidAmount > 0) {
+        orderData.payment = { paidAmount: formPaidAmount, accountId };
+        orderData.dueAmount = dueAmount;
+      }
+      if (isAccountsEnabled && creditApplied > 0) {
+        orderData.creditBalanceAmount = creditApplied;
+        orderData.dueAmount = dueAmount;
+      }
+
+      let resultSaleId: string | undefined;
+      if (isDraftMode && draftId) {
+        const finalizeResult = await finalizeDraftMutation.mutateAsync({
+          id: draftId,
+          customerId: updatedCustomerId as string,
+          items: orderData.items.map((it) => ({
+            productId: it.productId,
+            variantId: it.variantId ?? undefined,
+            inventoryId: it.inventoryId,
+            productName: it.productName,
+            quantity: it.quantity,
+            price: it.price,
+            costPrice: it.costPrice,
+            discount: it.discount,
+          })),
+          additionalDiscount: formAdditionalDiscount,
+          payment: orderData.payment,
+          creditBalanceAmount: orderData.creditBalanceAmount,
+          notes,
+        });
+        resultSaleId = finalizeResult.data?.sale?._id;
+      } else {
+        const createResult = await mutateAsync(orderData);
+        resultSaleId = createResult.data?.sale?._id;
+      }
+
+      if (resultSaleId) {
+        clearAll();
+        customerForm.reset({ paidAmount: 0, notes: "" });
+        setPaidAmount(0);
+        setLocalAdditionalDiscount(0);
+        setUseCreditBalance(false);
+        setCreditBalanceAmount(0);
+        if (isDraftMode) {
+          hydratedDraftIdRef.current = null;
+          router.replace("/sales");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to complete sale:", error);
+      toast.error("Failed to complete sale");
+    }
+  }, [items, customerId, notes, isAccountsEnabled, getTotalSalePrice, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router]);
+
+  const handleSaveAsDraft = useCallback(async () => {
+    if (items.length === 0) {
+      toast.error("Please add items to save as draft");
+      return;
+    }
+    let updatedCustomerId = customerForm.getValues("customerId") as unknown as { value?: string } | string | undefined;
+    updatedCustomerId =
+      (typeof updatedCustomerId === "object" && updatedCustomerId?.value) ||
+      (updatedCustomerId as string) ||
+      customerId;
+    if (!updatedCustomerId) {
+      toast.error("Please select a customer for the draft");
+      return;
+    }
+    try {
+      const totalSalePrice = getTotalSalePrice();
+      const totalCostPrice = getTotalCostPrice();
+      const formAdditionalDiscount = localAdditionalDiscount;
+      const itemsPayload = items.map((item) => ({
+        productId: item.productId,
+        inventoryId: item.inventoryId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+        price: item.price,
+        costPrice: item.costPrice,
+        discount: item.discount,
+        productName: item.productName,
+      }));
+
+      if (isDraftMode && draftId) {
+        await updateDraftMutation.mutateAsync({
+          id: draftId,
+          customerId: updatedCustomerId as string,
+          items: itemsPayload.map((it) => ({
+            ...it,
+            variantId: it.variantId ?? undefined,
+          })),
+          additionalDiscount: formAdditionalDiscount,
+          notes,
+        });
+        hydratedDraftIdRef.current = null;
+        clearAll();
+        customerForm.reset({ paidAmount: 0, notes: "" });
+        setPaidAmount(0);
+        setLocalAdditionalDiscount(0);
+        setUseCreditBalance(false);
+        setCreditBalanceAmount(0);
+        router.push("/sales/history?status=draft");
+      } else {
+        const draftPayload: CreateSalesOrderData = {
+          customerId: updatedCustomerId as string,
+          items: itemsPayload,
+          additionalDiscount: formAdditionalDiscount,
+          totalPrice: totalSalePrice,
+          costPrice: totalCostPrice,
+          notes,
+          status: "draft",
+        };
+        const createResult = await mutateAsync(draftPayload);
+        if (createResult.data?.sale?._id) {
+          clearAll();
+          customerForm.reset({ paidAmount: 0, notes: "" });
+          setPaidAmount(0);
+          setLocalAdditionalDiscount(0);
+          setUseCreditBalance(false);
+          setCreditBalanceAmount(0);
+          router.push("/sales/history?status=draft");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to save draft:", error);
+    }
+  }, [items, customerId, notes, getTotalSalePrice, getTotalCostPrice, localAdditionalDiscount, customerForm, isDraftMode, draftId, updateDraftMutation, mutateAsync, clearAll, router]);
+
+  const itemsSubtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const totalSalePrice = getTotalSalePrice();
+  const appliedCredit = useCreditBalance
+    ? Math.min(creditBalanceAmount, customerCreditBalance, totalSalePrice)
+    : 0;
+  const dueAmount = Math.max(totalSalePrice - paidAmount - appliedCredit, 0);
+  const showCustomerBalances = !!customerId && (customerOutstandingDue > 0 || customerCreditBalance > 0);
+  const maxCreditApplicable = Math.min(customerCreditBalance, totalSalePrice);
+
+  return {
+    // state
+    paidAmount,
+    localAdditionalDiscount,
+    useCreditBalance,
+    creditBalanceAmount,
+    setUseCreditBalance,
+    setCreditBalanceAmount,
+    // derived
+    customerOutstandingDue,
+    customerCreditBalance,
+    itemsSubtotal,
+    totalSalePrice,
+    appliedCredit,
+    dueAmount,
+    showCustomerBalances,
+    maxCreditApplicable,
+    // forms / config
+    customerForm,
+    paymentFormConfig,
+    salesColumns,
+    // handlers
+    handleFieldChange,
+    handleProductSelect,
+    handleMarkAsSold,
+    handleSaveAsDraft,
+    handleAdditionalDiscountChange,
+    // store passthroughs
+    items,
+    clearAll,
+    isPending,
+    isSavingDraft: updateDraftMutation.isPending,
+    isFinalizing: finalizeDraftMutation.isPending,
+    isDraftMode,
+    draftId,
+    isAccountsEnabled,
+    symbol,
+  };
+}
+
+export type SellPageContext = ReturnType<typeof useSellPage>;

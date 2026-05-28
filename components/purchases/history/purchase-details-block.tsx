@@ -1,0 +1,155 @@
+"use client";
+
+import { format } from "date-fns";
+import { Boxes, ClipboardList } from "lucide-react";
+import { Badge } from "@/ui/components/badge";
+import { InfoField } from "@/components/shared/info-field";
+import type { PurchaseOrder } from "@/types";
+
+function getCreatedByName(order: PurchaseOrder): string {
+  const cb = order.createdBy;
+  if (cb && typeof cb === "object") {
+    const name = [cb.firstName, cb.lastName].filter(Boolean).join(" ").trim();
+    if (name) return name;
+    if (cb.email) return cb.email;
+  }
+  return "-";
+}
+
+export function PurchaseDetailsBlock({ order }: { order: PurchaseOrder }) {
+  const supplierName = order.supplierId?.name ?? order.supplier?.name ?? "Unknown Supplier";
+
+  return (
+    <>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <InfoField label="Invoice #" value={order.orderNumber} />
+        <InfoField
+          label="Status"
+          value={
+            <Badge variant="outline" className="capitalize">
+              {order.status}
+            </Badge>
+          }
+        />
+        <InfoField label="Supplier" value={supplierName} />
+        <InfoField label="Created By" value={getCreatedByName(order)} />
+        <InfoField
+          label="Created At"
+          value={format(new Date(order.createdAt), "dd MMM yyyy HH:mm")}
+        />
+        <InfoField
+          label="Updated At"
+          value={format(new Date(order.updatedAt), "dd MMM yyyy HH:mm")}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <InfoField label="Subtotal" value={order.subtotal} showCurrency />
+        <InfoField label="Tax Total" value={order.taxTotal} showCurrency />
+        <InfoField
+          label="Additional Discount"
+          value={order.additionalDiscount ?? 0}
+          showCurrency
+        />
+        <InfoField
+          label="Total Amount"
+          value={order.invoiceAmount ?? 0}
+          showCurrency
+        />
+        <InfoField
+          label="Paid Amount"
+          value={order.paidAmount ?? 0}
+          showCurrency
+          valueClassName="text-green-600"
+        />
+        <InfoField
+          label="Due Amount"
+          value={order.dueAmount ?? 0}
+          showCurrency
+          valueClassName={(order.dueAmount ?? 0) > 0 ? "text-red-600" : "text-green-600"}
+        />
+      </div>
+
+      {order.notes && (
+        <div className="rounded-lg border p-4 space-y-3">
+          <div className="flex items-center gap-2 font-medium">
+            <ClipboardList className="h-4 w-4" />
+            Notes
+          </div>
+          <p className="text-sm text-muted-foreground">{order.notes}</p>
+        </div>
+      )}
+    </>
+  );
+}
+
+export function PurchaseItemsList({ order }: { order: PurchaseOrder }) {
+  return (
+    <div className="rounded-lg border p-4 space-y-4">
+      <div className="flex items-center gap-2 font-medium">
+        <Boxes className="h-4 w-4" />
+        Items ({order.items.length})
+      </div>
+
+      <div className="space-y-3">
+        {order.items.map((item, index) => {
+          const unitSuffix = item.purchaseUnitName ? ` / ${item.purchaseUnitName}` : "";
+          return (
+            <div
+              key={`${item.productId}-${index}`}
+              className="space-y-3 rounded-lg bg-muted/30 p-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-medium">
+                    {item.productName || item.product?.name || "Product"}
+                  </div>
+                  {item.variantName && (
+                    <div className="text-xs text-muted-foreground">{item.variantName}</div>
+                  )}
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  <Badge variant="outline">
+                    Qty {item.quantity}
+                    {unitSuffix}
+                  </Badge>
+                  <Badge variant="secondary">
+                    Received {item.receivedQuantity ?? 0}/{item.quantity}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <InfoField
+                  label="Price"
+                  value={item.price}
+                  showCurrency
+                  quantity={item.quantity}
+                />
+                <InfoField
+                  label="Discount"
+                  value={item.discount ?? 0}
+                  showCurrency
+                  quantity={item.discount ? item.quantity : 0}
+                />
+                <InfoField label="Subtotal" value={item.subtotal} showCurrency />
+                {item.costPrice !== undefined && (
+                  <InfoField
+                    label={
+                      item.conversionFactor && item.conversionFactor !== 1
+                        ? `Cost Price (×${item.conversionFactor})`
+                        : "Cost Price"
+                    }
+                    value={item.costPrice}
+                    showCurrency
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,158 @@
+"use client";
+
+import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
+import { Input } from "@/ui/components/input";
+import { Label } from "@/ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/components/select";
+import { Switch } from "@/ui/components/switch";
+import { Textarea } from "@/ui/components/textarea";
+import type { Account } from "@/types";
+import type { CreditConfig, PaymentDoc } from "./types";
+
+interface PaymentEntryFormProps {
+  doc: PaymentDoc;
+  accounts: Account[];
+  isAccountsEnabled: boolean;
+  formatCurrency: (n: number) => string;
+  paymentAmount: string;
+  setPaymentAmount: (v: string) => void;
+  paymentAccountId: string;
+  setPaymentAccountId: (v: string) => void;
+  paymentNotes: string;
+  setPaymentNotes: (v: string) => void;
+  isSubmitting: boolean;
+  onCancel: () => void;
+  onSubmit: () => void;
+  /** Pass `undefined` for flows that do not support counterparty credit. */
+  credit?: CreditConfig;
+}
+
+export function PaymentEntryForm({
+  doc,
+  accounts,
+  isAccountsEnabled,
+  formatCurrency,
+  paymentAmount,
+  setPaymentAmount,
+  paymentAccountId,
+  setPaymentAccountId,
+  paymentNotes,
+  setPaymentNotes,
+  isSubmitting,
+  onCancel,
+  onSubmit,
+  credit,
+}: PaymentEntryFormProps) {
+  if (!isAccountsEnabled || doc.dueAmount <= 0 || doc.status === "cancelled") return null;
+
+  const creditEnabled = credit?.enabled ?? false;
+  const maxPayableViaCredit = credit ? Math.min(doc.dueAmount, credit.available) : 0;
+  const maxAmount = creditEnabled ? maxPayableViaCredit : doc.dueAmount;
+  const canToggleCredit = !!credit && credit.available > 0;
+
+  return (
+    <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-medium">Payment entry</div>
+          <div className="text-sm text-muted-foreground">
+            Due amount: {formatCurrency(doc.dueAmount)}
+          </div>
+        </div>
+        <Badge variant="outline" className="capitalize">
+          {doc.status}
+        </Badge>
+      </div>
+
+      {canToggleCredit && credit && (
+        <div className="flex items-start justify-between gap-3 rounded-md border bg-background p-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="use-credit" className="text-sm font-medium">
+              {credit.label}
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {credit.description ??
+                `Available: ${formatCurrency(credit.available)} — applies up to ${formatCurrency(
+                  maxPayableViaCredit,
+                )}`}
+            </p>
+          </div>
+          <Switch
+            id="use-credit"
+            checked={credit.enabled}
+            onCheckedChange={(checked) => {
+              credit.setEnabled(checked);
+              if (checked) setPaymentAmount(maxPayableViaCredit.toFixed(2));
+            }}
+            disabled={isSubmitting}
+          />
+        </div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="pay-amount">Payment Amount</Label>
+          <Input
+            id="pay-amount"
+            type="number"
+            step="0.01"
+            min="0.01"
+            max={maxAmount}
+            value={paymentAmount}
+            onChange={(e) => setPaymentAmount(e.target.value)}
+            placeholder="Enter amount"
+          />
+        </div>
+
+        {!creditEnabled && (
+          <div className="space-y-2">
+            <Label htmlFor="pay-account">Payment Account</Label>
+            <Select value={paymentAccountId} onValueChange={setPaymentAccountId}>
+              <SelectTrigger id="pay-account">
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((account) => (
+                  <SelectItem key={account._id} value={account._id}>
+                    {account.name}
+                    {account.type ? ` (${account.type})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="pay-notes">Notes</Label>
+          <Textarea
+            id="pay-notes"
+            value={paymentNotes}
+            onChange={(e) => setPaymentNotes(e.target.value)}
+            placeholder="Add notes about this payment..."
+            rows={2}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button
+          onClick={onSubmit}
+          disabled={isSubmitting || !paymentAmount || (!creditEnabled && !paymentAccountId)}
+        >
+          {isSubmitting ? "Processing..." : "Record Payment"}
+        </Button>
+      </div>
+    </div>
+  );
+}

@@ -309,6 +309,33 @@ export function RefundAllocationCard({
               <span>{formatCurrency(customerCreditAmount)}</span>
             </div>
           )}
+
+          {(() => {
+            const allocated =
+              adjustDocumentDueAmount +
+              totalOtherDuesAllocated +
+              accountRefundAmount +
+              customerCreditAmount;
+            const diff = totalRefundAmount - allocated;
+            const balanced = Math.abs(diff) < 0.01;
+            return (
+              <div
+                className={`flex items-center justify-between rounded-md border px-3 py-2 text-xs font-medium ${
+                  balanced
+                    ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300'
+                    : 'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300'
+                }`}
+              >
+                <span>
+                  {balanced ? '✓ Allocation balanced' : '✗ Allocation off'}
+                </span>
+                <span>
+                  {formatCurrency(allocated)} / {formatCurrency(totalRefundAmount)}
+                  {!balanced && ` (Δ ${formatCurrency(Math.abs(diff))})`}
+                </span>
+              </div>
+            );
+          })()}
         </div>
       </CardContent>
     </Card>

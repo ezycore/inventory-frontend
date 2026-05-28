@@ -133,10 +133,10 @@ export function usePurchaseReturnsPage() {
     selectedOrderId || "",
   );
   const pendingDues = useMemo(
-    () =>
-      ((pendingDuesData as { data?: unknown } | undefined)?.data as Array<
-        Record<string, unknown>
-      >) || [],
+    () => {
+      const inner = (pendingDuesData as { data?: { dues?: unknown } } | undefined)?.data;
+      return ((inner?.dues as Array<Record<string, unknown>>) || []);
+    },
     [pendingDuesData],
   );
 
