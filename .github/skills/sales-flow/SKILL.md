@@ -44,7 +44,7 @@ Customers list ──► CustomerLedgerSheet ──► header: opening / sales /
 | [app/(protected)/sales/page.tsx](../../../app/(protected)/sales/page.tsx) | Sell / POS page |
 | [app/(protected)/sales/history/page.tsx](../../../app/(protected)/sales/history/page.tsx) | Sales history table |
 | [app/(protected)/sales/returns/page.tsx](../../../app/(protected)/sales/returns/page.tsx) | Sales returns table |
-| [app/(protected)/sales/customers/page.tsx](../../../app/(protected)/sales/customers/page.tsx) | Customer list w/ "View Ledger" |
+| [app/(protected)/customers/page.tsx](../../../app/(protected)/customers/page.tsx) | Customer list w/ "View Ledger" |
 
 ### Components
 | File | Purpose |

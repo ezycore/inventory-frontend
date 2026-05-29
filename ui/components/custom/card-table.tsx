@@ -127,8 +127,6 @@ export function CardTable<TData, TValue = any>({
     open: boolean;
     action: TableAction | null;
   }>({ open: false, action: null });
-  console.log("Rendering CardTable with data:", data);
-  console.log("Columns:", columns);
   // Memoize columns to prevent unnecessary re-renders
   const memoizedColumns = useMemo(() => columns, [columns]);
 

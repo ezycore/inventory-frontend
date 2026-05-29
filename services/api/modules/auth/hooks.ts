@@ -64,15 +64,36 @@ export function useLogin(show2FASetter: (show: boolean) => void) {
 }
 
 // Logout mutation hook
-export function useLogout() {
+export function  useLogout() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { clearAuth } = useAuthStore();
+
   return () => {
+    // Client-only logout: clear auth state (also removes cookies via store impl)
     clearAuth();
-    router.push("/login");
+
+    // Remove sensitive / session-local localStorage keys
+    try {
+      const sensitiveKeys = [
+        'easystock-auth',
+        'sell-page-storage',
+        'sales-order-storage',
+        'purchase-page-storage',
+        'sales-storage',
+        'sales-return-storage',
+        'stock-transfer-storage',
+        'stock-adjustment-storage',
+      ];
+
+      sensitiveKeys.forEach((k) => localStorage.removeItem(k));
+    } catch (e) {
+      // ignore localStorage errors (privacy mode / SSR safety)
+    }
+    // Clear react-query cache and redirect
     queryClient.clear();
-    handleMutationSuccess("Logged out successfully");
+    router.push('/login');
+    handleMutationSuccess('Logged out successfully');
   };
 }
 

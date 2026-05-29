@@ -1,9 +1,29 @@
+import { z } from "zod";
 import type { DynamicFormConfig, FormFieldConfig } from "@/ui/components/form/type";
 import { accountItemsCreateCallback, customerItemsCreateCallback, productItemsCreateCallback } from "../sales";
 
-/**
- * Supplier form configuration (Step 1 - Select Supplier & Purchase Settings)
- */
+export const productFormSchema = z.object({
+  productId: z.union([
+    z.string().min(1, "Product is required"),
+    z.object({
+      label: z.string(),
+      value: z.string(),
+      price: z.number().optional(),
+      conversionFactor: z.number().optional(),
+      productId: z.string().optional(),
+      variantId: z.string().nullable().optional(),
+      purchaseUnitName: z.string().nullable().optional(),
+    }),
+  ]),
+  quantity: z.number().min(1, "Quantity must be at least 1"),
+  convertedQuantity: z.number().min(0),
+  price: z.number().min(0),
+  discount: z.number().min(0),
+  costPrice: z.number().min(0),
+  rememberCostPrice: z.boolean().optional(),
+  stock: z.string().optional(),
+});
+
 export const getSupplierFormConfig = (): DynamicFormConfig => {
   const fields: FormFieldConfig[] = [
     {
@@ -59,9 +79,6 @@ export const getSupplierFormConfig = (): DynamicFormConfig => {
   return { fields };
 };
 
-/**
- * Product form configuration (Step 2 - Add Products to Order)
- */
 export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig => {
   const fields: FormFieldConfig[] = [
     {
@@ -90,7 +107,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       disabled: true,
       placeholder: "1",
       columnSpan: 4,
-      hidden: true
+      hidden: true,
     },
     {
       name: "quantity",
@@ -100,14 +117,10 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
       placeholder: "1",
       columnSpan: 4,
       validation: { min: 1 },
-      suffix: (values: any) =>
-        values?.productId?.purchaseUnitName ||
-        values?.productId?.unitName ||
-        "",
+      suffix: (values: any) => values?.productId?.purchaseUnitName || values?.productId?.unitName || "",
     },
   ];
 
-  // Add pricing fields
   fields.push(
     {
       name: "price",
@@ -149,12 +162,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
   return { fields };
 };
 
-/**
- * Payment form configuration (shown in sidebar summary)
- */
-export const getPaymentFormConfig = (
-  isAccountsEnabled: boolean,
-): DynamicFormConfig => {
+export const getPaymentFormConfig = (isAccountsEnabled: boolean): DynamicFormConfig => {
   const fields: FormFieldConfig[] = [];
 
   if (isAccountsEnabled) {
