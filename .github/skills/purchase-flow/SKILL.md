@@ -19,8 +19,8 @@ Mirror of the backend purchase-flow skill, focused on FE wiring. Money flow is i
 | Path | Purpose |
 |------|---------|
 | `app/(protected)/purchases/page.tsx` | Create PO (per-supplier cart, payment form) |
-| `app/(protected)/purchases/created-orders/page.tsx` | Draft / ordered PO list |
-| `app/(protected)/purchases/created-orders/[id]/edit/page.tsx` | Edit pending PO |
+| `app/(protected)/purchases/orders/page.tsx` | Draft / ordered PO list |
+| `app/(protected)/purchases/orders/[id]/edit/page.tsx` | Edit pending PO |
 | `app/(protected)/purchases/history/page.tsx` | Received PO list + `SummaryCards` (StatsCard) + payment drawer trigger |
 | `app/(protected)/purchases/returns/page.tsx` | Purchase return list + `SummaryCards` (StatsCard) + return details |
 | `app/(protected)/suppliers/page.tsx` | Suppliers list + `SupplierLedgerSheet` |

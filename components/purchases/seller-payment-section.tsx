@@ -61,6 +61,7 @@ export function SellerPaymentSection({
     if (initRef.current === seller.id) return;
     if (accounts.length === 0) return;
     if (netAmount <= 0) return;
+    if (seller.purchaseType === "order") return; // order type: paid amount stays 0
     if (seller.paymentInfo) return; // user already touched payment
 
     const defaultAccount = accounts.find((a) => a.isDefault) || accounts[0];

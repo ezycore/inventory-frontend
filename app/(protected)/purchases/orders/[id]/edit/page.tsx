@@ -70,7 +70,7 @@ export default function EditPurchaseOrderPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push("/purchases/created-orders")}
+            onClick={() => router.push("/purchases/orders")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -293,7 +293,7 @@ export default function EditPurchaseOrderPage() {
 
                 <Button
                   variant="outline"
-                  onClick={() => router.push("/purchases/created-orders")}
+                  onClick={() => router.push("/purchases/orders")}
                   className="w-full"
                   disabled={ctx.isSaving}
                 >

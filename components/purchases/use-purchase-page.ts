@@ -83,7 +83,7 @@ export function usePurchasePage() {
   const draftOrder = draftResp?.data?.data as any | undefined;
   const hydratedDraftIdRef = useRef<string | null>(null);
 
-  const supplierFormConfig = useMemo(() => getSupplierFormConfig(), []);
+  const supplierFormConfig = useMemo(() => getSupplierFormConfig(isDraftMode), [isDraftMode]);
   const productFormConfig = useMemo(() => getProductFormConfig(isUOMEnabled), [isUOMEnabled]);
 
   const supplierForm = useForm({
@@ -163,9 +163,9 @@ export function usePurchasePage() {
         inventoryId: inventoryIdStr,
         productName: it.productName,
         quantity: it.quantity,
-        costPrice: it.costPrice * cf,
-        price: it.price * cf,
-        discount: perUnitDiscount * cf,
+        costPrice: it.costPrice,
+        price: it.price,
+        discount: perUnitDiscount,
         conversionFactor: cf,
         purchaseUnitName: it.purchaseUnitName ?? undefined,
         unitName: it.unitName ?? undefined,

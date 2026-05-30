@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccounts } from "@/services/api";
+import { useAccounts, useDefaultAccount } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { Account, PurchaseOrder, ReceivePurchaseOrderDto } from "@/types";
 import { Badge } from "@/ui/components/badge";
@@ -16,13 +16,7 @@ import {
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { Separator } from "@/ui/components/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/components/select";
+import SimpleSelect from "@/ui/components/simple-select";
 import {
   Table,
   TableBody,
@@ -34,9 +28,10 @@ import {
 import {
   CreditCard,
   PackageCheck,
-  Wallet,
+  Pencil,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   buildReceiveItemsFromOrder,
@@ -62,8 +57,16 @@ export function ReceiveItemsDialog({
   isPending,
   onSubmit,
 }: ReceiveItemsDialogProps) {
+  const router = useRouter();
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+
+  const { data: accountsData } = useAccounts({ all: true });
+  const accounts: Account[] = useMemo(
+    () => (accountsData?.items as Account[]) ?? [],
+    [accountsData],
+  );
+  const { data: defaultAccount } = useDefaultAccount();
 
   const [receiveItems, setReceiveItems] = useState<ItemReceiveState[]>([]);
   const [accountId, setAccountId] = useState<string>("");
@@ -73,16 +76,10 @@ export function ReceiveItemsDialog({
   useEffect(() => {
     if (open && order) {
       setReceiveItems(buildReceiveItemsFromOrder(order));
-      setAccountId("");
-      setPaidAmount("");
+      setPaidAmount(String(order.dueAmount ?? ""));
+      setAccountId((defaultAccount as Account | undefined)?._id ?? "");
     }
-  }, [open, order]);
-
-  const { data: accountsData } = useAccounts({ all: true });
-  const accounts: Account[] = useMemo(
-    () => (accountsData?.items as Account[]) ?? [],
-    [accountsData],
-  );
+  }, [open, order, defaultAccount]);
 
   const currentDue = order?.dueAmount ?? 0;
   const parsedPaid = Math.max(0, parseFloat(paidAmount) || 0);
@@ -159,8 +156,8 @@ export function ReceiveItemsDialog({
               <TableRow>
                 <TableHead>Product</TableHead>
                 <TableHead className="text-right">Ordered</TableHead>
-                <TableHead className="text-right">Remaining</TableHead>
-                <TableHead className="text-right w-32">Receive Qty</TableHead>
+                {/* <TableHead className="text-right">Remaining</TableHead> */}
+                {/* <TableHead className="text-right w-32">Receive Qty</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -172,13 +169,14 @@ export function ReceiveItemsDialog({
                   <TableCell className="text-right text-muted-foreground">
                     {(order?.items[index]?.quantity ?? 0)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  {/* <TableCell className="text-right">
                     <Badge variant="outline">{item.maxQuantity}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
+                  </TableCell> */}
+                  {/* <TableCell className="text-right">
                     <Input
                       type="number"
                       min={0}
+                      disabled={true}
                       max={item.maxQuantity}
                       value={item.receivedQuantity}
                       onChange={(e) =>
@@ -186,7 +184,7 @@ export function ReceiveItemsDialog({
                       }
                       className="w-24 text-right ml-auto"
                     />
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
               ))}
             </TableBody>
@@ -230,13 +228,25 @@ export function ReceiveItemsDialog({
             <div className="space-y-3">
               <div className="flex items-center gap-2 font-medium text-sm">
                 <CreditCard className="h-4 w-4" />
-                Payment (optional)
+                Payment
                 <span className="text-xs font-normal text-muted-foreground">
                   Leave empty to keep as due
                 </span>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-4">
+                <div className="space-y-1.5 col-span-2">
+                  <Label>Account</Label>
+                  <SimpleSelect
+                    value={accountId}
+                    onValueChange={setAccountId}
+                    options={accounts.map((acc) => ({
+                      label: acc.name,
+                      value: acc._id,
+                    }))}
+                    placeholder="Select account"
+                  />
+                </div>
                 <div className="space-y-1.5 col-span-2">
                   <Label htmlFor="receive-paid">Paid Amount</Label>
                   <Input
@@ -249,24 +259,6 @@ export function ReceiveItemsDialog({
                     onChange={(e) => setPaidAmount(e.target.value)}
                     placeholder="0.00"
                   />
-                </div>
-                <div className="space-y-1.5 col-span-2">
-                  <Label>Account</Label>
-                  <Select value={accountId} onValueChange={setAccountId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select account" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {accounts.map((acc) => (
-                        <SelectItem key={acc._id} value={acc._id}>
-                          <span className="flex items-center gap-2">
-                            <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
-                            {acc.name}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
@@ -282,14 +274,27 @@ export function ReceiveItemsDialog({
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              onOpenChange(false);
+              if (order) router.push(`/purchases/orders/${order._id}/edit`);
+            }}
             disabled={isPending}
           >
-            Cancel
+            <Pencil className="h-4 w-4 mr-1" />
+            Edit Order
           </Button>
-          <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending ? "Processing..." : "Confirm Receipt"}
-          </Button>
+          <div className="flex gap-2 ml-auto">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={isPending}>
+              {isPending ? "Processing..." : "Confirm Receipt"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

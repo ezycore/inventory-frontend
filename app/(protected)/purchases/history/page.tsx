@@ -82,6 +82,8 @@ export default function PurchaseHistoryPage() {
       </Card>
 
       {/* Purchase Summary & Payment Drawer */}
+      <ctx.DeleteDraftConfirmDialog />
+
       <PaymentsDrawer
         open={ctx.drawerOpen}
         onOpenChange={ctx.setDrawerOpen}

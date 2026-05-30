@@ -35,7 +35,7 @@ export default function CreatedOrdersPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Created Orders</h1>
+          <h1 className="text-3xl font-bold">Orders</h1>
           <p className="text-muted-foreground">
             Manage purchase orders awaiting delivery
           </p>
@@ -157,7 +157,7 @@ export default function CreatedOrdersPage() {
         }}
         onEditOrder={(order) => {
           ctx.setViewDrawerOpen(false);
-          router.push(`/purchases/created-orders/${order._id}/edit`);
+          router.push(`/purchases/orders/${order._id}/edit`);
         }}
       />
 

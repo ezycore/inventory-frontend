@@ -72,7 +72,7 @@ export function useCreatedOrdersPage() {
 
   const handleEditOrder = useCallback(
     (order: PurchaseOrder) => {
-      router.push(`/purchases/created-orders/${order._id}/edit`);
+      router.push(`/purchases/orders/${order._id}/edit`);
     },
     [router],
   );

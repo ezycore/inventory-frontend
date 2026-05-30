@@ -16,7 +16,8 @@ import { useCurrency } from "@/lib/currency";
 import { usePurchaseOrder, useUpdatePurchaseOrder } from "@/services/api";
 import { useAuthStore, type PurchaseOrderItem } from "@/services/stores";
 import type { CreatePurchaseOrderItemDto, UpdatePurchaseOrderDto } from "@/types";
-import type { SupplierFormData, ProductFormData } from "@/components/purchases";
+import type { SupplierFormData } from "@/components/purchases";
+import { useRouter } from "next/navigation";
 
 const productFormSchema = z.object({
   productId: z.union([
@@ -29,6 +30,7 @@ const productFormSchema = z.object({
       productId: z.string().optional(),
       variantId: z.string().nullable().optional(),
       purchaseUnitName: z.string().nullable().optional(),
+      unitName: z.string().nullable().optional(),
     }),
   ]),
   quantity: z.number().min(1, "Quantity must be at least 1"),
@@ -43,6 +45,7 @@ const productFormSchema = z.object({
 export type ProductFormValues = z.infer<typeof productFormSchema>;
 
 export function useEditPurchaseOrder(orderId: string | undefined) {
+  const router = useRouter();
   const { format: formatCurrency, symbol } = useCurrency();
   const { user } = useAuthStore();
   const isUOMEnabled = user?.organization?.features?.uomConversion ?? false;
@@ -121,8 +124,8 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
           quantity: qty,
           price: it.price,
           costPrice,
-          discount: it.discount ?? 0,
-          total: costPrice * qty * conversionFactor,
+          discount: Math.max(0, (it.price ?? 0) - costPrice),
+          total: costPrice * qty,
           conversionFactor,
           convertedQuantity: qty * conversionFactor,
           purchaseUnitName: it.purchaseUnitName ?? undefined,
@@ -143,19 +146,21 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
           }
         : null,
       purchaseType: order.status === "draft" ? "order" : "order",
-      discountType: "fixed",
-      discountValue: 0,
+      discountType: (() => {
+        const d = order.supplierId?.defaultDiscountId;
+        return (d && typeof d === "object" ? d.type : undefined) ?? "percentage";
+      })(),
+      discountValue: (() => {
+        const d = order.supplierId?.defaultDiscountId;
+        return (d && typeof d === "object" ? d.value : undefined) ?? 0;
+      })(),
       invoiceNumber: order.invoiceNumber ?? "",
       invoiceDate: order.invoiceDate ? order.invoiceDate.slice(0, 10) : "",
     });
   }, [order]);
 
   const subtotal = useMemo(
-    () =>
-      items.reduce(
-        (sum, item) => sum + item.costPrice * (item.convertedQuantity || item.quantity),
-        0,
-      ),
+    () => items.reduce((sum, item) => sum + item.costPrice * item.quantity, 0),
     [items],
   );
 
@@ -183,10 +188,19 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
           const quantity = productForm.getValues("quantity") || 1;
           const conversionFactor = product.conversionFactor || 1;
           const boxPrice = product.price * conversionFactor;
+          const discountType = supplierForm.getValues("discountType") || "percentage";
+          const discountValue = supplierForm.getValues("discountValue") || 0;
+          let boxDiscount = 0;
+          if (discountType === "percentage") {
+            boxDiscount = parseFloat(((boxPrice * discountValue) / 100).toFixed(2));
+          } else {
+            boxDiscount = discountValue;
+          }
+          const boxCostPrice = Math.max(0, boxPrice - boxDiscount);
           productForm.setValue("convertedQuantity", quantity * conversionFactor);
           productForm.setValue("price", boxPrice);
-          productForm.setValue("discount", 0);
-          productForm.setValue("costPrice", boxPrice);
+          productForm.setValue("discount", boxDiscount);
+          productForm.setValue("costPrice", boxCostPrice);
           productForm.setValue(
             "stock",
             product.purchaseUnitName
@@ -211,7 +225,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         productForm.setValue("discount", Math.max(0, boxPrice - boxCostPrice));
       }
     },
-    [productForm],
+    [productForm, supplierForm],
   );
 
   const handleAddItem = useCallback(
@@ -222,9 +236,6 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         return;
       }
       const conversionFactor = product.conversionFactor || 1;
-      const perUnitPrice = (data.price || 0) / conversionFactor;
-      const perUnitCostPrice = (data.costPrice || 0) / conversionFactor;
-      const perUnitDiscount = (data.discount || 0) / conversionFactor;
       const newItem: PurchaseOrderItem = {
         id: uuidv4(),
         productId: product.productId,
@@ -232,16 +243,24 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         inventoryId: product.value,
         productName: product.label,
         quantity: data.quantity,
-        price: perUnitPrice,
-        costPrice: perUnitCostPrice,
-        discount: perUnitDiscount,
-        total: perUnitCostPrice * data.convertedQuantity,
+        price: data.price || 0,
+        costPrice: data.costPrice || 0,
+        discount: data.discount || 0,
+        total: (data.costPrice || 0) * data.quantity,
         conversionFactor,
         convertedQuantity: data.convertedQuantity,
         unitName: product.unitName ?? undefined,
         purchaseUnitName: product.purchaseUnitName ?? undefined,
       };
-      setItems((prev) => [...prev, newItem]);
+      setItems((prev) => {
+        const existingIndex = prev.findIndex((i) => i.inventoryId === product.value);
+        if (existingIndex !== -1) {
+          const updated = [...prev];
+          updated[existingIndex] = { ...newItem, id: prev[existingIndex].id };
+          return updated;
+        }
+        return [...prev, newItem];
+      });
       toast.success(`${product.label} added`);
       productForm.reset({
         productId: "",
@@ -310,15 +329,14 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
               discount: data.discount,
               costPrice: data.costPrice,
               convertedQuantity: data.convertedQuantity,
-              total: data.costPrice * data.convertedQuantity,
+              total: data.costPrice * data.quantity,
             }
           : it,
       ),
     );
-    toast.success("Item updated");
     setIsEditDialogOpen(false);
     setEditingItem(null);
-  }, [editForm, editingItem]);
+  }, [editForm, editingItem, router]);
 
   const handleSave = useCallback(async () => {
     if (!order) return;
@@ -355,10 +373,11 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
 
     try {
       await updateMutation.mutateAsync({ id: order._id, ...payload });
+      router.push("/purchases/orders");
     } catch {
       // mutation toasts
     }
-  }, [order, items, additionalDiscount, invoiceNumber, invoiceDate, notes, updateMutation]);
+  }, [order, items, additionalDiscount, invoiceNumber, invoiceDate, notes, updateMutation, router]);
 
   const isEditable = order?.status === "ordered" || order?.status === "draft";
 

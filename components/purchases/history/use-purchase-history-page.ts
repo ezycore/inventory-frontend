@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useConfirm } from "@/hooks/use-confirm";
 import { format } from "date-fns";
 
 import {
@@ -69,6 +70,7 @@ export function usePurchaseHistoryPage() {
   const { data: accountsData } = useAccounts();
   const addPaymentMutation = useAddPurchasePayment();
   const deleteDraftMutation = useDeleteDraftPurchaseOrder();
+  const { confirm, ConfirmDialog: DeleteDraftConfirmDialog } = useConfirm();
   const { data: summaryData, isLoading: isSummaryLoading } =
     usePurchaseOrdersSummary();
 
@@ -108,18 +110,20 @@ export function usePurchaseHistoryPage() {
   }, []);
 
   const handleDeleteDraft = useCallback(async (order: PurchaseOrder) => {
-    if (typeof window !== "undefined") {
-      const ok = window.confirm(
-        `Permanently delete draft ${order.orderNumber}? This cannot be undone.`,
-      );
-      if (!ok) return;
-    }
+    const ok = await confirm({
+      title: "Delete Draft Order?",
+      description: `"${order.orderNumber}" will be permanently deleted. This action cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      confirmClassName: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+    });
+    if (!ok) return;
     try {
       await deleteDraftMutation.mutateAsync(order._id);
     } catch {
       // toast handled by mutation
     }
-  }, [deleteDraftMutation]);
+  }, [confirm, deleteDraftMutation]);
 
   const handleEditDraft = useCallback(
     (order: PurchaseOrder) => {
@@ -275,5 +279,8 @@ export function usePurchaseHistoryPage() {
     isAccountsEnabled,
     formatCurrency,
     formatDateTime,
+
+    // Dialogs
+    DeleteDraftConfirmDialog,
   };
 }

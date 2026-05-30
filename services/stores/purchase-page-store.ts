@@ -303,9 +303,14 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
 
       setPurchaseType: (sellerId, type) => {
         set((state) => ({
-          sellers: state.sellers.map((seller) =>
-            seller.id === sellerId ? { ...seller, purchaseType: type } : seller,
-          ),
+          sellers: state.sellers.map((seller) => {
+            if (seller.id !== sellerId) return seller;
+            // When switching to 'order', clear any pre-filled payment so paid amount defaults to 0
+            if (type === "order") {
+              return { ...seller, purchaseType: type, paymentInfo: null, creditApplied: 0 };
+            }
+            return { ...seller, purchaseType: type };
+          }),
         }));
       },
 
@@ -461,10 +466,8 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
               if (item.id !== itemId) return item;
 
               const updatedItem = { ...item, ...data };
-              // Recalculate total
-              updatedItem.total =
-                updatedItem.quantity * updatedItem.price -
-                (updatedItem.discount || 0);
+              // Recalculate total (discount is per-unit, so multiply by quantity)
+              updatedItem.total = calculateItemTotal(updatedItem);
 
               return updatedItem;
             });

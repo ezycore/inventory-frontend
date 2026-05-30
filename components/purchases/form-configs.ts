@@ -25,7 +25,7 @@ export const productFormSchema = z.object({
   stock: z.string().optional(),
 });
 
-export const getSupplierFormConfig = (): DynamicFormConfig => {
+export const getSupplierFormConfig = (isDraft = false): DynamicFormConfig => {
   const fields: FormFieldConfig[] = [
     {
       name: "supplierId",
@@ -40,6 +40,10 @@ export const getSupplierFormConfig = (): DynamicFormConfig => {
       columnSpan: 6,
       quickAddModule: "supplier",
       creatable: true,
+      ...(isDraft && {
+        disabled: true,
+        helperText: "Can't change supplier in draft order",
+      }),
     },
     {
       name: "purchaseType",

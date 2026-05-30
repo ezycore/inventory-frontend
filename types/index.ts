@@ -816,7 +816,8 @@ export interface Account extends BaseEntity {
   accountNumber?: string;
   description?: string;
   isDefault: boolean;
-  isActive: boolean;
+  isActive?: boolean;
+  status?: "active" | "inactive";
 }
 
 export interface CreateAccountDto {
