@@ -192,6 +192,7 @@ Both directions powered by `GET /sales/:id/transactions` (backend merges & links
 | Credit balance not deducted on payment | Forgot to send `useCreditBalance: true` | Wire toggle into mutation payload |
 | Store credit not applied on a new sale (wallet unchanged, sale shows full due) | Sell page forgot to send `creditBalanceAmount` in `CreateSalesOrderData` | Include `creditBalanceAmount` in the `POST /sales` body — do NOT chain a separate `addPayment` call for credit on creation |
 | Customer ledger out of order | Page boundaries cut across sale/payment/return | BE returns raw `sales[] + payments[] + returns[] + inboundCredits[]` — merge & sort client-side by `createdAt` for display, use `creditBalance` for the header chip |
+| Allocation 400 / sum off by a fraction (e.g. `...500.00000000000006`) | JS float drift in derived totals sent unrounded | Round every money field to 2dp with `roundMoney` from `@/lib/money` before building the payload (item `price`/`costPrice`/`discount`/`refundAmount`, `adjustSaleDue`, `adjustOtherDues[].amount`, `accountRefund.amount`, `customerCredit.amount`, `deductionAmount`, payment `amount`). BE also normalizes at the Zod boundary via `moneyAmount().transform(roundMoney)` (`validators/common.ts`). Shared helper: `frontend/lib/money.ts` ⇄ `backend/src/utils/money.ts`. |
 
 ---
 

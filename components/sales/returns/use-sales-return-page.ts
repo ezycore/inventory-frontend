@@ -17,6 +17,7 @@ import {
 import type { RefundAllocation } from '@/services/api/modules/sales-returns/api';
 import { useAuthStore } from '@/services/stores';
 import { useCurrency } from '@/lib/currency';
+import { roundMoney } from '@/lib/money';
 import type {
   Sale,
   SalesReturn,
@@ -205,10 +206,10 @@ export function useSalesReturnPage() {
       inventoryId: item.inventoryId,
       productName: item.productName,
       quantity: item.returnQty,
-      price: item.price,
-      costPrice: item.costPrice,
-      discount: item.discount,
-      refundAmount: item.refundAmount,
+      price: roundMoney(item.price),
+      costPrice: roundMoney(item.costPrice),
+      discount: roundMoney(item.discount ?? 0),
+      refundAmount: roundMoney(item.refundAmount),
     }));
 
     if (items.length === 0) {
@@ -223,7 +224,9 @@ export function useSalesReturnPage() {
 
       const saleDueAmount = sale?.dueAmount ?? 0;
       if (adjustSaleDueAmount > 0 && saleDueAmount > 0) {
-        refundAllocation.adjustSaleDue = Math.min(adjustSaleDueAmount, saleDueAmount);
+        refundAllocation.adjustSaleDue = roundMoney(
+          Math.min(adjustSaleDueAmount, saleDueAmount),
+        );
       }
 
       const selectedDues = allocationHook.dueAllocations.filter(
@@ -233,20 +236,22 @@ export function useSalesReturnPage() {
         refundAllocation.adjustOtherDues = selectedDues.map((d) => ({
           dueId: d.dueId,
           saleId: d.saleId,
-          amount: d.allocatedAmount,
+          amount: roundMoney(d.allocatedAmount),
         }));
       }
 
       if (allocationHook.accountRefundAmount > 0 && allocationHook.selectedAccountId) {
         refundAllocation.accountRefund = {
           accountId: allocationHook.selectedAccountId,
-          amount: allocationHook.accountRefundAmount,
+          amount: roundMoney(allocationHook.accountRefundAmount),
           paymentMethod: 'cash',
         };
       }
 
       if (allocationHook.customerCreditAmount > 0) {
-        refundAllocation.customerCredit = { amount: allocationHook.customerCreditAmount };
+        refundAllocation.customerCredit = {
+          amount: roundMoney(allocationHook.customerCreditAmount),
+        };
       }
     }
 
@@ -257,7 +262,9 @@ export function useSalesReturnPage() {
         reason,
         notes: notes || undefined,
         deductionAmount:
-          allocationHook.deductionAmount > 0 ? allocationHook.deductionAmount : undefined,
+          allocationHook.deductionAmount > 0
+            ? roundMoney(allocationHook.deductionAmount)
+            : undefined,
         refundAllocation,
       });
       handleClearSearch();

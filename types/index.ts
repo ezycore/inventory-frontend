@@ -1235,12 +1235,22 @@ export interface CreatePurchaseReturnDto {
   notes?: string;
   deductionAmount?: number;
   refundAllocation?: {
-    // Backend expects 'adjustSupplierDue' not 'adjustPurchaseDue'
-    adjustSupplierDue?: number;
+    // Adjust the due amount on THIS purchase order
+    adjustPurchaseDue?: number;
+    // Apply credit to other unpaid purchase orders from the same supplier
+    adjustOtherDues?: {
+      dueId: string;
+      purchaseOrderId: string;
+      amount: number;
+    }[];
     accountRefund?: {
       accountId: string;
       amount: number;
       paymentMethod: string;
+    };
+    // Park the remainder as supplier credit balance
+    supplierCredit?: {
+      amount: number;
     };
   };
 }

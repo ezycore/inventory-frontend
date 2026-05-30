@@ -266,13 +266,13 @@ export function ReturnDetailsSheet({
                         {cfg.showSalePrice && item.price != null && (
                           <InfoField label="Sale Price" value={item.price} showCurrency quantity={item.quantity}/>
                         )}
-                        <InfoField label="Cost Price" value={item.costPrice} showCurrency quantity={item.quantity}/>
+                        <InfoField label="Cost Price" value={item.costPrice * item.quantity * (item.conversionFactor ?? 1)} showCurrency/>
                         {(item.discount ?? 0) > 0 && (
                           <InfoField label="Discount" value={item.discount ?? 0} showCurrency />
                         )}
-                        {item.conversionFactor != null && item.conversionFactor > 1 && (
+                        {/* {item.conversionFactor != null && item.conversionFactor > 1 && (
                           <InfoField label="Conv. Factor" value={item.conversionFactor} />
-                        )}
+                        )} */}
                         <InfoField
                           label="Refund"
                           value={`${cfg.totalRefundPrefix}${formatCurrency(item.refundAmount)}`}
