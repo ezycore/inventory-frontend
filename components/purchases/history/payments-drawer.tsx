@@ -124,7 +124,7 @@ export function PaymentsDrawer({
                 />
               )}
 
-              <PurchaseDetailsBlock order={order} />
+              <PurchaseDetailsBlock order={order} purchaseReturns={purchaseReturns} />
               <PurchaseItemsList order={order} />
 
               <ReturnsHistoryList

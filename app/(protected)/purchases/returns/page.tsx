@@ -98,6 +98,7 @@ function PurchaseReturnsPageContent() {
             totalAmount={ctx.order.invoiceAmount ?? 0}
             paidAmount={ctx.order.paidAmount ?? 0}
             dueAmount={ctx.order.dueAmount ?? 0}
+            refundCreditApplied={ctx.order.refundCreditApplied ?? 0}
             formatCurrency={ctx.formatCurrency}
           />
 
@@ -149,6 +150,8 @@ function PurchaseReturnsPageContent() {
               accountRefundAmount={ctx.accountRefundAmount}
               onAccountRefundChange={ctx.setAccountRefundAmount}
               totalOtherDuesAllocated={ctx.totalOtherDuesAllocated}
+              supplierCreditAmount={ctx.supplierCreditAmount}
+              onSupplierCreditChange={ctx.setSupplierCreditAmount}
             />
           )}
 

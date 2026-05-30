@@ -82,7 +82,7 @@ export function PaymentHistoryList({
                     +{formatCurrency(payment.amount)}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {format(new Date(payment.createdAt), "dd MMM yyyy HH:mm")}
+                    {format(new Date(payment.createdAt), "dd MMM yyyy hh:mm aa")}
                   </div>
                 </div>
                 <Badge variant="outline" className="capitalize">

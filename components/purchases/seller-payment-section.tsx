@@ -84,10 +84,10 @@ export function SellerPaymentSection({
     setPaymentInfo,
   ]);
 
-  // Max credit we can apply: cannot exceed available balance or amount left after cash paid
+  // Max credit we can apply: cannot exceed available balance or the total net amount
   const maxCreditApplicable = Math.max(
     0,
-    Math.min(supplierCreditBalance, Math.max(0, netAmount - paidAmount)),
+    Math.min(supplierCreditBalance, netAmount),
   );
 
   const updatePayment = (nextAccountId: string, nextPaid: number) => {
@@ -134,25 +134,64 @@ export function SellerPaymentSection({
         </div>
       )}
 
+       {showCredit && (
+        <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <Label
+              htmlFor={`use-credit-${seller.id}`}
+              className="flex items-center gap-2 text-sm font-medium cursor-pointer"
+            >
+              <WalletIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              Apply supplier credit
+            </Label>
+            <Switch
+              id={`use-credit-${seller.id}`}
+              checked={creditApplied > 0}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  const credit = maxCreditApplicable;
+                  setCreditApplied(seller.id, credit);
+                  updatePayment(accountId, Math.max(0, netAmount - credit));
+                } else {
+                  setCreditApplied(seller.id, 0);
+                  updatePayment(accountId, netAmount);
+                }
+              }}
+            />
+          </div>
+          {creditApplied > 0 && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                Max {formatCurrency(maxCreditApplicable)}
+              </span>
+              <Input
+                type="number"
+                min={0}
+                max={maxCreditApplicable}
+                step="1"
+                value={creditApplied}
+                onChange={(e) => {
+                  const v = Math.max(
+                    0,
+                    Math.min(
+                      maxCreditApplicable,
+                      parseFloat(e.target.value) || 0,
+                    ),
+                  );
+                  setCreditApplied(seller.id, v);
+                  updatePayment(accountId, Math.max(0, netAmount - v));
+                }}
+                className="w-28 h-8 text-right text-sm"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {isAccountsEnabled && (
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
             <Label className="text-xs">Payment Account</Label>
-            {/* <Select
-              value={accountId}
-              onValueChange={(v) => updatePayment(v, paidAmount)}
-            >
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue placeholder="Select account" />
-              </SelectTrigger>
-              <SelectContent>
-                {accounts.map((a) => (
-                  <SelectItem key={a._id} value={a._id}>
-                    {a.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select> */}
             <SimpleSelect
               value={accountId}
               onValueChange={(v) => updatePayment(v, paidAmount)}
@@ -175,52 +214,6 @@ export function SellerPaymentSection({
               className="h-9 text-sm"
             />
           </div>
-        </div>
-      )}
-
-      {showCredit && (
-        <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <Label
-              htmlFor={`use-credit-${seller.id}`}
-              className="flex items-center gap-2 text-sm font-medium cursor-pointer"
-            >
-              <WalletIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              Apply supplier credit
-            </Label>
-            <Switch
-              id={`use-credit-${seller.id}`}
-              checked={creditApplied > 0}
-              onCheckedChange={(checked) => {
-                setCreditApplied(seller.id, checked ? maxCreditApplicable : 0);
-              }}
-            />
-          </div>
-          {creditApplied > 0 && (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">
-                Max {formatCurrency(maxCreditApplicable)}
-              </span>
-              <Input
-                type="number"
-                min={0}
-                max={maxCreditApplicable}
-                step="0.01"
-                value={creditApplied}
-                onChange={(e) => {
-                  const v = Math.max(
-                    0,
-                    Math.min(
-                      maxCreditApplicable,
-                      parseFloat(e.target.value) || 0,
-                    ),
-                  );
-                  setCreditApplied(seller.id, v);
-                }}
-                className="w-28 h-8 text-right text-sm"
-              />
-            </div>
-          )}
         </div>
       )}
 

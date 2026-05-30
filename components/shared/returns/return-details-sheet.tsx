@@ -25,6 +25,7 @@ import {
 } from '@/ui/components/sheet';
 import { Skeleton } from '@/ui/components/skeleton';
 import { InfoField } from '@/components/shared/info-field';
+import { CopyField } from '@/ui/components/copy';
 
 // ── Normalized data types ────────────────────────────────────────────────────
 
@@ -62,8 +63,8 @@ export interface ReturnDetailsData {
     adjustDocumentDue?: number;
     adjustOtherDues?: { amount: number; referenceLabel?: string }[];
     accountRefund?: { amount: number; paymentMethod: string };
-    /** Sales-only: refund converted into customer store credit. */
-    customerCredit?: { amount: number };
+    /** Refund converted into counterparty store credit (customer for sales, supplier for purchases). */
+    counterpartyCredit?: { amount: number };
   };
 }
 
@@ -103,6 +104,8 @@ const VARIANT_CONFIG = {
     totalRefundPrefix: '-',
     cashRefundColor: 'text-orange-600',
     adjustDocumentDueLabel: 'Adjusted against sale due',
+    counterpartyCreditLabel: 'Customer Credit',
+    creditConversionLabel: 'Converted to store credit',
     refundAmountColor: 'text-red-600',
     refundBgClass: 'bg-red-50 dark:bg-red-950/30',
     showSalePrice: true,
@@ -117,6 +120,8 @@ const VARIANT_CONFIG = {
     totalRefundPrefix: '',
     cashRefundColor: 'text-green-600',
     adjustDocumentDueLabel: 'Adjusted against supplier due',
+    counterpartyCreditLabel: 'Supplier Credit',
+    creditConversionLabel: 'Adjusted to supplier credit',
     refundAmountColor: 'text-orange-600',
     refundBgClass: 'bg-orange-50 dark:bg-orange-950/30',
     showSalePrice: false,
@@ -145,7 +150,7 @@ export function ReturnDetailsSheet({
   if (!returnData && !isLoading) return null;
 
   const cfg = VARIANT_CONFIG[variant];
-
+  
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[680px] sm:max-w-[680px] flex flex-col overflow-y-auto">
@@ -168,10 +173,10 @@ export function ReturnDetailsSheet({
           <div className="mt-6 space-y-6 px-2">
             {/* Header fields */}
             <div className="grid gap-4 lg:grid-cols-2">
-              <InfoField label="Return ID" value={<span className="font-mono">{returnData.returnNumber}</span>} />
+              <InfoField label="Return ID" value={<span className="font-mono"><CopyField value={returnData.returnNumber} /></span>} />
               <InfoField label="Status" value={getStatusBadge(returnData.status)} />
-              <InfoField label={cfg.documentLabel} value={<span className="font-mono text-primary">{returnData.documentRef}</span>} />
-              <InfoField label="Return Date" value={format(new Date(returnData.date), 'dd MMM yyyy HH:mm')} />
+              <InfoField label={cfg.documentLabel} value={<span className="font-mono text-primary"><CopyField value={returnData.documentRef} /></span>} />
+              <InfoField label="Return Date" value={format(new Date(returnData.date), 'dd MMM yyyy hh:mm aa')} />
             </div>
 
             {/* Counterparty & reason */}
@@ -213,13 +218,30 @@ export function ReturnDetailsSheet({
                 value={`${cfg.totalRefundPrefix}${formatCurrency(returnData.totalRefundAmount)}`}
                 valueClassName={cfg.totalRefundColor}
               />
-              {returnData.refundedAmount != null && (
+              {/* {returnData.refundedAmount != null && (
                 <InfoField
                   label="Cash Refunded"
                   value={formatCurrency(returnData.refundedAmount)}
                   valueClassName={cfg.cashRefundColor}
                 />
+              )} */}
+              {returnData.refundAllocation?.accountRefund && (
+                <InfoField
+                  label={`Refund (${returnData.refundAllocation.accountRefund.paymentMethod})`}
+                  value={formatCurrency(returnData.refundAllocation.accountRefund.amount)}
+                />
               )}
+
+              {returnData.refundAllocation?.counterpartyCredit && (
+                <InfoField
+                  label={cfg.counterpartyCreditLabel}
+                  value={formatCurrency(returnData.refundAllocation.counterpartyCredit.amount)}
+                />
+              )}
+              {returnData.refundAllocation?.adjustOtherDues?.length > 0 && <InfoField
+                  label="Adjusted dues"
+                  value={formatCurrency(returnData.refundAllocation.adjustOtherDues.reduce((sum, d) => sum + d.amount, 0))}
+                />}
               {returnData.totalCostAmount != null && (
                 <InfoField label="Cost Amount" value={formatCurrency(returnData.totalCostAmount)} />
               )}
@@ -264,15 +286,15 @@ export function ReturnDetailsSheet({
                       </div>
                       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         {cfg.showSalePrice && item.price != null && (
-                          <InfoField label="Sale Price" value={item.price} showCurrency quantity={item.quantity}/>
+                          <InfoField label="Sale Price" value={item.price} showCurrency quantity={item.quantity} />
                         )}
-                        <InfoField label="Cost Price" value={item.costPrice * item.quantity * (item.conversionFactor ?? 1)} showCurrency/>
+                        <InfoField label="Cost Price" value={item.costPrice * item.quantity} showCurrency />
                         {(item.discount ?? 0) > 0 && (
                           <InfoField label="Discount" value={item.discount ?? 0} showCurrency />
                         )}
-                        {/* {item.conversionFactor != null && item.conversionFactor > 1 && (
+                        {item.conversionFactor != null && item.conversionFactor > 1 && (
                           <InfoField label="Conv. Factor" value={item.conversionFactor} />
-                        )} */}
+                        )}
                         <InfoField
                           label="Refund"
                           value={`${cfg.totalRefundPrefix}${formatCurrency(item.refundAmount)}`}
@@ -331,11 +353,11 @@ export function ReturnDetailsSheet({
                       </span>
                     </div>
                   )}
-                  {(returnData.refundAllocation.customerCredit?.amount ?? 0) > 0 && (
+                  {(returnData.refundAllocation.counterpartyCredit?.amount ?? 0) > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Converted to store credit</span>
+                      <span className="text-muted-foreground">{cfg.creditConversionLabel}</span>
                       <span className="font-medium text-blue-600">
-                        {formatCurrency(returnData.refundAllocation.customerCredit!.amount)}
+                        {formatCurrency(returnData.refundAllocation.counterpartyCredit!.amount)}
                       </span>
                     </div>
                   )}

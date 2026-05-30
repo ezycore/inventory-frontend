@@ -22,12 +22,16 @@ interface RefundAllocationCardProps {
   accountRefundAmount: number;
   onAccountRefundChange: (amount: number) => void;
   totalOtherDuesAllocated: number;
+  supplierCreditAmount?: number;
+  onSupplierCreditChange?: (amount: number) => void;
 }
 
 export function RefundAllocationCard({
   orderDueAmount,
   adjustOrderDueAmount,
   dueAllocations,
+  supplierCreditAmount,
+  onSupplierCreditChange,
   ...rest
 }: RefundAllocationCardProps) {
   return (
@@ -47,6 +51,11 @@ export function RefundAllocationCard({
         selected: d.selected,
         referenceLabel: d.orderNumber,
       }))}
+      showCounterpartyCredit={true}
+      counterpartyCreditAmount={supplierCreditAmount ?? 0}
+      onCounterpartyCreditChange={onSupplierCreditChange}
+      creditSectionTitle="Convert to Supplier Credit"
+      creditSectionDescription="Park the refund as supplier credit balance instead of cash."
     />
   );
 }

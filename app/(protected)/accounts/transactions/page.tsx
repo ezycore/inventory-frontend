@@ -667,10 +667,10 @@ export default function TransactionsPage() {
   // memoize this for us instead of fighting the lint rule.
   const getAllDataWithPeriod = (filters: Record<string, unknown>) => {
     const merged: Record<string, unknown> = { ...filters };
-    if (stats?.period) {
-      merged.startDate = stats.period.startDate;
-      merged.endDate = stats.period.endDate;
-    }
+    // if (stats?.period) {
+    //   merged.startDate = decodeURIComponent(stats.period.startDate);
+    //   merged.endDate = decodeURIComponent(stats.period.endDate);
+    // }
     return transactionsApi.getAll(merged);
   };
 

@@ -56,6 +56,13 @@ export function ReturnsHistoryList({
                     paymentMethod: ret.refundAllocation.accountRefund.paymentMethod,
                   }
                 : undefined,
+              counterpartyCredit:
+                (ret.refundAllocation.supplierCredit?.amount ?? 0) > 0
+                  ? {
+                      label: "Adjusted to supplier credit",
+                      amount: ret.refundAllocation.supplierCredit!.amount,
+                    }
+                  : undefined,
             }
           : undefined,
       })),

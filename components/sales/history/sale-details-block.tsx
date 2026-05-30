@@ -26,8 +26,8 @@ export function SaleDetailsBlock({ sale }: { sale: Sale }) {
             sale.createdBy ? `${sale.createdBy.firstName} ${sale.createdBy.lastName}` : '-'
           }
         />
-        <InfoField label="Created At" value={format(new Date(sale.createdAt), 'dd MMM yyyy HH:mm')} />
-        <InfoField label="Updated At" value={format(new Date(sale.updatedAt), 'dd MMM yyyy HH:mm')} />
+        <InfoField label="Created At" value={format(new Date(sale.createdAt), 'dd MMM yyyy hh:mm aa')} />
+        <InfoField label="Updated At" value={format(new Date(sale.updatedAt), 'dd MMM yyyy hh:mm aa')} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

@@ -63,7 +63,7 @@ function ReturnedItemRow({
         <span className="font-medium truncate block">{item.productName || "Product"}</span>
       </div>
       <div className="text-right shrink-0 space-y-0.5">
-        <div className="text-muted-foreground">
+        {/* <div className="text-muted-foreground">
           <span className="text-foreground font-medium">{item.quantity}</span>
           {" × "}
           {formatCurrency(item.price)}
@@ -75,7 +75,7 @@ function ReturnedItemRow({
               <span className="text-amber-600">{formatCurrency(discount)} disc</span>
             </>
           )}
-        </div>
+        </div> */}
         <div className="text-red-600 font-medium">
           Refund: −{formatCurrency(item.refundAmount)}
         </div>
@@ -97,7 +97,7 @@ function AllocationPanel({
     !!allocation.accountRefund ||
     (allocation.counterpartyCredit?.amount ?? 0) > 0;
   if (!hasAny) return null;
-
+  console.log("Rendering AllocationPanel with allocation:", allocation);
   return (
     <div className="mt-1.5 rounded-md bg-blue-50 dark:bg-blue-950/20 px-2.5 py-2 space-y-1">
       <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
@@ -182,7 +182,7 @@ export function ReturnsHistoryList({
                   <div>
                     <div className="font-medium text-sm">{ret.returnNumber}</div>
                     <div className="text-xs text-muted-foreground">
-                      {format(new Date(ret.createdAt), "dd MMM yyyy HH:mm")}
+                      {format(new Date(ret.createdAt), "dd MMM yyyy hh:mm aa")}
                     </div>
                   </div>
                   <Badge

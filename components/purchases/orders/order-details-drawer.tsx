@@ -117,13 +117,13 @@ export function OrderDetailsDrawer({
                 {renderField('Created At', (
                   <div className="flex items-center gap-2">
                     <CalendarDays className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    {format(new Date(order.createdAt), 'dd MMM yyyy HH:mm')}
+                    {format(new Date(order.createdAt), 'dd MMM yyyy hh:mm aa')}
                   </div>
                 ))}
                 {renderField('Updated At', (
                   <div className="flex items-center gap-2">
                     <CalendarDays className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    {format(new Date(order.updatedAt), 'dd MMM yyyy HH:mm')}
+                    {format(new Date(order.updatedAt), 'dd MMM yyyy hh:mm aa')}
                   </div>
                 ))}
                 {order.invoiceNumber && renderField('Supplier Invoice', order.invoiceNumber)}

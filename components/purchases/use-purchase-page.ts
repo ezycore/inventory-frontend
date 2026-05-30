@@ -295,7 +295,7 @@ export function usePurchasePage() {
       const product = extractProductValue(value);
       if (product) {
         const availableStock = product.availableQuantity || 0;
-        const neededQuantity = Math.max(0, product.quantityAlert - (availableStock) + 1);
+        const neededQuantity = Math.max(1, product.quantityAlert - (availableStock) + 1);
         const purchaseQuantity = Math.ceil(neededQuantity / (product.conversionFactor || 1));
         const quantity = productForm.getValues("quantity") || 1;
         const conversionFactor = product.conversionFactor || 1;
@@ -415,7 +415,7 @@ export function usePurchasePage() {
         const sellerAccountId = seller.paymentInfo?.accountId || "";
         const sellerCredit = seller.creditApplied || 0;
         const orderData: any = { supplierId: seller.supplierId || "", items, additionalDiscount: seller.additionalDiscount || 0, status, invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, taxTotal: 0, notes: seller.notes || undefined };
-        if (isAccountsEnabled && sellerAccountId && sellerPaid > 0) orderData.payment = { accountId: sellerAccountId, amount: sellerPaid };
+        if (isAccountsEnabled && sellerAccountId && sellerPaid > 0) orderData.payment = { accountId: sellerAccountId, paidAmount: sellerPaid };
         if (isAccountsEnabled && sellerCredit > 0) orderData.creditBalanceAmount = sellerCredit;
         return orderData;
       });

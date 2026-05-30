@@ -4,7 +4,8 @@ import { format } from "date-fns";
 import { Boxes, ClipboardList } from "lucide-react";
 import { Badge } from "@/ui/components/badge";
 import { InfoField } from "@/components/shared/info-field";
-import type { PurchaseOrder } from "@/types";
+import type { PurchaseOrder, PurchaseReturn } from "@/types";
+import { CopyField } from "@/ui/components/copy";
 
 function getCreatedByName(order: PurchaseOrder): string {
   const cb = order.createdBy;
@@ -16,13 +17,12 @@ function getCreatedByName(order: PurchaseOrder): string {
   return "-";
 }
 
-export function PurchaseDetailsBlock({ order }: { order: PurchaseOrder }) {
+export function PurchaseDetailsBlock({ order, purchaseReturns }: { order: PurchaseOrder; purchaseReturns: PurchaseReturn[] }) {
   const supplierName = order.supplierId?.name ?? order.supplier?.name ?? "Unknown Supplier";
-
   return (
     <>
       <div className="grid gap-4 lg:grid-cols-2">
-        <InfoField label="Invoice #" value={order.orderNumber} />
+        <InfoField label="Invoice #" value={<CopyField value={order.orderNumber} />} />
         <InfoField
           label="Status"
           value={
@@ -35,24 +35,24 @@ export function PurchaseDetailsBlock({ order }: { order: PurchaseOrder }) {
         <InfoField label="Created By" value={getCreatedByName(order)} />
         <InfoField
           label="Created At"
-          value={format(new Date(order.createdAt), "dd MMM yyyy HH:mm")}
+          value={format(new Date(order.createdAt), "dd MMM yyyy hh:mm aa")}
         />
         <InfoField
           label="Updated At"
-          value={format(new Date(order.updatedAt), "dd MMM yyyy HH:mm")}
+          value={format(new Date(order.updatedAt), "dd MMM yyyy hh:mm aa")}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <InfoField label="Subtotal" value={order.subtotal} showCurrency />
-        <InfoField label="Tax Total" value={order.taxTotal} showCurrency />
+        <InfoField label="Total" value={order.subtotal} showCurrency />
+        {/* <InfoField label="Tax Total" value={order.taxTotal} showCurrency /> */}
         <InfoField
           label="Additional Discount"
           value={order.additionalDiscount ?? 0}
           showCurrency
         />
         <InfoField
-          label="Total Amount"
+          label="Invoice Amount"
           value={order.invoiceAmount ?? 0}
           showCurrency
         />
@@ -62,12 +62,32 @@ export function PurchaseDetailsBlock({ order }: { order: PurchaseOrder }) {
           showCurrency
           valueClassName="text-green-600"
         />
-        <InfoField
-          label="Due Amount"
-          value={order.dueAmount ?? 0}
-          showCurrency
-          valueClassName={(order.dueAmount ?? 0) > 0 ? "text-red-600" : "text-green-600"}
-        />
+        {
+          order.refundCreditApplied ? (
+            <InfoField
+              label="Refund Credits Applied"
+              value={order.refundCreditApplied}
+              showCurrency
+              valueClassName="text-emerald-600"
+            />
+          ) : ""
+        }
+        {
+          purchaseReturns.length > 0 && <InfoField
+            label="Refund Amount"
+            value={purchaseReturns.reduce((sum, ret) => sum + (ret.totalRefundAmount), 0)}
+            showCurrency
+            valueClassName="text-red-600"
+          />
+        }
+        {
+          order.dueAmount > 0 && <InfoField
+            label="Due Amount"
+            value={order.dueAmount ?? 0}
+            showCurrency
+            valueClassName={(order.dueAmount ?? 0) > 0 ? "text-red-600" : "text-green-600"}
+          />
+        }
       </div>
 
       {order.notes && (
@@ -124,15 +144,17 @@ export function PurchaseItemsList({ order }: { order: PurchaseOrder }) {
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 <InfoField
                   label="Price"
-                  value={item.price * (item.conversionFactor ?? 1) * item.quantity}
+                  value={item.price}
                   showCurrency
+                  quantity={item.quantity}
                 />
                 <InfoField
-                  label="Profit"
-                  value={(item.price * (item.conversionFactor ?? 1) * item.quantity)- (item.costPrice ?? 0) * (item.conversionFactor ?? 1) * item.quantity}
+                  label="Discount"
+                  value={item.price - (item.costPrice ?? 0)}
                   showCurrency
+                  quantity={item.quantity}
                 />
-                <InfoField label="Cost Price" value={item.subtotal} showCurrency />
+                <InfoField label="Cost Price" value={item.costPrice} showCurrency quantity={item.quantity} />
               </div>
             </div>
           );

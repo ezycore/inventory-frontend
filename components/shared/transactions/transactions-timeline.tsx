@@ -105,9 +105,9 @@ export function TransactionsTimeline({
                     <div className="min-w-0 space-y-1">
                       <div className="text-sm font-medium">{t.label}</div>
                       <div className="text-xs text-muted-foreground">
-                        {format(new Date(t.date), "dd MMM yyyy HH:mm")}
+                        {format(new Date(t.date), "dd MMM yyyy hh:mm aa")}
                         {t.accountName ? ` · ${t.accountName}` : ""}
-                        {t.paymentMethod ? ` · ${t.paymentMethod}` : ""}
+                        {/* {t.paymentMethod ? ` · ${t.paymentMethod}` : ""} */}
                       </div>
                       {t.source && (
                         <div className="text-xs text-muted-foreground">

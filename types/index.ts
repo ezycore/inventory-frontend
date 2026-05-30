@@ -979,6 +979,7 @@ export interface PurchaseOrder extends BaseEntity {
   totalAmount?: number;
   additionalDiscount?: number;
   invoiceAmount?: number;
+  refundCreditApplied?: number;
 }
 
 export interface CreatePurchaseOrderItemDto {
@@ -1205,6 +1206,9 @@ export interface PurchaseReturn extends BaseEntity {
       accountId: string;
       amount: number;
       paymentMethod: string;
+    };
+    supplierCredit?: {
+      amount: number;
     };
   };
   supplier?: Supplier;

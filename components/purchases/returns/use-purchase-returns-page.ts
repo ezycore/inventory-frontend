@@ -67,6 +67,7 @@ export function usePurchaseReturnsPage() {
   const [dueAllocations, setDueAllocations] = useState<DueAllocation[]>([]);
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [supplierCreditAmount, setSupplierCreditAmount] = useState(0);
 
   // ── Details sheet ─────────────────────────────────────────────
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
@@ -206,8 +207,8 @@ export function usePurchaseReturnsPage() {
   );
   const remainingForRefund = useMemo(() => {
     const afterOrderDue = totalRefundAmount - adjustOrderDueAmount;
-    return roundMoney(Math.max(0, afterOrderDue - totalOtherDuesAllocated));
-  }, [totalRefundAmount, adjustOrderDueAmount, totalOtherDuesAllocated]);
+    return roundMoney(Math.max(0, afterOrderDue - totalOtherDuesAllocated - supplierCreditAmount));
+  }, [totalRefundAmount, adjustOrderDueAmount, totalOtherDuesAllocated, supplierCreditAmount]);
 
   // ── Handlers ──────────────────────────────────────────────────
   const handleSearch = useCallback((data: OrderSearchData) => {
@@ -221,6 +222,7 @@ export function usePurchaseReturnsPage() {
     setDeductionAmount(0);
     setAccountRefundAmount(0);
     setSelectedAccountId("");
+    setSupplierCreditAmount(0);
     setNotes("");
     setShowNewReturn(false);
     searchForm.reset();
@@ -245,7 +247,6 @@ export function usePurchaseReturnsPage() {
       const validQty = Math.max(0, Math.min(qty, item.maxReturnableQty));
       const refund = calculateItemRefund(
         validQty,
-        item.conversionFactor,
         item.costPrice,
         item.price,
       );
@@ -266,7 +267,6 @@ export function usePurchaseReturnsPage() {
         const item = updated[index];
         const maxRefund = calculateMaxRefund(
           item.returnQty,
-          item.conversionFactor,
           item.costPrice,
           item.price,
         );
@@ -387,6 +387,13 @@ export function usePurchaseReturnsPage() {
           paymentMethod: "cash",
         };
       }
+
+      // 4. Park the remainder as supplier credit balance.
+      if (supplierCreditAmount > 0) {
+        (refundAllocation as Record<string, unknown>).supplierCredit = {
+          amount: roundMoney(supplierCreditAmount),
+        };
+      }
     }
 
     try {
@@ -414,6 +421,7 @@ export function usePurchaseReturnsPage() {
     orderDueAmount,
     accountRefundAmount,
     selectedAccountId,
+    supplierCreditAmount,
     createReturnMutation,
     reason,
     notes,
@@ -531,6 +539,8 @@ export function usePurchaseReturnsPage() {
     setAccountRefundAmount,
     selectedAccountId,
     setSelectedAccountId,
+    supplierCreditAmount,
+    setSupplierCreditAmount,
     accounts,
     pendingDues,
 

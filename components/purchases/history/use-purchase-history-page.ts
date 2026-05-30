@@ -180,7 +180,7 @@ export function usePurchaseHistoryPage() {
   ]);
 
   const formatDateTime = (date: string | Date) =>
-    format(new Date(date), "dd MMM yyyy HH:mm");
+    format(new Date(date), "dd MMM yyyy hh:mm aa");
 
   // Columns, actions, filters — memoised
   const columns = useMemo(

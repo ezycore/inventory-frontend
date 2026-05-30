@@ -45,10 +45,10 @@ export function RefundAllocationCard({
       documentDueSubtitle="Current due on this sale:"
       otherDuesTitle="Adjust Other Customer Dues"
       adjustmentColorClass="text-green-600"
-      showCustomerCredit={!!onCustomerCreditChange}
-      customerCreditAmount={customerCreditAmount}
-      onCustomerCreditChange={onCustomerCreditChange}
-      currentCustomerCreditBalance={currentCustomerCreditBalance}
+      showCounterpartyCredit={!!onCustomerCreditChange}
+      counterpartyCreditAmount={customerCreditAmount}
+      onCounterpartyCreditChange={onCustomerCreditChange}
+      currentCounterpartyCreditBalance={currentCustomerCreditBalance}
       dueAllocations={dueAllocations.map((d) => ({
         dueId: d.dueId,
         dueAmount: d.dueAmount,
