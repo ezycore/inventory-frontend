@@ -13,8 +13,9 @@ import OrderSummary from "@/components/purchases/order-summary";
 import usePurchasePage from "@/components/purchases/use-purchase-page";
 import { BarcodeInput } from "@/components/shared/barcode";
 import { useAuthStore } from "@/services/stores";
+import { Suspense } from "react";
 
-export default function PurchasesPage() {
+function PurchasesPageContent() {
   const ctx = usePurchasePage();
   const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
   const {
@@ -179,5 +180,13 @@ export default function PurchasesPage() {
         handleSaveEdit={handleSaveEdit}
       />
     </div>
+  );
+}
+
+export default function PurchasesPage() {
+  return (
+    <Suspense>
+      <PurchasesPageContent />
+    </Suspense>
   );
 }

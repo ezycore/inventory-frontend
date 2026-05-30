@@ -11,8 +11,9 @@ import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
 import { Separator } from "@/ui/components/separator";
 import { useAuthStore } from "@/services/stores";
+import { Suspense } from "react";
 
-export default function SalesPage() {
+function SalesPageContent() {
   const ctx = useSellPage();
   const { items, salesColumns, clearAll, customerForm, handleFieldChange, handleProductSelect, handleBarcodeScan } = ctx;
   const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
@@ -96,5 +97,13 @@ export default function SalesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SalesPage() {
+  return (
+    <Suspense>
+      <SalesPageContent />
+    </Suspense>
   );
 }
