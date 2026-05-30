@@ -38,7 +38,7 @@ export type SellOrderItem = OrderItem & {
   discountValue: number;
   salePrice: number;
   total: number;
-  availableQuantity: number;
+  availableQuantity: number | null;
 }
 
 /**

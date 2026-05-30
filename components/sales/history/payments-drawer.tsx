@@ -121,7 +121,7 @@ export function PaymentsDrawer({
                 />
               )}
 
-              <SaleDetailsBlock sale={sale} />
+              <SaleDetailsBlock sale={sale} saleReturns={saleReturns} />
 
               <SaleItemsList sale={sale} />
 

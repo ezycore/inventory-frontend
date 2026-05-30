@@ -71,9 +71,11 @@ export const getSalesColumns = (
       cell: ({ row }) => (
         <div className="min-w-[100px]">
           <span className="font-medium text-sm">{row.original.productName}</span>
-          <div className="text-xs text-muted-foreground">
-            Available: {row.original.availableQuantity} {row.original.unitName || "units"}
-          </div>
+          {row.original.availableQuantity !== null && (
+            <div className="text-xs text-muted-foreground">
+              Available: {row.original.availableQuantity} {row.original.unitName || "units"}
+            </div>
+          )}
         </div>
       ),
     },
@@ -116,7 +118,7 @@ export const getSalesColumns = (
             <EditableNumberCell
               value={item.quantity}
               min={1}
-              max={item.availableQuantity}
+              max={item.availableQuantity ?? Number.MAX_SAFE_INTEGER}
               fallback={1}
               onChange={(val) => onUpdateQuantity(item.id, val)}
               className="h-7 w-12 text-center text-sm tabular-nums px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -126,7 +128,7 @@ export const getSalesColumns = (
               size="icon"
               className="h-7 w-7 shrink-0"
               onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-              disabled={item.quantity >= item.availableQuantity}
+              disabled={item.availableQuantity !== null && item.quantity >= item.availableQuantity}
             >
               <Plus className="h-3 w-3" />
             </Button>

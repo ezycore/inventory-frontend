@@ -242,6 +242,10 @@ export function ReturnDetailsSheet({
                   label="Adjusted dues"
                   value={formatCurrency(returnData.refundAllocation.adjustOtherDues.reduce((sum, d) => sum + d.amount, 0))}
                 />}
+              {returnData.refundAllocation?.adjustDocumentDue > 0 && <InfoField
+                  label="Adjusted document due"
+                  value={formatCurrency(returnData.refundAllocation.adjustDocumentDue)}
+                />}
               {returnData.totalCostAmount != null && (
                 <InfoField label="Cost Amount" value={formatCurrency(returnData.totalCostAmount)} />
               )}
@@ -348,7 +352,7 @@ export function ReturnDetailsSheet({
                         {returnData.refundAllocation.accountRefund.paymentMethod})
                       </span>
                       <span className={`font-medium ${cfg.totalRefundColor}`}>
-                        {cfg.totalRefundPrefix}
+                        {/* {cfg.totalRefundPrefix} */}
                         {formatCurrency(returnData.refundAllocation.accountRefund.amount)}
                       </span>
                     </div>

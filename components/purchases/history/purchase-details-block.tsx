@@ -62,7 +62,7 @@ export function PurchaseDetailsBlock({ order, purchaseReturns }: { order: Purcha
           showCurrency
           valueClassName="text-green-600"
         />
-        {
+        {/* {
           order.refundCreditApplied ? (
             <InfoField
               label="Refund Credits Applied"
@@ -71,7 +71,7 @@ export function PurchaseDetailsBlock({ order, purchaseReturns }: { order: Purcha
               valueClassName="text-emerald-600"
             />
           ) : ""
-        }
+        } */}
         {
           purchaseReturns.length > 0 && <InfoField
             label="Refund Amount"

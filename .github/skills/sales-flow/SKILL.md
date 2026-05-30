@@ -66,7 +66,7 @@ Customers list ──► CustomerLedgerSheet ──► header: opening / sales /
 | [components/sales/returns/use-refund-allocation.ts](../../../components/sales/returns/use-refund-allocation.ts) | `adjustSaleDue` / `adjustOtherDues` / `accountRefund` allocation state + remaining math |
 | [components/shared/returns/refund-allocation-card.tsx](../../../components/shared/returns/refund-allocation-card.tsx) | Shared card with optional `showCustomerCredit` slot (sales only) |
 | [components/shared/returns/return-details-sheet.tsx](../../../components/shared/returns/return-details-sheet.tsx) | Shared return sheet w/ reconciliation block (4-part allocation); copy-icon on cross-invoice refs via `CopyableRef` |
-| [components/customers/customer-ledger-sheet.tsx](../../../components/customers/customer-ledger-sheet.tsx) | Thin orchestrator (~210 lines) — owns ledger query, payment form state, pagination; composes the 3 sub-components below. (PascalCase variant deleted.) |
+| [components/customers/customer-ledger-sheet.tsx](../../../components/customers/customer-ledger-sheet.tsx) | Thin orchestrator (~210 lines) — owns ledger query, payment form state, pagination; composes the 3 sub-components below. |
 | [components/customers/customer-ledger-summary.tsx](../../../components/customers/customer-ledger-summary.tsx) | 4-stat header (Total Paid / Total Due / Refunded+credit / Store Credit); returns null when accounts disabled |
 | [components/customers/customer-ledger-entries.tsx](../../../components/customers/customer-ledger-entries.tsx) | Per-entry renderers (sale w/ Pay Due / inboundCredit / return / cashRefund / payment); exports `LedgerEntry` discriminated union |
 | [components/customers/customer-payment-form.tsx](../../../components/customers/customer-payment-form.tsx) | In-sheet payment form w/ sale mini-card, credit toggle, Cancel returns to ledger view |
@@ -137,7 +137,7 @@ History table "Paid" column = `paidAmount` only. Hover tooltip shows the full br
 
 **Cross-invoice navigation contract:**
 - [`PaymentsDrawer`](../../../components/sales/history/payments-drawer.tsx) accepts optional `onNavigateToSale?: (saleId: string) => void`. When provided, `t.sourceSale.invoiceNumber` (kind `credit_applied_from_other`) renders as a `<button>` that calls the handler. The history page wires it via `useSalesHistoryPage().handleNavigateToSale`, which calls `salesApi.getById(saleId)` and sets `selectedSale` + opens drawer in summary mode.
-- [`CustomerLedgerSheet`](../../../components/customers/CustomerLedgerSheet.tsx) accepts optional `onOpenSale?: (saleId, invoiceNumber?) => void`. When provided, both `sourceInvoiceNumber` and `targetInvoiceNumber` on inbound-credit entries become buttons. The customers page wires it to `router.push("/sales/history")` + a toast hint.
+- [`CustomerLedgerSheet`](../../../components/customers/customer-ledger-sheet.tsx) accepts optional `onOpenSale?: (saleId, invoiceNumber?) => void`. When provided, both `sourceInvoiceNumber` and `targetInvoiceNumber` on inbound-credit entries become buttons. The customers page wires it to `router.push("/sales/history")` + a toast hint.
 
 Both directions powered by `GET /sales/:id/transactions` (backend merges & links).
 
