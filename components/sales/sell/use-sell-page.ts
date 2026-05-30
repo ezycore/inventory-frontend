@@ -14,6 +14,7 @@ import {
 import {
   useCreateSalesOrder,
   useCustomerPendingDues,
+  useDefaultAccount,
   useSale,
   useUpdateDraftSale,
   useFinalizeDraftSale,
@@ -78,6 +79,8 @@ export function useSellPage() {
     [isAccountsEnabled],
   );
 
+  const { data: defaultAccount } = useDefaultAccount();
+
   const customerForm = useForm({
     defaultValues: {
       customerId: defaultCustomer,
@@ -92,6 +95,15 @@ export function useSellPage() {
   useEffect(() => {
     setLocalAdditionalDiscount(additionalDiscount);
   }, [additionalDiscount]);
+
+  // Auto-select the default account when accounts are enabled
+  useEffect(() => {
+    if (!isAccountsEnabled || !defaultAccount?._id) return;
+    const current = customerForm.getValues("accountId");
+    if (!current) {
+      customerForm.setValue("accountId", defaultAccount._id);
+    }
+  }, [isAccountsEnabled, defaultAccount, customerForm]);
 
   // Hydrate sell-page store from a draft sale when ?draftId is present
   useEffect(() => {
@@ -129,7 +141,7 @@ export function useSellPage() {
       customerId: cust
         ? ({ value: cust._id, label: cust.name } as never)
         : (defaultCustomer as never),
-      accountId: defaultAccountType,
+      accountId: defaultAccountType || defaultAccount?._id,
       discountType,
       discountValue,
       paidAmount: 0,
@@ -150,10 +162,10 @@ export function useSellPage() {
         discountType: "fixed",
         discountValue: item.discount || 0,
         salePrice,
-        availableQuantity: 999999,
+        availableQuantity: null,
       });
     }
-  }, [draftId, draftSale, clearAll, setCustomer, setOrderDiscount, setAdditionalDiscount, setNotes, addItem, customerForm, defaultCustomer, defaultAccountType]);
+  }, [draftId, draftSale, clearAll, setCustomer, setOrderDiscount, setAdditionalDiscount, setNotes, addItem, customerForm, defaultCustomer, defaultAccountType, defaultAccount]);
 
   useEffect(() => {
     const total = Number(getTotalSalePrice().toFixed(2) || 0);
@@ -309,8 +321,7 @@ export function useSellPage() {
     const accountId = customerForm.getValues("accountId");
     let updatedCustomerId = customerForm.getValues("customerId") as unknown as { value?: string } | string | undefined;
     updatedCustomerId =
-      (typeof updatedCustomerId === "object" && updatedCustomerId?.value) ||
-      (updatedCustomerId as string) ||
+      (typeof updatedCustomerId === "object" ? updatedCustomerId?.value : updatedCustomerId) ||
       customerId;
     const formPaidAmount = customerForm.getValues("paidAmount") || 0;
     const formAdditionalDiscount = localAdditionalDiscount;
@@ -406,8 +417,7 @@ export function useSellPage() {
     }
     let updatedCustomerId = customerForm.getValues("customerId") as unknown as { value?: string } | string | undefined;
     updatedCustomerId =
-      (typeof updatedCustomerId === "object" && updatedCustomerId?.value) ||
-      (updatedCustomerId as string) ||
+      (typeof updatedCustomerId === "object" ? updatedCustomerId?.value : updatedCustomerId) ||
       customerId;
     if (!updatedCustomerId) {
       toast.error("Please select a customer for the draft");

@@ -4,13 +4,14 @@ import { format } from 'date-fns';
 import { Boxes, ClipboardList } from 'lucide-react';
 import { Badge } from '@/ui/components/badge';
 import { InfoField } from '@/components/shared/info-field';
-import type { Sale } from '@/types';
+import type { Sale, SalesReturn } from '@/types';
+import { CopyField } from '@/ui/components/copy';
 
-export function SaleDetailsBlock({ sale }: { sale: Sale }) {
+export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleReturns?: SalesReturn[] }) {
   return (
     <>
       <div className="grid gap-4 lg:grid-cols-2">
-        <InfoField label="Invoice #" value={sale.invoiceNumber} />
+        <InfoField label="Invoice #" value={<CopyField value={sale.invoiceNumber} />} />
         <InfoField
           label="Status"
           value={
@@ -31,9 +32,9 @@ export function SaleDetailsBlock({ sale }: { sale: Sale }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <InfoField label="Subtotal" value={sale.subtotal} showCurrency />
+        <InfoField label="Total Amount" value={sale.subtotal} showCurrency />
         <InfoField label="Additional Discount" value={sale.additionalDiscount} showCurrency />
-        <InfoField label="Total Amount" value={sale.totalAmount} showCurrency />
+        <InfoField label="Invoice Amount" value={sale.totalAmount} showCurrency />
         <InfoField label="Paid Amount" value={sale.paidAmount} showCurrency valueClassName="text-green-600" />
         <InfoField
           label="Due Amount"
@@ -42,6 +43,24 @@ export function SaleDetailsBlock({ sale }: { sale: Sale }) {
           valueClassName={sale.dueAmount > 0 ? 'text-red-600' : 'text-green-600'}
         />
         <InfoField label="Cost Price" value={sale.costPrice} showCurrency />
+
+        {/* {typeof sale.refundCreditApplied === 'number' && sale.refundCreditApplied > 0 ? (
+          <InfoField
+            label="Refund Credits Applied"
+            value={sale.refundCreditApplied}
+            showCurrency
+            valueClassName="text-emerald-600"
+          />
+        ) : null} */}
+
+        {saleReturns && saleReturns.length > 0 ? (
+          <InfoField
+            label="Refund Amount"
+            value={saleReturns.reduce((sum, r) => sum + (r.totalRefundAmount ?? 0), 0)}
+            showCurrency
+            valueClassName="text-red-600"
+          />
+        ) : null}
       </div>
 
       {sale.notes && (

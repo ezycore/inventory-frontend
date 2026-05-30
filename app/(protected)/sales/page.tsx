@@ -11,12 +11,25 @@ import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
 import { Separator } from "@/ui/components/separator";
 import { useAuthStore } from "@/services/stores";
+import { useConfirm } from "@/hooks/use-confirm";
+import { Trash2 } from "lucide-react";
 import { Suspense } from "react";
 
 function SalesPageContent() {
   const ctx = useSellPage();
   const { items, salesColumns, clearAll, customerForm, handleFieldChange, handleProductSelect, handleBarcodeScan } = ctx;
   const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
+  const { confirm, ConfirmDialog } = useConfirm({
+    title: "Clear all items?",
+    description: "All items will be removed from the order.",
+    confirmLabel: "Clear",
+    confirmClassName: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+  });
+
+  const handleClearAll = async () => {
+    const ok = await confirm();
+    if (ok) clearAll();
+  };
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -74,11 +87,12 @@ function SalesPageContent() {
                   </div>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    onClick={clearAll}
-                    className="text-muted-foreground hover:text-destructive text-xs h-7"
+                    size="icon"
+                    onClick={handleClearAll}
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    title="Clear all items"
                   >
-                    Clear All
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
                 <CardTable
@@ -96,6 +110,7 @@ function SalesPageContent() {
           <OrderSummarySidebar ctx={ctx} />
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 }

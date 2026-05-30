@@ -49,6 +49,7 @@ export const customerFormConfig: DynamicFormConfig = {
       label: "Status",
       required: true,
       columnSpan: 6,
+      defaultValue: "active",
       options: [
         { value: "active", label: "Active" },
         { value: "inactive", label: "Inactive" },

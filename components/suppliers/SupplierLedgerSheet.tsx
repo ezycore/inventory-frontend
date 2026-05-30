@@ -120,6 +120,11 @@ export function SupplierLedgerSheet({
   // Calculate summary from ledger data
   const totalPaid = purchaseOrders.reduce((sum, po) => sum + po.paidAmount, 0);
   const totalDue = purchaseOrders.reduce((sum, po) => sum + po.dueAmount, 0);
+  const totalRefunded = returns.reduce((sum, r) => sum + (r.refundedAmount ?? 0), 0);
+  const totalRefundCredit = returns.reduce(
+    (sum, r) => sum + Math.max(0, (r.totalRefundAmount ?? 0) - (r.refundedAmount ?? 0)),
+    0,
+  );
 
   const handleStartPayment = (po: SupplierLedgerPurchaseOrder) => {
     setPaymentPO(po);
@@ -213,7 +218,7 @@ export function SupplierLedgerSheet({
         <div className="flex-1 overflow-hidden flex flex-col">
           {/* Summary Cards */}
           <div className="px-6 py-4 border-b bg-muted/30">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {isAccountsEnabled && (
                 <>
                   <div className="space-y-1">
@@ -241,6 +246,26 @@ export function SupplierLedgerSheet({
                       )}
                     </p>
                   </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Refunded</p>
+                      <p
+                        className={cn(
+                          "text-lg font-semibold",
+                          totalRefunded > 0 ? "text-red-600" : "text-muted-foreground",
+                        )}
+                      >
+                        {isLoading ? (
+                          <Skeleton className="h-6 w-20" />
+                        ) : (
+                          formatCurrency(totalRefunded)
+                        )}
+                      </p>
+                      {totalRefundCredit > 0 && (
+                        <p className="text-[11px] text-muted-foreground">
+                          + {formatCurrency(totalRefundCredit)} credit
+                        </p>
+                      )}
+                    </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">
                       Supplier Credit
