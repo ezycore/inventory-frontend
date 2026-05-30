@@ -100,6 +100,7 @@ export default function SalesHistoryPage() {
         isLoadingReturns={ctx.isLoadingReturns}
         transactions={ctx.transactions}
         isLoadingTransactions={ctx.isLoadingTransactions}
+        onNavigateToSale={ctx.handleNavigateToSale}
       />
     </div>
   );

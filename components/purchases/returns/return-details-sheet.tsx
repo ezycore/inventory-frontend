@@ -45,6 +45,7 @@ function normalizePurchaseReturn(r: PurchaseReturn): ReturnDetailsData {
           adjustDocumentDue: r.refundAllocation.adjustPurchaseDue,
           adjustOtherDues: r.refundAllocation.adjustOtherDues,
           accountRefund: r.refundAllocation.accountRefund,
+          counterpartyCredit: r.refundAllocation.supplierCredit,
         }
       : undefined,
   };

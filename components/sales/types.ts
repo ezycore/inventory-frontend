@@ -26,6 +26,7 @@ export interface ProductApiItem {
   saleUnitName?: string | null;
   purchaseUnitName?: string | null;
   quantityAlert: number;
+  barcode?: string;
 }
 
 export interface AccountApiItem {
@@ -70,6 +71,7 @@ export interface ExtractedProduct {
   saleUnitName?: string | null;
   purchaseUnitName?: string | null;
   quantityAlert: number;
+  barcode?: string;
 }
 export interface OrderItem {
   productId: string;
@@ -98,4 +100,8 @@ export interface CreateSalesOrderData {
   notes?: string;
   payment?: OrderPayment;
   dueAmount?: number;
+  /** Apply this much of customer's store-credit to the sale at creation time. */
+  creditBalanceAmount?: number;
+  /** When "draft", BE skips inventory / payment / credit side-effects. */
+  status?: "draft";
 }

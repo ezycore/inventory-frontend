@@ -53,6 +53,7 @@ interface CustomerLedgerSheetProps {
   onOpenChange: (open: boolean) => void;
   customer: Customer | null;
   isAccountsEnabled: boolean;
+  onOpenSale?: (saleId: string, invoiceNumber?: string) => void;
 }
 
 // Status configuration for badges
@@ -71,6 +72,7 @@ export function CustomerLedgerSheet({
   onOpenChange,
   customer,
   isAccountsEnabled,
+  onOpenSale,
 }: CustomerLedgerSheetProps) {
   const { format: formatCurrency } = useCurrency();
   const [page, setPage] = useState(1);
@@ -488,7 +490,22 @@ export function CustomerLedgerSheet({
                               <>
                                 {" "}
                                 <span className="text-muted-foreground">(sale</span>{" "}
-                                <span className="font-mono">{entry.data.sourceInvoiceNumber}</span>
+                                {onOpenSale && entry.data.sourceSaleId ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      onOpenSale(
+                                        entry.data.sourceSaleId,
+                                        entry.data.sourceInvoiceNumber,
+                                      )
+                                    }
+                                    className="font-mono text-primary hover:underline"
+                                  >
+                                    {entry.data.sourceInvoiceNumber}
+                                  </button>
+                                ) : (
+                                  <span className="font-mono">{entry.data.sourceInvoiceNumber}</span>
+                                )}
                                 <span className="text-muted-foreground">)</span>
                               </>
                             )}
@@ -496,7 +513,22 @@ export function CustomerLedgerSheet({
                           {entry.data.targetInvoiceNumber && (
                             <div>
                               <span className="text-muted-foreground">Applied to:</span>{" "}
-                              <span className="font-mono">{entry.data.targetInvoiceNumber}</span>
+                              {onOpenSale && entry.data.targetSaleId ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    onOpenSale(
+                                      entry.data.targetSaleId,
+                                      entry.data.targetInvoiceNumber,
+                                    )
+                                  }
+                                  className="font-mono text-primary hover:underline"
+                                >
+                                  {entry.data.targetInvoiceNumber}
+                                </button>
+                              ) : (
+                                <span className="font-mono">{entry.data.targetInvoiceNumber}</span>
+                              )}
                             </div>
                           )}
                           <div>
@@ -540,11 +572,19 @@ export function CustomerLedgerSheet({
                               </span>
                             </div>
                           )}
-                          {isAccountsEnabled && entry.data.totalRefundAmount > entry.data.refundedAmount && (
+                          {isAccountsEnabled && (entry.data.refundAllocation?.adjustSaleDue ?? 0) > 0 && (
                             <div>
                               <span className="text-muted-foreground">Due Adjusted:</span>{" "}
                               <span className="font-medium text-blue-600">
-                                {formatCurrency(entry.data.totalRefundAmount - entry.data.refundedAmount)}
+                                {formatCurrency(entry.data.refundAllocation!.adjustSaleDue!)}
+                              </span>
+                            </div>
+                          )}
+                          {(entry.data.refundAllocation?.customerCredit?.amount ?? 0) > 0 && (
+                            <div>
+                              <span className="text-muted-foreground">Credit Added:</span>{" "}
+                              <span className="font-medium text-green-600">
+                                +{formatCurrency(entry.data.refundAllocation!.customerCredit!.amount)}
                               </span>
                             </div>
                           )}

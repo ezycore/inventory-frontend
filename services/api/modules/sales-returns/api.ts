@@ -5,6 +5,23 @@
 
 import { apiClient } from "@/lib/api-client";
 import { buildQueryParams } from "../../utils";
+import type { ApiResponse } from "@/types";
+
+export interface CustomerPendingDueRow {
+  _id: string;
+  saleId: { _id: string; invoiceNumber: string; totalAmount: number; createdAt: string } | string;
+  currentAmount: number;
+  originalAmount?: number;
+  status?: string;
+  createdAt?: string;
+}
+
+export interface CustomerPendingDuesResponse {
+  dues: CustomerPendingDueRow[];
+  totalDue: number;
+  count: number;
+  creditBalance: number;
+}
 
 /**
  * Sales Return filters
@@ -126,9 +143,14 @@ export const salesReturnsApi = {
    * Get customer pending dues for refund allocation
    * Used when allocating refund amount to other pending dues
    */
-  getCustomerPendingDues: (customerId: string, excludeSaleId?: string) => {
+  getCustomerPendingDues: (
+    customerId: string,
+    excludeSaleId?: string,
+  ): Promise<ApiResponse<CustomerPendingDuesResponse>> => {
     const queryString = excludeSaleId ? `?excludeSaleId=${excludeSaleId}` : "";
-    return apiClient.get(`/sales/returns/customer/${customerId}/pending-dues${queryString}`);
+    return apiClient.get<ApiResponse<CustomerPendingDuesResponse>>(
+      `/sales/returns/customer/${customerId}/pending-dues${queryString}`,
+    );
   },
 
   /**

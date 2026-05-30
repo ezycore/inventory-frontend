@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/ui/components/card';
+import { InfoField } from '@/components/shared/info-field';
 
 export interface ReturnDocumentSummaryCardProps {
   /** e.g. "Sale" or "Order" */
@@ -22,6 +23,7 @@ export interface ReturnDocumentSummaryCardProps {
   paidAmount: number;
   /** When > 0, rendered in destructive color */
   dueAmount?: number;
+  refundCreditApplied?: number;
   formatCurrency: (n: number) => string;
 }
 
@@ -36,6 +38,7 @@ export function ReturnDocumentSummaryCard({
   totalAmount,
   paidAmount,
   dueAmount,
+  refundCreditApplied,
   formatCurrency,
 }: ReturnDocumentSummaryCardProps) {
   return (
@@ -52,38 +55,39 @@ export function ReturnDocumentSummaryCard({
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {subtotal != null && (
-            <div className="rounded-lg bg-muted/40 p-3 space-y-1">
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Subtotal</div>
-              <div className="font-semibold">{formatCurrency(subtotal)}</div>
-            </div>
+            <InfoField label="Subtotal" value={formatCurrency(subtotal)} />
           )}
-          {additionalDiscount != null && additionalDiscount > 0 && (
-            <div className="rounded-lg bg-orange-50 dark:bg-orange-950/30 p-3 space-y-1">
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Discount</div>
-              <div className="font-semibold text-orange-600 dark:text-orange-400">
-                -{formatCurrency(additionalDiscount)}
-              </div>
-            </div>
-          )}
+
+          <InfoField
+            label="Discount"
+            value={`-${formatCurrency(additionalDiscount)}`}
+            valueClassName="text-orange-600 dark:text-orange-400"
+          />
+
           {taxTotal != null && taxTotal > 0 && (
-            <div className="rounded-lg bg-muted/40 p-3 space-y-1">
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Tax</div>
-              <div className="font-semibold">{formatCurrency(taxTotal)}</div>
-            </div>
+            <InfoField label="Tax" value={formatCurrency(taxTotal)} />
           )}
-          <div className="rounded-lg bg-muted/40 p-3 space-y-1">
-            <div className="text-xs text-muted-foreground uppercase tracking-wide">Total</div>
-            <div className="font-semibold">{formatCurrency(totalAmount)}</div>
-          </div>
-          <div className="rounded-lg bg-green-50 dark:bg-green-950/30 p-3 space-y-1">
-            <div className="text-xs text-muted-foreground uppercase tracking-wide">Paid</div>
-            <div className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(paidAmount)}</div>
-          </div>
+          <InfoField label="Total" value={formatCurrency(totalAmount)} />
+          <InfoField
+            label="Paid"
+            value={formatCurrency(paidAmount)}
+            valueClassName="text-green-600 dark:text-green-400"
+          />
+          {refundCreditApplied != null && refundCreditApplied > 0 && (
+            <InfoField
+              label="Refund Credits Applied"
+              value={formatCurrency(refundCreditApplied)}
+              valueClassName="text-emerald-600 dark:text-emerald-400"
+            />
+          )
+
+          }
           {dueAmount != null && dueAmount > 0 && (
-            <div className="rounded-lg bg-red-50 dark:bg-red-950/30 p-3 space-y-1">
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Due</div>
-              <div className="font-semibold text-destructive">{formatCurrency(dueAmount)}</div>
-            </div>
+            <InfoField
+              label="Due"
+              value={formatCurrency(dueAmount)}
+              valueClassName="text-destructive"
+            />
           )}
         </div>
       </CardContent>

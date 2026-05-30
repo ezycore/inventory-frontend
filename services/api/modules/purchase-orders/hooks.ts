@@ -5,9 +5,11 @@ import type {
   CreatePurchaseOrderDto,
   CreatePurchaseOrdersDto,
   CreatePurchaseReturnDto,
+  FinalizePurchaseOrderDto,
   PurchaseOrderFilters,
   PurchaseReturnFilters,
   ReceivePurchaseOrderDto,
+  UpdatePurchaseOrderDraftDto,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -52,6 +54,19 @@ export const usePurchaseOrderPayments = (id: string) => {
     queryFn: () => purchaseOrdersApi.getPayments(id),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
+  });
+};
+
+/**
+ * Get merged transactions timeline for a purchase order:
+ * payments + cash refunds + self return credits + cross-PO inbound credits.
+ */
+export const usePurchaseOrderTransactions = (purchaseOrderId: string) => {
+  return useQuery({
+    queryKey: queryKeys.purchaseOrders.transactions(purchaseOrderId),
+    queryFn: () => purchaseOrdersApi.getTransactions(purchaseOrderId),
+    enabled: !!purchaseOrderId,
+    staleTime: 2 * 60 * 1000,
   });
 };
 
@@ -125,6 +140,69 @@ export const useCancelPurchaseOrder = () => {
         queryKey: queryKeys.purchaseOrders.detail(id),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// Hard-delete a draft purchase order (status must be "draft")
+export const useDeleteDraftPurchaseOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => purchaseOrdersApi.deleteDraft(id),
+    onSuccess: (data) => {
+      toast.success(data.message || "Draft purchase order deleted");
+      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// Update a draft purchase order (no side effects)
+export const useUpdateDraftPurchaseOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdatePurchaseOrderDraftDto;
+    }) => purchaseOrdersApi.updateDraft(id, data),
+    onSuccess: (data, variables) => {
+      toast.success(data.message || "Draft purchase order updated");
+      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.purchaseOrders.detail(variables.id),
+      });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// Finalize a draft purchase order (runs full pipeline)
+export const useFinalizeDraftPurchaseOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: FinalizePurchaseOrderDto;
+    }) => purchaseOrdersApi.finalizeDraft(id, data),
+    onSuccess: (data, variables) => {
+      toast.success(data.message || "Purchase order finalized");
+      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.purchaseOrders.detail(variables.id),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
     },
     onError: handleMutationError,
   });

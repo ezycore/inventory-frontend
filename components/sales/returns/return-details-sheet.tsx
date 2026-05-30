@@ -46,7 +46,7 @@ function normalizeSalesReturn(r: SalesReturn): ReturnDetailsData {
             referenceLabel: d.invoiceNumber,
           })),
           accountRefund: r.refundAllocation.accountRefund,
-          customerCredit: r.refundAllocation.customerCredit,
+          counterpartyCredit: r.refundAllocation.customerCredit,
         }
       : undefined,
   };

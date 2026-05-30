@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import { Textarea } from "@/ui/components/textarea";
+import { Switch } from "@/ui/components/switch";
 import {
   FileText,
   CreditCard,
@@ -33,6 +34,7 @@ import {
   Wallet,
   RefreshCw,
   ArrowLeft,
+  Undo2,
 } from "lucide-react";
 import {
   useSupplierLedger,
@@ -45,6 +47,7 @@ import type {
   SupplierLedgerPurchaseOrder,
   SupplierLedgerPayment,
   SupplierLedgerReturn,
+  SupplierLedgerInboundCredit,
 } from "@/types";
 import { cn } from "@/ui/lib/utils";
 
@@ -53,6 +56,8 @@ interface SupplierLedgerSheetProps {
   onOpenChange: (open: boolean) => void;
   supplier: Supplier | null;
   isAccountsEnabled: boolean;
+  /** Optional: open a different PO (used by inbound-credit cross-PO deep-link). */
+  onOpenPurchaseOrder?: (purchaseOrderId: string, orderNumber?: string) => void;
 }
 
 // Status configuration for badges
@@ -75,6 +80,7 @@ export function SupplierLedgerSheet({
   onOpenChange,
   supplier,
   isAccountsEnabled,
+  onOpenPurchaseOrder,
 }: SupplierLedgerSheetProps) {
   const { format: formatCurrency } = useCurrency();
   const [page, setPage] = useState(1);
@@ -88,6 +94,7 @@ export function SupplierLedgerSheet({
   const [paymentAccountId, setPaymentAccountId] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentNotes, setPaymentNotes] = useState("");
+  const [useSupplierCredit, setUseSupplierCredit] = useState(false);
 
   const { data: ledgerData, isLoading } = useSupplierLedger(
     supplier?._id ?? null,
@@ -102,6 +109,9 @@ export function SupplierLedgerSheet({
   const purchaseOrders = ledger?.purchaseOrders || [];
   const payments = ledger?.payments || [];
   const returns = ledger?.returns || [];
+  const inboundCredits = ledger?.inboundCredits || [];
+  const ledgerCreditBalance =
+    ledger?.creditBalance ?? supplier?.creditBalance ?? 0;
   const accounts =
     (accountsData as {
       items?: { _id: string; name: string; type?: string }[];
@@ -117,6 +127,7 @@ export function SupplierLedgerSheet({
     setPaymentAccountId("");
     setPaymentMethod("cash");
     setPaymentNotes("");
+    setUseSupplierCredit(false);
   };
 
   const handleCancelPayment = () => {
@@ -125,20 +136,25 @@ export function SupplierLedgerSheet({
     setPaymentAccountId("");
     setPaymentMethod("cash");
     setPaymentNotes("");
+    setUseSupplierCredit(false);
   };
 
   const handleSubmitPayment = async () => {
-    if (!paymentPO || !paymentAccountId) return;
+    if (!paymentPO) return;
+    if (!useSupplierCredit && !paymentAccountId) return;
     const amount = parseFloat(paymentAmount);
     if (isNaN(amount) || amount <= 0) return;
     try {
       await addPaymentMutation.mutateAsync({
         id: paymentPO._id,
         data: {
-          paymentMethod,
-          accountId: paymentAccountId,
+          paymentMethod: useSupplierCredit
+            ? undefined
+            : (paymentMethod as "cash" | "card" | "bank" | "mfs" | "other"),
+          accountId: useSupplierCredit ? undefined : paymentAccountId,
           amount,
           notes: paymentNotes || undefined,
+          useSupplierCredit: useSupplierCredit || undefined,
         },
       });
       handleCancelPayment();
@@ -147,11 +163,12 @@ export function SupplierLedgerSheet({
     }
   };
 
-  // Combine purchase orders, payments, and returns into a unified ledger view
+  // Combine purchase orders, payments, returns, and inbound credits into a unified ledger view
   type LedgerEntry =
     | { type: "purchaseOrder"; data: SupplierLedgerPurchaseOrder; date: Date }
     | { type: "payment"; data: SupplierLedgerPayment; date: Date }
-    | { type: "return"; data: SupplierLedgerReturn; date: Date };
+    | { type: "return"; data: SupplierLedgerReturn; date: Date }
+    | { type: "inboundCredit"; data: SupplierLedgerInboundCredit; date: Date };
 
   const ledgerEntries: LedgerEntry[] = [
     ...purchaseOrders.map((po) => ({
@@ -168,6 +185,11 @@ export function SupplierLedgerSheet({
       type: "return" as const,
       data: returnItem,
       date: new Date(returnItem.createdAt),
+    })),
+    ...inboundCredits.map((credit) => ({
+      type: "inboundCredit" as const,
+      data: credit,
+      date: new Date(credit.date),
     })),
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
@@ -217,6 +239,21 @@ export function SupplierLedgerSheet({
                       ) : (
                         formatCurrency(totalDue)
                       )}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">
+                      Supplier Credit
+                    </p>
+                    <p
+                      className={cn(
+                        "text-lg font-semibold",
+                        ledgerCreditBalance > 0
+                          ? "text-blue-600"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {formatCurrency(ledgerCreditBalance)}
                     </p>
                   </div>
                 </>
@@ -275,51 +312,94 @@ export function SupplierLedgerSheet({
                       type="number"
                       step="0.01"
                       min="0.01"
-                      max={paymentPO.dueAmount}
+                      max={
+                        useSupplierCredit
+                          ? Math.min(
+                              paymentPO.dueAmount,
+                              supplier?.creditBalance ?? 0,
+                            )
+                          : paymentPO.dueAmount
+                      }
                       value={paymentAmount}
                       onChange={(e) => setPaymentAmount(e.target.value)}
                       placeholder="Enter amount"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="sup-pay-account">Payment Account</Label>
-                    <Select
-                      value={paymentAccountId}
-                      onValueChange={setPaymentAccountId}
-                    >
-                      <SelectTrigger id="sup-pay-account">
-                        <SelectValue placeholder="Select account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accounts.map((account) => (
-                          <SelectItem key={account._id} value={account._id}>
-                            {account.name}
-                            {account.type ? ` (${account.type})` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {(supplier?.creditBalance ?? 0) > 0 && (
+                    <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/20 p-3">
+                      <div className="space-y-0.5">
+                        <Label
+                          htmlFor="sup-use-credit"
+                          className="text-sm font-medium"
+                        >
+                          Use supplier credit
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Available:{" "}
+                          {formatCurrency(supplier?.creditBalance ?? 0)}
+                        </p>
+                      </div>
+                      <Switch
+                        id="sup-use-credit"
+                        checked={useSupplierCredit}
+                        onCheckedChange={(checked) => {
+                          setUseSupplierCredit(checked);
+                          if (checked) {
+                            setPaymentAmount(
+                              Math.min(
+                                paymentPO.dueAmount,
+                                supplier?.creditBalance ?? 0,
+                              ).toFixed(2),
+                            );
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="sup-pay-method">Payment Method</Label>
-                    <Select
-                      value={paymentMethod}
-                      onValueChange={setPaymentMethod}
-                    >
-                      <SelectTrigger id="sup-pay-method">
-                        <SelectValue placeholder="Select method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="bank">Bank Transfer</SelectItem>
-                        <SelectItem value="mfs">Mobile Banking</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {!useSupplierCredit && (
+                    <div className="space-y-2">
+                      <Label htmlFor="sup-pay-account">Payment Account</Label>
+                      <Select
+                        value={paymentAccountId}
+                        onValueChange={setPaymentAccountId}
+                      >
+                        <SelectTrigger id="sup-pay-account">
+                          <SelectValue placeholder="Select account" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {accounts.map((account) => (
+                            <SelectItem key={account._id} value={account._id}>
+                              {account.name}
+                              {account.type ? ` (${account.type})` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {!useSupplierCredit && (
+                    <div className="space-y-2">
+                      <Label htmlFor="sup-pay-method">Payment Method</Label>
+                      <Select
+                        value={paymentMethod}
+                        onValueChange={setPaymentMethod}
+                      >
+                        <SelectTrigger id="sup-pay-method">
+                          <SelectValue placeholder="Select method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">Cash</SelectItem>
+                          <SelectItem value="card">Card</SelectItem>
+                          <SelectItem value="bank">Bank Transfer</SelectItem>
+                          <SelectItem value="mfs">Mobile Banking</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="sup-pay-notes">Notes (optional)</Label>
@@ -346,7 +426,7 @@ export function SupplierLedgerSheet({
                       onClick={handleSubmitPayment}
                       disabled={
                         addPaymentMutation.isPending ||
-                        !paymentAccountId ||
+                        (!useSupplierCredit && !paymentAccountId) ||
                         !paymentAmount
                       }
                     >
@@ -376,7 +456,11 @@ export function SupplierLedgerSheet({
                   ) : (
                     ledgerEntries.map((entry, index) => (
                       <div
-                        key={`${entry.type}-${entry.data._id}-${index}`}
+                        key={`${entry.type}-${
+                          entry.type === "inboundCredit"
+                            ? entry.data.returnId
+                            : entry.data._id
+                        }-${index}`}
                         className="rounded-lg border p-4 space-y-2"
                       >
                         {entry.type === "purchaseOrder" ? (
@@ -511,6 +595,95 @@ export function SupplierLedgerSheet({
                                     </span>
                                   </div>
                                 )}
+                            </div>
+                          </>
+                        ) : entry.type === "inboundCredit" ? (
+                          // Inbound credit applied from another PO's return
+                          <>
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center gap-2">
+                                <Undo2 className="h-4 w-4 text-blue-600" />
+                                <span className="font-medium text-blue-600">
+                                  Credit Applied
+                                </span>
+                              </div>
+                              <span className="text-sm text-muted-foreground">
+                                {format(entry.date, "dd MMM yyyy")}
+                              </span>
+                            </div>
+                            <div className="text-sm space-y-1">
+                              <div>
+                                <span className="text-muted-foreground">
+                                  From return:
+                                </span>{" "}
+                                <span className="font-mono">
+                                  {entry.data.returnNumber}
+                                </span>
+                                {entry.data.sourceOrderNumber && (
+                                  <>
+                                    {" "}
+                                    <span className="text-muted-foreground">
+                                      (PO
+                                    </span>{" "}
+                                    {onOpenPurchaseOrder &&
+                                    entry.data.sourcePurchaseOrderId ? (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          onOpenPurchaseOrder(
+                                            entry.data.sourcePurchaseOrderId,
+                                            entry.data.sourceOrderNumber,
+                                          )
+                                        }
+                                        className="font-mono text-primary hover:underline"
+                                      >
+                                        {entry.data.sourceOrderNumber}
+                                      </button>
+                                    ) : (
+                                      <span className="font-mono">
+                                        {entry.data.sourceOrderNumber}
+                                      </span>
+                                    )}
+                                    <span className="text-muted-foreground">
+                                      )
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                              {entry.data.targetOrderNumber && (
+                                <div>
+                                  <span className="text-muted-foreground">
+                                    Applied to:
+                                  </span>{" "}
+                                  {onOpenPurchaseOrder &&
+                                  entry.data.targetPurchaseOrderId ? (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        onOpenPurchaseOrder(
+                                          entry.data.targetPurchaseOrderId,
+                                          entry.data.targetOrderNumber,
+                                        )
+                                      }
+                                      className="font-mono text-primary hover:underline"
+                                    >
+                                      {entry.data.targetOrderNumber}
+                                    </button>
+                                  ) : (
+                                    <span className="font-mono">
+                                      {entry.data.targetOrderNumber}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              <div>
+                                <span className="text-muted-foreground">
+                                  Amount:
+                                </span>{" "}
+                                <span className="font-medium text-blue-600">
+                                  {formatCurrency(entry.data.amount)}
+                                </span>
+                              </div>
                             </div>
                           </>
                         ) : entry.data.type === "purchase_return" ? (

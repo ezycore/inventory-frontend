@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import {
@@ -11,6 +12,8 @@ import {
   useAccounts,
   useSalesSummary,
   useSaleReturns,
+  useDeleteDraftSale,
+  salesApi,
 } from '@/services/api';
 import { useAuthStore } from '@/services/stores/use-auth-store';
 import { useCurrency } from '@/lib/currency';
@@ -26,6 +29,7 @@ export function useSalesHistoryPage() {
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const { format: formatCurrency } = useCurrency();
+  const router = useRouter();
 
   // ── Table state ───────────────────────────────────────────────
   const [page, setPage] = useState(1);
@@ -56,6 +60,7 @@ export function useSalesHistoryPage() {
   const { data: accountsData } = useAccounts();
   const { data: summaryData, isLoading: isSummaryLoading } = useSalesSummary();
   const addPaymentMutation = useAddSalePayment();
+  const deleteDraftMutation = useDeleteDraftSale();
 
   // ── Derived data ──────────────────────────────────────────────
   const sales: Sale[] = salesData?.data?.items || [];
@@ -86,6 +91,38 @@ export function useSalesHistoryPage() {
     setUseCreditBalance(false);
     setDrawerOpen(true);
   }, []);
+
+  const handleNavigateToSale = useCallback(async (saleId: string) => {
+    try {
+      const response = await salesApi.getById(saleId);
+      const sale = response?.data as Sale | undefined;
+      if (sale) {
+        setSelectedSale(sale);
+        setDrawerMode('summary');
+        setDrawerOpen(true);
+      }
+    } catch {
+      toast.error('Failed to load sale');
+    }
+  }, []);
+
+  const handleEditDraft = useCallback((sale: Sale) => {
+    router.push(`/sales?draftId=${sale._id}`);
+  }, [router]);
+
+  const handleDeleteDraft = useCallback(async (sale: Sale) => {
+    if (typeof window !== 'undefined') {
+      const ok = window.confirm(
+        `Permanently delete draft ${sale.invoiceNumber}? This cannot be undone.`,
+      );
+      if (!ok) return;
+    }
+    try {
+      await deleteDraftMutation.mutateAsync(sale._id);
+    } catch {
+      // toast already shown by mutation
+    }
+  }, [deleteDraftMutation]);
 
   const handlePaymentSubmit = useCallback(async () => {
     if (!selectedSale) return;
@@ -132,6 +169,7 @@ export function useSalesHistoryPage() {
           label: 'Status',
           type: 'select' as const,
           options: [
+            { label: 'Draft', value: 'draft' },
             { label: 'Paid', value: 'paid' },
             { label: 'Partial', value: 'partial' },
             { label: 'Due', value: 'due' },
@@ -164,8 +202,8 @@ export function useSalesHistoryPage() {
   );
 
   const customActions = useMemo(
-    () => getSalesHistoryActions(isAccountsEnabled, handleViewSummary, handleMakePayment),
-    [isAccountsEnabled, handleViewSummary, handleMakePayment],
+    () => getSalesHistoryActions(isAccountsEnabled, handleViewSummary, handleMakePayment, handleEditDraft, handleDeleteDraft),
+    [isAccountsEnabled, handleViewSummary, handleMakePayment, handleEditDraft, handleDeleteDraft],
   );
 
   // ── Public API ────────────────────────────────────────────────
@@ -220,5 +258,8 @@ export function useSalesHistoryPage() {
     handleViewSummary,
     handleMakePayment,
     handlePaymentSubmit,
+    handleNavigateToSale,
+    handleEditDraft,
+    handleDeleteDraft,
   } as const;
 }

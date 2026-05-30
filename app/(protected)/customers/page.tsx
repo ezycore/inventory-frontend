@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
+import { toast } from "sonner";
 
 import type { Customer } from "@/types";
 import type { CustomAction } from "@/types/DataTable";
@@ -25,6 +27,7 @@ import {
 } from "@/components/customers";
 
 export default function CustomersPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
 
@@ -88,6 +91,13 @@ export default function CustomersPage() {
         onOpenChange={setLedgerSheetOpen}
         customer={selectedCustomer}
         isAccountsEnabled={isAccountsEnabled}
+        onOpenSale={(_saleId, invoiceNumber) => {
+          if (invoiceNumber) {
+            toast.message(`Opening ${invoiceNumber} in Sales History…`);
+          }
+          setLedgerSheetOpen(false);
+          router.push("/sales/history");
+        }}
       />
     </div>
   );

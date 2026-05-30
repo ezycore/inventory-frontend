@@ -13,19 +13,19 @@ export const suppliersApi = {
   getAll: (
     filters: BaseFilters = {},
   ): Promise<ApiResponse<PaginatedResponse<any>>> =>
-    apiClient.get(`/purchases/suppliers${buildQueryParams(filters)}`),
+    apiClient.get(`/suppliers${buildQueryParams(filters)}`),
 
   getById: (id: string): Promise<ApiResponse<any>> =>
-    apiClient.get(`/purchases/suppliers/${id}`),
+    apiClient.get(`/suppliers/${id}`),
 
   create: (data: any): Promise<ApiResponse<any>> =>
-    apiClient.post("/purchases/suppliers", data),
+    apiClient.post("/suppliers", data),
 
   update: (id: string, data: any): Promise<ApiResponse<any>> =>
-    apiClient.put(`/purchases/suppliers/${id}`, data),
+    apiClient.put(`/suppliers/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/purchases/suppliers/${id}`),
+    apiClient.delete(`/suppliers/${id}`),
 
   // Get supplier ledger (transaction history)
   getLedger: (
@@ -33,6 +33,6 @@ export const suppliersApi = {
     filters: SupplierLedgerFilters = {},
   ): Promise<ApiResponse<SupplierLedger>> =>
     apiClient.get(
-      `/purchases/suppliers/${supplierId}/ledger${buildQueryParams(filters)}`,
+      `/suppliers/${supplierId}/ledger${buildQueryParams(filters)}`,
     ),
 };

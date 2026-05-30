@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Eye, CreditCard, Copy } from "lucide-react";
+import { Eye, CreditCard, Copy, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
@@ -135,12 +135,16 @@ interface GetHistoryActionsParams {
   onViewSummary: (order: PurchaseOrder) => void;
   onMakePayment: (order: PurchaseOrder) => void;
   isAccountsEnabled: boolean;
+  onEditDraft?: (order: PurchaseOrder) => void;
+  onDeleteDraft?: (order: PurchaseOrder) => void;
 }
 
 export const getPurchaseHistoryActions = ({
   onViewSummary,
   onMakePayment,
   isAccountsEnabled,
+  onEditDraft,
+  onDeleteDraft,
 }: GetHistoryActionsParams): CustomAction[] => [
   {
     type: "custom",
@@ -161,8 +165,38 @@ export const getPurchaseHistoryActions = ({
           onClick: (row: unknown) => onMakePayment(row as PurchaseOrder),
           disabled: (row: unknown) => {
             const order = row as PurchaseOrder;
-            return (order.dueAmount || 0) <= 0 || order.status === "cancelled";
+            return (
+              order.status === "draft" ||
+              (order.dueAmount || 0) <= 0 ||
+              order.status === "cancelled"
+            );
           },
+        },
+      ]
+    : []),
+  ...(onEditDraft
+    ? [
+        {
+          type: "custom" as const,
+          placement: "cell" as const,
+          icon: <Pencil className="h-4 w-4" />,
+          label: "Edit draft",
+          tooltip: "Resume editing this draft",
+          onClick: (row: unknown) => onEditDraft(row as PurchaseOrder),
+          hidden: (row: unknown) => (row as PurchaseOrder).status !== "draft",
+        },
+      ]
+    : []),
+  ...(onDeleteDraft
+    ? [
+        {
+          type: "custom" as const,
+          placement: "cell" as const,
+          icon: <Trash2 className="h-4 w-4" />,
+          label: "Delete draft",
+          tooltip: "Permanently delete this draft",
+          onClick: (row: unknown) => onDeleteDraft(row as PurchaseOrder),
+          hidden: (row: unknown) => (row as PurchaseOrder).status !== "draft",
         },
       ]
     : []),

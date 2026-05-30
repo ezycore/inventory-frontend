@@ -82,6 +82,8 @@ export default function PurchaseHistoryPage() {
       </Card>
 
       {/* Purchase Summary & Payment Drawer */}
+      <ctx.DeleteDraftConfirmDialog />
+
       <PaymentsDrawer
         open={ctx.drawerOpen}
         onOpenChange={ctx.setDrawerOpen}
@@ -96,8 +98,6 @@ export default function PurchaseHistoryPage() {
         setPaymentAmount={ctx.setPaymentAmount}
         paymentAccountId={ctx.paymentAccountId}
         setPaymentAccountId={ctx.setPaymentAccountId}
-        paymentMethod={ctx.paymentMethod}
-        setPaymentMethod={ctx.setPaymentMethod}
         paymentNotes={ctx.paymentNotes}
         setPaymentNotes={ctx.setPaymentNotes}
         isSubmittingPayment={ctx.isSubmittingPayment}
@@ -106,6 +106,10 @@ export default function PurchaseHistoryPage() {
         drawerRef={ctx.drawerRef}
         purchaseReturns={ctx.purchaseReturns}
         isLoadingReturns={ctx.isLoadingReturns}
+        transactions={ctx.transactions}
+        isLoadingTransactions={ctx.isLoadingTransactions}
+        useSupplierCredit={ctx.useSupplierCredit}
+        setUseSupplierCredit={ctx.setUseSupplierCredit}
       />
     </div>
   );

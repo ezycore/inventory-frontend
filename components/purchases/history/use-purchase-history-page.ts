@@ -1,21 +1,24 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useConfirm } from "@/hooks/use-confirm";
 import { format } from "date-fns";
 
 import {
   useAccounts,
   useAddPurchasePayment,
+  useDeleteDraftPurchaseOrder,
   usePurchaseOrderPayments,
   usePurchaseOrderReturns,
+  usePurchaseOrderTransactions,
   usePurchaseOrders,
   usePurchaseOrdersSummary,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useCurrency } from "@/lib/currency";
 import type {
-  AddPurchasePaymentDto,
   PurchaseOrder,
   PurchaseOrderFilters,
   PurchaseReturn,
@@ -26,6 +29,7 @@ import { getPurchaseHistoryColumns, getPurchaseHistoryActions } from "./columns"
 import { buildHistoryFilterConfig } from "./filters";
 
 export function usePurchaseHistoryPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const { format: formatCurrency } = useCurrency();
@@ -48,8 +52,8 @@ export function usePurchaseHistoryPage() {
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentAccountId, setPaymentAccountId] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentNotes, setPaymentNotes] = useState("");
+  const [useSupplierCredit, setUseSupplierCredit] = useState(false);
 
   // API queries
   const {
@@ -61,8 +65,12 @@ export function usePurchaseHistoryPage() {
     usePurchaseOrderPayments(selectedOrder?._id || "");
   const { data: returnsData, isLoading: isLoadingReturns } =
     usePurchaseOrderReturns(selectedOrder?._id || "");
+  const { data: transactionsData, isLoading: isLoadingTransactions } =
+    usePurchaseOrderTransactions(selectedOrder?._id || "");
   const { data: accountsData } = useAccounts();
   const addPaymentMutation = useAddPurchasePayment();
+  const deleteDraftMutation = useDeleteDraftPurchaseOrder();
+  const { confirm, ConfirmDialog: DeleteDraftConfirmDialog } = useConfirm();
   const { data: summaryData, isLoading: isSummaryLoading } =
     usePurchaseOrdersSummary();
 
@@ -96,13 +104,37 @@ export function usePurchaseHistoryPage() {
     setDrawerMode("payment");
     setPaymentAmount((order.dueAmount || 0).toFixed(2));
     setPaymentAccountId("");
-    setPaymentMethod("cash");
     setPaymentNotes("");
+    setUseSupplierCredit(false);
     setDrawerOpen(true);
   }, []);
 
+  const handleDeleteDraft = useCallback(async (order: PurchaseOrder) => {
+    const ok = await confirm({
+      title: "Delete Draft Order?",
+      description: `"${order.orderNumber}" will be permanently deleted. This action cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      confirmClassName: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+    });
+    if (!ok) return;
+    try {
+      await deleteDraftMutation.mutateAsync(order._id);
+    } catch {
+      // toast handled by mutation
+    }
+  }, [confirm, deleteDraftMutation]);
+
+  const handleEditDraft = useCallback(
+    (order: PurchaseOrder) => {
+      router.push(`/purchases?draftId=${order._id}`);
+    },
+    [router],
+  );
+
   const handlePaymentSubmit = useCallback(async () => {
-    if (!selectedOrder || !paymentAccountId) {
+    if (!selectedOrder) return;
+    if (!useSupplierCredit && !paymentAccountId) {
       toast.error("Please select a payment account");
       return;
     }
@@ -123,10 +155,9 @@ export function usePurchaseHistoryPage() {
         id: selectedOrder._id,
         data: {
           amount,
-          accountId: paymentAccountId,
-          paymentMethod:
-            paymentMethod as AddPurchasePaymentDto["paymentMethod"],
+          accountId: useSupplierCredit ? undefined : paymentAccountId,
           notes: paymentNotes || undefined,
+          useSupplierCredit: useSupplierCredit || undefined,
         },
       });
       const updated = (
@@ -137,6 +168,7 @@ export function usePurchaseHistoryPage() {
       }
       setDrawerMode("summary");
       setPaymentAmount("");
+      setUseSupplierCredit(false);
       refetch();
     } catch {
       // mutation onError handles toast
@@ -145,14 +177,14 @@ export function usePurchaseHistoryPage() {
     selectedOrder,
     paymentAmount,
     paymentAccountId,
-    paymentMethod,
     paymentNotes,
+    useSupplierCredit,
     addPaymentMutation,
     refetch,
   ]);
 
   const formatDateTime = (date: string | Date) =>
-    format(new Date(date), "dd MMM yyyy HH:mm");
+    format(new Date(date), "dd MMM yyyy hh:mm aa");
 
   // Columns, actions, filters — memoised
   const columns = useMemo(
@@ -166,8 +198,16 @@ export function usePurchaseHistoryPage() {
         onViewSummary: handleViewSummary,
         onMakePayment: handleMakePayment,
         isAccountsEnabled,
+        onEditDraft: handleEditDraft,
+        onDeleteDraft: handleDeleteDraft,
       }),
-    [handleViewSummary, handleMakePayment, isAccountsEnabled],
+    [
+      handleViewSummary,
+      handleMakePayment,
+      isAccountsEnabled,
+      handleEditDraft,
+      handleDeleteDraft,
+    ],
   );
 
   const filterConfig = useMemo(
@@ -190,6 +230,7 @@ export function usePurchaseHistoryPage() {
     purchases,
     payments,
     purchaseReturns,
+    transactions: transactionsData?.data,
     accounts,
     summary,
     selectedOrder,
@@ -199,6 +240,7 @@ export function usePurchaseHistoryPage() {
     isLoading,
     isLoadingPayments,
     isLoadingReturns,
+    isLoadingTransactions,
     isSummaryLoading,
 
     // Table config
@@ -224,10 +266,10 @@ export function usePurchaseHistoryPage() {
     setPaymentAmount,
     paymentAccountId,
     setPaymentAccountId,
-    paymentMethod,
-    setPaymentMethod,
     paymentNotes,
     setPaymentNotes,
+    useSupplierCredit,
+    setUseSupplierCredit,
     isSubmittingPayment: addPaymentMutation.isPending,
     handlePaymentSubmit,
     handleMakePayment,
@@ -237,5 +279,8 @@ export function usePurchaseHistoryPage() {
     isAccountsEnabled,
     formatCurrency,
     formatDateTime,
+
+    // Dialogs
+    DeleteDraftConfirmDialog,
   };
 }

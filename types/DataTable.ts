@@ -85,6 +85,9 @@ export interface CustomAction {
   render?: (row?: any) => React.ReactNode;
 
   disabled?: boolean | ((row: any) => boolean);
+
+  /** Hide the action entirely for rows where this returns true (or when set to true) */
+  hidden?: boolean | ((row: any) => boolean);
 }
 
 /**

@@ -125,6 +125,41 @@ export const productFormConfig: DynamicFormConfig = {
           },
         },
         {
+          name: "barcode",
+          type: "input",
+          label: "Barcode",
+          columnSpan: 6,
+          placeholder: "Scan or type barcode",
+          helperText: "Only for Single products. Variable products carry barcodes per-variant. Leave empty to auto-generate.",
+          validation: { maxLength: 64 },
+          dependsOn: {
+            field: "productType",
+            value: "single",
+            condition: "eq",
+            action: "show"
+          }
+        },
+        {
+          name: "barcodeSymbology",
+          type: "select",
+          label: "Symbology",
+          columnSpan: 6,
+          defaultValue: "CODE128",
+          options: [
+            { value: "CODE128", label: "CODE128 (default)" },
+            { value: "EAN13", label: "EAN-13" },
+            { value: "UPC_A", label: "UPC-A" },
+            { value: "ITF14", label: "ITF-14" },
+            { value: "QR", label: "QR Code" },
+          ],
+          dependsOn: {
+            field: "productType",
+            value: "single",
+            condition: "eq",
+            action: "show"
+          }
+        },
+        {
           name: "description",
           type: "textarea",
           label: "Description",

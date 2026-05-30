@@ -137,7 +137,6 @@ export function ValuationReport() {
                     <thead>
                       <tr className="border-b text-left">
                         <th className="pb-2 font-medium">Product</th>
-                        <th className="pb-2 font-medium">SKU</th>
                         <th className="pb-2 font-medium text-right">Quantity</th>
                         <th className="pb-2 font-medium text-right">Cost Price</th>
                         <th className="pb-2 font-medium text-right">Stock Value</th>
@@ -154,7 +153,6 @@ export function ValuationReport() {
                               </span>
                             )}
                           </td>
-                          <td className="py-2 text-muted-foreground">{p.sku || '—'}</td>
                           <td className="py-2 text-right">{p.quantity.toLocaleString()}</td>
                           <td className="py-2 text-right">{formatCurrency(p.costPrice)}</td>
                           <td className="py-2 text-right font-medium">

@@ -18,9 +18,9 @@ export function buildDueAllocations(pendingDues: any[]): DueAllocation[] {
   if (pendingDues.length === 0) return [];
   return pendingDues.map((due: any) => ({
     dueId: due.id || due._id,
-    purchaseOrderId: due.purchaseOrderId,
+    purchaseOrderId: due.purchaseOrderId?._id ?? due.purchaseOrderId,
     orderNumber: due.orderNumber,
-    dueAmount: due.dueAmount,
+    dueAmount: due.currentAmount ?? due.dueAmount ?? 0,
     allocatedAmount: 0,
     selected: false,
   }));
@@ -41,21 +41,18 @@ export function extractSupplierId(order: PurchaseOrder | undefined): string {
 /** Calculate refund amount for an item based on quantity and conversion factor */
 export function calculateItemRefund(
   qty: number,
-  conversionFactor: number | undefined,
   costPrice: number | undefined,
   price: number,
 ): number {
-  const factor = conversionFactor || 1;
   const pricePerUnit = costPrice || price;
-  return qty * factor * pricePerUnit;
+  return qty  * pricePerUnit;
 }
 
 /** Calculate max refund for an item */
 export function calculateMaxRefund(
   returnQty: number,
-  conversionFactor: number | undefined,
   costPrice: number | undefined,
   price: number,
 ): number {
-  return calculateItemRefund(returnQty, conversionFactor, costPrice, price);
+  return calculateItemRefund(returnQty, costPrice, price);
 }

@@ -1,7 +1,9 @@
 import { brandFormConfig } from "@/components/brands/form-config";
 import { categoryFormConfig } from "@/components/categories/form-config";
 import { customerFormConfig } from "@/components/customers/form-config";
-import { useCreateBrand, useCreateCategory, useCreateCustomer } from "@/services/api";
+import { discountFormConfig } from "@/components/discounts/form-config";
+import { supplierFormConfig } from "@/components/suppliers/form-config";
+import { useCreateBrand, useCreateCategory, useCreateCustomer, useCreateDiscount, useCreateSupplier } from "@/services/api";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 /**
@@ -48,6 +50,20 @@ export const quickAddConfig: Record<string, QuickAddModuleConfig> = {
     submitLabel: "Create Customer",
     optionsApiPath: "/sales/customers?all=true&fields=_id,name,defaultDiscountId",
   },
+  supplier: {
+    formConfig: supplierFormConfig,
+    useMutation: useCreateSupplier,
+    title: "Add New Supplier",
+    submitLabel: "Create Supplier",
+    optionsApiPath: "/suppliers?all=true&fields=_id,name,defaultDiscountId",
+  },
+  discount: {
+    formConfig: discountFormConfig,
+    useMutation: useCreateDiscount,
+    title: "Add New Discount",
+    submitLabel: "Create Discount",
+    optionsApiPath: "",
+  }
   // Add more modules as needed:
   // brand: { ... },
   // unit: { ... },
