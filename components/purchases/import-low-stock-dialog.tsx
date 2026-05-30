@@ -89,6 +89,9 @@ export interface ImportedLowStockItem {
   conversionFactor: number;
   convertedQuantity: number;
   total: number;
+  // Unit display names to preserve through import -> add-to-order flow
+  unitName?: string | null;
+  purchaseUnitName?: string | null;
 }
 
 export interface ImportResult {
@@ -379,6 +382,7 @@ export function ImportLowStockDialog({
 
       const convertedQuantity = quantity * conversionFactor;
       const total = convertedQuantity * costPrice;
+      console.log("item", item);
       return {
         inventoryId: item._id,
         productId: item.productId || "",
@@ -391,9 +395,10 @@ export function ImportLowStockDialog({
         conversionFactor,
         convertedQuantity,
         total,
+        unitName: item.unit?.name || item.unit?.shortName || null,
+        purchaseUnitName: item.purchaseUnit?.unitId?.shortName || item.purchaseUnit?.unitId?.name ||  null,
       };
     });
-
     onImport({
       items: importItems,
       supplierId,

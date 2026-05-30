@@ -10,7 +10,7 @@ const supplierHooks = createResourceHooks<Supplier, CreateSupplierDto>(
   {
     relatedQueryKeys: [
       queryKeys.suppliers.all(),
-      ["select-options", "/suppliers"],
+      ["select-options", "/suppliers?all=true&fields=_id,name,defaultDiscountId"],
     ],
   },
 );

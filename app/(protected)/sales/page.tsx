@@ -3,16 +3,19 @@
 import { ProductSearch, customerFormConfig } from "@/components/sales";
 import { useSellPage } from "@/components/sales/sell/use-sell-page";
 import { OrderSummarySidebar } from "@/components/sales/sell/order-summary-sidebar";
+import { BarcodeInput } from "@/components/shared/barcode";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Card, CardContent } from "@/ui/components/card";
 import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
 import { Separator } from "@/ui/components/separator";
+import { useAuthStore } from "@/services/stores";
 
 export default function SalesPage() {
   const ctx = useSellPage();
-  const { items, salesColumns, clearAll, customerForm, handleFieldChange, handleProductSelect } = ctx;
+  const { items, salesColumns, clearAll, customerForm, handleFieldChange, handleProductSelect, handleBarcodeScan } = ctx;
+  const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -42,6 +45,14 @@ export default function SalesPage() {
                   </span>
                   <h3 className="font-semibold text-sm">Add Products</h3>
                 </div>
+                {barcodeEnabled && (
+                  <div className="mb-3">
+                    <BarcodeInput
+                      onScan={handleBarcodeScan}
+                      placeholder="Scan barcode to add to cart…"
+                    />
+                  </div>
+                )}
                 <ProductSearch onSelect={handleProductSelect} />
               </div>
             </CardContent>

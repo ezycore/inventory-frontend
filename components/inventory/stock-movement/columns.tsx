@@ -124,7 +124,7 @@ export const columns: ColumnDef<any>[] = [
                   ? Object.entries(variant.attributes)
                       .map(([k, v]) => `${k}: ${v}`)
                       .join(", ")
-                  : variant.sku || ""}
+                  : ""}
               </p>
             )}
           </div>

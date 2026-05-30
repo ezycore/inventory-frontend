@@ -38,8 +38,10 @@ export const customerFormConfig: DynamicFormConfig = {
       label: "Default Discount",
       placeholder: "Select a default discount (optional)",
       columnSpan: 6,
-      optionsApi: "/discounts/sales?all=true&status=active",
+      optionsApi: "/discounts/sales?all=true&status=active&fields=_id,name,value",
       description: "Applied automatically to sales for this customer",
+      creatable: true,
+      quickAddModule: "discount"
     },
     {
       name: "status",

@@ -11,6 +11,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { productFormSchema } from "./form-configs";
 import { usePurchasePageStore, useAuthStore } from "@/services/stores";
+import { useBarcodeLookupAction } from "@/services/api/modules/barcode";
 
 export function usePurchasePage() {
   const { format: formatCurrency, symbol } = useCurrency();
@@ -60,6 +61,7 @@ export function usePurchasePage() {
     setInvoiceDate,
     setDiscountType,
     setDiscountValue,
+    setNotes,
     addItem,
     updateItem,
     removeItem,
@@ -143,11 +145,11 @@ export function usePurchasePage() {
 
     setSupplier(sellerId, supId, supName);
     setPurchaseType(sellerId, "instant");
-    setAdditionalDiscount(sellerId, draftOrder.additionalDiscount || 0);
     if (draftOrder.invoiceNumber) setInvoiceNumber(sellerId, draftOrder.invoiceNumber);
     if (draftOrder.invoiceDate) setInvoiceDate(sellerId, String(draftOrder.invoiceDate).slice(0, 10));
     setDiscountType(sellerId, discountType);
     setDiscountValue(sellerId, discountValue);
+    if (draftOrder.notes) setNotes(sellerId, draftOrder.notes);
 
     for (const it of draftOrder.items || []) {
       const productIdStr = typeof it.productId === "object" && it.productId ? (it.productId as any)._id : (it.productId as string);
@@ -166,8 +168,12 @@ export function usePurchasePage() {
         discount: perUnitDiscount * cf,
         conversionFactor: cf,
         purchaseUnitName: it.purchaseUnitName ?? undefined,
+        unitName: it.unitName ?? undefined,
       });
     }
+    // Set additionalDiscount AFTER items are added so the store can correctly
+    // clamp it against the actual subtotal (not zero).
+    setAdditionalDiscount(sellerId, draftOrder.additionalDiscount || 0);
 
     supplierForm.reset({
       supplierId: { value: supId, label: supName } as never,
@@ -177,7 +183,7 @@ export function usePurchasePage() {
       invoiceNumber: draftOrder.invoiceNumber || "",
       invoiceDate: draftOrder.invoiceDate ? String(draftOrder.invoiceDate).slice(0, 10) : "",
     });
-  }, [draftId, draftOrder, addItem, clearAll, setAdditionalDiscount, setDiscountType, setDiscountValue, setInvoiceDate, setInvoiceNumber, setPurchaseType, setSupplier, supplierForm]);
+  }, [draftId, draftOrder, addItem, clearAll, setAdditionalDiscount, setDiscountType, setDiscountValue, setInvoiceDate, setInvoiceNumber, setNotes, setPurchaseType, setSupplier, supplierForm]);
 
   const editQuantity = useWatch({ control: editForm.control, name: "quantity", defaultValue: 1 });
   const editConvertedQuantity = useWatch({ control: editForm.control, name: "convertedQuantity", defaultValue: 1 });
@@ -210,6 +216,45 @@ export function usePurchasePage() {
     setIsEditDialogOpen(true);
   }, [editForm]);
 
+  // Barcode scan-to-add-row for purchase orders.
+  // Looks up by code, then appends a row to the active seller's cart with qty 1.
+  const lookupBarcode = useBarcodeLookupAction();
+  const handleBarcodeScan = useCallback(
+    async (code: string) => {
+      try {
+        const r = await lookupBarcode(code);
+        const state = usePurchasePageStore.getState();
+        const sellerId = state.sellers[state.activeSellerIndex]?.id;
+        if (!sellerId) {
+          toast.error("Add a supplier first");
+          return;
+        }
+        if (!r._id) {
+          toast.error(
+            `No inventory record for "${r.name}" at this location yet — open it in Inventory first.`,
+          );
+          return;
+        }
+        addItem(sellerId, {
+          productId: r.productId,
+          variantId: r.variantId,
+          inventoryId: r._id,
+          productName: r.name,
+          quantity: 1,
+          costPrice: r.costPrice || r.price,
+          price: r.price,
+          discount: 0,
+          conversionFactor: 1,
+          purchaseUnitName: undefined,
+          unitName: r.unitName || undefined,
+        });
+      } catch (err: any) {
+        toast.error(err?.message || `No product found for "${code}"`);
+      }
+    },
+    [addItem, lookupBarcode],
+  );
+
   const handleSupplierFieldChange = useCallback((fieldName: string, value: unknown) => {
     const state = usePurchasePageStore.getState();
     const current = state.sellers[state.activeSellerIndex];
@@ -223,7 +268,8 @@ export function usePurchasePage() {
           setActiveSeller(existingSellerIndex);
           targetSellerId = state.sellers[existingSellerIndex].id;
         } else {
-          // noop
+          // Current seller already has items — create a fresh session for the new supplier
+          targetSellerId = addSeller();
         }
       }
       setSupplier(targetSellerId, supplier.value, supplier.label);
@@ -242,7 +288,7 @@ export function usePurchasePage() {
     } else if (fieldName === "invoiceDate") {
       setInvoiceDate(current.id, value as string);
     }
-  }, [setActiveSeller, setSupplier, setPurchaseType, setInvoiceNumber, setInvoiceDate, setDiscountType, setDiscountValue, supplierForm]);
+  }, [addSeller, setActiveSeller, setSupplier, setPurchaseType, setInvoiceNumber, setInvoiceDate, setDiscountType, setDiscountValue, supplierForm]);
 
   const handleProductFieldChange = useCallback((fieldName: string, value: unknown) => {
     if (fieldName === "productId") {
@@ -260,7 +306,7 @@ export function usePurchasePage() {
         const discountValue = supplierForm.getValues("discountValue") || 0;
         const stock = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
         let boxDiscount = 0;
-        if (discountType === "percentage") boxDiscount = Math.round((boxPrice * discountValue) / 100);
+        if (discountType === "percentage") boxDiscount = parseFloat(((boxPrice * discountValue) / 100).toFixed(2));
         else boxDiscount = discountValue;
         const boxCostPrice = Math.max(0, boxPrice - boxDiscount);
         productForm.setValue("stock", stock);
@@ -300,6 +346,7 @@ export function usePurchasePage() {
       else if (currentSeller && currentSeller.items.length === 0) { setSupplier(currentSeller.id, supplier.value, supplier.label); }
       else { const newSellerId = addSeller(); setSupplier(newSellerId, supplier.value, supplier.label); const newState = usePurchasePageStore.getState(); currentSeller = newState.sellers[newState.activeSellerIndex]; }
     }
+    console.log("data.productId", data.productId);
     const product = extractProductValue(data.productId);
     if (!product) { toast.error("Please select a product"); return; }
     const conversionFactor = product.conversionFactor || 1;
@@ -345,7 +392,7 @@ export function usePurchasePage() {
     supplierForm.setValue("discountType", result.discountType);
     supplierForm.setValue("discountValue", result.discountValue);
     let addedCount = 0;
-    for (const item of result.items) { addItem(currentSeller.id, { inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, convertedQuantity: item.convertedQuantity }); addedCount++; }
+    for (const item of result.items) { addItem(currentSeller.id, { inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, convertedQuantity: item.convertedQuantity, unitName: item.unitName ?? undefined, purchaseUnitName: item.purchaseUnitName ?? undefined }); addedCount++; }
     toast.success(`${addedCount} ${addedCount === 1 ? "product" : "products"} imported to order`);
   }, [addItem, supplierForm, setActiveSeller, setSupplier, addSeller, setPurchaseType, setDiscountType, setDiscountValue]);
 
@@ -441,6 +488,7 @@ export function usePurchasePage() {
     handleSupplierFieldChange,
     handleProductFieldChange,
     handleAddToOrder,
+    handleBarcodeScan,
     handleEditItem,
     handleSaveEdit,
     handleEditFieldChange,

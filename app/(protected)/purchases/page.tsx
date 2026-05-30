@@ -11,9 +11,12 @@ import SupplierForm from "@/components/purchases/supplier-form";
 import ProductForm from "@/components/purchases/product-form";
 import OrderSummary from "@/components/purchases/order-summary";
 import usePurchasePage from "@/components/purchases/use-purchase-page";
+import { BarcodeInput } from "@/components/shared/barcode";
+import { useAuthStore } from "@/services/stores";
 
 export default function PurchasesPage() {
   const ctx = usePurchasePage();
+  const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
   const {
     formatCurrency,
     symbol,
@@ -33,6 +36,7 @@ export default function PurchasesPage() {
     handleSupplierFieldChange,
     handleProductFieldChange,
     handleAddToOrder,
+    handleBarcodeScan,
     handleEditItem,
     handleSaveEdit,
     handleEditFieldChange,
@@ -72,6 +76,15 @@ export default function PurchasesPage() {
         <div className="lg:col-span-2 space-y-4">
           {/* Step 1: Supplier & Purchase Settings */}
           <SupplierForm form={supplierForm} config={supplierFormConfig} onFieldChange={handleSupplierFieldChange} />
+
+          {barcodeEnabled && (
+            <div className="rounded-md border bg-card p-3">
+              <BarcodeInput
+                onScan={handleBarcodeScan}
+                placeholder="Scan barcode to add a line…"
+              />
+            </div>
+          )}
 
           {/* Step 2: Add Products */}
           <ProductForm

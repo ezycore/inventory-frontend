@@ -18,6 +18,7 @@ import {
   useUpdateDraftSale,
   useFinalizeDraftSale,
 } from "@/services/api";
+import { useBarcodeLookupAction } from "@/services/api/modules/barcode";
 import { useAuthStore, useSellPageStore } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { useCurrency } from "@/lib/currency";
@@ -254,6 +255,38 @@ export function useSellPage() {
     [addItem, customerForm],
   );
 
+  // Barcode scan-to-add: look up by code → shape into ExtractedProduct → re-use selector
+  const lookupBarcode = useBarcodeLookupAction();
+  const handleBarcodeScan = useCallback(
+    async (code: string) => {
+      try {
+        const r = await lookupBarcode(code);
+        if (!r.hasInventoryAtLocation || !r._id) {
+          toast.error(`Product "${r.name}" has no stock at this location`);
+          return;
+        }
+        handleProductSelect({
+          value: r._id,
+          label: r.name,
+          price: r.price,
+          costPrice: r.costPrice,
+          availableQuantity: r.quantity,
+          productId: r.productId,
+          variantId: r.variantId,
+          conversionFactor: 1,
+          unitName: r.unitName,
+          saleUnitName: r.saleUnitName,
+          purchaseUnitName: null,
+          quantityAlert: 0,
+          barcode: r.barcode,
+        });
+      } catch (err: any) {
+        toast.error(err?.message || `No product found for "${code}"`);
+      }
+    },
+    [lookupBarcode, handleProductSelect],
+  );
+
   const handleAdditionalDiscountChange = useCallback(
     (value: number) => {
       const v = Math.max(0, value || 0);
@@ -473,6 +506,7 @@ export function useSellPage() {
     // handlers
     handleFieldChange,
     handleProductSelect,
+    handleBarcodeScan,
     handleMarkAsSold,
     handleSaveAsDraft,
     handleAdditionalDiscountChange,

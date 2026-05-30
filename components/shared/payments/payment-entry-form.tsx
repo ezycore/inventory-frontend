@@ -4,13 +4,7 @@ import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/components/select";
+import SimpleSelect from "@/ui/components/simple-select";
 import { Switch } from "@/ui/components/switch";
 import { Textarea } from "@/ui/components/textarea";
 import type { Account } from "@/types";
@@ -113,21 +107,19 @@ export function PaymentEntryForm({
 
         {!creditEnabled && (
           <div className="space-y-2">
-            <Label htmlFor="pay-account">Payment Account</Label>
-            <Select value={paymentAccountId} onValueChange={setPaymentAccountId}>
-              <SelectTrigger id="pay-account">
-                <SelectValue placeholder="Select account" />
-              </SelectTrigger>
-              <SelectContent>
-                {accounts.map((account) => (
-                  <SelectItem key={account._id} value={account._id}>
-                    {account.name}
-                    {account.type ? ` (${account.type})` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <Label htmlFor="pay-account">Payment Account</Label>
+              <SimpleSelect
+                id="pay-account"
+                value={paymentAccountId}
+                onValueChange={setPaymentAccountId}
+                options={accounts.map((a) => ({
+                  value: a._id,
+                  label: `${a.name}${a.type ? ` (${a.type})` : ""}`,
+                }))}
+                placeholder="Select account"
+                disabled={isSubmitting}
+              />
+            </div>
         )}
 
         <div className="space-y-2 md:col-span-2">

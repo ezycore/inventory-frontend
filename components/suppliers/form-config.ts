@@ -38,8 +38,10 @@ export const supplierFormConfig: DynamicFormConfig = {
       label: "Default Discount",
       placeholder: "Select a default discount (optional)",
       columnSpan: 6,
-      optionsApi: "/discounts/purchase?all=true&status=active",
+      optionsApi: "/discounts/purchase?all=true&status=active&fields=_id,name,value",
       description: "Applied automatically to purchases from this supplier",
+      creatable: true,
+      quickAddModule: "discount"
     },
     {
       name: "status",

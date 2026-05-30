@@ -9,6 +9,7 @@ import { CardTable } from "@/ui/components/custom/card-table";
 import { SellerPaymentSection } from "@/components/purchases/seller-payment-section";
 import { Trash2 } from "lucide-react";
 import type { FC } from "react";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   seller: any;
@@ -41,8 +42,11 @@ export const ItemsTable: FC<Props> = ({
   isUOMEnabled,
   symbol,
 }) => {
+  const { confirm, ConfirmDialog } = useConfirm();
+
   return (
     <Card>
+      <ConfirmDialog />
       <CardContent className="pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -60,8 +64,10 @@ export const ItemsTable: FC<Props> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                if (confirm("Remove all items for this supplier?")) removeSeller(seller.id);
+              onClick={async () => {
+                if (await confirm({
+                  title: `Remove all items for ${seller.supplierName || "this supplier"}?`
+                })) removeSeller(seller.id);
               }}
               className="text-muted-foreground hover:text-destructive text-xs h-7"
             >

@@ -454,7 +454,7 @@ const FormField: FC<{
                     controllerField.onChange(value);
                     handleChange(value);
                     if (field.onValueChange) field.onValueChange(value);
-                    handleAutoFill(value);
+                    // handleAutoFill(value);
                   }}
                   className={error ? "border-red-500" : ""}
                   {...selectProps}
@@ -527,7 +527,7 @@ const FormField: FC<{
                     controllerField.onChange(value);
                     handleChange(value);
                     if (field.onValueChange) field.onValueChange(value);
-                    handleAutoFill(value);
+                    // handleAutoFill(value);
                   }}
                   className={error ? "border-red-500" : ""}
                   {...selectProps}

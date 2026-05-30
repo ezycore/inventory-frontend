@@ -11,7 +11,6 @@ export const getPurchaseColumns = (
   onRemove: (sellerId: string, itemId: string) => void,
   formatCurrency: (amount: number) => string,
   sellerId: string,
-  isUOMEnabled: boolean,
 ): ColumnDef<PurchaseOrderItem>[] => {
   const columns: ColumnDef<PurchaseOrderItem>[] = [
     {

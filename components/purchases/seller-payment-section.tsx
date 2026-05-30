@@ -9,15 +9,9 @@ import {
 } from "@/services/stores";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/components/select";
 import { Switch } from "@/ui/components/switch";
 import { Textarea } from "@/ui/components/textarea";
+import SimpleSelect from "@/ui/components/simple-select";
 
 interface Props {
   seller: SellerSession;
@@ -144,7 +138,7 @@ export function SellerPaymentSection({
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
             <Label className="text-xs">Payment Account</Label>
-            <Select
+            {/* <Select
               value={accountId}
               onValueChange={(v) => updatePayment(v, paidAmount)}
             >
@@ -158,7 +152,14 @@ export function SellerPaymentSection({
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
+            <SimpleSelect
+              value={accountId}
+              onValueChange={(v) => updatePayment(v, paidAmount)}
+              options={accounts.map((a) => ({ label: a.name, value: a._id }))}
+              placeholder="Select account"
+              className="h-9 text-sm"
+            />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Paid Amount</Label>

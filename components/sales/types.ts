@@ -26,6 +26,7 @@ export interface ProductApiItem {
   saleUnitName?: string | null;
   purchaseUnitName?: string | null;
   quantityAlert: number;
+  barcode?: string;
 }
 
 export interface AccountApiItem {
@@ -70,6 +71,7 @@ export interface ExtractedProduct {
   saleUnitName?: string | null;
   purchaseUnitName?: string | null;
   quantityAlert: number;
+  barcode?: string;
 }
 export interface OrderItem {
   productId: string;

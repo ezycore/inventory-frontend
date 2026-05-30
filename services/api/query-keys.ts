@@ -41,6 +41,13 @@ export const queryKeys = {
       [...queryKeys.products.detail(id), "variants"] as const,
   },
 
+  // Barcode lookup
+  barcode: {
+    all: () => ["barcode"] as const,
+    lookup: (code: string) =>
+      [...queryKeys.barcode.all(), "lookup", code] as const,
+  },
+
   // Variants query keys
   variants: {
     all: () => ["variants"] as const,

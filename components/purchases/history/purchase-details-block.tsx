@@ -84,6 +84,7 @@ export function PurchaseDetailsBlock({ order }: { order: PurchaseOrder }) {
 }
 
 export function PurchaseItemsList({ order }: { order: PurchaseOrder }) {
+  console.log("Rendering PurchaseItemsList with items:", order.items);
   return (
     <div className="rounded-lg border p-4 space-y-4">
       <div className="flex items-center gap-2 font-medium">
@@ -120,31 +121,18 @@ export function PurchaseItemsList({ order }: { order: PurchaseOrder }) {
                 </div>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 <InfoField
                   label="Price"
-                  value={item.price}
+                  value={item.price * (item.conversionFactor ?? 1) * item.quantity}
                   showCurrency
-                  quantity={item.quantity}
                 />
                 <InfoField
-                  label="Discount"
-                  value={item.discount ?? 0}
+                  label="Profit"
+                  value={(item.price * (item.conversionFactor ?? 1) * item.quantity)- (item.costPrice ?? 0) * (item.conversionFactor ?? 1) * item.quantity}
                   showCurrency
-                  quantity={item.discount ? item.quantity : 0}
                 />
-                <InfoField label="Subtotal" value={item.subtotal} showCurrency />
-                {item.costPrice !== undefined && (
-                  <InfoField
-                    label={
-                      item.conversionFactor && item.conversionFactor !== 1
-                        ? `Cost Price (×${item.conversionFactor})`
-                        : "Cost Price"
-                    }
-                    value={item.costPrice}
-                    showCurrency
-                  />
-                )}
+                <InfoField label="Cost Price" value={item.subtotal} showCurrency />
               </div>
             </div>
           );

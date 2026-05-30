@@ -56,7 +56,7 @@ export const getInventoryKpiStats = (
       value: totalItems.toLocaleString(),
       icon: Boxes,
       variant: "primary",
-      description: "Currently tracked SKUs",
+      description: "Currently tracked variants",
     },
   ];
 };
@@ -74,7 +74,7 @@ export const getInventorySummaryMetrics = (
 
   return [
     {
-      label: "Total SKUs",
+      label: "Total Variants",
       value: totalItems,
       icon: Boxes,
     },
