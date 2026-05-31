@@ -164,6 +164,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "checkbox",
           label: "Add this product to inventory",
           columnSpan: 12,
+          defaultValue: false,
           helperText: "For variable products, set an alert level per variant in the Pricing & Stocks section above.",
         },
         {
