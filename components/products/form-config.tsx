@@ -160,6 +160,34 @@ export const productFormConfig: DynamicFormConfig = {
           }
         },
         {
+          name: "addToInventory",
+          type: "checkbox",
+          label: "Add this product to inventory",
+          columnSpan: 12,
+          defaultValue: false,
+          dependsOn: {
+            field: "_id",
+            condition: "falsy",
+            action: "show",
+          },
+          helperText: "For variable products, set an alert level per variant in the Pricing & Stocks section above.",
+        },
+        {
+          name: "inventoryAlertLevel",
+          type: "number",
+          zodType: "number",
+          label: "Alert Level",
+          columnSpan: 12,
+          placeholder: "0",
+          defaultValue: 0,
+          helperText: "Minimum stock quantity before a low-stock alert is triggered",
+          dependsOn: {
+            field: "addToInventory",
+            condition: "truthy",
+            action: "show",
+          },
+        },
+        {
           name: "description",
           type: "textarea",
           label: "Description",
