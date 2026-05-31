@@ -6,13 +6,7 @@ import {
   PaymentsDrawer,
 } from "@/components/purchases/history";
 import { Button } from "@/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/ui/components/card";
+import { Card, CardContent } from "@/ui/components/card";
 import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -46,17 +40,10 @@ export default function PurchaseHistoryPage() {
       />
 
       {/* Data Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Purchase Orders</CardTitle>
-          <CardDescription>
-            {ctx.paginationInfo
-              ? `${ctx.paginationInfo.total} order(s) found`
-              : "Loading..."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Card className="p-0">
+        <CardContent className="p-6">
           <BaseDataTable
+            title="Purchase Orders"
             columns={ctx.columns}
             data={ctx.purchases}
             isLoading={ctx.isLoading}

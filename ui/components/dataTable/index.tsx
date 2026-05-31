@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../card";
+import { Card, CardContent } from "../card";
 import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 import { BaseDataTable } from "./base-data-table ";
 
@@ -269,18 +269,14 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
 
         return (
     <Card className="border-none shadow-none py-0 gap-3 bg-transparent">
-      {cardTitle && (
-        <CardHeader className="px-0">
-          <CardTitle>
-            {typeof cardTitle === "function"
-              ? cardTitle(queryData?.data.total || 0)
-              : cardTitle}
-          </CardTitle>
-        </CardHeader>
-      )}
       <CardContent className="p-0">
         <BaseDataTable
           {...restProps}
+          title={cardTitle
+            ? typeof cardTitle === "function"
+              ? cardTitle(queryData?.data.total || 0)
+              : cardTitle
+            : undefined}
           data={data}
           isLoading={isInitialLoading}
           isFetching={isRefetching}

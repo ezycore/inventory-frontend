@@ -24,6 +24,7 @@ export function BaseDataTable<TData, TValue>({
   columns,
   filterConfig,
   data,
+  title,
   selectable = false,
   onSelectionChange,
   searchConfig,
@@ -157,6 +158,7 @@ export function BaseDataTable<TData, TValue>({
       {/* Toolbar */}
       <DataTableToolbar
         table={table}
+        title={title}
         filterConfig={filterConfig}
         searchConfig={searchConfig}
         globalFilter={globalFilter}

@@ -1,13 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/ui/components/card';
+import { Card, CardContent } from '@/ui/components/card';
 import { BaseDataTable } from '@/ui/components/dataTable/base-data-table ';
 import type { FilterConfig } from '@/types/DataTable';
 
@@ -42,17 +36,10 @@ export function ReturnHistoryTable<TData>({
   setLimit,
 }: ReturnHistoryTableProps<TData>) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Returns</CardTitle>
-        <CardDescription>
-          {paginationInfo
-            ? `${paginationInfo.total} return(s) found`
-            : 'Loading...'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Card className="p-0">
+      <CardContent className="p-6">
         <BaseDataTable
+          title="Returns"
           columns={columns}
           data={data}
           isLoading={isLoading}

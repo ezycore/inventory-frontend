@@ -5,7 +5,7 @@ import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type { DataCardProps } from "@/types/DataCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
+import { Card, CardContent } from "@/ui/components/card";
 import { ErrorBoundaryFallback } from "@/ui/components/error-boundary-fallback";
 import DynamicForm from "@/ui/components/form";
 import { useQuery } from "@tanstack/react-query";
@@ -275,18 +275,14 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
 
   return (
     <Card className="border-none shadow-none py-0 gap-3 bg-transparent">
-      {cardTitle && (
-        <CardHeader className="px-0">
-          <CardTitle>
-            {typeof cardTitle === "function"
-              ? cardTitle(queryData?.data.total || 0)
-              : cardTitle}
-          </CardTitle>
-        </CardHeader>
-      )}
       <CardContent className="p-0">
         <BaseDataCard
           {...restProps}
+          title={cardTitle
+            ? typeof cardTitle === "function"
+              ? cardTitle(queryData?.data.total || 0)
+              : cardTitle
+            : undefined}
           data={data}
           isLoading={isInitialLoading}
           isFetching={isRefetching}
