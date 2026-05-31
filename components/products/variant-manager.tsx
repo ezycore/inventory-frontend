@@ -59,6 +59,7 @@ interface VariantRow {
   saleUnit?: UnitConversion
   barcode?: string
   barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
+  inventoryAlertLevel?: number
 }
 
 interface VariantManagerProps {
@@ -95,6 +96,7 @@ export default function VariantManager({
   // Watch the price field from parent form using useWatch
   const basePrice = useWatch({ control, name: 'price' }) || 0
   const baseUnitId = useWatch({ control, name: 'unitId' })
+  const addToInventory = useWatch({ control, name: 'addToInventory' })
 
   // Fetch variant attributes from API
   const { data: attributesResponse, isLoading, error, refetch } = useVariantAttributes()
@@ -133,6 +135,7 @@ export default function VariantManager({
           enabled: true,
           enableUOMConversion: false,
           saleUnit: { unitId: baseUnitId, conversionFactor: 1 },
+          inventoryAlertLevel: 0,
         }))
         setVariants(newVariants)
         // Notify parent of change
@@ -327,6 +330,9 @@ export default function VariantManager({
                 <TableHead className="w-[180px] py-2 text-xs">
                   Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
                 </TableHead>
+                {addToInventory && (
+                  <TableHead className="w-[130px] py-2 text-xs">Alert Level</TableHead>
+                )}
                 <TableHead className="w-[120px] text-right py-2 text-xs">
                   <div className="flex items-center justify-end pr-2 gap-1">
                     <span>Active</span>
@@ -393,6 +399,24 @@ export default function VariantManager({
                       ) : null}
                     </div>
                   </TableCell>
+                  {addToInventory && (
+                    <TableCell className="py-1">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={variant.inventoryAlertLevel ?? 0}
+                        onChange={e =>
+                          handleInlineUpdate(
+                            variant.id,
+                            'inventoryAlertLevel',
+                            parseInt(e.target.value, 10) || 0
+                          )
+                        }
+                        className="h-7 text-sm w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="0"
+                      />
+                    </TableCell>
+                  )}
                   <TableCell className="text-right py-1">
                     <div className="flex items-center justify-end pr-2 gap-2">
                       <Checkbox

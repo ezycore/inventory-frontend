@@ -133,7 +133,7 @@ export const navItems: NavItem[] = [
     icon: "box",
     isActive: false,
     items: [
-      { title: "View All Locations", url: "/locations", icon: "list" },
+      { title: "All Locations", url: "/locations", icon: "list" },
       {
         title: "Location Stock Report",
         url: "/locations/stock-report",
@@ -200,7 +200,7 @@ export const navItems: NavItem[] = [
         features: ["accounts"],
       },
       {
-        title: "Stock Product Value",
+        title: "Product Valuation",
         url: "/dashboard/reports/valuation",
         icon: "database",
       },
@@ -248,20 +248,20 @@ export const navItems: NavItem[] = [
 
   // ACCOUNT
   {
-    title: "Account",
+    title: "My Account",
     url: "#",
     icon: "user",
     isActive: false,
     items: [
       { title: "Profile", url: "/profile", icon: "user" },
       {
-        title: "Employees / Users",
+        title: "Users",
         url: "/users",
         icon: "users",
         roles: ["admin", "manager"],
       },
       {
-        title: "Subscription / Billing",
+        title: "Billing",
         url: "/dashboard/billing",
         icon: "credit-card",
       },
