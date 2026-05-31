@@ -165,6 +165,11 @@ export const productFormConfig: DynamicFormConfig = {
           label: "Add this product to inventory",
           columnSpan: 12,
           defaultValue: false,
+          dependsOn: {
+            field: "_id",
+            condition: "falsy",
+            action: "show",
+          },
           helperText: "For variable products, set an alert level per variant in the Pricing & Stocks section above.",
         },
         {
