@@ -855,6 +855,7 @@ export type TransactionCategory =
   | "refund"
   | "adjustment"
   | "transfer"
+  | "investment"
   | "other";
 
 export interface Transaction extends BaseEntity {
