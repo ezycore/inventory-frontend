@@ -109,7 +109,7 @@ export interface Location extends BaseEntity {
   email?: string;
   status: "active" | "inactive";
   default: boolean;
-  users: { _id: string; firstName: string; lastName: string; email: string }[];
+  users: { _id: string; name: string; email: string }[];
   usersId: string[];
 }
 

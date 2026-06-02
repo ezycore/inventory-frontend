@@ -96,7 +96,7 @@ export default function FeatureSettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="Feature Settings"
         subTitle="Enable or disable features for your organization. Disabled features will be hidden from the navigation and cannot be accessed."

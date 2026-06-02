@@ -48,7 +48,7 @@ export default function CustomersPage() {
   ], []);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <PageHeader title="Customers" subTitle="Manage your customers (sales)" />
 
       <DataTable

@@ -10,7 +10,7 @@ import {
 import { Users } from "lucide-react";
 
 interface UserCountCellProps {
-  users: { _id: string; firstName: string; lastName: string; email: string; role?: string }[];
+  users: { _id: string; name: string; email: string; role?: string }[];
 }
 
 export function UserCountCell({ users }: UserCountCellProps) {
@@ -42,7 +42,7 @@ export function UserCountCell({ users }: UserCountCellProps) {
               >
                 <div className="min-w-0 flex-1">
                   <div className="font-medium text-sm truncate">
-                    {`${user.firstName} ${user.lastName}`.trim() || user.email}
+                    {`${user.name}`.trim() || user.email}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">
                     {user.email}
