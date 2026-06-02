@@ -44,7 +44,9 @@ export function OrganizationTab() {
   const { address, country, currency, name, timezone, logo } = data?.data || {};
   const { user } = useAuthStore();
 
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const canManageOrganization =
+    !!user?.permissions?.includes("organization.edit") ||
+    !!user?.permissions?.includes("organization.manage");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   // `null` = no pending change. `File` = upload pending. `"remove"` = clear pending.
@@ -170,7 +172,7 @@ export function OrganizationTab() {
     !!formData.timezone &&
     !!formData.currency;
 
-  if (!isAdmin) {
+  if (!canManageOrganization) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="rounded-full bg-muted p-4 mb-4">
@@ -178,7 +180,7 @@ export function OrganizationTab() {
         </div>
         <h3 className="text-lg font-semibold">Access Restricted</h3>
         <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-          Only administrators can view and modify organization settings. Please
+          You do not have permission to view and modify organization settings. Please
           contact your administrator if you need to make changes.
         </p>
       </div>

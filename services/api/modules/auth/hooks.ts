@@ -1,4 +1,4 @@
-import { authApi } from "@/services/api";
+import { authApi, type SignupPayload } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,7 +10,7 @@ export const useSignupAPi = () => {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (data: FormData) => authApi.signup(data),
+    mutationFn: (data: SignupPayload) => authApi.signup(data),
     onSuccess: (data) => {
       handleMutationSuccess(data.message || "Item created successfully");
       queryClient.invalidateQueries();

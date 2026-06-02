@@ -56,6 +56,104 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
  */
 export type FeatureName = keyof OrganizationFeatures;
 
+/**
+ * Mission Control entitlement snapshot (read-only mirror synced from MC).
+ * Powers the billing display. MC is the source of truth.
+ */
+export interface Entitlement {
+  _id: string;
+  organizationId: string;
+  planSlug?: string;
+  planName?: string;
+  interval?: "month" | "year" | "one_time";
+  amount?: number;
+  modules: string[];
+  features: Partial<OrganizationFeatures>;
+  limits: Record<string, number>;
+  status: "active" | "inactive" | "read_only";
+  subscriptionStatus?:
+    | "trialing"
+    | "active"
+    | "past_due"
+    | "canceled"
+    | "incomplete";
+  gateway?: "stripe" | "sslcommerz" | "manual";
+  currentPeriodEnd?: string | null;
+  trialEndsAt?: string | null;
+  pendingPlanChange?: ScheduledPlanChange | null;
+  scheduledPlanChange?: ScheduledPlanChange | null;
+  scheduledChange?: ScheduledPlanChange | null;
+  pendingDowngrade?: ScheduledPlanChange | null;
+  pendingPlanSlug?: string;
+  pendingPlanName?: string;
+  pendingPlanEffectiveAt?: string | null;
+  nextPlanSlug?: string;
+  nextPlanName?: string;
+  nextPlanEffectiveAt?: string | null;
+  downgradeEffectiveAt?: string | null;
+  scheduledDowngradeAt?: string | null;
+  syncedAt?: string;
+}
+
+/** Pending upgrade/downgrade that will apply at the next billing boundary. */
+export interface ScheduledPlanChange {
+  type?: "upgrade" | "downgrade";
+  planSlug: string;
+  planName?: string;
+  effectiveAt: string;
+}
+
+/** Live usage counts returned alongside the entitlement. */
+export interface SubscriptionUsage {
+  locations: number;
+  users: number;
+  inventory: number;
+}
+
+/** Response of GET /api/organization/subscription. */
+export interface SubscriptionInfo {
+  entitlement: Entitlement | null;
+  usage: SubscriptionUsage;
+}
+
+/** A publicly available plan (proxied from Mission Control). */
+export interface AvailablePlan {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  interval: "month" | "year" | "one_time";
+  amount: number;
+  trialDays?: number;
+  modules: string[];
+  features: string[];
+  limits: Record<string, number>;
+}
+
+/** Response of GET /api/organization/plans. */
+export interface AvailablePlansInfo {
+  plans: AvailablePlan[];
+}
+
+/**
+ * Result of POST /api/organization/plan-change (proxied from Mission Control).
+ * Discriminated by `mode`:
+ *   - "checkout":  redirect the user to `url` (hosted Stripe/SSLCommerz page)
+ *   - "scheduled": downgrade applied at `effectiveAt` (current period end)
+ *   - "activated": free/manual plan applied immediately
+ *   - "current":   already on this plan
+ */
+export type PlanChangeResult =
+  | { mode: "checkout"; planSlug: string; planName: string; url: string }
+  | {
+      mode: "scheduled";
+      planSlug: string;
+      planName: string;
+      effectiveAt: string;
+    }
+  | { mode: "activated"; planSlug: string; planName: string }
+  | { mode: "current"; planSlug: string; planName: string };
+
 // Base interfaces
 export interface BaseEntity {
   _id: string;

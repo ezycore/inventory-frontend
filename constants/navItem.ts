@@ -243,6 +243,12 @@ export const navItems: NavItem[] = [
         icon: "toggle-left",
         permissions: ["organization.edit"],
       },
+      {
+        title: "Roles",
+        url: "/settings/roles",
+        icon: "shield",
+        permissions: ["organization.view"],
+      },
     ],
   },
 
@@ -258,7 +264,7 @@ export const navItems: NavItem[] = [
         title: "Users",
         url: "/users",
         icon: "users",
-        roles: ["admin", "manager"],
+        permissions: ["users.view"],
       },
       {
         title: "Billing",

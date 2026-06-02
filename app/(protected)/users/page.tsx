@@ -3,6 +3,7 @@
 import {
   useCreateUser,
   useDeleteUser,
+  useRoles,
   useToggleUserStatus,
   useUpdateUser,
   useUserStats,
@@ -40,8 +41,22 @@ import { usersApi } from "@/services/api";
 import { ApiResponse, Location, PaginatedResponse } from "@/types";
 import { sanitize } from "@/utils";
 import { useViewMode } from "@/hooks/use-view-mode";
+import { useMemo } from "react";
+
+function formatRoleName(role: string): string {
+  return role
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 function getUserStats(stats: Record<string, any> | undefined): StatData[] {
+  const byRole = stats?.byRole || {};
+  const topRoles = Object.entries(byRole)
+    .sort(([, a], [, b]) => Number(b) - Number(a))
+    .slice(0, 2);
+
   return [
     {
       label: "Total Users",
@@ -58,18 +73,20 @@ function getUserStats(stats: Record<string, any> | undefined): StatData[] {
       description: "Currently active",
     },
     {
-      label: "Admins",
-      value: stats?.admins || 0,
+      label: topRoles[0]?.[0] ? formatRoleName(String(topRoles[0][0])) : "Top Role",
+      value: Number(topRoles[0]?.[1] || 0),
       icon: Shield,
       variant: "danger",
-      description: "Admin users",
+      description: "Most assigned role",
     },
     {
-      label: "Staff",
-      value: stats?.staff || 0,
+      label: topRoles[1]?.[0]
+        ? formatRoleName(String(topRoles[1][0]))
+        : "Second Role",
+      value: Number(topRoles[1]?.[1] || 0),
       icon: UserCheck,
       variant: "info",
-      description: "Staff members",
+      description: "Second most assigned role",
     },
   ];
 }
@@ -120,13 +137,8 @@ const userFormConfig: DynamicFormConfig = {
       label: "Role",
       required: true,
       columnSpan: 12,
-      defaultValue: "staff",
-      options: [
-        { value: "admin", label: "Admin" },
-        { value: "manager", label: "Manager" },
-        { value: "staff", label: "Staff" },
-        { value: "viewer", label: "Viewer" },
-      ],
+      defaultValue: "",
+      options: [],
     },
     {
       name: "locationIds",
@@ -136,7 +148,7 @@ const userFormConfig: DynamicFormConfig = {
       mode: "multiple",
       columnSpan: 12,
       required: false,
-      description: "Select locations to assign (leave empty for Admin - they have access to all locations)",
+      description: "Select locations for roles without all-location access.",
       itemsCreateCallback: (response: ApiResponse<PaginatedResponse<Location>>) => {
         const items = sanitize(response?.data?.items, 'array');
         return items.map((item) => ({
@@ -150,7 +162,10 @@ const userFormConfig: DynamicFormConfig = {
 };
 
 // Column definitions
-const columns: ColumnDef<User>[] = [
+const getColumns = (
+  allLocationRoleSlugs: Set<string>,
+  roleLabels: Map<string, string>,
+): ColumnDef<User>[] => [
   {
     accessorKey: "firstName",
     header: "Name",
@@ -182,7 +197,7 @@ const columns: ColumnDef<User>[] = [
       };
       return (
         <Badge variant={variants[role] || "outline"}>
-          {role.charAt(0).toUpperCase() + role.slice(1)}
+          {roleLabels.get(role) || formatRoleName(role)}
         </Badge>
       );
     },
@@ -193,7 +208,11 @@ const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <LocationCountCell locations={user.locations} role={user.role} />
+        <LocationCountCell
+          locations={user.locations}
+          role={user.role}
+          hasAllLocationAccess={allLocationRoleSlugs.has(user.role)}
+        />
       );
     },
   },
@@ -263,7 +282,7 @@ const defaultValues = {
   lastName: "",
   email: "",
   phone: "",
-  role: "staff" as const,
+  role: "",
   locationIds: [] as string[],
 };
 
@@ -277,10 +296,65 @@ export default function UsersPage() {
   const deleteMutation = useDeleteUser();
   const toggleStatusMutation = useToggleUserStatus();
   const { data: statsData, isLoading: statsLoading } = useUserStats?.() ?? { data: undefined, isLoading: false };
+  const canManageUsers = !!currentUser?.permissions?.includes("users.manage");
+  const { data: rolesData } = useRoles({ enabled: canManageUsers });
+  const roles = rolesData?.data || [];
 
-  // Check if current user is admin or manager
-  const isAdminOrManager =
-    currentUser?.role === "admin" || currentUser?.role === "manager";
+  const roleLabels = useMemo(
+    () => new Map(roles.map((role) => [role.slug, role.name])),
+    [roles],
+  );
+
+  const allLocationRoleSlugs = useMemo(
+    () =>
+      new Set([
+        "admin",
+        "super_admin",
+        ...roles
+          .filter((role) => role.permissions.includes("locations.all"))
+          .map((role) => role.slug),
+      ]),
+    [roles],
+  );
+
+  const columns = useMemo(
+    () => getColumns(allLocationRoleSlugs, roleLabels),
+    [allLocationRoleSlugs, roleLabels],
+  );
+
+  const assignableRoles = useMemo(
+    () =>
+      roles
+        .filter((role) => role.assignable)
+        .map((role) => ({
+          value: role.slug,
+          label: role.name,
+        })),
+    [roles],
+  );
+
+  const roleAwareFormConfig = useMemo<DynamicFormConfig>(() => {
+    const fields = userFormConfig.fields.map((field) => {
+      if (field.name !== "role") return field;
+      return {
+        ...field,
+        options: assignableRoles,
+        defaultValue: assignableRoles[0]?.value || "",
+      };
+    });
+    return {
+      ...userFormConfig,
+      fields,
+    };
+  }, [assignableRoles]);
+
+  const roleAwareDefaultValues = useMemo(
+    () => ({
+      ...defaultValues,
+      role: assignableRoles[0]?.value || "",
+    }),
+    [assignableRoles],
+  );
 
   // Custom actions for toggling user status
   const customActions: CustomAction[] = [
@@ -318,9 +392,9 @@ export default function UsersPage() {
   ];
 
   const sharedOperations = {
-    formConfig: userFormConfig,
+    formConfig: roleAwareFormConfig,
     disabledFieldsInEdit: ["email"],
-    defaultValues: defaultValues,
+    defaultValues: roleAwareDefaultValues,
     getAllData: usersApi.getAll,
     createMutation,
     updateMutation,
@@ -337,10 +411,10 @@ export default function UsersPage() {
       <PageHeader
         title="User Management"
         subTitle="Manage users, roles, and permissions in your organization."
-        actions={isAdminOrManager ? <ViewToggle storageKey="users" defaultView={viewMode} onChange={setViewMode} /> : undefined}
+        actions={canManageUsers ? <ViewToggle storageKey="users" defaultView={viewMode} onChange={setViewMode} /> : undefined}
       />
 
-      {isAdminOrManager ? (
+      {canManageUsers ? (
         <>
           <StatsCard
             data={getUserStats(statsData?.data)}
@@ -365,7 +439,7 @@ export default function UsersPage() {
               operations={sharedOperations}
             />
           ) : (
-            <DataCard
+            <DataCard<User>
               cardTitle={(n: number) => `All Users (${n})`}
               defaultPageSize={12}
               pageSizes={[12, 24, 48]}
@@ -375,7 +449,12 @@ export default function UsersPage() {
                 gap: "md",
               }}
               searchConfig={searchConfig}
-              renderCard={UserCardView}
+              renderCard={(item, actions) =>
+                UserCardView(item, actions, {
+                  roleLabel: roleLabels.get(item.role),
+                  hasAllLocationAccess: allLocationRoleSlugs.has(item.role),
+                })
+              }
               loadingRenderCard={UserCardLoading}
               customActions={customActions.map((a) => ({ ...a, placement: a.placement === "cell" ? "menu" : a.placement })) as CardCustomAction[]}
               operations={sharedOperations}
@@ -388,7 +467,7 @@ export default function UsersPage() {
             <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
             <p className="text-muted-foreground">
-              Only administrators and managers can view and manage users.
+              You do not have permission to view user management.
             </p>
           </div>
         </div>

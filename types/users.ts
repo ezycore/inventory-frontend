@@ -16,12 +16,14 @@ export type Permission =
   | "brands.delete"
   | "stock.view"
   | "stock.manage"
+  | "locations.all"
   | "reports.view"
   | "organization.edit"
+  | "organization.manage"
   | "users.view"
   | "users.manage";
 
-export type Role = "admin" | "manager" | "staff" | "viewer";
+export type Role = string;
 
 export interface User {
   _id: string;
@@ -32,8 +34,8 @@ export interface User {
   phone?: string;
   avatar?: string;
   role: Role;
-  permissions: Permission[];
-  /** Array of location IDs the user has access to (admin has all access) */
+  permissions: string[];
+  /** Assigned location IDs; roles with locations.all can access all locations. */
   locationIds?: string[];
   /** User's default/active location ID */
   locations: Location[];
@@ -111,4 +113,14 @@ export interface UserResponse {
 export interface PermissionsResponse {
   success: boolean;
   data: Permission[];
+}
+
+export interface OrganizationRole {
+  slug: string;
+  name: string;
+  description?: string;
+  source: "system" | "mc";
+  locked: boolean;
+  permissions: string[];
+  assignable: boolean;
 }

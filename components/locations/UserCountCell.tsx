@@ -13,6 +13,14 @@ interface UserCountCellProps {
   users: { _id: string; firstName: string; lastName: string; email: string; role?: string }[];
 }
 
+function formatRoleName(role: string) {
+  return role
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export function UserCountCell({ users }: UserCountCellProps) {
   const userCount = users?.length;
 
@@ -53,13 +61,13 @@ export function UserCountCell({ users }: UserCountCellProps) {
                   variant={
                     user.role === "admin"
                       ? "default"
-                      : user.role === "manager"
+                      : user.role === "super_admin" || user.role === "manager"
                         ? "secondary"
                         : "outline"
                   }
                   className="ml-2 shrink-0"
                 >
-                  {user.role}
+                  {formatRoleName(user.role)}
                 </Badge>}
               </div>
             ))}

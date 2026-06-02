@@ -12,9 +12,9 @@ export interface User {
   lastName: string;
   phone?: string;
   avatar?: Image; // Single image object, not array
-  role: "super_admin" | "admin" | "manager" | "staff" | "viewer";
+  role: string;
   permissions: string[];
-  /** Array of location IDs the user has access to (admin has all access) */
+  /** Array of assigned location IDs; roles with locations.all can access all locations. */
   locationIds?: string[];
   /** User's default location ID */
   defaultLocationId?: string;
@@ -163,8 +163,10 @@ export const useAuthStore = create<AuthStore>()(
         setActiveLocation: (locationId: string) => {
           const { user } = get();
 
-          // For non-admin users, validate the location is in their assigned list
-          if (user && user.role !== "admin") {
+          const hasAllLocationAccess =
+            !!user?.permissions?.includes("locations.all") ||
+            !!user?.permissions?.includes("locations.manage");
+          if (user && !hasAllLocationAccess) {
             const hasAccess = user.locationIds?.includes(locationId);
             if (!hasAccess) {
               console.warn(
