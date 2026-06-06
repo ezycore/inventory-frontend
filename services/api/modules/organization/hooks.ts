@@ -63,9 +63,10 @@ export const useRequestPlanChange = () => {
         return;
       }
 
-      // Only refresh the mirror for changes that take effect now; a checkout
-      // redirect reconciles on return.
-      if (planChange?.mode === "activated") {
+      // Refresh for changes that take effect now, and for cancel-downgrade
+      // ("current") which clears pendingPlanSlug from the entitlement.
+      // Checkout redirect reconciles on return so no refresh needed there.
+      if (planChange?.mode === "activated" || planChange?.mode === "current") {
         queryClient.invalidateQueries({
           queryKey: queryKeys.organization.subscription(),
         });

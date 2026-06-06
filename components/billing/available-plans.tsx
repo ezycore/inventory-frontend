@@ -83,7 +83,9 @@ export function AvailablePlans() {
               toast.success(`You're now on the ${result.planName} plan.`);
               break;
             case "current":
-              toast.info(`You're already on the ${result.planName} plan.`);
+              toast.success(
+                `Downgrade cancelled. You'll stay on the ${result.planName} plan.`,
+              );
               break;
           }
         },
@@ -161,6 +163,15 @@ export function AvailablePlans() {
                 {isScheduled ? (
                   <Button variant="outline" className="w-full" disabled>
                     Downgrade Scheduled
+                  </Button>
+                ) : isCurrent && scheduledChange ? (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    disabled={planChange.isPending}
+                    onClick={() => handleChange(plan)}
+                  >
+                    Cancel Downgrade
                   </Button>
                 ) : isCurrent ? (
                   <Button variant="outline" className="w-full" disabled>
