@@ -74,7 +74,7 @@ export default function ProfilePage() {
   const isOwner = useMemo(() => {
     if(!user) return false;
     return user?.organization?.ownerId === user?.id;
-  }, [user?.organization?.ownerId, user?.id]);
+  }, [user]);
 
   const visibleTabs = tabItems.filter((tab) => !tab.ownerOnly || isOwner);
   const validTabValues = useMemo(

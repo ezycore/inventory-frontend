@@ -72,9 +72,13 @@ export function ReceiveItemsDialog({
   const [accountId, setAccountId] = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>("");
 
-  // Re-initialize state every time a new order is opened
+  // Re-initialize state every time a new order is opened. This synchronizes
+  // local form state with the dialog's external inputs (open state, the
+  // selected order, and the async-loaded default account), which is a
+  // legitimate use of setState inside an effect.
   useEffect(() => {
     if (open && order) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReceiveItems(buildReceiveItemsFromOrder(order));
       setPaidAmount(String(order.dueAmount ?? ""));
       setAccountId((defaultAccount as Account | undefined)?._id ?? "");

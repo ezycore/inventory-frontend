@@ -193,13 +193,18 @@ export default function BarcodeLabelSheet({
  storeName,
 }: Props) {
  const [copies, setCopies] = useState(1);
- const [selected, setSelected] = useState<Set<number>>(new Set());
+ const [selected, setSelected] = useState<Set<number>>(
+  () => new Set(items.map((_, i) => i)),
+ );
 
- // Reset selection + copies whenever the item list changes
- useEffect(() => {
+ // Reset selection + copies whenever the item list changes (render-phase reset
+ // instead of an effect to avoid a redundant re-render).
+ const [prevItems, setPrevItems] = useState(items);
+ if (items !== prevItems) {
+  setPrevItems(items);
   setSelected(new Set(items.map((_, i) => i)));
   setCopies(1);
- }, [items]);
+ }
 
  const labels = useMemo(() => {
   const chosen = items.filter((_, i) => selected.has(i));
