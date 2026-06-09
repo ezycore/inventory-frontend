@@ -21,6 +21,8 @@ export const customerFormConfig: DynamicFormConfig = {
       labelInValue: true, // To capture both ID and discount metadata
       autoFillFields: ["discountType", "discountValue"], // Auto-fill discount fields based on selected customer
       columnSpan: 6,
+      creatable: true,
+      quickAddModule: "customer",
     },
     // {
     //   name: "discountType",

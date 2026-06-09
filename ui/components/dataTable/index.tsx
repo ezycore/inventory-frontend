@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../card";
+import { Card, CardContent } from "../card";
 import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 import { BaseDataTable } from "./base-data-table ";
 
@@ -113,8 +113,10 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     placeholderData: (previousData) => previousData,
   });
 
-  // Combine loading states: isLoading (first load), isFetching (subsequent fetches), and external loading prop
-  const isLoadingData = (isLoading || isFetching || loading) && !error;
+  // Initial load (no cached data yet) — replaces table rows with skeleton
+  const isInitialLoading = (isLoading || loading) && !error;
+  // Subsequent fetches while data already exists (sort / filter / page) — shows overlay spinner
+  const isRefetching = isFetching && !isLoading && !loading && !error;
 
   // Determine data source and loading state
   const data = useMemo(() => {
@@ -267,20 +269,17 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
 
         return (
     <Card className="border-none shadow-none py-0 gap-3 bg-transparent">
-      {cardTitle && (
-        <CardHeader className="px-0">
-          <CardTitle>
-            {typeof cardTitle === "function"
-              ? cardTitle(queryData?.data.total || 0)
-              : cardTitle}
-          </CardTitle>
-        </CardHeader>
-      )}
       <CardContent className="p-0">
         <BaseDataTable
           {...restProps}
+          title={cardTitle
+            ? typeof cardTitle === "function"
+              ? cardTitle(queryData?.data.total || 0)
+              : cardTitle
+            : undefined}
           data={data}
-          isLoading={isLoadingData}
+          isLoading={isInitialLoading}
+          isFetching={isRefetching}
           pagination={paginationConfig}
           filterConfig={mergedFilterConfig}
           actions={mergedActions}
@@ -304,7 +303,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           stickyHeader={stickyHeader}
           rowBgColor={rowBgColor}
           module={module}
-          fullColumns={props.columns}
+          fullColumns={props.fullColumns || props.columns}
         />
 
         {/* Integrated CRUD Form Modal */}

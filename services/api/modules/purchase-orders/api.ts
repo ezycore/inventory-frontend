@@ -5,6 +5,7 @@ import type {
   CreatePurchaseOrderDto,
   CreatePurchaseOrdersDto,
   CreatePurchaseReturnDto,
+  FinalizePurchaseOrderDto,
   PaginatedResponse,
   PurchaseOrder,
   PurchaseOrderFilters,
@@ -12,8 +13,10 @@ import type {
   PurchaseReturn,
   PurchaseReturnFilters,
   PurchaseReturnsSummary,
+  PurchaseTransactionsResponse,
   ReceivePurchaseOrderDto,
-  SupplierPendingDue,
+  SupplierPendingDuesResponse,
+  UpdatePurchaseOrderDraftDto,
   UpdatePurchaseOrderDto,
 } from "@/types";
 import { buildQueryParams } from "../../utils";
@@ -68,6 +71,32 @@ export const purchaseOrdersApi = {
     apiClient.post(`/purchases/orders/${id}/cancel`, {}),
 
   /**
+   * Hard-delete a draft purchase order. Non-draft orders must use cancel().
+   */
+  deleteDraft: (
+    id: string,
+  ): Promise<ApiResponse<{ deleted: true; orderNumber: string }>> =>
+    apiClient.delete(`/purchases/orders/${id}`),
+
+  /**
+   * Update a draft purchase order (no side effects). Backend rejects non-drafts.
+   */
+  updateDraft: (
+    id: string,
+    data: UpdatePurchaseOrderDraftDto,
+  ): Promise<ApiResponse<PurchaseOrder>> =>
+    apiClient.patch(`/purchases/orders/${id}`, data),
+
+  /**
+   * Finalize a draft purchase order — runs full side-effect pipeline.
+   */
+  finalizeDraft: (
+    id: string,
+    data: FinalizePurchaseOrderDto,
+  ): Promise<ApiResponse<{ order: PurchaseOrder }>> =>
+    apiClient.post(`/purchases/orders/${id}/finalize`, data),
+
+  /**
    * Get purchase orders summary statistics
    */
   getSummary: (): Promise<ApiResponse<PurchaseOrdersSummary>> =>
@@ -87,6 +116,15 @@ export const purchaseOrdersApi = {
    */
   getPayments: (id: string): Promise<ApiResponse<unknown[]>> =>
     apiClient.get(`/purchases/orders/${id}/payments`),
+
+  /**
+   * Get merged transactions timeline for a purchase order:
+   * payments + cash refunds + own return credits + cross-PO inbound credits.
+   */
+  getTransactions: (
+    id: string,
+  ): Promise<ApiResponse<PurchaseTransactionsResponse>> =>
+    apiClient.get(`/purchases/orders/${id}/transactions`),
 };
 
 /**
@@ -128,7 +166,7 @@ export const purchaseReturnsApi = {
   getSupplierPendingDues: (
     supplierId: string,
     excludePurchaseOrderId?: string
-  ): Promise<ApiResponse<SupplierPendingDue[]>> => {
+  ): Promise<ApiResponse<SupplierPendingDuesResponse>> => {
     const queryString = excludePurchaseOrderId
       ? `?excludePurchaseOrderId=${excludePurchaseOrderId}`
       : "";

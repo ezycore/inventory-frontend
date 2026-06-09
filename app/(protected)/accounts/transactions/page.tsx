@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,6 +51,7 @@ import {
   useCreateExpense,
   useCreateTransfer,
   useTransactionStats,
+  useAccount,
 } from "@/services/api";
 import { FilterConfig } from "@/types/DataTable";
 import { transactionsApi } from "@/services/api";
@@ -78,6 +80,7 @@ const getCategoryLabel = (category: string) => {
     refund: "Refund",
     adjustment: "Adjustment",
     transfer: "Transfer",
+    investment: "Investment",
     other: "Other",
   };
   return labels[category] || category;
@@ -115,6 +118,7 @@ const transactionFilterConfig: FilterConfig = {
         { label: "Utilities", value: "utilities" },
         { label: "Refund", value: "refund" },
         { label: "Adjustment", value: "adjustment" },
+        { label: "Investment", value: "investment" },
         { label: "Other", value: "other" },
       ],
     },
@@ -159,6 +163,7 @@ const categories = [
   { value: "utilities", label: "Utilities" },
   { value: "refund", label: "Refund" },
   { value: "adjustment", label: "Adjustment" },
+  { value: "investment", label: "Investment" },
   { value: "other", label: "Other" },
 ];
 
@@ -555,8 +560,19 @@ function TransferDialog() {
 }
 
 export default function TransactionsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TransactionsContent />
+    </Suspense>
+  );
+}
+
+function TransactionsContent() {
   const { format } = useCurrency();
 
+  const searchParams = useSearchParams();
+  const accountId = searchParams.get("accountId") || undefined;
+  const { data: scopedAccount } = useAccount(accountId ?? "");
   // ── Period filter state (reuses dashboard pattern) ──
   const [period, setPeriod] = useState<DashboardPeriod>("thisMonth");
   const [customStart, setCustomStart] = useState("");
@@ -667,10 +683,14 @@ export default function TransactionsPage() {
   // memoize this for us instead of fighting the lint rule.
   const getAllDataWithPeriod = (filters: Record<string, unknown>) => {
     const merged: Record<string, unknown> = { ...filters };
-    if (stats?.period) {
-      merged.startDate = stats.period.startDate;
-      merged.endDate = stats.period.endDate;
+    // Scope to a single account when navigated from an account card.
+    if (accountId) {
+      merged.accountId = accountId;
     }
+    // if (stats?.period) {
+    //   merged.startDate = decodeURIComponent(stats.period.startDate);
+    //   merged.endDate = decodeURIComponent(stats.period.endDate);
+    // }
     return transactionsApi.getAll(merged);
   };
 
@@ -694,6 +714,21 @@ export default function TransactionsPage() {
           <IncomeDialog />
         </div>
       </div>
+
+      {accountId && (
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-4 py-2 text-sm">
+          <Wallet className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Showing transactions for</span>
+          <span className="font-semibold">
+            {scopedAccount?.name ?? "selected account"}
+          </span>
+          <Link href="/accounts/transactions" className="ml-auto">
+            <Button variant="ghost" size="sm">
+              Clear filter
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Period Filter */}
       <PeriodFilter
@@ -722,7 +757,7 @@ export default function TransactionsPage() {
         rowClassName={(row) => typeColorMap[row.type] || ""}
         operations={{
           getAllData: getAllDataWithPeriod,
-          queryKey: [...queryKeys.transactions.all(), { periodStart: stats?.period?.startDate, periodEnd: stats?.period?.endDate }],
+          queryKey: [...queryKeys.transactions.all(), { periodStart: stats?.period?.startDate, periodEnd: stats?.period?.endDate, accountId }],
           entityName: "Transaction",
         }}
       />

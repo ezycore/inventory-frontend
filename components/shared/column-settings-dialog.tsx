@@ -51,6 +51,7 @@ export function ColumnSettingsDialog({
           </DialogDescription>
         </DialogHeader>
         <ColumnSettingsManager
+          key={String(open)}
           columns={columns}
           module={module}
           excludedColumns={excludedColumns}

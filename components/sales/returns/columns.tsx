@@ -4,6 +4,7 @@ import { Badge } from '@/ui/components/badge';
 import { Button } from '@/ui/components/button';
 import { DateCell } from '@/ui/components/dataTable/cells/date-cell';
 import type { SalesReturn } from '@/types';
+import { CopyField } from '@/ui/components/copy';
 
 // ── Status badge helper ─────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ export function getReturnsColumns(
       header: 'Return ID',
       cell: ({ row }) => (
         <span className="font-mono text-sm text-primary font-medium">
-          {row.original.returnNumber}
+          <CopyField value={row.original.returnNumber} />
         </span>
       ),
     },
@@ -62,7 +63,9 @@ export function getReturnsColumns(
             ? saleId.invoiceNumber
             : invoiceNumber || String(saleId);
         return (
-          <span className="font-mono text-sm text-primary">{display}</span>
+          <span className="font-mono text-sm text-primary">
+            <CopyField value={display} />
+          </span>
         );
       },
     },

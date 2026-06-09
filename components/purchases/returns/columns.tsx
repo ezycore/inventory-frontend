@@ -11,6 +11,7 @@ import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import type { PurchaseReturn } from "@/types";
 import type { ReturnableItem } from "./types";
 import { calculateMaxRefund } from "./helpers";
+import { CopyField } from "@/ui/components/copy";
 
 // =====================
 // Status Badge
@@ -52,7 +53,7 @@ export function getReturnsColumns(
       header: "Return ID",
       cell: ({ row }) => (
         <span className="font-mono text-sm text-primary font-medium">
-          {row.original.returnNumber}
+          <CopyField value={row.original.returnNumber} />
         </span>
       ),
     },
@@ -71,7 +72,7 @@ export function getReturnsColumns(
             ? purchaseOrderId.orderNumber
             : orderNumber || String(purchaseOrderId);
         return (
-          <span className="font-mono text-sm text-primary">{display}</span>
+          <span className="font-mono text-sm text-primary"><CopyField value={display} /></span>
         );
       },
     },

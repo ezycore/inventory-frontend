@@ -7,6 +7,12 @@ import { createResourceHooks } from "../query-helpers";
 const supplierHooks = createResourceHooks<Supplier, CreateSupplierDto>(
   suppliersApi,
   queryKeys.suppliers,
+  {
+    relatedQueryKeys: [
+      queryKeys.suppliers.all(),
+      ["select-options", "/suppliers?all=true&fields=_id,name,defaultDiscountId"],
+    ],
+  },
 );
 
 export const useSuppliers = supplierHooks.useList;

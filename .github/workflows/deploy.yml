@@ -1,0 +1,63 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [rc, main]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/sohoz360/easystock-frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve environment
+        id: env
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "tag=production" >> "$GITHUB_OUTPUT"
+            echo "dir=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=staging" >> "$GITHUB_OUTPUT"
+            echo "dir=staging" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # NEXT_PUBLIC_API_URL is baked at BUILD time (§10.1) -> a per-environment image.
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ github.ref_name == 'main' && secrets.NEXT_PUBLIC_API_URL_PROD || secrets.NEXT_PUBLIC_API_URL_STAGING }}
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.env.outputs.tag }}
+            ${{ env.IMAGE }}:${{ github.sha }}
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/easystock/${{ steps.env.outputs.dir }}
+            docker compose pull
+            docker compose up -d
+            docker image prune -f

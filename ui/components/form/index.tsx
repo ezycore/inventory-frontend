@@ -196,7 +196,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto px-6">
+                    <div className="flex-1 overflow-y-auto px-6 pb-1">
                         <form
                             {...props}
                             onSubmit={handleSubmit(handleFormSubmit)}

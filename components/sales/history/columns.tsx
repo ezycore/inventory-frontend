@@ -1,8 +1,14 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye, CreditCard, Copy } from 'lucide-react';
+import { Eye, CreditCard, Copy, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/ui/components/badge';
 import { Button } from '@/ui/components/button';
 import { DateCell } from '@/ui/components/dataTable/cells/date-cell';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/ui/components/tooltip';
 import type { Sale, SaleStatus } from '@/types';
 import { toast } from 'sonner';
 
@@ -82,11 +88,51 @@ export function getSalesHistoryColumns(
     {
       accessorKey: 'paidAmount',
       header: () => <span className="flex justify-end">Paid</span>,
-      cell: ({ row }) => (
-        <span className="flex justify-end text-green-600">
-          {formatCurrency(row.original.paidAmount)}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const sale = row.original;
+        const paid = sale.paidAmount ?? 0;
+        const refundCredit = sale.refundCreditApplied ?? 0;
+        const refunded = sale.refundedAmount ?? 0;
+        const netReceived = Math.max(paid - refunded, 0);
+        const due = sale.dueAmount ?? 0;
+        return (
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex justify-end text-green-600 cursor-help underline decoration-dotted underline-offset-2">
+                  {formatCurrency(paid)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="min-w-[220px] p-2 text-xs">
+                <div className="space-y-1">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Paid (cash)</span>
+                    <span className="font-medium">{formatCurrency(paid)}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Refund credit applied</span>
+                    <span className="font-medium">{formatCurrency(refundCredit)}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Cash refunded</span>
+                    <span className="font-medium text-red-600">-{formatCurrency(refunded)}</span>
+                  </div>
+                  <div className="flex justify-between gap-4 border-t pt-1">
+                    <span className="text-muted-foreground">Net received</span>
+                    <span className="font-medium">{formatCurrency(netReceived)}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Due</span>
+                    <span className={`font-medium ${due > 0 ? 'text-red-600' : ''}`}>
+                      {formatCurrency(due)}
+                    </span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      },
     },
     {
       accessorKey: 'dueAmount',
@@ -136,6 +182,8 @@ export function getSalesHistoryActions(
   isAccountsEnabled: boolean,
   onViewSummary: (sale: Sale) => void,
   onMakePayment: (sale: Sale) => void,
+  onEditDraft?: (sale: Sale) => void,
+  onDeleteDraft?: (sale: Sale) => void,
 ) {
   return [
     {
@@ -156,7 +204,35 @@ export function getSalesHistoryActions(
             tooltip: 'Record payment',
             onClick: (row: Sale) => onMakePayment(row),
             disabled: (row: Sale) =>
-              row.dueAmount <= 0 || row.status === 'cancelled',
+              row.status === 'draft' ||
+              row.dueAmount <= 0 ||
+              row.status === 'cancelled',
+          },
+        ]
+      : []),
+    ...(onEditDraft
+      ? [
+          {
+            type: 'custom' as const,
+            placement: 'cell' as const,
+            icon: <Pencil className="h-4 w-4" />,
+            label: 'Edit draft',
+            tooltip: 'Resume editing this draft',
+            onClick: (row: Sale) => onEditDraft(row),
+            hidden: (row: Sale) => row.status !== 'draft',
+          },
+        ]
+      : []),
+    ...(onDeleteDraft
+      ? [
+          {
+            type: 'custom' as const,
+            placement: 'cell' as const,
+            icon: <Trash2 className="h-4 w-4" />,
+            label: 'Delete draft',
+            tooltip: 'Permanently delete this draft',
+            onClick: (row: Sale) => onDeleteDraft(row),
+            hidden: (row: Sale) => row.status !== 'draft',
           },
         ]
       : []),

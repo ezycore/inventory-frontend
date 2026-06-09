@@ -86,11 +86,10 @@ export function formatCurrency(
   options?: Intl.NumberFormatOptions,
 ): string {
   // Handle undefined/null/NaN values
+  const symbol = getCurrencySymbol(currencyCode);
   if (amount == null || isNaN(amount)) {
-    const symbol = getCurrencySymbol(currencyCode);
     return symbol ? `${symbol}0.00` : "0.00";
   }
-  const symbol = getCurrencySymbol(currencyCode);
   const formatted = amount.toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

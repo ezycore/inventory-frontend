@@ -110,7 +110,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const hasMountedRef = useRef(false);
+  // const hasMountedRef = useRef(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const queryClient = useQueryClient();
@@ -172,14 +172,14 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   // onMount enrichment
   useEffect(() => {
-    if (hasMountedRef.current || !onMount) return;
+    if (!onMount) return;
     if (optionsApi && finalOptions.length === 0) return;
     const rawVal = extractRaw(value);
     if (!rawVal || (Array.isArray(rawVal) && rawVal.length === 0)) return;
-    hasMountedRef.current = true;
+    // hasMountedRef.current = true;
     onMount(labelInValue ? formatValue(rawVal) : value);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalOptions]);
+  }, [finalOptions, value]);
 
   // Fuse instance
   const fuse = useMemo(
@@ -292,7 +292,6 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   };
 
   // ── Shared trigger style ──────────────────────────────────────────────────
-
   const triggerCls = (extra?: string) =>
     cn(
       "flex h-9 w-full min-w-0 items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs",
@@ -522,7 +521,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   return (
     <>
       <div className="flex gap-2 w-full">
-        <div className="relative w-full group">
+        <div className="relative w-full min-w-0 group">
           <Popover open={open} onOpenChange={disabled ? undefined : setOpen}>
             <PopoverTrigger asChild>
               <button

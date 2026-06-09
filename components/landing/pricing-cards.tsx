@@ -22,7 +22,7 @@ export function PricingCards() {
         t.pricing.starterFeature5,
       ],
       cta: t.pricing.ctaStart,
-      ctaLink: "/signup",
+      ctaLink: "/signup?planName=Starter",
       popular: false,
     },
     {
@@ -39,7 +39,7 @@ export function PricingCards() {
         t.pricing.growthFeature6,
       ],
       cta: t.pricing.ctaStart,
-      ctaLink: "/signup",
+      ctaLink: "/signup?planName=Growth",
       popular: true,
       popularBadge: t.pricing.growthBadge,
     },

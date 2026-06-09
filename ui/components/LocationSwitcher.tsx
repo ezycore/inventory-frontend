@@ -109,11 +109,11 @@ export function LocationSwitcher() {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-80 p-2 mt-2 rounded-2xl border border-gray-200/60 bg-white/95 backdrop-blur-xl shadow-2xl"
+        className="w-80 p-2 mt-2 rounded-2xl border border-gray-200/60 backdrop-blur-xl shadow-2xl"
         align="end"
       >
         <div className="px-3 py-2 mb-1">
-          <h4 className="text-sm font-semibold text-gray-900">
+          <h4 className="text-sm font-semibold">
             Select Location
           </h4>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -122,28 +122,29 @@ export function LocationSwitcher() {
         </div>
         <div className="space-y-1 max-h-[300px] overflow-y-auto">
           {accessibleLocations.map((location) => (
-            <button
+            <Button
               key={location.id}
               onClick={() => handleLocationSelect(location)}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-100/80 transition-all duration-200 group"
+              variant="ghost"
+              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-gray-100/80 dark:hover:bg-gray-600 transition-all duration-200 group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors">
                   <MapPin className="h-3.5 w-3.5 text-blue-600" />
                 </div>
                 <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium">
                     {location.name}
                   </span>
                   {location.isDefault && (
-                    <span className="text-xs text-gray-500">Default</span>
+                    <span className="text-xs">Default</span>
                   )}
                 </div>
               </div>
               {currentLocation?.id === location.id && (
                 <Check className="h-4 w-4 text-blue-600" />
               )}
-            </button>
+            </Button>
           ))}
         </div>
       </PopoverContent>

@@ -11,6 +11,9 @@ export const queryKeys = {
     updateFormSettings: () =>
       [...queryKeys.organization.get(), "form-settings"] as const,
     features: () => [...queryKeys.organization.get(), "features"] as const,
+    subscription: () =>
+      [...queryKeys.organization.get(), "subscription"] as const,
+    plans: () => [...queryKeys.organization.get(), "plans"] as const,
   },
 
   // Inventory query keys
@@ -39,6 +42,13 @@ export const queryKeys = {
       [...queryKeys.products.all(), "search", query] as const,
     withVariants: (id: string) =>
       [...queryKeys.products.detail(id), "variants"] as const,
+  },
+
+  // Barcode lookup
+  barcode: {
+    all: () => ["barcode"] as const,
+    lookup: (code: string) =>
+      [...queryKeys.barcode.all(), "lookup", code] as const,
   },
 
   // Variants query keys
@@ -103,6 +113,8 @@ export const queryKeys = {
     summary: () => [...queryKeys.purchaseOrders.all(), "summary"] as const,
     payments: (id: string) =>
       [...queryKeys.purchaseOrders.all(), "payments", id] as const,
+    transactions: (id: string) =>
+      [...queryKeys.purchaseOrders.all(), "transactions", id] as const,
   },
 
   // Purchase Returns query keys
@@ -269,6 +281,10 @@ export const queryKeys = {
     list: () => [...queryKeys.users.lists()] as const,
     details: () => [...queryKeys.users.all(), "detail"] as const,
     detail: (id: string) => [...queryKeys.users.details(), id] as const,
+  },
+
+  roles: {
+    all: () => ["roles"] as const,
   },
 
   // Dashboard query keys

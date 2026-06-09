@@ -27,6 +27,7 @@ import { DataCardSearchConfig, FilterConfig, CardCustomAction, CardLayout, CardS
 import { cn } from "@/ui/lib/utils";
 
 interface DataCardToolbarProps {
+  title?: string;
   filterConfig?: FilterConfig;
   searchConfig?: DataCardSearchConfig;
   globalFilter?: string;
@@ -56,6 +57,7 @@ interface DataCardToolbarProps {
 }
 
 export function DataCardToolbar({
+  title,
   searchConfig,
   filterConfig,
   globalFilter,
@@ -70,41 +72,65 @@ export function DataCardToolbar({
   customActions,
   layout,
   onLayoutChange,
-  showLayoutSwitcher = true,
+  showLayoutSwitcher = false,
   sortBy,
   sortOrder,
   onSortChange,
   sortingConfig,
 }: DataCardToolbarProps) {
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-      {/* Search */}
-      <div className="flex items-center gap-2 sm:gap-4 flex-1">
-        {searchConfig?.globalSearch || searchConfig?.searchableKey ? (
-          <div className="relative flex-1 w-full sm:max-w-sm h-8">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder={searchConfig.placeholder || "Search..."}
-              value={globalFilter ?? ""}
-              onChange={(event) => onGlobalFilterChange?.(event.target.value)}
-              className="pl-10 pr-10 h-8"
-            />
-            {globalFilter && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onGlobalFilterChange?.("")}
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
-          </div>
-        ) : null}
-      </div>
+  const hasSearch = searchConfig?.globalSearch || !!searchConfig?.searchableKey;
+  const hasRightActions =
+    (selectable && hasSelection && deletable) ||
+    sortingConfig ||
+    (showLayoutSwitcher && !!onLayoutChange) ||
+    (filterConfig && Object.keys(filterConfig).length > 0) ||
+    !!actionButton ||
+    customActions?.some((a) => a.placement === "header");
 
-      {/* Right side actions */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-2 sm:justify-end">
+  if (!title && !hasSearch && !hasRightActions) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      {/* Title — mr-auto pushes right items to the end of the same row.
+          When the row is too narrow, following items wrap to the next row(s). */}
+      {title && (
+        <h2 className="mr-auto text-xl font-semibold tracking-tight">
+          {title}
+        </h2>
+      )}
+
+      {/* Search */}
+      {hasSearch && (
+        <div className={cn(
+          "relative h-8 shrink-0",
+          title ? "w-44 sm:w-52" : "flex-1 min-w-[140px] max-w-sm"
+        )}>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder={searchConfig!.placeholder || "Search..."}
+            value={globalFilter ?? ""}
+            onChange={(event) => onGlobalFilterChange?.(event.target.value)}
+            className="pl-10 pr-6 h-8 w-full"
+          />
+          {globalFilter && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onGlobalFilterChange?.("")}
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Right-side actions */}
+      {hasRightActions && (
+        <div className={cn(
+          "flex items-center gap-2 shrink-0",
+          !title && !hasSearch && "ml-auto"
+        )}>
         {/* Sort Dropdown */}
         {sortingConfig && onSortChange && (
           <DropdownMenu>
@@ -300,7 +326,8 @@ export function DataCardToolbar({
               <span key={`header-${index}`}>{button}</span>
             );
           })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

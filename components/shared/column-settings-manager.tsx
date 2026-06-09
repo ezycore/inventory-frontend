@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo } from "react"
 import { Switch } from "@/ui/components/switch"
 import { Button } from "@/ui/components/button"
 import { Label } from "@/ui/components/label"
@@ -52,11 +52,6 @@ export function ColumnSettingsManager({
   const [excludedColumns, setExcludedColumns] = useState<string[]>(initialExcludedColumns)
   const [hasChanges, setHasChanges] = useState(false)
   const [saving, setSaving] = useState(false)
-
-  // Sync with prop changes
-  useEffect(() => {
-    setExcludedColumns(initialExcludedColumns)
-  }, [initialExcludedColumns])
 
   // Get column keys from columns array
   const columnKeys = useMemo(() => {

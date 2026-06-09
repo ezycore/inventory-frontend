@@ -43,6 +43,14 @@ const roleConfig: Record<string, { color: string; icon: string }> = {
   },
 };
 
+function formatRoleName(role: string) {
+  return role
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 const avatarGradients = [
   "from-blue-500 to-indigo-600",
   "from-emerald-500 to-teal-600",
@@ -69,13 +77,19 @@ function getAvatarGradient(name: string) {
 const UserCardView = (
   item: User,
   { onEdit, onDelete }: { onEdit?: () => void; onView?: () => void; onDelete?: () => void },
+  options: { roleLabel?: string; hasAllLocationAccess?: boolean } = {},
 ) => {
   const fullName = `${item.firstName} ${item.lastName}`;
   const initials = `${item.firstName?.charAt(0) || ""}${item.lastName?.charAt(0) || ""}`.toUpperCase();
   const gradient = getAvatarGradient(fullName);
   const isActive = item.status === "active";
   const role = roleConfig[item.role] || roleConfig.viewer;
-  const locationCount = item.role === "admin" ? "All" : (item.locations?.length || 0);
+  const hasAllLocationAccess =
+    options.hasAllLocationAccess ||
+    item.role === "admin" ||
+    item.role === "super_admin";
+  const locationCount = hasAllLocationAccess ? "All" : (item.locations?.length || 0);
+  const roleLabel = options.roleLabel || formatRoleName(item.role);
 
   return (
     <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-border">
@@ -133,7 +147,7 @@ const UserCardView = (
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${role.color}`}
           >
             <Shield className="h-3 w-3" />
-            {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
+            {roleLabel}
           </span>
           <Badge
             variant={isActive ? "default" : "destructive"}
@@ -169,7 +183,7 @@ const UserCardView = (
             <MapPin className="h-3.5 w-3.5 shrink-0" />
             <span>
               {typeof locationCount === "string"
-                ? "All locations (Admin)"
+                ? "All locations"
                 : `${locationCount} location${locationCount !== 1 ? "s" : ""}`}
             </span>
           </div>

@@ -9,6 +9,7 @@ import {
   CalendarDays,
   Package,
 } from "lucide-react";
+import { CopyField } from "@/ui/components/copy";
 
 // ─── Movement Type Badge ─────────────────────────────────────────────────────
 const MovementTypeBadge = ({ type }: { type: string }) => {
@@ -70,11 +71,10 @@ const QuantityChangeCell = ({
       <span className="font-semibold text-sm tabular-nums">{current}</span>
       <Badge
         variant="outline"
-        className={`text-xs font-semibold tabular-nums ${
-          isIn
+        className={`text-xs font-semibold tabular-nums ${isIn
             ? "text-chart-2 border-chart-2/30 bg-chart-2/10"
             : "text-destructive border-destructive/30 bg-destructive/10"
-        }`}
+          }`}
       >
         {isIn ? "+" : "-"}
         {quantity}
@@ -122,9 +122,9 @@ export const columns: ColumnDef<any>[] = [
               <p className="text-xs text-muted-foreground truncate">
                 {variant.attributes
                   ? Object.entries(variant.attributes)
-                      .map(([k, v]) => `${k}: ${v}`)
-                      .join(", ")
-                  : variant.sku || ""}
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(", ")
+                  : ""}
               </p>
             )}
           </div>
@@ -169,10 +169,15 @@ export const columns: ColumnDef<any>[] = [
     header: "Notes",
     cell: ({ row }) => {
       const notes = row.getValue("notes") as string;
+      const id = (notes || "").match(/(?:INV|PO)-\d+-\d+/i)?.[0]
+
       return notes ? (
-        <span className="text-xs text-muted-foreground max-w-[200px] truncate block">
-          {notes}
-        </span>
+        <div className="flex items-center gap-1 max-w-[200px]">
+          <span className="text-xs text-muted-foreground truncate block">
+            {notes}
+          </span>
+          <CopyField value={id || notes} showValue={false} />
+        </div>
       ) : (
         <span className="text-muted-foreground text-xs">—</span>
       );

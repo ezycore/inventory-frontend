@@ -46,6 +46,7 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     saleUnitName: item.saleUnitName ?? null,
     purchaseUnitName: (item as any).purchaseUnitName ?? null,
     quantityAlert: item.quantityAlert,
+    barcode: item.barcode ?? undefined,
   })) as SelectOption[];
 };
 
@@ -69,6 +70,7 @@ export const accountItemsCreateCallback = (
  */
 export const extractProductValue = (val: any): ExtractedProduct | null => {
   if (!val) return null;
+  console.log("extractProductValue input", val);
   if (typeof val === "object" && "value" in val) {
     return {
       value: val.value, // inventoryId
@@ -83,6 +85,7 @@ export const extractProductValue = (val: any): ExtractedProduct | null => {
       saleUnitName: (val as any).saleUnitName ?? null,
       purchaseUnitName: (val as any).purchaseUnitName ?? null,
       quantityAlert: (val as any).quantityAlert ?? 0,
+      barcode: (val as any).barcode ?? undefined,
     };
   }
   return null;

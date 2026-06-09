@@ -24,7 +24,6 @@ import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
 import type { SelectOption, FieldDependency } from "@/ui/components/form/type";
-import { extractValue as extractValueFromObject } from "@/ui/components/form/dependency-utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Select,
@@ -154,9 +153,9 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   const apiError = queryError ? (queryError as Error).message : null;
 
   // Fire onMount once after options are available so labelInValue enrichment works
-  const hasMountedRef = useRef(false);
+  // const hasMountedRef = useRef(false);
   useEffect(() => {
-    if (hasMountedRef.current) return;
+    // if (hasMountedRef.current) return;
     if (!onMount) return;
     // For API-driven selects, wait until options have loaded
     if (optionsApi && finalOptions.length === 0) return;
@@ -164,12 +163,12 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     const rawVal = extractValue(value);
     if (!rawVal || (Array.isArray(rawVal) && rawVal.length === 0)) return;
 
-    hasMountedRef.current = true;
+    // hasMountedRef.current = true;
     // Return the labelInValue-enriched value (full option object) if applicable
     const enriched = labelInValue ? formatValue(rawVal) : value;
     onMount(enriched);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalOptions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalOptions, value]);
 
   // Extract actual value strings for rendering
   const actualValue = extractValue(value);
@@ -308,7 +307,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   return (
     <>
       <div className="flex gap-2 w-full">
-        <div className="relative w-full group">
+        <div className="relative w-full min-w-0 group">
           <Select
             value={singleValue}
             onValueChange={handleValueChange}

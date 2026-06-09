@@ -1,3 +1,4 @@
+// components/ui/easy-alert-dialog.tsx
 import React from "react";
 import {
   AlertDialog,
@@ -18,21 +19,12 @@ export interface EasyAlertDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   onConfirm: () => void;
+  onCancel?: () => void;
   isConfirming?: boolean;
-  /**
-   * Additional content between description and footer (optional)
-   */
   children?: React.ReactNode;
-  /**
-   * Class applied to confirm action (useful for destructive style)
-   */
   confirmClassName?: string;
 }
 
-/**
- * Reusable alert dialog used across the app.
- * - Minimal API to render title, description, optional body, and confirm/cancel actions.
- */
 export function EasyAlertDialog({
   open,
   onOpenChange,
@@ -41,6 +33,7 @@ export function EasyAlertDialog({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   onConfirm,
+  onCancel,
   isConfirming = false,
   children,
   confirmClassName = "bg-destructive text-destructive-foreground hover:bg-destructive/90",
@@ -58,14 +51,13 @@ export function EasyAlertDialog({
         {children}
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isConfirming}>
+          <AlertDialogCancel disabled={isConfirming} onClick={onCancel}>
             {cancelLabel}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isConfirming}
             className={confirmClassName}
-            // keep button semantics accessible
           >
             {isConfirming ? `${confirmLabel}...` : confirmLabel}
           </AlertDialogAction>

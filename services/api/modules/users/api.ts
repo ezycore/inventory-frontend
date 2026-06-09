@@ -4,7 +4,7 @@ import type { CreateUserDto, UpdateUserDto, User } from "@/types/users";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 /**
- * Users API - User management (admin/manager functions)
+ * Users API - user management functions gated by resolved permissions.
  * Backend: /api/users
  *
  * USAGE MAP:

@@ -7,7 +7,7 @@ import {
 } from "@/lib/feature-utils";
 import { useAuthStore } from "@/services/stores";
 import { FeatureName } from "@/types";
-import { useGetFeatures, useUpdateFeatures } from "@/services/api";
+import { useGetFeatures } from "@/services/api";
 import {
   Card,
   CardContent,
@@ -17,10 +17,11 @@ import {
 } from "@/ui/components/card";
 import PageHeader from "@/ui/components/header";
 import { Switch } from "@/ui/components/switch";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 // Define feature order for display
@@ -41,8 +42,6 @@ export default function FeatureSettingsPage() {
   const { features } = user?.organization || {};
 
   const { data: featuresData, isLoading } = useGetFeatures();
-  const { mutate: updateFeaturesMutation, isPending } = useUpdateFeatures();
-  const [savingFeature, setSavingFeature] = useState<FeatureName | null>(null);
 
   const canManageSettings =
     user?.permissions?.includes("organization.edit") ?? false;
@@ -67,26 +66,6 @@ export default function FeatureSettingsPage() {
     return null;
   }
 
-  const handleToggleFeature = (feature: FeatureName, enabled: boolean) => {
-    setSavingFeature(feature);
-
-    // Optimistically update UI
-    updateFeaturesStore({ ...features, [feature]: enabled });
-
-    updateFeaturesMutation(
-      { [feature]: enabled },
-      {
-        onError: () => {
-          // Revert on error
-          updateFeaturesStore({ ...features, [feature]: !enabled });
-        },
-        onSettled: () => {
-          setSavingFeature(null);
-        },
-      }
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -99,13 +78,34 @@ export default function FeatureSettingsPage() {
     <div className="container mx-auto p-6 space-y-6">
       <PageHeader
         title="Feature Settings"
-        subTitle="Enable or disable features for your organization. Disabled features will be hidden from the navigation and cannot be accessed."
+        subTitle="The features available to your organization are determined by your subscription plan. Disabled features are hidden from the navigation and cannot be accessed."
       />
+
+      <Card className="border-primary/30 bg-primary/5">
+        <CardContent className="flex items-start gap-3 py-4">
+          <div className="rounded-lg bg-primary/10 p-2 text-primary">
+            <Lock className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Managed by your plan</p>
+            <p className="text-sm text-muted-foreground">
+              Features are synced from your active subscription and can&apos;t be
+              toggled here. To enable or disable features, change your plan on the{" "}
+              <Link
+                href="/dashboard/billing"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Billing
+              </Link>{" "}
+              page.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {FEATURE_ORDER.map((feature) => {
-          const isEnabled = features[feature];
-          const isSaving = savingFeature === feature;
+          const isEnabled = features?.[feature] ?? false;
 
           return (
             <Card
@@ -133,19 +133,12 @@ export default function FeatureSettingsPage() {
                       {FEATURE_DISPLAY_NAMES[feature]}
                     </CardTitle>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {isSaving && (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    )}
-                    <Switch
-                      id={`feature-${feature}`}
-                      checked={isEnabled}
-                      onCheckedChange={(checked) =>
-                        handleToggleFeature(feature, checked)
-                      }
-                      disabled={isSaving}
-                    />
-                  </div>
+                  <Switch
+                    id={`feature-${feature}`}
+                    checked={isEnabled}
+                    disabled
+                    aria-readonly
+                  />
                 </div>
               </CardHeader>
               <CardContent className="pt-0">

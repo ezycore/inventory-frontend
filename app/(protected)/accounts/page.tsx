@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 // Types
 import type { Account } from "@/types";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
@@ -8,6 +11,7 @@ import type { DynamicFormConfig } from "@/ui/components/form/type";
 import { DataCard } from "@/ui/components/dataCard";
 import PageHeader from "@/ui/components/header";
 import AccountCardView, { AccountCardSkeleton } from "@/components/accounts/cardview";
+import InvestmentDialog from "@/components/accounts/investment-dialog";
 import {
   Wallet,
   Building2,
@@ -266,7 +270,12 @@ const defaultValues = {
 
 export default function AccountsPage() {
   const { format } = useCurrency();
+  const router = useRouter();
   const { data: summary, isLoading: summaryLoading } = useAccountSummary();
+
+  const [investmentTarget, setInvestmentTarget] = useState<Account | null>(
+    null,
+  );
 
   const sharedOperations = {
     formConfig: accountFormConfig,
@@ -311,6 +320,9 @@ export default function AccountsPage() {
             actions={{
               onEdit: () => actions.onEdit?.(),
               onDelete: () => actions.onDelete?.(),
+              onAddInvestment: () => setInvestmentTarget(row),
+              onViewTransactions: () =>
+                router.push(`/accounts/transactions?accountId=${row._id}`),
             }}
           />
         )}
@@ -320,6 +332,12 @@ export default function AccountsPage() {
           gap: "lg",
         }}
         operations={sharedOperations}
+      />
+
+      {/* ── Add investment dialog ───────────────────────────────── */}
+      <InvestmentDialog
+        account={investmentTarget}
+        onClose={() => setInvestmentTarget(null)}
       />
     </div>
   );

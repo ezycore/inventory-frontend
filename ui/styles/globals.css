@@ -116,6 +116,14 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+.dark [data-today="true"],
+.dark .rdp-day_today:not(.rdp-day_selected) {
+  border: 1.5px solid hsl(var(--foreground)) !important;
+  background: transparent !important;
+  color: hsl(var(--foreground)) !important;
+  font-weight: 600;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

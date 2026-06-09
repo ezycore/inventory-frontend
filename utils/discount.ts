@@ -110,7 +110,7 @@ export function applyDiscountWithPriority({
   orderDiscountValue,
 }: ApplyDiscountParams): DiscountResult {
   // Determine which discount to apply
-  const discountType = orderDiscountType ?? "fixed";
+  const discountType = orderDiscountType ?? "percentage"; // Default to percentage if not provided
   const discountValue = orderDiscountValue ?? 0;
   return calculateDiscountWithPrice({
     price,
