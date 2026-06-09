@@ -103,19 +103,12 @@ export default function CreatedOrdersPage() {
       </div>
 
       {/* Data Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Purchase Orders</CardTitle>
-          <CardDescription>
-            {ctx.paginationInfo
-              ? `${ctx.paginationInfo.total} order(s) found`
-              : "Loading..."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Card className="p-0">
+        <CardContent className="p-6">
           <BaseDataTable
             columns={ctx.columns}
             data={ctx.orders}
+            title="Purchase Orders"
             isLoading={ctx.isLoading}
             filterConfig={ctx.filterConfig}
             actions={{}}

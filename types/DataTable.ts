@@ -315,6 +315,8 @@ export interface BaseDataTableProps<TData, TValue = any> {
   data: TData[];
   columns: ColumnDef<TData, TValue>[];
   isLoading: boolean;
+  /** Page title — rendered inside the toolbar on the left, so title + search + actions occupy a single row */
+  title?: string;
   /** True when refetching with existing data (sort/filter/page change) — shows overlay instead of replacing rows */
   isFetching?: boolean;
   pagination?: DataTablePagination;

@@ -48,6 +48,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   data,
   isLoading,
   isFetching,
+  title,
   pagination,
   filterConfig,
   actions,
@@ -236,6 +237,7 @@ export function BaseDataCard<TData extends { _id: string }>({
     return (
       <div className="w-full space-y-4">
         <DataCardToolbar
+          title={title}
           searchConfig={searchConfig}
           filterConfig={filterConfig}
           globalFilter={globalFilter}
@@ -272,6 +274,7 @@ export function BaseDataCard<TData extends { _id: string }>({
     return (
       <div className="w-full space-y-4">
         <DataCardToolbar
+          title={title}
           searchConfig={searchConfig}
           filterConfig={filterConfig}
           globalFilter={globalFilter}
@@ -302,6 +305,7 @@ export function BaseDataCard<TData extends { _id: string }>({
     <div className="w-full space-y-4">
       {/* Toolbar */}
       <DataCardToolbar
+        title={title}
         searchConfig={searchConfig}
         filterConfig={filterConfig}
         globalFilter={globalFilter}

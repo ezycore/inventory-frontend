@@ -21,6 +21,8 @@ import {
   CreditCard,
   EllipsisVertical,
   Pencil,
+  PlusCircle,
+  Receipt,
   Smartphone,
   Star,
   Trash2,
@@ -122,6 +124,8 @@ interface AccountCardViewProps {
   actions: {
     onEdit: (item: Account) => void;
     onDelete: (item: Account) => void;
+    onAddInvestment?: (item: Account) => void;
+    onViewTransactions?: (item: Account) => void;
   };
 }
 
@@ -211,11 +215,25 @@ export default function AccountCardView({
                 <EllipsisVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-36">
+            <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onClick={() => actions.onEdit(item)}>
                 <Pencil className="mr-2 h-3.5 w-3.5" />
                 Edit
               </DropdownMenuItem>
+              {actions.onAddInvestment && (
+                <DropdownMenuItem onClick={() => actions.onAddInvestment!(item)}>
+                  <PlusCircle className="mr-2 h-3.5 w-3.5" />
+                  Add Investment
+                </DropdownMenuItem>
+              )}
+              {actions.onViewTransactions && (
+                <DropdownMenuItem
+                  onClick={() => actions.onViewTransactions!(item)}
+                >
+                  <Receipt className="mr-2 h-3.5 w-3.5" />
+                  View Transactions
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => actions.onDelete(item)}

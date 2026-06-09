@@ -24,9 +24,11 @@ import {
   useDeleteLocation,
   useUpdateLocation,
   useLocationStats,
+  useRoles,
 } from "@/services/api";
 import { locationsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { FilterConfig } from "@/types/DataTable";
 import PageHeader from "@/ui/components/header";
 import { sanitize } from "@/utils";
@@ -38,6 +40,15 @@ import {
   Store,
   Warehouse,
 } from "lucide-react";
+import { useMemo } from "react";
+
+function formatRoleName(role: string): string {
+  return role
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 // ── Summary stat config ───────────────────────────────────────────────
 interface SummaryItem {
@@ -236,11 +247,10 @@ const locationFormConfig: DynamicFormConfig = {
       columnSpan: 12,
       required: false,
       description:
-        "Select users to assign to this location (admins have access to all locations automatically)",
+        "Select users for roles without all-location access.",
       itemsCreateCallback: (response: ApiResponse<PaginatedResponse<User>>) => {
         const items = sanitize(response?.data?.items, 'array');
         return items
-          .filter((item) => item.role !== "admin") // Filter out admins
           .map((item) => ({
             value: item._id,
             label: `${item.firstName} ${item.lastName} <${item.email}> - ${item.role}`,
@@ -302,11 +312,60 @@ const defaultValues = {
 };
 
 export default function LocationsPage() {
+  const currentUser = useAuthStore((state) => state.user);
   const [viewMode, setViewMode] = useViewMode("locations", 'card');
   const { data: statsData, isLoading: statsLoading } = useLocationStats?.() ?? { data: undefined, isLoading: false };
+  const canManageUsers = !!currentUser?.permissions?.includes("users.manage");
+  const { data: rolesData } = useRoles({ enabled: canManageUsers });
+  const roles = rolesData?.data || [];
+
+  const roleLabels = useMemo(
+    () => new Map(roles.map((role) => [role.slug, role.name])),
+    [roles],
+  );
+
+  const allLocationRoleSlugs = useMemo(
+    () =>
+      new Set([
+        "admin",
+        "super_admin",
+        ...roles
+          .filter((role) => role.permissions.includes("locations.all"))
+          .map((role) => role.slug),
+      ]),
+    [roles],
+  );
+
+  const roleAwareLocationFormConfig = useMemo<DynamicFormConfig>(() => {
+    const fields = locationFormConfig.fields.map((field) => {
+      if (field.name !== "users") return field;
+
+      return {
+        ...field,
+        description:
+          "Select users for roles without all-location access.",
+        itemsCreateCallback: (response: ApiResponse<PaginatedResponse<User>>) => {
+          const items = sanitize(response?.data?.items, "array");
+          return items
+            .filter((item) => !allLocationRoleSlugs.has(item.role))
+            .map((item) => ({
+              value: item._id,
+              label: `${item.firstName} ${item.lastName} <${item.email}> - ${
+                roleLabels.get(item.role) || formatRoleName(item.role)
+              }`,
+            }));
+        },
+      };
+    });
+
+    return {
+      ...locationFormConfig,
+      fields,
+    };
+  }, [allLocationRoleSlugs, roleLabels]);
 
   const sharedOperations = {
-    formConfig: locationFormConfig,
+    formConfig: roleAwareLocationFormConfig,
     defaultValues: defaultValues,
     getAllData: locationsApi.getAll,
     createMutation: useCreateLocation(),

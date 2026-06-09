@@ -18,14 +18,15 @@ interface Location {
 interface LocationCountCellProps {
   locations?: Location[];
   role?: string;
+  hasAllLocationAccess?: boolean;
 }
 
 export function LocationCountCell({
   locations = [],
   role,
+  hasAllLocationAccess = false,
 }: LocationCountCellProps) {
-  // Admin has access to all locations
-  if (role === "admin") {
+  if (hasAllLocationAccess || role === "admin" || role === "super_admin") {
     return <Badge variant="default">All Locations</Badge>;
   }
 

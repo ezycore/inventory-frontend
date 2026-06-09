@@ -68,6 +68,13 @@ export function ProfileHeader() {
     }
   };
 
+  const formatRoleName = (role: string) =>
+    role
+      .split(/[-_]/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -175,7 +182,7 @@ export function ProfileHeader() {
                     className="capitalize w-fit mx-auto sm:mx-0 gap-1"
                   >
                     <Shield className="h-3 w-3" />
-                    {user.role.replace("_", " ")}
+                    {formatRoleName(user.role)}
                   </Badge>
                 </div>
               </div>

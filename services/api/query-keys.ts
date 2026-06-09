@@ -11,6 +11,9 @@ export const queryKeys = {
     updateFormSettings: () =>
       [...queryKeys.organization.get(), "form-settings"] as const,
     features: () => [...queryKeys.organization.get(), "features"] as const,
+    subscription: () =>
+      [...queryKeys.organization.get(), "subscription"] as const,
+    plans: () => [...queryKeys.organization.get(), "plans"] as const,
   },
 
   // Inventory query keys
@@ -278,6 +281,10 @@ export const queryKeys = {
     list: () => [...queryKeys.users.lists()] as const,
     details: () => [...queryKeys.users.all(), "detail"] as const,
     detail: (id: string) => [...queryKeys.users.details(), id] as const,
+  },
+
+  roles: {
+    all: () => ["roles"] as const,
   },
 
   // Dashboard query keys
