@@ -108,8 +108,11 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
   const editDiscount = useWatch({ control: editForm.control, name: "discount", defaultValue: 0 });
   const editCostPrice = useWatch({ control: editForm.control, name: "costPrice", defaultValue: 0 });
 
+  // Hydrate local edit state from the fetched order. This synchronizes form
+  // state with externally-fetched data, so setState here is intentional.
   useEffect(() => {
     if (!order) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(
       order.items.map((it) => {
         const conversionFactor = it.conversionFactor ?? 1;
@@ -157,7 +160,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
       invoiceNumber: order.invoiceNumber ?? "",
       invoiceDate: order.invoiceDate ? order.invoiceDate.slice(0, 10) : "",
     });
-  }, [order]);
+  }, [order, supplierForm]);
 
   const subtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.costPrice * item.quantity, 0),
@@ -336,7 +339,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
     );
     setIsEditDialogOpen(false);
     setEditingItem(null);
-  }, [editForm, editingItem, router]);
+  }, [editForm, editingItem]);
 
   const handleSave = useCallback(async () => {
     if (!order) return;

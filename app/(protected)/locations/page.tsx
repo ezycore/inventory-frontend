@@ -317,7 +317,7 @@ export default function LocationsPage() {
   const { data: statsData, isLoading: statsLoading } = useLocationStats?.() ?? { data: undefined, isLoading: false };
   const canManageUsers = !!currentUser?.permissions?.includes("users.manage");
   const { data: rolesData } = useRoles({ enabled: canManageUsers });
-  const roles = rolesData?.data || [];
+  const roles = useMemo(() => rolesData?.data || [], [rolesData]);
 
   const roleLabels = useMemo(
     () => new Map(roles.map((role) => [role.slug, role.name])),

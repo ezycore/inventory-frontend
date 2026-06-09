@@ -223,11 +223,15 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     finalOptions.find((o) => o.value === singleValue)?.label ?? singleValue;
 
   // Multi-select derived
-  const multiValues: string[] = Array.isArray(actualValue)
-    ? actualValue
-    : actualValue
-      ? [actualValue]
-      : [];
+  const multiValues: string[] = useMemo(
+    () =>
+      Array.isArray(actualValue)
+        ? actualValue
+        : actualValue
+          ? [actualValue]
+          : [],
+    [actualValue],
+  );
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 

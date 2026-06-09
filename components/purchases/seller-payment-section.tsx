@@ -79,6 +79,7 @@ export function SellerPaymentSection({
     isAccountsEnabled,
     accounts,
     seller.id,
+    seller.purchaseType,
     seller.paymentInfo,
     netAmount,
     creditApplied,
