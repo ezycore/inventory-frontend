@@ -5,8 +5,15 @@ import { createResourceHooks } from "../query-helpers";
 
 const discountHooks = createResourceHooks<Discount, CreateDiscountDto>(
   discountsApi,
-  queryKeys.discounts
+  queryKeys.discounts,
+  {
+    relatedQueryKeys: [queryKeys.discounts.all(), ["select-options", "/discounts/purchase?all=true&status=active&fields=_id,name,value",
+      "/discounts/sales?all=true&status=active&fields=_id,name,value"
+    ]],
+  },
 );
+//  {relatedQueryKeys: [queryKeys.customers.all(), ["select-options", "/sales/customers?all=true&fields=_id,name,defaultDiscountId"]]}
+
 
 export const useDiscounts = discountHooks.useList;
 export const useDiscount = discountHooks.useDetail;

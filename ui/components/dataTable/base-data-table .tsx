@@ -24,6 +24,7 @@ export function BaseDataTable<TData, TValue>({
   columns,
   filterConfig,
   data,
+  title,
   selectable = false,
   onSelectionChange,
   searchConfig,
@@ -34,6 +35,7 @@ export function BaseDataTable<TData, TValue>({
   onView,
   pagination,
   isLoading = false,
+  isFetching = false,
   enableSorting = true,
   enableColumnVisibility = false,
   defaultColumnVisibility,
@@ -156,6 +158,7 @@ export function BaseDataTable<TData, TValue>({
       {/* Toolbar */}
       <DataTableToolbar
         table={table}
+        title={title}
         filterConfig={filterConfig}
         searchConfig={searchConfig}
         globalFilter={globalFilter}
@@ -176,6 +179,7 @@ export function BaseDataTable<TData, TValue>({
         table={table}
         columns={enhancedColumns}
         isLoading={isLoading || isDeleting}
+        isFetching={isFetching}
         enableRowHover={enableRowHover}
         rowClassName={rowClassName}
         variant={variant}

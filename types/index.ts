@@ -56,6 +56,104 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
  */
 export type FeatureName = keyof OrganizationFeatures;
 
+/**
+ * Mission Control entitlement snapshot (read-only mirror synced from MC).
+ * Powers the billing display. MC is the source of truth.
+ */
+export interface Entitlement {
+  _id: string;
+  organizationId: string;
+  planSlug?: string;
+  planName?: string;
+  interval?: "month" | "year" | "one_time";
+  amount?: number;
+  modules: string[];
+  features: Partial<OrganizationFeatures>;
+  limits: Record<string, number>;
+  status: "active" | "inactive" | "read_only";
+  subscriptionStatus?:
+    | "trialing"
+    | "active"
+    | "past_due"
+    | "canceled"
+    | "incomplete";
+  gateway?: "stripe" | "sslcommerz" | "manual";
+  currentPeriodEnd?: string | null;
+  trialEndsAt?: string | null;
+  pendingPlanChange?: ScheduledPlanChange | null;
+  scheduledPlanChange?: ScheduledPlanChange | null;
+  scheduledChange?: ScheduledPlanChange | null;
+  pendingDowngrade?: ScheduledPlanChange | null;
+  pendingPlanSlug?: string;
+  pendingPlanName?: string;
+  pendingPlanEffectiveAt?: string | null;
+  nextPlanSlug?: string;
+  nextPlanName?: string;
+  nextPlanEffectiveAt?: string | null;
+  downgradeEffectiveAt?: string | null;
+  scheduledDowngradeAt?: string | null;
+  syncedAt?: string;
+}
+
+/** Pending upgrade/downgrade that will apply at the next billing boundary. */
+export interface ScheduledPlanChange {
+  type?: "upgrade" | "downgrade";
+  planSlug: string;
+  planName?: string;
+  effectiveAt: string;
+}
+
+/** Live usage counts returned alongside the entitlement. */
+export interface SubscriptionUsage {
+  locations: number;
+  users: number;
+  inventory: number;
+}
+
+/** Response of GET /api/organization/subscription. */
+export interface SubscriptionInfo {
+  entitlement: Entitlement | null;
+  usage: SubscriptionUsage;
+}
+
+/** A publicly available plan (proxied from Mission Control). */
+export interface AvailablePlan {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  interval: "month" | "year" | "one_time";
+  amount: number;
+  trialDays?: number;
+  modules: string[];
+  features: string[];
+  limits: Record<string, number>;
+}
+
+/** Response of GET /api/organization/plans. */
+export interface AvailablePlansInfo {
+  plans: AvailablePlan[];
+}
+
+/**
+ * Result of POST /api/organization/plan-change (proxied from Mission Control).
+ * Discriminated by `mode`:
+ *   - "checkout":  redirect the user to `url` (hosted Stripe/SSLCommerz page)
+ *   - "scheduled": downgrade applied at `effectiveAt` (current period end)
+ *   - "activated": free/manual plan applied immediately
+ *   - "current":   already on this plan
+ */
+export type PlanChangeResult =
+  | { mode: "checkout"; planSlug: string; planName: string; url: string }
+  | {
+      mode: "scheduled";
+      planSlug: string;
+      planName: string;
+      effectiveAt: string;
+    }
+  | { mode: "activated"; planSlug: string; planName: string }
+  | { mode: "current"; planSlug: string; planName: string };
+
 // Base interfaces
 export interface BaseEntity {
   _id: string;
@@ -140,8 +238,11 @@ export interface Customer extends BaseEntity {
   phone?: string;
   address?: string;
   status: "active" | "inactive";
-  defaultDiscountId?: string;
+  /** Either a raw id or a populated discount when the response nest-populates it. */
+  defaultDiscountId?: string | Discount | null;
   defaultDiscount?: Discount;
+  /** Store credit currently available to apply against this customer's dues. */
+  creditBalance?: number;
 }
 
 export interface CreateCustomerDto {
@@ -158,7 +259,10 @@ export interface UpdateCustomerDto extends Partial<CreateCustomerDto> { }
 // Customer Summary (aggregated stats - includes returns data)
 export interface CustomersSummary {
   totalSales: number;
+  /** REAL CASH RECEIVED — backend computes as Σ(paidAmount − refundedAmount). */
   totalPaid: number;
+  /** Σ Sale.refundCreditApplied (due cleared via return credit, no cash). */
+  totalRefundCredit?: number;
   totalDue: number;
   salesCount: number;
   // Returns data
@@ -172,7 +276,12 @@ export interface CustomersSummary {
 export interface SalesSummary {
   allTime: {
     totalSales: number;
+    /** REAL CASH RECEIVED — Σ(paidAmount − refundedAmount). */
     totalPaid: number;
+    /** Σ Sale.refundedAmount (cash sent back to customer). */
+    totalCashRefunded?: number;
+    /** Σ Sale.refundCreditApplied. */
+    totalRefundCredit?: number;
     totalDue: number;
     salesCount: number;
   };
@@ -250,12 +359,46 @@ export interface CustomerLedgerReturn {
     _id: string;
     invoiceNumber: string;
   };
+  refundAllocation?: {
+    adjustSaleDue?: number;
+    adjustOtherDues?: Array<{
+      dueId: string;
+      saleId: string;
+      invoiceNumber: string;
+      amount: number;
+    }>;
+    accountRefund?: {
+      accountId: string;
+      amount: number;
+      paymentMethod: string;
+    };
+    customerCredit?: {
+      amount: number;
+    };
+  };
+}
+
+export interface CustomerLedgerInboundCredit {
+  returnId: string;
+  returnNumber: string;
+  /** The sale the return originated from. */
+  sourceSaleId: string;
+  sourceInvoiceNumber: string;
+  /** Sale in the current page whose due was reduced by this credit. */
+  targetSaleId: string;
+  targetInvoiceNumber?: string;
+  amount: number;
+  date: string;
 }
 
 export interface CustomerLedger {
   sales: CustomerLedgerSale[];
   payments: CustomerLedgerPayment[];
   returns: CustomerLedgerReturn[];
+  /** Cross-invoice rows: other-sale returns that paid down sales in this page via adjustOtherDues. */
+  inboundCredits?: CustomerLedgerInboundCredit[];
+  /** Customer store-credit balance available to apply. */
+  creditBalance?: number;
   total: number;
   page: number;
   limit: number;
@@ -306,10 +449,27 @@ export interface SupplierLedgerReturn {
   };
 }
 
+export interface SupplierLedgerInboundCredit {
+  returnId: string;
+  returnNumber: string;
+  /** The purchase order the return originated from. */
+  sourcePurchaseOrderId: string;
+  sourceOrderNumber: string;
+  /** PO in the current page whose due was reduced by this credit. */
+  targetPurchaseOrderId: string;
+  targetOrderNumber?: string;
+  amount: number;
+  date: string;
+}
+
 export interface SupplierLedger {
   purchaseOrders: SupplierLedgerPurchaseOrder[];
   payments: SupplierLedgerPayment[];
   returns: SupplierLedgerReturn[];
+  /** Cross-PO rows: other-PO returns that paid down POs in this page via adjustOtherDues. */
+  inboundCredits?: SupplierLedgerInboundCredit[];
+  /** Supplier refund-credit balance available to apply. */
+  creditBalance?: number;
   total: number;
   page: number;
   limit: number;
@@ -325,8 +485,11 @@ export interface Supplier extends BaseEntity {
   phone?: string;
   address?: string;
   status: "active" | "inactive";
-  defaultDiscountId?: string;
+  /** Either a raw id or a populated discount when the response nest-populates it. */
+  defaultDiscountId?: string | Discount | null;
   defaultDiscount?: Discount;
+  /** Credit accumulated from purchase-return overpayments. Spendable on future POs. */
+  creditBalance?: number;
 }
 
 export interface CreateSupplierDto {
@@ -751,7 +914,8 @@ export interface Account extends BaseEntity {
   accountNumber?: string;
   description?: string;
   isDefault: boolean;
-  isActive: boolean;
+  isActive?: boolean;
+  status?: "active" | "inactive";
 }
 
 export interface CreateAccountDto {
@@ -789,6 +953,7 @@ export type TransactionCategory =
   | "refund"
   | "adjustment"
   | "transfer"
+  | "investment"
   | "other";
 
 export interface Transaction extends BaseEntity {
@@ -914,6 +1079,7 @@ export interface PurchaseOrder extends BaseEntity {
   totalAmount?: number;
   additionalDiscount?: number;
   invoiceAmount?: number;
+  refundCreditApplied?: number;
 }
 
 export interface CreatePurchaseOrderItemDto {
@@ -940,12 +1106,39 @@ export interface CreatePurchaseOrderDto {
   taxTotal?: number;
   payment?: PurchasePaymentInfo;
   notes?: string;
+  /** Supplier credit balance to apply at PO creation (mirrors sale.creditBalanceAmount) */
+  creditBalanceAmount?: number;
 }
 
 // Array of Purchase Orders (for batch creation)
 export type CreatePurchaseOrdersDto = CreatePurchaseOrderDto[];
 
 export interface UpdatePurchaseOrderDto extends Partial<CreatePurchaseOrderDto> { }
+
+/** PATCH /purchases/orders/:id body — only allowed when the order is still a draft. */
+export interface UpdatePurchaseOrderDraftDto {
+  supplierId?: string;
+  items?: CreatePurchaseOrderItemDto[];
+  additionalDiscount?: number;
+  taxTotal?: number;
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  notes?: string;
+}
+
+/** POST /purchases/orders/:id/finalize body — promotes a draft to a real PO. */
+export interface FinalizePurchaseOrderDto {
+  supplierId?: string;
+  items?: CreatePurchaseOrderItemDto[];
+  additionalDiscount?: number;
+  taxTotal?: number;
+  status?: "received" | "ordered";
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  payment?: PurchasePaymentInfo;
+  creditBalanceAmount?: number;
+  notes?: string;
+}
 
 export interface ReceivePurchaseOrderItemDto {
   productId: string;
@@ -966,10 +1159,61 @@ export interface PurchasePaymentInfo {
 }
 
 export interface AddPurchasePaymentDto {
-  paymentMethod: string;
-  accountId: string;
+  paymentMethod?: string;
+  /** Required unless `useSupplierCredit` is true. */
+  accountId?: string;
   amount: number;
   notes?: string;
+  /** When true, deduct from supplier.creditBalance instead of charging an account. */
+  useSupplierCredit?: boolean;
+}
+
+/**
+ * Per-purchase-order transaction timeline entry returned by GET /purchases/orders/:id/transactions.
+ * Backend merges payments + cash refunds + return credits + cross-PO inbound credits.
+ */
+export type PurchaseTransactionKind =
+  | "payment"
+  | "credit_balance_payment"
+  | "cash_refund"
+  | "credit_applied_self"
+  | "credit_applied_from_other";
+
+export interface PurchaseTransactionEntry {
+  id: string;
+  kind: PurchaseTransactionKind;
+  direction: "in" | "out" | "neutral";
+  amount: number;
+  date: string;
+  paymentMethod?: string;
+  accountName?: string;
+  reference?: {
+    kind: "payment" | "purchaseReturn";
+    id: string;
+    label: string;
+  };
+  /** Present for `credit_applied_from_other` — the PO whose return generated the credit. */
+  sourcePurchase?: { id: string; orderNumber: string };
+  notes?: string;
+}
+
+export interface PurchaseTransactionsSummary {
+  purchaseTotal: number;
+  cashPaid: number;
+  supplierCreditPaid: number;
+  cashRefunded: number;
+  refundCreditApplied: number;
+  netPaid: number;
+  paidAmount: number;
+  refundedAmount: number;
+  refundCreditAppliedOnOrder: number;
+  dueAmount: number;
+  status: string;
+}
+
+export interface PurchaseTransactionsResponse {
+  transactions: PurchaseTransactionEntry[];
+  summary: PurchaseTransactionsSummary;
 }
 
 export interface PurchaseOrdersSummary {
@@ -1040,9 +1284,10 @@ export interface PurchaseReturn extends BaseEntity {
   locationId: string;
   purchaseOrderId: string | { _id: string; orderNumber: string };
   orderNumber: string;
-  supplierId?: string;
+  supplierId?: string | { _id: string; name: string; email?: string; phone?: string };
   items: PurchaseReturnItem[];
   totalRefundAmount: number;
+  deductionAmount?: number; // Optional fee withheld from gross refund
   refundedAmount: number;
   totalCostAmount?: number;
   reason: PurchaseReturnReason;
@@ -1061,6 +1306,9 @@ export interface PurchaseReturn extends BaseEntity {
       accountId: string;
       amount: number;
       paymentMethod: string;
+    };
+    supplierCredit?: {
+      amount: number;
     };
   };
   supplier?: Supplier;
@@ -1089,13 +1337,24 @@ export interface CreatePurchaseReturnDto {
   items: CreatePurchaseReturnItemDto[];
   reason: PurchaseReturnReason;
   notes?: string;
+  deductionAmount?: number;
   refundAllocation?: {
-    // Backend expects 'adjustSupplierDue' not 'adjustPurchaseDue'
-    adjustSupplierDue?: number;
+    // Adjust the due amount on THIS purchase order
+    adjustPurchaseDue?: number;
+    // Apply credit to other unpaid purchase orders from the same supplier
+    adjustOtherDues?: {
+      dueId: string;
+      purchaseOrderId: string;
+      amount: number;
+    }[];
     accountRefund?: {
       accountId: string;
       amount: number;
       paymentMethod: string;
+    };
+    // Park the remainder as supplier credit balance
+    supplierCredit?: {
+      amount: number;
     };
   };
 }
@@ -1125,6 +1384,16 @@ export interface SupplierPendingDue {
   dueAmount: number;
   totalAmount: number;
   purchaseDate: string;
+}
+
+/**
+ * Supplier pending dues + credit balance response
+ */
+export interface SupplierPendingDuesResponse {
+  dues: SupplierPendingDue[];
+  totalDue: number;
+  count: number;
+  creditBalance: number;
 }
 
 /**
@@ -1205,6 +1474,44 @@ export interface CreateSalesOrderDto {
 export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> { }
 
 // ============================================
+// Draft Sale (backend Sale model) DTOs
+// ============================================
+
+/** Item payload accepted by POST /sales (matches backend CreateSaleDto.items[]) */
+export interface SaleItemPayload {
+  productId: string;
+  variantId?: string | null;
+  inventoryId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  costPrice: number;
+  discount: number;
+}
+
+/** PATCH /sales/:id body — only allowed when the sale is still a draft. */
+export interface UpdateSaleDraftDto {
+  customerId?: string;
+  items?: SaleItemPayload[];
+  additionalDiscount?: number;
+  notes?: string;
+}
+
+/** POST /sales/:id/finalize body — promotes a draft to a real sale. */
+export interface FinalizeSaleDto {
+  customerId?: string;
+  items?: SaleItemPayload[];
+  additionalDiscount?: number;
+  payment?: {
+    paidAmount: number;
+    accountId: string;
+    paymentMethod?: "cash" | "card" | "bank" | "mfs" | "other";
+  };
+  creditBalanceAmount?: number;
+  notes?: string;
+}
+
+// ============================================
 // Sale Types (Backend Sale Model)
 // ============================================
 
@@ -1218,7 +1525,7 @@ export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> { }
  */
 export type SaleStatus = "draft" | "partial" | "paid" | "cancelled" | "due";
 
-export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other";
+export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other" | "credit";
 
 /**
  * Sale item interface - represents an item in a sale
@@ -1243,6 +1550,10 @@ export interface SaleCustomer {
   name: string;
   email?: string;
   phone?: string;
+  /** Customer store-credit balance (echoed by backend on populate). */
+  creditBalance?: number;
+  /** Populated default discount (when backend nest-populates defaultDiscountId). */
+  defaultDiscountId?: { _id: string; value: number; type: "percentage" | "fixed" } | null;
 }
 
 /**
@@ -1268,6 +1579,10 @@ export interface Sale extends BaseEntity {
   totalAmount: number;
   paidAmount: number;
   dueAmount: number;
+  /** Total cash actually refunded to the customer across all returns. */
+  refundedAmount?: number;
+  /** Total amount of return credit applied to THIS sale's due (self + cross-invoice). */
+  refundCreditApplied?: number;
   costPrice: number;
   status: SaleStatus;
   notes?: string;
@@ -1293,7 +1608,8 @@ export interface Payment extends BaseEntity {
   referenceId: string;
   customerId?: string;
   supplierId?: string;
-  accountId: PaymentAccount;
+  /** Optional — absent for credit-balance payments (paymentMethod === "credit"). */
+  accountId?: PaymentAccount;
   amount: number;
   paymentMethod: PaymentMethod;
   notes?: string;
@@ -1306,9 +1622,62 @@ export interface Payment extends BaseEntity {
  */
 export interface AddPaymentDto {
   amount: number;
-  accountId: string;
+  /** Required unless `useCreditBalance` is true. */
+  accountId?: string;
   paymentMethod?: PaymentMethod;
   notes?: string;
+  /** When true, deduct from customer.creditBalance instead of charging an account. */
+  useCreditBalance?: boolean;
+}
+
+/**
+ * Per-sale transaction timeline entry returned by GET /sales/:id/transactions.
+ * Backend merges payments + cash refunds + return credits + cross-invoice inbound credits.
+ */
+export type SaleTransactionKind =
+  | "payment"
+  | "credit_balance_payment"
+  | "cash_refund"
+  | "credit_applied_self"
+  | "credit_applied_from_other";
+
+export interface SaleTransactionEntry {
+  id: string;
+  kind: SaleTransactionKind;
+  direction: "in" | "out" | "neutral";
+  amount: number;
+  date: string;
+  paymentMethod?: string;
+  accountName?: string;
+  reference?: {
+    kind: "payment" | "salesReturn";
+    id: string;
+    label: string;
+  };
+  /** Present for `credit_applied_from_other` — the sale whose return generated the credit. */
+  sourceSale?: { id: string; invoiceNumber: string };
+  notes?: string;
+}
+
+export interface SaleTransactionsSummary {
+  saleTotal: number;
+  cashPaid: number;
+  creditBalancePaid: number;
+  cashRefunded: number;
+  /** Self + from-other credit applied. */
+  refundCreditApplied: number;
+  /** cashPaid − cashRefunded — the real money kept. */
+  netReceived: number;
+  paidAmount: number;
+  refundedAmount: number;
+  refundCreditAppliedOnSale: number;
+  dueAmount: number;
+  status: SaleStatus;
+}
+
+export interface SaleTransactionsResponse {
+  transactions: SaleTransactionEntry[];
+  summary: SaleTransactionsSummary;
 }
 
 /**
@@ -1369,9 +1738,10 @@ export interface SalesReturn extends BaseEntity {
   locationId: string;
   saleId: string | { _id: string; invoiceNumber: string };
   invoiceNumber: string;
-  customerId?: string;
+  customerId?: string | { _id: string; name: string; phone?: string; email?: string };
   items: SalesReturnItem[];
   totalRefundAmount: number;
+  deductionAmount?: number; // Optional fee withheld from gross refund
   refundedAmount: number; // Actual cash refunded
   totalCostAmount?: number;
   reason: SalesReturnReason;
@@ -1384,12 +1754,17 @@ export interface SalesReturn extends BaseEntity {
     adjustOtherDues?: Array<{
       dueId: string;
       saleId: string;
+      invoiceNumber: string;
       amount: number;
     }>;
     accountRefund?: {
       accountId: string;
       amount: number;
       paymentMethod: string;
+    };
+    /** Refund amount converted to customer store credit. */
+    customerCredit?: {
+      amount: number;
     };
   };
 }

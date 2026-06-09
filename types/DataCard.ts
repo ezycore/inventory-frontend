@@ -370,6 +370,10 @@ export interface DataCardProps<TData, TValue = any> {
 export interface BaseDataCardProps<TData> {
   data: TData[];
   isLoading: boolean;
+  /** Page title — rendered inside the toolbar on the left, so title + search + actions occupy a single row */
+  title?: string;
+  /** True when refetching with existing data (sort/filter/page change) — shows overlay instead of replacing cards */
+  isFetching?: boolean;
   pagination?: DataCardPagination;
   filterConfig?: FilterConfig;
   actions?: DataCardAction;

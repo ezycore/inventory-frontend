@@ -35,8 +35,9 @@ export function ChangeDefaultLocationDialog() {
 
   const locations = locationsData?.data || [];
 
-  // Admin has access to all locations
-  const isAdmin = user?.role === "admin";
+  const hasAllLocationAccess =
+    !!user?.permissions?.includes("locations.all") ||
+    !!user?.permissions?.includes("locations.manage");
 
   const handleSave = async () => {
     if (!selectedLocationId) {
@@ -88,12 +89,12 @@ export function ChangeDefaultLocationDialog() {
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {isAdmin && (
+          {hasAllLocationAccess && (
             <div className="text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800 flex items-start gap-2">
               <Info className="h-4 w-4 shrink-0 mt-0.5 text-blue-500" />
               <span>
-                As an admin, you have access to all locations. Your default is
-                used on first login.
+                You have access to all locations. Your default is used on first
+                login.
               </span>
             </div>
           )}

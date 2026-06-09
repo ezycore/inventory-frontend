@@ -166,6 +166,7 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
       const expiryTrackingEnabled =
         user?.organization?.features?.expiryTracking;
       const uomConversion = user?.organization?.features?.uomConversion;
+      const barcodeEnabled = user?.organization?.features?.barcodeSystem;
       if (!expiryTrackingEnabled) {
         // add hasExpiry and expiryAlertDays field name to excludedFields to hide them from form if expiry tracking is enabled
         excludedFields.push("hasExpiry", "expiryAlertDays");
@@ -178,6 +179,9 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
           "saleUnitId",
           "saleConversionFactor",
         );
+      }
+      if (!barcodeEnabled) {
+        excludedFields.push("barcode", "barcodeSymbology");
       }
     }
     return filterFormConfig(formConfig, excludedFields);

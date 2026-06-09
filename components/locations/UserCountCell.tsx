@@ -13,6 +13,14 @@ interface UserCountCellProps {
   users: { _id: string; firstName: string; lastName: string; email: string; role?: string }[];
 }
 
+function formatRoleName(role: string) {
+  return role
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export function UserCountCell({ users }: UserCountCellProps) {
   const userCount = users?.length;
 
@@ -40,26 +48,27 @@ export function UserCountCell({ users }: UserCountCellProps) {
                 key={user._id}
                 className="flex items-start justify-between p-2 rounded-md hover:bg-muted/50 transition-colors"
               >
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="font-medium text-sm truncate">
-                    {user.firstName} {user.lastName}
+                    {`${user.firstName} ${user.lastName}`.trim() || user.email}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">
                     {user.email}
                   </div>
                 </div>
-                <Badge
+
+                {user.role && <Badge
                   variant={
                     user.role === "admin"
                       ? "default"
-                      : user.role === "manager"
+                      : user.role === "super_admin" || user.role === "manager"
                         ? "secondary"
                         : "outline"
                   }
                   className="ml-2 shrink-0"
                 >
-                  {user.role}
-                </Badge>
+                  {formatRoleName(user.role)}
+                </Badge>}
               </div>
             ))}
           </div>

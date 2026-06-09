@@ -6,13 +6,7 @@ import {
   PaymentsDrawer,
 } from "@/components/purchases/history";
 import { Button } from "@/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/ui/components/card";
+import { Card, CardContent } from "@/ui/components/card";
 import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -46,17 +40,10 @@ export default function PurchaseHistoryPage() {
       />
 
       {/* Data Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Purchase Orders</CardTitle>
-          <CardDescription>
-            {ctx.paginationInfo
-              ? `${ctx.paginationInfo.total} order(s) found`
-              : "Loading..."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Card className="p-0">
+        <CardContent className="p-6">
           <BaseDataTable
+            title="Purchase Orders"
             columns={ctx.columns}
             data={ctx.purchases}
             isLoading={ctx.isLoading}
@@ -82,6 +69,8 @@ export default function PurchaseHistoryPage() {
       </Card>
 
       {/* Purchase Summary & Payment Drawer */}
+      <ctx.DeleteDraftConfirmDialog />
+
       <PaymentsDrawer
         open={ctx.drawerOpen}
         onOpenChange={ctx.setDrawerOpen}
@@ -96,8 +85,6 @@ export default function PurchaseHistoryPage() {
         setPaymentAmount={ctx.setPaymentAmount}
         paymentAccountId={ctx.paymentAccountId}
         setPaymentAccountId={ctx.setPaymentAccountId}
-        paymentMethod={ctx.paymentMethod}
-        setPaymentMethod={ctx.setPaymentMethod}
         paymentNotes={ctx.paymentNotes}
         setPaymentNotes={ctx.setPaymentNotes}
         isSubmittingPayment={ctx.isSubmittingPayment}
@@ -106,6 +93,10 @@ export default function PurchaseHistoryPage() {
         drawerRef={ctx.drawerRef}
         purchaseReturns={ctx.purchaseReturns}
         isLoadingReturns={ctx.isLoadingReturns}
+        transactions={ctx.transactions}
+        isLoadingTransactions={ctx.isLoadingTransactions}
+        useSupplierCredit={ctx.useSupplierCredit}
+        setUseSupplierCredit={ctx.setUseSupplierCredit}
       />
     </div>
   );

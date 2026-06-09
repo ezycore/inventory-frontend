@@ -10,7 +10,7 @@ export const extractSupplierValue = (
     return {
       value: null,
       label: null,
-      defaultDiscountType: "fixed",
+      defaultDiscountType: "percentage",
       defaultDiscountValue: 0,
     };
   }
@@ -18,14 +18,14 @@ export const extractSupplierValue = (
     return {
       value: val.value,
       label: val.label,
-      defaultDiscountType: (val as any).defaultDiscountType || "fixed",
+      defaultDiscountType: (val as any).defaultDiscountType || "percentage",
       defaultDiscountValue: (val as any).defaultDiscountValue || 0,
     };
   }
   return {
     value: val as string,
     label: null,
-    defaultDiscountType: "fixed",
+    defaultDiscountType: "percentage",
     defaultDiscountValue: 0,
   };
 };

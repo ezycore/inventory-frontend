@@ -6,7 +6,8 @@ import { useQuery } from '@tanstack/react-query'
 
 const customerHooks = createResourceHooks<Customer, CreateCustomerDto>(
  customersApi,
- queryKeys.customers
+ queryKeys.customers,
+ {relatedQueryKeys: [queryKeys.customers.all(), ["select-options", "/sales/customers?all=true&fields=_id,name,defaultDiscountId"]]}
 )
 
 export const useCustomers = customerHooks.useList

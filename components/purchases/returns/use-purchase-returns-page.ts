@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { useCurrency } from "@/lib/currency";
+import { roundMoney } from "@/lib/money";
 import {
   useAccounts,
   useCreatePurchaseReturn,
@@ -62,9 +63,11 @@ export function usePurchaseReturnsPage() {
   const [returnableItems, setReturnableItems] = useState<ReturnableItem[]>([]);
   const [reason, setReason] = useState<PurchaseReturnReason>("damaged");
   const [notes, setNotes] = useState("");
+  const [deductionAmount, setDeductionAmount] = useState(0);
   const [dueAllocations, setDueAllocations] = useState<DueAllocation[]>([]);
   const [accountRefundAmount, setAccountRefundAmount] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [supplierCreditAmount, setSupplierCreditAmount] = useState(0);
 
   // ── Details sheet ─────────────────────────────────────────────
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
@@ -132,10 +135,10 @@ export function usePurchaseReturnsPage() {
     selectedOrderId || "",
   );
   const pendingDues = useMemo(
-    () =>
-      ((pendingDuesData as { data?: unknown } | undefined)?.data as Array<
-        Record<string, unknown>
-      >) || [],
+    () => {
+      const inner = (pendingDuesData as { data?: { dues?: unknown } } | undefined)?.data;
+      return ((inner?.dues as Array<Record<string, unknown>>) || []);
+    },
     [pendingDuesData],
   );
 
@@ -175,29 +178,37 @@ export function usePurchaseReturnsPage() {
         .reduce((sum, i) => sum + i.returnQty, 0),
     [returnableItems],
   );
-  const totalRefundAmount = useMemo(
+  const grossRefundAmount = useMemo(
     () =>
-      returnableItems
-        .filter((i) => i.selected)
-        .reduce((sum, i) => sum + i.refundAmount, 0),
+      roundMoney(
+        returnableItems
+          .filter((i) => i.selected)
+          .reduce((sum, i) => sum + i.refundAmount, 0),
+      ),
     [returnableItems],
+  );
+  const totalRefundAmount = useMemo(
+    () => roundMoney(Math.max(0, grossRefundAmount - deductionAmount)),
+    [grossRefundAmount, deductionAmount],
   );
   const orderDueAmount = order?.dueAmount || 0;
   const adjustOrderDueAmount = useMemo(
-    () => Math.min(totalRefundAmount, orderDueAmount),
+    () => roundMoney(Math.min(totalRefundAmount, orderDueAmount)),
     [totalRefundAmount, orderDueAmount],
   );
   const totalOtherDuesAllocated = useMemo(
     () =>
-      dueAllocations
-        .filter((d) => d.selected)
-        .reduce((sum, d) => sum + d.allocatedAmount, 0),
+      roundMoney(
+        dueAllocations
+          .filter((d) => d.selected)
+          .reduce((sum, d) => sum + d.allocatedAmount, 0),
+      ),
     [dueAllocations],
   );
   const remainingForRefund = useMemo(() => {
     const afterOrderDue = totalRefundAmount - adjustOrderDueAmount;
-    return Math.max(0, afterOrderDue - totalOtherDuesAllocated);
-  }, [totalRefundAmount, adjustOrderDueAmount, totalOtherDuesAllocated]);
+    return roundMoney(Math.max(0, afterOrderDue - totalOtherDuesAllocated - supplierCreditAmount));
+  }, [totalRefundAmount, adjustOrderDueAmount, totalOtherDuesAllocated, supplierCreditAmount]);
 
   // ── Handlers ──────────────────────────────────────────────────
   const handleSearch = useCallback((data: OrderSearchData) => {
@@ -208,8 +219,10 @@ export function usePurchaseReturnsPage() {
     setSelectedOrderId(null);
     setReturnableItems([]);
     setDueAllocations([]);
+    setDeductionAmount(0);
     setAccountRefundAmount(0);
     setSelectedAccountId("");
+    setSupplierCreditAmount(0);
     setNotes("");
     setShowNewReturn(false);
     searchForm.reset();
@@ -234,7 +247,6 @@ export function usePurchaseReturnsPage() {
       const validQty = Math.max(0, Math.min(qty, item.maxReturnableQty));
       const refund = calculateItemRefund(
         validQty,
-        item.conversionFactor,
         item.costPrice,
         item.price,
       );
@@ -255,7 +267,6 @@ export function usePurchaseReturnsPage() {
         const item = updated[index];
         const maxRefund = calculateMaxRefund(
           item.returnQty,
-          item.conversionFactor,
           item.costPrice,
           item.price,
         );
@@ -320,9 +331,9 @@ export function usePurchaseReturnsPage() {
       inventoryId: item.inventoryId,
       productName: item.productName || item.product?.name,
       quantity: item.returnQty,
-      price: item.price,
-      costPrice: item.costPrice || item.price,
-      discount: item.discount,
+      price: roundMoney(item.price),
+      costPrice: roundMoney(item.costPrice || item.price),
+      discount: roundMoney(item.discount ?? 0),
       ...(item.conversionFactor && item.conversionFactor > 1
         ? { conversionFactor: item.conversionFactor }
         : {}),
@@ -330,7 +341,12 @@ export function usePurchaseReturnsPage() {
 
     let refundAllocation:
       | {
-          adjustSupplierDue?: number;
+          adjustPurchaseDue?: number;
+          adjustOtherDues?: {
+            dueId: string;
+            purchaseOrderId: string;
+            amount: number;
+          }[];
           accountRefund?: {
             accountId: string;
             amount: number;
@@ -342,24 +358,40 @@ export function usePurchaseReturnsPage() {
     if (isAccountsEnabled && totalRefundAmount > 0) {
       refundAllocation = {};
 
-      const selectedDues = dueAllocations.filter(
-        (d) => d.selected && d.allocatedAmount > 0,
+      // 1. Adjust the due on THIS purchase order (capped at its own due).
+      const adjustPurchaseDue = roundMoney(
+        Math.min(adjustOrderDueAmount, orderDueAmount),
       );
-      const otherDueTotal = selectedDues.reduce(
-        (sum, d) => sum + d.allocatedAmount,
-        0,
-      );
-      const totalDueAdjustment =
-        Math.min(adjustOrderDueAmount, orderDueAmount) + otherDueTotal;
-
-      if (totalDueAdjustment > 0) {
-        refundAllocation.adjustSupplierDue = totalDueAdjustment;
+      if (adjustPurchaseDue > 0) {
+        refundAllocation.adjustPurchaseDue = adjustPurchaseDue;
       }
+
+      // 2. Apply credit to other unpaid POs from the same supplier.
+      const otherDues = dueAllocations
+        .filter((d) => d.selected && d.allocatedAmount > 0)
+        .map((d) => ({
+          dueId: d.dueId,
+          purchaseOrderId: d.purchaseOrderId,
+          amount: roundMoney(d.allocatedAmount),
+        }))
+        .filter((d) => d.amount > 0);
+      if (otherDues.length > 0) {
+        refundAllocation.adjustOtherDues = otherDues;
+      }
+
+      // 3. Cash refund back from supplier into an account.
       if (accountRefundAmount > 0 && selectedAccountId) {
         refundAllocation.accountRefund = {
           accountId: selectedAccountId,
-          amount: accountRefundAmount,
+          amount: roundMoney(accountRefundAmount),
           paymentMethod: "cash",
+        };
+      }
+
+      // 4. Park the remainder as supplier credit balance.
+      if (supplierCreditAmount > 0) {
+        (refundAllocation as Record<string, unknown>).supplierCredit = {
+          amount: roundMoney(supplierCreditAmount),
         };
       }
     }
@@ -370,6 +402,8 @@ export function usePurchaseReturnsPage() {
         items,
         reason,
         notes: notes || undefined,
+        deductionAmount:
+          deductionAmount > 0 ? roundMoney(deductionAmount) : undefined,
         refundAllocation,
       });
       handleClearSearch();
@@ -387,9 +421,11 @@ export function usePurchaseReturnsPage() {
     orderDueAmount,
     accountRefundAmount,
     selectedAccountId,
+    supplierCreditAmount,
     createReturnMutation,
     reason,
     notes,
+    deductionAmount,
     handleClearSearch,
   ]);
 
@@ -484,7 +520,10 @@ export function usePurchaseReturnsPage() {
     setReason,
     notes,
     setNotes,
+    deductionAmount,
+    setDeductionAmount,
     totalReturnQty,
+    grossRefundAmount,
     totalRefundAmount,
 
     // Refund allocation
@@ -500,6 +539,8 @@ export function usePurchaseReturnsPage() {
     setAccountRefundAmount,
     selectedAccountId,
     setSelectedAccountId,
+    supplierCreditAmount,
+    setSupplierCreditAmount,
     accounts,
     pendingDues,
 

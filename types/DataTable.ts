@@ -85,6 +85,9 @@ export interface CustomAction {
   render?: (row?: any) => React.ReactNode;
 
   disabled?: boolean | ((row: any) => boolean);
+
+  /** Hide the action entirely for rows where this returns true (or when set to true) */
+  hidden?: boolean | ((row: any) => boolean);
 }
 
 /**
@@ -266,6 +269,7 @@ export interface DataTableProps<TData, TValue = any> {
   selectable?: boolean;
   searchConfig?: DataTableSearchConfig;
   enableSorting?: boolean;
+  fullColumns?: ColumnDef<TData, TValue>[];
   /** Server-side sorting configuration. When provided, sorting clicks on column headers trigger backend requests instead of client-side sorting */
   sortingConfig?: SortingConfig;
   defaultColumnVisibility?: VisibilityState;
@@ -311,6 +315,10 @@ export interface BaseDataTableProps<TData, TValue = any> {
   data: TData[];
   columns: ColumnDef<TData, TValue>[];
   isLoading: boolean;
+  /** Page title — rendered inside the toolbar on the left, so title + search + actions occupy a single row */
+  title?: string;
+  /** True when refetching with existing data (sort/filter/page change) — shows overlay instead of replacing rows */
+  isFetching?: boolean;
   pagination?: DataTablePagination;
   filterConfig?: FilterConfig;
   actions?: DataTableAction;

@@ -2,6 +2,7 @@
 
 import PageHeader from '@/ui/components/header'
 import { useState } from 'react'
+import { Printer } from 'lucide-react'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
@@ -21,15 +22,61 @@ import { useViewMode } from '@/hooks/use-view-mode'
 import { ProductCard } from '@/components/products/product-card'
 import MountingHandler from '@/components/MountingHandler';
 import { useAuthStore } from '@/services/stores';
+import { BarcodeLabelSheet, type LabelItem } from '@/components/shared/barcode';
+import { toast } from 'sonner';
+
+
+ const sortingConfig = {
+    sortOptions: [
+      { field: "name", label: "Name" },
+      { field: "price", label: "Price" },
+      {field: "status", label: "Status"},
+    ],
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc" as const,
+  }
 
 export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const [labelSheet, setLabelSheet] = useState<{ open: boolean; items: LabelItem[] }>({ open: false, items: [] })
   const [viewMode, setViewMode, isMounted] = useViewMode('products')
   const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
   const filteredColumns = useFilteredColumns(productColumns, 'product')
   const { data: statsData, isLoading: statsLoading } = useProductStats()
   const { user } = useAuthStore();
   const defaultUnitId = user?.defaultData?.unitId;
+  const barcodeEnabled = user?.organization?.features?.barcodeSystem;
+
+  const openLabelsFor = (rows: any[]) => {
+    const items: LabelItem[] = [];
+    for (const row of rows) {
+      // Variable products: print one label per variant w/ barcode
+      if (row.productType === "variable" && Array.isArray(row.variants)) {
+        for (const v of row.variants) {
+          if (v.barcode) {
+            items.push({
+              code: v.barcode,
+              name: `${row.name} (${Object.values(v.attributes || {}).join("/")})`,
+              price: v.price,
+              symbology: v.barcodeSymbology || "CODE128",
+            });
+          }
+        }
+      } else if (row.barcode) {
+        items.push({
+          code: row.barcode,
+          name: row.name,
+          price: row.price,
+          symbology: row.barcodeSymbology || "CODE128",
+        });
+      }
+    }
+    if (items.length === 0) {
+      toast.error("No barcodes set on selected product(s)");
+      return;
+    }
+    setLabelSheet({ open: true, items });
+  };
 
   // Product stats (only product-relevant data, no inventory stats)
   const productStats = getProductStats(statsData)
@@ -110,6 +157,7 @@ export default function ProductsPage() {
         <DataTable
           cardTitle="All Products"
           columns={filteredColumns}
+          fullColumns={productColumns}
           selectable={true}
           manageColumns={true}
           module="product"
@@ -122,7 +170,24 @@ export default function ProductsPage() {
           filterConfig={productFilterConfig}
           operations={sharedOperations}
           enableSorting={true}
+          sortingConfig={sortingConfig}
           enableRowHover={true}
+          {...(barcodeEnabled
+            ? {
+                customActions: [
+                  {
+                    type: "print-label",
+                    placement: "cell",
+                    icon: <Printer className="h-4 w-4" />,
+                    tooltip: "Print label",
+                    onClick: (row: any) => openLabelsFor([row]),
+                    disabled: (row: any) =>
+                      !row.barcode &&
+                      !(row.productType === "variable" && (row.variants || []).some((v: any) => v.barcode)),
+                  },
+                ],
+              }
+            : {})}
         />
       )}
 
@@ -136,7 +201,9 @@ export default function ProductsPage() {
             layout: 'grid',
             columns: { default: 1, sm: 2, md: 3, lg: 4 },
             gap: 'md',
+            
           }}
+          sortingConfig={sortingConfig}
           variant="default"
           enableCardHover={true}
           searchConfig={{
@@ -172,6 +239,13 @@ export default function ProductsPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      <BarcodeLabelSheet
+        open={labelSheet.open}
+        onOpenChange={(v) => setLabelSheet((s) => ({ ...s, open: v }))}
+        items={labelSheet.items}
+        storeName={user?.organization?.name}
+      />
     </div>
   )
 }

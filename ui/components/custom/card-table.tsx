@@ -127,7 +127,6 @@ export function CardTable<TData, TValue = any>({
     open: boolean;
     action: TableAction | null;
   }>({ open: false, action: null });
-
   // Memoize columns to prevent unnecessary re-renders
   const memoizedColumns = useMemo(() => columns, [columns]);
 

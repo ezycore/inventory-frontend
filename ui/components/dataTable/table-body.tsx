@@ -19,6 +19,7 @@ interface DataTableBodyProps<TData, TValue> {
   table: TanStackTable<TData>;
   columns: ColumnDef<TData, TValue>[];
   isLoading?: boolean;
+  isFetching?: boolean;
   enableRowHover?: boolean;
   rowClassName?: string | ((row: TData) => string);
   /** Table styling props */
@@ -52,6 +53,7 @@ export function DataTableBody<TData, TValue>({
   table,
   columns,
   isLoading,
+  isFetching,
   enableRowHover,
   rowClassName,
   variant = "default",
@@ -118,7 +120,13 @@ export function DataTableBody<TData, TValue>({
   );
 
   return (
-    <div className={wrapperClasses}>
+    <div className={cn(wrapperClasses, "relative")}>
+      {/* Overlay spinner for sort/filter/pagination refetches — keeps existing rows visible */}
+      {isFetching && !isLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/60 backdrop-blur-[1px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
+        </div>
+      )}
       <Table className={tableClasses}>
         {/* Table Header - hidden when headless */}
         {!headless && (

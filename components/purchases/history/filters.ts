@@ -9,6 +9,7 @@ const filterFields: FilterField[] = [
     type: "select",
     options: [
       { label: "All Statuses", value: "" },
+      { label: "Draft", value: "draft" },
       { label: "Received", value: "received" },
       { label: "Ordered", value: "ordered" },
       { label: "Partial", value: "partial" },

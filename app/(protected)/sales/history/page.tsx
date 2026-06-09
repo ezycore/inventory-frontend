@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/ui/components/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/components/card';
+import { Card, CardContent } from '@/ui/components/card';
 import { BaseDataTable } from '@/ui/components/dataTable/base-data-table ';
 
 import {
@@ -38,17 +38,10 @@ export default function SalesHistoryPage() {
       />
 
       {/* Data Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Sales</CardTitle>
-          <CardDescription>
-            {ctx.paginationInfo
-              ? `${ctx.paginationInfo.total} sale(s) found`
-              : 'Loading...'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Card className="p-0">
+        <CardContent className="p-6">
           <BaseDataTable
+            title="Sales"
             columns={ctx.columns}
             data={ctx.sales}
             isLoading={ctx.isLoading}
@@ -90,12 +83,17 @@ export default function SalesHistoryPage() {
         setPaymentAccountId={ctx.setPaymentAccountId}
         paymentNotes={ctx.paymentNotes}
         setPaymentNotes={ctx.setPaymentNotes}
+        useCreditBalance={ctx.useCreditBalance}
+        setUseCreditBalance={ctx.setUseCreditBalance}
         isSubmittingPayment={ctx.isSubmittingPayment}
         onMakePayment={ctx.handleMakePayment}
         onSubmitPayment={ctx.handlePaymentSubmit}
         drawerRef={ctx.drawerRef}
         saleReturns={ctx.saleReturns}
         isLoadingReturns={ctx.isLoadingReturns}
+        transactions={ctx.transactions}
+        isLoadingTransactions={ctx.isLoadingTransactions}
+        onNavigateToSale={ctx.handleNavigateToSale}
       />
     </div>
   );

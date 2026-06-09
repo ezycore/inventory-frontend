@@ -1,5 +1,11 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, OrganizationFeatures } from "@/types";
+import type {
+  ApiResponse,
+  AvailablePlansInfo,
+  OrganizationFeatures,
+  PlanChangeResult,
+  SubscriptionInfo,
+} from "@/types";
 
 export interface ExcludedFieldsSettings {
   product?: string[];
@@ -32,6 +38,31 @@ export const organizationApi = {
   // GET /api/organization - Get organization details
   // Used in: useGetOrganizationApi → organization-tab.tsx
   get: (): Promise<ApiResponse<any>> => apiClient.get(`/organization`),
+
+  // GET /api/organization/subscription - Current plan/entitlement + usage
+  // Used in: useGetSubscription → app/(protected)/billing/page.tsx
+  getSubscription: (): Promise<ApiResponse<SubscriptionInfo>> =>
+    apiClient.get(`/organization/subscription`),
+
+  // GET /api/organization/plans - Available plans (upgrade/downgrade options)
+  // Used in: useGetAvailablePlans → billing page
+  getPlans: (): Promise<ApiResponse<AvailablePlansInfo>> =>
+    apiClient.get(`/organization/plans`),
+
+  // POST /api/organization/plan-change - Self-serve upgrade/downgrade
+  // Used in: useRequestPlanChange → billing/available-plans.tsx
+  requestPlanChange: (data: {
+    planSlug: string;
+    returnUrl?: string;
+  }): Promise<ApiResponse<PlanChangeResult>> =>
+    apiClient.post(`/organization/plan-change`, data),
+
+  // POST /api/organization/plan-change/reconcile - Reconcile a returning checkout
+  // Used in: useReconcilePlanChange → billing page (?checkout=success)
+  reconcilePlanChange: (data: {
+    sessionId: string;
+  }): Promise<ApiResponse<unknown>> =>
+    apiClient.post(`/organization/plan-change/reconcile`, data),
 
   // PUT /api/organization - Update organization details
   // Used in: useUpdateOrganization → organization-tab.tsx

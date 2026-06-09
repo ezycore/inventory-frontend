@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import {
   useSales,
   useSalePayments,
+  useSaleTransactions,
   useAddSalePayment,
   useAccounts,
   useSalesSummary,
   useSaleReturns,
+  useDeleteDraftSale,
+  salesApi,
 } from '@/services/api';
 import { useAuthStore } from '@/services/stores/use-auth-store';
 import { useCurrency } from '@/lib/currency';
@@ -25,6 +29,7 @@ export function useSalesHistoryPage() {
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const { format: formatCurrency } = useCurrency();
+  const router = useRouter();
 
   // ── Table state ───────────────────────────────────────────────
   const [page, setPage] = useState(1);
@@ -40,11 +45,13 @@ export function useSalesHistoryPage() {
   // ── Payment form state ────────────────────────────────────────
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentAccountId, setPaymentAccountId] = useState('');
-  const [paymentNotes, setPaymentNotes] = useState('');
-
+  const [paymentNotes, setPaymentNotes] = useState('');  const [useCreditBalance, setUseCreditBalance] = useState(false);
   // ── API queries ───────────────────────────────────────────────
   const { data: salesData, isLoading, refetch } = useSales({ page, limit, ...filters });
   const { data: paymentsData, isLoading: isLoadingPayments } = useSalePayments(
+    selectedSale?._id || '',
+  );
+  const { data: transactionsData, isLoading: isLoadingTransactions } = useSaleTransactions(
     selectedSale?._id || '',
   );
   const { data: saleReturnsData, isLoading: isLoadingReturns } = useSaleReturns(
@@ -53,11 +60,11 @@ export function useSalesHistoryPage() {
   const { data: accountsData } = useAccounts();
   const { data: summaryData, isLoading: isSummaryLoading } = useSalesSummary();
   const addPaymentMutation = useAddSalePayment();
+  const deleteDraftMutation = useDeleteDraftSale();
 
   // ── Derived data ──────────────────────────────────────────────
   const sales: Sale[] = salesData?.data?.items || [];
-  const payments: Payment[] = paymentsData?.data || [];
-  const saleReturns: SalesReturn[] = (saleReturnsData as any)?.data?.returns || [];
+  const payments: Payment[] = paymentsData?.data || [];  const transactions = transactionsData?.data;  const saleReturns: SalesReturn[] = (saleReturnsData as any)?.data?.returns || [];
   const accounts = accountsData?.items || [];
   const summary = summaryData?.data;
 
@@ -81,11 +88,45 @@ export function useSalesHistoryPage() {
     setPaymentAmount(sale.dueAmount.toFixed(2));
     setPaymentAccountId('');
     setPaymentNotes('');
+    setUseCreditBalance(false);
     setDrawerOpen(true);
   }, []);
 
+  const handleNavigateToSale = useCallback(async (saleId: string) => {
+    try {
+      const response = await salesApi.getById(saleId);
+      const sale = response?.data as Sale | undefined;
+      if (sale) {
+        setSelectedSale(sale);
+        setDrawerMode('summary');
+        setDrawerOpen(true);
+      }
+    } catch {
+      toast.error('Failed to load sale');
+    }
+  }, []);
+
+  const handleEditDraft = useCallback((sale: Sale) => {
+    router.push(`/sales?draftId=${sale._id}`);
+  }, [router]);
+
+  const handleDeleteDraft = useCallback(async (sale: Sale) => {
+    if (typeof window !== 'undefined') {
+      const ok = window.confirm(
+        `Permanently delete draft ${sale.invoiceNumber}? This cannot be undone.`,
+      );
+      if (!ok) return;
+    }
+    try {
+      await deleteDraftMutation.mutateAsync(sale._id);
+    } catch {
+      // toast already shown by mutation
+    }
+  }, [deleteDraftMutation]);
+
   const handlePaymentSubmit = useCallback(async () => {
-    if (!selectedSale || !paymentAccountId) {
+    if (!selectedSale) return;
+    if (!useCreditBalance && !paymentAccountId) {
       toast.error('Please select a payment account');
       return;
     }
@@ -99,17 +140,16 @@ export function useSalesHistoryPage() {
       return;
     }
     try {
-      const response = await addPaymentMutation.mutateAsync({
-        saleId: selectedSale._id,
-        amount,
-        accountId: paymentAccountId,
-        notes: paymentNotes || undefined,
-      });
+      const payload: AddPaymentDto & { saleId: string } = useCreditBalance
+        ? { saleId: selectedSale._id, amount, useCreditBalance: true, notes: paymentNotes || undefined }
+        : { saleId: selectedSale._id, amount, accountId: paymentAccountId, notes: paymentNotes || undefined };
+      const response = await addPaymentMutation.mutateAsync(payload);
       if (response.data?.sale) {
         setSelectedSale(response.data.sale);
       }
       setDrawerMode('summary');
       setPaymentAmount('');
+      setUseCreditBalance(false);
       toast.success('Payment recorded successfully');
       refetch();
     } catch {
@@ -117,7 +157,7 @@ export function useSalesHistoryPage() {
     }
   }, [
     selectedSale, paymentAmount, paymentAccountId,
-    paymentNotes, addPaymentMutation, refetch,
+    paymentNotes, useCreditBalance, addPaymentMutation, refetch,
   ]);
 
   // ── Filter config ─────────────────────────────────────────────
@@ -129,6 +169,7 @@ export function useSalesHistoryPage() {
           label: 'Status',
           type: 'select' as const,
           options: [
+            { label: 'Draft', value: 'draft' },
             { label: 'Paid', value: 'paid' },
             { label: 'Partial', value: 'partial' },
             { label: 'Due', value: 'due' },
@@ -161,8 +202,8 @@ export function useSalesHistoryPage() {
   );
 
   const customActions = useMemo(
-    () => getSalesHistoryActions(isAccountsEnabled, handleViewSummary, handleMakePayment),
-    [isAccountsEnabled, handleViewSummary, handleMakePayment],
+    () => getSalesHistoryActions(isAccountsEnabled, handleViewSummary, handleMakePayment, handleEditDraft, handleDeleteDraft),
+    [isAccountsEnabled, handleViewSummary, handleMakePayment, handleEditDraft, handleDeleteDraft],
   );
 
   // ── Public API ────────────────────────────────────────────────
@@ -196,6 +237,8 @@ export function useSalesHistoryPage() {
     drawerRef,
     payments,
     isLoadingPayments,
+    transactions,
+    isLoadingTransactions,
     saleReturns,
     isLoadingReturns,
 
@@ -207,11 +250,16 @@ export function useSalesHistoryPage() {
     setPaymentAccountId,
     paymentNotes,
     setPaymentNotes,
+    useCreditBalance,
+    setUseCreditBalance,
     isSubmittingPayment: addPaymentMutation.isPending,
 
     // handlers
     handleViewSummary,
     handleMakePayment,
     handlePaymentSubmit,
+    handleNavigateToSale,
+    handleEditDraft,
+    handleDeleteDraft,
   } as const;
 }

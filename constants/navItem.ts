@@ -59,13 +59,13 @@ export const navItems: NavItem[] = [
     features: ["sales"],
     items: [
       {
-        title: "Sell Stock",
+        title: "New Sale",
         url: "/sales",
         icon: "shopping-cart",
         features: ["sales"],
       },
       {
-        title: "Sales History",
+        title: "Sales List",
         url: "/sales/history",
         icon: "clock",
         features: ["sales"],
@@ -76,12 +76,7 @@ export const navItems: NavItem[] = [
         icon: "corner-up-left",
         features: ["sales", "returns"],
       },
-      {
-        title: "Customers",
-        url: "/sales/customers",
-        icon: "users",
-        features: ["sales"],
-      },
+      // Customers moved to top-level navigation
     ],
   },
 
@@ -93,24 +88,42 @@ export const navItems: NavItem[] = [
     isActive: false,
     items: [
       {
-        title: "Receive Stock",
+        title: "New Purchase",
         url: "/purchases",
         icon: "packages",
       },
       {
-        title: "Created Orders",
-        url: "/purchases/created-orders",
+        title: "Purchase Orders",
+        url: "/purchases/orders",
         icon: "file-plus",
       },
-      { title: "Purchase History", url: "/purchases/history", icon: "clock" },
+      { title: "Purchase List", url: "/purchases/history", icon: "clock" },
       {
         title: "Purchase Returns",
         url: "/purchases/returns",
         icon: "package-minus",
         features: ["returns"],
       },
-      { title: "Suppliers", url: "/purchases/suppliers", icon: "truck" },
+      // Suppliers moved to top-level navigation
     ],
+  },
+
+  // CUSTOMERS (top-level)
+  {
+    title: "Customers",
+    url: "/customers",
+    icon: "users",
+    isActive: false,
+    items: [],
+  },
+
+  // SUPPLIERS (top-level)
+  {
+    title: "Suppliers",
+    url: "/suppliers",
+    icon: "truck",
+    isActive: false,
+    items: [],
   },
 
   // LOCATIONS
@@ -120,7 +133,7 @@ export const navItems: NavItem[] = [
     icon: "box",
     isActive: false,
     items: [
-      { title: "View All Locations", url: "/locations", icon: "list" },
+      { title: "All Locations", url: "/locations", icon: "list" },
       {
         title: "Location Stock Report",
         url: "/locations/stock-report",
@@ -187,7 +200,7 @@ export const navItems: NavItem[] = [
         features: ["accounts"],
       },
       {
-        title: "Stock Product Value",
+        title: "Product Valuation",
         url: "/dashboard/reports/valuation",
         icon: "database",
       },
@@ -230,25 +243,31 @@ export const navItems: NavItem[] = [
         icon: "toggle-left",
         permissions: ["organization.edit"],
       },
+      {
+        title: "Roles",
+        url: "/settings/roles",
+        icon: "shield",
+        permissions: ["organization.view"],
+      },
     ],
   },
 
   // ACCOUNT
   {
-    title: "Account",
+    title: "My Account",
     url: "#",
     icon: "user",
     isActive: false,
     items: [
       { title: "Profile", url: "/profile", icon: "user" },
       {
-        title: "Employees / Users",
+        title: "Users",
         url: "/users",
         icon: "users",
-        roles: ["admin", "manager"],
+        permissions: ["users.view"],
       },
       {
-        title: "Subscription / Billing",
+        title: "Billing",
         url: "/dashboard/billing",
         icon: "credit-card",
       },

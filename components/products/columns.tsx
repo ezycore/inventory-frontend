@@ -22,6 +22,26 @@ export const productColumns: ColumnDef<any>[] = [
     ),
   },
   {
+    header: 'Barcode',
+    accessorKey: 'barcode',
+    cell: ({ row }) => {
+      const code = row.original.barcode as string | undefined
+      const productType = row.original.productType as string
+      if (!code) {
+        return (
+          <span className="text-xs text-muted-foreground">
+            {productType === 'variable' ? 'per-variant' : '—'}
+          </span>
+        )
+      }
+      return (
+        <code className="text-xs font-mono px-1.5 py-0.5 rounded bg-muted">
+          {code}
+        </code>
+      )
+    },
+  },
+  {
     header: 'Category',
     accessorKey: 'category',
     cell: ({ row }) => {

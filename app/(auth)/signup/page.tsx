@@ -198,7 +198,10 @@ export default function Signup() {
       return;
     }
 
-    createOwnerMutation.mutate(data as FormData);
+    createOwnerMutation.mutate({
+      ...data,
+      ...getSignupPlanFromUrl(),
+    });
   };
 
   return (
@@ -262,4 +265,16 @@ export default function Signup() {
       </div>
     </div>
   );
+}
+
+function getSignupPlanFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const planName =
+    params.get("planName") || params.get("plan") || params.get("planSlug");
+  const planSlug = params.get("planSlug") || undefined;
+
+  return {
+    planName: planName?.trim() || "free",
+    ...(planSlug && { planSlug }),
+  };
 }

@@ -1,6 +1,8 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
 
+export type SignupPayload = FormData | Record<string, any>;
+
 /**
  * Auth API - Authentication endpoints
  * Backend: /api/auth
@@ -18,7 +20,7 @@ import type { ApiResponse } from "@/types";
 export const authApi = {
   // POST /api/auth/signup - Register new organization owner
   // Used in: useSignupAPi → signup/page.tsx
-  signup: (data: FormData): Promise<ApiResponse<any>> =>
+  signup: (data: SignupPayload): Promise<ApiResponse<any>> =>
     apiClient.post("/auth/signup", data),
 
   // POST /api/auth/login - Login user

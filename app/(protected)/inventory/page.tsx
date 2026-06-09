@@ -28,11 +28,30 @@ import {
 import { inventoryApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { useCurrency } from "@/lib/currency";
+import { BarcodeInput } from "@/components/shared/barcode";
+import { useAuthStore } from "@/services/stores";
+import { useBarcodeLookupAction } from "@/services/api/modules/barcode";
+import { toast } from "sonner";
 
 export default function InventoryPage() {
   const { data: dashboardData, isLoading: dashLoading } = useDashboardStats();
   const { format: formatCurrency } = useCurrency();
   const stats = dashboardData?.data;
+  const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
+  const lookupBarcode = useBarcodeLookupAction();
+
+  const handleBarcodeScan = async (code: string) => {
+    try {
+      const r = await lookupBarcode(code);
+      if (!r.hasInventoryAtLocation) {
+        toast.warning(`${r.name}: no stock at this location`);
+      } else {
+        toast.success(`${r.name} — qty ${r.quantity} ${r.unitName || ""}`);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || `No product found for "${code}"`);
+    }
+  };
 
   const kpiStats = getInventoryKpiStats(stats, formatCurrency);
   const summaryMetrics = getInventorySummaryMetrics(stats, formatCurrency);
@@ -66,6 +85,15 @@ export default function InventoryPage() {
         isLoading={dashLoading}
         columns={{ default: 2, lg: 4 }}
       />
+
+      {barcodeEnabled && (
+        <div className="rounded-md border bg-card p-3">
+          <BarcodeInput
+            onScan={handleBarcodeScan}
+            placeholder="Scan a barcode to check stock at this location…"
+          />
+        </div>
+      )}
 
       <DataTable
         cardTitle={(dataLength: number) => `Inventory Items (${dataLength})`}

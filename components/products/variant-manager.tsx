@@ -57,6 +57,9 @@ interface VariantRow {
   enableUOMConversion?: boolean
   purchaseUnit?: UnitConversion
   saleUnit?: UnitConversion
+  barcode?: string
+  barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
+  inventoryAlertLevel?: number
 }
 
 interface VariantManagerProps {
@@ -72,6 +75,8 @@ interface EditModalData {
   enableUOMConversion: boolean
   purchaseUnit: UnitConversion
   saleUnit: UnitConversion
+  barcode?: string
+  barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
 }
 
 export default function VariantManager({
@@ -91,6 +96,7 @@ export default function VariantManager({
   // Watch the price field from parent form using useWatch
   const basePrice = useWatch({ control, name: 'price' }) || 0
   const baseUnitId = useWatch({ control, name: 'unitId' })
+  const addToInventory = useWatch({ control, name: 'addToInventory' })
 
   // Fetch variant attributes from API
   const { data: attributesResponse, isLoading, error, refetch } = useVariantAttributes()
@@ -129,6 +135,7 @@ export default function VariantManager({
           enabled: true,
           enableUOMConversion: false,
           saleUnit: { unitId: baseUnitId, conversionFactor: 1 },
+          inventoryAlertLevel: 0,
         }))
         setVariants(newVariants)
         // Notify parent of change
@@ -172,6 +179,8 @@ export default function VariantManager({
       enableUOMConversion: variant.enableUOMConversion ?? false,
       purchaseUnit: variant.purchaseUnit ?? {},
       saleUnit: variant.saleUnit ?? { unitId: baseUnitId, conversionFactor: 1 },
+      barcode: variant.barcode || '',
+      barcodeSymbology: variant.barcodeSymbology || 'CODE128',
     })
     setEditModalOpen(true)
   }
@@ -206,6 +215,8 @@ export default function VariantManager({
             enableUOMConversion: editingVariant.enableUOMConversion,
             purchaseUnit: editingVariant.enableUOMConversion ? editingVariant.purchaseUnit : undefined,
             saleUnit: editingVariant.enableUOMConversion ? editingVariant.saleUnit : undefined,
+            barcode: editingVariant.barcode?.trim() || undefined,
+            barcodeSymbology: editingVariant.barcode?.trim() ? editingVariant.barcodeSymbology : undefined,
           }
           : v
       )
@@ -319,6 +330,9 @@ export default function VariantManager({
                 <TableHead className="w-[180px] py-2 text-xs">
                   Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
                 </TableHead>
+                {addToInventory && (
+                  <TableHead className="w-[130px] py-2 text-xs">Alert Level</TableHead>
+                )}
                 <TableHead className="w-[120px] text-right py-2 text-xs">
                   <div className="flex items-center justify-end pr-2 gap-1">
                     <span>Active</span>
@@ -385,6 +399,24 @@ export default function VariantManager({
                       ) : null}
                     </div>
                   </TableCell>
+                  {addToInventory && (
+                    <TableCell className="py-1">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={variant.inventoryAlertLevel ?? 0}
+                        onChange={e =>
+                          handleInlineUpdate(
+                            variant.id,
+                            'inventoryAlertLevel',
+                            parseInt(e.target.value, 10) || 0
+                          )
+                        }
+                        className="h-7 text-sm w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="0"
+                      />
+                    </TableCell>
+                  )}
                   <TableCell className="text-right py-1">
                     <div className="flex items-center justify-end pr-2 gap-2">
                       <Checkbox
@@ -435,6 +467,44 @@ export default function VariantManager({
                     })
                   }
                 />
+              </div>
+
+              {/* Barcode (per variant) */}
+              <div className="grid grid-cols-2 gap-3 border-t pt-4">
+                <div className="space-y-1 col-span-2">
+                  <Label htmlFor="edit-barcode" className="text-xs">Barcode</Label>
+                  <Input
+                    id="edit-barcode"
+                    value={editingVariant.barcode || ''}
+                    placeholder="Scan or type barcode (leave empty to auto-generate)"
+                    onChange={e =>
+                      setEditingVariant({ ...editingVariant, barcode: e.target.value })
+                    }
+                  />
+                </div>
+                {editingVariant.barcode?.trim() && (
+                  <div className="space-y-1 col-span-2">
+                    <Label className="text-xs">Symbology</Label>
+                    <Select
+                      value={editingVariant.barcodeSymbology || 'CODE128'}
+                      onValueChange={(val) =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          barcodeSymbology: val as any,
+                        })
+                      }
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CODE128">CODE128 (default)</SelectItem>
+                        <SelectItem value="EAN13">EAN-13</SelectItem>
+                        <SelectItem value="UPC_A">UPC-A</SelectItem>
+                        <SelectItem value="ITF14">ITF-14</SelectItem>
+                        <SelectItem value="QR">QR Code</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               {/* UOM Conversion (per variant) */}
