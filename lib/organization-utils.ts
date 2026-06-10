@@ -4,6 +4,33 @@
  */
 
 /**
+ * Subdomains that are infrastructure / marketing hosts, never a workspace.
+ * On these hosts the app runs in "no workspace" mode (the manual org-slug field
+ * is shown). Mirrors the reserved list in DEPLOYMENT.md §17.1 and the backend
+ * signup guard in easystock-backend `src/constants/reserved-slugs.ts`.
+ */
+export const RESERVED_SUBDOMAINS = new Set<string>([
+  "www",
+  "app",
+  "api",
+  "mc",
+  "mc-api",
+  "rc",
+  "admin",
+  "assets",
+  "static",
+]);
+
+/**
+ * True for reserved infra subdomains, including any `rc-*` staging host
+ * (rc-api, rc-mc, rc-mc-api, …).
+ */
+export function isReservedSubdomain(subdomain: string): boolean {
+  const s = subdomain.toLowerCase();
+  return RESERVED_SUBDOMAINS.has(s) || s.startsWith("rc-");
+}
+
+/**
  * Extract subdomain from hostname
  * @returns subdomain string or null if no subdomain exists
  *
@@ -38,8 +65,9 @@ export function getSubdomain(): string | null {
 
   const subdomain = parts[0];
 
-  // Ignore common prefixes that aren't organization subdomains
-  if (subdomain === "www" || subdomain === "app" || subdomain === "api") {
+  // Infra / marketing hosts (www, app, api, mc, rc, rc-*, …) are never a
+  // workspace — fall back to "no workspace" mode so the manual slug field shows.
+  if (isReservedSubdomain(subdomain)) {
     return null;
   }
 
@@ -143,4 +171,33 @@ export function generateSlugFromName(name: string): string {
     .replace(/\s+/g, "-") // Replace spaces with hyphens
     .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
     .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+}
+
+/**
+ * Apex domain that workspaces live under (e.g. "ezycore.com"), read from
+ * NEXT_PUBLIC_ROOT_DOMAIN. Empty when unset (local dev / single-host), which
+ * makes {@link workspaceUrl} fall back to relative paths.
+ *
+ * NOTE: NEXT_PUBLIC_* vars are baked at BUILD time — set this when building the
+ * production frontend image (see DEPLOYMENT.md §10.1), not just at runtime.
+ */
+export function getRootDomain(): string {
+  return process.env.NEXT_PUBLIC_ROOT_DOMAIN?.trim() || "";
+}
+
+/**
+ * Absolute URL for a workspace on its own subdomain, e.g.
+ * `workspaceUrl("acme", "/login")` → `https://acme.ezycore.com/login`.
+ *
+ * Falls back to a relative path when no root domain is configured (local dev)
+ * or when called server-side, so callers can use the result directly in either
+ * mode. Crossing to a workspace subdomain is a new origin, so callers should
+ * navigate via a full page load (a plain `<a>` / `window.location`), not the
+ * client-side router.
+ */
+export function workspaceUrl(slug: string, path = "/"): string {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const root = getRootDomain();
+  if (!root || typeof window === "undefined") return normalizedPath;
+  return `${window.location.protocol}//${slug}.${root}${normalizedPath}`;
 }

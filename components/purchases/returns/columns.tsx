@@ -284,7 +284,6 @@ export function getItemsColumns(
         const item = row.original;
         const maxRefund = calculateMaxRefund(
           item.returnQty,
-          item.conversionFactor,
           item.costPrice,
           item.price,
         );

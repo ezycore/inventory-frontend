@@ -1,6 +1,7 @@
 "use client";
 
 import { useVerifyEmail } from "@/services/api";
+import { workspaceUrl } from "@/lib/organization-utils";
 import { Button } from "@ui/components/button";
 import {
   Card,
@@ -17,6 +18,12 @@ import { Suspense, useEffect } from "react";
 function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  // The verification email carries the org slug as `org` (email.service.ts).
+  // After verifying we hand the user off to their workspace subdomain to log in
+  // (sessions are per-origin, so they sign in fresh there). Falls back to a
+  // relative /login when there's no slug or no root domain configured.
+  const org = searchParams.get("org");
+  const loginHref = org ? workspaceUrl(org, "/login") : "/login";
   const verifyEmailMutation = useVerifyEmail();
 
   useEffect(() => {
@@ -66,7 +73,8 @@ function VerifyEmailForm() {
             <div className="flex flex-col gap-3">
               {verifyEmailMutation.isSuccess && (
                 <Button asChild className="w-full">
-                  <Link href="/login">Go to Login</Link>
+                  {/* May be a cross-origin workspace URL → full navigation, not <Link>. */}
+                  <a href={loginHref}>Go to Login</a>
                 </Button>
               )}
               {verifyEmailMutation.isError && (
