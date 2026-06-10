@@ -48,7 +48,7 @@ export default function CreatedOrdersPage() {
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="gap-2">
           <CardHeader className="pb-2">
             <CardDescription>Pending Orders</CardDescription>
             <CardTitle className="text-2xl">
@@ -64,7 +64,7 @@ export default function CreatedOrdersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="gap-2">
           <CardHeader className="pb-2">
             <CardDescription>Partial Received</CardDescription>
             <CardTitle className="text-2xl">
@@ -80,7 +80,7 @@ export default function CreatedOrdersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="gap-2">
           <CardHeader className="pb-2">
             <CardDescription>Total Value</CardDescription>
             <CardTitle className="text-2xl">

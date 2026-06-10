@@ -18,7 +18,7 @@ type Props = {
 export const ProductForm: FC<Props> = ({ form, config, onFieldChange, onSubmit, submitLabel, title = "Add Products", actions }) => {
   return (
     <Card>
-      <CardContent className="pt-4 pb-3">
+      <CardContent>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>

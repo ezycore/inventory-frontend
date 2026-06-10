@@ -67,7 +67,7 @@ function FieldSettingsForm() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="Field Settings"
         subTitle="Customize which fields appear in forms for your organization"

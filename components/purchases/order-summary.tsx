@@ -43,7 +43,7 @@ export default function OrderSummary({
     <div className="lg:col-span-1">
       <div className="sticky top-20">
         <Card>
-          <CardContent className="pt-4 space-y-4">
+          <CardContent className="space-y-4">
             {/* Header */}
             <div className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4 text-muted-foreground" />

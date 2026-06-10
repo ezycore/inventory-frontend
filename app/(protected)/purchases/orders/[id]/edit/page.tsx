@@ -54,7 +54,7 @@ export default function EditPurchaseOrderPage() {
 
   if (ctx.isLoading || !ctx.order) {
     return (
-      <div className="container mx-auto p-6 space-y-4">
+      <div className="space-y-4">
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-40 w-full" />
         <Skeleton className="h-40 w-full" />
@@ -63,7 +63,7 @@ export default function EditPurchaseOrderPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
+    <div className="md:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
