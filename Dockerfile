@@ -8,6 +8,9 @@ COPY . .
 # NEXT_PUBLIC_* are baked in AT BUILD TIME — see the gotcha in §10.1
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Apex domain for per-workspace subdomain URLs (empty in staging — no wildcard there).
+ARG NEXT_PUBLIC_ROOT_DOMAIN
+ENV NEXT_PUBLIC_ROOT_DOMAIN=$NEXT_PUBLIC_ROOT_DOMAIN
 RUN pnpm build
 
 # ---- runner ----
