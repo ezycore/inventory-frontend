@@ -62,3 +62,14 @@ jobs:
             docker compose pull
             docker compose up -d
             docker image prune -f
+
+      - name: Notify Telegram
+        if: always()
+        uses: appleboy/telegram-action@v1
+        with:
+          to: ${{ github.ref_name == 'main' && secrets.TELEGRAM_CHAT_ID_PROD || secrets.TELEGRAM_CHAT_ID_STAGING }}
+          token: ${{ github.ref_name == 'main' && secrets.TELEGRAM_BOT_TOKEN_PROD || secrets.TELEGRAM_BOT_TOKEN_STAGING }}
+          format: html
+          message: |
+            ${{ job.status == 'success' && '✅' || '❌' }} <b>${{ github.event.repository.name }}</b> → ${{ steps.env.outputs.tag }} (${{ job.status }})
+            ${{ github.actor }}: ${{ github.event.head_commit.message }}
