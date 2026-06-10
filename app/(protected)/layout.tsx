@@ -44,7 +44,7 @@ export default function ProtectedLayout({
         <SidebarInset>
           <Header />
           <div className="min-h-screen">
-            <div className="container mx-auto p-6">
+            <div className="container mx-auto p-4 sm:p-6">
               {children}
             </div>
           </div>
