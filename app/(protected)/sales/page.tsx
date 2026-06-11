@@ -32,11 +32,11 @@ function SalesPageContent() {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
+    <div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           <Card>
-            <CardContent className="pt-4 pb-3 space-y-4">
+            <CardContent className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">

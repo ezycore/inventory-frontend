@@ -289,7 +289,7 @@ export default function AccountsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="space-y-8">
       {/* ── Page header ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <PageHeader

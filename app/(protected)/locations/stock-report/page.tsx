@@ -851,7 +851,7 @@ export default function LocationStockReportPage() {
   // If a location is selected, show detail view
   if (selectedLocationId) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         <LocationDetailView
           locationId={selectedLocationId}
           onBack={() => setSelectedLocationId(null)}
@@ -861,7 +861,7 @@ export default function LocationStockReportPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <PageHeader
         title="Location Stock Report"

@@ -356,7 +356,7 @@ export default function VariantManager({
               {variants.map(variant => (
                 <TableRow
                   key={variant.id}
-                  className={`h-10 ${!variant.enabled ? 'opacity-50 bg-gray-50' : ''}`}
+                  className={`h-10 ${!variant.enabled ? 'opacity-50' : ''}`}
                 >
                   <TableCell className="py-1">
                     {variant.images && variant.images.length > 0 ? (

@@ -71,7 +71,7 @@ function PurchasesPageContent() {
   } = ctx;
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
+    <div className="">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ==================== LEFT COLUMN ==================== */}
         <div className="lg:col-span-2 space-y-4">
