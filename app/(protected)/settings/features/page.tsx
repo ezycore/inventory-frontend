@@ -75,7 +75,7 @@ export default function FeatureSettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="Feature Settings"
         subTitle="The features available to your organization are determined by your subscription plan. Disabled features are hidden from the navigation and cannot be accessed."

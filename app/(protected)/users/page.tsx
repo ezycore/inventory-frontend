@@ -407,7 +407,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="User Management"
         subTitle="Manage users, roles, and permissions in your organization."

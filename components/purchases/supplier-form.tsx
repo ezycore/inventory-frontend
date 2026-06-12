@@ -14,7 +14,7 @@ type Props = {
 export const SupplierForm: FC<Props> = ({ form, config, onFieldChange }) => {
   return (
     <Card>
-      <CardContent className="pt-4 pb-3">
+      <CardContent>
         {/* <div className="flex items-center gap-2 mb-3">
           <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
           <h3 className="font-semibold text-sm">{title}</h3>

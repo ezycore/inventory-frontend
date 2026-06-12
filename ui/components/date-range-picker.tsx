@@ -70,19 +70,27 @@ export function DateRangePicker({
             >
               <X className="h-4 w-4 text-muted-foreground" />
             </div>
-            
+
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto max-w-[95vw] p-6" align="start">
+      <PopoverContent className="w-auto p-0" align="start">
         <div className="hidden md:block">
           <Calendar
             mode="range"
             selected={value}
             onSelect={handleSelect}
             numberOfMonths={1}
-            // className="[--cell-size:4rem] text-xl p-2 w-80"
+            classNames={{
+              today: cn(
+                "rounded-md ring-1 ring-foreground/40",
+                "data-[selected=true]:ring-0"
+              ),
+              month_caption: "flex h-8 w-full items-center justify-center px-8",
+              day: "group/day relative aspect-square h-8 w-8 select-none p-1 text-center",
+            }}
           />
+
         </div>
         <div className="block md:hidden">
           <Calendar
