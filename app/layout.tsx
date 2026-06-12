@@ -2,6 +2,7 @@ import { AuthHydration } from "@/components/auth-hydration";
 import ThemeProvider from "@/components/layout/ThemeToggle/theme-provider";
 import QueryProvider from "@/components/providers/query-provider";
 import Toaster from "@/components/providers/toaster";
+import { WorkspaceGate } from "@/components/workspace-gate";
 import "@ui/styles/globals.css";
 
 export const metadata = {
@@ -25,7 +26,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <AuthHydration />
-            {children}
+            <WorkspaceGate>{children}</WorkspaceGate>
             <Toaster />
           </ThemeProvider>
         </QueryProvider>
