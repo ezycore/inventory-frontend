@@ -19,6 +19,7 @@ export const RESERVED_SUBDOMAINS = new Set<string>([
   "admin",
   "assets",
   "static",
+  "portainer",
 ]);
 
 /**
