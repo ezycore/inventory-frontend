@@ -78,7 +78,7 @@ function StatCard({
   isLoading: boolean;
 }) {
   return (
-    <Card>
+    <Card className="gap-2">
       <CardHeader className="pb-2">
         <CardDescription className="text-primary font-medium">{label}</CardDescription>
         <CardTitle className="text-2xl">

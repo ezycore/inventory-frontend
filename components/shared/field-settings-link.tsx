@@ -22,7 +22,7 @@ export function FieldSettingsLink({ module }: FieldSettingsLinkProps) {
   }
 
   return (
-    <Link href={`/settings/fields?tab=${module}`}>
+    <Link href={`/settings/fields?tab=${module}`} className="hidden sm:block">
       <Button variant="outline" size="sm">
         <Settings2 className="h-4 w-4 mr-2" />
         Field Settings

@@ -232,7 +232,7 @@ const LocationCardView = (
                 <ul className="space-y-0.5 text-xs">
                   {(users as any[]).slice(0, 5).map((u) => (
                     <li key={u._id}>
-                      {u.firstName} {u.lastName}
+                      {u.name}
                     </li>
                   ))}
                   {userCount > 5 && (

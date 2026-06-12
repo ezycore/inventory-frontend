@@ -57,7 +57,7 @@ export default function SuppliersPage() {
   );
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <PageHeader
         title="Suppliers"
