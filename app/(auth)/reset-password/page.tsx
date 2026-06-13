@@ -1,6 +1,7 @@
 "use client";
 
 import { useResetPassword } from "@/services/api";
+import { workspaceUrl } from "@/lib/organization-utils";
 import { Button } from "@ui/components/button";
 import {
   Card,
@@ -14,12 +15,19 @@ import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
 import { KeyRound, Loader2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
 function ResetPasswordForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  // Reset emails carry the workspace slug as `org` (email.service.ts). After a
+  // successful reset we hand the user to their workspace login. In production
+  // that's their subdomain (e.g. acme.ezycore.com) — a different origin — so we
+  // navigate with a full page load. Locally/staging there's no root domain, so
+  // workspaceUrl returns a relative "/login" and we keep the SPA router.
+  const org = searchParams.get("org");
   const resetPasswordMutation = useResetPassword();
   const [formData, setFormData] = useState({
     newPassword: "",
@@ -78,10 +86,26 @@ function ResetPasswordForm() {
       return; // Toast will be shown from validation
     }
 
-    resetPasswordMutation.mutate({
-      token,
-      newPassword: formData.newPassword,
-    });
+    resetPasswordMutation.mutate(
+      {
+        token,
+        newPassword: formData.newPassword,
+      },
+      {
+        onSuccess: () => {
+          const loginHref = org
+            ? workspaceUrl(org, "/login?reset=success")
+            : "/login?reset=success";
+          // Relative target (local/staging) → SPA push; absolute workspace
+          // subdomain URL (production) → full-page load to cross the origin.
+          if (loginHref.startsWith("/")) {
+            router.push(loginHref);
+          } else {
+            window.location.assign(loginHref);
+          }
+        },
+      },
+    );
   };
 
   return (
