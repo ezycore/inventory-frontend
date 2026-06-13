@@ -251,7 +251,10 @@ export function LoginForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <Link href="/signup" className="underline underline-offset-4">
+              <Link
+                href={process.env.NEXT_PUBLIC_ROOT_DOMAIN ? "https://app.ezycore.com/signup" : "/signup"}
+                className="underline underline-offset-4"
+              >
                 Sign up
               </Link>
             </div>

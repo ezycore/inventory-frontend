@@ -1,5 +1,6 @@
 import { authApi, type SignupPayload } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
+import { getRootDomain, getSubdomain, workspaceUrl } from "@/lib/organization-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -57,6 +58,17 @@ export function useLogin(show2FASetter: (show: boolean) => void) {
       // Redirect to the intended page or dashboard after successful login
       const params = new URLSearchParams(window.location.search);
       const callbackUrl = params.get("callbackUrl") || "/dashboard";
+
+      // When logging in from a reserved host (e.g. app.ezycore.com), cross to
+      // the workspace subdomain instead of staying on the current origin.
+      const slug = result.data?.user?.organization?.slug;
+      if (slug && getRootDomain() && !getSubdomain()) {
+        let path = callbackUrl;
+        try { path = new URL(callbackUrl).pathname; } catch { /* already a path */ }
+        window.location.href = workspaceUrl(slug, path);
+        return;
+      }
+
       router.push(callbackUrl);
     },
     onError: handleMutationError,
