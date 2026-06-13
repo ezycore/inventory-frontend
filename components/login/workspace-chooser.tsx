@@ -6,6 +6,7 @@ import {
   workspaceUrl,
 } from "@/lib/organization-utils";
 import { lookupWorkspace } from "@/lib/workspace-status-client";
+import { LoginNotices } from "./login-notices";
 import { Alert, AlertDescription } from "@ui/components/alert";
 import { Button } from "@ui/components/button";
 import {
@@ -71,6 +72,7 @@ export function WorkspaceChooser({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <LoginNotices />
       <Card>
         <CardHeader>
           <CardTitle>Find your workspace</CardTitle>
