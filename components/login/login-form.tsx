@@ -23,8 +23,19 @@ import { cn } from "@ui/lib/utils";
 import { ArrowLeft, Loader2, Mail, Shield } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { WorkspaceChooser } from "./workspace-chooser";
+
+// Returns false during SSR/hydration and true once running in the browser, without
+// an effect-driven setState — so host-dependent rendering never mismatches or flashes.
+const subscribeNoop = () => () => {};
+function useIsClient() {
+  return useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
+}
 
 export function LoginForm({
   className,
@@ -43,20 +54,12 @@ export function LoginForm({
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [useBackupCode, setUseBackupCode] = useState(false);
 
-  // Host-dependent routing is resolved after mount (it reads window.location), so
-  // SSR and the first client render stay identical and never flash the wrong form.
-  const [mounted, setMounted] = useState(false);
-  const [chooserMode, setChooserMode] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-    // On the no-workspace host (apex / app.ezycore.com) with a root domain set,
-    // sessions are per-origin — route the user to their workspace login instead.
-    setChooserMode(!!getRootDomain() && !getSubdomain());
-  }, []);
-
+  // Host-dependent routing reads window.location, so it can only be resolved in the
+  // browser. Gate on the client flag to keep SSR/hydration identical (no flash).
+  const isClient = useIsClient();
   const showSlugField = shouldShowOrganizationSlugField();
 
-  if (!mounted) {
+  if (!isClient) {
     return (
       <div className={cn("flex min-h-40 items-center justify-center", className)}>
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -64,7 +67,9 @@ export function LoginForm({
     );
   }
 
-  if (chooserMode) {
+  // On the no-workspace host (apex / app.ezycore.com) with a root domain set,
+  // sessions are per-origin — route the user to their workspace login instead.
+  if (getRootDomain() && !getSubdomain()) {
     return <WorkspaceChooser className={className} {...props} />;
   }
 
