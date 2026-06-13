@@ -43,23 +43,28 @@ export function isReservedSubdomain(subdomain: string): boolean {
  */
 export function getSubdomain(): string | null {
   if (typeof window === "undefined") return null;
+  return subdomainFromHostname(window.location.hostname);
+}
 
-  const hostname = window.location.hostname;
+/**
+ * Pure host → workspace-slug resolution, usable server- or client-side. Pass a
+ * hostname (no port). Returns null for apex / reserved / IP / localhost hosts.
+ */
+export function subdomainFromHostname(hostname: string): string | null {
+  const h = hostname.toLowerCase();
 
   // Development environments (localhost, etc.)
   if (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname.startsWith("192.168.") ||
-    hostname.includes(".local")
+    h === "localhost" ||
+    h === "127.0.0.1" ||
+    h.startsWith("192.168.") ||
+    h.includes(".local")
   ) {
     return null;
   }
 
-  // Split hostname into parts
-  const parts = hostname.split(".");
-
   // Need at least 3 parts for a subdomain (subdomain.domain.tld)
+  const parts = h.split(".");
   if (parts.length < 3) {
     return null;
   }
@@ -73,6 +78,14 @@ export function getSubdomain(): string | null {
   }
 
   return subdomain;
+}
+
+/**
+ * Server-side variant: accepts a raw `Host` header value (may include `:port`).
+ */
+export function subdomainFromHost(host: string | null | undefined): string | null {
+  if (!host) return null;
+  return subdomainFromHostname(host.split(":")[0]);
 }
 
 /**
