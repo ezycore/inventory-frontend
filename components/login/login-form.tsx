@@ -3,6 +3,8 @@ import { useLogin } from "@/services/api";
 import {
   getOrganizationSlugDescription,
   getOrganizationSlugPlaceholder,
+  getRootDomain,
+  getSubdomain,
   shouldShowOrganizationSlugField,
   withOrganizationSlug,
 } from "@/lib/organization-utils";
@@ -21,7 +23,8 @@ import { cn } from "@ui/lib/utils";
 import { ArrowLeft, Loader2, Mail, Shield } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { WorkspaceChooser } from "./workspace-chooser";
 
 export function LoginForm({
   className,
@@ -40,7 +43,30 @@ export function LoginForm({
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [useBackupCode, setUseBackupCode] = useState(false);
 
+  // Host-dependent routing is resolved after mount (it reads window.location), so
+  // SSR and the first client render stay identical and never flash the wrong form.
+  const [mounted, setMounted] = useState(false);
+  const [chooserMode, setChooserMode] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    // On the no-workspace host (apex / app.ezycore.com) with a root domain set,
+    // sessions are per-origin — route the user to their workspace login instead.
+    setChooserMode(!!getRootDomain() && !getSubdomain());
+  }, []);
+
   const showSlugField = shouldShowOrganizationSlugField();
+
+  if (!mounted) {
+    return (
+      <div className={cn("flex min-h-40 items-center justify-center", className)}>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (chooserMode) {
+    return <WorkspaceChooser className={className} {...props} />;
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
