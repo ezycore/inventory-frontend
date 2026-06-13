@@ -1,9 +1,19 @@
 import { authApi, type SignupPayload } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
+import { workspaceUrl } from "@/lib/organization-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { handleMutationSuccess } from "../query-helpers";
+
+/** Pull the submitted organization slug out of a signup payload (object or FormData). */
+function signupSlugFromPayload(payload: SignupPayload): string | null {
+  const raw =
+    typeof FormData !== "undefined" && payload instanceof FormData
+      ? payload.get("organizationSlug")
+      : (payload as Record<string, unknown>).organizationSlug;
+  return typeof raw === "string" && raw.trim() ? raw.trim().toLowerCase() : null;
+}
 
 export const useSignupAPi = () => {
   const queryClient = useQueryClient();
@@ -11,11 +21,23 @@ export const useSignupAPi = () => {
 
   return useMutation({
     mutationFn: (data: SignupPayload) => authApi.signup(data),
-    onSuccess: (data) => {
-      handleMutationSuccess(data.message || "Item created successfully");
+    onSuccess: (data, variables) => {
+      handleMutationSuccess(data.message || "Account created successfully");
       queryClient.invalidateQueries();
-      // Redirect to dashboard after successful login
-      router.push("/login?registered=true");
+
+      // Hand the new owner to their workspace login with the "verify your
+      // email" notice. In production that's their subdomain (a different
+      // origin → full-page load); locally/staging workspaceUrl returns a
+      // relative path, so we keep the SPA router.
+      const slug = signupSlugFromPayload(variables);
+      const target = slug
+        ? workspaceUrl(slug, "/login?registered=true")
+        : "/login?registered=true";
+      if (target.startsWith("/")) {
+        router.push(target);
+      } else {
+        window.location.assign(target);
+      }
     },
     onError: handleMutationError,
   });
@@ -136,16 +158,16 @@ export function useForgotPassword() {
   });
 }
 
-// Reset password mutation hook
+// Reset password mutation hook. The post-reset redirect lives in the page
+// (reset-password/page.tsx) because the login target may be the user's
+// workspace subdomain (a different origin in production), which needs a
+// full-page navigation rather than the client-side router.
 export function useResetPassword() {
-  const router = useRouter();
-
   return useMutation({
     mutationFn: (data: { token: string; newPassword: string }) =>
       authApi.resetPassword(data),
     onSuccess: (result) => {
       handleMutationSuccess(result.message || "Password reset successfully!");
-      router.push("/login");
     },
     onError: handleMutationError,
   });
