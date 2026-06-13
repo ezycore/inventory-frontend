@@ -8,7 +8,6 @@ import {
   shouldShowOrganizationSlugField,
   withOrganizationSlug,
 } from "@/lib/organization-utils";
-import { Alert, AlertDescription } from "@ui/components/alert";
 import { Button } from "@ui/components/button";
 import {
   Card,
@@ -20,10 +19,10 @@ import {
 import { Input } from "@ui/components/input";
 import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
-import { ArrowLeft, Loader2, Mail, Shield } from "lucide-react";
+import { ArrowLeft, Loader2, Shield } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
+import { LoginNotices } from "./login-notices";
 import { WorkspaceChooser } from "./workspace-chooser";
 
 // Returns false during SSR/hydration and true once running in the browser, without
@@ -41,9 +40,6 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const searchParams = useSearchParams();
-  const registered = searchParams.get("registered");
-  const subscription = searchParams.get("subscription");
   const [formData, setFormData] = useState({
     organizationSlug: "",
     email: "",
@@ -183,23 +179,7 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      {registered === "true" && (
-        <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900">
-          <Mail className="h-4 w-4 text-blue-600 dark:text-blue-500" />
-          <AlertDescription className="text-blue-800 dark:text-blue-400 ml-2">
-            Account created successfully! Please check your email to verify your
-            account before logging in.
-          </AlertDescription>
-        </Alert>
-      )}
-      {subscription === "inactive" && (
-        <Alert variant="destructive">
-          <Shield className="h-4 w-4" />
-          <AlertDescription className="ml-2">
-            No active subscription found.
-          </AlertDescription>
-        </Alert>
-      )}
+      <LoginNotices />
       <Card>
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
