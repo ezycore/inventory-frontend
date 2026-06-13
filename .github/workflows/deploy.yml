@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE: ghcr.io/sohoz360/easystock-frontend
+  IMAGE: ghcr.io/ezycore/easystock-frontend
 
 jobs:
   build-and-deploy:
