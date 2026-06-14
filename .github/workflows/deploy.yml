@@ -58,10 +58,15 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
+            # Serialize deploys across all repos sharing this daemon so concurrent
+            # `compose pull` / `image prune` can't corrupt each other's containerd leases.
+            exec 9>/opt/easystock/.deploy.lock
+            flock -w 600 9
             cd /opt/easystock/${{ steps.env.outputs.dir }}
             docker compose pull
             docker compose up -d
-            docker image prune -f
+            docker image prune -f || true
 
       - name: Notify Telegram
         if: always()
