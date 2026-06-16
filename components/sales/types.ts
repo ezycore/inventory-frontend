@@ -27,6 +27,7 @@ export interface ProductApiItem {
   purchaseUnitName?: string | null;
   quantityAlert: number;
   barcode?: string;
+  hasExpiry?: boolean;
 }
 
 export interface AccountApiItem {
@@ -72,6 +73,7 @@ export interface ExtractedProduct {
   purchaseUnitName?: string | null;
   quantityAlert: number;
   barcode?: string;
+  hasExpiry?: boolean;
 }
 export interface OrderItem {
   productId: string;
@@ -84,6 +86,10 @@ export interface OrderItem {
   productName: string;
   unitName?: string | null;
   saleUnitName?: string | null;
+  /** Expiry-tracked product (drives the POS batch picker). UI-only. */
+  hasExpiry?: boolean;
+  /** Manual batch override for the line; omit/null = auto FEFO. Sent to the API. */
+  batchId?: string | null;
 }
 
 export interface OrderPayment {

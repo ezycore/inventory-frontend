@@ -1145,6 +1145,9 @@ export interface ReceivePurchaseOrderItemDto {
   variantId?: string | null;
   inventoryId?: string;
   receivedQuantity: number;
+  // Expiry-batch capture (only honoured for expiry-tracked products)
+  expiryDate?: string;
+  batchNumber?: string;
 }
 
 export interface ReceivePurchaseOrderDto {
