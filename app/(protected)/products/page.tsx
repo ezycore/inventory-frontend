@@ -43,7 +43,7 @@ export default function ProductsPage() {
   const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
   const filteredColumns = useFilteredColumns(productColumns, 'product')
   const { data: statsData, isLoading: statsLoading } = useProductStats()
-  const { user } = useAuthStore();
+  const { user, activeLocationId } = useAuthStore();
   const defaultUnitId = user?.defaultData?.unitId;
   const barcodeEnabled = user?.organization?.features?.barcodeSystem;
 
@@ -88,7 +88,7 @@ export default function ProductsPage() {
     createMutation: useCreateProduct(),
     updateMutation: useUpdateProduct(),
     deleteMutation: useDeleteProduct(),
-    defaultValues: { unitId: defaultUnitId },
+    defaultValues: { unitId: defaultUnitId, locationId: activeLocationId },
     isViewAvailable: false,
     queryKey: [...queryKeys.products.all()],
     entityName: "Product" as const,
