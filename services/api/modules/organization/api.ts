@@ -98,4 +98,9 @@ export const organizationApi = {
     data: ExcludedColumnsSettings,
   ): Promise<ApiResponse<{ excludedColumns: ExcludedColumnsSettings }>> =>
     apiClient.put(`/organization/column-settings`, data),
+
+  // DELETE /api/organization/demo-data - Clear all demo/sample data
+  // Used in: useClearDemoData → demo banner "Clear sample data" button
+  clearDemoData: (): Promise<ApiResponse<any>> =>
+    apiClient.delete(`/organization/demo-data`),
 };

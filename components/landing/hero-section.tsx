@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/ui/components/button";
 import { useLandingTranslations } from "@/hooks/use-landing-translations";
 
@@ -33,14 +33,6 @@ export function HeroSection() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/30 text-white bg-transparent hover:bg-white/10 "
-              >
-                <Play className="mr-2 h-4 w-4 fill-white" />
-                {t.hero.ctaVideo}
-              </Button>
             </div>
             <div className="flex flex-wrap gap-6 text-sm text-[hsl(210,40%,98%)]/60">
               <span>✓ {t.hero.check1}</span>
