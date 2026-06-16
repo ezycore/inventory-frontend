@@ -30,6 +30,8 @@ export interface InventoryProduct {
   conversionFactor?: number;
   purchaseUnitName?: string;
   baseUnitName?: string;
+  // Expiry tracking: true when the product captures expiry batches
+  hasExpiry?: boolean;
 }
 
 /**
@@ -45,6 +47,7 @@ export const adjustableProductsCallback = (response: any): SelectOption[] => {
     quantity: item.quantity,
     productId: item.productId,
     variantId: item.variantId,
+    hasExpiry: !!item.hasExpiry,
     // UOM conversion data
     ...(item.enableUOMConversion ? {
       enableUOMConversion: true,

@@ -35,6 +35,7 @@ import {
   useStockAdjustmentStore,
   AdjustmentItem,
 } from '@/services/stores/stock-adjustment-store'
+import { useAuthStore } from '@/services/stores/use-auth-store'
 import { useBulkAdjustStock } from '@/services/api'
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/currency'
@@ -53,15 +54,25 @@ export default function StockAdjustmentPage() {
   const [inputInPurchaseUnit, setInputInPurchaseUnit] = useState(false)
   // UOM: the raw input value (in whichever unit mode is active)
   const [inputValue, setInputValue] = useState<number>(0)
+  // Expiry batch capture (expiry-tracked products, on a stock increase)
+  const [expiryDate, setExpiryDate] = useState<string>('')
+  const [batchNumber, setBatchNumber] = useState<string>('')
 
   const { items, reason, addItem, updateItem, removeItem, setReason, clearAll } =
     useStockAdjustmentStore()
   const bulkAdjustMutation = useBulkAdjustStock()
 
+  // Expiry tracking is feature-gated; batch inputs only matter for tracked products.
+  const expiryTrackingEnabled = useAuthStore(
+    (state) => !!state.user?.organization?.features?.expiryTracking,
+  )
+
   // Handle product selection from search
   const handleProductSelect = (product: InventoryProduct) => {
     setSelectedProduct(product)
     setNotes('')
+    setExpiryDate('')
+    setBatchNumber('')
     // If product has UOM, default to purchase unit input
     if (product.enableUOMConversion && product.conversionFactor) {
       setInputInPurchaseUnit(true)
@@ -84,6 +95,12 @@ export default function StockAdjustmentPage() {
   // Sync newQuantity whenever inputValue or mode changes
   const effectiveNewQuantity = computedBaseQuantity
 
+  // Show expiry/batch inputs for expiry-tracked products when stock is increasing.
+  const showExpiryFields =
+    expiryTrackingEnabled &&
+    !!selectedProduct?.hasExpiry &&
+    effectiveNewQuantity > (selectedProduct?.quantity ?? 0)
+
   // Handle add or update item
   const handleAddOrUpdate = () => {
     if (!selectedProduct) {
@@ -95,10 +112,20 @@ export default function StockAdjustmentPage() {
       return
     }
 
+    // Expiry/batch capture (only when shown for a tracked product on an increase)
+    const expiryPayload = showExpiryFields
+      ? {
+          hasExpiry: true,
+          expiryDate: expiryDate || undefined,
+          batchNumber: batchNumber || undefined,
+        }
+      : {}
+
     if (editingId) {
       updateItem(editingId, {
         newQuantity: effectiveNewQuantity,
         notes: notes || undefined,
+        ...expiryPayload,
       })
       setEditingId(null)
       toast.success('Item updated')
@@ -119,6 +146,7 @@ export default function StockAdjustmentPage() {
           purchaseUnitName: selectedProduct.purchaseUnitName,
           baseUnitName: selectedProduct.baseUnitName,
         } : {}),
+        ...expiryPayload,
       })
       toast.success('Item added to list')
     }
@@ -129,6 +157,8 @@ export default function StockAdjustmentPage() {
     setInputValue(0)
     setInputInPurchaseUnit(false)
     setNotes('')
+    setExpiryDate('')
+    setBatchNumber('')
   }
 
   // Handle edit from table
@@ -146,6 +176,7 @@ export default function StockAdjustmentPage() {
       conversionFactor: item.conversionFactor,
       purchaseUnitName: item.purchaseUnitName,
       baseUnitName: item.baseUnitName,
+      hasExpiry: item.hasExpiry,
     })
     // If UOM enabled, show in purchase unit by default
     if (item.enableUOMConversion && item.conversionFactor) {
@@ -157,6 +188,8 @@ export default function StockAdjustmentPage() {
     }
     setNewQuantity(item.newQuantity)
     setNotes(item.notes || '')
+    setExpiryDate(item.expiryDate || '')
+    setBatchNumber(item.batchNumber || '')
   }
 
   // Handle cancel edit
@@ -167,6 +200,8 @@ export default function StockAdjustmentPage() {
     setInputValue(0)
     setInputInPurchaseUnit(false)
     setNotes('')
+    setExpiryDate('')
+    setBatchNumber('')
   }
 
   // Handle clear selected product
@@ -175,6 +210,8 @@ export default function StockAdjustmentPage() {
     setNewQuantity(0)
     setInputValue(0)
     setInputInPurchaseUnit(false)
+    setExpiryDate('')
+    setBatchNumber('')
   }
 
   // Submit all adjustments
@@ -189,6 +226,9 @@ export default function StockAdjustmentPage() {
       variantId: item.variantId,
       newQuantity: item.newQuantity,
       notes: item.notes,
+      // Expiry batch capture (backend creates a batch only for tracked products)
+      ...(item.expiryDate ? { expiryDate: item.expiryDate } : {}),
+      ...(item.batchNumber ? { batchNumber: item.batchNumber } : {}),
     }))
 
     try {
@@ -546,6 +586,40 @@ export default function StockAdjustmentPage() {
                   />
                 </div>
               </div>
+
+              {/* Expiry batch (expiry-tracked products, on a stock increase) */}
+              {showExpiryFields && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg border border-dashed bg-muted/20 p-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="expiryDate">
+                      Expiry Date
+                      <span className="text-muted-foreground text-xs ml-2">
+                        (for the added stock)
+                      </span>
+                    </Label>
+                    <Input
+                      id="expiryDate"
+                      type="date"
+                      value={expiryDate}
+                      onChange={(e) => setExpiryDate(e.target.value)}
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="batchNumber">
+                      Batch Number{' '}
+                      <span className="text-muted-foreground text-xs">(optional)</span>
+                    </Label>
+                    <Input
+                      id="batchNumber"
+                      value={batchNumber}
+                      onChange={(e) => setBatchNumber(e.target.value)}
+                      placeholder="e.g., LOT-2026-01"
+                      className="h-11"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3 pt-1">

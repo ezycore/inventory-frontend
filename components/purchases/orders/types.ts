@@ -7,4 +7,7 @@ export interface ItemReceiveState {
   receivedQuantity: number;
   maxQuantity: number;
   productName: string;
+  // Per-line expiry batch capture; only applied to expiry-tracked products on receive.
+  expiryDate?: string;
+  batchNumber?: string;
 }

@@ -1,4 +1,5 @@
 import { formatCurrency } from "@/lib/currency";
+import { useProductBatches } from "@/services/api";
 import { SellOrderItem } from "@/services/stores";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
@@ -57,13 +58,66 @@ function EditableNumberCell({
 }
 
 /**
- * Generate sales order columns with inline quantity/discount controls
+ * Per-line batch picker for expiry-tracked products. Defaults to FEFO (auto);
+ * the cashier can override which lot to sell from. Reads in-stock batches for
+ * the product via the expiry read API.
+ */
+function BatchPickerCell({
+  item,
+  onUpdateBatch,
+}: {
+  item: SellOrderItem;
+  onUpdateBatch: (id: string, batchId: string | null) => void;
+}) {
+  // Only fetch batches for expiry-tracked lines — the Batch column renders a cell
+  // for every row, so gating on `hasExpiry` avoids one /batches request per
+  // non-tracked product in the cart.
+  const { data, isLoading } = useProductBatches(
+    item.productId,
+    { ...(item.variantId ? { variantId: item.variantId } : {}) },
+    { enabled: !!item.hasExpiry },
+  );
+  const batches: any[] = (data?.data as any[]) || [];
+
+  if (!item.hasExpiry) {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+
+  return (
+    <select
+      value={item.batchId ?? ""}
+      onChange={(e) => onUpdateBatch(item.id, e.target.value || null)}
+      disabled={isLoading}
+      className="h-7 w-[150px] rounded-md border bg-background px-1 text-xs"
+      title="Auto = earliest expiry first (FEFO)"
+    >
+      <option value="">Auto (FEFO)</option>
+      {batches.map((b) => {
+        const exp = b.expiryDate
+          ? new Date(b.expiryDate).toISOString().slice(0, 10)
+          : "no date";
+        const label = `Exp ${exp}${b.batchNumber ? ` · ${b.batchNumber}` : ""} · ${b.remainingQuantity} left`;
+        return (
+          <option key={b._id} value={b._id}>
+            {label}
+          </option>
+        );
+      })}
+    </select>
+  );
+}
+
+/**
+ * Generate sales order columns with inline quantity/discount controls.
+ * When `expiryEnabled`, a per-line Batch picker is added (FEFO by default).
  */
 export const getSalesColumns = (
   onUpdateQuantity: (id: string, quantity: number) => void,
   onUpdateDiscount: (id: string, discount: number, price: number) => void,
   onRemove: (id: string) => void,
   currencySymbol?: string,
+  onUpdateBatch?: (id: string, batchId: string | null) => void,
+  expiryEnabled?: boolean,
 ): ColumnDef<SellOrderItem>[] => [
     {
       accessorKey: "productName",
@@ -141,6 +195,20 @@ export const getSalesColumns = (
         );
       },
     },
+    ...(expiryEnabled && onUpdateBatch
+      ? [
+          {
+            id: "batch",
+            header: "Batch",
+            cell: ({ row }: { row: { original: SellOrderItem } }) => (
+              <BatchPickerCell
+                item={row.original}
+                onUpdateBatch={onUpdateBatch}
+              />
+            ),
+          } as ColumnDef<SellOrderItem>,
+        ]
+      : []),
     {
       accessorKey: "discount",
       header: `Discount (${currencySymbol || ""})`,

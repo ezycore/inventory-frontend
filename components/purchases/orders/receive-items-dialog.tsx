@@ -60,6 +60,7 @@ export function ReceiveItemsDialog({
   const router = useRouter();
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  const isExpiryEnabled = user?.organization?.features?.expiryTracking ?? false;
 
   const { data: accountsData } = useAccounts({ all: true });
   const accounts: Account[] = useMemo(
@@ -102,6 +103,19 @@ export function ReceiveItemsDialog({
     });
   };
 
+  const handleExpiryFieldChange = (
+    index: number,
+    field: "expiryDate" | "batchNumber",
+    value: string,
+  ) => {
+    setReceiveItems((prev) => {
+      if (!prev[index]) return prev;
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
   const handleSubmit = async () => {
     if (!order) return;
     if (!hasAnyReceivableItems(receiveItems)) {
@@ -117,6 +131,13 @@ export function ReceiveItemsDialog({
           variantId: item.variantId,
           inventoryId: item.inventoryId,
           receivedQuantity: item.receivedQuantity,
+          // Per-line expiry — backend creates a batch only for expiry-tracked products
+          ...(isExpiryEnabled && item.expiryDate
+            ? { expiryDate: item.expiryDate }
+            : {}),
+          ...(isExpiryEnabled && item.batchNumber
+            ? { batchNumber: item.batchNumber }
+            : {}),
         })),
     };
 
@@ -156,6 +177,12 @@ export function ReceiveItemsDialog({
               <TableRow>
                 <TableHead>Product</TableHead>
                 <TableHead className="text-right">Ordered</TableHead>
+                {isExpiryEnabled && (
+                  <>
+                    <TableHead className="w-40">Expiry Date</TableHead>
+                    <TableHead className="w-36">Batch #</TableHead>
+                  </>
+                )}
                 {/* <TableHead className="text-right">Remaining</TableHead> */}
                 {/* <TableHead className="text-right w-32">Receive Qty</TableHead> */}
               </TableRow>
@@ -169,6 +196,38 @@ export function ReceiveItemsDialog({
                   <TableCell className="text-right text-muted-foreground">
                     {(order?.items[index]?.quantity ?? 0)}
                   </TableCell>
+                  {isExpiryEnabled && (
+                    <>
+                      <TableCell>
+                        <Input
+                          type="date"
+                          value={item.expiryDate ?? ""}
+                          onChange={(e) =>
+                            handleExpiryFieldChange(
+                              index,
+                              "expiryDate",
+                              e.target.value,
+                            )
+                          }
+                          className="h-8"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={item.batchNumber ?? ""}
+                          onChange={(e) =>
+                            handleExpiryFieldChange(
+                              index,
+                              "batchNumber",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="optional"
+                          className="h-8"
+                        />
+                      </TableCell>
+                    </>
+                  )}
                   {/* <TableCell className="text-right">
                     <Badge variant="outline">{item.maxQuantity}</Badge>
                   </TableCell> */}
@@ -220,6 +279,15 @@ export function ReceiveItemsDialog({
             </div>
           </div>
         </div>
+
+        {/* Expiry batch is captured per line in the items table above. */}
+        {isExpiryEnabled && (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <PackageCheck className="h-3.5 w-3.5" />
+            Set an expiry date (and optional batch number) per line above — only
+            applied to expiry-tracked products.
+          </p>
+        )}
 
         {/* Payment section */}
         {isAccountsEnabled && currentDue > 0 && (
