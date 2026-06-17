@@ -14,6 +14,7 @@ export const queryKeys = {
     subscription: () =>
       [...queryKeys.organization.get(), "subscription"] as const,
     plans: () => [...queryKeys.organization.get(), "plans"] as const,
+    storefront: () => [...queryKeys.organization.get(), "storefront"] as const,
   },
 
   // Inventory query keys

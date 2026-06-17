@@ -9,6 +9,7 @@ import type {
   OrganizationFeatures,
   PlanChangeResult,
   SubscriptionInfo,
+  UpdateStorefrontSettingsDto,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
@@ -237,6 +238,48 @@ export const useUpdateColumnSettings = () => {
       }
 
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// GET /api/organization/storefront - Get storefront settings (lazily created backend-side)
+export const useGetStorefrontSettings = () => {
+  return useQuery({
+    queryKey: queryKeys.organization.storefront(),
+    queryFn: () => organizationApi.getStorefrontSettings(),
+    select: (res) => res.data,
+    staleTime: 60 * 1000, // 1 minute
+  });
+};
+
+// PATCH /api/organization/storefront - Update storefront settings / publish state
+export const useUpdateStorefrontSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateStorefrontSettingsDto) =>
+      organizationApi.updateStorefrontSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(
+        result.message || "Store settings updated successfully!",
+      );
+      queryClient.setQueryData(queryKeys.organization.storefront(), result);
+    },
+    onError: handleMutationError,
+  });
+};
+
+// PATCH /api/organization/storefront/media - Upload/replace/remove logo + banner
+export const useUpdateStorefrontMedia = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: FormData) =>
+      organizationApi.updateStorefrontMedia(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Storefront media updated");
+      queryClient.setQueryData(queryKeys.organization.storefront(), result);
     },
     onError: handleMutationError,
   });

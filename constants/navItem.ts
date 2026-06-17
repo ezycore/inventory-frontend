@@ -108,6 +108,59 @@ export const navItems: NavItem[] = [
     ],
   },
 
+  // ECOMMERCE (requires storefront feature — plan-gated)
+  {
+    title: "Ecommerce",
+    url: "/ecommerce",
+    icon: "store",
+    isActive: false,
+    features: ["storefront"],
+    items: [
+      {
+        title: "Orders",
+        url: "/ecommerce/orders",
+        icon: "receipt",
+        features: ["storefront"],
+        permissions: ["storefront.orders.view"],
+      },
+      {
+        title: "Store Settings",
+        url: "/ecommerce/settings",
+        icon: "settings",
+        features: ["storefront"],
+        permissions: ["storefront.view"],
+      },
+      {
+        title: "Coupons",
+        url: "/ecommerce/coupons",
+        icon: "ticket-percent",
+        features: ["storefront"],
+        permissions: ["storefront.manage"],
+      },
+      {
+        title: "Campaigns",
+        url: "/ecommerce/campaigns",
+        icon: "megaphone",
+        features: ["storefront"],
+        permissions: ["storefront.manage"],
+      },
+      {
+        title: "Content",
+        url: "/ecommerce/content",
+        icon: "file-text",
+        features: ["storefront"],
+        permissions: ["storefront.manage"],
+      },
+      {
+        title: "Theme",
+        url: "/ecommerce/theme",
+        icon: "palette",
+        features: ["storefront"],
+        permissions: ["storefront.manage"],
+      },
+    ],
+  },
+
   // CUSTOMERS (top-level)
   {
     title: "Customers",

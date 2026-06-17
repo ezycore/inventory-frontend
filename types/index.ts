@@ -36,6 +36,8 @@ export interface OrganizationFeatures {
   returns: boolean;
   /** Enable UOM conversion (purchase in boxes, sell in pieces, etc.) */
   uomConversion: boolean;
+  /** Public ecommerce storefront (catalog, shopper accounts, online orders). Plan-gated. */
+  storefront: boolean;
 }
 
 /**
@@ -49,7 +51,51 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   invoicePrinting: false,
   returns: true,
   uomConversion: false,
+  storefront: false,
 };
+
+/**
+ * Storefront (ecommerce) settings — mirrors the backend StorefrontSettings.
+ * Money values are decimal numbers in `currency` (no minor-units).
+ */
+export type StorefrontPaymentMethod = "cod" | "bank";
+export type ShippingRuleMode = "flat" | "free_over_threshold" | "none";
+
+export interface StorefrontShippingRule {
+  mode: ShippingRuleMode;
+  flatFee?: number;
+  freeThreshold?: number;
+}
+
+export interface StorefrontTheme {
+  preset?: string;
+  brandColor?: string;
+  accentColor?: string;
+  footerText?: string;
+  homepageSections?: string[];
+}
+
+export interface StorefrontSettings {
+  _id?: string;
+  organizationId?: string;
+  published: boolean;
+  displayName?: string;
+  logo?: Image | null;
+  banner?: Image | null;
+  storefrontLocationId?: string;
+  allowedPaymentMethods: StorefrontPaymentMethod[];
+  contact?: { email?: string; phone?: string; address?: string };
+  social?: { facebook?: string; instagram?: string; whatsapp?: string };
+  seo?: { title?: string; description?: string };
+  currency?: string;
+  shippingRule: StorefrontShippingRule;
+  defaultDeliveryCost: number;
+  theme?: StorefrontTheme;
+}
+
+export type UpdateStorefrontSettingsDto = Partial<
+  Omit<StorefrontSettings, "_id" | "organizationId">
+>;
 
 /**
  * Feature name type for type-safe feature checks
@@ -690,6 +736,14 @@ export interface Product extends BaseEntity {
   saleUnit?: {
     unitId: string;
     conversionFactor: number;
+  };
+
+  // Ecommerce storefront listing (only meaningful when the org `storefront` feature is on)
+  storefront?: {
+    isListed: boolean;
+    onlinePrice?: number;
+    featured?: boolean;
+    onlineDescription?: string;
   };
 }
 

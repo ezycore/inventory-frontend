@@ -70,10 +70,22 @@ export const productColumns: ColumnDef<any>[] = [
     accessorKey: 'productType',
     cell: ({ row }) => {
       const type = row.getValue("productType") as string
+      const storefront = row.original.storefront as
+        | { isListed?: boolean; featured?: boolean }
+        | undefined
       return (
-        <Badge variant={type === 'variable' ? 'secondary' : 'outline'} className="capitalize">
-          {type}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-1">
+          <Badge variant={type === 'variable' ? 'secondary' : 'outline'} className="capitalize">
+            {type}
+          </Badge>
+          {/* Storefront state — only rendered for exceptions, so non-ecommerce orgs see nothing */}
+          {storefront?.featured ? (
+            <Badge variant="secondary" className="text-[10px]">Featured</Badge>
+          ) : null}
+          {storefront?.isListed === false ? (
+            <Badge variant="outline" className="text-[10px] text-muted-foreground">Hidden</Badge>
+          ) : null}
+        </div>
       )
     },
   },

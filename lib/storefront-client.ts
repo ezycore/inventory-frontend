@@ -1,0 +1,253 @@
+/**
+ * Storefront client — a light fetch wrapper for the PUBLIC storefront API
+ * (`/api/storefront/{slug}`). Separate from `lib/api-client.ts`: it carries the
+ * SHOPPER token (not the staff token) and never sends `X-Active-Location`.
+ */
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+export interface StorefrontImage {
+  url?: string;
+  mediumUrl?: string;
+  thumbnailUrl?: string;
+}
+
+export interface StorefrontStore {
+  name: string;
+  slug: string;
+  currency?: string;
+  logo?: StorefrontImage | null;
+  banner?: StorefrontImage | null;
+  contact?: { email?: string; phone?: string; address?: string };
+  social?: { facebook?: string; instagram?: string; whatsapp?: string };
+  seo?: { title?: string; description?: string };
+  theme?: {
+    preset?: string;
+    brandColor?: string;
+    accentColor?: string;
+    footerText?: string;
+    homepageSections?: string[];
+  };
+  allowedPaymentMethods: ("cod" | "bank")[];
+  shippingRule: {
+    mode: "flat" | "free_over_threshold" | "none";
+    flatFee?: number;
+    freeThreshold?: number;
+  };
+}
+
+export interface CatalogProduct {
+  _id: string;
+  name: string;
+  slug: string;
+  price: number | null;
+  /** Original price when an active campaign has discounted this product. */
+  compareAtPrice?: number | null;
+  basePrice: number | null;
+  images: StorefrontImage[];
+  description: string;
+  featured: boolean;
+  categoryId?: string;
+  productType: string;
+  availableQuantity: number;
+}
+
+/** A footer link to a published CMS page. */
+export interface ContentPageLink {
+  _id: string;
+  slug: string;
+  title: string;
+  sortOrder?: number;
+}
+
+/** A published CMS page rendered at /s/{slug}/pages/{pageSlug}. */
+export interface ContentPageView {
+  _id: string;
+  slug: string;
+  title: string;
+  body: string;
+  updatedAt?: string;
+}
+
+export interface StoreCampaign {
+  _id: string;
+  name: string;
+  banner?: StorefrontImage | null;
+  type: string;
+  value: number;
+  scope: string;
+}
+
+export interface CatalogCategory {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+export interface ProductListResult {
+  items: CatalogProduct[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface ShopperProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  emailVerified: boolean;
+  customerId?: string;
+}
+
+export interface ShopperAuthResult {
+  token: string;
+  shopper: ShopperProfile;
+}
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+export interface ShippingAddress {
+  name: string;
+  phone: string;
+  address: string;
+  city?: string;
+  area?: string;
+  notes?: string;
+}
+
+export interface StorefrontOrder {
+  _id: string;
+  orderNumber: string;
+  items: OrderItem[];
+  subtotal: number;
+  discountAmount: number;
+  shippingCharged: number;
+  totalAmount: number;
+  status: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  shippingAddress: ShippingAddress;
+  notes?: string;
+  courier?: {
+    provider?: string;
+    trackingCode?: string;
+    consignmentId?: string;
+    status?: string;
+  };
+  createdAt: string;
+  statusHistory?: { status: string; at: string }[];
+}
+
+export interface PlaceOrderInput {
+  items: { productId: string; quantity: number }[];
+  shippingAddress: ShippingAddress;
+  paymentMethod: "cod" | "bank";
+  notes?: string;
+  couponCode?: string;
+}
+
+export interface CouponPreview {
+  code: string;
+  discountAmount: number;
+}
+
+interface FetchOpts {
+  method?: string;
+  body?: unknown;
+  token?: string | null;
+}
+
+async function sfFetch<T>(
+  slug: string,
+  path: string,
+  opts: FetchOpts = {},
+): Promise<T> {
+  const res = await fetch(`${API_BASE}/storefront/${slug}${path}`, {
+    method: opts.method || "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...(opts.token ? { Authorization: `Bearer ${opts.token}` } : {}),
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+    cache: "no-store",
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(json?.message || `Request failed (${res.status})`);
+  }
+  return json.data as T;
+}
+
+function buildQuery(params: Record<string, string | number | undefined>): string {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== "") qs.append(k, String(v));
+  }
+  const s = qs.toString();
+  return s ? `?${s}` : "";
+}
+
+export const storefrontApi = {
+  getStore: (slug: string) => sfFetch<StorefrontStore>(slug, ""),
+  listProducts: (
+    slug: string,
+    params: Record<string, string | number | undefined> = {},
+  ) => sfFetch<ProductListResult>(slug, `/products${buildQuery(params)}`),
+  getProduct: (slug: string, productSlug: string) =>
+    sfFetch<CatalogProduct>(slug, `/products/${productSlug}`),
+  listCategories: (slug: string) =>
+    sfFetch<CatalogCategory[]>(slug, "/categories"),
+  listCampaigns: (slug: string) =>
+    sfFetch<StoreCampaign[]>(slug, "/campaigns"),
+  listPages: (slug: string) =>
+    sfFetch<ContentPageLink[]>(slug, "/pages"),
+  getPage: (slug: string, pageSlug: string) =>
+    sfFetch<ContentPageView>(slug, `/pages/${pageSlug}`),
+
+  register: (
+    slug: string,
+    body: { name: string; email: string; password: string; phone?: string },
+  ) => sfFetch<ShopperAuthResult>(slug, "/auth/register", { method: "POST", body }),
+  login: (slug: string, body: { email: string; password: string }) =>
+    sfFetch<ShopperAuthResult>(slug, "/auth/login", { method: "POST", body }),
+  me: (slug: string, token: string) =>
+    sfFetch<ShopperProfile>(slug, "/auth/me", { token }),
+  verifyEmail: (slug: string, token: string) =>
+    sfFetch<{ emailVerified: boolean }>(slug, "/auth/verify-email", {
+      method: "POST",
+      body: { token },
+    }),
+  forgotPassword: (slug: string, email: string) =>
+    sfFetch<{ message: string }>(slug, "/auth/forgot-password", {
+      method: "POST",
+      body: { email },
+    }),
+  resetPassword: (slug: string, token: string, password: string) =>
+    sfFetch<{ message: string }>(slug, "/auth/reset-password", {
+      method: "POST",
+      body: { token, password },
+    }),
+
+  placeOrder: (slug: string, token: string, body: PlaceOrderInput) =>
+    sfFetch<StorefrontOrder>(slug, "/orders", { method: "POST", body, token }),
+  listOrders: (slug: string, token: string) =>
+    sfFetch<StorefrontOrder[]>(slug, "/orders", { token }),
+  getOrder: (slug: string, token: string, orderNumber: string) =>
+    sfFetch<StorefrontOrder>(slug, `/orders/${orderNumber}`, { token }),
+  validateCoupon: (
+    slug: string,
+    token: string,
+    body: { code: string; items: { productId: string; quantity: number }[] },
+  ) =>
+    sfFetch<CouponPreview>(slug, "/coupon/validate", {
+      method: "POST",
+      body,
+      token,
+    }),
+};

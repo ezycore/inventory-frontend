@@ -68,6 +68,7 @@ export const FEATURE_DISPLAY_NAMES: Record<FeatureName, string> = {
   invoicePrinting: "Invoice Printing",
   returns: "Returns Management",
   uomConversion: "Unit Conversion",
+  storefront: "Ecommerce Storefront",
 };
 
 /**
@@ -82,6 +83,8 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureName, string> = {
   invoicePrinting: "Generate and print invoices for sales and purchases",
   returns: "Enable sales returns, purchase returns, and credit management",
   uomConversion: "Enable unit of measure conversion for products",
+  storefront:
+    "Enable a public online store with shopper accounts, online orders, and courier delivery",
 };
 
 /**
@@ -95,4 +98,5 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   invoicePrinting: "printer",
   returns: "undo-2",
   uomConversion: "repeat",
+  storefront: "store",
 };
