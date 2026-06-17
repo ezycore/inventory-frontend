@@ -50,7 +50,6 @@ pnpm test:coverage    # vitest run --coverage
 app/
   (auth)/              → login, register, forgot-password
   (protected)/         → authenticated routes (one folder per resource)
-  landing/
 components/
   <resource>/          → feature components (table, form, dialogs)
   shared/              → reusable cross-feature components (column-settings, truncated-text, values-popover)
