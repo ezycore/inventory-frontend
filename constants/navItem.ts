@@ -3,7 +3,7 @@ import { NavItem } from "@/types/layout";
 export const navItems: NavItem[] = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: "home",
     isActive: false,
     shortcut: ["d", "d"],
