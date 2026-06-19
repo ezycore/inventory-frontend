@@ -26,7 +26,7 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 // Rich toggle card for the "load sample data" option. Used as a `custom`
@@ -276,33 +276,37 @@ export default function Signup() {
   const createOwnerMutation = useSignupAPi();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
-  // Watch country and keep timezone/currency in sync with it. Every country
-  // change re-applies that country's defaults (not just the first selection),
-  // so switching country always updates these fields.
-  const selectedCountry = form.watch("country");
+  // Derived-field updates run from the form's onFieldChange, which fires
+  // directly on every keystroke / selection (more reliable than a watch effect):
+  //  - country  → re-applies that country's default timezone & currency
+  //  - org name → auto-generates the slug, until the user edits the slug by hand
+  const slugManuallyEditedRef = useRef(false);
 
-  useEffect(() => {
-    if (!selectedCountry) return;
-    const defaults = getCountryDefaults(selectedCountry);
-    if (!defaults) return;
-    form.setValue("timezone", defaults.timezone, { shouldValidate: true });
-    form.setValue("currency", defaults.currency, { shouldValidate: true });
-  }, [selectedCountry, form]);
-
-  // Auto-generate the slug from the organization name. We stop syncing once the
-  // user edits the slug by hand (i.e. it no longer matches our last auto value).
-  const organizationName = form.watch("organizationName");
-  const lastAutoSlugRef = useRef("");
-
-  useEffect(() => {
-    const currentSlug = form.getValues("organizationSlug") || "";
-    if (currentSlug && currentSlug !== lastAutoSlugRef.current) return;
-    const nextSlug = slugify(organizationName || "");
-    lastAutoSlugRef.current = nextSlug;
-    form.setValue("organizationSlug", nextSlug, {
-      shouldValidate: Boolean(nextSlug),
-    });
-  }, [organizationName, form]);
+  const handleFieldChange = useCallback(
+    (fieldName: string, value: any) => {
+      if (fieldName === "country") {
+        const defaults = getCountryDefaults(value);
+        if (defaults) {
+          form.setValue("timezone", defaults.timezone, {
+            shouldValidate: true,
+          });
+          form.setValue("currency", defaults.currency, {
+            shouldValidate: true,
+          });
+        }
+      } else if (fieldName === "organizationName") {
+        if (!slugManuallyEditedRef.current) {
+          form.setValue("organizationSlug", slugify(value || ""), {
+            shouldValidate: Boolean(value),
+          });
+        }
+      } else if (fieldName === "organizationSlug") {
+        // User typed directly in the slug field → stop auto-generating it.
+        slugManuallyEditedRef.current = true;
+      }
+    },
+    [form],
+  );
 
   // `/signup?demo=true` pre-enables the "load sample data" switch so the new
   // (real) account lands fully populated. It stays a normal, permanent workspace
@@ -420,6 +424,7 @@ export default function Signup() {
             className="space-y-5"
             config={config}
             form={form}
+            onFieldChange={handleFieldChange}
             cancelLabel={null}
             submitLabel={
               createOwnerMutation.isPending
