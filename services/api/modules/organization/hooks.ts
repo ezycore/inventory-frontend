@@ -241,3 +241,34 @@ export const useUpdateColumnSettings = () => {
     onError: handleMutationError,
   });
 };
+
+// DELETE /api/organization/demo-data - Clear all sample data.
+// On success the workspace simply drops its sample rows; refresh user/org + all data.
+export const useClearDemoData = () => {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuthStore();
+
+  return useMutation({
+    mutationFn: () => organizationApi.clearDemoData(),
+    onSuccess: (result) => {
+      handleMutationSuccess(
+        result.message || "Sample data cleared successfully!",
+      );
+
+      // Drop the seed status in the auth store immediately so the sample-data
+      // banner disappears without a full reload.
+      if (user) {
+        updateUser({
+          organization: {
+            ...user.organization,
+            demoSeedStatus: undefined,
+          },
+        });
+      }
+
+      // Demo data spanned every module — refresh everything.
+      queryClient.invalidateQueries();
+    },
+    onError: handleMutationError,
+  });
+};

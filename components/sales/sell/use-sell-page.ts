@@ -34,6 +34,7 @@ export function useSellPage() {
 
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  const isExpiryEnabled = user?.organization?.features?.expiryTracking ?? false;
   const defaultCustomer = user?.defaultData?.customerId;
   const defaultAccountType = user?.defaultData?.accountId;
 
@@ -220,8 +221,10 @@ export function useSellPage() {
         handleUpdateDiscount,
         removeItem,
         symbol,
+        (id, batchId) => updateItem(id, { batchId }),
+        isExpiryEnabled,
       ),
-    [updateItem, handleUpdateDiscount, removeItem, symbol],
+    [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled],
   );
 
   const handleFieldChange = useCallback(
@@ -262,6 +265,7 @@ export function useSellPage() {
         inventoryId, productId, variantId, productName, quantity: 1, costPrice, price,
         discountType, discountValue, discount, salePrice, availableQuantity,
         unitName: product.unitName, saleUnitName: product.saleUnitName,
+        hasExpiry: product.hasExpiry,
       });
     },
     [addItem, customerForm],
@@ -351,6 +355,7 @@ export function useSellPage() {
           costPrice: item.costPrice,
           discount: item.discount,
           productName: item.productName,
+          ...(item.batchId ? { batchId: item.batchId } : {}),
         })),
         additionalDiscount: formAdditionalDiscount,
         totalPrice: totalSalePrice,
@@ -380,6 +385,7 @@ export function useSellPage() {
             price: it.price,
             costPrice: it.costPrice,
             discount: it.discount,
+            ...(it.batchId ? { batchId: it.batchId } : {}),
           })),
           additionalDiscount: formAdditionalDiscount,
           payment: orderData.payment,

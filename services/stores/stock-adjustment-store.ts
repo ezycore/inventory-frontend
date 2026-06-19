@@ -18,6 +18,10 @@ export interface AdjustmentItem {
   conversionFactor?: number;
   purchaseUnitName?: string;
   baseUnitName?: string;
+  // Expiry-batch capture (only for expiry-tracked products on a stock increase)
+  hasExpiry?: boolean;
+  expiryDate?: string;
+  batchNumber?: string;
 }
 
 interface StockAdjustmentStore {

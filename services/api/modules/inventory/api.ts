@@ -71,4 +71,23 @@ export const inventoryApi = {
 
   bulkTransferStock: (transfers: any[]): Promise<ApiResponse<any>> =>
     apiClient.post("/inventory/bulk-transfer", { transfers }),
+
+  // Expiry tracking (FEFO) — requires the expiryTracking feature
+  getExpiringBatches: (
+    filters: { days?: number; page?: number; limit?: number } = {},
+  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+    apiClient.get(`/inventory/expiry/expiring${buildQueryParams(filters)}`),
+
+  getExpiredBatches: (
+    filters: { page?: number; limit?: number } = {},
+  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+    apiClient.get(`/inventory/expiry/expired${buildQueryParams(filters)}`),
+
+  getProductBatches: (
+    productId: string,
+    filters: { variantId?: string } = {},
+  ): Promise<ApiResponse<any>> =>
+    apiClient.get(
+      `/inventory/${productId}/batches${buildQueryParams(filters)}`,
+    ),
 };
