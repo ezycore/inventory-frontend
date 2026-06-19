@@ -11,12 +11,44 @@ import {
 } from "@/constants/organization-options";
 import { useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
-import { Card, CardContent } from "@/ui/components/card";
 import DynamicForm from "@/ui/components/form";
 import { DynamicFormConfig } from "@/ui/components/form/type";
-import { Building2, Globe, User } from "lucide-react";
+import {
+  BarChart3,
+  Building2,
+  Package,
+  Receipt,
+  ShieldCheck,
+  ShieldAlert,
+  User,
+} from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
 import { toast } from "sonner";
+
+// Highlights shown on the branded panel beside the signup form.
+const SIGNUP_FEATURES = [
+  {
+    icon: Package,
+    title: "Real-time stock tracking",
+    description: "Across every location, always in sync.",
+  },
+  {
+    icon: Receipt,
+    title: "Purchases, sales & returns",
+    description: "One streamlined flow from end to end.",
+  },
+  {
+    icon: BarChart3,
+    title: "Insightful analytics",
+    description: "Low-stock alerts and clear reports.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Secure by design",
+    description: "Role-based access and full control.",
+  },
+];
 
 // Re-export for backward compatibility with organization-tab.tsx
 export {
@@ -30,8 +62,8 @@ const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
     {
       title: "Personal Information",
-      description: "Manage your personal details and contact information.",
-      icon: <User className="h-5 w-5 text-blue-600" />,
+      description: "Your details for the owner account.",
+      icon: <User className="h-5 w-5 text-orange-600" />,
       collapsible: false,
       fields: [
         {
@@ -90,7 +122,8 @@ const ownerSetupFormConfig: DynamicFormConfig = {
     },
     {
       title: "Organization Details",
-      icon: <span className="text-orange-600 font-semibold">🖼</span>,
+      description: "Set up your workspace and regional preferences.",
+      icon: <Building2 className="h-5 w-5 text-orange-600" />,
       collapsible: false,
       fields: [
         {
@@ -223,65 +256,125 @@ export default function Signup() {
     });
   };
 
+  const currentYear = new Date().getFullYear();
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="max-w-4xl w-full mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-            <Building2 className="w-10 h-10 text-white" />
+    <div className="min-h-svh w-full bg-gray-50 dark:bg-gray-950 lg:grid lg:grid-cols-2">
+      {/* Branded panel */}
+      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 p-12 text-white lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:justify-between">
+        {/* Decorative glow */}
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+
+        {/* Logo */}
+        <div className="relative flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+            <Building2 className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome to EasyStock!
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-            Let&apos;s set up your inventory management system. Create your
-            owner account to get started.
-          </p>
+          <span className="text-xl font-semibold tracking-tight">EzyCore</span>
         </div>
 
-        {/* Form */}
-        <DynamicForm
-          id="owner-setup-form"
-          className="space-y-6"
-          config={config}
-          form={form}
-          cancelLabel={null}
-          submitLabel={
-            createOwnerMutation.isPending
-              ? "Setting up your account..."
-              : "Complete Setup & Create Account"
-          }
-          onSubmit={handleSubmit}
-          contentLoading={createOwnerMutation.isPending}
-          hideCancel={true}
-        />
+        {/* Pitch + feature highlights */}
+        <div className="relative space-y-10">
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold leading-tight xl:text-4xl">
+              Run your inventory with confidence.
+            </h2>
+            <p className="max-w-md text-blue-100">
+              Everything you need to manage stock, purchases, and sales — in one
+              simple workspace.
+            </p>
+          </div>
 
-        {/* Info Note */}
-        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 mt-6">
-          <CardContent className="flex gap-3 py-4">
-            <Globe className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+          <ul className="space-y-5">
+            {SIGNUP_FEATURES.map((feature) => (
+              <li key={feature.title} className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/15 backdrop-blur">
+                  <feature.icon className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium">{feature.title}</p>
+                  <p className="text-sm text-blue-100">{feature.description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative text-sm text-blue-200">
+          © {currentYear} EzyCore. All rights reserved.
+        </p>
+      </aside>
+
+      {/* Form panel */}
+      <main className="flex flex-col items-center px-4 py-10 sm:px-6 lg:px-12 lg:py-16">
+        <div className="w-full max-w-xl">
+          {/* Mobile logo (branded panel is hidden on small screens) */}
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+              <Building2 className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
+              EzyCore
+            </span>
+          </div>
+
+          {/* Heading */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
+              Create your owner account
+            </h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              Set up your inventory workspace in a couple of minutes.{" "}
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+
+          {/* Form */}
+          <DynamicForm
+            id="owner-setup-form"
+            className="space-y-5"
+            config={config}
+            form={form}
+            cancelLabel={null}
+            submitLabel={
+              createOwnerMutation.isPending
+                ? "Setting up your account..."
+                : "Complete Setup & Create Account"
+            }
+            onSubmit={handleSubmit}
+            contentLoading={createOwnerMutation.isPending}
+            hideCancel={true}
+          />
+
+          {/* Owner-access note */}
+          <div className="mt-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+            <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
             <div className="space-y-1">
               <p className="text-sm font-semibold text-amber-900 dark:text-amber-400">
-                Important Information
+                You&apos;re creating the owner account
               </p>
               <p className="text-sm text-amber-800 dark:text-amber-500">
-                You are creating the owner account with full administrative
-                access. This account will have complete control over user
-                management, roles, permissions, and all system settings.
+                This account has full administrative access — complete control
+                over user management, roles, permissions, and all system
+                settings.
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          {/* Footer */}
+          <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
             By creating an account, you agree to our Terms of Service and
-            Privacy Policy
+            Privacy Policy.
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
