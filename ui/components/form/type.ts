@@ -338,6 +338,7 @@ export const generateSchemaFromConfig = (
 
       case "boolean":
       case "checkbox":
+      case "switch":
         fieldSchema = z.boolean();
         break;
 

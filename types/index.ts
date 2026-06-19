@@ -366,6 +366,9 @@ export interface SalesReturnsSummary {
     totalRefunds: number;
     returnsCount: number;
   };
+  pending: {
+    returnsCount: number;
+  };
 }
 
 // Customer Ledger Types
