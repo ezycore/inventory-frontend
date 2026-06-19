@@ -47,6 +47,7 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     purchaseUnitName: (item as any).purchaseUnitName ?? null,
     quantityAlert: item.quantityAlert,
     barcode: item.barcode ?? undefined,
+    hasExpiry: !!item.hasExpiry,
   })) as SelectOption[];
 };
 

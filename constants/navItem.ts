@@ -3,7 +3,7 @@ import { NavItem } from "@/types/layout";
 export const navItems: NavItem[] = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: "home",
     isActive: false,
     shortcut: ["d", "d"],
@@ -249,27 +249,11 @@ export const navItems: NavItem[] = [
         icon: "shield",
         permissions: ["organization.view"],
       },
-    ],
-  },
-
-  // ACCOUNT
-  {
-    title: "My Account",
-    url: "#",
-    icon: "user",
-    isActive: false,
-    items: [
-      { title: "Profile", url: "/profile", icon: "user" },
       {
         title: "Users",
         url: "/users",
         icon: "users",
         permissions: ["users.view"],
-      },
-      {
-        title: "Billing",
-        url: "/dashboard/billing",
-        icon: "credit-card",
       },
     ],
   },
