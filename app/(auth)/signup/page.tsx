@@ -13,6 +13,8 @@ import { useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
 import { DynamicFormConfig } from "@/ui/components/form/type";
+import { Switch } from "@/ui/components/switch";
+import { cn } from "@/ui/lib/utils";
 import {
   BarChart3,
   Building2,
@@ -20,11 +22,78 @@ import {
   Receipt,
   ShieldCheck,
   ShieldAlert,
+  Sparkles,
   User,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+
+// Rich toggle card for the "load sample data" option. Used as a `custom`
+// form field (with zodType "boolean") so it stays a boolean in the schema.
+function SampleDataToggle({
+  value,
+  onChange,
+}: {
+  value?: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  const checked = Boolean(value);
+  return (
+    <div
+      role="switch"
+      aria-checked={checked}
+      tabIndex={0}
+      onClick={() => onChange(!checked)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onChange(!checked);
+        }
+      }}
+      className={cn(
+        "flex cursor-pointer items-start justify-between gap-4 rounded-xl border p-4 transition-colors",
+        checked
+          ? "border-blue-500 bg-blue-50/70 ring-1 ring-blue-500 dark:bg-blue-950/30"
+          : "border-input hover:border-blue-300 hover:bg-accent/40",
+      )}
+    >
+      <div className="flex gap-3">
+        <div
+          className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors",
+            checked
+              ? "bg-blue-600 text-white"
+              : "bg-blue-100 text-blue-600 dark:bg-blue-950",
+          )}
+        >
+          <Sparkles className="h-5 w-5" />
+        </div>
+        <div className="space-y-0.5">
+          <p className="text-sm font-medium text-foreground">
+            Load sample data so I can explore
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Pre-fill your workspace with example products, stock, purchases and
+            sales. You can clear it anytime.
+          </p>
+        </div>
+      </div>
+      {/* Display-only — the whole card handles the toggle. */}
+      <Switch checked={checked} className="pointer-events-none mt-0.5" />
+    </div>
+  );
+}
+
+// Turn an organization name into a URL-safe slug (matches the slug field's
+// `^[a-z0-9-]+$` validation): lowercase, non-alphanumerics → hyphens, trimmed.
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 // Highlights shown on the branded panel beside the signup form.
 const SIGNUP_FEATURES = [
@@ -149,8 +218,8 @@ const ownerSetupFormConfig: DynamicFormConfig = {
             patternMessage:
               "Only lowercase letters, numbers, and hyphens allowed",
           },
-          description:
-            "Used in URLs and must be unique. Only lowercase letters, numbers, and hyphens allowed.",
+          tooltip:
+            "Auto-generated from your organization name. Used in your workspace URL — edit it if you like.",
         },
         {
           name: "industry",
@@ -190,11 +259,13 @@ const ownerSetupFormConfig: DynamicFormConfig = {
         },
         {
           name: "loadSampleData",
-          type: "switch",
-          label: "Load sample data so I can explore",
+          type: "custom",
+          // Render as a rich toggle card while keeping a boolean in the schema.
+          zodType: "boolean",
+          defaultValue: false,
+          label: "",
           columnSpan: 12,
-          description:
-            "Pre-fills your workspace with example products, stock, purchases and sales. You can clear it anytime.",
+          customComponent: SampleDataToggle,
         },
       ],
     },
@@ -205,26 +276,33 @@ export default function Signup() {
   const createOwnerMutation = useSignupAPi();
   const { form, config } = useDynamicForm(ownerSetupFormConfig);
 
-  // Watch country field and auto-suggest timezone/currency
+  // Watch country and keep timezone/currency in sync with it. Every country
+  // change re-applies that country's defaults (not just the first selection),
+  // so switching country always updates these fields.
   const selectedCountry = form.watch("country");
 
   useEffect(() => {
-    if (selectedCountry) {
-      const defaults = getCountryDefaults(selectedCountry);
-      if (defaults) {
-        // Only set if fields are empty (don't override user selections)
-        const currentTimezone = form.getValues("timezone");
-        const currentCurrency = form.getValues("currency");
-
-        if (!currentTimezone) {
-          form.setValue("timezone", defaults.timezone, { shouldValidate: true });
-        }
-        if (!currentCurrency) {
-          form.setValue("currency", defaults.currency, { shouldValidate: true });
-        }
-      }
-    }
+    if (!selectedCountry) return;
+    const defaults = getCountryDefaults(selectedCountry);
+    if (!defaults) return;
+    form.setValue("timezone", defaults.timezone, { shouldValidate: true });
+    form.setValue("currency", defaults.currency, { shouldValidate: true });
   }, [selectedCountry, form]);
+
+  // Auto-generate the slug from the organization name. We stop syncing once the
+  // user edits the slug by hand (i.e. it no longer matches our last auto value).
+  const organizationName = form.watch("organizationName");
+  const lastAutoSlugRef = useRef("");
+
+  useEffect(() => {
+    const currentSlug = form.getValues("organizationSlug") || "";
+    if (currentSlug && currentSlug !== lastAutoSlugRef.current) return;
+    const nextSlug = slugify(organizationName || "");
+    lastAutoSlugRef.current = nextSlug;
+    form.setValue("organizationSlug", nextSlug, {
+      shouldValidate: Boolean(nextSlug),
+    });
+  }, [organizationName, form]);
 
   // `/signup?demo=true` pre-enables the "load sample data" switch so the new
   // (real) account lands fully populated. It stays a normal, permanent workspace
