@@ -329,10 +329,10 @@ function TransactionStatsSection({
       variant: "success",
       trend: stats
         ? {
-            value: `${stats.incomeTrend >= 0 ? "+" : ""}${stats.incomeTrend}%`,
-            direction: stats.incomeTrend >= 0 ? "up" : "down",
-            label: trendLabel,
-          }
+          value: `${stats.incomeTrend >= 0 ? "+" : ""}${stats.incomeTrend}%`,
+          direction: stats.incomeTrend >= 0 ? "up" : "down",
+          label: trendLabel,
+        }
         : undefined,
       prefix: "+",
     },
@@ -343,10 +343,10 @@ function TransactionStatsSection({
       variant: "destructive",
       trend: stats
         ? {
-            value: `${stats.expenseTrend >= 0 ? "+" : ""}${stats.expenseTrend}%`,
-            direction: stats.expenseTrend >= 0 ? "up" : "down",
-            label: trendLabel,
-          }
+          value: `${stats.expenseTrend >= 0 ? "+" : ""}${stats.expenseTrend}%`,
+          direction: stats.expenseTrend >= 0 ? "up" : "down",
+          label: trendLabel,
+        }
         : undefined,
       prefix: "-",
     },
@@ -363,10 +363,10 @@ function TransactionStatsSection({
       variant: stats && stats.netChange >= 0 ? "success" : "destructive",
       trend: stats
         ? {
-            value: `${stats.netTrend >= 0 ? "+" : ""}${stats.netTrend}%`,
-            direction: stats.netTrend >= 0 ? "up" : "down",
-            label: trendLabel,
-          }
+          value: `${stats.netTrend >= 0 ? "+" : ""}${stats.netTrend}%`,
+          direction: stats.netTrend >= 0 ? "up" : "down",
+          label: trendLabel,
+        }
         : undefined,
       prefix: stats && stats.netChange >= 0 ? "+" : "-",
     },
@@ -643,8 +643,8 @@ function TransactionsContent() {
           type === "income"
             ? "text-green-600"
             : type === "expense"
-            ? "text-red-500"
-            : "text-blue-500";
+              ? "text-red-500"
+              : "text-blue-500";
         const prefix = type === "income" ? "+" : type === "expense" ? "-" : "";
         return (
           <span className={`font-semibold ${color}`}>
@@ -697,17 +697,10 @@ function TransactionsContent() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/accounts">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <PageHeader
-            title="Transactions"
-            subTitle="Track all income, expenses, and transfers"
-          />
-        </div>
+        <PageHeader
+          title="Transactions"
+          subTitle="Track all income, expenses, and transfers"
+        />
         <div className="flex gap-2">
           <TransferDialog />
           <ExpenseDialog />
