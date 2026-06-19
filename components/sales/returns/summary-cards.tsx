@@ -21,13 +21,6 @@ export function SummaryCards({
   isAccountsEnabled,
   formatCurrency,
 }: SummaryCardsProps) {
-  const pendingCount =
-    (summary?.thisMonth?.returnsCount ?? 0) - (summary?.allTime?.returnsCount ?? 0) >= 0
-      ? 0
-      : 0;
-  // We don't get a pending count from summary, so calculate from available data
-  // For the 3-card layout matching the screenshot:
-
   return (
     <div
       className={`grid gap-4 ${
@@ -37,7 +30,7 @@ export function SummaryCards({
       <StatCard
         label="Total Returns"
         value={String(summary?.allTime?.returnsCount ?? 0)}
-        sub="this month"
+        sub="all time"
         isLoading={isLoading}
       />
       <StatCard
@@ -48,7 +41,7 @@ export function SummaryCards({
       />
       <StatCard
         label="Pending"
-        value={String(summary?.today?.returnsCount ?? 0)}
+        value={String(summary?.pending?.returnsCount ?? 0)}
         sub="awaiting review"
         isLoading={isLoading}
       />

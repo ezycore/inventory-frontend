@@ -30,6 +30,8 @@ export interface User {
       excludedColumns?: { [key: string]: string[] };
     };
     features?: OrganizationFeatures;
+    /** Progress of background sample-data seeding; presence ⇒ workspace holds sample data. */
+    demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
   };
   defaultData: {
     customerId?: string;

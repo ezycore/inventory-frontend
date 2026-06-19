@@ -10,6 +10,9 @@ export interface BulkAdjustmentItem {
   variantId?: string | null
   newQuantity: number
   notes?: string
+  // Expiry-batch capture (only honoured for expiry-tracked products on an increase)
+  expiryDate?: string
+  batchNumber?: string
 }
 
 const inventoryHooks = createResourceHooks<Inventory, CreateInventoryDto>(
@@ -235,5 +238,40 @@ export const useBulkTransferStock = () => {
       const message = error?.response?.data?.error || 'Failed to transfer stock'
       toast.error(message)
     },
+  })
+}
+
+// 📅 EXPIRY TRACKING (FEFO) — requires the expiryTracking feature
+
+// Batches expiring within `days` (default handled server-side)
+export const useExpiringBatches = (
+  filters: { days?: number; page?: number; limit?: number } = {}
+) => {
+  return useQuery({
+    queryKey: [...queryKeys.inventory.all(), 'expiring', filters],
+    queryFn: () => inventoryApi.getExpiringBatches(filters),
+  })
+}
+
+// Batches already past expiry that still hold stock
+export const useExpiredBatches = (
+  filters: { page?: number; limit?: number } = {}
+) => {
+  return useQuery({
+    queryKey: [...queryKeys.inventory.all(), 'expired', filters],
+    queryFn: () => inventoryApi.getExpiredBatches(filters),
+  })
+}
+
+// Per-batch breakdown for a single product
+export const useProductBatches = (
+  productId: string,
+  filters: { variantId?: string } = {},
+  options: { enabled?: boolean } = {}
+) => {
+  return useQuery({
+    queryKey: [...queryKeys.inventory.all(), 'product-batches', productId, filters],
+    queryFn: () => inventoryApi.getProductBatches(productId, filters),
+    enabled: !!productId && (options.enabled ?? true),
   })
 }

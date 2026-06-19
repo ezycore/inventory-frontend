@@ -3,6 +3,7 @@
 import KBar from "@/components/kbar";
 import AppSidebar from "@/components/layout/app-sidebar";
 import Header from "@/components/layout/header";
+import { DemoBanner } from "@/components/shared/demo-banner";
 import { hasActiveSubscription } from "@/lib/subscription-utils";
 import { useGetSubscription, useMe } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -67,11 +68,7 @@ export default function ProtectedLayout({
     if (isSubscriptionAccessError(subscription.error)) {
       forceLogoutForSubscription();
     }
-  }, [
-    forceLogoutForSubscription,
-    subscription.error,
-    subscription.isError,
-  ]);
+  }, [forceLogoutForSubscription, subscription.error, subscription.isError]);
 
   return (
     <KBar>
@@ -82,6 +79,7 @@ export default function ProtectedLayout({
       >
         <AppSidebar />
         <SidebarInset>
+          <DemoBanner />
           <Header />
           <div className="min-h-screen">
             <div className="container mx-auto p-4 sm:p-6">

@@ -28,7 +28,6 @@ This is a **Next.js 16 App Router** application for an inventory management SaaS
 
 - `app/(auth)/` — Public auth pages (login, signup, forgot-password, etc.)
 - `app/(protected)/` — All authenticated pages; guarded by `app/(protected)/layout.tsx`
-- `app/landing/` — Marketing/landing pages
 
 The protected layout (`app/(protected)/layout.tsx`) verifies the session via `useMe()` and checks subscription status on every mount. If the subscription is inactive it forces logout to `/login?subscription=inactive`.
 

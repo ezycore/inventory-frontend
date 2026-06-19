@@ -155,6 +155,14 @@ const ownerSetupFormConfig: DynamicFormConfig = {
           required: true,
           options: CURRENCY_OPTIONS,
         },
+        {
+          name: "loadSampleData",
+          type: "switch",
+          label: "Load sample data so I can explore",
+          columnSpan: 12,
+          description:
+            "Pre-fills your workspace with example products, stock, purchases and sales. You can clear it anytime.",
+        },
       ],
     },
   ],
@@ -184,6 +192,17 @@ export default function Signup() {
       }
     }
   }, [selectedCountry, form]);
+
+  // `/signup?demo=true` pre-enables the "load sample data" switch so the new
+  // (real) account lands fully populated. It stays a normal, permanent workspace
+  // — the seeded rows are `isDemoData` and can be wiped via the demo banner's
+  // one-click reset. The user can still toggle the switch off before submitting.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("demo") === "true") {
+      form.setValue("loadSampleData", true, { shouldValidate: false });
+    }
+  }, [form]);
 
   const handleSubmit = (data: Record<string, any>) => {
     // Validate passwords match

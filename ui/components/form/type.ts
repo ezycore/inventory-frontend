@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { Control, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
 export type FormFieldType =
@@ -23,6 +23,8 @@ export interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
+  /** Secondary descriptive text. Shown when the field renders options as cards. */
+  description?: string;
 }
 
 /**
@@ -131,6 +133,13 @@ export interface FormFieldConfig {
   labelInValue?: boolean; // For select fields
   options?: SelectOption[]; // For select fields (static options)
   /**
+   * Layout for `radio-group` options.
+   * - "inline" (default): compact horizontal radios with labels only.
+   * - "cards": each option renders as a selectable bordered card showing the
+   *   label, optional `description`, and optional `icon`.
+   */
+  optionLayout?: "inline" | "cards";
+  /**
    * API endpoint for select field options
    * Supports template syntax with {{fieldName}} placeholders
    * Example: '/products/{{productId}}/variants'
@@ -162,6 +171,13 @@ export interface FormFieldConfig {
    * }
    */
   requiredWhen?: FieldDependency;
+
+  /**
+   * Longer explanatory text shown in a hover tooltip via an info icon next to
+   * the label. Use this (instead of `helperText`) for guidance that would
+   * otherwise clutter the form under every field.
+   */
+  tooltip?: string;
 
   rows?: number; // For textarea
   accept?: string; // For file upload
@@ -232,6 +248,13 @@ export interface FormSection {
   className?: string;
   /** Hide/show the entire section based on another field's value */
   dependsOn?: FieldDependency;
+  /**
+   * Optional content rendered on the right side of the section header
+   * (e.g. a "Track stock" toggle). Receives the form `control` so it can
+   * bind to a field via a Controller. In collapsible sections it sits left of
+   * the collapse chevron and its clicks do not toggle the section.
+   */
+  headerAction?: (ctx: { control: Control<any> }) => ReactNode;
 }
 
 export interface DynamicFormConfig {
@@ -338,6 +361,7 @@ export const generateSchemaFromConfig = (
 
       case "boolean":
       case "checkbox":
+      case "switch":
         fieldSchema = z.boolean();
         break;
 

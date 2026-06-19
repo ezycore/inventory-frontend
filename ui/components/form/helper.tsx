@@ -1,5 +1,5 @@
 import { cn } from "@ui/lib/utils";
-import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Info, Upload, X } from "lucide-react";
 import { FC, memo, useMemo, useState } from "react";
 import { Controller, useWatch, useFormState } from "react-hook-form";
 import Link from "next/link";
@@ -27,6 +27,7 @@ import { Input } from "../input";
 import { Label } from "../label";
 import { RadioGroup, RadioGroupItem } from "../radio-group";
 import { Textarea } from "../textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 
 import type {
   ColumnSpan,
@@ -582,14 +583,19 @@ const FormField: FC<{
             )}
           />
         );
-      case "radio-group":
+      case "radio-group": {
+        const asCards = field.optionLayout === "cards";
         return (
           <Controller
             name={field.name}
             control={control}
             render={({ field: controllerField }) => (
               <RadioGroup
-                className="flex items-center gap-5"
+                className={cn(
+                  asCards
+                    ? "grid grid-cols-1 gap-3 sm:grid-cols-2"
+                    : "flex items-center gap-5",
+                )}
                 value={controllerField.value}
                 onValueChange={(value) => {
                   controllerField.onChange(value);
@@ -597,19 +603,53 @@ const FormField: FC<{
                 }}
                 disabled={effectiveDisabled}
               >
-                {field.options?.map((option) => (
-                  <div
-                    key={option.value}
-                    className="flex items-center gap-2"
-                  >
-                    <RadioGroupItem value={option.value} id={option.value} />
-                    <Label htmlFor={option.value}>{option.label}</Label>
-                  </div>
-                ))}
+                {field.options?.map((option) => {
+                  if (asCards) {
+                    const checked = controllerField.value === option.value;
+                    return (
+                      <Label
+                        key={option.value}
+                        htmlFor={option.value}
+                        className={cn(
+                          "flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors",
+                          checked
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "border-input hover:bg-accent/50",
+                          (effectiveDisabled || option.disabled) &&
+                            "cursor-not-allowed opacity-60",
+                        )}
+                      >
+                        <RadioGroupItem
+                          value={option.value}
+                          id={option.value}
+                          disabled={option.disabled}
+                          className="mt-0.5"
+                        />
+                        <div className="min-w-0 space-y-0.5">
+                          <div className="text-sm font-medium leading-none">
+                            {option.label}
+                          </div>
+                          {option.description && (
+                            <p className="text-xs text-muted-foreground">
+                              {option.description}
+                            </p>
+                          )}
+                        </div>
+                      </Label>
+                    );
+                  }
+                  return (
+                    <div key={option.value} className="flex items-center gap-2">
+                      <RadioGroupItem value={option.value} id={option.value} />
+                      <Label htmlFor={option.value}>{option.label}</Label>
+                    </div>
+                  );
+                })}
               </RadioGroup>
             )}
           />
         );
+      }
 
       case "date":
         return (
@@ -791,6 +831,7 @@ const FormField: FC<{
                   {...controllerField}
                   {...field.customProps}
                   control={control}
+                  setValue={setValue}
                   onChange={(value: any) => {
                     controllerField.onChange(value);
                     handleChange(value);
@@ -879,15 +920,35 @@ const FormField: FC<{
     >
       {field.type !== "checkbox" && (
         <div className="flex items-center justify-between mb-2">
-          <Label
-            htmlFor={field.name}
-            className="text-sm gap-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            {field.label}
-            {!viewMode && (field.required || isConditionallyRequired) && (
-              <span className="text-red-500">*</span>
+          <div className="flex items-center gap-1">
+            <Label
+              htmlFor={field.name}
+              className="text-sm gap-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              {field.label}
+              {!viewMode && (field.required || isConditionallyRequired) && (
+                <span className="text-red-500">*</span>
+              )}
+            </Label>
+            {field.tooltip && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    aria-label={`More info about ${field.label}`}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs text-center">
+                  {field.tooltip}
+                </TooltipContent>
+              </Tooltip>
             )}
-          </Label>
+          </div>
         </div>
       )}        <div className="w-full min-w-0 flex-1">
         {field.type === "select" && field.action ? (
@@ -979,6 +1040,18 @@ const FormSectionComponent: FC<{
 }) => {
     const [isOpen, setIsOpen] = useState(section.defaultOpen ?? true);
 
+    // Safety net: a collapsed section must never hide a validation error
+    // (otherwise React Hook Form tries to focus an unmounted field). When any
+    // field in this section has an error, force the section open — derived, so
+    // the user also can't collapse the section while the error is unresolved.
+    const hasSectionError = useMemo(() => {
+      const errors = formState?.errors || {};
+      return section.fields.some(
+        (f) => getNestedValue(errors, f.name) !== undefined,
+      );
+    }, [formState?.errors, section.fields]);
+    const effectiveOpen = isOpen || hasSectionError;
+
     // Section-level dependency evaluation — hide the whole section when condition not met
     const sectionDepValue = useWatch({
       control,
@@ -991,7 +1064,7 @@ const FormSectionComponent: FC<{
     }
 
     const content = (
-      <CardContent className={cn("space-y-4 pt-4", section.className)}>
+      <CardContent className={cn("px-4 pt-3 pb-4 sm:px-6 sm:pb-5", section.className)}>
         <div className="grid grid-cols-12 gap-3 sm:gap-4 w-full">
           {section.fields.map((field) => (
             <FormField
@@ -1014,10 +1087,10 @@ const FormSectionComponent: FC<{
 
     if (section.collapsible) {
       return (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <Card>
+        <Collapsible open={effectiveOpen} onOpenChange={setIsOpen}>
+          <Card className="gap-0 py-0">
             <CollapsibleTrigger className="w-full">
-              <CardHeader className="flex flex-row items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors p-4 sm:p-6">
+              <CardHeader className="flex flex-row items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors px-4 py-4 sm:px-6">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   {section.icon && (
                     <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
@@ -1035,8 +1108,16 @@ const FormSectionComponent: FC<{
                     )}
                   </div>
                 </div>
-                <div className="shrink-0 ml-2">
-                  {isOpen ? (
+                <div className="flex shrink-0 items-center gap-3 ml-2">
+                  {section.headerAction && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      {section.headerAction({ control })}
+                    </div>
+                  )}
+                  {effectiveOpen ? (
                     <ChevronUp className="h-5 w-5" />
                   ) : (
                     <ChevronDown className="h-5 w-5" />
@@ -1051,24 +1132,29 @@ const FormSectionComponent: FC<{
     }
 
     return (
-      <Card>
-        <CardHeader className="p-4 sm:p-6">
-          <div className="flex items-center gap-2">
-            {section.icon && (
-              <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                {section.icon}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <CardTitle className="text-base sm:text-lg truncate">
-                {section.title}
-              </CardTitle>
-              {section.description && (
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                  {section.description}
-                </p>
+      <Card className="gap-0 py-0">
+        <CardHeader className="px-4 pt-4 pb-0 sm:px-6 sm:pt-5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              {section.icon && (
+                <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                  {section.icon}
+                </div>
               )}
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-base sm:text-lg truncate">
+                  {section.title}
+                </CardTitle>
+                {section.description && (
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    {section.description}
+                  </p>
+                )}
+              </div>
             </div>
+            {section.headerAction && (
+              <div className="shrink-0">{section.headerAction({ control })}</div>
+            )}
           </div>
         </CardHeader>
         {content}
@@ -1110,7 +1196,7 @@ const FormContent: FC<{
     }, [config]);
 
     return (
-      <div className={cn("space-y-4 sm:space-y-6", className)}>
+      <div className={cn("space-y-3 sm:space-y-4", className)}>
         {/* Render sections if available */}
         {config.sections &&
           config.sections.map((section: any, index: number) => (
