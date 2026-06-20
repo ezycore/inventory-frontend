@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Star, Pencil } from "lucide-react";
+import { Star, Pencil, ImageIcon } from "lucide-react";
 import {
   CatalogProduct,
   useCatalogProducts,
@@ -20,7 +20,13 @@ import { Checkbox } from "@/ui/components/checkbox";
 import { Badge } from "@/ui/components/badge";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import PageHeader from "@/ui/components/header";
+import { SafeImage } from "@/ui/components/safeImage";
 import { DataCardPagination } from "@/ui/components/dataCard/pagination";
+import {
+  ImageGalleryUpload,
+  type GalleryImage,
+  type UploadedImage,
+} from "@/components/shared/image-gallery-upload";
 import {
   Dialog,
   DialogContent,
@@ -199,21 +205,41 @@ export default function EcommerceCatalogPage() {
                       />
                     </td>
                     <td className="p-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium">{p.name}</span>
-                        {blockReason && (
-                          <Badge
-                            variant="outline"
-                            className="border-amber-300 text-[10px] capitalize text-amber-700"
-                            title="This product will not appear on the public store regardless of the Listed toggle."
-                          >
-                            {blockReason}
-                          </Badge>
-                        )}
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded border bg-muted">
+                          {p.images?.[0]?.url ? (
+                            <SafeImage
+                              src={p.images[0].thumbnailUrl || p.images[0].url}
+                              alt={p.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                              <ImageIcon className="h-4 w-4" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{p.name}</span>
+                            {blockReason && (
+                              <Badge
+                                variant="outline"
+                                className="border-amber-300 text-[10px] capitalize text-amber-700"
+                                title="This product will not appear on the public store regardless of the Listed toggle."
+                              >
+                                {blockReason}
+                              </Badge>
+                            )}
+                          </div>
+                          {p.base_sku && (
+                            <div className="text-xs text-muted-foreground">
+                              {p.base_sku}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {p.base_sku && (
-                        <div className="text-xs text-muted-foreground">{p.base_sku}</div>
-                      )}
                     </td>
                     <td className="p-3 tabular-nums">
                       {(p.availableQuantity ?? 0) <= 0 ? (
@@ -322,6 +348,7 @@ function EditListingDialog({
   const update = useUpdateCatalogListing();
   const [onlinePrice, setOnlinePrice] = useState("");
   const [onlineDescription, setOnlineDescription] = useState("");
+  const [images, setImages] = useState<GalleryImage[]>([]);
 
   // Re-seed local state when a new product opens.
   const key = product?._id ?? "";
@@ -332,17 +359,33 @@ function EditListingDialog({
         : "",
     );
     setOnlineDescription(product?.storefront?.onlineDescription ?? "");
+    setImages((product?.images ?? []) as GalleryImage[]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   if (!product) return null;
 
   const save = async () => {
-    await update.mutateAsync({
-      id: product._id,
-      onlinePrice: onlinePrice === "" ? undefined : Number(onlinePrice),
-      onlineDescription: onlineDescription.trim() || undefined,
-    });
+    const fd = new FormData();
+    if (onlinePrice !== "") fd.append("onlinePrice", String(Number(onlinePrice)));
+    const desc = onlineDescription.trim();
+    if (desc) fd.append("onlineDescription", desc);
+
+    // Diff images against the product's current set: existing ones the user
+    // removed go in `removeImages` (publicIds); new File objects are uploaded.
+    const keptPublicIds = images
+      .filter((img): img is UploadedImage => !(img instanceof File))
+      .map((img) => img.publicId)
+      .filter((id): id is string => !!id);
+    const removed = (product.images ?? [])
+      .map((img) => img.publicId)
+      .filter((id): id is string => !!id && !keptPublicIds.includes(id));
+    if (removed.length) fd.append("removeImages", JSON.stringify(removed));
+    images
+      .filter((img): img is File => img instanceof File)
+      .forEach((file) => fd.append("images", file));
+
+    await update.mutateAsync({ id: product._id, formData: fd });
     onClose();
   };
 
@@ -352,7 +395,14 @@ function EditListingDialog({
         <DialogHeader>
           <DialogTitle>Online listing — {product.name}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-2">
+        <div className="max-h-[70vh] space-y-4 overflow-y-auto py-2">
+          <div className="space-y-1">
+            <Label>Images</Label>
+            <p className="text-xs text-muted-foreground">
+              First image is the primary one shown on the storefront. Up to 5.
+            </p>
+            <ImageGalleryUpload value={images} onChange={setImages} maxFiles={5} />
+          </div>
           <div className="space-y-1">
             <Label>Online price ({currency})</Label>
             <Input

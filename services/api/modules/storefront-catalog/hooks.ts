@@ -26,7 +26,12 @@ const invalidateAll = (qc: ReturnType<typeof useQueryClient>) =>
 export const useUpdateCatalogListing = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: string } & UpdateStorefrontListingDto) => {
+    mutationFn: (
+      v:
+        | ({ id: string } & UpdateStorefrontListingDto)
+        | { id: string; formData: FormData },
+    ) => {
+      if ("formData" in v) return storefrontCatalogApi.update(v.id, v.formData);
       const { id, ...dto } = v;
       return storefrontCatalogApi.update(id, dto);
     },

@@ -8,6 +8,13 @@ export interface CatalogProductStorefront {
   onlineDescription?: string;
 }
 
+export interface CatalogImage {
+  url?: string;
+  mediumUrl?: string;
+  thumbnailUrl?: string;
+  publicId?: string;
+}
+
 export interface CatalogProduct {
   _id: string;
   name: string;
@@ -15,7 +22,7 @@ export interface CatalogProduct {
   price?: number;
   status: string;
   productType: string;
-  images?: { url?: string }[];
+  images?: CatalogImage[];
   storefront?: CatalogProductStorefront;
   /** Stock at the storefront fulfillment location (0 if none configured). */
   availableQuantity?: number;
@@ -68,9 +75,11 @@ export const storefrontCatalogApi = {
     const s = qs.toString();
     return apiClient.get(`${base}${s ? `?${s}` : ""}`);
   },
+  // Accepts a plain DTO (inline toggles) or FormData (edit dialog with image
+  // uploads). apiClient.patch sends FormData as multipart automatically.
   update: (
     id: string,
-    dto: UpdateStorefrontListingDto,
+    dto: UpdateStorefrontListingDto | FormData,
   ): Promise<ApiResponse<CatalogProduct>> => apiClient.patch(`${base}/${id}`, dto),
   bulkUpdate: (
     dto: BulkStorefrontDto,
