@@ -36,7 +36,6 @@ import {
   useSidebar,
 } from "@ui/components/sidebar";
 import {
-  BellIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   CreditCardIcon,
@@ -250,13 +249,11 @@ export default function AppSidebar() {
                       <UserCircleIcon className="mr-2 h-4 w-4" />
                       Profile
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push("/dashboard/billing")}
+                    >
                       <CreditCardIcon className="mr-2 h-4 w-4" />
                       Billing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <BellIcon className="mr-2 h-4 w-4" />
-                      Notifications
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
