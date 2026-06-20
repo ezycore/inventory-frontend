@@ -1,0 +1,79 @@
+import { apiClient } from "@/lib/api-client";
+import type { ApiResponse } from "@/types";
+
+export interface CatalogProductStorefront {
+  isListed?: boolean;
+  onlinePrice?: number;
+  featured?: boolean;
+  onlineDescription?: string;
+}
+
+export interface CatalogProduct {
+  _id: string;
+  name: string;
+  base_sku?: string;
+  price?: number;
+  status: string;
+  productType: string;
+  images?: { url?: string }[];
+  storefront?: CatalogProductStorefront;
+  /** Stock at the storefront fulfillment location (0 if none configured). */
+  availableQuantity?: number;
+}
+
+export interface CatalogListResult {
+  items: CatalogProduct[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface CatalogListParams {
+  search?: string;
+  listed?: "all" | "listed" | "unlisted";
+  featured?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+/** Per-product storefront fields a catalog editor can write. */
+export interface UpdateStorefrontListingDto {
+  isListed?: boolean;
+  onlinePrice?: number;
+  featured?: boolean;
+  onlineDescription?: string;
+}
+
+export interface BulkStorefrontDto {
+  ids: string[];
+  patch: { isListed?: boolean; featured?: boolean };
+}
+
+export interface BulkStorefrontResult {
+  success: boolean;
+  total: number;
+  successful: number;
+  failed: number;
+  errors?: { id: string; error: string }[];
+}
+
+const base = "/ecommerce/catalog";
+
+export const storefrontCatalogApi = {
+  list: (params: CatalogListParams = {}): Promise<ApiResponse<CatalogListResult>> => {
+    const qs = new URLSearchParams();
+    if (params.search) qs.append("search", params.search);
+    if (params.listed && params.listed !== "all") qs.append("listed", params.listed);
+    if (params.featured) qs.append("featured", "true");
+    if (params.page) qs.append("page", String(params.page));
+    if (params.limit) qs.append("limit", String(params.limit));
+    const s = qs.toString();
+    return apiClient.get(`${base}${s ? `?${s}` : ""}`);
+  },
+  update: (
+    id: string,
+    dto: UpdateStorefrontListingDto,
+  ): Promise<ApiResponse<CatalogProduct>> => apiClient.patch(`${base}/${id}`, dto),
+  bulkUpdate: (
+    dto: BulkStorefrontDto,
+  ): Promise<ApiResponse<BulkStorefrontResult>> =>
+    apiClient.patch(`${base}/bulk`, dto),
+};

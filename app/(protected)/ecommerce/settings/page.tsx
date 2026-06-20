@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Copy, ExternalLink } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   useGetStorefrontSettings,
   useUpdateStorefrontSettings,
@@ -56,6 +59,19 @@ const SHIPPING_MODES: { value: ShippingRuleMode; label: string }[] = [
 const num = (v: string): number | undefined =>
   v.trim() === "" ? undefined : Number(v);
 
+/**
+ * Public URL of the live storefront. Mirrors `proxy.ts`: when a storefront root
+ * domain is configured the store is reached at `{slug}.{root}`, otherwise it is
+ * path-based at `{origin}/s/{slug}`.
+ */
+const STOREFRONT_ROOT = process.env.NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN;
+const storefrontUrl = (slug: string): string => {
+  if (STOREFRONT_ROOT) return `https://${slug}.${STOREFRONT_ROOT}`;
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}/s/${slug}`;
+};
+
 const toForm = (s: StorefrontSettings): FormState => ({
   published: s.published,
   displayName: s.displayName ?? "",
@@ -74,14 +90,14 @@ export default function StoreSettingsPage() {
   const { data: locationsRes } = useQuery({
     queryKey: ["locations", "storefront-options"],
     queryFn: () =>
-      apiClient.get<{ data: { _id: string; name: string }[] }>(
+      apiClient.get<{ data: { items: { _id: string; name: string }[] } }>(
         "/locations?all=true&fields=_id,name",
       ),
     staleTime: 5 * 60 * 1000,
   });
-  const locationOptions: LocationOption[] = (locationsRes?.data ?? []).map(
-    (l) => ({ label: l.name, value: l._id }),
-  );
+  const locationOptions: LocationOption[] = (
+    locationsRes?.data?.items ?? []
+  ).map((l) => ({ label: l.name, value: l._id }));
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 p-6">
@@ -121,6 +137,22 @@ function StoreSettingsForm({
   // Seeded synchronously from props — no effect needed.
   const [form, setForm] = useState<FormState>(() => toForm(settings));
   const update = useUpdateStorefrontSettings();
+
+  // Live store URL — shown only when the SAVED settings are published (the
+  // authoritative state), so the link is never advertised before the store
+  // is actually reachable.
+  const slug = useAuthStore((s) => s.user?.organization?.slug);
+  const liveUrl = slug ? storefrontUrl(slug) : null;
+
+  const copyLiveUrl = async () => {
+    if (!liveUrl) return;
+    try {
+      await navigator.clipboard.writeText(liveUrl);
+      toast.success("Store URL copied");
+    } catch {
+      toast.error("Couldn't copy the URL");
+    }
+  };
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -175,6 +207,39 @@ function StoreSettingsForm({
                 : "Unpublished — store is offline"}
             </span>
           </div>
+
+          {settings.published && liveUrl && (
+            <div className="mt-4 rounded-md border bg-muted/30 p-3">
+              <p className="mb-1 text-xs text-muted-foreground">
+                Your store is live at
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href={liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="break-all text-sm font-medium text-primary underline underline-offset-2"
+                >
+                  {liveUrl}
+                </a>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={copyLiveUrl}
+                >
+                  <Copy className="mr-1 h-3.5 w-3.5" />
+                  Copy
+                </Button>
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <a href={liveUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                    Visit
+                  </a>
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

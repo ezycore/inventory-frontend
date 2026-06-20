@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, PaginatedResponse } from "@/types";
 
 export interface AdminOrderItem {
   productName: string;
@@ -78,6 +78,38 @@ export const storefrontOrdersApi = {
     if (params.limit) qs.append("limit", String(params.limit));
     const s = qs.toString();
     return apiClient.get(`${base}${s ? `?${s}` : ""}`);
+  },
+  // Adapter for DataTable's self-contained mode: list() already paginates and
+  // filters by status server-side; this flattens its { items, pagination }
+  // payload into the PaginatedResponse shape DataTable expects.
+  getAll: async (
+    params: { page?: number; limit?: number; status?: string } = {},
+  ): Promise<ApiResponse<PaginatedResponse<AdminStorefrontOrder>>> => {
+    const res = await storefrontOrdersApi.list({
+      status: params.status,
+      page: params.page,
+      limit: params.limit,
+    });
+    const items = res.data?.items ?? [];
+    const pg = res.data?.pagination ?? {
+      page: params.page ?? 1,
+      limit: params.limit ?? 20,
+      total: items.length,
+      totalPages: 1,
+    };
+    return {
+      success: res.success,
+      message: res.message,
+      data: {
+        items,
+        total: pg.total,
+        page: pg.page,
+        limit: pg.limit,
+        totalPages: pg.totalPages,
+        hasNext: pg.page < pg.totalPages,
+        hasPrev: pg.page > 1,
+      },
+    };
   },
   get: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.get(`${base}/${id}`),

@@ -69,13 +69,14 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   const { data: accountsRes } = useQuery({
     queryKey: ["accounts", "order-options"],
     queryFn: () =>
-      apiClient.get<{ data: { _id: string; name: string }[] }>(
+      apiClient.get<{ data: { items: { _id: string; name: string }[] } }>(
         "/accounts?all=true&fields=_id,name",
       ),
     enabled: !!accountsEnabled,
     staleTime: 5 * 60 * 1000,
   });
-  const accounts = accountsRes?.data ?? [];
+  // List endpoints wrap as { data: { items: [...] } } (sendPaginatedResponse).
+  const accounts = accountsRes?.data?.items ?? [];
 
   const isPending = order.status === "pending";
   const isConfirmed = !!order.saleId;

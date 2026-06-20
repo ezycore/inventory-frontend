@@ -124,6 +124,13 @@ export const navItems: NavItem[] = [
         permissions: ["storefront.orders.view"],
       },
       {
+        title: "Catalog",
+        url: "/ecommerce/catalog",
+        icon: "package",
+        features: ["storefront"],
+        permissions: ["storefront.view"],
+      },
+      {
         title: "Store Settings",
         url: "/ecommerce/settings",
         icon: "settings",

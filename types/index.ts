@@ -51,7 +51,7 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   invoicePrinting: false,
   returns: true,
   uomConversion: false,
-  storefront: false,
+  storefront: true,
 };
 
 /**

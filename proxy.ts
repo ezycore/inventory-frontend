@@ -1,6 +1,16 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+/**
+ * Subdomain rewrite for storefronts: `{slug}.STOREFRONT_ROOT` → `/s/{slug}`.
+ *
+ * INERT BY DEFAULT. It only acts when `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN` is set
+ * (e.g. "mystore.com"), which is intentionally a DIFFERENT domain from the staff
+ * workspace subdomains, so the two never collide. Until then, storefronts are
+ * reached path-based at `/s/{slug}` and this branch is a no-op.
+ */
+const STOREFRONT_ROOT = process.env.NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN;
+
 // Define public routes that don't require authentication
 const publicRoutes = [
   "/login",
@@ -15,7 +25,26 @@ const publicRoutes = [
 const authRoutes = ["/login", "/signup"];
 
 export function proxy(request: NextRequest) {
+  // 1) Storefront subdomain rewrite (runs first; inert unless STOREFRONT_ROOT set).
+  if (STOREFRONT_ROOT) {
+    const host = (request.headers.get("host") || "").split(":")[0];
+    // Must be a subdomain of the storefront root (not the apex itself).
+    if (host !== STOREFRONT_ROOT && host.endsWith(`.${STOREFRONT_ROOT}`)) {
+      const slug = host.slice(0, host.length - STOREFRONT_ROOT.length - 1);
+      if (slug && slug !== "www" && !request.nextUrl.pathname.startsWith("/s/")) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/s/${slug}${url.pathname === "/" ? "" : url.pathname}`;
+        return NextResponse.rewrite(url);
+      }
+    }
+  }
+
   const { pathname } = request.nextUrl;
+
+  // Storefronts are public — never gate them behind auth.
+  if (pathname.startsWith("/s/")) {
+    return NextResponse.next();
+  }
 
   // Check for auth token in cookies (server-side accessible)
   const token = request.cookies.get("auth-token")?.value;

@@ -17,6 +17,7 @@ const statusBadgeVariants = cva(
         online: "border-green-200 bg-green-50 text-green-800 hover:bg-green-100",
         verified: "border-green-200 bg-green-50 text-green-800 hover:bg-green-100",
         confirmed: "border-green-200 bg-green-50 text-green-800 hover:bg-green-100",
+        delivered: "border-green-200 bg-green-50 text-green-800 hover:bg-green-100",
 
         // Inactive/Disabled states
         inactive: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
@@ -53,6 +54,7 @@ const statusBadgeVariants = cva(
         premium: "border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100",
         featured: "border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100",
         vip: "border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100",
+        shipped: "border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100",
       },
       size: {
         sm: "px-2 py-0.5 text-xs",
@@ -77,6 +79,7 @@ export interface StatusBadgeProps
     | "online" | "offline" | "verified" | "blocked" | "deleted"
     | "suspended" | "review" | "moderate" | "confirmed" | "premium"
     | "featured" | "vip" | "in_progress" | "in-progress"
+    | "shipped" | "delivered"
 }
 
 function StatusBadge({ className, status, size, ...props }: StatusBadgeProps) {

@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, PaginatedResponse } from "@/types";
 
 export type CampaignScope = "storewide" | "category" | "product";
 
@@ -28,8 +28,49 @@ export interface CampaignInput {
 
 const base = "/ecommerce/campaigns";
 
+export interface CampaignListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}
+
 export const campaignsApi = {
   list: (): Promise<ApiResponse<Campaign[]>> => apiClient.get(base),
+  // Adapter for DataTable's self-contained mode: backend returns the full
+  // list, so search/status filtering and pagination happen client-side and
+  // are wrapped in the PaginatedResponse shape DataTable expects.
+  getAll: async (
+    params: CampaignListParams = {},
+  ): Promise<ApiResponse<PaginatedResponse<Campaign>>> => {
+    const res = await campaignsApi.list();
+    const all = res.data ?? [];
+    const search = (params.search ?? "").trim().toLowerCase();
+    const status = params.status ?? "";
+    const filtered = all.filter(
+      (c) =>
+        (!search || c.name.toLowerCase().includes(search)) &&
+        (!status || c.status === status),
+    );
+    const limit = params.limit && params.limit > 0 ? params.limit : 10;
+    const page = params.page && params.page > 0 ? params.page : 1;
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const start = (page - 1) * limit;
+    return {
+      success: res.success,
+      message: res.message,
+      data: {
+        items: filtered.slice(start, start + limit),
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  },
   create: (body: CampaignInput): Promise<ApiResponse<Campaign>> =>
     apiClient.post(base, body),
   update: (
