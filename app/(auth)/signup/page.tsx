@@ -18,6 +18,7 @@ import { cn } from "@/ui/lib/utils";
 import {
   BarChart3,
   Building2,
+  Loader2,
   Package,
   Receipt,
   ShieldCheck,
@@ -349,9 +350,14 @@ export default function Signup() {
         <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
 
         {/* Logo */}
-        <div className="relative flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
-            <Building2 className="h-6 w-6 text-white" />
+        <div className="relative flex items-center gap-1">
+          <div className="flex h-11 w-11 items-center justify-center">
+            <img
+              src="/logo/ezycore-mark-inverse.svg"
+              alt="EzyCore"
+              width={24}
+              height={24}
+            />
           </div>
           <span className="text-xl font-semibold tracking-tight">EzyCore</span>
         </div>
@@ -418,23 +424,35 @@ export default function Signup() {
             </p>
           </div>
 
-          {/* Form */}
-          <DynamicForm
-            id="owner-setup-form"
-            className="space-y-5"
-            config={config}
-            form={form}
-            onFieldChange={handleFieldChange}
-            cancelLabel={null}
-            submitLabel={
-              createOwnerMutation.isPending
-                ? "Setting up your account..."
-                : "Complete Setup & Create Account"
-            }
-            onSubmit={handleSubmit}
-            contentLoading={createOwnerMutation.isPending}
-            hideCancel={true}
-          />
+          {/* Form (replaced by a friendly loading panel while submitting — the
+              filled form returns intact if the request fails) */}
+          {createOwnerMutation.isPending ? (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border bg-white px-6 py-16 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950">
+                <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Setting up your account…
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  We&apos;re creating your workspace. This only takes a moment.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <DynamicForm
+              id="owner-setup-form"
+              className="space-y-5"
+              config={config}
+              form={form}
+              onFieldChange={handleFieldChange}
+              cancelLabel={null}
+              submitLabel="Complete Setup & Create Account"
+              onSubmit={handleSubmit}
+              hideCancel={true}
+            />
+          )}
 
           {/* Owner-access note */}
           <div className="mt-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
