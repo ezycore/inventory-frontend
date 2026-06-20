@@ -57,6 +57,7 @@ interface VariantRow {
   enableUOMConversion?: boolean
   purchaseUnit?: UnitConversion
   saleUnit?: UnitConversion
+  sku?: string
   barcode?: string
   barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
   inventoryAlertLevel?: number
@@ -75,6 +76,7 @@ interface EditModalData {
   enableUOMConversion: boolean
   purchaseUnit: UnitConversion
   saleUnit: UnitConversion
+  sku?: string
   barcode?: string
   barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
 }
@@ -179,6 +181,7 @@ export default function VariantManager({
       enableUOMConversion: variant.enableUOMConversion ?? false,
       purchaseUnit: variant.purchaseUnit ?? {},
       saleUnit: variant.saleUnit ?? { unitId: baseUnitId, conversionFactor: 1 },
+      sku: variant.sku || '',
       barcode: variant.barcode || '',
       barcodeSymbology: variant.barcodeSymbology || 'CODE128',
     })
@@ -215,6 +218,7 @@ export default function VariantManager({
             enableUOMConversion: editingVariant.enableUOMConversion,
             purchaseUnit: editingVariant.enableUOMConversion ? editingVariant.purchaseUnit : undefined,
             saleUnit: editingVariant.enableUOMConversion ? editingVariant.saleUnit : undefined,
+            sku: editingVariant.sku?.trim() || undefined,
             barcode: editingVariant.barcode?.trim() || undefined,
             barcodeSymbology: editingVariant.barcode?.trim() ? editingVariant.barcodeSymbology : undefined,
           }
@@ -469,8 +473,20 @@ export default function VariantManager({
                 />
               </div>
 
-              {/* Barcode (per variant) */}
+              {/* SKU & Barcode (per variant) */}
               <div className="grid grid-cols-2 gap-3 border-t pt-4">
+                <div className="space-y-1 col-span-2">
+                  <Label htmlFor="edit-sku" className="text-xs">SKU</Label>
+                  <Input
+                    id="edit-sku"
+                    value={editingVariant.sku || ''}
+                    placeholder="Internal code (leave empty to auto-generate)"
+                    className="font-mono"
+                    onChange={e =>
+                      setEditingVariant({ ...editingVariant, sku: e.target.value })
+                    }
+                  />
+                </div>
                 <div className="space-y-1 col-span-2">
                   <Label htmlFor="edit-barcode" className="text-xs">Barcode</Label>
                   <Input

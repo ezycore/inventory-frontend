@@ -115,6 +115,10 @@ export default function ProductsPage() {
             saleUnit: variant.saleUnit
               ? { unitId: variant.saleUnit.unitId, conversionFactor: variant.saleUnit.conversionFactor }
               : undefined,
+            sku: variant.sku,
+            barcode: variant.barcode,
+            barcodeSymbology: variant.barcodeSymbology,
+            inventoryAlertLevel: variant.inventoryAlertLevel,
           }
         }) || []
       return { ...item, variants: transformedVariants }
