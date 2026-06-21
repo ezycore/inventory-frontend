@@ -8,6 +8,20 @@ import type { Sale, SalesReturn } from '@/types';
 import { CopyField } from '@/ui/components/copy';
 
 export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleReturns?: SalesReturn[] }) {
+  // Group line tax by rate + type for the receipt breakdown.
+  const taxRows = Object.values(
+    sale.items.reduce((acc, it) => {
+      const rate = it.taxRate ?? 0;
+      const amount = it.taxAmount ?? 0;
+      if (rate <= 0 || amount <= 0) return acc;
+      const type = it.taxType ?? 'inclusive';
+      const key = `${rate}-${type}`;
+      acc[key] = acc[key] ?? { rate, type, amount: 0 };
+      acc[key].amount += amount;
+      return acc;
+    }, {} as Record<string, { rate: number; type: string; amount: number }>),
+  ).sort((a, b) => b.rate - a.rate);
+
   return (
     <>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -32,8 +46,16 @@ export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleRetur
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <InfoField label="Total Amount" value={sale.subtotal} showCurrency />
+        <InfoField label="Subtotal" value={sale.subtotal} showCurrency />
         <InfoField label="Additional Discount" value={sale.additionalDiscount} showCurrency />
+        {taxRows.map((r) => (
+          <InfoField
+            key={`${r.rate}-${r.type}`}
+            label={`Tax (${r.rate}%)${r.type === 'inclusive' ? ' incl.' : ''}`}
+            value={r.amount}
+            showCurrency
+          />
+        ))}
         <InfoField label="Invoice Amount" value={sale.totalAmount} showCurrency />
         <InfoField label="Paid Amount" value={sale.paidAmount} showCurrency valueClassName="text-green-600" />
         <InfoField
@@ -108,6 +130,13 @@ export function SaleItemsList({ sale }: { sale: Sale }) {
                 quantity={item.discount ? item.quantity : 0}
               />
               <InfoField label="Subtotal" value={item.subtotal} showCurrency />
+              {item.taxRate ? (
+                <InfoField
+                  label={`Tax (${item.taxRate}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`}
+                  value={item.taxAmount ?? 0}
+                  showCurrency
+                />
+              ) : null}
               <InfoField
                 label="Cost Price"
                 value={item.costPrice}

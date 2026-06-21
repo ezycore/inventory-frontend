@@ -22,6 +22,8 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
     customerOutstandingDue,
     customerCreditBalance,
     itemsSubtotal,
+    includedTax,
+    taxBreakdown,
     totalSalePrice,
     appliedCredit,
     dueAmount,
@@ -87,12 +89,35 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
             </div>
           </div>
 
+          {/* Exclusive tax — adds to the subtotal to reach the total. One row per rate. */}
+          {taxBreakdown
+            .filter((row) => row.taxType === "exclusive")
+            .map((row) => (
+              <div key={`add-${row.taxRate}`} className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tax ({row.taxRate}%)</span>
+                <span className="tabular-nums">{formatCurrency(row.taxAmount)}</span>
+              </div>
+            ))}
+
           <div className="flex justify-between items-center pt-1">
             <span className="font-semibold">Total Amount</span>
             <span className="text-lg font-bold text-primary tabular-nums">
               {formatCurrency(totalSalePrice)}
             </span>
           </div>
+
+          {/* Inclusive tax — already inside the subtotal; informational only. */}
+          {includedTax > 0 && (
+            <div className="flex justify-between text-xs text-muted-foreground -mt-2">
+              <span>
+                Incl. tax
+                {taxBreakdown.filter((r) => r.taxType === "inclusive").length === 1
+                  ? ` (${taxBreakdown.find((r) => r.taxType === "inclusive")!.taxRate}%)`
+                  : ""}
+              </span>
+              <span className="tabular-nums">{formatCurrency(includedTax)}</span>
+            </div>
+          )}
 
           <Separator />
 

@@ -249,6 +249,7 @@ export function usePurchaseReturnsPage() {
         validQty,
         item.costPrice,
         item.price,
+        item.taxFactor,
       );
       updated[index] = {
         ...item,
@@ -269,6 +270,7 @@ export function usePurchaseReturnsPage() {
           item.returnQty,
           item.costPrice,
           item.price,
+          item.taxFactor,
         );
         updated[index] = {
           ...item,

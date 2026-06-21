@@ -48,6 +48,8 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     quantityAlert: item.quantityAlert,
     barcode: item.barcode ?? undefined,
     hasExpiry: !!item.hasExpiry,
+    taxRate: item.taxRate ?? 0,
+    taxType: item.taxType ?? "inclusive",
   })) as SelectOption[];
 };
 
@@ -87,6 +89,8 @@ export const extractProductValue = (val: any): ExtractedProduct | null => {
       purchaseUnitName: (val as any).purchaseUnitName ?? null,
       quantityAlert: (val as any).quantityAlert ?? 0,
       barcode: (val as any).barcode ?? undefined,
+      taxRate: (val as any).taxRate ?? 0,
+      taxType: (val as any).taxType ?? "inclusive",
     };
   }
   return null;

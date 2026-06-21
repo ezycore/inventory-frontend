@@ -45,12 +45,14 @@ export function PurchaseDetailsBlock({ order, purchaseReturns }: { order: Purcha
 
       <div className="grid gap-4 lg:grid-cols-3">
         <InfoField label="Total" value={order.subtotal} showCurrency />
-        {/* <InfoField label="Tax Total" value={order.taxTotal} showCurrency /> */}
         <InfoField
           label="Additional Discount"
           value={order.additionalDiscount ?? 0}
           showCurrency
         />
+        {(order.taxTotal ?? 0) > 0 ? (
+          <InfoField label="Tax" value={order.taxTotal} showCurrency />
+        ) : null}
         <InfoField
           label="Invoice Amount"
           value={order.invoiceAmount ?? 0}

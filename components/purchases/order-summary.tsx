@@ -11,6 +11,7 @@ type Props = {
   sellersCount: number;
   totalItemCount: number;
   grandTotal: number;
+  grandTax: number;
   grandPaid: number;
   grandCreditApplied: number;
   grandDue: number;
@@ -28,6 +29,7 @@ export default function OrderSummary({
   sellersCount,
   totalItemCount,
   grandTotal,
+  grandTax,
   grandPaid,
   grandCreditApplied,
   grandDue,
@@ -59,6 +61,14 @@ export default function OrderSummary({
               <span className="text-muted-foreground">Total Items</span>
               <span className="tabular-nums">{totalItemCount}</span>
             </div>
+
+            {/* Tax (aggregate across suppliers) */}
+            {grandTax > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tax</span>
+                <span className="tabular-nums">{formatCurrency(grandTax)}</span>
+              </div>
+            )}
 
             {/* Grand Total */}
             <div className="flex justify-between items-center pt-1">

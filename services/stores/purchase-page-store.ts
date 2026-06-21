@@ -81,6 +81,7 @@ export interface SellerSession {
   discountValue: number;
   additionalDiscount: number; // Fixed amount discount on total
   invoiceAmount: number; // Net amount (can be input or calculated)
+  taxAmount: number; // Supplier tax line (manual); added on top of the net. Sent as taxTotal.
   invoiceNumber?: string;
   invoiceDate?: string;
   // Supplier credit balance applied to this PO (advance/refund consumed at creation)
@@ -132,6 +133,7 @@ interface PurchasePageStore {
   setDiscountValue: (sellerId: string, value: number) => void;
   setAdditionalDiscount: (sellerId: string, discount: number) => void;
   setInvoiceAmount: (sellerId: string, amount: number) => void;
+  setTax: (sellerId: string, amount: number) => void;
   setInvoiceNumber: (sellerId: string, invoiceNumber: string) => void;
   setInvoiceDate: (sellerId: string, invoiceDate: string) => void;
   setCreditApplied: (sellerId: string, amount: number) => void;
@@ -179,6 +181,7 @@ const createEmptySeller = (): SellerSession => ({
   discountValue: 0,
   additionalDiscount: 0,
   invoiceAmount: 0,
+  taxAmount: 0,
   invoiceNumber: "",
   invoiceDate: "",
   creditApplied: 0,
@@ -213,11 +216,9 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       getSellerNetAmount: (sellerId: string) => {
         const seller = get().sellers.find((s) => s.id === sellerId);
         if (!seller) return 0;
-        // If invoiceAmount is set, use it; otherwise calculate from subtotal - discount
-        if (seller.invoiceAmount > 0) {
-          return seller.invoiceAmount;
-        }
-        return get().getSellerTotal(sellerId);
+        // Base net: manual invoiceAmount if set, else subtotal - discount. Tax adds on top.
+        const base = seller.invoiceAmount > 0 ? seller.invoiceAmount : get().getSellerTotal(sellerId);
+        return Math.round((base + (seller.taxAmount || 0)) * 100) / 100;
       },
 
       getSellerDueAmount: (sellerId: string) => {
@@ -231,14 +232,16 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
 
       getGrandTotal: () => {
         return get().sellers.reduce((sum, seller) => {
-          // If invoiceAmount is set, use it; otherwise calculate
+          // Base net: manual invoiceAmount if set, else subtotal - discount. Tax adds on top.
+          let base: number;
           if (seller.invoiceAmount > 0) {
-            return sum + seller.invoiceAmount;
+            base = seller.invoiceAmount;
+          } else {
+            const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
+            const discount = Math.min(seller.additionalDiscount || 0, subtotal);
+            base = Math.max(0, subtotal - discount);
           }
-          const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
-          // additionalDiscount is always fixed amount
-          const discount = Math.min(seller.additionalDiscount || 0, subtotal);
-          return sum + Math.max(0, subtotal - discount);
+          return sum + base + (seller.taxAmount || 0);
         }, 0);
       },
 
@@ -357,7 +360,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             const finalDiscount = Math.min(discount, subtotal);
             const newInvoiceAmount = Math.max(0, subtotal - finalDiscount);
             const updatedPaymentInfo = seller.paymentInfo
-              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount - (seller.creditApplied || 0)) }
+              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount + (seller.taxAmount || 0) - (seller.creditApplied || 0)) }
               : seller.paymentInfo;
             return {
               ...seller,
@@ -377,7 +380,7 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
             const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
             const newDiscount = Math.max(0, subtotal - amount);
             const updatedPaymentInfo = seller.paymentInfo
-              ? { ...seller.paymentInfo, paidAmount: Math.max(0, amount - (seller.creditApplied || 0)) }
+              ? { ...seller.paymentInfo, paidAmount: Math.max(0, amount + (seller.taxAmount || 0) - (seller.creditApplied || 0)) }
               : seller.paymentInfo;
             return {
               ...seller,
@@ -385,6 +388,23 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
               additionalDiscount: newDiscount,
               paymentInfo: updatedPaymentInfo,
             };
+          }),
+        }));
+      },
+
+      setTax: (sellerId, amount) => {
+        set((state) => ({
+          sellers: state.sellers.map((seller) => {
+            if (seller.id !== sellerId) return seller;
+            const taxAmount = Math.max(0, amount || 0);
+            // Keep the auto-filled paid amount in sync with the new tax-inclusive net.
+            const base = seller.invoiceAmount > 0
+              ? seller.invoiceAmount
+              : Math.max(0, seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0) - (seller.additionalDiscount || 0));
+            const updatedPaymentInfo = seller.paymentInfo
+              ? { ...seller.paymentInfo, paidAmount: Math.max(0, base + taxAmount - (seller.creditApplied || 0)) }
+              : seller.paymentInfo;
+            return { ...seller, taxAmount, paymentInfo: updatedPaymentInfo };
           }),
         }));
       },

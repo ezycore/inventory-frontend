@@ -1,4 +1,5 @@
 import type { DiscountType } from "@/utils/discount";
+import type { TaxType } from "@/types";
 
 // =====================
 // API Response Types
@@ -28,6 +29,8 @@ export interface ProductApiItem {
   quantityAlert: number;
   barcode?: string;
   hasExpiry?: boolean;
+  taxRate?: number;
+  taxType?: TaxType;
 }
 
 export interface AccountApiItem {
@@ -74,6 +77,8 @@ export interface ExtractedProduct {
   quantityAlert: number;
   barcode?: string;
   hasExpiry?: boolean;
+  taxRate?: number;
+  taxType?: TaxType;
 }
 export interface OrderItem {
   productId: string;
@@ -86,6 +91,12 @@ export interface OrderItem {
   productName: string;
   unitName?: string | null;
   saleUnitName?: string | null;
+  /** Tax rate (percent) for the line, copied from the product. */
+  taxRate?: number;
+  /** "inclusive" = price already contains tax; "exclusive" = tax added on top. */
+  taxType?: TaxType;
+  /** Preview-computed tax amount for the line (UI only; backend is authoritative). */
+  taxAmount?: number;
   /** Expiry-tracked product (drives the POS batch picker). UI-only. */
   hasExpiry?: boolean;
   /** Manual batch override for the line; omit/null = auto FEFO. Sent to the API. */

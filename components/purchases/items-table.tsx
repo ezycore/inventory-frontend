@@ -22,6 +22,7 @@ type Props = {
   removeItem: any;
   setAdditionalDiscount: (id: string, v: number) => void;
   setInvoiceAmount: (id: string, v: number) => void;
+  setTax: (id: string, v: number) => void;
   removeSeller: (id: string) => void;
   isUOMEnabled: boolean;
   symbol: string;
@@ -38,6 +39,7 @@ export const ItemsTable: FC<Props> = ({
   removeItem,
   setAdditionalDiscount,
   setInvoiceAmount,
+  setTax,
   removeSeller,
   isUOMEnabled,
   symbol,
@@ -124,6 +126,32 @@ export const ItemsTable: FC<Props> = ({
               />
             </div>
           </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground font-medium">Tax</span>
+            <div className="flex items-center gap-1">
+              <span className="text-base text-muted-foreground">{symbol}</span>
+              <Input
+                type="number"
+                min={0}
+                step={0.01}
+                value={seller.taxAmount || ""}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  setTax(seller.id, value);
+                }}
+                placeholder="0"
+                className="w-20 h-7 text-right text-sm"
+              />
+            </div>
+          </div>
+          {(seller.taxAmount || 0) > 0 && (
+            <div className="flex justify-between items-center pt-1">
+              <span className="font-semibold text-sm">Total (incl. tax)</span>
+              <span className="text-sm font-bold text-primary tabular-nums">
+                {formatCurrency(getSellerNetAmount(seller.id))}
+              </span>
+            </div>
+          )}
         </div>
 
         <SellerPaymentSection

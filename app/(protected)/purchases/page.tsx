@@ -47,6 +47,7 @@ function PurchasesPageContent() {
     sellersWithItems,
     totalItemCount,
     grandTotal,
+    grandTax,
     grandPaid,
     grandCreditApplied,
     grandDue,
@@ -57,6 +58,7 @@ function PurchasesPageContent() {
     removeItem,
     setAdditionalDiscount,
     setInvoiceAmount,
+    setTax,
     isImportDialogOpen,
     setIsImportDialogOpen,
     preSelectedLowStockIds,
@@ -122,6 +124,7 @@ function PurchasesPageContent() {
               removeItem={removeItem}
               setAdditionalDiscount={setAdditionalDiscount}
               setInvoiceAmount={setInvoiceAmount}
+              setTax={setTax}
               removeSeller={removeSeller}
               isUOMEnabled={isUOMEnabled}
               symbol={symbol}
@@ -135,6 +138,7 @@ function PurchasesPageContent() {
           sellersCount={sellersWithItems.length}
           totalItemCount={totalItemCount}
           grandTotal={grandTotal}
+          grandTax={grandTax}
           grandPaid={grandPaid}
           grandCreditApplied={grandCreditApplied}
           grandDue={grandDue}

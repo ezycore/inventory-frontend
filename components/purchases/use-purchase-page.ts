@@ -57,6 +57,7 @@ export function usePurchasePage() {
     setPurchaseType,
     setAdditionalDiscount,
     setInvoiceAmount,
+    setTax,
     setInvoiceNumber,
     setInvoiceDate,
     setDiscountType,
@@ -174,6 +175,7 @@ export function usePurchasePage() {
     // Set additionalDiscount AFTER items are added so the store can correctly
     // clamp it against the actual subtotal (not zero).
     setAdditionalDiscount(sellerId, draftOrder.additionalDiscount || 0);
+    setTax(sellerId, (draftOrder as { taxTotal?: number }).taxTotal || 0);
 
     supplierForm.reset({
       supplierId: { value: supId, label: supName } as never,
@@ -183,7 +185,7 @@ export function usePurchasePage() {
       invoiceNumber: draftOrder.invoiceNumber || "",
       invoiceDate: draftOrder.invoiceDate ? String(draftOrder.invoiceDate).slice(0, 10) : "",
     });
-  }, [draftId, draftOrder, addItem, clearAll, setAdditionalDiscount, setDiscountType, setDiscountValue, setInvoiceDate, setInvoiceNumber, setNotes, setPurchaseType, setSupplier, supplierForm]);
+  }, [draftId, draftOrder, addItem, clearAll, setAdditionalDiscount, setTax, setDiscountType, setDiscountValue, setInvoiceDate, setInvoiceNumber, setNotes, setPurchaseType, setSupplier, supplierForm]);
 
   const editQuantity = useWatch({ control: editForm.control, name: "quantity", defaultValue: 1 });
   const editConvertedQuantity = useWatch({ control: editForm.control, name: "convertedQuantity", defaultValue: 1 });
@@ -399,6 +401,7 @@ export function usePurchasePage() {
   const sellersWithItems = useMemo(() => sellers.filter((s) => s.items.length > 0), [sellers]);
   const totalItemCount = getTotalItemCount();
   const grandTotal = getGrandTotal();
+  const grandTax = useMemo(() => sellersWithItems.reduce((sum, s) => sum + (s.taxAmount || 0), 0), [sellersWithItems]);
   const grandPaid = useMemo(() => sellersWithItems.reduce((sum, s) => sum + (s.paymentInfo?.paidAmount || 0), 0), [sellersWithItems]);
   const grandCreditApplied = useMemo(() => sellersWithItems.reduce((sum, s) => sum + (s.creditApplied || 0), 0), [sellersWithItems]);
   const grandDue = useMemo(() => sellersWithItems.reduce((sum, s) => sum + getSellerDueAmount(s.id), 0), [sellersWithItems, getSellerDueAmount]);
@@ -414,7 +417,7 @@ export function usePurchasePage() {
         const sellerPaid = seller.paymentInfo?.paidAmount || 0;
         const sellerAccountId = seller.paymentInfo?.accountId || "";
         const sellerCredit = seller.creditApplied || 0;
-        const orderData: any = { supplierId: seller.supplierId || "", items, additionalDiscount: seller.additionalDiscount || 0, status, invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, taxTotal: 0, notes: seller.notes || undefined };
+        const orderData: any = { supplierId: seller.supplierId || "", items, additionalDiscount: seller.additionalDiscount || 0, status, invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, taxTotal: seller.taxAmount || 0, notes: seller.notes || undefined };
         if (isAccountsEnabled && sellerAccountId && sellerPaid > 0) orderData.payment = { accountId: sellerAccountId, paidAmount: sellerPaid };
         if (isAccountsEnabled && sellerCredit > 0) orderData.creditBalanceAmount = sellerCredit;
         return orderData;
@@ -440,7 +443,7 @@ export function usePurchasePage() {
     const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
     if (validSellers.length === 0) { toast.error("Please add items to at least one supplier"); return; }
     try {
-      const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, taxTotal: 0, notes: seller.notes || undefined }));
+      const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, taxTotal: seller.taxAmount || 0, notes: seller.notes || undefined }));
       if (isDraftMode && draftId) {
         const first = ordersData[0];
         await updateDraftMutation.mutateAsync({ id: draftId, data: { supplierId: first.supplierId, items: first.items, additionalDiscount: first.additionalDiscount, taxTotal: first.taxTotal, invoiceNumber: first.invoiceNumber, invoiceDate: first.invoiceDate, notes: first.notes } });
@@ -468,6 +471,7 @@ export function usePurchasePage() {
     sellersWithItems,
     totalItemCount,
     grandTotal,
+    grandTax,
     grandPaid,
     grandCreditApplied,
     grandDue,
@@ -508,6 +512,7 @@ export function usePurchasePage() {
     setPurchaseType,
     setAdditionalDiscount,
     setInvoiceAmount,
+    setTax,
     setInvoiceNumber,
     setInvoiceDate,
     setDiscountType,

@@ -552,6 +552,14 @@ export interface CreateTaxDto {
 
 export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
 
+/**
+ * Price semantics for a product's tax:
+ * - "inclusive": the selling price already contains the tax (tax is backed out for reporting).
+ * - "exclusive": tax is added on top of the selling price.
+ * Note: distinct from `Tax.type` ("percentage" | "fixed"), which is how the rate is calculated.
+ */
+export type TaxType = "inclusive" | "exclusive";
+
 // Discount interfaces
 export type DiscountType = "percentage" | "fixed";
 export type DiscountApplicableTo = "sales" | "purchase" | "both";
@@ -694,6 +702,24 @@ export interface Product extends BaseEntity {
     unitId: string;
     conversionFactor: number;
   };
+
+  // Tax
+  /** Whether the selling price already includes tax ("inclusive") or tax is added on top ("exclusive"). */
+  taxType?: TaxType;
+  /** Reference to the Tax entity that supplies the rate. */
+  taxId?: string;
+  /** Populated Tax entity (when the backend nest-populates `taxId`). */
+  tax?: Tax;
+  /** Flat tax rate (percent) echoed by the backend; falls back to `tax?.rate`. */
+  taxRate?: number;
+
+  // Ecommerce storefront listing (only meaningful when the org `storefront` feature is on)
+  storefront?: {
+    isListed: boolean;
+    onlinePrice?: number;
+    featured?: boolean;
+    onlineDescription?: string;
+  };
 }
 
 export interface ProductWithVariants extends Product {
@@ -711,6 +737,8 @@ export interface CreateProductDto {
   images?: string[];
   tags?: string[];
   custom_fields?: CustomField[];
+  taxType?: TaxType;
+  taxId?: string;
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> { }
@@ -1493,6 +1521,10 @@ export interface SaleItemPayload {
   price: number;
   costPrice: number;
   discount: number;
+  /** Tax rate (percent) for the line; the backend uses it to compute line tax. */
+  taxRate?: number;
+  /** "inclusive" = price already contains tax; "exclusive" = tax added on top. */
+  taxType?: TaxType;
 }
 
 /** PATCH /sales/:id body — only allowed when the sale is still a draft. */
@@ -1546,6 +1578,11 @@ export interface SaleItem {
   costPrice: number;
   discount: number;
   subtotal: number;
+  /** Tax rate (percent) applied to the line. */
+  taxRate?: number;
+  taxType?: TaxType;
+  /** Computed tax amount for the line (backend). */
+  taxAmount?: number;
 }
 
 /**
@@ -1582,6 +1619,9 @@ export interface Sale extends BaseEntity {
   items: SaleItem[];
   subtotal: number;
   additionalDiscount: number;
+  /** Sum of line tax across the sale (backend-computed). */
+  taxTotal?: number;
+  /** Grand total payable = subtotal - additionalDiscount + taxTotal (tax-inclusive). */
   totalAmount: number;
   paidAmount: number;
   dueAmount: number;
