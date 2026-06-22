@@ -7,7 +7,7 @@ import {
 } from "@/lib/feature-utils";
 import { useAuthStore } from "@/services/stores";
 import { FeatureName } from "@/types";
-import { useGetFeatures } from "@/services/api";
+import { useGetFeatures, useUpdateFeatures } from "@/services/api";
 import {
   Card,
   CardContent,
@@ -21,7 +21,7 @@ import { Loader2, Lock } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 // Define feature order for display
@@ -40,9 +40,20 @@ export default function FeatureSettingsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const updateFeaturesStore = useAuthStore((state) => state.updateFeatures);
-  const { features } = user?.organization || {};
 
   const { data: featuresData, isLoading } = useGetFeatures();
+  const { mutate: updateFeatures } = useUpdateFeatures();
+
+  // Track only the feature currently being toggled so we disable just that one
+  // switch — disabling them all (via the shared mutation isPending) makes every
+  // switch blink on each toggle.
+  const [pendingFeature, setPendingFeature] = useState<FeatureName | null>(null);
+
+  // Effective (enforced) set drives the toggle state; plan ceiling decides which
+  // toggles are available vs. locked behind an upgrade.
+  const features =
+    featuresData?.data?.features ?? user?.organization?.features;
+  const planFeatures = featuresData?.data?.planFeatures;
 
   const canManageSettings =
     user?.permissions?.includes("organization.edit") ?? false;
@@ -55,7 +66,7 @@ export default function FeatureSettingsPage() {
     }
   }, [user, canManageSettings, router]);
 
-  // Update store with fetched features
+  // Keep the auth store in sync with the fetched effective features.
   useEffect(() => {
     if (featuresData?.data?.features) {
       updateFeaturesStore(featuresData.data.features);
@@ -75,44 +86,39 @@ export default function FeatureSettingsPage() {
     );
   }
 
+  const handleToggle = (feature: FeatureName, next: boolean) => {
+    setPendingFeature(feature);
+    updateFeatures(
+      { [feature]: next },
+      { onSettled: () => setPendingFeature(null) },
+    );
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Feature Settings"
-        subTitle="The features available to your organization are determined by your subscription plan. Disabled features are hidden from the navigation and cannot be accessed."
+        subTitle="Your subscription plan decides which features are available. Enable or disable any included feature below — disabled features are hidden from the navigation and cannot be accessed. Features not in your plan are locked."
       />
-
-      <Card className="border-primary/30 bg-primary/5">
-        <CardContent className="flex items-start gap-3 py-4">
-          <div className="rounded-lg bg-primary/10 p-2 text-primary">
-            <Lock className="h-5 w-5" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Managed by your plan</p>
-            <p className="text-sm text-muted-foreground">
-              Features are synced from your active subscription and can&apos;t be
-              toggled here. To enable or disable features, change your plan on the{" "}
-              <Link
-                href="/dashboard/billing"
-                className="font-medium text-primary underline-offset-4 hover:underline"
-              >
-                Billing
-              </Link>{" "}
-              page.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {FEATURE_ORDER.map((feature) => {
+          // A feature is available only when the plan grants it. While
+          // planFeatures is loading we fall back to the effective set.
+          const inPlan = planFeatures
+            ? planFeatures[feature] === true
+            : (features?.[feature] ?? false);
           const isEnabled = features?.[feature] ?? false;
 
           return (
             <Card
               key={feature}
               className={`transition-colors ${
-                isEnabled ? "border-primary/50 bg-primary/5" : ""
+                !inPlan
+                  ? "border-dashed opacity-75"
+                  : isEnabled
+                    ? "border-primary/50 bg-primary/5"
+                    : ""
               }`}
             >
               <CardHeader className="pb-3">
@@ -120,7 +126,7 @@ export default function FeatureSettingsPage() {
                   <div className="flex items-center gap-3">
                     <div
                       className={`p-2 rounded-lg ${
-                        isEnabled
+                        inPlan && isEnabled
                           ? "bg-primary/10 text-primary"
                           : "bg-muted text-muted-foreground"
                       }`}
@@ -134,54 +140,60 @@ export default function FeatureSettingsPage() {
                       {FEATURE_DISPLAY_NAMES[feature]}
                     </CardTitle>
                   </div>
-                  <Switch
-                    id={`feature-${feature}`}
-                    checked={isEnabled}
-                    disabled
-                    aria-readonly
-                  />
+                  {inPlan ? (
+                    <Switch
+                      id={`feature-${feature}`}
+                      checked={isEnabled}
+                      disabled={pendingFeature === feature}
+                      onCheckedChange={(next) => handleToggle(feature, next)}
+                    />
+                  ) : (
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
                 <CardDescription className="text-sm">
                   {FEATURE_DESCRIPTIONS[feature]}
                 </CardDescription>
+                {!inPlan && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Not included in your plan.{" "}
+                    <Link
+                      href="/dashboard/billing"
+                      className="font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      Upgrade
+                    </Link>{" "}
+                    to enable.
+                  </p>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">About Feature Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            • <strong>Sales Management:</strong> When enabled, allows creating
-            sales orders, managing customers, and tracking sales history.
-          </p>
-          <p>
-            • <strong>Account Management:</strong> Enables financial tracking
-            with multiple accounts (cash, bank, mobile wallets), payment
-            recording, and account transfers.
-          </p>
-          <p>
-            • <strong>Returns Management:</strong> Allows processing sales
-            returns and purchase returns with proper tracking.
-          </p>
-          <p>
-            • <strong>Expiry Tracking:</strong> Track product expiry dates with
-            batch management and get alerts for expiring items.
-          </p>
-          <p>
-            • <strong>Barcode System:</strong> Enable barcode/SKU fields on
-            products and use barcode scanning for quick product lookup.
-          </p>
-          <p>
-            • <strong>Invoice Printing:</strong> Generate and print invoices for
-            sales and purchases.
-          </p>
+      <Card className="border-primary/30 bg-primary/5">
+        <CardContent className="flex items-start gap-3 py-4">
+          <div className="rounded-lg bg-primary/10 p-2 text-primary">
+            <Lock className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Plan-managed availability</p>
+            <p className="text-sm text-muted-foreground">
+              You control which of your plan&apos;s features are turned on here.
+              To unlock features that aren&apos;t in your plan, change your plan on
+              the{" "}
+              <Link
+                href="/dashboard/billing"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Billing
+              </Link>{" "}
+              page.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

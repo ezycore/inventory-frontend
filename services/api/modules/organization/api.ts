@@ -82,17 +82,26 @@ export const organizationApi = {
 
   // ============= Feature Settings =============
 
-  // GET /api/organization/features - Get feature flags
-  // Used in: Feature management components
-  getFeatures: (): Promise<ApiResponse<{ features: OrganizationFeatures }>> =>
-    apiClient.get(`/organization/features`),
+  // GET /api/organization/features - Effective features + plan ceiling
+  // Used in: settings/features page
+  // `features` = enforced set; `planFeatures` = what the plan grants (ceiling).
+  getFeatures: (): Promise<
+    ApiResponse<{
+      features: OrganizationFeatures;
+      planFeatures: OrganizationFeatures;
+    }>
+  > => apiClient.get(`/organization/features`),
 
-  // PUT /api/organization/features - Update feature flags
-  // Used in: Feature management components
+  // PUT /api/organization/features - Toggle features within the plan ceiling
+  // Used in: settings/features page
   updateFeatures: (
     data: Partial<OrganizationFeatures>,
-  ): Promise<ApiResponse<{ features: OrganizationFeatures }>> =>
-    apiClient.put(`/organization/features`, data),
+  ): Promise<
+    ApiResponse<{
+      features: OrganizationFeatures;
+      planFeatures: OrganizationFeatures;
+    }>
+  > => apiClient.put(`/organization/features`, data),
 
   // PUT /api/organization/column-settings - Update table column visibility
   // Used in: Column settings management components
