@@ -10,6 +10,7 @@ import { SellerPaymentSection } from "@/components/purchases/seller-payment-sect
 import { Trash2 } from "lucide-react";
 import type { FC } from "react";
 import { useConfirm } from "@/hooks/use-confirm";
+import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
 
 type Props = {
   seller: any;
@@ -17,14 +18,16 @@ type Props = {
   getSellerNetAmount: (id: string) => number;
   getSellerSubtotal: (id: string) => number;
   getSellerTotal: (id: string) => number;
+  getSellerTax: (id: string) => number;
+  getSellerAddedTax: (id: string) => number;
+  getSellerIncludedTax: (id: string) => number;
   getPurchaseColumns: any;
   handleEditItem: any;
   removeItem: any;
   setAdditionalDiscount: (id: string, v: number) => void;
-  setInvoiceAmount: (id: string, v: number) => void;
-  setTax: (id: string, v: number) => void;
   removeSeller: (id: string) => void;
   isUOMEnabled: boolean;
+  isTaxEnabled: boolean;
   symbol: string;
 };
 
@@ -34,14 +37,16 @@ export const ItemsTable: FC<Props> = ({
   getSellerNetAmount,
   getSellerSubtotal,
   getSellerTotal,
+  getSellerTax,
+  getSellerAddedTax,
+  getSellerIncludedTax,
   getPurchaseColumns,
   handleEditItem,
   removeItem,
   setAdditionalDiscount,
-  setInvoiceAmount,
-  setTax,
   removeSeller,
   isUOMEnabled,
+  isTaxEnabled,
   symbol,
 }) => {
   const { confirm, ConfirmDialog } = useConfirm();
@@ -79,7 +84,7 @@ export const ItemsTable: FC<Props> = ({
         </div>
 
         <CardTable
-          columns={getPurchaseColumns(handleEditItem, removeItem, formatCurrency, seller.id, isUOMEnabled)}
+          columns={getPurchaseColumns(handleEditItem, removeItem, formatCurrency, seller.id, isUOMEnabled, isTaxEnabled)}
           data={seller.items}
           emptyMessage="No items added yet"
           showCard={false}
@@ -110,48 +115,20 @@ export const ItemsTable: FC<Props> = ({
             </div>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground font-medium">Net Amount (Invoice)</span>
-            <div className="flex items-center gap-1">
-              <span className="text-base text-muted-foreground">{symbol}</span>
-              <Input
-                type="number"
-                min={0}
-                step={0.01}
-                value={seller.invoiceAmount || getSellerTotal(seller.id)}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
-                  setInvoiceAmount(seller.id, value);
-                }}
-                className="w-24 h-7 text-right text-sm"
-              />
-            </div>
+            <span className="text-muted-foreground font-medium">Net Amount</span>
+            <span className="tabular-nums">
+              {formatCurrency(getSellerTotal(seller.id))}
+            </span>
           </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground font-medium">Tax</span>
-            <div className="flex items-center gap-1">
-              <span className="text-base text-muted-foreground">{symbol}</span>
-              <Input
-                type="number"
-                min={0}
-                step={0.01}
-                value={seller.taxAmount || ""}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
-                  setTax(seller.id, value);
-                }}
-                placeholder="0"
-                className="w-20 h-7 text-right text-sm"
-              />
-            </div>
-          </div>
-          {(seller.taxAmount || 0) > 0 && (
-            <div className="flex justify-between items-center pt-1">
-              <span className="font-semibold text-sm">Total (incl. tax)</span>
-              <span className="text-sm font-bold text-primary tabular-nums">
-                {formatCurrency(getSellerNetAmount(seller.id))}
-              </span>
-            </div>
-          )}
+          <TaxSummaryLines
+            show={isTaxEnabled}
+            addedTax={getSellerAddedTax(seller.id)}
+            includedTax={getSellerIncludedTax(seller.id)}
+            taxTotal={getSellerTax(seller.id)}
+            total={getSellerNetAmount(seller.id)}
+            totalLabel="Total"
+            formatCurrency={formatCurrency}
+          />
         </div>
 
         <SellerPaymentSection

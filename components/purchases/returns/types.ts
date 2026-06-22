@@ -5,8 +5,8 @@ export interface ReturnableItem extends PurchaseOrderItem {
   returnQty: number;
   refundAmount: number;
   selected: boolean;
-  /** Order-level tax as a fraction of subtotal (taxTotal/subtotal), allocated proportionally to refunds. */
-  taxFactor: number;
+  /** Tax-inclusive refund per purchase unit, derived per-line via `computeLineTax`. */
+  refundUnitPrice: number;
 }
 
 export interface DueAllocation {

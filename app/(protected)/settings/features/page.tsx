@@ -32,7 +32,8 @@ const FEATURE_ORDER: FeatureName[] = [
   "expiryTracking",
   "barcodeSystem",
   "invoicePrinting",
-  "uomConversion"
+  "uomConversion",
+  "tax"
 ];
 
 export default function FeatureSettingsPage() {

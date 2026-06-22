@@ -1,24 +1,32 @@
-import type { PurchaseOrder } from "@/types";
+import type { PurchaseOrder, PurchaseOrderItem } from "@/types";
+import { computeLineTax } from "@/utils/tax";
 import type { ReturnableItem, DueAllocation } from "./types";
+
+/**
+ * Tax-inclusive refund per purchase unit, derived per-line from the order line's
+ * own `taxRate`/`taxType` (mirrors the sales-return path; reuses `computeLineTax`).
+ * inclusive → cost as-is (tax already inside); exclusive → cost + that line's tax.
+ */
+function refundUnitPriceFor(item: PurchaseOrderItem): number {
+  return computeLineTax({
+    price: item.costPrice ?? item.price,
+    quantity: 1,
+    discount: 0,
+    taxRate: item.taxRate,
+    taxType: item.taxType,
+  }).lineTotal;
+}
 
 /** Build initial returnable items from order */
 export function buildReturnableItems(order: PurchaseOrder): ReturnableItem[] {
   if (!order.items) return [];
-  // Order-level tax (manual lump) allocated proportionally to each line's value on refund.
-  const subtotal =
-    order.subtotal ||
-    order.items.reduce(
-      (s, i) => s + (i.receivedQuantity || i.quantity || 0) * (i.costPrice || i.price || 0),
-      0,
-    );
-  const taxFactor = subtotal > 0 ? (order.taxTotal || 0) / subtotal : 0;
   return order.items.map((item) => ({
     ...item,
     maxReturnableQty: item.receivedQuantity || 0,
     returnQty: 0,
     refundAmount: 0,
     selected: false,
-    taxFactor,
+    refundUnitPrice: refundUnitPriceFor(item),
   }));
 }
 
@@ -47,23 +55,12 @@ export function extractSupplierId(order: PurchaseOrder | undefined): string {
   return order.supplierId?._id || "";
 }
 
-/** Calculate refund amount for an item (cost + proportional order tax). */
-export function calculateItemRefund(
-  qty: number,
-  costPrice: number | undefined,
-  price: number,
-  taxFactor = 0,
-): number {
-  const pricePerUnit = (costPrice || price) * (1 + (taxFactor || 0));
-  return Math.round(qty * pricePerUnit * 100) / 100;
+/** Refund amount for an item = qty × tax-inclusive per-unit refund (see `refundUnitPriceFor`). */
+export function calculateItemRefund(qty: number, refundUnitPrice: number): number {
+  return Math.round(qty * refundUnitPrice * 100) / 100;
 }
 
-/** Calculate max refund for an item */
-export function calculateMaxRefund(
-  returnQty: number,
-  costPrice: number | undefined,
-  price: number,
-  taxFactor = 0,
-): number {
-  return calculateItemRefund(returnQty, costPrice, price, taxFactor);
+/** Max refund for an item (same per-unit basis as the live refund). */
+export function calculateMaxRefund(returnQty: number, refundUnitPrice: number): number {
+  return calculateItemRefund(returnQty, refundUnitPrice);
 }

@@ -184,3 +184,43 @@ function buildBreakdown(lines: TaxLineResult[]): TaxBreakdownRow[] {
   }
   return Array.from(map.values()).sort((a, b) => b.taxRate - a.taxRate);
 }
+
+/**
+ * Sum stored per-line tax into added (exclusive, on top) vs included (inclusive,
+ * already in price) buckets. For detail/receipt views that read a posted doc's
+ * line snapshot (each line carries `taxType` + `taxAmount`). Single source for
+ * the "Tax (added) / Tax in price" split — do NOT re-derive inline.
+ */
+export function splitLineTax(
+  items: { taxType?: TaxType; taxAmount?: number }[],
+): { addedTax: number; includedTax: number; taxTotal: number } {
+  let addedTax = 0;
+  let includedTax = 0;
+  for (const it of items) {
+    const amount = it.taxAmount ?? 0;
+    if (amount <= 0) continue;
+    if (it.taxType === "exclusive") addedTax += amount;
+    else if (it.taxType === "inclusive") includedTax += amount;
+  }
+  addedTax = round2(addedTax);
+  includedTax = round2(includedTax);
+  return { addedTax, includedTax, taxTotal: round2(addedTax + includedTax) };
+}
+
+/**
+ * The "Includes ৳X tax in price [· total tax ৳Y]" reconciliation memo — single
+ * source for the wording. Returns null when there is no inclusive tax to explain.
+ * Used by `<TaxSummaryLines>` and the return document summary card so the line
+ * never drifts between surfaces.
+ */
+export function taxInclusiveMemo(
+  includedTax: number,
+  taxTotal: number,
+  addedTax: number,
+  formatCurrency: (n: number) => string,
+): string | null {
+  if (!(includedTax > 0)) return null;
+  return `Includes ${formatCurrency(includedTax)} tax in price${
+    addedTax > 0 ? ` · total tax ${formatCurrency(taxTotal)}` : ""
+  }`;
+}

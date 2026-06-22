@@ -6,21 +6,11 @@ import { Badge } from '@/ui/components/badge';
 import { InfoField } from '@/components/shared/info-field';
 import type { Sale, SalesReturn } from '@/types';
 import { CopyField } from '@/ui/components/copy';
+import { splitLineTax } from '@/utils/tax';
 
 export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleReturns?: SalesReturn[] }) {
-  // Group line tax by rate + type for the receipt breakdown.
-  const taxRows = Object.values(
-    sale.items.reduce((acc, it) => {
-      const rate = it.taxRate ?? 0;
-      const amount = it.taxAmount ?? 0;
-      if (rate <= 0 || amount <= 0) return acc;
-      const type = it.taxType ?? 'inclusive';
-      const key = `${rate}-${type}`;
-      acc[key] = acc[key] ?? { rate, type, amount: 0 };
-      acc[key].amount += amount;
-      return acc;
-    }, {} as Record<string, { rate: number; type: string; amount: number }>),
-  ).sort((a, b) => b.rate - a.rate);
+  // Split line tax into added (exclusive, on top) vs in-price (inclusive, informational).
+  const { addedTax, includedTax } = splitLineTax(sale.items);
 
   return (
     <>
@@ -48,14 +38,8 @@ export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleRetur
       <div className="grid gap-4 lg:grid-cols-3">
         <InfoField label="Subtotal" value={sale.subtotal} showCurrency />
         <InfoField label="Additional Discount" value={sale.additionalDiscount} showCurrency />
-        {taxRows.map((r) => (
-          <InfoField
-            key={`${r.rate}-${r.type}`}
-            label={`Tax (${r.rate}%)${r.type === 'inclusive' ? ' incl.' : ''}`}
-            value={r.amount}
-            showCurrency
-          />
-        ))}
+        {addedTax > 0 && <InfoField label="Tax (added)" value={addedTax} showCurrency />}
+        {includedTax > 0 && <InfoField label="Tax (in price)" value={includedTax} showCurrency />}
         <InfoField label="Invoice Amount" value={sale.totalAmount} showCurrency />
         <InfoField label="Paid Amount" value={sale.paidAmount} showCurrency valueClassName="text-green-600" />
         <InfoField

@@ -24,18 +24,24 @@ import { useAuthStore, useSellPageStore } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
 import { useCurrency } from "@/lib/currency";
+import { isTaxActive } from "@/lib/feature-utils";
 import type { Sale, TaxType } from "@/types";
 
-/** Map cart lines to the tax util's input shape (preview only; backend is authoritative). */
+/**
+ * Map cart lines to the tax util's input shape (preview only; backend is authoritative).
+ * When the `tax` feature is disabled, tax is neutralized here so every downstream
+ * preview (totals, breakdown) is tax-free — mirrors the backend coercion.
+ */
 const toTaxInputs = (
   items: { price: number; quantity: number; discount: number; taxRate?: number; taxType?: TaxType }[],
+  includeTax: boolean,
 ): TaxLineInput[] =>
   items.map((i) => ({
     price: i.price,
     quantity: i.quantity,
     discount: i.discount,
-    taxRate: i.taxRate,
-    taxType: i.taxType,
+    taxRate: includeTax ? i.taxRate : 0,
+    taxType: includeTax ? i.taxType : undefined,
   }));
 
 export function useSellPage() {
@@ -48,6 +54,7 @@ export function useSellPage() {
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const isExpiryEnabled = user?.organization?.features?.expiryTracking ?? false;
+  const isTaxEnabled = isTaxActive(user?.organization, "sales");
   const defaultCustomer = user?.defaultData?.customerId;
   const defaultAccountType = user?.defaultData?.accountId;
 
@@ -177,6 +184,9 @@ export function useSellPage() {
         discountValue: item.discount || 0,
         salePrice,
         availableQuantity: null,
+        // Restore per-line tax snapshot from the draft (else finalize loses tax).
+        taxRate: item.taxRate ?? 0,
+        taxType: item.taxType ?? "inclusive",
       });
     }
   }, [draftId, draftSale, clearAll, setCustomer, setOrderDiscount, setAdditionalDiscount, setNotes, addItem, customerForm, defaultCustomer, defaultAccountType, defaultAccount]);
@@ -236,8 +246,9 @@ export function useSellPage() {
         symbol,
         (id, batchId) => updateItem(id, { batchId }),
         isExpiryEnabled,
+        isTaxEnabled,
       ),
-    [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled],
+    [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled, isTaxEnabled],
   );
 
   const handleFieldChange = useCallback(
@@ -310,6 +321,8 @@ export function useSellPage() {
           purchaseUnitName: null,
           quantityAlert: 0,
           barcode: r.barcode,
+          taxRate: r.taxRate ?? 0,
+          taxType: r.taxType ?? "inclusive",
         });
       } catch (err: any) {
         toast.error(err?.message || `No product found for "${code}"`);
@@ -324,12 +337,12 @@ export function useSellPage() {
       setLocalAdditionalDiscount(v);
       setAdditionalDiscount(v);
       // Grand total = tax-inclusive total after the new discount (tax computed on discounted net).
-      const newTotal = computeOrderTax(toTaxInputs(items), v).grandTotal;
+      const newTotal = computeOrderTax(toTaxInputs(items, isTaxEnabled), v).grandTotal;
       const remaining = Math.max(0, newTotal - creditBalanceAmount);
       setPaidAmount(remaining);
       customerForm.setValue("paidAmount", remaining);
     },
-    [creditBalanceAmount, customerForm, items, setAdditionalDiscount],
+    [creditBalanceAmount, customerForm, items, setAdditionalDiscount, isTaxEnabled],
   );
 
   const handleMarkAsSold = useCallback(async () => {
@@ -354,7 +367,7 @@ export function useSellPage() {
     }
     try {
       // Tax-inclusive grand total (preview); backend recomputes and is authoritative.
-      const totalSalePrice = computeOrderTax(toTaxInputs(items), formAdditionalDiscount).grandTotal;
+      const totalSalePrice = computeOrderTax(toTaxInputs(items, isTaxEnabled), formAdditionalDiscount).grandTotal;
       const totalCostPrice = getTotalCostPrice();
       const creditApplied = useCreditBalance
         ? Math.min(creditBalanceAmount, customerCreditBalance, totalSalePrice)
@@ -434,7 +447,7 @@ export function useSellPage() {
       console.error("Failed to complete sale:", error);
       toast.error("Failed to complete sale");
     }
-  }, [items, customerId, notes, isAccountsEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router]);
+  }, [items, customerId, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router]);
 
   const handleSaveAsDraft = useCallback(async () => {
     if (items.length === 0) {
@@ -451,7 +464,7 @@ export function useSellPage() {
     }
     try {
       const formAdditionalDiscount = localAdditionalDiscount;
-      const totalSalePrice = computeOrderTax(toTaxInputs(items), formAdditionalDiscount).grandTotal;
+      const totalSalePrice = computeOrderTax(toTaxInputs(items, isTaxEnabled), formAdditionalDiscount).grandTotal;
       const totalCostPrice = getTotalCostPrice();
       const itemsPayload = items.map((item) => ({
         productId: item.productId,
@@ -509,15 +522,14 @@ export function useSellPage() {
     } catch (error) {
       console.error("Failed to save draft:", error);
     }
-  }, [items, customerId, notes, getTotalCostPrice, localAdditionalDiscount, customerForm, isDraftMode, draftId, updateDraftMutation, mutateAsync, clearAll, router]);
+  }, [items, customerId, notes, getTotalCostPrice, localAdditionalDiscount, customerForm, isDraftMode, draftId, updateDraftMutation, mutateAsync, clearAll, router, isTaxEnabled]);
 
   // Preview tax rollup (backend recomputes on save). Grand total drives payment math.
-  const taxResult = computeOrderTax(toTaxInputs(items), localAdditionalDiscount);
+  const taxResult = computeOrderTax(toTaxInputs(items, isTaxEnabled), localAdditionalDiscount);
   const itemsSubtotal = taxResult.itemsSubtotal;
   const taxTotal = taxResult.taxTotal;
   const addedTax = taxResult.addedTax;
   const includedTax = taxResult.includedTax;
-  const taxBreakdown = taxResult.breakdownByRate;
   const totalSalePrice = taxResult.grandTotal;
   const appliedCredit = useCreditBalance
     ? Math.min(creditBalanceAmount, customerCreditBalance, totalSalePrice)
@@ -541,7 +553,6 @@ export function useSellPage() {
     taxTotal,
     addedTax,
     includedTax,
-    taxBreakdown,
     totalSalePrice,
     appliedCredit,
     dueAmount,

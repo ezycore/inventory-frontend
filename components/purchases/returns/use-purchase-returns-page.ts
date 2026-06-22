@@ -245,12 +245,7 @@ export function usePurchaseReturnsPage() {
       const updated = [...prev];
       const item = updated[index];
       const validQty = Math.max(0, Math.min(qty, item.maxReturnableQty));
-      const refund = calculateItemRefund(
-        validQty,
-        item.costPrice,
-        item.price,
-        item.taxFactor,
-      );
+      const refund = calculateItemRefund(validQty, item.refundUnitPrice);
       updated[index] = {
         ...item,
         returnQty: validQty,
@@ -266,12 +261,7 @@ export function usePurchaseReturnsPage() {
       setReturnableItems((prev) => {
         const updated = [...prev];
         const item = updated[index];
-        const maxRefund = calculateMaxRefund(
-          item.returnQty,
-          item.costPrice,
-          item.price,
-          item.taxFactor,
-        );
+        const maxRefund = calculateMaxRefund(item.returnQty, item.refundUnitPrice);
         updated[index] = {
           ...item,
           refundAmount: Math.max(0, Math.min(amount, maxRefund)),
@@ -336,6 +326,10 @@ export function usePurchaseReturnsPage() {
       price: roundMoney(item.price),
       costPrice: roundMoney(item.costPrice || item.price),
       discount: roundMoney(item.discount ?? 0),
+      // Tax-inclusive refund, computed per-line via `computeLineTax` (inclusive keeps
+      // cost, exclusive adds that line's tax). BE requires it so it never falls back
+      // to a net costPrice*qty calc that drops the supplier's tax.
+      refundAmount: roundMoney(item.refundAmount),
       ...(item.conversionFactor && item.conversionFactor > 1
         ? { conversionFactor: item.conversionFactor }
         : {}),

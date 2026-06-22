@@ -1,8 +1,9 @@
 "use client";
 
 import PageHeader from '@/ui/components/header'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
+import { isTaxActive } from '@/lib/feature-utils'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
@@ -44,6 +45,33 @@ export default function ProductsPage() {
   const filteredColumns = useFilteredColumns(productColumns, 'product')
   const { data: statsData, isLoading: statsLoading } = useProductStats()
   const { user, activeLocationId } = useAuthStore();
+
+  // Hide the product tax-config fields for any side whose tax is inactive
+  // (master `tax` feature off, or that area's sub-toggle off).
+  const taxGatedFormConfig = useMemo(() => {
+    const hide = new Set<string>()
+    if (!isTaxActive(user?.organization, 'sales')) {
+      hide.add('salesTax.taxType'); hide.add('salesTax.taxId')
+    }
+    if (!isTaxActive(user?.organization, 'purchase')) {
+      hide.add('purchaseTax.taxType'); hide.add('purchaseTax.taxId')
+    }
+    if (hide.size === 0) return filteredFormConfig
+    const cfg = filteredFormConfig as { sections?: any[]; fields?: any[] }
+    if (cfg.sections) {
+      return {
+        ...filteredFormConfig,
+        sections: cfg.sections.map((s) => ({
+          ...s,
+          fields: (s.fields || []).filter((f: any) => !hide.has(f.name)),
+        })),
+      }
+    }
+    return {
+      ...filteredFormConfig,
+      fields: (cfg.fields || []).filter((f: any) => !hide.has(f.name)),
+    }
+  }, [filteredFormConfig, user?.organization])
   const defaultUnitId = user?.defaultData?.unitId;
   const barcodeEnabled = user?.organization?.features?.barcodeSystem;
 
@@ -83,7 +111,7 @@ export default function ProductsPage() {
 
   // Shared operations config
   const sharedOperations = {
-    formConfig: filteredFormConfig,
+    formConfig: taxGatedFormConfig,
     getAllData: productsApi.getAll,
     createMutation: useCreateProduct(),
     updateMutation: useUpdateProduct(),

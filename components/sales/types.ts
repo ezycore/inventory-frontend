@@ -31,6 +31,9 @@ export interface ProductApiItem {
   hasExpiry?: boolean;
   taxRate?: number;
   taxType?: TaxType;
+  /** Purchase-side tax (from product.purchaseTax); present on purchasable-products. */
+  purchaseTaxRate?: number;
+  purchaseTaxType?: TaxType;
 }
 
 export interface AccountApiItem {
@@ -79,6 +82,9 @@ export interface ExtractedProduct {
   hasExpiry?: boolean;
   taxRate?: number;
   taxType?: TaxType;
+  /** Purchase-side tax (from product.purchaseTax); used by the purchase form. */
+  purchaseTaxRate?: number;
+  purchaseTaxType?: TaxType;
 }
 export interface OrderItem {
   productId: string;

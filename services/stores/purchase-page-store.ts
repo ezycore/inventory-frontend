@@ -1,6 +1,24 @@
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
+
+/**
+ * Map a seller's items to the tax util's input shape. Per-line net is
+ * `costPrice * quantity` (costPrice already nets the per-line discount), so
+ * `discount` here is 0 — the order-level additionalDiscount is passed separately.
+ * Mirrors the backend PurchaseUtils.applyLineTaxes.
+ */
+const toPurchaseTaxInputs = (
+  items: PurchaseOrderItem[],
+): TaxLineInput[] =>
+  items.map((i) => ({
+    price: i.costPrice,
+    quantity: i.quantity,
+    discount: 0,
+    taxRate: i.taxRate,
+    taxType: i.taxType,
+  }));
 
 /**
  * Supplier option with metadata
@@ -28,6 +46,9 @@ export interface PurchaseProductSelectOption {
   purchaseUnitId?: string;
   purchaseUnitName?: string;
   conversionFactor?: number;
+  // Product-level purchase tax (drives per-line tax preview).
+  purchaseTaxRate?: number;
+  purchaseTaxType?: "inclusive" | "exclusive";
 }
 
 /**
@@ -53,6 +74,9 @@ export interface PurchaseOrderItem {
   unitName?: string;
   conversionFactor?: number;
   convertedQuantity?: number;
+  // Per-line purchase tax (from the product's purchaseTax). 0 when tax inactive.
+  taxRate?: number;
+  taxType?: "inclusive" | "exclusive";
 }
 
 /**
@@ -111,6 +135,11 @@ interface PurchasePageStore {
   getSellerSubtotal: (sellerId: string) => number;
   getSellerTotal: (sellerId: string) => number;
   getSellerNetAmount: (sellerId: string) => number;
+  getSellerTax: (sellerId: string) => number;
+  /** Tax actually added on top of the net (exclusive lines only). */
+  getSellerAddedTax: (sellerId: string) => number;
+  /** Tax already baked into the cost (inclusive lines only); informational. */
+  getSellerIncludedTax: (sellerId: string) => number;
   getSellerDueAmount: (sellerId: string) => number;
   getGrandTotal: () => number;
   getTotalItemCount: () => number;
@@ -161,7 +190,6 @@ interface PurchasePageStore {
 const calculateItemTotal = (
   item: Omit<PurchaseOrderItem, "id" | "total">,
 ): number => {
-  console.log("Calculating total for item:", item);
   const subtotal = item.quantity * item.price;
   return Math.max(0, subtotal - ((item.discount * item.quantity) || 0));
 };
@@ -216,9 +244,39 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       getSellerNetAmount: (sellerId: string) => {
         const seller = get().sellers.find((s) => s.id === sellerId);
         if (!seller) return 0;
-        // Base net: manual invoiceAmount if set, else subtotal - discount. Tax adds on top.
-        const base = seller.invoiceAmount > 0 ? seller.invoiceAmount : get().getSellerTotal(sellerId);
-        return Math.round((base + (seller.taxAmount || 0)) * 100) / 100;
+        // Tax-correct payable: per-line tax (from each product's purchaseTax) on the
+        // discounted net. Mirrors the backend PurchaseUtils.applyLineTaxes.
+        return computeOrderTax(
+          toPurchaseTaxInputs(seller.items),
+          seller.additionalDiscount || 0,
+        ).grandTotal;
+      },
+
+      getSellerTax: (sellerId: string) => {
+        const seller = get().sellers.find((s) => s.id === sellerId);
+        if (!seller) return 0;
+        return computeOrderTax(
+          toPurchaseTaxInputs(seller.items),
+          seller.additionalDiscount || 0,
+        ).taxTotal;
+      },
+
+      getSellerAddedTax: (sellerId: string) => {
+        const seller = get().sellers.find((s) => s.id === sellerId);
+        if (!seller) return 0;
+        return computeOrderTax(
+          toPurchaseTaxInputs(seller.items),
+          seller.additionalDiscount || 0,
+        ).addedTax;
+      },
+
+      getSellerIncludedTax: (sellerId: string) => {
+        const seller = get().sellers.find((s) => s.id === sellerId);
+        if (!seller) return 0;
+        return computeOrderTax(
+          toPurchaseTaxInputs(seller.items),
+          seller.additionalDiscount || 0,
+        ).includedTax;
       },
 
       getSellerDueAmount: (sellerId: string) => {
@@ -231,18 +289,10 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
       },
 
       getGrandTotal: () => {
-        return get().sellers.reduce((sum, seller) => {
-          // Base net: manual invoiceAmount if set, else subtotal - discount. Tax adds on top.
-          let base: number;
-          if (seller.invoiceAmount > 0) {
-            base = seller.invoiceAmount;
-          } else {
-            const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
-            const discount = Math.min(seller.additionalDiscount || 0, subtotal);
-            base = Math.max(0, subtotal - discount);
-          }
-          return sum + base + (seller.taxAmount || 0);
-        }, 0);
+        return get().sellers.reduce(
+          (sum, seller) => sum + get().getSellerNetAmount(seller.id),
+          0,
+        );
       },
 
       getTotalItemCount: () => {
@@ -355,17 +405,28 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
         set((state) => ({
           sellers: state.sellers.map((seller) => {
             if (seller.id !== sellerId) return seller;
-            // When additionalDiscount changes, recalculate invoiceAmount if it's auto-calculated
-            const subtotal = seller.items.reduce((s, item) => s + (item.quantity * item.costPrice), 0);
-            const finalDiscount = Math.min(discount, subtotal);
-            const newInvoiceAmount = Math.max(0, subtotal - finalDiscount);
+            const subtotal = seller.items.reduce(
+              (s, item) => s + item.quantity * item.costPrice,
+              0,
+            );
+            const finalDiscount = Math.min(Math.max(0, discount), subtotal);
+            // New tax-correct net after the discount change.
+            const newNet = computeOrderTax(
+              toPurchaseTaxInputs(seller.items),
+              finalDiscount,
+            ).grandTotal;
             const updatedPaymentInfo = seller.paymentInfo
-              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount + (seller.taxAmount || 0) - (seller.creditApplied || 0)) }
+              ? {
+                  ...seller.paymentInfo,
+                  paidAmount: Math.max(
+                    0,
+                    newNet - (seller.creditApplied || 0),
+                  ),
+                }
               : seller.paymentInfo;
             return {
               ...seller,
               additionalDiscount: finalDiscount,
-              invoiceAmount: newInvoiceAmount,
               paymentInfo: updatedPaymentInfo,
             };
           }),
@@ -463,16 +524,19 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
               newItems = [...seller.items, { ...item, id: uuidv4(), total }];
             }
 
-            // Recalculate invoiceAmount from new subtotal so netAmount stays live
-            const newSubtotal = newItems.reduce((s, i) => s + i.quantity * i.costPrice, 0);
-            const newInvoiceAmount = Math.round(Math.max(0, newSubtotal - (seller.additionalDiscount || 0)) * 100) / 100;
-
-            // Sync paidAmount to new netAmount
+            // Tax-correct net for the new item set; keep paidAmount in sync.
+            const newNet = computeOrderTax(
+              toPurchaseTaxInputs(newItems),
+              seller.additionalDiscount || 0,
+            ).grandTotal;
             const newPaymentInfo = seller.paymentInfo
-              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount - (seller.creditApplied || 0)) }
+              ? {
+                  ...seller.paymentInfo,
+                  paidAmount: Math.max(0, newNet - (seller.creditApplied || 0)),
+                }
               : seller.paymentInfo;
 
-            return { ...seller, items: newItems, invoiceAmount: newInvoiceAmount, paymentInfo: newPaymentInfo };
+            return { ...seller, items: newItems, paymentInfo: newPaymentInfo };
           }),
         }));
       },
@@ -492,16 +556,19 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
               return updatedItem;
             });
 
-            // Recalculate invoiceAmount from new subtotal so netAmount stays live
-            const newSubtotal = newItems.reduce((s, i) => s + i.quantity * i.costPrice, 0);
-            const newInvoiceAmount = Math.round(Math.max(0, newSubtotal - (seller.additionalDiscount || 0)) * 100) / 100;
-
-            // Sync paidAmount to new netAmount
+            // Tax-correct net for the new item set; keep paidAmount in sync.
+            const newNet = computeOrderTax(
+              toPurchaseTaxInputs(newItems),
+              seller.additionalDiscount || 0,
+            ).grandTotal;
             const newPaymentInfo = seller.paymentInfo
-              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount - (seller.creditApplied || 0)) }
+              ? {
+                  ...seller.paymentInfo,
+                  paidAmount: Math.max(0, newNet - (seller.creditApplied || 0)),
+                }
               : seller.paymentInfo;
 
-            return { ...seller, items: newItems, invoiceAmount: newInvoiceAmount, paymentInfo: newPaymentInfo };
+            return { ...seller, items: newItems, paymentInfo: newPaymentInfo };
           }),
         }));
       },
@@ -511,14 +578,18 @@ export const usePurchasePageStore = create<PurchasePageStore>()(
           sellers: state.sellers.map((seller) => {
             if (seller.id !== sellerId) return seller;
             const newItems = seller.items.filter((item) => item.id !== itemId);
-            // Recalculate invoiceAmount from new subtotal so netAmount stays live
-            const newSubtotal = newItems.reduce((s, i) => s + i.quantity * i.costPrice, 0);
-            const newInvoiceAmount = Math.round(Math.max(0, newSubtotal - (seller.additionalDiscount || 0)) * 100) / 100;
-            // Sync paidAmount to new netAmount
+            // Tax-correct net for the remaining items; keep paidAmount in sync.
+            const newNet = computeOrderTax(
+              toPurchaseTaxInputs(newItems),
+              seller.additionalDiscount || 0,
+            ).grandTotal;
             const newPaymentInfo = seller.paymentInfo
-              ? { ...seller.paymentInfo, paidAmount: Math.max(0, newInvoiceAmount - (seller.creditApplied || 0)) }
+              ? {
+                  ...seller.paymentInfo,
+                  paidAmount: Math.max(0, newNet - (seller.creditApplied || 0)),
+                }
               : seller.paymentInfo;
-            return { ...seller, items: newItems, invoiceAmount: newInvoiceAmount, paymentInfo: newPaymentInfo };
+            return { ...seller, items: newItems, paymentInfo: newPaymentInfo };
           }),
         }));
       },

@@ -2,6 +2,8 @@ import type { PurchaseOrderItem } from "@/services/stores";
 import { Button } from "@/ui/components/button";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Edit2, Trash2 } from "lucide-react";
+import { computeLineTax } from "@/utils/tax";
+import { LineTaxCell } from "@/components/shared/line-tax-cell";
 
 /**
  * Generate purchase order columns with edit/remove actions
@@ -12,6 +14,7 @@ export const getPurchaseColumns = (
   formatCurrency: (amount: number) => string,
   sellerId: string,
   _isUOMEnabled?: boolean,
+  isTaxEnabled?: boolean,
 ): ColumnDef<PurchaseOrderItem>[] => {
   const columns: ColumnDef<PurchaseOrderItem>[] = [
     {
@@ -67,6 +70,32 @@ export const getPurchaseColumns = (
         </span>
       ),
     },
+    ...(isTaxEnabled
+      ? [
+          {
+            id: "tax",
+            header: "Tax",
+            cell: ({ row }: { row: { original: PurchaseOrderItem } }) => {
+              const item = row.original;
+              const { taxAmount } = computeLineTax({
+                price: item.costPrice,
+                quantity: item.quantity,
+                discount: 0,
+                taxRate: item.taxRate,
+                taxType: item.taxType,
+              });
+              return (
+                <LineTaxCell
+                  rate={item.taxRate}
+                  amount={taxAmount}
+                  type={item.taxType}
+                  formatCurrency={formatCurrency}
+                />
+              );
+            },
+          } as ColumnDef<PurchaseOrderItem>,
+        ]
+      : []),
     {
       accessorKey: "total",
       header: "Total",

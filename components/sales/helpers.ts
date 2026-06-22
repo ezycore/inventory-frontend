@@ -50,6 +50,9 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     hasExpiry: !!item.hasExpiry,
     taxRate: item.taxRate ?? 0,
     taxType: item.taxType ?? "inclusive",
+    // Purchase-side tax (only present on the purchasable-products response).
+    purchaseTaxRate: item.purchaseTaxRate ?? 0,
+    purchaseTaxType: item.purchaseTaxType ?? "inclusive",
   })) as SelectOption[];
 };
 
@@ -73,7 +76,6 @@ export const accountItemsCreateCallback = (
  */
 export const extractProductValue = (val: any): ExtractedProduct | null => {
   if (!val) return null;
-  console.log("extractProductValue input", val);
   if (typeof val === "object" && "value" in val) {
     return {
       value: val.value, // inventoryId
@@ -91,6 +93,8 @@ export const extractProductValue = (val: any): ExtractedProduct | null => {
       barcode: (val as any).barcode ?? undefined,
       taxRate: (val as any).taxRate ?? 0,
       taxType: (val as any).taxType ?? "inclusive",
+      purchaseTaxRate: (val as any).purchaseTaxRate ?? 0,
+      purchaseTaxType: (val as any).purchaseTaxType ?? "inclusive",
     };
   }
   return null;

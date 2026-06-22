@@ -13,6 +13,11 @@ export interface BarcodeLookupResult {
   saleUnitName: string | null;
   barcode?: string;
   hasInventoryAtLocation: boolean;
+  // Product-level tax (exempt collapses to rate 0). Drives per-line tax on scan-add.
+  taxRate?: number;
+  taxType?: "inclusive" | "exclusive";
+  purchaseTaxRate?: number;
+  purchaseTaxType?: "inclusive" | "exclusive";
 }
 
 export const barcodeApi = {

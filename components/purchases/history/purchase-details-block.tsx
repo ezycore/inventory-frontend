@@ -6,6 +6,7 @@ import { Badge } from "@/ui/components/badge";
 import { InfoField } from "@/components/shared/info-field";
 import type { PurchaseOrder, PurchaseReturn } from "@/types";
 import { CopyField } from "@/ui/components/copy";
+import { splitLineTax } from "@/utils/tax";
 
 function getCreatedByName(order: PurchaseOrder): string {
   const cb = order.createdBy;
@@ -19,6 +20,11 @@ function getCreatedByName(order: PurchaseOrder): string {
 
 export function PurchaseDetailsBlock({ order, purchaseReturns }: { order: PurchaseOrder; purchaseReturns: PurchaseReturn[] }) {
   const supplierName = order.supplierId?.name ?? order.supplier?.name ?? "Unknown Supplier";
+
+  // Split line tax into added (exclusive, on top) vs in-price (inclusive, informational).
+  const { addedTax, includedTax } = splitLineTax(order.items);
+  const hasLineTax = addedTax > 0 || includedTax > 0;
+
   return (
     <>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -50,7 +56,12 @@ export function PurchaseDetailsBlock({ order, purchaseReturns }: { order: Purcha
           value={order.additionalDiscount ?? 0}
           showCurrency
         />
-        {(order.taxTotal ?? 0) > 0 ? (
+        {hasLineTax ? (
+          <>
+            {addedTax > 0 && <InfoField label="Tax (added)" value={addedTax} showCurrency />}
+            {includedTax > 0 && <InfoField label="Tax (in price)" value={includedTax} showCurrency />}
+          </>
+        ) : (order.taxTotal ?? 0) > 0 ? (
           <InfoField label="Tax" value={order.taxTotal} showCurrency />
         ) : null}
         <InfoField
@@ -106,7 +117,6 @@ export function PurchaseDetailsBlock({ order, purchaseReturns }: { order: Purcha
 }
 
 export function PurchaseItemsList({ order }: { order: PurchaseOrder }) {
-  console.log("Rendering PurchaseItemsList with items:", order.items);
   return (
     <div className="rounded-lg border p-4 space-y-4">
       <div className="flex items-center gap-2 font-medium">
@@ -157,6 +167,13 @@ export function PurchaseItemsList({ order }: { order: PurchaseOrder }) {
                   quantity={item.quantity}
                 />
                 <InfoField label="Cost Price" value={item.costPrice} showCurrency quantity={item.quantity} />
+                {item.taxRate ? (
+                  <InfoField
+                    label={`Tax (${item.taxRate}%)${item.taxType === "inclusive" ? " incl." : ""}`}
+                    value={item.taxAmount ?? 0}
+                    showCurrency
+                  />
+                ) : null}
               </div>
             </div>
           );

@@ -48,17 +48,20 @@ function PurchasesPageContent() {
     totalItemCount,
     grandTotal,
     grandTax,
+    grandAddedTax,
+    grandIncludedTax,
     grandPaid,
     grandCreditApplied,
     grandDue,
     getSellerSubtotal,
     getSellerTotal,
     getSellerNetAmount,
+    getSellerTax,
+    getSellerAddedTax,
+    getSellerIncludedTax,
     removeSeller,
     removeItem,
     setAdditionalDiscount,
-    setInvoiceAmount,
-    setTax,
     isImportDialogOpen,
     setIsImportDialogOpen,
     preSelectedLowStockIds,
@@ -70,6 +73,7 @@ function PurchasesPageContent() {
     isAccountsEnabled,
     activeSeller,
     isUOMEnabled,
+    isTaxEnabled,
   } = ctx;
 
   return (
@@ -119,14 +123,16 @@ function PurchasesPageContent() {
               getSellerNetAmount={getSellerNetAmount}
               getSellerSubtotal={getSellerSubtotal}
               getSellerTotal={getSellerTotal}
+              getSellerTax={getSellerTax}
+              getSellerAddedTax={getSellerAddedTax}
+              getSellerIncludedTax={getSellerIncludedTax}
               getPurchaseColumns={getPurchaseColumns}
               handleEditItem={handleEditItem}
               removeItem={removeItem}
               setAdditionalDiscount={setAdditionalDiscount}
-              setInvoiceAmount={setInvoiceAmount}
-              setTax={setTax}
               removeSeller={removeSeller}
               isUOMEnabled={isUOMEnabled}
+              isTaxEnabled={isTaxEnabled}
               symbol={symbol}
             />
           ))}
@@ -139,6 +145,8 @@ function PurchasesPageContent() {
           totalItemCount={totalItemCount}
           grandTotal={grandTotal}
           grandTax={grandTax}
+          grandAddedTax={grandAddedTax}
+          grandIncludedTax={grandIncludedTax}
           grandPaid={grandPaid}
           grandCreditApplied={grandCreditApplied}
           grandDue={grandDue}

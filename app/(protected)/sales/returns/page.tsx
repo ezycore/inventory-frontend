@@ -94,6 +94,7 @@ export default function SalesReturnsPage() {
             counterpartyName={ctx.sale.customerId?.name ?? 'Walk-in Customer'}
             subtotal={ctx.sale.subtotal}
             additionalDiscount={ctx.sale.additionalDiscount}
+            items={ctx.sale.items}
             totalAmount={ctx.sale.totalAmount}
             paidAmount={ctx.sale.paidAmount}
             dueAmount={ctx.sale.dueAmount}

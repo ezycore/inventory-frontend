@@ -6,9 +6,11 @@ import {
 } from "@/services/api";
 import type {
   ApiResponse,
+  FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
   SubscriptionInfo,
+  TaxSettings,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
@@ -201,6 +203,25 @@ export const useUpdateFeatures = () => {
       queryClient.invalidateQueries({
         queryKey: [...queryKeys.organization.features(), 'me'],
       });
+      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// PUT /api/organization/tax-settings - Update tax sub-toggles + financial year
+export const useUpdateTaxSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      taxSettings?: Partial<TaxSettings>;
+      financialYear?: Partial<FinancialYearConfig>;
+    }) => organizationApi.updateTaxSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(
+        result.message || "Tax settings updated successfully!",
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },
     onError: handleMutationError,
