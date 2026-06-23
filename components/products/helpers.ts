@@ -99,6 +99,7 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
         images: existingImages, // only existing images go in JSON
         status: v.enabled ? 'active' : 'inactive',
         enableUOMConversion: !!v.enableUOMConversion,
+        ...(v.sku && { sku: v.sku }),
         ...(v.inventoryAlertLevel !== undefined && { inventoryAlertLevel: v.inventoryAlertLevel }),
         ...(v.enableUOMConversion
           ? {
