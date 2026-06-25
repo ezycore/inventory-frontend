@@ -38,6 +38,8 @@ export interface OrganizationFeatures {
   uomConversion: boolean;
   /** Public ecommerce storefront (catalog, shopper accounts, online orders). Plan-gated. */
   storefront: boolean;
+  /** Enable tax management (tax rates, and tax on purchases/sales). */
+  tax: boolean;
 }
 
 /**
@@ -52,6 +54,7 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   returns: true,
   uomConversion: false,
   storefront: true,
+  tax: true,
 };
 
 /**
@@ -101,6 +104,23 @@ export type UpdateStorefrontSettingsDto = Partial<
  * Feature name type for type-safe feature checks
  */
 export type FeatureName = keyof OrganizationFeatures;
+
+/**
+ * Financial-year boundary (1-based month/day) used by tax/FY reporting.
+ * Defaults to Jul 1 – Jun 30 when unset.
+ */
+export interface FinancialYearConfig {
+  startMonth: number;
+  startDay: number;
+  endMonth: number;
+  endDay: number;
+}
+
+/** Per-area tax sub-toggles, gated under the master `tax` feature flag. */
+export interface TaxSettings {
+  salesEnabled: boolean;
+  purchaseEnabled: boolean;
+}
 
 /**
  * Mission Control entitlement snapshot (read-only mirror synced from MC).
@@ -598,6 +618,27 @@ export interface CreateTaxDto {
 
 export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
 
+/**
+ * Price semantics for a product's tax:
+ * - "inclusive": the selling price already contains the tax (tax is backed out for reporting).
+ * - "exclusive": tax is added on top of the selling price.
+ * Note: distinct from `Tax.type` ("percentage" | "fixed"), which is how the rate is calculated.
+ */
+export type TaxType = "inclusive" | "exclusive";
+
+/** Product-level tax treatment for one side (purchase or sales). */
+export type ProductTaxType = "inclusive" | "exclusive" | "exempt";
+
+export interface ProductTaxConfig {
+  /** Reference to the Tax entity that supplies the rate. */
+  taxId?: string;
+  taxType: ProductTaxType;
+  /** Resolved rate (percent) echoed by the backend; 0 when exempt. */
+  rate?: number;
+  /** Display name of the linked Tax entity, when resolved. */
+  taxName?: string;
+}
+
 // Discount interfaces
 export type DiscountType = "percentage" | "fixed";
 export type DiscountApplicableTo = "sales" | "purchase" | "both";
@@ -741,6 +782,12 @@ export interface Product extends BaseEntity {
     conversionFactor: number;
   };
 
+  // Tax — separate purchase vs sales treatment. Rate is normalized on the Tax entity.
+  /** Tax applied when the product is sold (backend echoes resolved `rate`). */
+  salesTax?: ProductTaxConfig;
+  /** Tax applied when the product is purchased. */
+  purchaseTax?: ProductTaxConfig;
+
   // Ecommerce storefront listing (only meaningful when the org `storefront` feature is on)
   storefront?: {
     isListed: boolean;
@@ -765,6 +812,8 @@ export interface CreateProductDto {
   images?: string[];
   tags?: string[];
   custom_fields?: CustomField[];
+  salesTax?: ProductTaxConfig;
+  purchaseTax?: ProductTaxConfig;
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> { }
@@ -1112,6 +1161,10 @@ export interface PurchaseOrderItem {
   discount?: number;
   variantName?: string;
   product?: { name: string };
+  // Per-line purchase tax snapshot (from the product's purchaseTax at posting time).
+  taxRate?: number;
+  taxType?: "inclusive" | "exclusive";
+  taxAmount?: number;
 }
 
 export interface PurchaseOrder extends BaseEntity {
@@ -1148,8 +1201,15 @@ export interface CreatePurchaseOrderItemDto {
   price: number;
   costPrice?: number;
   discount?: number;
+  // Per-line purchase tax (from the product's purchaseTax). Server recomputes.
+  taxRate?: number;
+  taxType?: "inclusive" | "exclusive";
   conversionFactor?: number;
   purchaseUnitName?: string;
+  // Per-line expiry-batch capture for instant purchases (status "received").
+  // Only honoured by the backend for expiry-tracked products.
+  expiryDate?: string;
+  batchNumber?: string;
 }
 
 // Single Purchase Order DTO
@@ -1333,6 +1393,10 @@ export interface PurchaseReturnItem {
   refundAmount: number;
   lineTotal: number;
   conversionFactor?: number; // For UoM conversion (e.g., 1 box = 100 pieces)
+  // Tax snapshot (proportional reversal of the original order line; set by the backend).
+  taxRate?: number;
+  taxType?: TaxType;
+  taxAmount?: number;
 }
 
 /**
@@ -1349,6 +1413,7 @@ export interface PurchaseReturn extends BaseEntity {
   totalRefundAmount: number;
   deductionAmount?: number; // Optional fee withheld from gross refund
   refundedAmount: number;
+  taxTotal?: number; // Σ line taxAmount refunded (mirrors PurchaseOrder.taxTotal)
   totalCostAmount?: number;
   reason: PurchaseReturnReason;
   notes?: string;
@@ -1386,6 +1451,7 @@ export interface CreatePurchaseReturnItemDto {
   price: number;
   costPrice: number;
   discount?: number;
+  refundAmount: number; // Tax-inclusive refund; required by backend (no net fallback)
   conversionFactor?: number; // For UoM conversion (e.g., 1 box = 100 pieces)
 }
 
@@ -1547,6 +1613,10 @@ export interface SaleItemPayload {
   price: number;
   costPrice: number;
   discount: number;
+  /** Tax rate (percent) for the line; the backend uses it to compute line tax. */
+  taxRate?: number;
+  /** "inclusive" = price already contains tax; "exclusive" = tax added on top. */
+  taxType?: TaxType;
 }
 
 /** PATCH /sales/:id body — only allowed when the sale is still a draft. */
@@ -1600,6 +1670,11 @@ export interface SaleItem {
   costPrice: number;
   discount: number;
   subtotal: number;
+  /** Tax rate (percent) applied to the line. */
+  taxRate?: number;
+  taxType?: TaxType;
+  /** Computed tax amount for the line (backend). */
+  taxAmount?: number;
 }
 
 /**
@@ -1636,6 +1711,9 @@ export interface Sale extends BaseEntity {
   items: SaleItem[];
   subtotal: number;
   additionalDiscount: number;
+  /** Sum of line tax across the sale (backend-computed). */
+  taxTotal?: number;
+  /** Grand total payable = subtotal - additionalDiscount + taxTotal (tax-inclusive). */
   totalAmount: number;
   paidAmount: number;
   dueAmount: number;
@@ -1787,6 +1865,10 @@ export interface SalesReturnItem {
   discount?: number;
   refundAmount: number;
   lineTotal: number;
+  // Tax snapshot (proportional reversal of the original sale line; set by the backend).
+  taxRate?: number;
+  taxType?: TaxType;
+  taxAmount?: number;
 }
 
 /**
@@ -1803,6 +1885,7 @@ export interface SalesReturn extends BaseEntity {
   totalRefundAmount: number;
   deductionAmount?: number; // Optional fee withheld from gross refund
   refundedAmount: number; // Actual cash refunded
+  taxTotal?: number; // Σ line taxAmount refunded (mirrors Sale.taxTotal)
   totalCostAmount?: number;
   reason: SalesReturnReason;
   notes?: string;

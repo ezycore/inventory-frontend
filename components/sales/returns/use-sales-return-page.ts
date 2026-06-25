@@ -209,6 +209,8 @@ export function useSalesReturnPage() {
       price: roundMoney(item.price),
       costPrice: roundMoney(item.costPrice),
       discount: roundMoney(item.discount ?? 0),
+      taxRate: item.taxRate,
+      taxType: item.taxType,
       refundAmount: roundMoney(item.refundAmount),
     }));
 

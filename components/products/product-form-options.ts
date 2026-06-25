@@ -22,6 +22,7 @@ export const barcodeSymbologyOptions = [
 export const taxTypeOptions = [
   { value: 'inclusive', label: 'Inclusive' },
   { value: 'exclusive', label: 'Exclusive' },
+  { value: 'exempt', label: 'Exempt' },
 ]
 
 export const discountTypeOptions = [

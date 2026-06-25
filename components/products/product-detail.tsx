@@ -125,7 +125,8 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
   const totalRevenue = product.totalRevenue ?? stockOverview?.totalRevenue ?? 0
   const profitPerUnit = product.price && product.costPrice ? product.price - product.costPrice : 0
   const profitMarginPercent = product.profitMargin ?? (product.price > 0 ? Math.round(((product.price - product.costPrice) / product.price) * 100) : 0)
-  const taxRate = product.taxRate ?? product.tax?.rate ?? 0
+  const salesTaxRate = product.salesTax?.taxType === "exempt" ? 0 : product.salesTax?.rate ?? 0
+  const purchaseTaxRate = product.purchaseTax?.taxType === "exempt" ? 0 : product.purchaseTax?.rate ?? 0
   const sku = product.base_sku || product.variants?.[0]?.sku || '—'
   const barcode = product.barcode || product.variants?.[0]?.barcode || ''
 
@@ -539,10 +540,16 @@ export function ProductDetail({ productId, onClose }: ProductDetailProps) {
                 <span className="text-sm text-muted-foreground">Profit/Unit</span>
                 <span className="text-sm font-medium">{formatCurrency(profitPerUnit)}</span>
               </div>
-              {taxRate > 0 && (
+              {salesTaxRate > 0 && (
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-sm text-muted-foreground">Tax Rate</span>
-                  <span className="text-sm font-medium">{taxRate}%</span>
+                  <span className="text-sm text-muted-foreground">Sales Tax</span>
+                  <span className="text-sm font-medium">{salesTaxRate}%</span>
+                </div>
+              )}
+              {purchaseTaxRate > 0 && (
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-sm text-muted-foreground">Purchase Tax</span>
+                  <span className="text-sm font-medium">{purchaseTaxRate}%</span>
                 </div>
               )}
               {product.discountValue != null && product.discountValue > 0 && (

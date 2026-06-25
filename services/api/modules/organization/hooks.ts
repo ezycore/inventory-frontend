@@ -6,10 +6,12 @@ import {
 } from "@/services/api";
 import type {
   ApiResponse,
+  FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
   SubscriptionInfo,
   UpdateStorefrontSettingsDto,
+  TaxSettings,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
@@ -190,18 +192,44 @@ export const useGetFeatures = () => {
   });
 };
 
-// PUT /api/organization/features - Update feature flags
+// PUT /api/organization/features - Toggle features within the plan ceiling
 export const useUpdateFeatures = () => {
   const queryClient = useQueryClient();
+  const updateFeaturesStore = useAuthStore((state) => state.updateFeatures);
 
   return useMutation({
     mutationFn: (data: Partial<OrganizationFeatures>) =>
       organizationApi.updateFeatures(data),
     onSuccess: (result) => {
       handleMutationSuccess(result.message || "Features updated successfully!");
-      queryClient.invalidateQueries({
-        queryKey: [...queryKeys.organization.features(), 'me'],
-      });
+      // Sync the enforced feature set into the auth store so the nav/guards
+      // reflect the change immediately.
+      if (result.data?.features) {
+        updateFeaturesStore(result.data.features);
+      }
+      // Write the server-confirmed result straight into the features cache
+      // instead of invalidating: avoids a refetch where the other switches —
+      // and the just-toggled one — briefly render stale (the blink).
+      queryClient.setQueryData(queryKeys.organization.features(), result);
+      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// PUT /api/organization/tax-settings - Update tax sub-toggles + financial year
+export const useUpdateTaxSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      taxSettings?: Partial<TaxSettings>;
+      financialYear?: Partial<FinancialYearConfig>;
+    }) => organizationApi.updateTaxSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(
+        result.message || "Tax settings updated successfully!",
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },
     onError: handleMutationError,

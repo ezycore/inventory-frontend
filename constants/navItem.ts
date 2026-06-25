@@ -23,7 +23,13 @@ export const navItems: NavItem[] = [
       { title: "Brands", url: "/brands", icon: "star" },
       { title: "Variants", url: "/variants", icon: "layers" },
       { title: "Units", url: "/units", icon: "grid" },
-      { title: "Taxes", url: "/taxes", icon: "percent" },
+      {
+        title: "Taxes",
+        url: "/taxes",
+        icon: "percent",
+        features: ["tax"],
+        permissions: ["taxes.view"],
+      },
     ],
   },
 
@@ -260,6 +266,12 @@ export const navItems: NavItem[] = [
         features: ["accounts"],
       },
       {
+        title: "Tax Report",
+        url: "/dashboard/reports/tax",
+        icon: "percent",
+        features: ["tax"],
+      },
+      {
         title: "Product Valuation",
         url: "/dashboard/reports/valuation",
         icon: "database",
@@ -301,6 +313,13 @@ export const navItems: NavItem[] = [
         title: "Feature Settings",
         url: "/settings/features",
         icon: "toggle-left",
+        permissions: ["organization.edit"],
+      },
+      {
+        title: "Tax Settings",
+        url: "/settings/tax",
+        icon: "percent",
+        features: ["tax"],
         permissions: ["organization.edit"],
       },
       {
