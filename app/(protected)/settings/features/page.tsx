@@ -33,7 +33,7 @@ const FEATURE_ORDER: FeatureName[] = [
   "barcodeSystem",
   "invoicePrinting",
   "uomConversion",
-  "storefront"
+  "storefront",
   "tax"
 ];
 
