@@ -42,6 +42,7 @@ export function usePurchasePage() {
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const isUOMEnabled = user?.organization?.features?.uomConversion ?? false;
   const isTaxEnabled = isTaxActive(user?.organization, "purchase");
+  const isExpiryEnabled = user?.organization?.features?.expiryTracking ?? false;
 
   const {
     sellers,
@@ -428,8 +429,14 @@ export function usePurchasePage() {
     if (validSellers.length === 0) { toast.error("Please add items to at least one supplier"); return; }
     try {
       const ordersData: any[] = validSellers.map((seller) => {
-        const items = seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType }));
-        const status = seller.purchaseType === "instant" ? "received" : "ordered";
+        const isInstant = seller.purchaseType === "instant";
+        const items = seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType,
+          // Per-line expiry-batch — only sent for instant (received-on-create) and
+          // only honoured by the backend for expiry-tracked products.
+          ...(isExpiryEnabled && isInstant && item.expiryDate ? { expiryDate: item.expiryDate } : {}),
+          ...(isExpiryEnabled && isInstant && item.batchNumber ? { batchNumber: item.batchNumber } : {}),
+        }));
+        const status = isInstant ? "received" : "ordered";
         const netAmount = getSellerNetAmount(seller.id);
         const sellerPaid = seller.paymentInfo?.paidAmount || 0;
         const sellerAccountId = seller.paymentInfo?.accountId || "";
@@ -454,7 +461,7 @@ export function usePurchasePage() {
       supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: "" });
       productForm.reset();
     } catch (error) { console.error("Failed to complete purchase:", error); toast.error("Failed to complete purchase"); }
-  }, [sellers, isAccountsEnabled, getSellerNetAmount, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, finalizeDraftMutation, router]);
+  }, [sellers, isAccountsEnabled, isExpiryEnabled, getSellerNetAmount, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, finalizeDraftMutation, router]);
 
   const handleSaveAsDraft = useCallback(async () => {
     const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
@@ -552,6 +559,7 @@ export function usePurchasePage() {
     isAccountsEnabled,
     isUOMEnabled,
     isTaxEnabled,
+    isExpiryEnabled,
     isDraftMode,
   };
 }

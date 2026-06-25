@@ -61,6 +61,7 @@ function PurchasesPageContent() {
     getSellerIncludedTax,
     removeSeller,
     removeItem,
+    updateItem,
     setAdditionalDiscount,
     isImportDialogOpen,
     setIsImportDialogOpen,
@@ -74,6 +75,7 @@ function PurchasesPageContent() {
     activeSeller,
     isUOMEnabled,
     isTaxEnabled,
+    isExpiryEnabled,
   } = ctx;
 
   return (
@@ -129,10 +131,12 @@ function PurchasesPageContent() {
               getPurchaseColumns={getPurchaseColumns}
               handleEditItem={handleEditItem}
               removeItem={removeItem}
+              updateItem={updateItem}
               setAdditionalDiscount={setAdditionalDiscount}
               removeSeller={removeSeller}
               isUOMEnabled={isUOMEnabled}
               isTaxEnabled={isTaxEnabled}
+              isExpiryEnabled={isExpiryEnabled}
               symbol={symbol}
             />
           ))}

@@ -24,10 +24,12 @@ type Props = {
   getPurchaseColumns: any;
   handleEditItem: any;
   removeItem: any;
+  updateItem: (id: string, itemId: string, data: any) => void;
   setAdditionalDiscount: (id: string, v: number) => void;
   removeSeller: (id: string) => void;
   isUOMEnabled: boolean;
   isTaxEnabled: boolean;
+  isExpiryEnabled: boolean;
   symbol: string;
 };
 
@@ -43,10 +45,12 @@ export const ItemsTable: FC<Props> = ({
   getPurchaseColumns,
   handleEditItem,
   removeItem,
+  updateItem,
   setAdditionalDiscount,
   removeSeller,
   isUOMEnabled,
   isTaxEnabled,
+  isExpiryEnabled,
   symbol,
 }) => {
   const { confirm, ConfirmDialog } = useConfirm();
@@ -84,7 +88,7 @@ export const ItemsTable: FC<Props> = ({
         </div>
 
         <CardTable
-          columns={getPurchaseColumns(handleEditItem, removeItem, formatCurrency, seller.id, isUOMEnabled, isTaxEnabled)}
+          columns={getPurchaseColumns(handleEditItem, removeItem, formatCurrency, seller.id, isUOMEnabled, isTaxEnabled, isExpiryEnabled && seller.purchaseType === "instant", updateItem)}
           data={seller.items}
           emptyMessage="No items added yet"
           showCard={false}

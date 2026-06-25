@@ -97,6 +97,18 @@ export const prepareSubmitData = (
 
   if (isEdit && item) {
     submitData.id = item._id;
+  } else {
+    // Create only: opening stock + cost + (expiry-tracked) batch capture.
+    // Quantity can't be changed via update, so these are create-time only.
+    const d = data as any;
+    if (d.quantity != null && d.quantity !== "") {
+      submitData.quantity = Number(d.quantity);
+    }
+    if (d.costPrice != null && d.costPrice !== "") {
+      submitData.costPrice = Number(d.costPrice);
+    }
+    if (d.expiryDate) submitData.expiryDate = d.expiryDate;
+    if (d.batchNumber) submitData.batchNumber = d.batchNumber;
   }
 
   return submitData;

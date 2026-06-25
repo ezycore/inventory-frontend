@@ -4,9 +4,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Edit2, Trash2 } from "lucide-react";
 import { computeLineTax } from "@/utils/tax";
 import { LineTaxCell } from "@/components/shared/line-tax-cell";
+import { BatchNumberCell, ExpiryDateCell } from "./expiry-cells";
 
 /**
- * Generate purchase order columns with edit/remove actions
+ * Generate purchase order columns with edit/remove actions.
+ *
+ * When `showExpiryCapture` is set (expiry tracking on + instant purchase), two
+ * inline columns let the user record expiry date / batch number per line —
+ * matching the order receive flow.
  */
 export const getPurchaseColumns = (
   onEdit: (sellerId: string, item: PurchaseOrderItem) => void,
@@ -15,6 +20,12 @@ export const getPurchaseColumns = (
   sellerId: string,
   _isUOMEnabled?: boolean,
   isTaxEnabled?: boolean,
+  showExpiryCapture?: boolean,
+  onUpdate?: (
+    sellerId: string,
+    itemId: string,
+    data: Partial<Omit<PurchaseOrderItem, "id">>,
+  ) => void,
 ): ColumnDef<PurchaseOrderItem>[] => {
   const columns: ColumnDef<PurchaseOrderItem>[] = [
     {
@@ -93,6 +104,32 @@ export const getPurchaseColumns = (
                 />
               );
             },
+          } as ColumnDef<PurchaseOrderItem>,
+        ]
+      : []),
+    ...(showExpiryCapture && onUpdate
+      ? [
+          {
+            id: "expiryDate",
+            header: "Expiry",
+            cell: ({ row }: { row: { original: PurchaseOrderItem } }) => (
+              <ExpiryDateCell
+                item={row.original}
+                sellerId={sellerId}
+                onUpdate={onUpdate}
+              />
+            ),
+          } as ColumnDef<PurchaseOrderItem>,
+          {
+            id: "batchNumber",
+            header: "Batch #",
+            cell: ({ row }: { row: { original: PurchaseOrderItem } }) => (
+              <BatchNumberCell
+                item={row.original}
+                sellerId={sellerId}
+                onUpdate={onUpdate}
+              />
+            ),
           } as ColumnDef<PurchaseOrderItem>,
         ]
       : []),

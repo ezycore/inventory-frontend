@@ -77,6 +77,10 @@ export interface PurchaseOrderItem {
   // Per-line purchase tax (from the product's purchaseTax). 0 when tax inactive.
   taxRate?: number;
   taxType?: "inclusive" | "exclusive";
+  // Per-line expiry-batch capture for instant purchases (received on create).
+  // Mirrors the order receive flow; only used for expiry-tracked products.
+  expiryDate?: string;
+  batchNumber?: string;
 }
 
 /**

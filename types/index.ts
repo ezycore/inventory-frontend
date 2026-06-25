@@ -1160,6 +1160,10 @@ export interface CreatePurchaseOrderItemDto {
   taxType?: "inclusive" | "exclusive";
   conversionFactor?: number;
   purchaseUnitName?: string;
+  // Per-line expiry-batch capture for instant purchases (status "received").
+  // Only honoured by the backend for expiry-tracked products.
+  expiryDate?: string;
+  batchNumber?: string;
 }
 
 // Single Purchase Order DTO
