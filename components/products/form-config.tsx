@@ -131,7 +131,6 @@ export const productFormConfig: DynamicFormConfig = {
           name: "description",
           type: "textarea",
           label: "Description",
-          required: true,
           columnSpan: 12,
           placeholder: "Describe ingredients, usage, benefits, warnings...",
           rows: 4,
