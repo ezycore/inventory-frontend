@@ -4,7 +4,7 @@
  * Handles unified field dependency logic for dynamic forms
  */
 
-import type { FieldDependency } from './type';
+import type { FieldDependency, FieldDependencyConfig } from './type';
 
 /**
  * Extract value from an object using a property path
@@ -139,6 +139,42 @@ export const evaluateFieldDependency = (
   
   const conditionMet = evaluateDependencyCondition(watchedValue, dependency);
   return applyDependencyAction(conditionMet, dependency.action);
+};
+
+/**
+ * Normalize a dependency config (single or array) into an array.
+ *
+ * @param dependency - Single condition, array of conditions, or undefined
+ * @returns Array of dependency conditions (empty when none configured)
+ */
+export const normalizeDependencies = (
+  dependency?: FieldDependencyConfig
+): FieldDependency[] => {
+  if (!dependency) return [];
+  return Array.isArray(dependency) ? dependency : [dependency];
+};
+
+/**
+ * Evaluate a group of dependencies with AND semantics — every condition must
+ * pass for the group to be considered met. The resulting action is taken from
+ * the FIRST dependency (the group shares one show/hide/disable intent).
+ *
+ * @param watchedValues - Watched values aligned by index with `dependencies`
+ * @param dependencies - Normalized dependency conditions
+ * @returns Object with shouldHide and shouldDisable flags
+ */
+export const evaluateFieldDependencies = (
+  watchedValues: any[],
+  dependencies: FieldDependency[]
+): { shouldHide: boolean; shouldDisable: boolean } => {
+  if (!dependencies.length) {
+    return { shouldHide: false, shouldDisable: false };
+  }
+
+  const allMet = dependencies.every((dep, i) =>
+    evaluateDependencyCondition(watchedValues[i], dep)
+  );
+  return applyDependencyAction(allMet, dependencies[0].action);
 };
 
 /**

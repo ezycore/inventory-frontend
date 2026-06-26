@@ -22,7 +22,7 @@ import { quickAddConfig } from "@/config/quickAddConfig";
 import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
-import type { SelectOption, FieldDependency } from "@/ui/components/form/type";
+import type { SelectOption, FieldDependencyConfig } from "@/ui/components/form/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui/components/popover";
 import { Badge } from "@ui/components/badge";
@@ -70,7 +70,7 @@ export interface FuseAdvancedSelectProps {
   optionsApi?: string;
 
   // Dependency system (used by DynamicForm)
-  dependsOn?: FieldDependency;
+  dependsOn?: FieldDependencyConfig;
 
   // Multi-select display
   maxCount?: number;

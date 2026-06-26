@@ -89,6 +89,24 @@ export interface FieldDependency {
   action?: DependencyAction;
 }
 
+/**
+ * Field dependency configuration: a single condition, or an array of
+ * conditions combined with AND semantics (every condition must pass).
+ * When an array is given, the `action` (show/hide/disable/enable) is taken
+ * from the FIRST entry — keep the same action intent across the group.
+ * Note: select-option enrichment / `optionsApi` template resolution only
+ * applies to the FIRST (primary) dependency; extra conditions compare the
+ * raw watched value (ideal for booleans/numbers).
+ *
+ * @example
+ * dependsOn: [
+ *   { field: "addToInventory", condition: "truthy", action: "show" },
+ *   { field: "hasExpiry", condition: "truthy" },
+ *   { field: "openingStock", condition: "gt", value: 0 },
+ * ]
+ */
+export type FieldDependencyConfig = FieldDependency | FieldDependency[];
+
 export interface FormFieldConfig {
   // Basic field properties
   name: string;
@@ -152,9 +170,10 @@ export interface FormFieldConfig {
 
   /**
    * Unified field dependency configuration
-   * Controls field visibility and disabled state based on another field
+   * Controls field visibility and disabled state based on another field.
+   * Accepts a single condition or an array (AND) — see {@link FieldDependencyConfig}.
    */
-  dependsOn?: FieldDependency;
+  dependsOn?: FieldDependencyConfig;
 
   /**
    * Makes this field required only when the specified condition is met.
@@ -246,8 +265,8 @@ export interface FormSection {
   defaultOpen?: boolean;
   fields: FormFieldConfig[];
   className?: string;
-  /** Hide/show the entire section based on another field's value */
-  dependsOn?: FieldDependency;
+  /** Hide/show the entire section based on another field's value (single or AND-array) */
+  dependsOn?: FieldDependencyConfig;
   /**
    * Optional content rendered on the right side of the section header
    * (e.g. a "Track stock" toggle). Receives the form `control` so it can

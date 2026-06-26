@@ -23,7 +23,7 @@ import { quickAddConfig } from "@/config/quickAddConfig";
 import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
-import type { SelectOption, FieldDependency } from "@/ui/components/form/type";
+import type { SelectOption, FieldDependencyConfig } from "@/ui/components/form/type";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Select,
@@ -71,7 +71,7 @@ interface AdvancedSelectProps {
   optionsApi?: string;
 
   // Unified dependency system
-  dependsOn?: FieldDependency;
+  dependsOn?: FieldDependencyConfig;
   // Multi-select specific props
   variant?: "default" | "secondary" | "destructive" | "inverted";
   maxCount?: number;

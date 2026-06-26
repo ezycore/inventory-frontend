@@ -36,7 +36,7 @@ import type {
 } from "@/ui/components/form/type";
 import { Password } from "../input-password";
 import { SafeImage } from '@/ui/components/safeImage';
-import { evaluateFieldDependency, resolveApiTemplate, evaluateDependencyCondition } from "./dependency-utils";
+import { evaluateFieldDependencies, normalizeDependencies, resolveApiTemplate, evaluateDependencyCondition } from "./dependency-utils";
 import { useSelectOptions } from "@/services/api";
 
 // Helper to get a nested value from an object by dot-separated path
@@ -109,18 +109,32 @@ const FormField: FC<{
     typeof field.helperText === "function";
   const allValues = useWatch({ control, disabled: !needsAllValues }) || {};
 
-  // Watch dependent field value if dependency exists
-  const dependencyRawValue = useWatch({
-    control,
-    name: field.dependsOn?.field || field.name,
-    disabled: !field.dependsOn
-  });
+  // Normalize dependsOn to an array (single condition or AND-group)
+  const dependencies = useMemo(
+    () => normalizeDependencies(field.dependsOn),
+    [field.dependsOn]
+  );
+  const dependencyFieldNames = useMemo(
+    () => dependencies.map((d) => d.field),
+    [dependencies]
+  );
 
-  // Find the dependency field's configuration
+  // Watch every dependency field's value (array, aligned with `dependencies`)
+  const dependencyRawValues = useWatch({
+    control,
+    name: dependencyFieldNames.length ? dependencyFieldNames : [field.name],
+    disabled: dependencies.length === 0,
+  }) as any[];
+
+  // The first (primary) dependency drives optionsApi template + select enrichment
+  const primaryDependency = dependencies[0];
+  const primaryRawValue = dependencyRawValues?.[0];
+
+  // Find the primary dependency field's configuration
   const dependencyField = useMemo(() => {
-    if (!field.dependsOn) return null;
-    return allFields.find(f => f.name === field.dependsOn!.field);
-  }, [field.dependsOn, allFields]);
+    if (!primaryDependency) return null;
+    return allFields.find(f => f.name === primaryDependency.field);
+  }, [primaryDependency, allFields]);
 
   // Fetch API options for dependency field if it uses optionsApi
   // This will use cached data from TanStack Query if already fetched
@@ -129,35 +143,44 @@ const FormField: FC<{
     dependencyField?.itemsCreateCallback
   );
 
-  // Enrich dependency value with full option data if it's a select field
+  // Enrich the primary dependency value with full option data if it's a select field
   const dependencyWatchedValue = useMemo(() => {
-    if (!field.dependsOn || !dependencyRawValue) return dependencyRawValue;
+    if (!primaryDependency || !primaryRawValue) return primaryRawValue;
 
     // If value is already an object with all the data we need, use it
-    if (typeof dependencyRawValue === 'object' && dependencyRawValue !== null) {
-      return dependencyRawValue;
+    if (typeof primaryRawValue === 'object' && primaryRawValue !== null) {
+      return primaryRawValue;
     }
 
     // If dependency field has static options, look up from config
     if (dependencyField?.type === 'select' && dependencyField.options) {
-      const fullOption = dependencyField.options.find(opt => opt.value === dependencyRawValue);
-      return fullOption || dependencyRawValue;
+      const fullOption = dependencyField.options.find(opt => opt.value === primaryRawValue);
+      return fullOption || primaryRawValue;
     }
 
     // If dependency field has optionsApi, look up from API data
     if (dependencyField?.type === 'select' && dependencyApiOptions) {
-      const fullOption = dependencyApiOptions.find(opt => opt.value === dependencyRawValue);
-      return fullOption || dependencyRawValue;
+      const fullOption = dependencyApiOptions.find(opt => opt.value === primaryRawValue);
+      return fullOption || primaryRawValue;
     }
 
-    return dependencyRawValue;
-  }, [dependencyRawValue, field.dependsOn, dependencyField, dependencyApiOptions]);
+    return primaryRawValue;
+  }, [primaryRawValue, primaryDependency, dependencyField, dependencyApiOptions]);
 
+  // Values aligned with `dependencies`: primary uses the enriched value, the
+  // rest compare their raw watched value (booleans/numbers need no enrichment).
+  const evaluatedDependencyValues = useMemo(
+    () =>
+      dependencies.map((_, i) =>
+        i === 0 ? dependencyWatchedValue : dependencyRawValues?.[i]
+      ),
+    [dependencies, dependencyWatchedValue, dependencyRawValues]
+  );
 
-  // Evaluate dependency and determine field state
-  const { shouldHide, shouldDisable } = evaluateFieldDependency(
-    dependencyWatchedValue,
-    field.dependsOn
+  // Evaluate all dependencies (AND) and determine field state
+  const { shouldHide, shouldDisable } = evaluateFieldDependencies(
+    evaluatedDependencyValues,
+    dependencies
   );
 
   // Watch requiredWhen dependency field for conditional required state
@@ -170,13 +193,14 @@ const FormField: FC<{
   // Evaluate whether the field is currently required based on requiredWhen
   const isConditionallyRequired = useMemo(() => {
     if (!field.requiredWhen) return false;
-    // Reuse the already-enriched value when requiredWhen watches the same field as dependsOn
+    // Reuse the already-enriched value when requiredWhen watches the same field
+    // as the primary dependency.
     const val =
-      field.requiredWhen.field === field.dependsOn?.field
+      field.requiredWhen.field === primaryDependency?.field
         ? dependencyWatchedValue
         : requiredWhenRawValue;
     return evaluateDependencyCondition(val, field.requiredWhen);
-  }, [field.requiredWhen, field.dependsOn, requiredWhenRawValue, dependencyWatchedValue]);
+  }, [field.requiredWhen, primaryDependency, requiredWhenRawValue, dependencyWatchedValue]);
 
   // Determine effective disabled state
   const effectiveDisabled = field.disabled || isFieldDisabledInEdit || shouldDisable;
@@ -388,27 +412,16 @@ const FormField: FC<{
               // Resolve API endpoint with dependency checking
               let resolvedOptionsApi = field.optionsApi;
 
-              if (field.optionsApi && field.dependsOn && field.optionsApi.includes('{{')) {
-                // Only process if there's a watched value
-                if (dependencyWatchedValue) {
-                  // Check if dependency condition is met
-                  const { shouldDisable } = evaluateFieldDependency(
-                    dependencyWatchedValue,
-                    field.dependsOn
+              if (field.optionsApi && primaryDependency && field.optionsApi.includes('{{')) {
+                // Only resolve when we have a value AND the dependency group is met
+                // (shouldDisable = false means the conditions are satisfied).
+                if (dependencyWatchedValue && !shouldDisable) {
+                  resolvedOptionsApi = resolveApiTemplate(
+                    field.optionsApi,
+                    dependencyWatchedValue
                   );
-
-                  // Only resolve template if condition is met (shouldDisable = false means condition met)
-                  if (!shouldDisable) {
-                    resolvedOptionsApi = resolveApiTemplate(
-                      field.optionsApi,
-                      dependencyWatchedValue
-                    );
-                  } else {
-                    // Condition not met, don't call API
-                    resolvedOptionsApi = undefined;
-                  }
                 } else {
-                  // No watched value yet, don't call API
+                  // Condition not met / no value yet, don't call API
                   resolvedOptionsApi = undefined;
                 }
               }
@@ -477,20 +490,12 @@ const FormField: FC<{
               // Resolve API endpoint with dependency checking (same logic as "select")
               let resolvedOptionsApi = field.optionsApi;
 
-              if (field.optionsApi && field.dependsOn && field.optionsApi.includes('{{')) {
-                if (dependencyWatchedValue) {
-                  const { shouldDisable } = evaluateFieldDependency(
-                    dependencyWatchedValue,
-                    field.dependsOn
+              if (field.optionsApi && primaryDependency && field.optionsApi.includes('{{')) {
+                if (dependencyWatchedValue && !shouldDisable) {
+                  resolvedOptionsApi = resolveApiTemplate(
+                    field.optionsApi,
+                    dependencyWatchedValue
                   );
-                  if (!shouldDisable) {
-                    resolvedOptionsApi = resolveApiTemplate(
-                      field.optionsApi,
-                      dependencyWatchedValue
-                    );
-                  } else {
-                    resolvedOptionsApi = undefined;
-                  }
                 } else {
                   resolvedOptionsApi = undefined;
                 }
@@ -1052,14 +1057,21 @@ const FormSectionComponent: FC<{
     }, [formState?.errors, section.fields]);
     const effectiveOpen = isOpen || hasSectionError;
 
-    // Section-level dependency evaluation — hide the whole section when condition not met
-    const sectionDepValue = useWatch({
+    // Section-level dependency evaluation — hide the whole section when the
+    // condition (single or AND-group) is not met.
+    const sectionDependencies = normalizeDependencies(section.dependsOn);
+    const sectionDepValues = useWatch({
       control,
-      name: section.dependsOn?.field || '__none__',
-      disabled: !section.dependsOn,
-    });
-    if (section.dependsOn) {
-      const { shouldHide } = evaluateFieldDependency(sectionDepValue, section.dependsOn);
+      name: sectionDependencies.length
+        ? sectionDependencies.map((d) => d.field)
+        : ['__none__'],
+      disabled: sectionDependencies.length === 0,
+    }) as any[];
+    if (sectionDependencies.length) {
+      const { shouldHide } = evaluateFieldDependencies(
+        sectionDepValues,
+        sectionDependencies
+      );
       if (shouldHide) return null;
     }
 
