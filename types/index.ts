@@ -75,6 +75,76 @@ export interface StorefrontTheme {
   homepageSections?: string[];
 }
 
+export type NavLinkType = "category" | "page" | "url";
+
+export interface StorefrontMenuItem {
+  label: string;
+  type: NavLinkType;
+  value: string;
+  children?: StorefrontMenuItem[];
+}
+
+export interface StorefrontFooterLink {
+  label: string;
+  url: string;
+}
+
+export interface StorefrontFooterGroup {
+  title: string;
+  links: StorefrontFooterLink[];
+}
+
+export interface StorefrontAnnouncement {
+  enabled: boolean;
+  text?: string;
+  link?: string;
+  bgColor?: string;
+}
+
+export interface StorefrontNav {
+  header: StorefrontMenuItem[];
+  footer: StorefrontFooterGroup[];
+  announcement?: StorefrontAnnouncement;
+}
+
+export interface StorefrontCheckout {
+  guestCheckout?: boolean;
+  requiredFields?: string[];
+  minOrderValue?: number;
+  orderPrefix?: string;
+  termsRequired?: boolean;
+}
+
+export interface StorefrontNotifEvent {
+  enabled: boolean;
+  template?: string;
+}
+
+export interface StorefrontNotifications {
+  senderId?: string;
+  merchantAlertNumber?: string;
+  events?: {
+    placed?: StorefrontNotifEvent;
+    confirmed?: StorefrontNotifEvent;
+    shipped?: StorefrontNotifEvent;
+    delivered?: StorefrontNotifEvent;
+  };
+}
+
+export interface StorefrontTemplates {
+  home?: string;
+  collection?: string;
+  product?: string;
+  cart?: string;
+  checkout?: string;
+  search?: string;
+}
+
+export interface StorefrontCustomersConfig {
+  allowAccounts?: boolean;
+  phoneOtpLogin?: boolean;
+}
+
 export interface StorefrontSettings {
   _id?: string;
   organizationId?: string;
@@ -90,7 +160,13 @@ export interface StorefrontSettings {
   currency?: string;
   shippingRule: StorefrontShippingRule;
   defaultDeliveryCost: number;
+  bankInstructions?: string;
   theme?: StorefrontTheme;
+  nav?: StorefrontNav;
+  checkout?: StorefrontCheckout;
+  notifications?: StorefrontNotifications;
+  templates?: StorefrontTemplates;
+  customersConfig?: StorefrontCustomersConfig;
 }
 
 export type UpdateStorefrontSettingsDto = Partial<

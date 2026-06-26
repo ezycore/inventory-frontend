@@ -29,6 +29,7 @@ export interface AdminStorefrontOrder {
   items: AdminOrderItem[];
   subtotal: number;
   discountAmount: number;
+  couponCode?: string;
   shippingCharged: number;
   shippingCost: number;
   totalAmount: number;
@@ -61,7 +62,24 @@ export interface CourierListResult {
 
 export interface AdminOrderListResult {
   items: AdminStorefrontOrder[];
+  /** Per-status counts for the list tabs (keys include "all" + each status). */
+  counts?: Record<string, number>;
   pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+/**
+ * Delivery-risk result for an order's customer phone. `available:false` means
+ * there was no usable phone / history; `risk` is still returned for UI banding.
+ */
+export interface OrderFraudScore {
+  available: boolean;
+  source: string;
+  phone: string;
+  totalParcels: number;
+  deliveredParcels: number;
+  cancelledParcels: number;
+  successRatio: number;
+  risk: "low" | "medium" | "high";
 }
 
 const base = "/ecommerce/orders";
@@ -69,11 +87,13 @@ const base = "/ecommerce/orders";
 export const storefrontOrdersApi = {
   list: (params: {
     status?: string;
+    search?: string;
     page?: number;
     limit?: number;
   }): Promise<ApiResponse<AdminOrderListResult>> => {
     const qs = new URLSearchParams();
     if (params.status) qs.append("status", params.status);
+    if (params.search) qs.append("search", params.search);
     if (params.page) qs.append("page", String(params.page));
     if (params.limit) qs.append("limit", String(params.limit));
     const s = qs.toString();
@@ -113,6 +133,8 @@ export const storefrontOrdersApi = {
   },
   get: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.get(`${base}/${id}`),
+  fraudScore: (id: string): Promise<ApiResponse<OrderFraudScore>> =>
+    apiClient.get(`${base}/${id}/fraud-check`),
   confirm: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/confirm`, {}),
   updateStatus: (

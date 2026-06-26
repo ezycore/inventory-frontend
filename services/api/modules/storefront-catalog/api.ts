@@ -1,11 +1,18 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
 
+export type OutOfStockBehavior = "hide" | "show" | "backorder";
+
 export interface CatalogProductStorefront {
   isListed?: boolean;
   onlinePrice?: number;
+  compareAtPrice?: number;
   featured?: boolean;
+  slug?: string;
+  onlineTitle?: string;
   onlineDescription?: string;
+  seo?: { title?: string; description?: string };
+  outOfStockBehavior?: OutOfStockBehavior;
 }
 
 export interface CatalogImage {
@@ -41,12 +48,18 @@ export interface CatalogListParams {
   limit?: number;
 }
 
-/** Per-product storefront fields a catalog editor can write. */
+/** Per-product storefront fields a catalog editor can write (JSON path). The
+ *  full editor drawer sends FormData (with flat seoTitle/seoDescription keys)
+ *  so it can also upload/reorder images. */
 export interface UpdateStorefrontListingDto {
   isListed?: boolean;
   onlinePrice?: number;
+  compareAtPrice?: number;
   featured?: boolean;
+  slug?: string;
+  onlineTitle?: string;
   onlineDescription?: string;
+  outOfStockBehavior?: OutOfStockBehavior;
 }
 
 export interface BulkStorefrontDto {
@@ -62,7 +75,17 @@ export interface BulkStorefrontResult {
   errors?: { id: string; error: string }[];
 }
 
+/** A category surfaced (or not) as a storefront collection. */
+export interface StorefrontCollection {
+  _id: string;
+  name: string;
+  slug?: string;
+  status: string;
+  storefront?: { isListed?: boolean; order?: number; displayName?: string };
+}
+
 const base = "/ecommerce/catalog";
+const collectionsBase = "/ecommerce/catalog/collections";
 
 export const storefrontCatalogApi = {
   list: (params: CatalogListParams = {}): Promise<ApiResponse<CatalogListResult>> => {
@@ -85,4 +108,15 @@ export const storefrontCatalogApi = {
     dto: BulkStorefrontDto,
   ): Promise<ApiResponse<BulkStorefrontResult>> =>
     apiClient.patch(`${base}/bulk`, dto),
+  listCollections: (): Promise<ApiResponse<StorefrontCollection[]>> =>
+    apiClient.get(collectionsBase),
+  updateCollection: (
+    id: string,
+    dto: { isListed?: boolean; displayName?: string },
+  ): Promise<ApiResponse<StorefrontCollection>> =>
+    apiClient.patch(`${collectionsBase}/${id}`, dto),
+  reorderCollections: (
+    ids: string[],
+  ): Promise<ApiResponse<StorefrontCollection[]>> =>
+    apiClient.patch(`${collectionsBase}/reorder`, { ids }),
 };

@@ -54,3 +54,43 @@ export const useBulkUpdateCatalogListing = () => {
     onError: handleMutationError,
   });
 };
+
+// ---- Collections (storefront category overlay) ----------------------------
+
+const COLLECTIONS = ["storefront-collections"] as const;
+
+export const useStorefrontCollections = () =>
+  useQuery({
+    queryKey: COLLECTIONS,
+    queryFn: () => storefrontCatalogApi.listCollections(),
+    select: (r) => r.data,
+  });
+
+export const useUpdateCollection = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; isListed?: boolean; displayName?: string }) =>
+      storefrontCatalogApi.updateCollection(v.id, {
+        isListed: v.isListed,
+        displayName: v.displayName,
+      }),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Collection updated");
+      qc.invalidateQueries({ queryKey: COLLECTIONS });
+    },
+    onError: handleMutationError,
+  });
+};
+
+export const useReorderCollections = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => storefrontCatalogApi.reorderCollections(ids),
+    // Server returns the re-sorted list; seed the cache so the UI doesn't flash.
+    onSuccess: (res) => {
+      if (res.data) qc.setQueryData(COLLECTIONS, res);
+      qc.invalidateQueries({ queryKey: COLLECTIONS });
+    },
+    onError: handleMutationError,
+  });
+};

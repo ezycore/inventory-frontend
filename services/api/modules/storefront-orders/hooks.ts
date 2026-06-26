@@ -12,6 +12,7 @@ const keys = {
 
 export const useStorefrontOrders = (params: {
   status?: string;
+  search?: string;
   page?: number;
   limit?: number;
 }) =>
@@ -19,6 +20,7 @@ export const useStorefrontOrders = (params: {
     queryKey: keys.list(params),
     queryFn: () => storefrontOrdersApi.list(params),
     select: (r) => r.data,
+    placeholderData: (prev) => prev,
   });
 
 export const useStorefrontOrder = (id: string) =>
@@ -27,6 +29,16 @@ export const useStorefrontOrder = (id: string) =>
     queryFn: () => storefrontOrdersApi.get(id),
     enabled: !!id,
     select: (r) => r.data,
+  });
+
+/**
+ * On-demand delivery-risk lookup (runs when the merchant clicks the button,
+ * not on mount) — modeled as a mutation so the result is fetched lazily.
+ */
+export const useOrderFraudScore = () =>
+  useMutation({
+    mutationFn: (id: string) => storefrontOrdersApi.fraudScore(id),
+    onError: handleMutationError,
   });
 
 const invalidateAll = (qc: ReturnType<typeof useQueryClient>) =>

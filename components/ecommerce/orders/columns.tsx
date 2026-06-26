@@ -51,15 +51,15 @@ export const orderColumns: ColumnDef<AdminStorefrontOrder>[] = [
       </span>
     ),
   },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <StatusBadge
-        status={
-          row.original.status as ComponentProps<typeof StatusBadge>["status"]
-        }
-      />
-    ),
-  },
+  // {
+  //   accessorKey: "status",
+  //   header: "Status",
+  //   cell: ({ row }) => (
+  //     <StatusBadge
+  //       status={
+  //         row.original.status as ComponentProps<typeof StatusBadge>["status"]
+  //       }
+  //     />
+  //   ),
+  // },
 ];
