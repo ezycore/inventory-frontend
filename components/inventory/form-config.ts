@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { DynamicFormConfig } from "@/ui/components/form/type";
 
 export const inventoryFormConfig: DynamicFormConfig = {
@@ -9,7 +10,7 @@ export const inventoryFormConfig: DynamicFormConfig = {
       placeholder: "Select product",
       required: true,
       columnSpan: 6,
-      optionsApi: "/products?all=true&fields=_id,name,unitId,productType,hasExpiry",
+      optionsApi: "/products?all=true&inventory=false&fields=_id,name,unitId,productType,hasExpiry",
       labelInValue: true,
       validation: { minLength: 1 },
     },
@@ -19,7 +20,7 @@ export const inventoryFormConfig: DynamicFormConfig = {
       label: "Variant",
       placeholder: "Select variant",
       columnSpan: 6,
-      optionsApi: "/products/{{_id}}/variants?fields=_id,attributes",
+      optionsApi: "/products/{{_id}}/variants?inventory=false&fields=_id,attributes",
       dependsOn: {
         field: "productId",
         condition: "gt",
@@ -33,24 +34,6 @@ export const inventoryFormConfig: DynamicFormConfig = {
         matchWithProp: "variant_count",
         value: 0,
       },
-    },
-    {
-      name: "quantity",
-      type: "number",
-      label: "Opening stock",
-      placeholder: "0",
-      columnSpan: 6,
-      validation: { min: 0 },
-      helperText: "Quantity currently in stock, in the base unit. Recorded as an opening-stock entry.",
-    },
-    {
-      name: "costPrice",
-      type: "number",
-      label: "Cost price (per unit)",
-      placeholder: "0.00",
-      columnSpan: 6,
-      validation: { min: 0 },
-      helperText: "Unit cost of the opening stock. Used for valuation and the opening-stock report.",
     },
     {
       name: "quantityAlert",
@@ -96,9 +79,30 @@ export const inventoryFormConfig: DynamicFormConfig = {
       ],
     },
     {
+      name: "quantity",
+      type: "number",
+      label: "Opening stock",
+      placeholder: "0",
+      columnSpan: 6,
+      hideInEdit: true,
+      validation: { min: 0 },
+      helperText: "Quantity currently in stock, in the base unit. Recorded as an opening-stock entry.",
+    },
+    {
+      name: "costPrice",
+      type: "number",
+      label: "Cost price (per unit)",
+      placeholder: "0.00",
+      columnSpan: 6,
+      hideInEdit: true,
+      validation: { min: 0 },
+      helperText: "Unit cost of the opening stock. Used for valuation and the opening-stock report.",
+    },
+    {
       name: "expiryDate",
       type: "date",
       label: "Expiry date",
+      hideInEdit: true,
       columnSpan: 6,
       helperText: "Opening-stock batch expiry. Only applied for expiry-tracked products.",
       dependsOn: [
@@ -110,6 +114,7 @@ export const inventoryFormConfig: DynamicFormConfig = {
       name: "batchNumber",
       type: "input",
       label: "Batch number",
+      hideInEdit: true,
       placeholder: "Optional",
       columnSpan: 6,
       dependsOn: [

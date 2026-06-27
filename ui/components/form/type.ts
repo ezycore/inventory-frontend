@@ -116,6 +116,7 @@ export interface FormFieldConfig {
   required?: boolean;
   disabled?: boolean;
   hidden?: boolean;
+  hideInEdit?: boolean; // Hide this field when the form is in edit mode
   defaultValue?: any; // Default value for the field
   description?: string;
   mode?: "single" | "multiple"; // For select fields

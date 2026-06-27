@@ -206,7 +206,7 @@ const FormField: FC<{
   const effectiveDisabled = field.disabled || isFieldDisabledInEdit || shouldDisable;
 
   // Hide field if dependency condition requires it
-  if (field.hidden || shouldHide) return null;
+  if (field.hidden || shouldHide || (isEditMode && field.hideInEdit)) return null;
 
   const handleChange = (value: any) => {
     if (field.onChange) field.onChange(value);

@@ -363,7 +363,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Location",
           hidden: true,
-          columnSpan: 6,
+          columnSpan: 4,
           optionsApi: `/locations?all=true&fields=_id,name`,
           placeholder: "Select location",
           dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
@@ -373,7 +373,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "number",
           zodType: "number",
           label: "Opening stock",
-          columnSpan: 6,
+          columnSpan: 4,
           placeholder: "0",
           defaultValue: 0,
           validation: { min: 0 },
@@ -389,7 +389,7 @@ export const productFormConfig: DynamicFormConfig = {
           type: "number",
           zodType: "number",
           label: "Cost price (per unit)",
-          columnSpan: 6,
+          columnSpan: 4,
           placeholder: "0.00",
           defaultValue: 0,
           tooltip: "Unit cost of the opening stock. Used for inventory valuation and the opening-stock report.",
@@ -399,18 +399,21 @@ export const productFormConfig: DynamicFormConfig = {
           ],
         },
         {
-          name: "expiryDate",
-          type: "date",
-          label: "Opening expiry date",
-          columnSpan: 6,
-          // Backend wants date-only (YYYY-MM-DD); emit local date to avoid a UTC off-by-one.
-          outputFormat: "yyyy-MM-dd",
-          tooltip: "Expiry date for the opening-stock batch. Only applied when expiry tracking is on for this product.",
+          name: "inventoryAlertLevel",
+          type: "number",
+          zodType: "number",
+          label: "Low stock threshold",
+          columnSpan: 4,
+          placeholder: "e.g. 20",
+          // Not `required`: inventory-only field, hidden in edit mode where the product
+          // carries no value — a required number would fail zod with `undefined`.
+          // `defaultValue: 0` keeps create submitting a value.
+          validation: { min: 0 },
+          defaultValue: 0,
+          tooltip: "When stock falls to or below this number, the product is flagged as low stock and added to your reorder shortlist so you know when to restock.",
           dependsOn: [
             { field: "addToInventory", condition: "truthy", action: "show" },
             { field: "productType", value: "single", condition: "eq" },
-            { field: "hasExpiry", condition: "truthy" },
-            { field: "openingStock", condition: "gt", value: 0 },
           ],
         },
         {
@@ -428,23 +431,20 @@ export const productFormConfig: DynamicFormConfig = {
           ],
         },
         {
-          name: "inventoryAlertLevel",
-          type: "number",
-          zodType: "number",
-          label: "Low stock threshold",
+          name: "expiryDate",
+          type: "date",
+          label: "Opening expiry date",
           columnSpan: 6,
-          placeholder: "e.g. 20",
-          // Not `required`: inventory-only field, hidden in edit mode where the product
-          // carries no value — a required number would fail zod with `undefined`.
-          // `defaultValue: 0` keeps create submitting a value.
-          validation: { min: 0 },
-          defaultValue: 0,
-          tooltip: "When stock falls to or below this number, the product is flagged as low stock and added to your reorder shortlist so you know when to restock.",
+          // Backend wants date-only (YYYY-MM-DD); emit local date to avoid a UTC off-by-one.
+          outputFormat: "yyyy-MM-dd",
+          tooltip: "Expiry date for the opening-stock batch. Only applied when expiry tracking is on for this product.",
           dependsOn: [
             { field: "addToInventory", condition: "truthy", action: "show" },
             { field: "productType", value: "single", condition: "eq" },
+            { field: "hasExpiry", condition: "truthy" },
+            { field: "openingStock", condition: "gt", value: 0 },
           ],
-        },
+        }
       ],
     },
 

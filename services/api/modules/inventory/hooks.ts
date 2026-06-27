@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { inventoryApi } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
 import { queryKeys } from '@/services/api/query-keys'
@@ -17,7 +18,13 @@ export interface BulkAdjustmentItem {
 
 const inventoryHooks = createResourceHooks<Inventory, CreateInventoryDto>(
   inventoryApi,
-  queryKeys.inventory
+  queryKeys.inventory,
+  // Adding/removing inventory changes which products+variants are "not yet in
+  // inventory", so refresh every select-options dropdown (the inventory "add"
+  // form's product + variant pickers query under this prefix).
+  { relatedQueryKeys: [
+    [ "select-options", "/products?all=true&inventory=false&fields=_id,name,unitId,productType,hasExpiry"],
+  ] },
 )
 
 export const useInventories = inventoryHooks.useList
