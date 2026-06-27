@@ -1,6 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Inventory } from "@/types";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { AvatarCell } from "@/ui/components/dataTable/cells";
 import { Badge } from "@/ui/components/badge";
 import {
   Tooltip,
@@ -21,11 +22,17 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
     header: "Product",
     cell: ({ row }) => {
       const attributes = row.original.attributes;
+      const original = row.original as any;
+      const imageUrl =
+        original.images?.[0]?.thumbnailUrl;
       return (
         <div className="min-w-[180px]">
-          <div className="font-medium text-foreground">
-            {row.original.name ? row.original.name : "-"}
-          </div>
+          <AvatarCell
+            imageUrl={imageUrl}
+            name={row.original.name || "-"}
+            fallbackIcon={Package}
+            isActive={original.status === "active"}
+          />
           {attributes && (
             <div className="flex flex-wrap gap-1 mt-1">
               {Object.entries(attributes).map(([key, value]) => (

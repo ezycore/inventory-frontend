@@ -13,7 +13,7 @@ export const productColumns: ColumnDef<any>[] = [
     cell: ({ row }) => (
       <Link href={`/products/${row.original._id}`} className="block hover:underline">
         <AvatarCell
-          imageUrl={row.original.images?.[0]?.thumbnailUrl}
+          imageUrl={row.original.images?.[0]?.thumbnailUrl || row.original.variants?.[0]?.images?.[0]?.thumbnailUrl}
           name={row.getValue("name")}
           fallbackIcon={Package}
           isActive={row.original.status === ProductStatus.ACTIVE}

@@ -1,4 +1,5 @@
 "use client"
+// coding-standard: maintained
 
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { Controller } from 'react-hook-form'
@@ -10,6 +11,7 @@ import {
   Ruler,
   Layers,
   ImageIcon,
+  Percent,
 } from 'lucide-react'
 import { ProductStatus } from '@/types'
 import {
@@ -204,148 +206,9 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 3. PRICING & TAX --------------------------------------------------------
-    {
-      title: "Pricing & Tax",
-      description: "Set the price and how tax is applied",
-      icon: sectionIcon(BadgeDollarSign),
-      collapsible: false,
-      dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
-      fields: [
-        {
-          name: "price",
-          type: "custom",
-          zodType: "number",
-          label: "Sell price (per unit)",
-          columnSpan: 12,
-          placeholder: "0.00",
-          validation: { min: 0, max: 999999 },
-          customComponent: PriceFieldWithUnit,
-        },
-        {
-          name: "salesTax.taxType",
-          type: "select",
-          label: "Sales tax calculation",
-          columnSpan: 6,
-          options: taxTypeOptions,
-          placeholder: "Select",
-          defaultValue: "inclusive",
-        },
-        {
-          name: "salesTax.taxId",
-          type: "select",
-          label: "Sales tax rate",
-          columnSpan: 6,
-          optionsApi: '/taxes?all=true&fields=_id,name,rate',
-          placeholder: "Select tax",
-        },
-        {
-          name: "purchaseTax.taxType",
-          type: "select",
-          label: "Purchase tax calculation",
-          columnSpan: 6,
-          options: taxTypeOptions,
-          placeholder: "Select",
-          defaultValue: "inclusive",
-        },
-        {
-          name: "purchaseTax.taxId",
-          type: "select",
-          label: "Purchase tax rate",
-          columnSpan: 6,
-          optionsApi: '/taxes?all=true&fields=_id,name,rate',
-          placeholder: "Select tax",
-        },
-      ],
-    },
-
-    // 4. INVENTORY ------------------------------------------------------------
-    {
-      title: "Inventory",
-      description: "Stock levels and low-stock alerts",
-      icon: sectionIcon(Boxes),
-      collapsible: false,
-      // Inventory is only created on initial product creation.
-      dependsOn: [
-        { field: "_id", condition: "falsy", action: "show" },
-        { field: "productType", value: "single", condition: "eq", action: "show" },
-      ],
-      headerAction: ({ control }) => <TrackStockToggle control={control} />,
-      fields: [
-        {
-          name: "locationId",
-          type: "select",
-          label: "Location",
-          columnSpan: 6,
-          optionsApi: `/locations?all=true&fields=_id,name`,
-          placeholder: "Select location",
-          dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
-        },
-        {
-          name: "openingStock",
-          type: "number",
-          zodType: "number",
-          label: "Opening stock",
-          columnSpan: 6,
-          placeholder: "0",
-          defaultValue: 0,
-          validation: { min: 0 },
-          tooltip: "The quantity currently in stock at this location, entered in the product's base unit. Recorded as an opening-stock entry you can report on later; adjust it afterwards from the Inventory page.",
-          dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
-        },
-        {
-          name: "costPrice",
-          type: "number",
-          zodType: "number",
-          label: "Cost price (per unit)",
-          columnSpan: 6,
-          placeholder: "0.00",
-          defaultValue: 0,
-          tooltip: "Unit cost of the opening stock. Used for inventory valuation and the opening-stock report.",
-          dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
-        },
-        {
-          name: "expiryDate",
-          type: "date",
-          label: "Opening expiry date",
-          columnSpan: 6,
-          tooltip: "Expiry date for the opening-stock batch. Only applied when expiry tracking is on for this product.",
-          dependsOn: [
-            { field: "addToInventory", condition: "truthy", action: "show" },
-            { field: "hasExpiry", condition: "truthy" },
-            { field: "openingStock", condition: "gt", value: 0 },
-          ],
-        },
-        {
-          name: "batchNumber",
-          type: "input",
-          label: "Batch number",
-          columnSpan: 6,
-          placeholder: "Optional",
-          tooltip: "Batch/lot number for the opening-stock batch. Only applied when expiry tracking is on for this product.",
-          dependsOn: [
-            { field: "addToInventory", condition: "truthy", action: "show" },
-            { field: "hasExpiry", condition: "truthy" },
-            { field: "openingStock", condition: "gt", value: 0 },
-          ],
-        },
-        {
-          name: "inventoryAlertLevel",
-          type: "number",
-          zodType: "number",
-          label: "Low stock threshold",
-          columnSpan: 6,
-          placeholder: "e.g. 20",
-          required: true,
-          validation: { min: 0 },
-          defaultValue: 0,
-          tooltip: "When stock falls to or below this number, the product is flagged as low stock and added to your reorder shortlist so you know when to restock.",
-          dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
-        },
-      ],
-    },
-
-    // 5. UNITS OF MEASURE -----------------------------------------------------
+    // 3. UNITS OF MEASURE -----------------------------------------------------
+    // Placed before Pricing so the base unit is chosen first — the sell/cost price
+    // inputs render it as a "/ unit" suffix.
     {
       title: "Units of Measure",
       description: "How you count this product when purchase and sell",
@@ -397,7 +260,190 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 6. VARIANTS -------------------------------------------------------------
+    // 4. PRICING --------------------------------------------------------------
+    // Single-only: variable products carry a sell price per variant (Variants table).
+    {
+      title: "Pricing",
+      description: "Set the sell price",
+      icon: sectionIcon(BadgeDollarSign),
+      collapsible: false,
+      dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
+      fields: [
+        {
+          name: "price",
+          type: "custom",
+          zodType: "number",
+          label: "Sell price (per unit)",
+          columnSpan: 12,
+          placeholder: "0.00",
+          validation: { min: 0, max: 999999 },
+          customComponent: PriceFieldWithUnit,
+        },
+      ],
+    },
+
+    // 5. TAX ------------------------------------------------------------------
+    // No productType gate: tax is product-level (stored on the parent Product) and
+    // shared by every variant. Backend reads it from the product, not the variant.
+    {
+      title: "Tax",
+      description: "How tax is applied — shared by all variants",
+      icon: sectionIcon(Percent),
+      collapsible: false,
+      fields: [
+        {
+          name: "salesTax.taxType",
+          type: "select",
+          label: "Sales tax calculation",
+          columnSpan: 6,
+          options: taxTypeOptions,
+          placeholder: "Select",
+          defaultValue: "inclusive",
+        },
+        {
+          name: "salesTax.taxId",
+          type: "select",
+          label: "Sales tax rate",
+          columnSpan: 6,
+          optionsApi: '/taxes?all=true&fields=_id,name,rate',
+          placeholder: "Select tax",
+        },
+        {
+          name: "purchaseTax.taxType",
+          type: "select",
+          label: "Purchase tax calculation",
+          columnSpan: 6,
+          options: taxTypeOptions,
+          placeholder: "Select",
+          defaultValue: "inclusive",
+        },
+        {
+          name: "purchaseTax.taxId",
+          type: "select",
+          label: "Purchase tax rate",
+          columnSpan: 6,
+          optionsApi: '/taxes?all=true&fields=_id,name,rate',
+          placeholder: "Select tax",
+        },
+      ],
+    },
+
+    // 6. INVENTORY ------------------------------------------------------------
+    {
+      title: "Inventory",
+      description: "Stock levels and low-stock alerts",
+      icon: sectionIcon(Boxes),
+      collapsible: false,
+      // Inventory is only created on initial product creation. Shown for both
+      // single and variable products; for variable, only the toggle + shared
+      // Location render here — per-variant stock lives in the Variants table.
+      dependsOn: { field: "_id", condition: "falsy", action: "show" },
+      headerAction: ({ control }) => <TrackStockToggle control={control} />,
+      fields: [
+        {
+          // The visible control is the header toggle above; this hidden field
+          // exists only so `addToInventory` is part of the generated zod schema.
+          // Without a declared field the schema (z.object) strips the key on
+          // submit, so the backend never receives it and skips inventory creation.
+          name: "addToInventory",
+          type: "checkbox",
+          zodType: "boolean",
+          label: "",
+          hidden: true,
+          columnSpan: 12,
+          defaultValue: false,
+        },
+        {
+          name: "locationId",
+          type: "select",
+          label: "Location",
+          hidden: true,
+          columnSpan: 6,
+          optionsApi: `/locations?all=true&fields=_id,name`,
+          placeholder: "Select location",
+          dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
+        },
+        {
+          name: "openingStock",
+          type: "number",
+          zodType: "number",
+          label: "Opening stock",
+          columnSpan: 6,
+          placeholder: "0",
+          defaultValue: 0,
+          validation: { min: 0 },
+          tooltip: "The quantity currently in stock at this location, entered in the product's base unit. Recorded as an opening-stock entry you can report on later; adjust it afterwards from the Inventory page.",
+          // Single-only: variable products capture opening stock per variant.
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+          ],
+        },
+        {
+          name: "costPrice",
+          type: "number",
+          zodType: "number",
+          label: "Cost price (per unit)",
+          columnSpan: 6,
+          placeholder: "0.00",
+          defaultValue: 0,
+          tooltip: "Unit cost of the opening stock. Used for inventory valuation and the opening-stock report.",
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+          ],
+        },
+        {
+          name: "expiryDate",
+          type: "date",
+          label: "Opening expiry date",
+          columnSpan: 6,
+          // Backend wants date-only (YYYY-MM-DD); emit local date to avoid a UTC off-by-one.
+          outputFormat: "yyyy-MM-dd",
+          tooltip: "Expiry date for the opening-stock batch. Only applied when expiry tracking is on for this product.",
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+            { field: "hasExpiry", condition: "truthy" },
+            { field: "openingStock", condition: "gt", value: 0 },
+          ],
+        },
+        {
+          name: "batchNumber",
+          type: "input",
+          label: "Batch number",
+          columnSpan: 6,
+          placeholder: "Optional",
+          tooltip: "Batch/lot number for the opening-stock batch. Only applied when expiry tracking is on for this product.",
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+            { field: "hasExpiry", condition: "truthy" },
+            { field: "openingStock", condition: "gt", value: 0 },
+          ],
+        },
+        {
+          name: "inventoryAlertLevel",
+          type: "number",
+          zodType: "number",
+          label: "Low stock threshold",
+          columnSpan: 6,
+          placeholder: "e.g. 20",
+          // Not `required`: inventory-only field, hidden in edit mode where the product
+          // carries no value — a required number would fail zod with `undefined`.
+          // `defaultValue: 0` keeps create submitting a value.
+          validation: { min: 0 },
+          defaultValue: 0,
+          tooltip: "When stock falls to or below this number, the product is flagged as low stock and added to your reorder shortlist so you know when to restock.",
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+          ],
+        },
+      ],
+    },
+
+    // 7. VARIANTS -------------------------------------------------------------
     {
       title: "Variants",
       description: "Different sizes, colors, or strengths of this product",
@@ -414,7 +460,7 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 7. MEDIA ----------------------------------------------------------------
+    // 8. MEDIA ----------------------------------------------------------------
     {
       title: "Media",
       description: "Up to 5 images. First image is the primary.",

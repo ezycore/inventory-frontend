@@ -670,6 +670,7 @@ const FormField: FC<{
                     handleChange(value);
                   }}
                   placeholder={field.placeholder || "Pick a date"}
+                  outputFormat={field.outputFormat}
                   disabled={effectiveDisabled}
                 />
               );

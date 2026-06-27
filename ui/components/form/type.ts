@@ -252,6 +252,10 @@ export interface FormFieldConfig {
   // Example: copyValueTo: ['saleUnit.unitId'] will set saleUnit.unitId to this field's value
   copyValueTo?: string[];
 
+  // Output format for `date` fields (date-fns tokens). Forwarded to <DatePicker>.
+  // Omit for a full ISO datetime; use "yyyy-MM-dd" to emit a local date-only value.
+  outputFormat?: string;
+
   // Change handlers
   onChange?: (value: any) => void;
   onValueChange?: (value: any) => void; // For select components
@@ -339,24 +343,133 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   isEditMode?: boolean;
 }
 
+// Read a (possibly dot-notation) path out of a values object.
+const getValueByPath = (
+  obj: Record<string, any> | undefined,
+  path: string,
+): any => {
+  if (!obj) return undefined;
+  return path.split(".").reduce((acc: any, k) => (acc == null ? acc : acc[k]), obj);
+};
+
+// Inline dependency-condition evaluator — mirrors evaluateDependencyCondition in
+// dependency-utils.ts. Kept inline (not imported) to avoid a runtime circular
+// import: dependency-utils imports types from this module.
+const evalDepCondition = (watched: any, dep: FieldDependency): boolean => {
+  let v = watched;
+  if (dep.matchWithProp && v && typeof v === "object") {
+    v = dep.matchWithProp.includes(".")
+      ? dep.matchWithProp.split(".").reduce((a: any, p) => a?.[p], v)
+      : (v[dep.matchWithProp] ?? v);
+  }
+  const cmp = dep.value;
+  switch (dep.condition ?? "eq") {
+    case "eq":    return v === cmp;
+    case "ne":    return v !== cmp;
+    case "gt":    return Number(v) > Number(cmp);
+    case "gte":   return Number(v) >= Number(cmp);
+    case "lt":    return Number(v) < Number(cmp);
+    case "lte":   return Number(v) <= Number(cmp);
+    case "in":    return Array.isArray(cmp) && cmp.includes(v);
+    case "notIn": return Array.isArray(cmp) && !cmp.includes(v);
+    case "truthy":
+      if (v === null || v === undefined) return false;
+      if (typeof v === "string" && v.trim() === "") return false;
+      if (Array.isArray(v) && v.length === 0) return false;
+      return Boolean(v);
+    case "falsy":
+      if (v === null || v === undefined) return true;
+      if (typeof v === "string" && v.trim() === "") return true;
+      if (Array.isArray(v) && v.length === 0) return true;
+      return !Boolean(v);
+    default:      return false;
+  }
+};
+
+// True when a dependsOn group (single condition or AND-array) hides its target
+// given the current values. Only hide/show actions affect visibility; the action
+// is taken from the first entry (matches evaluateFieldDependencies semantics).
+const dependencyHides = (
+  values: Record<string, any>,
+  dep?: FieldDependencyConfig,
+): boolean => {
+  if (!dep) return false;
+  const list = Array.isArray(dep) ? dep : [dep];
+  if (!list.length) return false;
+  const action = list[0].action ?? "disable";
+  if (action !== "hide" && action !== "show") return false;
+  const allMet = list.every((d) =>
+    evalDepCondition(getValueByPath(values, d.field), d),
+  );
+  return !allMet;
+};
+
+// Mirror of the render-time visibility check (helper.tsx:209). A field is hidden
+// for schema purposes when statically hidden, or when its own / its section's
+// dependsOn resolves to hidden against the current values. With no values (the
+// static build) only statically-hidden fields are treated as hidden.
+const isFieldHiddenForSchema = (
+  field: FormFieldConfig,
+  section: FormSection | undefined,
+  values?: Record<string, any>,
+): boolean => {
+  if (field.hidden === true) return true;
+  if (!values) return false;
+  if (dependencyHides(values, field.dependsOn)) return true;
+  if (section && dependencyHides(values, section.dependsOn)) return true;
+  return false;
+};
+
 // Schema generation utility
+//
+// `values` makes the schema visibility-aware: a field hidden (statically, or via
+// its / its section's dependsOn) keeps its key as `z.any().optional()` so its
+// value still passes through on submit, but skips all validation — an invisible
+// field can never block the form. Pass the live form values (the resolver does
+// this) to honor conditional show/hide; omit them for a plain static schema.
 export const generateSchemaFromConfig = (
   config: DynamicFormConfig,
+  values?: Record<string, any>,
 ): z.ZodSchema<any> => {
   const schemaObject: Record<string, z.ZodTypeAny> = {};
   const nestedMap: Record<string, Record<string, any>> = {};
 
-  // Get all fields - either from sections or plain fields
-  const allFields: FormFieldConfig[] = [];
+  // Flatten fields, retaining section context for section-level dependsOn.
+  const fieldEntries: { field: FormFieldConfig; section?: FormSection }[] = [];
   if (config.sections) {
-    config.sections.forEach((section) => {
-      allFields.push(...section.fields);
-    });
+    config.sections.forEach((section) =>
+      section.fields.forEach((field) => fieldEntries.push({ field, section })),
+    );
   } else if (config.fields) {
-    allFields.push(...config.fields);
+    config.fields.forEach((field) => fieldEntries.push({ field }));
   }
 
-  allFields.forEach((field) => {
+  // Place a built field schema at its (possibly dot-notation) name.
+  const placeFieldSchema = (name: string, fieldSchema: z.ZodTypeAny) => {
+    const keys = name.split(".");
+    if (keys.length === 1) {
+      schemaObject[name] = fieldSchema;
+      return;
+    }
+    const rootKey = keys[0];
+    if (!nestedMap[rootKey]) nestedMap[rootKey] = {};
+    let current = nestedMap[rootKey];
+    for (let i = 1; i < keys.length - 1; i++) {
+      if (!current[keys[i]] || current[keys[i]] instanceof z.ZodType) {
+        current[keys[i]] = {};
+      }
+      current = current[keys[i]] as Record<string, any>;
+    }
+    current[keys[keys.length - 1]] = fieldSchema;
+  };
+
+  fieldEntries.forEach(({ field, section }) => {
+    // Hidden field: keep the key (value survives submit) but skip validation.
+    if (isFieldHiddenForSchema(field, section, values)) {
+      placeFieldSchema(field.name, z.any().optional());
+      return;
+    }
+
     let fieldSchema: z.ZodTypeAny;
 
     // Determine base schema type
@@ -579,36 +692,16 @@ export const generateSchemaFromConfig = (
         !isStringField &&
         !field.options &&
         !field.enumValues &&
-        !field.labelInValue
+        !field.labelInValue &&
+        fieldSchema instanceof z.ZodString
       ) {
-        fieldSchema = (fieldSchema as z.ZodString).min(
-          1,
-          `${field.label} is required`,
-        );
+        fieldSchema = fieldSchema.min(1, `${field.label} is required`);
       }
     } else if (!field.required) {
       fieldSchema = fieldSchema.optional();
     }
 
-    // Support dot-notation field names for nested schemas
-    const keys = field.name.split('.');
-    if (keys.length === 1) {
-      schemaObject[field.name] = fieldSchema;
-    } else {
-      // Collect nested fields in a separate plain-object tree
-      const rootKey = keys[0];
-      if (!nestedMap[rootKey]) {
-        nestedMap[rootKey] = {};
-      }
-      let current = nestedMap[rootKey];
-      for (let i = 1; i < keys.length - 1; i++) {
-        if (!current[keys[i]] || current[keys[i]] instanceof z.ZodType) {
-          current[keys[i]] = {};
-        }
-        current = current[keys[i]] as Record<string, any>;
-      }
-      current[keys[keys.length - 1]] = fieldSchema;
-    }
+    placeFieldSchema(field.name, fieldSchema);
   });
 
   // Recursively build z.object() from a nested plain-object map
@@ -634,40 +727,25 @@ export const generateSchemaFromConfig = (
 
   // Handle requiredWhen — fields that become required based on another field's value.
   // Uses superRefine for cross-field validation (avoids circular dep with dependency-utils.ts).
-  const requiredWhenFields = allFields.filter((f) => f.requiredWhen);
+  const requiredWhenFields = fieldEntries
+    .filter(
+      ({ field, section }) =>
+        field.requiredWhen && !isFieldHiddenForSchema(field, section, values),
+    )
+    .map((e) => e.field);
   if (requiredWhenFields.length === 0) {
     return baseSchema;
   }
 
-  // Inline condition evaluator (mirrors evaluateDependencyCondition in dependency-utils.ts)
-  const evalRequiredWhen = (data: Record<string, any>, field: FormFieldConfig): boolean => {
-    const dep = field.requiredWhen!;
-    const rawWatched = data[dep.field];
-    let watched = rawWatched;
-    if (dep.matchWithProp && rawWatched && typeof rawWatched === "object") {
-      watched = rawWatched[dep.matchWithProp] ?? rawWatched;
-    }
-    const cmp = dep.value;
-    switch (dep.condition ?? "eq") {
-      case "eq":     return watched === cmp;
-      case "ne":     return watched !== cmp;
-      case "gt":     return Number(watched) > Number(cmp);
-      case "gte":    return Number(watched) >= Number(cmp);
-      case "lt":     return Number(watched) < Number(cmp);
-      case "lte":    return Number(watched) <= Number(cmp);
-      case "in":     return Array.isArray(cmp) && cmp.includes(watched);
-      case "notIn":  return Array.isArray(cmp) && !cmp.includes(watched);
-      case "truthy":
-        if (watched === null || watched === undefined) return false;
-        if (typeof watched === "string" && watched.trim() === "") return false;
-        return Boolean(watched);
-      case "falsy":
-        if (watched === null || watched === undefined) return true;
-        if (typeof watched === "string" && watched.trim() === "") return true;
-        return !Boolean(watched);
-      default:       return false;
-    }
-  };
+  // Reuse the shared inline condition evaluator (dot-path aware).
+  const evalRequiredWhen = (
+    data: Record<string, any>,
+    field: FormFieldConfig,
+  ): boolean =>
+    evalDepCondition(
+      getValueByPath(data, field.requiredWhen!.field),
+      field.requiredWhen!,
+    );
 
   return baseSchema.superRefine((data, ctx) => {
     for (const field of requiredWhenFields) {
@@ -690,6 +768,67 @@ export const generateSchemaFromConfig = (
       }
     }
   });
+};
+
+// Delete a (possibly dot-notation) path from an object, then prune any parent
+// objects left empty by the removal. Pruning is what keeps a nested group like
+// `salesTax` from being submitted as `{}` — an empty subdoc would otherwise be
+// $set on the backend, clobbering sibling keys and re-triggering schema defaults.
+const deletePathAndPrune = (obj: Record<string, any>, path: string): void => {
+  const keys = path.split(".");
+  // Walk to the leaf, remembering each parent so we can prune upward.
+  const parents: { container: Record<string, any>; key: string }[] = [];
+  let current: any = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (current == null || typeof current !== "object") return;
+    parents.push({ container: current, key: keys[i] });
+    current = current[keys[i]];
+  }
+  if (current == null || typeof current !== "object") return;
+  delete current[keys[keys.length - 1]];
+
+  // Prune now-empty parents from the leaf up.
+  for (let i = parents.length - 1; i >= 0; i--) {
+    const { container, key } = parents[i];
+    const child = container[key];
+    if (child && typeof child === "object" && Object.keys(child).length === 0) {
+      delete container[key];
+    } else {
+      break;
+    }
+  }
+};
+
+// Remove values for fields that are conditionally hidden (their own or their
+// section's `dependsOn` resolves to hidden) so they never reach the payload.
+// Statically `hidden: true` fields are intentional plumbing (e.g. a value carried
+// by a header toggle) and are preserved; disabled-but-visible fields are too,
+// since `dependencyHides` only reacts to hide/show actions. Returns a new object —
+// the input (live form values) is never mutated.
+export const stripHiddenValues = (
+  config: DynamicFormConfig,
+  values: Record<string, any>,
+): Record<string, any> => {
+  const result = structuredClone(values);
+
+  const fieldEntries: { field: FormFieldConfig; section?: FormSection }[] = [];
+  if (config.sections) {
+    config.sections.forEach((section) =>
+      section.fields.forEach((field) => fieldEntries.push({ field, section })),
+    );
+  } else if (config.fields) {
+    config.fields.forEach((field) => fieldEntries.push({ field }));
+  }
+
+  for (const { field, section } of fieldEntries) {
+    if (field.hidden === true) continue; // intentional plumbing — keep
+    const hidden =
+      dependencyHides(values, field.dependsOn) ||
+      (section ? dependencyHides(values, section.dependsOn) : false);
+    if (hidden) deletePathAndPrune(result, field.name);
+  }
+
+  return result;
 };
 
 // Hook to use generated schema

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo } from 'react'
 import type { DynamicFormConfig, FormFieldConfig } from '@/ui/components/form/type'
@@ -64,9 +64,21 @@ export const useDynamicForm = <T = any>(
   config: DynamicFormConfig,
   defaultValues?: Partial<T>
 ) => {
-  // Memoize expensive operations
+  // Memoize expensive operations. `schema` is the static (all-fields) schema kept
+  // for the hook's return value / external callers.
   const schema = useMemo(() => generateSchemaFromConfig(config), [config])
   const configDefaults = useMemo(() => extractDefaultValues(config), [config])
+
+  // Visibility-aware resolver: rebuild the schema from the values being validated
+  // so conditionally hidden fields (field/section dependsOn, or `hidden`) are
+  // excluded from validation on every pass and can't block an invisible field.
+  const resolver = useMemo<Resolver<T>>(
+    () => (values, context, options) =>
+      zodResolver(
+        generateSchemaFromConfig(config, values as Record<string, any>) as any,
+      )(values, context, options),
+    [config],
+  )
   
   // Merge config defaults with provided defaults (provided defaults take precedence)
   const mergedDefaults = useMemo(() => 
@@ -75,7 +87,7 @@ export const useDynamicForm = <T = any>(
   )
 
   const form = useForm<T>({
-    resolver: zodResolver(schema) as any,
+    resolver: resolver as any,
     defaultValues: mergedDefaults as any,
     mode: "onTouched",     // validate after first blur; avoids errors on mount
     reValidateMode: "onChange",

@@ -61,6 +61,11 @@ interface VariantRow {
   barcode?: string
   barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
   inventoryAlertLevel?: number
+  // Per-variant opening stock (create-only; shown when addToInventory is on)
+  openingStock?: number
+  costPrice?: number
+  expiryDate?: string
+  batchNumber?: string
 }
 
 interface VariantManagerProps {
@@ -79,6 +84,12 @@ interface EditModalData {
   sku?: string
   barcode?: string
   barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
+  // Inventory (shown in modal when addToInventory is on); openingStock gates expiry/batch
+  openingStock?: number
+  costPrice?: number
+  inventoryAlertLevel?: number
+  expiryDate?: string
+  batchNumber?: string
 }
 
 export default function VariantManager({
@@ -99,6 +110,7 @@ export default function VariantManager({
   const basePrice = useWatch({ control, name: 'price' }) || 0
   const baseUnitId = useWatch({ control, name: 'unitId' })
   const addToInventory = useWatch({ control, name: 'addToInventory' })
+  const hasExpiry = useWatch({ control, name: 'hasExpiry' })
 
   // Fetch variant attributes from API
   const { data: attributesResponse, isLoading, error, refetch } = useVariantAttributes()
@@ -138,6 +150,8 @@ export default function VariantManager({
           enableUOMConversion: false,
           saleUnit: { unitId: baseUnitId, conversionFactor: 1 },
           inventoryAlertLevel: 0,
+          openingStock: 0,
+          costPrice: 0,
         }))
         setVariants(newVariants)
         // Notify parent of change
@@ -184,6 +198,11 @@ export default function VariantManager({
       sku: variant.sku || '',
       barcode: variant.barcode || '',
       barcodeSymbology: variant.barcodeSymbology || 'CODE128',
+      openingStock: variant.openingStock ?? 0,
+      costPrice: variant.costPrice ?? 0,
+      inventoryAlertLevel: variant.inventoryAlertLevel ?? 0,
+      expiryDate: variant.expiryDate || '',
+      batchNumber: variant.batchNumber || '',
     })
     setEditModalOpen(true)
   }
@@ -221,6 +240,11 @@ export default function VariantManager({
             sku: editingVariant.sku?.trim() || undefined,
             barcode: editingVariant.barcode?.trim() || undefined,
             barcodeSymbology: editingVariant.barcode?.trim() ? editingVariant.barcodeSymbology : undefined,
+            openingStock: editingVariant.openingStock ?? 0,
+            costPrice: editingVariant.costPrice ?? 0,
+            inventoryAlertLevel: editingVariant.inventoryAlertLevel ?? 0,
+            expiryDate: editingVariant.expiryDate || undefined,
+            batchNumber: editingVariant.batchNumber?.trim() || undefined,
           }
           : v
       )
@@ -334,9 +358,6 @@ export default function VariantManager({
                 <TableHead className="w-[180px] py-2 text-xs">
                   Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
                 </TableHead>
-                {addToInventory && (
-                  <TableHead className="w-[130px] py-2 text-xs">Alert Level</TableHead>
-                )}
                 <TableHead className="w-[120px] text-right py-2 text-xs">
                   <div className="flex items-center justify-end pr-2 gap-1">
                     <span>Active</span>
@@ -403,24 +424,6 @@ export default function VariantManager({
                       ) : null}
                     </div>
                   </TableCell>
-                  {addToInventory && (
-                    <TableCell className="py-1">
-                      <Input
-                        type="number"
-                        min={0}
-                        value={variant.inventoryAlertLevel ?? 0}
-                        onChange={e =>
-                          handleInlineUpdate(
-                            variant.id,
-                            'inventoryAlertLevel',
-                            parseInt(e.target.value, 10) || 0
-                          )
-                        }
-                        className="h-7 text-sm w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="0"
-                      />
-                    </TableCell>
-                  )}
                   <TableCell className="text-right py-1">
                     <div className="flex items-center justify-end pr-2 gap-2">
                       <Checkbox
@@ -475,7 +478,7 @@ export default function VariantManager({
 
               {/* SKU & Barcode (per variant) */}
               <div className="grid grid-cols-2 gap-3 border-t pt-4">
-                <div className="space-y-1 col-span-2">
+                <div className="space-y-1 col-span-1">
                   <Label htmlFor="edit-sku" className="text-xs">SKU</Label>
                   <Input
                     id="edit-sku"
@@ -487,7 +490,7 @@ export default function VariantManager({
                     }
                   />
                 </div>
-                <div className="space-y-1 col-span-2">
+                <div className="space-y-1 col-span-1">
                   <Label htmlFor="edit-barcode" className="text-xs">Barcode</Label>
                   <Input
                     id="edit-barcode"
@@ -522,6 +525,92 @@ export default function VariantManager({
                   </div>
                 )}
               </div>
+
+              {/* Inventory (per variant) — only when Track stock is on */}
+              {addToInventory && (
+                <div className="grid grid-cols-2 gap-3 border-t pt-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-opening-stock" className="text-xs">Opening stock</Label>
+                    <Input
+                      id="edit-opening-stock"
+                      type="number"
+                      min={0}
+                      value={editingVariant.openingStock ?? 0}
+                      onChange={e =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          openingStock: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-cost-price" className="text-xs">Cost price (per unit)</Label>
+                    <Input
+                      id="edit-cost-price"
+                      type="number"
+                      min={0}
+                      value={editingVariant.costPrice ?? 0}
+                      onChange={e =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          costPrice: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <Label htmlFor="edit-alert-level" className="text-xs">Low stock threshold</Label>
+                    <Input
+                      id="edit-alert-level"
+                      type="number"
+                      min={0}
+                      value={editingVariant.inventoryAlertLevel ?? 0}
+                      onChange={e =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          inventoryAlertLevel: parseInt(e.target.value, 10) || 0,
+                        })
+                      }
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="e.g. 20"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Opening-stock expiry batch (per variant) — only when expiry is
+                  tracked and this variant has opening stock */}
+              {addToInventory && hasExpiry && (editingVariant.openingStock ?? 0) > 0 && (
+                <div className="grid grid-cols-2 gap-3 border-t pt-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-expiry" className="text-xs">Opening expiry date</Label>
+                    <Input
+                      id="edit-expiry"
+                      type="date"
+                      value={editingVariant.expiryDate || ''}
+                      onChange={e =>
+                        setEditingVariant({ ...editingVariant, expiryDate: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-batch" className="text-xs">Batch number</Label>
+                    <Input
+                      id="edit-batch"
+                      value={editingVariant.batchNumber || ''}
+                      placeholder="Optional"
+                      onChange={e =>
+                        setEditingVariant({ ...editingVariant, batchNumber: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* UOM Conversion (per variant) */}
               <div className="space-y-3 border-t pt-4">
@@ -689,7 +778,7 @@ export default function VariantManager({
                           <FileUploadItem
                             key={fileKey}
                             value={file}
-                            className="flex items-center gap-3 p-2 border rounded-lg"
+                            className="flex items-center gap-3 p-2 border rounded-lg w-100"
                           >
                             {previewUrl ? (
                               <SafeImage

@@ -61,10 +61,14 @@ export default function ProductsPage() {
     if (cfg.sections) {
       return {
         ...filteredFormConfig,
-        sections: cfg.sections.map((s) => ({
-          ...s,
-          fields: (s.fields || []).filter((f: any) => !hide.has(f.name)),
-        })),
+        // Drop sections left empty after gating (the standalone Tax section has
+        // only tax fields, so it disappears entirely when both sides are off).
+        sections: cfg.sections
+          .map((s) => ({
+            ...s,
+            fields: (s.fields || []).filter((f: any) => !hide.has(f.name)),
+          }))
+          .filter((s) => (s.fields || []).length > 0),
       }
     }
     return {
