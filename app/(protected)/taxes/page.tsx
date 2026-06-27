@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -60,6 +61,14 @@ const taxFormConfig: DynamicFormConfig = {
         { value: "inactive", label: "Inactive" },
       ],
     },
+    {
+      name: "isDefault",
+      type: "checkbox",
+      label: "Set as default tax",
+      description: "Pre-selected on new product forms",
+      columnSpan: 12,
+      defaultValue: false,
+    },
   ],
 };
 
@@ -101,6 +110,7 @@ const defaultValues = {
   rate: 0,
   type: "percentage" as const,
   status: "active" as const,
+  isDefault: false,
 };
 
 const searchConfig = {

@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 // UI Components
 import { DataCard } from "@/ui/components/dataCard";
@@ -103,6 +104,8 @@ const defaultValues = {
   value: 0,
   type: "percentage" as const,
   applicableTo: "both" as const,
+  isDefaultSales: false,
+  isDefaultPurchase: false,
   status: "active" as const,
   description: "",
 };

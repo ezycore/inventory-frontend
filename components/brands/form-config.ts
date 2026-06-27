@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { DynamicFormConfig } from "@/ui/components/form/type";
 
 export const brandFormConfig: DynamicFormConfig = {
@@ -44,6 +45,14 @@ export const brandFormConfig: DynamicFormConfig = {
         { value: "active", label: "Active" },
         { value: "inactive", label: "Inactive" },
       ],
+    },
+    {
+      name: "isDefault",
+      type: "checkbox",
+      label: "Set as default brand",
+      description: "Pre-selected on new product forms",
+      columnSpan: 12,
+      defaultValue: false,
     },
   ],
 };

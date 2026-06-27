@@ -473,6 +473,8 @@ const FormField: FC<{
                   className={error ? "border-red-500" : ""}
                   {...selectProps}
                   optionsApi={resolvedOptionsApi}
+                  // Only prefill the default on create — never auto-fill on edit.
+                  defaultFlag={isEditMode ? undefined : field.defaultFlag}
                   disabled={effectiveDisabled}
                   error={error}
                 />
@@ -538,6 +540,8 @@ const FormField: FC<{
                   className={error ? "border-red-500" : ""}
                   {...selectProps}
                   optionsApi={resolvedOptionsApi}
+                  // Only prefill the default on create — never auto-fill on edit.
+                  defaultFlag={isEditMode ? undefined : field.defaultFlag}
                   disabled={effectiveDisabled}
                   error={error}
                 />

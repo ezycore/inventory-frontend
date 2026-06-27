@@ -85,6 +85,13 @@ interface AdvancedSelectProps {
 
   // Called once on mount with the current value (used for auto-fill on initial render)
   onMount?: (value: SelectValue | undefined) => void;
+
+  /**
+   * Name of a boolean field on the fetched options that marks the default option
+   * (e.g. "isDefault", "isDefaultSales"). When set and the field is empty, the
+   * matching option is auto-selected once so create forms come pre-filled.
+   */
+  defaultFlag?: string;
 }
 
 export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
@@ -107,9 +114,12 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   quickAddModule,
   itemsCreateCallback,
   onMount,
+  defaultFlag,
 }) => {
   // Quick-add modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Guards the one-time default auto-select so we never override the user.
+  const defaultAppliedRef = useRef(false);
   const queryClient = useQueryClient();
   // Get quick-add config if creatable
   const moduleConfig =
@@ -178,6 +188,30 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     const formattedValue = formatValue(newValue);
     if (onValueChange) onValueChange(formattedValue);
   };
+
+  // Auto-select the default option once for empty single-selects. Editing an
+  // existing record keeps its value (we only fill when nothing is set).
+  useEffect(() => {
+    if (!defaultFlag || mode === "multiple" || defaultAppliedRef.current) return;
+    if (optionsApi && finalOptions.length === 0) return;
+
+    const rawVal = extractValue(value);
+    const hasValue = Array.isArray(rawVal) ? rawVal.length > 0 : !!rawVal;
+    if (hasValue) {
+      defaultAppliedRef.current = true;
+      return;
+    }
+
+    const defaultOption = finalOptions.find(
+      (opt) => (opt as Record<string, unknown>)[defaultFlag] === true,
+    );
+    console.log("AdvancedSelect: Auto-selecting default option:", defaultOption);
+    if (defaultOption) {
+      defaultAppliedRef.current = true;
+      handleValueChange(defaultOption.value);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalOptions, value, defaultFlag]);
 
   // Show loading state for both modes
   if (loading) {

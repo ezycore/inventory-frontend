@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 // Hooks & API
 import { brandColumns } from "@/components/brands/columns";
 import { brandFilterConfig } from "@/components/brands/filters";
@@ -36,6 +37,7 @@ const defaultValues = {
   description: "",
   images: [],
   status: "active" as const,
+  isDefault: false,
 };
 
 export default function BrandsPage() {

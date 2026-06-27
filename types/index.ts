@@ -188,6 +188,7 @@ export interface Category extends BaseEntity {
   slug: string;
   description?: string;
   status: "active" | "inactive";
+  isDefault: boolean; // Pre-selected on new product forms
   productCount: number; // For displaying number of products in category
 }
 
@@ -196,6 +197,7 @@ export interface CreateCategoryDto {
   slug?: string;
   description?: string;
   status?: "active" | "inactive";
+  isDefault?: boolean;
 }
 
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
@@ -215,6 +217,7 @@ export interface Brand extends BaseEntity {
   description?: string;
   images: Image[];
   status: "active" | "inactive";
+  isDefault: boolean; // Pre-selected on new product forms
   productCount: number; // For displaying number of products in brand
 }
 
@@ -247,6 +250,7 @@ export interface CreateBrandDto {
   description?: string;
   images?: Image[];
   status?: "active" | "inactive";
+  isDefault?: boolean;
 }
 
 export interface UpdateBrandDto extends Partial<CreateBrandDto> { }
@@ -544,6 +548,7 @@ export interface Unit extends BaseEntity {
   category: UnitCategory;
   isSystemUnit: boolean;
   status: "active" | "inactive";
+  isDefault: boolean; // Pre-selected on new product forms
 }
 
 export interface CreateUnitDto {
@@ -551,6 +556,7 @@ export interface CreateUnitDto {
   shortName?: string;
   category?: UnitCategory;
   status?: "active" | "inactive";
+  isDefault?: boolean;
 }
 
 export interface UpdateUnitDto extends Partial<CreateUnitDto> { }
@@ -561,6 +567,7 @@ export interface Tax extends BaseEntity {
   rate: number;
   type: "percentage" | "fixed";
   status: "active" | "inactive";
+  isDefault: boolean; // Pre-selected on new product forms
 }
 
 export interface CreateTaxDto {
@@ -568,6 +575,7 @@ export interface CreateTaxDto {
   rate: number;
   type: "percentage" | "fixed";
   status?: "active" | "inactive";
+  isDefault?: boolean;
 }
 
 export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
@@ -602,6 +610,8 @@ export interface Discount extends BaseEntity {
   value: number;
   type: DiscountType;
   applicableTo: DiscountApplicableTo;
+  isDefaultSales: boolean; // Pre-selected on new customer forms
+  isDefaultPurchase: boolean; // Pre-selected on new supplier forms
   description?: string;
   status: "active" | "inactive";
 }
@@ -611,6 +621,8 @@ export interface CreateDiscountDto {
   value: number;
   type: DiscountType;
   applicableTo?: DiscountApplicableTo;
+  isDefaultSales?: boolean;
+  isDefaultPurchase?: boolean;
   description?: string;
   status?: "active" | "inactive";
 }

@@ -163,6 +163,13 @@ export interface FormFieldConfig {
    * Example: '/products/{{productId}}/variants'
    */
   optionsApi?: string;
+  /**
+   * Name of a boolean field on the fetched options that marks the default option
+   * (e.g. "isDefault", "isDefaultSales"). When set and the field has no value, the
+   * matching option is auto-selected once so create forms come pre-filled.
+   * Requires the flag to be included in the `optionsApi` `fields=` projection.
+   */
+  defaultFlag?: string;
   itemsCreateCallback?: (response: any) => SelectOption[];
   // Quick-add functionality for select fields
   creatable?: boolean; // Enable quick-add modal for creating new options
