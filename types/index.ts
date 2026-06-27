@@ -159,6 +159,8 @@ export interface StorefrontSettings {
   seo?: { title?: string; description?: string };
   currency?: string;
   shippingRule: StorefrontShippingRule;
+  /** Optional Dhaka inside/outside zone rates (override shippingRule when set). */
+  shippingZones?: { inside?: number; outside?: number; freeThreshold?: number };
   defaultDeliveryCost: number;
   bankInstructions?: string;
   theme?: StorefrontTheme;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import {
   useGetStorefrontSettings,
@@ -14,6 +14,7 @@ import {
   getPreset,
 } from "@/lib/storefront-theme";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { storefrontUrl } from "@/lib/storefront-url";
 import type { StorefrontSettings } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
@@ -61,9 +62,7 @@ function initSections(saved?: string[]): { id: string; enabled: boolean }[] {
 function ThemeForm({ settings }: { settings: StorefrontSettings }) {
   const save = useUpdateStorefrontSettings();
   const media = useUpdateStorefrontMedia();
-  const storeName = useAuthStore(
-    (s) => s.user?.organization?.name,
-  );
+  const slug = useAuthStore((s) => s.user?.organization?.slug);
   const logoInput = useRef<HTMLInputElement>(null);
   const bannerInput = useRef<HTMLInputElement>(null);
 
@@ -261,18 +260,15 @@ function ThemeForm({ settings }: { settings: StorefrontSettings }) {
         </div>
       </div>
 
-      {/* RIGHT — live preview */}
+      {/* RIGHT — live preview (the REAL storefront in preview mode) */}
       <div className="lg:sticky lg:top-6">
         <div className="mb-2 text-xs font-semibold text-muted-foreground">
           Live preview
         </div>
-        <LivePreview
-          storeName={settings.displayName || storeName || "Your store"}
-          logoUrl={settings.logo?.thumbnailUrl || settings.logo?.url}
-          bannerUrl={settings.banner?.mediumUrl || settings.banner?.url}
+        <StorePreviewFrame
+          slug={slug}
           brandColor={brandColor}
           accentColor={accentColor}
-          footerText={footerText}
           sectionIds={enabledSectionIds}
         />
       </div>
@@ -282,154 +278,70 @@ function ThemeForm({ settings }: { settings: StorefrontSettings }) {
 
 /* ------------------------------- live preview ------------------------------ */
 
-function LivePreview({
-  storeName,
-  logoUrl,
-  bannerUrl,
+/**
+ * Renders the REAL storefront home in an iframe (`?preview=1`) and streams the
+ * unsaved draft (brand/accent + enabled section order) into it via postMessage —
+ * a WordPress-customizer-style preview against the actual site. Same-origin, so
+ * postMessage is direct and styles are isolated inside the iframe document.
+ */
+function StorePreviewFrame({
+  slug,
   brandColor,
   accentColor,
-  footerText,
   sectionIds,
 }: {
-  storeName: string;
-  logoUrl?: string;
-  bannerUrl?: string;
+  slug?: string;
   brandColor: string;
   accentColor: string;
-  footerText: string;
   sectionIds: string[];
 }) {
-  return (
-    <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
-      {/* header */}
-      <div
-        className="flex items-center justify-between px-3 py-2.5 text-white"
-        style={{ backgroundColor: brandColor }}
-      >
-        <div className="flex items-center gap-2">
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoUrl}
-              alt="logo"
-              className="h-5 w-5 rounded object-contain"
-            />
-          ) : (
-            <span className="flex h-5 w-5 items-center justify-center rounded bg-white/20 text-[10px] font-bold">
-              {storeName.charAt(0).toUpperCase()}
-            </span>
-          )}
-          <span className="text-xs font-semibold">{storeName}</span>
-        </div>
-        <span
-          className="rounded px-2 py-0.5 text-[10px] font-semibold"
-          style={{ backgroundColor: accentColor }}
-        >
-          Cart
-        </span>
-      </div>
+  const ref = useRef<HTMLIFrameElement>(null);
+  const sectionsKey = sectionIds.join(",");
 
-      {/* body */}
-      <div className="space-y-3 p-3">
-        {sectionIds.length === 0 && (
-          <p className="py-8 text-center text-xs text-muted-foreground">
-            All sections hidden — your homepage would be empty.
-          </p>
-        )}
-        {sectionIds.map((id) => (
-          <PreviewSection
-            key={id}
-            id={id}
-            brandColor={brandColor}
-            accentColor={accentColor}
-            bannerUrl={bannerUrl}
-          />
-        ))}
-      </div>
+  const post = useCallback(() => {
+    ref.current?.contentWindow?.postMessage(
+      {
+        type: "ezycore-preview",
+        payload: {
+          theme: { brandColor, accentColor },
+          sections: sectionsKey ? sectionsKey.split(",") : [],
+        },
+      },
+      "*",
+    );
+  }, [brandColor, accentColor, sectionsKey]);
 
-      {/* footer */}
-      <div
-        className="px-3 py-2 text-center text-[10px] text-white/90"
-        style={{ backgroundColor: brandColor }}
-      >
-        {footerText || `© ${storeName}`}
-      </div>
-    </div>
-  );
-}
+  // Push the draft whenever it changes…
+  useEffect(() => {
+    post();
+  }, [post]);
 
-function PreviewSection({
-  id,
-  brandColor,
-  accentColor,
-  bannerUrl,
-}: {
-  id: string;
-  brandColor: string;
-  accentColor: string;
-  bannerUrl?: string;
-}) {
-  const tile = "rounded-md bg-muted";
-  if (id === "banner") {
+  // …and whenever the storefront (re)loads and announces it's ready.
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if (e.data?.type === "ezycore-preview-ready") post();
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [post]);
+
+  if (!slug) {
     return (
-      <div
-        className="flex h-20 items-center justify-center overflow-hidden rounded-md text-[10px] font-semibold text-white"
-        style={{ backgroundColor: bannerUrl ? undefined : brandColor }}
-      >
-        {bannerUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={bannerUrl} alt="banner" className="h-full w-full object-cover" />
-        ) : (
-          <span style={{ color: accentColor }}>HERO BANNER</span>
-        )}
+      <div className="rounded-xl border bg-muted/30 p-6 text-center text-xs text-muted-foreground">
+        Store URL unavailable.
       </div>
     );
   }
-  if (id === "categories") {
-    return (
-      <div>
-        <SectionLabel>Categories</SectionLabel>
-        <div className="flex gap-1.5">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <span
-              key={i}
-              className="rounded-full px-2 py-1 text-[9px] font-medium"
-              style={{ backgroundColor: `${accentColor}22`, color: accentColor }}
-            >
-              Cat {i + 1}
-            </span>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  const cols = id === "featured" ? 3 : 4;
-  return (
-    <div>
-      <SectionLabel>{id === "featured" ? "Featured" : "All products"}</SectionLabel>
-      <div
-        className="grid gap-1.5"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-      >
-        {Array.from({ length: cols }).map((_, i) => (
-          <div key={i} className="space-y-1">
-            <div className={cn(tile, "aspect-square")} />
-            <div className={cn(tile, "h-1.5 w-3/4")} />
-            <div
-              className="h-3 rounded text-[8px]"
-              style={{ width: "60%", backgroundColor: `${accentColor}22` }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-      {children}
+    <div className="overflow-hidden rounded-xl border bg-white">
+      <iframe
+        ref={ref}
+        src={`${storefrontUrl(slug)}?preview=1`}
+        title="Storefront preview"
+        onLoad={post}
+        className="h-[640px] w-full border-0"
+      />
     </div>
   );
 }

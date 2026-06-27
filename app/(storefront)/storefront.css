@@ -1,0 +1,201 @@
+/*
+ * Storefront design system — the "Rashid's Mart" / EzyCore storefront look.
+ * Intentionally SEPARATE from the admin/inventory app: everything is scoped under
+ * `.sf-root` so it never collides with the admin's shadcn tokens, and the admin's
+ * `dark` class on <html> can't restyle the storefront. Dark mode here is opt-in
+ * via `.sf-root[data-theme="dark"]` (toggled client-side, persisted to
+ * localStorage). The merchant's brand colour overrides `--primary` per store.
+ *
+ * Token + responsive system ported 1:1 from the design's `<style>` block.
+ */
+.sf-root {
+  /* ---- Colour tokens (light) ---- */
+  --page: #f8fafc;
+  --card: #ffffff;
+  --surface: #f1f5f9;
+  --surface-2: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --faint: #94a3b8;
+  --border: #e5e7eb;
+  --border-strong: #cbd5e1;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: #eff6ff;
+  --on-primary: #ffffff;
+  --discount: #b91c1c;
+  --discount-soft: #fee2e2;
+  --header: rgba(255, 255, 255, 0.85);
+
+  /* ---- Layout tokens (mobile-first base; widen at breakpoints below) ---- */
+  --maxw: 1200px;
+  --pad: 16px;
+  --gap: 12px;
+  --cols: 2;
+  --h1: 30px;
+  --h1m: 34px;
+  --h2: 20px;
+  --herocols: 1fr;
+  --bandcols: 2;
+  --footcols: 1fr;
+  --splitcols: 1fr;
+  --splith: 200px;
+  --trustcols: 1fr;
+  --promocols: 1fr;
+  --mincols: 2;
+  --colcols: 2;
+  --searchcols: 2;
+  --relcols: 2;
+  --pdpgrid: 1fr;
+  --cartgrid: 1fr;
+  --colmain: 1fr;
+
+  /* ---- Type ---- */
+  --font-storefront: var(--font-inter), var(--font-noto-bengali),
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* ---- Backward-compat aliases (older not-yet-restyled pages) ---- */
+  --sf-bg: var(--page);
+  --sf-card: var(--card);
+  --sf-muted-bg: var(--surface);
+  --sf-fg: var(--text);
+  --sf-muted: var(--muted);
+  --sf-faint: var(--faint);
+  --sf-border: var(--border);
+  --sf-brand: var(--primary);
+  --sf-accent: var(--primary);
+
+  color-scheme: light;
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--font-storefront);
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Colour tokens (dark) ---- */
+.sf-root[data-theme="dark"] {
+  --page: #09090b;
+  --card: #18181b;
+  --surface: #27272a;
+  --surface-2: #3f3f46;
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --faint: #71717a;
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-soft: #172554;
+  --on-primary: #ffffff;
+  --discount: #f87171;
+  --discount-soft: #3f1d1d;
+  --header: rgba(9, 9, 11, 0.82);
+  color-scheme: dark;
+}
+
+/* ---- Responsive layout tokens ---- */
+@media (min-width: 680px) {
+  .sf-root {
+    --pad: 28px;
+    --gap: 16px;
+    --cols: 3;
+    --h1: 38px;
+    --h1m: 44px;
+    --h2: 23px;
+    --herocols: 1.1fr 1fr;
+    --bandcols: 4;
+    --footcols: 2fr 1fr 1fr;
+    --splitcols: 1fr 1fr;
+    --splith: 340px;
+    --trustcols: 3;
+    --promocols: 1fr 1fr;
+    --mincols: 3;
+    --colcols: 3;
+    --searchcols: 3;
+    --relcols: 4;
+    --pdpgrid: minmax(0, 1.1fr) minmax(0, 1fr);
+    --cartgrid: minmax(0, 1.6fr) minmax(0, 1fr);
+    --colmain: 220px minmax(0, 1fr);
+  }
+}
+@media (min-width: 1000px) {
+  .sf-root {
+    --pad: 40px;
+    --cols: 4;
+    --h1: 46px;
+    --h1m: 52px;
+    --h2: 26px;
+    --colcols: 4;
+    --searchcols: 4;
+  }
+}
+
+/* ---- Responsive show/hide (matches the design's 680px breakpoint) ---- */
+@media (max-width: 679px) {
+  .sf-desktop-only {
+    display: none !important;
+  }
+}
+@media (min-width: 680px) {
+  .sf-mobile-only {
+    display: none !important;
+  }
+}
+
+/* ---- Product grids ---- */
+.sf-grid-4 {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(var(--colcols), minmax(0, 1fr));
+}
+.sf-grid-3 {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 680px) {
+  .sf-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---- Helpers ---- */
+.sf-root :where(h1, h2, h3) {
+  letter-spacing: -0.02em;
+}
+.sf-mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+.sf-root ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.sf-root ::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 6px;
+}
+.sf-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+@keyframes ezSlideUp {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes ezPop {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

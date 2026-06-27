@@ -532,6 +532,19 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
   const [defaultDeliveryCost, setDefaultDeliveryCost] = useState(
     settings.defaultDeliveryCost?.toString() ?? "0",
   );
+  const [zonesEnabled, setZonesEnabled] = useState(
+    settings.shippingZones?.inside != null ||
+      settings.shippingZones?.outside != null,
+  );
+  const [zoneInside, setZoneInside] = useState(
+    settings.shippingZones?.inside?.toString() ?? "",
+  );
+  const [zoneOutside, setZoneOutside] = useState(
+    settings.shippingZones?.outside?.toString() ?? "",
+  );
+  const [zoneFree, setZoneFree] = useState(
+    settings.shippingZones?.freeThreshold?.toString() ?? "",
+  );
 
   return (
     <div className="space-y-5">
@@ -580,6 +593,51 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
           />
         </Field>
       </Card>
+
+      <Card className="space-y-4 p-5 shadow-none">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold">Dhaka delivery zones</h3>
+            <p className="text-xs text-muted-foreground">
+              Charge inside / outside Dhaka rates. When on, these override the
+              shipping rule above and the shopper picks a zone at checkout.
+            </p>
+          </div>
+          <Switch checked={zonesEnabled} onCheckedChange={setZonesEnabled} />
+        </div>
+        {zonesEnabled && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label="Inside Dhaka fee">
+              <Input
+                type="number"
+                min={0}
+                value={zoneInside}
+                onChange={(e) => setZoneInside(e.target.value)}
+                placeholder="60"
+              />
+            </Field>
+            <Field label="Outside Dhaka fee">
+              <Input
+                type="number"
+                min={0}
+                value={zoneOutside}
+                onChange={(e) => setZoneOutside(e.target.value)}
+                placeholder="120"
+              />
+            </Field>
+            <Field label="Free over (subtotal)">
+              <Input
+                type="number"
+                min={0}
+                value={zoneFree}
+                onChange={(e) => setZoneFree(e.target.value)}
+                placeholder="2000"
+              />
+            </Field>
+          </div>
+        )}
+      </Card>
+
       <SaveBar
         pending={pending}
         onSave={() =>
@@ -591,6 +649,13 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
               freeThreshold:
                 mode === "free_over_threshold" ? num(freeThreshold) : undefined,
             },
+            shippingZones: zonesEnabled
+              ? {
+                  inside: num(zoneInside) ?? 0,
+                  outside: num(zoneOutside) ?? 0,
+                  freeThreshold: num(zoneFree),
+                }
+              : undefined,
           })
         }
       />

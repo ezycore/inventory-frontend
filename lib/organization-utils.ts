@@ -53,13 +53,22 @@ export function getSubdomain(): string | null {
 export function subdomainFromHostname(hostname: string): string | null {
   const h = hostname.toLowerCase();
 
-  // Development environments (localhost, etc.)
-  if (
-    h === "localhost" ||
-    h === "127.0.0.1" ||
-    h.startsWith("192.168.") ||
-    h.includes(".local")
-  ) {
+  // Plain localhost / loopback — no workspace.
+  if (h === "localhost" || h === "127.0.0.1" || h.startsWith("192.168.")) {
+    return null;
+  }
+
+  // Local dev multi-tenant: `{slug}.localhost` (mirrors proxy.ts resolveStore),
+  // so the admin auto-detects the workspace on a tenant subdomain in dev exactly
+  // as it does in production — the org-slug field is then hidden.
+  if (h.endsWith(".localhost")) {
+    const sub = h.slice(0, -".localhost".length);
+    if (sub && !sub.includes(".") && !isReservedSubdomain(sub)) return sub;
+    return null;
+  }
+
+  // Other mDNS-style `.local` hosts — no workspace.
+  if (h.includes(".local")) {
     return null;
   }
 

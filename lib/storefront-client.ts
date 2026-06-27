@@ -35,6 +35,60 @@ export interface StorefrontStore {
     flatFee?: number;
     freeThreshold?: number;
   };
+  /** Dhaka inside/outside zone rates (override shippingRule when present). */
+  shippingZones?: { inside?: number; outside?: number; freeThreshold?: number };
+  /** Admin-selected page templates (raw ids from the admin Templates tab). */
+  templates?: StoreTemplatesRaw;
+  /** Header menu / footer groups / announcement bar (admin Navigation tab). */
+  nav?: StoreNav;
+  /** Checkout behaviour (order prefix, min order, etc.). */
+  checkout?: { orderPrefix?: string; minOrderValue?: number; termsRequired?: boolean };
+  /** Instructions shown to shoppers who pick bank/manual transfer. */
+  bankInstructions?: string;
+}
+
+/** Raw per-page template ids as stored by the admin (free strings). */
+export interface StoreTemplatesRaw {
+  home?: string;
+  collection?: string;
+  product?: string;
+  cart?: string;
+  checkout?: string;
+  search?: string;
+}
+
+/** Normalized storefront page-layout variants (resolved from the raw admin ids). */
+export interface StoreTemplates {
+  home: "classic" | "hero-split" | "minimal";
+  collection: "grid3" | "grid4" | "sidebar";
+  product: "left" | "top" | "sticky";
+  checkout: "single" | "multi";
+  cart: "page" | "drawer";
+  search: "grid" | "list";
+}
+
+/** A header menu link target (category slug, page slug, or URL). */
+export interface StoreMenuItem {
+  label: string;
+  type: "category" | "page" | "url";
+  value: string;
+  children?: StoreMenuItem[];
+}
+
+export interface StoreFooterGroup {
+  title: string;
+  links: { label: string; url: string }[];
+}
+
+export interface StoreNav {
+  header?: StoreMenuItem[];
+  footer?: StoreFooterGroup[];
+  announcement?: {
+    enabled?: boolean;
+    text?: string;
+    link?: string;
+    bgColor?: string;
+  };
 }
 
 export interface CatalogProduct {
@@ -61,7 +115,7 @@ export interface ContentPageLink {
   sortOrder?: number;
 }
 
-/** A published CMS page rendered at /s/{slug}/pages/{pageSlug}. */
+/** A published CMS page rendered at /shop/pages/{pageSlug}. */
 export interface ContentPageView {
   _id: string;
   slug: string;
@@ -118,6 +172,7 @@ export interface ShippingAddress {
   address: string;
   city?: string;
   area?: string;
+  zone?: "inside" | "outside";
   notes?: string;
 }
 
