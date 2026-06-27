@@ -7,6 +7,7 @@ import { useStore, useStoreCategories } from "@/services/storefront/hooks";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
+import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
@@ -14,6 +15,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
+import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
 
 const headerBar: CSSProperties = {
   position: "sticky",
@@ -73,6 +75,7 @@ export function StoreShell({
   );
   const openCart = useCartUI((s) => s.openCart);
   const shopper = useShopperStore((s) => s.shopper);
+  const previewBrand = useSfPreview((s) => s.brand);
 
   if (isError) {
     return (
@@ -86,7 +89,9 @@ export function StoreShell({
   }
 
   const name = store?.name ?? "Store";
-  const brandColor = store?.theme?.brandColor;
+  // Live preview brand (admin Theme editor) wins so the whole page repaints
+  // instantly; otherwise the merchant's saved brand colour.
+  const brandColor = previewBrand ?? store?.theme?.brandColor;
   // The merchant's brand colour overrides --primary (light + dark) for the shell.
   const shellVars = (brandColor
     ? { "--primary": brandColor, "--primary-hover": brandColor }
@@ -439,6 +444,7 @@ export function StoreShell({
 
         <CartDrawer />
         <OwnerAdminBar />
+        <StorePreviewBridge />
       </div>
     </StoreContextProvider>
   );

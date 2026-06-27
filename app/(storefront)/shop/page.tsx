@@ -12,8 +12,6 @@ import { StoreHome } from "@/components/storefront/store-home";
 // fetch-level `revalidate` in lib/storefront-server.ts.
 export const revalidate = 60;
 
-type Search = { preview?: string };
-
 const Unavailable = () => (
   <div className="py-20 text-center">
     <h1 className="text-xl font-semibold">Store unavailable</h1>
@@ -47,13 +45,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function StoreHomePage({
-  searchParams,
-}: {
-  searchParams: Promise<Search>;
-}) {
+export default async function StoreHomePage() {
   const { slug, base } = await getStoreContext();
-  const { preview } = await searchParams;
 
   if (!slug) return <Unavailable />;
 
@@ -77,7 +70,6 @@ export default async function StoreHomePage({
       latest={latest?.items ?? []}
       categories={categories ?? []}
       campaigns={campaigns ?? []}
-      preview={preview === "1"}
     />
   );
 }

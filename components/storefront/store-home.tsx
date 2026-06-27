@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import type {
   CatalogCategory,
@@ -10,26 +10,23 @@ import type {
 } from "@/lib/storefront-client";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
+import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { ProductCard } from "@/components/storefront/product-card";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
 import { money } from "@/components/storefront/format";
 
-type HomeTpl = "classic" | "hero-split" | "minimal";
-
-interface PreviewPayload {
-  theme?: { brandColor?: string; accentColor?: string };
-  template?: HomeTpl;
-}
-
 const wrap: CSSProperties = { maxWidth: "var(--maxw)", margin: "0 auto", width: "100%" };
+
+type TplName = "classic" | "hero-split" | "minimal";
+const HOME_VARIANTS: readonly string[] = ["classic", "hero-split", "minimal"];
 
 /**
  * Storefront homepage — renders one of three admin-selectable templates
  * (Classic / Hero Split / Minimal) from `templates.home`, server-rendered for
- * SEO. In preview mode it live-applies brand colour + template from the admin
- * Theme editor via postMessage.
+ * SEO. Live brand-colour preview is handled globally by the shell (it reads the
+ * preview store), so the whole page — not just this content — repaints.
  */
 export function StoreHome({
   store,
@@ -38,7 +35,6 @@ export function StoreHome({
   latest,
   categories,
   campaigns,
-  preview = false,
 }: {
   store: StorefrontStore;
   base: string;
@@ -46,45 +42,21 @@ export function StoreHome({
   latest: CatalogProduct[];
   categories: CatalogCategory[];
   campaigns: StoreCampaign[];
-  preview?: boolean;
 }) {
   const { t } = useStorefrontUI();
   const currency = store.currency;
-
-  const [tpl, setTpl] = useState<HomeTpl>(resolveTemplates(store).home);
-  const [brand, setBrand] = useState(store.theme?.brandColor);
-
-  useEffect(() => {
-    if (!preview) return;
-    const onMsg = (e: MessageEvent) => {
-      const data = e.data;
-      if (!data || data.type !== "ezycore-preview") return;
-      const p = data.payload as PreviewPayload;
-      if (p.template) setTpl(p.template);
-      if (p.theme?.brandColor !== undefined) setBrand(p.theme.brandColor);
-    };
-    window.addEventListener("message", onMsg);
-    window.parent?.postMessage({ type: "ezycore-preview-ready" }, "*");
-    return () => window.removeEventListener("message", onMsg);
-  }, [preview]);
-
-  const themeVars = (brand
-    ? { "--primary": brand, "--primary-hover": brand }
-    : {}) as CSSProperties;
+  // Live draft from the admin Customize editor (only set under ?preview=1) wins,
+  // so picking Classic/Hero-Split/Minimal repaints the homepage instantly.
+  const previewHome = useSfPreview((s) => s.home);
+  const tpl = HOME_VARIANTS.includes(previewHome ?? "")
+    ? (previewHome as TplName)
+    : resolveTemplates(store).home;
 
   const shared = { base, currency, featured, latest, categories, campaigns, t };
 
-  return (
-    <div style={themeVars}>
-      {tpl === "hero-split" ? (
-        <HeroSplit {...shared} />
-      ) : tpl === "minimal" ? (
-        <Minimal {...shared} />
-      ) : (
-        <Classic {...shared} />
-      )}
-    </div>
-  );
+  if (tpl === "hero-split") return <HeroSplit {...shared} />;
+  if (tpl === "minimal") return <Minimal {...shared} />;
+  return <Classic {...shared} />;
 }
 
 interface TplProps {

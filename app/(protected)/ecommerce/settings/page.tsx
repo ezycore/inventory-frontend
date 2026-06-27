@@ -33,7 +33,6 @@ type Option = { label: string; value: string };
 
 const TABS = [
   { id: "general", label: "General" },
-  { id: "templates", label: "Templates" },
   { id: "publish", label: "Publish" },
   { id: "payments", label: "Payments" },
   { id: "shipping", label: "Shipping" },
@@ -99,8 +98,6 @@ function SettingsTab({
   switch (tab) {
     case "general":
       return <GeneralTab settings={settings} />;
-    case "templates":
-      return <TemplatesTab settings={settings} />;
     case "publish":
       return <PublishTab settings={settings} />;
     case "payments":
@@ -239,122 +236,6 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
           })
         }
       />
-    </div>
-  );
-}
-
-/* ------------------------------- Templates -------------------------------- */
-
-const TEMPLATE_PAGES: {
-  key: keyof NonNullable<StorefrontSettings["templates"]>;
-  label: string;
-  desc: string;
-  options: Option[];
-}[] = [
-  {
-    key: "home",
-    label: "Home page",
-    desc: "Landing layout",
-    options: [
-      { value: "classic", label: "Classic" },
-      { value: "hero-split", label: "Hero Split" },
-      { value: "minimal", label: "Minimal" },
-    ],
-  },
-  {
-    key: "collection",
-    label: "Collection page",
-    desc: "Category / product listing",
-    options: [
-      { value: "grid-3", label: "Grid 3-col" },
-      { value: "grid-4", label: "Grid 4-col" },
-      { value: "sidebar", label: "Sidebar filters" },
-    ],
-  },
-  {
-    key: "product",
-    label: "Product page",
-    desc: "Single product layout",
-    options: [
-      { value: "gallery-left", label: "Gallery left" },
-      { value: "gallery-top", label: "Gallery top" },
-      { value: "sticky-bar", label: "Sticky buy bar" },
-    ],
-  },
-  {
-    key: "cart",
-    label: "Cart",
-    desc: "Cart layout",
-    options: [
-      { value: "two-column", label: "Two column" },
-      { value: "drawer", label: "Slide-over drawer" },
-    ],
-  },
-  {
-    key: "checkout",
-    label: "Checkout",
-    desc: "Checkout flow",
-    options: [
-      { value: "single-page", label: "Single page" },
-      { value: "multi-step", label: "Multi-step" },
-    ],
-  },
-  {
-    key: "search",
-    label: "Search results",
-    desc: "Search layout",
-    options: [
-      { value: "grid", label: "Grid" },
-      { value: "list", label: "List" },
-    ],
-  },
-];
-
-function TemplatesTab({ settings }: { settings: StorefrontSettings }) {
-  const { save, pending } = useSave();
-  const [tpl, setTpl] = useState<Record<string, string>>(() => {
-    const t = settings.templates ?? {};
-    const seed: Record<string, string> = {};
-    for (const p of TEMPLATE_PAGES) {
-      seed[p.key] = (t as Record<string, string>)[p.key] || p.options[0].value;
-    }
-    return seed;
-  });
-
-  return (
-    <div className="space-y-5">
-      <div className="rounded-lg border border-primary/40 bg-primary/5 px-4 py-3 text-sm text-primary">
-        Pick the layout template for each storefront page. Changes apply to your
-        live store after saving.
-      </div>
-      {TEMPLATE_PAGES.map((p) => (
-        <Card key={p.key} className="space-y-3 p-5 shadow-none">
-          <div>
-            <h3 className="text-sm font-semibold">{p.label}</h3>
-            <p className="text-xs text-muted-foreground">{p.desc}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {p.options.map((o) => {
-              const active = tpl[p.key] === o.value;
-              return (
-                <button
-                  key={o.value}
-                  onClick={() => setTpl((s) => ({ ...s, [p.key]: o.value }))}
-                  className={cn(
-                    "rounded-lg border px-3 py-2 text-sm transition-colors",
-                    active
-                      ? "border-primary ring-2 ring-primary/30"
-                      : "hover:bg-muted/50",
-                  )}
-                >
-                  {o.label}
-                </button>
-              );
-            })}
-          </div>
-        </Card>
-      ))}
-      <SaveBar pending={pending} onSave={() => save({ templates: tpl })} />
     </div>
   );
 }

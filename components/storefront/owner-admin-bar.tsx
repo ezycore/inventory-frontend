@@ -33,7 +33,7 @@ const useHydrated = () =>
  *     in the admin Theme editor's live-preview embed.
  *
  * On a tenant subdomain admin + store share one origin, so the links navigate
- * same-origin (`/ecommerce/theme`, `/ecommerce/dashboard`).
+ * same-origin (`/ecommerce/customize`, `/ecommerce/dashboard`).
  */
 export function OwnerAdminBar() {
   const hydrated = useHydrated();
@@ -60,11 +60,11 @@ export function OwnerAdminBar() {
         </span>
         <span className="ml-auto flex items-center gap-2">
           <Link
-            href="/ecommerce/theme"
+            href="/ecommerce/customize"
             className="flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 font-medium hover:bg-white/20"
           >
             <Paintbrush className="h-4 w-4" />
-            Edit theme
+            Customize
           </Link>
           <Link
             href="/ecommerce/dashboard"

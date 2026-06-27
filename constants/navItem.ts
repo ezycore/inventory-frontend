@@ -152,8 +152,8 @@ export const navItems: NavItem[] = [
         permissions: ["storefront.manage"],
       },
       {
-        title: "Theme",
-        url: "/ecommerce/theme",
+        title: "Customize",
+        url: "/ecommerce/customize",
         icon: "palette",
         features: ["storefront"],
         permissions: ["storefront.manage"],
