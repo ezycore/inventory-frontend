@@ -200,7 +200,7 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
           <TooltipContent>
             <div className="text-xs space-y-1">
               <p>Quantity: {quantity.toLocaleString()}</p>
-              <p>Cost Price: {price.toFixed(2)}</p>
+              <p>Price: {price.toFixed(2)}</p>
               <p>Total Value: ৳{stockValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
           </TooltipContent>
@@ -210,13 +210,35 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
   },
   {
     accessorKey: "costPrice",
-    header: "Unit Cost",
+    header: "Stock Value (Cost)",
     cell: ({ row }) => {
+      const quantity = row.original.quantity || 0;
       const costPrice = row.original.costPrice || 0;
+      const costValue = quantity * costPrice;
+
       return (
-        <span className="text-sm font-medium tabular-nums">
-          ৳{costPrice.toFixed(2)}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="min-w-[100px] cursor-help">
+              <p className="text-sm font-semibold text-foreground">
+                ৳{costValue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                @৳{costPrice.toFixed(2)} each
+              </p>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="text-xs space-y-1">
+              <p>Quantity: {quantity.toLocaleString()}</p>
+              <p>Cost Price: {costPrice.toFixed(2)}</p>
+              <p>Total Value: ৳{costValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+          </TooltipContent>
+        </Tooltip>
       );
     },
   },

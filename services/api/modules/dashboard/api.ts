@@ -94,7 +94,8 @@ export interface DashboardStats {
   };
   stock?: {
     totalItems: number;
-    totalValue: number;
+    totalValue: number; // valued at cost (purchase) price
+    totalRetailValue: number; // quantity × product/variant price
   };
 }
 
