@@ -88,7 +88,7 @@ export default function SuppliersPage() {
           deleteMutation: useDeleteSupplier(),
           queryKey: [...queryKeys.suppliers.all()],
           entityName: "Supplier",
-          isViewAvailable: true,
+          isViewAvailable: false,
           editTooltip: "Edit Supplier",
           deleteTooltip: "Delete Supplier",
           viewTooltip: "View Supplier Details",

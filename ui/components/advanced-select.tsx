@@ -205,7 +205,6 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     const defaultOption = finalOptions.find(
       (opt) => (opt as Record<string, unknown>)[defaultFlag] === true,
     );
-    console.log("AdvancedSelect: Auto-selecting default option:", defaultOption);
     if (defaultOption) {
       defaultAppliedRef.current = true;
       handleValueChange(defaultOption.value);
@@ -344,7 +343,12 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
         <div className="relative w-full min-w-0 group">
           <Select
             value={singleValue}
-            onValueChange={handleValueChange}
+            // Ignore Radix's spurious empty fires (which would wipe an
+            // auto-applied default). Real items always have a truthy value;
+            // clearing goes through the X button, not this handler.
+            onValueChange={(newValue) => {
+              if (newValue) handleValueChange(newValue);
+            }}
             disabled={disabled}
           >
             <SelectTrigger

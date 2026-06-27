@@ -76,7 +76,6 @@ export default function ProductsPage() {
       fields: (cfg.fields || []).filter((f: any) => !hide.has(f.name)),
     }
   }, [filteredFormConfig, user?.organization])
-  const defaultUnitId = user?.defaultData?.unitId;
   const barcodeEnabled = user?.organization?.features?.barcodeSystem;
 
   const openLabelsFor = (rows: any[]) => {
@@ -120,7 +119,7 @@ export default function ProductsPage() {
     createMutation: useCreateProduct(),
     updateMutation: useUpdateProduct(),
     deleteMutation: useDeleteProduct(),
-    defaultValues: { unitId: defaultUnitId, locationId: activeLocationId },
+    defaultValues: { locationId: activeLocationId },
     isViewAvailable: false,
     queryKey: [...queryKeys.products.all()],
     entityName: "Product" as const,

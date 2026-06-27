@@ -75,7 +75,7 @@ export default function CustomersPage() {
           deleteMutation: useDeleteCustomer(),
           queryKey: [...queryKeys.customers.all()],
           entityName: "Customer",
-          isViewAvailable: true,
+          isViewAvailable: false,
           editTooltip: "Edit Customer",
           deleteTooltip: "Delete Customer",
           viewTooltip: "View Customer Details",

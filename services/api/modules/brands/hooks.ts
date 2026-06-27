@@ -6,7 +6,13 @@ import { createResourceHooks } from "../query-helpers";
 const brandHooks = createResourceHooks<Brand, CreateBrandDto>(
   brandsApi,
   queryKeys.brands,
-  { relatedQueryKeys: [queryKeys.products.all(), ["select-options", "/brands?all=true&fields=_id,name"]] },
+  {
+    relatedQueryKeys: [
+      queryKeys.products.all(),
+      ["select-options", "/brands?all=true&fields=_id,name"],
+      ["select-options", "/brands?all=true&fields=_id,name,isDefault"],
+    ],
+  },
 );
 
 export const useBrandStats = brandHooks.useStats;
