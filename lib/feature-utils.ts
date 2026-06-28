@@ -100,7 +100,7 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureName, string> = {
   accounts:
     "Enable account management, payment tracking, and financial records",
   expiryTracking: "Track product expiry dates with batch management and alerts",
-  barcodeSystem: "Enable barcode scanning and SKU-based product lookup",
+  barcodeSystem: "Enable barcode scanning and barcode-based product lookup",
   invoicePrinting: "Generate and print invoices for sales and purchases",
   returns: "Enable sales returns, purchase returns, and credit management",
   uomConversion: "Enable unit of measure conversion for products",

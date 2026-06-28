@@ -70,11 +70,6 @@ export function LowStockAlerts({ lowStock, isLoading }: LowStockAlertsProps) {
                         {item.productName}
                         {item.variantName ? ` — ${item.variantName}` : ''}
                       </p>
-                      {item.sku && (
-                        <p className="text-xs text-muted-foreground">
-                          SKU: {item.sku}
-                        </p>
-                      )}
                     </div>
                     <Badge
                       variant={item.currentStock <= 0 ? 'destructive' : 'secondary'}

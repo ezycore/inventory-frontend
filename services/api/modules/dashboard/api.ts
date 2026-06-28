@@ -58,7 +58,6 @@ export interface DashboardOverview {
       id: string;
       productName: string;
       variantName: string | null;
-      sku: string;
       currentStock: number;
       alertThreshold: number;
     }>;

@@ -146,13 +146,18 @@ export default function ProductsPage() {
             saleUnit: variant.saleUnit
               ? { unitId: variant.saleUnit.unitId, conversionFactor: variant.saleUnit.conversionFactor }
               : undefined,
-            sku: variant.sku,
             barcode: variant.barcode,
-            barcodeSymbology: variant.barcodeSymbology,
             inventoryAlertLevel: variant.inventoryAlertLevel,
           }
         }) || []
-      return { ...item, variants: transformedVariants }
+      return {
+        ...item,
+        // Barcode type is product-level and shared by all variants. Legacy variable
+        // products stored it per variant only — fall back to the first variant so
+        // the shared "Barcode type" field prefills correctly on edit.
+        barcodeSymbology: item.barcodeSymbology || item.variants?.[0]?.barcodeSymbology,
+        variants: transformedVariants,
+      }
     },
     prepareSubmitData,
   }

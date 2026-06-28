@@ -226,7 +226,6 @@ export interface StockValuationData {
   topValueProducts: Array<{
     productName: string;
     variantName: string | null;
-    sku: string;
     quantity: number;
     costPrice: number;
     stockValue: number;

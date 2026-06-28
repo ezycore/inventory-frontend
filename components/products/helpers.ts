@@ -105,8 +105,12 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
         price: v.price,
         images: existingImages, // only existing images go in JSON
         status: v.enabled ? 'active' : 'inactive',
+        // Barcode VALUE is per variant; the TYPE (symbology) is product-level and
+        // shared — stamp the single form choice onto every variant. Sent even when
+        // no value is typed so backend-auto-generated barcodes carry the same type.
+        ...(v.barcode?.trim() ? { barcode: v.barcode.trim() } : {}),
+        ...(data.barcodeSymbology ? { barcodeSymbology: data.barcodeSymbology } : {}),
         enableUOMConversion: !!v.enableUOMConversion,
-        ...(v.sku && { sku: v.sku }),
         ...(v.inventoryAlertLevel !== undefined && { inventoryAlertLevel: v.inventoryAlertLevel }),
         // Per-variant opening stock (backend ignores unless addToInventory && locationId)
         ...(v.openingStock != null && { openingStock: v.openingStock }),

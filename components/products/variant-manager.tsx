@@ -57,9 +57,7 @@ interface VariantRow {
   enableUOMConversion?: boolean
   purchaseUnit?: UnitConversion
   saleUnit?: UnitConversion
-  sku?: string
   barcode?: string
-  barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
   inventoryAlertLevel?: number
   // Per-variant opening stock (create-only; shown when addToInventory is on)
   openingStock?: number
@@ -81,9 +79,7 @@ interface EditModalData {
   enableUOMConversion: boolean
   purchaseUnit: UnitConversion
   saleUnit: UnitConversion
-  sku?: string
   barcode?: string
-  barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
   // Inventory (shown in modal when addToInventory is on); openingStock gates expiry/batch
   openingStock?: number
   costPrice?: number
@@ -195,9 +191,7 @@ export default function VariantManager({
       enableUOMConversion: variant.enableUOMConversion ?? false,
       purchaseUnit: variant.purchaseUnit ?? {},
       saleUnit: variant.saleUnit ?? { unitId: baseUnitId, conversionFactor: 1 },
-      sku: variant.sku || '',
       barcode: variant.barcode || '',
-      barcodeSymbology: variant.barcodeSymbology || 'CODE128',
       openingStock: variant.openingStock ?? 0,
       costPrice: variant.costPrice ?? 0,
       inventoryAlertLevel: variant.inventoryAlertLevel ?? 0,
@@ -237,9 +231,7 @@ export default function VariantManager({
             enableUOMConversion: editingVariant.enableUOMConversion,
             purchaseUnit: editingVariant.enableUOMConversion ? editingVariant.purchaseUnit : undefined,
             saleUnit: editingVariant.enableUOMConversion ? editingVariant.saleUnit : undefined,
-            sku: editingVariant.sku?.trim() || undefined,
             barcode: editingVariant.barcode?.trim() || undefined,
-            barcodeSymbology: editingVariant.barcode?.trim() ? editingVariant.barcodeSymbology : undefined,
             openingStock: editingVariant.openingStock ?? 0,
             costPrice: editingVariant.costPrice ?? 0,
             inventoryAlertLevel: editingVariant.inventoryAlertLevel ?? 0,
@@ -408,6 +400,8 @@ export default function VariantManager({
                       <Input
                         type="number"
                         value={variant.price}
+                        step={1}
+                        min={0}
                         onChange={e =>
                           handleInlineUpdate(
                             variant.id,
@@ -466,6 +460,8 @@ export default function VariantManager({
                 <Input
                   id="edit-price"
                   type="number"
+                  step={1}
+                  min={0}
                   value={editingVariant.price}
                   onChange={e =>
                     setEditingVariant({
@@ -476,21 +472,10 @@ export default function VariantManager({
                 />
               </div>
 
-              {/* SKU & Barcode (per variant) */}
+              {/* Barcode VALUE (per variant). The barcode TYPE (symbology) is set
+                  once on the product form and shared by every variant. */}
               <div className="grid grid-cols-2 gap-3 border-t pt-4">
-                <div className="space-y-1 col-span-1">
-                  <Label htmlFor="edit-sku" className="text-xs">SKU</Label>
-                  <Input
-                    id="edit-sku"
-                    value={editingVariant.sku || ''}
-                    placeholder="Internal code (leave empty to auto-generate)"
-                    className="font-mono"
-                    onChange={e =>
-                      setEditingVariant({ ...editingVariant, sku: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-1 col-span-1">
+                <div className="space-y-1 col-span-2">
                   <Label htmlFor="edit-barcode" className="text-xs">Barcode</Label>
                   <Input
                     id="edit-barcode"
@@ -500,30 +485,10 @@ export default function VariantManager({
                       setEditingVariant({ ...editingVariant, barcode: e.target.value })
                     }
                   />
+                  <p className="text-[11px] text-muted-foreground">
+                    Barcode type is set on the product form and shared by all variants.
+                  </p>
                 </div>
-                {editingVariant.barcode?.trim() && (
-                  <div className="space-y-1 col-span-2">
-                    <Label className="text-xs">Symbology</Label>
-                    <Select
-                      value={editingVariant.barcodeSymbology || 'CODE128'}
-                      onValueChange={(val) =>
-                        setEditingVariant({
-                          ...editingVariant,
-                          barcodeSymbology: val as any,
-                        })
-                      }
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CODE128">CODE128 (default)</SelectItem>
-                        <SelectItem value="EAN13">EAN-13</SelectItem>
-                        <SelectItem value="UPC_A">UPC-A</SelectItem>
-                        <SelectItem value="ITF14">ITF-14</SelectItem>
-                        <SelectItem value="QR">QR Code</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
               </div>
 
               {/* Inventory (per variant) — only when Track stock is on */}
@@ -664,8 +629,8 @@ export default function VariantManager({
                       <Label className="text-xs">Purchase Conversion Factor</Label>
                       <Input
                         type="number"
-                        step={0.01}
-                        min={0.0001}
+                        step={1}
+                        min={1}
                         value={editingVariant.purchaseUnit?.conversionFactor ?? ''}
                         onChange={e =>
                           setEditingVariant({

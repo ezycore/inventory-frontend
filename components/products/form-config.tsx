@@ -12,6 +12,7 @@ import {
   Layers,
   ImageIcon,
   Percent,
+  CalendarClock,
 } from 'lucide-react'
 import { ProductStatus } from '@/types'
 import {
@@ -20,7 +21,6 @@ import {
 } from './product-form-options'
 import VariantsField from './variants-field'
 import PriceFieldWithUnit from './price-field-with-unit'
-import SkuInput from './sku-input'
 import { NumberInput } from '@/ui/components/numberInput'
 import { Switch } from '@/ui/components/switch'
 
@@ -95,7 +95,7 @@ export const productFormConfig: DynamicFormConfig = {
           defaultValue: "single",
           optionLayout: "cards",
           options: [
-            { value: 'single', label: 'Simple product', description: 'One SKU, one price' },
+            { value: 'single', label: 'Simple product', description: 'One product, one price' },
             { value: 'variable', label: 'Variable product', description: 'Multiple variants (size, color...)' },
           ],
         },
@@ -143,30 +143,23 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 2. IDENTIFICATION -------------------------------------------------------
+    // 2. BARCODE --------------------------------------------------------------
+    // Feature-gated by `barcodeSystem`: useFilteredFormConfig excludes these
+    // fields when the feature is off, and the empty section is dropped entirely.
+    // The barcode TYPE is product-level and shared by every variant; only the
+    // barcode VALUE is single-only (variable products carry a value per variant,
+    // captured in the Variants table).
     {
-      title: "Identification",
-      description: "How this product is recognized in your system",
+      title: "Barcode",
+      description: "Scannable code and how it is rendered",
       icon: sectionIcon(Barcode),
       collapsible: false,
       fields: [
         {
-          name: "base_sku",
-          type: "custom",
-          zodType: "string",
-          label: "SKU",
-          columnSpan: 4,
-          placeholder: "Enter SKU or generate one",
-          customComponent: SkuInput,
-          tooltip: "An internal code to identify this product in your system (e.g. on labels and reports). Use the wand to generate one from the name, or leave it empty and we'll auto-generate it on save.",
-          // Variable products carry a SKU per-variant, so the product-level SKU is single-only.
-          dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
-        },
-        {
           name: "barcode",
           type: "input",
           label: "Barcode",
-          columnSpan: 4,
+          columnSpan: 6,
           placeholder: "Scan or type barcode",
           tooltip: "The barcode printed on the product packaging. Scan it with a reader or type it in. Leave empty to auto-generate a barcode you can print labels for.",
           validation: { maxLength: 64 },
@@ -175,9 +168,10 @@ export const productFormConfig: DynamicFormConfig = {
         {
           name: "barcodeSymbology",
           type: "select",
-          label: "Barcode type",
-          columnSpan: 4,
+          label: "Barcode type (all variants)",
+          columnSpan: 6,
           defaultValue: "CODE128",
+          helperText: "Shared by every variant of this product.",
           options: [
             { value: "CODE128", label: "CODE128" },
             { value: "EAN13", label: "EAN-13" },
@@ -185,8 +179,19 @@ export const productFormConfig: DynamicFormConfig = {
             { value: "ITF14", label: "ITF-14" },
             { value: "QR", label: "QR Code" },
           ],
-          dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
         },
+      ],
+    },
+
+    // 3. EXPIRY & SHELF LIFE --------------------------------------------------
+    // Feature-gated by `expiryTracking` (field exclusion); the empty section is
+    // dropped when the feature is off.
+    {
+      title: "Expiry & shelf life",
+      description: "Batch expiry tracking and alerts",
+      icon: sectionIcon(CalendarClock),
+      collapsible: false,
+      fields: [
         {
           name: "hasExpiry",
           type: "checkbox",
@@ -201,14 +206,14 @@ export const productFormConfig: DynamicFormConfig = {
           columnSpan: 6,
           placeholder: "0",
           defaultValue: 30,
-          validation: { min: 0, max: 999999 },
+          validation: { min: 1, max: 999999 },
           tooltip: "How many days before the expiry date the product should start appearing in expiry alerts, so you have time to act on soon-to-expire stock.",
           dependsOn: { field: "hasExpiry", condition: "truthy", action: "show" },
         },
       ],
     },
 
-    // 3. UNITS OF MEASURE -----------------------------------------------------
+    // 4. UNITS OF MEASURE -----------------------------------------------------
     // Placed before Pricing so the base unit is chosen first — the sell/cost price
     // inputs render it as a "/ unit" suffix.
     {
@@ -250,20 +255,21 @@ export const productFormConfig: DynamicFormConfig = {
         },
         {
           name: "purchaseUnit.conversionFactor",
-          type: "custom",
-          zodType: "number",
+          type: "number",
+          // zodType: "number",
           label: "Purchase conversion factor",
           columnSpan: 6,
           placeholder: "e.g. 100",
           defaultValue: 1,
-          customComponent: NumberInput,
+          validation: { min: 1 },
+          // customComponent: NumberInput,
           tooltip: "How many base units make up one purchase unit. For example, if you buy in Boxes and 1 box holds 100 pieces, enter 100.",
           dependsOn: { field: "enableUOMConversion", value: true, condition: "eq", action: "show" },
         },
       ],
     },
 
-    // 4. PRICING --------------------------------------------------------------
+    // 5. PRICING --------------------------------------------------------------
     // Single-only: variable products carry a sell price per variant (Variants table).
     {
       title: "Pricing",
@@ -285,7 +291,7 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 5. TAX ------------------------------------------------------------------
+    // 6. TAX ------------------------------------------------------------------
     // No productType gate: tax is product-level (stored on the parent Product) and
     // shared by every variant. Backend reads it from the product, not the variant.
     {
@@ -333,7 +339,7 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 6. INVENTORY ------------------------------------------------------------
+    // 7. INVENTORY ------------------------------------------------------------
     {
       title: "Inventory",
       description: "Stock levels and low-stock alerts",
@@ -392,6 +398,7 @@ export const productFormConfig: DynamicFormConfig = {
           columnSpan: 4,
           placeholder: "0.00",
           defaultValue: 0,
+          validation: { min: 0 },
           tooltip: "Unit cost of the opening stock. Used for inventory valuation and the opening-stock report.",
           dependsOn: [
             { field: "addToInventory", condition: "truthy", action: "show" },
@@ -448,7 +455,7 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 7. VARIANTS -------------------------------------------------------------
+    // 8. VARIANTS -------------------------------------------------------------
     {
       title: "Variants",
       description: "Different sizes, colors, or strengths of this product",
@@ -465,7 +472,7 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 8. MEDIA ----------------------------------------------------------------
+    // 9. MEDIA ----------------------------------------------------------------
     {
       title: "Media",
       description: "Up to 5 images. First image is the primary.",

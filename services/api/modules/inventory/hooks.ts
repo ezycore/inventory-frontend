@@ -49,6 +49,23 @@ export const useInventoryShortlist = (filters: {
   })
 }
 
+// Analytics queries (read-only) for the product- and inventory-detail pages.
+export const useProductAnalytics = (productId: string, variantId?: string) =>
+  useQuery({
+    queryKey: queryKeys.inventory.productAnalytics(productId, variantId),
+    queryFn: () => inventoryApi.getProductAnalytics(productId, variantId),
+    enabled: !!productId,
+    select: (res) => res.data,
+  })
+
+export const useInventoryAnalytics = (inventoryId: string) =>
+  useQuery({
+    queryKey: queryKeys.inventory.itemAnalytics(inventoryId),
+    queryFn: () => inventoryApi.getInventoryAnalytics(inventoryId),
+    enabled: !!inventoryId,
+    select: (res) => res.data,
+  })
+
 // Receive stock mutation hook
 export const useReceiveStock = () => {
   const queryClient = useQueryClient()

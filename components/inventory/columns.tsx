@@ -1,4 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { Inventory } from "@/types";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { AvatarCell } from "@/ui/components/dataTable/cells";
@@ -27,12 +28,14 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
         original.images?.[0]?.thumbnailUrl;
       return (
         <div className="min-w-[180px]">
-          <AvatarCell
-            imageUrl={imageUrl}
-            name={row.original.name || "-"}
-            fallbackIcon={Package}
-            isActive={original.status === "active"}
-          />
+          <Link href={`/inventory/${original._id}`} className="block hover:underline">
+            <AvatarCell
+              imageUrl={imageUrl}
+              name={row.original.name || "-"}
+              fallbackIcon={Package}
+              isActive={original.status === "active"}
+            />
+          </Link>
           {attributes && (
             <div className="flex flex-wrap gap-1 mt-1">
               {Object.entries(attributes).map(([key, value]) => (

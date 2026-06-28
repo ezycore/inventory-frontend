@@ -27,6 +27,10 @@ export const queryKeys = {
     search: (query: string) =>
       [...queryKeys.inventory.all(), "search", query] as const,
     lowStock: () => [...queryKeys.inventory.all(), "low-stock"] as const,
+    productAnalytics: (productId: string, variantId?: string) =>
+      [...queryKeys.inventory.all(), "analytics", "product", productId, variantId ?? null] as const,
+    itemAnalytics: (inventoryId: string) =>
+      [...queryKeys.inventory.all(), "analytics", "item", inventoryId] as const,
   },
 
   // Products query keys

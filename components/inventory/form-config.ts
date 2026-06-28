@@ -107,7 +107,7 @@ export const inventoryFormConfig: DynamicFormConfig = {
       helperText: "Opening-stock batch expiry. Only applied for expiry-tracked products.",
       dependsOn: [
         { field: "productId", matchWithProp: "hasExpiry", condition: "truthy", action: "show" },
-        { field: "quantity", condition: "gt", value: 0 },
+        { field: "quantity", condition: "gt", value: 0, action: "show" },
       ],
     },
     {
@@ -119,7 +119,7 @@ export const inventoryFormConfig: DynamicFormConfig = {
       columnSpan: 6,
       dependsOn: [
         { field: "productId", matchWithProp: "hasExpiry", condition: "truthy", action: "show" },
-        { field: "quantity", condition: "gt", value: 0 },
+        { field: "quantity", condition: "gt", value: 0, action: "show" },
       ],
     },
   ],

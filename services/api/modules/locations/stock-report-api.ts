@@ -21,7 +21,6 @@ export interface LocationStockItem {
   productName: string;
   variantId: string | null;
   variantAttributes: Record<string, string> | null;
-  sku: string;
   quantity: number;
   quantityAlert: number;
   costPrice: number;

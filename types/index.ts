@@ -724,8 +724,8 @@ export interface CustomField {
 // Product interfaces
 export interface Product extends BaseEntity {
   name: string;
+  slug: string;
   description?: string;
-  base_sku?: string;
   categoryId?: string;
   brandId?: string;
   unitId?: string;
@@ -771,7 +771,6 @@ export interface CreateProductDto {
   name: string;
   slug?: string;
   description?: string;
-  base_sku?: string;
   categoryId?: string;
   brandId?: string;
   status?: ProductStatus;
@@ -799,7 +798,6 @@ export interface ProductFilters {
 // Variant interfaces
 export interface Variant extends BaseEntity {
   productId: string;
-  sku: string;
   name?: string;
   attributes: Record<string, any>;
   price: number;
@@ -820,7 +818,6 @@ export interface Variant extends BaseEntity {
 
 export interface CreateVariantDto {
   productId: string;
-  sku: string;
   name?: string;
   attributes: Record<string, any>;
   price: number;
@@ -845,7 +842,6 @@ export interface UpdateVariantDto extends Partial<
 export interface VariantFilters {
   productId?: string | undefined;
   search?: string;
-  sku?: string;
   low_stock?: boolean;
   status?: ProductStatus;
   stock_status?: "in_stock" | "low_stock" | "out_of_stock";
