@@ -33,6 +33,23 @@ export interface ProductStockByLocation {
   status: string
 }
 
+/** Per-variant performance rollup (variable products). */
+export interface ProductVariantBreakdown {
+  variantId: string
+  name: string
+  attributes: Record<string, unknown>
+  price: number
+  quantity: number
+  stockValue: number
+  costPrice: number
+  unitsSold: number
+  revenue: number
+  grossProfit: number
+  stockIn: number
+  stockOut: number
+  netChange: number
+}
+
 /** Response of GET /inventory/analytics/product/:productId. */
 export interface ProductAnalytics {
   stock: {
@@ -52,6 +69,8 @@ export interface ProductAnalytics {
   }
   movement: MovementSummary
   trend: { date: string; in: number; out: number }[]
+  /** Per-variant performance (empty for single products). */
+  byVariant: ProductVariantBreakdown[]
 }
 
 /** Response of GET /inventory/analytics/item/:inventoryId. */
@@ -79,7 +98,11 @@ export interface InventoryAnalytics {
   movement: MovementSummary
   balanceTrend: { date: string; balance: number }[]
   recentMovements: StockMovementRow[]
+  /** Total movements for this inventory (drives the "View all" link when > shown). */
+  movementTotal: number
   batches: BatchRow[] | null
+  /** Org IANA timezone — render all dates on this page in it. */
+  timezone: string
 }
 
 /** Per-batch breakdown row (expiry tracking). */

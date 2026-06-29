@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
 
 /** One inventory row for a product at a single location. */
 export interface InventoryItem {
@@ -19,6 +20,25 @@ export function formatDate(dateStr?: string): string {
   if (!dateStr) return '—'
   try {
     return format(new Date(dateStr), 'yyyy-MM-dd')
+  } catch {
+    return dateStr
+  }
+}
+
+/**
+ * Format an ISO instant in the org's IANA timezone (so the displayed day matches
+ * the dashboard). Falls back to browser-local when no tz is supplied.
+ */
+export function formatDateTz(
+  dateStr: string | undefined,
+  timezone?: string,
+  fmt = 'MMM d, yyyy · HH:mm',
+): string {
+  if (!dateStr) return '—'
+  try {
+    return timezone
+      ? formatInTimeZone(new Date(dateStr), timezone, fmt)
+      : format(new Date(dateStr), fmt)
   } catch {
     return dateStr
   }

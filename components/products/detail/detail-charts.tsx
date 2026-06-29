@@ -14,13 +14,15 @@ interface DetailChartsProps {
   formatCurrency: (n: number) => string
 }
 
-/** Short axis label for an ISO `yyyy-MM-dd` trend point. */
+/**
+ * Short axis label for a `yyyy-MM-dd` trend point. The server already buckets
+ * dates in the org timezone, so parse the parts as a local date — never via
+ * `new Date(iso)`, which treats the string as UTC and can shift the label a day.
+ */
 function shortDate(iso: string): string {
-  try {
-    return format(new Date(iso), 'MMM d')
-  } catch {
-    return iso
-  }
+  const [y, m, d] = iso.split('-').map(Number)
+  if (y && m && d) return format(new Date(y, m - 1, d), 'MMM d')
+  return iso
 }
 
 export function DetailCharts({ analytics, salesEnabled, formatCurrency }: DetailChartsProps) {
@@ -65,6 +67,7 @@ export function DetailCharts({ analytics, salesEnabled, formatCurrency }: Detail
             data={reasonData}
             centerValue={totalMovedUnits.toLocaleString()}
             centerLabel="units"
+            legendPosition="bottom"
           />
         ) : (
           <EmptyChart title="Movement by Reason" />

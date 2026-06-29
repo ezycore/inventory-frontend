@@ -1,10 +1,12 @@
 // coding-standard: maintained
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@ui/components/button'
 import { Skeleton } from '@ui/components/skeleton'
+import { Tabs, TabsList, TabsTrigger } from '@ui/components/tabs'
 import {
   useProduct,
   useProductBySlug,
@@ -34,6 +36,12 @@ interface ProductDetailProps {
   onClose?: () => void
 }
 
+/** Short label for a variant tab from its attribute values. */
+function variantLabel(variant: any): string {
+  const values = Object.values(variant?.attributes || {}).map((v) => String(v))
+  return values.length ? values.join(' / ') : 'Variant'
+}
+
 export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) {
   const { format: formatCurrency } = useCurrency()
   const organization = useAuthStore((s) => s.user?.organization)
@@ -46,6 +54,13 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
   // Secondary queries key off the resolved Mongo id, not the route param.
   const resolvedId = product?._id ?? productId ?? ''
 
+  // Variant tab selection for variable products: the first variant is selected by
+  // default and every metric below is scoped to the active variant (no aggregate).
+  const [variantTab, setVariantTab] = useState('')
+  const firstVariantId: string | undefined = product?.variants?.[0]?._id
+  const isVariableProduct = product?.productType === 'variable' && !!firstVariantId
+  const selectedVariantId = isVariableProduct ? variantTab || firstVariantId : undefined
+
   const { data: inventoryData } = useQuery({
     queryKey: ['inventory', 'product', resolvedId],
     queryFn: () => inventoryApi.getAll({ productId: resolvedId }),
@@ -53,11 +68,15 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
     select: (data) => data.data,
   })
 
-  // Aggregated analytics (stock by location, lifetime sales, movement trend).
-  const { data: analytics } = useProductAnalytics(resolvedId)
+  // Aggregated analytics — scoped to the selected variant (or product-wide).
+  const { data: analytics } = useProductAnalytics(resolvedId, selectedVariantId)
 
-  // Product-scoped stock activity ledger (in/out movements for THIS product).
-  const { data: movementsData } = useStockMovements({ productId: resolvedId, limit: 10 })
+  // Stock activity ledger (in/out movements), scoped to the selected variant.
+  const { data: movementsData } = useStockMovements({
+    productId: resolvedId,
+    variantId: selectedVariantId,
+    limit: 10,
+  })
 
   if (isLoading) {
     return (
@@ -94,6 +113,10 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
     product.productType === 'variable' && product.variants && product.variants.length > 0
 
   const inventoryItems: InventoryItem[] = inventoryData?.items || (inventoryData as any) || []
+  // Scope the info-card inventory rows (low-stock alert) to the selected variant.
+  const scopedInventoryItems = selectedVariantId
+    ? inventoryItems.filter((i) => i.variantId === selectedVariantId)
+    : inventoryItems
   const totalStock =
     analytics?.stock.totalQuantity ??
     product.totalStock ??
@@ -108,15 +131,28 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
       ? analytics.stock.stockValue / analytics.stock.totalQuantity
       : analytics?.stock.byLocation.find((l) => l.costPrice > 0)?.costPrice ?? 0
   const costPrice = derivedCost || product.costPrice || 0
-  const profitPerUnit = product.price ? product.price - costPrice : 0
+  // Selling price is per-variant for variable products (product.price is unset
+  // there); fall back to the product price for single products / the 'all' tab.
+  const selectedVariant = selectedVariantId
+    ? product.variants?.find((v: any) => v._id === selectedVariantId)
+    : null
+  const unitPrice = selectedVariant?.price ?? product.price ?? 0
+  const profitPerUnit = unitPrice ? unitPrice - costPrice : 0
   const profitMarginPercent =
     analytics?.sales.margin ??
     product.profitMargin ??
-    (product.price > 0 ? Math.round(((product.price - costPrice) / product.price) * 100) : 0)
+    (unitPrice > 0 ? Math.round(((unitPrice - costPrice) / unitPrice) * 100) : 0)
   const stockValue = analytics?.stock.stockValue ?? totalStock * costPrice
   const salesTaxRate = product.salesTax?.taxType === 'exempt' ? 0 : product.salesTax?.rate ?? 0
   const purchaseTaxRate = product.purchaseTax?.taxType === 'exempt' ? 0 : product.purchaseTax?.rate ?? 0
   const movements = movementsData?.data?.items || []
+  const movementTotal = movementsData?.data?.total ?? movements.length
+  // Link to the full movements page, scoped to this product (and active variant),
+  // shown only when there are more movements than the 10 listed here.
+  const activityHref =
+    movementTotal > movements.length && resolvedId
+      ? `/stock/movements?productId=${resolvedId}${selectedVariantId ? `&variantId=${selectedVariantId}` : ''}`
+      : undefined
   // Module gates — keep every detail surface honest to the org's enabled features.
   const expiryEnabled = isFeatureEnabled(organization?.features, 'expiryTracking')
   const barcodeEnabled = isFeatureEnabled(organization?.features, 'barcodeSystem')
@@ -130,7 +166,28 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
 
   return (
     <div className="space-y-6">
-      <DetailHero product={product} barcode={barcode} formatCurrency={formatCurrency} />
+      <DetailHero
+        key={selectedVariantId || 'product'}
+        product={product}
+        variant={selectedVariant}
+        sellingPrice={unitPrice}
+        barcode={barcode}
+        formatCurrency={formatCurrency}
+      />
+
+      {hasVariants && (
+        <Tabs value={selectedVariantId} onValueChange={setVariantTab}>
+          <div className="overflow-x-auto pb-1">
+            <TabsList className="w-max">
+              {product.variants.map((v: any) => (
+                <TabsTrigger key={v._id} value={v._id}>
+                  {variantLabel(v)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+        </Tabs>
+      )}
 
       <DetailStats
         totalStock={totalStock}
@@ -148,11 +205,11 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
         <DetailCharts analytics={analytics} salesEnabled={salesEnabled} formatCurrency={formatCurrency} />
       )}
 
-      <DetailInfoCard product={product} inventoryItems={inventoryItems} expiryEnabled={expiryEnabled} />
+      <DetailInfoCard product={product} inventoryItems={scopedInventoryItems} expiryEnabled={expiryEnabled} />
 
       {hasVariants && <DetailVariants variants={product.variants} formatCurrency={formatCurrency} />}
 
-      <DetailActivity movements={movements} />
+      <DetailActivity movements={movements} timezone={organization?.timezone} viewAllHref={activityHref} />
 
       {product.storefront && (
         <DetailStorefront storefront={product.storefront} formatCurrency={formatCurrency} />
@@ -161,6 +218,7 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DetailPricing
           product={product}
+          sellingPrice={unitPrice}
           costPrice={costPrice}
           profitPerUnit={profitPerUnit}
           salesTaxRate={salesTaxRate}

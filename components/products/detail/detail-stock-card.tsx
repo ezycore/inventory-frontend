@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ui/components/table'
+import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { MapPin, Package } from 'lucide-react'
 import { getQuantityColor, type InventoryItem } from './utils'
 
@@ -12,6 +12,34 @@ interface DetailStockCardProps {
 }
 
 export function DetailStockCard({ inventoryItems }: DetailStockCardProps) {
+  const columns: SimpleColumn<InventoryItem>[] = [
+    {
+      key: 'location',
+      header: 'Location',
+      cellClassName: 'font-medium',
+      cell: (item) => item.location?.name || '—',
+    },
+    {
+      key: 'shelf',
+      header: 'Shelf',
+      cellClassName: 'font-mono text-sm text-muted-foreground',
+      cell: (item) => item.shelf || '—',
+    },
+    {
+      key: 'quantity',
+      header: 'Quantity',
+      align: 'right',
+      cell: (item) => (
+        <Badge
+          variant="secondary"
+          className={`${getQuantityColor(item.quantity)} border-0 font-semibold`}
+        >
+          {item.quantity}
+        </Badge>
+      ),
+    },
+  ]
+
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -22,33 +50,7 @@ export function DetailStockCard({ inventoryItems }: DetailStockCardProps) {
       </CardHeader>
       <CardContent>
         {inventoryItems.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Location</TableHead>
-                <TableHead>Shelf</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inventoryItems.map((item) => (
-                <TableRow key={item._id}>
-                  <TableCell className="font-medium">{item.location?.name || '—'}</TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">
-                    {item.shelf || '—'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge
-                      variant="secondary"
-                      className={`${getQuantityColor(item.quantity)} border-0 font-semibold`}
-                    >
-                      {item.quantity}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <SimpleTable columns={columns} rows={inventoryItems} getRowKey={(item) => item._id} />
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Package className="mb-2 h-10 w-10 text-muted-foreground/40" />

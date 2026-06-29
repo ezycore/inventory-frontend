@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import PageHeader from "@/ui/components/header";
 import StatsCard, { type StatData } from "@/ui/components/StatsCard";
 import { DataTable } from "@/ui/components/dataTable";
@@ -18,15 +19,33 @@ import {
 import { QuickFilters, QuickFiltersResult } from "@/components/inventory/stock-movement/quick-filters";
 import { ReasonChart } from "@/components/inventory/stock-movement/reason-chart";
 import { columns } from "@/components/inventory/stock-movement/columns";
+import {
+  InventoryScopeFilter,
+  type MovementScope,
+} from "@/components/inventory/stock-movement/inventory-scope-filter";
 
 
 // ─── Page Component ──────────────────────────────────────────────────────────
 export default function StockMovementsPage() {
+  const searchParams = useSearchParams();
   const [quickFilters, setQuickFilters] = useState<QuickFiltersResult>({});
+  // Product/variant/location scope — seeded from the URL (deep links from the
+  // product- and inventory-detail "View all" buttons) and driven by the fuse filter.
+  const [scope, setScope] = useState<MovementScope>(() => ({
+    productId: searchParams.get("productId") || undefined,
+    variantId: searchParams.get("variantId") || undefined,
+    locationId: searchParams.get("locationId") || undefined,
+  }));
 
-  // Fetch aggregated stats from the API (respects quick filters)
+  // Quick (date/direction) filters + the inventory scope, merged for every query.
+  const mergedFilters = useMemo(
+    () => ({ ...quickFilters, ...scope }),
+    [quickFilters, scope],
+  );
+
+  // Fetch aggregated stats from the API (respects all active filters)
   const { data: statsResponse, isLoading: isStatsLoading } =
-    useStockMovementStats(quickFilters);
+    useStockMovementStats(mergedFilters);
 
   const statsData = useMemo(
     () => statsResponse?.data || null,
@@ -41,15 +60,15 @@ export default function StockMovementsPage() {
     [],
   );
 
-  // Build table operations with quick filters merged
+  // Build table operations with all active filters merged
   const tableOperations = useMemo(
     () => ({
       getAllData: (params: any) =>
-        stockMovementsApi.getAll({ ...params, ...quickFilters }),
+        stockMovementsApi.getAll({ ...params, ...mergedFilters }),
       entityName: "Stock Movements",
-      queryKey: [...queryKeys.stockMovements.all(), quickFilters],
+      queryKey: [...queryKeys.stockMovements.all(), mergedFilters],
     }),
-    [quickFilters],
+    [mergedFilters],
   );
 
   // Build stats cards from API data
@@ -115,6 +134,9 @@ export default function StockMovementsPage() {
         isLoading={isStatsLoading}
         columns={{ default: 2, lg: 4 }}
       />
+
+      {/* ── Inventory (product/variant) scope filter ─────────────── */}
+      <InventoryScopeFilter value={scope} onChange={setScope} />
 
       {/* ── Quick Filters + Reason Chart (same row) ──────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

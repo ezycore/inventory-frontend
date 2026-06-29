@@ -15,20 +15,26 @@ interface ProductImage {
 
 interface DetailHeroProps {
   product: any
+  /** Active variant (variable products) — its image/price take priority. */
+  variant?: any
+  /** Selling price for the active scope (variant price, else product price). */
+  sellingPrice: number
   barcode: string
   formatCurrency: (n: number) => string
 }
 
-/** Collect display images from the product or its first variant. */
-function collectImages(product: any): ProductImage[] {
-  const own = Array.isArray(product?.images) ? product.images : []
-  if (own.length > 0) return own
-  const variantImgs = product?.variants?.[0]?.images
-  return Array.isArray(variantImgs) ? variantImgs : []
+/**
+ * Display images for the active scope: the selected variant's images when it has
+ * any, else the product's own images (root image), else empty.
+ */
+function collectImages(product: any, variant: any): ProductImage[] {
+  const variantImgs = Array.isArray(variant?.images) ? variant.images : []
+  if (variantImgs.length > 0) return variantImgs
+  return Array.isArray(product?.images) ? product.images : []
 }
 
-export function DetailHero({ product, barcode, formatCurrency }: DetailHeroProps) {
-  const images = collectImages(product)
+export function DetailHero({ product, variant, sellingPrice, barcode, formatCurrency }: DetailHeroProps) {
+  const images = collectImages(product, variant)
   const [active, setActive] = useState(0)
   const primary = images[active] || images[0]
 
@@ -107,7 +113,7 @@ export function DetailHero({ product, barcode, formatCurrency }: DetailHeroProps
 
           <div className="mt-auto pt-4">
             <span className="text-xs text-muted-foreground">Selling Price</span>
-            <p className="text-3xl font-bold text-emerald-600">{formatCurrency(product.price)}</p>
+            <p className="text-3xl font-bold text-emerald-600">{formatCurrency(sellingPrice)}</p>
           </div>
         </div>
       </div>

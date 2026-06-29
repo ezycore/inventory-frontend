@@ -12,14 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@ui/components/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@ui/components/table'
+import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@ui/components/dialog'
 import { Checkbox } from '@ui/components/checkbox'
 import { toast } from 'sonner'
@@ -296,6 +289,116 @@ export default function VariantManager({
     }
   }
 
+  const variantColumns: SimpleColumn<VariantRow>[] = [
+    {
+      key: 'image',
+      header: '',
+      headClassName: 'w-[50px] py-2 text-xs',
+      cellClassName: 'py-1',
+      cell: (variant) =>
+        variant.images && variant.images.length > 0 ? (
+          (() => {
+            const firstImg = variant.images[0]
+            const src = firstImg instanceof File
+              ? URL.createObjectURL(firstImg)
+              : (firstImg as any).thumbnailUrl || (firstImg as any).url
+            return (
+              <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                <SafeImage src={src} alt={variant.value} className="w-full h-full object-cover" />
+              </div>
+            )
+          })()
+        ) : (
+          <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <ImageIcon className="w-4 h-4 text-gray-400" />
+          </div>
+        ),
+    },
+    {
+      key: 'value',
+      header: 'Variant Value',
+      headClassName: 'w-[160px] py-2 text-xs',
+      cellClassName: 'font-medium py-1 text-sm',
+      cell: (variant) => variant.value,
+    },
+    {
+      key: 'price',
+      header: (
+        <>
+          Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
+        </>
+      ),
+      headClassName: 'w-[180px] py-2 text-xs',
+      cellClassName: 'py-1',
+      cell: (variant) => (
+        <div className="relative">
+          <Input
+            type="number"
+            value={variant.price}
+            step={1}
+            min={0}
+            onChange={e =>
+              handleInlineUpdate(
+                variant.id,
+                'price',
+                parseFloat(e.target.value) || ''
+              )
+            }
+            className="h-7 text-sm pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          {baseUnitLabel ? (
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+              /{baseUnitLabel}
+            </span>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      key: 'active',
+      align: 'right',
+      headClassName: 'w-[120px] py-2 text-xs',
+      cellClassName: 'py-1',
+      header: (
+        <div className="flex items-center justify-end pr-2 gap-1">
+          <span>Active</span>
+          <Checkbox
+            checked={
+              variants.every(v => v.enabled)
+                ? true
+                : variants.some(v => v.enabled)
+                  ? 'indeterminate'
+                  : false
+            }
+            onCheckedChange={handleToggleAll}
+            title={variants.every(v => v.enabled) ? 'Deselect all' : 'Select all'}
+            className="h-4 w-4"
+          />
+        </div>
+      ),
+      cell: (variant) => (
+        <div className="flex items-center justify-end pr-2 gap-2">
+          <Checkbox
+            checked={variant.enabled}
+            onCheckedChange={() => handleEnableToggle(variant.id)}
+            title={variant.enabled ? 'Disable variant' : 'Enable variant'}
+            className="h-6 w-6"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => handleEditClick(variant)}
+            title="More details"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
   return (
     <div className="space-y-4">
       {/* Variant Attribute Selector */}
@@ -342,106 +445,13 @@ export default function VariantManager({
       {/* Variants Table */}
       {variants.length > 0 && (
         <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow className="h-9">
-                <TableHead className="w-[50px] py-2 text-xs"></TableHead>
-                <TableHead className="w-[160px] py-2 text-xs">Variant Value</TableHead>
-                <TableHead className="w-[180px] py-2 text-xs">
-                  Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
-                </TableHead>
-                <TableHead className="w-[120px] text-right py-2 text-xs">
-                  <div className="flex items-center justify-end pr-2 gap-1">
-                    <span>Active</span>
-                    <Checkbox
-                      checked={
-                        variants.every(v => v.enabled)
-                          ? true
-                          : variants.some(v => v.enabled)
-                            ? 'indeterminate'
-                            : false
-                      }
-                      onCheckedChange={handleToggleAll}
-                      title={variants.every(v => v.enabled) ? 'Deselect all' : 'Select all'}
-                      className="h-4 w-4"
-                    />
-                  </div>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {variants.map(variant => (
-                <TableRow
-                  key={variant.id}
-                  className={`h-10 ${!variant.enabled ? 'opacity-50' : ''}`}
-                >
-                  <TableCell className="py-1">
-                    {variant.images && variant.images.length > 0 ? (
-                      (() => {
-                        const firstImg = variant.images[0]
-                        const src = firstImg instanceof File
-                          ? URL.createObjectURL(firstImg)
-                          : (firstImg as any).thumbnailUrl || (firstImg as any).url
-                        return (
-                          <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex-shrink-0">
-                            <SafeImage src={src} alt={variant.value} className="w-full h-full object-cover" />
-                          </div>
-                        )
-                      })()
-                    ) : (
-                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <ImageIcon className="w-4 h-4 text-gray-400" />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium py-1 text-sm">{variant.value}</TableCell>
-                  <TableCell className="py-1">
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        value={variant.price}
-                        step={1}
-                        min={0}
-                        onChange={e =>
-                          handleInlineUpdate(
-                            variant.id,
-                            'price',
-                            parseFloat(e.target.value) || ''
-                          )
-                        }
-                        className="h-7 text-sm pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      {baseUnitLabel ? (
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                          /{baseUnitLabel}
-                        </span>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right py-1">
-                    <div className="flex items-center justify-end pr-2 gap-2">
-                      <Checkbox
-                        checked={variant.enabled}
-                        onCheckedChange={() => handleEnableToggle(variant.id)}
-                        title={variant.enabled ? 'Disable variant' : 'Enable variant'}
-                        className="h-6 w-6"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleEditClick(variant)}
-                        title="More details"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <SimpleTable
+            columns={variantColumns}
+            rows={variants}
+            getRowKey={(variant) => variant.id}
+            headerRowClassName="h-9"
+            rowClassName={(variant) => `h-10 ${!variant.enabled ? 'opacity-50' : ''}`}
+          />
         </div>
       )}
 

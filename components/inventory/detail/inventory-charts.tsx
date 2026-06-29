@@ -1,6 +1,7 @@
 // coding-standard: maintained
 'use client'
 
+import { formatInTimeZone } from 'date-fns-tz'
 import { format } from 'date-fns'
 import { AreaChart, DonutChart } from '@ui/components/charts'
 import { Card } from '@ui/components/card'
@@ -11,20 +12,22 @@ interface InventoryChartsProps {
   analytics: InventoryAnalytics
 }
 
-/** Short axis label for an ISO timestamp balance point. */
-function shortStamp(iso: string): string {
+/** Short axis label for an ISO timestamp balance point, in the org timezone. */
+function shortStamp(iso: string, timezone?: string): string {
   try {
-    return format(new Date(iso), 'MMM d')
+    return timezone
+      ? formatInTimeZone(new Date(iso), timezone, 'MMM d')
+      : format(new Date(iso), 'MMM d')
   } catch {
     return iso
   }
 }
 
 export function InventoryCharts({ analytics }: InventoryChartsProps) {
-  const { balanceTrend, movement } = analytics
+  const { balanceTrend, movement, timezone } = analytics
 
   const balanceData = balanceTrend.map((b) => ({
-    label: shortStamp(b.date),
+    label: shortStamp(b.date, timezone),
     balance: b.balance,
   }))
 
@@ -64,6 +67,7 @@ export function InventoryCharts({ analytics }: InventoryChartsProps) {
           centerLabel="units"
           height={220}
           showLegend
+          legendPosition="bottom"
         />
       ) : (
         <EmptyChart title="Movement by Reason" />

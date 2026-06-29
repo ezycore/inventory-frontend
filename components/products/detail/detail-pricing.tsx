@@ -7,6 +7,8 @@ import { Tag } from 'lucide-react'
 
 interface DetailPricingProps {
   product: any
+  /** Selling price for the current scope (variant price when a variant tab is active). */
+  sellingPrice: number
   /** Weighted-average cost from inventory (product.costPrice is not authoritative). */
   costPrice: number
   profitPerUnit: number
@@ -29,6 +31,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 export function DetailPricing({
   product,
+  sellingPrice,
   costPrice,
   profitPerUnit,
   salesTaxRate,
@@ -53,7 +56,7 @@ export function DetailPricing({
           />
           <Row
             label="Selling Price"
-            value={<span className="text-sm font-semibold text-emerald-600">{formatCurrency(product.price)}</span>}
+            value={<span className="text-sm font-semibold text-emerald-600">{formatCurrency(sellingPrice)}</span>}
           />
           {product.mrp != null && product.mrp > 0 && (
             <Row label="MRP" value={<span className="text-sm font-medium">{formatCurrency(product.mrp)}</span>} />

@@ -56,6 +56,13 @@ export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) 
   const { inventory, product, variant, location, movement, batches } = analytics
   const unitLabel = product?.unit?.shortName || product?.unit?.name || 'units'
 
+  // Link to the full movements page, scoped to this exact inventory record
+  // (product + variant + location), shown only when more than the 10 listed exist.
+  const activityHref =
+    analytics.movementTotal > analytics.recentMovements.length && product?._id && location?._id
+      ? `/stock/movements?productId=${product._id}${variant ? `&variantId=${variant._id}` : ''}&locationId=${location._id}`
+      : undefined
+
   return (
     <div className="space-y-6">
       <Hero
@@ -84,7 +91,11 @@ export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) 
 
       <InventoryCharts analytics={analytics} />
 
-      <InventoryActivity movements={analytics.recentMovements} />
+      <InventoryActivity
+        movements={analytics.recentMovements}
+        timezone={analytics.timezone}
+        viewAllHref={activityHref}
+      />
 
       {expiryEnabled && batches && batches.length > 0 && (
         <InventoryBatches batches={batches} formatCurrency={formatCurrency} />
