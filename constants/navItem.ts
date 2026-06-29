@@ -56,6 +56,34 @@ export const navItems: NavItem[] = [
     ],
   },
 
+  // PURCHASES
+  {
+    title: "Purchases",
+    url: "/purchases",
+    icon: "shopping-bag",
+    isActive: false,
+    items: [
+      {
+        title: "New Purchase",
+        url: "/purchases",
+        icon: "packages",
+      },
+      {
+        title: "Purchase Orders",
+        url: "/purchases/orders",
+        icon: "file-plus",
+      },
+      { title: "Purchase List", url: "/purchases/history", icon: "clock" },
+      {
+        title: "Purchase Returns",
+        url: "/purchases/returns",
+        icon: "package-minus",
+        features: ["returns"],
+      },
+      // Suppliers moved to top-level navigation
+    ],
+  },
+
   // SALES (requires sales feature)
   {
     title: "Sales",
@@ -85,35 +113,7 @@ export const navItems: NavItem[] = [
       // Customers moved to top-level navigation
     ],
   },
-
-  // PURCHASES
-  {
-    title: "Purchases",
-    url: "/purchases",
-    icon: "shopping-bag",
-    isActive: false,
-    items: [
-      {
-        title: "New Purchase",
-        url: "/purchases",
-        icon: "packages",
-      },
-      {
-        title: "Purchase Orders",
-        url: "/purchases/orders",
-        icon: "file-plus",
-      },
-      { title: "Purchase List", url: "/purchases/history", icon: "clock" },
-      {
-        title: "Purchase Returns",
-        url: "/purchases/returns",
-        icon: "package-minus",
-        features: ["returns"],
-      },
-      // Suppliers moved to top-level navigation
-    ],
-  },
-
+  
   // CUSTOMERS (top-level)
   {
     title: "Customers",
