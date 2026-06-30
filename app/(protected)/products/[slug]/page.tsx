@@ -1,4 +1,5 @@
 'use client'
+// coding-standard: maintained
 
 import { use } from 'react'
 import { ProductDetail } from '@/components/products/product-detail'
@@ -6,8 +7,8 @@ import { Button } from '@ui/components/button'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
   const router = useRouter()
 
   return (
@@ -22,7 +23,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           Back
         </Button>
       </div>
-      <ProductDetail productId={id} />
+      <ProductDetail slug={slug} />
     </div>
   )
 }

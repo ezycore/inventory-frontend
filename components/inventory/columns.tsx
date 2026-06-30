@@ -1,6 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { Inventory } from "@/types";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { AvatarCell } from "@/ui/components/dataTable/cells";
 import { Badge } from "@/ui/components/badge";
 import {
   Tooltip,
@@ -21,11 +23,19 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
     header: "Product",
     cell: ({ row }) => {
       const attributes = row.original.attributes;
+      const original = row.original as any;
+      const imageUrl =
+        original.images?.[0]?.thumbnailUrl;
       return (
         <div className="min-w-[180px]">
-          <div className="font-medium text-foreground">
-            {row.original.name ? row.original.name : "-"}
-          </div>
+          <Link href={`/inventory/${original._id}`} className="block hover:underline">
+            <AvatarCell
+              imageUrl={imageUrl}
+              name={row.original.name || "-"}
+              fallbackIcon={Package}
+              isActive={original.status === "active"}
+            />
+          </Link>
           {attributes && (
             <div className="flex flex-wrap gap-1 mt-1">
               {Object.entries(attributes).map(([key, value]) => (
@@ -193,7 +203,7 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
           <TooltipContent>
             <div className="text-xs space-y-1">
               <p>Quantity: {quantity.toLocaleString()}</p>
-              <p>Cost Price: {price.toFixed(2)}</p>
+              <p>Price: {price.toFixed(2)}</p>
               <p>Total Value: ৳{stockValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
           </TooltipContent>
@@ -203,13 +213,35 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
   },
   {
     accessorKey: "costPrice",
-    header: "Unit Cost",
+    header: "Stock Value (Cost)",
     cell: ({ row }) => {
+      const quantity = row.original.quantity || 0;
       const costPrice = row.original.costPrice || 0;
+      const costValue = quantity * costPrice;
+
       return (
-        <span className="text-sm font-medium tabular-nums">
-          ৳{costPrice.toFixed(2)}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="min-w-[100px] cursor-help">
+              <p className="text-sm font-semibold text-foreground">
+                ৳{costValue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                @৳{costPrice.toFixed(2)} each
+              </p>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="text-xs space-y-1">
+              <p>Quantity: {quantity.toLocaleString()}</p>
+              <p>Cost Price: {costPrice.toFixed(2)}</p>
+              <p>Total Value: ৳{costValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+          </TooltipContent>
+        </Tooltip>
       );
     },
   },

@@ -1,8 +1,9 @@
 "use client";
 
 import PageHeader from '@/ui/components/header'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
+import { isTaxActive } from '@/lib/feature-utils'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
@@ -44,7 +45,37 @@ export default function ProductsPage() {
   const filteredColumns = useFilteredColumns(productColumns, 'product')
   const { data: statsData, isLoading: statsLoading } = useProductStats()
   const { user, activeLocationId } = useAuthStore();
-  const defaultUnitId = user?.defaultData?.unitId;
+
+  // Hide the product tax-config fields for any side whose tax is inactive
+  // (master `tax` feature off, or that area's sub-toggle off).
+  const taxGatedFormConfig = useMemo(() => {
+    const hide = new Set<string>()
+    if (!isTaxActive(user?.organization, 'sales')) {
+      hide.add('salesTax.taxType'); hide.add('salesTax.taxId')
+    }
+    if (!isTaxActive(user?.organization, 'purchase')) {
+      hide.add('purchaseTax.taxType'); hide.add('purchaseTax.taxId')
+    }
+    if (hide.size === 0) return filteredFormConfig
+    const cfg = filteredFormConfig as { sections?: any[]; fields?: any[] }
+    if (cfg.sections) {
+      return {
+        ...filteredFormConfig,
+        // Drop sections left empty after gating (the standalone Tax section has
+        // only tax fields, so it disappears entirely when both sides are off).
+        sections: cfg.sections
+          .map((s) => ({
+            ...s,
+            fields: (s.fields || []).filter((f: any) => !hide.has(f.name)),
+          }))
+          .filter((s) => (s.fields || []).length > 0),
+      }
+    }
+    return {
+      ...filteredFormConfig,
+      fields: (cfg.fields || []).filter((f: any) => !hide.has(f.name)),
+    }
+  }, [filteredFormConfig, user?.organization])
   const barcodeEnabled = user?.organization?.features?.barcodeSystem;
 
   const openLabelsFor = (rows: any[]) => {
@@ -83,12 +114,12 @@ export default function ProductsPage() {
 
   // Shared operations config
   const sharedOperations = {
-    formConfig: filteredFormConfig,
+    formConfig: taxGatedFormConfig,
     getAllData: productsApi.getAll,
     createMutation: useCreateProduct(),
     updateMutation: useUpdateProduct(),
     deleteMutation: useDeleteProduct(),
-    defaultValues: { unitId: defaultUnitId, locationId: activeLocationId },
+    defaultValues: { locationId: activeLocationId },
     isViewAvailable: false,
     queryKey: [...queryKeys.products.all()],
     entityName: "Product" as const,
@@ -115,13 +146,18 @@ export default function ProductsPage() {
             saleUnit: variant.saleUnit
               ? { unitId: variant.saleUnit.unitId, conversionFactor: variant.saleUnit.conversionFactor }
               : undefined,
-            sku: variant.sku,
             barcode: variant.barcode,
-            barcodeSymbology: variant.barcodeSymbology,
             inventoryAlertLevel: variant.inventoryAlertLevel,
           }
         }) || []
-      return { ...item, variants: transformedVariants }
+      return {
+        ...item,
+        // Barcode type is product-level and shared by all variants. Legacy variable
+        // products stored it per variant only — fall back to the first variant so
+        // the shared "Barcode type" field prefills correctly on edit.
+        barcodeSymbology: item.barcodeSymbology || item.variants?.[0]?.barcodeSymbology,
+        variants: transformedVariants,
+      }
     },
     prepareSubmitData,
   }

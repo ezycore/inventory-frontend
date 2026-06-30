@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
 import { Badge } from "@/ui/components/badge";
 import { Card } from "@/ui/components/card";
@@ -17,6 +18,7 @@ const BrandCardView = (brand, { onEdit, onDelete }) => {
     name,
     description,
     status,
+    isDefault,
     productCount,
     updatedAt,
     createdAt,
@@ -55,6 +57,14 @@ const BrandCardView = (brand, { onEdit, onDelete }) => {
             >
               {status}
             </Badge>
+            {isDefault && (
+              <Badge
+                variant="outline"
+                className="text-xs shrink-0 border-primary text-primary"
+              >
+                Default
+              </Badge>
+            )}
           </div>
           {description ? (
             <TruncatedText

@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { Badge } from "@/ui/components/badge";
 import { Card } from "@/ui/components/card";
 import {
@@ -18,7 +19,7 @@ const TaxCardView = (
   tax: any,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
 ) => {
-  const { name, rate, type, status, createdAt } = tax;
+  const { name, rate, type, status, isDefault, createdAt } = tax;
 
   const typeConfig = typeStyles[type] || typeStyles.percentage;
   const TypeIcon = typeConfig.icon;
@@ -66,6 +67,14 @@ const TaxCardView = (
                 <Badge variant="outline" className="text-[11px] px-2 py-0 capitalize">
                   {type}
                 </Badge>
+                {isDefault && (
+                  <Badge
+                    variant="outline"
+                    className="text-[11px] px-2 py-0 border-primary text-primary"
+                  >
+                    Default
+                  </Badge>
+                )}
               </div>
             </div>
           </div>

@@ -7,9 +7,12 @@ const discountHooks = createResourceHooks<Discount, CreateDiscountDto>(
   discountsApi,
   queryKeys.discounts,
   {
-    relatedQueryKeys: [queryKeys.discounts.all(), ["select-options", "/discounts/purchase?all=true&status=active&fields=_id,name,value",
-      "/discounts/sales?all=true&status=active&fields=_id,name,value"
-    ]],
+    relatedQueryKeys: [queryKeys.discounts.all(), 
+      [ "select-options", "/discounts/purchase?all=true&status=active&fields=_id,name,value"],
+      [ "select-options", "/discounts/purchase?all=true&status=active&fields=_id,name,value,isDefaultPurchase"],
+      [ "select-options", "/discounts/sales?all=true&status=active&fields=_id,name,value"],
+      [ "select-options", "/discounts/sales?all=true&status=active&fields=_id,name,value,isDefaultSales"]
+    ],
   },
 );
 //  {relatedQueryKeys: [queryKeys.customers.all(), ["select-options", "/sales/customers?all=true&fields=_id,name,defaultDiscountId"]]}

@@ -14,6 +14,7 @@ import {
     DialogFooter
 } from '../dialog'
 import type { DynamicFormProps } from '@/ui/components/form/type';
+import { stripHiddenValues } from '@/ui/components/form/type';
 import { Card, CardContent, CardHeader, CardTitle } from '../card'
 import { Skeleton } from '../skeleton'
 import { Button } from '../button'
@@ -21,6 +22,20 @@ import { FC, useCallback } from 'react'
 import { FormContent } from './helper'
 import { cn } from '@/ui/lib/utils';
 import { Spinner } from '../spinner';
+import { toast } from 'sonner';
+
+// Walk a react-hook-form errors tree and return the first message. Skips the
+// `ref` node (a DOM element) to avoid recursing into the DOM.
+function findFirstErrorMessage(errors: any): string | undefined {
+    if (!errors || typeof errors !== 'object') return undefined;
+    if (typeof errors.message === 'string' && errors.message) return errors.message;
+    for (const key of Object.keys(errors)) {
+        if (key === 'ref') continue;
+        const found = findFirstErrorMessage(errors[key]);
+        if (found) return found;
+    }
+    return undefined;
+}
 
 
 const DynamicForm: FC<DynamicFormProps> = ({
@@ -69,9 +84,14 @@ const DynamicForm: FC<DynamicFormProps> = ({
 
     // Form submission handler that works with React Hook Form
     const handleFormSubmit = useCallback((data: any) => {
+        // Drop conditionally-hidden field values before they reach the payload so
+        // an invisible field can't submit stale/default data. Static hidden:true
+        // plumbing and disabled-but-visible fields are preserved by the strip.
+        const visibleData = stripHiddenValues(config, data)
+
         if (mutationHook) {
             // Apply onSubmit transformation if provided
-            let processedData = onSubmit ? onSubmit(data) : data
+            let processedData = onSubmit ? onSubmit(visibleData) : visibleData
 
             mutationHook.mutate(processedData, {
                 onSuccess: (result: any) => {
@@ -95,14 +115,20 @@ const DynamicForm: FC<DynamicFormProps> = ({
             })
         } else if (onSubmit) {
             // Legacy onSubmit handler
-            onSubmit(data)
+            onSubmit(visibleData)
         }
-    }, [mutationHook, onSubmit, onSuccess, onFailed, onOpenChange, form, resetAfterSubmit])
+    }, [mutationHook, onSubmit, onSuccess, onFailed, onOpenChange, form, resetAfterSubmit, config])
+
+    // Surface the first validation error so a failure on a hidden/off-screen
+    // field doesn't make submit appear dead.
+    const handleInvalid = useCallback((errors: any) => {
+        toast.error(findFirstErrorMessage(errors) || 'Please fix the highlighted fields before submitting.')
+    }, [])
 
     const handleContainerSubmit = () => {
         // Trigger form submission through React Hook Form
         if (handleSubmit) {
-            handleSubmit(handleFormSubmit)()
+            handleSubmit(handleFormSubmit, handleInvalid)()
         }
     }
 
@@ -199,7 +225,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                     <div className="flex-1 overflow-y-auto px-6 pb-1">
                         <form
                             {...props}
-                            onSubmit={handleSubmit(handleFormSubmit)}
+                            onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
                         >
                             {formContent}
                         </form>
@@ -236,7 +262,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                     <div className="flex-1 overflow-y-auto px-6 pb-6">
                         <form
                             {...props}
-                            onSubmit={handleSubmit(handleFormSubmit)}
+                            onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
                         >
                             {formContent}
                             {actionsPlacement === 'bottom' && formActions}
@@ -252,7 +278,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
         <div>
             <form
                 {...props}
-                onSubmit={handleSubmit(handleFormSubmit)}
+                onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
             >
                 {actionsPlacement === 'top' && formActions}
                 {formContent}

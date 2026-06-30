@@ -6,7 +6,10 @@ import { createResourceHooks } from "../query-helpers";
 const taxHooks = createResourceHooks<Tax, CreateTaxDto>(
   taxesApi,
   queryKeys.taxes,
-    { relatedQueryKeys: [queryKeys.products.all(), ["select-options", "/taxes?all=true&fields=_id,name,rate"]] },
+    { relatedQueryKeys: [queryKeys.products.all(), 
+      [ "select-options", "/taxes?all=true&fields=_id,name,rate"],
+      [ "select-options", "/taxes?all=true&fields=_id,name,rate,isDefault"]
+    ] },
 );
 
 export const useTaxes = taxHooks.useList;

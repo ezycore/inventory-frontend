@@ -95,6 +95,7 @@ function PurchaseReturnsPageContent() {
             subtotal={ctx.order.subtotal}
             additionalDiscount={ctx.order.additionalDiscount}
             taxTotal={ctx.order.taxTotal}
+            items={ctx.order.items}
             totalAmount={ctx.order.invoiceAmount ?? 0}
             paidAmount={ctx.order.paidAmount ?? 0}
             dueAmount={ctx.order.dueAmount ?? 0}

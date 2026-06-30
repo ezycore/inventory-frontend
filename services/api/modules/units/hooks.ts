@@ -6,7 +6,10 @@ import { createResourceHooks } from "../query-helpers";
 const unitHooks = createResourceHooks<Unit, CreateUnitDto>(
   unitsApi,
   queryKeys.units,
-  { relatedQueryKeys: [queryKeys.products.all(), ["select-options", "/units?all=true&fields=_id,name,shortName"]] },
+  { relatedQueryKeys: [queryKeys.products.all(), 
+    [ "select-options", "/units?all=true&fields=_id,name,shortName"],
+    [ "select-options", "/units?all=true&fields=_id,name,shortName,isDefault"]
+  ] },
 );
 
 export const useUnits = unitHooks.useList;

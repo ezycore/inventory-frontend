@@ -1,4 +1,5 @@
 "use client"
+// coding-standard: maintained
 
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { Controller } from 'react-hook-form'
@@ -10,6 +11,8 @@ import {
   Ruler,
   Layers,
   ImageIcon,
+  Percent,
+  CalendarClock,
 } from 'lucide-react'
 import { ProductStatus } from '@/types'
 import {
@@ -18,7 +21,6 @@ import {
 } from './product-form-options'
 import VariantsField from './variants-field'
 import PriceFieldWithUnit from './price-field-with-unit'
-import SkuInput from './sku-input'
 import { NumberInput } from '@/ui/components/numberInput'
 import { Switch } from '@/ui/components/switch'
 
@@ -57,7 +59,7 @@ export const productFormConfig: DynamicFormConfig = {
   sections: [
     // 1. BASICS ---------------------------------------------------------------
     {
-      title: "Basics",
+      title: "Basic Information",
       description: "The essentials customers will see",
       icon: sectionIcon(Info),
       collapsible: false,
@@ -68,7 +70,7 @@ export const productFormConfig: DynamicFormConfig = {
           label: "Product name",
           required: true,
           columnSpan: 6,
-          placeholder: "e.g. Nexum Mups 20mg Capsule",
+          placeholder: "Enter product name",
           validation: { minLength: 1, maxLength: 255 },
         },
         {
@@ -85,36 +87,6 @@ export const productFormConfig: DynamicFormConfig = {
           defaultValue: ProductStatus.ACTIVE,
         },
         {
-          name: "categoryId",
-          type: "select",
-          label: "Category",
-          required: true,
-          columnSpan: 4,
-          placeholder: "Choose category",
-          optionsApi: `/categories?all=true&fields=_id,name`,
-          creatable: true,
-          quickAddModule: "category",
-        },
-        {
-          name: "brandId",
-          type: "select",
-          label: "Brand",
-          columnSpan: 4,
-          optionsApi: `/brands?all=true&fields=_id,name`,
-          placeholder: "Select brand",
-          creatable: true,
-          quickAddModule: "brand",
-        },
-        {
-          name: "sellingType",
-          type: "select",
-          label: "Selling type",
-          columnSpan: 4,
-          options: sellingTypeOptions,
-          placeholder: "Select selling type",
-          defaultValue: "retail",
-        },
-        {
           name: "productType",
           type: "radio-group",
           label: "Product type",
@@ -123,45 +95,71 @@ export const productFormConfig: DynamicFormConfig = {
           defaultValue: "single",
           optionLayout: "cards",
           options: [
-            { value: 'single', label: 'Single product', description: 'One SKU, one price' },
+            { value: 'single', label: 'Simple product', description: 'One product, one price' },
             { value: 'variable', label: 'Variable product', description: 'Multiple variants (size, color...)' },
           ],
         },
         {
+          name: "categoryId",
+          type: "select",
+          label: "Category",
+          required: true,
+          columnSpan: 6,
+          placeholder: "Choose category",
+          optionsApi: `/categories?all=true&fields=_id,name,isDefault`,
+          defaultFlag: "isDefault",
+          creatable: true,
+          quickAddModule: "category",
+        },
+        {
+          name: "brandId",
+          type: "select",
+          label: "Brand",
+          columnSpan: 6,
+          optionsApi: `/brands?all=true&fields=_id,name,isDefault`,
+          defaultFlag: "isDefault",
+          placeholder: "Select brand",
+          creatable: true,
+          quickAddModule: "brand",
+        },
+        // {
+        //   name: "sellingType",
+        //   type: "select",
+        //   label: "Selling type",
+        //   columnSpan: 4,
+        //   options: sellingTypeOptions,
+        //   placeholder: "Select selling type",
+        //   defaultValue: "retail",
+        // },
+        {
           name: "description",
           type: "textarea",
           label: "Description",
+          // required: true,
           columnSpan: 12,
-          placeholder: "Describe ingredients, usage, benefits, warnings...",
+          placeholder: "Enter product description",
           rows: 4,
         },
       ],
     },
 
-    // 2. IDENTIFICATION -------------------------------------------------------
+    // 2. BARCODE --------------------------------------------------------------
+    // Feature-gated by `barcodeSystem`: useFilteredFormConfig excludes these
+    // fields when the feature is off, and the empty section is dropped entirely.
+    // The barcode TYPE is product-level and shared by every variant; only the
+    // barcode VALUE is single-only (variable products carry a value per variant,
+    // captured in the Variants table).
     {
-      title: "Identification",
-      description: "How this product is recognized in your system",
+      title: "Barcode",
+      description: "Scannable code and how it is rendered",
       icon: sectionIcon(Barcode),
       collapsible: false,
       fields: [
         {
-          name: "base_sku",
-          type: "custom",
-          zodType: "string",
-          label: "SKU",
-          columnSpan: 4,
-          placeholder: "e.g. NEX-020",
-          customComponent: SkuInput,
-          tooltip: "An internal code to identify this product in your system (e.g. on labels and reports). Use the wand to generate one from the name, or leave it empty and we'll auto-generate it on save.",
-          // Variable products carry a SKU per-variant, so the product-level SKU is single-only.
-          dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
-        },
-        {
           name: "barcode",
           type: "input",
           label: "Barcode",
-          columnSpan: 4,
+          columnSpan: 6,
           placeholder: "Scan or type barcode",
           tooltip: "The barcode printed on the product packaging. Scan it with a reader or type it in. Leave empty to auto-generate a barcode you can print labels for.",
           validation: { maxLength: 64 },
@@ -170,123 +168,57 @@ export const productFormConfig: DynamicFormConfig = {
         {
           name: "barcodeSymbology",
           type: "select",
-          label: "Barcode symbology",
-          columnSpan: 4,
+          label: "Barcode type (all variants)",
+          columnSpan: 6,
           defaultValue: "CODE128",
+          helperText: "Shared by every variant of this product.",
           options: [
-            { value: "CODE128", label: "CODE128 (default)" },
+            { value: "CODE128", label: "CODE128" },
             { value: "EAN13", label: "EAN-13" },
             { value: "UPC_A", label: "UPC-A" },
             { value: "ITF14", label: "ITF-14" },
             { value: "QR", label: "QR Code" },
           ],
-          dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
         },
+      ],
+    },
+
+    // 3. EXPIRY & SHELF LIFE --------------------------------------------------
+    // Feature-gated by `expiryTracking` (field exclusion); the empty section is
+    // dropped when the feature is off.
+    {
+      title: "Expiry & shelf life",
+      description: "Batch expiry tracking and alerts",
+      icon: sectionIcon(CalendarClock),
+      collapsible: false,
+      fields: [
         {
           name: "hasExpiry",
           type: "checkbox",
-          label: "This product expires",
+          label: "Track expiry dates",
           columnSpan: 12,
+          defaultValue: true,
         },
         {
           name: "expiryAlertDays",
           type: "number",
-          label: "Expiry alert days",
+          label: "Expiry alert (days before)",
           columnSpan: 6,
           placeholder: "0",
-          defaultValue: 0,
+          defaultValue: 30,
+          validation: { min: 1, max: 999999 },
           tooltip: "How many days before the expiry date the product should start appearing in expiry alerts, so you have time to act on soon-to-expire stock.",
           dependsOn: { field: "hasExpiry", condition: "truthy", action: "show" },
         },
       ],
     },
 
-    // 3. PRICING & TAX --------------------------------------------------------
-    {
-      title: "Pricing & Tax",
-      description: "Set the price and how tax is applied",
-      icon: sectionIcon(BadgeDollarSign),
-      collapsible: false,
-      dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
-      fields: [
-        {
-          name: "price",
-          type: "custom",
-          zodType: "number",
-          label: "Selling price",
-          columnSpan: 6,
-          placeholder: "0.00",
-          validation: { min: 0, max: 999999 },
-          customComponent: PriceFieldWithUnit,
-        },
-        {
-          name: "taxType",
-          type: "select",
-          label: "Tax type",
-          columnSpan: 3,
-          options: taxTypeOptions,
-          placeholder: "Select",
-          defaultValue: "inclusive",
-        },
-        {
-          name: "taxId",
-          type: "select",
-          label: "Tax rate",
-          columnSpan: 3,
-          optionsApi: '/taxes?all=true&fields=_id,name,rate',
-          placeholder: "Select tax",
-        },
-      ],
-    },
-
-    // 4. INVENTORY ------------------------------------------------------------
-    {
-      title: "Inventory",
-      description: "Stock levels and low-stock alerts",
-      icon: sectionIcon(Boxes),
-      collapsible: false,
-      // Inventory is only created on initial product creation.
-      dependsOn: { field: "_id", condition: "falsy", action: "show" },
-      headerAction: ({ control }) => <TrackStockToggle control={control} />,
-      fields: [
-        {
-          name: "locationId",
-          type: "select",
-          label: "Location",
-          columnSpan: 6,
-          optionsApi: `/locations?all=true&fields=_id,name`,
-          placeholder: "Select location",
-          dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
-        },
-        // {
-        //   name: "openingStock",
-        //   type: "number",
-        //   zodType: "number",
-        //   label: "Opening stock",
-        //   columnSpan: 4,
-        //   placeholder: "0",
-        //   defaultValue: 0,
-        //   tooltip: "The quantity currently in stock at this location, entered in the product's base unit. This sets the starting inventory; you can adjust it later from the Inventory page.",
-        //   dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
-        // },
-        {
-          name: "inventoryAlertLevel",
-          type: "number",
-          zodType: "number",
-          label: "Low-stock alert at",
-          columnSpan: 6,
-          placeholder: "e.g. 20",
-          defaultValue: 0,
-          tooltip: "When stock falls to or below this number, the product is flagged as low stock and added to your reorder shortlist so you know when to restock.",
-          dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
-        },
-      ],
-    },
-
-    // 5. UNITS OF MEASURE -----------------------------------------------------
+    // 4. UNITS OF MEASURE -----------------------------------------------------
+    // Placed before Pricing so the base unit is chosen first — the sell/cost price
+    // inputs render it as a "/ unit" suffix.
     {
       title: "Units of Measure",
-      description: "How you count this product when buying and selling",
+      description: "How you count this product when purchase and sell",
       icon: sectionIcon(Ruler),
       collapsible: false,
       fields: [
@@ -295,8 +227,9 @@ export const productFormConfig: DynamicFormConfig = {
           type: "select",
           label: "Base unit",
           required: true,
-          columnSpan: 6,
-          optionsApi: `/units?all=true&fields=_id,name,shortName`,
+          columnSpan: 12,
+          optionsApi: `/units?all=true&fields=_id,name,shortName,isDefault`,
+          defaultFlag: "isDefault",
           copyValueTo: ["saleUnit.unitId"],
           placeholder: "Select base unit",
           tooltip: "The unit all stock is counted and reported in (e.g. Piece). Choose carefully — every quantity, including purchases and sales, is recorded in this unit.",
@@ -304,7 +237,7 @@ export const productFormConfig: DynamicFormConfig = {
         {
           name: "enableUOMConversion",
           type: "checkbox",
-          label: "Buy and sell in different units",
+          label: "Different purchase & sales units",
           columnSpan: 12,
           defaultValue: false,
           helperText: "e.g. buy in Boxes from supplier, sell in Pieces at the counter.",
@@ -322,20 +255,207 @@ export const productFormConfig: DynamicFormConfig = {
         },
         {
           name: "purchaseUnit.conversionFactor",
-          type: "custom",
-          zodType: "number",
+          type: "number",
+          // zodType: "number",
           label: "Purchase conversion factor",
           columnSpan: 6,
           placeholder: "e.g. 100",
           defaultValue: 1,
-          customComponent: NumberInput,
+          validation: { min: 1 },
+          // customComponent: NumberInput,
           tooltip: "How many base units make up one purchase unit. For example, if you buy in Boxes and 1 box holds 100 pieces, enter 100.",
           dependsOn: { field: "enableUOMConversion", value: true, condition: "eq", action: "show" },
         },
       ],
     },
 
-    // 6. VARIANTS -------------------------------------------------------------
+    // 5. PRICING --------------------------------------------------------------
+    // Single-only: variable products carry a sell price per variant (Variants table).
+    {
+      title: "Pricing",
+      description: "Set the sell price",
+      icon: sectionIcon(BadgeDollarSign),
+      collapsible: false,
+      dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
+      fields: [
+        {
+          name: "price",
+          type: "custom",
+          zodType: "number",
+          label: "Sell price (per unit)",
+          columnSpan: 12,
+          placeholder: "0.00",
+          validation: { min: 0, max: 999999 },
+          customComponent: PriceFieldWithUnit,
+        },
+      ],
+    },
+
+    // 6. TAX ------------------------------------------------------------------
+    // No productType gate: tax is product-level (stored on the parent Product) and
+    // shared by every variant. Backend reads it from the product, not the variant.
+    {
+      title: "Tax",
+      description: "How tax is applied — shared by all variants",
+      icon: sectionIcon(Percent),
+      collapsible: false,
+      fields: [
+        {
+          name: "salesTax.taxType",
+          type: "select",
+          label: "Sales tax calculation",
+          columnSpan: 6,
+          options: taxTypeOptions,
+          placeholder: "Select",
+          defaultValue: "inclusive",
+        },
+        {
+          name: "salesTax.taxId",
+          type: "select",
+          label: "Sales tax rate",
+          columnSpan: 6,
+          optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
+          defaultFlag: "isDefault",
+          placeholder: "Select tax",
+        },
+        {
+          name: "purchaseTax.taxType",
+          type: "select",
+          label: "Purchase tax calculation",
+          columnSpan: 6,
+          options: taxTypeOptions,
+          placeholder: "Select",
+          defaultValue: "inclusive",
+        },
+        {
+          name: "purchaseTax.taxId",
+          type: "select",
+          label: "Purchase tax rate",
+          columnSpan: 6,
+          optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
+          defaultFlag: "isDefault",
+          placeholder: "Select tax",
+        },
+      ],
+    },
+
+    // 7. INVENTORY ------------------------------------------------------------
+    {
+      title: "Inventory",
+      description: "Stock levels and low-stock alerts",
+      icon: sectionIcon(Boxes),
+      collapsible: false,
+      // Inventory is only created on initial product creation. Shown for both
+      // single and variable products; for variable, only the toggle + shared
+      // Location render here — per-variant stock lives in the Variants table.
+      dependsOn: { field: "_id", condition: "falsy", action: "show" },
+      headerAction: ({ control }) => <TrackStockToggle control={control} />,
+      fields: [
+        {
+          // The visible control is the header toggle above; this hidden field
+          // exists only so `addToInventory` is part of the generated zod schema.
+          // Without a declared field the schema (z.object) strips the key on
+          // submit, so the backend never receives it and skips inventory creation.
+          name: "addToInventory",
+          type: "checkbox",
+          zodType: "boolean",
+          label: "",
+          hidden: true,
+          columnSpan: 12,
+          defaultValue: false,
+        },
+        {
+          name: "locationId",
+          type: "select",
+          label: "Location",
+          hidden: true,
+          columnSpan: 4,
+          optionsApi: `/locations?all=true&fields=_id,name`,
+          placeholder: "Select location",
+          dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
+        },
+        {
+          name: "openingStock",
+          type: "number",
+          zodType: "number",
+          label: "Opening stock",
+          columnSpan: 4,
+          placeholder: "0",
+          defaultValue: 0,
+          validation: { min: 0 },
+          tooltip: "The quantity currently in stock at this location, entered in the product's base unit. Recorded as an opening-stock entry you can report on later; adjust it afterwards from the Inventory page.",
+          // Single-only: variable products capture opening stock per variant.
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+          ],
+        },
+        {
+          name: "costPrice",
+          type: "number",
+          zodType: "number",
+          label: "Cost price (per unit)",
+          columnSpan: 4,
+          placeholder: "0.00",
+          defaultValue: 0,
+          validation: { min: 0 },
+          tooltip: "Unit cost of the opening stock. Used for inventory valuation and the opening-stock report.",
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+          ],
+        },
+        {
+          name: "inventoryAlertLevel",
+          type: "number",
+          zodType: "number",
+          label: "Low stock threshold",
+          columnSpan: 4,
+          placeholder: "e.g. 20",
+          // Not `required`: inventory-only field, hidden in edit mode where the product
+          // carries no value — a required number would fail zod with `undefined`.
+          // `defaultValue: 0` keeps create submitting a value.
+          validation: { min: 0 },
+          defaultValue: 0,
+          tooltip: "When stock falls to or below this number, the product is flagged as low stock and added to your reorder shortlist so you know when to restock.",
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+          ],
+        },
+        {
+          name: "batchNumber",
+          type: "input",
+          label: "Batch number",
+          columnSpan: 6,
+          placeholder: "Optional",
+          tooltip: "Batch/lot number for the opening-stock batch. Only applied when expiry tracking is on for this product.",
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+            { field: "hasExpiry", condition: "truthy" },
+            { field: "openingStock", condition: "gt", value: 0 },
+          ],
+        },
+        {
+          name: "expiryDate",
+          type: "date",
+          label: "Opening expiry date",
+          columnSpan: 6,
+          // Backend wants date-only (YYYY-MM-DD); emit local date to avoid a UTC off-by-one.
+          outputFormat: "yyyy-MM-dd",
+          tooltip: "Expiry date for the opening-stock batch. Only applied when expiry tracking is on for this product.",
+          dependsOn: [
+            { field: "addToInventory", condition: "truthy", action: "show" },
+            { field: "productType", value: "single", condition: "eq" },
+            { field: "hasExpiry", condition: "truthy" },
+            { field: "openingStock", condition: "gt", value: 0 },
+          ],
+        }
+      ],
+    },
+
+    // 8. VARIANTS -------------------------------------------------------------
     {
       title: "Variants",
       description: "Different sizes, colors, or strengths of this product",
@@ -352,7 +472,7 @@ export const productFormConfig: DynamicFormConfig = {
       ],
     },
 
-    // 7. MEDIA ----------------------------------------------------------------
+    // 9. MEDIA ----------------------------------------------------------------
     {
       title: "Media",
       description: "Up to 5 images. First image is the primary.",

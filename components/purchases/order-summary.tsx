@@ -5,12 +5,16 @@ import { Card, CardContent } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
 import { Separator } from "@/ui/components/separator";
 import { ClipboardList, CheckCircleIcon } from "lucide-react";
+import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
 
 type Props = {
   formatCurrency: (value: number) => string;
   sellersCount: number;
   totalItemCount: number;
   grandTotal: number;
+  grandTax: number;
+  grandAddedTax: number;
+  grandIncludedTax: number;
   grandPaid: number;
   grandCreditApplied: number;
   grandDue: number;
@@ -28,6 +32,9 @@ export default function OrderSummary({
   sellersCount,
   totalItemCount,
   grandTotal,
+  grandTax,
+  grandAddedTax,
+  grandIncludedTax,
   grandPaid,
   grandCreditApplied,
   grandDue,
@@ -60,13 +67,17 @@ export default function OrderSummary({
               <span className="tabular-nums">{totalItemCount}</span>
             </div>
 
-            {/* Grand Total */}
-            <div className="flex justify-between items-center pt-1">
-              <span className="font-semibold">Grand Total</span>
-              <span className="text-lg font-bold text-primary tabular-nums">
-                {formatCurrency(grandTotal)}
-              </span>
-            </div>
+            {/* Aggregate tax across suppliers (added on top + inclusive memo). */}
+            <TaxSummaryLines
+              show
+              addedTax={grandAddedTax}
+              includedTax={grandIncludedTax}
+              taxTotal={grandTax}
+              total={grandTotal}
+              totalLabel="Grand Total"
+              totalSize="lg"
+              formatCurrency={formatCurrency}
+            />
 
             <Separator />
 
