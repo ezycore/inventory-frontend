@@ -8,6 +8,8 @@ export interface ReturnableItem extends SaleItem {
   refundAmount: number;
   selected: boolean;
   salePrice: number;
+  /** Tax-inclusive per-unit refund price (what the customer actually paid per unit). */
+  refundUnitPrice: number;
 }
 
 // ── Due allocation row ──────────────────────────────────────────────

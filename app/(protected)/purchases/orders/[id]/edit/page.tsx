@@ -2,6 +2,7 @@
 
 import { getPurchaseColumns } from "@/components/purchases";
 import { useEditPurchaseOrder } from "@/components/purchases/orders/use-edit-purchase-order";
+import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Card, CardContent } from "@/ui/components/card";
@@ -162,6 +163,7 @@ export default function EditPurchaseOrderPage() {
                   ctx.formatCurrency,
                   "edit",
                   ctx.isUOMEnabled,
+                  ctx.isTaxEnabled,
                 )}
                 data={ctx.items}
                 emptyMessage="No items in this order"
@@ -192,23 +194,18 @@ export default function EditPurchaseOrderPage() {
                   </div>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground font-medium">
-                    Net Amount (Invoice)
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-base text-muted-foreground">{ctx.symbol}</span>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={0.01}
-                      value={ctx.computedNet || ctx.invoiceAmount}
-                      onChange={(e) =>
-                        ctx.setInvoiceAmountState(e.target.value === "" ? "" : parseFloat(e.target.value) || 0)
-                      }
-                      className="w-28 h-7 text-right text-sm"
-                    />
-                  </div>
+                  <span className="text-muted-foreground font-medium">Net Amount</span>
+                  <span className="tabular-nums">{ctx.formatCurrency(ctx.computedNet)}</span>
                 </div>
+                <TaxSummaryLines
+                  show={ctx.isTaxEnabled}
+                  addedTax={ctx.addedTax}
+                  includedTax={ctx.includedTax}
+                  taxTotal={ctx.taxTotal}
+                  total={ctx.finalNet}
+                  totalLabel="Total (Invoice)"
+                  formatCurrency={ctx.formatCurrency}
+                />
               </div>
             </CardContent>
           </Card>
@@ -254,6 +251,13 @@ export default function EditPurchaseOrderPage() {
                   <span className="tabular-nums">-{ctx.formatCurrency(ctx.additionalDiscount || 0)}</span>
                 </div>
 
+                {ctx.isTaxEnabled && ctx.addedTax > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Tax (added)</span>
+                    <span className="tabular-nums">+{ctx.formatCurrency(ctx.addedTax)}</span>
+                  </div>
+                )}
+
                 <Separator />
 
                 <div className="flex justify-between text-sm">
@@ -262,6 +266,13 @@ export default function EditPurchaseOrderPage() {
                     {ctx.formatCurrency(ctx.finalNet)}
                   </span>
                 </div>
+
+                {ctx.isTaxEnabled && ctx.includedTax > 0 && (
+                  <p className="text-xs text-muted-foreground text-right leading-snug">
+                    Includes {ctx.formatCurrency(ctx.includedTax)} tax in price
+                    {ctx.addedTax > 0 ? ` · total tax ${ctx.formatCurrency(ctx.taxTotal)}` : ""}
+                  </p>
+                )}
 
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Paid</span>

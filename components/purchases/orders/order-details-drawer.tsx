@@ -12,7 +12,7 @@ import {
   User,
   XCircle,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { Badge } from '@/ui/components/badge';
 import { Button } from '@/ui/components/button';
 import { Separator } from '@/ui/components/separator';
@@ -25,6 +25,7 @@ import {
 } from '@/ui/components/sheet';
 import { Skeleton } from '@/ui/components/skeleton';
 import type { PurchaseOrder } from '@/types';
+import { splitLineTax } from '@/utils/tax';
 import { statusConfig } from '../status-config';
 
 interface OrderDetailsDrawerProps {
@@ -145,7 +146,25 @@ export function OrderDetailsDrawer({
               <div className="grid gap-3 lg:grid-cols-3">
                 {renderField('Subtotal', formatCurrency(order.subtotal))}
                 {renderField('Additional Discount', formatCurrency(order.additionalDiscount ?? 0))}
-                {renderField('Tax', formatCurrency(order.taxTotal ?? 0))}
+                {(() => {
+                  // Split line tax into added (exclusive) vs in-price (inclusive).
+                  const { addedTax, includedTax } = splitLineTax(order.items ?? []);
+                  if (addedTax <= 0 && includedTax <= 0) {
+                    return (order.taxTotal ?? 0) > 0
+                      ? renderField('Tax', formatCurrency(order.taxTotal ?? 0))
+                      : null;
+                  }
+                  return (
+                    <>
+                      {addedTax > 0 && (
+                        <Fragment key="tax-added">{renderField('Tax (added)', formatCurrency(addedTax))}</Fragment>
+                      )}
+                      {includedTax > 0 && (
+                        <Fragment key="tax-incl">{renderField('Tax (in price)', formatCurrency(includedTax))}</Fragment>
+                      )}
+                    </>
+                  );
+                })()}
                 {renderField('Invoice Amount', formatCurrency(
                   order.invoiceAmount ?? order.grandTotal ?? order.totalAmount ?? order.subtotal ?? 0,
                 ))}
@@ -224,6 +243,12 @@ export function OrderDetailsDrawer({
                           )}
                           {renderField('Cost Price / Unit', formatCurrency(item.costPrice ?? 0))}
                           {renderField('Subtotal', formatCurrency(item.subtotal))}
+                          {item.taxRate
+                            ? renderField(
+                                `Tax (${item.taxRate}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`,
+                                formatCurrency(item.taxAmount ?? 0),
+                              )
+                            : null}
                         </div>
                       </div>
                     );

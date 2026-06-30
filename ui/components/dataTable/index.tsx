@@ -13,6 +13,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Card, CardContent } from "../card";
 import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 import { BaseDataTable } from "./base-data-table ";
+import { stripHiddenValues } from "../form/type";
 
 export function DataTable<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>,
@@ -334,7 +335,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             disabledFieldsInEdit={disabledFieldsInEdit}
             isEditMode={!!editingItem}
             onFieldChange={(fieldName, value, all) => {
-             console.log("Field changed:", fieldName, value, all);
+               console.log(name, value, stripHiddenValues(formConfig, all))
             }}
           />
         )}

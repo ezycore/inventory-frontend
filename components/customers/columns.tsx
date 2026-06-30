@@ -20,16 +20,18 @@ export const customerColumns: ColumnDef<Customer>[] = [
     header: "Customer Name",
   },
   {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
-    accessorKey: "phone",
-    header: "Phone",
-  },
-  {
-    accessorKey: "address",
-    header: "Address",
+    accessorKey: "defaultDiscount",
+    header: "Discount",
+    cell: ({ row }) => {
+      const discount = row.original.defaultDiscount;
+      if (!discount) return <span className="text-muted-foreground">None</span>;
+
+      const { value, type } = discount;
+      const displayValue =
+        type === "percentage" ? `${value}%` : `$${value.toFixed(2)}`;
+
+      return <span className="font-medium">{displayValue}</span>;
+    },
   },
   {
     accessorKey: "creditBalance",

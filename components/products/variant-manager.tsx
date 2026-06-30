@@ -12,14 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@ui/components/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@ui/components/table'
+import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@ui/components/dialog'
 import { Checkbox } from '@ui/components/checkbox'
 import { toast } from 'sonner'
@@ -58,8 +51,12 @@ interface VariantRow {
   purchaseUnit?: UnitConversion
   saleUnit?: UnitConversion
   barcode?: string
-  barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
   inventoryAlertLevel?: number
+  // Per-variant opening stock (create-only; shown when addToInventory is on)
+  openingStock?: number
+  costPrice?: number
+  expiryDate?: string
+  batchNumber?: string
 }
 
 interface VariantManagerProps {
@@ -76,7 +73,12 @@ interface EditModalData {
   purchaseUnit: UnitConversion
   saleUnit: UnitConversion
   barcode?: string
-  barcodeSymbology?: 'CODE128' | 'EAN13' | 'UPC_A' | 'ITF14' | 'QR'
+  // Inventory (shown in modal when addToInventory is on); openingStock gates expiry/batch
+  openingStock?: number
+  costPrice?: number
+  inventoryAlertLevel?: number
+  expiryDate?: string
+  batchNumber?: string
 }
 
 export default function VariantManager({
@@ -97,6 +99,7 @@ export default function VariantManager({
   const basePrice = useWatch({ control, name: 'price' }) || 0
   const baseUnitId = useWatch({ control, name: 'unitId' })
   const addToInventory = useWatch({ control, name: 'addToInventory' })
+  const hasExpiry = useWatch({ control, name: 'hasExpiry' })
 
   // Fetch variant attributes from API
   const { data: attributesResponse, isLoading, error, refetch } = useVariantAttributes()
@@ -136,6 +139,8 @@ export default function VariantManager({
           enableUOMConversion: false,
           saleUnit: { unitId: baseUnitId, conversionFactor: 1 },
           inventoryAlertLevel: 0,
+          openingStock: 0,
+          costPrice: 0,
         }))
         setVariants(newVariants)
         // Notify parent of change
@@ -180,7 +185,11 @@ export default function VariantManager({
       purchaseUnit: variant.purchaseUnit ?? {},
       saleUnit: variant.saleUnit ?? { unitId: baseUnitId, conversionFactor: 1 },
       barcode: variant.barcode || '',
-      barcodeSymbology: variant.barcodeSymbology || 'CODE128',
+      openingStock: variant.openingStock ?? 0,
+      costPrice: variant.costPrice ?? 0,
+      inventoryAlertLevel: variant.inventoryAlertLevel ?? 0,
+      expiryDate: variant.expiryDate || '',
+      batchNumber: variant.batchNumber || '',
     })
     setEditModalOpen(true)
   }
@@ -216,7 +225,11 @@ export default function VariantManager({
             purchaseUnit: editingVariant.enableUOMConversion ? editingVariant.purchaseUnit : undefined,
             saleUnit: editingVariant.enableUOMConversion ? editingVariant.saleUnit : undefined,
             barcode: editingVariant.barcode?.trim() || undefined,
-            barcodeSymbology: editingVariant.barcode?.trim() ? editingVariant.barcodeSymbology : undefined,
+            openingStock: editingVariant.openingStock ?? 0,
+            costPrice: editingVariant.costPrice ?? 0,
+            inventoryAlertLevel: editingVariant.inventoryAlertLevel ?? 0,
+            expiryDate: editingVariant.expiryDate || undefined,
+            batchNumber: editingVariant.batchNumber?.trim() || undefined,
           }
           : v
       )
@@ -276,6 +289,116 @@ export default function VariantManager({
     }
   }
 
+  const variantColumns: SimpleColumn<VariantRow>[] = [
+    {
+      key: 'image',
+      header: '',
+      headClassName: 'w-[50px] py-2 text-xs',
+      cellClassName: 'py-1',
+      cell: (variant) =>
+        variant.images && variant.images.length > 0 ? (
+          (() => {
+            const firstImg = variant.images[0]
+            const src = firstImg instanceof File
+              ? URL.createObjectURL(firstImg)
+              : (firstImg as any).thumbnailUrl || (firstImg as any).url
+            return (
+              <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                <SafeImage src={src} alt={variant.value} className="w-full h-full object-cover" />
+              </div>
+            )
+          })()
+        ) : (
+          <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <ImageIcon className="w-4 h-4 text-gray-400" />
+          </div>
+        ),
+    },
+    {
+      key: 'value',
+      header: 'Variant Value',
+      headClassName: 'w-[160px] py-2 text-xs',
+      cellClassName: 'font-medium py-1 text-sm',
+      cell: (variant) => variant.value,
+    },
+    {
+      key: 'price',
+      header: (
+        <>
+          Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
+        </>
+      ),
+      headClassName: 'w-[180px] py-2 text-xs',
+      cellClassName: 'py-1',
+      cell: (variant) => (
+        <div className="relative">
+          <Input
+            type="number"
+            value={variant.price}
+            step={1}
+            min={0}
+            onChange={e =>
+              handleInlineUpdate(
+                variant.id,
+                'price',
+                parseFloat(e.target.value) || ''
+              )
+            }
+            className="h-7 text-sm pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          {baseUnitLabel ? (
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+              /{baseUnitLabel}
+            </span>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      key: 'active',
+      align: 'right',
+      headClassName: 'w-[120px] py-2 text-xs',
+      cellClassName: 'py-1',
+      header: (
+        <div className="flex items-center justify-end pr-2 gap-1">
+          <span>Active</span>
+          <Checkbox
+            checked={
+              variants.every(v => v.enabled)
+                ? true
+                : variants.some(v => v.enabled)
+                  ? 'indeterminate'
+                  : false
+            }
+            onCheckedChange={handleToggleAll}
+            title={variants.every(v => v.enabled) ? 'Deselect all' : 'Select all'}
+            className="h-4 w-4"
+          />
+        </div>
+      ),
+      cell: (variant) => (
+        <div className="flex items-center justify-end pr-2 gap-2">
+          <Checkbox
+            checked={variant.enabled}
+            onCheckedChange={() => handleEnableToggle(variant.id)}
+            title={variant.enabled ? 'Disable variant' : 'Enable variant'}
+            className="h-6 w-6"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => handleEditClick(variant)}
+            title="More details"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
   return (
     <div className="space-y-4">
       {/* Variant Attribute Selector */}
@@ -322,125 +445,13 @@ export default function VariantManager({
       {/* Variants Table */}
       {variants.length > 0 && (
         <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow className="h-9">
-                <TableHead className="w-[50px] py-2 text-xs"></TableHead>
-                <TableHead className="w-[160px] py-2 text-xs">Variant Value</TableHead>
-                <TableHead className="w-[180px] py-2 text-xs">
-                  Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
-                </TableHead>
-                {addToInventory && (
-                  <TableHead className="w-[130px] py-2 text-xs">Alert Level</TableHead>
-                )}
-                <TableHead className="w-[120px] text-right py-2 text-xs">
-                  <div className="flex items-center justify-end pr-2 gap-1">
-                    <span>Active</span>
-                    <Checkbox
-                      checked={
-                        variants.every(v => v.enabled)
-                          ? true
-                          : variants.some(v => v.enabled)
-                            ? 'indeterminate'
-                            : false
-                      }
-                      onCheckedChange={handleToggleAll}
-                      title={variants.every(v => v.enabled) ? 'Deselect all' : 'Select all'}
-                      className="h-4 w-4"
-                    />
-                  </div>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {variants.map(variant => (
-                <TableRow
-                  key={variant.id}
-                  className={`h-10 ${!variant.enabled ? 'opacity-50' : ''}`}
-                >
-                  <TableCell className="py-1">
-                    {variant.images && variant.images.length > 0 ? (
-                      (() => {
-                        const firstImg = variant.images[0]
-                        const src = firstImg instanceof File
-                          ? URL.createObjectURL(firstImg)
-                          : (firstImg as any).thumbnailUrl || (firstImg as any).url
-                        return (
-                          <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex-shrink-0">
-                            <SafeImage src={src} alt={variant.value} className="w-full h-full object-cover" />
-                          </div>
-                        )
-                      })()
-                    ) : (
-                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <ImageIcon className="w-4 h-4 text-gray-400" />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium py-1 text-sm">{variant.value}</TableCell>
-                  <TableCell className="py-1">
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        value={variant.price}
-                        onChange={e =>
-                          handleInlineUpdate(
-                            variant.id,
-                            'price',
-                            parseFloat(e.target.value) || ''
-                          )
-                        }
-                        className="h-7 text-sm pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      {baseUnitLabel ? (
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                          /{baseUnitLabel}
-                        </span>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  {addToInventory && (
-                    <TableCell className="py-1">
-                      <Input
-                        type="number"
-                        min={0}
-                        value={variant.inventoryAlertLevel ?? 0}
-                        onChange={e =>
-                          handleInlineUpdate(
-                            variant.id,
-                            'inventoryAlertLevel',
-                            parseInt(e.target.value, 10) || 0
-                          )
-                        }
-                        className="h-7 text-sm w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="0"
-                      />
-                    </TableCell>
-                  )}
-                  <TableCell className="text-right py-1">
-                    <div className="flex items-center justify-end pr-2 gap-2">
-                      <Checkbox
-                        checked={variant.enabled}
-                        onCheckedChange={() => handleEnableToggle(variant.id)}
-                        title={variant.enabled ? 'Disable variant' : 'Enable variant'}
-                        className="h-6 w-6"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleEditClick(variant)}
-                        title="More details"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <SimpleTable
+            columns={variantColumns}
+            rows={variants}
+            getRowKey={(variant) => variant.id}
+            headerRowClassName="h-9"
+            rowClassName={(variant) => `h-10 ${!variant.enabled ? 'opacity-50' : ''}`}
+          />
         </div>
       )}
 
@@ -459,6 +470,8 @@ export default function VariantManager({
                 <Input
                   id="edit-price"
                   type="number"
+                  step={1}
+                  min={0}
                   value={editingVariant.price}
                   onChange={e =>
                     setEditingVariant({
@@ -469,7 +482,8 @@ export default function VariantManager({
                 />
               </div>
 
-              {/* Barcode (per variant) */}
+              {/* Barcode VALUE (per variant). The barcode TYPE (symbology) is set
+                  once on the product form and shared by every variant. */}
               <div className="grid grid-cols-2 gap-3 border-t pt-4">
                 <div className="space-y-1 col-span-2">
                   <Label htmlFor="edit-barcode" className="text-xs">Barcode</Label>
@@ -481,31 +495,97 @@ export default function VariantManager({
                       setEditingVariant({ ...editingVariant, barcode: e.target.value })
                     }
                   />
+                  <p className="text-[11px] text-muted-foreground">
+                    Barcode type is set on the product form and shared by all variants.
+                  </p>
                 </div>
-                {editingVariant.barcode?.trim() && (
-                  <div className="space-y-1 col-span-2">
-                    <Label className="text-xs">Symbology</Label>
-                    <Select
-                      value={editingVariant.barcodeSymbology || 'CODE128'}
-                      onValueChange={(val) =>
+              </div>
+
+              {/* Inventory (per variant) — only when Track stock is on */}
+              {addToInventory && (
+                <div className="grid grid-cols-2 gap-3 border-t pt-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-opening-stock" className="text-xs">Opening stock</Label>
+                    <Input
+                      id="edit-opening-stock"
+                      type="number"
+                      min={0}
+                      value={editingVariant.openingStock ?? 0}
+                      onChange={e =>
                         setEditingVariant({
                           ...editingVariant,
-                          barcodeSymbology: val as any,
+                          openingStock: parseFloat(e.target.value) || 0,
                         })
                       }
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CODE128">CODE128 (default)</SelectItem>
-                        <SelectItem value="EAN13">EAN-13</SelectItem>
-                        <SelectItem value="UPC_A">UPC-A</SelectItem>
-                        <SelectItem value="ITF14">ITF-14</SelectItem>
-                        <SelectItem value="QR">QR Code</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="0"
+                    />
                   </div>
-                )}
-              </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-cost-price" className="text-xs">Cost price (per unit)</Label>
+                    <Input
+                      id="edit-cost-price"
+                      type="number"
+                      min={0}
+                      value={editingVariant.costPrice ?? 0}
+                      onChange={e =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          costPrice: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <Label htmlFor="edit-alert-level" className="text-xs">Low stock threshold</Label>
+                    <Input
+                      id="edit-alert-level"
+                      type="number"
+                      min={0}
+                      value={editingVariant.inventoryAlertLevel ?? 0}
+                      onChange={e =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          inventoryAlertLevel: parseInt(e.target.value, 10) || 0,
+                        })
+                      }
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="e.g. 20"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Opening-stock expiry batch (per variant) — only when expiry is
+                  tracked and this variant has opening stock */}
+              {addToInventory && hasExpiry && (editingVariant.openingStock ?? 0) > 0 && (
+                <div className="grid grid-cols-2 gap-3 border-t pt-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-expiry" className="text-xs">Opening expiry date</Label>
+                    <Input
+                      id="edit-expiry"
+                      type="date"
+                      value={editingVariant.expiryDate || ''}
+                      onChange={e =>
+                        setEditingVariant({ ...editingVariant, expiryDate: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-batch" className="text-xs">Batch number</Label>
+                    <Input
+                      id="edit-batch"
+                      value={editingVariant.batchNumber || ''}
+                      placeholder="Optional"
+                      onChange={e =>
+                        setEditingVariant({ ...editingVariant, batchNumber: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* UOM Conversion (per variant) */}
               <div className="space-y-3 border-t pt-4">
@@ -559,8 +639,8 @@ export default function VariantManager({
                       <Label className="text-xs">Purchase Conversion Factor</Label>
                       <Input
                         type="number"
-                        step={0.01}
-                        min={0.0001}
+                        step={1}
+                        min={1}
                         value={editingVariant.purchaseUnit?.conversionFactor ?? ''}
                         onChange={e =>
                           setEditingVariant({
@@ -673,7 +753,7 @@ export default function VariantManager({
                           <FileUploadItem
                             key={fileKey}
                             value={file}
-                            className="flex items-center gap-3 p-2 border rounded-lg"
+                            className="flex items-center gap-3 p-2 border rounded-lg w-100"
                           >
                             {previewUrl ? (
                               <SafeImage

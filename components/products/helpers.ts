@@ -12,13 +12,15 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
   }
   // Note: ID is automatically injected by DataTable for edit mode
 
-  // Strip top-level UOM payload when conversion is disabled or units are not set.
-  // Backend's purchaseUnit/saleUnit require a valid unitId; sending empty objects fails validation.
+  // Strip UOM payload the backend can't persist (purchaseUnit/saleUnit require a
+  // valid unitId; empty objects fail validation). The form engine already drops
+  // conditionally-hidden fields — purchaseUnit when conversion is off, and
+  // enableUOMConversion for variable products — so we only guard what it can't
+  // see: a visible-but-incomplete purchaseUnit (no unitId), and saleUnit, which
+  // is populated via copyValueTo and has no field for the engine to strip.
   const skipUOMKeys = new Set<string>()
-  if (!data.enableUOMConversion || !data.purchaseUnit?.unitId) skipUOMKeys.add("purchaseUnit")
+  if (!data.purchaseUnit?.unitId) skipUOMKeys.add("purchaseUnit")
   if (!data.enableUOMConversion || !data.saleUnit?.unitId) skipUOMKeys.add("saleUnit")
-  // Variable products manage UOM per-variant — root enableUOMConversion is irrelevant
-  if (data.productType === "variable") skipUOMKeys.add("enableUOMConversion")
 
   // Add all fields except images, variants, and _id
   for (const key in data) {
@@ -30,7 +32,12 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
       data[key] !== undefined
     ) {
       const value = data[key]
-      if (value !== null && typeof value === 'object' && !(value instanceof File) && !(value instanceof Blob)) {
+      if (value instanceof Date) {
+        // Date fields resolve to a Date object (the generated date schema pipes
+        // string → Date). JSON.stringify would wrap it in quotes, which the
+        // backend's z.coerce.date() rejects — send a bare ISO string instead.
+        formData.append(key, value.toISOString())
+      } else if (value !== null && typeof value === 'object' && !(value instanceof File) && !(value instanceof Blob)) {
         formData.append(key, JSON.stringify(value))
       } else {
         formData.append(key, value)
@@ -78,7 +85,7 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
     const activeVariants = data.variants.filter((v: any) => v.enabled)
     const variantsData = activeVariants.map((v: any, idx: number) => {
       // Separate existing images (server objects) from new File uploads
-      const allImages = v.images || []
+      const allImages = v.images || [];
       const existingImages = allImages.filter((img: any) => !(img instanceof File))
       const newFiles = allImages.filter((img: any) => img instanceof File)
 
@@ -98,8 +105,18 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
         price: v.price,
         images: existingImages, // only existing images go in JSON
         status: v.enabled ? 'active' : 'inactive',
+        // Barcode VALUE is per variant; the TYPE (symbology) is product-level and
+        // shared — stamp the single form choice onto every variant. Sent even when
+        // no value is typed so backend-auto-generated barcodes carry the same type.
+        ...(v.barcode?.trim() ? { barcode: v.barcode.trim() } : {}),
+        ...(data.barcodeSymbology ? { barcodeSymbology: data.barcodeSymbology } : {}),
         enableUOMConversion: !!v.enableUOMConversion,
         ...(v.inventoryAlertLevel !== undefined && { inventoryAlertLevel: v.inventoryAlertLevel }),
+        // Per-variant opening stock (backend ignores unless addToInventory && locationId)
+        ...(v.openingStock != null && { openingStock: v.openingStock }),
+        ...(v.costPrice != null && { costPrice: v.costPrice }),
+        ...(v.expiryDate && { expiryDate: v.expiryDate }),
+        ...(v.batchNumber && { batchNumber: v.batchNumber }),
         ...(v.enableUOMConversion
           ? {
               ...(v.purchaseUnit?.unitId
@@ -114,7 +131,7 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
     })
     formData.append('variants', JSON.stringify(variantsData))
   }
-
+  console.log("Prepared FormData for submission:", formData)
   return formData
 }
 

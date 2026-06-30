@@ -1,4 +1,4 @@
-import { FeatureName, OrganizationFeatures } from "@/types";
+import { FeatureName, OrganizationFeatures, TaxSettings } from "@/types";
 
 /**
  * Check if a specific feature is enabled
@@ -9,6 +9,27 @@ export function isFeatureEnabled(
 ): boolean {
   if (!features) return false;
   return features[feature] === true;
+}
+
+export type TaxArea = "sales" | "purchase";
+
+/**
+ * Single source of truth (FE) for "is tax active here?". Mirrors the backend
+ * `isTaxActive`: gated by the master `tax` feature AND the per-area `taxSettings`
+ * sub-toggle (sub-toggles default ON when unset). Returns follow their parent
+ * area, so pass "sales" for sales + sales-returns, "purchase" for purchases +
+ * purchase-returns.
+ */
+export function isTaxActive(
+  org:
+    | { features?: OrganizationFeatures; taxSettings?: TaxSettings }
+    | undefined
+    | null,
+  area: TaxArea
+): boolean {
+  if (!org?.features?.tax) return false;
+  if (area === "sales") return org.taxSettings?.salesEnabled !== false;
+  return org.taxSettings?.purchaseEnabled !== false;
 }
 
 /**
@@ -69,6 +90,7 @@ export const FEATURE_DISPLAY_NAMES: Record<FeatureName, string> = {
   returns: "Returns Management",
   uomConversion: "Unit Conversion",
   storefront: "Ecommerce Storefront",
+  tax: "Tax Management",
 };
 
 /**
@@ -79,12 +101,12 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureName, string> = {
   accounts:
     "Enable account management, payment tracking, and financial records",
   expiryTracking: "Track product expiry dates with batch management and alerts",
-  barcodeSystem: "Enable barcode scanning and SKU-based product lookup",
+  barcodeSystem: "Enable barcode scanning and barcode-based product lookup",
   invoicePrinting: "Generate and print invoices for sales and purchases",
   returns: "Enable sales returns, purchase returns, and credit management",
   uomConversion: "Enable unit of measure conversion for products",
-  storefront:
-    "Enable a public online store with shopper accounts, online orders, and courier delivery",
+  storefront: "Enable a public online store with shopper accounts, online orders, and courier delivery",
+  tax: "Enable tax rates and apply tax on purchases and sales",
 };
 
 /**
@@ -99,4 +121,5 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   returns: "undo-2",
   uomConversion: "repeat",
   storefront: "store",
+  tax: "percent",
 };

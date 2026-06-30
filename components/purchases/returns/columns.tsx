@@ -282,11 +282,7 @@ export function getItemsColumns(
       header: "Refund Amount",
       cell: ({ row }) => {
         const item = row.original;
-        const maxRefund = calculateMaxRefund(
-          item.returnQty,
-          item.costPrice,
-          item.price,
-        );
+        const maxRefund = calculateMaxRefund(item.returnQty, item.refundUnitPrice);
 
         return (
           <div className="space-y-1">

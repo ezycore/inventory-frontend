@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 
 /**
@@ -40,6 +41,14 @@ export const categoryFormConfig: DynamicFormConfig = {
         { value: "active", label: "Active" },
         { value: "inactive", label: "Inactive" },
       ],
+    },
+    {
+      name: "isDefault",
+      type: "checkbox",
+      label: "Set as default category",
+      description: "Pre-selected on new product forms",
+      columnSpan: 12,
+      defaultValue: false,
     },
   ],
 }

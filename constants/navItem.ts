@@ -23,7 +23,13 @@ export const navItems: NavItem[] = [
       { title: "Brands", url: "/brands", icon: "star" },
       { title: "Variants", url: "/variants", icon: "layers" },
       { title: "Units", url: "/units", icon: "grid" },
-      { title: "Taxes", url: "/taxes", icon: "percent" },
+      {
+        title: "Taxes",
+        url: "/taxes",
+        icon: "percent",
+        features: ["tax"],
+        permissions: ["taxes.view"],
+      },
     ],
   },
 
@@ -47,6 +53,34 @@ export const navItems: NavItem[] = [
         icon: "arrow-right-left",
       },
       // { title: "Stock Transfer", url: "/stock/transfers", icon: "truck" },
+    ],
+  },
+
+  // PURCHASES
+  {
+    title: "Purchases",
+    url: "/purchases",
+    icon: "shopping-bag",
+    isActive: false,
+    items: [
+      {
+        title: "New Purchase",
+        url: "/purchases",
+        icon: "packages",
+      },
+      {
+        title: "Purchase Orders",
+        url: "/purchases/orders",
+        icon: "file-plus",
+      },
+      { title: "Purchase List", url: "/purchases/history", icon: "clock" },
+      {
+        title: "Purchase Returns",
+        url: "/purchases/returns",
+        icon: "package-minus",
+        features: ["returns"],
+      },
+      // Suppliers moved to top-level navigation
     ],
   },
 
@@ -281,6 +315,12 @@ export const navItems: NavItem[] = [
         features: ["accounts"],
       },
       {
+        title: "Tax Report",
+        url: "/dashboard/reports/tax",
+        icon: "percent",
+        features: ["tax"],
+      },
+      {
         title: "Product Valuation",
         url: "/dashboard/reports/valuation",
         icon: "database",
@@ -322,6 +362,13 @@ export const navItems: NavItem[] = [
         title: "Feature Settings",
         url: "/settings/features",
         icon: "toggle-left",
+        permissions: ["organization.edit"],
+      },
+      {
+        title: "Tax Settings",
+        url: "/settings/tax",
+        icon: "percent",
+        features: ["tax"],
         permissions: ["organization.edit"],
       },
       {

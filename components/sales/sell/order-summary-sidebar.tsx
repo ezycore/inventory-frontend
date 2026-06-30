@@ -9,6 +9,7 @@ import { Label } from "@/ui/components/label";
 import { Separator } from "@/ui/components/separator";
 import { Switch } from "@/ui/components/switch";
 import { formatCurrency } from "@/components/sales";
+import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
 import type { SellPageContext } from "./use-sell-page";
 
 export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
@@ -22,6 +23,9 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
     customerOutstandingDue,
     customerCreditBalance,
     itemsSubtotal,
+    addedTax,
+    includedTax,
+    taxTotal,
     totalSalePrice,
     appliedCredit,
     dueAmount,
@@ -87,12 +91,16 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
             </div>
           </div>
 
-          <div className="flex justify-between items-center pt-1">
-            <span className="font-semibold">Total Amount</span>
-            <span className="text-lg font-bold text-primary tabular-nums">
-              {formatCurrency(totalSalePrice)}
-            </span>
-          </div>
+          <TaxSummaryLines
+            show
+            addedTax={addedTax}
+            includedTax={includedTax}
+            taxTotal={taxTotal}
+            total={totalSalePrice}
+            totalLabel="Total Amount"
+            totalSize="lg"
+            formatCurrency={formatCurrency}
+          />
 
           <Separator />
 

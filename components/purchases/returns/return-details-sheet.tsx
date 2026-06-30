@@ -39,6 +39,9 @@ function normalizePurchaseReturn(r: PurchaseReturn): ReturnDetailsData {
       discount: item.discount,
       conversionFactor: item.conversionFactor,
       refundAmount: item.refundAmount,
+      taxRate: item.taxRate,
+      taxType: item.taxType,
+      taxAmount: item.taxAmount,
     })),
     refundAllocation: r.refundAllocation
       ? {

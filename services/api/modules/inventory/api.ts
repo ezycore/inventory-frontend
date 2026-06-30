@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import { buildQueryParams, type BaseFilters } from "../../utils";
+import type { ProductAnalytics, InventoryAnalytics } from "./analytics.types";
 
 interface InventoryFilters extends BaseFilters {
   productId?: string;
@@ -90,4 +91,18 @@ export const inventoryApi = {
     apiClient.get(
       `/inventory/${productId}/batches${buildQueryParams(filters)}`,
     ),
+
+  // Analytics (read-only) — powers the product- and inventory-detail pages.
+  getProductAnalytics: (
+    productId: string,
+    variantId?: string,
+  ): Promise<ApiResponse<ProductAnalytics>> =>
+    apiClient.get(
+      `/inventory/analytics/product/${productId}${variantId ? `?variantId=${variantId}` : ""}`,
+    ),
+
+  getInventoryAnalytics: (
+    inventoryId: string,
+  ): Promise<ApiResponse<InventoryAnalytics>> =>
+    apiClient.get(`/inventory/analytics/item/${inventoryId}`),
 };

@@ -1,6 +1,8 @@
+// coding-standard: maintained
 import { ColumnDef } from '@tanstack/react-table'
 import { Package, Tag } from 'lucide-react'
 import type { Category } from '@/types'
+import { Badge } from '@/ui/components/badge'
 import { DateCell } from '@/ui/components/dataTable/cells'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
 import Link from 'next/link'
@@ -10,11 +12,21 @@ export const categoryColumns: ColumnDef<Category>[] = [
     accessorKey: "name",
     header: "Category Name",
     cell: ({ row }) => (
-      <AvatarCell
-        name={row.getValue("name")}
-        fallbackIcon={Tag}
-        isActive={row.original.status === "active"}
-      />
+      <div className="flex items-center gap-2">
+        <AvatarCell
+          name={row.getValue("name")}
+          fallbackIcon={Tag}
+          isActive={row.original.status === "active"}
+        />
+        {row.original.isDefault && (
+          <Badge
+            variant="outline"
+            className="text-xs shrink-0 border-primary text-primary"
+          >
+            Default
+          </Badge>
+        )}
+      </div>
     ),
   },
   {
