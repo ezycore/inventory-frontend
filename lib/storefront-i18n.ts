@@ -172,6 +172,25 @@ export interface Dict {
   viewAllProducts: string;
   darkMode: string;
   lightMode: string;
+  signIn: string;
+  signUp: string;
+  createAccount: string;
+  signInTitle: string;
+  signInSubtitle: string;
+  createTitle: string;
+  createSubtitle: string;
+  password: string;
+  forgotPassword: string;
+  noAccountPrompt: string;
+  haveAccountPrompt: string;
+  signingIn: string;
+  creatingAccount: string;
+  welcomeBack: string;
+  accountCreated: string;
+  staffNotice: string;
+  staffNoticeMsg: string;
+  goToAdmin: string;
+  shopAsCustomer: string;
 }
 
 const en: Dict = {
@@ -339,6 +358,26 @@ const en: Dict = {
   viewAllProducts: "Browse all products",
   darkMode: "Dark",
   lightMode: "Light",
+  signIn: "Sign in",
+  signUp: "Sign up",
+  createAccount: "Create account",
+  signInTitle: "Welcome back",
+  signInSubtitle: "Sign in to track orders and check out faster.",
+  createTitle: "Create your account",
+  createSubtitle: "Save your details for a faster checkout next time.",
+  password: "Password",
+  forgotPassword: "Forgot password?",
+  noAccountPrompt: "New customer?",
+  haveAccountPrompt: "Already have an account?",
+  signingIn: "Signing in…",
+  creatingAccount: "Creating account…",
+  welcomeBack: "Welcome back!",
+  accountCreated: "Account created!",
+  staffNotice: "You're signed in as staff",
+  staffNoticeMsg:
+    "This is the customer area of your store. Manage your store from the admin dashboard — or sign in below as a customer to test the shopping experience.",
+  goToAdmin: "Go to admin dashboard",
+  shopAsCustomer: "Shop as a customer",
 };
 
 const bn: Dict = {
@@ -506,6 +545,26 @@ const bn: Dict = {
   viewAllProducts: "সব পণ্য দেখুন",
   darkMode: "ডার্ক",
   lightMode: "লাইট",
+  signIn: "সাইন ইন",
+  signUp: "সাইন আপ",
+  createAccount: "অ্যাকাউন্ট তৈরি করুন",
+  signInTitle: "আবার স্বাগতম",
+  signInSubtitle: "অর্ডার ট্র্যাক ও দ্রুত চেকআউটের জন্য সাইন ইন করুন।",
+  createTitle: "আপনার অ্যাকাউন্ট তৈরি করুন",
+  createSubtitle: "পরের বার দ্রুত চেকআউটের জন্য আপনার তথ্য সেভ করুন।",
+  password: "পাসওয়ার্ড",
+  forgotPassword: "পাসওয়ার্ড ভুলে গেছেন?",
+  noAccountPrompt: "নতুন গ্রাহক?",
+  haveAccountPrompt: "ইতিমধ্যে অ্যাকাউন্ট আছে?",
+  signingIn: "সাইন ইন হচ্ছে…",
+  creatingAccount: "অ্যাকাউন্ট তৈরি হচ্ছে…",
+  welcomeBack: "আবার স্বাগতম!",
+  accountCreated: "অ্যাকাউন্ট তৈরি হয়েছে!",
+  staffNotice: "আপনি স্টাফ হিসেবে সাইন ইন করেছেন",
+  staffNoticeMsg:
+    "এটি আপনার স্টোরের গ্রাহক অংশ। অ্যাডমিন ড্যাশবোর্ড থেকে আপনার স্টোর পরিচালনা করুন — অথবা শপিং অভিজ্ঞতা পরীক্ষা করতে নিচে গ্রাহক হিসেবে সাইন ইন করুন।",
+  goToAdmin: "অ্যাডমিন ড্যাশবোর্ডে যান",
+  shopAsCustomer: "গ্রাহক হিসেবে কেনাকাটা",
 };
 
 export const I18N: Record<Lang, Dict> = { en, bn };

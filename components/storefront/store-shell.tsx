@@ -13,6 +13,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
+import { HeaderNav } from "@/components/storefront/header-nav";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
@@ -101,6 +102,7 @@ export function StoreShell({
   const phone = store?.contact?.phone ?? "";
   const announcement = store?.nav?.announcement;
   const footerGroups = store?.nav?.footer ?? [];
+  const headerMenu = store?.nav?.header ?? [];
   const cats = categories ?? [];
 
   const goSearch = () => router.push(storeHref(base, "/search"));
@@ -190,6 +192,13 @@ export function StoreShell({
               <span onClick={toggleTheme} role="button" tabIndex={0} style={{ cursor: "pointer", display: "flex", color: "var(--text)" }}>
                 <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
               </span>
+              <Link
+                href={storeHref(base, "/account")}
+                aria-label={shopper ? t.myAccount : t.signIn}
+                style={{ display: "flex", color: "var(--text)" }}
+              >
+                <Icon name="user" size={20} />
+              </Link>
               <button
                 type="button"
                 onClick={openCart}
@@ -298,9 +307,10 @@ export function StoreShell({
             <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none" }}>
               <Link
                 href={storeHref(base, "/account")}
-                style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}
+                style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontWeight: 500 }}
               >
-                {shopper ? shopper.name.split(" ")[0] : t.account}
+                <Icon name="user" size={18} />
+                {shopper ? shopper.name.split(" ")[0] : t.signIn}
               </Link>
               <button
                 type="button"
@@ -313,7 +323,9 @@ export function StoreShell({
               </button>
             </div>
           </div>
-          {cats.length > 0 ? (
+          {headerMenu.length > 0 ? (
+            <HeaderNav base={base} menu={headerMenu} categories={cats} />
+          ) : cats.length > 0 ? (
             <div
               style={{
                 maxWidth: "var(--maxw)",

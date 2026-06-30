@@ -265,7 +265,7 @@ function StatCard({
       className={cn(
         "p-4 shadow-none transition-colors",
         href && "hover:border-primary/40 hover:bg-muted/30",
-        highlight && "border-yellow-300 bg-yellow-50/50",
+        highlight && "border-yellow-300",
       )}
     >
       <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
