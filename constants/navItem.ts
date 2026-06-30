@@ -115,32 +115,32 @@ export const navItems: NavItem[] = [
   },
 
   // PURCHASES
-  {
-    title: "Purchases",
-    url: "/purchases",
-    icon: "shopping-bag",
-    isActive: false,
-    items: [
-      {
-        title: "New Purchase",
-        url: "/purchases",
-        icon: "packages",
-      },
-      {
-        title: "Purchase Orders",
-        url: "/purchases/orders",
-        icon: "file-plus",
-      },
-      { title: "Purchase List", url: "/purchases/history", icon: "clock" },
-      {
-        title: "Purchase Returns",
-        url: "/purchases/returns",
-        icon: "package-minus",
-        features: ["returns"],
-      },
-      // Suppliers moved to top-level navigation
-    ],
-  },
+  // {
+  //   title: "Purchases",
+  //   url: "/purchases",
+  //   icon: "shopping-bag",
+  //   isActive: false,
+  //   items: [
+  //     {
+  //       title: "New Purchase",
+  //       url: "/purchases",
+  //       icon: "packages",
+  //     },
+  //     {
+  //       title: "Purchase Orders",
+  //       url: "/purchases/orders",
+  //       icon: "file-plus",
+  //     },
+  //     { title: "Purchase List", url: "/purchases/history", icon: "clock" },
+  //     {
+  //       title: "Purchase Returns",
+  //       url: "/purchases/returns",
+  //       icon: "package-minus",
+  //       features: ["returns"],
+  //     },
+  //     // Suppliers moved to top-level navigation
+  //   ],
+  // },
 
   // ECOMMERCE (requires storefront feature — plan-gated)
   {
