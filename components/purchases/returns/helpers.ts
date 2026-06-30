@@ -22,7 +22,9 @@ export function buildReturnableItems(order: PurchaseOrder): ReturnableItem[] {
   if (!order.items) return [];
   return order.items.map((item) => ({
     ...item,
-    maxReturnableQty: item.receivedQuantity || 0,
+    // Net-returnable = received − already-returned (returnedQuantity is derived
+    // by the order-detail API). Clamp at 0 so fully-returned lines disable.
+    maxReturnableQty: Math.max(0, (item.receivedQuantity || 0) - (item.returnedQuantity || 0)),
     returnQty: 0,
     refundAmount: 0,
     selected: false,
