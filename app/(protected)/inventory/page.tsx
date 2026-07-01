@@ -104,9 +104,9 @@ export default function InventoryPage() {
         selectable={true}
         // searchConfig={inventorySearchConfig}
         enableSorting={true}
-        defaultColumnVisibility={{ 
-          costPrice: false 
-        }}
+        // defaultColumnVisibility={{ 
+        //   costPrice: true 
+        // }}
          searchConfig={{
             globalSearch: true,
             placeholder: "Search products by name...",

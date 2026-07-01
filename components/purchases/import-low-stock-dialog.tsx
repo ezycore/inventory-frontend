@@ -75,6 +75,9 @@ export interface ShortlistItem {
   restockStatus: string;
   categoryId?: string;
   brandId?: string;
+  // Flattened product purchase tax (from the inventory list response).
+  purchaseTaxRate?: number;
+  purchaseTaxType?: "inclusive" | "exclusive";
 }
 
 export interface ImportedLowStockItem {
@@ -92,6 +95,9 @@ export interface ImportedLowStockItem {
   // Unit display names to preserve through import -> add-to-order flow
   unitName?: string | null;
   purchaseUnitName?: string | null;
+  // Per-line purchase tax carried into the order.
+  purchaseTaxRate?: number;
+  purchaseTaxType?: "inclusive" | "exclusive";
 }
 
 export interface ImportResult {
@@ -397,6 +403,8 @@ export function ImportLowStockDialog({
         total,
         unitName: item.unit?.name || item.unit?.shortName || null,
         purchaseUnitName: item.purchaseUnit?.unitId?.shortName || item.purchaseUnit?.unitId?.name ||  null,
+        purchaseTaxRate: item.purchaseTaxRate ?? 0,
+        purchaseTaxType: item.purchaseTaxType ?? "inclusive",
       };
     });
     onImport({

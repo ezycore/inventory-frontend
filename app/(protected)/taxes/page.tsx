@@ -1,4 +1,9 @@
 "use client";
+// coding-standard: maintained
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/services/stores";
 
 // Types
 import type { DynamicFormConfig } from "@/ui/components/form/type";
@@ -56,6 +61,14 @@ const taxFormConfig: DynamicFormConfig = {
         { value: "inactive", label: "Inactive" },
       ],
     },
+    {
+      name: "isDefault",
+      type: "checkbox",
+      label: "Set as default tax",
+      description: "Pre-selected on new product forms",
+      columnSpan: 12,
+      defaultValue: false,
+    },
   ],
 };
 
@@ -97,6 +110,7 @@ const defaultValues = {
   rate: 0,
   type: "percentage" as const,
   status: "active" as const,
+  isDefault: false,
 };
 
 const searchConfig = {
@@ -105,6 +119,18 @@ const searchConfig = {
 };
 
 export default function TaxesPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const isTaxEnabled = user?.organization?.features?.tax ?? false;
+
+  // Tax management is feature-gated. Direct URL hits redirect home when off
+  // (the nav entry is already hidden and the API returns 403).
+  useEffect(() => {
+    if (user && !isTaxEnabled) {
+      router.replace("/");
+    }
+  }, [user, isTaxEnabled, router]);
+
   const sharedOperations = {
     formConfig: taxFormConfig,
     defaultValues,
@@ -115,6 +141,8 @@ export default function TaxesPage() {
     queryKey: [...queryKeys.taxes.all()],
     entityName: "Tax" as const,
   };
+
+  if (!isTaxEnabled) return null;
 
   return (
     <div className="space-y-6">

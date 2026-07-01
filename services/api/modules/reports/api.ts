@@ -120,6 +120,59 @@ export interface PurchaseReportData {
   }>;
 }
 
+// ── Tax Report Types ──
+export interface TaxRateRow {
+  taxRate: number;
+  taxType: "inclusive" | "exclusive";
+  taxableBase: number;
+  taxAmount: number;
+}
+
+export interface TaxChartPoint {
+  label: string;
+  output: number;
+  input: number;
+}
+
+export interface TaxReportData {
+  period: { period: ReportPeriod; startDate: string; endDate: string };
+  /** Tax collected on sales, less tax refunded on sales returns. */
+  output: { collected: number; refunded: number; net: number };
+  /** Tax paid on purchases, less tax reclaimed on purchase returns. */
+  input: { paid: number; reclaimed: number; net: number };
+  /** output.net − input.net (positive = payable, negative = reclaimable credit). */
+  netPayable: number;
+  /** Per-rate breakdown of posted sales (output) and purchases (input). Gross. */
+  byRate: { output: TaxRateRow[]; input: TaxRateRow[] };
+  /** Gross tax collected (output) vs paid (input) per time bucket. */
+  chart: TaxChartPoint[];
+}
+
+export type TaxLedgerKind =
+  | "sale"
+  | "sales_return"
+  | "purchase"
+  | "purchase_return";
+
+export interface TaxLedgerEntry {
+  date: string;
+  kind: TaxLedgerKind;
+  reference: string;
+  direction: "output" | "input";
+  isReturn: boolean;
+  taxAmount: number;
+}
+
+export interface TaxLedgerData {
+  items: TaxLedgerEntry[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 // ── Cash Report Types ──
 export interface CashReportData {
   period: {
@@ -173,7 +226,6 @@ export interface StockValuationData {
   topValueProducts: Array<{
     productName: string;
     variantName: string | null;
-    sku: string;
     quantity: number;
     costPrice: number;
     stockValue: number;
@@ -255,6 +307,23 @@ export const reportsApi = {
     params?: ReportParams,
   ): Promise<ApiResponse<CashReportData>> =>
     apiClient.get(`/reports/cash${buildReportParams(params)}`),
+
+  getTaxReport: (
+    params?: ReportParams,
+  ): Promise<ApiResponse<TaxReportData>> =>
+    apiClient.get(`/reports/tax${buildReportParams(params)}`),
+
+  getTaxLedger: (
+    params?: ReportParams,
+    page = 1,
+    limit = 20,
+  ): Promise<ApiResponse<TaxLedgerData>> => {
+    const qs = buildReportParams(params);
+    const sep = qs ? "&" : "?";
+    return apiClient.get(
+      `/reports/tax/ledger${qs}${sep}page=${page}&limit=${limit}`,
+    );
+  },
 
   getStockValuation: (): Promise<ApiResponse<StockValuationData>> =>
     apiClient.get("/reports/valuation"),

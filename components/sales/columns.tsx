@@ -6,6 +6,8 @@ import { Input } from "@/ui/components/input";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { computeLineTax } from "@/utils/tax";
+import { LineTaxCell } from "@/components/shared/line-tax-cell";
 
 /**
  * Editable number input that allows clearing and commits on blur/Enter
@@ -118,6 +120,7 @@ export const getSalesColumns = (
   currencySymbol?: string,
   onUpdateBatch?: (id: string, batchId: string | null) => void,
   expiryEnabled?: boolean,
+  isTaxEnabled?: boolean,
 ): ColumnDef<SellOrderItem>[] => [
     {
       accessorKey: "productName",
@@ -226,6 +229,32 @@ export const getSalesColumns = (
         );
       },
     },
+    ...(isTaxEnabled
+      ? [
+          {
+            id: "tax",
+            header: "Tax",
+            cell: ({ row }: { row: { original: SellOrderItem } }) => {
+              const item = row.original;
+              const { taxAmount } = computeLineTax({
+                price: item.price,
+                quantity: item.quantity,
+                discount: item.discount,
+                taxRate: item.taxRate,
+                taxType: item.taxType,
+              });
+              return (
+                <LineTaxCell
+                  rate={item.taxRate}
+                  amount={taxAmount}
+                  type={item.taxType}
+                  formatCurrency={formatCurrency}
+                />
+              );
+            },
+          } as ColumnDef<SellOrderItem>,
+        ]
+      : []),
     {
       accessorKey: "total",
       header: "Total",

@@ -41,6 +41,11 @@ const SummaryBanner = ({
   className,
   isLoading,
 }: SummaryBannerProps) => {
+  // Adapt the column count to the number of metrics (Tailwind needs static class names).
+  const count = metrics.length || 4;
+  const columnsClass =
+    count <= 2 ? "sm:grid-cols-2" : count === 3 ? "sm:grid-cols-3" : "sm:grid-cols-4";
+
   if (isLoading) {
     return (
       <div
@@ -50,8 +55,8 @@ const SummaryBanner = ({
         )}
       >
         <div className="flex items-center gap-6">
-          <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+          <div className={cn("flex-1 grid grid-cols-2 gap-4", columnsClass)}>
+            {Array.from({ length: count }).map((_, i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-3 w-16" />
                 <Skeleton className="h-7 w-24" />
@@ -73,7 +78,7 @@ const SummaryBanner = ({
       )}
     >
       <div className="flex items-center gap-6">
-        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 lg:gap-6">
+        <div className={cn("flex-1 grid grid-cols-2 gap-4 lg:gap-6", columnsClass)}>
           {metrics.map((metric) => {
             const Icon = metric.icon;
             const trendColor =

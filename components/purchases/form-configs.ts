@@ -14,6 +14,10 @@ export const productFormSchema = z.object({
       variantId: z.string().nullable().optional(),
       purchaseUnitName: z.string().nullable().optional(),
       unitName: z.string().nullable().optional(),
+      // Keep per-line purchase tax on the selected option through zod parsing
+      // (z.object strips unknown keys, which would drop the tax otherwise).
+      purchaseTaxRate: z.number().optional(),
+      purchaseTaxType: z.enum(["inclusive", "exclusive"]).optional(),
     }),
   ]),
   quantity: z.number().min(1, "Quantity must be at least 1"),

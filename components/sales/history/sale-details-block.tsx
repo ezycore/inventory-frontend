@@ -6,8 +6,12 @@ import { Badge } from '@/ui/components/badge';
 import { InfoField } from '@/components/shared/info-field';
 import type { Sale, SalesReturn } from '@/types';
 import { CopyField } from '@/ui/components/copy';
+import { splitLineTax } from '@/utils/tax';
 
 export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleReturns?: SalesReturn[] }) {
+  // Split line tax into added (exclusive, on top) vs in-price (inclusive, informational).
+  const { addedTax, includedTax } = splitLineTax(sale.items);
+
   return (
     <>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -32,8 +36,10 @@ export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleRetur
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <InfoField label="Total Amount" value={sale.subtotal} showCurrency />
+        <InfoField label="Subtotal" value={sale.subtotal} showCurrency />
         <InfoField label="Additional Discount" value={sale.additionalDiscount} showCurrency />
+        {addedTax > 0 && <InfoField label="Tax (added)" value={addedTax} showCurrency />}
+        {includedTax > 0 && <InfoField label="Tax (in price)" value={includedTax} showCurrency />}
         <InfoField label="Invoice Amount" value={sale.totalAmount} showCurrency />
         <InfoField label="Paid Amount" value={sale.paidAmount} showCurrency valueClassName="text-green-600" />
         <InfoField
@@ -108,6 +114,13 @@ export function SaleItemsList({ sale }: { sale: Sale }) {
                 quantity={item.discount ? item.quantity : 0}
               />
               <InfoField label="Subtotal" value={item.subtotal} showCurrency />
+              {item.taxRate ? (
+                <InfoField
+                  label={`Tax (${item.taxRate}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`}
+                  value={item.taxAmount ?? 0}
+                  showCurrency
+                />
+              ) : null}
               <InfoField
                 label="Cost Price"
                 value={item.costPrice}

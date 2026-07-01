@@ -10,6 +10,11 @@ export const prepareSubmitData = (
   const formData = new FormData();
   formData.append("name", data.name);
   formData.append("status", data.status);
+  if (data.isDefault) {
+    formData.append("isDefault", "true");
+  } else {
+    formData.append("isDefault", "false");
+  }
   if (data.description) {
     formData.append("description", data.description);
   }

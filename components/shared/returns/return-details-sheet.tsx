@@ -26,6 +26,7 @@ import {
 import { Skeleton } from '@/ui/components/skeleton';
 import { InfoField } from '@/components/shared/info-field';
 import { CopyField } from '@/ui/components/copy';
+import { splitLineTax } from '@/utils/tax';
 
 // ── Normalized data types ────────────────────────────────────────────────────
 
@@ -40,6 +41,10 @@ export interface ReturnDetailsItem {
   /** Present for purchase returns (UoM conversion) */
   conversionFactor?: number;
   refundAmount: number;
+  /** Tax snapshot (proportional reversal of the original line; backend-set). */
+  taxRate?: number;
+  taxType?: 'inclusive' | 'exclusive';
+  taxAmount?: number;
 }
 
 export interface ReturnDetailsData {
@@ -150,7 +155,10 @@ export function ReturnDetailsSheet({
   if (!returnData && !isLoading) return null;
 
   const cfg = VARIANT_CONFIG[variant];
-  
+  // Added (exclusive, real money) vs in-price (inclusive, informational) tax of the
+  // refund — same split the order detail views use. Tax-off returns carry 0 (no rows).
+  const taxSplit = returnData ? splitLineTax(returnData.items) : null;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[680px] sm:max-w-[680px] flex flex-col overflow-y-auto">
@@ -218,6 +226,22 @@ export function ReturnDetailsSheet({
                 value={`${cfg.totalRefundPrefix}${formatCurrency(returnData.totalRefundAmount)}`}
                 valueClassName={cfg.totalRefundColor}
               />
+              {(taxSplit?.addedTax ?? 0) > 0 && (
+                <InfoField
+                  label="Tax (added)"
+                  value={taxSplit!.addedTax}
+                  showCurrency
+                  valueClassName="text-muted-foreground"
+                />
+              )}
+              {(taxSplit?.includedTax ?? 0) > 0 && (
+                <InfoField
+                  label="Tax (in price)"
+                  value={taxSplit!.includedTax}
+                  showCurrency
+                  valueClassName="text-muted-foreground"
+                />
+              )}
               {/* {returnData.refundedAmount != null && (
                 <InfoField
                   label="Cash Refunded"
@@ -298,6 +322,13 @@ export function ReturnDetailsSheet({
                         )}
                         {item.conversionFactor != null && item.conversionFactor > 1 && (
                           <InfoField label="Conv. Factor" value={item.conversionFactor} />
+                        )}
+                        {(item.taxAmount ?? 0) > 0 && (
+                          <InfoField
+                            label={`Tax (${item.taxRate ?? 0}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`}
+                            value={item.taxAmount ?? 0}
+                            showCurrency
+                          />
                         )}
                         <InfoField
                           label="Refund"

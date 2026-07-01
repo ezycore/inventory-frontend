@@ -2,9 +2,11 @@ import { apiClient } from "@/lib/api-client";
 import type {
   ApiResponse,
   AvailablePlansInfo,
+  FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
   SubscriptionInfo,
+  TaxSettings,
 } from "@/types";
 
 export interface ExcludedFieldsSettings {
@@ -107,6 +109,15 @@ export const organizationApi = {
     data: ExcludedColumnsSettings,
   ): Promise<ApiResponse<{ excludedColumns: ExcludedColumnsSettings }>> =>
     apiClient.put(`/organization/column-settings`, data),
+
+  // PUT /api/organization/tax-settings - Update per-area tax sub-toggles +
+  // financial-year boundary. Used in: Tax settings page.
+  updateTaxSettings: (data: {
+    taxSettings?: Partial<TaxSettings>;
+    financialYear?: Partial<FinancialYearConfig>;
+  }): Promise<
+    ApiResponse<{ taxSettings: TaxSettings; financialYear: FinancialYearConfig }>
+  > => apiClient.put(`/organization/tax-settings`, data),
 
   // DELETE /api/organization/demo-data - Clear all demo/sample data
   // Used in: useClearDemoData → demo banner "Clear sample data" button

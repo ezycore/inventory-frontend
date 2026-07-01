@@ -1,4 +1,9 @@
-import { Image, OrganizationFeatures } from "@/types";
+import {
+  FinancialYearConfig,
+  Image,
+  OrganizationFeatures,
+  TaxSettings,
+} from "@/types";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
@@ -30,6 +35,10 @@ export interface User {
       excludedColumns?: { [key: string]: string[] };
     };
     features?: OrganizationFeatures;
+    /** Financial-year boundary for tax/FY reporting (defaults applied server-side). */
+    financialYear?: FinancialYearConfig;
+    /** Per-area tax sub-toggles, gated by `features.tax`. */
+    taxSettings?: TaxSettings;
     /** Progress of background sample-data seeding; presence ⇒ workspace holds sample data. */
     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
   };
@@ -57,6 +66,10 @@ interface AuthActions {
   hydrateAuth: () => void;
   setActiveLocation: (locationId: string) => void;
   updateFeatures: (features: OrganizationFeatures) => void;
+  updateTaxConfig: (config: {
+    taxSettings?: TaxSettings;
+    financialYear?: FinancialYearConfig;
+  }) => void;
 }
 
 // Combined auth store type
@@ -134,6 +147,21 @@ export const useAuthStore = create<AuthStore>()(
               organization: updatedOrganization,
             };
             set({ user: updatedUser });
+          }
+        },
+        updateTaxConfig: ({ taxSettings, financialYear }) => {
+          const currentUser = get().user;
+          if (currentUser) {
+            set({
+              user: {
+                ...currentUser,
+                organization: {
+                  ...currentUser.organization,
+                  ...(taxSettings && { taxSettings }),
+                  ...(financialYear && { financialYear }),
+                },
+              },
+            });
           }
         },
 

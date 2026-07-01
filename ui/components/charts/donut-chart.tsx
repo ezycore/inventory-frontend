@@ -25,6 +25,8 @@ interface DonutChartProps {
   outerRadius?: number;
   className?: string;
   showLegend?: boolean;
+  /** Legend placement: beside the chart (default) or stacked beneath it. */
+  legendPosition?: "right" | "bottom";
   centerLabel?: string;
   centerValue?: string | number;
   tooltipFormatter?: (value: number) => string;
@@ -87,12 +89,14 @@ const DonutChart = ({
   outerRadius = 90,
   className,
   showLegend = true,
+  legendPosition = "right",
   centerLabel,
   centerValue,
   tooltipFormatter,
   wrapInCard = true,
 }: DonutChartProps) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  const stacked = legendPosition === "bottom";
 
   const chartContent = (
     <>
@@ -104,7 +108,7 @@ const DonutChart = ({
           )}
         </div>
       )}
-      <div className="flex items-center gap-4">
+      <div className={cn("flex gap-4", stacked ? "flex-col items-center" : "items-center")}>
         <div className="relative flex-shrink-0" style={{ width: outerRadius * 2 + 20, height }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -141,7 +145,13 @@ const DonutChart = ({
           )}
         </div>
         {showLegend && (
-          <div className="flex flex-col gap-2 min-w-0 flex-1">
+          <div
+            className={cn(
+              stacked
+                ? "flex w-full flex-row flex-wrap justify-center gap-x-4 gap-y-2"
+                : "flex min-w-0 flex-1 flex-col gap-2",
+            )}
+          >
             {data.map((item, index) => {
               const percentage = total > 0 ? ((item.value / total) * 100).toFixed(0) : 0;
               return (
@@ -154,7 +164,7 @@ const DonutChart = ({
                     }}
                   />
                   <span className="text-muted-foreground truncate">{item.name}</span>
-                  <span className="font-medium ml-auto">{percentage}%</span>
+                  <span className={cn("font-medium", !stacked && "ml-auto")}>{percentage}%</span>
                 </div>
               );
             })}

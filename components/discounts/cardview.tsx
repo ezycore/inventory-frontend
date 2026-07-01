@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { Badge } from "@/ui/components/badge";
 import { Card } from "@/ui/components/card";
 import {
@@ -25,9 +26,18 @@ const DiscountCardView = (
   discount: any,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
 ) => {
-  const { name, value, type, applicableTo, status, description, createdAt } =
-    discount;
-
+  const {
+    name,
+    value,
+    type,
+    applicableTo,
+    isDefaultSales,
+    isDefaultPurchase,
+    status,
+    description,
+    createdAt,
+  } = discount;
+  const isBoth = isDefaultSales && isDefaultPurchase;
   const displayValue =
     type === "percentage" ? `${value}%` : `৳${Number(value).toLocaleString()}`;
 
@@ -81,6 +91,30 @@ const DiscountCardView = (
                 >
                   {applicableLabels[applicableTo] || applicableTo}
                 </span>
+                {isDefaultSales && !isBoth && (
+                  <Badge
+                    variant="outline"
+                    className="text-[11px] px-2 py-0 border-primary text-primary"
+                  >
+                    S default
+                  </Badge>
+                )}
+                {isDefaultPurchase && !isBoth && (
+                  <Badge
+                    variant="outline"
+                    className="text-[11px] px-2 py-0 border-primary text-primary"
+                  >
+                    P default
+                  </Badge>
+                )}
+                {isBoth && (
+                  <Badge
+                    variant="outline"
+                    className="text-[11px] px-2 py-0 border-primary text-primary"
+                  >
+                    P & S default
+                  </Badge>
+                )}
               </div>
             </div>
           </div>

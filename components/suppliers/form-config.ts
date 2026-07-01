@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 export const supplierFormConfig: DynamicFormConfig = {
@@ -38,7 +39,9 @@ export const supplierFormConfig: DynamicFormConfig = {
       label: "Default Discount",
       placeholder: "Select a default discount (optional)",
       columnSpan: 6,
-      optionsApi: "/discounts/purchase?all=true&status=active&fields=_id,name,value",
+      optionsApi:
+        "/discounts/purchase?all=true&status=active&fields=_id,name,value,isDefaultPurchase",
+      defaultFlag: "isDefaultPurchase",
       description: "Applied automatically to purchases from this supplier",
       creatable: true,
       quickAddModule: "discount"

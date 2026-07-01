@@ -2,6 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Working agreement (mandatory)
+
+Applies to **every file you touch**. The repo is brought to this standard **incrementally,
+file-by-file as touched** (via the marker below) — never mass-rewrite the repo in one sweep.
+
+### Coding standard on touch
+- Before editing any source file, look at its first line. If it is the marker
+  `// coding-standard: maintained`, the file already conforms — skip the standard review and just make
+  your change.
+- If the marker is absent, review the file against this repo's coding standard (naming, structure,
+  imports, idioms, comment density, no dead code / stray logs). If it does **not** conform, STOP and ask
+  the user for permission to rewrite it to standard — preserving **identical functionality, behavior, and
+  design/output**. Never rewrite without explicit approval.
+- Once the file conforms (after your change, or after an approved rewrite), add
+  `// coding-standard: maintained` as the file's first line — immediately after a leading `"use client";`
+  directive if present — so future edits skip the review.
+
+### File size & single responsibility
+- One file = one clear responsibility — don't let a file grow into a god-file.
+- A source file past **~400 lines** (or a React component past **~250**) is a smell: split it —
+  helpers → `utils/`, hooks → `hooks/`, sub-components → their own files, data/query glue → the
+  resource module. Split by concern; each piece must stand alone and be testable.
+
+### Reusability without over-engineering
+- Before writing non-trivial logic or markup, search for an existing home first: `utils/*`, `lib/*`,
+  `hooks/*`, shared components in `components/shared/`, `ui/components/`. Reuse it — do not re-implement.
+- **No duplicate code:** if the same logic/JSX would exist in **2+ files**, extract **one** shared
+  util/hook/component and import it everywhere. Never copy-paste. (Tax single sources: see "Tax (UI) conventions".)
+- **Make a component** whenever UI is used in more than one place — never copy markup between files.
+- **But don't over-engineer:** prefer the simplest thing that removes the duplication — no premature
+  abstraction, generics, or indirection for a single use site. Abstract on the *second* use, not the first.
+- When you add a shared util/component, record it where the next change will look (the relevant skill
+  doc and/or the matching CLAUDE.md section) so it gets reused, not re-duplicated.
+
+### Type-check & lint (ask first)
+- Do **not** run type-check or lint automatically. Ask the user for permission first. If granted, run
+  `pnpm typecheck` and `pnpm lint`. If declined, skip and proceed.
+
 ## Commands
 
 ```bash
@@ -67,6 +105,11 @@ Shadcn/Radix-based primitives live in `ui/components/`. Feature-specific compone
 
 The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern for CRUD pages — it manages modal open state, edit/view/add modes, and delegates delete/bulkDelete to caller-provided async functions.
 
+**Tables — pick by use site, never hand-roll raw `Table*` primitives:**
+- **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.
+- **`SimpleTable`** (`ui/components/simple-table.tsx`) for the small tables embedded in cards / detail panels. Column-driven: `<SimpleTable columns rows getRowKey />`, where each `SimpleColumn` has `header`, `cell: (row) => node`, optional `align`/`headClassName`/`cellClassName`; plus `rowClassName`/`headerRowClassName` for per-row styling. Cells can hold inputs/checkboxes, so lightly interactive grids fit too (see `variant-manager.tsx`).
+- Only drop to the raw `ui/components/table` primitives inside `SimpleTable` itself.
+
 ### Feature Flags & Subscription
 
 `OrganizationFeatures` (defined in `types/index.ts`) controls which modules are enabled per organization. Helper functions in `lib/feature-utils.ts` (`isFeatureEnabled`, `areAllFeaturesEnabled`) check feature state from `user.organization.features` in the auth store.
@@ -87,3 +130,17 @@ Subscription/billing enforcement lives in `lib/subscription-utils.ts`. The prote
 Tests use Vitest + Testing Library + MSW for API mocking. Setup is in `tests/setup.ts`; MSW server is in `tests/mocks/`. Test files go alongside source files as `*.test.ts(x)` or inside `__tests__/` folders.
 
 The `NEXT_PUBLIC_API_URL` env var sets the backend base URL (defaults to `http://localhost:5000/api`).
+
+### Tax (UI) conventions
+
+The tax module is optional and per-line. Keep these single sources — never re-derive tax inline:
+
+- **Gate** every tax surface with `isTaxActive(org, "sales" | "purchase")` (`lib/feature-utils.ts`).
+  When inactive: hide tax UI/columns and neutralize tax in previews.
+- **Math** only through `utils/tax.ts`: `computeOrderTax` (cart rollups → `addedTax`/`includedTax`/
+  `taxTotal`/`grandTotal`), `computeLineTax` (one line), `splitLineTax` (added-vs-included from a posted
+  doc's stored line snapshot, for detail/receipt views).
+- **Presentation** via shared components: `<TaxSummaryLines>` (`components/shared/tax-summary-lines.tsx`)
+  for the "Tax (added) / Total / Includes … in price" summary; `<LineTaxCell>`
+  (`components/shared/line-tax-cell.tsx`) for the cart per-line Tax column.
+- Backend is authoritative; FE numbers are previews and must match `applyLineTaxes` exactly.

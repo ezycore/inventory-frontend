@@ -12,7 +12,9 @@ import {
   getSupplierFormConfig,
 } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
+import { isTaxActive } from "@/lib/feature-utils";
 import { useCurrency } from "@/lib/currency";
+import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
 import { usePurchaseOrder, useUpdatePurchaseOrder } from "@/services/api";
 import { useAuthStore, type PurchaseOrderItem } from "@/services/stores";
 import type { CreatePurchaseOrderItemDto, UpdatePurchaseOrderDto } from "@/types";
@@ -31,6 +33,9 @@ const productFormSchema = z.object({
       variantId: z.string().nullable().optional(),
       purchaseUnitName: z.string().nullable().optional(),
       unitName: z.string().nullable().optional(),
+      // Preserve per-line purchase tax through zod parsing (object strips unknown keys).
+      purchaseTaxRate: z.number().optional(),
+      purchaseTaxType: z.enum(["inclusive", "exclusive"]).optional(),
     }),
   ]),
   quantity: z.number().min(1, "Quantity must be at least 1"),
@@ -44,11 +49,29 @@ const productFormSchema = z.object({
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
 
+/**
+ * Map edit-PO items to the tax util's input shape. Per-line net is `costPrice *
+ * quantity` (costPrice already nets the per-line discount), so `discount` is 0 —
+ * the order-level additionalDiscount is passed separately. Mirrors the store.
+ */
+const toPurchaseTaxInputs = (
+  items: PurchaseOrderItem[],
+  includeTax: boolean,
+): TaxLineInput[] =>
+  items.map((i) => ({
+    price: i.costPrice,
+    quantity: i.quantity,
+    discount: 0,
+    taxRate: includeTax ? i.taxRate : 0,
+    taxType: includeTax ? i.taxType : undefined,
+  }));
+
 export function useEditPurchaseOrder(orderId: string | undefined) {
   const router = useRouter();
   const { format: formatCurrency, symbol } = useCurrency();
   const { user } = useAuthStore();
   const isUOMEnabled = user?.organization?.features?.uomConversion ?? false;
+  const isTaxEnabled = isTaxActive(user?.organization, "purchase");
 
   const { data: orderResponse, isLoading } = usePurchaseOrder(orderId || "");
   const order = orderResponse?.data;
@@ -132,6 +155,9 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
           conversionFactor,
           convertedQuantity: qty * conversionFactor,
           purchaseUnitName: it.purchaseUnitName ?? undefined,
+          // Carry the per-line tax snapshot so editing doesn't drop tax.
+          taxRate: (it as { taxRate?: number }).taxRate,
+          taxType: (it as { taxType?: "inclusive" | "exclusive" }).taxType,
         };
       }),
     );
@@ -167,8 +193,19 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
     [items],
   );
 
+  // Tax-correct rollup (per-line, mirrors the create page + backend).
+  const taxResult = useMemo(
+    () => computeOrderTax(toPurchaseTaxInputs(items, isTaxEnabled), additionalDiscount || 0),
+    [items, additionalDiscount, isTaxEnabled],
+  );
+  const addedTax = taxResult.addedTax;
+  const includedTax = taxResult.includedTax;
+  const taxTotal = taxResult.taxTotal;
+
+  // Net before tax (cost − additional discount); tax-correct payable adds the
+  // exclusive tax on top (inclusive is already inside the cost).
   const computedNet = Math.max(0, subtotal - (additionalDiscount || 0));
-  const finalNet = computedNet || Number(invoiceAmount) || 0;
+  const finalNet = taxResult.grandTotal;
   const paidSoFar = order?.paidAmount ?? 0;
   const newDue = Math.max(0, finalNet - paidSoFar);
 
@@ -254,6 +291,10 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         convertedQuantity: data.convertedQuantity,
         unitName: product.unitName ?? undefined,
         purchaseUnitName: product.purchaseUnitName ?? undefined,
+        taxRate: isTaxEnabled ? product.purchaseTaxRate ?? 0 : 0,
+        taxType: isTaxEnabled
+          ? product.purchaseTaxType ?? "inclusive"
+          : undefined,
       };
       setItems((prev) => {
         const existingIndex = prev.findIndex((i) => i.inventoryId === product.value);
@@ -275,7 +316,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         rememberCostPrice: false,
       });
     },
-    [productForm],
+    [productForm, isTaxEnabled],
   );
 
   const handleRemoveItem = useCallback((_sellerId: string, itemId: string) => {
@@ -358,6 +399,8 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         price: item.price,
         costPrice: item.costPrice,
         discount: item.discount,
+        taxRate: item.taxRate,
+        taxType: item.taxType,
         purchaseUnitName: item.purchaseUnitName,
       };
       if (item.conversionFactor && item.conversionFactor !== 1) {
@@ -405,10 +448,14 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
     subtotal,
     computedNet,
     finalNet,
+    addedTax,
+    includedTax,
+    taxTotal,
     paidSoFar,
     newDue,
     symbol,
     isUOMEnabled,
+    isTaxEnabled,
     isEditable,
 
     // Inputs

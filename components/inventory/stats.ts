@@ -6,12 +6,14 @@ import {
   DollarSign,
   PackageX,
   BarChart3,
+  Wallet,
 } from "lucide-react";
 
 interface DashboardStats {
   stock?: {
     totalItems: number;
-    totalValue: number;
+    totalValue: number; // cost (purchase) price valuation
+    totalRetailValue: number; // quantity × product/variant price
   };
   variants?: {
     lowStock: number;
@@ -67,6 +69,7 @@ export const getInventorySummaryMetrics = (
 ) => {
   const totalItems = stats?.stock?.totalItems || 0;
   const totalValue = stats?.stock?.totalValue || 0;
+  const totalRetailValue = stats?.stock?.totalRetailValue || 0;
   const lowStockCount = stats?.variants?.lowStock || 0;
   const outOfStockCount = stats?.variants?.outOfStock || 0;
   const healthyStock = totalItems - lowStockCount - outOfStockCount;
@@ -74,12 +77,12 @@ export const getInventorySummaryMetrics = (
 
   return [
     {
-      label: "Total Variants",
-      value: totalItems,
-      icon: Boxes,
+      label: "Total Inventory Price",
+      value: formatCurrency(totalRetailValue),
+      icon: Wallet,
     },
     {
-      label: "Stock Value",
+      label: "Stock Value (Cost)",
       value: formatCurrency(totalValue),
       icon: DollarSign,
     },
@@ -93,15 +96,6 @@ export const getInventorySummaryMetrics = (
           : healthyPercentage >= 50
             ? { value: "Fair", direction: "neutral" as const }
             : { value: "Poor", direction: "down" as const },
-    },
-    {
-      label: "Alerts",
-      value: lowStockCount + outOfStockCount,
-      icon: AlertTriangle,
-      trend:
-        lowStockCount + outOfStockCount > 0
-          ? { value: `${outOfStockCount} critical`, direction: "down" as const }
-          : { value: "Clear", direction: "up" as const },
     },
   ];
 };

@@ -22,7 +22,7 @@ import { quickAddConfig } from "@/config/quickAddConfig";
 import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
-import type { SelectOption, FieldDependency } from "@/ui/components/form/type";
+import type { SelectOption, FieldDependencyConfig } from "@/ui/components/form/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui/components/popover";
 import { Badge } from "@ui/components/badge";
@@ -70,7 +70,7 @@ export interface FuseAdvancedSelectProps {
   optionsApi?: string;
 
   // Dependency system (used by DynamicForm)
-  dependsOn?: FieldDependency;
+  dependsOn?: FieldDependencyConfig;
 
   // Multi-select display
   maxCount?: number;
@@ -82,6 +82,13 @@ export interface FuseAdvancedSelectProps {
 
   /** Called once on mount with the current value (used for auto-fill on initial render) */
   onMount?: (value: FuseSelectValue | undefined) => void;
+
+  /**
+   * Name of a boolean field on the fetched options that marks the default option
+   * (e.g. "isDefault", "isDefaultSales"). When set and the field is empty, the
+   * matching option is auto-selected once so create forms come pre-filled.
+   */
+  defaultFlag?: string;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -103,6 +110,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   quickAddModule,
   itemsCreateCallback,
   onMount,
+  defaultFlag,
 }) => {
   // ── Hooks (all before any early return) ───────────────────────────────────
 
@@ -112,6 +120,8 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
   // const hasMountedRef = useRef(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  // Guards the one-time default auto-select so we never override the user.
+  const defaultAppliedRef = useRef(false);
 
   const queryClient = useQueryClient();
 
@@ -180,6 +190,29 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     onMount(labelInValue ? formatValue(rawVal) : value);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finalOptions, value]);
+
+  // Auto-select the default option once for empty single-selects. Editing an
+  // existing record keeps its value (we only fill when nothing is set).
+  useEffect(() => {
+    if (!defaultFlag || mode === "multiple" || defaultAppliedRef.current) return;
+    if (optionsApi && finalOptions.length === 0) return;
+
+    const rawVal = extractRaw(value);
+    const hasValue = Array.isArray(rawVal) ? rawVal.length > 0 : !!rawVal;
+    if (hasValue) {
+      defaultAppliedRef.current = true;
+      return;
+    }
+
+    const defaultOption = finalOptions.find(
+      (opt) => (opt as Record<string, unknown>)[defaultFlag] === true,
+    );
+    if (defaultOption) {
+      defaultAppliedRef.current = true;
+      handleValueChange(defaultOption.value);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalOptions, value, defaultFlag]);
 
   // Fuse instance
   const fuse = useMemo(
