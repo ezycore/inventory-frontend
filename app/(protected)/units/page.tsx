@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 // Types
 import type { DynamicFormConfig } from "@/ui/components/form/type";
@@ -44,6 +45,14 @@ const unitFormConfig: DynamicFormConfig = {
         { value: "inactive", label: "Inactive" },
       ],
     },
+    {
+      name: "isDefault",
+      type: "checkbox",
+      label: "Set as default unit",
+      description: "Pre-selected on new product forms",
+      columnSpan: 12,
+      defaultValue: false,
+    },
   ],
 };
 
@@ -70,7 +79,12 @@ const unitFilterConfig: FilterConfig = {
   viewMode: "popover",
 };
 
-const defaultValues = { name: "", shortName: "", status: "active" as const };
+const defaultValues = {
+  name: "",
+  shortName: "",
+  status: "active" as const,
+  isDefault: false,
+};
 
 const searchConfig = {
   globalSearch: true,

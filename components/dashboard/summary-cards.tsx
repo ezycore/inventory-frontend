@@ -55,7 +55,7 @@ export function SummaryCards({ overview, formatCurrency }: SummaryCardsProps) {
             <Warehouse className="h-5 w-5 text-chart-4" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">Inventory Value</p>
+            <p className="text-xs text-muted-foreground">Inventory Value (Cost)</p>
             <p className="text-lg font-bold truncate">
               {formatCurrency(overview.inventory.totalValue)}
             </p>

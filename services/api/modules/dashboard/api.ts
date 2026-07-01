@@ -58,7 +58,6 @@ export interface DashboardOverview {
       id: string;
       productName: string;
       variantName: string | null;
-      sku: string;
       currentStock: number;
       alertThreshold: number;
     }>;
@@ -94,7 +93,8 @@ export interface DashboardStats {
   };
   stock?: {
     totalItems: number;
-    totalValue: number;
+    totalValue: number; // valued at cost (purchase) price
+    totalRetailValue: number; // quantity × product/variant price
   };
 }
 

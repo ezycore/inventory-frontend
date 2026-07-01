@@ -3,6 +3,7 @@
 import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
+import { isTaxActive } from "@/lib/feature-utils";
 import { useCreatePurchaseOrder, useFinalizeDraftPurchaseOrder, usePurchaseOrder, useUpdateDraftPurchaseOrder } from "@/services/api";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -40,6 +41,8 @@ export function usePurchasePage() {
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const isUOMEnabled = user?.organization?.features?.uomConversion ?? false;
+  const isTaxEnabled = isTaxActive(user?.organization, "purchase");
+  const isExpiryEnabled = user?.organization?.features?.expiryTracking ?? false;
 
   const {
     sellers,
@@ -47,6 +50,9 @@ export function usePurchasePage() {
     getSellerSubtotal,
     getSellerTotal,
     getSellerNetAmount,
+    getSellerTax,
+    getSellerAddedTax,
+    getSellerIncludedTax,
     getSellerDueAmount,
     getGrandTotal,
     getTotalItemCount,
@@ -56,7 +62,6 @@ export function usePurchasePage() {
     setSupplier,
     setPurchaseType,
     setAdditionalDiscount,
-    setInvoiceAmount,
     setInvoiceNumber,
     setInvoiceDate,
     setDiscountType,
@@ -169,10 +174,13 @@ export function usePurchasePage() {
         conversionFactor: cf,
         purchaseUnitName: it.purchaseUnitName ?? undefined,
         unitName: it.unitName ?? undefined,
+        // Restore per-line tax snapshot from the draft.
+        taxRate: (it as { taxRate?: number }).taxRate,
+        taxType: (it as { taxType?: "inclusive" | "exclusive" }).taxType,
       });
     }
     // Set additionalDiscount AFTER items are added so the store can correctly
-    // clamp it against the actual subtotal (not zero).
+    // clamp it against the actual subtotal (not zero). Tax is derived per-line.
     setAdditionalDiscount(sellerId, draftOrder.additionalDiscount || 0);
 
     supplierForm.reset({
@@ -247,12 +255,15 @@ export function usePurchasePage() {
           conversionFactor: 1,
           purchaseUnitName: undefined,
           unitName: r.unitName || undefined,
+          // Per-line purchase tax from the scanned product (neutralized when tax inactive).
+          taxRate: isTaxEnabled ? r.purchaseTaxRate ?? 0 : 0,
+          taxType: isTaxEnabled ? r.purchaseTaxType ?? "inclusive" : undefined,
         });
       } catch (err: any) {
         toast.error(err?.message || `No product found for "${code}"`);
       }
     },
-    [addItem, lookupBarcode],
+    [addItem, lookupBarcode, isTaxEnabled],
   );
 
   const handleSupplierFieldChange = useCallback((fieldName: string, value: unknown) => {
@@ -346,15 +357,18 @@ export function usePurchasePage() {
       else if (currentSeller && currentSeller.items.length === 0) { setSupplier(currentSeller.id, supplier.value, supplier.label); }
       else { const newSellerId = addSeller(); setSupplier(newSellerId, supplier.value, supplier.label); const newState = usePurchasePageStore.getState(); currentSeller = newState.sellers[newState.activeSellerIndex]; }
     }
-    console.log("data.productId", data.productId);
     const product = extractProductValue(data.productId);
     if (!product) { toast.error("Please select a product"); return; }
     const conversionFactor = product.conversionFactor || 1;
     const boxPrice = product.price * conversionFactor;
-    addItem(currentSeller.id, { inventoryId: product.value, productId: product.productId, variantId: product.variantId, productName: product.label, quantity: data.quantity, price: boxPrice, costPrice: data.costPrice, discount: data.discount, conversionFactor, convertedQuantity: data.convertedQuantity, unitName: product.unitName ?? undefined, purchaseUnitName: (product as any).purchaseUnitName ?? undefined });
+    addItem(currentSeller.id, { inventoryId: product.value, productId: product.productId, variantId: product.variantId, productName: product.label, quantity: data.quantity, price: boxPrice, costPrice: data.costPrice, discount: data.discount, conversionFactor, convertedQuantity: data.convertedQuantity, unitName: product.unitName ?? undefined, purchaseUnitName: product.purchaseUnitName ?? undefined,
+      // Per-line purchase tax from the product (neutralized when tax is inactive).
+      taxRate: isTaxEnabled ? product.purchaseTaxRate ?? 0 : 0,
+      taxType: isTaxEnabled ? product.purchaseTaxType ?? "inclusive" : undefined,
+    });
     toast.success(`${product.label} added to order`);
     productForm.reset({ productId: "", quantity: 1, convertedQuantity: 1, price: 0, discount: 0, costPrice: 0, rememberCostPrice: false });
-  }, [addItem, productForm, supplierForm, setActiveSeller, setSupplier, addSeller]);
+  }, [addItem, productForm, supplierForm, setActiveSeller, setSupplier, addSeller, isTaxEnabled]);
 
   const handleSaveEdit = useCallback(() => {
     if (!editingItem || !editingSellerId) return;
@@ -392,13 +406,20 @@ export function usePurchasePage() {
     supplierForm.setValue("discountType", result.discountType);
     supplierForm.setValue("discountValue", result.discountValue);
     let addedCount = 0;
-    for (const item of result.items) { addItem(currentSeller.id, { inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, convertedQuantity: item.convertedQuantity, unitName: item.unitName ?? undefined, purchaseUnitName: item.purchaseUnitName ?? undefined }); addedCount++; }
+    for (const item of result.items) { addItem(currentSeller.id, { inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, convertedQuantity: item.convertedQuantity, unitName: item.unitName ?? undefined, purchaseUnitName: item.purchaseUnitName ?? undefined,
+      // Per-line purchase tax from the imported product (neutralized when tax inactive).
+      taxRate: isTaxEnabled ? item.purchaseTaxRate ?? 0 : 0,
+      taxType: isTaxEnabled ? item.purchaseTaxType ?? "inclusive" : undefined,
+    }); addedCount++; }
     toast.success(`${addedCount} ${addedCount === 1 ? "product" : "products"} imported to order`);
-  }, [addItem, supplierForm, setActiveSeller, setSupplier, addSeller, setPurchaseType, setDiscountType, setDiscountValue]);
+  }, [addItem, supplierForm, setActiveSeller, setSupplier, addSeller, setPurchaseType, setDiscountType, setDiscountValue, isTaxEnabled]);
 
   const sellersWithItems = useMemo(() => sellers.filter((s) => s.items.length > 0), [sellers]);
   const totalItemCount = getTotalItemCount();
   const grandTotal = getGrandTotal();
+  const grandTax = useMemo(() => sellersWithItems.reduce((sum, s) => sum + getSellerTax(s.id), 0), [sellersWithItems, getSellerTax]);
+  const grandAddedTax = useMemo(() => sellersWithItems.reduce((sum, s) => sum + getSellerAddedTax(s.id), 0), [sellersWithItems, getSellerAddedTax]);
+  const grandIncludedTax = useMemo(() => sellersWithItems.reduce((sum, s) => sum + getSellerIncludedTax(s.id), 0), [sellersWithItems, getSellerIncludedTax]);
   const grandPaid = useMemo(() => sellersWithItems.reduce((sum, s) => sum + (s.paymentInfo?.paidAmount || 0), 0), [sellersWithItems]);
   const grandCreditApplied = useMemo(() => sellersWithItems.reduce((sum, s) => sum + (s.creditApplied || 0), 0), [sellersWithItems]);
   const grandDue = useMemo(() => sellersWithItems.reduce((sum, s) => sum + getSellerDueAmount(s.id), 0), [sellersWithItems, getSellerDueAmount]);
@@ -408,13 +429,19 @@ export function usePurchasePage() {
     if (validSellers.length === 0) { toast.error("Please add items to at least one supplier"); return; }
     try {
       const ordersData: any[] = validSellers.map((seller) => {
-        const items = seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor }));
-        const status = seller.purchaseType === "instant" ? "received" : "ordered";
+        const isInstant = seller.purchaseType === "instant";
+        const items = seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType,
+          // Per-line expiry-batch — only sent for instant (received-on-create) and
+          // only honoured by the backend for expiry-tracked products.
+          ...(isExpiryEnabled && isInstant && item.expiryDate ? { expiryDate: item.expiryDate } : {}),
+          ...(isExpiryEnabled && isInstant && item.batchNumber ? { batchNumber: item.batchNumber } : {}),
+        }));
+        const status = isInstant ? "received" : "ordered";
         const netAmount = getSellerNetAmount(seller.id);
         const sellerPaid = seller.paymentInfo?.paidAmount || 0;
         const sellerAccountId = seller.paymentInfo?.accountId || "";
         const sellerCredit = seller.creditApplied || 0;
-        const orderData: any = { supplierId: seller.supplierId || "", items, additionalDiscount: seller.additionalDiscount || 0, status, invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, taxTotal: 0, notes: seller.notes || undefined };
+        const orderData: any = { supplierId: seller.supplierId || "", items, additionalDiscount: seller.additionalDiscount || 0, status, invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, notes: seller.notes || undefined };
         if (isAccountsEnabled && sellerAccountId && sellerPaid > 0) orderData.payment = { accountId: sellerAccountId, paidAmount: sellerPaid };
         if (isAccountsEnabled && sellerCredit > 0) orderData.creditBalanceAmount = sellerCredit;
         return orderData;
@@ -434,13 +461,13 @@ export function usePurchasePage() {
       supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: "" });
       productForm.reset();
     } catch (error) { console.error("Failed to complete purchase:", error); toast.error("Failed to complete purchase"); }
-  }, [sellers, isAccountsEnabled, getSellerNetAmount, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, finalizeDraftMutation, router]);
+  }, [sellers, isAccountsEnabled, isExpiryEnabled, getSellerNetAmount, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, finalizeDraftMutation, router]);
 
   const handleSaveAsDraft = useCallback(async () => {
     const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
     if (validSellers.length === 0) { toast.error("Please add items to at least one supplier"); return; }
     try {
-      const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, taxTotal: 0, notes: seller.notes || undefined }));
+      const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, notes: seller.notes || undefined }));
       if (isDraftMode && draftId) {
         const first = ordersData[0];
         await updateDraftMutation.mutateAsync({ id: draftId, data: { supplierId: first.supplierId, items: first.items, additionalDiscount: first.additionalDiscount, taxTotal: first.taxTotal, invoiceNumber: first.invoiceNumber, invoiceDate: first.invoiceDate, notes: first.notes } });
@@ -468,6 +495,9 @@ export function usePurchasePage() {
     sellersWithItems,
     totalItemCount,
     grandTotal,
+    grandTax,
+    grandAddedTax,
+    grandIncludedTax,
     grandPaid,
     grandCreditApplied,
     grandDue,
@@ -498,6 +528,9 @@ export function usePurchasePage() {
     getSellerSubtotal,
     getSellerTotal,
     getSellerNetAmount,
+    getSellerTax,
+    getSellerAddedTax,
+    getSellerIncludedTax,
     getSellerDueAmount,
     getGrandTotal,
     getTotalItemCount,
@@ -507,7 +540,6 @@ export function usePurchasePage() {
     setSupplier,
     setPurchaseType,
     setAdditionalDiscount,
-    setInvoiceAmount,
     setInvoiceNumber,
     setInvoiceDate,
     setDiscountType,
@@ -526,6 +558,8 @@ export function usePurchasePage() {
     finalizeDraftMutation,
     isAccountsEnabled,
     isUOMEnabled,
+    isTaxEnabled,
+    isExpiryEnabled,
     isDraftMode,
   };
 }

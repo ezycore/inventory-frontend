@@ -26,7 +26,7 @@ const ACTIONS = [
     color: 'text-primary',
   },
   {
-    label: 'Receive Stock',
+    label: 'Purchase',
     icon: ArrowDownToLine,
     path: '/purchases',
     color: 'text-chart-2',
@@ -37,12 +37,12 @@ const ACTIONS = [
     path: '/products',
     color: 'text-chart-4',
   },
-  {
-    label: 'Transfer Stock',
-    icon: Repeat,
-    path: '/stock/transfers',
-    color: 'text-chart-5',
-  },
+  // {
+  //   label: 'Transfer Stock',
+  //   icon: Repeat,
+  //   path: '/stock/transfers',
+  //   color: 'text-chart-5',
+  // },
   {
     label: 'Stock Adjust',
     icon: BarChart3,
@@ -67,7 +67,7 @@ export function QuickActions() {
         <CardDescription>Jump to common tasks</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {ACTIONS.map((action) => (
             <Button
               key={action.label}

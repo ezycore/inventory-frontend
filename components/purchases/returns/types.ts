@@ -5,6 +5,8 @@ export interface ReturnableItem extends PurchaseOrderItem {
   returnQty: number;
   refundAmount: number;
   selected: boolean;
+  /** Tax-inclusive refund per purchase unit, derived per-line via `computeLineTax`. */
+  refundUnitPrice: number;
 }
 
 export interface DueAllocation {

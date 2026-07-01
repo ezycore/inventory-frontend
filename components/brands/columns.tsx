@@ -1,4 +1,6 @@
+// coding-standard: maintained
 import { Brand } from "@/types";
+import { Badge } from "@/ui/components/badge";
 import { DateCell } from "@/ui/components/dataTable/cells";
 import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
 import { ColumnDef } from "@tanstack/react-table";
@@ -11,11 +13,21 @@ export const brandColumns: ColumnDef<Brand>[] = [
     header: "Brand Name",
     cell: ({ row }) => {
       return (
-        <AvatarCell
-          imageUrl={row.original.images?.[0]?.thumbnailUrl}
-          name={row.getValue("name")}
-          isActive={row.original.status === "active"}
-        />
+        <div className="flex items-center gap-2">
+          <AvatarCell
+            imageUrl={row.original.images?.[0]?.thumbnailUrl}
+            name={row.getValue("name")}
+            isActive={row.original.status === "active"}
+          />
+          {row.original.isDefault && (
+            <Badge
+              variant="outline"
+              className="text-xs shrink-0 border-primary text-primary"
+            >
+              Default
+            </Badge>
+          )}
+        </div>
       );
     },
   },

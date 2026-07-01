@@ -47,16 +47,22 @@ function PurchasesPageContent() {
     sellersWithItems,
     totalItemCount,
     grandTotal,
+    grandTax,
+    grandAddedTax,
+    grandIncludedTax,
     grandPaid,
     grandCreditApplied,
     grandDue,
     getSellerSubtotal,
     getSellerTotal,
     getSellerNetAmount,
+    getSellerTax,
+    getSellerAddedTax,
+    getSellerIncludedTax,
     removeSeller,
     removeItem,
+    updateItem,
     setAdditionalDiscount,
-    setInvoiceAmount,
     isImportDialogOpen,
     setIsImportDialogOpen,
     preSelectedLowStockIds,
@@ -68,6 +74,8 @@ function PurchasesPageContent() {
     isAccountsEnabled,
     activeSeller,
     isUOMEnabled,
+    isTaxEnabled,
+    isExpiryEnabled,
   } = ctx;
 
   return (
@@ -117,13 +125,18 @@ function PurchasesPageContent() {
               getSellerNetAmount={getSellerNetAmount}
               getSellerSubtotal={getSellerSubtotal}
               getSellerTotal={getSellerTotal}
+              getSellerTax={getSellerTax}
+              getSellerAddedTax={getSellerAddedTax}
+              getSellerIncludedTax={getSellerIncludedTax}
               getPurchaseColumns={getPurchaseColumns}
               handleEditItem={handleEditItem}
               removeItem={removeItem}
+              updateItem={updateItem}
               setAdditionalDiscount={setAdditionalDiscount}
-              setInvoiceAmount={setInvoiceAmount}
               removeSeller={removeSeller}
               isUOMEnabled={isUOMEnabled}
+              isTaxEnabled={isTaxEnabled}
+              isExpiryEnabled={isExpiryEnabled}
               symbol={symbol}
             />
           ))}
@@ -135,6 +148,9 @@ function PurchasesPageContent() {
           sellersCount={sellersWithItems.length}
           totalItemCount={totalItemCount}
           grandTotal={grandTotal}
+          grandTax={grandTax}
+          grandAddedTax={grandAddedTax}
+          grandIncludedTax={grandIncludedTax}
           grandPaid={grandPaid}
           grandCreditApplied={grandCreditApplied}
           grandDue={grandDue}

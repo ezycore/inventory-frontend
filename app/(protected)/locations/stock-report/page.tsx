@@ -723,11 +723,6 @@ function StockItemRow({ item }: { item: LocationStockItem }) {
               {variantLabel}
             </p>
           )}
-          {item.sku && (
-            <p className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">
-              SKU: {item.sku}
-            </p>
-          )}
         </div>
       </td>
       <td className="px-4 py-3 text-sm text-muted-foreground">

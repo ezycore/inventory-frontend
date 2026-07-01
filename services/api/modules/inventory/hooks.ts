@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { inventoryApi } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
 import { queryKeys } from '@/services/api/query-keys'
@@ -17,7 +18,13 @@ export interface BulkAdjustmentItem {
 
 const inventoryHooks = createResourceHooks<Inventory, CreateInventoryDto>(
   inventoryApi,
-  queryKeys.inventory
+  queryKeys.inventory,
+  // Adding/removing inventory changes which products+variants are "not yet in
+  // inventory", so refresh every select-options dropdown (the inventory "add"
+  // form's product + variant pickers query under this prefix).
+  { relatedQueryKeys: [
+    [ "select-options", "/products?all=true&inventory=false&fields=_id,name,unitId,productType,hasExpiry"],
+  ] },
 )
 
 export const useInventories = inventoryHooks.useList
@@ -41,6 +48,23 @@ export const useInventoryShortlist = (filters: {
     enabled: !!filters.locationId, // Only fetch if locationId is provided
   })
 }
+
+// Analytics queries (read-only) for the product- and inventory-detail pages.
+export const useProductAnalytics = (productId: string, variantId?: string) =>
+  useQuery({
+    queryKey: queryKeys.inventory.productAnalytics(productId, variantId),
+    queryFn: () => inventoryApi.getProductAnalytics(productId, variantId),
+    enabled: !!productId,
+    select: (res) => res.data,
+  })
+
+export const useInventoryAnalytics = (inventoryId: string) =>
+  useQuery({
+    queryKey: queryKeys.inventory.itemAnalytics(inventoryId),
+    queryFn: () => inventoryApi.getInventoryAnalytics(inventoryId),
+    enabled: !!inventoryId,
+    select: (res) => res.data,
+  })
 
 // Receive stock mutation hook
 export const useReceiveStock = () => {

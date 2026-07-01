@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { DynamicFormConfig } from "@/ui/components/form/type";
 
 export const discountFormConfig: DynamicFormConfig = {
@@ -53,6 +54,40 @@ export const discountFormConfig: DynamicFormConfig = {
         { value: "active", label: "Active" },
         { value: "inactive", label: "Inactive" },
       ],
+    },
+      {
+      name: "isDefaultSales",
+      type: "checkbox",
+      label: "Default for sales",
+      description: "Pre-selected on new customer forms",
+      columnSpan: 6,
+      defaultValue: false,
+      dependsOn: {
+        field: "applicableTo",
+        // applicableTo is a select; helper.tsx enriches its value to the full
+        // option object, so read the `.value` off it before the `in` check.
+        matchWithProp: "value",
+        condition: "in",
+        value: ["sales", "both"],
+        action: "show",
+      },
+    },
+    {
+      name: "isDefaultPurchase",
+      type: "checkbox",
+      label: "Default for purchase",
+      description: "Pre-selected on new supplier forms",
+      columnSpan: 6,
+      defaultValue: false,
+      dependsOn: {
+        field: "applicableTo",
+        // applicableTo is a select; helper.tsx enriches its value to the full
+        // option object, so read the `.value` off it before the `in` check.
+        matchWithProp: "value",
+        condition: "in",
+        value: ["purchase", "both"],
+        action: "show",
+      },
     },
     {
       name: "description",

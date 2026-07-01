@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { Badge } from "@/ui/components/badge";
 import { Card } from "@/ui/components/card";
 import {
@@ -15,7 +16,7 @@ const CategoryCardView = (
   category: any,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
 ) => {
-  const { name, description, status, createdAt, updatedAt, productCount, _id } = category;
+  const { name, description, status, isDefault, createdAt, updatedAt, productCount, _id } = category;
 
   const createdDate = new Date(createdAt).toLocaleDateString(undefined, {
     year: "numeric",
@@ -47,6 +48,14 @@ const CategoryCardView = (
             >
               {status}
             </Badge>
+            {isDefault && (
+              <Badge
+                variant="outline"
+                className="text-xs shrink-0 border-primary text-primary"
+              >
+                Default
+              </Badge>
+            )}
           </div>
           {description ? (
             <TruncatedText

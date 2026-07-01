@@ -2,11 +2,21 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type { SaleItem } from '@/types';
+import { computeLineTax } from '@/utils/tax';
 import type { ReturnableItem } from './types';
 
 function buildReturnableItems(saleItems: SaleItem[]): ReturnableItem[] {
   return saleItems.map((item) => {
     const salePrice = item.price - (item.discount ?? 0);
+    // Tax-inclusive per-unit price — the customer paid net + tax (exclusive) or the
+    // tax-inclusive price (inclusive). Refunds must return that, not just the net.
+    const refundUnitPrice = computeLineTax({
+      price: salePrice,
+      quantity: 1,
+      discount: 0,
+      taxRate: item.taxRate,
+      taxType: item.taxType,
+    }).lineTotal;
     return {
       ...item,
       inventoryId: item.inventoryId ?? item.productId,
@@ -17,6 +27,7 @@ function buildReturnableItems(saleItems: SaleItem[]): ReturnableItem[] {
       refundAmount: 0,
       selected: false,
       salePrice,
+      refundUnitPrice,
     };
   });
 }
@@ -47,10 +58,11 @@ export function useReturnableItems() {
       const updated = [...prev];
       const item = updated[index];
       const validQty = Math.max(0, Math.min(qty, item.maxReturnableQty));
+      const unitRefund = item.refundUnitPrice || item.salePrice || item.price;
       updated[index] = {
         ...item,
         returnQty: validQty,
-        refundAmount: validQty * (item.salePrice || item.price),
+        refundAmount: Math.round(validQty * unitRefund * 100) / 100,
         selected: validQty > 0,
       };
       return updated;
@@ -61,7 +73,7 @@ export function useReturnableItems() {
     setReturnableItems((prev) => {
       const updated = [...prev];
       const item = updated[index];
-      const maxRefund = item.returnQty * (item.salePrice || item.price);
+      const maxRefund = item.returnQty * (item.refundUnitPrice || item.salePrice || item.price);
       updated[index] = {
         ...item,
         refundAmount: Math.max(0, Math.min(amount, maxRefund)),
