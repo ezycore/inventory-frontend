@@ -1,7 +1,7 @@
 'use client'
 // coding-standard: maintained
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { format } from 'date-fns'
 import type { ReportParams, TaxLedgerKind } from '@/services/api'
 import { useTaxLedger } from '@/services/api'
@@ -27,8 +27,13 @@ export function TaxLedgerTable({
   formatCurrency: (n: number) => string
 }) {
   const [page, setPage] = useState(1)
-  // Reset to the first page whenever the period changes.
-  useEffect(() => setPage(1), [params])
+  // Reset to the first page whenever the period changes (render-phase reset —
+  // avoids setState-in-effect cascading renders).
+  const [prevParams, setPrevParams] = useState(params)
+  if (params !== prevParams) {
+    setPrevParams(params)
+    setPage(1)
+  }
 
   const { data, isLoading } = useTaxLedger(params, page, 20, enabled)
 
