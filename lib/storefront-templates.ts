@@ -11,6 +11,7 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   checkout: "single",
   cart: "page",
   search: "grid",
+  footer: "columns",
 };
 
 // The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
@@ -21,6 +22,7 @@ const PRODUCT = { "gallery-left": "left", "gallery-top": "top", "sticky-bar": "s
 const CHECKOUT = { "single-page": "single", "multi-step": "multi" } as const;
 const CART = { "two-column": "page", drawer: "drawer" } as const;
 const SEARCH = { grid: "grid", list: "list" } as const;
+const FOOTER = { columns: "columns", simple: "simple", rich: "rich" } as const;
 
 function pick<M extends Record<string, string>>(
   map: M,
@@ -42,5 +44,6 @@ export function resolveTemplates(
     checkout: pick(CHECKOUT, t.checkout, DEFAULT_TEMPLATES.checkout),
     cart: pick(CART, t.cart, DEFAULT_TEMPLATES.cart),
     search: pick(SEARCH, t.search, DEFAULT_TEMPLATES.search),
+    footer: pick(FOOTER, t.footer, DEFAULT_TEMPLATES.footer),
   };
 }

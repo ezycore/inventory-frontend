@@ -14,6 +14,8 @@ import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
 import { HeaderNav } from "@/components/storefront/header-nav";
+import { LogoMark } from "@/components/storefront/logo-mark";
+import { StoreFooter } from "@/components/storefront/store-footer";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
@@ -27,28 +29,6 @@ const headerBar: CSSProperties = {
   WebkitBackdropFilter: "blur(12px)",
   borderBottom: "1px solid var(--border)",
 };
-
-function LogoMark({ name, size = 38 }: { name: string; size?: number }) {
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size > 32 ? 9 : 7,
-        background: "var(--primary)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--on-primary)",
-        fontWeight: 700,
-        fontSize: size > 32 ? 18 : 14,
-        flex: "none",
-      }}
-    >
-      {(name || "S").charAt(0).toUpperCase()}
-    </div>
-  );
-}
 
 /**
  * Storefront chrome — desktop + mobile header (utility bar, search, account,
@@ -101,7 +81,6 @@ export function StoreShell({
   const tagline = "EVERYDAY ESSENTIALS";
   const phone = store?.contact?.phone ?? "";
   const announcement = store?.nav?.announcement;
-  const footerGroups = store?.nav?.footer ?? [];
   const headerMenu = store?.nav?.header ?? [];
   const cats = categories ?? [];
 
@@ -373,86 +352,8 @@ export function StoreShell({
 
         <main style={{ flex: 1 }}>{children}</main>
 
-        {/* Footer */}
-        <footer style={{ background: "var(--card)", borderTop: "1px solid var(--border)", marginTop: 20 }}>
-          <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "36px var(--pad) 28px" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "var(--footcols)",
-                gap: 28,
-                marginBottom: 28,
-              }}
-            >
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12 }}>
-                  <LogoMark name={name} size={31} />
-                  <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em" }}>{name}</span>
-                </div>
-                <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: 0, maxWidth: 320 }}>
-                  {store?.theme?.footerText ?? t.storeInfo}
-                </p>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {footerGroups.length > 0
-                  ? footerGroups.map((g) => (
-                      <div key={g.title} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                          {g.title}
-                        </div>
-                        {g.links.map((lk) => (
-                          <a key={lk.label} href={lk.url || "#"} style={{ fontSize: 13, color: "var(--muted)" }}>
-                            {lk.label}
-                          </a>
-                        ))}
-                      </div>
-                    ))
-                  : t.links.map((lk) => (
-                      <span key={lk} style={{ fontSize: 13, color: "var(--muted)", cursor: "pointer" }}>
-                        {lk}
-                      </span>
-                    ))}
-              </div>
-              <div>
-                <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 11 }}>
-                  {t.weAccept}
-                </div>
-                <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-                  {(store?.allowedPaymentMethods ?? ["cod", "bank"]).map((m) => (
-                    <span
-                      key={m}
-                      style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: 11.5, fontWeight: 600, padding: "6px 10px", borderRadius: 7 }}
-                    >
-                      {m === "cod" ? t.cod : t.bankTransfer}
-                    </span>
-                  ))}
-                </div>
-                {phone ? (
-                  <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--muted)" }}>
-                    <Icon name="phone" size={15} /> {t.callUs} {phone}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-            <div
-              style={{
-                borderTop: "1px solid var(--border)",
-                paddingTop: 16,
-                fontSize: 12,
-                color: "var(--faint)",
-                display: "flex",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 8,
-              }}
-            >
-              <span>
-                © {new Date().getFullYear()} {name} · {t.poweredBy} EzyCore
-              </span>
-              <span>Bangladesh · {store?.currency ?? "BDT"}</span>
-            </div>
-          </div>
-        </footer>
+        {/* Footer — admin-selectable variant (templates.footer). */}
+        <StoreFooter slug={slug} base={base} store={store} />
 
         <CartDrawer />
         <OwnerAdminBar />

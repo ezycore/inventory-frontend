@@ -28,6 +28,8 @@ export function StorePreviewBridge() {
         brand: p.theme?.brandColor,
         accent: p.theme?.accentColor,
         home: p.templates?.home,
+        footer: p.templates?.footer,
+        badges: p.trustBadges,
       });
     };
     window.addEventListener("message", onMsg);

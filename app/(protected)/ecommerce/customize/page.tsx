@@ -16,12 +16,13 @@ import {
 import { THEME_PRESETS, getPreset } from "@/lib/storefront-theme";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { storefrontUrl } from "@/lib/storefront-url";
-import type { StorefrontSettings } from "@/types";
+import type { StorefrontSettings, StorefrontTrustBadge } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
+import { Icon as SfIcon, type IconName } from "@/components/storefront/sf-icons";
 
 type Option = { label: string; value: string };
 type SectionId = "theme" | "templates";
@@ -29,6 +30,29 @@ type SectionId = "theme" | "templates";
 const SECTIONS: { id: SectionId; label: string }[] = [
   { id: "theme", label: "Theme" },
   { id: "templates", label: "Templates" },
+];
+
+// Trust-badge editor (Rich footer). Rows seed empty with these defaults as
+// placeholders/icons; unset rows fall back to the storefront's localized copy.
+const BADGE_ICON_CHOICES: IconName[] = [
+  "shield",
+  "truck",
+  "coins",
+  "check",
+  "star",
+  "tag",
+  "heart",
+  "clock",
+];
+const DEFAULT_BADGES: StorefrontTrustBadge[] = [
+  { text: "", icon: "shield" },
+  { text: "", icon: "truck" },
+  { text: "", icon: "coins" },
+];
+const BADGE_PLACEHOLDERS = [
+  "100% authentic",
+  "Same-day delivery",
+  "Cash on delivery",
 ];
 
 export default function CustomizePage() {
@@ -69,6 +93,16 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [homeTemplate, setHomeTemplate] = useState(
     settings.templates?.home ?? "classic",
   );
+  const [footerTemplate, setFooterTemplate] = useState(
+    settings.templates?.footer ?? "columns",
+  );
+  // Three fixed slots seeded by index — an empty slot keeps its default badge.
+  const [badges, setBadges] = useState<StorefrontTrustBadge[]>(() =>
+    DEFAULT_BADGES.map((d, i) => ({
+      text: settings.trustBadges?.[i]?.text ?? "",
+      icon: settings.trustBadges?.[i]?.icon ?? d.icon,
+    })),
+  );
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
@@ -98,12 +132,14 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             accentColor={accentColor}
             setBrandColor={setBrandColor}
             setAccentColor={setAccentColor}
+            badges={badges}
+            setBadges={setBadges}
           />
         ) : (
           <TemplatesSection
             settings={settings}
-            homeTemplate={homeTemplate}
             setHomeTemplate={setHomeTemplate}
+            setFooterTemplate={setFooterTemplate}
           />
         )}
       </div>
@@ -115,6 +151,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           brandColor={brandColor}
           accentColor={accentColor}
           homeTemplate={homeTemplate}
+          footerTemplate={footerTemplate}
+          badges={badges}
         />
       </div>
     </div>
@@ -129,12 +167,16 @@ function ThemeSection({
   accentColor,
   setBrandColor,
   setAccentColor,
+  badges,
+  setBadges,
 }: {
   settings: StorefrontSettings;
   brandColor: string;
   accentColor: string;
   setBrandColor: (v: string) => void;
   setAccentColor: (v: string) => void;
+  badges: StorefrontTrustBadge[];
+  setBadges: (v: StorefrontTrustBadge[]) => void;
 }) {
   const save = useUpdateStorefrontSettings();
   const media = useUpdateStorefrontMedia();
@@ -152,6 +194,9 @@ function ThemeSection({
     setAccentColor(def.accentColor);
   };
 
+  const setBadge = (i: number, patch: Partial<StorefrontTrustBadge>) =>
+    setBadges(badges.map((b, idx) => (idx === i ? { ...b, ...patch } : b)));
+
   const submit = () => {
     save.mutate({
       theme: {
@@ -160,6 +205,8 @@ function ThemeSection({
         accentColor,
         footerText: footerText.trim() || undefined,
       },
+      // Keep all three slots (empty = default) so positions survive a reload.
+      trustBadges: badges.map((b) => ({ text: b.text.trim(), icon: b.icon })),
     });
   };
 
@@ -260,6 +307,52 @@ function ThemeSection({
         </div>
       </Card>
 
+      {/* Trust badges (Rich footer) */}
+      <Card className="space-y-4 p-5 shadow-none">
+        <div>
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
+            Trust badges
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+              Live preview
+            </span>
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            The service highlights shown in the <span className="font-medium">Rich</span> footer.
+            Leave a row empty to keep the default text.
+          </p>
+        </div>
+        <div className="space-y-3">
+          {badges.map((b, i) => (
+            <div key={i} className="space-y-2 rounded-lg border p-3">
+              <div className="flex flex-wrap gap-1.5">
+                {BADGE_ICON_CHOICES.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => setBadge(i, { icon: name })}
+                    aria-label={name}
+                    className={cn(
+                      "flex items-center justify-center rounded-md border p-1.5 transition-colors",
+                      b.icon === name
+                        ? "border-primary text-primary ring-2 ring-primary/30"
+                        : "text-muted-foreground hover:bg-muted/50",
+                    )}
+                  >
+                    <SfIcon name={name} size={16} />
+                  </button>
+                ))}
+              </div>
+              <Input
+                value={b.text}
+                onChange={(e) => setBadge(i, { text: e.target.value })}
+                placeholder={BADGE_PLACEHOLDERS[i] ?? "Badge text"}
+                maxLength={40}
+              />
+            </div>
+          ))}
+        </div>
+      </Card>
+
       <div className="flex justify-end">
         <Button onClick={submit} disabled={save.isPending}>
           {save.isPending ? "Saving…" : "Save theme"}
@@ -334,16 +427,29 @@ const TEMPLATE_PAGES: {
       { value: "list", label: "List" },
     ],
   },
+  {
+    key: "footer",
+    label: "Footer",
+    desc: "Site-wide footer layout",
+    options: [
+      { value: "columns", label: "Columns" },
+      { value: "simple", label: "Simple" },
+      { value: "rich", label: "Rich" },
+    ],
+  },
 ];
+
+// Surfaces that appear on the home preview → they repaint instantly as you pick.
+const LIVE_PREVIEW_KEYS = new Set(["home", "footer"]);
 
 function TemplatesSection({
   settings,
-  homeTemplate,
   setHomeTemplate,
+  setFooterTemplate,
 }: {
   settings: StorefrontSettings;
-  homeTemplate: string;
   setHomeTemplate: (v: string) => void;
+  setFooterTemplate: (v: string) => void;
 }) {
   const save = useUpdateStorefrontSettings();
   const [tpl, setTpl] = useState<Record<string, string>>(() => {
@@ -358,12 +464,13 @@ function TemplatesSection({
   const pick = (key: string, value: string) => {
     setTpl((s) => ({ ...s, [key]: value }));
     if (key === "home") setHomeTemplate(value);
+    if (key === "footer") setFooterTemplate(value);
   };
 
   return (
     <div className="space-y-5">
       <div className="rounded-lg border border-primary/40 bg-primary/5 px-4 py-3 text-xs text-primary">
-        Pick the layout template for each storefront page. The home page updates
+        Pick the layout template for each storefront page. Home and footer update
         in the preview instantly; other pages apply to your live store after you
         save.
       </div>
@@ -372,7 +479,7 @@ function TemplatesSection({
           <div>
             <h3 className="flex items-center gap-2 text-sm font-semibold">
               {p.label}
-              {p.key === "home" && (
+              {LIVE_PREVIEW_KEYS.has(p.key) && (
                 <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                   Live preview
                 </span>
@@ -425,11 +532,15 @@ function BrowserPreview({
   brandColor,
   accentColor,
   homeTemplate,
+  footerTemplate,
+  badges,
 }: {
   slug?: string;
   brandColor: string;
   accentColor: string;
   homeTemplate: string;
+  footerTemplate: string;
+  badges: StorefrontTrustBadge[];
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -438,18 +549,22 @@ function BrowserPreview({
   const url = slug ? `${storefrontUrl(slug)}?preview=1` : "";
   const displayUrl = url.replace(/^https?:\/\//, "");
 
+  // Serialize badges so the callback identity only changes on real edits.
+  const badgesKey = JSON.stringify(badges);
+
   const post = useCallback(() => {
     ref.current?.contentWindow?.postMessage(
       {
         type: "ezycore-preview",
         payload: {
           theme: { brandColor, accentColor },
-          templates: { home: homeTemplate },
+          templates: { home: homeTemplate, footer: footerTemplate },
+          trustBadges: JSON.parse(badgesKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, badgesKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {

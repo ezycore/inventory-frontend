@@ -191,6 +191,8 @@ export interface Dict {
   staffNoticeMsg: string;
   goToAdmin: string;
   shopAsCustomer: string;
+  information: string;
+  followUs: string;
 }
 
 const en: Dict = {
@@ -378,6 +380,8 @@ const en: Dict = {
     "This is the customer area of your store. Manage your store from the admin dashboard — or sign in below as a customer to test the shopping experience.",
   goToAdmin: "Go to admin dashboard",
   shopAsCustomer: "Shop as a customer",
+  information: "Information",
+  followUs: "Follow us",
 };
 
 const bn: Dict = {
@@ -565,6 +569,8 @@ const bn: Dict = {
     "এটি আপনার স্টোরের গ্রাহক অংশ। অ্যাডমিন ড্যাশবোর্ড থেকে আপনার স্টোর পরিচালনা করুন — অথবা শপিং অভিজ্ঞতা পরীক্ষা করতে নিচে গ্রাহক হিসেবে সাইন ইন করুন।",
   goToAdmin: "অ্যাডমিন ড্যাশবোর্ডে যান",
   shopAsCustomer: "গ্রাহক হিসেবে কেনাকাটা",
+  information: "তথ্য",
+  followUs: "আমাদের ফলো করুন",
 };
 
 export const I18N: Record<Lang, Dict> = { en, bn };

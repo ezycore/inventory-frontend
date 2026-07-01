@@ -39,6 +39,8 @@ export interface StorefrontStore {
   shippingZones?: { inside?: number; outside?: number; freeThreshold?: number };
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
+  /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
+  trustBadges?: { text: string; icon?: string }[];
   /** Header menu / footer groups / announcement bar (admin Navigation tab). */
   nav?: StoreNav;
   /** Checkout behaviour (order prefix, min order, etc.). */
@@ -55,6 +57,7 @@ export interface StoreTemplatesRaw {
   cart?: string;
   checkout?: string;
   search?: string;
+  footer?: string;
 }
 
 /** Normalized storefront page-layout variants (resolved from the raw admin ids). */
@@ -65,6 +68,7 @@ export interface StoreTemplates {
   checkout: "single" | "multi";
   cart: "page" | "drawer";
   search: "grid" | "list";
+  footer: "columns" | "simple" | "rich";
 }
 
 /** A header menu link target (category slug, page slug, or URL). */

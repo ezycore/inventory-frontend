@@ -141,6 +141,7 @@ export interface StorefrontTemplates {
   cart?: string;
   checkout?: string;
   search?: string;
+  footer?: string;
 }
 
 export interface StorefrontCustomersConfig {
@@ -172,6 +173,13 @@ export interface StorefrontSettings {
   notifications?: StorefrontNotifications;
   templates?: StorefrontTemplates;
   customersConfig?: StorefrontCustomersConfig;
+  trustBadges?: StorefrontTrustBadge[];
+}
+
+/** One owner-editable footer "trust" badge (Rich footer strip). */
+export interface StorefrontTrustBadge {
+  text: string;
+  icon?: string;
 }
 
 export type UpdateStorefrontSettingsDto = Partial<
