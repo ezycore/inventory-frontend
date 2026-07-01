@@ -8,7 +8,7 @@ import {
  DialogTitle,
 } from "@ui/components/dialog";
 import { Button } from "@ui/components/button";
-import { Input } from "@ui/components/input";
+import { NumberField } from "@ui/components/number-field";
 import { Label } from "@ui/components/label";
 import { Checkbox } from "@ui/components/checkbox";
 import { Printer } from "lucide-react";
@@ -290,15 +290,13 @@ export default function BarcodeLabelSheet({
     <div className="flex items-end gap-4 flex-wrap flex-shrink-0">
      <div className="space-y-1">
       <Label htmlFor="bls-copies">Copies per item</Label>
-      <Input
+      <NumberField
        id="bls-copies"
-       type="number"
+       precision={0}
        min={1}
        max={999}
        value={copies}
-       onChange={(e) =>
-        setCopies(Math.max(1, Math.min(999, +e.target.value || 1)))
-       }
+       onChange={(v) => setCopies(Math.max(1, Math.min(999, v ?? 1)))}
        className="w-24"
       />
      </div>

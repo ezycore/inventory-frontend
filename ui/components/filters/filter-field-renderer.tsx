@@ -2,6 +2,7 @@
 
 import { FilterField } from '@/types/filter';
 import { Input } from '@ui/components/input';
+import { NumberField } from '@ui/components/number-field';
 import { Label } from '@ui/components/label';
 import { AdvancedSelect } from '@ui/components/advanced-select';
 import { Checkbox } from '@ui/components/checkbox';
@@ -32,11 +33,10 @@ export function FilterFieldRenderer({
 
       case 'number':
         return (
-          <Input
-            type="number"
+          <NumberField
             placeholder={field.placeholder}
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value ? Number(e.target.value) : '')}
+            value={value === '' || value == null ? null : Number(value)}
+            onChange={(v) => onChange(v ?? '')}
             min={field.min}
             max={field.max}
           />
@@ -95,22 +95,16 @@ export function FilterFieldRenderer({
       case 'number-range':
         return (
           <div className="grid grid-cols-2 gap-2">
-            <Input
-              type="number"
+            <NumberField
               placeholder="Min"
-              value={value?.min || ''}
-              onChange={(e) =>
-                onChange({ ...value, min: e.target.value ? Number(e.target.value) : undefined })
-              }
+              value={value?.min ?? null}
+              onChange={(v) => onChange({ ...value, min: v ?? undefined })}
               min={field.min}
             />
-            <Input
-              type="number"
+            <NumberField
               placeholder="Max"
-              value={value?.max || ''}
-              onChange={(e) =>
-                onChange({ ...value, max: e.target.value ? Number(e.target.value) : undefined })
-              }
+              value={value?.max ?? null}
+              onChange={(v) => onChange({ ...value, max: v ?? undefined })}
               max={field.max}
             />
           </div>

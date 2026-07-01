@@ -21,7 +21,6 @@ import {
 } from './product-form-options'
 import VariantsField from './variants-field'
 import PriceFieldWithUnit from './price-field-with-unit'
-import { NumberInput } from '@/ui/components/numberInput'
 import { Switch } from '@/ui/components/switch'
 
 // Section header toggle that binds to `addToInventory`. Rendered via the

@@ -11,6 +11,8 @@ import {
 } from '@/ui/components/card'
 import { Badge } from '@/ui/components/badge'
 import { Input } from '@/ui/components/input'
+import { NumberField } from '@/ui/components/number-field'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Textarea } from '@/ui/components/textarea'
 import { Label } from '@/ui/components/label'
 import { CardTable } from '@/ui/components/custom/card-table'
@@ -537,16 +539,12 @@ export default function StockAdjustmentPage() {
                     )}
                   </div>
                   <div className="relative">
-                    <Input
+                    <NumberField
                       id="newQuantity"
-                      type="number"
+                      precision={hasUOM && inputInPurchaseUnit ? undefined : 0}
                       min={0}
-                      step={hasUOM && inputInPurchaseUnit ? 'any' : 1}
                       value={inputValue}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value) || 0
-                        setInputValue(Math.max(0, val))
-                      }}
+                      onChange={(v) => setInputValue(Math.max(0, v ?? 0))}
                       placeholder={`Enter quantity in ${hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || 'units')}`}
                       className="h-11 pr-16"
                     />
@@ -597,12 +595,11 @@ export default function StockAdjustmentPage() {
                         (for the added stock)
                       </span>
                     </Label>
-                    <Input
-                      id="expiryDate"
-                      type="date"
-                      value={expiryDate}
-                      onChange={(e) => setExpiryDate(e.target.value)}
+                    <DatePicker
+                      date={expiryDate || undefined}
+                      onSelect={(d) => setExpiryDate(d ?? '')}
                       className="h-11"
+                      placeholder="Pick expiry date"
                     />
                   </div>
                   <div className="space-y-1.5">
