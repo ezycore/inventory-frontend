@@ -1,7 +1,7 @@
 // coding-standard: maintained
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { PurchaseOrderItem } from "@/services/stores";
 import { Input } from "@/ui/components/input";
 
@@ -34,9 +34,13 @@ export const BatchNumberCell = ({ item, sellerId, onUpdate }: CellProps) => {
   // on every keystroke (and avoids controlled-input cursor jumps).
   const [value, setValue] = useState(item.batchNumber ?? "");
 
-  useEffect(() => {
+  // Resync local value when the persisted batch changes externally (render-phase
+  // reset — avoids setState-in-effect cascading renders).
+  const [prevBatch, setPrevBatch] = useState(item.batchNumber);
+  if (item.batchNumber !== prevBatch) {
+    setPrevBatch(item.batchNumber);
     setValue(item.batchNumber ?? "");
-  }, [item.batchNumber]);
+  }
 
   return (
     <Input
