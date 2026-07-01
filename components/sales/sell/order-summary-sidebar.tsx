@@ -4,7 +4,7 @@ import { CheckCircleIcon, ClipboardList, Save, WalletIcon } from "lucide-react";
 import { Button } from "@/ui/components/button";
 import { Card, CardContent } from "@/ui/components/card";
 import DynamicForm from "@/ui/components/form";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import { Separator } from "@/ui/components/separator";
 import { Switch } from "@/ui/components/switch";
@@ -80,11 +80,11 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
             <span className="text-muted-foreground font-medium">Additional Discount</span>
             <div className="flex items-center gap-1">
               <span className="text-base text-muted-foreground">{symbol}</span>
-              <Input
-                type="number"
-                min="0"
-                value={localAdditionalDiscount || ""}
-                onChange={(e) => handleAdditionalDiscountChange(Number(e.target.value))}
+              <NumberField
+                precision={2}
+                min={0}
+                value={localAdditionalDiscount || null}
+                onChange={(v) => handleAdditionalDiscountChange(v ?? 0)}
                 placeholder="0"
                 className="w-20 h-7 text-right text-sm"
               />
@@ -133,16 +133,14 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
                   <span className="text-xs text-muted-foreground">
                     Available {formatCurrency(customerCreditBalance)}
                   </span>
-                  <Input
-                    type="number"
+                  <NumberField
+                    precision={2}
                     min={0}
                     max={maxCreditApplicable}
-                    step="0.01"
                     value={creditBalanceAmount}
-                    onChange={(e) => {
-                      const v = Math.max(0, Math.min(maxCreditApplicable, Number(e.target.value) || 0));
-                      setCreditBalanceAmount(v);
-                    }}
+                    onChange={(next) =>
+                      setCreditBalanceAmount(Math.max(0, Math.min(maxCreditApplicable, next ?? 0)))
+                    }
                     className="w-28 h-8 text-right text-sm"
                   />
                 </div>

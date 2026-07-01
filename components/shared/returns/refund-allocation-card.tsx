@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/ui/components/card';
-import { Input } from '@/ui/components/input';
+import { NumberField } from '@/ui/components/number-field';
 import { Label } from '@/ui/components/label';
 import {
   Select,
@@ -171,16 +171,11 @@ export function RefundAllocationCard({
                       Due: {formatCurrency(due.dueAmount)}
                     </div>
                   </div>
-                  <Input
-                    type="number"
+                  <NumberField
                     className="w-32"
+                    precision={2}
                     value={due.allocatedAmount}
-                    onChange={(e) =>
-                      onDueAmountChange(
-                        index,
-                        parseFloat(e.target.value) || 0,
-                      )
-                    }
+                    onChange={(v) => onDueAmountChange(index, v ?? 0)}
                     disabled={!due.selected}
                     max={due.dueAmount}
                   />
@@ -210,11 +205,11 @@ export function RefundAllocationCard({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Credit Amount</Label>
-                <Input
-                  type="number"
+                <NumberField
+                  precision={2}
                   value={counterpartyCreditAmount}
-                  onChange={(e) => {
-                    const next = parseFloat(e.target.value) || 0;
+                  onChange={(v) => {
+                    const next = v ?? 0;
                     const cap = remainingForRefund + counterpartyCreditAmount;
                     onCounterpartyCreditChange(Math.max(0, Math.min(next, cap)));
                   }}
@@ -265,16 +260,11 @@ export function RefundAllocationCard({
               </div>
               <div className="space-y-1.5">
                 <Label>Refund Amount</Label>
-                <Input
-                  type="number"
+                <NumberField
+                  precision={2}
                   value={accountRefundAmount}
-                  onChange={(e) =>
-                    onAccountRefundChange(
-                      Math.min(
-                        parseFloat(e.target.value) || 0,
-                        remainingForRefund,
-                      ),
-                    )
+                  onChange={(v) =>
+                    onAccountRefundChange(Math.min(v ?? 0, remainingForRefund))
                   }
                   max={remainingForRefund}
                 />

@@ -2,10 +2,9 @@ import { formatCurrency } from "@/lib/currency";
 import { useProductBatches } from "@/services/api";
 import { SellOrderItem } from "@/services/stores";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { computeLineTax } from "@/utils/tax";
 import { LineTaxCell } from "@/components/shared/line-tax-cell";
 
@@ -19,6 +18,7 @@ function EditableNumberCell({
   fallback,
   onChange,
   className,
+  precision,
 }: {
   value: number;
   min: number;
@@ -26,33 +26,17 @@ function EditableNumberCell({
   fallback: number;
   onChange: (val: number) => void;
   className?: string;
+  precision?: number;
 }) {
-  const [localValue, setLocalValue] = useState(String(value));
-
-  useEffect(() => {
-    setLocalValue(String(value));
-  }, [value]);
-
-  const commit = () => {
-    const num = Number(localValue);
-    const clamped = isNaN(num) || localValue === "" ? fallback : Math.max(min, Math.min(max, num));
-    onChange(clamped);
-    setLocalValue(String(clamped));
-  };
-
   return (
-    <Input
-      type="number"
+    <NumberField
+      precision={precision}
       min={min}
       max={max}
-      value={localValue}
-      onChange={(e) => setLocalValue(e.target.value)}
-      onBlur={commit}
+      value={value}
+      onChange={(v) => onChange(v ?? fallback)}
       onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          commit();
-          (e.target as HTMLInputElement).blur();
-        }
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
       }}
       className={className}
     />
@@ -177,8 +161,9 @@ export const getSalesColumns = (
               min={1}
               max={item.availableQuantity ?? Number.MAX_SAFE_INTEGER}
               fallback={1}
+              precision={0}
               onChange={(val) => onUpdateQuantity(item.id, val)}
-              className="h-7 w-12 text-center text-sm tabular-nums px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="h-7 w-12 text-center text-sm tabular-nums px-1"
             />
             <Button
               variant="outline"
@@ -223,6 +208,7 @@ export const getSalesColumns = (
             min={0}
             max={item.price}
             fallback={0}
+            precision={2}
             onChange={(val) => onUpdateDiscount(item.id, val, item.price)}
             className="h-7 w-16 text-center text-sm tabular-nums px-1"
           />

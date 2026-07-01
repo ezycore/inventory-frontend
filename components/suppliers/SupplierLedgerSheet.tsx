@@ -14,7 +14,7 @@ import { Badge } from "@/ui/components/badge";
 import { Skeleton } from "@/ui/components/skeleton";
 import { ScrollArea } from "@/ui/components/scroll-area";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import {
   Select,
@@ -332,11 +332,10 @@ export function SupplierLedgerSheet({
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="sup-pay-amount">Payment Amount</Label>
-                    <Input
+                    <NumberField
                       id="sup-pay-amount"
-                      type="number"
-                      step="0.01"
-                      min="0.01"
+                      precision={2}
+                      min={0}
                       max={
                         useSupplierCredit
                           ? Math.min(
@@ -345,8 +344,8 @@ export function SupplierLedgerSheet({
                             )
                           : paymentPO.dueAmount
                       }
-                      value={paymentAmount}
-                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      value={paymentAmount === "" ? null : Number(paymentAmount)}
+                      onChange={(v) => setPaymentAmount(v == null ? "" : String(v))}
                       placeholder="Enter amount"
                     />
                   </div>
@@ -452,7 +451,7 @@ export function SupplierLedgerSheet({
                       disabled={
                         addPaymentMutation.isPending ||
                         (!useSupplierCredit && !paymentAccountId) ||
-                        !paymentAmount
+                        !(Number(paymentAmount) > 0)
                       }
                     >
                       <CreditCard className="h-4 w-4 mr-2" />

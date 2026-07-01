@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/ui/components/card";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Separator } from "@/ui/components/separator";
 import { CardTable } from "@/ui/components/custom/card-table";
 import { SellerPaymentSection } from "@/components/purchases/seller-payment-section";
@@ -104,15 +104,11 @@ export const ItemsTable: FC<Props> = ({
             <span className="text-muted-foreground font-medium">Additional Discount</span>
             <div className="flex items-center gap-1">
               <span className="text-base text-muted-foreground">{symbol}</span>
-              <Input
-                type="number"
+              <NumberField
+                precision={2}
                 min={0}
-                step={0.01}
-                value={seller.additionalDiscount || ""}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
-                  setAdditionalDiscount(seller.id, value);
-                }}
+                value={seller.additionalDiscount || null}
+                onChange={(v) => setAdditionalDiscount(seller.id, v ?? 0)}
                 placeholder="0"
                 className="w-20 h-7 text-right text-sm"
               />

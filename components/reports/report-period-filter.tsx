@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@ui/components/button'
+import { DatePicker } from '@ui/components/date-picker'
 import { Calendar } from 'lucide-react'
 import type { ReportPeriod } from '@/services/api/modules/reports/api'
 
@@ -46,18 +47,20 @@ export function ReportPeriodFilter({
       ))}
       {period === 'custom' && (
         <div className="flex items-center gap-2 ml-1">
-          <input
-            type="date"
-            value={customStart}
-            onChange={(e) => setCustomStart(e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+          <DatePicker
+            date={customStart || undefined}
+            onSelect={(d) => setCustomStart(d ?? '')}
+            toDate={customEnd ? new Date(customEnd) : undefined}
+            placeholder="Start"
+            className="h-8 w-auto text-xs"
           />
           <span className="text-xs text-muted-foreground">to</span>
-          <input
-            type="date"
-            value={customEnd}
-            onChange={(e) => setCustomEnd(e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+          <DatePicker
+            date={customEnd || undefined}
+            onSelect={(d) => setCustomEnd(d ?? '')}
+            fromDate={customStart ? new Date(customStart) : undefined}
+            placeholder="End"
+            className="h-8 w-auto text-xs"
           />
         </div>
       )}
