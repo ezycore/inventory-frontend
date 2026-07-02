@@ -29,6 +29,8 @@ export function StorePreviewBridge() {
         accent: p.theme?.accentColor,
         home: p.templates?.home,
         footer: p.templates?.footer,
+        header: p.templates?.header,
+        cardStyle: p.templates?.productCard,
         badges: p.trustBadges,
       });
     };

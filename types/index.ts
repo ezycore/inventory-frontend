@@ -142,6 +142,8 @@ export interface StorefrontTemplates {
   checkout?: string;
   search?: string;
   footer?: string;
+  header?: string;
+  productCard?: string;
 }
 
 export interface StorefrontCustomersConfig {

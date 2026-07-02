@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { getStoreContext } from "@/lib/storefront-host";
+import { getStore } from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
 
 /**
@@ -26,8 +27,12 @@ export default async function ShopLayout({
     );
   }
 
+  // Fetch the store server-side so the shell paints the real name/brand/logo
+  // immediately (seeded into the client query as initialData) — no flash.
+  const store = await getStore(slug);
+
   return (
-    <StoreShell slug={slug} base={base}>
+    <StoreShell slug={slug} base={base} initialStore={store ?? undefined}>
       {children}
     </StoreShell>
   );

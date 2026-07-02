@@ -1,16 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { storefrontApi, type PlaceOrderInput } from "@/lib/storefront-client";
+import {
+  storefrontApi,
+  type PlaceOrderInput,
+  type StorefrontStore,
+} from "@/lib/storefront-client";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 
 const key = (slug: string, ...rest: unknown[]) =>
   ["storefront", slug, ...rest] as const;
 
-export const useStore = (slug: string) =>
+// `initialData` (server-fetched in shop/layout.tsx) seeds the cache so the shell
+// renders the real name/brand/logo on the FIRST paint — no "Store"→name flash.
+export const useStore = (slug: string, initialData?: StorefrontStore) =>
   useQuery({
     queryKey: key(slug, "store"),
     queryFn: () => storefrontApi.getStore(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
+    initialData,
   });
 
 export const useStoreProducts = (

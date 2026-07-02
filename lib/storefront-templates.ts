@@ -12,6 +12,8 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   cart: "page",
   search: "grid",
   footer: "columns",
+  header: "classic",
+  productCard: "standard",
 };
 
 // The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
@@ -23,6 +25,8 @@ const CHECKOUT = { "single-page": "single", "multi-step": "multi" } as const;
 const CART = { "two-column": "page", drawer: "drawer" } as const;
 const SEARCH = { grid: "grid", list: "list" } as const;
 const FOOTER = { columns: "columns", simple: "simple", rich: "rich" } as const;
+const HEADER = { classic: "classic", minimal: "minimal", centered: "centered" } as const;
+const PRODUCTCARD = { standard: "standard", compact: "compact", bold: "bold" } as const;
 
 function pick<M extends Record<string, string>>(
   map: M,
@@ -45,5 +49,7 @@ export function resolveTemplates(
     cart: pick(CART, t.cart, DEFAULT_TEMPLATES.cart),
     search: pick(SEARCH, t.search, DEFAULT_TEMPLATES.search),
     footer: pick(FOOTER, t.footer, DEFAULT_TEMPLATES.footer),
+    header: pick(HEADER, t.header, DEFAULT_TEMPLATES.header),
+    productCard: pick(PRODUCTCARD, t.productCard, DEFAULT_TEMPLATES.productCard),
   };
 }

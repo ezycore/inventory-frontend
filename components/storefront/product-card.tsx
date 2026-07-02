@@ -4,11 +4,16 @@ import Link from "next/link";
 import { toast } from "sonner";
 import type { CatalogProduct } from "@/lib/storefront-client";
 import { useCartStore } from "@/services/stores/use-cart-store";
+import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
 import { money, discountPct } from "@/components/storefront/format";
 import { Media } from "@/components/storefront/sf-bits";
+
+const CARD_STYLES: readonly string[] = ["standard", "compact", "bold"];
 
 /**
  * Storefront product card. `full` shows a wide Add-to-cart button (featured /
@@ -27,6 +32,17 @@ export function ProductCard({
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const addItem = useCartStore((s) => s.addItem);
+  const { data: store } = useStore(slug);
+  const previewCardStyle = useSfPreview((s) => s.cardStyle);
+
+  // Admin card style (live draft wins). "compact" forces the dense layout
+  // everywhere; "bold" enlarges the CTA; "standard" respects the `variant`.
+  const cardStyle = CARD_STYLES.includes(previewCardStyle ?? "")
+    ? previewCardStyle
+    : resolveTemplates(store).productCard;
+  const compactLayout =
+    cardStyle === "compact" || (cardStyle === "standard" && variant === "compact");
+  const bold = cardStyle === "bold";
 
   const price = product.price ?? 0;
   const pct = discountPct(product.price, product.compareAtPrice);
@@ -55,6 +71,7 @@ export function ProductCard({
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
+        boxShadow: bold ? "0 8px 24px -16px rgba(0,0,0,0.35)" : undefined,
       }}
     >
       <Link href={href} style={{ position: "relative", display: "block" }}>
@@ -92,7 +109,7 @@ export function ProductCard({
           {product.name}
         </Link>
 
-        {variant === "compact" ? (
+        {compactLayout ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
             <span style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
@@ -124,7 +141,7 @@ export function ProductCard({
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginBottom: 11 }}>
-              <span style={{ fontSize: 14.5, fontWeight: 700, color: "var(--text)" }}>
+              <span style={{ fontSize: bold ? 16.5 : 14.5, fontWeight: 700, color: "var(--text)" }}>
                 {money(price, currency)}
               </span>
               {pct > 0 ? (
@@ -142,11 +159,13 @@ export function ProductCard({
                 background: "var(--primary)",
                 color: "var(--on-primary)",
                 border: "none",
-                padding: 9,
-                borderRadius: 7,
+                padding: bold ? 12 : 9,
+                borderRadius: bold ? 9 : 7,
                 fontFamily: "inherit",
-                fontSize: 13,
-                fontWeight: 600,
+                fontSize: bold ? 13.5 : 13,
+                fontWeight: bold ? 700 : 600,
+                textTransform: bold ? "uppercase" : "none",
+                letterSpacing: bold ? "0.03em" : "normal",
                 cursor: outOfStock ? "not-allowed" : "pointer",
                 opacity: outOfStock ? 0.55 : 1,
               }}

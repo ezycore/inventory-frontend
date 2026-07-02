@@ -2,60 +2,42 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import type { StorefrontStore } from "@/lib/storefront-client";
 import { useStore, useStoreCategories } from "@/services/storefront/hooks";
-import { useCartStore } from "@/services/stores/use-cart-store";
-import { useCartUI } from "@/services/stores/use-cart-ui-store";
-import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
-import { Icon } from "@/components/storefront/sf-icons";
-import { HeaderNav } from "@/components/storefront/header-nav";
-import { LogoMark } from "@/components/storefront/logo-mark";
+import { StoreHeader } from "@/components/storefront/store-header";
 import { StoreFooter } from "@/components/storefront/store-footer";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
 
-const headerBar: CSSProperties = {
-  position: "sticky",
-  top: 0,
-  zIndex: 30,
-  background: "var(--header)",
-  backdropFilter: "blur(12px)",
-  WebkitBackdropFilter: "blur(12px)",
-  borderBottom: "1px solid var(--border)",
-};
-
 /**
- * Storefront chrome — desktop + mobile header (utility bar, search, account,
- * cart, category nav), theme/language toggles, breadcrumb, footer, the cart
- * slide-over and the owner admin bar. Rendered by the server `shop/layout.tsx`,
- * which passes `slug`/`base`; everything reads them via context.
+ * Storefront chrome — header (admin-selectable variant) + breadcrumb + footer
+ * (admin-selectable variant), the cart slide-over and the owner admin bar.
+ * Rendered by the server `shop/layout.tsx`, which passes `slug`/`base`;
+ * everything reads them via context.
  */
 export function StoreShell({
   slug,
   base,
+  initialStore,
   children,
 }: {
   slug: string;
   base: string;
+  initialStore?: StorefrontStore;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const { t, theme, lang, toggleTheme, toggleLang } = useStorefrontUI();
+  const { t } = useStorefrontUI();
 
-  const { data: store, isError } = useStore(slug);
+  const { data: store, isError } = useStore(slug, initialStore);
   const { data: categories } = useStoreCategories(slug);
-  const cartCount = useCartStore((s) =>
-    s.storeSlug === slug ? s.items.reduce((n, i) => n + i.quantity, 0) : 0,
-  );
-  const openCart = useCartUI((s) => s.openCart);
-  const shopper = useShopperStore((s) => s.shopper);
   const previewBrand = useSfPreview((s) => s.brand);
 
   if (isError) {
@@ -69,47 +51,17 @@ export function StoreShell({
     );
   }
 
-  const name = store?.name ?? "Store";
-  // Live preview brand (admin Theme editor) wins so the whole page repaints
-  // instantly; otherwise the merchant's saved brand colour.
+  // Live preview brand (admin Customize editor) wins so the whole page repaints
+  // instantly; otherwise the merchant's saved brand colour overrides --primary.
   const brandColor = previewBrand ?? store?.theme?.brandColor;
-  // The merchant's brand colour overrides --primary (light + dark) for the shell.
   const shellVars = (brandColor
     ? { "--primary": brandColor, "--primary-hover": brandColor }
     : {}) as CSSProperties;
 
-  const tagline = "EVERYDAY ESSENTIALS";
-  const phone = store?.contact?.phone ?? "";
   const announcement = store?.nav?.announcement;
-  const headerMenu = store?.nav?.header ?? [];
-  const cats = categories ?? [];
-
-  const goSearch = () => router.push(storeHref(base, "/search"));
 
   const onHome = pathname === base || pathname === `${base}/` || pathname === "/";
   const crumb = !onHome ? crumbLabel(pathname, t) : "";
-
-  const themeBtn = (
-    <span
-      onClick={toggleTheme}
-      role="button"
-      tabIndex={0}
-      style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
-    >
-      <Icon name={theme === "dark" ? "sun" : "moon"} size={14} />
-      {theme === "dark" ? t.lightMode : t.darkMode}
-    </span>
-  );
-  const langBtn = (
-    <span
-      onClick={toggleLang}
-      role="button"
-      tabIndex={0}
-      style={{ cursor: "pointer", fontWeight: 600, color: "var(--text)" }}
-    >
-      {lang === "en" ? "বাংলা" : "English"}
-    </span>
-  );
 
   return (
     <StoreContextProvider slug={slug} base={base}>
@@ -145,188 +97,13 @@ export function StoreShell({
           </div>
         ) : null}
 
-        {/* ===== Mobile header ===== */}
-        <div className="sf-mobile-only" style={{ ...headerBar, padding: "14px 14px 10px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 10,
-            }}
-          >
-            <Link
-              href={storeHref(base)}
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
-              <LogoMark name={name} size={29} />
-              <span style={{ fontWeight: 700, fontSize: 15.5, letterSpacing: "-0.02em" }}>
-                {name}
-              </span>
-            </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <span onClick={toggleLang} role="button" tabIndex={0} style={{ fontSize: 12, color: "var(--muted)", fontWeight: 500, cursor: "pointer" }}>
-                {t.langTag}
-              </span>
-              <span onClick={toggleTheme} role="button" tabIndex={0} style={{ cursor: "pointer", display: "flex", color: "var(--text)" }}>
-                <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
-              </span>
-              <Link
-                href={storeHref(base, "/account")}
-                aria-label={shopper ? t.myAccount : t.signIn}
-                style={{ display: "flex", color: "var(--text)" }}
-              >
-                <Icon name="user" size={20} />
-              </Link>
-              <button
-                type="button"
-                onClick={openCart}
-                aria-label={t.cart}
-                style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text)", display: "flex" }}
-              >
-                <Icon name="cart" size={22} />
-                {cartCount > 0 ? <CartBadge count={cartCount} compact /> : null}
-              </button>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={goSearch}
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              padding: "9px 12px",
-              color: "var(--faint)",
-              cursor: "pointer",
-            }}
-          >
-            <Icon name="search" size={18} />
-            <span style={{ fontSize: 13, color: "var(--muted)" }}>{t.searchPh}</span>
-          </button>
-        </div>
-
-        {/* ===== Desktop header ===== */}
-        <div className="sf-desktop-only" style={headerBar}>
-          <div
-            className="sf-desktop-only"
-            style={{
-              maxWidth: "var(--maxw)",
-              margin: "0 auto",
-              padding: "6px var(--pad)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              fontSize: 12,
-              color: "var(--muted)",
-              borderBottom: "1px solid var(--border)",
-            }}
-          >
-            <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
-              <Icon name="phone" size={15} /> {phone || "16263"} · {t.deliverDhaka}
-            </span>
-            <span style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <Link href={storeHref(base, "/account")} style={{ color: "inherit" }}>
-                {t.trackOrder}
-              </Link>
-              <span style={{ cursor: "pointer" }}>{t.help}</span>
-              {langBtn}
-              {themeBtn}
-            </span>
-          </div>
-          <div
-            style={{
-              maxWidth: "var(--maxw)",
-              margin: "0 auto",
-              padding: "13px var(--pad)",
-              display: "flex",
-              alignItems: "center",
-              gap: 22,
-              flexWrap: "wrap",
-            }}
-          >
-            <Link
-              href={storeHref(base)}
-              style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}
-            >
-              <LogoMark name={name} size={38} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 18, lineHeight: 1, letterSpacing: "-0.02em" }}>
-                  {name}
-                </div>
-                <div style={{ fontSize: 10, color: "var(--faint)", letterSpacing: "0.08em", marginTop: 2 }}>
-                  {tagline}
-                </div>
-              </div>
-            </Link>
-            <button
-              type="button"
-              onClick={goSearch}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                padding: "10px 14px",
-                color: "var(--faint)",
-                cursor: "pointer",
-                minWidth: 200,
-              }}
-            >
-              <Icon name="search" size={18} />
-              <span style={{ fontSize: 14, color: "var(--muted)" }}>{t.searchPh}</span>
-            </button>
-            <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none" }}>
-              <Link
-                href={storeHref(base, "/account")}
-                style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontWeight: 500 }}
-              >
-                <Icon name="user" size={18} />
-                {shopper ? shopper.name.split(" ")[0] : t.signIn}
-              </Link>
-              <button
-                type="button"
-                onClick={openCart}
-                style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: "var(--text)" }}
-              >
-                <Icon name="cart" size={22} />
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{t.cart}</span>
-                {cartCount > 0 ? <CartBadge count={cartCount} /> : null}
-              </button>
-            </div>
-          </div>
-          {headerMenu.length > 0 ? (
-            <HeaderNav base={base} menu={headerMenu} categories={cats} />
-          ) : cats.length > 0 ? (
-            <div
-              style={{
-                maxWidth: "var(--maxw)",
-                margin: "0 auto",
-                padding: "0 var(--pad) 11px",
-                display: "flex",
-                gap: 22,
-                overflowX: "auto",
-              }}
-            >
-              {cats.map((c) => (
-                <Link
-                  key={c._id}
-                  href={storeHref(base, `/products?categoryId=${c._id}`)}
-                  style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}
-                >
-                  {c.name}
-                </Link>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        {/* Header — admin-selectable variant (templates.header). */}
+        <StoreHeader
+          slug={slug}
+          base={base}
+          store={store}
+          categories={categories ?? []}
+        />
 
         {/* Breadcrumb */}
         {crumb ? (
@@ -360,33 +137,6 @@ export function StoreShell({
         <StorePreviewBridge />
       </div>
     </StoreContextProvider>
-  );
-}
-
-function CartBadge({ count, compact }: { count: number; compact?: boolean }) {
-  return (
-    <span
-      className="sf-mono"
-      style={{
-        position: "absolute",
-        top: compact ? -7 : -8,
-        right: compact ? -9 : undefined,
-        left: compact ? undefined : 14,
-        background: "var(--primary)",
-        color: "var(--on-primary)",
-        fontSize: 10,
-        fontWeight: 700,
-        minWidth: compact ? 17 : 18,
-        height: compact ? 17 : 18,
-        borderRadius: 9,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "0 4px",
-      }}
-    >
-      {count}
-    </span>
   );
 }
 

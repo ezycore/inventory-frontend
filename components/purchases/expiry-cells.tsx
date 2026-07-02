@@ -1,7 +1,7 @@
 // coding-standard: maintained
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { PurchaseOrderItem } from "@/services/stores";
 import { Input } from "@/ui/components/input";
 
@@ -31,12 +31,14 @@ export const ExpiryDateCell = ({ item, sellerId, onUpdate }: CellProps) => (
 
 export const BatchNumberCell = ({ item, sellerId, onUpdate }: CellProps) => {
   // Local state commits on blur so typing doesn't write to the persisted store
-  // on every keystroke (and avoids controlled-input cursor jumps).
+  // on every keystroke (and avoids controlled-input cursor jumps). When the
+  // stored value changes externally, sync during render (not in an effect).
   const [value, setValue] = useState(item.batchNumber ?? "");
-
-  useEffect(() => {
+  const [prevBatch, setPrevBatch] = useState(item.batchNumber);
+  if (item.batchNumber !== prevBatch) {
+    setPrevBatch(item.batchNumber);
     setValue(item.batchNumber ?? "");
-  }, [item.batchNumber]);
+  }
 
   return (
     <Input

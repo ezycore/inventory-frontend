@@ -52,7 +52,8 @@ export function StoreHome({
     ? (previewHome as TplName)
     : resolveTemplates(store).home;
 
-  const shared = { base, currency, featured, latest, categories, campaigns, t };
+  const banner = store.banner?.mediumUrl || store.banner?.url;
+  const shared = { base, currency, featured, latest, categories, campaigns, t, banner };
 
   if (tpl === "hero-split") return <HeroSplit {...shared} />;
   if (tpl === "minimal") return <Minimal {...shared} />;
@@ -67,6 +68,7 @@ interface TplProps {
   categories: CatalogCategory[];
   campaigns: StoreCampaign[];
   t: ReturnType<typeof useStorefrontUI>["t"];
+  banner?: string;
 }
 
 function ViewAll({ href, label }: { href: string; label: string }) {
@@ -135,7 +137,7 @@ function heroBtns(base: string, t: TplProps["t"], primaryLabel: string) {
 }
 
 /* ---------------- Template A: Classic ---------------- */
-function Classic({ base, currency, featured, latest, categories, t }: TplProps) {
+function Classic({ base, currency, featured, latest, categories, t, banner }: TplProps) {
   return (
     <div>
       <div style={{ ...wrap, padding: "var(--pad)" }}>
@@ -191,7 +193,7 @@ function Classic({ base, currency, featured, latest, categories, t }: TplProps) 
               ))}
             </div>
           </div>
-          <Media label="hero banner" ratio="4 / 3" />
+          <Media src={banner} alt="" label="hero banner" ratio="4 / 3" />
         </div>
       </div>
 
@@ -236,7 +238,7 @@ function Classic({ base, currency, featured, latest, categories, t }: TplProps) 
 }
 
 /* ---------------- Template B: Hero Split ---------------- */
-function HeroSplit({ base, currency, featured, t }: TplProps) {
+function HeroSplit({ base, currency, featured, t, banner }: TplProps) {
   const trust: { icon: IconName; t1: string; t2: string }[] = [
     { icon: "truck", t1: t.trust1t, t2: t.trust1s },
     { icon: "shield", t1: t.trust2t, t2: t.trust2s },
@@ -268,6 +270,8 @@ function HeroSplit({ base, currency, featured, t }: TplProps) {
             {heroBtns(base, t, t.shopWeekly)}
           </div>
           <Media
+            src={banner}
+            alt=""
             label="lifestyle shot"
             ratio="auto"
             radius={0}

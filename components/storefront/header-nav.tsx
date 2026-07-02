@@ -13,6 +13,22 @@ import { storeHref } from "@/lib/storefront-links";
  *                filters by *id*, so we look the id up in the live category list
  *                (client-side) and fall back to the unfiltered listing if unknown.
  */
+/** Build a slug→id lookup for resolving category-type menu items. */
+function catMap(categories: CatalogCategory[]): Map<string, string> {
+  const m = new Map<string, string>();
+  for (const c of categories) if (c.slug) m.set(c.slug, c._id);
+  return m;
+}
+
+/** Convenience href resolver for a single menu item (used by compact headers). */
+export function menuHref(
+  item: StoreMenuItem,
+  base: string,
+  categories: CatalogCategory[],
+): string {
+  return resolveHref(item, base, catMap(categories)).href;
+}
+
 function resolveHref(
   item: StoreMenuItem,
   base: string,
@@ -105,16 +121,14 @@ export function HeaderNav({
   base,
   menu,
   categories,
+  center,
 }: {
   base: string;
   menu: StoreMenuItem[];
   categories: CatalogCategory[];
+  center?: boolean;
 }) {
-  const catBySlug = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const c of categories) if (c.slug) m.set(c.slug, c._id);
-    return m;
-  }, [categories]);
+  const catBySlug = useMemo(() => catMap(categories), [categories]);
 
   const [open, setOpen] = useState<number | null>(null);
 
@@ -128,6 +142,7 @@ export function HeaderNav({
         gap: 22,
         flexWrap: "wrap",
         alignItems: "center",
+        justifyContent: center ? "center" : "flex-start",
       }}
     >
       {menu.map((item, i) => {

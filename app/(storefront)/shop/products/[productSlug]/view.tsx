@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   useStore,
@@ -42,6 +42,7 @@ export default function ProductDetailPage() {
   const { data: relatedData } = useStoreProducts(slug, { limit: 8 });
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartUI((s) => s.openCart);
+  const router = useRouter();
   const [qty, setQty] = useState(1);
 
   if (isLoading) return <p style={{ ...wrap, fontSize: 13, color: "var(--muted)" }}>Loading…</p>;
@@ -90,7 +91,9 @@ export default function ProductDetailPage() {
   };
   const buyNow = () => {
     add();
-    openCart();
+    // Honour the cart template: drawer opens the slide-over, page goes to /cart.
+    if (resolveTemplates(store).cart === "drawer") openCart();
+    else router.push(storeHref(base, "/cart"));
   };
 
   return (

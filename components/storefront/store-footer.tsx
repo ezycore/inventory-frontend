@@ -14,7 +14,7 @@ import { useStorePages } from "@/services/storefront/hooks";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
-import { LogoMark } from "@/components/storefront/logo-mark";
+import { Brand } from "@/components/storefront/logo-mark";
 
 const FOOTER_VARIANTS: readonly string[] = ["columns", "simple", "rich"];
 const footerLink: CSSProperties = { fontSize: 13, color: "var(--muted)" };
@@ -33,6 +33,7 @@ interface FooterProps {
   store?: StorefrontStore;
   t: T;
   name: string;
+  logo?: string;
   phone: string;
   footerGroups: StoreFooterGroup[];
   infoPages: ContentPageLink[];
@@ -68,6 +69,7 @@ export function StoreFooter({
     store,
     t,
     name: store?.name ?? "Store",
+    logo: store?.logo?.url || store?.logo?.thumbnailUrl,
     phone: store?.contact?.phone ?? "",
     footerGroups: store?.nav?.footer ?? [],
     infoPages: pages ?? [],
@@ -120,8 +122,7 @@ function SimpleFooter(props: FooterProps) {
         }}
       >
         <Link href={storeHref(props.base)} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <LogoMark name={props.name} size={28} />
-          <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.02em" }}>{props.name}</span>
+          <Brand name={props.name} logo={props.logo} markSize={28} nameSize={15} />
         </Link>
         {links.length > 0 ? (
           <nav style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
@@ -241,8 +242,7 @@ function ColumnsBlock(props: FooterProps) {
     >
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12 }}>
-          <LogoMark name={props.name} size={31} />
-          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em" }}>{props.name}</span>
+          <Brand name={props.name} logo={props.logo} markSize={31} nameSize={16} />
         </div>
         <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: 0, maxWidth: 320 }}>
           {props.store?.theme?.footerText ?? props.t.storeInfo}

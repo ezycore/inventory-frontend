@@ -96,6 +96,12 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [footerTemplate, setFooterTemplate] = useState(
     settings.templates?.footer ?? "columns",
   );
+  const [headerTemplate, setHeaderTemplate] = useState(
+    settings.templates?.header ?? "classic",
+  );
+  const [cardStyle, setCardStyle] = useState(
+    settings.templates?.productCard ?? "standard",
+  );
   // Three fixed slots seeded by index — an empty slot keeps its default badge.
   const [badges, setBadges] = useState<StorefrontTrustBadge[]>(() =>
     DEFAULT_BADGES.map((d, i) => ({
@@ -140,6 +146,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             settings={settings}
             setHomeTemplate={setHomeTemplate}
             setFooterTemplate={setFooterTemplate}
+            setHeaderTemplate={setHeaderTemplate}
+            setCardStyle={setCardStyle}
           />
         )}
       </div>
@@ -152,6 +160,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           accentColor={accentColor}
           homeTemplate={homeTemplate}
           footerTemplate={footerTemplate}
+          headerTemplate={headerTemplate}
+          cardStyle={cardStyle}
           badges={badges}
         />
       </div>
@@ -401,6 +411,16 @@ const TEMPLATE_PAGES: {
     ],
   },
   {
+    key: "productCard",
+    label: "Product card",
+    desc: "Card style across every listing",
+    options: [
+      { value: "standard", label: "Standard" },
+      { value: "compact", label: "Compact" },
+      { value: "bold", label: "Bold CTA" },
+    ],
+  },
+  {
     key: "cart",
     label: "Cart",
     desc: "Cart layout",
@@ -428,6 +448,16 @@ const TEMPLATE_PAGES: {
     ],
   },
   {
+    key: "header",
+    label: "Header",
+    desc: "Site-wide header layout",
+    options: [
+      { value: "classic", label: "Classic" },
+      { value: "minimal", label: "Minimal" },
+      { value: "centered", label: "Centered" },
+    ],
+  },
+  {
     key: "footer",
     label: "Footer",
     desc: "Site-wide footer layout",
@@ -440,16 +470,20 @@ const TEMPLATE_PAGES: {
 ];
 
 // Surfaces that appear on the home preview → they repaint instantly as you pick.
-const LIVE_PREVIEW_KEYS = new Set(["home", "footer"]);
+const LIVE_PREVIEW_KEYS = new Set(["home", "footer", "header", "productCard"]);
 
 function TemplatesSection({
   settings,
   setHomeTemplate,
   setFooterTemplate,
+  setHeaderTemplate,
+  setCardStyle,
 }: {
   settings: StorefrontSettings;
   setHomeTemplate: (v: string) => void;
   setFooterTemplate: (v: string) => void;
+  setHeaderTemplate: (v: string) => void;
+  setCardStyle: (v: string) => void;
 }) {
   const save = useUpdateStorefrontSettings();
   const [tpl, setTpl] = useState<Record<string, string>>(() => {
@@ -465,6 +499,8 @@ function TemplatesSection({
     setTpl((s) => ({ ...s, [key]: value }));
     if (key === "home") setHomeTemplate(value);
     if (key === "footer") setFooterTemplate(value);
+    if (key === "header") setHeaderTemplate(value);
+    if (key === "productCard") setCardStyle(value);
   };
 
   return (
@@ -533,6 +569,8 @@ function BrowserPreview({
   accentColor,
   homeTemplate,
   footerTemplate,
+  headerTemplate,
+  cardStyle,
   badges,
 }: {
   slug?: string;
@@ -540,6 +578,8 @@ function BrowserPreview({
   accentColor: string;
   homeTemplate: string;
   footerTemplate: string;
+  headerTemplate: string;
+  cardStyle: string;
   badges: StorefrontTrustBadge[];
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
@@ -558,13 +598,18 @@ function BrowserPreview({
         type: "ezycore-preview",
         payload: {
           theme: { brandColor, accentColor },
-          templates: { home: homeTemplate, footer: footerTemplate },
+          templates: {
+            home: homeTemplate,
+            footer: footerTemplate,
+            header: headerTemplate,
+            productCard: cardStyle,
+          },
           trustBadges: JSON.parse(badgesKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, badgesKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, badgesKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {

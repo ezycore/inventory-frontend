@@ -58,6 +58,8 @@ export interface StoreTemplatesRaw {
   checkout?: string;
   search?: string;
   footer?: string;
+  header?: string;
+  productCard?: string;
 }
 
 /** Normalized storefront page-layout variants (resolved from the raw admin ids). */
@@ -69,6 +71,8 @@ export interface StoreTemplates {
   cart: "page" | "drawer";
   search: "grid" | "list";
   footer: "columns" | "simple" | "rich";
+  header: "classic" | "minimal" | "centered";
+  productCard: "standard" | "compact" | "bold";
 }
 
 /** A header menu link target (category slug, page slug, or URL). */

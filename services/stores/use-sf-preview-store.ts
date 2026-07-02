@@ -14,6 +14,10 @@ interface SfPreviewState {
   home: string | null;
   /** Raw footer-template id (columns | simple | rich) the editor is drafting. */
   footer: string | null;
+  /** Raw header-template id (classic | minimal | centered) the editor is drafting. */
+  header: string | null;
+  /** Raw product-card style (standard | compact | bold) the editor is drafting. */
+  cardStyle: string | null;
   /** Draft footer trust badges (Rich footer strip). */
   badges: { text: string; icon?: string }[] | null;
   activate: () => void;
@@ -22,6 +26,8 @@ interface SfPreviewState {
     accent?: string;
     home?: string;
     footer?: string;
+    header?: string;
+    cardStyle?: string;
     badges?: { text: string; icon?: string }[];
   }) => void;
 }
@@ -32,6 +38,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   accent: null,
   home: null,
   footer: null,
+  header: null,
+  cardStyle: null,
   badges: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
@@ -40,6 +48,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       accent: patch.accent !== undefined ? patch.accent : s.accent,
       home: patch.home !== undefined ? patch.home : s.home,
       footer: patch.footer !== undefined ? patch.footer : s.footer,
+      header: patch.header !== undefined ? patch.header : s.header,
+      cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
       badges: patch.badges !== undefined ? patch.badges : s.badges,
     })),
 }));
