@@ -25,6 +25,11 @@ export interface ReturnableItemDisplay {
   discount?: number;
   /** UOM conversion info (purchase returns) */
   conversionFactor?: number;
+  /** Combo provenance (sales returns) — used to group component lines under a combo. */
+  comboLineId?: string;
+  comboName?: string;
+  /** qtyPer (base units per 1 combo) — lets the combo header return whole combo units. */
+  comboUnitQuantity?: number;
 }
 
 interface ReturnItemRowProps {

@@ -27,6 +27,7 @@ import { Skeleton } from '@/ui/components/skeleton';
 import { InfoField } from '@/components/shared/info-field';
 import { CopyField } from '@/ui/components/copy';
 import { splitLineTax } from '@/utils/tax';
+import { groupSaleItemsByCombo } from '@/components/sales/helpers';
 
 // ── Normalized data types ────────────────────────────────────────────────────
 
@@ -45,6 +46,9 @@ export interface ReturnDetailsItem {
   taxRate?: number;
   taxType?: 'inclusive' | 'exclusive';
   taxAmount?: number;
+  /** Combo provenance (sales returns) — group by comboLineId under a combo header. */
+  comboLineId?: string;
+  comboName?: string;
 }
 
 export interface ReturnDetailsData {
@@ -301,43 +305,32 @@ export function ReturnDetailsSheet({
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {returnData.items.map((item, index) => (
-                    <div
-                      key={`${item.productId}-${index}`}
-                      className="rounded-lg bg-muted/30 p-3 space-y-2"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="font-medium text-sm">{item.productName}</div>
-                        <Badge variant="outline" className="shrink-0">
-                          Qty {item.quantity}
-                        </Badge>
-                      </div>
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                        {cfg.showSalePrice && item.price != null && (
-                          <InfoField label="Sale Price" value={item.price} showCurrency quantity={item.quantity} />
-                        )}
-                        <InfoField label="Cost Price" value={item.costPrice * item.quantity} showCurrency />
-                        {(item.discount ?? 0) > 0 && (
-                          <InfoField label="Discount" value={item.discount ?? 0} showCurrency />
-                        )}
-                        {item.conversionFactor != null && item.conversionFactor > 1 && (
-                          <InfoField label="Conv. Factor" value={item.conversionFactor} />
-                        )}
-                        {(item.taxAmount ?? 0) > 0 && (
+                  {groupSaleItemsByCombo(returnData.items).map((group) =>
+                    group.comboLineId ? (
+                      // Combo: header at the combo refund total, component lines nested.
+                      <div key={group.key} className="rounded-lg border border-orange-200 bg-orange-50/40 p-3 space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2 font-medium text-sm">
+                            <Package className="h-4 w-4 text-orange-600" />
+                            {group.comboName ?? 'Combo'}
+                            <Badge className="bg-orange-100 text-orange-700">Combo</Badge>
+                          </div>
                           <InfoField
-                            label={`Tax (${item.taxRate ?? 0}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`}
-                            value={item.taxAmount ?? 0}
-                            showCurrency
+                            label="Combo refund"
+                            value={`${cfg.totalRefundPrefix}${formatCurrency(group.items.reduce((sum, it) => sum + it.refundAmount, 0))}`}
+                            valueClassName={cfg.refundAmountColor}
                           />
-                        )}
-                        <InfoField
-                          label="Refund"
-                          value={`${cfg.totalRefundPrefix}${formatCurrency(item.refundAmount)}`}
-                          valueClassName={cfg.refundAmountColor}
-                        />
+                        </div>
+                        <div className="space-y-2 pl-2">
+                          {group.items.map((item, i) => (
+                            <ReturnLineCard key={`${group.key}-${item.productId}-${i}`} item={item} cfg={cfg} formatCurrency={formatCurrency} />
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ) : (
+                      <ReturnLineCard key={group.key} item={group.items[0]} cfg={cfg} formatCurrency={formatCurrency} />
+                    ),
+                  )}
                 </div>
               )}
             </div>
@@ -403,6 +396,51 @@ export function ReturnDetailsSheet({
         ) : null}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function ReturnLineCard({
+  item,
+  cfg,
+  formatCurrency,
+}: {
+  item: ReturnDetailsItem;
+  cfg: (typeof VARIANT_CONFIG)[keyof typeof VARIANT_CONFIG];
+  formatCurrency: (n: number) => string;
+}) {
+  return (
+    <div className="rounded-lg bg-muted/30 p-3 space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="font-medium text-sm">{item.productName}</div>
+        <Badge variant="outline" className="shrink-0">
+          Qty {item.quantity}
+        </Badge>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {cfg.showSalePrice && item.price != null && (
+          <InfoField label="Sale Price" value={item.price} showCurrency quantity={item.quantity} />
+        )}
+        <InfoField label="Cost Price" value={item.costPrice * item.quantity} showCurrency />
+        {(item.discount ?? 0) > 0 && (
+          <InfoField label="Discount" value={item.discount ?? 0} showCurrency />
+        )}
+        {item.conversionFactor != null && item.conversionFactor > 1 && (
+          <InfoField label="Conv. Factor" value={item.conversionFactor} />
+        )}
+        {(item.taxAmount ?? 0) > 0 && (
+          <InfoField
+            label={`Tax (${item.taxRate ?? 0}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`}
+            value={item.taxAmount ?? 0}
+            showCurrency
+          />
+        )}
+        <InfoField
+          label="Refund"
+          value={`${cfg.totalRefundPrefix}${formatCurrency(item.refundAmount)}`}
+          valueClassName={cfg.refundAmountColor}
+        />
+      </div>
+    </div>
   );
 }
 

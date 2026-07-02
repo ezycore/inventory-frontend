@@ -90,6 +90,7 @@ export const FEATURE_DISPLAY_NAMES: Record<FeatureName, string> = {
   returns: "Returns Management",
   uomConversion: "Unit Conversion",
   tax: "Tax Management",
+  combo: "Combo Products",
 };
 
 /**
@@ -105,6 +106,7 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureName, string> = {
   returns: "Enable sales returns, purchase returns, and credit management",
   uomConversion: "Enable unit of measure conversion for products",
   tax: "Enable tax rates and apply tax on purchases and sales",
+  combo: "Sell several products bundled together as one priced unit",
 };
 
 /**
@@ -119,4 +121,5 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   returns: "undo-2",
   uomConversion: "repeat",
   tax: "percent",
+  combo: "package",
 };

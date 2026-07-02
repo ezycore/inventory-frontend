@@ -1,12 +1,13 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Boxes, ClipboardList } from 'lucide-react';
+import { Boxes, ClipboardList, Package } from 'lucide-react';
 import { Badge } from '@/ui/components/badge';
 import { InfoField } from '@/components/shared/info-field';
 import type { Sale, SalesReturn } from '@/types';
 import { CopyField } from '@/ui/components/copy';
 import { splitLineTax } from '@/utils/tax';
+import { groupSaleItemsByCombo } from '@/components/sales/helpers';
 
 export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleReturns?: SalesReturn[] }) {
   // Split line tax into added (exclusive, on top) vs in-price (inclusive, informational).
@@ -82,7 +83,46 @@ export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleRetur
   );
 }
 
+function SaleItemCard({ item }: { item: Sale['items'][number] }) {
+  return (
+    <div className="space-y-3 rounded-lg bg-muted/30 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="font-medium">{item.productName}</div>
+        <Badge variant="outline" className="shrink-0">
+          Qty {item.quantity}
+        </Badge>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <InfoField label="Price" value={item.price} showCurrency quantity={item.quantity} />
+        <InfoField
+          label="Discount"
+          value={item.discount}
+          showCurrency
+          quantity={item.discount ? item.quantity : 0}
+        />
+        <InfoField label="Subtotal" value={item.subtotal} showCurrency />
+        {item.taxRate ? (
+          <InfoField
+            label={`Tax (${item.taxRate}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`}
+            value={item.taxAmount ?? 0}
+            showCurrency
+          />
+        ) : null}
+        <InfoField
+          label="Cost Price"
+          value={item.costPrice}
+          showCurrency
+          quantity={item.quantity}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function SaleItemsList({ sale }: { sale: Sale }) {
+  const groups = groupSaleItemsByCombo(sale.items);
+
   return (
     <div className="rounded-lg border p-4 space-y-4">
       <div className="flex items-center gap-2 font-medium">
@@ -91,45 +131,28 @@ export function SaleItemsList({ sale }: { sale: Sale }) {
       </div>
 
       <div className="space-y-3">
-        {sale.items.map((item, index) => (
-          <div
-            key={`${item.productId}-${index}`}
-            className="space-y-3 rounded-lg bg-muted/30 p-3"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="font-medium">{item.productName}</div>
+        {groups.map((group) =>
+          group.comboLineId ? (
+            // Combo: a header at the combo price, with the component lines nested.
+            <div key={group.key} className="rounded-lg border border-orange-200 bg-orange-50/40 p-3 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2 font-medium">
+                  <Package className="h-4 w-4 text-orange-600" />
+                  {group.comboName ?? 'Combo'}
+                  <Badge className="bg-orange-100 text-orange-700">Combo</Badge>
+                </div>
+                <InfoField label="Combo total" value={group.comboSubtotal} showCurrency />
               </div>
-              <Badge variant="outline" className="shrink-0">
-                Qty {item.quantity}
-              </Badge>
+              <div className="space-y-2 pl-2">
+                {group.items.map((item, i) => (
+                  <SaleItemCard key={`${group.key}-${item.productId}-${i}`} item={item} />
+                ))}
+              </div>
             </div>
-
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <InfoField label="Price" value={item.price} showCurrency quantity={item.quantity} />
-              <InfoField
-                label="Discount"
-                value={item.discount}
-                showCurrency
-                quantity={item.discount ? item.quantity : 0}
-              />
-              <InfoField label="Subtotal" value={item.subtotal} showCurrency />
-              {item.taxRate ? (
-                <InfoField
-                  label={`Tax (${item.taxRate}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`}
-                  value={item.taxAmount ?? 0}
-                  showCurrency
-                />
-              ) : null}
-              <InfoField
-                label="Cost Price"
-                value={item.costPrice}
-                showCurrency
-                quantity={item.quantity}
-              />
-            </div>
-          </div>
-        ))}
+          ) : (
+            <SaleItemCard key={group.key} item={group.items[0]} />
+          ),
+        )}
       </div>
     </div>
   );

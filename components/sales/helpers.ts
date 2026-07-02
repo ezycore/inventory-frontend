@@ -9,6 +9,61 @@ import type {
 } from "./types";
 import { sanitize } from "@/utils";
 
+/** One display group: either a single standalone line or the component lines of one combo. */
+export interface ComboItemGroup<T> {
+  key: string;
+  comboLineId?: string;
+  comboName?: string;
+  /** Sum of the group's line subtotals (the combo's revenue when grouped). */
+  comboSubtotal: number;
+  items: T[];
+}
+
+/**
+ * Group flat sale/return lines for display: component lines exploded from one
+ * combo (same `comboLineId`) collapse under a single combo group; every other
+ * line is its own group. First-appearance order is preserved. Shared by the
+ * sale-detail, invoice, and returns views so combo grouping stays consistent.
+ */
+export function groupSaleItemsByCombo<
+  T extends {
+    comboLineId?: string;
+    comboName?: string;
+    subtotal?: number;
+    productId?: string;
+  },
+>(items: T[]): ComboItemGroup<T>[] {
+  const groups: ComboItemGroup<T>[] = [];
+  const byCombo = new Map<string, ComboItemGroup<T>>();
+
+  items.forEach((item, index) => {
+    if (item.comboLineId) {
+      let group = byCombo.get(item.comboLineId);
+      if (!group) {
+        group = {
+          key: `combo-${item.comboLineId}`,
+          comboLineId: item.comboLineId,
+          comboName: item.comboName,
+          comboSubtotal: 0,
+          items: [],
+        };
+        byCombo.set(item.comboLineId, group);
+        groups.push(group);
+      }
+      group.items.push(item);
+      group.comboSubtotal += item.subtotal ?? 0;
+    } else {
+      groups.push({
+        key: `item-${item.productId ?? "x"}-${index}`,
+        comboSubtotal: item.subtotal ?? 0,
+        items: [item],
+      });
+    }
+  });
+
+  return groups;
+}
+
 // =====================
 // Transform Callbacks
 // =====================
@@ -53,6 +108,9 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     // Purchase-side tax (only present on the purchasable-products response).
     purchaseTaxRate: item.purchaseTaxRate ?? 0,
     purchaseTaxType: item.purchaseTaxType ?? "inclusive",
+    // Combo entries: no inventory row; value is `combo:<id>`, sent as a combo ref.
+    isCombo: (item as any).isCombo ?? false,
+    comboProductId: (item as any).comboProductId ?? undefined,
   })) as SelectOption[];
 };
 

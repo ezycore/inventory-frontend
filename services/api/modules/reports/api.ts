@@ -286,6 +286,20 @@ function buildReportParams(params?: ReportParams): string {
   return qs ? `?${qs}` : "";
 }
 
+/** One combo product's sales rollup (combo-level; see backend getComboSalesReport). */
+export interface ComboSalesRow {
+  comboId: string;
+  comboName?: string;
+  unitsSold: number;
+  revenue: number;
+  orders: number;
+}
+
+export interface ComboSalesReportData {
+  combos: ComboSalesRow[];
+  dateRange: { startDate: string; endDate: string };
+}
+
 // ── API Methods ──
 export const reportsApi = {
   getInventoryReport: (
@@ -297,6 +311,11 @@ export const reportsApi = {
     params?: ReportParams,
   ): Promise<ApiResponse<SalesReportData>> =>
     apiClient.get(`/reports/sales${buildReportParams(params)}`),
+
+  getComboSalesReport: (
+    params?: ReportParams,
+  ): Promise<ApiResponse<ComboSalesReportData>> =>
+    apiClient.get(`/reports/combos${buildReportParams(params)}`),
 
   getPurchaseReport: (
     params?: ReportParams,

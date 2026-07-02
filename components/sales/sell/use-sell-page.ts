@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import {
   getSalesColumns,
   getPaymentFormConfig,
+  groupSaleItemsByCombo,
   type CreateSalesOrderData,
   type ExtractedCustomer,
   type ExtractedProduct,
+  type SaleItemPayload,
 } from "@/components/sales";
 import {
   useCreateSalesOrder,
@@ -43,6 +45,43 @@ const toTaxInputs = (
     taxRate: includeTax ? i.taxRate : 0,
     taxType: includeTax ? i.taxType : undefined,
   }));
+
+/**
+ * Map a cart line to its API payload. Combo lines send a `{ comboProductId,
+ * quantity, discount }` reference (the server resolves + explodes them); normal
+ * lines send the full stock-line shape. `variantId` is normalized to `undefined`
+ * so the same payload satisfies both the create and finalize DTOs.
+ */
+const toSaleItemPayload = (item: {
+  isCombo?: boolean;
+  comboProductId?: string;
+  productId: string;
+  inventoryId: string;
+  variantId?: string | null;
+  quantity: number;
+  price: number;
+  costPrice: number;
+  discount: number;
+  productName: string;
+  taxRate?: number;
+  taxType?: TaxType;
+  batchId?: string | null;
+}): SaleItemPayload =>
+  item.isCombo && item.comboProductId
+    ? { comboProductId: item.comboProductId, quantity: item.quantity, discount: item.discount }
+    : {
+        productId: item.productId,
+        inventoryId: item.inventoryId,
+        variantId: item.variantId ?? undefined,
+        quantity: item.quantity,
+        price: item.price,
+        costPrice: item.costPrice,
+        discount: item.discount,
+        productName: item.productName,
+        taxRate: item.taxRate,
+        taxType: item.taxType,
+        ...(item.batchId ? { batchId: item.batchId } : {}),
+      };
 
 export function useSellPage() {
   const [paidAmount, setPaidAmount] = useState(0);
@@ -169,7 +208,43 @@ export function useSellPage() {
       notes: draftSale.notes || "",
     });
 
-    for (const item of draftSale.items) {
+    // A drafted combo is stored as its exploded component lines (tagged with a
+    // shared comboLineId + comboUnitQuantity). Regroup them back into ONE combo
+    // cart line so the draft restores as a combo, not loose components.
+    const comboGroups = groupSaleItemsByCombo(draftSale.items);
+    for (const group of comboGroups) {
+      if (group.comboLineId) {
+        const first = group.items[0];
+        const qtyPer = first.comboUnitQuantity || 1;
+        const comboQty = Math.max(1, Math.round(first.quantity / qtyPer));
+        // comboSubtotal = comboQty × comboPrice → comboPrice = comboSubtotal / comboQty.
+        const comboPrice = group.comboSubtotal / comboQty;
+        // Per-combo COGS = Σ(componentCost × qty) / comboQty.
+        const comboCost =
+          group.items.reduce((sum, it) => sum + it.costPrice * it.quantity, 0) /
+          comboQty;
+        addItem({
+          isCombo: true,
+          comboProductId: first.comboId ?? first.productId,
+          inventoryId: `combo:${first.comboId ?? first.productId}`,
+          productId: first.comboId ?? first.productId,
+          variantId: null,
+          productName: first.comboName ?? "Combo",
+          quantity: comboQty,
+          price: comboPrice,
+          costPrice: comboCost,
+          discount: 0,
+          discountType: "fixed",
+          discountValue: 0,
+          salePrice: comboPrice,
+          availableQuantity: null,
+          taxRate: first.taxRate ?? 0,
+          taxType: first.taxType ?? "inclusive",
+        });
+        continue;
+      }
+
+      const item = group.items[0];
       const salePrice = Math.max(0, item.price - (item.discount || 0));
       addItem({
         productId: item.productId,
@@ -292,6 +367,9 @@ export function useSellPage() {
         hasExpiry: product.hasExpiry,
         taxRate: product.taxRate ?? 0,
         taxType: product.taxType ?? "inclusive",
+        // Combo lines carry the combo ref; inventoryId holds the synthetic combo key.
+        isCombo: product.isCombo,
+        comboProductId: product.comboProductId,
       });
     },
     [addItem, customerForm],
@@ -303,6 +381,29 @@ export function useSellPage() {
     async (code: string) => {
       try {
         const r = await lookupBarcode(code);
+        // Combo match: no inventory row — resolve as a combo cart line.
+        if ((r as any).isCombo) {
+          handleProductSelect({
+            value: r._id as string,
+            label: r.name,
+            price: r.price,
+            costPrice: r.costPrice,
+            availableQuantity: r.quantity,
+            productId: (r as any).comboProductId,
+            variantId: null,
+            conversionFactor: 1,
+            unitName: r.unitName,
+            saleUnitName: r.saleUnitName,
+            purchaseUnitName: null,
+            quantityAlert: 0,
+            barcode: r.barcode,
+            taxRate: r.taxRate ?? 0,
+            taxType: r.taxType ?? "inclusive",
+            isCombo: true,
+            comboProductId: (r as any).comboProductId,
+          });
+          return;
+        }
         if (!r.hasInventoryAtLocation || !r._id) {
           toast.error(`Product "${r.name}" has no stock at this location`);
           return;
@@ -375,19 +476,7 @@ export function useSellPage() {
       const dueAmount = Math.max(totalSalePrice - formPaidAmount - creditApplied, 0);
       const orderData: CreateSalesOrderData = {
         customerId: updatedCustomerId as string,
-        items: items.map((item) => ({
-          productId: item.productId,
-          inventoryId: item.inventoryId,
-          variantId: item.variantId,
-          quantity: item.quantity,
-          price: item.price,
-          costPrice: item.costPrice,
-          discount: item.discount,
-          productName: item.productName,
-          taxRate: item.taxRate,
-          taxType: item.taxType,
-          ...(item.batchId ? { batchId: item.batchId } : {}),
-        })),
+        items: items.map(toSaleItemPayload),
         additionalDiscount: formAdditionalDiscount,
         totalPrice: totalSalePrice,
         costPrice: totalCostPrice,
@@ -407,19 +496,7 @@ export function useSellPage() {
         const finalizeResult = await finalizeDraftMutation.mutateAsync({
           id: draftId,
           customerId: updatedCustomerId as string,
-          items: orderData.items.map((it) => ({
-            productId: it.productId,
-            variantId: it.variantId ?? undefined,
-            inventoryId: it.inventoryId,
-            productName: it.productName,
-            quantity: it.quantity,
-            price: it.price,
-            costPrice: it.costPrice,
-            discount: it.discount,
-            taxRate: it.taxRate,
-            taxType: it.taxType,
-            ...(it.batchId ? { batchId: it.batchId } : {}),
-          })),
+          items: orderData.items,
           additionalDiscount: formAdditionalDiscount,
           payment: orderData.payment,
           creditBalanceAmount: orderData.creditBalanceAmount,
@@ -466,27 +543,13 @@ export function useSellPage() {
       const formAdditionalDiscount = localAdditionalDiscount;
       const totalSalePrice = computeOrderTax(toTaxInputs(items, isTaxEnabled), formAdditionalDiscount).grandTotal;
       const totalCostPrice = getTotalCostPrice();
-      const itemsPayload = items.map((item) => ({
-        productId: item.productId,
-        inventoryId: item.inventoryId,
-        variantId: item.variantId,
-        quantity: item.quantity,
-        price: item.price,
-        costPrice: item.costPrice,
-        discount: item.discount,
-        productName: item.productName,
-        taxRate: item.taxRate,
-        taxType: item.taxType,
-      }));
+      const itemsPayload = items.map(toSaleItemPayload);
 
       if (isDraftMode && draftId) {
         await updateDraftMutation.mutateAsync({
           id: draftId,
           customerId: updatedCustomerId as string,
-          items: itemsPayload.map((it) => ({
-            ...it,
-            variantId: it.variantId ?? undefined,
-          })),
+          items: itemsPayload,
           additionalDiscount: formAdditionalDiscount,
           notes,
         });

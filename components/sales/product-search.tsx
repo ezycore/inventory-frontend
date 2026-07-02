@@ -133,8 +133,15 @@ export function ProductSearch({ onSelect, placeholder = "Search products by name
                     >
                       <Package className="h-5 w-5 text-muted-foreground/50 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm">
-                          {product.label}
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">
+                            {product.label}
+                          </span>
+                          {product.isCombo && (
+                            <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-orange-700">
+                              Combo
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
