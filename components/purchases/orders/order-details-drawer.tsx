@@ -1,4 +1,5 @@
 'use client';
+// coding-standard: maintained
 
 import { format } from 'date-fns';
 import {
@@ -26,6 +27,9 @@ import {
 import { Skeleton } from '@/ui/components/skeleton';
 import type { PurchaseOrder } from '@/types';
 import { splitLineTax } from '@/utils/tax';
+import { useAuthStore } from '@/services/stores';
+import { PrintMenu } from '@/components/shared/print/print-menu';
+import { printPurchaseOrder } from '@/utils/print-documents';
 import { statusConfig } from '../status-config';
 
 interface OrderDetailsDrawerProps {
@@ -60,6 +64,7 @@ export function OrderDetailsDrawer({
   onCancelOrder,
   onEditOrder,
 }: OrderDetailsDrawerProps) {
+  const { user } = useAuthStore();
   const canReceive =
     order?.status === 'ordered' || order?.status === 'partial';
   const canCancel =
@@ -79,6 +84,20 @@ export function OrderDetailsDrawer({
           <SheetDescription>
             Full purchase order information and item breakdown
           </SheetDescription>
+          {order && (
+            <div className="pt-2">
+              <PrintMenu
+                a4Label="Purchase Order"
+                onPrint={(paper) =>
+                  printPurchaseOrder(order, {
+                    paper,
+                    currency: formatCurrency,
+                    orgName: user?.organization?.name,
+                  })
+                }
+              />
+            </div>
+          )}
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto">

@@ -112,6 +112,11 @@ export default function InventoryPage() {
             placeholder: "Search products by name...",
           }}
         enableRowHover={true}
+        importConfig={{
+          downloadTemplate: inventoryApi.downloadImportTemplate,
+          preview: inventoryApi.importPreview,
+          commit: inventoryApi.importCommit,
+        }}
         rowClassName={(row: Inventory) =>
           row.quantity === 0
             ? "bg-destructive/5 border-l-2 border-l-destructive"

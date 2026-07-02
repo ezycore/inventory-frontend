@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
@@ -13,6 +14,16 @@ import { Label } from "@ui/components/label";
 import { Checkbox } from "@ui/components/checkbox";
 import { Printer } from "lucide-react";
 import { toast } from "sonner";
+import { printHtml } from "@/utils/print";
+
+// A4 grid layout for the printed label sheet. Passed to `printHtml`, which
+// already resets box-sizing + body margins and injects the print bootstrap.
+const LABEL_PRINT_STYLES = `
+  @page { margin: 8mm; size: A4; }
+  body { font-family: Arial, sans-serif; }
+  #print-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.5mm; }
+  svg { height: 8mm; width: auto; display: block; margin: 0.8mm auto; }
+`;
 
 export interface LabelItem {
  code: string;
@@ -217,49 +228,12 @@ export default function BarcodeLabelSheet({
   const grid = document.getElementById("bls-grid");
   if (!grid || grid.innerHTML.trim() === "" || selected.size === 0) return;
 
-  const win = window.open("", "_blank", "width=900,height=700");
-  if (!win) {
-    toast.error("Please allow pop-ups to print labels.");
-   return;
-  }
-
-  win.document.write(`<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Barcode Labels</title>
-      <style>
-        @page { margin: 8mm; size: A4; }
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff; }
-        #print-grid {
-          display: grid;
-          grid-template-columns: repeat(6, 1fr);
-          gap: 1.5mm;
-        }
-        svg { height: 8mm; width: auto; display: block; margin: 0.8mm auto; }
-      </style>
-    </head>
-    <body>
-      <div id="print-grid">${grid.innerHTML}</div>
-      <script>
-        window.onload = function () {
-          const images = document.images;
-          let loaded = 0;
-          const total = images.length;
-          if (total === 0) { window.print(); return; }
-          Array.from(images).forEach(function(img) {
-            img.onload = img.onerror = function() {
-              loaded++;
-              if (loaded === total) window.print();
-            };
-          });
-        };
-        window.onafterprint = function () { window.close(); };
-      <\/script>
-    </body>
-    </html>`);
-  win.document.close();
+  // Called synchronously from the click so the popup isn't blocked.
+  const opened = printHtml(`<div id="print-grid">${grid.innerHTML}</div>`, {
+   title: "Barcode Labels",
+   styles: LABEL_PRINT_STYLES,
+  });
+  if (!opened) toast.error("Please allow pop-ups to print labels.");
  };
 
  const allSelected = items.length > 0 && selected.size === items.length;

@@ -1,3 +1,4 @@
+// coding-standard: maintained
 /**
  * DataTable Type Definitions
  * Import these types when using the DataTable component
@@ -258,6 +259,67 @@ interface Operations<TData = any> {
 }
 
 /**
+ * CSV export configuration. When provided, the DataTable renders an "Export"
+ * button that calls `download` with the current list query params (active
+ * filters + server sort). Actual URL/param building lives in the resource's
+ * API module so the export honours the same filters as the list.
+ */
+export interface DataTableExportConfig {
+  download: (params: Record<string, unknown>) => Promise<void>;
+  /** Button label (default "Export CSV"). */
+  label?: string;
+}
+
+/**
+ * Result of a CSV import run (mirrors the backend ImportResult). `errors` is
+ * capped server-side; `invalid` holds the true count.
+ */
+export interface ImportRowError {
+  row: number;
+  errors: string[];
+}
+export interface ImportResult {
+  total: number;
+  valid: number;
+  invalid: number;
+  skipped: number;
+  created: number;
+  committed: boolean;
+  errors: ImportRowError[];
+}
+
+/**
+ * Import configuration. When provided, the DataTable renders an "Import" button
+ * that opens a dialog: download template → upload → dry-run preview → commit.
+ * The three callbacks map to the resource's API module; on commit the table
+ * refetches automatically.
+ */
+export interface DataTableImportConfig {
+  downloadTemplate: () => Promise<void>;
+  preview: (file: File) => Promise<ImportResult>;
+  commit: (file: File) => Promise<ImportResult>;
+  /** Button label (default "Import"). */
+  label?: string;
+}
+
+/**
+ * Print configuration. When provided, the DataTable renders a "Print" button
+ * that prints the rows currently loaded (the visible page) using the given
+ * columns. Print columns are a curated subset — independent of table columns.
+ */
+export interface DataTablePrintColumn<TData = any> {
+  header: string;
+  value: (row: TData) => unknown;
+}
+export interface DataTablePrintConfig<TData = any> {
+  columns: DataTablePrintColumn<TData>[];
+  /** Heading printed above the table + document title. */
+  title?: string;
+  /** Button label (default "Print"). */
+  label?: string;
+}
+
+/**
  * Main DataTable component props
  */
 export interface DataTableProps<TData, TValue = any> {
@@ -301,6 +363,12 @@ export interface DataTableProps<TData, TValue = any> {
   };
   data?: TData[];
   operations?: Operations<TData>;
+  /** CSV export button config (server-side, honours current filters) */
+  exportConfig?: DataTableExportConfig;
+  /** CSV import button config (dialog: template → upload → preview → commit) */
+  importConfig?: DataTableImportConfig;
+  /** Print button config (prints currently loaded rows) */
+  printConfig?: DataTablePrintConfig<TData>;
   /** Custom actions that can override or extend built-in actions */
   customActions?: CustomAction[];
   /** Enable column management settings */

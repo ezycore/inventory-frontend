@@ -1,7 +1,11 @@
 'use client';
+// coding-standard: maintained
 
 import { ReceiptText } from 'lucide-react';
 import { useRef } from 'react';
+import { useAuthStore } from '@/services/stores';
+import { PrintMenu } from '@/components/shared/print/print-menu';
+import { printSaleInvoice } from '@/utils/print-documents';
 import {
   Sheet,
   SheetContent,
@@ -81,6 +85,7 @@ export function PaymentsDrawer({
 }: PaymentsDrawerProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const scrollRef = externalRef || internalRef;
+  const { user } = useAuthStore();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -96,6 +101,20 @@ export function PaymentsDrawer({
               ? 'Review the sale and submit a payment'
               : 'Full sale details and payment history'}
           </SheetDescription>
+          {sale && (
+            <div className="pt-2">
+              <PrintMenu
+                a4Label="Invoice"
+                onPrint={(paper) =>
+                  printSaleInvoice(sale, {
+                    paper,
+                    currency: formatCurrency,
+                    orgName: user?.organization?.name,
+                  })
+                }
+              />
+            </div>
+          )}
         </SheetHeader>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto">

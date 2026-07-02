@@ -236,6 +236,21 @@ export default function ProductsPage() {
           enableSorting={true}
           sortingConfig={sortingConfig}
           enableRowHover={true}
+          exportConfig={{ download: (params) => productsApi.exportCsv(params) }}
+          importConfig={{
+            downloadTemplate: productsApi.downloadImportTemplate,
+            preview: productsApi.importPreview,
+            commit: productsApi.importCommit,
+          }}
+          printConfig={{
+            title: "Products",
+            columns: [
+              { header: "Name", value: (r: any) => r.name },
+              { header: "Barcode", value: (r: any) => r.barcode },
+              { header: "Price", value: (r: any) => r.price },
+              { header: "Status", value: (r: any) => r.status },
+            ],
+          }}
           {...(barcodeEnabled
             ? {
                 customActions: [
