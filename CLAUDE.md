@@ -105,6 +105,13 @@ Shadcn/Radix-based primitives live in `ui/components/`. Feature-specific compone
 
 The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern for CRUD pages — it manages modal open state, edit/view/add modes, and delegates delete/bulkDelete to caller-provided async functions.
 
+**Hydration-safe client state:** components that read persisted zustand stores (auth/cart), `window`,
+or the current time/locale must gate on `useHydrated()` (`hooks/use-hydrated.ts`) so the first client
+render matches the SSR HTML — never hand-roll `useSyncExternalStore` or `typeof window` initializers.
+
+**Discount display:** campaign/coupon discount values render via `<DiscountCell>`
+(`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.
+
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**
 - **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.
 - **`SimpleTable`** (`ui/components/simple-table.tsx`) for the small tables embedded in cards / detail panels. Column-driven: `<SimpleTable columns rows getRowKey />`, where each `SimpleColumn` has `header`, `cell: (row) => node`, optional `align`/`headClassName`/`cellClassName`; plus `rowClassName`/`headerRowClassName` for per-row styling. Cells can hold inputs/checkboxes, so lightly interactive grids fit too (see `variant-manager.tsx`).

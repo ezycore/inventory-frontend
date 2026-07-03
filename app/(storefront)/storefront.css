@@ -49,6 +49,8 @@
   --pdpgrid: 1fr;
   --cartgrid: 1fr;
   --colmain: 1fr;
+  /* Height reserved for the fixed mobile bottom nav; 0 on desktop. */
+  --sf-bottom-nav-h: 0px;
 
   /* ---- Type ---- */
   --font-storefront: var(--font-inter), var(--font-noto-bengali),
@@ -135,6 +137,13 @@
 @media (max-width: 679px) {
   .sf-desktop-only {
     display: none !important;
+  }
+  /* Reserve room for the fixed bottom nav so the footer/last content clears it. */
+  .sf-root {
+    --sf-bottom-nav-h: calc(56px + env(safe-area-inset-bottom));
+  }
+  .sf-shell {
+    padding-bottom: var(--sf-bottom-nav-h);
   }
 }
 @media (min-width: 680px) {

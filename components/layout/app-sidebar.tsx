@@ -2,6 +2,7 @@
 import { UserAvatarProfile } from "@/components/user-avatar-profile";
 import { navItems } from "@/constants/navItem";
 import { useLogout } from "@/hooks";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { filterNavItems } from "@/lib/nav-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -154,10 +155,16 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  // Mask the persisted auth store until hydration so the first client render
+  // matches the server HTML (which has no localStorage user) — otherwise the
+  // filtered nav changes the tree shape and every Radix useId mismatches.
+  const hydrated = useHydrated();
+  const storeUser = useAuthStore((state) => state.user);
+  const storeAuthed = useAuthStore((state) => state.isAuthenticated);
+  const user = hydrated ? storeUser : null;
+  const isAuthenticated = hydrated && storeAuthed;
   const { features } = user?.organization || {};
   const logout = useLogout();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   React.useEffect(() => {
     // Side effects based on sidebar state changes

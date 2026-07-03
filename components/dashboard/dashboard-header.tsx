@@ -6,16 +6,19 @@ import { Spinner } from '@/ui/components/spinner'
 
 // ── Live Clock (isolated to prevent full-page re-renders) ──
 const LiveClock = memo(function LiveClock({ timezone }: { timezone?: string }) {
-  // Lazy initializer avoids the SSR hydration mismatch and the
-  // "setState in effect" anti-pattern (initial value computed once on mount).
-  const [time, setTime] = useState<Date | null>(() =>
-    typeof window === 'undefined' ? null : new Date(),
-  )
+  // `null` on the server AND the hydration render (a `typeof window` lazy
+  // initializer would make the first client render differ from the SSR HTML —
+  // a hydration mismatch). The clock starts one frame after hydration.
+  const [time, setTime] = useState<Date | null>(null)
 
   useEffect(() => {
     const tick = () => setTime(new Date())
+    const raf = requestAnimationFrame(tick)
     const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearInterval(id)
+    }
   }, [])
 
   const formatted = !time ? <Spinner /> :  time.toLocaleString('en-US', {

@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import {
   SidebarMenu,
@@ -7,12 +8,17 @@ import {
   useSidebar,
 } from "@ui/components/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import Link from "next/link";
 
 export function AppTitle() {
   const { setOpenMobile } = useSidebar();
-  const user = useAuthStore((state) => state.user);
+  // Mask the persisted store until hydration: the server HTML has no user, so
+  // rendering the org name on the first client pass is a text mismatch.
+  const hydrated = useHydrated();
+  const storeUser = useAuthStore((state) => state.user);
+  const user = hydrated ? storeUser : null;
 
   const orgName = user?.organization?.name || "Easeventory";
   const logoUrl =

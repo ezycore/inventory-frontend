@@ -1,9 +1,10 @@
 "use client";
+// coding-standard: maintained
 
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { StorefrontStore } from "@/lib/storefront-client";
+import type { ContentPageLink, StorefrontStore } from "@/lib/storefront-client";
 import { useStore, useStoreCategories } from "@/services/storefront/hooks";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { StoreContextProvider } from "@/services/storefront/store-context";
@@ -11,6 +12,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
 import { StoreHeader } from "@/components/storefront/store-header";
+import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
 import { StoreFooter } from "@/components/storefront/store-footer";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
@@ -26,11 +28,13 @@ export function StoreShell({
   slug,
   base,
   initialStore,
+  initialPages,
   children,
 }: {
   slug: string;
   base: string;
   initialStore?: StorefrontStore;
+  initialPages?: ContentPageLink[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -66,6 +70,7 @@ export function StoreShell({
   return (
     <StoreContextProvider slug={slug} base={base}>
       <div
+        className="sf-shell"
         style={{
           ...shellVars,
           minHeight: "100vh",
@@ -130,7 +135,20 @@ export function StoreShell({
         <main style={{ flex: 1 }}>{children}</main>
 
         {/* Footer — admin-selectable variant (templates.footer). */}
-        <StoreFooter slug={slug} base={base} store={store} />
+        <StoreFooter
+          slug={slug}
+          base={base}
+          store={store}
+          initialPages={initialPages}
+        />
+
+        {/* Mobile bottom tab bar (hidden ≥680px). */}
+        <StoreBottomNav
+          slug={slug}
+          base={base}
+          store={store}
+          categories={categories ?? []}
+        />
 
         <CartDrawer />
         <OwnerAdminBar />

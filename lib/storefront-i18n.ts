@@ -17,6 +17,12 @@ export interface Dict {
   addToCart: string;
   viewAll: string;
   added: string;
+  /** Price prefix on variable-product cards: "From ৳400". */
+  fromPrice: string;
+  /** Card CTA for variable products — options are picked on the PDP. */
+  selectOptions: string;
+  /** Drawer link to the full /cart page. */
+  viewCart: string;
   deliverDhaka: string;
   trackOrder: string;
   help: string;
@@ -95,6 +101,7 @@ export interface Dict {
   navCheckout: string;
   navSearch: string;
   navAccount: string;
+  menu: string;
   allProducts: string;
   results: string;
   sortBy: string;
@@ -203,6 +210,9 @@ const en: Dict = {
   account: "Account",
   cart: "Cart",
   addToCart: "Add to cart",
+  fromPrice: "From",
+  selectOptions: "Select options",
+  viewCart: "View cart",
   viewAll: "View all",
   added: "Added to cart",
   deliverDhaka: "Same-day delivery in Dhaka",
@@ -283,6 +293,7 @@ const en: Dict = {
   navCheckout: "Checkout",
   navSearch: "Search",
   navAccount: "Account",
+  menu: "Menu",
   allProducts: "All products",
   results: "results",
   sortBy: "Sort",
@@ -392,6 +403,9 @@ const bn: Dict = {
   account: "অ্যাকাউন্ট",
   cart: "কার্ট",
   addToCart: "কার্টে যোগ করুন",
+  fromPrice: "শুরু",
+  selectOptions: "ভ্যারিয়েন্ট বাছাই করুন",
+  viewCart: "কার্ট দেখুন",
   viewAll: "সব দেখুন",
   added: "কার্টে যোগ হয়েছে",
   deliverDhaka: "ঢাকায় একই দিনে ডেলিভারি",
@@ -472,6 +486,7 @@ const bn: Dict = {
   navCheckout: "চেকআউট",
   navSearch: "সার্চ",
   navAccount: "অ্যাকাউন্ট",
+  menu: "মেনু",
   allProducts: "সব পণ্য",
   results: "ফলাফল",
   sortBy: "সাজান",

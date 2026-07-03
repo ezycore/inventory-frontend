@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { CatalogProduct } from "@/lib/storefront-client";
 import { useCartStore } from "@/services/stores/use-cart-store";
@@ -44,13 +46,21 @@ export function ProductCard({
     cardStyle === "compact" || (cardStyle === "standard" && variant === "compact");
   const bold = cardStyle === "bold";
 
+  const router = useRouter();
   const price = product.price ?? 0;
   const pct = discountPct(product.price, product.compareAtPrice);
   const outOfStock = product.availableQuantity <= 0;
   const thumb = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
   const href = storeHref(base, `/products/${product.slug}`);
+  // Variable products can't be added blindly — the shopper picks a variant on
+  // the PDP, so the card CTA navigates there and the price reads "From ৳X".
+  const hasVariants = !!product.hasVariants;
 
   const add = () => {
+    if (hasVariants) {
+      router.push(href);
+      return;
+    }
     addItem(slug, {
       productId: product._id,
       slug: product.slug,
@@ -112,6 +122,9 @@ export function ProductCard({
         {compactLayout ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
             <span style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              {hasVariants ? (
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>{t.fromPrice}</span>
+              ) : null}
               <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
                 {money(price, currency)}
               </span>
@@ -141,6 +154,9 @@ export function ProductCard({
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginBottom: 11 }}>
+              {hasVariants ? (
+                <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
+              ) : null}
               <span style={{ fontSize: bold ? 16.5 : 14.5, fontWeight: 700, color: "var(--text)" }}>
                 {money(price, currency)}
               </span>
@@ -170,7 +186,7 @@ export function ProductCard({
                 opacity: outOfStock ? 0.55 : 1,
               }}
             >
-              {outOfStock ? t.outOfStock : t.addToCart}
+              {outOfStock ? t.outOfStock : hasVariants ? t.selectOptions : t.addToCart}
             </button>
           </>
         )}

@@ -103,6 +103,7 @@ export interface CatalogProduct {
   _id: string;
   name: string;
   slug: string;
+  /** For variable products this is the cheapest variant ("From ৳X"). */
   price: number | null;
   /** Original price when an active campaign has discounted this product. */
   compareAtPrice?: number | null;
@@ -112,6 +113,20 @@ export interface CatalogProduct {
   featured: boolean;
   categoryId?: string;
   productType: string;
+  hasVariants?: boolean;
+  availableQuantity: number;
+  /** Present only on the product-detail payload of variable products. */
+  variants?: CatalogVariant[];
+}
+
+/** One purchasable option of a variable product (e.g. Size "1L"). */
+export interface CatalogVariant {
+  _id: string;
+  label: string;
+  attributes: Record<string, string>;
+  price: number | null;
+  compareAtPrice?: number | null;
+  images: StorefrontImage[];
   availableQuantity: number;
 }
 
@@ -208,7 +223,7 @@ export interface StorefrontOrder {
 }
 
 export interface PlaceOrderInput {
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; variantId?: string; quantity: number }[];
   shippingAddress: ShippingAddress;
   paymentMethod: "cod" | "bank";
   notes?: string;

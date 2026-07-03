@@ -1,6 +1,8 @@
+// coding-standard: maintained
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   storefrontApi,
+  type ContentPageLink,
   type PlaceOrderInput,
   type StorefrontStore,
 } from "@/lib/storefront-client";
@@ -54,12 +56,15 @@ export const useStoreCampaigns = (slug: string) =>
     staleTime: 60 * 1000,
   });
 
-export const useStorePages = (slug: string) =>
+// `initialData` (server-fetched in shop/layout.tsx) seeds the cache so footer
+// page links are in the SSR HTML (SEO) instead of popping in after hydration.
+export const useStorePages = (slug: string, initialData?: ContentPageLink[]) =>
   useQuery({
     queryKey: key(slug, "pages"),
     queryFn: () => storefrontApi.listPages(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
+    initialData,
   });
 
 export const useStorePage = (slug: string, pageSlug: string) =>

@@ -1,21 +1,10 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Eye, LayoutDashboard, Paintbrush } from "lucide-react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useStoreContext } from "@/services/storefront/store-context";
-
-// Returns false on the server and during the first client render, then true.
-// The canonical hydration-safe "is client" signal (no setState-in-effect), so
-// the bar can be layered on only after hydration without a mismatch.
-const subscribe = () => () => {};
-const useHydrated = () =>
-  useSyncExternalStore(
-    subscribe,
-    () => true,
-    () => false,
-  );
 
 /**
  * Slim owner overlay (Shopify/WordPress style) shown ONLY when a logged-in staff
@@ -49,7 +38,12 @@ export function OwnerAdminBar() {
   if (!orgSlug || orgSlug !== slug) return null;
 
   return (
-    <div className="sticky bottom-0 z-50 border-t border-neutral-700 bg-neutral-900 text-white">
+    // Sits just above the mobile bottom nav (var is 0 on desktop) so the owner
+    // never sees two stacked bottom bars.
+    <div
+      className="sticky z-50 border-t border-neutral-700 bg-neutral-900 text-white"
+      style={{ bottom: "var(--sf-bottom-nav-h, 0px)" }}
+    >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm">
         <span className="flex items-center gap-1.5 font-medium">
           <Eye className="h-4 w-4 text-emerald-400" />

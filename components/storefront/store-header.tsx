@@ -2,7 +2,6 @@
 
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type {
   CatalogCategory,
   StoreMenuItem,
@@ -12,8 +11,7 @@ import type {
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { useCartStore } from "@/services/stores/use-cart-store";
-import { useCartUI } from "@/services/stores/use-cart-ui-store";
+import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { Icon } from "@/components/storefront/sf-icons";
@@ -69,16 +67,11 @@ export function StoreHeader({
   store?: StorefrontStore;
   categories: CatalogCategory[];
 }) {
-  const router = useRouter();
   const { t, theme, lang, toggleTheme, toggleLang } = useStorefrontUI();
-  const cartCount = useCartStore((s) =>
-    s.storeSlug === slug ? s.items.reduce((n, i) => n + i.quantity, 0) : 0,
-  );
-  const openCart = useCartUI((s) => s.openCart);
+  const { cartCount, goCart, goSearch } = useCartNav(slug, base);
   const shopper = useShopperStore((s) => s.shopper);
   const previewHeader = useSfPreview((s) => s.header);
 
-  const cartMode = resolveTemplates(store).cart;
   const ctx: HeaderCtx = {
     base,
     name: store?.name ?? "Store",
@@ -92,9 +85,8 @@ export function StoreHeader({
     toggleLang,
     shopperName: shopper?.name,
     cartCount,
-    goCart: () =>
-      cartMode === "drawer" ? openCart() : router.push(storeHref(base, "/cart")),
-    goSearch: () => router.push(storeHref(base, "/search")),
+    goCart,
+    goSearch,
     headerMenu: store?.nav?.header ?? [],
     cats: categories ?? [],
   };
@@ -124,27 +116,22 @@ export function StoreHeader({
 /* -------------------------------- mobile ---------------------------------- */
 
 function MobileHeader({ ctx }: { ctx: HeaderCtx }) {
-  const { base, name, logo, t, theme, lang, toggleTheme, toggleLang, shopperName, cartCount, goCart, goSearch } = ctx;
+  const { base, name, logo, t, theme, lang, toggleTheme, toggleLang, goSearch } = ctx;
+  // Cart + account live in the bottom nav on mobile, so the top bar keeps just
+  // the logo, locale/theme toggles and the search field.
   return (
     <div className="sf-mobile-only" style={{ ...headerBar, padding: "14px 14px 10px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Brand name={name} logo={logo} markSize={29} nameSize={15.5} />
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <span onClick={toggleLang} role="button" tabIndex={0} style={{ fontSize: 12, color: "var(--muted)", fontWeight: 500, cursor: "pointer" }}>
             {lang === "en" ? "বাংলা" : "EN"}
           </span>
           <span onClick={toggleTheme} role="button" tabIndex={0} style={{ cursor: "pointer", display: "flex", color: "var(--text)" }}>
             <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
           </span>
-          <Link href={storeHref(base, "/account")} aria-label={shopperName ? t.myAccount : t.signIn} style={{ display: "flex", color: "var(--text)" }}>
-            <Icon name="user" size={20} />
-          </Link>
-          <button type="button" onClick={goCart} aria-label={t.cart} style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text)", display: "flex" }}>
-            <Icon name="cart" size={22} />
-            {cartCount > 0 ? <CartBadge count={cartCount} compact /> : null}
-          </button>
         </div>
       </div>
       <button type="button" onClick={goSearch} style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--faint)", cursor: "pointer" }}>

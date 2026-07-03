@@ -1,6 +1,7 @@
+// coding-standard: maintained
 import type { ReactNode } from "react";
 import { getStoreContext } from "@/lib/storefront-host";
-import { getStore } from "@/lib/storefront-server";
+import { getStore, getStorePages } from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
 
 /**
@@ -27,12 +28,21 @@ export default async function ShopLayout({
     );
   }
 
-  // Fetch the store server-side so the shell paints the real name/brand/logo
-  // immediately (seeded into the client query as initialData) — no flash.
-  const store = await getStore(slug);
+  // Fetch store + footer pages server-side so the shell paints the real
+  // name/brand/logo immediately and footer links are in the SSR HTML (SEO) —
+  // both seeded into the client queries as initialData.
+  const [store, pages] = await Promise.all([
+    getStore(slug),
+    getStorePages(slug),
+  ]);
 
   return (
-    <StoreShell slug={slug} base={base} initialStore={store ?? undefined}>
+    <StoreShell
+      slug={slug}
+      base={base}
+      initialStore={store ?? undefined}
+      initialPages={pages ?? undefined}
+    >
       {children}
     </StoreShell>
   );

@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -8,6 +9,10 @@ import { createJSONStorage, persist } from "zustand/middleware";
  */
 export interface CartItem {
   productId: string;
+  /** Set for variable products — each variant is its own cart line. */
+  variantId?: string;
+  /** Human label of the picked variant, e.g. "1L" / "Red / XL". */
+  variantLabel?: string;
   slug: string;
   name: string;
   price: number;
@@ -15,6 +20,10 @@ export interface CartItem {
   quantity: number;
   maxQty: number;
 }
+
+/** Cart line identity — a product and one of its variants are distinct lines. */
+export const cartLineKey = (i: { productId: string; variantId?: string }) =>
+  i.variantId ? `${i.productId}:${i.variantId}` : i.productId;
 
 interface CartState {
   storeSlug: string | null;
@@ -25,8 +34,8 @@ interface CartState {
     item: Omit<CartItem, "quantity">,
     qty?: number,
   ) => void;
-  updateQty: (productId: string, qty: number) => void;
-  removeItem: (productId: string) => void;
+  updateQty: (lineKey: string, qty: number) => void;
+  removeItem: (lineKey: string) => void;
   clear: () => void;
 }
 
@@ -45,12 +54,13 @@ export const useCartStore = create<CartState>()(
         set((s) => {
           // Different store → start a fresh cart.
           const base = s.storeSlug === storeSlug ? s.items : [];
-          const existing = base.find((i) => i.productId === item.productId);
+          const key = cartLineKey(item);
+          const existing = base.find((i) => cartLineKey(i) === key);
           const cap = item.maxQty > 0 ? item.maxQty : Infinity;
           let items: CartItem[];
           if (existing) {
             items = base.map((i) =>
-              i.productId === item.productId
+              cartLineKey(i) === key
                 ? { ...i, quantity: Math.min(cap, i.quantity + qty) }
                 : i,
             );
@@ -60,11 +70,11 @@ export const useCartStore = create<CartState>()(
           return { storeSlug, items };
         }),
 
-      updateQty: (productId, qty) =>
+      updateQty: (lineKey, qty) =>
         set((s) => ({
           items: s.items
             .map((i) =>
-              i.productId === productId
+              cartLineKey(i) === lineKey
                 ? {
                     ...i,
                     quantity: Math.max(
@@ -77,8 +87,10 @@ export const useCartStore = create<CartState>()(
             .filter((i) => i.quantity > 0),
         })),
 
-      removeItem: (productId) =>
-        set((s) => ({ items: s.items.filter((i) => i.productId !== productId) })),
+      removeItem: (lineKey) =>
+        set((s) => ({
+          items: s.items.filter((i) => cartLineKey(i) !== lineKey),
+        })),
 
       clear: () => set({ items: [] }),
     }),

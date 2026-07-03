@@ -19,6 +19,11 @@ import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
+import {
+  VariantSelector,
+  defaultSelection,
+  matchVariant,
+} from "@/components/storefront/variant-selector";
 import type { StorefrontImage } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
@@ -44,6 +49,9 @@ export default function ProductDetailPage() {
   const openCart = useCartUI((s) => s.openCart);
   const router = useRouter();
   const [qty, setQty] = useState(1);
+  // Variant chip selection (variable products) — empty until the shopper picks,
+  // in which case the first in-stock variant acts as the default.
+  const [picked, setPicked] = useState<Record<string, string>>({});
 
   if (isLoading) return <p style={{ ...wrap, fontSize: 13, color: "var(--muted)" }}>Loading…</p>;
   if (isError || !product) {
@@ -62,11 +70,31 @@ export default function ProductDetailPage() {
   const galleryTop = variant !== "left";
   const sticky = variant === "sticky";
 
-  const price = product.price ?? 0;
-  const hasOld = !!product.compareAtPrice && product.compareAtPrice > price;
-  const outOfStock = product.availableQuantity <= 0;
   const variable = product.productType === "variable";
-  const images = product.images?.length ? product.images : [];
+  const variants = product.variants ?? [];
+
+  // Selected variant: shopper's picks win, else default to first in-stock.
+  const selection = Object.keys(picked).length
+    ? picked
+    : defaultSelection(variants);
+  const selectedVariant = variable
+    ? matchVariant(variants, selection)
+    : undefined;
+
+  // Variable products price/stock/gallery from the selected variant; a variant
+  // with images swaps the gallery, otherwise the parent images stay.
+  const price = (variable ? selectedVariant?.price : product.price) ?? 0;
+  const compareAt = variable
+    ? selectedVariant?.compareAtPrice
+    : product.compareAtPrice;
+  const hasOld = !!compareAt && compareAt > price;
+  const availableQty = variable
+    ? (selectedVariant?.availableQuantity ?? 0)
+    : product.availableQuantity;
+  const outOfStock = availableQty <= 0;
+  const images = variable && selectedVariant?.images?.length
+    ? selectedVariant.images
+    : (product.images ?? []);
   const main = imgUrl(images[0]);
   const thumbs = images.slice(0, 4);
 
@@ -75,15 +103,20 @@ export default function ProductDetailPage() {
     .slice(0, 4);
 
   const add = () => {
+    if (variable && !selectedVariant) return;
     addItem(
       slug,
       {
         productId: product._id,
+        variantId: selectedVariant?._id,
+        variantLabel: selectedVariant?.label,
         slug: product.slug,
         name: product.name,
         price,
-        image: product.images?.[0]?.thumbnailUrl,
-        maxQty: product.availableQuantity,
+        image:
+          images[0]?.thumbnailUrl ||
+          product.images?.[0]?.thumbnailUrl,
+        maxQty: availableQty,
       },
       qty,
     );
@@ -149,7 +182,7 @@ export default function ProductDetailPage() {
             <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em" }}>{money(price, currency)}</span>
             {hasOld ? (
               <span style={{ fontSize: 15, color: "var(--faint)", textDecoration: "line-through" }}>
-                {money(product.compareAtPrice, currency)}
+                {money(compareAt, currency)}
               </span>
             ) : null}
           </div>
@@ -159,7 +192,9 @@ export default function ProductDetailPage() {
             </p>
           ) : null}
 
-          {variable ? (
+          {variable && variants.length === 0 ? (
+            // Variable product without purchasable variants — fall back to
+            // the call-to-order card instead of an empty selector.
             <div style={{ border: "1px solid var(--border-strong)", background: "var(--surface)", borderRadius: 12, padding: 18, marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 7 }}>
                 <Icon name="mapPin" size={17} />
@@ -177,6 +212,16 @@ export default function ProductDetailPage() {
             </div>
           ) : (
             <div>
+              {variable ? (
+                <VariantSelector
+                  variants={variants}
+                  selection={selection}
+                  onSelect={(next) => {
+                    setPicked(next);
+                    setQty(1);
+                  }}
+                />
+              ) : null}
               <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{t.quantity}</span>
                 <div style={{ display: "flex", alignItems: "center", border: "1px solid var(--border-strong)", borderRadius: 8, overflow: "hidden" }}>
@@ -215,11 +260,11 @@ export default function ProductDetailPage() {
         </div>
       ) : null}
 
-      {sticky && !variable ? (
+      {sticky && (!variable || variants.length > 0) ? (
         <div
           style={{
             position: "sticky",
-            bottom: 0,
+            bottom: "var(--sf-bottom-nav-h, 0px)",
             margin: "28px calc(-1 * var(--pad)) -40px",
             background: "var(--card)",
             borderTop: "1px solid var(--border)",
@@ -232,7 +277,10 @@ export default function ProductDetailPage() {
           }}
         >
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{product.name}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {product.name}
+              {selectedVariant ? ` — ${selectedVariant.label}` : ""}
+            </div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>{money(price, currency)}</div>
           </div>
           <button type="button" disabled={outOfStock} onClick={add} style={{ flex: "none", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "13px 26px", borderRadius: 9, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>

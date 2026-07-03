@@ -506,9 +506,9 @@ function TemplatesSection({
   return (
     <div className="space-y-5">
       <div className="rounded-lg border border-primary/40 bg-primary/5 px-4 py-3 text-xs text-primary">
-        Pick the layout template for each storefront page. Home and footer update
-        in the preview instantly; other pages apply to your live store after you
-        save.
+        Pick the layout template for each storefront page. Sections marked
+        &ldquo;Live preview&rdquo; update in the preview instantly; the rest
+        apply to your live store after you save.
       </div>
       {TEMPLATE_PAGES.map((p) => (
         <Card key={p.key} className="space-y-3 p-5 shadow-none">

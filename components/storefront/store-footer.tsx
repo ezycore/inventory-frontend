@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
@@ -49,13 +50,15 @@ export function StoreFooter({
   slug,
   base,
   store,
+  initialPages,
 }: {
   slug: string;
   base: string;
   store?: StorefrontStore;
+  initialPages?: ContentPageLink[];
 }) {
   const { t } = useStorefrontUI();
-  const { data: pages } = useStorePages(slug);
+  const { data: pages } = useStorePages(slug, initialPages);
   const previewFooter = useSfPreview((s) => s.footer);
 
   const variant: StoreTemplates["footer"] = FOOTER_VARIANTS.includes(

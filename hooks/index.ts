@@ -7,6 +7,7 @@ export * from "../utils";
 // Export page management hooks
 export { useCrudModal } from "./use-crud-handlers";
 export { usePaginationHandler } from "./use-pagination-handler";
+export { useHydrated } from "./use-hydrated";
 
 // Re-export TanStack Query utilities for convenience
 export {

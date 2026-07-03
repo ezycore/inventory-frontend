@@ -1,31 +1,17 @@
 "use client";
 
-import {
-  useState,
-  useSyncExternalStore,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useForgotPassword, useShopperAuth } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Icon } from "@/components/storefront/sf-icons";
-
-// Returns false on the server / first client render, then true — a
-// hydration-safe "is client" signal so we can read the staff session without an
-// SSR mismatch (the storefront SSR is anonymous/cacheable).
-const subscribe = () => () => {};
-const useHydrated = () =>
-  useSyncExternalStore(
-    subscribe,
-    () => true,
-    () => false,
-  );
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -66,6 +52,7 @@ const primaryBtn: CSSProperties = {
 export default function AccountPage() {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
+  const router = useRouter();
   const shopper = useShopperStore((s) => s.shopper);
   const logout = useShopperStore((s) => s.logout);
   const staffUser = useAuthStore((s) => s.user);
@@ -150,16 +137,26 @@ export default function AccountPage() {
     });
   };
 
+  // After auth, bounce back to where the shopper came from (e.g. checkout
+  // redirects here with ?next=/checkout). Relative store paths only.
+  const afterAuth = (message: string) => {
+    toast.success(message);
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) {
+      router.push(storeHref(base, next));
+    }
+  };
+
   const submit = () => {
     if (isLogin) {
       login.mutate(
         { email: form.email, password: form.password },
-        { onSuccess: () => toast.success(t.welcomeBack), onError: (e) => toast.error((e as Error).message) },
+        { onSuccess: () => afterAuth(t.welcomeBack), onError: (e) => toast.error((e as Error).message) },
       );
     } else {
       register.mutate(
         { name: form.name, email: form.email, phone: form.phone || undefined, password: form.password },
-        { onSuccess: () => toast.success(t.accountCreated), onError: (e) => toast.error((e as Error).message) },
+        { onSuccess: () => afterAuth(t.accountCreated), onError: (e) => toast.error((e as Error).message) },
       );
     }
   };

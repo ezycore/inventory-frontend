@@ -45,10 +45,10 @@ type ListedFilter = "all" | "listed" | "unlisted";
 
 /**
  * Why a product can't appear online even when "Listed". The public store only
- * serves active + single products, so flag the others. Returns null if it can.
+ * serves active products (variable products sell per-variant via the PDP
+ * variant selector). Returns null if it can appear.
  */
 function onlineBlockReason(p: CatalogProduct): string | null {
-  if (p.productType === "variable") return "Variable — not supported online";
   if (p.status !== "active") return `${p.status} — won't show online`;
   return null;
 }

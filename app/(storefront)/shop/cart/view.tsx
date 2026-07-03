@@ -5,7 +5,7 @@ import { type CSSProperties } from "react";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { useCartStore } from "@/services/stores/use-cart-store";
+import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
 import { storeHref } from "@/lib/storefront-links";
 import { computeShipping } from "@/lib/storefront-shipping";
 import { money } from "@/components/storefront/format";
@@ -69,21 +69,26 @@ export default function CartPage() {
         <div style={{ display: "grid", gridTemplateColumns: "var(--cartgrid)", gap: "var(--gap)", alignItems: "start" }}>
           <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "6px 18px" }}>
             {items.map((i) => (
-              <div key={i.productId} style={{ display: "flex", gap: 14, padding: "16px 0", borderBottom: "1px solid var(--border)" }}>
+              <div key={cartLineKey(i)} style={{ display: "flex", gap: 14, padding: "16px 0", borderBottom: "1px solid var(--border)" }}>
                 <div style={{ width: 76, height: 76, flex: "none" }}>
                   <Media src={i.image} alt={i.name} radius={10} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3, marginBottom: 10 }}>{i.name}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3, marginBottom: 10 }}>
+                    {i.name}
+                    {i.variantLabel ? (
+                      <span style={{ color: "var(--muted)", fontWeight: 400 }}> · {i.variantLabel}</span>
+                    ) : null}
+                  </div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div style={{ display: "flex", alignItems: "center", border: "1px solid var(--border-strong)", borderRadius: 8, overflow: "hidden" }}>
-                      <button type="button" onClick={() => updateQty(i.productId, i.quantity - 1)} style={qtyBtn}>−</button>
+                      <button type="button" onClick={() => updateQty(cartLineKey(i), i.quantity - 1)} style={qtyBtn}>−</button>
                       <span className="sf-mono" style={{ fontSize: 13, fontWeight: 700, minWidth: 32, textAlign: "center" }}>{i.quantity}</span>
-                      <button type="button" onClick={() => updateQty(i.productId, i.quantity + 1)} style={qtyBtn}>+</button>
+                      <button type="button" onClick={() => updateQty(cartLineKey(i), i.quantity + 1)} style={qtyBtn}>+</button>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                       <span style={{ fontSize: 15, fontWeight: 700 }}>{money(i.price * i.quantity, currency)}</span>
-                      <button type="button" onClick={() => removeItem(i.productId)} aria-label={t.remove} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--faint)", display: "flex" }}>
+                      <button type="button" onClick={() => removeItem(cartLineKey(i))} aria-label={t.remove} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--faint)", display: "flex" }}>
                         <Icon name="close" size={16} />
                       </button>
                     </div>

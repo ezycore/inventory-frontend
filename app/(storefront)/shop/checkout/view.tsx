@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { usePlaceOrder, useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { useCartStore } from "@/services/stores/use-cart-store";
+import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { storefrontApi } from "@/lib/storefront-client";
 import type { StorefrontOrder } from "@/lib/storefront-client";
@@ -48,9 +49,18 @@ export default function CheckoutPage() {
   const { t, lang } = useStorefrontUI();
   const { data: store } = useStore(slug);
   const placeOrder = usePlaceOrder(slug);
+  const router = useRouter();
 
   const shopper = useShopperStore((s) => s.shopper);
   const token = useShopperStore((s) => s.token);
+
+  // Guests go straight to sign-in (no intermediate "Account" step) and bounce
+  // back here after — the account page honours `?next=`.
+  useEffect(() => {
+    if (!shopper) {
+      router.replace(storeHref(base, "/account?next=/checkout"));
+    }
+  }, [shopper, router, base]);
   const storeSlug = useCartStore((s) => s.storeSlug);
   const allItems = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
@@ -89,7 +99,7 @@ export default function CheckoutPage() {
     try {
       const res = await storefrontApi.validateCoupon(slug, token, {
         code: coupon.trim(),
-        items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        items: items.map((i) => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })),
       });
       setApplied(res);
       toast.success(`${res.code} · ${money(res.discountAmount, currency)}`);
@@ -106,7 +116,7 @@ export default function CheckoutPage() {
   const submit = () => {
     placeOrder.mutate(
       {
-        items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        items: items.map((i) => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })),
         shippingAddress: {
           name: addr.name,
           phone: addr.phone,
@@ -131,15 +141,12 @@ export default function CheckoutPage() {
 
   // ----- gates -----
   if (!shopper) {
+    // The effect above is redirecting to sign-in; render a quiet placeholder.
     return (
       <div style={wrap}>
-        <div style={{ maxWidth: 420, margin: "0 auto", textAlign: "center" }}>
-          <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, marginBottom: 12 }}>{t.checkout}</h1>
-          <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 16 }}>{t.account}</p>
-          <Link href={storeHref(base, "/account")} style={primaryLink}>
-            {t.account}
-          </Link>
-        </div>
+        <p style={{ fontSize: 13, color: "var(--muted)", textAlign: "center" }}>
+          {t.signIn}…
+        </p>
       </div>
     );
   }
@@ -219,7 +226,7 @@ export default function CheckoutPage() {
                 >
                   {st.n}
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{st.label}</span>
+                <span className="sf-desktop-only" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{st.label}</span>
               </div>
               {idx < steps.length - 1 ? (
                 <span style={{ flex: 1, height: 1, background: "var(--border-strong)", margin: "0 12px" }} />
@@ -301,9 +308,11 @@ export default function CheckoutPage() {
             <div>
               <div style={label}>{t.reviewOrder}</div>
               {items.map((i) => (
-                <div key={i.productId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid var(--border)", fontSize: 13.5 }}>
+                <div key={cartLineKey(i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid var(--border)", fontSize: 13.5 }}>
                   <span>
-                    {i.name} <span className="sf-mono" style={{ color: "var(--faint)" }}>×{i.quantity}</span>
+                    {i.name}
+                    {i.variantLabel ? <span style={{ color: "var(--muted)" }}> · {i.variantLabel}</span> : null}{" "}
+                    <span className="sf-mono" style={{ color: "var(--faint)" }}>×{i.quantity}</span>
                   </span>
                   <span className="sf-mono" style={{ fontWeight: 600 }}>{money(i.price * i.quantity, currency)}</span>
                 </div>

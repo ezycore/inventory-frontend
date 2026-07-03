@@ -1,4 +1,6 @@
+// coding-standard: maintained
 import type { Coupon } from "@/services/api";
+import { DiscountCell } from "@/components/ecommerce/discount-cell";
 import { DateCell } from "@/ui/components/dataTable/cells";
 import { StatusBadge } from "@/ui/components/status-badge";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -16,10 +18,9 @@ export const couponColumns: ColumnDef<Coupon>[] = [
   {
     accessorKey: "value",
     header: "Discount",
-    cell: ({ row }) => {
-      const c = row.original;
-      return <span>{c.type === "percentage" ? `${c.value}%` : c.value}</span>;
-    },
+    cell: ({ row }) => (
+      <DiscountCell type={row.original.type} value={row.original.value} />
+    ),
   },
   {
     accessorKey: "usedCount",

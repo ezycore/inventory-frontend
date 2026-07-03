@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useStore } from "@/services/storefront/hooks";
-import { useCartStore } from "@/services/stores/use-cart-store";
+import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
 import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -43,6 +43,10 @@ export function CartDrawer() {
   const goCheckout = () => {
     closeCart();
     router.push(storeHref(base, "/checkout"));
+  };
+  const goCartPage = () => {
+    closeCart();
+    router.push(storeHref(base, "/cart"));
   };
 
   return (
@@ -124,7 +128,7 @@ export function CartDrawer() {
             <div style={{ flex: 1, overflowY: "auto", padding: "8px 20px" }}>
               {items.map((i) => (
                 <div
-                  key={i.productId}
+                  key={cartLineKey(i)}
                   style={{ display: "flex", gap: 12, padding: "13px 0", borderBottom: "1px solid var(--border)" }}
                 >
                   <div style={{ width: 60, height: 60, flex: "none" }}>
@@ -133,6 +137,9 @@ export function CartDrawer() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.3, marginBottom: 6 }}>
                       {i.name}
+                      {i.variantLabel ? (
+                        <span style={{ color: "var(--muted)", fontWeight: 400 }}> · {i.variantLabel}</span>
+                      ) : null}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div
@@ -144,13 +151,13 @@ export function CartDrawer() {
                           overflow: "hidden",
                         }}
                       >
-                        <button type="button" onClick={() => updateQty(i.productId, i.quantity - 1)} style={qtyBtn()}>
+                        <button type="button" onClick={() => updateQty(cartLineKey(i), i.quantity - 1)} style={qtyBtn()}>
                           −
                         </button>
                         <span className="sf-mono" style={{ fontSize: 13, fontWeight: 600, minWidth: 26, textAlign: "center" }}>
                           {i.quantity}
                         </span>
-                        <button type="button" onClick={() => updateQty(i.productId, i.quantity + 1)} style={qtyBtn()}>
+                        <button type="button" onClick={() => updateQty(cartLineKey(i), i.quantity + 1)} style={qtyBtn()}>
                           +
                         </button>
                       </div>
@@ -160,7 +167,7 @@ export function CartDrawer() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => removeItem(i.productId)}
+                          onClick={() => removeItem(cartLineKey(i))}
                           aria-label={t.remove}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "var(--faint)", display: "flex" }}
                         >
@@ -177,6 +184,26 @@ export function CartDrawer() {
               <Row label={t.shipping} value={shipping === 0 ? t.free : money(shipping, currency)} muted />
               <button type="button" onClick={goCheckout} style={{ ...primaryBtn(), width: "100%", marginTop: 6 }}>
                 {t.proceed} · {money(total, currency)}
+              </button>
+              {/* Full cart page for editing at leisure — the drawer stays the quick path. */}
+              <button
+                type="button"
+                onClick={goCartPage}
+                style={{
+                  width: "100%",
+                  marginTop: 8,
+                  background: "transparent",
+                  color: "var(--text)",
+                  border: "1px solid var(--border-strong)",
+                  padding: "11px 22px",
+                  borderRadius: 8,
+                  fontFamily: "inherit",
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {t.viewCart}
               </button>
             </div>
           </>

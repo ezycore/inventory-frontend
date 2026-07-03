@@ -2,7 +2,7 @@
 
 import { Suspense, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useStore, useStoreProducts } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
@@ -103,7 +103,9 @@ function SearchRow({
   addedLabel: string;
 }) {
   const addItem = useCartStore((s) => s.addItem);
+  const router = useRouter();
   const thumb = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
+  const pdp = storeHref(base, `/products/${product.slug}`);
   return (
     <div style={{ display: "flex", gap: 14, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 12, alignItems: "center" }}>
       <Link href={storeHref(base, `/products/${product.slug}`)} style={{ width: 84, height: 84, flex: "none" }}>
@@ -116,6 +118,11 @@ function SearchRow({
       <button
         type="button"
         onClick={() => {
+          // Variable products need a variant picked on the PDP first.
+          if (product.hasVariants) {
+            router.push(pdp);
+            return;
+          }
           addItem(slug, {
             productId: product._id,
             slug: product.slug,
