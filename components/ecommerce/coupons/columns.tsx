@@ -1,8 +1,8 @@
 // coding-standard: maintained
 import type { Coupon } from "@/services/api";
 import { DiscountCell } from "@/components/ecommerce/discount-cell";
+import { LifecycleBadge } from "@/components/ecommerce/lifecycle-badge";
 import { DateCell } from "@/ui/components/dataTable/cells";
-import { StatusBadge } from "@/ui/components/status-badge";
 import type { ColumnDef } from "@tanstack/react-table";
 
 export const couponColumns: ColumnDef<Coupon>[] = [
@@ -48,6 +48,12 @@ export const couponColumns: ColumnDef<Coupon>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    cell: ({ row }) => (
+      <LifecycleBadge
+        status={row.original.status}
+        startsAt={row.original.validFrom}
+        endsAt={row.original.validUntil}
+      />
+    ),
   },
 ];

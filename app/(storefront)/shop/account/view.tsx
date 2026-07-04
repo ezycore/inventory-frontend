@@ -12,6 +12,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Icon } from "@/components/storefront/sf-icons";
+import { AccountArea } from "@/components/storefront/account/account-area";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -54,7 +55,6 @@ export default function AccountPage() {
   const { t } = useStorefrontUI();
   const router = useRouter();
   const shopper = useShopperStore((s) => s.shopper);
-  const logout = useShopperStore((s) => s.logout);
   const staffUser = useAuthStore((s) => s.user);
   const hydrated = useHydrated();
   const { register, login } = useShopperAuth(slug);
@@ -66,58 +66,10 @@ export default function AccountPage() {
     setForm((f) => ({ ...f, [k]: v }));
 
   /* ----------------------------- logged-in shopper ---------------------------- */
-  if (shopper) {
-    return (
-      <div style={wrap}>
-        <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 16px", letterSpacing: "-0.02em" }}>{t.myAccount}</h1>
-        <div style={{ display: "flex", gap: 26, borderBottom: "1px solid var(--border)", marginBottom: 24 }}>
-          <span style={{ borderBottom: "2px solid var(--primary)", paddingBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--primary)" }}>
-            {t.tabProfile}
-          </span>
-          <Link href={storeHref(base, "/account/orders")} style={{ paddingBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>
-            {t.tabOrders}
-          </Link>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "var(--cartgrid)", gap: "var(--gap)", alignItems: "start" }}>
-          <div style={card}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--primary)", color: "var(--on-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700 }}>
-                {shopper.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div style={{ fontSize: 17, fontWeight: 700 }}>{shopper.name}</div>
-                <div style={{ fontSize: 13, color: "var(--muted)" }}>{shopper.email}</div>
-              </div>
-            </div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 12 }}>
-              {t.personalInfo}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <InfoRow label={t.name} value={shopper.name} />
-              {shopper.phone ? <InfoRow label={t.phone} value={shopper.phone} mono /> : null}
-              <InfoRow label={t.email} value={shopper.email} last />
-            </div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
-            <Link href={storeHref(base, "/account/orders")} style={{ ...card, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14, fontWeight: 600 }}>{t.orderHistory}</span>
-              <Icon name="chevR" size={16} />
-            </Link>
-            <button
-              type="button"
-              onClick={() => {
-                logout();
-                toast.success(t.logout);
-              }}
-              style={{ ...card, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "var(--text)" }}
-            >
-              {t.logout}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+  // Persisted-store gate: render nothing account-specific until hydration so
+  // the first client render matches the anonymous SSR HTML.
+  if (shopper && hydrated) {
+    return <AccountArea shopper={shopper} />;
   }
 
   /* ------------------------------- auth (guest) ------------------------------- */
@@ -293,14 +245,5 @@ function Field({
       </span>
       {children}
     </label>
-  );
-}
-
-function InfoRow({ label, value, mono, last }: { label: string; value: string; mono?: boolean; last?: boolean }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: last ? 0 : 11, borderBottom: last ? "none" : "1px solid var(--border)" }}>
-      <span style={{ fontSize: 13, color: "var(--muted)" }}>{label}</span>
-      <span className={mono ? "sf-mono" : undefined} style={{ fontSize: 13.5, fontWeight: 500 }}>{value}</span>
-    </div>
   );
 }

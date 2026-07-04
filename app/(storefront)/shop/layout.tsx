@@ -1,7 +1,11 @@
 // coding-standard: maintained
 import type { ReactNode } from "react";
 import { getStoreContext } from "@/lib/storefront-host";
-import { getStore, getStorePages } from "@/lib/storefront-server";
+import {
+  getStore,
+  getStoreCampaigns,
+  getStorePages,
+} from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
 
 /**
@@ -28,12 +32,13 @@ export default async function ShopLayout({
     );
   }
 
-  // Fetch store + footer pages server-side so the shell paints the real
-  // name/brand/logo immediately and footer links are in the SSR HTML (SEO) —
-  // both seeded into the client queries as initialData.
-  const [store, pages] = await Promise.all([
+  // Fetch store + footer pages + live campaigns server-side so the shell
+  // paints the real name/brand/logo immediately and footer links + the
+  // campaign strip are in the SSR HTML — all seeded as initialData.
+  const [store, pages, campaigns] = await Promise.all([
     getStore(slug),
     getStorePages(slug),
+    getStoreCampaigns(slug),
   ]);
 
   return (
@@ -42,6 +47,7 @@ export default async function ShopLayout({
       base={base}
       initialStore={store ?? undefined}
       initialPages={pages ?? undefined}
+      initialCampaigns={campaigns ?? undefined}
     >
       {children}
     </StoreShell>

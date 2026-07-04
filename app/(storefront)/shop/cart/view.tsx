@@ -68,8 +68,8 @@ export default function CartPage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "var(--cartgrid)", gap: "var(--gap)", alignItems: "start" }}>
           <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "6px 18px" }}>
-            {items.map((i) => (
-              <div key={cartLineKey(i)} style={{ display: "flex", gap: 14, padding: "16px 0", borderBottom: "1px solid var(--border)" }}>
+            {items.map((i, index) => (
+              <div key={cartLineKey(i)} style={{ display: "flex", gap: 14, padding: "16px 0", borderBottom: index < items.length-1 ? "1px solid var(--border)" : "none" }}>
                 <div style={{ width: 76, height: 76, flex: "none" }}>
                   <Media src={i.image} alt={i.name} radius={10} />
                 </div>

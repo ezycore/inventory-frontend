@@ -154,6 +154,9 @@ export interface StoreCampaign {
   type: string;
   value: number;
   scope: string;
+  /** Target ids (category/product scope) — used to build the strip's link. */
+  targets?: string[];
+  endsAt?: string;
 }
 
 export interface CatalogCategory {
@@ -167,13 +170,36 @@ export interface ProductListResult {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
+/** Account communication preferences (Notifications section). */
+export interface ShopperPrefs {
+  promoEmail: boolean;
+  orderSms: boolean;
+  priceDrop: boolean;
+  newsletter: boolean;
+}
+
+/** Saved delivery address (account address book). */
+export interface ShopperAddress {
+  id?: string;
+  label: string;
+  line: string;
+  phone?: string;
+  isDefault: boolean;
+}
+
 export interface ShopperProfile {
   id: string;
   name: string;
   email: string;
   phone?: string;
+  gender?: "male" | "female" | "other";
+  /** Birthday as a plain YYYY-MM-DD string. */
+  dob?: string;
+  prefs?: ShopperPrefs;
+  addresses?: ShopperAddress[];
   emailVerified: boolean;
   customerId?: string;
+  createdAt?: string;
 }
 
 export interface ShopperAuthResult {
@@ -296,6 +322,49 @@ export const storefrontApi = {
     sfFetch<ShopperAuthResult>(slug, "/auth/login", { method: "POST", body }),
   me: (slug: string, token: string) =>
     sfFetch<ShopperProfile>(slug, "/auth/me", { token }),
+  // Account: profile (email/phone are locked server-side), prefs, addresses.
+  updateProfile: (
+    slug: string,
+    token: string,
+    body: { name?: string; gender?: "male" | "female" | "other"; dob?: string },
+  ) => sfFetch<ShopperProfile>(slug, "/auth/me", { method: "PATCH", body, token }),
+  updatePrefs: (slug: string, token: string, body: Partial<ShopperPrefs>) =>
+    sfFetch<ShopperProfile>(slug, "/auth/me/prefs", {
+      method: "PUT",
+      body,
+      token,
+    }),
+  addAddress: (
+    slug: string,
+    token: string,
+    body: { label: string; line: string; phone?: string; isDefault?: boolean },
+  ) =>
+    sfFetch<ShopperProfile>(slug, "/auth/me/addresses", {
+      method: "POST",
+      body,
+      token,
+    }),
+  updateAddress: (
+    slug: string,
+    token: string,
+    addressId: string,
+    body: Partial<{
+      label: string;
+      line: string;
+      phone: string;
+      isDefault: boolean;
+    }>,
+  ) =>
+    sfFetch<ShopperProfile>(slug, `/auth/me/addresses/${addressId}`, {
+      method: "PATCH",
+      body,
+      token,
+    }),
+  deleteAddress: (slug: string, token: string, addressId: string) =>
+    sfFetch<ShopperProfile>(slug, `/auth/me/addresses/${addressId}`, {
+      method: "DELETE",
+      token,
+    }),
   verifyEmail: (slug: string, token: string) =>
     sfFetch<{ emailVerified: boolean }>(slug, "/auth/verify-email", {
       method: "POST",

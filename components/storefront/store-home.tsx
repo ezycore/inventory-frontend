@@ -19,6 +19,19 @@ import { money } from "@/components/storefront/format";
 
 const wrap: CSSProperties = { maxWidth: "var(--maxw)", margin: "0 auto", width: "100%" };
 
+/**
+ * Hero badge text from the live campaign ("test · 2% off"), so the homepage
+ * never claims a sale that isn't running; null falls back to template copy.
+ */
+function campaignBadge(props: TplProps): string | null {
+  const c =
+    props.campaigns.find((x) => x.scope === "storewide") ?? props.campaigns[0];
+  if (!c) return null;
+  const amount =
+    c.type === "percentage" ? `${c.value}%` : money(c.value, props.currency);
+  return `${c.name} · ${amount} ${props.t.campaignOff}`;
+}
+
 type TplName = "classic" | "hero-split" | "minimal";
 const HOME_VARIANTS: readonly string[] = ["classic", "hero-split", "minimal"];
 
@@ -137,7 +150,8 @@ function heroBtns(base: string, t: TplProps["t"], primaryLabel: string) {
 }
 
 /* ---------------- Template A: Classic ---------------- */
-function Classic({ base, currency, featured, latest, categories, t, banner }: TplProps) {
+function Classic(props: TplProps) {
+  const { base, currency, featured, latest, categories, t, banner } = props;
   return (
     <div>
       <div style={{ ...wrap, padding: "var(--pad)" }}>
@@ -167,7 +181,7 @@ function Classic({ base, currency, featured, latest, categories, t, banner }: Tp
                 marginBottom: 16,
               }}
             >
-              {t.eidBadge}
+              {campaignBadge(props) ?? t.eidBadge}
             </span>
             <h1
               style={{

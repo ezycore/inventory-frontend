@@ -4,6 +4,8 @@ import {
   storefrontApi,
   type ContentPageLink,
   type PlaceOrderInput,
+  type ShopperPrefs,
+  type StoreCampaign,
   type StorefrontStore,
 } from "@/lib/storefront-client";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
@@ -48,12 +50,15 @@ export const useStoreCategories = (slug: string) =>
     staleTime: 5 * 60 * 1000,
   });
 
-export const useStoreCampaigns = (slug: string) =>
+// `initialData` (server-fetched in shop/layout.tsx) seeds the cache so the
+// campaign strip is in the SSR HTML instead of popping in after hydration.
+export const useStoreCampaigns = (slug: string, initialData?: StoreCampaign[]) =>
   useQuery({
     queryKey: key(slug, "campaigns"),
     queryFn: () => storefrontApi.listCampaigns(slug),
     enabled: !!slug,
     staleTime: 60 * 1000,
+    initialData,
   });
 
 // `initialData` (server-fetched in shop/layout.tsx) seeds the cache so footer
@@ -111,6 +116,61 @@ export const useShopperAuth = (slug: string) => {
   });
 
   return { register, login };
+};
+
+/**
+ * Account-page mutations (profile / preferences / address book). Every call
+ * returns the full refreshed profile, which replaces the persisted shopper so
+ * the whole storefront reflects the change immediately.
+ */
+export const useShopperAccount = (slug: string) => {
+  const token = useShopperStore((s) => s.token);
+  const setShopper = useShopperStore((s) => s.setShopper);
+  const onSuccess = (shopper: Parameters<typeof setShopper>[0]) =>
+    setShopper(shopper);
+
+  const updateProfile = useMutation({
+    mutationFn: (body: {
+      name?: string;
+      gender?: "male" | "female" | "other";
+      dob?: string;
+    }) => storefrontApi.updateProfile(slug, token!, body),
+    onSuccess,
+  });
+  const updatePrefs = useMutation({
+    mutationFn: (body: Partial<ShopperPrefs>) =>
+      storefrontApi.updatePrefs(slug, token!, body),
+    onSuccess,
+  });
+  const addAddress = useMutation({
+    mutationFn: (body: {
+      label: string;
+      line: string;
+      phone?: string;
+      isDefault?: boolean;
+    }) => storefrontApi.addAddress(slug, token!, body),
+    onSuccess,
+  });
+  const updateAddress = useMutation({
+    mutationFn: ({
+      addressId,
+      ...body
+    }: {
+      addressId: string;
+      label?: string;
+      line?: string;
+      phone?: string;
+      isDefault?: boolean;
+    }) => storefrontApi.updateAddress(slug, token!, addressId, body),
+    onSuccess,
+  });
+  const deleteAddress = useMutation({
+    mutationFn: (addressId: string) =>
+      storefrontApi.deleteAddress(slug, token!, addressId),
+    onSuccess,
+  });
+
+  return { updateProfile, updatePrefs, addAddress, updateAddress, deleteAddress };
 };
 
 /** Shopper's own order history (requires a shopper session). */

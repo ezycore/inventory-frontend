@@ -4,13 +4,18 @@
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ContentPageLink, StorefrontStore } from "@/lib/storefront-client";
+import type {
+  ContentPageLink,
+  StoreCampaign,
+  StorefrontStore,
+} from "@/lib/storefront-client";
 import { useStore, useStoreCategories } from "@/services/storefront/hooks";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
+import { CampaignStrip } from "@/components/storefront/campaign-strip";
 import { StoreHeader } from "@/components/storefront/store-header";
 import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
 import { StoreFooter } from "@/components/storefront/store-footer";
@@ -29,12 +34,14 @@ export function StoreShell({
   base,
   initialStore,
   initialPages,
+  initialCampaigns,
   children,
 }: {
   slug: string;
   base: string;
   initialStore?: StorefrontStore;
   initialPages?: ContentPageLink[];
+  initialCampaigns?: StoreCampaign[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -108,6 +115,14 @@ export function StoreShell({
           base={base}
           store={store}
           categories={categories ?? []}
+        />
+
+        {/* Running-campaign promo strip (only when a campaign window is live). */}
+        <CampaignStrip
+          slug={slug}
+          base={base}
+          currency={store?.currency}
+          initialCampaigns={initialCampaigns}
         />
 
         {/* Breadcrumb */}

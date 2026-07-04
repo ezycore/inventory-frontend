@@ -23,6 +23,51 @@ export interface Dict {
   selectOptions: string;
   /** Drawer link to the full /cart page. */
   viewCart: string;
+  /** Campaign strip: "«name» — 10% off · Ends 4 Jul". */
+  campaignOff: string;
+  campaignEnds: string;
+  /* --- account area (sidebar + sections, Rashid's Mart design) --- */
+  tabWishlist: string;
+  tabAddresses: string;
+  tabPrefs: string;
+  navProfileDesc: string;
+  navOrdersDesc: string;
+  navWishDesc: string;
+  navAddrDesc: string;
+  navPrefsDesc: string;
+  personalDetails: string;
+  fullNameLabel: string;
+  genderLabel: string;
+  dobLabel: string;
+  emailLabel: string;
+  phoneLabel: string;
+  male: string;
+  female: string;
+  other: string;
+  lockedNote: string;
+  verified: string;
+  saveChanges: string;
+  cancelEdit: string;
+  prefsTitle: string;
+  prefsSub: string;
+  promoEmailT: string;
+  promoEmailS: string;
+  orderSmsT: string;
+  orderSmsS: string;
+  priceDropT: string;
+  priceDropS: string;
+  newsletterT: string;
+  newsletterS: string;
+  addNewAddress: string;
+  workAddr: string;
+  profileSaved: string;
+  wishEmpty: string;
+  wishEmptyMsg: string;
+  moveToCart: string;
+  savedItems: string;
+  backToOrders: string;
+  removeLabel: string;
+  setDefault: string;
   deliverDhaka: string;
   trackOrder: string;
   help: string;
@@ -213,6 +258,49 @@ const en: Dict = {
   fromPrice: "From",
   selectOptions: "Select options",
   viewCart: "View cart",
+  campaignOff: "off",
+  campaignEnds: "Ends",
+  tabWishlist: "Wishlist",
+  tabAddresses: "Addresses",
+  tabPrefs: "Notifications",
+  navProfileDesc: "Personal details",
+  navOrdersDesc: "History & tracking",
+  navWishDesc: "Saved items",
+  navAddrDesc: "Delivery locations",
+  navPrefsDesc: "Emails & alerts",
+  personalDetails: "Personal details",
+  fullNameLabel: "Full name",
+  genderLabel: "Gender",
+  dobLabel: "Date of birth",
+  emailLabel: "Email address",
+  phoneLabel: "Phone number",
+  male: "Male",
+  female: "Female",
+  other: "Other",
+  lockedNote: "Contact support to change",
+  verified: "Verified",
+  saveChanges: "Save changes",
+  cancelEdit: "Cancel",
+  prefsTitle: "Notifications",
+  prefsSub: "Choose what you want to hear about.",
+  promoEmailT: "Promotional emails",
+  promoEmailS: "Deals, offers and seasonal sales",
+  orderSmsT: "Order updates by SMS",
+  orderSmsS: "Delivery and status notifications",
+  priceDropT: "Price-drop alerts",
+  priceDropS: "When wishlist items get cheaper",
+  newsletterT: "Weekly newsletter",
+  newsletterS: "New arrivals and curated picks",
+  addNewAddress: "Add address",
+  workAddr: "Office",
+  profileSaved: "Profile updated",
+  wishEmpty: "Your wishlist is empty",
+  wishEmptyMsg: "Tap the heart on any product to save it here for later.",
+  moveToCart: "Move to cart",
+  savedItems: "saved",
+  backToOrders: "Back to orders",
+  removeLabel: "Remove",
+  setDefault: "Set as default",
   viewAll: "View all",
   added: "Added to cart",
   deliverDhaka: "Same-day delivery in Dhaka",
@@ -406,6 +494,49 @@ const bn: Dict = {
   fromPrice: "শুরু",
   selectOptions: "ভ্যারিয়েন্ট বাছাই করুন",
   viewCart: "কার্ট দেখুন",
+  campaignOff: "ছাড়",
+  campaignEnds: "শেষ",
+  tabWishlist: "উইশলিস্ট",
+  tabAddresses: "ঠিকানা",
+  tabPrefs: "নোটিফিকেশন",
+  navProfileDesc: "ব্যক্তিগত তথ্য",
+  navOrdersDesc: "হিস্ট্রি ও ট্র্যাকিং",
+  navWishDesc: "সংরক্ষিত পণ্য",
+  navAddrDesc: "ডেলিভারি ঠিকানা",
+  navPrefsDesc: "ইমেইল ও অ্যালার্ট",
+  personalDetails: "ব্যক্তিগত তথ্য",
+  fullNameLabel: "পুরো নাম",
+  genderLabel: "লিঙ্গ",
+  dobLabel: "জন্ম তারিখ",
+  emailLabel: "ইমেইল ঠিকানা",
+  phoneLabel: "ফোন নম্বর",
+  male: "পুরুষ",
+  female: "মহিলা",
+  other: "অন্যান্য",
+  lockedNote: "পরিবর্তনে সাপোর্টে যোগাযোগ করুন",
+  verified: "ভেরিফায়েড",
+  saveChanges: "সেভ করুন",
+  cancelEdit: "বাতিল",
+  prefsTitle: "নোটিফিকেশন",
+  prefsSub: "আপনি কী জানতে চান তা বেছে নিন।",
+  promoEmailT: "প্রোমোশনাল ইমেইল",
+  promoEmailS: "ডিল, অফার ও সিজনাল সেল",
+  orderSmsT: "এসএমএসে অর্ডার আপডেট",
+  orderSmsS: "ডেলিভারি ও স্ট্যাটাস নোটিফিকেশন",
+  priceDropT: "দাম কমার অ্যালার্ট",
+  priceDropS: "উইশলিস্টের পণ্যের দাম কমলে",
+  newsletterT: "সাপ্তাহিক নিউজলেটার",
+  newsletterS: "নতুন পণ্য ও বাছাই",
+  addNewAddress: "ঠিকানা যোগ করুন",
+  workAddr: "অফিস",
+  profileSaved: "প্রোফাইল আপডেট হয়েছে",
+  wishEmpty: "আপনার উইশলিস্ট খালি",
+  wishEmptyMsg: "যেকোনো পণ্যের হার্টে ট্যাপ করে এখানে সংরক্ষণ করুন।",
+  moveToCart: "কার্টে নিন",
+  savedItems: "সংরক্ষিত",
+  backToOrders: "অর্ডারে ফিরুন",
+  removeLabel: "মুছুন",
+  setDefault: "ডিফল্ট করুন",
   viewAll: "সব দেখুন",
   added: "কার্টে যোগ হয়েছে",
   deliverDhaka: "ঢাকায় একই দিনে ডেলিভারি",

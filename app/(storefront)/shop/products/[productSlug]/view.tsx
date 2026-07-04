@@ -13,6 +13,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useCartUI } from "@/services/stores/use-cart-ui-store";
+import { useWishlistStore } from "@/services/stores/use-wishlist-store";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
@@ -47,6 +48,12 @@ export default function ProductDetailPage() {
   const { data: relatedData } = useStoreProducts(slug, { limit: 8 });
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartUI((s) => s.openCart);
+  const toggleWish = useWishlistStore((s) => s.toggle);
+  const wished = useWishlistStore(
+    (s) =>
+      s.storeSlug === slug &&
+      s.items.some((i) => i.productId === product?._id),
+  );
   const router = useRouter();
   const [qty, setQty] = useState(1);
   // Variant chip selection (variable products) — empty until the shopper picks,
@@ -128,6 +135,17 @@ export default function ProductDetailPage() {
     if (resolveTemplates(store).cart === "drawer") openCart();
     else router.push(storeHref(base, "/cart"));
   };
+
+  const onWish = () =>
+    toggleWish(slug, {
+      productId: product._id,
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
+      image: product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url,
+      hasVariants: variable,
+    });
 
   return (
     <div style={wrap}>
@@ -236,6 +254,28 @@ export default function ProductDetailPage() {
                 </button>
                 <button type="button" disabled={outOfStock} onClick={buyNow} style={{ flex: 1, minWidth: 130, background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", padding: "14px 22px", borderRadius: 9, fontFamily: "inherit", fontSize: 14.5, fontWeight: 600, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
                   {t.buyNow}
+                </button>
+                {/* Wishlist heart — saved items appear in Account → Wishlist. */}
+                <button
+                  type="button"
+                  onClick={onWish}
+                  aria-label={t.tabWishlist}
+                  aria-pressed={wished}
+                  style={{
+                    flex: "none",
+                    width: 52,
+                    background: wished ? "var(--primary-soft)" : "transparent",
+                    color: wished ? "var(--primary)" : "var(--muted)",
+                    border: "1px solid var(--border-strong)",
+                    padding: 14,
+                    borderRadius: 9,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Icon name={wished ? "heartFill" : "heart"} size={20} />
                 </button>
               </div>
             </div>
