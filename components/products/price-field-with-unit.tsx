@@ -1,7 +1,7 @@
 "use client";
 
 import { useWatch } from "react-hook-form";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { useSelectOptions } from "@/services/api";
 import { cn } from "@/ui/lib/utils";
 
@@ -47,28 +47,18 @@ export default function PriceFieldWithUnit({
 
   return (
     <div className="relative w-full">
-      <Input
-        value={value ?? ""}
+      <NumberField
+        value={value === "" || value == null ? null : Number(value)}
         onBlur={onBlur}
-        type="number"
+        precision={2}
         placeholder={placeholder}
         disabled={disabled}
         min={0}
-        // step={1}
-        onChange={(e) => {
-          const raw = e.target.value;
-          if (raw === "") {
-            onChange?.("");
-            return;
-          }
-          const parsed = parseFloat(raw);
-          onChange?.(isNaN(parsed) ? "" : parsed);
-        }}
+        onChange={(v) => onChange?.(v ?? "")}
         className={cn(
           "w-full",
           suffix ? "pr-16" : "",
           error ? "border-red-500" : "",
-          "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         )}
       />
       {suffix && (

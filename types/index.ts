@@ -1248,6 +1248,9 @@ export interface PurchaseOrderItem {
   inventoryId?: string;
   quantity: number;
   receivedQuantity: number;
+  // Sum of this line returned across COMPLETED returns (derived by the API on
+  // the order-detail read). Used to cap net-returnable in the return UI.
+  returnedQuantity?: number;
   price: number;
   costPrice?: number;
   subtotal: number;

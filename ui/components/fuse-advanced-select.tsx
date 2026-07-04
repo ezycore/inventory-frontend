@@ -205,7 +205,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     }
 
     const defaultOption = finalOptions.find(
-      (opt) => (opt as Record<string, unknown>)[defaultFlag] === true,
+      (opt) => (opt as unknown as Record<string, unknown>)[defaultFlag] === true,
     );
     if (defaultOption) {
       defaultAppliedRef.current = true;

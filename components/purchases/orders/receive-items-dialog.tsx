@@ -14,6 +14,8 @@ import {
   DialogTitle,
 } from "@/ui/components/dialog";
 import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
+import { DatePicker } from "@/ui/components/date-picker";
 import { Label } from "@/ui/components/label";
 import { Separator } from "@/ui/components/separator";
 import SimpleSelect from "@/ui/components/simple-select";
@@ -203,16 +205,12 @@ export function ReceiveItemsDialog({
                   {isExpiryEnabled && (
                     <>
                       <TableCell>
-                        <Input
-                          type="date"
-                          value={item.expiryDate ?? ""}
-                          onChange={(e) =>
-                            handleExpiryFieldChange(
-                              index,
-                              "expiryDate",
-                              e.target.value,
-                            )
+                        <DatePicker
+                          date={item.expiryDate || undefined}
+                          onSelect={(d) =>
+                            handleExpiryFieldChange(index, "expiryDate", d ?? "")
                           }
+                          placeholder="Expiry"
                           className="h-8"
                         />
                       </TableCell>
@@ -321,14 +319,13 @@ export function ReceiveItemsDialog({
                 </div>
                 <div className="space-y-1.5 col-span-2">
                   <Label htmlFor="receive-paid">Paid Amount</Label>
-                  <Input
+                  <NumberField
                     id="receive-paid"
-                    type="number"
+                    precision={2}
                     min={0}
                     max={currentDue}
-                    step="0.01"
-                    value={paidAmount}
-                    onChange={(e) => setPaidAmount(e.target.value)}
+                    value={paidAmount === "" ? null : Number(paidAmount)}
+                    onChange={(v) => setPaidAmount(v == null ? "" : String(v))}
                     placeholder="0.00"
                   />
                 </div>

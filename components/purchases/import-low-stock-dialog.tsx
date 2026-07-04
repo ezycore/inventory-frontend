@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from "@/ui/components/dialog";
 import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import {
   Select,
@@ -479,11 +480,11 @@ export function ImportLowStockDialog({
             {/* Discount Value */}
             <div className="space-y-1 w-full">
               <Label className="text-xs">Discount Value</Label>
-              <Input
-                type="number"
+              <NumberField
+                precision={2}
                 min={0}
                 value={discountValue}
-                onChange={(e) => setDiscountValueState(Number(e.target.value) || 0)}
+                onChange={(v) => setDiscountValueState(v ?? 0)}
                 className="h-9"
                 placeholder="0"
               />
@@ -645,13 +646,11 @@ export function ImportLowStockDialog({
                       </td>
                       <td className="p-2 text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1">
-                          <Input
-                            type="number"
+                          <NumberField
+                            precision={0}
                             min={1}
                             value={orderQuantities[item._id] ?? purchaseUnitQty}
-                            onChange={(e) =>
-                              updateOrderQty(item._id, Number(e.target.value) || 1)
-                            }
+                            onChange={(v) => updateOrderQty(item._id, v ?? 1)}
                             className="w-16 h-7 text-center text-sm"
                           />
                           <span className="text-xs text-muted-foreground whitespace-nowrap">{getOrderUnitShortName(item)}</span>

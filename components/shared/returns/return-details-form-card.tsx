@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/ui/components/card';
-import { Input } from '@/ui/components/input';
+import { NumberField } from '@/ui/components/number-field';
 import { Label } from '@/ui/components/label';
 import {
   Select,
@@ -97,17 +97,13 @@ export function ReturnDetailsFormCard({
                 e.g. restocking fee, handling charge
               </span>
             </div>
-            <Input
-              type="number"
+            <NumberField
+              precision={2}
               min={0}
               max={grossRefundAmount}
-              step="0.01"
               placeholder="0.00"
-              value={deduction === 0 ? '' : deduction}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                onDeductionChange(isNaN(val) || val < 0 ? 0 : val);
-              }}
+              value={deduction === 0 ? null : deduction}
+              onChange={(v) => onDeductionChange(v ?? 0)}
             />
             {netRefund !== undefined && formatCurrency && (
               <div className="flex items-center justify-between text-sm pt-0.5">

@@ -17,6 +17,7 @@ import {
 } from "@/ui/components/dialog";
 import DynamicForm from "@/ui/components/form";
 import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import { Separator } from "@/ui/components/separator";
 import { Skeleton } from "@/ui/components/skeleton";
@@ -182,12 +183,11 @@ export default function EditPurchaseOrderPage() {
                   </span>
                   <div className="flex items-center gap-1">
                     <span className="text-base text-muted-foreground">{ctx.symbol}</span>
-                    <Input
-                      type="number"
+                    <NumberField
+                      precision={2}
                       min={0}
-                      step={0.01}
-                      value={ctx.additionalDiscount || ""}
-                      onChange={(e) => ctx.setAdditionalDiscount(parseFloat(e.target.value) || 0)}
+                      value={ctx.additionalDiscount || null}
+                      onChange={(v) => ctx.setAdditionalDiscount(v ?? 0)}
                       placeholder="0"
                       className="w-24 h-7 text-right text-sm"
                     />
@@ -331,13 +331,13 @@ export default function EditPurchaseOrderPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="edit-quantity">Quantity</Label>
-                <Input
+                <NumberField
                   id="edit-quantity"
-                  type="number"
+                  precision={0}
                   min={1}
                   value={ctx.editQuantity}
-                  onChange={(e) => {
-                    const value = Number(e.target.value) || 1;
+                  onChange={(v) => {
+                    const value = v ?? 1;
                     ctx.editForm.setValue("quantity", value);
                     ctx.handleEditFieldChange("quantity", value);
                   }}
@@ -346,14 +346,13 @@ export default function EditPurchaseOrderPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="edit-price">Price</Label>
-                <Input
+                <NumberField
                   id="edit-price"
-                  type="number"
+                  precision={2}
                   min={0}
-                  step={0.01}
                   value={ctx.editPrice}
-                  onChange={(e) => {
-                    const value = Number(e.target.value) || 0;
+                  onChange={(v) => {
+                    const value = v ?? 0;
                     ctx.editForm.setValue("price", value);
                     ctx.editForm.setValue(
                       "costPrice",
@@ -365,13 +364,13 @@ export default function EditPurchaseOrderPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="edit-discount">Discount</Label>
-                <Input
+                <NumberField
                   id="edit-discount"
-                  type="number"
+                  precision={2}
                   min={0}
                   value={ctx.editDiscount}
-                  onChange={(e) => {
-                    const value = Number(e.target.value) || 0;
+                  onChange={(v) => {
+                    const value = v ?? 0;
                     ctx.editForm.setValue("discount", value);
                     ctx.handleEditFieldChange("discount", value);
                   }}
@@ -380,14 +379,13 @@ export default function EditPurchaseOrderPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="edit-cost">Cost Price</Label>
-                <Input
+                <NumberField
                   id="edit-cost"
-                  type="number"
+                  precision={2}
                   min={0}
-                  step={0.01}
                   value={ctx.editCostPrice}
-                  onChange={(e) => {
-                    const value = Number(e.target.value) || 0;
+                  onChange={(v) => {
+                    const value = v ?? 0;
                     ctx.editForm.setValue("costPrice", value);
                     ctx.handleEditFieldChange("costPrice", value);
                   }}

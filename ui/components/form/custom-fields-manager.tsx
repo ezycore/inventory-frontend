@@ -4,6 +4,8 @@ import { useState, useId } from 'react'
 import { useFieldArray, Control } from 'react-hook-form'
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
+import { NumberField } from '@ui/components/number-field'
+import { DatePicker } from '@ui/components/date-picker'
 import { Label } from '@ui/components/label'
 import { Textarea } from '@ui/components/textarea'
 import { Checkbox } from '@ui/components/checkbox'
@@ -277,15 +279,14 @@ function CustomFieldBuilder({ field, onSave, onCancel, isOpen }: CustomFieldBuil
                   <Label htmlFor="validation-min">
                     {fieldData.type === CustomFieldType.NUMBER ? 'Minimum Value' : 'Minimum Length'}
                   </Label>
-                  <Input
+                  <NumberField
                     id="validation-min"
-                    type="number"
-                    value={fieldData.validation?.min || ''}
-                    onChange={(e) => setFieldData({
+                    value={fieldData.validation?.min ?? null}
+                    onChange={(v) => setFieldData({
                       ...fieldData,
                       validation: {
                         ...fieldData.validation,
-                        min: e.target.value ? Number(e.target.value) : undefined
+                        min: v ?? undefined
                       }
                     })}
                     placeholder="0"
@@ -296,15 +297,14 @@ function CustomFieldBuilder({ field, onSave, onCancel, isOpen }: CustomFieldBuil
                   <Label htmlFor="validation-max">
                     {fieldData.type === CustomFieldType.NUMBER ? 'Maximum Value' : 'Maximum Length'}
                   </Label>
-                  <Input
+                  <NumberField
                     id="validation-max"
-                    type="number"
-                    value={fieldData.validation?.max || ''}
-                    onChange={(e) => setFieldData({
+                    value={fieldData.validation?.max ?? null}
+                    onChange={(v) => setFieldData({
                       ...fieldData,
                       validation: {
                         ...fieldData.validation,
-                        max: e.target.value ? Number(e.target.value) : undefined
+                        max: v ?? undefined
                       }
                     })}
                     placeholder="100"
@@ -391,11 +391,10 @@ function CustomFieldRenderer({ field, value, onChange, error }: {
 
     case CustomFieldType.NUMBER:
       return (
-        <Input
+        <NumberField
           {...inputProps}
-          type="number"
-          value={value || ''}
-          onChange={(e) => handleChange(e.target.value ? Number(e.target.value) : '')}
+          value={value === '' || value == null ? null : Number(value)}
+          onChange={(v) => handleChange(v ?? '')}
           min={field.validation?.min}
           max={field.validation?.max}
         />
@@ -423,11 +422,11 @@ function CustomFieldRenderer({ field, value, onChange, error }: {
 
     case CustomFieldType.DATE:
       return (
-        <Input
-          {...inputProps}
-          type="date"
-          value={value || ''}
-          onChange={(e) => handleChange(e.target.value)}
+        <DatePicker
+          date={value || undefined}
+          onSelect={(d) => handleChange(d ?? '')}
+          placeholder={field.placeholder}
+          className={error ? 'border-red-500' : ''}
         />
       )
 

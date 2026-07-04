@@ -27,8 +27,8 @@ export function TaxLedgerTable({
   formatCurrency: (n: number) => string
 }) {
   const [page, setPage] = useState(1)
-  // Reset to the first page whenever the period changes — synced during render
-  // (not in an effect) against the previous params reference.
+  // Reset to the first page whenever the period changes (render-phase reset —
+  // avoids setState-in-effect cascading renders).
   const [prevParams, setPrevParams] = useState(params)
   if (params !== prevParams) {
     setPrevParams(params)

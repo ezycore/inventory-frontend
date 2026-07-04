@@ -18,7 +18,7 @@ import {
 import PageHeader from "@/ui/components/header";
 import { Switch } from "@/ui/components/switch";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 
 const DEFAULT_FY = { startMonth: 7, startDay: 1, endMonth: 6, endDay: 30 };
@@ -95,15 +95,13 @@ export default function TaxSettingsPage() {
   ) => (
     <div className="space-y-1.5">
       <Label htmlFor={key}>{label}</Label>
-      <Input
+      <NumberField
         id={key}
-        type="number"
+        precision={0}
         min={1}
         max={max}
         value={fy[key]}
-        onChange={(e) =>
-          setFy((p) => ({ ...p, [key]: Number(e.target.value) || 1 }))
-        }
+        onChange={(v) => setFy((p) => ({ ...p, [key]: v ?? 1 }))}
       />
     </div>
   );

@@ -7,7 +7,7 @@ import {
   usePurchasePageStore,
   type SellerSession,
 } from "@/services/stores";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import { Switch } from "@/ui/components/switch";
 import { Textarea } from "@/ui/components/textarea";
@@ -166,20 +166,14 @@ export function SellerPaymentSection({
               <span className="text-xs text-muted-foreground">
                 Max {formatCurrency(maxCreditApplicable)}
               </span>
-              <Input
-                type="number"
+              <NumberField
+                precision={2}
                 min={0}
                 max={maxCreditApplicable}
-                step="1"
+                step={1}
                 value={creditApplied}
-                onChange={(e) => {
-                  const v = Math.max(
-                    0,
-                    Math.min(
-                      maxCreditApplicable,
-                      parseFloat(e.target.value) || 0,
-                    ),
-                  );
+                onChange={(next) => {
+                  const v = Math.max(0, Math.min(maxCreditApplicable, next ?? 0));
                   setCreditApplied(seller.id, v);
                   updatePayment(accountId, Math.max(0, netAmount - v));
                 }}
@@ -204,14 +198,11 @@ export function SellerPaymentSection({
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Paid Amount</Label>
-            <Input
-              type="number"
+            <NumberField
+              precision={2}
               min={0}
-              step="0.01"
-              value={paidAmount || ""}
-              onChange={(e) =>
-                updatePayment(accountId, parseFloat(e.target.value) || 0)
-              }
+              value={paidAmount || null}
+              onChange={(v) => updatePayment(accountId, v ?? 0)}
               placeholder="0.00"
               className="h-9 text-sm"
             />

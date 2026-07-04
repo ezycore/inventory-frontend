@@ -2,7 +2,7 @@
 
 import { ArrowLeft, CreditCard } from "lucide-react";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import { ScrollArea } from "@/ui/components/scroll-area";
 import {
@@ -115,18 +115,17 @@ export function CustomerPaymentForm({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="cust-pay-amount">Payment Amount</Label>
-            <Input
+            <NumberField
               id="cust-pay-amount"
-              type="number"
-              step="0.01"
-              min="0.01"
+              precision={2}
+              min={0}
               max={
                 useCreditBalance
                   ? Math.min(paymentSale.dueAmount, creditBalance)
                   : paymentSale.dueAmount
               }
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(e.target.value)}
+              value={paymentAmount === "" ? null : Number(paymentAmount)}
+              onChange={(v) => setPaymentAmount(v == null ? "" : String(v))}
               placeholder="Enter amount"
             />
           </div>
@@ -174,7 +173,7 @@ export function CustomerPaymentForm({
               className="flex-1"
               onClick={onSubmit}
               disabled={
-                isSubmitting || !paymentAmount || (!useCreditBalance && !paymentAccountId)
+                isSubmitting || !(Number(paymentAmount) > 0) || (!useCreditBalance && !paymentAccountId)
               }
             >
               <CreditCard className="h-4 w-4 mr-2" />
