@@ -103,6 +103,8 @@ Query keys are centrally defined in `services/api/query-keys.ts` (re-exported fr
 
 Shadcn/Radix-based primitives live in `ui/components/`. Feature-specific components are in `components/<feature>/`. Shared/cross-feature components are in `components/shared/`.
 
+**Stock quantity display — use `components/shared/stock-qty.tsx`, never re-fork:** `<StockQty total sellable expired unit />` renders the sellable-first `sellable / total (+ N expired)` split when any stock is expired, else the plain total; `<ExpiredBadge count />` is the standalone amber chip (renders null at 0). Backend read surfaces return `sellableQuantity`/`expiredQuantity`; sale/purchase pickers cap on `sellableQuantity`.
+
 The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern for CRUD pages — it manages modal open state, edit/view/add modes, and delegates delete/bulkDelete to caller-provided async functions.
 
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**

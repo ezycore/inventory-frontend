@@ -1,18 +1,20 @@
 // coding-standard: maintained
 'use client'
 
-import { Card, CardContent } from '@ui/components/card'
 import {
   ShieldCheck,
   TrendingUp,
   DollarSign,
   BarChart3,
   Wallet,
-  type LucideIcon,
 } from 'lucide-react'
+import { StatTile, type Stat } from './stat-tile'
 
 interface DetailStatsProps {
   totalStock: number
+  /** Expired on-hand and sellable = total − expired (across locations). */
+  totalExpired?: number
+  totalSellable?: number
   locationCount: number
   totalSold: number
   totalRevenue: number
@@ -24,31 +26,10 @@ interface DetailStatsProps {
   formatCurrency: (n: number) => string
 }
 
-interface Stat {
-  icon: LucideIcon
-  label: string
-  value: string
-  sub: string
-}
-
-function StatTile({ stat }: { stat: Stat }) {
-  const Icon = stat.icon
-  return (
-    <Card>
-      <CardContent className="pb-4 pt-5">
-        <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-          <Icon className="h-4 w-4" />
-          <span className="text-sm font-medium">{stat.label}</span>
-        </div>
-        <p className="text-3xl font-bold">{stat.value}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{stat.sub}</p>
-      </CardContent>
-    </Card>
-  )
-}
-
 export function DetailStats({
   totalStock,
+  totalExpired = 0,
+  totalSellable,
   locationCount,
   totalSold,
   totalRevenue,
@@ -58,13 +39,23 @@ export function DetailStats({
   salesEnabled,
   formatCurrency,
 }: DetailStatsProps) {
+  const sellable = totalSellable ?? totalStock
+  const locationSub = `across ${locationCount} ${locationCount === 1 ? 'location' : 'locations'}`
   const stats: Stat[] = [
-    {
-      icon: ShieldCheck,
-      label: 'In Stock',
-      value: totalStock.toLocaleString(),
-      sub: `across ${locationCount} ${locationCount === 1 ? 'location' : 'locations'}`,
-    },
+    // Sellable-first when any stock is expired; plain total otherwise.
+    totalExpired > 0
+      ? {
+          icon: ShieldCheck,
+          label: 'Sellable',
+          value: sellable.toLocaleString(),
+          sub: `${totalExpired.toLocaleString()} expired · ${totalStock.toLocaleString()} on hand`,
+        }
+      : {
+          icon: ShieldCheck,
+          label: 'In Stock',
+          value: totalStock.toLocaleString(),
+          sub: locationSub,
+        },
     {
       icon: Wallet,
       label: 'Stock Value',

@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import { buildQueryParams, type BaseFilters } from "../../utils";
-import type { ProductAnalytics, InventoryAnalytics } from "./analytics.types";
+import type { ProductAnalytics, InventoryAnalytics, ComboDetail } from "./analytics.types";
 
 interface InventoryFilters extends BaseFilters {
   productId?: string;
@@ -105,4 +105,9 @@ export const inventoryApi = {
     inventoryId: string,
   ): Promise<ApiResponse<InventoryAnalytics>> =>
     apiClient.get(`/inventory/analytics/item/${inventoryId}`),
+
+  // Combo detail (composition + availability + cost) — powers the combo
+  // product-detail page. Combo-feature-gated on the backend.
+  getComboDetail: (comboProductId: string): Promise<ApiResponse<ComboDetail>> =>
+    apiClient.get(`/inventory/combos/${comboProductId}`),
 };

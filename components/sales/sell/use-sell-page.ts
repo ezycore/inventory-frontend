@@ -522,7 +522,6 @@ export function useSellPage() {
       }
     } catch (error) {
       console.error("Failed to complete sale:", error);
-      toast.error("Failed to complete sale");
     }
   }, [items, customerId, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router]);
 

@@ -305,7 +305,9 @@ export function usePurchasePage() {
     if (fieldName === "productId") {
       const product = extractProductValue(value);
       if (product) {
-        const availableStock = product.availableQuantity || 0;
+        // Purchase reasons about physical on-hand (not expiry-capped), so use total.
+        const availableStock = product.totalQuantity ?? product.availableQuantity ?? 0;
+        const expiredStock = product.expiredQuantity ?? 0;
         const neededQuantity = Math.max(1, product.quantityAlert - (availableStock) + 1);
         const purchaseQuantity = Math.ceil(neededQuantity / (product.conversionFactor || 1));
         const quantity = productForm.getValues("quantity") || 1;
@@ -315,7 +317,8 @@ export function usePurchasePage() {
         const boxPrice = perUnitPrice * conversionFactor;
         const discountType = supplierForm.getValues("discountType") || "percentage";
         const discountValue = supplierForm.getValues("discountValue") || 0;
-        const stock = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
+        const stockBase = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
+        const stock = expiredStock > 0 ? `${stockBase.trim()} · ${expiredStock} expired` : stockBase;
         let boxDiscount = 0;
         if (discountType === "percentage") boxDiscount = parseFloat(((boxPrice * discountValue) / 100).toFixed(2));
         else boxDiscount = discountValue;

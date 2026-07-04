@@ -13,6 +13,8 @@ const REPORT_KEYS = {
     [...REPORT_KEYS.all(), "sales", params || {}] as const,
   combos: (params?: ReportParams) =>
     [...REPORT_KEYS.all(), "combos", params || {}] as const,
+  comboActivity: (comboProductId: string, params?: ReportParams) =>
+    [...REPORT_KEYS.all(), "combo-activity", comboProductId, params || {}] as const,
   purchases: (params?: ReportParams) =>
     [...REPORT_KEYS.all(), "purchases", params || {}] as const,
   cash: (params?: ReportParams) =>
@@ -59,6 +61,21 @@ export const useComboSalesReport = (params?: ReportParams, enabled = true) => {
     queryFn: () => reportsApi.getComboSalesReport(params),
     select: (data) => data.data,
     enabled: !!params && enabled,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/** Hook for one combo's sales activity (recent sales + trend + returns). */
+export const useComboSalesActivity = (
+  comboProductId: string,
+  params?: ReportParams,
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: REPORT_KEYS.comboActivity(comboProductId, params),
+    queryFn: () => reportsApi.getComboSalesActivity(comboProductId, params),
+    select: (data) => data.data,
+    enabled: enabled && !!comboProductId && !!params,
     staleTime: 2 * 60 * 1000,
   });
 };

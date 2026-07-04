@@ -1,4 +1,5 @@
 'use client';
+// coding-standard: maintained
 
 import { useState, useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -186,7 +187,12 @@ export function useSalesReturnPage() {
   );
 
   const initFromSale = useCallback(
-    (s: Sale | undefined) => itemsHook.initFromSaleItems(s?.items),
+    (s: Sale | undefined) =>
+      itemsHook.initFromSaleItems(
+        s?.items,
+        s?.subtotal ?? 0,
+        s?.additionalDiscount ?? 0,
+      ),
     [itemsHook],
   );
   const initFromPendingDues = useCallback(

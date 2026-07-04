@@ -1,22 +1,30 @@
 'use client';
+// coding-standard: maintained
 
 import { useCallback, useMemo, useState } from 'react';
 import type { SaleItem } from '@/types';
-import { computeLineTax } from '@/utils/tax';
+import { lineRefundBasis } from '@/utils/refund';
 import type { ReturnableItem } from './types';
 
-function buildReturnableItems(saleItems: SaleItem[]): ReturnableItem[] {
+function buildReturnableItems(
+  saleItems: SaleItem[],
+  orderSubtotal: number,
+  additionalDiscount: number,
+): ReturnableItem[] {
   return saleItems.map((item) => {
     const salePrice = item.price - (item.discount ?? 0);
-    // Tax-inclusive per-unit price — the customer paid net + tax (exclusive) or the
-    // tax-inclusive price (inclusive). Refunds must return that, not just the net.
-    const refundUnitPrice = computeLineTax({
-      price: salePrice,
-      quantity: 1,
-      discount: 0,
-      taxRate: item.taxRate,
-      taxType: item.taxType,
-    }).lineTotal;
+    // Per-unit refund basis derived from the STORED line subtotal (not the rounded
+    // `price*qty`, which drifts for combo lines) with the order-level discount
+    // spread across all lines, tax-inclusive. Bit-identical to the backend, which
+    // is authoritative. `lineRefundBasis(saleQty)` gives the whole-line refund;
+    // divide by saleQty for the per-unit rate the qty handler scales.
+    const fullLineRefund = lineRefundBasis(
+      item,
+      item.quantity,
+      orderSubtotal,
+      additionalDiscount,
+    );
+    const refundUnitPrice = item.quantity > 0 ? fullLineRefund / item.quantity : 0;
     return {
       ...item,
       inventoryId: item.inventoryId ?? item.productId,
@@ -37,9 +45,19 @@ export function useReturnableItems() {
 
   const resetItems = useCallback(() => setReturnableItems([]), []);
 
-  const initFromSaleItems = useCallback((saleItems: SaleItem[] | undefined) => {
-    if (saleItems) setReturnableItems(buildReturnableItems(saleItems));
-  }, []);
+  const initFromSaleItems = useCallback(
+    (
+      saleItems: SaleItem[] | undefined,
+      orderSubtotal = 0,
+      additionalDiscount = 0,
+    ) => {
+      if (saleItems)
+        setReturnableItems(
+          buildReturnableItems(saleItems, orderSubtotal, additionalDiscount),
+        );
+    },
+    [],
+  );
 
   const handleItemSelect = useCallback((index: number, selected: boolean) => {
     setReturnableItems((prev) => {

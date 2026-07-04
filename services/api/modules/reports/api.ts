@@ -300,6 +300,22 @@ export interface ComboSalesReportData {
   dateRange: { startDate: string; endDate: string };
 }
 
+/** One recent sale transaction of a combo (combo detail page). */
+export interface ComboRecentSale {
+  saleId: string;
+  invoiceNumber?: string;
+  date: string;
+  combos: number;
+  amount: number;
+}
+
+/** Per-combo sales activity: recent transactions, daily trend, returns totals. */
+export interface ComboSalesActivity {
+  recentSales: ComboRecentSale[];
+  trend: { date: string; combos: number; revenue: number }[];
+  returns: { combosReturned: number; refundTotal: number };
+}
+
 // ── API Methods ──
 export const reportsApi = {
   getInventoryReport: (
@@ -316,6 +332,14 @@ export const reportsApi = {
     params?: ReportParams,
   ): Promise<ApiResponse<ComboSalesReportData>> =>
     apiClient.get(`/reports/combos${buildReportParams(params)}`),
+
+  getComboSalesActivity: (
+    comboProductId: string,
+    params?: ReportParams,
+  ): Promise<ApiResponse<ComboSalesActivity>> =>
+    apiClient.get(
+      `/reports/combos/${comboProductId}/activity${buildReportParams(params)}`,
+    ),
 
   getPurchaseReport: (
     params?: ReportParams,

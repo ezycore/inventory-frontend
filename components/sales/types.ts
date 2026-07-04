@@ -24,6 +24,9 @@ export interface ProductApiItem {
   price: number;
   costPrice: number;
   quantity: number;
+  /** Expired on-hand and sellable = quantity − expired (expiry-tracked orgs only). */
+  expiredQuantity?: number;
+  sellableQuantity?: number;
   productId: string;
   variantId: string | null;
   conversionFactor?: number;
@@ -74,7 +77,11 @@ export interface ExtractedProduct {
   label: string;
   price: number;
   costPrice: number;
+  /** Cap for the sale line — equals sellable (total − expired). */
   availableQuantity: number;
+  /** Total on-hand and expired portion, for the sellable-first display. */
+  totalQuantity?: number;
+  expiredQuantity?: number;
   productId: string;
   variantId: string | null;
   conversionFactor?: number;

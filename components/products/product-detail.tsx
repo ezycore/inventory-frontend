@@ -26,6 +26,7 @@ import { DetailActivity } from './detail/detail-activity'
 import { DetailPricing } from './detail/detail-pricing'
 import { DetailTimeline } from './detail/detail-timeline'
 import { DetailStorefront } from './detail/detail-storefront'
+import { DetailCombo } from './detail/detail-combo'
 import type { InventoryItem } from './detail/utils'
 
 interface ProductDetailProps {
@@ -106,6 +107,23 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
         </p>
         {onClose && <Button onClick={onClose}>Close</Button>}
       </div>
+    )
+  }
+
+  // Combos hold no inventory, so the stock/analytics/movement surfaces below are
+  // meaningless for them — render the dedicated composition view instead. (The
+  // stock queries above return empty for a combo; harmless on an on-demand view.)
+  if (product.productType === 'combo') {
+    const comboBarcode = isFeatureEnabled(organization?.features, 'barcodeSystem')
+      ? product.barcode || ''
+      : ''
+    return (
+      <DetailCombo
+        product={product}
+        barcode={comboBarcode}
+        salesEnabled={isFeatureEnabled(organization?.features, 'sales')}
+        formatCurrency={formatCurrency}
+      />
     )
   }
 
@@ -191,6 +209,8 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
 
       <DetailStats
         totalStock={totalStock}
+        totalExpired={analytics?.stock.totalExpired ?? 0}
+        totalSellable={analytics?.stock.totalSellable ?? totalStock}
         locationCount={locationCount}
         totalSold={totalSold}
         totalRevenue={totalRevenue}

@@ -637,6 +637,9 @@ export interface Inventory extends Product {
   productId: string;
   variantId?: string | null;
   quantity: number;
+  /** Expired on-hand and sellable = quantity − expired (expiry-tracked orgs only). */
+  expiredQuantity?: number;
+  sellableQuantity?: number;
   quantityAlert: number;
   isLowStock: boolean;
   quantityBreakdown?: {

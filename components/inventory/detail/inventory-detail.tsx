@@ -13,6 +13,7 @@ import { useAuthStore } from '@/services/stores'
 import { InventoryCharts } from './inventory-charts'
 import { InventoryActivity } from './inventory-activity'
 import { InventoryBatches } from './inventory-batches'
+import { ExpiredBadge } from '@/components/shared/stock-qty'
 
 interface InventoryDetailProps {
   inventoryId: string
@@ -72,13 +73,24 @@ export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) 
         locationName={location?.name || '—'}
         attributes={variant?.attributes}
         quantity={inventory.quantity}
+        sellable={inventory.sellableQuantity}
+        expired={inventory.expiredQuantity}
         unitLabel={unitLabel}
         status={inventory.status}
         isLowStock={inventory.isLowStock}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={Package} label="On Hand" value={`${inventory.quantity.toLocaleString()}`} sub={unitLabel} />
+        <StatTile
+          icon={Package}
+          label="On Hand"
+          value={`${inventory.quantity.toLocaleString()}`}
+          sub={
+            (inventory.expiredQuantity ?? 0) > 0
+              ? `${(inventory.sellableQuantity ?? inventory.quantity).toLocaleString()} sellable · ${inventory.expiredQuantity} expired`
+              : unitLabel
+          }
+        />
         <StatTile icon={Wallet} label="Stock Value" value={formatCurrency(inventory.stockValue)} sub="at cost price" />
         <StatTile icon={Bell} label="Alert Level" value={inventory.quantityAlert.toLocaleString()} sub="reorder threshold" />
         <StatTile
@@ -111,6 +123,8 @@ interface HeroProps {
   locationName: string
   attributes?: Record<string, unknown>
   quantity: number
+  sellable?: number
+  expired?: number
   unitLabel: string
   status: string
   isLowStock: boolean
@@ -123,10 +137,14 @@ function Hero({
   locationName,
   attributes,
   quantity,
+  sellable,
+  expired,
   unitLabel,
   status,
   isLowStock,
 }: HeroProps) {
+  const expiredQty = expired ?? 0
+  const sellableQty = sellable ?? quantity
   return (
     <Card>
       <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -167,10 +185,23 @@ function Hero({
           <div className="flex items-center gap-2">
             <Badge variant={status === 'active' ? 'secondary' : 'outline'}>{status}</Badge>
             {isLowStock && <Badge variant="destructive">Low stock</Badge>}
+            {expiredQty > 0 && <ExpiredBadge count={expiredQty} />}
           </div>
-          <p className="text-3xl font-bold">
-            {quantity.toLocaleString()} <span className="text-base font-medium text-muted-foreground">{unitLabel}</span>
-          </p>
+          {expiredQty > 0 ? (
+            <>
+              <p className="text-3xl font-bold">
+                {sellableQty.toLocaleString()}{' '}
+                <span className="text-base font-medium text-muted-foreground">{unitLabel} sellable</span>
+              </p>
+              <span className="text-sm text-muted-foreground">
+                of {quantity.toLocaleString()} on hand
+              </span>
+            </>
+          ) : (
+            <p className="text-3xl font-bold">
+              {quantity.toLocaleString()} <span className="text-base font-medium text-muted-foreground">{unitLabel}</span>
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

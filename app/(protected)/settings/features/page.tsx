@@ -33,7 +33,8 @@ const FEATURE_ORDER: FeatureName[] = [
   "barcodeSystem",
   "invoicePrinting",
   "uomConversion",
-  "tax"
+  "tax",
+  "combo"
 ];
 
 export default function FeatureSettingsPage() {

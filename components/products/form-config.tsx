@@ -335,6 +335,9 @@ export const productFormConfig: DynamicFormConfig = {
           options: taxTypeOptions,
           placeholder: "Select",
           defaultValue: "inclusive",
+          // Combos are never purchased (they hold no inventory), so purchase tax
+          // on a combo is dead config — hide it.
+          dependsOn: { field: "productType", value: "combo", condition: "ne", action: "show" },
         },
         {
           name: "purchaseTax.taxId",
@@ -344,6 +347,7 @@ export const productFormConfig: DynamicFormConfig = {
           optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
           defaultFlag: "isDefault",
           placeholder: "Select tax",
+          dependsOn: { field: "productType", value: "combo", condition: "ne", action: "show" },
         },
       ],
     },
@@ -359,7 +363,7 @@ export const productFormConfig: DynamicFormConfig = {
       // render here — per-variant stock lives in the Variants table. Combos hold
       // no inventory of their own, so the whole section is hidden for them.
       dependsOn: [
-        { field: "_id", condition: "falsy" },
+        { field: "_id", condition: "falsy", action: "show" },
         { field: "productType", value: "combo", condition: "ne" },
       ],
       headerAction: ({ control }) => <TrackStockToggle control={control} />,

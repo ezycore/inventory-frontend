@@ -31,6 +31,8 @@ export const queryKeys = {
       [...queryKeys.inventory.all(), "analytics", "product", productId, variantId ?? null] as const,
     itemAnalytics: (inventoryId: string) =>
       [...queryKeys.inventory.all(), "analytics", "item", inventoryId] as const,
+    comboDetail: (comboProductId: string) =>
+      [...queryKeys.inventory.all(), "combo-detail", comboProductId] as const,
   },
 
   // Products query keys

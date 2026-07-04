@@ -93,7 +93,10 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     label: item.name,
     costPrice: item.costPrice,
     price: item.price, // Match form field name
-    availableQuantity: item.quantity,
+    // Cap the sale line on sellable (total − expired); keep total + expired for display.
+    availableQuantity: item.sellableQuantity ?? item.quantity,
+    totalQuantity: item.quantity,
+    expiredQuantity: item.expiredQuantity ?? 0,
     conversionFactor: item?.conversionFactor,
     productId: item.productId,
     variantId: item.variantId,
@@ -141,6 +144,8 @@ export const extractProductValue = (val: any): ExtractedProduct | null => {
       price: val.price ?? 0,
       costPrice: val.costPrice ?? 0,
       availableQuantity: val.availableQuantity ?? 0,
+      totalQuantity: (val as any).totalQuantity ?? val.availableQuantity ?? 0,
+      expiredQuantity: (val as any).expiredQuantity ?? 0,
       productId: (val as any).productId ?? "",
       variantId: (val as any).variantId ?? null,
       conversionFactor: (val as any).conversionFactor ?? 1,

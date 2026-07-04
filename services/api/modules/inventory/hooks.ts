@@ -66,6 +66,14 @@ export const useInventoryAnalytics = (inventoryId: string) =>
     select: (res) => res.data,
   })
 
+export const useComboDetail = (comboProductId: string, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.inventory.comboDetail(comboProductId),
+    queryFn: () => inventoryApi.getComboDetail(comboProductId),
+    enabled: enabled && !!comboProductId,
+    select: (res) => res.data,
+  })
+
 // Receive stock mutation hook
 export const useReceiveStock = () => {
   const queryClient = useQueryClient()

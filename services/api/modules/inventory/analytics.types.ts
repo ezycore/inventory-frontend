@@ -26,6 +26,8 @@ export interface ProductStockByLocation {
   locationId: string | null
   locationName: string
   quantity: number
+  expiredQuantity: number
+  sellableQuantity: number
   quantityAlert: number
   costPrice: number
   value: number
@@ -40,6 +42,8 @@ export interface ProductVariantBreakdown {
   attributes: Record<string, unknown>
   price: number
   quantity: number
+  expiredQuantity: number
+  sellableQuantity: number
   stockValue: number
   costPrice: number
   unitsSold: number
@@ -54,6 +58,8 @@ export interface ProductVariantBreakdown {
 export interface ProductAnalytics {
   stock: {
     totalQuantity: number
+    totalExpired: number
+    totalSellable: number
     stockValue: number
     locationCount: number
     lowStockLocations: number
@@ -78,6 +84,8 @@ export interface InventoryAnalytics {
   inventory: {
     _id: string
     quantity: number
+    expiredQuantity: number
+    sellableQuantity: number
     quantityAlert: number
     isLowStock: boolean
     status: string
@@ -112,4 +120,37 @@ export interface BatchRow {
   remainingQuantity: number
   expiryDate?: string | null
   costPrice?: number
+}
+
+/** One component row of a combo's composition (see backend getComboDetail). */
+export interface ComboComponentDetail {
+  productId: string
+  variantId: string | null
+  name: string
+  /** Base units of this component consumed per 1 combo. */
+  quantity: number
+  /** Live component stock at the active location. */
+  availableQuantity: number
+  /** Weighted-average unit cost (base unit). */
+  costPrice: number
+  /** Component sell price (per base unit). */
+  unitPrice: number
+  /** Whole combos this component alone can supply = floor(available / quantity). */
+  maxCombos: number
+}
+
+/** Full combo detail powering the combo product-detail page. */
+export interface ComboDetail {
+  comboProductId: string
+  name: string
+  /** Fixed combo sell price. */
+  price: number
+  barcode?: string
+  /** Combos sellable now = min(component maxCombos). */
+  availability: number
+  /** Combo COGS preview = Σ component cost × qty per combo. */
+  costPrice: number
+  taxType: string
+  taxRate: number
+  components: ComboComponentDetail[]
 }

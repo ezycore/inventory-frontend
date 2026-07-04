@@ -76,27 +76,34 @@ export default function ProductsPage() {
       fields: (cfg.fields || []).filter((f: any) => !hide.has(f.name)),
     }
   }, [filteredFormConfig, user?.organization])
-  // Combo feature gate: when off, strip the "combo" product-type option and drop
-  // the Combo composition section (leaves single/variable untouched).
+  // Combo feature gate: when off, DISABLE (not remove) the "combo" product-type
+  // option so new combos can't be created — but an existing combo still renders
+  // correctly and stays editable on the edit form (a plan downgrade shouldn't
+  // hide/break products the org already made; the backend allows editing an
+  // already-combo product). The Combo composition section self-shows only when
+  // productType === "combo", so it never appears for single/variable products.
   const comboEnabled = !!user?.organization?.features?.combo;
   const gatedFormConfig = useMemo(() => {
     if (comboEnabled) return taxGatedFormConfig;
     const cfg = taxGatedFormConfig as { sections?: any[]; fields?: any[] };
-    const stripComboOption = (field: any) =>
+    const disableComboOption = (field: any) =>
       field.name === "productType" && Array.isArray(field.options)
-        ? { ...field, options: field.options.filter((o: any) => o.value !== "combo") }
+        ? {
+            ...field,
+            options: field.options.map((o: any) =>
+              o.value === "combo"
+                ? { ...o, disabled: true, description: "Not included in your plan/ Disabled" }
+                : o,
+            ),
+          }
         : field;
     if (!cfg.sections) return taxGatedFormConfig;
     return {
       ...taxGatedFormConfig,
-      sections: cfg.sections
-        .map((s) => ({
-          ...s,
-          fields: (s.fields || [])
-            .filter((f: any) => f.name !== "comboComponents")
-            .map(stripComboOption),
-        }))
-        .filter((s) => (s.fields || []).length > 0),
+      sections: cfg.sections.map((s) => ({
+        ...s,
+        fields: (s.fields || []).map(disableComboOption),
+      })),
     };
   }, [taxGatedFormConfig, comboEnabled]);
 

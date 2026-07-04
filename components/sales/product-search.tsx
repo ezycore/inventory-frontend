@@ -16,6 +16,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { productItemsCreateCallback } from "./helpers";
 import { ExtractedProduct } from "./types";
+import { ExpiredBadge } from "@/components/shared/stock-qty";
 
 interface SellableProduct {
   value: string;
@@ -148,6 +149,7 @@ export function ProductSearch({ onSelect, placeholder = "Search products by name
                         <div className="font-medium text-sm">
                           {formatCurrency(product.price || 0)}
                         </div>
+                        {/* availableQuantity is sellable (total − expired) — the sale cap. */}
                         <div
                           className={`text-xs font-medium ${product.availableQuantity <= 5
                             ? "text-red-500"
@@ -156,8 +158,11 @@ export function ProductSearch({ onSelect, placeholder = "Search products by name
                               : "text-green-600"
                             }`}
                         >
-                          {product.availableQuantity} in stock
+                          {product.availableQuantity} sellable
                         </div>
+                        {(product.expiredQuantity ?? 0) > 0 && (
+                          <ExpiredBadge count={product.expiredQuantity} className="mt-1" />
+                        )}
                       </div>
                     </CommandItem>
                   ))}

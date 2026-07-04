@@ -15,6 +15,7 @@ import {
   PackageX,
 } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
+import { ExpiredBadge } from "@/components/shared/stock-qty";
 import { getStockLevelInfo, getRestockInfo, getStockLevelLines } from "./helpers";
 
 export const inventoryColumns: ColumnDef<Inventory>[] = [
@@ -68,6 +69,8 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
       const lines = getStockLevelLines(row.original as any);
       const baseUnitLabel = lines[0]?.text.split(" ").slice(1).join(" ") || "units";
       const unitName = row.original.unit?.shortName || "pcs";
+      const expiredQuantity = row.original.expiredQuantity ?? 0;
+      const sellableQuantity = row.original.sellableQuantity ?? quantity;
 
       return (
         <Tooltip>
@@ -108,11 +111,25 @@ export const inventoryColumns: ColumnDef<Inventory>[] = [
                 />
               </div>
               <p className={cn("text-[10px] font-medium", color)}>{status}</p>
+              {expiredQuantity > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-medium text-emerald-600">
+                    {sellableQuantity.toLocaleString()} sellable
+                  </span>
+                  <ExpiredBadge count={expiredQuantity} />
+                </div>
+              )}
             </div>
           </TooltipTrigger>
           <TooltipContent>
             <div className="text-xs space-y-1">
               <p>Current: {quantity.toLocaleString()} {baseUnitLabel}</p>
+              {expiredQuantity > 0 && (
+                <>
+                  <p>Sellable: {sellableQuantity.toLocaleString()} {baseUnitLabel}</p>
+                  <p>Expired: {expiredQuantity.toLocaleString()} {baseUnitLabel}</p>
+                </>
+              )}
               <p>Alert Threshold: {alertLevel} {baseUnitLabel}</p>
               <p>Status: {status}</p>
             </div>
