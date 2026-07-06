@@ -38,10 +38,19 @@ import {
 } from "lucide-react";
 import {
   useSupplierLedger,
+  useSupplierStatement,
   useAddPurchasePayment,
   useAccounts,
 } from "@/services/api";
+import { useAuthStore } from "@/services/stores";
 import { useCurrency } from "@/lib/currency";
+import { PrintMenu } from "@/components/shared/print/print-menu";
+import {
+  orgToPrintHeader,
+  printStatement,
+  resolveDefaultPaper,
+  type PaperSize,
+} from "@/utils/print-documents";
 import type {
   Supplier,
   SupplierLedgerPurchaseOrder,
@@ -83,6 +92,7 @@ export function SupplierLedgerSheet({
   onOpenPurchaseOrder,
 }: SupplierLedgerSheetProps) {
   const { format: formatCurrency } = useCurrency();
+  const { user } = useAuthStore();
   const [page, setPage] = useState(1);
   const limit = 20;
 
@@ -103,7 +113,42 @@ export function SupplierLedgerSheet({
   const { data: accountsData } = useAccounts(
     isAccountsEnabled ? { status: "active", limit: 100 } : undefined,
   );
+  // Pre-fetch the account-wide statement while the sheet is open so print runs
+  // synchronously in the click (avoids a popup-blocked async print).
+  const { data: statementResp } = useSupplierStatement(
+    supplier?._id ?? null,
+    {},
+    open,
+  );
+  const statement = statementResp?.data;
   const addPaymentMutation = useAddPurchasePayment();
+
+  const printStatementDoc = (paper: PaperSize) => {
+    if (!statement) return false;
+    return printStatement(
+      {
+        title: "Supplier Statement",
+        partyLabel: "Supplier",
+        partyName: statement.supplier.name || supplier?.name || "",
+        partyPhone: statement.supplier.phone || supplier?.phone,
+        transactions: statement.transactions,
+        summary: [
+          { label: "Total billed", value: statement.summary.totalBilled },
+          { label: "Total paid", value: statement.summary.totalPaid },
+          { label: "Total returned", value: statement.summary.totalReturned },
+          { label: "Outstanding due", value: statement.summary.totalDue, strong: true },
+          ...(statement.summary.creditBalance > 0
+            ? [{ label: "Credit balance", value: statement.summary.creditBalance }]
+            : []),
+        ],
+      },
+      {
+        paper,
+        currency: formatCurrency,
+        header: orgToPrintHeader(user?.organization),
+      },
+    );
+  };
 
   const ledger = ledgerData?.data;
   const purchaseOrders = ledger?.purchaseOrders || [];
@@ -202,17 +247,29 @@ export function SupplierLedgerSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[550px] sm:max-w-[550px] flex flex-col h-full p-0">
         <SheetHeader className="px-6 py-4 border-b">
-          <SheetTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            {paymentPO
-              ? `Pay — ${paymentPO.invoiceNumber || paymentPO.orderNumber}`
-              : `Supplier Ledger - ${supplier?.name}`}
-          </SheetTitle>
-          <SheetDescription>
-            {paymentPO
-              ? "Record a payment for this purchase order"
-              : "Transaction history and account summary"}
-          </SheetDescription>
+          <div className="flex items-start justify-between gap-3 pr-8">
+            <div className="space-y-1">
+              <SheetTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                {paymentPO
+                  ? `Pay — ${paymentPO.invoiceNumber || paymentPO.orderNumber}`
+                  : `Supplier Ledger - ${supplier?.name}`}
+              </SheetTitle>
+              <SheetDescription>
+                {paymentPO
+                  ? "Record a payment for this purchase order"
+                  : "Transaction history and account summary"}
+              </SheetDescription>
+            </div>
+            {!paymentPO && statement && (
+              <PrintMenu
+                appearance="solid"
+                a4Label="Statement"
+                defaultPaper={resolveDefaultPaper(user?.organization)}
+                onPrint={printStatementDoc}
+              />
+            )}
+          </div>
         </SheetHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col">

@@ -28,6 +28,14 @@ import { InfoField } from '@/components/shared/info-field';
 import { CopyField } from '@/ui/components/copy';
 import { splitLineTax } from '@/utils/tax';
 import { groupSaleItemsByCombo } from '@/components/sales/helpers';
+import { useAuthStore } from '@/services/stores';
+import { PrintMenu } from '@/components/shared/print/print-menu';
+import { SheetHeaderBar } from '@/components/shared/print/sheet-header-bar';
+import {
+  orgToPrintHeader,
+  printReturn,
+  resolveDefaultPaper,
+} from '@/utils/print-documents';
 
 // ── Normalized data types ────────────────────────────────────────────────────
 
@@ -156,6 +164,7 @@ export function ReturnDetailsSheet({
   isLoading,
   variant,
 }: ReturnDetailsSheetProps) {
+  const { user } = useAuthStore();
   if (!returnData && !isLoading) return null;
 
   const cfg = VARIANT_CONFIG[variant];
@@ -167,12 +176,31 @@ export function ReturnDetailsSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[680px] sm:max-w-[680px] flex flex-col overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <RotateCcw className="h-5 w-5" />
-            Return Details
-            {returnData?.returnNumber ? ` — ${returnData.returnNumber}` : ''}
-          </SheetTitle>
-          <SheetDescription>{cfg.sheetDescription}</SheetDescription>
+          <SheetHeaderBar
+            action={
+              returnData && (
+                <PrintMenu
+                  appearance="solid"
+                  a4Label={variant === 'sales' ? 'Sales Return' : 'Purchase Return'}
+                  defaultPaper={resolveDefaultPaper(user?.organization)}
+                  onPrint={(paper) =>
+                    printReturn(returnData, variant, {
+                      paper,
+                      currency: formatCurrency,
+                      header: orgToPrintHeader(user?.organization),
+                    })
+                  }
+                />
+              )
+            }
+          >
+            <SheetTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5" />
+              Return Details
+              {returnData?.returnNumber ? ` — ${returnData.returnNumber}` : ''}
+            </SheetTitle>
+            <SheetDescription>{cfg.sheetDescription}</SheetDescription>
+          </SheetHeaderBar>
         </SheetHeader>
 
         {isLoading ? (

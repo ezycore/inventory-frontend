@@ -10,6 +10,7 @@ import { Separator } from "@/ui/components/separator";
 import { Switch } from "@/ui/components/switch";
 import { formatCurrency } from "@/components/sales";
 import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
+import { PrintMenu } from "@/components/shared/print/print-menu";
 import type { SellPageContext } from "./use-sell-page";
 
 export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
@@ -37,6 +38,9 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
     handleMarkAsSold,
     handleSaveAsDraft,
     handleAdditionalDiscountChange,
+    lastCompletedSale,
+    printLastReceipt,
+    receiptDefaultPaper,
     items,
     isPending,
     isSavingDraft,
@@ -218,6 +222,21 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
                   : "Save as Draft"}
             </Button>
           </div>
+
+          {/* Reprint the just-completed sale's receipt (hidden without the feature). */}
+          {lastCompletedSale && (
+            <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 p-2.5 text-sm">
+              <span className="min-w-0 truncate text-muted-foreground">
+                Last sale · {lastCompletedSale.invoiceNumber}
+              </span>
+              <PrintMenu
+                appearance="solid"
+                a4Label="Invoice"
+                defaultPaper={receiptDefaultPaper}
+                onPrint={printLastReceipt}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

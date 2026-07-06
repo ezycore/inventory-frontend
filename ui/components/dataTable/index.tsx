@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { ExportDialog } from "@/components/shared/export/export-dialog";
 import { useCrudModal } from "@/hooks/use-crud-handlers";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { useUrlFilters } from "@/hooks/use-url-filters";
@@ -78,6 +79,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   const [limit, setLimit] = useState(defaultPageSize || 10);
   const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
   const [importOpen, setImportOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Server-side sorting state — only active when sortOptions has entries
   const sortableFields = useMemo(
@@ -217,26 +219,20 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
       });
     }
 
-    if (exportConfig) {
-      const params = {
-        ...filters,
-        ...(isServerSorting ? { sort_by: sortBy, sort_order: sortOrder } : {}),
-      };
+    // Export + Print only make sense with rows loaded — hide on an empty list.
+    // The export click just opens the ExportDialog (confirm + column preset).
+    if (exportConfig && data.length > 0) {
       actions.push({
         type: "export",
         placement: "header",
         label: exportConfig.label || "Export CSV",
         icon: <Download className="h-4 w-4" />,
         variant: "outline",
-        onClick: () => {
-          exportConfig
-            .download(params)
-            .catch(() => toast.error("Export failed. Please try again."));
-        },
+        onClick: () => setExportOpen(true),
       });
     }
 
-    if (printConfig) {
+    if (printConfig && data.length > 0) {
       actions.push({
         type: "print",
         placement: "header",
@@ -244,10 +240,6 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         icon: <Printer className="h-4 w-4" />,
         variant: "outline",
         onClick: () => {
-          if (!data.length) {
-            toast.error("Nothing to print.");
-            return;
-          }
           // Called synchronously from the click so the popup isn't blocked.
           const opened = printTable(data, printConfig.columns, {
             title: printConfig.title,
@@ -258,17 +250,19 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     }
 
     return actions;
-  }, [
-    customActions,
-    exportConfig,
-    importConfig,
-    printConfig,
-    filters,
-    isServerSorting,
-    sortBy,
-    sortOrder,
-    data,
-  ]);
+  }, [customActions, exportConfig, importConfig, printConfig, data]);
+
+  // Export query params (current filters + server sort) + the server-side match
+  // count, threaded into the ExportDialog. Kept before the early return so the
+  // hook order stays stable (rules-of-hooks).
+  const exportParams = useMemo(
+    () => ({
+      ...filters,
+      ...(isServerSorting ? { sort_by: sortBy, sort_order: sortOrder } : {}),
+    }),
+    [filters, isServerSorting, sortBy, sortOrder],
+  );
+  const exportTotal = queryData?.data?.total ?? data.length;
 
   if (error) {
     return <ErrorBoundaryFallback error={error} onRetry={refetch} />;
@@ -427,6 +421,19 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             preview={importConfig.preview}
             commit={importConfig.commit}
             onCommitted={() => refetch()}
+          />
+        )}
+
+        {exportConfig && (
+          <ExportDialog
+            open={exportOpen}
+            onOpenChange={setExportOpen}
+            total={exportTotal}
+            note={exportConfig.note}
+            options={exportConfig.options}
+            onExport={(params) =>
+              exportConfig.download({ ...exportParams, ...params })
+            }
           />
         )}
       </CardContent>

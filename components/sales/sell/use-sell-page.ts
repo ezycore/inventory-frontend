@@ -27,6 +27,12 @@ import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
 import { useCurrency } from "@/lib/currency";
 import { isTaxActive } from "@/lib/feature-utils";
+import {
+  orgToPrintHeader,
+  printSaleInvoice,
+  resolveDefaultPaper,
+  type PaperSize,
+} from "@/utils/print-documents";
 import type { Sale, TaxType } from "@/types";
 
 /**
@@ -88,7 +94,9 @@ export function useSellPage() {
   const [localAdditionalDiscount, setLocalAdditionalDiscount] = useState(0);
   const [useCreditBalance, setUseCreditBalance] = useState(false);
   const [creditBalanceAmount, setCreditBalanceAmount] = useState(0);
-  const { symbol } = useCurrency();
+  // The just-completed sale, kept so the cashier can reprint its receipt.
+  const [lastCompletedSale, setLastCompletedSale] = useState<Sale | null>(null);
+  const { symbol, format: formatCurrency } = useCurrency();
 
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
@@ -99,6 +107,7 @@ export function useSellPage() {
 
   const {
     customerId,
+    customerName,
     orderDiscountType,
     orderDiscountValue,
     additionalDiscount,
@@ -491,7 +500,7 @@ export function useSellPage() {
         orderData.dueAmount = dueAmount;
       }
 
-      let resultSaleId: string | undefined;
+      let createdSale: Sale | undefined;
       if (isDraftMode && draftId) {
         const finalizeResult = await finalizeDraftMutation.mutateAsync({
           id: draftId,
@@ -502,13 +511,27 @@ export function useSellPage() {
           creditBalanceAmount: orderData.creditBalanceAmount,
           notes,
         });
-        resultSaleId = finalizeResult.data?.sale?._id;
+        createdSale = finalizeResult.data?.sale as Sale | undefined;
       } else {
         const createResult = await mutateAsync(orderData);
-        resultSaleId = createResult.data?.sale?._id;
+        createdSale = createResult.data?.sale as Sale | undefined;
       }
 
-      if (resultSaleId) {
+      if (createdSale) {
+        // The create/finalize response isn't populated, so graft the client-known
+        // customer name + the logged-in cashier on — otherwise the receipt reads
+        // "Walk-in Customer" / "undefined undefined". Item names/totals are
+        // denormalized on the doc, so they're already right.
+        setLastCompletedSale({
+          ...createdSale,
+          ...(customerName
+            ? { customerId: { name: customerName } as unknown as Sale["customerId"] }
+            : {}),
+          createdBy: {
+            firstName: user?.firstName ?? "",
+            lastName: user?.lastName ?? "",
+          } as unknown as Sale["createdBy"],
+        });
         clearAll();
         customerForm.reset({ paidAmount: 0, notes: "" });
         setPaidAmount(0);
@@ -524,7 +547,20 @@ export function useSellPage() {
       console.error("Failed to complete sale:", error);
       toast.error("Failed to complete sale");
     }
-  }, [items, customerId, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router]);
+  }, [items, customerId, customerName, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, user]);
+
+  // Reprint the just-completed sale's receipt (paper chosen in the PrintMenu).
+  const printLastReceipt = useCallback(
+    (paper: PaperSize) => {
+      if (!lastCompletedSale) return false;
+      return printSaleInvoice(lastCompletedSale, {
+        paper,
+        currency: formatCurrency,
+        header: orgToPrintHeader(user?.organization),
+      });
+    },
+    [lastCompletedSale, formatCurrency, user],
+  );
 
   const handleSaveAsDraft = useCallback(async () => {
     if (items.length === 0) {
@@ -632,6 +668,10 @@ export function useSellPage() {
     handleMarkAsSold,
     handleSaveAsDraft,
     handleAdditionalDiscountChange,
+    // receipt (just-completed sale)
+    lastCompletedSale,
+    printLastReceipt,
+    receiptDefaultPaper: resolveDefaultPaper(user?.organization),
     // store passthroughs
     items,
     clearAll,

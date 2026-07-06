@@ -5,7 +5,13 @@ import { ReceiptText } from 'lucide-react';
 import { useRef } from 'react';
 import { useAuthStore } from '@/services/stores';
 import { PrintMenu } from '@/components/shared/print/print-menu';
-import { printSaleInvoice } from '@/utils/print-documents';
+import { SheetHeaderBar } from '@/components/shared/print/sheet-header-bar';
+import {
+  orgToPrintHeader,
+  printDeliveryNote,
+  printSaleInvoice,
+  resolveDefaultPaper,
+} from '@/utils/print-documents';
 import {
   Sheet,
   SheetContent,
@@ -91,30 +97,48 @@ export function PaymentsDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[760px] sm:max-w-[760px] flex flex-col">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <ReceiptText className="h-5 w-5" />
-            {mode === 'payment' ? 'Record Payment' : 'Sale Summary'}
-            {sale ? ` — ${sale.invoiceNumber}` : ''}
-          </SheetTitle>
-          <SheetDescription>
-            {mode === 'payment'
-              ? 'Review the sale and submit a payment'
-              : 'Full sale details and payment history'}
-          </SheetDescription>
-          {sale && (
-            <div className="pt-2">
-              <PrintMenu
-                a4Label="Invoice"
-                onPrint={(paper) =>
-                  printSaleInvoice(sale, {
-                    paper,
-                    currency: formatCurrency,
-                    orgName: user?.organization?.name,
-                  })
-                }
-              />
-            </div>
-          )}
+          <SheetHeaderBar
+            action={
+              sale && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <PrintMenu
+                    appearance="solid"
+                    a4Label="Invoice"
+                    defaultPaper={resolveDefaultPaper(user?.organization)}
+                    onPrint={(paper) =>
+                      printSaleInvoice(sale, {
+                        paper,
+                        currency: formatCurrency,
+                        header: orgToPrintHeader(user?.organization),
+                      })
+                    }
+                  />
+                  <PrintMenu
+                    a4Label="Delivery Note"
+                    defaultPaper={resolveDefaultPaper(user?.organization)}
+                    onPrint={(paper) =>
+                      printDeliveryNote(sale, {
+                        paper,
+                        currency: formatCurrency,
+                        header: orgToPrintHeader(user?.organization),
+                      })
+                    }
+                  />
+                </div>
+              )
+            }
+          >
+            <SheetTitle className="flex items-center gap-2">
+              <ReceiptText className="h-5 w-5" />
+              {mode === 'payment' ? 'Record Payment' : 'Sale Summary'}
+              {sale ? ` — ${sale.invoiceNumber}` : ''}
+            </SheetTitle>
+            <SheetDescription>
+              {mode === 'payment'
+                ? 'Review the sale and submit a payment'
+                : 'Full sale details and payment history'}
+            </SheetDescription>
+          </SheetHeaderBar>
         </SheetHeader>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto">

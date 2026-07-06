@@ -437,6 +437,39 @@ export interface CustomerLedger {
   hasPrev: boolean;
 }
 
+/** One row in an account statement (customer/supplier). Amount is a magnitude. */
+export interface StatementTransaction {
+  date: string;
+  type: "invoice" | "payment" | "refund" | "return" | "credit";
+  reference: string;
+  amount: number;
+}
+
+/** Account-wide statement summary (shared by customer + supplier). */
+export interface StatementSummary {
+  totalBilled: number;
+  totalPaid: number;
+  totalDue: number;
+  totalReturned: number;
+  creditBalance: number;
+}
+
+/** Account-wide customer statement (non-paginated) for printing. */
+export interface CustomerStatement {
+  customer: { name: string; phone?: string };
+  summary: StatementSummary;
+  transactions: StatementTransaction[];
+  range: { startDate: string | null; endDate: string | null };
+}
+
+/** Account-wide supplier statement (non-paginated) for printing. */
+export interface SupplierStatement {
+  supplier: { name: string; phone?: string };
+  summary: StatementSummary;
+  transactions: StatementTransaction[];
+  range: { startDate: string | null; endDate: string | null };
+}
+
 // Supplier Ledger Types
 export interface SupplierLedgerPurchaseOrder {
   _id: string;
@@ -1683,6 +1716,8 @@ export interface SaleCustomer {
   name: string;
   email?: string;
   phone?: string;
+  /** Populated on the sale-detail endpoint; printed on the invoice when present. */
+  address?: string;
   /** Customer store-credit balance (echoed by backend on populate). */
   creditBalance?: number;
   /** Populated default discount (when backend nest-populates defaultDiscountId). */

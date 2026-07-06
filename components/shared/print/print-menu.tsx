@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { Printer } from "lucide-react";
+import { ChevronDown, Printer } from "lucide-react";
 import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
@@ -11,37 +11,89 @@ import {
 } from "@ui/components/dropdown-menu";
 import { toast } from "sonner";
 import type { PaperSize } from "@/utils/print-documents";
+import { useAuthStore } from "@/services/stores";
+import { isFeatureEnabled } from "@/lib/feature-utils";
+import { cn } from "@ui/lib/utils";
 
 interface PrintMenuProps {
   /** Print at the chosen paper size; returns false when the popup was blocked. */
   onPrint: (paper: PaperSize) => boolean;
   /** Label for the A4 option (e.g. "Invoice", "Purchase Order"). */
   a4Label?: string;
+  /** Org's pre-selected paper size — the one-click primary action. Defaults to A4. */
+  defaultPaper?: PaperSize;
+  /** Visual weight: "outline" (subtle, legacy) or "solid" (filled primary CTA). */
+  appearance?: "outline" | "solid";
 }
 
 /**
- * Print button + paper-size menu (A4 / thermal 80mm / 58mm). Selecting an item
- * calls `onPrint` synchronously (inside the click) so the print popup isn't
- * blocked; a blocked popup surfaces a toast.
+ * Split print button: the primary segment prints at the org's default paper size
+ * in one click; the caret opens the paper-size menu (A4 / 80mm / 58mm). Both call
+ * `onPrint` synchronously (inside the click) so the popup isn't blocked; a blocked
+ * popup surfaces a toast.
  */
-export function PrintMenu({ onPrint, a4Label = "A4" }: PrintMenuProps) {
+export function PrintMenu({
+  onPrint,
+  a4Label = "A4",
+  defaultPaper = "a4",
+  appearance = "outline",
+}: PrintMenuProps) {
+  // Single gate for every print entry point: hide when the org lacks the
+  // Invoice Printing feature (the backend `invoicePrinting` featureGate).
+  const features = useAuthStore((s) => s.user?.organization?.features);
   const run = (paper: PaperSize) => {
     if (!onPrint(paper)) toast.error("Please allow pop-ups to print.");
   };
 
+  if (!isFeatureEnabled(features, "invoicePrinting")) return null;
+
+  const options: { paper: PaperSize; label: string }[] = [
+    { paper: "a4", label: `${a4Label} (A4)` },
+    { paper: "thermal80", label: "Receipt (80mm)" },
+    { paper: "thermal58", label: "Receipt (58mm)" },
+  ];
+
+  const solid = appearance === "solid";
+  const btnVariant = solid ? "default" : "outline";
+  // Seam between the two segments: solid draws a faint divider on its own tone;
+  // outline collapses the shared border so the pair reads as one control.
+  const caretSeam = solid
+    ? "border-l border-primary-foreground/25"
+    : "border-l-0";
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="whitespace-nowrap">
-          <Printer className="h-4 w-4" />
-          Print
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => run("a4")}>{a4Label} (A4)</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => run("thermal80")}>Receipt (80mm)</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => run("thermal58")}>Receipt (58mm)</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="inline-flex rounded-md shadow-sm">
+      <Button
+        type="button"
+        variant={btnVariant}
+        size="sm"
+        className="whitespace-nowrap rounded-r-none"
+        onClick={() => run(defaultPaper)}
+      >
+        <Printer className="h-4 w-4" />
+        Print
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant={btnVariant}
+            size="sm"
+            className={cn("rounded-l-none px-2", caretSeam)}
+            aria-label="Choose paper size"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {options.map((option) => (
+            <DropdownMenuItem key={option.paper} onClick={() => run(option.paper)}>
+              {option.label}
+              {option.paper === defaultPaper ? " · default" : ""}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

@@ -34,3 +34,18 @@ export const useCustomerLedger = (customerId: string | null, filters: CustomerLe
     staleTime: 1 * 60 * 1000, // 1 minute
   })
 }
+
+// Get account-wide customer statement (for printing). Pre-fetched while the
+// ledger sheet is open so the print can run synchronously in the click.
+export const useCustomerStatement = (
+  customerId: string | null,
+  filters: { startDate?: string; endDate?: string } = {},
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: queryKeys.customers.statement(customerId!, filters),
+    queryFn: () => customersApi.getStatement(customerId!, filters),
+    enabled: !!customerId && enabled,
+    staleTime: 1 * 60 * 1000,
+  })
+}

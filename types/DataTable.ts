@@ -264,10 +264,28 @@ interface Operations<TData = any> {
  * filters + server sort). Actual URL/param building lives in the resource's
  * API module so the export honours the same filters as the list.
  */
+/**
+ * One selectable export choice shown in the export dialog. Its `params` are
+ * merged into the download query, so a choice can pick a dataset
+ * (`{ dataset: "batch" }`), a column preset (`{ columns: "essential" }`), or
+ * both. When a config omits `options`, the dialog offers a default
+ * All-columns / Essential-columns pair.
+ */
+export interface ExportOption {
+  key: string;
+  label: string;
+  description?: string;
+  params?: Record<string, unknown>;
+}
+
 export interface DataTableExportConfig {
   download: (params: Record<string, unknown>) => Promise<void>;
   /** Button label (default "Export CSV"). */
   label?: string;
+  /** Extra caveat line shown in the export confirm dialog (e.g. scope note). */
+  note?: string;
+  /** Selectable export choices (dataset / column preset). Defaults to All/Essential. */
+  options?: ExportOption[];
 }
 
 /**
@@ -286,6 +304,8 @@ export interface ImportResult {
   created: number;
   committed: boolean;
   errors: ImportRowError[];
+  /** Aggregated non-fatal skip notices ("message (N rows)"). */
+  warnings?: string[];
 }
 
 /**

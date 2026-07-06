@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, CustomerLedger, CustomersSummary, PaginatedResponse } from "@/types";
+import type { ApiResponse, CustomerLedger, CustomerStatement, CustomersSummary, PaginatedResponse } from "@/types";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface CustomerLedgerFilters {
@@ -32,4 +32,11 @@ export const customersApi = {
   // Get customer ledger (transaction history)
   getLedger: (customerId: string, filters: CustomerLedgerFilters = {}): Promise<ApiResponse<CustomerLedger>> =>
     apiClient.get(`/sales/customers/${customerId}/ledger${buildQueryParams(filters)}`),
+
+  // Get account-wide customer statement (non-paginated) for printing
+  getStatement: (
+    customerId: string,
+    filters: { startDate?: string; endDate?: string } = {},
+  ): Promise<ApiResponse<CustomerStatement>> =>
+    apiClient.get(`/sales/customers/${customerId}/statement${buildQueryParams(filters)}`),
 };

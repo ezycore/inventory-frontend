@@ -21,6 +21,19 @@ export const inventoryApi = {
   getAll: (filters: InventoryFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/inventory${buildQueryParams(filters)}`),
 
+  // CSV export of current stock (active location) honouring the active filters +
+  // the chosen column preset (`columns=essential`).
+  exportCsv: (filters: Record<string, unknown> = {}): Promise<void> =>
+    apiClient.download(`/inventory/export${buildQueryParams(filters)}`, {
+      filename: "inventory.csv",
+    }),
+
+  // CSV export of batch/expiry rows (active location; expiryTracking-gated).
+  exportBatchCsv: (filters: Record<string, unknown> = {}): Promise<void> =>
+    apiClient.download(`/inventory/export/batch${buildQueryParams(filters)}`, {
+      filename: "inventory-batches.csv",
+    }),
+
   // Opening-stock CSV import — template, dry-run preview, then commit.
   downloadImportTemplate: (): Promise<void> =>
     apiClient.download("/inventory/import/template", {

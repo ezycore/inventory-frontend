@@ -5,6 +5,13 @@ import {
   PaymentHistoryList as SharedPaymentHistoryList,
   type PaymentHistoryItem,
 } from "@/components/shared/payments";
+import { useAuthStore } from "@/services/stores";
+import { isFeatureEnabled } from "@/lib/feature-utils";
+import {
+  orgToPrintHeader,
+  printPaymentReceipt,
+  resolveDefaultPaper,
+} from "@/utils/print-documents";
 import type { Payment, Sale } from "@/types";
 
 interface PaymentHistoryListProps {
@@ -28,6 +35,11 @@ export function PaymentHistoryList({
   onMakePayment,
   scrollRef,
 }: PaymentHistoryListProps) {
+  const { user } = useAuthStore();
+  const canPrint = isFeatureEnabled(
+    user?.organization?.features,
+    "invoicePrinting",
+  );
   const items = useMemo<PaymentHistoryItem[]>(
     () =>
       payments.map((p) => ({
@@ -53,6 +65,29 @@ export function PaymentHistoryList({
         onMakePayment(sale);
         if (scrollRef?.current) scrollRef.current.scrollTop = 0;
       }}
+      onPrintReceipt={
+        canPrint
+          ? (p) =>
+              printPaymentReceipt(
+                {
+                  amount: p.amount,
+                  createdAt: p.createdAt,
+                  paymentMethod: p.paymentMethod,
+                  accountName: p.accountName,
+                  notes: p.notes,
+                  docNumber: sale.invoiceNumber,
+                  counterparty: sale.customerId?.name ?? "Walk-in Customer",
+                  isSale: true,
+                  balanceDue: sale.dueAmount,
+                },
+                {
+                  paper: resolveDefaultPaper(user?.organization),
+                  currency: formatCurrency,
+                  header: orgToPrintHeader(user?.organization),
+                },
+              )
+          : undefined
+      }
     />
   );
 }

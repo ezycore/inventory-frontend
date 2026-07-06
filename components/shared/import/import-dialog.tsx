@@ -154,9 +154,24 @@ export function ImportDialog({
               <div className="flex flex-wrap gap-4 text-sm">
                 <span>Total: <b>{result.total}</b></span>
                 <span className="text-green-600">Valid: <b>{result.valid}</b></span>
-                <span className="text-amber-600">Skipped: <b>{result.skipped}</b></span>
+                <span className="text-amber-600" title="Rows that already exist (matched an existing record) and were left unchanged — import creates, it never updates.">
+                  Skipped (already exist): <b>{result.skipped}</b>
+                </span>
                 <span className="text-red-600">Invalid: <b>{result.invalid}</b></span>
               </div>
+
+              {result.warnings && result.warnings.length > 0 && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+                  <p className="mb-1 font-medium">
+                    Some values will be skipped:
+                  </p>
+                  <ul className="list-disc space-y-0.5 pl-5">
+                    {result.warnings.map((warning, index) => (
+                      <li key={index}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {result.errors.length > 0 && (
                 <div className="max-h-64 overflow-auto rounded-md border">
