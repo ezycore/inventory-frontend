@@ -1018,6 +1018,34 @@ export interface OrganizationData {
 
 export interface UpdateOrganizationDto extends Partial<OrganizationData> { }
 
+/**
+ * A hostname bound to an organization. Mirrors the backend `OrganizationDomain`
+ * (easystock-backend `types/organization.types.ts`); the API serializes dates as
+ * ISO strings. Consumed by the domains settings page. See CUSTOM-DOMAINS-P1.md.
+ */
+export type OrganizationDomainType = "subdomain" | "custom";
+
+export type OrganizationDomainStatus =
+  | "pending"
+  | "verifying"
+  | "verified"
+  | "active"
+  | "failed";
+
+export type OrganizationDomainSslStatus = "pending" | "issued" | "failed";
+
+export interface OrganizationDomain {
+  domain: string;
+  type: OrganizationDomainType;
+  status: OrganizationDomainStatus;
+  isPrimary: boolean;
+  verificationToken: string;
+  verifiedAt: string | null;
+  sslStatus: OrganizationDomainSslStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Account interfaces
 export type AccountType = "cash" | "bank" | "mfs" | "custom";
 

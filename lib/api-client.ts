@@ -85,6 +85,13 @@ export class ApiClient {
         headers["X-Active-Location"] = activeLocationId;
       }
 
+      // Explicit tenant host — lets the split-origin BE resolve the org at the
+      // auth boundary (login/forgot) even if Origin is unavailable. Belt-and-
+      // suspenders alongside the browser Origin. See CUSTOM-DOMAINS-P1.md.
+      if (typeof window !== "undefined") {
+        headers["X-Tenant-Host"] = window.location.host;
+      }
+
       const response = await fetch(url, {
         headers,
         ...options,
