@@ -91,6 +91,7 @@ export const FEATURE_DISPLAY_NAMES: Record<FeatureName, string> = {
   uomConversion: "Unit Conversion",
   storefront: "Ecommerce Storefront",
   tax: "Tax Management",
+  combo: "Combo Products",
 };
 
 /**
@@ -107,6 +108,7 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureName, string> = {
   uomConversion: "Enable unit of measure conversion for products",
   storefront: "Enable a public online store with shopper accounts, online orders, and courier delivery",
   tax: "Enable tax rates and apply tax on purchases and sales",
+  combo: "Sell several products bundled together as one priced unit",
 };
 
 /**
@@ -122,4 +124,5 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   uomConversion: "repeat",
   storefront: "store",
   tax: "percent",
+  combo: "package",
 };

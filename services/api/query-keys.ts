@@ -251,6 +251,13 @@ export const queryKeys = {
         customerId,
         filters || {},
       ] as const,
+    statement: (customerId: string, filters?: Record<string, any>) =>
+      [
+        ...queryKeys.customers.all(),
+        "statement",
+        customerId,
+        filters || {},
+      ] as const,
   },
 
   // Variant Attributes query keys
@@ -274,6 +281,13 @@ export const queryKeys = {
       [
         ...queryKeys.suppliers.all(),
         "ledger",
+        supplierId,
+        filters || {},
+      ] as const,
+    statement: (supplierId: string, filters?: Record<string, any>) =>
+      [
+        ...queryKeys.suppliers.all(),
+        "statement",
         supplierId,
         filters || {},
       ] as const,

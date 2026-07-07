@@ -4,6 +4,7 @@ import {
   OrganizationFeatures,
   TaxSettings,
 } from "@/types";
+import type { ReceiptSettings } from "@/types/receipt";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
@@ -30,6 +31,10 @@ export interface User {
     currency?: string;
     timezone?: string;
     logo?: Image;
+    /** Business address — printed on invoices/receipts/returns. */
+    address?: string;
+    /** Letterhead / print configuration — see {@link ReceiptSettings}. */
+    receiptSettings?: ReceiptSettings;
     settings: {
       excludedFields?: { [key: string]: string[] };
       excludedColumns?: { [key: string]: string[] };

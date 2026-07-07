@@ -1,15 +1,20 @@
 "use client";
+// coding-standard: maintained
 
+import { ExportDialog } from "@/components/shared/export/export-dialog";
 import { useCrudModal } from "@/hooks/use-crud-handlers";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import type { ApiResponse, PaginatedResponse } from "@/types";
-import { DataTableProps } from "@/types/DataTable";
+import { CustomAction, DataTableProps } from "@/types/DataTable";
 import DynamicForm from "@/ui/components/form";
+import { ImportDialog } from "@/components/shared/import/import-dialog";
+import { printTable } from "@/utils/print";
 import { useQuery } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+import { Download, Plus, Printer, Upload } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent } from "../card";
 import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 import { BaseDataTable } from "./base-data-table ";
@@ -27,6 +32,9 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     toolbarAction,
     data: externalData,
     customActions,
+    exportConfig,
+    importConfig,
+    printConfig,
     manageColumns,
     module,
     loading = false,
@@ -70,6 +78,8 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(defaultPageSize || 10);
   const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
+  const [importOpen, setImportOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Server-side sorting state — only active when sortOptions has entries
   const sortableFields = useMemo(
@@ -192,6 +202,68 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     entityName: "Brand",
   });
 
+  // Export / Print header buttons — expressed as customActions so no new props
+  // need threading through BaseDataTable and the toolbar. Declared before the
+  // early `error` return so the hook order stays stable (rules-of-hooks).
+  const mergedCustomActions = useMemo<CustomAction[]>(() => {
+    const actions: CustomAction[] = [...(customActions || [])];
+
+    if (importConfig) {
+      actions.push({
+        type: "import",
+        placement: "header",
+        label: importConfig.label || "Import",
+        icon: <Upload className="h-4 w-4" />,
+        variant: "outline",
+        onClick: () => setImportOpen(true),
+      });
+    }
+
+    // Export + Print only make sense with rows loaded — hide on an empty list.
+    // The export click just opens the ExportDialog (confirm + column preset).
+    if (exportConfig && data.length > 0) {
+      actions.push({
+        type: "export",
+        placement: "header",
+        label: exportConfig.label || "Export CSV",
+        icon: <Download className="h-4 w-4" />,
+        variant: "outline",
+        onClick: () => setExportOpen(true),
+      });
+    }
+
+    if (printConfig && data.length > 0) {
+      actions.push({
+        type: "print",
+        placement: "header",
+        label: printConfig.label || "Print",
+        icon: <Printer className="h-4 w-4" />,
+        variant: "outline",
+        onClick: () => {
+          // Called synchronously from the click so the popup isn't blocked.
+          const opened = printTable(data, printConfig.columns, {
+            title: printConfig.title,
+          });
+          if (!opened) toast.error("Please allow pop-ups to print.");
+        },
+      });
+    }
+
+    return actions;
+  }, [customActions, exportConfig, importConfig, printConfig, data]);
+
+  // Export query params (current filters + server sort) + the server-side match
+  // count, threaded into the ExportDialog. Kept before the early return so the
+  // hook order stays stable (rules-of-hooks).
+  const exportParams = useMemo(
+    () => ({
+      ...filters,
+      ...(isServerSorting ? { sort_by: sortBy, sort_order: sortOrder } : {}),
+    }),
+    [filters, isServerSorting, sortBy, sortOrder],
+  );
+  const exportTotal = queryData?.data?.total ?? data.length;
+
   if (error) {
     return <ErrorBoundaryFallback error={error} onRetry={refetch} />;
   }
@@ -289,7 +361,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           onDelete={handleDelete}
           onBulkDelete={bulkDeleteMutation ? handleBulkDelete : undefined}
           toolbarAction={mergedToolbarAction}
-          customActions={customActions}
+          customActions={mergedCustomActions}
           manageColumns={manageColumns}
           manualSorting={isServerSorting}
           sortingState={isServerSorting ? sorting : undefined}
@@ -337,6 +409,31 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             onFieldChange={(fieldName, value, all) => {
                console.log(name, value, stripHiddenValues(formConfig, all))
             }}
+          />
+        )}
+
+        {importConfig && (
+          <ImportDialog
+            open={importOpen}
+            onOpenChange={setImportOpen}
+            title={`Import ${entityName || ""}`.trim()}
+            downloadTemplate={importConfig.downloadTemplate}
+            preview={importConfig.preview}
+            commit={importConfig.commit}
+            onCommitted={() => refetch()}
+          />
+        )}
+
+        {exportConfig && (
+          <ExportDialog
+            open={exportOpen}
+            onOpenChange={setExportOpen}
+            total={exportTotal}
+            note={exportConfig.note}
+            options={exportConfig.options}
+            onExport={(params) =>
+              exportConfig.download({ ...exportParams, ...params })
+            }
           />
         )}
       </CardContent>

@@ -8,6 +8,11 @@ export * from "../utils";
 export { useCrudModal } from "./use-crud-handlers";
 export { usePaginationHandler } from "./use-pagination-handler";
 export { useHydrated } from "./use-hydrated";
+export { useReceiptSettings } from "./use-receipt-settings";
+export type {
+  ReceiptFormState,
+  ReceiptSettingsActions,
+} from "./use-receipt-settings";
 
 // Re-export TanStack Query utilities for convenience
 export {

@@ -4,7 +4,7 @@ import {
   getOrganizationSlugDescription,
   getOrganizationSlugPlaceholder,
   getRootDomain,
-  getSubdomain,
+  isWorkspaceHost,
   shouldShowOrganizationSlugField,
   withOrganizationSlug,
 } from "@/lib/organization-utils";
@@ -54,9 +54,11 @@ export function LoginForm({
     );
   }
 
-  // On the no-workspace host (apex / app.ezycore.com) with a root domain set,
-  // sessions are per-origin — route the user to their workspace login instead.
-  if (getRootDomain() && !getSubdomain()) {
+  // On the platform apex (app.ezycore.com) with a root domain set — no implicit
+  // workspace — sessions are per-origin, so route the user to their workspace
+  // login. Custom domains and *.ezycore.com subdomains already imply a workspace
+  // and fall through to the normal login. See docs/CUSTOM-DOMAINS-P1.md.
+  if (getRootDomain() && !isWorkspaceHost()) {
     return <WorkspaceChooser className={className} {...props} />;
   }
 

@@ -40,6 +40,8 @@ export interface OrganizationFeatures {
   storefront: boolean;
   /** Enable tax management (tax rates, and tax on purchases/sales). */
   tax: boolean;
+  /** Enable combo / bundle products (sell several products as one priced unit). */
+  combo: boolean;
 }
 
 /**
@@ -55,6 +57,7 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   uomConversion: false,
   storefront: true,
   tax: true,
+  combo: false,
 };
 
 /**
@@ -568,6 +571,39 @@ export interface CustomerLedger {
   hasPrev: boolean;
 }
 
+/** One row in an account statement (customer/supplier). Amount is a magnitude. */
+export interface StatementTransaction {
+  date: string;
+  type: "invoice" | "payment" | "refund" | "return" | "credit";
+  reference: string;
+  amount: number;
+}
+
+/** Account-wide statement summary (shared by customer + supplier). */
+export interface StatementSummary {
+  totalBilled: number;
+  totalPaid: number;
+  totalDue: number;
+  totalReturned: number;
+  creditBalance: number;
+}
+
+/** Account-wide customer statement (non-paginated) for printing. */
+export interface CustomerStatement {
+  customer: { name: string; phone?: string };
+  summary: StatementSummary;
+  transactions: StatementTransaction[];
+  range: { startDate: string | null; endDate: string | null };
+}
+
+/** Account-wide supplier statement (non-paginated) for printing. */
+export interface SupplierStatement {
+  supplier: { name: string; phone?: string };
+  summary: StatementSummary;
+  transactions: StatementTransaction[];
+  range: { startDate: string | null; endDate: string | null };
+}
+
 // Supplier Ledger Types
 export interface SupplierLedgerPurchaseOrder {
   _id: string;
@@ -895,6 +931,16 @@ export interface Product extends BaseEntity {
     featured?: boolean;
     onlineDescription?: string;
   };
+
+  // Combo composition — present only on combo products (productType === "combo").
+  comboComponents?: ComboComponent[];
+}
+
+/** One component of a combo product (references an existing non-combo product/variant). */
+export interface ComboComponent {
+  componentProductId: string;
+  componentVariantId?: string | null;
+  quantity: number;
 }
 
 export interface ProductWithVariants extends Product {
@@ -1105,6 +1151,34 @@ export interface OrganizationData {
 }
 
 export interface UpdateOrganizationDto extends Partial<OrganizationData> { }
+
+/**
+ * A hostname bound to an organization. Mirrors the backend `OrganizationDomain`
+ * (easystock-backend `types/organization.types.ts`); the API serializes dates as
+ * ISO strings. Consumed by the domains settings page. See CUSTOM-DOMAINS-P1.md.
+ */
+export type OrganizationDomainType = "subdomain" | "custom";
+
+export type OrganizationDomainStatus =
+  | "pending"
+  | "verifying"
+  | "verified"
+  | "active"
+  | "failed";
+
+export type OrganizationDomainSslStatus = "pending" | "issued" | "failed";
+
+export interface OrganizationDomain {
+  domain: string;
+  type: OrganizationDomainType;
+  status: OrganizationDomainStatus;
+  isPrimary: boolean;
+  verificationToken: string;
+  verifiedAt: string | null;
+  sslStatus: OrganizationDomainSslStatus;
+  createdAt: string;
+  updatedAt: string;
+}
 
 // Account interfaces
 export type AccountType = "cash" | "bank" | "mfs" | "custom";
@@ -1685,9 +1759,16 @@ export interface CreateSalesOrderItemDto {
   variantName?: string;
 }
 
+/** Combo reference line — the server resolves + explodes it (no productId/price). */
+export interface ComboOrderItemDto {
+  comboProductId: string;
+  quantity: number;
+  discount?: number;
+}
+
 export interface CreateSalesOrderDto {
   customerId?: string | null;
-  items: CreateSalesOrderItemDto[];
+  items: (CreateSalesOrderItemDto | ComboOrderItemDto)[];
   status?: SalesOrderStatus;
   invoiceNumber?: string;
   discountType?: SalesOrderDiscountType;
@@ -1702,8 +1783,8 @@ export interface UpdateSalesOrderDto extends Partial<CreateSalesOrderDto> { }
 // Draft Sale (backend Sale model) DTOs
 // ============================================
 
-/** Item payload accepted by POST /sales (matches backend CreateSaleDto.items[]) */
-export interface SaleItemPayload {
+/** Normal stock line accepted by POST /sales (matches backend CreateSaleDto.items[]). */
+export interface SaleItemNormalPayload {
   productId: string;
   variantId?: string | null;
   inventoryId: string;
@@ -1716,7 +1797,12 @@ export interface SaleItemPayload {
   taxRate?: number;
   /** "inclusive" = price already contains tax; "exclusive" = tax added on top. */
   taxType?: TaxType;
+  /** Manual batch override for the line; omit/null = auto FEFO. */
+  batchId?: string | null;
 }
+
+/** A sale line: either a normal stock line or a combo reference (server explodes it). */
+export type SaleItemPayload = SaleItemNormalPayload | ComboOrderItemDto;
 
 /** PATCH /sales/:id body — only allowed when the sale is still a draft. */
 export interface UpdateSaleDraftDto {
@@ -1774,6 +1860,14 @@ export interface SaleItem {
   taxType?: TaxType;
   /** Computed tax amount for the line (backend). */
   taxAmount?: number;
+  /** Combo provenance — set only on lines exploded from a combo. Group by
+   *  comboLineId to render them under one combo header. */
+  comboId?: string | null;
+  comboName?: string;
+  comboLineId?: string;
+  /** Base units of this component per 1 combo (qtyPer); returns UI converts
+   *  combo units ↔ component units with it. Set only on combo lines. */
+  comboUnitQuantity?: number;
 }
 
 /**
@@ -1784,6 +1878,8 @@ export interface SaleCustomer {
   name: string;
   email?: string;
   phone?: string;
+  /** Populated on the sale-detail endpoint; printed on the invoice when present. */
+  address?: string;
   /** Customer store-credit balance (echoed by backend on populate). */
   creditBalance?: number;
   /** Populated default discount (when backend nest-populates defaultDiscountId). */
@@ -1968,6 +2064,10 @@ export interface SalesReturnItem {
   taxRate?: number;
   taxType?: TaxType;
   taxAmount?: number;
+  /** Combo provenance copied from the source sale line (combo lines only). */
+  comboId?: string | null;
+  comboName?: string;
+  comboLineId?: string;
 }
 
 /**

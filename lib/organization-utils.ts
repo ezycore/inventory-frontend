@@ -72,7 +72,20 @@ export function subdomainFromHostname(hostname: string): string | null {
     return null;
   }
 
-  // Need at least 3 parts for a subdomain (subdomain.domain.tld)
+  const root = getRootDomain().toLowerCase();
+  if (root) {
+    // Root configured (prod/staging): a workspace subdomain is EXACTLY one label
+    // under the apex (`<slug>.ezycore.com`). The apex itself and any custom
+    // domain (shop.acme.com) are NOT slug hosts — critical so a custom domain
+    // isn't misread as slug="shop". See docs/CUSTOM-DOMAINS-P1.md.
+    if (h === root || !h.endsWith(`.${root}`)) return null;
+    const label = h.slice(0, -(root.length + 1));
+    // Multi-label (a.b.ezycore.com) and infra/marketing hosts are never a workspace.
+    if (!label || label.includes(".") || isReservedSubdomain(label)) return null;
+    return label;
+  }
+
+  // No root configured (local / single-host): legacy 3-part heuristic.
   const parts = h.split(".");
   if (parts.length < 3) {
     return null;
@@ -87,6 +100,40 @@ export function subdomainFromHostname(hostname: string): string | null {
   }
 
   return subdomain;
+}
+
+/**
+ * True when the given host already implies a workspace — either a
+ * `<slug>.ROOT_DOMAIN` subdomain OR a custom domain (any non-platform host). On
+ * such hosts the tenant is determined by the host (the BE resolves it from the
+ * request), so auth forms need no manual org-slug field and must not send a
+ * client-derived slug. False on the platform apex / `www` / reserved hosts and
+ * in local/single-host mode, where the manual slug field is shown instead.
+ */
+export function hostImpliesWorkspace(hostname: string): boolean {
+  const h = hostname.toLowerCase().split(":")[0];
+  if (subdomainFromHostname(h)) return true;
+
+  const root = getRootDomain().toLowerCase();
+  const isLocal =
+    h === "localhost" ||
+    h.endsWith(".localhost") ||
+    h === "127.0.0.1" ||
+    h.startsWith("192.168.") ||
+    h.includes(".local");
+  if (!root || isLocal) return false;
+
+  // Platform apex / www / reserved subdomain of the root → no implicit workspace.
+  if (h === root || h === `www.${root}` || h.endsWith(`.${root}`)) return false;
+
+  // Anything else is a customer custom domain → implicit workspace.
+  return true;
+}
+
+/** Client-side {@link hostImpliesWorkspace} for the current window host. */
+export function isWorkspaceHost(): boolean {
+  if (typeof window === "undefined") return false;
+  return hostImpliesWorkspace(window.location.hostname);
 }
 
 /**
@@ -152,7 +199,9 @@ export function withOrganizationSlug<T extends Record<string, any>>(
  * @returns true if field should be visible, false if it should be hidden
  */
 export function shouldShowOrganizationSlugField(): boolean {
-  return !isSubdomainMode();
+  // Hide on any host that already implies a workspace (subdomain OR custom
+  // domain); show only on the platform apex / local, where the org is ambiguous.
+  return !isWorkspaceHost();
 }
 
 /**

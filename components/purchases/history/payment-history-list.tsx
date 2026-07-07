@@ -5,6 +5,13 @@ import {
   PaymentHistoryList as SharedPaymentHistoryList,
   type PaymentHistoryItem,
 } from "@/components/shared/payments";
+import { useAuthStore } from "@/services/stores";
+import { isFeatureEnabled } from "@/lib/feature-utils";
+import {
+  orgToPrintHeader,
+  printPaymentReceipt,
+  resolveDefaultPaper,
+} from "@/utils/print-documents";
 import type { PurchaseOrder } from "@/types";
 import type { Payment } from "./types";
 
@@ -29,6 +36,11 @@ export function PaymentHistoryList({
   onMakePayment,
   scrollRef,
 }: PaymentHistoryListProps) {
+  const { user } = useAuthStore();
+  const canPrint = isFeatureEnabled(
+    user?.organization?.features,
+    "invoicePrinting",
+  );
   const items = useMemo<PaymentHistoryItem[]>(
     () =>
       payments.map((p) => ({
@@ -54,6 +66,30 @@ export function PaymentHistoryList({
         onMakePayment(order);
         if (scrollRef?.current) scrollRef.current.scrollTop = 0;
       }}
+      onPrintReceipt={
+        canPrint
+          ? (p) =>
+              printPaymentReceipt(
+                {
+                  amount: p.amount,
+                  createdAt: p.createdAt,
+                  paymentMethod: p.paymentMethod,
+                  accountName: p.accountName,
+                  notes: p.notes,
+                  docNumber: order.orderNumber,
+                  counterparty:
+                    order.supplierId?.name ?? order.supplier?.name ?? "-",
+                  isSale: false,
+                  balanceDue: order.dueAmount ?? 0,
+                },
+                {
+                  paper: resolveDefaultPaper(user?.organization),
+                  currency: formatCurrency,
+                  header: orgToPrintHeader(user?.organization),
+                },
+              )
+          : undefined
+      }
     />
   );
 }

@@ -11,6 +11,8 @@ const REPORT_KEYS = {
     [...REPORT_KEYS.all(), "inventory", params || {}] as const,
   sales: (params?: ReportParams) =>
     [...REPORT_KEYS.all(), "sales", params || {}] as const,
+  combos: (params?: ReportParams) =>
+    [...REPORT_KEYS.all(), "combos", params || {}] as const,
   purchases: (params?: ReportParams) =>
     [...REPORT_KEYS.all(), "purchases", params || {}] as const,
   cash: (params?: ReportParams) =>
@@ -46,6 +48,17 @@ export const useSalesReport = (params?: ReportParams) => {
     queryFn: () => reportsApi.getSalesReport(params),
     select: (data) => data.data,
     enabled: !!params,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/** Hook for fetching the combo-level sales report (feature-gated on the server). */
+export const useComboSalesReport = (params?: ReportParams, enabled = true) => {
+  return useQuery({
+    queryKey: REPORT_KEYS.combos(params),
+    queryFn: () => reportsApi.getComboSalesReport(params),
+    select: (data) => data.data,
+    enabled: !!params && enabled,
     staleTime: 2 * 60 * 1000,
   });
 };
