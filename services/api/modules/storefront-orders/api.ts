@@ -14,6 +14,7 @@ export interface AdminOrderAddress {
   address: string;
   city?: string;
   area?: string;
+  zone?: "inside" | "outside";
 }
 
 export interface OrderCourier {

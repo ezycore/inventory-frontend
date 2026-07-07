@@ -231,6 +231,7 @@ export interface StorefrontOrder {
   items: OrderItem[];
   subtotal: number;
   discountAmount: number;
+  couponCode?: string;
   shippingCharged: number;
   totalAmount: number;
   status: string;
@@ -328,6 +329,16 @@ export const storefrontApi = {
     token: string,
     body: { name?: string; gender?: "male" | "female" | "other"; dob?: string },
   ) => sfFetch<ShopperProfile>(slug, "/auth/me", { method: "PATCH", body, token }),
+  changePassword: (
+    slug: string,
+    token: string,
+    body: { currentPassword: string; newPassword: string },
+  ) =>
+    sfFetch<{ message: string }>(slug, "/auth/me/password", {
+      method: "PUT",
+      body,
+      token,
+    }),
   updatePrefs: (slug: string, token: string, body: Partial<ShopperPrefs>) =>
     sfFetch<ShopperProfile>(slug, "/auth/me/prefs", {
       method: "PUT",

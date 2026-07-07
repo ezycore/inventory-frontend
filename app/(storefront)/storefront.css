@@ -52,6 +52,8 @@
   /* Account area: sidebar + content grid, profile detail columns. */
   --acctgrid: 1fr;
   --profcols: 1fr;
+  /* Invoice: billed-to + meta columns. */
+  --invcols: 1fr;
   /* Height reserved for the fixed mobile bottom nav; 0 on desktop. */
   --sf-bottom-nav-h: 0px;
 
@@ -124,6 +126,7 @@
     --colmain: 220px minmax(0, 1fr);
     --acctgrid: 260px minmax(0, 1fr);
     --profcols: 1fr 1fr;
+    --invcols: 1.2fr 1fr;
   }
 }
 @media (min-width: 1000px) {
@@ -136,6 +139,68 @@
     --colcols: 4;
     --searchcols: 4;
   }
+}
+
+/* ---- Print (order invoice): only the invoice sheet prints ---- */
+@media print {
+  /* Zero page margin removes the browser's own date/title/URL/page-number
+     chrome (it is drawn in the margin); the sheet carries the paper margins. */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  .sf-noprint,
+  .sf-root .sf-mobile-only,
+  .sf-root .sf-desktop-only,
+  .sf-root footer,
+  .tsqd-parent-container /* TanStack Query devtools float (dev only) */ {
+    display: none !important;
+  }
+  /* Invoices always print on white, whatever the on-screen theme. The store's
+     brand colour survives: it is set inline as --primary on the shell. */
+  .sf-root,
+  .sf-root[data-theme="dark"] {
+    --page: #ffffff;
+    --card: #ffffff;
+    --surface: #f1f5f9;
+    --text: #0f172a;
+    --muted: #64748b;
+    --faint: #94a3b8;
+    --border: #e5e7eb;
+    --border-strong: #cbd5e1;
+    --primary: #2563eb;
+    --discount: #b91c1c;
+    color-scheme: light;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .sf-invoice-wrap {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  /* Admin-side printing: invoice sheets live in a body-level portal that
+     exists only on paper — when present, it is the only thing that prints. */
+  .sf-print-only {
+    display: block !important;
+  }
+  body:has(> .sf-print-only) > :not(.sf-print-only) {
+    display: none !important;
+  }
+  .sf-invoice-sheet {
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 12mm 14mm !important;
+    min-height: 100vh;
+  }
+}
+
+/* Hidden on screen; shown by the print block above. */
+.sf-print-only {
+  display: none;
 }
 
 /* ---- Responsive show/hide (matches the design's 680px breakpoint) ---- */

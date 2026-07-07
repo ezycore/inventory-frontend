@@ -1,10 +1,13 @@
 "use client";
 // coding-standard: maintained
 
+import Link from "next/link";
 import { useShopperOrders, useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
+import { Icon } from "@/components/storefront/sf-icons";
 import { StatusPill } from "@/components/storefront/sf-bits";
 
 /**
@@ -12,7 +15,7 @@ import { StatusPill } from "@/components/storefront/sf-bits";
  * tracking sub-view (the Orders nav item stays highlighted there).
  */
 export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => void }) {
-  const { slug } = useStoreContext();
+  const { slug, base } = useStoreContext();
   const { t, lang } = useStorefrontUI();
   const { data: store } = useStore(slug);
   const { data: orders, isLoading } = useShopperOrders(slug);
@@ -51,6 +54,13 @@ export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => v
               </div>
             </div>
             <div style={{ fontSize: 15, fontWeight: 700 }}>{money(o.totalAmount, currency)}</div>
+            {/* Printable invoice (own route so @media print isolates the sheet). */}
+            <Link
+              href={storeHref(base, `/account/orders/${o.orderNumber}/invoice`)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", padding: "9px 14px", borderRadius: 8, fontSize: 12.5, fontWeight: 600 }}
+            >
+              <Icon name="receipt" size={15} /> {t.viewInvoice}
+            </Link>
             <button
               type="button"
               onClick={() => onTrack(o.orderNumber)}

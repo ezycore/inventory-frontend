@@ -169,8 +169,20 @@ export const useShopperAccount = (slug: string) => {
       storefrontApi.deleteAddress(slug, token!, addressId),
     onSuccess,
   });
+  // Returns only a message (no profile change) — no setShopper needed.
+  const changePassword = useMutation({
+    mutationFn: (body: { currentPassword: string; newPassword: string }) =>
+      storefrontApi.changePassword(slug, token!, body),
+  });
 
-  return { updateProfile, updatePrefs, addAddress, updateAddress, deleteAddress };
+  return {
+    updateProfile,
+    updatePrefs,
+    addAddress,
+    updateAddress,
+    deleteAddress,
+    changePassword,
+  };
 };
 
 /** Shopper's own order history (requires a shopper session). */

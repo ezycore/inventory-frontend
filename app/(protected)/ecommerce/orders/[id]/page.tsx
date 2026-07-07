@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   Loader2,
   Lock,
-  Printer,
   ShieldCheck,
   Truck,
 } from "lucide-react";
@@ -30,6 +29,7 @@ import {
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
+import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
@@ -199,9 +199,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
-            <Printer className="mr-1.5 h-4 w-4" /> Print invoice
-          </Button>
+          <OrderInvoicePrintButton orders={[order]} />
 
           {order.status === "pending" && (
             <>

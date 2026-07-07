@@ -35,6 +35,8 @@ const PATHS: Record<string, string> = {
   bell: '<path d="M6 9.5a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 13.5 6 9.5Z"/><path d="M10.3 18.5a2 2 0 0 0 3.4 0"/>',
   logOut: '<path d="M9 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H9"/><path d="m15 8 4 4-4 4M19 12H9"/>',
   lock: '<rect x="5.5" y="10.5" width="13" height="9" rx="1.8"/><path d="M8.5 10.5v-3a3.5 3.5 0 0 1 7 0v3"/>',
+  receipt: '<path d="M5 3.5h14v17l-2.5-1.5L14 20.5 11.5 19 9 20.5 6.5 19 5 20.5z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/>',
+  printer: '<path d="M6.5 9V3.5h11V9"/><rect x="4" y="9" width="16" height="7" rx="1.5"/><path d="M6.5 14h11v6.5h-11z"/>',
   filter: '<path d="M3 5h18M6 12h12M10 19h4"/>',
   clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   sliders: '<path d="M4 8h10M18 8h2M4 16h2M10 16h10"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/>',

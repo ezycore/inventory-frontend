@@ -50,6 +50,7 @@ export function CampaignStrip({
   return (
     <Link
       href={href}
+      className="sf-noprint"
       style={{
         display: "flex",
         alignItems: "center",

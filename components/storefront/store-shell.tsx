@@ -90,6 +90,7 @@ export function StoreShell({
         {/* Announcement */}
         {announcement?.enabled && announcement.text ? (
           <div
+            className="sf-noprint"
             style={{
               background: announcement.bgColor || "var(--primary)",
               color: "var(--on-primary)",
@@ -128,6 +129,7 @@ export function StoreShell({
         {/* Breadcrumb */}
         {crumb ? (
           <div
+            className="sf-noprint"
             style={{
               maxWidth: "var(--maxw)",
               margin: "0 auto",

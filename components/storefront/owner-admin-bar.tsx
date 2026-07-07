@@ -41,7 +41,7 @@ export function OwnerAdminBar() {
     // Sits just above the mobile bottom nav (var is 0 on desktop) so the owner
     // never sees two stacked bottom bars.
     <div
-      className="sticky z-50 border-t border-neutral-700 bg-neutral-900 text-white"
+      className="sf-noprint sticky z-50 border-t border-neutral-700 bg-neutral-900 text-white"
       style={{ bottom: "var(--sf-bottom-nav-h, 0px)" }}
     >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm">

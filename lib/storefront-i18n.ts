@@ -68,6 +68,24 @@ export interface Dict {
   backToOrders: string;
   removeLabel: string;
   setDefault: string;
+  /* --- printable order invoice --- */
+  invoiceTitle: string;
+  invoiceNo: string;
+  invoiceDate: string;
+  orderRef: string;
+  billedTo: string;
+  itemCol: string;
+  unitPriceCol: string;
+  qtyCol: string;
+  amountCol: string;
+  grandTotal: string;
+  printInvoice: string;
+  viewInvoice: string;
+  invoiceThanks: string;
+  invoiceNote: string;
+  paidStamp: string;
+  duePayment: string;
+  youSavedLabel: string;
   deliverDhaka: string;
   trackOrder: string;
   help: string;
@@ -233,6 +251,13 @@ export interface Dict {
   createSubtitle: string;
   password: string;
   forgotPassword: string;
+  changePasswordTitle: string;
+  currentPasswordLabel: string;
+  newPasswordLabel: string;
+  confirmPasswordLabel: string;
+  passwordUpdated: string;
+  passwordMismatch: string;
+  passwordMin: string;
   noAccountPrompt: string;
   haveAccountPrompt: string;
   signingIn: string;
@@ -301,6 +326,23 @@ const en: Dict = {
   backToOrders: "Back to orders",
   removeLabel: "Remove",
   setDefault: "Set as default",
+  invoiceTitle: "Invoice",
+  invoiceNo: "Invoice no.",
+  invoiceDate: "Issue date",
+  orderRef: "Order ref.",
+  billedTo: "Billed to",
+  itemCol: "Item",
+  unitPriceCol: "Unit price",
+  qtyCol: "Qty",
+  amountCol: "Amount",
+  grandTotal: "Total due",
+  printInvoice: "Print / Save PDF",
+  viewInvoice: "Invoice",
+  invoiceThanks: "Thank you for shopping with us.",
+  invoiceNote: "This is a computer-generated invoice and does not require a signature.",
+  paidStamp: "PAID",
+  duePayment: "Payment due",
+  youSavedLabel: "You saved",
   viewAll: "View all",
   added: "Added to cart",
   deliverDhaka: "Same-day delivery in Dhaka",
@@ -468,6 +510,13 @@ const en: Dict = {
   createSubtitle: "Save your details for a faster checkout next time.",
   password: "Password",
   forgotPassword: "Forgot password?",
+  changePasswordTitle: "Change password",
+  currentPasswordLabel: "Current password",
+  newPasswordLabel: "New password",
+  confirmPasswordLabel: "Confirm new password",
+  passwordUpdated: "Password updated",
+  passwordMismatch: "Passwords don't match",
+  passwordMin: "Password must be at least 6 characters",
   noAccountPrompt: "New customer?",
   haveAccountPrompt: "Already have an account?",
   signingIn: "Signing in…",
@@ -537,6 +586,23 @@ const bn: Dict = {
   backToOrders: "অর্ডারে ফিরুন",
   removeLabel: "মুছুন",
   setDefault: "ডিফল্ট করুন",
+  invoiceTitle: "ইনভয়েস",
+  invoiceNo: "ইনভয়েস নং",
+  invoiceDate: "ইস্যু তারিখ",
+  orderRef: "অর্ডার রেফ.",
+  billedTo: "বিল প্রাপক",
+  itemCol: "পণ্য",
+  unitPriceCol: "একক দাম",
+  qtyCol: "পরিমাণ",
+  amountCol: "মোট",
+  grandTotal: "প্রদেয়",
+  printInvoice: "প্রিন্ট / PDF সেভ",
+  viewInvoice: "ইনভয়েস",
+  invoiceThanks: "আমাদের সাথে কেনাকাটার জন্য ধন্যবাদ।",
+  invoiceNote: "এটি একটি কম্পিউটার-জেনারেটেড ইনভয়েস, স্বাক্ষরের প্রয়োজন নেই।",
+  paidStamp: "পরিশোধিত",
+  duePayment: "প্রদেয়",
+  youSavedLabel: "আপনি সাশ্রয় করলেন",
   viewAll: "সব দেখুন",
   added: "কার্টে যোগ হয়েছে",
   deliverDhaka: "ঢাকায় একই দিনে ডেলিভারি",
@@ -704,6 +770,13 @@ const bn: Dict = {
   createSubtitle: "পরের বার দ্রুত চেকআউটের জন্য আপনার তথ্য সেভ করুন।",
   password: "পাসওয়ার্ড",
   forgotPassword: "পাসওয়ার্ড ভুলে গেছেন?",
+  changePasswordTitle: "পাসওয়ার্ড পরিবর্তন",
+  currentPasswordLabel: "বর্তমান পাসওয়ার্ড",
+  newPasswordLabel: "নতুন পাসওয়ার্ড",
+  confirmPasswordLabel: "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+  passwordUpdated: "পাসওয়ার্ড আপডেট হয়েছে",
+  passwordMismatch: "পাসওয়ার্ড মিলছে না",
+  passwordMin: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
   noAccountPrompt: "নতুন গ্রাহক?",
   haveAccountPrompt: "ইতিমধ্যে অ্যাকাউন্ট আছে?",
   signingIn: "সাইন ইন হচ্ছে…",

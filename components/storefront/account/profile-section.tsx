@@ -8,6 +8,7 @@ import { useShopperAccount } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
+import { PasswordCard } from "@/components/storefront/account/password-card";
 
 const card: CSSProperties = {
   background: "var(--card)",
@@ -117,6 +118,7 @@ export function ProfileSection({ shopper }: { shopper: ShopperProfile }) {
   const genderLabel = shopper.gender ? (t[shopper.gender] as string) : "—";
 
   return (
+    <>
     <div style={card}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>{t.personalDetails}</h2>
@@ -233,5 +235,7 @@ export function ProfileSection({ shopper }: { shopper: ShopperProfile }) {
         </div>
       )}
     </div>
+    <PasswordCard />
+    </>
   );
 }

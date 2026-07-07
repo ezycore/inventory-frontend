@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronRight, Printer, Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import {
   storefrontOrdersApi,
   useStorefrontOrders,
@@ -12,6 +12,7 @@ import {
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
+import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
@@ -211,13 +212,10 @@ function OrdersList() {
           >
             Confirm{confirmable.length ? ` (${confirmable.length})` : ""}
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => window.print()}
-          >
-            <Printer className="mr-1.5 h-4 w-4" /> Print invoices
-          </Button>
+          <OrderInvoicePrintButton
+            orders={items.filter((o) => selected.has(o._id))}
+            label="Print invoices"
+          />
         </div>
       )}
 
