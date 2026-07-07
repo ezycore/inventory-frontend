@@ -1,5 +1,7 @@
+// coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ImportResult } from "@/types/DataTable";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 import type { ProductAnalytics, InventoryAnalytics } from "./analytics.types";
 
@@ -18,6 +20,41 @@ interface ShortlistFilters extends BaseFilters {
 export const inventoryApi = {
   getAll: (filters: InventoryFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/inventory${buildQueryParams(filters)}`),
+
+  // CSV export of current stock (active location) honouring the active filters +
+  // the chosen column preset (`columns=essential`).
+  exportCsv: (filters: Record<string, unknown> = {}): Promise<void> =>
+    apiClient.download(`/inventory/export${buildQueryParams(filters)}`, {
+      filename: "inventory.csv",
+    }),
+
+  // CSV export of batch/expiry rows (active location; expiryTracking-gated).
+  exportBatchCsv: (filters: Record<string, unknown> = {}): Promise<void> =>
+    apiClient.download(`/inventory/export/batch${buildQueryParams(filters)}`, {
+      filename: "inventory-batches.csv",
+    }),
+
+  // Opening-stock CSV import — template, dry-run preview, then commit.
+  downloadImportTemplate: (): Promise<void> =>
+    apiClient.download("/inventory/import/template", {
+      filename: "opening-stock-import-template.csv",
+    }),
+
+  importPreview: (file: File): Promise<ImportResult> => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient
+      .post<ApiResponse<ImportResult>>("/inventory/import?mode=preview", form)
+      .then((res) => res.data);
+  },
+
+  importCommit: (file: File): Promise<ImportResult> => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient
+      .post<ApiResponse<ImportResult>>("/inventory/import?mode=commit", form)
+      .then((res) => res.data);
+  },
 
   getShortlist: (filters: ShortlistFilters): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/inventory/shortlist${buildQueryParams(filters)}`),

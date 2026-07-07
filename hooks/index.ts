@@ -7,6 +7,11 @@ export * from "../utils";
 // Export page management hooks
 export { useCrudModal } from "./use-crud-handlers";
 export { usePaginationHandler } from "./use-pagination-handler";
+export { useReceiptSettings } from "./use-receipt-settings";
+export type {
+  ReceiptFormState,
+  ReceiptSettingsActions,
+} from "./use-receipt-settings";
 
 // Re-export TanStack Query utilities for convenience
 export {

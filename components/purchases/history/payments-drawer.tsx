@@ -24,6 +24,14 @@ import {
 import { ReturnsHistoryList } from "./returns-history-list";
 import { TransactionsTimeline } from "./transactions-timeline";
 import type { Payment } from "./types";
+import { useAuthStore } from "@/services/stores";
+import { PrintMenu } from "@/components/shared/print/print-menu";
+import { SheetHeaderBar } from "@/components/shared/print/sheet-header-bar";
+import {
+  orgToPrintHeader,
+  printPurchaseOrder,
+  resolveDefaultPaper,
+} from "@/utils/print-documents";
 
 interface PaymentsDrawerProps {
   open: boolean;
@@ -84,21 +92,41 @@ export function PaymentsDrawer({
 }: PaymentsDrawerProps) {
   const internalRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = externalRef || internalRef;
+  const { user } = useAuthStore();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[760px] sm:max-w-[760px] flex flex-col">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <ReceiptText className="h-5 w-5" />
-            {mode === "payment" ? "Record Payment" : "Purchase Summary"}
-            {order ? ` — ${order.orderNumber}` : ""}
-          </SheetTitle>
-          <SheetDescription>
-            {mode === "payment"
-              ? "Review the purchase order and submit a payment"
-              : "Full purchase details and payment history"}
-          </SheetDescription>
+          <SheetHeaderBar
+            action={
+              order && (
+                <PrintMenu
+                  appearance="solid"
+                  a4Label="Purchase Order"
+                  defaultPaper={resolveDefaultPaper(user?.organization)}
+                  onPrint={(paper) =>
+                    printPurchaseOrder(order, {
+                      paper,
+                      currency: formatCurrency,
+                      header: orgToPrintHeader(user?.organization),
+                    })
+                  }
+                />
+              )
+            }
+          >
+            <SheetTitle className="flex items-center gap-2">
+              <ReceiptText className="h-5 w-5" />
+              {mode === "payment" ? "Record Payment" : "Purchase Summary"}
+              {order ? ` — ${order.orderNumber}` : ""}
+            </SheetTitle>
+            <SheetDescription>
+              {mode === "payment"
+                ? "Review the purchase order and submit a payment"
+                : "Full purchase details and payment history"}
+            </SheetDescription>
+          </SheetHeaderBar>
         </SheetHeader>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto">

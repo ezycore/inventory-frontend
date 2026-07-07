@@ -40,6 +40,8 @@ function normalizeSalesReturn(r: SalesReturn): ReturnDetailsData {
       taxRate: item.taxRate,
       taxType: item.taxType,
       taxAmount: item.taxAmount,
+      comboLineId: item.comboLineId,
+      comboName: item.comboName,
     })),
     refundAllocation: r.refundAllocation
       ? {

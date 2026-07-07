@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { useWatch } from 'react-hook-form'
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
+import { NumberField } from '@ui/components/number-field'
+import { DatePicker } from '@ui/components/date-picker'
 import { Label } from '@ui/components/label'
 import {
   Select,
@@ -332,19 +334,13 @@ export default function VariantManager({
       cellClassName: 'py-1',
       cell: (variant) => (
         <div className="relative">
-          <Input
-            type="number"
+          <NumberField
+            precision={2}
             value={variant.price}
             step={1}
             min={0}
-            onChange={e =>
-              handleInlineUpdate(
-                variant.id,
-                'price',
-                parseFloat(e.target.value) || ''
-              )
-            }
-            className="h-7 text-sm pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            onChange={v => handleInlineUpdate(variant.id, 'price', v ?? '')}
+            className="h-7 text-sm pr-12"
           />
           {baseUnitLabel ? (
             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
@@ -467,17 +463,14 @@ export default function VariantManager({
                 <Label htmlFor="edit-price">
                   Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
                 </Label>
-                <Input
+                <NumberField
                   id="edit-price"
-                  type="number"
+                  precision={2}
                   step={1}
                   min={0}
                   value={editingVariant.price}
-                  onChange={e =>
-                    setEditingVariant({
-                      ...editingVariant,
-                      price: parseFloat(e.target.value) || 0,
-                    })
+                  onChange={v =>
+                    setEditingVariant({ ...editingVariant, price: v ?? 0 })
                   }
                 />
               </div>
@@ -506,52 +499,39 @@ export default function VariantManager({
                 <div className="grid grid-cols-2 gap-3 border-t pt-4">
                   <div className="space-y-1">
                     <Label htmlFor="edit-opening-stock" className="text-xs">Opening stock</Label>
-                    <Input
+                    <NumberField
                       id="edit-opening-stock"
-                      type="number"
                       min={0}
                       value={editingVariant.openingStock ?? 0}
-                      onChange={e =>
-                        setEditingVariant({
-                          ...editingVariant,
-                          openingStock: parseFloat(e.target.value) || 0,
-                        })
+                      onChange={v =>
+                        setEditingVariant({ ...editingVariant, openingStock: v ?? 0 })
                       }
-                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0"
                     />
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="edit-cost-price" className="text-xs">Cost price (per unit)</Label>
-                    <Input
+                    <NumberField
                       id="edit-cost-price"
-                      type="number"
+                      precision={2}
                       min={0}
                       value={editingVariant.costPrice ?? 0}
-                      onChange={e =>
-                        setEditingVariant({
-                          ...editingVariant,
-                          costPrice: parseFloat(e.target.value) || 0,
-                        })
+                      onChange={v =>
+                        setEditingVariant({ ...editingVariant, costPrice: v ?? 0 })
                       }
-                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0.00"
                     />
                   </div>
                   <div className="space-y-1 col-span-2">
                     <Label htmlFor="edit-alert-level" className="text-xs">Low stock threshold</Label>
-                    <Input
+                    <NumberField
                       id="edit-alert-level"
-                      type="number"
+                      precision={0}
                       min={0}
                       value={editingVariant.inventoryAlertLevel ?? 0}
-                      onChange={e =>
-                        setEditingVariant({
-                          ...editingVariant,
-                          inventoryAlertLevel: parseInt(e.target.value, 10) || 0,
-                        })
+                      onChange={v =>
+                        setEditingVariant({ ...editingVariant, inventoryAlertLevel: v ?? 0 })
                       }
-                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="e.g. 20"
                     />
                   </div>
@@ -564,13 +544,12 @@ export default function VariantManager({
                 <div className="grid grid-cols-2 gap-3 border-t pt-4">
                   <div className="space-y-1">
                     <Label htmlFor="edit-expiry" className="text-xs">Opening expiry date</Label>
-                    <Input
-                      id="edit-expiry"
-                      type="date"
-                      value={editingVariant.expiryDate || ''}
-                      onChange={e =>
-                        setEditingVariant({ ...editingVariant, expiryDate: e.target.value })
+                    <DatePicker
+                      date={editingVariant.expiryDate || undefined}
+                      onSelect={d =>
+                        setEditingVariant({ ...editingVariant, expiryDate: d ?? '' })
                       }
+                      placeholder="Pick expiry date"
                     />
                   </div>
                   <div className="space-y-1">
@@ -637,21 +616,20 @@ export default function VariantManager({
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Purchase Conversion Factor</Label>
-                      <Input
-                        type="number"
+                      <NumberField
                         step={1}
                         min={1}
-                        value={editingVariant.purchaseUnit?.conversionFactor ?? ''}
-                        onChange={e =>
+                        value={editingVariant.purchaseUnit?.conversionFactor ?? null}
+                        onChange={v =>
                           setEditingVariant({
                             ...editingVariant,
                             purchaseUnit: {
                               ...editingVariant.purchaseUnit,
-                              conversionFactor: parseFloat(e.target.value) || undefined,
+                              conversionFactor: v ?? undefined,
                             },
                           })
                         }
-                        className="h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="h-9"
                       />
                     </div>
                     {/* <div className="space-y-1">
@@ -681,7 +659,6 @@ export default function VariantManager({
                       <Label className="text-xs">Sale Conversion Factor</Label>
                       <Input
                         type="number"
-                        step={0.01}
                         min={0.0001}
                         value={editingVariant.saleUnit?.conversionFactor ?? ''}
                         onChange={e =>

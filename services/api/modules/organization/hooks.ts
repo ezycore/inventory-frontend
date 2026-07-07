@@ -12,6 +12,7 @@ import type {
   SubscriptionInfo,
   TaxSettings,
 } from "@/types";
+import type { ReceiptSettings } from "@/types/receipt";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
 import { handleMutationSuccess } from "../query-helpers";
@@ -142,6 +143,8 @@ export const useUpdateOrganization = () => {
             slug?: string;
             currency?: string;
             timezone?: string;
+            address?: string;
+            receiptSettings?: ReceiptSettings;
             logo?: { url: string; mediumUrl: string; thumbnailUrl: string; publicId: string } | null;
           }
         | undefined;
@@ -153,6 +156,11 @@ export const useUpdateOrganization = () => {
             ...(updated.slug !== undefined && { slug: updated.slug }),
             ...(updated.currency !== undefined && { currency: updated.currency }),
             ...(updated.timezone !== undefined && { timezone: updated.timezone }),
+            ...(updated.address !== undefined && { address: updated.address }),
+            // Keep the printed letterhead (invoices/receipts/returns) in sync.
+            ...(updated.receiptSettings !== undefined && {
+              receiptSettings: updated.receiptSettings,
+            }),
             // Always sync logo (including removal where it becomes null/undefined)
             logo: updated.logo ?? undefined,
           },

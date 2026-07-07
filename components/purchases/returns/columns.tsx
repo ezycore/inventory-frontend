@@ -6,7 +6,7 @@ import { Eye, Minus, Plus } from "lucide-react";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Checkbox } from "@/ui/components/checkbox";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import type { PurchaseReturn } from "@/types";
 import type { ReturnableItem } from "./types";
@@ -225,13 +225,11 @@ export function getItemsColumns(
           >
             <Minus className="h-3 w-3" />
           </Button>
-          <Input
-            type="number"
+          <NumberField
             className="w-16 h-7 text-center"
+            precision={0}
             value={row.original.returnQty}
-            onChange={(e) =>
-              onItemQtyChange(row.index, parseInt(e.target.value) || 0)
-            }
+            onChange={(v) => onItemQtyChange(row.index, v ?? 0)}
             disabled={row.original.maxReturnableQty === 0}
             min={0}
             max={row.original.maxReturnableQty}
@@ -286,16 +284,11 @@ export function getItemsColumns(
 
         return (
           <div className="space-y-1">
-            <Input
-              type="number"
+            <NumberField
               className="w-28 h-7 text-right"
+              precision={2}
               value={row.original.refundAmount}
-              onChange={(e) =>
-                onRefundAmountChange(
-                  row.index,
-                  parseFloat(e.target.value) || 0,
-                )
-              }
+              onChange={(v) => onRefundAmountChange(row.index, v ?? 0)}
               disabled={!row.original.selected}
               min={0}
               max={maxRefund}

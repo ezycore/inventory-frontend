@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, PaginatedResponse, SupplierLedger } from "@/types";
+import type { ApiResponse, PaginatedResponse, SupplierLedger, SupplierStatement } from "@/types";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface SupplierLedgerFilters {
@@ -34,5 +34,14 @@ export const suppliersApi = {
   ): Promise<ApiResponse<SupplierLedger>> =>
     apiClient.get(
       `/suppliers/${supplierId}/ledger${buildQueryParams(filters)}`,
+    ),
+
+  // Get account-wide supplier statement (non-paginated) for printing
+  getStatement: (
+    supplierId: string,
+    filters: { startDate?: string; endDate?: string } = {},
+  ): Promise<ApiResponse<SupplierStatement>> =>
+    apiClient.get(
+      `/suppliers/${supplierId}/statement${buildQueryParams(filters)}`,
     ),
 };

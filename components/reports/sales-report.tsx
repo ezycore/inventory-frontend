@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { useReportPeriod } from './use-report-period'
 import { ReportPeriodFilter } from './report-period-filter'
+import { TopCombosCard } from './top-combos-card'
 import {
   DollarSign,
   TrendingUp,
@@ -257,6 +258,9 @@ export function SalesReport() {
               </CardContent>
             </Card>
           )}
+
+          {/* Combo-level rollup (self-hides when combo feature off / none sold). */}
+          <TopCombosCard params={params} formatCurrency={formatCurrency} />
         </>
       ) : (
         <p className="text-sm text-muted-foreground">No data available</p>

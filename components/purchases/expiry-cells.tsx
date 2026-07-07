@@ -4,6 +4,7 @@
 import { useState } from "react";
 import type { PurchaseOrderItem } from "@/services/stores";
 import { Input } from "@/ui/components/input";
+import { DatePicker } from "@/ui/components/date-picker";
 
 /**
  * Inline per-line expiry/batch capture for instant purchases — mirrors the
@@ -21,10 +22,10 @@ type CellProps = {
 };
 
 export const ExpiryDateCell = ({ item, sellerId, onUpdate }: CellProps) => (
-  <Input
-    type="date"
-    value={item.expiryDate ?? ""}
-    onChange={(e) => onUpdate(sellerId, item.id, { expiryDate: e.target.value })}
+  <DatePicker
+    date={item.expiryDate || undefined}
+    onSelect={(d) => onUpdate(sellerId, item.id, { expiryDate: d ?? "" })}
+    placeholder="Expiry"
     className="h-7 w-36 text-xs"
   />
 );

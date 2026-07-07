@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -13,7 +13,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@ui/components/popover";
-import { useEffect, useLayoutEffect } from "react";
 
 interface DateRangePickerProps {
   value?: DateRange;
@@ -22,85 +21,80 @@ interface DateRangePickerProps {
   disabled?: boolean;
 }
 
+const rangeClassNames = {
+  today: cn("rounded-md ring-1 ring-foreground/40", "data-[selected=true]:ring-0"),
+  month_caption: "flex h-8 w-full items-center justify-center px-8",
+  day: "group/day relative aspect-square h-8 w-8 select-none p-1 text-center",
+};
+
+/** Format a date only when it is a valid Date — guards date-fns `format`
+ *  from throwing on `Invalid Date`. */
+function formatSafe(date: Date | undefined): string | null {
+  return date && isValid(date) ? format(date, "PPP") : null;
+}
+
 export function DateRangePicker({
   value,
   onChange,
   placeholder = "Pick a date range",
   disabled = false,
 }: DateRangePickerProps) {
-  // const [date, setDate] = React.useState<DateRange | undefined>(
-  //   value ? { from: value.from, to: value.to } : undefined
-  // );
-
+  const [open, setOpen] = React.useState(false);
 
   const handleSelect = (range: DateRange | undefined) => {
-    // setDate(range);
     onChange?.(range);
+    // Close once a complete range is chosen; keep open while picking the end.
+    if (range?.from && range?.to) setOpen(false);
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // setDate(undefined);
     onChange?.(undefined);
   };
 
-  const formatDateRange = () => {
-    if (!value?.from) return placeholder;
-    if (!value.to) return format(value.from, "PPP");
-    return `${format(value.from, "PPP")} - ${format(value.to, "PPP")}`;
-  };
+  const label = React.useMemo(() => {
+    const from = formatSafe(value?.from);
+    if (!from) return placeholder;
+    const to = formatSafe(value?.to);
+    return to ? `${from} - ${to}` : from;
+  }, [value?.from, value?.to, placeholder]);
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant={"outline"}
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !value && "text-muted-foreground"
-          )}
+          variant="outline"
           disabled={disabled}
+          className={cn(
+            "w-full justify-start text-left font-normal gap-2",
+            !value?.from && "text-muted-foreground"
+          )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          <span className="flex-1 truncate">{formatDateRange()}</span>
+          <CalendarIcon className="h-4 w-4 shrink-0" />
+          <span className="flex-1 truncate">{label}</span>
           {value?.from && (
-            <div
+            <button
+              type="button"
               onClick={handleClear}
-              className="cursor-pointer"
+              aria-label="Clear date range"
+              className="ml-auto h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
-              <X className="h-4 w-4 text-muted-foreground" />
-            </div>
-
+              <X className="h-3 w-3" />
+            </button>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <div className="hidden md:block">
-          <Calendar
-            mode="range"
-            selected={value}
-            onSelect={handleSelect}
-            numberOfMonths={1}
-            classNames={{
-              today: cn(
-                "rounded-md ring-1 ring-foreground/40",
-                "data-[selected=true]:ring-0"
-              ),
-              month_caption: "flex h-8 w-full items-center justify-center px-8",
-              day: "group/day relative aspect-square h-8 w-8 select-none p-1 text-center",
-            }}
-          />
-
-        </div>
-        <div className="block md:hidden">
-          <Calendar
-            mode="range"
-            selected={value}
-            onSelect={handleSelect}
-            numberOfMonths={1}
-            className="[--cell-size:3.5rem] text-lg p-2 w-72"
-          />
-        </div>
+        <Calendar
+          mode="range"
+          selected={value}
+          onSelect={handleSelect}
+          numberOfMonths={1}
+          autoFocus
+          // Larger touch targets on mobile, compact on md+.
+          className="[--cell-size:3.5rem] text-lg md:[--cell-size:2rem] md:text-base"
+          classNames={rangeClassNames}
+        />
       </PopoverContent>
     </Popover>
   );

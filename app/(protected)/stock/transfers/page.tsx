@@ -11,6 +11,7 @@ import {
 } from '@/ui/components/card'
 import { Badge } from '@/ui/components/badge'
 import { Input } from '@/ui/components/input'
+import { NumberField } from '@/ui/components/number-field'
 import { Label } from '@/ui/components/label'
 import {
   Select,
@@ -568,20 +569,16 @@ export default function BulkStockTransferPage() {
                         )}
                       </div>
                       <div className="relative">
-                        <Input
+                        <NumberField
                           id="transferQuantity"
-                          type="number"
+                          precision={hasUOM && inputInPurchaseUnit ? undefined : 0}
                           min={0}
                           max={hasUOM && inputInPurchaseUnit
                             ? fromBaseUnit(selectedProduct.quantity, selectedProduct.conversionFactor!)
                             : selectedProduct.quantity
                           }
-                          step={hasUOM && inputInPurchaseUnit ? 'any' : 1}
                           value={inputValue}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value) || 0
-                            setInputValue(Math.max(0, val))
-                          }}
+                          onChange={(v) => setInputValue(Math.max(0, v ?? 0))}
                           placeholder={`Enter quantity in ${hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || 'units')}`}
                           className="h-11 pr-16"
                         />

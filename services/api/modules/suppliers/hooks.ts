@@ -33,3 +33,18 @@ export const useSupplierLedger = (
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 };
+
+// Get account-wide supplier statement (for printing). Pre-fetched while the
+// ledger sheet is open so the print can run synchronously in the click.
+export const useSupplierStatement = (
+  supplierId: string | null,
+  filters: { startDate?: string; endDate?: string } = {},
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: queryKeys.suppliers.statement(supplierId!, filters),
+    queryFn: () => suppliersApi.getStatement(supplierId!, filters),
+    enabled: !!supplierId && enabled,
+    staleTime: 1 * 60 * 1000,
+  });
+};
