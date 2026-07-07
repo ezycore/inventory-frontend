@@ -8,17 +8,24 @@ import { AdvancedSelect } from '@ui/components/advanced-select';
 import { Checkbox } from '@ui/components/checkbox';
 import { DatePicker } from '@ui/components/date-picker';
 import { DateRangePicker } from '@ui/components/date-range-picker';
+import { cn } from '@ui/lib/utils';
 
 interface FilterFieldRendererProps {
   field: FilterField;
   value: any;
   onChange: (value: any) => void;
+  /** Hide the field label — for inline bar controls where the placeholder labels it. */
+  hideLabel?: boolean;
+  /** Extra classes for the underlying text/number/select control (e.g. `h-8` inline). */
+  controlClassName?: string;
 }
 
 export function FilterFieldRenderer({
   field,
   value,
   onChange,
+  hideLabel = false,
+  controlClassName,
 }: FilterFieldRendererProps) {
   const renderField = () => {
     switch (field.type) {
@@ -28,6 +35,7 @@ export function FilterFieldRenderer({
             placeholder={field.placeholder}
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
+            className={cn(controlClassName)}
           />
         );
 
@@ -39,6 +47,7 @@ export function FilterFieldRenderer({
             onChange={(v) => onChange(v ?? '')}
             min={field.min}
             max={field.max}
+            className={cn(controlClassName)}
           />
         );
 
@@ -58,6 +67,7 @@ export function FilterFieldRenderer({
             placeholder={field.placeholder || 'Select...'}
             options={selectOptions}
             optionsApi={field.optionsApi}
+            className={cn(controlClassName)}
           />
         );
 
@@ -168,7 +178,7 @@ export function FilterFieldRenderer({
 
   return (
     <div className="space-y-3">
-      {field.type !== 'boolean' && (
+      {!hideLabel && field.type !== 'boolean' && (
         <Label htmlFor={field.name}>{field.label}</Label>
       )}
       {renderField()}

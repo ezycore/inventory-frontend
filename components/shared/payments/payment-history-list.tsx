@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { CreditCard, Wallet } from "lucide-react";
+import { CreditCard, Printer, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -30,6 +30,12 @@ interface PaymentHistoryListProps {
   onAddPayment: () => void;
   /** Optional override for the empty-state node. */
   emptyState?: ReactNode;
+  /**
+   * When provided, each payment shows a Print button that prints a money receipt.
+   * The parent owns the print (it has the populated counterparty / doc context)
+   * and the feature gate — pass `undefined` to hide the button entirely.
+   */
+  onPrintReceipt?: (payment: PaymentHistoryItem) => void;
 }
 
 export function PaymentHistoryList({
@@ -41,6 +47,7 @@ export function PaymentHistoryList({
   formatCurrency,
   onAddPayment,
   emptyState,
+  onPrintReceipt,
 }: PaymentHistoryListProps) {
   const showAddButton =
     canAddPayment && doc.dueAmount > 0 && doc.status !== "cancelled" && !isInPaymentMode;
@@ -85,9 +92,24 @@ export function PaymentHistoryList({
                     {format(new Date(payment.createdAt), "dd MMM yyyy hh:mm aa")}
                   </div>
                 </div>
-                <Badge variant="outline" className="capitalize">
-                  {payment.paymentMethod}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="outline" className="capitalize">
+                    {payment.paymentMethod}
+                  </Badge>
+                  {onPrintReceipt && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground"
+                      onClick={() => onPrintReceipt(payment)}
+                      aria-label="Print receipt"
+                      title="Print receipt"
+                    >
+                      <Printer className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../alert-dialog";
-import { GlobalFilter } from "../filters/global-filter";
+import { FilterBar } from "../filters/filter-bar";
 import { DataTableSearchConfig, FilterConfig, CustomAction } from "@/types/DataTable";
 
 interface DataTableToolbarProps<TData> {
@@ -70,22 +70,29 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
 
   const hasSearch = searchConfig?.globalSearch || !!searchConfig?.searchableColumn;
+  const hasInlineFilters = !!filterConfig?.fields?.length;
   const hasRightActions =
     (selectable && hasSelection && deletable) ||
     enableColumnVisibility ||
-    (filterConfig && Object.keys(filterConfig).length > 0) ||
     manageColumns ||
     !!actionButton ||
     customActions?.some((a) => a.placement === "header");
 
-  if (!title && !hasSearch && !hasRightActions) return null;
+  if (!title && !hasSearch && !hasRightActions && !hasInlineFilters) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       {/* Title — mr-auto pushes right items to the end of the same row.
           When the row is too narrow, following items wrap to the next row(s). */}
       {title && (
-        <h2 className="mr-auto text-xl font-semibold tracking-tight">
+        <h2
+          className={cn(
+            "text-xl font-semibold tracking-tight",
+            // FilterBar (flex-1) owns the spacer when inline filters render;
+            // otherwise mr-auto pushes the right-side actions to the end.
+            !hasInlineFilters && "mr-auto",
+          )}
+        >
           {title}
         </h2>
       )}
@@ -148,6 +155,9 @@ export function DataTableToolbar<TData>({
           ) : null}
         </div>
       )}
+
+      {/* Inline filter bar — inline select controls + overflow-to-panel + reset */}
+      {hasInlineFilters && filterConfig && <FilterBar config={filterConfig} />}
 
       {/* Right-side actions */}
       {hasRightActions && (
@@ -229,11 +239,6 @@ export function DataTableToolbar<TData>({
             <Settings className="h-4 w-4" />
             Columns
           </Button>
-        )}
-
-        {/* Filters */}
-        {filterConfig && Object.keys(filterConfig).length > 0 && (
-          <GlobalFilter config={filterConfig} />
         )}
 
         {/* Primary action button */}

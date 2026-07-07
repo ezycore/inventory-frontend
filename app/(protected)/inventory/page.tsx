@@ -38,6 +38,9 @@ export default function InventoryPage() {
   const { format: formatCurrency } = useCurrency();
   const stats = dashboardData?.data;
   const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
+  const expiryEnabled = useAuthStore(
+    (s) => s.user?.organization?.features?.expiryTracking ?? false,
+  );
   const lookupBarcode = useBarcodeLookupAction();
 
   const handleBarcodeScan = async (code: string) => {
@@ -112,6 +115,42 @@ export default function InventoryPage() {
             placeholder: "Search products by name...",
           }}
         enableRowHover={true}
+        exportConfig={{
+          download: (params) =>
+            params.dataset === "batch"
+              ? inventoryApi.exportBatchCsv(params)
+              : inventoryApi.exportCsv(params),
+          note: "Exports the active location's stock. Switch location to export another.",
+          options: [
+            {
+              key: "stock-all",
+              label: "Stock — all columns",
+              description: "Product, variant, qty, cost, value, alert level, status.",
+            },
+            {
+              key: "stock-essential",
+              label: "Stock — essential (re-importable)",
+              description: "Barcode, Location, Quantity, Cost Price — round-trips via opening-stock import.",
+              params: { columns: "essential" },
+            },
+            // Batch/expiry rows — only when the org tracks expiry.
+            ...(expiryEnabled
+              ? [
+                  {
+                    key: "batch",
+                    label: "Batch & expiry",
+                    description: "One row per batch: batch no, qty, cost, mfg & expiry dates.",
+                    params: { dataset: "batch" },
+                  },
+                ]
+              : []),
+          ],
+        }}
+        importConfig={{
+          downloadTemplate: inventoryApi.downloadImportTemplate,
+          preview: inventoryApi.importPreview,
+          commit: inventoryApi.importCommit,
+        }}
         rowClassName={(row: Inventory) =>
           row.quantity === 0
             ? "bg-destructive/5 border-l-2 border-l-destructive"

@@ -1,8 +1,39 @@
+// coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse, CreateProductDto, UpdateProductDto, ProductFilters } from "@/types";
+import type { ImportResult } from "@/types/DataTable";
 import { buildQueryParams } from "../../utils";
 
 export const productsApi = {
+
+  // CSV export of all products matching the given list filters. Uses the same
+  // `buildQueryParams` as `getAll` so the export honours the active filters.
+  exportCsv: (filters: Record<string, unknown> = {}): Promise<void> =>
+    apiClient.download(`/products/export${buildQueryParams(filters)}`, {
+      filename: "products.csv",
+    }),
+
+  // CSV import — download template, dry-run preview (no writes), then commit.
+  downloadImportTemplate: (): Promise<void> =>
+    apiClient.download("/products/import/template", {
+      filename: "products-import-template.csv",
+    }),
+
+  importPreview: (file: File): Promise<ImportResult> => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient
+      .post<ApiResponse<ImportResult>>("/products/import?mode=preview", form)
+      .then((res) => res.data);
+  },
+
+  importCommit: (file: File): Promise<ImportResult> => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient
+      .post<ApiResponse<ImportResult>>("/products/import?mode=commit", form)
+      .then((res) => res.data);
+  },
 
   getStats: (): Promise<ApiResponse<{ stats: { name: string; value: number }[] }>> =>
     apiClient.get("/products/stats"),

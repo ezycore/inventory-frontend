@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { subdomainFromHost } from "./organization-utils";
+import { hostImpliesWorkspace, subdomainFromHost } from "./organization-utils";
 
 export type WorkspaceGate =
   | { kind: "ok" }
@@ -27,14 +27,22 @@ interface OrgStatus {
  */
 export async function resolveWorkspaceGate(): Promise<WorkspaceGate> {
   const host = (await headers()).get("host") || "";
+  const hostname = host.split(":")[0].toLowerCase();
   const slug = subdomainFromHost(host);
-  if (!slug) return { kind: "ok" };
+
+  // Pick the status endpoint: workspace subdomain → by slug; custom domain →
+  // by host. Platform apex / local (no implicit workspace) → no gate.
+  let url: string;
+  if (slug) {
+    url = `${API_BASE}/public/orgs/${encodeURIComponent(slug)}/status`;
+  } else if (hostImpliesWorkspace(hostname)) {
+    url = `${API_BASE}/public/orgs/by-host/status?host=${encodeURIComponent(hostname)}`;
+  } else {
+    return { kind: "ok" };
+  }
 
   try {
-    const res = await fetch(
-      `${API_BASE}/public/orgs/${encodeURIComponent(slug)}/status`,
-      { next: { revalidate: 60 } },
-    );
+    const res = await fetch(url, { next: { revalidate: 60 } });
     if (!res.ok) return { kind: "ok" }; // fail open
     const json = (await res.json()) as { data?: OrgStatus };
     const data = json?.data;
