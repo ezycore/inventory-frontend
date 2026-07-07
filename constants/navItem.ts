@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { NavItem } from "@/types/layout";
 
 export const navItems: NavItem[] = [
@@ -268,6 +269,12 @@ export const navItems: NavItem[] = [
         icon: "printer",
         features: ["invoicePrinting"],
         permissions: ["organization.edit"],
+      },
+      {
+        title: "Custom Domains",
+        url: "/settings/domains",
+        icon: "globe",
+        permissions: ["organization.view"],
       },
       {
         title: "Roles",
