@@ -2,22 +2,30 @@
 
 import { FilterField } from '@/types/filter';
 import { Input } from '@ui/components/input';
+import { NumberField } from '@ui/components/number-field';
 import { Label } from '@ui/components/label';
 import { AdvancedSelect } from '@ui/components/advanced-select';
 import { Checkbox } from '@ui/components/checkbox';
 import { DatePicker } from '@ui/components/date-picker';
 import { DateRangePicker } from '@ui/components/date-range-picker';
+import { cn } from '@ui/lib/utils';
 
 interface FilterFieldRendererProps {
   field: FilterField;
   value: any;
   onChange: (value: any) => void;
+  /** Hide the field label — for inline bar controls where the placeholder labels it. */
+  hideLabel?: boolean;
+  /** Extra classes for the underlying text/number/select control (e.g. `h-8` inline). */
+  controlClassName?: string;
 }
 
 export function FilterFieldRenderer({
   field,
   value,
   onChange,
+  hideLabel = false,
+  controlClassName,
 }: FilterFieldRendererProps) {
   const renderField = () => {
     switch (field.type) {
@@ -27,18 +35,19 @@ export function FilterFieldRenderer({
             placeholder={field.placeholder}
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
+            className={cn(controlClassName)}
           />
         );
 
       case 'number':
         return (
-          <Input
-            type="number"
+          <NumberField
             placeholder={field.placeholder}
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value ? Number(e.target.value) : '')}
+            value={value === '' || value == null ? null : Number(value)}
+            onChange={(v) => onChange(v ?? '')}
             min={field.min}
             max={field.max}
+            className={cn(controlClassName)}
           />
         );
 
@@ -58,6 +67,7 @@ export function FilterFieldRenderer({
             placeholder={field.placeholder || 'Select...'}
             options={selectOptions}
             optionsApi={field.optionsApi}
+            className={cn(controlClassName)}
           />
         );
 
@@ -95,22 +105,16 @@ export function FilterFieldRenderer({
       case 'number-range':
         return (
           <div className="grid grid-cols-2 gap-2">
-            <Input
-              type="number"
+            <NumberField
               placeholder="Min"
-              value={value?.min || ''}
-              onChange={(e) =>
-                onChange({ ...value, min: e.target.value ? Number(e.target.value) : undefined })
-              }
+              value={value?.min ?? null}
+              onChange={(v) => onChange({ ...value, min: v ?? undefined })}
               min={field.min}
             />
-            <Input
-              type="number"
+            <NumberField
               placeholder="Max"
-              value={value?.max || ''}
-              onChange={(e) =>
-                onChange({ ...value, max: e.target.value ? Number(e.target.value) : undefined })
-              }
+              value={value?.max ?? null}
+              onChange={(v) => onChange({ ...value, max: v ?? undefined })}
               max={field.max}
             />
           </div>
@@ -174,7 +178,7 @@ export function FilterFieldRenderer({
 
   return (
     <div className="space-y-3">
-      {field.type !== 'boolean' && (
+      {!hideLabel && field.type !== 'boolean' && (
         <Label htmlFor={field.name}>{field.label}</Label>
       )}
       {renderField()}

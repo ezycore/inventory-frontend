@@ -263,6 +263,13 @@ export const navItems: NavItem[] = [
         permissions: ["organization.edit"],
       },
       {
+        title: "Receipt & Print",
+        url: "/settings/receipt",
+        icon: "printer",
+        features: ["invoicePrinting"],
+        permissions: ["organization.edit"],
+      },
+      {
         title: "Roles",
         url: "/settings/roles",
         icon: "shield",

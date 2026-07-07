@@ -76,6 +76,30 @@ export default function ProductsPage() {
       fields: (cfg.fields || []).filter((f: any) => !hide.has(f.name)),
     }
   }, [filteredFormConfig, user?.organization])
+  // Combo feature gate: when off, strip the "combo" product-type option and drop
+  // the Combo composition section (leaves single/variable untouched).
+  const comboEnabled = !!user?.organization?.features?.combo;
+  const gatedFormConfig = useMemo(() => {
+    if (comboEnabled) return taxGatedFormConfig;
+    const cfg = taxGatedFormConfig as { sections?: any[]; fields?: any[] };
+    const stripComboOption = (field: any) =>
+      field.name === "productType" && Array.isArray(field.options)
+        ? { ...field, options: field.options.filter((o: any) => o.value !== "combo") }
+        : field;
+    if (!cfg.sections) return taxGatedFormConfig;
+    return {
+      ...taxGatedFormConfig,
+      sections: cfg.sections
+        .map((s) => ({
+          ...s,
+          fields: (s.fields || [])
+            .filter((f: any) => f.name !== "comboComponents")
+            .map(stripComboOption),
+        }))
+        .filter((s) => (s.fields || []).length > 0),
+    };
+  }, [taxGatedFormConfig, comboEnabled]);
+
   const barcodeEnabled = user?.organization?.features?.barcodeSystem;
 
   const openLabelsFor = (rows: any[]) => {
@@ -114,7 +138,7 @@ export default function ProductsPage() {
 
   // Shared operations config
   const sharedOperations = {
-    formConfig: taxGatedFormConfig,
+    formConfig: gatedFormConfig,
     getAllData: productsApi.getAll,
     createMutation: useCreateProduct(),
     updateMutation: useUpdateProduct(),
@@ -212,6 +236,15 @@ export default function ProductsPage() {
           enableSorting={true}
           sortingConfig={sortingConfig}
           enableRowHover={true}
+          exportConfig={{
+            download: (params) => productsApi.exportCsv(params),
+            note: "Only single products are exported — variant & combo products aren't supported in CSV export; manage them in the product form.",
+          }}
+          importConfig={{
+            downloadTemplate: productsApi.downloadImportTemplate,
+            preview: productsApi.importPreview,
+            commit: productsApi.importCommit,
+          }}
           {...(barcodeEnabled
             ? {
                 customActions: [

@@ -2,7 +2,7 @@
 
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import SimpleSelect from "@/ui/components/simple-select";
 import { Switch } from "@/ui/components/switch";
@@ -93,14 +93,13 @@ export function PaymentEntryForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="pay-amount">Payment Amount</Label>
-          <Input
+          <NumberField
             id="pay-amount"
-            type="number"
-            step="0.01"
-            min="0.01"
+            precision={2}
+            min={0}
             max={maxAmount}
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
+            value={paymentAmount === "" ? null : Number(paymentAmount)}
+            onChange={(v) => setPaymentAmount(v == null ? "" : String(v))}
             placeholder="Enter amount"
           />
         </div>
@@ -140,7 +139,7 @@ export function PaymentEntryForm({
         </Button>
         <Button
           onClick={onSubmit}
-          disabled={isSubmitting || !paymentAmount || (!creditEnabled && !paymentAccountId)}
+          disabled={isSubmitting || !(Number(paymentAmount) > 0) || (!creditEnabled && !paymentAccountId)}
         >
           {isSubmitting ? "Processing..." : "Record Payment"}
         </Button>

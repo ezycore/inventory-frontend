@@ -1,3 +1,4 @@
+// coding-standard: maintained
 /**
  * Core API Client
  * Provides base HTTP methods for making API requests
@@ -27,29 +28,41 @@ export class ApiClient {
     this.baseURL = baseURL;
   }
 
+  /**
+   * Read auth token + active location from the Zustand store. Shared by
+   * `request` (JSON) and `download` (blob) so both attach identical headers.
+   */
+  private async getAuthState(): Promise<{
+    token: string | null;
+    activeLocationId: string | null;
+    isAuthenticated: boolean;
+    clearAuth: () => void;
+  }> {
+    const authStore = await import("@/services/stores/use-auth-store");
+    const state = authStore.useAuthStore.getState();
+    let token: string | null = null;
+    let activeLocationId: string | null = null;
+    if (typeof window !== "undefined") {
+      token = state.token || null;
+      activeLocationId = state.activeLocationId || null;
+    }
+    return {
+      token,
+      activeLocationId,
+      isAuthenticated: state.isAuthenticated,
+      clearAuth: state.clearAuth,
+    };
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    const authStore = await import("@/services/stores/use-auth-store");
-    const isAuthenticated = authStore.useAuthStore.getState().isAuthenticated;
-    const clearAuth = authStore.useAuthStore.getState().clearAuth;
+    const { token, activeLocationId, isAuthenticated, clearAuth } =
+      await this.getAuthState();
 
     try {
-      // Get token and active location from Zustand store (if available)
-      let token: string | null = null;
-      let activeLocationId: string | null = null;
-      if (typeof window !== "undefined") {
-        try {
-          const state = authStore.useAuthStore.getState();
-          token = state.token || null;
-          activeLocationId = state.activeLocationId || null;
-        } catch (e) {
-          // Store might not be available yet
-        }
-      }
-
       // Check if body is FormData
       const isFormData = options.body instanceof FormData;
 
@@ -70,6 +83,13 @@ export class ApiClient {
       // Add active location header for location-scoped operations
       if (activeLocationId) {
         headers["X-Active-Location"] = activeLocationId;
+      }
+
+      // Explicit tenant host — lets the split-origin BE resolve the org at the
+      // auth boundary (login/forgot) even if Origin is unavailable. Belt-and-
+      // suspenders alongside the browser Origin. See CUSTOM-DOMAINS-P1.md.
+      if (typeof window !== "undefined") {
+        headers["X-Tenant-Host"] = window.location.host;
       }
 
       const response = await fetch(url, {
@@ -136,6 +156,50 @@ export class ApiClient {
 
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: "DELETE" });
+  }
+
+  /**
+   * GET a binary/text file (e.g. CSV export) and trigger a browser download.
+   * Unlike `request`, this reads the response as a Blob (never `.json()`), and
+   * honours the server's `Content-Disposition` filename when present.
+   */
+  async download(
+    endpoint: string,
+    options: { filename?: string } = {},
+  ): Promise<void> {
+    const { token, activeLocationId } = await this.getAuthState();
+
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    if (activeLocationId) headers["X-Active-Location"] = activeLocationId;
+
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw {
+        success: false,
+        error: `Download failed (status ${response.status})`,
+        statusCode: response.status,
+      } as ApiError;
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get("Content-Disposition");
+    const serverName = disposition?.match(/filename="?([^";]+)"?/i)?.[1];
+    const filename = serverName || options.filename || "download";
+
+    if (typeof window === "undefined") return;
+    const objectUrl = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(objectUrl);
   }
 }
 

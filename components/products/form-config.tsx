@@ -20,8 +20,8 @@ import {
   taxTypeOptions,
 } from './product-form-options'
 import VariantsField from './variants-field'
+import ComboComponentsField from './combo-components-field'
 import PriceFieldWithUnit from './price-field-with-unit'
-import { NumberInput } from '@/ui/components/numberInput'
 import { Switch } from '@/ui/components/switch'
 
 // Section header toggle that binds to `addToInventory`. Rendered via the
@@ -94,9 +94,12 @@ export const productFormConfig: DynamicFormConfig = {
           columnSpan: 12,
           defaultValue: "single",
           optionLayout: "cards",
+          // The 'combo' option is stripped in the products page when the org's
+          // `combo` feature is off (see comboGatedFormConfig).
           options: [
             { value: 'single', label: 'Simple product', description: 'One product, one price' },
             { value: 'variable', label: 'Variable product', description: 'Multiple variants (size, color...)' },
+            { value: 'combo', label: 'Combo / bundle', description: 'Several products sold as one priced unit' },
           ],
         },
         {
@@ -163,7 +166,8 @@ export const productFormConfig: DynamicFormConfig = {
           placeholder: "Scan or type barcode",
           tooltip: "The barcode printed on the product packaging. Scan it with a reader or type it in. Leave empty to auto-generate a barcode you can print labels for.",
           validation: { maxLength: 64 },
-          dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
+          // Single + combo carry a product-level barcode; variable carries it per variant.
+          dependsOn: { field: "productType", value: ["single", "combo"], condition: "in", action: "show" },
         },
         {
           name: "barcodeSymbology",
@@ -191,6 +195,8 @@ export const productFormConfig: DynamicFormConfig = {
       description: "Batch expiry tracking and alerts",
       icon: sectionIcon(CalendarClock),
       collapsible: false,
+      // Combos track expiry on their components, never on themselves.
+      dependsOn: { field: "productType", value: "combo", condition: "ne", action: "show" },
       fields: [
         {
           name: "hasExpiry",
@@ -221,6 +227,8 @@ export const productFormConfig: DynamicFormConfig = {
       description: "How you count this product when purchase and sell",
       icon: sectionIcon(Ruler),
       collapsible: false,
+      // Combos hold no inventory of their own, so they carry no unit of measure.
+      dependsOn: { field: "productType", value: "combo", condition: "ne", action: "show" },
       fields: [
         {
           name: "unitId",
@@ -276,7 +284,8 @@ export const productFormConfig: DynamicFormConfig = {
       description: "Set the sell price",
       icon: sectionIcon(BadgeDollarSign),
       collapsible: false,
-      dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" },
+      // Single + combo carry a product-level price; variable prices per variant.
+      dependsOn: { field: "productType", value: ["single", "combo"], condition: "in", action: "show" },
       fields: [
         {
           name: "price",
@@ -345,10 +354,14 @@ export const productFormConfig: DynamicFormConfig = {
       description: "Stock levels and low-stock alerts",
       icon: sectionIcon(Boxes),
       collapsible: false,
-      // Inventory is only created on initial product creation. Shown for both
-      // single and variable products; for variable, only the toggle + shared
-      // Location render here — per-variant stock lives in the Variants table.
-      dependsOn: { field: "_id", condition: "falsy", action: "show" },
+      // Inventory is only created on initial product creation. Shown for single
+      // and variable products; for variable, only the toggle + shared Location
+      // render here — per-variant stock lives in the Variants table. Combos hold
+      // no inventory of their own, so the whole section is hidden for them.
+      dependsOn: [
+        { field: "_id", condition: "falsy" },
+        { field: "productType", value: "combo", condition: "ne" },
+      ],
       headerAction: ({ control }) => <TrackStockToggle control={control} />,
       fields: [
         {
@@ -461,6 +474,8 @@ export const productFormConfig: DynamicFormConfig = {
       description: "Different sizes, colors, or strengths of this product",
       icon: sectionIcon(Layers),
       collapsible: false,
+      // Not applicable to combos (which are composed of other products).
+      dependsOn: { field: "productType", value: "combo", condition: "ne", action: "show" },
       fields: [
         {
           name: "variants",
@@ -468,6 +483,25 @@ export const productFormConfig: DynamicFormConfig = {
           label: "",
           columnSpan: 12,
           customComponent: VariantsField,
+        },
+      ],
+    },
+
+    // 8b. COMBO COMPOSITION ---------------------------------------------------
+    {
+      title: "Combo composition",
+      description: "The products bundled into this combo and how many of each",
+      icon: sectionIcon(Layers),
+      collapsible: false,
+      dependsOn: { field: "productType", value: "combo", condition: "eq", action: "show" },
+      fields: [
+        {
+          name: "comboComponents",
+          type: "custom",
+          zodType: "array",
+          label: "",
+          columnSpan: 12,
+          customComponent: ComboComponentsField,
         },
       ],
     },

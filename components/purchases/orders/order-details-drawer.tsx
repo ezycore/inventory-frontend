@@ -1,4 +1,5 @@
 'use client';
+// coding-standard: maintained
 
 import { format } from 'date-fns';
 import {
@@ -26,6 +27,14 @@ import {
 import { Skeleton } from '@/ui/components/skeleton';
 import type { PurchaseOrder } from '@/types';
 import { splitLineTax } from '@/utils/tax';
+import { useAuthStore } from '@/services/stores';
+import { PrintMenu } from '@/components/shared/print/print-menu';
+import { SheetHeaderBar } from '@/components/shared/print/sheet-header-bar';
+import {
+  orgToPrintHeader,
+  printPurchaseOrder,
+  resolveDefaultPaper,
+} from '@/utils/print-documents';
 import { statusConfig } from '../status-config';
 
 interface OrderDetailsDrawerProps {
@@ -60,6 +69,7 @@ export function OrderDetailsDrawer({
   onCancelOrder,
   onEditOrder,
 }: OrderDetailsDrawerProps) {
+  const { user } = useAuthStore();
   const canReceive =
     order?.status === 'ordered' || order?.status === 'partial';
   const canCancel =
@@ -71,14 +81,33 @@ export function OrderDetailsDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[760px] sm:max-w-[760px] flex flex-col">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <ReceiptText className="h-5 w-5" />
-            Order Details
-            {order ? ` — ${order.orderNumber}` : ''}
-          </SheetTitle>
-          <SheetDescription>
-            Full purchase order information and item breakdown
-          </SheetDescription>
+          <SheetHeaderBar
+            action={
+              order && (
+                <PrintMenu
+                  appearance="solid"
+                  a4Label="Purchase Order"
+                  defaultPaper={resolveDefaultPaper(user?.organization)}
+                  onPrint={(paper) =>
+                    printPurchaseOrder(order, {
+                      paper,
+                      currency: formatCurrency,
+                      header: orgToPrintHeader(user?.organization),
+                    })
+                  }
+                />
+              )
+            }
+          >
+            <SheetTitle className="flex items-center gap-2">
+              <ReceiptText className="h-5 w-5" />
+              Order Details
+              {order ? ` — ${order.orderNumber}` : ''}
+            </SheetTitle>
+            <SheetDescription>
+              Full purchase order information and item breakdown
+            </SheetDescription>
+          </SheetHeaderBar>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto">

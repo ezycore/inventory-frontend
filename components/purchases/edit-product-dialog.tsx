@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/ui/components/dialog";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import { Checkbox } from "@/ui/components/checkbox";
 import { Separator } from "@/ui/components/separator";
@@ -53,13 +54,13 @@ export const EditProductDialog: FC<Props> = ({
 
             <div className="space-y-2">
               <Label htmlFor="edit-quantity">Quantity</Label>
-              <Input
+              <NumberField
                 id="edit-quantity"
-                type="number"
+                precision={0}
                 min={1}
                 value={editQuantity}
-                onChange={(e) => {
-                  const value = Number(e.target.value) || 1;
+                onChange={(v) => {
+                  const value = v ?? 1;
                   editForm.setValue("quantity", value);
                   handleEditFieldChange("quantity", value);
                 }}
@@ -73,13 +74,13 @@ export const EditProductDialog: FC<Props> = ({
 
             <div className="space-y-2">
               <Label htmlFor="edit-discount">Discount</Label>
-              <Input
+              <NumberField
                 id="edit-discount"
-                type="number"
+                precision={2}
                 min={0}
                 value={editDiscount}
-                onChange={(e) => {
-                  const value = Number(e.target.value) || 0;
+                onChange={(v) => {
+                  const value = v ?? 0;
                   editForm.setValue("discount", value);
                   handleEditFieldChange("discount", value);
                 }}

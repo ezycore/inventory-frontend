@@ -3,7 +3,7 @@ import { Button } from '@/ui/components/button';
 import { Input } from '@/ui/components/input';
 import { Label } from '@/ui/components/label';
 import { Checkbox } from '@/ui/components/checkbox';
-import { NumberInput } from '@/ui/components/numberInput';
+import { NumberField } from '@/ui/components/number-field';
 
 /** Minimal shape required by ReturnItemRow — both SaleItem and PurchaseOrderItem satisfy this. */
 export interface ReturnableItemDisplay {
@@ -25,6 +25,11 @@ export interface ReturnableItemDisplay {
   discount?: number;
   /** UOM conversion info (purchase returns) */
   conversionFactor?: number;
+  /** Combo provenance (sales returns) — used to group component lines under a combo. */
+  comboLineId?: string;
+  comboName?: string;
+  /** qtyPer (base units per 1 combo) — lets the combo header return whole combo units. */
+  comboUnitQuantity?: number;
 }
 
 interface ReturnItemRowProps {
@@ -123,11 +128,11 @@ export function ReturnItemRow({
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <NumberInput
-                  type="number"
+                <NumberField
                   className="h-9 w-16 text-center text-sm"
                   value={item.returnQty}
-                  onChange={(e) => onQtyChange(index, parseInt(e))}
+                  onChange={(v) => onQtyChange(index, v ?? 0)}
+                  precision={0}
                   min={0}
                   max={item.maxReturnableQty}
                 />
