@@ -46,6 +46,11 @@ interface ReturnsHistoryListProps {
   isLoading: boolean;
   formatCurrency: (n: number) => string;
   emptyMessage: string;
+  /**
+   * Render only the list content (no card or title) for embedding inside a
+   * detail-sheet SectionFold, which supplies its own header.
+   */
+  bare?: boolean;
 }
 
 function ReturnedItemRow({
@@ -97,7 +102,6 @@ function AllocationPanel({
     !!allocation.accountRefund ||
     (allocation.counterpartyCredit?.amount ?? 0) > 0;
   if (!hasAny) return null;
-  console.log("Rendering AllocationPanel with allocation:", allocation);
   return (
     <div className="mt-1.5 rounded-md bg-blue-50 dark:bg-blue-950/20 px-2.5 py-2 space-y-1">
       <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
@@ -151,16 +155,10 @@ export function ReturnsHistoryList({
   isLoading,
   formatCurrency,
   emptyMessage,
+  bare = false,
 }: ReturnsHistoryListProps) {
-  return (
-    <div className="rounded-lg border p-4 space-y-3">
-      <div className="flex items-center gap-2 font-medium">
-        <RotateCcw className="h-4 w-4" />
-        Returns ({isLoading ? "…" : returns.length})
-      </div>
-
-      <Separator />
-
+  const content = (
+    <>
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
@@ -168,10 +166,14 @@ export function ReturnsHistoryList({
           ))}
         </div>
       ) : returns.length === 0 ? (
-        <div className="py-6 text-center text-muted-foreground">
-          <RotateCcw className="mx-auto mb-2 h-8 w-8 opacity-40" />
-          <p className="text-sm">{emptyMessage}</p>
-        </div>
+        bare ? (
+          <p className="py-2 text-center text-sm text-muted-foreground">{emptyMessage}</p>
+        ) : (
+          <div className="py-6 text-center text-muted-foreground">
+            <RotateCcw className="mx-auto mb-2 h-8 w-8 opacity-40" />
+            <p className="text-sm">{emptyMessage}</p>
+          </div>
+        )
       ) : (
         <div className="space-y-3">
           {returns.map((ret) => {
@@ -266,6 +268,21 @@ export function ReturnsHistoryList({
           })}
         </div>
       )}
+    </>
+  );
+
+  if (bare) return content;
+
+  return (
+    <div className="rounded-lg border p-4 space-y-3">
+      <div className="flex items-center gap-2 font-medium">
+        <RotateCcw className="h-4 w-4" />
+        Returns ({isLoading ? "…" : returns.length})
+      </div>
+
+      <Separator />
+
+      {content}
     </div>
   );
 }

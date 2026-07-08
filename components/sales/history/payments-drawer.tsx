@@ -1,17 +1,25 @@
 'use client';
 // coding-standard: maintained
 
-import { ReceiptText } from 'lucide-react';
+import { CreditCard, ReceiptText } from 'lucide-react';
 import { useRef } from 'react';
 import { useAuthStore } from '@/services/stores';
 import { PrintMenu } from '@/components/shared/print/print-menu';
 import { SheetHeaderBar } from '@/components/shared/print/sheet-header-bar';
+import {
+  EmptySectionsLine,
+  NoteCallout,
+  SectionFold,
+} from '@/components/shared/detail-sheet';
 import {
   orgToPrintHeader,
   printDeliveryNote,
   printSaleInvoice,
   resolveDefaultPaper,
 } from '@/utils/print-documents';
+import { Badge } from '@/ui/components/badge';
+import { Button } from '@/ui/components/button';
+import { CopyField } from '@/ui/components/copy';
 import {
   Sheet,
   SheetContent,
@@ -26,10 +34,12 @@ import type {
   SalesReturn,
   SaleTransactionsResponse,
 } from '@/types';
+import { statusConfig } from './columns';
+import { EmailReceiptButton } from './email-receipt-button';
 import { PaymentEntryForm } from './payment-entry-form';
 import { PaymentHistoryList } from './payment-history-list';
 import { ReturnsHistoryList } from './returns-history-list';
-import { SaleDetailsBlock, SaleItemsList } from './sale-details-block';
+import { SaleDetailsKv, SaleItemsTable, SaleStats } from './sale-details-block';
 import { TransactionsTimeline } from './transactions-timeline';
 
 interface PaymentsDrawerProps {
@@ -93,6 +103,31 @@ export function PaymentsDrawer({
   const scrollRef = externalRef || internalRef;
   const { user } = useAuthStore();
 
+  // Drafts carry no payment/return/transaction history — hide those sections.
+  const isDraft = sale?.status === 'draft';
+  const returnsCount = saleReturns.length;
+  const transactionsCount = transactions?.transactions?.length ?? 0;
+  const refundedTotal = saleReturns.reduce(
+    (sum, r) => sum + (r.totalRefundAmount ?? 0),
+    0,
+  );
+
+  const showAddPayment =
+    mode === 'summary' &&
+    isAccountsEnabled &&
+    !!sale &&
+    sale.dueAmount > 0 &&
+    sale.status !== 'cancelled';
+
+  const showPaymentsFold = isLoadingPayments || payments.length > 0 || showAddPayment;
+  const showReturnsFold = isLoadingReturns || returnsCount > 0;
+  const showTransactionsFold = !!isLoadingTransactions || transactionsCount > 0;
+  const emptySections = [
+    ...(showPaymentsFold ? [] : ['Payments']),
+    ...(showReturnsFold ? [] : ['Returns']),
+    ...(showTransactionsFold ? [] : ['Transactions']),
+  ];
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[760px] sm:max-w-[760px] flex flex-col">
@@ -124,14 +159,21 @@ export function PaymentsDrawer({
                       })
                     }
                   />
+                  <EmailReceiptButton sale={sale} />
                 </div>
               )
             }
           >
-            <SheetTitle className="flex items-center gap-2">
+            <SheetTitle className="flex flex-wrap items-center gap-2">
               <ReceiptText className="h-5 w-5" />
               {mode === 'payment' ? 'Record Payment' : 'Sale Summary'}
               {sale ? ` — ${sale.invoiceNumber}` : ''}
+              {sale && <CopyField value={sale.invoiceNumber} showValue={false} />}
+              {sale && (
+                <Badge variant={statusConfig[sale.status]?.variant ?? 'outline'}>
+                  {statusConfig[sale.status]?.label ?? sale.status}
+                </Badge>
+              )}
             </SheetTitle>
             <SheetDescription>
               {mode === 'payment'
@@ -164,33 +206,91 @@ export function PaymentsDrawer({
                 />
               )}
 
-              <SaleDetailsBlock sale={sale} saleReturns={saleReturns} />
+              <SaleStats sale={sale} saleReturns={saleReturns} />
 
-              <SaleItemsList sale={sale} />
+              <SaleItemsTable sale={sale} />
 
-              <ReturnsHistoryList
-                saleReturns={saleReturns}
-                isLoadingReturns={isLoadingReturns}
-                formatCurrency={formatCurrency}
-              />
+              {sale.notes && <NoteCallout>{sale.notes}</NoteCallout>}
 
-              <TransactionsTimeline
-                transactions={transactions}
-                isLoading={!!isLoadingTransactions}
-                formatCurrency={formatCurrency}
-                onNavigateToSale={onNavigateToSale}
-              />
+              {!isDraft && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">History</div>
 
-              <PaymentHistoryList
-                sale={sale}
-                payments={payments}
-                isLoadingPayments={isLoadingPayments}
-                isAccountsEnabled={isAccountsEnabled}
-                mode={mode}
-                formatCurrency={formatCurrency}
-                onMakePayment={onMakePayment}
-                scrollRef={scrollRef}
-              />
+                  {showPaymentsFold && (
+                    <SectionFold
+                      title="Payments"
+                      count={isLoadingPayments ? '…' : payments.length}
+                      peek={`${formatCurrency(sale.paidAmount)} received`}
+                      defaultOpen
+                      action={
+                        showAddPayment ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              onMakePayment(sale);
+                              if (scrollRef.current) scrollRef.current.scrollTop = 0;
+                            }}
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Add Payment
+                          </Button>
+                        ) : undefined
+                      }
+                    >
+                      <PaymentHistoryList
+                        sale={sale}
+                        payments={payments}
+                        isLoadingPayments={isLoadingPayments}
+                        isAccountsEnabled={isAccountsEnabled}
+                        mode={mode}
+                        formatCurrency={formatCurrency}
+                        onMakePayment={onMakePayment}
+                        scrollRef={scrollRef}
+                        bare
+                      />
+                    </SectionFold>
+                  )}
+
+                  {showReturnsFold && (
+                    <SectionFold
+                      title="Returns"
+                      count={isLoadingReturns ? '…' : returnsCount}
+                      peek={
+                        refundedTotal > 0
+                          ? `−${formatCurrency(refundedTotal)}`
+                          : undefined
+                      }
+                    >
+                      <ReturnsHistoryList
+                        saleReturns={saleReturns}
+                        isLoadingReturns={isLoadingReturns}
+                        formatCurrency={formatCurrency}
+                        bare
+                      />
+                    </SectionFold>
+                  )}
+
+                  {showTransactionsFold && (
+                    <SectionFold
+                      title="Transactions"
+                      count={isLoadingTransactions ? '…' : transactionsCount}
+                    >
+                      <TransactionsTimeline
+                        transactions={transactions}
+                        isLoading={!!isLoadingTransactions}
+                        formatCurrency={formatCurrency}
+                        onNavigateToSale={onNavigateToSale}
+                        bare
+                      />
+                    </SectionFold>
+                  )}
+
+                  <EmptySectionsLine sections={emptySections} />
+                </div>
+              )}
+
+              <SaleDetailsKv sale={sale} />
             </div>
           )}
         </div>
