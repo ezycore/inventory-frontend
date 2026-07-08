@@ -51,6 +51,12 @@ export const organizationApi = {
   getPlans: (): Promise<ApiResponse<AvailablePlansInfo>> =>
     apiClient.get(`/organization/plans`),
 
+  // GET /api/organization/billing/pay-link - Live "Pay now" link for an open
+  // invoice (past_due). Used in: useRequestPayLink → billing overdue banner.
+  getPayLink: (): Promise<
+    ApiResponse<{ url: string | null; gateway: string | null; status: string }>
+  > => apiClient.get(`/organization/billing/pay-link`),
+
   // POST /api/organization/plan-change - Self-serve upgrade/downgrade
   // Used in: useRequestPlanChange → billing/available-plans.tsx
   requestPlanChange: (data: {

@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Separator } from '@ui/components/separator'
 import { Tag } from 'lucide-react'
+import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 
 interface DetailPricingProps {
   product: any
@@ -40,6 +41,9 @@ export function DetailPricing({
   purchaseTaxActive,
   formatCurrency,
 }: DetailPricingProps) {
+  // Cost and cost-derived figures (profit/unit) require the costs.view permission.
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView)
+
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -50,10 +54,12 @@ export function DetailPricing({
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          <Row
-            label="Cost Price"
-            value={<span className="text-sm font-medium">{formatCurrency(costPrice)}</span>}
-          />
+          {canViewCosts && (
+            <Row
+              label="Cost Price"
+              value={<span className="text-sm font-medium">{formatCurrency(costPrice)}</span>}
+            />
+          )}
           <Row
             label="Selling Price"
             value={<span className="text-sm font-semibold text-emerald-600">{formatCurrency(sellingPrice)}</span>}
@@ -61,10 +67,12 @@ export function DetailPricing({
           {product.mrp != null && product.mrp > 0 && (
             <Row label="MRP" value={<span className="text-sm font-medium">{formatCurrency(product.mrp)}</span>} />
           )}
-          <Row
-            label="Profit/Unit"
-            value={<span className="text-sm font-medium">{formatCurrency(profitPerUnit)}</span>}
-          />
+          {canViewCosts && (
+            <Row
+              label="Profit/Unit"
+              value={<span className="text-sm font-medium">{formatCurrency(profitPerUnit)}</span>}
+            />
+          )}
           {salesTaxActive && salesTaxRate > 0 && (
             <Row label="Sales Tax" value={<span className="text-sm font-medium">{salesTaxRate}%</span>} />
           )}

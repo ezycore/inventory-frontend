@@ -26,6 +26,7 @@ import { useAuthStore, useSellPageStore } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
 import { useCurrency } from "@/lib/currency";
+import { useCostGatedColumns } from "@/hooks/use-cost-gated-columns";
 import { isTaxActive } from "@/lib/feature-utils";
 import {
   orgToPrintHeader,
@@ -321,7 +322,7 @@ export function useSellPage() {
     [updateItem],
   );
 
-  const salesColumns = useMemo(
+  const allSalesColumns = useMemo(
     () =>
       getSalesColumns(
         (id, quantity) => updateItem(id, { quantity }),
@@ -334,6 +335,7 @@ export function useSellPage() {
       ),
     [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled, isTaxEnabled],
   );
+  const salesColumns = useCostGatedColumns(allSalesColumns);
 
   const handleFieldChange = useCallback(
     (fieldName: string, value: unknown) => {

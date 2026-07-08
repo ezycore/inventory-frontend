@@ -9,6 +9,7 @@ import { Button } from '@ui/components/button'
 import { useInventoryAnalytics } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { isFeatureEnabled } from '@/lib/feature-utils'
+import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 import { useAuthStore } from '@/services/stores'
 import { InventoryCharts } from './inventory-charts'
 import { InventoryActivity } from './inventory-activity'
@@ -21,6 +22,7 @@ interface InventoryDetailProps {
 
 export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) {
   const { format: formatCurrency } = useCurrency()
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView)
   const features = useAuthStore((s) => s.user?.organization?.features)
   const barcodeEnabled = isFeatureEnabled(features, 'barcodeSystem')
   const expiryEnabled = isFeatureEnabled(features, 'expiryTracking')
@@ -79,7 +81,9 @@ export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) 
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatTile icon={Package} label="On Hand" value={`${inventory.quantity.toLocaleString()}`} sub={unitLabel} />
-        <StatTile icon={Wallet} label="Stock Value" value={formatCurrency(inventory.stockValue)} sub="at cost price" />
+        {canViewCosts && (
+          <StatTile icon={Wallet} label="Stock Value" value={formatCurrency(inventory.stockValue)} sub="at cost price" />
+        )}
         <StatTile icon={Bell} label="Alert Level" value={inventory.quantityAlert.toLocaleString()} sub="reorder threshold" />
         <StatTile
           icon={movement.netChange >= 0 ? TrendingUp : TrendingDown}

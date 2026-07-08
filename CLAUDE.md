@@ -121,7 +121,7 @@ The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern f
 
 `OrganizationFeatures` (defined in `types/index.ts`) controls which modules are enabled per organization. Helper functions in `lib/feature-utils.ts` (`isFeatureEnabled`, `areAllFeaturesEnabled`) check feature state from `user.organization.features` in the auth store.
 
-Subscription/billing enforcement lives in `lib/subscription-utils.ts`. The protected layout uses `hasActiveSubscription()` to gate access.
+Subscription/billing enforcement lives in `lib/subscription-utils.ts`. `classifyEntitlementAccess()` returns `active | read_only | blocked` (mirrors the backend `entitlementAccess` — keep in sync); the protected layout uses `shouldBlockWorkspaceAccess()` to force-logout only `blocked` orgs, and the overdue banner uses `isPaymentOverdue()` (`read_only`) to show "Pay now".
 
 ### Path Aliases
 

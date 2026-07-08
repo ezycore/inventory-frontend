@@ -23,6 +23,8 @@ interface PaymentHistoryListProps {
   formatCurrency: (n: number) => string;
   onMakePayment: (sale: Sale) => void;
   scrollRef: React.RefObject<HTMLDivElement | null>;
+  /** Content-only render for embedding inside a SectionFold. */
+  bare?: boolean;
 }
 
 export function PaymentHistoryList({
@@ -34,6 +36,7 @@ export function PaymentHistoryList({
   formatCurrency,
   onMakePayment,
   scrollRef,
+  bare,
 }: PaymentHistoryListProps) {
   const { user } = useAuthStore();
   const canPrint = isFeatureEnabled(
@@ -58,6 +61,7 @@ export function PaymentHistoryList({
       doc={{ status: sale.status, dueAmount: sale.dueAmount }}
       payments={items}
       isLoading={isLoadingPayments}
+      bare={bare}
       canAddPayment={isAccountsEnabled}
       isInPaymentMode={mode === "payment"}
       formatCurrency={formatCurrency}

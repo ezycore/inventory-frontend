@@ -1,14 +1,40 @@
 import type { Entitlement, ScheduledPlanChange } from "@/types";
 
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+/**
+ * How the current entitlement gates workspace access — the single state machine
+ * both the layout gate and the overdue banner derive from:
+ *  - `active`    → full access (active / trialing).
+ *  - `read_only` → overdue but recoverable (past_due / read_only): keep the user
+ *    in with the overdue banner + "Pay now" instead of logging them out.
+ *  - `blocked`   → terminated / never provisioned (missing / inactive /
+ *    canceled / incomplete): force logout → login.
+ *
+ * Mirrors the backend classifier `entitlementAccess` in
+ * `easystock-backend/src/utils/subscription-status.ts` — keep the two in sync.
+ */
+export type SubscriptionAccess = "active" | "read_only" | "blocked";
 
-export function hasActiveSubscription(entitlement?: Entitlement | null) {
-  if (!entitlement || entitlement.status !== "active") return false;
+export function classifyEntitlementAccess(
+  entitlement?: Entitlement | null,
+): SubscriptionAccess {
+  if (!entitlement) return "blocked";
+  if (entitlement.status === "inactive") return "blocked";
+  const sub = entitlement.subscriptionStatus;
+  if (sub === "canceled" || sub === "incomplete") return "blocked";
+  if (sub === "past_due" || entitlement.status === "read_only") {
+    return "read_only";
+  }
+  return "active";
+}
 
-  const subscriptionStatus = entitlement.subscriptionStatus;
-  return (
-    !subscriptionStatus || ACTIVE_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
-  );
+/** Whether the workspace should be hard-blocked (force logout → login). */
+export function shouldBlockWorkspaceAccess(entitlement?: Entitlement | null) {
+  return classifyEntitlementAccess(entitlement) === "blocked";
+}
+
+/** Whether a payment is overdue (grace / read-only) — drives the overdue banner. */
+export function isPaymentOverdue(entitlement?: Entitlement | null) {
+  return classifyEntitlementAccess(entitlement) === "read_only";
 }
 
 function normalizeScheduledChange(

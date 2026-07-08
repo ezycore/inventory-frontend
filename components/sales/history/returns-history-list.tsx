@@ -12,12 +12,15 @@ interface ReturnsHistoryListProps {
   saleReturns: SalesReturn[];
   isLoadingReturns: boolean;
   formatCurrency: (n: number) => string;
+  /** Content-only render for embedding inside a SectionFold. */
+  bare?: boolean;
 }
 
 export function ReturnsHistoryList({
   saleReturns,
   isLoadingReturns,
   formatCurrency,
+  bare,
 }: ReturnsHistoryListProps) {
   const normalized = useMemo<NormalizedReturn[]>(
     () =>
@@ -81,6 +84,7 @@ export function ReturnsHistoryList({
       isLoading={isLoadingReturns}
       formatCurrency={formatCurrency}
       emptyMessage="No returns for this sale"
+      bare={bare}
     />
   );
 }
