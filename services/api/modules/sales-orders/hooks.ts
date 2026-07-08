@@ -174,6 +174,21 @@ export const useFinalizeDraftSale = () => {
 };
 
 /**
+ * Email the sale receipt to the customer. No cache invalidation — sending a
+ * receipt doesn't change the sale.
+ */
+export const useEmailSaleReceipt = () => {
+  return useMutation({
+    mutationFn: ({ saleId, email }: { saleId: string; email?: string }) =>
+      salesApi.emailReceipt(saleId, email ? { email } : {}),
+    onSuccess: (data) => {
+      toast.success(data.message || "Receipt emailed");
+    },
+    onError: handleMutationError,
+  });
+};
+
+/**
  * Hard-delete a draft sale.
  */
 export const useDeleteDraftSale = () => {

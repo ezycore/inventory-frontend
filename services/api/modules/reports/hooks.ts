@@ -113,12 +113,13 @@ export const useTaxLedger = (
 };
 
 /** Hook for fetching stock valuation report */
-export const useStockValuation = () => {
+export const useStockValuation = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: REPORT_KEYS.valuation(),
     queryFn: () => reportsApi.getStockValuation(),
     select: (data) => data.data,
     staleTime: 2 * 60 * 1000,
+    enabled: options?.enabled ?? true,
   });
 };
 

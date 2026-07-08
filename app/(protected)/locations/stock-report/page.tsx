@@ -54,6 +54,7 @@ import {
   ChevronRight,
   Eye,
 } from "lucide-react";
+import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
 
 // ── Summary Stat Cards ─────────────────────────────────────────────────
 
@@ -63,6 +64,7 @@ interface OverallStatsProps {
 }
 
 function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   const totals = useMemo(() => {
     if (!summaries?.length)
       return {
@@ -108,14 +110,18 @@ function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
       iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
       iconColor: "text-emerald-600 dark:text-emerald-400",
     },
-    {
-      label: "Total Value",
-      value: `৳${totals.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-      icon: DollarSign,
-      gradient: "from-violet-500/10 to-violet-500/5",
-      iconBg: "bg-violet-50 dark:bg-violet-950/40",
-      iconColor: "text-violet-600 dark:text-violet-400",
-    },
+    ...(canViewCosts
+      ? [
+          {
+            label: "Total Value",
+            value: `৳${totals.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+            icon: DollarSign,
+            gradient: "from-violet-500/10 to-violet-500/5",
+            iconBg: "bg-violet-50 dark:bg-violet-950/40",
+            iconColor: "text-violet-600 dark:text-violet-400",
+          },
+        ]
+      : []),
     {
       label: "Low Stock",
       value: totals.lowStock,
@@ -199,6 +205,7 @@ interface LocationCardProps {
 }
 
 function LocationStockCard({ location, onSelect }: LocationCardProps) {
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   const totalCapacity = location.inStockCount + location.lowStockCount + location.outOfStockCount;
   const healthPercent = totalCapacity > 0
     ? Math.round((location.inStockCount / totalCapacity) * 100)
@@ -260,15 +267,17 @@ function LocationStockCard({ location, onSelect }: LocationCardProps) {
           </Tooltip>
         </div>
 
-        {/* Stock Value */}
-        <div className="mb-4">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/60 mb-0.5">
-            Stock Value
-          </p>
-          <p className="text-2xl font-bold tracking-tight tabular-nums">
-            ৳{location.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
-        </div>
+        {/* Stock Value — cost-derived, costs.view only */}
+        {canViewCosts && (
+          <div className="mb-4">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/60 mb-0.5">
+              Stock Value
+            </p>
+            <p className="text-2xl font-bold tracking-tight tabular-nums">
+              ৳{location.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+        )}
 
         {/* Health bar */}
         <div className="space-y-1.5">
@@ -376,6 +385,7 @@ interface LocationDetailProps {
 }
 
 function LocationDetailView({ locationId, onBack }: LocationDetailProps) {
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   const [filters, setFilters] = useState<LocationStockFilters>({
     page: 1,
     limit: 20,
@@ -496,13 +506,17 @@ function LocationDetailView({ locationId, onBack }: LocationDetailProps) {
             color: "text-indigo-600 dark:text-indigo-400",
             bg: "bg-indigo-50 dark:bg-indigo-950/40",
           },
-          {
-            label: "Stock Value",
-            value: `৳${summary.totalValue.toLocaleString()}`,
-            icon: DollarSign,
-            color: "text-violet-600 dark:text-violet-400",
-            bg: "bg-violet-50 dark:bg-violet-950/40",
-          },
+          ...(canViewCosts
+            ? [
+                {
+                  label: "Stock Value",
+                  value: `৳${summary.totalValue.toLocaleString()}`,
+                  icon: DollarSign,
+                  color: "text-violet-600 dark:text-violet-400",
+                  bg: "bg-violet-50 dark:bg-violet-950/40",
+                },
+              ]
+            : []),
           {
             label: "In Stock",
             value: summary.inStockCount,
@@ -609,8 +623,12 @@ function LocationDetailView({ locationId, onBack }: LocationDetailProps) {
                   { key: "brandName", label: "Brand" },
                   { key: "quantity", label: "Quantity" },
                   { key: "quantityAlert", label: "Alert Level" },
-                  { key: "costPrice", label: "Cost Price" },
-                  { key: "stockValue", label: "Stock Value" },
+                  ...(canViewCosts
+                    ? [
+                        { key: "costPrice", label: "Cost Price" },
+                        { key: "stockValue", label: "Stock Value" },
+                      ]
+                    : []),
                   { key: "status", label: "Status" },
                 ].map((col) => (
                   <th
@@ -707,6 +725,7 @@ function LocationDetailView({ locationId, onBack }: LocationDetailProps) {
 }
 
 function StockItemRow({ item }: { item: LocationStockItem }) {
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   const variantLabel = item.variantAttributes
     ? Object.values(item.variantAttributes).join(" / ")
     : null;
@@ -748,12 +767,16 @@ function StockItemRow({ item }: { item: LocationStockItem }) {
       <td className="px-4 py-3 text-sm tabular-nums text-muted-foreground">
         {item.quantityAlert}
       </td>
-      <td className="px-4 py-3 text-sm tabular-nums">
-        ৳{item.costPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-      </td>
-      <td className="px-4 py-3 text-sm font-medium tabular-nums">
-        ৳{item.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-      </td>
+      {canViewCosts && (
+        <td className="px-4 py-3 text-sm tabular-nums">
+          ৳{item.costPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </td>
+      )}
+      {canViewCosts && (
+        <td className="px-4 py-3 text-sm font-medium tabular-nums">
+          ৳{item.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </td>
+      )}
       <td className="px-4 py-3">
         {item.isOutOfStock ? (
           <Badge
@@ -934,6 +957,7 @@ function ComparisonView({
   summaries: LocationStockSummary[];
   isLoading: boolean;
 }) {
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -957,43 +981,45 @@ function ComparisonView({
 
   return (
     <div className="space-y-6">
-      {/* Value Comparison */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-violet-500" />
-            Stock Value Comparison
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {summaries.map((loc) => {
-            const pct = (loc.totalValue / maxValue) * 100;
-            return (
-              <div key={loc.locationId} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    {loc.locationType === "warehouse" ? (
-                      <Warehouse className="h-3.5 w-3.5 text-amber-500" />
-                    ) : (
-                      <Store className="h-3.5 w-3.5 text-blue-500" />
-                    )}
-                    <span className="font-medium">{loc.locationName}</span>
+      {/* Value Comparison — cost-derived, costs.view only */}
+      {canViewCosts && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-violet-500" />
+              Stock Value Comparison
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {summaries.map((loc) => {
+              const pct = (loc.totalValue / maxValue) * 100;
+              return (
+                <div key={loc.locationId} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      {loc.locationType === "warehouse" ? (
+                        <Warehouse className="h-3.5 w-3.5 text-amber-500" />
+                      ) : (
+                        <Store className="h-3.5 w-3.5 text-blue-500" />
+                      )}
+                      <span className="font-medium">{loc.locationName}</span>
+                    </div>
+                    <span className="text-muted-foreground tabular-nums font-medium">
+                      ৳{loc.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
                   </div>
-                  <span className="text-muted-foreground tabular-nums font-medium">
-                    ৳{loc.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quantity Comparison */}
       <Card>

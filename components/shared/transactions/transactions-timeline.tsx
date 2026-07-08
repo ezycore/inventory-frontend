@@ -36,6 +36,11 @@ interface TransactionsTimelineProps {
   data?: TimelineData;
   isLoading: boolean;
   formatCurrency: (n: number) => string;
+  /**
+   * Render only the timeline content (no card or title) for embedding inside
+   * a detail-sheet SectionFold, which supplies its own header.
+   */
+  bare?: boolean;
 }
 
 const TONE_COLOR: Record<Tone, string> = {
@@ -59,20 +64,10 @@ export function TransactionsTimeline({
   data,
   isLoading,
   formatCurrency,
+  bare = false,
 }: TransactionsTimelineProps) {
-  return (
-    <div className="rounded-lg border p-4 space-y-3">
-      <div className="font-medium flex items-center gap-2">
-        <Hash className="h-4 w-4" />
-        Transactions
-        {data && (
-          <span className="text-xs text-muted-foreground font-normal">
-            ({data.entries.length})
-          </span>
-        )}
-      </div>
-      <Separator />
-
+  const content = (
+    <div className="space-y-3">
       {isLoading ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
@@ -145,6 +140,25 @@ export function TransactionsTimeline({
           )}
         </>
       )}
+    </div>
+  );
+
+  if (bare) return content;
+
+  return (
+    <div className="rounded-lg border p-4 space-y-3">
+      <div className="font-medium flex items-center gap-2">
+        <Hash className="h-4 w-4" />
+        Transactions
+        {data && (
+          <span className="text-xs text-muted-foreground font-normal">
+            ({data.entries.length})
+          </span>
+        )}
+      </div>
+      <Separator />
+
+      {content}
     </div>
   );
 }

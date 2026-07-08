@@ -11,6 +11,7 @@ import { Switch } from "@/ui/components/switch";
 import { formatCurrency } from "@/components/sales";
 import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
 import { PrintMenu } from "@/components/shared/print/print-menu";
+import { EmailReceiptButton } from "@/components/sales/history/email-receipt-button";
 import type { SellPageContext } from "./use-sell-page";
 
 export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
@@ -229,12 +230,15 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
               <span className="min-w-0 truncate text-muted-foreground">
                 Last sale · {lastCompletedSale.invoiceNumber}
               </span>
-              <PrintMenu
-                appearance="solid"
-                a4Label="Invoice"
-                defaultPaper={receiptDefaultPaper}
-                onPrint={printLastReceipt}
-              />
+              <div className="flex items-center gap-2">
+                <PrintMenu
+                  appearance="solid"
+                  a4Label="Invoice"
+                  defaultPaper={receiptDefaultPaper}
+                  onPrint={printLastReceipt}
+                />
+                <EmailReceiptButton sale={lastCompletedSale} />
+              </div>
             </div>
           )}
         </CardContent>

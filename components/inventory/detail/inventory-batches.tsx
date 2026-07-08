@@ -9,6 +9,7 @@ import { Button } from '@ui/components/button'
 import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { CalendarClock, ChevronDown, ChevronUp } from 'lucide-react'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
+import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 import { formatDate } from '@/components/products/detail/utils'
 
 interface InventoryBatchesProps {
@@ -31,6 +32,7 @@ function expiryBadge(expiryDate?: string | null) {
 }
 
 export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesProps) {
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView)
   const [expanded, setExpanded] = useState(false)
   const hasMore = batches.length > BATCH_PREVIEW_COUNT
   const shown = expanded ? batches : batches.slice(0, BATCH_PREVIEW_COUNT)
@@ -48,13 +50,17 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       align: 'right',
       cell: (b) => b.remainingQuantity.toLocaleString(),
     },
-    {
-      key: 'cost',
-      header: 'Cost',
-      align: 'right',
-      cellClassName: 'text-muted-foreground',
-      cell: (b) => (b.costPrice != null ? formatCurrency(b.costPrice) : '—'),
-    },
+    ...(canViewCosts
+      ? [
+          {
+            key: 'cost',
+            header: 'Cost',
+            align: 'right',
+            cellClassName: 'text-muted-foreground',
+            cell: (b) => (b.costPrice != null ? formatCurrency(b.costPrice) : '—'),
+          } satisfies SimpleColumn<BatchRow>,
+        ]
+      : []),
     {
       key: 'expiry',
       header: 'Expiry',

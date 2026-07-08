@@ -3,8 +3,9 @@
 import KBar from "@/components/kbar";
 import AppSidebar from "@/components/layout/app-sidebar";
 import Header from "@/components/layout/header";
+import { BillingAlertBanner } from "@/components/shared/billing-alert-banner";
 import { DemoBanner } from "@/components/shared/demo-banner";
-import { hasActiveSubscription } from "@/lib/subscription-utils";
+import { shouldBlockWorkspaceAccess } from "@/lib/subscription-utils";
 import { useGetSubscription, useMe } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { SidebarInset, SidebarProvider } from "@ui/components/sidebar";
@@ -34,7 +35,7 @@ export default function ProtectedLayout({
     if (subscriptionLogoutHandled.current) return;
     subscriptionLogoutHandled.current = true;
 
-    toast.error("No active subscription found.");
+    toast.error("Your subscription is inactive. Please renew to continue.");
     clearAuth();
     queryClient.clear();
     router.replace("/login?subscription=inactive");
@@ -57,7 +58,9 @@ export default function ProtectedLayout({
   useEffect(() => {
     if (!subscription.data) return;
 
-    if (!hasActiveSubscription(subscription.data.entitlement)) {
+    // Only hard-block terminated subscriptions. A past_due/read-only workspace
+    // keeps read access and sees <BillingAlertBanner> instead of a logout.
+    if (shouldBlockWorkspaceAccess(subscription.data.entitlement)) {
       forceLogoutForSubscription();
     }
   }, [forceLogoutForSubscription, subscription.data]);
@@ -79,6 +82,7 @@ export default function ProtectedLayout({
       >
         <AppSidebar />
         <SidebarInset>
+          <BillingAlertBanner />
           <DemoBanner />
           <Header />
           <div className="min-h-screen">

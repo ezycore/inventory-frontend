@@ -38,6 +38,14 @@ export const useGetSubscription = () => {
   });
 };
 
+// GET /api/organization/billing/pay-link - Resolve a live "Pay now" link on
+// demand (lazy: fired from the overdue banner, not on page load).
+export const useRequestPayLink = () =>
+  useMutation({
+    mutationFn: () => organizationApi.getPayLink(),
+    onError: handleMutationError,
+  });
+
 // GET /api/organization/plans - Available plans (upgrade/downgrade options)
 export const useGetAvailablePlans = () => {
   return useQuery({
