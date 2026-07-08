@@ -107,4 +107,14 @@ export const salesApi = {
     id: string,
   ): Promise<ApiResponse<{ deleted: true; invoiceNumber: string }>> =>
     apiClient.delete(`/sales/${id}`),
+
+  /**
+   * Email the receipt to the customer — their email on file, or an override
+   * address. Not allowed for draft/cancelled sales.
+   */
+  emailReceipt: (
+    saleId: string,
+    data: { email?: string } = {},
+  ): Promise<ApiResponse<{ to: string; invoiceNumber: string }>> =>
+    apiClient.post(`/sales/${saleId}/email-receipt`, data),
 };
