@@ -11,6 +11,35 @@ export function hasActiveSubscription(entitlement?: Entitlement | null) {
   );
 }
 
+/**
+ * Whether the workspace should be hard-blocked (force logout → login).
+ *
+ * Only genuinely terminated subscriptions block access: no entitlement at all,
+ * an `inactive` mirror (canceled / suspended / incomplete), or a subscription
+ * that Stripe reports `canceled` / `incomplete`. A **past_due** subscription is
+ * NOT blocked here — during grace/read-only the user keeps read access and sees
+ * the overdue banner instead of a confusing "no active subscription" logout.
+ */
+export function shouldBlockWorkspaceAccess(entitlement?: Entitlement | null) {
+  if (!entitlement) return true;
+  if (entitlement.status === "inactive") return true;
+  const sub = entitlement.subscriptionStatus;
+  return sub === "canceled" || sub === "incomplete";
+}
+
+/**
+ * Whether a payment is overdue (grace or read-only). Drives the in-app overdue
+ * banner. MC maps `past_due` → entitlement `read_only`, so either signal means
+ * the invoice lapsed and the emailed pay link is the way to settle it.
+ */
+export function isPaymentOverdue(entitlement?: Entitlement | null) {
+  if (!entitlement) return false;
+  return (
+    entitlement.subscriptionStatus === "past_due" ||
+    entitlement.status === "read_only"
+  );
+}
+
 function normalizeScheduledChange(
   value: unknown,
 ): ScheduledPlanChange | null {
