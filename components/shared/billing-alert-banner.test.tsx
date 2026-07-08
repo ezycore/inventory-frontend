@@ -10,7 +10,13 @@ import userEvent from "@testing-library/user-event";
 import { BillingAlertBanner } from "./billing-alert-banner";
 
 const toastInfo = vi.fn();
-vi.mock("sonner", () => ({ toast: { info: (...a: unknown[]) => toastInfo(...a) } }));
+const toastError = vi.fn();
+vi.mock("sonner", () => ({
+  toast: {
+    info: (...a: unknown[]) => toastInfo(...a),
+    error: (...a: unknown[]) => toastError(...a),
+  },
+}));
 
 const subscription = (over: Record<string, unknown>) =>
   http.get("*/api/organization/subscription", () =>
@@ -25,6 +31,7 @@ const originalLocation = window.location;
 
 beforeEach(() => {
   toastInfo.mockClear();
+  toastError.mockClear();
   hrefSpy = "";
   // jsdom does not implement navigation; swap location for a capturable stub.
   Object.defineProperty(window, "location", {
@@ -118,6 +125,25 @@ describe("BillingAlertBanner", () => {
     await userEvent.click(btn);
 
     await waitFor(() => expect(toastInfo).toHaveBeenCalledTimes(1));
+    expect(hrefSpy).toBe("");
+  });
+
+  it("Pay now with status 'due' but no url shows an error, not 'nothing owed'", async () => {
+    server.use(
+      subscription({ status: "read_only", subscriptionStatus: "past_due", amount: 500 }),
+      http.get("*/api/organization/billing/pay-link", () =>
+        HttpResponse.json({
+          success: true,
+          data: { url: null, gateway: "sslcommerz", status: "due" },
+        }),
+      ),
+    );
+    renderWithProviders(<BillingAlertBanner />);
+    const btn = await screen.findByRole("button", { name: /pay now/i });
+    await userEvent.click(btn);
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledTimes(1));
+    expect(toastInfo).not.toHaveBeenCalled();
     expect(hrefSpy).toBe("");
   });
 });

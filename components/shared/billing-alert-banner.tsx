@@ -33,13 +33,21 @@ export function BillingAlertBanner() {
   const handlePayNow = () => {
     payLink.mutate(undefined, {
       onSuccess: (res) => {
-        const url = res.data?.url;
-        if (url) {
-          window.location.href = url;
+        const data = res.data;
+        if (data?.url) {
+          window.location.href = data.url;
           return;
         }
-        // Nothing due (already settled / manual plan) — refresh so the banner
-        // clears once the mirror catches up.
+        // A payment is owed but no link could be produced — don't tell the user
+        // they're paid up. Point them at the emailed invoice / a retry.
+        if (data?.status === "due") {
+          toast.error(
+            "Couldn't open the payment page. Check your email for the invoice link, or try again.",
+          );
+          return;
+        }
+        // Genuinely nothing due (already settled / manual plan) — refresh so the
+        // banner clears once the mirror catches up.
         toast.info("No outstanding payment was found.");
         subscription.refetch();
       },

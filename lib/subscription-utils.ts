@@ -1,43 +1,40 @@
 import type { Entitlement, ScheduledPlanChange } from "@/types";
 
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
-
-export function hasActiveSubscription(entitlement?: Entitlement | null) {
-  if (!entitlement || entitlement.status !== "active") return false;
-
-  const subscriptionStatus = entitlement.subscriptionStatus;
-  return (
-    !subscriptionStatus || ACTIVE_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
-  );
-}
-
 /**
- * Whether the workspace should be hard-blocked (force logout → login).
+ * How the current entitlement gates workspace access — the single state machine
+ * both the layout gate and the overdue banner derive from:
+ *  - `active`    → full access (active / trialing).
+ *  - `read_only` → overdue but recoverable (past_due / read_only): keep the user
+ *    in with the overdue banner + "Pay now" instead of logging them out.
+ *  - `blocked`   → terminated / never provisioned (missing / inactive /
+ *    canceled / incomplete): force logout → login.
  *
- * Only genuinely terminated subscriptions block access: no entitlement at all,
- * an `inactive` mirror (canceled / suspended / incomplete), or a subscription
- * that Stripe reports `canceled` / `incomplete`. A **past_due** subscription is
- * NOT blocked here — during grace/read-only the user keeps read access and sees
- * the overdue banner instead of a confusing "no active subscription" logout.
+ * Mirrors the backend classifier `entitlementAccess` in
+ * `easystock-backend/src/utils/subscription-status.ts` — keep the two in sync.
  */
-export function shouldBlockWorkspaceAccess(entitlement?: Entitlement | null) {
-  if (!entitlement) return true;
-  if (entitlement.status === "inactive") return true;
+export type SubscriptionAccess = "active" | "read_only" | "blocked";
+
+export function classifyEntitlementAccess(
+  entitlement?: Entitlement | null,
+): SubscriptionAccess {
+  if (!entitlement) return "blocked";
+  if (entitlement.status === "inactive") return "blocked";
   const sub = entitlement.subscriptionStatus;
-  return sub === "canceled" || sub === "incomplete";
+  if (sub === "canceled" || sub === "incomplete") return "blocked";
+  if (sub === "past_due" || entitlement.status === "read_only") {
+    return "read_only";
+  }
+  return "active";
 }
 
-/**
- * Whether a payment is overdue (grace or read-only). Drives the in-app overdue
- * banner. MC maps `past_due` → entitlement `read_only`, so either signal means
- * the invoice lapsed and the emailed pay link is the way to settle it.
- */
+/** Whether the workspace should be hard-blocked (force logout → login). */
+export function shouldBlockWorkspaceAccess(entitlement?: Entitlement | null) {
+  return classifyEntitlementAccess(entitlement) === "blocked";
+}
+
+/** Whether a payment is overdue (grace / read-only) — drives the overdue banner. */
 export function isPaymentOverdue(entitlement?: Entitlement | null) {
-  if (!entitlement) return false;
-  return (
-    entitlement.subscriptionStatus === "past_due" ||
-    entitlement.status === "read_only"
-  );
+  return classifyEntitlementAccess(entitlement) === "read_only";
 }
 
 function normalizeScheduledChange(
