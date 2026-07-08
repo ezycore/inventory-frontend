@@ -39,4 +39,12 @@ export const customersApi = {
     filters: { startDate?: string; endDate?: string } = {},
   ): Promise<ApiResponse<CustomerStatement>> =>
     apiClient.get(`/sales/customers/${customerId}/statement${buildQueryParams(filters)}`),
+
+  // Email an outstanding-dues statement to the customer (their email on file,
+  // or an override address)
+  emailStatement: (
+    customerId: string,
+    data: { email?: string } = {},
+  ): Promise<ApiResponse<{ to: string; totalDue: number; invoices: number }>> =>
+    apiClient.post(`/sales/customers/${customerId}/email-statement`, data),
 };
