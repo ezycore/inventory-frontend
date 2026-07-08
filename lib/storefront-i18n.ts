@@ -132,6 +132,8 @@ export interface Dict {
   coupon: string;
   proceed: string;
   continueShopping: string;
+  pageNotFound: string;
+  lastUpdated: string;
   checkout: string;
   deliveryDetails: string;
   fullName: string;
@@ -251,6 +253,8 @@ export interface Dict {
   createSubtitle: string;
   password: string;
   forgotPassword: string;
+  paidLabel: string;
+  dueLabel: string;
   changePasswordTitle: string;
   currentPasswordLabel: string;
   newPasswordLabel: string;
@@ -391,6 +395,8 @@ const en: Dict = {
   coupon: "Coupon",
   proceed: "Checkout",
   continueShopping: "Continue shopping",
+  pageNotFound: "Page not found",
+  lastUpdated: "Last updated",
   checkout: "Checkout",
   deliveryDetails: "Delivery details",
   fullName: "Full name",
@@ -510,6 +516,8 @@ const en: Dict = {
   createSubtitle: "Save your details for a faster checkout next time.",
   password: "Password",
   forgotPassword: "Forgot password?",
+  paidLabel: "Paid",
+  dueLabel: "Due",
   changePasswordTitle: "Change password",
   currentPasswordLabel: "Current password",
   newPasswordLabel: "New password",
@@ -651,6 +659,8 @@ const bn: Dict = {
   coupon: "কুপন",
   proceed: "চেকআউট",
   continueShopping: "কেনাকাটা চালিয়ে যান",
+  pageNotFound: "পৃষ্ঠা পাওয়া যায়নি",
+  lastUpdated: "সর্বশেষ আপডেট",
   checkout: "চেকআউট",
   deliveryDetails: "ডেলিভারি তথ্য",
   fullName: "পুরো নাম",
@@ -770,6 +780,8 @@ const bn: Dict = {
   createSubtitle: "পরের বার দ্রুত চেকআউটের জন্য আপনার তথ্য সেভ করুন।",
   password: "পাসওয়ার্ড",
   forgotPassword: "পাসওয়ার্ড ভুলে গেছেন?",
+  paidLabel: "পরিশোধিত",
+  dueLabel: "বাকি",
   changePasswordTitle: "পাসওয়ার্ড পরিবর্তন",
   currentPasswordLabel: "বর্তমান পাসওয়ার্ড",
   newPasswordLabel: "নতুন পাসওয়ার্ড",

@@ -214,7 +214,6 @@ function OrdersList() {
           </Button>
           <OrderInvoicePrintButton
             orders={items.filter((o) => selected.has(o._id))}
-            label="Print invoices"
           />
         </div>
       )}

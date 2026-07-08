@@ -112,12 +112,20 @@ render matches the SSR HTML — never hand-roll `useSyncExternalStore` or `typeo
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.
 
-**Order invoice printing (one shared sheet):** `<InvoiceSheet>` (`components/storefront/invoice-sheet.tsx`)
-renders the branded printable invoice for BOTH the shopper route (`/shop/account/orders/[n]/invoice`) and
-the admin orders pages via `<OrderInvoicePrintButton>` (`components/ecommerce/order-invoice-print.tsx`,
-a print-only body portal — `.sf-print-only`). Print isolation (`@page` margin, chrome hiding, dark→light
-flip) lives in the `@media print` block of `app/(storefront)/storefront.css`. Never add another invoice
-markup or a raw `window.print()` for orders — extend these.
+**Printed documents (one engine):** every printout (sales invoice/receipt, PO, return, payment receipt,
+statement, AND storefront/ecommerce order invoices) renders through `utils/print-documents.ts`, whose
+letterhead is the org's `receiptSettings` (Settings → Receipt & Print) via `orgToPrintHeader`. Order
+invoices use the adapter `utils/print-storefront-order.ts`: admin orders pages print via
+`<OrderInvoicePrintButton>` (`components/ecommerce/order-invoice-print.tsx`, a `PrintMenu` wrapper —
+paper sizes, popup toast, `invoicePrinting` gate; one page per order in bulk), and the shopper route
+(`/shop/account/orders/[n]/invoice`) shows the composed document in a WYSIWYG iframe (letterhead comes
+from the public store payload's `printable` block). Never hand-roll invoice markup or a raw
+`window.print()` — add an adapter to the engine instead.
+
+**Storefront CMS page bodies** render through `lib/storefront-markdown.ts` (dependency-free subset
+parser → block model, XSS-safe by construction) + `<MarkdownView>` (`components/storefront/markdown-view.tsx`);
+consecutive `Q:`/`A:` lines become styled FAQ cards. Extend the parser — never dump raw page text or add
+a markdown dependency without checking here first.
 
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**
 - **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.

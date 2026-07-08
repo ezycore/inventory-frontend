@@ -1,87 +1,47 @@
 "use client";
 // coding-standard: maintained
 
-import "@/app/(storefront)/storefront.css";
-import { type CSSProperties } from "react";
-import { createPortal } from "react-dom";
-import { Printer } from "lucide-react";
+import { formatCurrency } from "@/lib/currency";
 import {
   useGetStorefrontSettings,
   type AdminStorefrontOrder,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { useHydrated } from "@/hooks";
-import { I18N } from "@/lib/storefront-i18n";
+import { PrintMenu } from "@/components/shared/print/print-menu";
 import {
-  InvoiceSheet,
-  buildSellerLines,
-} from "@/components/storefront/invoice-sheet";
-import { Button } from "@/ui/components/button";
+  orgToPrintHeader,
+  resolveDefaultPaper,
+  type PaperSize,
+} from "@/utils/print-documents";
+import { printStorefrontOrderInvoices } from "@/utils/print-storefront-order";
 
 /**
- * "Print invoice(s)" for the admin order pages. Renders the shared storefront
- * <InvoiceSheet> into a body-level print-only portal (`.sf-print-only`,
- * storefront.css) so window.print() outputs the same branded document the
- * shopper gets — one page per order — instead of the admin screen.
+ * "Print invoice(s)" for the admin order pages — the org's Receipt & Print
+ * letterhead on the shared print engine, exactly like the sales/purchase
+ * documents (one page per order when printing a selection). PrintMenu supplies
+ * the paper-size split button, the popup-blocked toast and the invoicePrinting
+ * feature gate.
  */
 export function OrderInvoicePrintButton({
   orders,
-  label = "Print invoice",
 }: {
   orders: AdminStorefrontOrder[];
-  label?: string;
 }) {
-  const hydrated = useHydrated();
-  const { data: settings } = useGetStorefrontSettings();
   const org = useAuthStore((s) => s.user?.organization);
+  // Store display name feeds the letterhead's "Store / branch" line.
+  const { data: settings } = useGetStorefrontSettings();
 
-  const seller = {
-    name: settings?.displayName || org?.name || "Store",
-    logoUrl: settings?.logo?.url || settings?.logo?.thumbnailUrl,
-    lines: buildSellerLines(settings?.contact),
-  };
-  const brand = settings?.theme?.brandColor;
-  const currency = settings?.currency ?? org?.currency;
+  const print = (paper: PaperSize) =>
+    printStorefrontOrderInvoices(orders, paper, {
+      header: orgToPrintHeader(org, settings?.displayName),
+      currency: (n) => formatCurrency(n, org?.currency),
+    });
 
   return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={!settings || orders.length === 0}
-        onClick={() => window.print()}
-      >
-        <Printer className="mr-1.5 h-4 w-4" /> {label}
-      </Button>
-      {hydrated && settings
-        ? createPortal(
-            <div
-              className="sf-root sf-print-only"
-              style={
-                brand
-                  ? ({ "--primary": brand, "--primary-hover": brand } as CSSProperties)
-                  : undefined
-              }
-            >
-              {orders.map((o, i) => (
-                <div
-                  key={o._id}
-                  className="sf-invoice-wrap"
-                  style={i < orders.length - 1 ? { breakAfter: "page" } : undefined}
-                >
-                  <InvoiceSheet
-                    order={o}
-                    seller={seller}
-                    t={I18N.en}
-                    lang="en"
-                    currency={currency}
-                  />
-                </div>
-              ))}
-            </div>,
-            document.body,
-          )
-        : null}
-    </>
+    <PrintMenu
+      a4Label="Invoice"
+      defaultPaper={resolveDefaultPaper(org)}
+      onPrint={print}
+    />
   );
 }

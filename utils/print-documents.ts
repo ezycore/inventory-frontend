@@ -33,7 +33,7 @@ interface PrintDocColumn {
   align?: "left" | "right";
 }
 
-interface PrintDoc {
+export interface PrintDoc {
   docTitle: string;
   number: string;
   /** `key` (when set) lets a receipt setting hide this row; keyless rows always print. */
@@ -49,7 +49,7 @@ interface PrintDoc {
   signature?: boolean;
 }
 
-interface DocHeader {
+export interface DocHeader {
   orgName?: string;
   storeName?: string;
   /** Absolute logo URL (printed at the top; the print window waits for it to load). */
@@ -124,16 +124,17 @@ export const resolveDefaultPaper = (org?: PrintableOrg): PaperSize =>
   org?.receiptSettings?.defaultPaperSize ?? "a4";
 
 const BASE_STYLES = `
-  body { font-family: Arial, Helvetica, sans-serif; color: #000; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #111827; }
   .doc { position: relative; z-index: 1; }
   .doc-title { font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.02em; }
-  .muted { color: #444; }
+  .muted { color: #6b7280; }
   .header { margin-bottom: 4px; }
   /* Breathing room between stacked identity/meta lines so they don't jam together. */
-  .header > div { line-height: 1.5; }
-  .header .org { line-height: 1.25; margin-bottom: 1px; }
-  .meta > div { line-height: 1.5; }
-  .logo { display: inline-block; object-fit: contain; margin-bottom: 4px; }
+  .header .ident > div, .header .doc-head > div { line-height: 1.5; }
+  .header .org { line-height: 1.25; margin-bottom: 1px; color: #111827; }
+  .meta > div { line-height: 1.6; }
+  .meta b { font-weight: 600; }
+  .logo { display: inline-block; object-fit: contain; margin-bottom: 6px; }
   /* Faint centered background image; fixed so it repeats behind every printed page. */
   .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
     max-width: 60%; max-height: 60%; object-fit: contain; z-index: 0; pointer-events: none; }
@@ -146,22 +147,47 @@ const BASE_STYLES = `
   .num { text-align: right; white-space: nowrap; }
   table.totals { width: 100%; margin-top: 8px; }
   table.totals td { padding: 1px 0; }
-  .t-val { text-align: right; }
+  .t-val { text-align: right; font-variant-numeric: tabular-nums; }
   .strong { font-weight: 700; }
-  .hr { border-top: 1px dashed #000; margin: 6px 0; }
+  .strong td { color: #111827; }
+  .hr { border-top: 1px dashed #9ca3af; margin: 6px 0; }
   .words { margin-top: 6px; }
   .signature { margin-top: 40px; text-align: right; }
-  .signature-line { display: inline-block; border-top: 1px solid #000; padding-top: 2px; min-width: 180px; text-align: center; }
+  .signature-line { display: inline-block; border-top: 1px solid #111827; padding-top: 3px; min-width: 180px; text-align: center; color: #374151; }
 `;
 
 const PAPER_STYLES: Record<PaperSize, string> = {
   a4: `
     @page { size: A4; margin: 14mm; }
-    body { font-size: 12px; }
+    body { font-size: 12px; line-height: 1.45; }
     .doc { max-width: 760px; margin: 0 auto; }
-    .org { font-size: 20px; font-weight: 700; }
+    /* Two-column head: identity left, document title right. A centered/right
+       letterhead (owner's align choice) falls back to the stacked layout. */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; padding-bottom: 14px; }
+    .header.stack { display: block; padding-bottom: 8px; }
+    .doc-head { text-align: right; }
+    .header.stack .doc-head { text-align: inherit; }
+    .doc-title { font-size: 23px; font-weight: 800; letter-spacing: 0.03em; margin-top: 0; }
+    .doc-number { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+    .org { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; }
+    .ident .contact { line-height: 1.65; }
     .logo { max-height: 64px; max-width: 220px; }
-    table.items th, table.items td { border-bottom: 1px solid #eee; }
+    /* Meta rows read in two columns (Date / Customer / …) like a form header. */
+    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 40px; }
+    .meta { margin-top: 10px; }
+    .hr { border-top: 1px solid #e5e7eb; margin: 10px 0; }
+    table.items { margin-top: 8px; }
+    table.items th { text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em;
+      color: #6b7280; border-bottom: 2px solid #111827; padding: 8px 0 6px; }
+    table.items td { border-bottom: 1px solid #f0f1f3; padding: 8px 0; }
+    table.items td:first-child { font-weight: 600; }
+    /* Totals as a compact right-aligned block, grand total ruled off. */
+    table.totals { width: auto; min-width: 300px; margin-left: auto; margin-top: 14px; }
+    table.totals td { padding: 3px 0 3px 24px; color: #4b5563; }
+    table.totals td:first-child { padding-left: 0; }
+    table.totals tr.strong td { border-top: 2px solid #111827; padding-top: 8px; font-size: 14px; }
+    .words { text-align: right; margin-top: 10px; }
+    .footer { margin-top: 10px; font-size: 11.5px; }
   `,
   thermal80: `
     @page { size: 80mm auto; margin: 3mm; }
@@ -241,9 +267,10 @@ const resolveHeaderLines = (header: DocHeader, contactLine: string): string[] =>
  * Compose a generic PrintDoc into the standalone `{ body, styles, title }` a
  * print window (or an inline preview iframe) renders. Pure — no DOM side effects
  * — so the settings live-preview and the actual printout share ONE renderer and
- * can never drift.
+ * can never drift. Exported for per-entity adapters that live in their own
+ * modules (e.g. `utils/print-storefront-order.ts`).
  */
-const composeDocument = (
+export const composeDocument = (
   doc: PrintDoc,
   paper: PaperSize,
   header: DocHeader,
@@ -251,6 +278,9 @@ const composeDocument = (
   const contactLine = [header.phone, header.email].filter(Boolean).join(" · ");
   // Explicit alignment overrides the paper default (A4 left, thermal centered).
   const alignStyle = header.align ? ` style="text-align:${header.align}"` : "";
+  // Centered/right letterheads read as the classic stacked head; the default
+  // (left) A4 layout puts the document title opposite the identity block.
+  const stacked = header.align === "center" || header.align === "right";
 
   // Logo placement. Watermark is A4-only (thermal is 1-bit: a grey wash either
   // vanishes or smears solid), so on thermal only the top-logo part of "both" runs.
@@ -281,13 +311,17 @@ const composeDocument = (
       : `<div class="doc-title">${escapeHtml(doc.docTitle)}</div>`;
 
   const head = `
-    <div class="header"${alignStyle}>
-      ${topLogo}
-      ${resolveHeaderLines(header, contactLine).join("")}
-      ${docTitle}
-      <div class="muted">#${escapeHtml(doc.number)}</div>
+    <div class="header${stacked ? " stack" : ""}"${alignStyle}>
+      <div class="ident">
+        ${topLogo}
+        ${resolveHeaderLines(header, contactLine).join("")}
+      </div>
+      <div class="doc-head">
+        ${docTitle}
+        <div class="muted doc-number">#${escapeHtml(doc.number)}</div>
+      </div>
     </div>
-    <div class="meta"${alignStyle}>
+    <div class="meta${stacked ? "" : " meta-grid"}"${alignStyle}>
       ${metaHtml}
     </div>
   `;

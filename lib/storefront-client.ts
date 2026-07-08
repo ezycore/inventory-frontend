@@ -29,6 +29,14 @@ export interface StorefrontStore {
     footerText?: string;
     homepageSections?: string[];
   };
+  /** Org letterhead (Settings → Receipt & Print) — order invoices print with the
+   * same letterhead as every other document. */
+  printable?: {
+    name?: string;
+    address?: string;
+    logo?: StorefrontImage | null;
+    receiptSettings?: import("@/types/receipt").ReceiptSettings | null;
+  } | null;
   allowedPaymentMethods: ("cod" | "bank")[];
   shippingRule: {
     mode: "flat" | "free_over_threshold" | "none";

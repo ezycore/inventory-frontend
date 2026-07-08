@@ -54,7 +54,7 @@ export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => v
               </div>
             </div>
             <div style={{ fontSize: 15, fontWeight: 700 }}>{money(o.totalAmount, currency)}</div>
-            {/* Printable invoice (own route so @media print isolates the sheet). */}
+            {/* Printable invoice (letterhead document on the shared print engine). */}
             <Link
               href={storeHref(base, `/account/orders/${o.orderNumber}/invoice`)}
               style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", padding: "9px 14px", borderRadius: 8, fontSize: 12.5, fontWeight: 600 }}
