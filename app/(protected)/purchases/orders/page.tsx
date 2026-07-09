@@ -35,9 +35,9 @@ export default function CreatedOrdersPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Orders</h1>
+          <h1 className="text-3xl font-bold">Purchase Orders</h1>
           <p className="text-muted-foreground">
-            Manage purchase orders awaiting delivery
+            Orders placed with suppliers, awaiting delivery.
           </p>
         </div>
         <Button onClick={() => router.push("/purchases")}>

@@ -61,7 +61,7 @@ export default function SuppliersPage() {
       {/* Header */}
       <PageHeader
         title="Suppliers"
-        subTitle="Manage your suppliers (purchases)"
+        subTitle="Vendors you buy from."
       />
 
       <DataTable

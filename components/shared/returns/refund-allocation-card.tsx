@@ -251,9 +251,9 @@ export function RefundAllocationCard({
                       </SelectItem>
                     ))}
                     {accounts.length === 0 && (
-                      <SelectItem value="" disabled>
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
                         No accounts available
-                      </SelectItem>
+                      </div>
                     )}
                   </SelectContent>
                 </Select>

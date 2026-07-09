@@ -151,7 +151,7 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
   // shown only when there are more movements than the 10 listed here.
   const activityHref =
     movementTotal > movements.length && resolvedId
-      ? `/stock/movements?productId=${resolvedId}${selectedVariantId ? `&variantId=${selectedVariantId}` : ''}`
+      ? `/inventory/movements?productId=${resolvedId}${selectedVariantId ? `&variantId=${selectedVariantId}` : ''}`
       : undefined
   // Module gates — keep every detail surface honest to the org's enabled features.
   const expiryEnabled = isFeatureEnabled(organization?.features, 'expiryTracking')

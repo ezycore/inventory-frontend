@@ -49,7 +49,10 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Customers" subTitle="Manage your customers (sales)" />
+      <PageHeader
+        title="Customers"
+        subTitle="People and businesses you sell to."
+      />
 
       <DataTable
         cardTitle={(dataLength: number) => `All Customers (${dataLength})`}

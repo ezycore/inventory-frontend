@@ -193,8 +193,8 @@ export default function ProductsPage() {
   return (
     <div className="container mx-auto space-y-6">
       <PageHeader
-        title="Products Management"
-        subTitle="Manage your products and their details."
+        title="Products"
+        subTitle="All the products you stock and sell."
         actions={
           <div className="flex items-center gap-3">
             <ViewToggle

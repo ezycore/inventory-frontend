@@ -78,8 +78,8 @@ export default function BrandsPage() {
     <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader
-        title="Brands Management"
-        subTitle="Manage your product brands and their details."
+        title="Brands"
+        subTitle="The brands you carry, used to group and filter products."
         actions={
           <div className="flex items-center gap-3">
             <ViewToggle

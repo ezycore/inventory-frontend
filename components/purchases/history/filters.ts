@@ -2,13 +2,15 @@ import type { PurchaseOrderFilters } from "@/types";
 import type { FilterConfig } from "@/types/DataTable";
 import type { FilterField } from "@/types/filter";
 
+import { ALL_ORDER_STATUSES } from "../orders/filters";
+
 const filterFields: FilterField[] = [
   {
     name: "status",
     label: "Status",
     type: "select",
     options: [
-      { label: "All Statuses", value: "" },
+      { label: "All Statuses", value: ALL_ORDER_STATUSES },
       { label: "Draft", value: "draft" },
       { label: "Received", value: "received" },
       { label: "Ordered", value: "ordered" },
