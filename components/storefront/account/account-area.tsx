@@ -10,6 +10,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { ProfileSection } from "@/components/storefront/account/profile-section";
+import { VerifyEmailBanner } from "@/components/storefront/account/verify-email-banner";
 import { OrdersSection } from "@/components/storefront/account/orders-section";
 import { TrackingSection } from "@/components/storefront/account/tracking-section";
 import { WishlistSection } from "@/components/storefront/account/wishlist-section";
@@ -93,6 +94,7 @@ export function AccountArea({ shopper }: { shopper: ShopperProfile }) {
       <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 20px", letterSpacing: "-0.02em" }}>
         {t.myAccount}
       </h1>
+      {!shopper.emailVerified ? <VerifyEmailBanner /> : null}
       <div style={{ display: "grid", gridTemplateColumns: "var(--acctgrid)", gap: "var(--gap)", alignItems: "start" }}>
         {/* ===== Sidebar ===== */}
         <aside style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 16, position: "sticky", top: 88 }}>

@@ -149,6 +149,9 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
   const [phone, setPhone] = useState(settings.contact?.phone ?? "");
   const [email, setEmail] = useState(settings.contact?.email ?? "");
   const [address, setAddress] = useState(settings.contact?.address ?? "");
+  const [facebook, setFacebook] = useState(settings.social?.facebook ?? "");
+  const [instagram, setInstagram] = useState(settings.social?.instagram ?? "");
+  const [whatsapp, setWhatsapp] = useState(settings.social?.whatsapp ?? "");
   const [locationId, setLocationId] = useState(
     settings.storefrontLocationId ?? "",
   );
@@ -203,6 +206,39 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
         </div>
       </Card>
 
+      <Card className="space-y-4 p-5 shadow-none">
+        <div>
+          <h3 className="text-sm font-semibold">Social links</h3>
+          <p className="text-xs text-muted-foreground">
+            Shown as the &quot;Follow us&quot; links in the storefront footer.
+            Leave a field empty to hide that link.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="Facebook">
+            <Input
+              value={facebook}
+              onChange={(e) => setFacebook(e.target.value)}
+              placeholder="https://facebook.com/yourpage"
+            />
+          </Field>
+          <Field label="Instagram">
+            <Input
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              placeholder="https://instagram.com/yourhandle"
+            />
+          </Field>
+          <Field label="WhatsApp">
+            <Input
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder="https://wa.me/8801XXXXXXXXX"
+            />
+          </Field>
+        </div>
+      </Card>
+
       <Card className="space-y-3 p-5 shadow-none">
         <div>
           <h3 className="text-sm font-semibold">
@@ -232,6 +268,11 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
               phone: phone || undefined,
               email: email || undefined,
               address: address || undefined,
+            },
+            social: {
+              facebook: facebook.trim() || undefined,
+              instagram: instagram.trim() || undefined,
+              whatsapp: whatsapp.trim() || undefined,
             },
           })
         }

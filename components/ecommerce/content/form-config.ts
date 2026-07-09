@@ -22,7 +22,11 @@ export const contentFormConfig: DynamicFormConfig = {
     {
       name: "body",
       type: "textarea",
-      label: "Body (Markdown / plain text)",
+      label: "Body (Markdown)",
+      helperText:
+        "Supports ## headings, **bold**, [links](url), - lists and > quotes. Q:/A: lines render as styled FAQ items.",
+      placeholder:
+        "## Our story\n\nWe started in 2020…\n\nQ: How long does delivery take?\nA: Typically 2–4 business days.",
       rows: 10,
       columnSpan: 12,
       className: "font-mono",

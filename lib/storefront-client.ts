@@ -55,6 +55,8 @@ export interface StorefrontStore {
   checkout?: { orderPrefix?: string; minOrderValue?: number; termsRequired?: boolean };
   /** Instructions shown to shoppers who pick bank/manual transfer. */
   bankInstructions?: string;
+  /** Social sign-in providers with credentials configured on the backend. */
+  oauthProviders?: ("google" | "facebook")[];
 }
 
 /** Raw per-page template ids as stored by the admin (free strings). */
@@ -292,9 +294,32 @@ async function sfFetch<T>(
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(json?.message || `Request failed (${res.status})`);
+    // A rejected shopper token means the session is dead (expired/revoked) —
+    // drop it so the UI stops rendering a signed-in account it can't back up.
+    // Guard on the token still being current so a late 401 can't kill a fresh
+    // re-login, and never react to unauthenticated 401s (e.g. wrong password).
+    if (res.status === 401 && opts.token) {
+      const { useShopperStore } = await import("@/services/stores/use-shopper-store");
+      const store = useShopperStore.getState();
+      if (store.token === opts.token) store.logout();
+    }
+    // Error payloads carry the human message in `error` (see backend errorHandler).
+    throw new Error(json?.error || json?.message || `Request failed (${res.status})`);
   }
   return json.data as T;
+}
+
+/**
+ * Full-page navigation target that starts the social sign-in flow. The API
+ * handles the whole provider round-trip and bounces back to /account/oauth.
+ */
+export function oauthStartUrl(
+  slug: string,
+  provider: "google" | "facebook",
+  next?: string,
+): string {
+  const q = next ? `?next=${encodeURIComponent(next)}` : "";
+  return `${API_BASE}/storefront/${slug}/auth/oauth/${provider}/start${q}`;
 }
 
 function buildQuery(params: Record<string, string | number | undefined>): string {
@@ -388,6 +413,12 @@ export const storefrontApi = {
     sfFetch<{ emailVerified: boolean }>(slug, "/auth/verify-email", {
       method: "POST",
       body: { token },
+    }),
+  /** Re-send the verification link to the signed-in shopper (session token). */
+  resendVerification: (slug: string, token: string) =>
+    sfFetch<{ emailVerified: boolean }>(slug, "/auth/resend-verification", {
+      method: "POST",
+      token,
     }),
   forgotPassword: (slug: string, email: string) =>
     sfFetch<{ message: string }>(slug, "/auth/forgot-password", {

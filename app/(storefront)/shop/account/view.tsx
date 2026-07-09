@@ -13,6 +13,7 @@ import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Icon } from "@/components/storefront/sf-icons";
 import { AccountArea } from "@/components/storefront/account/account-area";
+import { SocialLoginButtons } from "@/components/storefront/account/social-login-buttons";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -91,12 +92,12 @@ export default function AccountPage() {
 
   // After auth, bounce back to where the shopper came from (e.g. checkout
   // redirects here with ?next=/checkout). Relative store paths only.
-  const afterAuth = (message: string) => {
+  const afterAuth = (message: string, fallback?: string) => {
     toast.success(message);
     const next = new URLSearchParams(window.location.search).get("next");
-    if (next && next.startsWith("/") && !next.startsWith("//")) {
-      router.push(storeHref(base, next));
-    }
+    const target =
+      next && next.startsWith("/") && !next.startsWith("//") ? next : fallback;
+    if (target) router.push(storeHref(base, target));
   };
 
   const submit = () => {
@@ -108,7 +109,12 @@ export default function AccountPage() {
     } else {
       register.mutate(
         { name: form.name, email: form.email, phone: form.phone || undefined, password: form.password },
-        { onSuccess: () => afterAuth(t.accountCreated), onError: (e) => toast.error((e as Error).message) },
+        // New account → the "confirm your email" screen (unless a checkout ?next=
+        // is waiting, which must not be interrupted).
+        {
+          onSuccess: () => afterAuth(t.accountCreated, "/account/verify-email"),
+          onError: (e) => toast.error((e as Error).message),
+        },
       );
     }
   };
@@ -210,6 +216,8 @@ export default function AccountPage() {
                   : t.createAccount}
             </button>
           </form>
+
+          <SocialLoginButtons />
 
           <div style={{ borderTop: "1px solid var(--border)", margin: "18px 0 14px" }} />
           <div style={{ textAlign: "center", fontSize: 13, color: "var(--muted)" }}>

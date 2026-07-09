@@ -16,6 +16,8 @@ import { computeShipping, type Zone } from "@/lib/storefront-shipping";
 import { storeHref } from "@/lib/storefront-links";
 import { money, taka } from "@/components/storefront/format";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
+import { VerifyEmailGate } from "@/components/storefront/verify-email-gate";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 const wrap: CSSProperties = {
   maxWidth: 940,
@@ -53,14 +55,16 @@ export default function CheckoutPage() {
 
   const shopper = useShopperStore((s) => s.shopper);
   const token = useShopperStore((s) => s.token);
+  const hydrated = useHydrated();
 
   // Guests go straight to sign-in (no intermediate "Account" step) and bounce
-  // back here after — the account page honours `?next=`.
+  // back here after — the account page honours `?next=`. Wait for the persisted
+  // store to hydrate, or a signed-in shopper refreshing this page gets bounced.
   useEffect(() => {
-    if (!shopper) {
+    if (hydrated && !shopper) {
       router.replace(storeHref(base, "/account?next=/checkout"));
     }
-  }, [shopper, router, base]);
+  }, [hydrated, shopper, router, base]);
   const storeSlug = useCartStore((s) => s.storeSlug);
   const allItems = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
@@ -147,6 +151,15 @@ export default function CheckoutPage() {
         <p style={{ fontSize: 13, color: "var(--muted)", textAlign: "center" }}>
           {t.signIn}…
         </p>
+      </div>
+    );
+  }
+
+  // Orders need a confirmed email (backend enforces the same rule).
+  if (!shopper.emailVerified && !placed) {
+    return (
+      <div style={wrap}>
+        <VerifyEmailGate />
       </div>
     );
   }

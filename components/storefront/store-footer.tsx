@@ -167,11 +167,17 @@ function RichFooter(props: FooterProps) {
       : d;
   });
   const social = props.store?.social ?? {};
+  // Owners often paste a bare phone number for WhatsApp — turn it into a wa.me link.
+  const whatsappHref = social.whatsapp
+    ? /^https?:\/\//i.test(social.whatsapp)
+      ? social.whatsapp
+      : `https://wa.me/${social.whatsapp.replace(/[^\d]/g, "")}`
+    : undefined;
   const socialLinks = (
     [
       social.facebook ? { label: "Facebook", href: social.facebook } : null,
       social.instagram ? { label: "Instagram", href: social.instagram } : null,
-      social.whatsapp ? { label: "WhatsApp", href: social.whatsapp } : null,
+      whatsappHref ? { label: "WhatsApp", href: whatsappHref } : null,
     ].filter(Boolean) as { label: string; href: string }[]
   );
 

@@ -89,6 +89,14 @@ export const useForgotPassword = (slug: string) =>
     mutationFn: (email: string) => storefrontApi.forgotPassword(slug, email),
   });
 
+/** Signed-in shopper asks for the verification link again (account banner). */
+export const useResendVerification = (slug: string) => {
+  const token = useShopperStore((s) => s.token);
+  return useMutation({
+    mutationFn: () => storefrontApi.resendVerification(slug, token!),
+  });
+};
+
 export const useResetPassword = (slug: string) =>
   useMutation({
     mutationFn: (v: { token: string; password: string }) =>

@@ -134,6 +134,26 @@ export interface Dict {
   continueShopping: string;
   pageNotFound: string;
   lastUpdated: string;
+  verifyNudgeTitle: string;
+  verifyNudgeMsg: string;
+  resendVerification: string;
+  verificationSent: string;
+  verifySentTo: string;
+  verifySpamHint: string;
+  alreadyVerified: string;
+  goToAccount: string;
+  verifying: string;
+  verifiedThanks: string;
+  verifyMissingToken: string;
+  verifyToOrderTitle: string;
+  iveVerified: string;
+  stillUnverified: string;
+  orContinueWith: string;
+  continueWithGoogle: string;
+  continueWithFacebook: string;
+  oauthSigningIn: string;
+  oauthFailed: string;
+  oauthCancelled: string;
   checkout: string;
   deliveryDetails: string;
   fullName: string;
@@ -397,6 +417,26 @@ const en: Dict = {
   continueShopping: "Continue shopping",
   pageNotFound: "Page not found",
   lastUpdated: "Last updated",
+  verifyNudgeTitle: "Verify your email",
+  verifyNudgeMsg: "We sent a confirmation link to your inbox. Didn't get it?",
+  resendVerification: "Resend email",
+  verificationSent: "Verification email sent — check your inbox",
+  verifySentTo: "We sent a verification link to",
+  verifySpamHint: "Click the link in that email to activate your account. Check the spam folder if you don't see it.",
+  alreadyVerified: "Your email is verified.",
+  goToAccount: "Go to my account",
+  verifying: "Verifying…",
+  verifiedThanks: "Your email is verified. Thanks!",
+  verifyMissingToken: "This link is incomplete — open the button link from the verification email.",
+  verifyToOrderTitle: "Verify your email to place your order",
+  iveVerified: "I've verified",
+  stillUnverified: "Still unverified — click the link in your email first.",
+  orContinueWith: "or continue with",
+  continueWithGoogle: "Continue with Google",
+  continueWithFacebook: "Continue with Facebook",
+  oauthSigningIn: "Signing you in…",
+  oauthFailed: "Sign-in didn't complete. Please try again.",
+  oauthCancelled: "Sign-in was cancelled.",
   checkout: "Checkout",
   deliveryDetails: "Delivery details",
   fullName: "Full name",
@@ -661,6 +701,26 @@ const bn: Dict = {
   continueShopping: "কেনাকাটা চালিয়ে যান",
   pageNotFound: "পৃষ্ঠা পাওয়া যায়নি",
   lastUpdated: "সর্বশেষ আপডেট",
+  verifyNudgeTitle: "আপনার ইমেইল যাচাই করুন",
+  verifyNudgeMsg: "আপনার ইনবক্সে একটি নিশ্চিতকরণ লিংক পাঠানো হয়েছে। পাননি?",
+  resendVerification: "আবার পাঠান",
+  verificationSent: "যাচাইকরণ ইমেইল পাঠানো হয়েছে — ইনবক্স দেখুন",
+  verifySentTo: "আমরা একটি যাচাইকরণ লিংক পাঠিয়েছি",
+  verifySpamHint: "অ্যাকাউন্ট সক্রিয় করতে ইমেইলের লিংকে ক্লিক করুন। না পেলে স্প্যাম ফোল্ডার দেখুন।",
+  alreadyVerified: "আপনার ইমেইল যাচাই হয়ে গেছে।",
+  goToAccount: "আমার অ্যাকাউন্টে যান",
+  verifying: "যাচাই করা হচ্ছে…",
+  verifiedThanks: "আপনার ইমেইল যাচাই হয়েছে। ধন্যবাদ!",
+  verifyMissingToken: "লিংকটি অসম্পূর্ণ — যাচাইকরণ ইমেইলের বাটন লিংকটি খুলুন।",
+  verifyToOrderTitle: "অর্ডার করতে আপনার ইমেইল যাচাই করুন",
+  iveVerified: "যাচাই করেছি",
+  stillUnverified: "এখনও যাচাই হয়নি — আগে ইমেইলের লিংকে ক্লিক করুন।",
+  orContinueWith: "অথবা চালিয়ে যান",
+  continueWithGoogle: "Google দিয়ে চালিয়ে যান",
+  continueWithFacebook: "Facebook দিয়ে চালিয়ে যান",
+  oauthSigningIn: "সাইন ইন করা হচ্ছে…",
+  oauthFailed: "সাইন-ইন সম্পন্ন হয়নি। আবার চেষ্টা করুন।",
+  oauthCancelled: "সাইন-ইন বাতিল করা হয়েছে।",
   checkout: "চেকআউট",
   deliveryDetails: "ডেলিভারি তথ্য",
   fullName: "পুরো নাম",

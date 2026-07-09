@@ -320,11 +320,8 @@ function ThemeSection({
       {/* Trust badges (Rich footer) */}
       <Card className="space-y-4 p-5 shadow-none">
         <div>
-          <h3 className="flex items-center gap-2 text-sm font-semibold">
+          <h3 className="text-sm font-semibold">
             Trust badges
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-              Live preview
-            </span>
           </h3>
           <p className="text-xs text-muted-foreground">
             The service highlights shown in the <span className="font-medium">Rich</span> footer.
@@ -380,94 +377,94 @@ const TEMPLATE_PAGES: {
   desc: string;
   options: Option[];
 }[] = [
-  {
-    key: "home",
-    label: "Home page",
-    desc: "Landing layout",
-    options: [
-      { value: "classic", label: "Classic" },
-      { value: "hero-split", label: "Hero Split" },
-      { value: "minimal", label: "Minimal" },
-    ],
-  },
-  {
-    key: "collection",
-    label: "Collection page",
-    desc: "Category / product listing",
-    options: [
-      { value: "grid-3", label: "Grid 3-col" },
-      { value: "grid-4", label: "Grid 4-col" },
-      { value: "sidebar", label: "Sidebar filters" },
-    ],
-  },
-  {
-    key: "product",
-    label: "Product page",
-    desc: "Single product layout",
-    options: [
-      { value: "gallery-left", label: "Gallery left" },
-      { value: "gallery-top", label: "Gallery top" },
-      { value: "sticky-bar", label: "Sticky buy bar" },
-    ],
-  },
-  {
-    key: "productCard",
-    label: "Product card",
-    desc: "Card style across every listing",
-    options: [
-      { value: "standard", label: "Standard" },
-      { value: "compact", label: "Compact" },
-      { value: "bold", label: "Bold CTA" },
-    ],
-  },
-  {
-    key: "cart",
-    label: "Cart",
-    desc: "Cart layout",
-    options: [
-      { value: "two-column", label: "Two column" },
-      { value: "drawer", label: "Slide-over drawer" },
-    ],
-  },
-  {
-    key: "checkout",
-    label: "Checkout",
-    desc: "Checkout flow",
-    options: [
-      { value: "single-page", label: "Single page" },
-      { value: "multi-step", label: "Multi-step" },
-    ],
-  },
-  {
-    key: "search",
-    label: "Search results",
-    desc: "Search layout",
-    options: [
-      { value: "grid", label: "Grid" },
-      { value: "list", label: "List" },
-    ],
-  },
-  {
-    key: "header",
-    label: "Header",
-    desc: "Site-wide header layout",
-    options: [
-      { value: "classic", label: "Classic" },
-      { value: "minimal", label: "Minimal" },
-      { value: "centered", label: "Centered" },
-    ],
-  },
-  {
-    key: "footer",
-    label: "Footer",
-    desc: "Site-wide footer layout",
-    options: [
-      { value: "columns", label: "Columns" },
-      { value: "simple", label: "Simple" },
-      { value: "rich", label: "Rich" },
-    ],
-  },
-];
+    {
+      key: "home",
+      label: "Home page",
+      desc: "Landing layout",
+      options: [
+        { value: "classic", label: "Classic" },
+        { value: "hero-split", label: "Hero Split" },
+        { value: "minimal", label: "Minimal" },
+      ],
+    },
+    {
+      key: "collection",
+      label: "Collection page",
+      desc: "Category / product listing",
+      options: [
+        { value: "grid-3", label: "Grid 3-col" },
+        { value: "grid-4", label: "Grid 4-col" },
+        { value: "sidebar", label: "Sidebar filters" },
+      ],
+    },
+    {
+      key: "product",
+      label: "Product page",
+      desc: "Single product layout",
+      options: [
+        { value: "gallery-left", label: "Gallery left" },
+        { value: "gallery-top", label: "Gallery top" },
+        { value: "sticky-bar", label: "Sticky buy bar" },
+      ],
+    },
+    {
+      key: "productCard",
+      label: "Product card",
+      desc: "Card style across every listing",
+      options: [
+        { value: "standard", label: "Standard" },
+        { value: "compact", label: "Compact" },
+        { value: "bold", label: "Bold CTA" },
+      ],
+    },
+    {
+      key: "cart",
+      label: "Cart",
+      desc: "Cart layout",
+      options: [
+        { value: "two-column", label: "Two column" },
+        { value: "drawer", label: "Slide-over drawer" },
+      ],
+    },
+    {
+      key: "checkout",
+      label: "Checkout",
+      desc: "Checkout flow",
+      options: [
+        { value: "single-page", label: "Single page" },
+        { value: "multi-step", label: "Multi-step" },
+      ],
+    },
+    {
+      key: "search",
+      label: "Search results",
+      desc: "Search layout",
+      options: [
+        { value: "grid", label: "Grid" },
+        { value: "list", label: "List" },
+      ],
+    },
+    {
+      key: "header",
+      label: "Header",
+      desc: "Site-wide header layout",
+      options: [
+        { value: "classic", label: "Classic" },
+        { value: "minimal", label: "Minimal" },
+        { value: "centered", label: "Centered" },
+      ],
+    },
+    {
+      key: "footer",
+      label: "Footer",
+      desc: "Site-wide footer layout",
+      options: [
+        { value: "columns", label: "Columns" },
+        { value: "simple", label: "Simple" },
+        { value: "rich", label: "Rich" },
+      ],
+    },
+  ];
 
 // Surfaces that appear on the home preview → they repaint instantly as you pick.
 const LIVE_PREVIEW_KEYS = new Set(["home", "footer", "header", "productCard"]);
