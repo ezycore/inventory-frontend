@@ -12,3 +12,9 @@ export type NavItem = {
   features?: FeatureName[]; // optional: required features for this item (all must be enabled)
   anyFeatures?: FeatureName[]; // optional: any of these features must be enabled
 };
+
+// A labeled sidebar section (e.g. "Operations") holding top-level nav items.
+export type NavGroup = {
+  label: string;
+  items: NavItem[];
+};

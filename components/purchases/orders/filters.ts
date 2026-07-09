@@ -2,6 +2,9 @@ import type { PurchaseOrderFilters } from "@/types";
 import type { FilterConfig } from "@/types/DataTable";
 import type { FilterField } from "@/types/filter";
 
+/** Sentinel for the "no status filter" option — Select.Item forbids an empty-string value. */
+export const ALL_ORDER_STATUSES = "all";
+
 export const defaultCreatedOrderFilters: PurchaseOrderFilters = {
   status: "ordered",
 };
@@ -15,7 +18,7 @@ const filterFields: FilterField[] = [
       { label: "Ordered", value: "ordered" },
       { label: "Partial", value: "partial" },
       { label: "Draft", value: "draft" },
-      { label: "All Statuses", value: "" },
+      { label: "All Statuses", value: ALL_ORDER_STATUSES },
     ],
   },
   {

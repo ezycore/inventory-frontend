@@ -1051,7 +1051,7 @@ const clientSideFilterConfig: FilterConfig = {
       label: "Status",
       type: "select",
       options: [
-        { label: "All", value: "" },
+        { label: "All", value: "all" }, // Non-empty sentinel — Select.Item forbids ""
         { label: "Active", value: "active" },
         { label: "Inactive", value: "inactive" },
       ],
@@ -1098,7 +1098,7 @@ const clientSideFilterConfig: FilterConfig = {
   name: "status",
   type: "select",
   options: [
-    { label: "All", value: "" }, // Empty string = no filter
+    { label: "All", value: "all" }, // Non-empty sentinel — strip it before the API call
     { label: "Active", value: "active" },
     { label: "Inactive", value: "inactive" },
   ],
@@ -1106,6 +1106,9 @@ const clientSideFilterConfig: FilterConfig = {
 ```
 
 **Why:** Users need a way to clear single-select filters without clicking Reset.
+**Never use `value: ""`** — Radix `Select.Item` throws (empty string is reserved for clearing).
+Use a sentinel like `"all"` and drop it when building the query (`buildQueryParams` already
+skips `undefined`/`""`, so remove the key or map it to `undefined`).
 
 ---
 

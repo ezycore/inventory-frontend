@@ -1,6 +1,7 @@
 export { getCreatedOrderActions } from "./actions";
 export { getCreatedOrdersColumns } from "./columns";
 export {
+  ALL_ORDER_STATUSES,
   buildCreatedOrdersFilterConfig,
   defaultCreatedOrderFilters,
 } from "./filters";

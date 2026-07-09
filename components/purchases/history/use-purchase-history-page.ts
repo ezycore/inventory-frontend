@@ -27,6 +27,7 @@ import type { Payment } from "./types";
 
 import { getPurchaseHistoryColumns, getPurchaseHistoryActions } from "./columns";
 import { buildHistoryFilterConfig } from "./filters";
+import { ALL_ORDER_STATUSES } from "../orders/filters";
 
 export function usePurchaseHistoryPage() {
   const router = useRouter();
@@ -55,12 +56,21 @@ export function usePurchaseHistoryPage() {
   const [paymentNotes, setPaymentNotes] = useState("");
   const [useSupplierCredit, setUseSupplierCredit] = useState(false);
 
+  // "all" is a UI-only sentinel for "no status filter" — drop it before querying.
+  const apiFilters = useMemo(() => {
+    if ((filters.status as string) === ALL_ORDER_STATUSES) {
+      const { status: _status, ...rest } = filters;
+      return rest;
+    }
+    return filters;
+  }, [filters]);
+
   // API queries
   const {
     data: purchaseData,
     isLoading,
     refetch,
-  } = usePurchaseOrders({ page, limit, ...filters });
+  } = usePurchaseOrders({ page, limit, ...apiFilters });
   const { data: paymentsData, isLoading: isLoadingPayments } =
     usePurchaseOrderPayments(selectedOrder?._id || "");
   const { data: returnsData, isLoading: isLoadingReturns } =

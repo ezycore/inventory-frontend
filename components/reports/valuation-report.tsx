@@ -36,9 +36,9 @@ export function ValuationReport() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Stock Product Value</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Stock Value</h1>
           <p className="text-sm text-muted-foreground">
-            Current stock valuation by product and category
+            What your current stock is worth, by product and category.
           </p>
         </div>
       </div>

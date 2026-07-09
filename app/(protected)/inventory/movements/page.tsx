@@ -65,7 +65,7 @@ export default function StockMovementsPage() {
     () => ({
       getAllData: (params: any) =>
         stockMovementsApi.getAll({ ...params, ...mergedFilters }),
-      entityName: "Stock Movements",
+      entityName: "Stock Change",
       queryKey: [...queryKeys.stockMovements.all(), mergedFilters],
     }),
     [mergedFilters],
@@ -124,8 +124,8 @@ export default function StockMovementsPage() {
     <div className="space-y-6">
       {/* ── Header ───────────────────────────────────────────────── */}
       <PageHeader
-        title="Stock Movements"
-        subTitle="Complete audit trail of all inventory changes"
+        title="Stock History"
+        subTitle="Every stock change, recorded automatically."
       />
 
       {/* ── Stats ────────────────────────────────────────────────── */}

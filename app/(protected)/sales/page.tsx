@@ -9,6 +9,7 @@ import { Button } from "@/ui/components/button";
 import { Card, CardContent } from "@/ui/components/card";
 import { CardTable } from "@/ui/components/custom/card-table";
 import DynamicForm from "@/ui/components/form";
+import PageHeader from "@/ui/components/header";
 import { Separator } from "@/ui/components/separator";
 import { useAuthStore } from "@/services/stores";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -32,7 +33,11 @@ function SalesPageContent() {
   };
 
   return (
-    <div>
+    <div className="space-y-4">
+      <PageHeader
+        title="New Sale"
+        subTitle="Create a sale and take payment."
+      />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           <Card>
