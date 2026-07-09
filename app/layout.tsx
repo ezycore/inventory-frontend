@@ -3,11 +3,12 @@ import ThemeProvider from "@/components/layout/ThemeToggle/theme-provider";
 import QueryProvider from "@/components/providers/query-provider";
 import Toaster from "@/components/providers/toaster";
 import { WorkspaceGateScreen } from "@/components/workspace-gate-screen";
+import { BRAND } from "@/constants/brand";
 import { resolveWorkspaceGate } from "@/lib/workspace-status";
 import "@ui/styles/globals.css";
 
 export const metadata = {
-  title: "EasyStock - Inventory Management System",
+  title: `${BRAND.name} - Inventory Management System`,
   description: "Modern inventory management system for businesses",
 };
 

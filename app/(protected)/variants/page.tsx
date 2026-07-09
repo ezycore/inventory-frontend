@@ -67,8 +67,8 @@ export default function VariantsPage() {
     <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader
-        title="Variant Management"
-        subTitle="Manage your product variants and their details."
+        title="Variants"
+        subTitle="Options of the same product — like size, strength, or pack."
         actions={
           <ViewToggle
             storageKey="variants"

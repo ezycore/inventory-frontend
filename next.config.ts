@@ -7,13 +7,14 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      // Cloudflare R2 public bucket (dev *.r2.dev URL + production CDN domain)
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com',
+        hostname: '*.r2.dev',
       },
       {
-        protocol: 'http',
-        hostname: 'res.cloudinary.com',
+        protocol: 'https',
+        hostname: 'cdn.ezycore.com',
       },
       {
         protocol: 'https',

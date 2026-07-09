@@ -1,8 +1,8 @@
 "use client";
+// coding-standard: maintained
 import { UserAvatarProfile } from "@/components/user-avatar-profile";
-import { navItems } from "@/constants/navItem";
+import { navGroups } from "@/constants/navItem";
 import { useLogout } from "@/hooks";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { filterNavItems } from "@/lib/nav-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
@@ -40,7 +40,6 @@ import {
   ChevronRightIcon,
   CreditCardIcon,
   LogOutIcon,
-  PanelsRightBottom,
   UserCircleIcon,
 } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
@@ -49,11 +48,6 @@ import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { AppTitle } from "./app-title";
 import type { NavItem } from "@/types/layout";
-export const company = {
-  name: "Acme Inc",
-  logo: PanelsRightBottom,
-  plan: "Enterprise",
-};
 
 /**
  * Renders a parent nav item with sub-items. When the sidebar is expanded we
@@ -152,27 +146,28 @@ function NestedNavItem({
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { isOpen } = useMediaQuery();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const { features } = user?.organization || {};
   const logout = useLogout();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  React.useEffect(() => {
-    // Side effects based on sidebar state changes
-  }, [isOpen]);
+  // Filter each group's items based on user role, permissions, and features;
+  // drop groups left empty by the filtering.
+  const filteredNavGroups = React.useMemo(() => {
+    if (!user?.role) return navGroups;
 
-  // Filter navigation items based on user role, permissions, and features
-  const filteredNavItems = React.useMemo(() => {
-    if (!user?.role) return navItems;
-
-    return filterNavItems(
-      navItems,
-      user.role,
-      user.permissions || [],
-      features,
-    );
+    return navGroups
+      .map((group) => ({
+        ...group,
+        items: filterNavItems(
+          group.items,
+          user.role,
+          user.permissions || [],
+          features,
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
   }, [user, features]);
 
   return (
@@ -181,33 +176,35 @@ export default function AppSidebar() {
         <AppTitle />
       </SidebarHeader>
       <SidebarContent className="overflow-x-hidden">
-        <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
-          <SidebarMenu>
-            {filteredNavItems.map((item) => {
-              return item?.items && item?.items?.length > 0 ? (
-                <NestedNavItem
-                  key={item.title}
-                  item={item}
-                  pathname={pathname}
-                />
-              ) : (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={item.title}
-                    isActive={pathname === item.url}
-                  >
-                    <Link href={item.url}>
-                      <DynamicIcon name={item.icon as any} />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </SidebarGroup>
+        {filteredNavGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarMenu>
+              {group.items.map((item) => {
+                return item?.items && item?.items?.length > 0 ? (
+                  <NestedNavItem
+                    key={item.title}
+                    item={item}
+                    pathname={pathname}
+                  />
+                ) : (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={item.title}
+                      isActive={pathname === item.url}
+                    >
+                      <Link href={item.url}>
+                        <DynamicIcon name={item.icon as any} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       {isAuthenticated && user && (
         <SidebarFooter>

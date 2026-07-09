@@ -65,8 +65,8 @@ export default function InventoryPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Inventory Management"
-        subTitle="Track stock levels, monitor alerts, and manage inventory."
+        title="Current Stock"
+        subTitle="Live stock levels for every product."
       />
 
       {/* Quick Summary Banner */}

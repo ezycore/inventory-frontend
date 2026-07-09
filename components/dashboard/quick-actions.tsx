@@ -37,14 +37,14 @@ const ACTIONS = [
     path: '/products',
     color: 'text-chart-4',
   },
-  // {
-  //   label: 'Transfer Stock',
-  //   icon: Repeat,
-  //   path: '/stock/transfers',
-  //   color: 'text-chart-5',
-  // },
   {
-    label: 'Stock Adjust',
+    label: 'Transfer Stock',
+    icon: Repeat,
+    path: '/inventory/transfers',
+    color: 'text-chart-5',
+  },
+  {
+    label: 'Adjust Stock',
     icon: BarChart3,
     path: '/inventory/adjust',
     color: 'text-chart-1',
@@ -52,7 +52,7 @@ const ACTIONS = [
   {
     label: 'View Reports',
     icon: Eye,
-    path: '/dashboard/reports/inventory',
+    path: '/reports',
     color: 'text-muted-foreground',
   },
 ]

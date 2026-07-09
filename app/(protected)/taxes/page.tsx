@@ -148,8 +148,8 @@ export default function TaxesPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Tax Management"
-        subTitle="Configure and manage tax rates applied to your transactions"
+        title="Tax Rates"
+        subTitle="The tax rates applied to your sales and purchases."
       />
 
       {/* Card View */}

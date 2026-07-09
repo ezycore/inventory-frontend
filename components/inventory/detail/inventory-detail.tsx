@@ -62,7 +62,7 @@ export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) 
   // (product + variant + location), shown only when more than the 10 listed exist.
   const activityHref =
     analytics.movementTotal > analytics.recentMovements.length && product?._id && location?._id
-      ? `/stock/movements?productId=${product._id}${variant ? `&variantId=${variant._id}` : ''}&locationId=${location._id}`
+      ? `/inventory/movements?productId=${product._id}${variant ? `&variantId=${variant._id}` : ''}&locationId=${location._id}`
       : undefined
 
   return (

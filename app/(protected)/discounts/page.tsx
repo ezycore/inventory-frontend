@@ -133,8 +133,8 @@ export default function DiscountsPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Discount Management"
-        subTitle="Configure discount rates for sales and purchase transactions"
+        title="Discounts"
+        subTitle="Discount rates you can apply to sales and purchases."
       />
 
       {/* Stats Cards */}
