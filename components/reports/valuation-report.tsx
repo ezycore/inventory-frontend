@@ -9,19 +9,36 @@ import {
   Package,
   TrendingUp,
   DollarSign,
+  Lock,
 } from 'lucide-react'
+import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 
 export function ValuationReport() {
-  const { data, isLoading } = useStockValuation()
+  // The whole report is valuation at cost — costs.view only.
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView)
+  const { data, isLoading } = useStockValuation({ enabled: canViewCosts })
   const { format: formatCurrency } = useCurrency()
+
+  if (!canViewCosts) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <Lock className="mb-3 h-10 w-10 text-muted-foreground opacity-50" />
+        <h2 className="text-lg font-semibold">Cost data restricted</h2>
+        <p className="mt-1 max-w-md text-sm text-muted-foreground">
+          Stock valuation is based on cost prices, which your role doesn&apos;t have
+          permission to view. Ask an administrator for the cost visibility permission.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Stock Product Value</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Stock Value</h1>
           <p className="text-sm text-muted-foreground">
-            Current stock valuation by product and category
+            What your current stock is worth, by product and category.
           </p>
         </div>
       </div>

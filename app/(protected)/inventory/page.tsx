@@ -28,6 +28,7 @@ import {
 import { inventoryApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { useCurrency } from "@/lib/currency";
+import { useCostGatedColumns } from "@/hooks/use-cost-gated-columns";
 import { BarcodeInput } from "@/components/shared/barcode";
 import { useAuthStore } from "@/services/stores";
 import { useBarcodeLookupAction } from "@/services/api/modules/barcode";
@@ -42,6 +43,7 @@ export default function InventoryPage() {
     (s) => s.user?.organization?.features?.expiryTracking ?? false,
   );
   const lookupBarcode = useBarcodeLookupAction();
+  const columns = useCostGatedColumns(inventoryColumns);
 
   const handleBarcodeScan = async (code: string) => {
     try {
@@ -63,8 +65,8 @@ export default function InventoryPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Inventory Management"
-        subTitle="Track stock levels, monitor alerts, and manage inventory."
+        title="Current Stock"
+        subTitle="Live stock levels for every product."
       />
 
       {/* Quick Summary Banner */}
@@ -103,7 +105,7 @@ export default function InventoryPage() {
         defaultPageSize={10}
         pageSizes={[10, 20, 50, 100]}
         filterConfig={inventoryFilterConfig}
-        columns={inventoryColumns}
+        columns={columns}
         selectable={true}
         // searchConfig={inventorySearchConfig}
         enableSorting={true}

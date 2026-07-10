@@ -25,7 +25,9 @@ import {
   Camera,
   Trash2,
   ImageIcon,
+  Mail,
 } from "lucide-react";
+import { Switch } from "@/ui/components/switch";
 import { useUpdateOrganization } from "@/services/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
 import { toast } from "sonner";
@@ -39,9 +41,22 @@ import { useGetOrganizationApi } from "@/hooks";
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB — must match backend uploadConfig limit
 
+// "21" → "9:00 PM" for the digest-hour dropdown.
+const hourLabel = (hour: number) => {
+  const suffix = hour < 12 ? "AM" : "PM";
+  const display = hour % 12 === 0 ? 12 : hour % 12;
+  return `${display}:00 ${suffix}`;
+};
+const DIGEST_HOURS = Array.from({ length: 24 }, (_, hour) => hour);
+
 export function OrganizationTab() {
   const { data } = useGetOrganizationApi();
-  const { address, country, currency, name, timezone, logo } = data?.data || {};
+  const { address, country, currency, name, timezone, logo, notificationSettings } =
+    data?.data || {};
+  // Digest defaults mirror the backend schema: enabled, 21:00 org-local.
+  const serverDigestEnabled: boolean =
+    notificationSettings?.salesDigest?.enabled ?? true;
+  const serverDigestHour: number = notificationSettings?.salesDigest?.hour ?? 21;
   const { user } = useAuthStore();
 
   const canManageOrganization =
@@ -91,8 +106,10 @@ export function OrganizationTab() {
       country: country || "",
       timezone: timezone || "",
       currency: currency || "",
+      salesDigestEnabled: serverDigestEnabled,
+      salesDigestHour: String(serverDigestHour),
     }),
-    [name, address, country, timezone, currency]
+    [name, address, country, timezone, currency, serverDigestEnabled, serverDigestHour]
   );
 
   const [formData, setFormData] = useState(initialFormData);
@@ -137,6 +154,8 @@ export function OrganizationTab() {
       fd.append("country", formData.country);
       fd.append("timezone", formData.timezone);
       fd.append("currency", formData.currency);
+      fd.append("salesDigestEnabled", String(formData.salesDigestEnabled));
+      fd.append("salesDigestHour", formData.salesDigestHour);
       if (pendingLogo instanceof File) {
         fd.append("logo", pendingLogo);
       } else {
@@ -154,6 +173,8 @@ export function OrganizationTab() {
       country: formData.country,
       timezone: formData.timezone,
       currency: formData.currency,
+      salesDigestEnabled: formData.salesDigestEnabled,
+      salesDigestHour: Number(formData.salesDigestHour),
     });
   };
 
@@ -163,7 +184,9 @@ export function OrganizationTab() {
     formData.address !== (address || "") ||
     formData.country !== country ||
     formData.timezone !== timezone ||
-    formData.currency !== currency;
+    formData.currency !== currency ||
+    formData.salesDigestEnabled !== serverDigestEnabled ||
+    formData.salesDigestHour !== String(serverDigestHour);
 
   const canSubmit =
     hasChanges &&
@@ -401,6 +424,58 @@ export function OrganizationTab() {
             rows={3}
             className="resize-none"
           />
+        </div>
+      </div>
+
+      {/* Email Reports */}
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Mail className="h-4 w-4" />
+          <span>Email Reports</span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="salesDigestEnabled">Daily sales digest</Label>
+              <p className="text-xs text-muted-foreground">
+                Emails the owner a summary on days with sales.
+              </p>
+            </div>
+            <Switch
+              id="salesDigestEnabled"
+              checked={formData.salesDigestEnabled}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({ ...prev, salesDigestEnabled: checked }))
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="salesDigestHour" className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              Send at
+            </Label>
+            <Select
+              value={formData.salesDigestHour}
+              onValueChange={(value) => handleChange("salesDigestHour", value)}
+              disabled={!formData.salesDigestEnabled}
+            >
+              <SelectTrigger id="salesDigestHour" className="w-full">
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {DIGEST_HOURS.map((hour) => (
+                  <SelectItem key={hour} value={String(hour)}>
+                    {hourLabel(hour)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              In your organization&apos;s timezone.
+            </p>
+          </div>
         </div>
       </div>
 

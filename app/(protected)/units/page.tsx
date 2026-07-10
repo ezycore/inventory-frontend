@@ -107,8 +107,8 @@ export default function UnitsPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Unit Management"
-        subTitle="Define measurement units used across your products and inventory"
+        title="Units"
+        subTitle="Measurement units used across your products and inventory."
       />
 
       {/* Card View */}

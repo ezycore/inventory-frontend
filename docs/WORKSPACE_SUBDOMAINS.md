@@ -99,6 +99,7 @@ isReservedSubdomain(sub): boolean        // reserved set OR sub.startsWith("rc-"
 
 getRootDomain(): string                  // NEXT_PUBLIC_ROOT_DOMAIN, "" when unset
 workspaceUrl(slug, path="/"): string     // https://<slug>.<root><path>, or relative when no root
+signupUrl(): string                      // https://app.<root>/signup, or /signup when no root
 
 isValidOrganizationSlug(slug): boolean   // ^[a-z0-9]+(?:-[a-z0-9]+)*$
 generateSlugFromName(name): string

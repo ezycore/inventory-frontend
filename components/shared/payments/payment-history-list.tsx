@@ -36,6 +36,11 @@ interface PaymentHistoryListProps {
    * and the feature gate — pass `undefined` to hide the button entirely.
    */
   onPrintReceipt?: (payment: PaymentHistoryItem) => void;
+  /**
+   * Render only the list content (no card, title or Add button) for embedding
+   * inside a detail-sheet SectionFold, which supplies its own header/action.
+   */
+  bare?: boolean;
 }
 
 export function PaymentHistoryList({
@@ -48,24 +53,13 @@ export function PaymentHistoryList({
   onAddPayment,
   emptyState,
   onPrintReceipt,
+  bare = false,
 }: PaymentHistoryListProps) {
   const showAddButton =
     canAddPayment && doc.dueAmount > 0 && doc.status !== "cancelled" && !isInPaymentMode;
 
-  return (
-    <div className="rounded-lg border p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="font-medium">Payment History</div>
-        {showAddButton && (
-          <Button variant="outline" size="sm" onClick={onAddPayment}>
-            <CreditCard className="mr-2 h-4 w-4" />
-            Add Payment
-          </Button>
-        )}
-      </div>
-
-      <Separator />
-
+  const content = (
+    <>
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
@@ -73,12 +67,17 @@ export function PaymentHistoryList({
           ))}
         </div>
       ) : payments.length === 0 ? (
-        emptyState ?? (
+        emptyState ??
+        (bare ? (
+          <p className="py-2 text-center text-sm text-muted-foreground">
+            No payments recorded yet
+          </p>
+        ) : (
           <div className="py-8 text-center text-muted-foreground">
             <Wallet className="mx-auto mb-3 h-10 w-10 opacity-50" />
             <p>No payments recorded yet</p>
           </div>
-        )
+        ))
       ) : (
         <div className="space-y-3">
           {payments.map((payment) => (
@@ -124,6 +123,26 @@ export function PaymentHistoryList({
           ))}
         </div>
       )}
+    </>
+  );
+
+  if (bare) return content;
+
+  return (
+    <div className="rounded-lg border p-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="font-medium">Payment History</div>
+        {showAddButton && (
+          <Button variant="outline" size="sm" onClick={onAddPayment}>
+            <CreditCard className="mr-2 h-4 w-4" />
+            Add Payment
+          </Button>
+        )}
+      </div>
+
+      <Separator />
+
+      {content}
     </div>
   );
 }

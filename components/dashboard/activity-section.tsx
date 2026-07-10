@@ -57,7 +57,7 @@ export function ActivitySection({ stockMovements, isLoading }: ActivitySectionPr
           variant="ghost"
           size="sm"
           className="text-xs"
-          onClick={() => router.push('/stock/movements')}
+          onClick={() => router.push('/inventory/movements')}
         >
           View All <ArrowRight className="h-3 w-3 ml-1" />
         </Button>

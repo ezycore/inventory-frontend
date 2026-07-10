@@ -1,4 +1,6 @@
 'use client';
+// coding-standard: maintained
+
 import {
   KBarAnimator,
   KBarPortal,
@@ -11,23 +13,35 @@ import { useMemo } from 'react';
 import RenderResults from './render-result';
 import useThemeSwitching from './use-theme-switching';
 import { navItems } from '@/constants/navItem';
+import { filterNavItems } from '@/lib/nav-utils';
+import { useAuthStore } from '@/services/stores/use-auth-store';
 
 export default function KBar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
 
-  // These action are for the navigation
+  // These actions are for navigation — same role/permission/feature filtering
+  // as the sidebar, so search can't reach pages the user can't see.
   const actions = useMemo(() => {
-    // Define navigateTo inside the useMemo callback to avoid dependency array issues
+    const visibleItems = user?.role
+      ? filterNavItems(
+          navItems,
+          user.role,
+          user.permissions || [],
+          user.organization?.features
+        )
+      : navItems;
+
     const navigateTo = (url: string) => {
       router.push(url);
     };
 
-    return navItems.flatMap((navItem) => {
+    return visibleItems.flatMap((navItem) => {
       // Only include base action if the navItem has a real URL and is not just a container
       const baseAction =
         navItem.url !== '#'
           ? {
-              id: `${navItem.title.toLowerCase()}Action`,
+              id: `nav-${navItem.url}`,
               name: navItem.title,
               shortcut: navItem.shortcut,
               keywords: navItem.title.toLowerCase(),
@@ -40,7 +54,7 @@ export default function KBar({ children }: { children: React.ReactNode }) {
       // Map child items into actions
       const childActions =
         navItem.items?.map((childItem) => ({
-          id: `${childItem.title.toLowerCase()}Action`,
+          id: `nav-${childItem.url}`,
           name: childItem.title,
           shortcut: childItem.shortcut,
           keywords: childItem.title.toLowerCase(),
@@ -52,7 +66,7 @@ export default function KBar({ children }: { children: React.ReactNode }) {
       // Return only valid actions (ignoring null base actions for containers)
       return baseAction ? [baseAction, ...childActions] : childActions;
     });
-  }, [router]);
+  }, [router, user]);
 
   return (
     <KBarProvider actions={actions}>

@@ -2,7 +2,9 @@ import { customersApi, CustomerLedgerFilters } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
 import { queryKeys } from '@/lib/query-keys'
 import { Customer, CreateCustomerDto } from '@/types'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { handleMutationError } from '@/lib/error-handling'
 
 const customerHooks = createResourceHooks<Customer, CreateCustomerDto>(
  customersApi,
@@ -47,5 +49,18 @@ export const useCustomerStatement = (
     queryFn: () => customersApi.getStatement(customerId!, filters),
     enabled: !!customerId && enabled,
     staleTime: 1 * 60 * 1000,
+  })
+}
+
+// Email an outstanding-dues statement to the customer. No cache invalidation —
+// sending a statement doesn't change any data.
+export const useEmailCustomerStatement = () => {
+  return useMutation({
+    mutationFn: ({ customerId, email }: { customerId: string; email?: string }) =>
+      customersApi.emailStatement(customerId, email ? { email } : {}),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Statement emailed')
+    },
+    onError: handleMutationError,
   })
 }

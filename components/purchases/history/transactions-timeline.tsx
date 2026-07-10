@@ -24,6 +24,8 @@ interface TransactionsTimelineProps {
   isLoading: boolean;
   formatCurrency: (n: number) => string;
   onNavigateToPurchaseOrder?: (purchaseOrderId: string) => void;
+  /** Content-only render for embedding inside a SectionFold. */
+  bare?: boolean;
 }
 
 export function TransactionsTimeline({
@@ -31,6 +33,7 @@ export function TransactionsTimeline({
   isLoading,
   formatCurrency,
   onNavigateToPurchaseOrder,
+  bare,
 }: TransactionsTimelineProps) {
   const data = useMemo<TimelineData | undefined>(() => {
     if (!transactions) return undefined;
@@ -72,6 +75,7 @@ export function TransactionsTimeline({
       data={data}
       isLoading={isLoading}
       formatCurrency={formatCurrency}
+      bare={bare}
     />
   );
 }

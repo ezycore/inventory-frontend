@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import {
   SidebarMenu,
@@ -7,6 +8,7 @@ import {
   useSidebar,
 } from "@ui/components/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
+import { BRAND } from "@/constants/brand";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import Link from "next/link";
 
@@ -14,7 +16,7 @@ export function AppTitle() {
   const { setOpenMobile } = useSidebar();
   const user = useAuthStore((state) => state.user);
 
-  const orgName = user?.organization?.name || "Easeventory";
+  const orgName = user?.organization?.name || BRAND.name;
   const logoUrl =
     user?.organization?.logo?.thumbnailUrl ||
     user?.organization?.logo?.url ||
@@ -59,7 +61,7 @@ export function AppTitle() {
             <div className="grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate font-bold">{orgName}</span>
               <span className="truncate text-xs text-muted-foreground">
-                Make life easier
+                {BRAND.tagline}
               </span>
             </div>
           </Link>

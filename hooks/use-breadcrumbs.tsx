@@ -1,46 +1,57 @@
 'use client';
+// coding-standard: maintained
 
+import { navItems } from '@/constants/navItem';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
 type BreadcrumbItem = {
   title: string;
-  link: string;
+  /** Absent when the segment has no page of its own — rendered as plain text. */
+  link?: string;
 };
 
-// This allows to add custom title as well
-const routeMapping: Record<string, BreadcrumbItem[]> = {
-  '/dashboard': [{ title: 'Dashboard', link: '/dashboard' }],
-  '/dashboard/employee': [
-    { title: 'Dashboard', link: '/dashboard' },
-    { title: 'Employee', link: '/dashboard/employee' }
-  ],
-  '/dashboard/product': [
-    { title: 'Dashboard', link: '/dashboard' },
-    { title: 'Product', link: '/dashboard/product' }
-  ]
-  // Add more custom mappings as needed
-};
+// Grouping-only URL segments with no page.tsx behind them — never linked.
+const NON_ROUTABLE_PATHS = new Set(['/settings']);
 
-export function useBreadcrumbs() {
+// "/url" → "Title" from the nav config so crumbs match the sidebar labels.
+// Parents are registered before children so shared URLs (e.g. /purchases is
+// both "Purchases" and "New Purchase") keep the parent's more general title.
+const navTitleByPath = new Map<string, string>();
+for (const item of navItems) {
+  if (item.url !== '#' && !navTitleByPath.has(item.url)) {
+    navTitleByPath.set(item.url, item.title);
+  }
+  for (const sub of item.items ?? []) {
+    if (!navTitleByPath.has(sub.url)) {
+      navTitleByPath.set(sub.url, sub.title);
+    }
+  }
+}
+
+// Mongo ObjectIds / UUIDs read as noise — label the crumb generically instead.
+const looksLikeId = (segment: string) => /^[0-9a-f-]{16,}$/i.test(segment);
+
+function titleFor(path: string, segment: string): string {
+  const navTitle = navTitleByPath.get(path);
+  if (navTitle) return navTitle;
+  if (looksLikeId(segment)) return 'Details';
+  return segment
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+export function useBreadcrumbs(): BreadcrumbItem[] {
   const pathname = usePathname();
 
-  const breadcrumbs = useMemo(() => {
-    // Check if we have a custom mapping for this exact path
-    if (routeMapping[pathname]) {
-      return routeMapping[pathname];
-    }
-
-    // If no exact match, fall back to generating breadcrumbs from the path
+  return useMemo(() => {
     const segments = pathname.split('/').filter(Boolean);
     return segments.map((segment, index) => {
       const path = `/${segments.slice(0, index + 1).join('/')}`;
-      return {
-        title: segment.charAt(0).toUpperCase() + segment.slice(1),
-        link: path
-      };
+      const item: BreadcrumbItem = { title: titleFor(path, segment) };
+      if (!NON_ROUTABLE_PATHS.has(path)) item.link = path;
+      return item;
     });
   }, [pathname]);
-
-  return breadcrumbs;
 }

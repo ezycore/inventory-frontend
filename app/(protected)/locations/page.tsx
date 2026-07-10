@@ -390,8 +390,8 @@ export default function LocationsPage() {
     <div className="space-y-8">
       {/* Header */}
       <PageHeader
-        title="Locations Management"
-        subTitle="Manage your stores and warehouses in one place."
+        title="Locations"
+        subTitle="Your stores and warehouses in one place."
         actions={
           <ViewToggle
             storageKey="locations"
