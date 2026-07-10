@@ -15,6 +15,7 @@ import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
+import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
 import { CampaignStrip } from "@/components/storefront/campaign-strip";
 import { StoreHeader } from "@/components/storefront/store-header";
 import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
@@ -64,9 +65,17 @@ export function StoreShell({
 
   // Live preview brand (admin Customize editor) wins so the whole page repaints
   // instantly; otherwise the merchant's saved brand colour overrides --primary.
+  // Both theme variants ship as vars — storefront.css picks per data-theme, so
+  // a dark brand is auto-lifted on the dark theme and stays readable.
   const brandColor = previewBrand ?? store?.theme?.brandColor;
+  const darkBrand = brandColor ? brightenForDark(brandColor) : undefined;
   const shellVars = (brandColor
-    ? { "--primary": brandColor, "--primary-hover": brandColor }
+    ? {
+        "--sf-brand-light": brandColor,
+        "--sf-brand-dark": darkBrand,
+        "--sf-brand-on-light": readableTextOn(brandColor),
+        "--sf-brand-on-dark": readableTextOn(darkBrand ?? brandColor),
+      }
     : {}) as CSSProperties;
 
   const announcement = store?.nav?.announcement;
@@ -78,6 +87,7 @@ export function StoreShell({
     <StoreContextProvider slug={slug} base={base}>
       <div
         className="sf-shell"
+        data-brand={brandColor ? "" : undefined}
         style={{
           ...shellVars,
           minHeight: "100vh",
@@ -87,13 +97,16 @@ export function StoreShell({
           color: "var(--text)",
         }}
       >
-        {/* Announcement */}
+        {/* Announcement — text colour derived from the owner's custom bg so a
+            light banner colour never gets unreadable white text. */}
         {announcement?.enabled && announcement.text ? (
           <div
             className="sf-noprint"
             style={{
               background: announcement.bgColor || "var(--primary)",
-              color: "var(--on-primary)",
+              color: announcement.bgColor
+                ? readableTextOn(announcement.bgColor)
+                : "var(--on-primary)",
               textAlign: "center",
               fontSize: 12.5,
               fontWeight: 500,

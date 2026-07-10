@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { Upload, X } from "lucide-react";
 import { Button } from "@/ui/components/button";
@@ -21,6 +22,10 @@ export interface UploadedImage {
 }
 
 export type GalleryImage = File | UploadedImage;
+
+/** Stable string identity handed to the file-upload primitive for uploads. */
+const uploadedKey = (img: UploadedImage): string =>
+  img.url || img.mediumUrl || img.thumbnailUrl || img.publicId || "";
 
 interface ImageGalleryUploadProps {
   value: GalleryImage[];
@@ -51,10 +56,26 @@ export function ImageGalleryUpload({
   const isSingleFileMode = maxFiles === 1;
   const shouldHideDropzone = isSingleFileMode && files.length > 0;
 
+  // The file-upload primitive only understands `File | string` (string =
+  // existing upload), so uploaded-image objects travel as their URL string and
+  // are mapped back to the original objects on change.
+  const byKey = new Map(
+    files.flatMap((f) =>
+      f instanceof File ? [] : [[uploadedKey(f), f] as const],
+    ),
+  );
+  const primitiveValue = files.map((f) =>
+    f instanceof File ? f : uploadedKey(f),
+  );
+  const handleValueChange = (next: (File | string)[]) =>
+    onChange(
+      next.map((f) => (f instanceof File ? f : (byKey.get(f) ?? { url: f }))),
+    );
+
   return (
     <FileUpload
-      value={files}
-      onValueChange={onChange}
+      value={primitiveValue}
+      onValueChange={handleValueChange}
       accept={accept}
       maxFiles={maxFiles}
       maxSize={maxSize}
@@ -102,7 +123,7 @@ export function ImageGalleryUpload({
             return (
               <FileUploadItem
                 key={fileKey}
-                value={file}
+                value={file instanceof File ? file : uploadedKey(file)}
                 className="flex items-center gap-3 rounded-lg border p-3"
               >
                 {previewUrl ? (

@@ -10,6 +10,12 @@ import "@ui/styles/globals.css";
 export const metadata = {
   title: `${BRAND.name} - Inventory Management System`,
   description: "Modern inventory management system for businesses",
+  // Default favicon lives in /public (NOT as an app/ icon file convention) so
+  // nested routes can override it — the storefront swaps in the store logo via
+  // generateMetadata, the admin app via useOrgFavicon. File-convention icons
+  // would silently win over both, and a shortcut .ico would outrank the
+  // dynamic icon in Chrome.
+  icons: { icon: "/icon.png" },
 };
 
 export default async function RootLayout({

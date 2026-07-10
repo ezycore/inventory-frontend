@@ -86,9 +86,7 @@ export interface Dict {
   paidStamp: string;
   duePayment: string;
   youSavedLabel: string;
-  deliverDhaka: string;
   trackOrder: string;
-  help: string;
   genuine: string;
   fastDelivery: string;
   codBadge: string;
@@ -162,6 +160,9 @@ export interface Dict {
   deliveryZone: string;
   insideDhaka: string;
   outsideDhaka: string;
+  zoneDays12: string;
+  zoneDays35: string;
+  orderNotesPh: string;
   paymentMethod: string;
   default: string;
   cod: string;
@@ -189,8 +190,6 @@ export interface Dict {
   menu: string;
   allProducts: string;
   results: string;
-  sortBy: string;
-  sortPopular: string;
   filters: string;
   category: string;
   priceRange: string;
@@ -234,6 +233,9 @@ export interface Dict {
   searchQuery: string;
   noResults: string;
   noResultsMsg: string;
+  loading: string;
+  productNotFound: string;
+  noOrdersYet: string;
   toggleEmpty: string;
   myAccount: string;
   tabProfile: string;
@@ -282,6 +284,9 @@ export interface Dict {
   passwordUpdated: string;
   passwordMismatch: string;
   passwordMin: string;
+  resetPwTitle: string;
+  resetLinkInvalid: string;
+  resetLinkSent: string;
   noAccountPrompt: string;
   haveAccountPrompt: string;
   signingIn: string;
@@ -369,9 +374,7 @@ const en: Dict = {
   youSavedLabel: "You saved",
   viewAll: "View all",
   added: "Added to cart",
-  deliverDhaka: "Same-day delivery in Dhaka",
   trackOrder: "Track order",
-  help: "Help",
   genuine: "100% authentic",
   fastDelivery: "Same-day delivery",
   codBadge: "Cash on delivery",
@@ -445,6 +448,9 @@ const en: Dict = {
   deliveryZone: "Delivery zone",
   insideDhaka: "Inside Dhaka",
   outsideDhaka: "Outside Dhaka",
+  zoneDays12: "1–2 days",
+  zoneDays35: "3–5 days",
+  orderNotesPh: "Delivery notes (optional)",
   paymentMethod: "Payment method",
   default: "Default",
   cod: "Cash on Delivery",
@@ -472,8 +478,6 @@ const en: Dict = {
   menu: "Menu",
   allProducts: "All products",
   results: "results",
-  sortBy: "Sort",
-  sortPopular: "Most popular",
   filters: "Filters",
   category: "Category",
   priceRange: "Price range",
@@ -517,6 +521,9 @@ const en: Dict = {
   searchQuery: "cordless drill",
   noResults: "No results found",
   noResultsMsg: "We couldn’t find anything matching your search. Try a different keyword.",
+  loading: "Loading…",
+  productNotFound: "Product not found",
+  noOrdersYet: "No orders yet — your orders will appear here once you place one.",
   toggleEmpty: "Toggle empty state",
   myAccount: "My account",
   tabProfile: "Profile",
@@ -565,6 +572,9 @@ const en: Dict = {
   passwordUpdated: "Password updated",
   passwordMismatch: "Passwords don't match",
   passwordMin: "Password must be at least 6 characters",
+  resetPwTitle: "Reset your password",
+  resetLinkInvalid: "This reset link is invalid or expired.",
+  resetLinkSent: "Reset link sent — check your inbox",
   noAccountPrompt: "New customer?",
   haveAccountPrompt: "Already have an account?",
   signingIn: "Signing in…",
@@ -653,9 +663,7 @@ const bn: Dict = {
   youSavedLabel: "আপনি সাশ্রয় করলেন",
   viewAll: "সব দেখুন",
   added: "কার্টে যোগ হয়েছে",
-  deliverDhaka: "ঢাকায় একই দিনে ডেলিভারি",
   trackOrder: "অর্ডার ট্র্যাক",
-  help: "সহায়তা",
   genuine: "১০০% আসল",
   fastDelivery: "একই দিনে ডেলিভারি",
   codBadge: "ক্যাশ অন ডেলিভারি",
@@ -729,6 +737,9 @@ const bn: Dict = {
   deliveryZone: "ডেলিভারি জোন",
   insideDhaka: "ঢাকার ভিতরে",
   outsideDhaka: "ঢাকার বাইরে",
+  zoneDays12: "১–২ দিন",
+  zoneDays35: "৩–৫ দিন",
+  orderNotesPh: "ডেলিভারি নোট (ঐচ্ছিক)",
   paymentMethod: "পেমেন্ট মাধ্যম",
   default: "ডিফল্ট",
   cod: "ক্যাশ অন ডেলিভারি",
@@ -756,8 +767,6 @@ const bn: Dict = {
   menu: "মেনু",
   allProducts: "সব পণ্য",
   results: "ফলাফল",
-  sortBy: "সাজান",
-  sortPopular: "জনপ্রিয়",
   filters: "ফিল্টার",
   category: "ক্যাটাগরি",
   priceRange: "দামের পরিসীমা",
@@ -801,6 +810,9 @@ const bn: Dict = {
   searchQuery: "কর্ডলেস ড্রিল",
   noResults: "কোনো ফলাফল নেই",
   noResultsMsg: "আপনার সার্চের সাথে মিল পাওয়া যায়নি। অন্য কীওয়ার্ড চেষ্টা করুন।",
+  loading: "লোড হচ্ছে…",
+  productNotFound: "পণ্যটি পাওয়া যায়নি",
+  noOrdersYet: "এখনো কোনো অর্ডার নেই — অর্ডার করলে এখানে দেখা যাবে।",
   toggleEmpty: "খালি অবস্থা",
   myAccount: "আমার অ্যাকাউন্ট",
   tabProfile: "প্রোফাইল",
@@ -849,6 +861,9 @@ const bn: Dict = {
   passwordUpdated: "পাসওয়ার্ড আপডেট হয়েছে",
   passwordMismatch: "পাসওয়ার্ড মিলছে না",
   passwordMin: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+  resetPwTitle: "পাসওয়ার্ড রিসেট করুন",
+  resetLinkInvalid: "এই রিসেট লিংকটি অবৈধ বা মেয়াদোত্তীর্ণ।",
+  resetLinkSent: "রিসেট লিংক পাঠানো হয়েছে — ইনবক্স দেখুন",
   noAccountPrompt: "নতুন গ্রাহক?",
   haveAccountPrompt: "ইতিমধ্যে অ্যাকাউন্ট আছে?",
   signingIn: "সাইন ইন হচ্ছে…",
@@ -867,18 +882,22 @@ const bn: Dict = {
 export const I18N: Record<Lang, Dict> = { en, bn };
 
 /** Status pill labels + colors (light-mode tints; mirror the admin). */
+/**
+ * One base colour per status; `<StatusPill>` derives the theme-aware text +
+ * tint from it with color-mix, so the pills read well in light AND dark.
+ */
 export const ORDER_STATUS: Record<
   string,
-  { en: string; bn: string; c: string; bg: string }
+  { en: string; bn: string; c: string }
 > = {
-  pending: { en: "Pending", bn: "বাকি", c: "#b45309", bg: "#fef3c7" },
-  confirmed: { en: "Confirmed", bn: "নিশ্চিত", c: "#1d4ed8", bg: "#dbeafe" },
-  processing: { en: "Processing", bn: "প্রসেসিং", c: "#6d28d9", bg: "#ede9fe" },
-  shipped: { en: "Shipped", bn: "পাঠানো হয়েছে", c: "#0e7490", bg: "#cffafe" },
-  delivered: { en: "Delivered", bn: "ডেলিভারড", c: "#15803d", bg: "#dcfce7" },
-  cancelled: { en: "Cancelled", bn: "বাতিল", c: "#b91c1c", bg: "#fee2e2" },
-  returned: { en: "Returned", bn: "ফেরত", c: "#b91c1c", bg: "#fee2e2" },
-  rejected: { en: "Rejected", bn: "বাতিল", c: "#b91c1c", bg: "#fee2e2" },
+  pending: { en: "Pending", bn: "বাকি", c: "#b45309" },
+  confirmed: { en: "Confirmed", bn: "নিশ্চিত", c: "#1d4ed8" },
+  processing: { en: "Processing", bn: "প্রসেসিং", c: "#6d28d9" },
+  shipped: { en: "Shipped", bn: "পাঠানো হয়েছে", c: "#0e7490" },
+  delivered: { en: "Delivered", bn: "ডেলিভারড", c: "#15803d" },
+  cancelled: { en: "Cancelled", bn: "বাতিল", c: "#b91c1c" },
+  returned: { en: "Returned", bn: "ফেরত", c: "#b91c1c" },
+  rejected: { en: "Rejected", bn: "বাতিল", c: "#b91c1c" },
 };
 
 /** Order status pipeline for the tracking timeline. */

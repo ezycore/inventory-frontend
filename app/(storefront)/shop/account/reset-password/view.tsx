@@ -1,14 +1,49 @@
 "use client";
+// coding-standard: maintained
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useResetPassword } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
+import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
+import { Icon } from "@/components/storefront/sf-icons";
 
+const wrap: CSSProperties = {
+  maxWidth: 440,
+  margin: "0 auto",
+  width: "100%",
+  padding: "40px var(--pad) 64px",
+};
+const card: CSSProperties = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  borderRadius: 14,
+  padding: "32px 28px",
+};
+const input: CSSProperties = {
+  border: "1px solid var(--border-strong)",
+  background: "var(--surface)",
+  color: "var(--text)",
+  borderRadius: 8,
+  padding: "11px 13px",
+  fontFamily: "inherit",
+  fontSize: 14,
+  outline: "none",
+  width: "100%",
+};
+const fieldLabel: CSSProperties = {
+  fontSize: 12.5,
+  fontWeight: 600,
+  color: "var(--text)",
+};
+
+/** Password-reset landing for the emailed link (`?token=`), on the sf design system. */
 export default function ResetPasswordPage() {
   const { slug, base } = useStoreContext();
+  const { t } = useStorefrontUI();
   const token = useSearchParams().get("token") ?? "";
   const router = useRouter();
   const reset = useResetPassword(slug);
@@ -17,18 +52,18 @@ export default function ResetPasswordPage() {
 
   const submit = () => {
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t.passwordMin);
       return;
     }
     if (password !== confirm) {
-      toast.error("Passwords don't match");
+      toast.error(t.passwordMismatch);
       return;
     }
     reset.mutate(
       { token, password },
       {
         onSuccess: () => {
-          toast.success("Password updated. Please sign in.");
+          toast.success(t.passwordUpdated);
           router.push(storeHref(base, "/account"));
         },
         onError: (e) => toast.error((e as Error).message),
@@ -38,38 +73,98 @@ export default function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className="mx-auto max-w-md py-8 text-center">
-        <p className="text-sm text-gray-600">Missing reset token.</p>
+      <div style={wrap}>
+        <div style={{ ...card, textAlign: "center" }}>
+          <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 0 16px" }}>
+            {t.resetLinkInvalid}
+          </p>
+          <Link
+            href={storeHref(base, "/account")}
+            style={{ fontSize: 14, fontWeight: 600, color: "var(--primary)" }}
+          >
+            ← {t.signIn}
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-4 py-8">
-      <h1 className="text-xl font-semibold">Reset your password</h1>
-      <div className="space-y-3 rounded-lg border bg-white p-4">
-        <input
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type="password"
-          placeholder="New password"
-          className="w-full rounded-md border px-3 py-2 text-sm"
-        />
-        <input
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          type="password"
-          placeholder="Confirm new password"
-          className="w-full rounded-md border px-3 py-2 text-sm"
-        />
-        <button
-          type="button"
-          disabled={reset.isPending}
-          onClick={submit}
-          className="w-full rounded-md bg-[var(--sf-brand,#111827)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+    <div style={wrap}>
+      <div style={card}>
+        <div style={{ textAlign: "center", marginBottom: 22 }}>
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              background: "var(--primary-soft)",
+              color: "var(--primary)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 12,
+            }}
+          >
+            <Icon name="lock" size={22} />
+          </div>
+          <h1 style={{ fontSize: 21, fontWeight: 700, letterSpacing: "-0.02em", margin: 0 }}>
+            {t.resetPwTitle}
+          </h1>
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!reset.isPending) submit();
+          }}
+          style={{ display: "flex", flexDirection: "column", gap: 14 }}
         >
-          {reset.isPending ? "Updating…" : "Update password"}
-        </button>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={fieldLabel}>{t.newPasswordLabel}</span>
+            <input
+              style={input}
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={fieldLabel}>{t.confirmPasswordLabel}</span>
+            <input
+              style={input}
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={reset.isPending}
+            style={{
+              width: "100%",
+              background: "var(--primary)",
+              color: "var(--on-primary)",
+              border: "none",
+              padding: 12,
+              borderRadius: 8,
+              fontFamily: "inherit",
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              marginTop: 4,
+              opacity: reset.isPending ? 0.6 : 1,
+            }}
+          >
+            {t.saveChanges}
+          </button>
+        </form>
       </div>
     </div>
   );

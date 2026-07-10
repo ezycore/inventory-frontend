@@ -22,12 +22,12 @@ export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => v
   const currency = store?.currency;
 
   if (isLoading) {
-    return <p style={{ fontSize: 13, color: "var(--muted)" }}>Loading…</p>;
+    return <p style={{ fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
   }
   if (!orders?.length) {
     return (
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "40px 30px", textAlign: "center", fontSize: 14, color: "var(--muted)" }}>
-        {t.noResults}
+        {t.noOrdersYet}
       </div>
     );
   }

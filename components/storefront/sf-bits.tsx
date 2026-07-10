@@ -153,8 +153,10 @@ export function StatusPill({
       style={{
         fontSize: size,
         fontWeight: 600,
-        color: m.c,
-        background: m.bg,
+        // Mix toward the theme text so the hue stays readable on both themes:
+        // darkens on light cards, lightens on dark cards.
+        color: `color-mix(in srgb, ${m.c} 72%, var(--text))`,
+        background: `color-mix(in srgb, ${m.c} 14%, transparent)`,
         padding: "4px 10px",
         borderRadius: 999,
         whiteSpace: "nowrap",

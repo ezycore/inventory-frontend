@@ -1,6 +1,7 @@
 "use client";
+// coding-standard: maintained
 
-import { Suspense, useState, type CSSProperties } from "react";
+import { Suspense, useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
+import { SkeletonCard } from "@/components/storefront/sf-skeleton";
 import type { CatalogProduct } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
@@ -28,9 +30,19 @@ function SearchInner() {
   const { t } = useStorefrontUI();
   const initialQ = useSearchParams().get("q") ?? "";
   const [q, setQ] = useState(initialQ);
+  // Debounced copy of `q` drives the API query — one request per pause in
+  // typing instead of one per keystroke.
+  const [debouncedQ, setDebouncedQ] = useState(initialQ);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQ(q), 300);
+    return () => clearTimeout(id);
+  }, [q]);
 
   const { data: store } = useStore(slug);
-  const { data, isLoading } = useStoreProducts(slug, { q: q || undefined, limit: 24 });
+  const { data, isLoading } = useStoreProducts(slug, {
+    q: debouncedQ || undefined,
+    limit: 24,
+  });
 
   const currency = store?.currency;
   const variant = resolveTemplates(store).search;
@@ -50,7 +62,11 @@ function SearchInner() {
       </div>
 
       {isLoading ? (
-        <p style={{ fontSize: 13, color: "var(--muted)" }}>Loading…</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--searchcols), minmax(0,1fr))", gap: "var(--gap)" }}>
+          {Array.from({ length: 8 }, (_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       ) : items.length === 0 ? (
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "60px 30px", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 14, color: "var(--faint)" }}>
@@ -71,7 +87,7 @@ function SearchInner() {
           {variant === "list" ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {items.map((p) => (
-                <SearchRow key={p._id} product={p} currency={currency} base={base} slug={slug} addedLabel={t.added} addLabel={t.addToCart} />
+                <SearchRow key={p._id} product={p} currency={currency} base={base} slug={slug} addedLabel={t.added} addLabel={t.addToCart} outLabel={t.outOfStock} />
               ))}
             </div>
           ) : (
@@ -94,6 +110,7 @@ function SearchRow({
   slug,
   addLabel,
   addedLabel,
+  outLabel,
 }: {
   product: CatalogProduct;
   currency?: string;
@@ -101,11 +118,13 @@ function SearchRow({
   slug: string;
   addLabel: string;
   addedLabel: string;
+  outLabel: string;
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const router = useRouter();
   const thumb = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
   const pdp = storeHref(base, `/products/${product.slug}`);
+  const outOfStock = product.availableQuantity <= 0;
   return (
     <div style={{ display: "flex", gap: 14, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 12, alignItems: "center" }}>
       <Link href={storeHref(base, `/products/${product.slug}`)} style={{ width: 84, height: 84, flex: "none" }}>
@@ -117,6 +136,7 @@ function SearchRow({
       </Link>
       <button
         type="button"
+        disabled={outOfStock}
         onClick={() => {
           // Variable products need a variant picked on the PDP first.
           if (product.hasVariants) {
@@ -133,17 +153,18 @@ function SearchRow({
           });
           toast.success(addedLabel);
         }}
-        style={{ flex: "none", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "10px 18px", borderRadius: 8, fontFamily: "inherit", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+        style={{ flex: "none", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "10px 18px", borderRadius: 8, fontFamily: "inherit", fontSize: 13, fontWeight: 600, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}
       >
-        {addLabel}
+        {outOfStock ? outLabel : addLabel}
       </button>
     </div>
   );
 }
 
 export default function SearchPage() {
+  const { t } = useStorefrontUI();
   return (
-    <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>Loading…</p>}>
+    <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>
       <SearchInner />
     </Suspense>
   );

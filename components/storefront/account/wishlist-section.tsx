@@ -65,7 +65,7 @@ export function WishlistSection() {
       name: item.name,
       price: item.price ?? 0,
       image: item.image,
-      maxQty: 0,
+      maxQty: item.availableQuantity ?? 0,
     });
     removeWish(productId);
     toast.success(t.added);

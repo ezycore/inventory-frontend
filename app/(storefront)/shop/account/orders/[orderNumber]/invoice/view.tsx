@@ -151,7 +151,7 @@ export default function InvoicePage() {
       </div>
     );
   }
-  if (isLoading) return <p style={{ ...wrapStyle, fontSize: 13, color: "var(--muted)" }}>Loading…</p>;
+  if (isLoading) return <p style={{ ...wrapStyle, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
   if (isError || !order) {
     return (
       <div style={wrapStyle}>

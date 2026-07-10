@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
@@ -85,7 +86,7 @@ export default function AccountPage() {
       return;
     }
     forgot.mutate(form.email, {
-      onSuccess: (r) => toast.success(r.message || "Sent"),
+      onSuccess: (r) => toast.success(r.message || t.resetLinkSent),
       onError: (e) => toast.error((e as Error).message),
     });
   };

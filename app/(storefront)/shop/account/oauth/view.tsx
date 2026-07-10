@@ -36,22 +36,26 @@ export default function OAuthLandingPage() {
     // Scrub the fragment immediately — the token must not linger in the URL.
     window.history.replaceState(null, "", window.location.pathname);
 
-    if (!token) {
-      setError(errorCode === "cancelled" ? t.oauthCancelled : t.oauthFailed);
-      return;
-    }
-    storefrontApi
-      .me(slug, token)
-      .then((shopper) => {
-        setAuth(slug, token, shopper);
-        toast.success(t.welcomeBack);
-        const target =
-          next && next.startsWith("/") && !next.startsWith("//")
-            ? next
-            : "/account";
-        router.replace(storeHref(base, target));
-      })
-      .catch(() => setError(t.oauthFailed));
+    // setState must come from async callbacks, not the effect body
+    // (react-hooks/set-state-in-effect) — resolve the session on a microtask.
+    Promise.resolve().then(() => {
+      if (!token) {
+        setError(errorCode === "cancelled" ? t.oauthCancelled : t.oauthFailed);
+        return;
+      }
+      return storefrontApi
+        .me(slug, token)
+        .then((shopper) => {
+          setAuth(slug, token, shopper);
+          toast.success(t.welcomeBack);
+          const target =
+            next && next.startsWith("/") && !next.startsWith("//")
+              ? next
+              : "/account";
+          router.replace(storeHref(base, target));
+        })
+        .catch(() => setError(t.oauthFailed));
+    });
   }, [slug, base, router, setAuth, t]);
 
   return (

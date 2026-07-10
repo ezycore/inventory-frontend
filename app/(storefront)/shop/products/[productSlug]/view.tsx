@@ -45,7 +45,13 @@ export default function ProductDetailPage() {
 
   const { data: store } = useStore(slug);
   const { data: product, isLoading, isError } = useStoreProduct(slug, productSlug);
-  const { data: relatedData } = useStoreProducts(slug, { limit: 8 });
+  // Related picks: same category when the product has one, latest otherwise.
+  const { data: relatedData } = useStoreProducts(
+    slug,
+    product?.categoryId
+      ? { categoryId: product.categoryId, limit: 8 }
+      : { limit: 8 },
+  );
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartUI((s) => s.openCart);
   const toggleWish = useWishlistStore((s) => s.toggle);
@@ -56,15 +62,29 @@ export default function ProductDetailPage() {
   );
   const router = useRouter();
   const [qty, setQty] = useState(1);
+  // Gallery image the shopper tapped (clamped later — variant switches can
+  // swap in a shorter image list).
+  const [imgIdx, setImgIdx] = useState(0);
   // Variant chip selection (variable products) — empty until the shopper picks,
   // in which case the first in-stock variant acts as the default.
   const [picked, setPicked] = useState<Record<string, string>>({});
 
-  if (isLoading) return <p style={{ ...wrap, fontSize: 13, color: "var(--muted)" }}>Loading…</p>;
+  // The component survives PDP→PDP navigation (related products), so shopper
+  // state resets per product — render-time adjust, per react.dev's
+  // "adjusting state when a prop changes" guidance (no effect, no extra pass).
+  const [prevSlug, setPrevSlug] = useState(productSlug);
+  if (prevSlug !== productSlug) {
+    setPrevSlug(productSlug);
+    setQty(1);
+    setPicked({});
+    setImgIdx(0);
+  }
+
+  if (isLoading) return <p style={{ ...wrap, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
   if (isError || !product) {
     return (
       <div style={{ ...wrap }}>
-        <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>{t.noResults}</p>
+        <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>{t.productNotFound}</p>
         <Link href={storeHref(base, "/products")} style={{ fontSize: 13, color: "var(--primary)" }}>
           ← {t.allProducts}
         </Link>
@@ -102,8 +122,17 @@ export default function ProductDetailPage() {
   const images = variable && selectedVariant?.images?.length
     ? selectedVariant.images
     : (product.images ?? []);
-  const main = imgUrl(images[0]);
+  const activeIdx = Math.max(0, Math.min(imgIdx, images.length - 1));
+  const main = imgUrl(images[activeIdx]);
   const thumbs = images.slice(0, 4);
+  const thumbBtn = (active: boolean): CSSProperties => ({
+    padding: 0,
+    background: "none",
+    cursor: "pointer",
+    borderRadius: 10,
+    overflow: "hidden",
+    border: active ? "2px solid var(--primary)" : "2px solid transparent",
+  });
 
   const related = (relatedData?.items ?? [])
     .filter((p) => p.slug !== product.slug)
@@ -145,6 +174,7 @@ export default function ProductDetailPage() {
       compareAtPrice: product.compareAtPrice,
       image: product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url,
       hasVariants: variable,
+      availableQuantity: product.availableQuantity,
     });
 
   return (
@@ -157,9 +187,15 @@ export default function ProductDetailPage() {
             {thumbs.length > 1 ? (
               <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
                 {thumbs.map((th, i) => (
-                  <div key={i} style={{ flex: 1 }}>
-                    <Media src={imgUrl(th)} alt="" radius={8} />
-                  </div>
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setImgIdx(i)}
+                    aria-label={`${product.name} — ${i + 1}`}
+                    style={{ ...thumbBtn(i === activeIdx), flex: 1 }}
+                  >
+                    <Media src={imgUrl(th)} alt="" radius={8} style={{ display: "block" }} />
+                  </button>
                 ))}
               </div>
             ) : null}
@@ -168,7 +204,15 @@ export default function ProductDetailPage() {
           <div style={{ display: "flex", gap: 12 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, width: 62, flex: "none" }}>
               {(thumbs.length ? thumbs : [undefined]).map((th, i) => (
-                <Media key={i} src={imgUrl(th)} alt="" radius={8} />
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setImgIdx(i)}
+                  aria-label={`${product.name} — ${i + 1}`}
+                  style={thumbBtn(i === activeIdx)}
+                >
+                  <Media src={imgUrl(th)} alt="" radius={8} style={{ display: "block" }} />
+                </button>
               ))}
             </div>
             <div style={{ flex: 1 }}>
@@ -237,6 +281,7 @@ export default function ProductDetailPage() {
                   onSelect={(next) => {
                     setPicked(next);
                     setQty(1);
+                    setImgIdx(0);
                   }}
                 />
               ) : null}
@@ -245,7 +290,15 @@ export default function ProductDetailPage() {
                 <div style={{ display: "flex", alignItems: "center", border: "1px solid var(--border-strong)", borderRadius: 8, overflow: "hidden" }}>
                   <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} style={qtyBtn}>−</button>
                   <span className="sf-mono" style={{ fontSize: 14, fontWeight: 700, minWidth: 36, textAlign: "center" }}>{qty}</span>
-                  <button type="button" onClick={() => setQty((q) => q + 1)} style={qtyBtn}>+</button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQty((q) => (availableQty > 0 ? Math.min(availableQty, q + 1) : q + 1))
+                    }
+                    style={qtyBtn}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 11, flexWrap: "wrap", marginBottom: 20 }}>

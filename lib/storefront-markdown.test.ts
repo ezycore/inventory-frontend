@@ -15,7 +15,6 @@ describe("parseInline", () => {
   });
 
   it("never produces a link node for unsafe schemes", () => {
-    // eslint-disable-next-line no-script-url
     const nodes = parseInline("[x](javascript:alert(1))");
     expect(nodes.some((n) => n.kind === "link")).toBe(false);
     expect(nodes[0]).toEqual({ kind: "text", text: "x" });

@@ -17,6 +17,8 @@ export interface WishItem {
   image?: string;
   /** Variable products can't be moved to cart blindly — send to the PDP. */
   hasVariants?: boolean;
+  /** Stock at save time — caps "Move to cart" (backend re-validates at order). */
+  availableQuantity?: number;
 }
 
 interface WishlistState {

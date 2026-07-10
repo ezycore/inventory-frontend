@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
@@ -14,35 +15,27 @@ import type { StorefrontOrder } from "@/lib/storefront-client";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { computeShipping, type Zone } from "@/lib/storefront-shipping";
 import { storeHref } from "@/lib/storefront-links";
-import { money, taka } from "@/components/storefront/format";
+import { money } from "@/components/storefront/format";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { VerifyEmailGate } from "@/components/storefront/verify-email-gate";
 import { useHydrated } from "@/hooks/use-hydrated";
+import {
+  StepsBar,
+  SummaryRow,
+  ZoneTile,
+  ghostBtn,
+  input,
+  label,
+  primaryBtn,
+  primaryLink,
+} from "@/components/storefront/checkout/checkout-bits";
+import { OrderPlacedCard } from "@/components/storefront/checkout/order-placed-card";
 
 const wrap: CSSProperties = {
   maxWidth: 940,
   margin: "0 auto",
   width: "100%",
   padding: "22px var(--pad) 40px",
-};
-const label: CSSProperties = {
-  fontSize: 11.5,
-  fontWeight: 700,
-  color: "var(--muted)",
-  textTransform: "uppercase",
-  letterSpacing: "0.04em",
-  marginBottom: 12,
-};
-const input: CSSProperties = {
-  border: "1px solid var(--border-strong)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  borderRadius: 8,
-  padding: "12px 14px",
-  fontFamily: "inherit",
-  fontSize: 14,
-  outline: "none",
-  width: "100%",
 };
 const PAY_ICON: Record<string, IconName> = { cod: "coins", bank: "bank" };
 
@@ -93,9 +86,13 @@ export default function CheckoutPage() {
   const zoneLabel = zone === "inside" ? t.insideDhaka : t.outsideDhaka;
   const zones = store?.shippingZones;
   const insideNote =
-    zones?.inside != null ? `${taka(zones.inside)} · 1–2 days` : "1–2 days";
+    zones?.inside != null
+      ? `${money(zones.inside, currency)} · ${t.zoneDays12}`
+      : t.zoneDays12;
   const outsideNote =
-    zones?.outside != null ? `${taka(zones.outside)} · 3–5 days` : "3–5 days";
+    zones?.outside != null
+      ? `${money(zones.outside, currency)} · ${t.zoneDays35}`
+      : t.zoneDays35;
 
   const applyCoupon = async () => {
     if (!coupon.trim() || !token) return;
@@ -167,24 +164,7 @@ export default function CheckoutPage() {
   if (placed) {
     return (
       <div style={wrap}>
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "48px 30px", textAlign: "center" }}>
-          <div style={{ width: 66, height: 66, borderRadius: "50%", background: "var(--primary-soft)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 22px", animation: "ezPop 0.4s" }}>
-            <Icon name="check" size={30} />
-          </div>
-          <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px", letterSpacing: "-0.02em" }}>{t.orderPlaced}</h2>
-          <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 0 6px" }}>{t.orderThanks}</p>
-          <p className="sf-mono" style={{ fontSize: 14, margin: "0 0 24px" }}>
-            {t.orderNo} {placed.orderNumber}
-          </p>
-          <div style={{ display: "flex", gap: 11, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href={storeHref(base, `/account/orders/${placed.orderNumber}`)} style={primaryLink}>
-              {t.trackThis}
-            </Link>
-            <Link href={storeHref(base, "/products")} style={ghostLink}>
-              {t.continueShopping}
-            </Link>
-          </div>
-        </div>
+        <OrderPlacedCard order={placed} base={base} t={t} />
       </div>
     );
   }
@@ -215,39 +195,7 @@ export default function CheckoutPage() {
 
   return (
     <div style={wrap}>
-      {multi ? (
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 26 }}>
-          {steps.map((st, idx) => (
-            <div key={st.n} style={{ display: "flex", alignItems: "center", flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                <span
-                  className="sf-mono"
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: st.n === step ? "var(--primary)" : "var(--surface)",
-                    color: st.n === step ? "var(--on-primary)" : "var(--muted)",
-                    border: st.n === step ? "none" : "1px solid var(--border-strong)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    flex: "none",
-                  }}
-                >
-                  {st.n}
-                </span>
-                <span className="sf-desktop-only" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{st.label}</span>
-              </div>
-              {idx < steps.length - 1 ? (
-                <span style={{ flex: 1, height: 1, background: "var(--border-strong)", margin: "0 12px" }} />
-              ) : null}
-            </div>
-          ))}
-        </div>
-      ) : null}
+      {multi ? <StepsBar steps={steps} step={step} /> : null}
 
       <div style={{ display: "grid", gridTemplateColumns: "var(--cartgrid)", gap: "var(--gap)", alignItems: "start" }}>
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 22 }}>
@@ -258,7 +206,7 @@ export default function CheckoutPage() {
                 <input style={input} placeholder={t.fullName} value={addr.name} onChange={(e) => set("name", e.target.value)} />
                 <input style={input} placeholder={t.phone} value={addr.phone} onChange={(e) => set("phone", e.target.value)} />
                 <input style={input} placeholder={t.address} value={addr.address} onChange={(e) => set("address", e.target.value)} />
-                <input style={input} placeholder={`${t.orderSummary}…`} value={addr.notes} onChange={(e) => set("notes", e.target.value)} />
+                <input style={input} placeholder={t.orderNotesPh} value={addr.notes} onChange={(e) => set("notes", e.target.value)} />
               </div>
             </div>
           ) : null}
@@ -389,73 +337,3 @@ export default function CheckoutPage() {
   );
 }
 
-function ZoneTile({ active, onClick, title, note }: { active: boolean; onClick: () => void; title: string; note: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        border: `1px solid ${active ? "var(--primary)" : "var(--border-strong)"}`,
-        background: active ? "var(--primary-soft)" : "var(--card)",
-        borderRadius: 10,
-        padding: 14,
-        cursor: "pointer",
-        textAlign: "left",
-      }}
-    >
-      <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
-      <div className="sf-mono" style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>{note}</div>
-    </button>
-  );
-}
-
-function SummaryRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, color: accent ? "var(--primary)" : "var(--muted)" }}>
-      <span>{label}</span>
-      <span className="sf-mono">{value}</span>
-    </div>
-  );
-}
-
-const primaryBtn: CSSProperties = {
-  background: "var(--primary)",
-  color: "var(--on-primary)",
-  border: "none",
-  padding: 14,
-  borderRadius: 9,
-  fontFamily: "inherit",
-  fontSize: 14.5,
-  fontWeight: 700,
-  cursor: "pointer",
-};
-const ghostBtn: CSSProperties = {
-  background: "transparent",
-  color: "var(--text)",
-  border: "1px solid var(--border-strong)",
-  padding: "12px 22px",
-  borderRadius: 8,
-  fontFamily: "inherit",
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-};
-const primaryLink: CSSProperties = {
-  display: "inline-block",
-  background: "var(--primary)",
-  color: "var(--on-primary)",
-  padding: "12px 24px",
-  borderRadius: 9,
-  fontSize: 14,
-  fontWeight: 600,
-};
-const ghostLink: CSSProperties = {
-  display: "inline-block",
-  background: "transparent",
-  color: "var(--text)",
-  border: "1px solid var(--border-strong)",
-  padding: "12px 24px",
-  borderRadius: 9,
-  fontSize: 14,
-  fontWeight: 600,
-};

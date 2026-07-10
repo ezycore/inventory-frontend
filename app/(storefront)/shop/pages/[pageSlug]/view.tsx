@@ -23,7 +23,7 @@ export default function StoreContentPage() {
   const wrapStyle: CSSProperties = { maxWidth: 780, margin: "0 auto", padding: "30px var(--pad) 64px" };
 
   if (isLoading) {
-    return <p style={{ ...wrapStyle, fontSize: 13, color: "var(--muted)" }}>Loading…</p>;
+    return <p style={{ ...wrapStyle, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
   }
 
   if (isError || !page) {

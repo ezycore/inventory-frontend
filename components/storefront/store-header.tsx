@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import type { CSSProperties } from "react";
 import Link from "next/link";
@@ -36,7 +37,6 @@ interface HeaderCtx {
   base: string;
   name: string;
   logo?: string;
-  tagline: string;
   phone: string;
   t: T;
   theme: "light" | "dark";
@@ -76,7 +76,6 @@ export function StoreHeader({
     base,
     name: store?.name ?? "Store",
     logo: store?.logo?.url || store?.logo?.thumbnailUrl,
-    tagline: "EVERYDAY ESSENTIALS",
     phone: store?.contact?.phone ?? "",
     t,
     theme,
@@ -126,12 +125,12 @@ function MobileHeader({ ctx }: { ctx: HeaderCtx }) {
           <Brand name={name} logo={logo} markSize={29} nameSize={15.5} />
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <span onClick={toggleLang} role="button" tabIndex={0} style={{ fontSize: 12, color: "var(--muted)", fontWeight: 500, cursor: "pointer" }}>
+          <button type="button" onClick={toggleLang} style={{ ...bareBtn, fontSize: 12, color: "var(--muted)", fontWeight: 500 }}>
             {lang === "en" ? "বাংলা" : "EN"}
-          </span>
-          <span onClick={toggleTheme} role="button" tabIndex={0} style={{ cursor: "pointer", display: "flex", color: "var(--text)" }}>
+          </button>
+          <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t.lightMode : t.darkMode} style={{ ...bareBtn, display: "flex", color: "var(--text)" }}>
             <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
-          </span>
+          </button>
         </div>
       </div>
       <button type="button" onClick={goSearch} style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--faint)", cursor: "pointer" }}>
@@ -145,13 +144,13 @@ function MobileHeader({ ctx }: { ctx: HeaderCtx }) {
 /* --------------------------- desktop variants ----------------------------- */
 
 function ClassicDesktop({ ctx }: { ctx: HeaderCtx }) {
-  const { base, name, logo, tagline } = ctx;
+  const { base, name, logo } = ctx;
   return (
     <>
       <UtilityBar ctx={ctx} />
       <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "13px var(--pad)", display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
-          <Brand name={name} logo={logo} markSize={38} nameSize={18} tagline={tagline} />
+          <Brand name={name} logo={logo} markSize={38} nameSize={18} />
         </Link>
         <SearchBar ctx={ctx} />
         <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none" }}>
@@ -222,12 +221,16 @@ function UtilityBar({ ctx }: { ctx: HeaderCtx }) {
   const { base, phone, t } = ctx;
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "6px var(--pad)", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, color: "var(--muted)", borderBottom: "1px solid var(--border)" }}>
+      {/* Merchant's real phone only — never a placeholder number. */}
       <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
-        <Icon name="phone" size={15} /> {phone || "16263"} · {t.deliverDhaka}
+        {phone ? (
+          <>
+            <Icon name="phone" size={15} /> {phone}
+          </>
+        ) : null}
       </span>
       <span style={{ display: "flex", gap: 16, alignItems: "center" }}>
         <Link href={storeHref(base, "/account")} style={{ color: "inherit" }}>{t.trackOrder}</Link>
-        <span style={{ cursor: "pointer" }}>{t.help}</span>
         <LangBtn ctx={ctx} />
         <ThemeBtn ctx={ctx} />
       </span>
@@ -235,21 +238,31 @@ function UtilityBar({ ctx }: { ctx: HeaderCtx }) {
   );
 }
 
+/** Reset for icon/text buttons in the header bars (real buttons for keyboard). */
+const bareBtn: CSSProperties = {
+  background: "none",
+  border: "none",
+  padding: 0,
+  fontFamily: "inherit",
+  fontSize: "inherit",
+  cursor: "pointer",
+};
+
 function LangBtn({ ctx }: { ctx: HeaderCtx }) {
   return (
-    <span onClick={ctx.toggleLang} role="button" tabIndex={0} style={{ cursor: "pointer", fontWeight: 600, color: "var(--text)" }}>
+    <button type="button" onClick={ctx.toggleLang} style={{ ...bareBtn, fontWeight: 600, color: "var(--text)" }}>
       {ctx.lang === "en" ? "বাংলা" : "English"}
-    </span>
+    </button>
   );
 }
 
 function ThemeBtn({ ctx }: { ctx: HeaderCtx }) {
   const { theme, toggleTheme, t } = ctx;
   return (
-    <span onClick={toggleTheme} role="button" tabIndex={0} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+    <button type="button" onClick={toggleTheme} style={{ ...bareBtn, display: "flex", alignItems: "center", gap: 5, color: "inherit" }}>
       <Icon name={theme === "dark" ? "sun" : "moon"} size={14} />
       {theme === "dark" ? t.lightMode : t.darkMode}
-    </span>
+    </button>
   );
 }
 

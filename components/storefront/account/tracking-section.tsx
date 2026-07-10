@@ -74,7 +74,7 @@ export function TrackingSection({
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
         {back}
-        <p style={{ fontSize: 13, color: "var(--muted)" }}>Loading…</p>
+        <p style={{ fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>
       </div>
     );
   }

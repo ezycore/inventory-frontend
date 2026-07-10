@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { Suspense, useState, type CSSProperties } from "react";
 import { useSearchParams } from "next/navigation";
@@ -11,7 +12,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { ProductCard } from "@/components/storefront/product-card";
-import { Icon } from "@/components/storefront/sf-icons";
+import { SkeletonCard } from "@/components/storefront/sf-skeleton";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -42,13 +43,25 @@ function CollectionInner() {
   const pagination = data?.pagination;
   const total = pagination?.total ?? items.length;
   const cats = categories ?? [];
+  const activeCat = cats.find((c) => c._id === categoryId);
+
+  // Keep the filter in the URL (shareable, back-safe) without a Next re-render.
+  const selectCategory = (id: string) => {
+    setCategoryId(id);
+    setPage(1);
+    window.history.replaceState(
+      null,
+      "",
+      id ? `?categoryId=${id}` : window.location.pathname,
+    );
+  };
 
   const gridClass = variant === "grid3" || variant === "sidebar" ? "sf-grid-3" : "sf-grid-4";
 
   const grid = (
     <div className={gridClass} style={{ alignContent: "start" }}>
       {isLoading
-        ? null
+        ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
         : items.map((p) => <ProductCard key={p._id} product={p} currency={currency} />)}
     </div>
   );
@@ -58,18 +71,11 @@ function CollectionInner() {
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 18, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
-            {t.allProducts}
+            {activeCat?.name ?? t.allProducts}
           </h1>
           <span style={{ fontSize: 13, color: "var(--muted)" }}>
             {total} {t.results}
           </span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--card)", border: "1px solid var(--border-strong)", borderRadius: 8, padding: "9px 13px", color: "var(--text)" }}>
-          <Icon name="sliders" size={16} />
-          <span style={{ fontSize: 13, fontWeight: 500 }}>
-            {t.sortBy}: {t.sortPopular}
-          </span>
-          <Icon name="chevR" size={15} />
         </div>
       </div>
 
@@ -83,20 +89,14 @@ function CollectionInner() {
               <FilterRow
                 label={t.allProducts}
                 active={!categoryId}
-                onClick={() => {
-                  setCategoryId("");
-                  setPage(1);
-                }}
+                onClick={() => selectCategory("")}
               />
               {cats.map((c) => (
                 <FilterRow
                   key={c._id}
                   label={c.name}
                   active={categoryId === c._id}
-                  onClick={() => {
-                    setCategoryId(c._id);
-                    setPage(1);
-                  }}
+                  onClick={() => selectCategory(c._id)}
                 />
               ))}
             </div>
@@ -107,7 +107,6 @@ function CollectionInner() {
         grid
       )}
 
-      {isLoading ? <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 16 }}>Loading…</p> : null}
       {!isLoading && items.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 16 }}>{t.noResults}</p>
       ) : null}
@@ -206,8 +205,9 @@ function PageBtn({
 }
 
 export default function CollectionPage() {
+  const { t } = useStorefrontUI();
   return (
-    <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>Loading…</p>}>
+    <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>
       <CollectionInner />
     </Suspense>
   );

@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { getStoreContext } from "@/lib/storefront-host";
 import {
@@ -7,6 +8,19 @@ import {
   getStorePages,
 } from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
+
+/**
+ * Browser-tab icon for the whole storefront: the store's logo (same asset the
+ * header shows), falling back to the platform default. The `getStore` call is
+ * fetch-cached, so this shares the layout's request.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { slug } = await getStoreContext();
+  const store = slug ? await getStore(slug) : null;
+  const icon =
+    store?.logo?.thumbnailUrl || store?.logo?.url || "/icon.png";
+  return { icons: { icon } };
+}
 
 /**
  * Resolves the active store from the request host (set by `proxy.ts`) and hands

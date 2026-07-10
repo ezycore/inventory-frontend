@@ -32,12 +32,6 @@ export function money(
   return `${currency || "BDT"} ${n}`;
 }
 
-/** Inline Taka amount (`৳60`) — used for shipping fees in the design. */
-export function taka(amount: number | null | undefined): string {
-  const value = typeof amount === "number" ? amount : 0;
-  return `৳${value.toLocaleString("en-US")}`;
-}
-
 /** Discount percentage from a compare-at/old price, or 0 when not on sale. */
 export function discountPct(
   price: number | null | undefined,

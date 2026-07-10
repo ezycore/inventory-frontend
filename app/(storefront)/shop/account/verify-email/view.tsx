@@ -178,11 +178,18 @@ function VerifyResult({
   );
 }
 
+// Success/error mix toward the theme text so they stay visible in dark mode.
 const TONES = {
   brand: { bg: "var(--primary-soft)", fg: "var(--primary)" },
   muted: { bg: "var(--card-alt, var(--border))", fg: "var(--muted)" },
-  success: { bg: "rgba(22, 163, 74, 0.12)", fg: "#16a34a" },
-  error: { bg: "rgba(220, 38, 38, 0.12)", fg: "#dc2626" },
+  success: {
+    bg: "color-mix(in srgb, #16a34a 14%, transparent)",
+    fg: "color-mix(in srgb, #16a34a 75%, var(--text))",
+  },
+  error: {
+    bg: "color-mix(in srgb, #dc2626 14%, transparent)",
+    fg: "color-mix(in srgb, #dc2626 75%, var(--text))",
+  },
 };
 
 function Badge({ tone, icon }: { tone: keyof typeof TONES; icon: IconName }) {
