@@ -1,8 +1,10 @@
 "use client";
+// coding-standard: maintained
 
 import {
   getRootDomain,
   isValidOrganizationSlug,
+  signupUrl,
   workspaceUrl,
 } from "@/lib/organization-utils";
 import {
@@ -48,13 +50,12 @@ export function WorkspaceChooser({
   const [error, setError] = useState<string | null>(null);
 
   const rootDomain = getRootDomain();
-  const signupUrl = rootDomain ? "https://app.ezycore.com/signup" : "/signup";
 
   // Cross-origin hop — full page load to the workspace login. The spinner stays
   // on while the browser navigates.
   const goToWorkspace = (workspaceSlug: string) => {
     setIsChecking(true);
-    window.location.href = workspaceUrl(workspaceSlug, "/login");
+    window.location.assign(workspaceUrl(workspaceSlug, "/login"));
   };
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -264,7 +265,7 @@ export function WorkspaceChooser({
 
             <div className="mt-2 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <Link href={signupUrl} className="underline underline-offset-4">
+              <Link href={signupUrl()} className="underline underline-offset-4">
                 Sign up
               </Link>
             </div>
