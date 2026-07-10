@@ -1,159 +1,242 @@
 'use client';
+// coding-standard: maintained
 
-import { format } from 'date-fns';
-import { Boxes, ClipboardList, Package } from 'lucide-react';
-import { Badge } from '@/ui/components/badge';
-import { InfoField } from '@/components/shared/info-field';
-import type { Sale, SalesReturn } from '@/types';
-import { CopyField } from '@/ui/components/copy';
+import { format as formatDate } from 'date-fns';
+import { SimpleTable, type SimpleColumn } from '@/ui/components/simple-table';
+import {
+  ComboBadge,
+  DetailsKv,
+  ItemCell,
+  StatStrip,
+  StatTile,
+  TotalsBlock,
+  type TotalsRow,
+  comboRowClass,
+  detailTableClass,
+} from '@/components/shared/detail-sheet';
+import { useCurrency } from '@/lib/currency';
+import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission';
+import type { Sale, SaleItem, SalesReturn } from '@/types';
 import { splitLineTax } from '@/utils/tax';
 import { groupSaleItemsByCombo } from '@/components/sales/helpers';
 
-export function SaleDetailsBlock({ sale, saleReturns, }: { sale: Sale; saleReturns?: SalesReturn[] }) {
-  // Split line tax into added (exclusive, on top) vs in-price (inclusive, informational).
-  const { addedTax, includedTax } = splitLineTax(sale.items);
+// ── Headline stats ───────────────────────────────────────────────────────────
+
+export function SaleStats({
+  sale,
+  saleReturns,
+}: {
+  sale: Sale;
+  saleReturns?: SalesReturn[];
+}) {
+  const { format: fmt } = useCurrency();
+  const refunded = (saleReturns ?? []).reduce(
+    (sum, r) => sum + (r.totalRefundAmount ?? 0),
+    0,
+  );
+  // Drafts carry no payment state — only the total is meaningful.
+  const isDraft = sale.status === 'draft';
 
   return (
-    <>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <InfoField label="Invoice #" value={<CopyField value={sale.invoiceNumber} />} />
-        <InfoField
-          label="Status"
-          value={
-            <Badge variant="outline" className="capitalize">
-              {sale.status}
-            </Badge>
-          }
+    <StatStrip>
+      <StatTile label="Invoice total" value={fmt(sale.totalAmount)} />
+      {!isDraft && (
+        <StatTile
+          label="Paid"
+          value={fmt(sale.paidAmount)}
+          valueClassName="text-green-600"
         />
-        <InfoField label="Customer" value={sale.customerId?.name ?? 'Walk-in Customer'} />
-        <InfoField
-          label="Created By"
-          value={
-            sale.createdBy ? `${sale.createdBy.firstName} ${sale.createdBy.lastName}` : '-'
-          }
-        />
-        <InfoField label="Created At" value={format(new Date(sale.createdAt), 'dd MMM yyyy hh:mm aa')} />
-        <InfoField label="Updated At" value={format(new Date(sale.updatedAt), 'dd MMM yyyy hh:mm aa')} />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <InfoField label="Subtotal" value={sale.subtotal} showCurrency />
-        <InfoField label="Additional Discount" value={sale.additionalDiscount} showCurrency />
-        {addedTax > 0 && <InfoField label="Tax (added)" value={addedTax} showCurrency />}
-        {includedTax > 0 && <InfoField label="Tax (in price)" value={includedTax} showCurrency />}
-        <InfoField label="Invoice Amount" value={sale.totalAmount} showCurrency />
-        <InfoField label="Paid Amount" value={sale.paidAmount} showCurrency valueClassName="text-green-600" />
-        <InfoField
-          label="Due Amount"
-          value={sale.dueAmount}
-          showCurrency
+      )}
+      {!isDraft && (
+        <StatTile
+          label="Due"
+          value={fmt(sale.dueAmount)}
           valueClassName={sale.dueAmount > 0 ? 'text-red-600' : 'text-green-600'}
         />
-        <InfoField label="Cost Price" value={sale.costPrice} showCurrency />
-
-        {/* {typeof sale.refundCreditApplied === 'number' && sale.refundCreditApplied > 0 ? (
-          <InfoField
-            label="Refund Credits Applied"
-            value={sale.refundCreditApplied}
-            showCurrency
-            valueClassName="text-emerald-600"
-          />
-        ) : null} */}
-
-        {saleReturns && saleReturns.length > 0 ? (
-          <InfoField
-            label="Refund Amount"
-            value={saleReturns.reduce((sum, r) => sum + (r.totalRefundAmount ?? 0), 0)}
-            showCurrency
-            valueClassName="text-red-600"
-          />
-        ) : null}
-      </div>
-
-      {sale.notes && (
-        <div className="rounded-lg border p-4 space-y-3">
-          <div className="flex items-center gap-2 font-medium">
-            <ClipboardList className="h-4 w-4" />
-            Notes
-          </div>
-          <p className="text-sm text-muted-foreground">{sale.notes}</p>
-        </div>
       )}
-    </>
+      {refunded > 0 && (
+        <StatTile
+          label="Refunded"
+          value={fmt(refunded)}
+          valueClassName="text-red-600"
+          sub={`${saleReturns!.length} return${saleReturns!.length === 1 ? '' : 's'}`}
+        />
+      )}
+    </StatStrip>
   );
 }
 
-function SaleItemCard({ item }: { item: Sale['items'][number] }) {
-  return (
-    <div className="space-y-3 rounded-lg bg-muted/30 p-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="font-medium">{item.productName}</div>
-        <Badge variant="outline" className="shrink-0">
-          Qty {item.quantity}
-        </Badge>
-      </div>
+// ── Items table ──────────────────────────────────────────────────────────────
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <InfoField label="Price" value={item.price} showCurrency quantity={item.quantity} />
-        <InfoField
-          label="Discount"
-          value={item.discount}
-          showCurrency
-          quantity={item.discount ? item.quantity : 0}
-        />
-        <InfoField label="Subtotal" value={item.subtotal} showCurrency />
-        {item.taxRate ? (
-          <InfoField
-            label={`Tax (${item.taxRate}%)${item.taxType === 'inclusive' ? ' incl.' : ''}`}
-            value={item.taxAmount ?? 0}
-            showCurrency
+type SaleItemRow =
+  | { kind: 'combo'; key: string; name: string; total: number }
+  | { kind: 'item'; key: string; item: SaleItem; inCombo: boolean };
+
+function buildItemRows(items: SaleItem[]): SaleItemRow[] {
+  const rows: SaleItemRow[] = [];
+  for (const group of groupSaleItemsByCombo(items)) {
+    if (group.comboLineId) {
+      rows.push({
+        kind: 'combo',
+        key: group.key,
+        name: group.comboName ?? 'Combo',
+        total: group.comboSubtotal,
+      });
+      group.items.forEach((item, i) =>
+        rows.push({
+          kind: 'item',
+          key: `${group.key}-${item.productId}-${i}`,
+          item,
+          inCombo: true,
+        }),
+      );
+    } else {
+      rows.push({ kind: 'item', key: group.key, item: group.items[0], inCombo: false });
+    }
+  }
+  return rows;
+}
+
+export function SaleItemsTable({ sale }: { sale: Sale }) {
+  const { format: fmt } = useCurrency();
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView);
+  const rows = buildItemRows(sale.items);
+  // Added (exclusive) vs in-price (inclusive, informational) tax of the sale.
+  const { addedTax, includedTax } = splitLineTax(sale.items);
+  const totalUnits = sale.items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const columns: SimpleColumn<SaleItemRow>[] = [
+    {
+      key: 'item',
+      header: 'Item',
+      cell: (row) =>
+        row.kind === 'combo' ? (
+          <span className="flex items-center gap-2 font-medium">
+            {row.name}
+            <ComboBadge />
+          </span>
+        ) : (
+          <ItemCell
+            name={row.item.productName}
+            indent={row.inCombo}
+            sub={
+              canViewCosts
+                ? `Cost ${fmt(row.item.costPrice)} × ${row.item.quantity} = ${fmt(row.item.costPrice * row.item.quantity)}`
+                : undefined
+            }
           />
-        ) : null}
-        <InfoField
-          label="Cost Price"
-          value={item.costPrice}
-          showCurrency
-          quantity={item.quantity}
+        ),
+    },
+    {
+      key: 'qty',
+      header: 'Qty',
+      align: 'right',
+      cell: (row) => (row.kind === 'item' ? row.item.quantity : null),
+    },
+    {
+      key: 'price',
+      header: 'Price',
+      align: 'right',
+      cell: (row) => (row.kind === 'item' ? fmt(row.item.price) : null),
+    },
+    {
+      key: 'discount',
+      header: 'Disc.',
+      align: 'right',
+      cell: (row) =>
+        row.kind === 'item'
+          ? row.item.discount > 0
+            ? `−${fmt(row.item.discount * row.item.quantity)}`
+            : '—'
+          : null,
+    },
+    {
+      key: 'tax',
+      header: 'Tax',
+      align: 'right',
+      cell: (row) =>
+        row.kind === 'item'
+          ? row.item.taxRate
+            ? `${row.item.taxRate}%${row.item.taxType === 'inclusive' ? ' incl.' : ''} · ${fmt(row.item.taxAmount ?? 0)}`
+            : '—'
+          : null,
+    },
+    {
+      key: 'total',
+      header: 'Total',
+      align: 'right',
+      cellClassName: 'font-semibold',
+      cell: (row) => (row.kind === 'combo' ? fmt(row.total) : fmt(row.item.subtotal)),
+    },
+  ];
+
+  const totalsRows: TotalsRow[] = [
+    { label: 'Subtotal', value: fmt(sale.subtotal) },
+    {
+      label: 'Additional discount',
+      value: sale.additionalDiscount > 0 ? `−${fmt(sale.additionalDiscount)}` : fmt(0),
+    },
+    ...(addedTax > 0 ? [{ label: 'Tax (added)', value: fmt(addedTax) }] : []),
+    ...(includedTax > 0
+      ? [{ label: 'Tax (in price)', value: fmt(includedTax), muted: true }]
+      : []),
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="text-sm font-medium">
+        Items{' '}
+        <span className="font-normal text-muted-foreground">({sale.items.length})</span>
+      </div>
+      <div className="overflow-x-auto rounded-lg border">
+        <SimpleTable
+          className={detailTableClass}
+          columns={columns}
+          rows={rows}
+          getRowKey={(row) => row.key}
+          rowClassName={(row) => (row.kind === 'combo' ? comboRowClass : undefined)}
         />
       </div>
+      <TotalsBlock
+        meta={`${sale.items.length} product${sale.items.length === 1 ? '' : 's'} · ${totalUnits} unit${totalUnits === 1 ? '' : 's'}`}
+        rows={totalsRows}
+        total={{ label: 'Invoice total', value: fmt(sale.totalAmount) }}
+      />
     </div>
   );
 }
 
-export function SaleItemsList({ sale }: { sale: Sale }) {
-  const groups = groupSaleItemsByCombo(sale.items);
+// ── Metadata ─────────────────────────────────────────────────────────────────
+
+export function SaleDetailsKv({ sale }: { sale: Sale }) {
+  const { format: fmt } = useCurrency();
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView);
 
   return (
-    <div className="rounded-lg border p-4 space-y-4">
-      <div className="flex items-center gap-2 font-medium">
-        <Boxes className="h-4 w-4" />
-        Items ({sale.items.length})
-      </div>
-
-      <div className="space-y-3">
-        {groups.map((group) =>
-          group.comboLineId ? (
-            // Combo: a header at the combo price, with the component lines nested.
-            <div key={group.key} className="rounded-lg border border-orange-200 bg-orange-50/40 p-3 space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2 font-medium">
-                  <Package className="h-4 w-4 text-orange-600" />
-                  {group.comboName ?? 'Combo'}
-                  <Badge className="bg-orange-100 text-orange-700">Combo</Badge>
-                </div>
-                <InfoField label="Combo total" value={group.comboSubtotal} showCurrency />
-              </div>
-              <div className="space-y-2 pl-2">
-                {group.items.map((item, i) => (
-                  <SaleItemCard key={`${group.key}-${item.productId}-${i}`} item={item} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <SaleItemCard key={group.key} item={group.items[0]} />
-          ),
-        )}
-      </div>
-    </div>
+    <DetailsKv
+      rows={[
+        { label: 'Customer', value: sale.customerId?.name ?? 'Walk-in Customer' },
+        {
+          label: 'Created by',
+          value: sale.createdBy
+            ? `${sale.createdBy.firstName} ${sale.createdBy.lastName}`
+            : '-',
+        },
+        {
+          label: 'Created at',
+          value: formatDate(new Date(sale.createdAt), 'dd MMM yyyy hh:mm aa'),
+        },
+        {
+          label: 'Updated at',
+          value: formatDate(new Date(sale.updatedAt), 'dd MMM yyyy hh:mm aa'),
+        },
+        {
+          label: 'Cost price',
+          value:
+            canViewCosts && sale.costPrice != null ? fmt(sale.costPrice) : undefined,
+          muted: true,
+        },
+      ]}
+    />
   );
 }

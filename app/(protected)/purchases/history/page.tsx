@@ -22,7 +22,7 @@ export default function PurchaseHistoryPage() {
         <div>
           <h1 className="text-3xl font-bold">Purchase History</h1>
           <p className="text-muted-foreground">
-            View and manage your purchases
+            All purchases you have recorded.
           </p>
         </div>
         <Button onClick={() => router.push("/purchases")}>
@@ -43,7 +43,7 @@ export default function PurchaseHistoryPage() {
       <Card className="p-0">
         <CardContent className="p-6">
           <BaseDataTable
-            title="Purchase Orders"
+            title="Purchases"
             columns={ctx.columns}
             data={ctx.purchases}
             isLoading={ctx.isLoading}

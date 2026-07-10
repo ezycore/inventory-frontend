@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
 import { StatusBadge } from '@/ui/components/status-badge'
 import { Layers } from 'lucide-react'
+import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 
 interface DetailVariantsProps {
   variants: any[]
@@ -13,6 +14,8 @@ interface DetailVariantsProps {
 }
 
 export function DetailVariants({ variants, formatCurrency }: DetailVariantsProps) {
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView)
+
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -59,8 +62,10 @@ export function DetailVariants({ variants, formatCurrency }: DetailVariantsProps
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-emerald-600">{formatCurrency(variant.price)}</p>
-                  <p className="text-sm text-muted-foreground">Cost: {formatCurrency(variant.costPrice)}</p>
-                  {variant.costPrice > 0 && (
+                  {canViewCosts && (
+                    <p className="text-sm text-muted-foreground">Cost: {formatCurrency(variant.costPrice)}</p>
+                  )}
+                  {canViewCosts && variant.costPrice > 0 && (
                     <p className="text-xs font-medium text-blue-600">
                       {(((variant.price - variant.costPrice) / variant.price) * 100).toFixed(1)}% margin
                     </p>

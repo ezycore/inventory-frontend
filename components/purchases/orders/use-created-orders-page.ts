@@ -17,6 +17,7 @@ import type {
 } from "@/types";
 
 import {
+  ALL_ORDER_STATUSES,
   buildCreatedOrdersFilterConfig,
   defaultCreatedOrderFilters,
   getCreatedOrderActions,
@@ -38,11 +39,20 @@ export function useCreatedOrdersPage() {
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
+  // "all" is a UI-only sentinel for "no status filter" — drop it before querying.
+  const apiFilters = useMemo(() => {
+    if ((filters.status as string) === ALL_ORDER_STATUSES) {
+      const { status: _status, ...rest } = filters;
+      return rest;
+    }
+    return filters;
+  }, [filters]);
+
   const {
     data: ordersData,
     isLoading,
     refetch,
-  } = usePurchaseOrders({ page, limit, ...filters });
+  } = usePurchaseOrders({ page, limit, ...apiFilters });
 
   const { data: orderDetailData, isLoading: isLoadingDetail } = usePurchaseOrder(
     selectedOrderId || "",

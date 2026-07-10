@@ -10,6 +10,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
+import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 
 interface DetailStatsProps {
   totalStock: number
@@ -58,6 +59,9 @@ export function DetailStats({
   salesEnabled,
   formatCurrency,
 }: DetailStatsProps) {
+  // Stock value and profit tiles are cost-derived — costs.view only.
+  const canViewCosts = useHasPermission(PERMISSIONS.costsView)
+
   const stats: Stat[] = [
     {
       icon: ShieldCheck,
@@ -65,12 +69,16 @@ export function DetailStats({
       value: totalStock.toLocaleString(),
       sub: `across ${locationCount} ${locationCount === 1 ? 'location' : 'locations'}`,
     },
-    {
-      icon: Wallet,
-      label: 'Stock Value',
-      value: formatCurrency(stockValue),
-      sub: 'at cost price',
-    },
+    ...(canViewCosts
+      ? [
+          {
+            icon: Wallet,
+            label: 'Stock Value',
+            value: formatCurrency(stockValue),
+            sub: 'at cost price',
+          },
+        ]
+      : []),
     // Transactional sales tiles — only when the sales module is on.
     ...(salesEnabled
       ? [
@@ -88,12 +96,16 @@ export function DetailStats({
           },
         ]
       : []),
-    {
-      icon: BarChart3,
-      label: 'Profit Margin',
-      value: `${profitMarginPercent}%`,
-      sub: `${formatCurrency(profitPerUnit)} per unit`,
-    },
+    ...(canViewCosts
+      ? [
+          {
+            icon: BarChart3,
+            label: 'Profit Margin',
+            value: `${profitMarginPercent}%`,
+            sub: `${formatCurrency(profitPerUnit)} per unit`,
+          },
+        ]
+      : []),
   ]
 
   return (

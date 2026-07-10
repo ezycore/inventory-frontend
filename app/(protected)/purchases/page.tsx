@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { Button } from "@/ui/components/button";
+import PageHeader from "@/ui/components/header";
 import { Download } from "lucide-react";
 
 import { getPurchaseColumns } from "@/components/purchases";
@@ -79,7 +80,11 @@ function PurchasesPageContent() {
   } = ctx;
 
   return (
-    <div className="">
+    <div className="space-y-4">
+      <PageHeader
+        title="New Purchase"
+        subTitle="Record stock you buy from suppliers."
+      />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ==================== LEFT COLUMN ==================== */}
         <div className="lg:col-span-2 space-y-4">

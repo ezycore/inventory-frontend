@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 import { useLogin } from "@/services/api";
 import {
   getOrganizationSlugDescription,
@@ -6,6 +7,7 @@ import {
   getRootDomain,
   isWorkspaceHost,
   shouldShowOrganizationSlugField,
+  signupUrl,
   withOrganizationSlug,
 } from "@/lib/organization-utils";
 import { Button } from "@ui/components/button";
@@ -257,15 +259,12 @@ export function LoginForm({
                   )}
                   {loginMutation.isPending ? "Logging in..." : "Login"}
                 </Button>
-                {/* <Button variant="outline" className="w-full">
-                  Login with Google
-                </Button> */}
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link
-                href={process.env.NEXT_PUBLIC_ROOT_DOMAIN ? "https://app.ezycore.com/signup" : "/signup"}
+                href={signupUrl()}
                 className="underline underline-offset-4"
               >
                 Sign up

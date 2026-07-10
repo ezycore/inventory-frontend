@@ -31,6 +31,7 @@ import type {
   CustomerLedgerSale,
 } from "@/types";
 import { CustomerLedgerEntries, type LedgerEntry } from "./customer-ledger-entries";
+import { EmailStatementButton } from "./email-statement-button";
 import { CustomerLedgerSummary } from "./customer-ledger-summary";
 import { CustomerPaymentForm } from "./customer-payment-form";
 
@@ -204,13 +205,19 @@ export function CustomerLedgerSheet({
                   : "Transaction history and account summary"}
               </SheetDescription>
             </div>
-            {!paymentSale && statement && (
-              <PrintMenu
-                appearance="solid"
-                a4Label="Statement"
-                defaultPaper={resolveDefaultPaper(user?.organization)}
-                onPrint={printStatementDoc}
-              />
+            {!paymentSale && statement && customer && (
+              <div className="flex items-center gap-2">
+                <PrintMenu
+                  appearance="solid"
+                  a4Label="Statement"
+                  defaultPaper={resolveDefaultPaper(user?.organization)}
+                  onPrint={printStatementDoc}
+                />
+                <EmailStatementButton
+                  customer={customer}
+                  totalDue={statement.summary.totalDue}
+                />
+              </div>
             )}
           </div>
         </SheetHeader>

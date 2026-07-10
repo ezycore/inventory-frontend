@@ -1,20 +1,19 @@
 "use client";
+// coding-standard: maintained
 
 import {
-  OrganizationTab,
   PasswordChangeTab,
   PermissionsTab,
   ProfileHeader,
   ProfileInfoTab,
-  TransferOwnershipTab,
   TwoFactorTab,
 } from "@/components/profile";
-import { useAuthStore } from "@/services/stores/use-auth-store";
 import { ScrollArea, ScrollBar } from "@/ui/components/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { cn } from "@/ui/lib/utils";
-import { Building2, KeyRound, Lock, Shield, User, UserCog } from "lucide-react";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { KeyRound, Lock, Shield, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useLayoutEffect, useState } from "react";
 
 const tabItems = [
   {
@@ -49,38 +48,16 @@ const tabItems = [
     icon: Shield,
     content: <PermissionsTab />,
   },
-  {
-    value: "organization",
-    title: "Organization",
-    shortTitle: "Org",
-    description: "Manage organization settings",
-    icon: Building2,
-    content: <OrganizationTab />,
-  },
-  {
-    value: "transfer",
-    title: "Transfer",
-    shortTitle: "Transfer",
-    description: "Transfer ownership",
-    icon: UserCog,
-    content: <TransferOwnershipTab />,
-    ownerOnly: true,
-  },
 ];
 
+const validTabValues = tabItems.map((tab) => tab.value);
+
+// Organization admin moved to Settings → Organization; old profile hashes
+// should land there instead of dead-ending.
+const legacyOrgHashes = ["organization", "transfer"];
+
 export default function ProfilePage() {
-  const { user } = useAuthStore();
-
-  const isOwner = useMemo(() => {
-    if(!user) return false;
-    return user?.organization?.ownerId === user?.id;
-  }, [user]);
-
-  const visibleTabs = tabItems.filter((tab) => !tab.ownerOnly || isOwner);
-  const validTabValues = useMemo(
-    () => visibleTabs.map((t) => t.value),
-    [visibleTabs],
-  );
+  const router = useRouter();
 
   // Always start with "profile" — consistent between server render and the
   // client's first (hydration) render, so React never sees a mismatch.
@@ -92,12 +69,14 @@ export default function ProfilePage() {
   useLayoutEffect(() => {
     const applyHash = () => {
       const hash = window.location.hash.replace("#", "");
+      if (legacyOrgHashes.includes(hash)) {
+        router.replace("/settings/organization");
+        return;
+      }
       if (hash && validTabValues.includes(hash)) {
         setActiveTab(hash);
-      } else if (!hash) {
-        setActiveTab("profile");
       } else {
-        // Hash present but not a valid/visible tab (e.g. ownerOnly) → reset
+        // No hash, or a hash that isn't a valid tab → reset
         setActiveTab("profile");
       }
     };
@@ -107,7 +86,7 @@ export default function ProfilePage() {
 
     window.addEventListener("hashchange", applyHash);
     return () => window.removeEventListener("hashchange", applyHash);
-  }, [validTabValues]);
+  }, [router]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -137,7 +116,7 @@ export default function ProfilePage() {
                 <div className="sticky top-6">
                   <nav className="space-y-1 rounded-xl border bg-card p-2">
                     <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 gap-1">
-                      {visibleTabs.map((tab) => {
+                      {tabItems.map((tab) => {
                         const Icon = tab.icon;
                         return (
                           <TabsTrigger
@@ -169,7 +148,7 @@ export default function ProfilePage() {
               <div className="lg:hidden">
                 <ScrollArea className="w-full whitespace-nowrap">
                   <TabsList className="inline-flex w-full justify-start gap-1 bg-card border rounded-xl p-1.5 h-auto">
-                    {visibleTabs.map((tab) => {
+                    {tabItems.map((tab) => {
                       const Icon = tab.icon;
                       return (
                         <TabsTrigger
@@ -195,7 +174,7 @@ export default function ProfilePage() {
 
               {/* Content Area */}
               <div className="flex-1 min-w-0">
-                {visibleTabs.map((tab) => (
+                {tabItems.map((tab) => (
                   <TabsContent
                     key={tab.value}
                     value={tab.value}

@@ -299,8 +299,8 @@ export default function LowStock() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Low Stock Products"
-        subTitle="View stock levels and identify items that need restocking by location"
+        title="Low Stock"
+        subTitle="Items running low that need restocking."
         actions={
           selectedItems.length > 0 ? (
             <Button onClick={handleCreatePurchase} className="gap-1.5">
