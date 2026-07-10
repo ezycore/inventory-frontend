@@ -5,7 +5,11 @@ import {
   isValidOrganizationSlug,
   workspaceUrl,
 } from "@/lib/organization-utils";
-import { lookupWorkspace } from "@/lib/workspace-status-client";
+import {
+  findWorkspacesByEmail,
+  lookupWorkspace,
+  type FoundWorkspace,
+} from "@/lib/workspace-status-client";
 import { LoginNotices } from "./login-notices";
 import { Alert, AlertDescription } from "@ui/components/alert";
 import { Button } from "@ui/components/button";
@@ -27,19 +31,64 @@ import { useState } from "react";
  * Shown on the no-workspace host (apex / `app.ezycore.com`) when a root domain is
  * configured. Sessions are per-origin, so instead of logging in here we route the
  * user to their workspace subdomain and let them authenticate there once.
+ *
+ * Primary flow finds the workspace(s) by the user's email (people forget slugs,
+ * not emails): one match redirects straight to that workspace's login, several
+ * render a pick list. Entering the workspace name directly stays as a fallback.
  */
 export function WorkspaceChooser({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [mode, setMode] = useState<"email" | "slug">("email");
+  const [email, setEmail] = useState("");
   const [slug, setSlug] = useState("");
+  const [workspaces, setWorkspaces] = useState<FoundWorkspace[] | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const rootDomain = getRootDomain();
   const signupUrl = rootDomain ? "https://app.ezycore.com/signup" : "/signup";
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Cross-origin hop — full page load to the workspace login. The spinner stays
+  // on while the browser navigates.
+  const goToWorkspace = (workspaceSlug: string) => {
+    setIsChecking(true);
+    window.location.href = workspaceUrl(workspaceSlug, "/login");
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsChecking(true);
+
+    const result = await findWorkspacesByEmail(email.trim().toLowerCase());
+
+    if (result.kind === "ok") {
+      if (result.workspaces.length === 1) {
+        goToWorkspace(result.workspaces[0].slug);
+        return;
+      }
+      setIsChecking(false);
+      if (result.workspaces.length === 0) {
+        setError(
+          "No workspace found for this email. Check the address, or sign up below.",
+        );
+      } else {
+        setWorkspaces(result.workspaces);
+      }
+      return;
+    }
+
+    setIsChecking(false);
+    setError(
+      result.kind === "ratelimited"
+        ? "Too many attempts. Please try again in a few minutes."
+        : "Something went wrong. Please try again.",
+    );
+  };
+
+  const handleSlugSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const normalized = slug.trim().toLowerCase();
 
@@ -55,9 +104,8 @@ export function WorkspaceChooser({
     const result = await lookupWorkspace(normalized);
 
     if (result.kind === "ok") {
-      // Cross-origin hop — full page load to the workspace login.
-      window.location.href = workspaceUrl(normalized, "/login");
-      return; // keep the spinner while the browser navigates
+      goToWorkspace(normalized);
+      return;
     }
 
     setIsChecking(false);
@@ -70,6 +118,68 @@ export function WorkspaceChooser({
     }
   };
 
+  const switchMode = (next: "email" | "slug") => {
+    setMode(next);
+    setError(null);
+  };
+
+  // Pick list: the email belongs to several workspaces.
+  if (workspaces) {
+    return (
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+        <LoginNotices />
+        <Card>
+          <CardHeader>
+            <CardTitle>Choose a workspace</CardTitle>
+            <CardDescription>
+              {email} belongs to {workspaces.length} workspaces. Pick one to
+              continue to its sign-in page.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3">
+              {workspaces.map((workspace) => (
+                <button
+                  key={workspace.slug}
+                  type="button"
+                  onClick={() => goToWorkspace(workspace.slug)}
+                  disabled={isChecking}
+                  className="flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 font-semibold uppercase text-primary">
+                    {workspace.name.charAt(0)}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">
+                      {workspace.name}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {workspace.slug}
+                      {rootDomain ? `.${rootDomain}` : ""}
+                    </span>
+                  </span>
+                  {isChecking && (
+                    <Loader2 className="ml-auto h-4 w-4 shrink-0 animate-spin" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <Button
+              type="button"
+              variant="ghost"
+              className="mt-4 w-full"
+              onClick={() => setWorkspaces(null)}
+              disabled={isChecking}
+            >
+              Use a different email
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <LoginNotices />
@@ -77,31 +187,48 @@ export function WorkspaceChooser({
         <CardHeader>
           <CardTitle>Find your workspace</CardTitle>
           <CardDescription>
-            Enter your workspace name to continue to its sign-in page.
+            {mode === "email"
+              ? "Enter your email and we'll take you to your workspace sign-in page."
+              : "Enter your workspace name to continue to its sign-in page."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={mode === "email" ? handleEmailSubmit : handleSlugSubmit}>
             <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="workspace">Workspace</Label>
-                <div className="flex items-center gap-2">
+              {mode === "email" ? (
+                <div className="grid gap-3">
+                  <Label htmlFor="workspace-email">Email</Label>
                   <Input
-                    id="workspace"
-                    type="text"
-                    placeholder="your-workspace"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
+                    id="workspace-email"
+                    type="email"
+                    placeholder="m@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     autoFocus
                     required
                   />
-                  {rootDomain && (
-                    <span className="whitespace-nowrap text-sm text-muted-foreground">
-                      .{rootDomain}
-                    </span>
-                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="grid gap-3">
+                  <Label htmlFor="workspace">Workspace</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="workspace"
+                      type="text"
+                      placeholder="your-workspace"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      autoFocus
+                      required
+                    />
+                    {rootDomain && (
+                      <span className="whitespace-nowrap text-sm text-muted-foreground">
+                        .{rootDomain}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <Alert variant="destructive">
@@ -116,6 +243,26 @@ export function WorkspaceChooser({
             </div>
 
             <div className="mt-4 text-center text-sm">
+              {mode === "email" ? (
+                <button
+                  type="button"
+                  className="text-muted-foreground underline-offset-4 hover:underline"
+                  onClick={() => switchMode("slug")}
+                >
+                  Know your workspace name? Enter it instead
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="text-muted-foreground underline-offset-4 hover:underline"
+                  onClick={() => switchMode("email")}
+                >
+                  Forgot your workspace name? Find it by email
+                </button>
+              )}
+            </div>
+
+            <div className="mt-2 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link href={signupUrl} className="underline underline-offset-4">
                 Sign up

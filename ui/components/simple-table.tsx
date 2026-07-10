@@ -37,6 +37,8 @@ export interface SimpleTableProps<T> {
   headerRowClassName?: string
   /** Class on the underlying <table>. */
   className?: string
+  /** Makes rows clickable: pointer cursor + Enter/Space keyboard activation. */
+  onRowClick?: (row: T) => void
 }
 
 const alignClass = {
@@ -57,6 +59,7 @@ export function SimpleTable<T>({
   rowClassName,
   headerRowClassName,
   className,
+  onRowClick,
 }: SimpleTableProps<T>) {
   return (
     <Table className={className}>
@@ -74,7 +77,22 @@ export function SimpleTable<T>({
       </TableHeader>
       <TableBody>
         {rows.map((row, index) => (
-          <TableRow key={getRowKey(row, index)} className={rowClassName?.(row)}>
+          <TableRow
+            key={getRowKey(row, index)}
+            className={cn(onRowClick && "cursor-pointer", rowClassName?.(row))}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            tabIndex={onRowClick ? 0 : undefined}
+            onKeyDown={
+              onRowClick
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault()
+                      onRowClick(row)
+                    }
+                  }
+                : undefined
+            }
+          >
             {columns.map((col) => (
               <TableCell
                 key={col.key}

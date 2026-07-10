@@ -33,3 +33,40 @@ export async function lookupWorkspace(slug: string): Promise<WorkspaceLookup> {
     return { kind: "error" };
   }
 }
+
+/** One workspace an email belongs to, as returned by the finder endpoint. */
+export interface FoundWorkspace {
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+}
+
+export type WorkspaceEmailLookup =
+  | { kind: "ok"; workspaces: FoundWorkspace[] }
+  | { kind: "ratelimited" }
+  | { kind: "error" };
+
+/**
+ * Email → workspaces lookup for the apex "find your workspace" flow. Calls the
+ * public, rate-limited `POST /api/auth/find-workspaces` endpoint; multi-workspace
+ * emails get every active workspace back so the chooser can offer a pick list.
+ */
+export async function findWorkspacesByEmail(
+  email: string,
+): Promise<WorkspaceEmailLookup> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/find-workspaces`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (res.status === 429) return { kind: "ratelimited" };
+    if (!res.ok) return { kind: "error" };
+    const json = (await res.json()) as {
+      data?: { workspaces?: FoundWorkspace[] };
+    };
+    return { kind: "ok", workspaces: json?.data?.workspaces ?? [] };
+  } catch {
+    return { kind: "error" };
+  }
+}
