@@ -16,7 +16,12 @@ import {
 import { THEME_PRESETS, getPreset } from "@/lib/storefront-theme";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { storefrontUrl } from "@/lib/storefront-url";
-import type { StorefrontSettings, StorefrontTrustBadge } from "@/types";
+import type {
+  StorefrontHeroSlide,
+  StorefrontSettings,
+  StorefrontTrustBadge,
+} from "@/types";
+import { HeroSlidesEditor } from "@/components/ecommerce/hero-slides-editor";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
@@ -109,6 +114,9 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
       icon: settings.trustBadges?.[i]?.icon ?? d.icon,
     })),
   );
+  const [heroSlides, setHeroSlides] = useState<StorefrontHeroSlide[]>(
+    () => settings.heroSlides ?? [],
+  );
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
@@ -140,6 +148,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setAccentColor={setAccentColor}
             badges={badges}
             setBadges={setBadges}
+            heroSlides={heroSlides}
+            setHeroSlides={setHeroSlides}
           />
         ) : (
           <TemplatesSection
@@ -163,6 +173,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           headerTemplate={headerTemplate}
           cardStyle={cardStyle}
           badges={badges}
+          heroSlides={heroSlides}
         />
       </div>
     </div>
@@ -179,6 +190,8 @@ function ThemeSection({
   setAccentColor,
   badges,
   setBadges,
+  heroSlides,
+  setHeroSlides,
 }: {
   settings: StorefrontSettings;
   brandColor: string;
@@ -187,6 +200,8 @@ function ThemeSection({
   setAccentColor: (v: string) => void;
   badges: StorefrontTrustBadge[];
   setBadges: (v: StorefrontTrustBadge[]) => void;
+  heroSlides: StorefrontHeroSlide[];
+  setHeroSlides: (v: StorefrontHeroSlide[]) => void;
 }) {
   const save = useUpdateStorefrontSettings();
   const media = useUpdateStorefrontMedia();
@@ -217,6 +232,17 @@ function ThemeSection({
       },
       // Keep all three slots (empty = default) so positions survive a reload.
       trustBadges: badges.map((b) => ({ text: b.text.trim(), icon: b.icon })),
+      // Untitled slides are drafts — dropped on save (title is required).
+      heroSlides: heroSlides
+        .filter((s) => s.title.trim())
+        .map((s) => ({
+          image: s.image ?? null,
+          badge: s.badge?.trim() || undefined,
+          title: s.title.trim(),
+          subtitle: s.subtitle?.trim() || undefined,
+          buttonLabel: s.buttonLabel?.trim() || undefined,
+          link: s.link?.trim() || undefined,
+        })),
     });
   };
 
@@ -316,6 +342,9 @@ function ThemeSection({
           />
         </div>
       </Card>
+
+      {/* Hero slides (home carousel) */}
+      <HeroSlidesEditor slides={heroSlides} setSlides={setHeroSlides} />
 
       {/* Trust badges (Rich footer) */}
       <Card className="space-y-4 p-5 shadow-none">
@@ -569,6 +598,7 @@ function BrowserPreview({
   headerTemplate,
   cardStyle,
   badges,
+  heroSlides,
 }: {
   slug?: string;
   brandColor: string;
@@ -578,6 +608,7 @@ function BrowserPreview({
   headerTemplate: string;
   cardStyle: string;
   badges: StorefrontTrustBadge[];
+  heroSlides: StorefrontHeroSlide[];
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -586,8 +617,10 @@ function BrowserPreview({
   const url = slug ? `${storefrontUrl(slug)}?preview=1` : "";
   const displayUrl = url.replace(/^https?:\/\//, "");
 
-  // Serialize badges so the callback identity only changes on real edits.
+  // Serialize arrays so the callback identity only changes on real edits.
   const badgesKey = JSON.stringify(badges);
+  // Only preview saveable slides (title required), like the save path.
+  const slidesKey = JSON.stringify(heroSlides.filter((s) => s.title.trim()));
 
   const post = useCallback(() => {
     ref.current?.contentWindow?.postMessage(
@@ -602,11 +635,12 @@ function BrowserPreview({
             productCard: cardStyle,
           },
           trustBadges: JSON.parse(badgesKey),
+          heroSlides: JSON.parse(slidesKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, badgesKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, badgesKey, slidesKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {

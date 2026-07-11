@@ -179,12 +179,24 @@ export interface StorefrontSettings {
   templates?: StorefrontTemplates;
   customersConfig?: StorefrontCustomersConfig;
   trustBadges?: StorefrontTrustBadge[];
+  /** Home hero carousel slides; unset/empty → the static built-in hero. */
+  heroSlides?: StorefrontHeroSlide[];
 }
 
 /** One owner-editable footer "trust" badge (Rich footer strip). */
 export interface StorefrontTrustBadge {
   text: string;
   icon?: string;
+}
+
+/** One home-page hero slide (owner-managed carousel, max 5). */
+export interface StorefrontHeroSlide {
+  image?: Image | null;
+  badge?: string;
+  title: string;
+  subtitle?: string;
+  buttonLabel?: string;
+  link?: string;
 }
 
 export type UpdateStorefrontSettingsDto = Partial<

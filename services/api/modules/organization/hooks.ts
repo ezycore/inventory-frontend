@@ -329,6 +329,20 @@ export const useUpdateStorefrontMedia = () => {
   });
 };
 
+// POST /api/organization/storefront/media/hero-slide - Upload one hero-slide
+// image. Returns uploadInfo only (no cache write): the editor embeds it in a
+// slide and persists via the heroSlides settings PATCH.
+export const useUploadHeroSlideImage = () => {
+  return useMutation({
+    mutationFn: (file: File) => {
+      const fd = new FormData();
+      fd.append("image", file);
+      return organizationApi.uploadHeroSlideImage(fd);
+    },
+    onError: handleMutationError,
+  });
+};
+
 // DELETE /api/organization/demo-data - Clear all sample data.
 // On success the workspace simply drops its sample rows; refresh user/org + all data.
 export const useClearDemoData = () => {

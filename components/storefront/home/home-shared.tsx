@@ -7,6 +7,7 @@ import type {
   CatalogCategory,
   CatalogProduct,
   StoreCampaign,
+  StoreHeroSlide,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
@@ -29,6 +30,8 @@ export interface TplProps {
   campaigns: StoreCampaign[];
   t: Dict;
   banner?: string;
+  /** Owner-managed hero slides — when non-empty, replaces the static hero. */
+  heroSlides?: StoreHeroSlide[];
 }
 
 /**

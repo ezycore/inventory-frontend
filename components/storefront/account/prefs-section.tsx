@@ -4,6 +4,7 @@
 import { toast } from "sonner";
 import type { ShopperPrefs, ShopperProfile } from "@/lib/storefront-client";
 import { useShopperAccount } from "@/services/storefront/hooks";
+import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 
@@ -27,13 +28,25 @@ export function PrefsSection({ shopper }: { shopper: ShopperProfile }) {
   const { slug } = useStoreContext();
   const { t } = useStorefrontUI();
   const { updatePrefs } = useShopperAccount(slug);
+  const setShopper = useShopperStore((s) => s.setShopper);
   const prefs = { ...DEFAULT_PREFS, ...(shopper.prefs ?? {}) };
 
-  const toggle = (key: keyof ShopperPrefs) =>
+  const toggle = (key: keyof ShopperPrefs) => {
+    // Flip locally first so the switch answers the tap instantly; the hook's
+    // onSuccess replaces this with the server's authoritative profile, and a
+    // failure rolls back to the pre-toggle profile.
+    const prev = shopper;
+    setShopper({ ...shopper, prefs: { ...prefs, [key]: !prefs[key] } });
     updatePrefs.mutate(
       { [key]: !prefs[key] },
-      { onError: (e) => toast.error((e as Error).message) },
+      {
+        onError: (e) => {
+          setShopper(prev);
+          toast.error((e as Error).message);
+        },
+      },
     );
+  };
 
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 22 }}>

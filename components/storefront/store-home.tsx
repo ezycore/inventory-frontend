@@ -44,12 +44,24 @@ export function StoreHome({
   // Live draft from the admin Customize editor (only set under ?preview=1) wins,
   // so picking Classic/Hero-Split/Minimal repaints the homepage instantly.
   const previewHome = useSfPreview((s) => s.home);
+  const previewSlides = useSfPreview((s) => s.heroSlides);
   const tpl = HOME_VARIANTS.includes(previewHome ?? "")
     ? (previewHome as TplName)
     : resolveTemplates(store).home;
 
   const banner = store.banner?.mediumUrl || store.banner?.url;
-  const shared = { base, currency, featured, latest, categories, campaigns, t, banner };
+  const heroSlides = previewSlides ?? store.heroSlides;
+  const shared = {
+    base,
+    currency,
+    featured,
+    latest,
+    categories,
+    campaigns,
+    t,
+    banner,
+    heroSlides,
+  };
 
   if (tpl === "hero-split") return <HeroSplit {...shared} />;
   if (tpl === "minimal") return <Minimal {...shared} />;

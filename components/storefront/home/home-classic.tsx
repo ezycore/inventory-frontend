@@ -5,6 +5,7 @@ import Link from "next/link";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
+import { HeroCarousel } from "@/components/storefront/hero-carousel";
 import {
   Grid,
   ViewAll,
@@ -16,9 +17,13 @@ import {
 
 /** Homepage template A: Classic — hero card, category chips, featured + latest. */
 export function Classic(props: TplProps) {
-  const { base, currency, featured, latest, categories, t, banner } = props;
+  const { base, currency, featured, latest, categories, t, banner, heroSlides } =
+    props;
   return (
     <div>
+      {heroSlides?.length ? (
+        <HeroCarousel slides={heroSlides} base={base} />
+      ) : (
       <div style={{ ...wrap, padding: "var(--pad)" }}>
         <div
           style={{
@@ -75,6 +80,7 @@ export function Classic(props: TplProps) {
           <Media src={banner} alt="" label="hero banner" ratio="4 / 3" />
         </div>
       </div>
+      )}
 
       {categories.length > 0 ? (
         <div style={{ ...wrap, padding: "0 var(--pad) 8px" }}>

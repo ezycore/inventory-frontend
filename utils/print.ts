@@ -1,13 +1,15 @@
 // coding-standard: maintained
 /**
- * Print helpers — open a dedicated print window, write a standalone HTML
- * document, wait for images, then invoke the browser print dialog. Generalizes
- * the pattern that used to live inline in the barcode label sheet so every
- * print surface (labels, list tables, and later POS documents) shares one path.
+ * Print helpers — render a standalone HTML document into a hidden same-origin
+ * iframe and open the browser print dialog directly over the app. The iframe
+ * (vs. the old popup window) means no popup blockers, no stray browser tab to
+ * close, and one shared path for every print surface (labels, list tables,
+ * POS/letterhead documents).
  *
- * IMPORTANT — popup blockers: call these *synchronously* from a click handler.
- * `window.open` is blocked when it is not a direct result of a user gesture, so
- * never `await` anything before calling `printHtml` / `printTable`.
+ * Images (logos/barcodes) are awaited before printing — counting an image as
+ * pending only when it isn't already `complete`. (The popup era attached
+ * onload handlers to every image; cached images never fire those, so the
+ * print dialog silently never opened.)
  */
 
 /** Escape a value for safe interpolation into the print document's HTML. */
@@ -18,44 +20,69 @@ export const escapeHtml = (value: unknown): string =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-// Injected into the print window: wait for any images to finish loading before
-// printing (barcodes/logos), then close the window once printing is done.
-const PRINT_BOOTSTRAP = `
-  window.onload = function () {
-    var images = document.images;
-    var total = images.length;
-    var loaded = 0;
-    if (total === 0) { window.print(); return; }
-    Array.prototype.forEach.call(images, function (img) {
-      img.onload = img.onerror = function () {
-        loaded++;
-        if (loaded === total) window.print();
-      };
-    });
-  };
-  window.onafterprint = function () { window.close(); };
-`;
+const FRAME_ID = "app-print-frame";
+
+/** Resolves when every <img> has settled — or after a grace timeout, so one
+ * dead image URL can never hold the print dialog hostage. */
+const whenImagesReady = (doc: Document): Promise<void> =>
+  new Promise((resolve) => {
+    const pending = Array.from(doc.images).filter((img) => !img.complete);
+    if (pending.length === 0) {
+      resolve();
+      return;
+    }
+    let left = pending.length;
+    let settled = false;
+    const finish = () => {
+      if (!settled) {
+        settled = true;
+        resolve();
+      }
+    };
+    const one = () => {
+      left -= 1;
+      if (left <= 0) finish();
+    };
+    for (const img of pending) img.onload = img.onerror = one;
+    setTimeout(finish, 2500);
+  });
 
 export interface PrintHtmlOptions {
-  /** Document title (shown in the print header/footer). */
+  /** Document title (becomes the suggested PDF filename). */
   title?: string;
   /** CSS injected into the print document's <style>. */
   styles?: string;
 }
 
 /**
- * Open a print window and render `bodyHtml` inside a standalone document.
- * Returns `false` when the popup was blocked so the caller can surface a hint.
+ * Render `bodyHtml` as a standalone document in a hidden iframe and open the
+ * print dialog. Returns `false` only if the frame couldn't be created (callers
+ * historically used this to surface a popup-blocked hint; it is now near-dead).
  */
 export const printHtml = (
   bodyHtml: string,
   options: PrintHtmlOptions = {},
 ): boolean => {
   const { title = "Print", styles = "" } = options;
-  const win = window.open("", "_blank", "width=900,height=700");
-  if (!win) return false;
 
-  win.document.write(
+  // One print frame at a time — a leftover frame belongs to a finished dialog.
+  document.getElementById(FRAME_ID)?.remove();
+  const frame = document.createElement("iframe");
+  frame.id = FRAME_ID;
+  frame.setAttribute("aria-hidden", "true");
+  frame.style.cssText =
+    "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+  document.body.appendChild(frame);
+
+  const win = frame.contentWindow;
+  const doc = win?.document;
+  if (!win || !doc) {
+    frame.remove();
+    return false;
+  }
+
+  doc.open();
+  doc.write(
     `<!DOCTYPE html>
     <html>
     <head>
@@ -69,11 +96,19 @@ export const printHtml = (
     </head>
     <body>
       ${bodyHtml}
-      <script>${PRINT_BOOTSTRAP}<\/script>
     </body>
     </html>`,
   );
-  win.document.close();
+  doc.close();
+
+  // Clean up only after the dialog closes — removing the frame earlier would
+  // blank the print preview. If afterprint never fires (old browsers), the
+  // invisible frame is swept by the next print call.
+  win.onafterprint = () => frame.remove();
+  void whenImagesReady(doc).then(() => {
+    win.focus();
+    win.print();
+  });
   return true;
 };
 
@@ -83,18 +118,20 @@ export interface PrintTableColumn<TRow> {
 }
 
 const TABLE_STYLES = `
-  body { font-family: Arial, sans-serif; margin: 16px; color: #111; }
+  body { font-family: Arial, sans-serif; margin: 12mm; color: #111; }
   h1 { font-size: 18px; margin: 0 0 12px; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
   th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
   thead { background: #f3f4f6; }
-  @page { margin: 12mm; }
+  /* Zero page margin = the browser has nowhere to paint its default
+     title/URL/date header-footer; body margin provides the whitespace. */
+  @page { margin: 0; }
 `;
 
 /**
  * Print an array of rows as a clean tabular sheet. `columns` is a curated
  * subset (header + value accessor) — independent of the on-screen table columns.
- * Returns `false` if the popup was blocked.
+ * Returns `false` if printing couldn't start.
  */
 export const printTable = <TRow>(
   rows: TRow[],

@@ -285,3 +285,189 @@
     transform: scale(1);
   }
 }
+
+/* ---- Home hero carousel (components/storefront/hero-carousel.tsx) ---- */
+.sf-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  height: clamp(320px, 40vw, 430px);
+  touch-action: pan-y;
+}
+.sf-hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.65s ease;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+.sf-hero-slide.sf-hero-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.sf-hero-art {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.sf-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    78deg,
+    rgba(10, 12, 24, 0.78) 0%,
+    rgba(10, 12, 24, 0.55) 44%,
+    rgba(10, 12, 24, 0.12) 78%
+  );
+}
+.sf-hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 520px;
+  padding: clamp(22px, 4.5vw, 48px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+/* staggered rise of the text block when a slide activates */
+.sf-hero-copy > * {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.sf-hero-active .sf-hero-copy > *:nth-child(1) { transition-delay: 0.12s; }
+.sf-hero-active .sf-hero-copy > *:nth-child(2) { transition-delay: 0.2s; }
+.sf-hero-active .sf-hero-copy > *:nth-child(3) { transition-delay: 0.28s; }
+.sf-hero-active .sf-hero-copy > *:nth-child(4) { transition-delay: 0.36s; }
+.sf-hero-active .sf-hero-copy > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+.sf-hero-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin: 0 0 14px;
+}
+.sf-hero-title {
+  color: #fff;
+  font-size: clamp(24px, 3.6vw, 40px);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+.sf-hero-sub {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(13px, 1.4vw, 15px);
+  margin: 0 0 22px;
+  max-width: 42ch;
+}
+.sf-hero-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(12, 14, 26, 0.35);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease, background 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+.sf-hero:hover .sf-hero-nav,
+.sf-hero-nav:focus-visible {
+  opacity: 1;
+}
+.sf-hero-nav:hover {
+  background: rgba(12, 14, 26, 0.6);
+}
+.sf-hero-prev { left: 14px; }
+.sf-hero-next { right: 14px; }
+.sf-hero-dots {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+.sf-hero-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: width 0.3s ease, background 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.sf-hero-dot-active {
+  width: 30px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.sf-hero-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #fff;
+  transform-origin: left;
+  transform: scaleX(0);
+  animation: sfHeroFill 5s linear forwards;
+}
+.sf-hero-paused .sf-hero-fill {
+  animation-play-state: paused;
+}
+@keyframes sfHeroFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (max-width: 640px) {
+  .sf-hero { height: 430px; }
+  .sf-hero-nav { display: none; } /* swipe instead */
+  .sf-hero-scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(10, 12, 24, 0.72) 8%,
+      rgba(10, 12, 24, 0.42) 62%,
+      rgba(10, 12, 24, 0.55) 100%
+    );
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-hero-slide { transition: none; }
+  .sf-hero-copy > * {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  .sf-hero-fill {
+    animation: none;
+    transform: scaleX(1);
+  }
+}

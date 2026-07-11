@@ -192,8 +192,8 @@ export const renderStorefrontOrderInvoice = (
   composeDocument(orderToDoc(order, opts), "a4", opts.header);
 
 /**
- * Print one or many order invoices in a single print window, one page per
- * order. Returns false when the popup was blocked (surface a toast).
+ * Print one or many order invoices in one print job, one page per order.
+ * Returns false only if the hidden print frame couldn't be created.
  */
 export const printStorefrontOrderInvoices = (
   orders: PrintableStorefrontOrder[],

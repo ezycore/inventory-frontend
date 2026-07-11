@@ -158,9 +158,12 @@ const BASE_STYLES = `
 
 const PAPER_STYLES: Record<PaperSize, string> = {
   a4: `
-    @page { size: A4; margin: 14mm; }
-    body { font-size: 12px; line-height: 1.45; }
-    .doc { max-width: 760px; margin: 0 auto; }
+    /* Page margin 0 so the browser can't paint its default title/URL/date
+       header-footer; whitespace lives in body (left/right — repeats on every
+       page) and .doc (top/bottom — repeats per document in bulk printing). */
+    @page { size: A4; margin: 0; }
+    body { font-size: 12px; line-height: 1.45; padding: 0 14mm; }
+    .doc { max-width: 760px; margin: 0 auto; padding: 12mm 0 10mm; }
     /* Two-column head: identity left, document title right. A centered/right
        letterhead (owner's align choice) falls back to the stacked layout. */
     .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; padding-bottom: 14px; }
@@ -190,15 +193,15 @@ const PAPER_STYLES: Record<PaperSize, string> = {
     .footer { margin-top: 10px; font-size: 11.5px; }
   `,
   thermal80: `
-    @page { size: 80mm auto; margin: 3mm; }
-    body { font-size: 11px; width: 74mm; }
+    @page { size: 80mm auto; margin: 0; }
+    body { font-size: 11px; width: 80mm; padding: 3mm; }
     .org { font-size: 14px; font-weight: 700; }
     .header { text-align: center; }
     .logo { max-height: 40px; max-width: 70mm; }
   `,
   thermal58: `
-    @page { size: 58mm auto; margin: 2mm; }
-    body { font-size: 10px; width: 54mm; }
+    @page { size: 58mm auto; margin: 0; }
+    body { font-size: 10px; width: 58mm; padding: 2mm; }
     .org { font-size: 12px; font-weight: 700; }
     .header { text-align: center; }
     .logo { max-height: 32px; max-width: 50mm; }
@@ -579,18 +582,18 @@ interface PrintEntityOptions {
   header: DocHeader;
 }
 
-/** Print a sale as an invoice (A4) or receipt (thermal). Returns false if popup blocked. */
+/** Print a sale as an invoice (A4) or receipt (thermal). Returns false if printing could not start. */
 export const printSaleInvoice = (sale: Sale, opts: PrintEntityOptions): boolean =>
   printDoc(saleToDoc(sale, opts.currency), opts.paper, opts.header);
 
-/** Print a purchase order. Returns false if popup blocked. */
+/** Print a purchase order. Returns false if printing could not start. */
 export const printPurchaseOrder = (
   order: PurchaseOrder,
   opts: PrintEntityOptions,
 ): boolean =>
   printDoc(purchaseOrderToDoc(order, opts.currency), opts.paper, opts.header);
 
-/** Print a sales/purchase return (credit/debit note). Returns false if popup blocked. */
+/** Print a sales/purchase return (credit/debit note). Returns false if printing could not start. */
 export const printReturn = (
   data: ReturnDetailsData,
   variant: "sales" | "purchases",
@@ -647,7 +650,7 @@ const paymentReceiptToDoc = (
   signature: true,
 });
 
-/** Print a money receipt for a single payment. Returns false if popup blocked. */
+/** Print a money receipt for a single payment. Returns false if printing could not start. */
 export const printPaymentReceipt = (
   input: PaymentReceiptInput,
   opts: PrintEntityOptions,
@@ -685,7 +688,7 @@ const saleToDeliveryDoc = (sale: Sale): PrintDoc => {
   };
 };
 
-/** Print a sale as a delivery note / challan (no prices). Returns false if popup blocked. */
+/** Print a sale as a delivery note / challan (no prices). Returns false if printing could not start. */
 export const printDeliveryNote = (sale: Sale, opts: PrintEntityOptions): boolean =>
   printDoc(saleToDeliveryDoc(sale), opts.paper, opts.header);
 
@@ -745,7 +748,7 @@ const statementToDoc = (s: StatementInput, currency: Currency): PrintDoc => ({
   })),
 });
 
-/** Print a customer/supplier account statement. Returns false if popup blocked. */
+/** Print a customer/supplier account statement. Returns false if printing could not start. */
 export const printStatement = (
   input: StatementInput,
   opts: PrintEntityOptions,

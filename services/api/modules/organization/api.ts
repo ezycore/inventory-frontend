@@ -5,6 +5,7 @@ import type {
   FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
+  StorefrontHeroSlide,
   StorefrontSettings,
   SubscriptionInfo,
   UpdateStorefrontSettingsDto,
@@ -150,4 +151,11 @@ export const organizationApi = {
     data: FormData,
   ): Promise<ApiResponse<StorefrontSettings>> =>
     apiClient.patch(`/organization/storefront/media`, data),
+
+  // POST /api/organization/storefront/media/hero-slide - Upload one hero-slide
+  // image (FormData `image`); returns uploadInfo to embed in a heroSlides PATCH.
+  uploadHeroSlideImage: (
+    data: FormData,
+  ): Promise<ApiResponse<NonNullable<StorefrontHeroSlide["image"]>>> =>
+    apiClient.post(`/organization/storefront/media/hero-slide`, data),
 };

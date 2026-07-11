@@ -114,6 +114,14 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   through the shared letterhead print engine `utils/print-documents.ts` via the adapter
   `utils/print-storefront-order.ts`; letterhead = org Receipt & Print settings, shipped to the
   shopper via the store payload's `printable` block. Never hand-roll invoice markup.
+  **Mechanics** (`utils/print.ts`): `printHtml` renders into a **hidden same-origin iframe**
+  (`#app-print-frame`) and calls `print()` when images settle — no popup window, no popup
+  blockers. Only count `!img.complete` images as pending (cached images never fire `onload`;
+  that bug used to silently prevent the dialog from opening) and keep the grace timeout.
+  All print CSS uses **`@page { margin: 0 }`** so the browser cannot paint its default
+  title/URL/date header-footer; whitespace lives in body padding (left/right — repeats every
+  page) and `.doc` padding (top/bottom — repeats per document in bulk `.inv-page` breaks).
+  Don't reintroduce `@page` margins or `window.open` printing.
 - **Footer**: variants incl. Rich (trust badges + "Follow us"). Social links are edited in
   admin Store Settings → General → Social links card; a bare WhatsApp phone number is normalized
   to `https://wa.me/<digits>` in `store-footer.tsx`.
@@ -125,7 +133,30 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   links + fulfillment location, Publish, payments/shipping/checkout tabs). Custom domains under
   app Settings → Custom Domains.
 
-## Work log (what was built, newest first — as of 2026-07-10)
+## Work log (what was built, newest first — as of 2026-07-11)
+
+- **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/badge?/title/
+  subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
+  (`.sf-hero-*` in storefront.css; crossfade, 5s autoplay w/ progress dots, hover pause/arrows,
+  swipe, reduced-motion; imageless = brand-tinted panel, image = scrim; CTA has a white border for
+  near-black brands). Renders on Classic + Hero Split when slides exist (Minimal keeps its hero;
+  empty = static hero). Admin: Customize → Theme → `hero-slides-editor.tsx`; slide image upload =
+  `POST /organization/storefront/media/hero-slide` (`useUploadHeroSlideImage`), settings PATCH
+  cleans up dropped slides' Cloudinary images; live preview via preview store/bridge `heroSlides`.
+  Approved design sample: claude.ai/code/artifact/2ea161da-ea0a-4d15-9c31-00a3110804f1.
+
+- **Slugless seed data fix**: org-signup seeding `insertMany`s categories/brands/customers/suppliers,
+  but `slugPlugin` only hooked `pre("save")` → every seeded doc had NO slug. Symptom: admin
+  Navigation category select crashed (Radix forbids `<SelectItem value="">`). Fixed: plugin now has
+  an `insertMany` hook (+ in-batch dedupe); nav page filters slugless categories from options;
+  one-time heal = `npx tsx -r dotenv/config src/scripts/backfill-slugs.ts` (idempotent, must be
+  run per environment). Tests: `src/utils/__tests__/slugPlugin.test.ts`.
+- **Collections overlay now live on the shop (BE fix)**: public `GET /:slug/categories` previously
+  ignored `Category.storefront` — the admin Catalog → Collections tab (display name, Listed,
+  reorder) saved settings no shopper saw. `listCategories` now filters `isListed`, serves
+  `displayName || name`, and sorts via the shared `src/utils/collection-order.ts`
+  `compareCollections` (also used by admin `listCollections`, so orders match). Response shape
+  unchanged (`_id`/`name`/`slug`) — no FE change. Tests: `storefront-categories.test.ts`.
 
 - **Verification gates ordering**: backend 403 `VERIFY_EMAIL_TO_ORDER` + checkout `VerifyEmailGate`;
   fixed pre-existing checkout hydration bounce. Proven end-to-end incl. the real emailed-token path.
@@ -147,6 +178,11 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
 
 ## Gotchas that have bitten before
 
+- **Shopper notification prefs are consent flags only** (account → Notifications;
+  `shopper.model.ts` `prefs`, `PUT /:slug/auth/me/prefs` — verified e2e 2026-07-11): no backend
+  pipeline sends promo email/SMS/price-drop/newsletter yet, and `StorefrontNotifications`
+  (storefront-settings) is an unshipped SMS config shape ("dispatch is a separate backend job").
+  Any future sender MUST filter on `prefs.*`; shopper transactional email (verify/reset) ignores prefs.
 - **i18n keys go in 3 places** (Dict + en + bn) — grep-count to confirm, IDE diagnostics lie mid-batch.
 - **Persisted-store reads need `useHydrated()`** before redirect/branch logic.
 - **`json.error` not `json.message`** is where backend error text lives.

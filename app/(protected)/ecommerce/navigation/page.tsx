@@ -56,10 +56,11 @@ function NavigationForm({ settings }: { settings: StorefrontSettings }) {
   const { data: collections } = useStorefrontCollections();
   const { data: pages } = useContentPages();
 
-  const categoryOptions: Option[] = (collections ?? []).map((c) => ({
-    label: c.storefront?.displayName || c.name,
-    value: c.slug ?? "",
-  }));
+  // Menu links target categories by slug; slugless ones (legacy seed data) are
+  // unlinkable — and Radix Select crashes on empty-string item values.
+  const categoryOptions: Option[] = (collections ?? []).flatMap((c) =>
+    c.slug ? [{ label: c.storefront?.displayName || c.name, value: c.slug }] : [],
+  );
   const pageOptions: Option[] = (pages ?? []).map((p) => ({
     label: p.title,
     value: p.slug,

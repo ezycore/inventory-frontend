@@ -13,6 +13,16 @@ export interface StorefrontImage {
   thumbnailUrl?: string;
 }
 
+/** One home-page hero slide (owner-managed carousel). */
+export interface StoreHeroSlide {
+  image?: StorefrontImage | null;
+  badge?: string;
+  title: string;
+  subtitle?: string;
+  buttonLabel?: string;
+  link?: string;
+}
+
 export interface StorefrontStore {
   name: string;
   slug: string;
@@ -49,6 +59,8 @@ export interface StorefrontStore {
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
   trustBadges?: { text: string; icon?: string }[];
+  /** Home hero carousel slides; unset/empty → the static built-in hero. */
+  heroSlides?: StoreHeroSlide[];
   /** Header menu / footer groups / announcement bar (admin Navigation tab). */
   nav?: StoreNav;
   /** Checkout behaviour (order prefix, min order, etc.). */

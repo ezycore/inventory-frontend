@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { StoreHeroSlide } from "@/lib/storefront-client";
 
 /**
  * Ephemeral storefront preview overrides, streamed from the admin Theme editor
@@ -20,6 +21,8 @@ interface SfPreviewState {
   cardStyle: string | null;
   /** Draft footer trust badges (Rich footer strip). */
   badges: { text: string; icon?: string }[] | null;
+  /** Draft home hero carousel slides. */
+  heroSlides: StoreHeroSlide[] | null;
   activate: () => void;
   apply: (patch: {
     brand?: string;
@@ -29,6 +32,7 @@ interface SfPreviewState {
     header?: string;
     cardStyle?: string;
     badges?: { text: string; icon?: string }[];
+    heroSlides?: StoreHeroSlide[];
   }) => void;
 }
 
@@ -41,6 +45,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   header: null,
   cardStyle: null,
   badges: null,
+  heroSlides: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
@@ -51,5 +56,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       header: patch.header !== undefined ? patch.header : s.header,
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
       badges: patch.badges !== undefined ? patch.badges : s.badges,
+      heroSlides:
+        patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
     })),
 }));

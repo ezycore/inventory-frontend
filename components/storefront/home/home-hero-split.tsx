@@ -5,6 +5,7 @@ import Link from "next/link";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
+import { HeroCarousel } from "@/components/storefront/hero-carousel";
 import {
   Grid,
   ViewAll,
@@ -14,7 +15,7 @@ import {
 } from "@/components/storefront/home/home-shared";
 
 /** Homepage template B: Hero Split — split hero, trust row, picks, promo tiles. */
-export function HeroSplit({ base, currency, featured, t, banner }: TplProps) {
+export function HeroSplit({ base, currency, featured, t, banner, heroSlides }: TplProps) {
   const trust: { icon: IconName; t1: string; t2: string }[] = [
     { icon: "truck", t1: t.trust1t, t2: t.trust1s },
     { icon: "shield", t1: t.trust2t, t2: t.trust2s },
@@ -22,6 +23,9 @@ export function HeroSplit({ base, currency, featured, t, banner }: TplProps) {
   ];
   return (
     <div>
+      {heroSlides?.length ? (
+        <HeroCarousel slides={heroSlides} base={base} />
+      ) : (
       <div style={{ ...wrap, padding: "var(--pad)" }}>
         <div
           style={{
@@ -55,6 +59,7 @@ export function HeroSplit({ base, currency, featured, t, banner }: TplProps) {
           />
         </div>
       </div>
+      )}
 
       <div style={{ ...wrap, padding: "0 var(--pad) 4px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--trustcols), minmax(0,1fr))", gap: "var(--gap)" }}>
