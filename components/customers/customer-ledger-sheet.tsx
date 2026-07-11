@@ -1,7 +1,10 @@
 "use client";
+// coding-standard: maintained
 
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import type { AppLocale } from "@/i18n/config";
 import {
   Sheet,
   SheetContent,
@@ -50,6 +53,10 @@ export function CustomerLedgerSheet({
   isAccountsEnabled,
   onOpenSale,
 }: CustomerLedgerSheetProps) {
+  const t = useTranslations("customers.ledger");
+  const tStatement = useTranslations("common.statement");
+  const tPrintDoc = useTranslations("common.printDoc");
+  const locale = useLocale() as AppLocale;
   const { format: formatCurrency } = useCurrency();
   const { user } = useAuthStore();
   const [page, setPage] = useState(1);
@@ -82,18 +89,18 @@ export function CustomerLedgerSheet({
     if (!statement) return false;
     return printStatement(
       {
-        title: "Customer Statement",
-        partyLabel: "Customer",
+        title: t("statementTitle"),
+        partyLabel: t("statementPartyLabel"),
         partyName: statement.customer.name || customer?.name || "",
         partyPhone: statement.customer.phone || customer?.phone,
         transactions: statement.transactions,
         summary: [
-          { label: "Total billed", value: statement.summary.totalBilled },
-          { label: "Total paid", value: statement.summary.totalPaid },
-          { label: "Total returned", value: statement.summary.totalReturned },
-          { label: "Outstanding due", value: statement.summary.totalDue, strong: true },
+          { label: tStatement("totalBilled"), value: statement.summary.totalBilled },
+          { label: tStatement("totalPaid"), value: statement.summary.totalPaid },
+          { label: tStatement("totalReturned"), value: statement.summary.totalReturned },
+          { label: tStatement("outstandingDue"), value: statement.summary.totalDue, strong: true },
           ...(statement.summary.creditBalance > 0
-            ? [{ label: "Credit balance", value: statement.summary.creditBalance }]
+            ? [{ label: tStatement("creditBalance"), value: statement.summary.creditBalance }]
             : []),
         ],
       },
@@ -101,6 +108,8 @@ export function CustomerLedgerSheet({
         paper,
         currency: formatCurrency,
         header: orgToPrintHeader(user?.organization),
+        t: tPrintDoc,
+        locale,
       },
     );
   };
@@ -266,7 +275,7 @@ export function CustomerLedgerSheet({
               {ledger && ledger.totalPages > 1 && (
                 <div className="px-6 py-3 border-t flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    Page {page} of {ledger.totalPages}
+                    {t("page", { page, totalPages: ledger.totalPages })}
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -276,7 +285,7 @@ export function CustomerLedgerSheet({
                       disabled={!ledger.hasPrev}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Previous
+                      {t("previous")}
                     </Button>
                     <Button
                       variant="outline"
@@ -284,7 +293,7 @@ export function CustomerLedgerSheet({
                       onClick={() => setPage((p) => p + 1)}
                       disabled={!ledger.hasNext}
                     >
-                      Next
+                      {t("next")}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>

@@ -1,9 +1,12 @@
 "use client";
 // coding-standard: maintained
+
+import { useTranslations, useLocale } from "next-intl";
+import type { AppLocale } from "@/i18n/config";
 // Hooks & API
-import { brandColumns } from "@/components/brands/columns";
-import { brandFilterConfig } from "@/components/brands/filters";
-import { brandFormConfig } from "@/components/brands/form-config";
+import { getBrandColumns } from "@/components/brands/columns";
+import { getBrandFilterConfig } from "@/components/brands/filters";
+import { getBrandFormConfig } from "@/components/brands/form-config";
 import { getBrandStats, prepareSubmitData } from "@/components/brands/helpers";
 import BrandCardView from "@/components/brands/cardview";
 import BrandCardLoading from "@/components/brands/card-loading";
@@ -26,12 +29,6 @@ import StatsCard from "@/ui/components/StatsCard";
 import ViewToggle from "@/ui/components/ViewToggle";
 import MountingHandler from "@/components/MountingHandler";
 
-const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search brands by name",
-  searchableColumns: ["name"],
-};
-
 const defaultValues = {
   name: "",
   description: "",
@@ -41,9 +38,17 @@ const defaultValues = {
 };
 
 export default function BrandsPage() {
+  const t = useTranslations("products.brands");
+  const locale = useLocale() as AppLocale;
   const [viewMode, setViewMode, isMounted] = useViewMode("brands", "card");
-  const filteredFormConfig = useFilteredFormConfig(brandFormConfig, "brand");
-  const filteredColumns = useFilteredColumns(brandColumns, "brand");
+  const filteredFormConfig = useFilteredFormConfig(getBrandFormConfig(t), "brand");
+  const filteredColumns = useFilteredColumns(getBrandColumns(t), "brand");
+  const brandFilterConfig = getBrandFilterConfig(t);
+  const searchConfig = {
+    globalSearch: true,
+    placeholder: t("page.searchPlaceholder"),
+    searchableColumns: ["name"],
+  };
   const { data, isLoading } = useBrandStats();
 
   const sharedOperations = {
@@ -78,8 +83,8 @@ export default function BrandsPage() {
     <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader
-        title="Brands"
-        subTitle="The brands you carry, used to group and filter products."
+        title={t("page.title")}
+        subTitle={t("page.subtitle")}
         actions={
           <div className="flex items-center gap-3">
             <ViewToggle
@@ -93,12 +98,12 @@ export default function BrandsPage() {
       />
 
       {/* Stats Cards */}
-      <StatsCard data={getBrandStats(data)} isLoading={isLoading} />
+      <StatsCard data={getBrandStats(data, t)} isLoading={isLoading} />
 
       {/* Table View */}
       {viewMode === "table" && (
         <DataTable
-          cardTitle={(dataLength: number) => `All Brands (${dataLength})`}
+          cardTitle={(dataLength: number) => t("page.allBrandsTitle", { count: dataLength })}
           sortingConfig={sortingConfig}
           defaultPageSize={10}
           pageSizes={[10, 20, 50, 100]}
@@ -119,7 +124,7 @@ export default function BrandsPage() {
       {/* Card View */}
       {viewMode === "card" && (
         <DataCard
-          cardTitle={(n) => `All Brands (${n})`}
+          cardTitle={(n) => t("page.allBrandsTitle", { count: n })}
           defaultPageSize={12}
           pageSizes={[6, 12, 24, 48]}
           filterConfig={brandFilterConfig}
@@ -130,7 +135,7 @@ export default function BrandsPage() {
             gap: "md",
           }}
           searchConfig={searchConfig}
-          renderCard={BrandCardView}
+          renderCard={(item, actions) => BrandCardView(item, actions, { t, locale })}
           loadingRenderCard={BrandCardLoading}
           operations={sharedOperations}
         />

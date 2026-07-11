@@ -1,5 +1,6 @@
 "use client";
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { OrganizationDomain, OrganizationDomainStatus } from "@/types";
 import { Button } from "@/ui/components/button";
 import {
@@ -33,6 +34,7 @@ export function DomainCard({
   isVerifying,
   isRemoving,
 }: DomainCardProps) {
+  const t = useTranslations("settings.domains.card");
   const isSubdomain = domain.type === "subdomain";
   const isActive = domain.status === "active";
 
@@ -44,8 +46,8 @@ export function DomainCard({
             {domain.domain}
           </CardTitle>
           <span className="text-xs text-muted-foreground">
-            {isSubdomain ? "Workspace subdomain" : "Custom domain"}
-            {domain.isPrimary && " · Primary"}
+            {isSubdomain ? t("subdomain") : t("custom")}
+            {domain.isPrimary && ` · ${t("primary")}`}
           </span>
         </div>
         <StatusBadge status={badgeStatus(domain.status)} />
@@ -68,7 +70,7 @@ export function DomainCard({
                 ) : (
                   <RefreshCw className="h-4 w-4" />
                 )}
-                Re-check
+                {t("recheck")}
               </Button>
             )}
             <Button
@@ -83,7 +85,7 @@ export function DomainCard({
               ) : (
                 <Trash2 className="h-4 w-4" />
               )}
-              Remove
+              {t("remove")}
             </Button>
           </div>
         </CardContent>

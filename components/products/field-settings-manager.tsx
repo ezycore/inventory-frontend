@@ -1,6 +1,8 @@
 "use client"
+// coding-standard: maintained
 
 import React, { useState, useMemo, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/components/card"
 import { Switch } from "@/ui/components/switch"
 import { Button } from "@/ui/components/button"
@@ -42,6 +44,7 @@ interface FieldPreviewProps {
 
 // Preview how the field would look in a form (simplified)
 function FieldPreview({ field, isExcluded }: FieldPreviewProps) {
+  const t = useTranslations("settings.fields.manager")
   const renderPreview = () => {
     switch (field.type) {
       case "input":
@@ -90,13 +93,13 @@ function FieldPreview({ field, isExcluded }: FieldPreviewProps) {
       case "file-upload":
         return (
           <div className="flex h-20 w-full items-center justify-center rounded-md border-2 border-dashed border-input opacity-70">
-            <span className="text-sm text-muted-foreground">Drop files here</span>
+            <span className="text-sm text-muted-foreground">{t("dropFilesHere")}</span>
           </div>
         )
       case "custom":
         return (
           <div className="flex h-12 w-full items-center justify-center rounded-md border border-dashed border-input opacity-70">
-            <span className="text-sm text-muted-foreground">Custom component</span>
+            <span className="text-sm text-muted-foreground">{t("customComponent")}</span>
           </div>
         )
       default:
@@ -115,7 +118,7 @@ function FieldPreview({ field, isExcluded }: FieldPreviewProps) {
         </Label>
         {isExcluded && (
           <Badge variant="secondary" className="text-xs">
-            Hidden
+            {t("hidden")}
           </Badge>
         )}
       </div>
@@ -134,6 +137,8 @@ export function FieldSettingsManager({
   onSave,
   isLoading = false,
 }: FieldSettingsManagerProps) {
+  const t = useTranslations("settings.fields")
+  const tManager = useTranslations("settings.fields.manager")
   const [excludedFields, setExcludedFields] = useState<string[]>(initialExcludedFields)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
   const [hasChanges, setHasChanges] = useState(false)
@@ -213,17 +218,17 @@ export function FieldSettingsManager({
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
-            Field Settings
+            {t("title")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Customize which fields appear in the {module} form for your organization
+            {tManager("subtitle", { module })}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {hasChanges && (
             <Button variant="outline" size="sm" onClick={handleReset} disabled={saving}>
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
+              {tManager("reset")}
             </Button>
           )}
           <Button
@@ -232,7 +237,7 @@ export function FieldSettingsManager({
             disabled={!hasChanges || saving || isLoading}
           >
             <Save className="h-4 w-4 mr-2" />
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? tManager("saving") : tManager("saveChanges")}
           </Button>
         </div>
       </div>
@@ -242,19 +247,19 @@ export function FieldSettingsManager({
         <Card className="py-4">
           <CardContent className="py-0">
             <div className="text-2xl font-bold">{allFields.length}</div>
-            <p className="text-xs text-muted-foreground">Total Fields</p>
+            <p className="text-xs text-muted-foreground">{tManager("totalFields")}</p>
           </CardContent>
         </Card>
         <Card className="py-4">
           <CardContent className="py-0">
             <div className="text-2xl font-bold text-green-600">{includedFields.length}</div>
-            <p className="text-xs text-muted-foreground">Visible Fields</p>
+            <p className="text-xs text-muted-foreground">{tManager("visibleFields")}</p>
           </CardContent>
         </Card>
         <Card className="py-4">
           <CardContent className="py-0">
             <div className="text-2xl font-bold text-orange-600">{hiddenFields.length}</div>
-            <p className="text-xs text-muted-foreground">Hidden Fields</p>
+            <p className="text-xs text-muted-foreground">{tManager("hiddenFields")}</p>
           </CardContent>
         </Card>
       </div>
@@ -266,10 +271,10 @@ export function FieldSettingsManager({
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Eye className="h-4 w-4" />
-              All Available Fields
+              {tManager("allAvailableFields")}
             </CardTitle>
             <CardDescription>
-              Toggle the switch to show or hide fields in the form
+              {tManager("toggleHint")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -289,7 +294,7 @@ export function FieldSettingsManager({
                         {section.icon}
                         <span className="font-medium">{section.title}</span>
                         <Badge variant="outline" className="ml-2">
-                          {section.fields?.length || 0} fields
+                          {tManager("fieldsCount", { count: section.fields?.length || 0 })}
                         </Badge>
                       </div>
                       {openSections[section.title] !== false ? (
@@ -333,10 +338,10 @@ export function FieldSettingsManager({
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Eye className="h-4 w-4 text-green-600" />
-              Visible Fields Preview
+              {tManager("visibleFieldsPreview")}
             </CardTitle>
             <CardDescription>
-              These fields will appear in the form for your organization
+              {tManager("visibleFieldsPreviewHint")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -344,7 +349,7 @@ export function FieldSettingsManager({
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <EyeOff className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">
-                  No visible fields. Toggle some fields to make them appear in the form.
+                  {tManager("noVisibleFields")}
                 </p>
               </div>
             ) : (
@@ -393,7 +398,7 @@ export function FieldSettingsManager({
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2 text-orange-700 dark:text-orange-400">
               <EyeOff className="h-4 w-4" />
-              Hidden Fields ({hiddenFields.length})
+              {tManager("hiddenFieldsCount", { count: hiddenFields.length })}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -411,7 +416,7 @@ export function FieldSettingsManager({
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Click on a badge to make the field visible again
+              {tManager("clickBadgeHint")}
             </p>
           </CardContent>
         </Card>
@@ -434,6 +439,7 @@ function FieldToggleItem({
   isRequired,
   onToggle,
 }: FieldToggleItemProps) {
+  const t = useTranslations("settings.fields.manager")
   return (
     <div
       className={cn(
@@ -451,7 +457,7 @@ function FieldToggleItem({
             </span>
             {isRequired && (
               <Badge variant="destructive" className="text-xs h-5">
-                Required
+                {t("required")}
               </Badge>
             )}
             <Badge variant="secondary" className="text-xs h-5">
@@ -467,14 +473,14 @@ function FieldToggleItem({
         {isRequired && (
           <span className="text-xs text-muted-foreground flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
-            Can&apos;t hide
+            {t("cantHide")}
           </span>
         )}
         <Switch
           checked={!isExcluded}
           onCheckedChange={onToggle}
           disabled={isRequired}
-          aria-label={`Toggle ${field.label} visibility`}
+          aria-label={t("toggleVisibilityAria", { label: field.label })}
         />
       </div>
     </div>

@@ -1,0 +1,173 @@
+{
+  "accounts": {
+    "page": {
+      "title": "হিসাব",
+      "subtitle": "আপনার নগদ, ব্যাংক ও মোবাইল ওয়ালেট হিসাব পরিচালনা করুন",
+      "transactions": "লেনদেন",
+      "allAccountsCount": "সব হিসাব ({count})",
+      "searchLabel": "হিসাব খুঁজুন",
+      "searchPlaceholder": "হিসাব খুঁজুন...",
+      "entity": "হিসাব"
+    },
+    "stats": {
+      "totalBalance": "মোট স্থিতি",
+      "totalBalanceDescription": "{count}টি হিসাব জুড়ে",
+      "cash": "নগদ",
+      "cashDescription": "নগদ হিসাব",
+      "bank": "ব্যাংক",
+      "bankDescription": "ব্যাংক স্থিতি",
+      "mobileBanking": "মোবাইল ব্যাংকিং",
+      "mobileBankingDescription": "মোবাইল ফিনান্সিয়াল সার্ভিস"
+    },
+    "types": {
+      "cash": "নগদ",
+      "bank": "ব্যাংক",
+      "mfs": "মোবাইল ব্যাংকিং",
+      "custom": "কাস্টম"
+    },
+    "card": {
+      "defaultAccount": "ডিফল্ট হিসাব",
+      "currentBalance": "বর্তমান স্থিতি",
+      "active": "সক্রিয়",
+      "inactive": "নিষ্ক্রিয়",
+      "default": "ডিফল্ট",
+      "edit": "সম্পাদনা",
+      "addInvestment": "বিনিয়োগ যোগ করুন",
+      "viewTransactions": "লেনদেন দেখুন",
+      "delete": "মুছুন"
+    },
+    "form": {
+      "name": "হিসাবের নাম",
+      "namePlaceholder": "যেমন: প্রধান নগদ, ব্যবসায়িক ব্যাংক হিসাব",
+      "type": "হিসাবের ধরন",
+      "typeCash": "নগদ",
+      "typeBank": "ব্যাংক হিসাব",
+      "typeMfs": "মোবাইল ফিনান্সিয়াল সার্ভিস",
+      "typeCustom": "কাস্টম",
+      "balance": "স্থিতি",
+      "balancePlaceholder": "প্রারম্ভিক স্থিতি লিখুন",
+      "balanceHint": "নতুন হিসাবের প্রাথমিক স্থিতি নির্ধারণ করুন (পরে পরিবর্তন করা যাবে না)",
+      "accountNumber": "হিসাব নম্বর",
+      "accountNumberPlaceholder": "হিসাব/কার্ড নম্বর লিখুন",
+      "status": "স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "isDefault": "ডিফল্ট হিসাব হিসেবে নির্ধারণ করুন",
+      "description": "বিবরণ",
+      "descriptionPlaceholder": "এই হিসাব সম্পর্কে ঐচ্ছিক নোট"
+    },
+    "filters": {
+      "typeLabel": "হিসাবের ধরন",
+      "typePlaceholder": "সব ধরন",
+      "statusLabel": "স্ট্যাটাস",
+      "statusPlaceholder": "সব স্ট্যাটাস"
+    }
+  },
+  "investmentDialog": {
+    "title": "বিনিয়োগ যোগ করুন",
+    "description": "<strong>{name}</strong>-এ একটি মূলধন বিনিয়োগ রেকর্ড করুন। এটি হিসাবের স্থিতি বাড়ায় এবং একটি বিনিয়োগ লেনদেন হিসেবে লগ হয়।",
+    "amountLabel": "বিনিয়োগের পরিমাণ",
+    "amountPlaceholder": "পরিমাণ লিখুন",
+    "referenceLabel": "রেফারেন্স (ঐচ্ছিক)",
+    "referencePlaceholder": "চেক / ট্রান্সফার রেফারেন্স",
+    "noteLabel": "নোট (ঐচ্ছিক)",
+    "notePlaceholder": "যেমন: মালিকের মূলধন বিনিয়োগ",
+    "submitLabel": "বিনিয়োগ যোগ করুন",
+    "validation": {
+      "amountPositive": "পরিমাণ অবশ্যই ধনাত্মক হতে হবে"
+    }
+  },
+  "transactions": {
+    "page": {
+      "title": "লেনদেন",
+      "subtitle": "সব আয়, ব্যয় ও ট্রান্সফার ট্র্যাক করুন",
+      "showingFor": "এর জন্য লেনদেন দেখানো হচ্ছে",
+      "selectedAccount": "নির্বাচিত হিসাব",
+      "clearFilter": "ফিল্টার সাফ করুন",
+      "allTransactionsCount": "সব লেনদেন ({count})",
+      "searchPlaceholder": "লেনদেন খুঁজুন...",
+      "entity": "লেনদেন"
+    },
+    "columns": {
+      "date": "তারিখ",
+      "type": "ধরন",
+      "category": "ক্যাটাগরি",
+      "amount": "অঙ্ক",
+      "balanceAfter": "পরবর্তী স্থিতি",
+      "description": "বিবরণ",
+      "reference": "রেফারেন্স"
+    },
+    "categories": {
+      "sale": "বিক্রয়",
+      "purchase": "ক্রয়",
+      "salary": "বেতন",
+      "rent": "ভাড়া",
+      "utilities": "ইউটিলিটি",
+      "refund": "রিফান্ড",
+      "adjustment": "সমন্বয়",
+      "transfer": "ট্রান্সফার",
+      "investment": "বিনিয়োগ",
+      "other": "অন্যান্য"
+    },
+    "types": {
+      "income": "আয়",
+      "expense": "ব্যয়",
+      "transfer": "ট্রান্সফার"
+    },
+    "filters": {
+      "searchLabel": "খুঁজুন",
+      "searchPlaceholder": "লেনদেন খুঁজুন...",
+      "typeLabel": "ধরন",
+      "typePlaceholder": "সব ধরন",
+      "categoryLabel": "ক্যাটাগরি",
+      "categoryPlaceholder": "সব ক্যাটাগরি"
+    },
+    "stats": {
+      "totalIncome": "মোট আয়",
+      "totalExpense": "মোট ব্যয়",
+      "transfers": "ট্রান্সফার",
+      "netChange": "নিট পরিবর্তন",
+      "vsPreviousDay": "আগের দিনের তুলনায়",
+      "vsPreviousWeek": "আগের সপ্তাহের তুলনায়",
+      "vsPreviousMonth": "আগের মাসের তুলনায়",
+      "vsPreviousPeriod": "আগের সময়ের তুলনায়",
+      "chartTitle": "আয় বনাম ব্যয়",
+      "chartIncome": "আয়",
+      "chartExpense": "ব্যয়",
+      "breakdownSuffix": "{period} – {grouping} বিভাজন"
+    },
+    "dialogs": {
+      "addIncome": "আয় যোগ করুন",
+      "recordIncomeTitle": "আয় রেকর্ড করুন",
+      "recordIncomeSubmit": "আয় রেকর্ড করুন",
+      "addExpense": "ব্যয় যোগ করুন",
+      "recordExpenseTitle": "ব্যয় রেকর্ড করুন",
+      "recordExpenseSubmit": "ব্যয় রেকর্ড করুন",
+      "transfer": "ট্রান্সফার",
+      "transferTitle": "হিসাবের মধ্যে ট্রান্সফার",
+      "transferSubmit": "ট্রান্সফার সম্পন্ন করুন",
+      "account": "হিসাব",
+      "accountPlaceholder": "হিসাব নির্বাচন করুন",
+      "amount": "অঙ্ক",
+      "amountPlaceholder": "পরিমাণ লিখুন",
+      "category": "ক্যাটাগরি",
+      "categoryPlaceholder": "ক্যাটাগরি নির্বাচন করুন",
+      "reference": "রেফারেন্স (ঐচ্ছিক)",
+      "referencePlaceholder": "ইনভয়েস/রিসিট নম্বর",
+      "transferReferencePlaceholder": "ট্রান্সফার রেফারেন্স",
+      "description": "বিবরণ (ঐচ্ছিক)",
+      "descriptionPlaceholder": "একটি নোট যোগ করুন...",
+      "fromAccount": "উৎস হিসাব",
+      "fromAccountPlaceholder": "উৎস হিসাব নির্বাচন করুন",
+      "toAccount": "গন্তব্য হিসাব",
+      "toAccountPlaceholder": "গন্তব্য হিসাব নির্বাচন করুন",
+      "validation": {
+        "selectAccount": "একটি হিসাব নির্বাচন করুন",
+        "amountPositive": "পরিমাণ অবশ্যই ধনাত্মক হতে হবে",
+        "selectCategory": "একটি ক্যাটাগরি নির্বাচন করুন",
+        "selectSourceAccount": "উৎস হিসাব নির্বাচন করুন",
+        "selectDestinationAccount": "গন্তব্য হিসাব নির্বাচন করুন"
+      }
+    }
+  }
+}

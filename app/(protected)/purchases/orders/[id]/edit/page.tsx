@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { getPurchaseColumns } from "@/components/purchases";
 import { useEditPurchaseOrder } from "@/components/purchases/orders/use-edit-purchase-order";
 import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
@@ -23,34 +25,15 @@ import { Separator } from "@/ui/components/separator";
 import { Skeleton } from "@/ui/components/skeleton";
 import { ArrowLeft, ClipboardList, Save } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { z } from "zod";
-
-const productFormSchema = z.object({
-  productId: z.union([
-    z.string().min(1, "Product is required"),
-    z.object({
-      label: z.string(),
-      value: z.string(),
-      price: z.number().optional(),
-      conversionFactor: z.number().optional(),
-      productId: z.string().optional(),
-      variantId: z.string().nullable().optional(),
-      purchaseUnitName: z.string().nullable().optional(),
-    }),
-  ]),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  convertedQuantity: z.number().min(0),
-  price: z.number().min(0),
-  discount: z.number().min(0),
-  costPrice: z.number().min(0),
-  rememberCostPrice: z.boolean().optional(),
-  stock: z.string().optional(),
-});
 
 export default function EditPurchaseOrderPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const orderId = params.id;
+  const t = useTranslations("purchases");
+  const tActions = useTranslations("common.actions");
+  const tStatus = useTranslations("purchases.status");
+  const tTax = useTranslations("common.tax");
 
   const ctx = useEditPurchaseOrder(orderId);
 
@@ -77,21 +60,24 @@ export default function EditPurchaseOrderPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Edit Purchase Order</h1>
+            <h1 className="text-2xl font-bold">{t("edit.title")}</h1>
             <p className="text-sm text-muted-foreground font-mono">
               {ctx.order?.orderNumber}
             </p>
           </div>
         </div>
         <Badge variant="outline" className="capitalize">
-          {ctx.order?.status}
+          {ctx.order?.status ? tStatus(ctx.order.status) : ""}
         </Badge>
       </div>
 
       {!ctx.isEditable && (
         <Card className="mb-4 border-orange-300 bg-orange-50 dark:bg-orange-950/30">
           <CardContent className="pt-4 pb-3 text-sm text-orange-700 dark:text-orange-300">
-            This order is in <b>{ctx.order?.status}</b> status and cannot be edited.
+            {t.rich("edit.notEditable", {
+              status: ctx.order?.status ? tStatus(ctx.order.status) : "",
+              b: (chunks) => <b>{chunks}</b>,
+            })}
           </CardContent>
         </Card>
       )}
@@ -106,7 +92,7 @@ export default function EditPurchaseOrderPage() {
                 <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
                   1
                 </span>
-                <h3 className="font-semibold text-sm">Supplier & Invoice</h3>
+                <h3 className="font-semibold text-sm">{t("edit.supplierInvoice")}</h3>
               </div>
               <DynamicForm
                 form={ctx.supplierForm}
@@ -127,14 +113,14 @@ export default function EditPurchaseOrderPage() {
                 <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
                   2
                 </span>
-                <h3 className="font-semibold text-sm">Add / Swap Products</h3>
+                <h3 className="font-semibold text-sm">{t("edit.addSwapProducts")}</h3>
               </div>
               <DynamicForm
                 form={ctx.productForm}
                 config={ctx.productFormConfig}
                 onSubmit={ctx.handleAddItem}
                 onFieldChange={ctx.handleProductFieldChange}
-                submitLabel="Add to Order"
+                submitLabel={t("create.addToOrder")}
                 hideCancel
               />
             </CardContent>
@@ -149,7 +135,7 @@ export default function EditPurchaseOrderPage() {
                     3
                   </span>
                   <h3 className="font-semibold text-sm">
-                    Items
+                    {t("edit.items")}
                     <Badge variant="secondary" className="ml-2 text-xs">
                       {ctx.items.length}
                     </Badge>
@@ -163,23 +149,24 @@ export default function EditPurchaseOrderPage() {
                   ctx.handleRemoveItem,
                   ctx.formatCurrency,
                   "edit",
+                  t,
                   ctx.isUOMEnabled,
                   ctx.isTaxEnabled,
                 )}
                 data={ctx.items}
-                emptyMessage="No items in this order"
+                emptyMessage={t("edit.emptyItems")}
                 showCard={false}
               />
 
               <div className="mt-3 space-y-2">
                 <Separator />
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal (Cost)</span>
+                  <span className="text-muted-foreground">{t("edit.subtotalCost")}</span>
                   <span className="tabular-nums">{ctx.formatCurrency(ctx.subtotal)}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground font-medium">
-                    Additional Discount
+                    {t("edit.additionalDiscount")}
                   </span>
                   <div className="flex items-center gap-1">
                     <span className="text-base text-muted-foreground">{ctx.symbol}</span>
@@ -194,7 +181,7 @@ export default function EditPurchaseOrderPage() {
                   </div>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground font-medium">Net Amount</span>
+                  <span className="text-muted-foreground font-medium">{t("edit.netAmount")}</span>
                   <span className="tabular-nums">{ctx.formatCurrency(ctx.computedNet)}</span>
                 </div>
                 <TaxSummaryLines
@@ -203,7 +190,7 @@ export default function EditPurchaseOrderPage() {
                   includedTax={ctx.includedTax}
                   taxTotal={ctx.taxTotal}
                   total={ctx.finalNet}
-                  totalLabel="Total (Invoice)"
+                  totalLabel={t("edit.totalInvoice")}
                   formatCurrency={ctx.formatCurrency}
                 />
               </div>
@@ -215,10 +202,10 @@ export default function EditPurchaseOrderPage() {
             <CardContent className="pt-4 pb-3 space-y-2">
               <div className="flex items-center gap-2">
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm">Notes</h3>
+                <h3 className="font-semibold text-sm">{t("edit.notes")}</h3>
               </div>
               <Input
-                placeholder="Add notes for this purchase order (optional)"
+                placeholder={t("edit.notesPlaceholder")}
                 value={ctx.notes}
                 onChange={(e) => ctx.setNotes(e.target.value)}
               />
@@ -233,27 +220,27 @@ export default function EditPurchaseOrderPage() {
               <CardContent className="pt-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold text-base">Order Summary</h3>
+                  <h3 className="font-semibold text-base">{t("edit.summaryTitle")}</h3>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Items</span>
+                  <span className="text-muted-foreground">{t("edit.items")}</span>
                   <span className="tabular-nums">{ctx.items.length}</span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">{t("edit.subtotal")}</span>
                   <span className="tabular-nums">{ctx.formatCurrency(ctx.subtotal)}</span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Discount</span>
+                  <span className="text-muted-foreground">{t("edit.discount")}</span>
                   <span className="tabular-nums">-{ctx.formatCurrency(ctx.additionalDiscount || 0)}</span>
                 </div>
 
                 {ctx.isTaxEnabled && ctx.addedTax > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tax (added)</span>
+                    <span className="text-muted-foreground">{t("edit.taxAdded")}</span>
                     <span className="tabular-nums">+{ctx.formatCurrency(ctx.addedTax)}</span>
                   </div>
                 )}
@@ -261,7 +248,7 @@ export default function EditPurchaseOrderPage() {
                 <Separator />
 
                 <div className="flex justify-between text-sm">
-                  <span className="font-semibold">Net Amount</span>
+                  <span className="font-semibold">{t("edit.netAmount")}</span>
                   <span className="text-lg font-bold text-primary tabular-nums">
                     {ctx.formatCurrency(ctx.finalNet)}
                   </span>
@@ -269,20 +256,22 @@ export default function EditPurchaseOrderPage() {
 
                 {ctx.isTaxEnabled && ctx.includedTax > 0 && (
                   <p className="text-xs text-muted-foreground text-right leading-snug">
-                    Includes {ctx.formatCurrency(ctx.includedTax)} tax in price
-                    {ctx.addedTax > 0 ? ` · total tax ${ctx.formatCurrency(ctx.taxTotal)}` : ""}
+                    {tTax("includesInPrice", { amount: ctx.formatCurrency(ctx.includedTax) })}
+                    {ctx.addedTax > 0
+                      ? tTax("totalTaxSuffix", { amount: ctx.formatCurrency(ctx.taxTotal) })
+                      : ""}
                   </p>
                 )}
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Paid</span>
+                  <span className="text-muted-foreground">{t("edit.paid")}</span>
                   <span className="tabular-nums text-green-600">
                     {ctx.formatCurrency(ctx.paidSoFar)}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Due</span>
+                  <span className="text-muted-foreground">{t("edit.due")}</span>
                   <span
                     className={`tabular-nums font-semibold ${ctx.newDue > 0 ? "text-orange-600" : "text-green-600"}`}
                   >
@@ -299,7 +288,7 @@ export default function EditPurchaseOrderPage() {
                   className="w-full font-semibold"
                 >
                   <Save className="h-4 w-4" />
-                  {ctx.isSaving ? "Saving..." : "Save Changes"}
+                  {ctx.isSaving ? t("edit.saving") : t("edit.saveChanges")}
                 </Button>
 
                 <Button
@@ -308,7 +297,7 @@ export default function EditPurchaseOrderPage() {
                   className="w-full"
                   disabled={ctx.isSaving}
                 >
-                  Cancel
+                  {tActions("cancel")}
                 </Button>
               </CardContent>
             </Card>
@@ -320,17 +309,17 @@ export default function EditPurchaseOrderPage() {
       <Dialog open={ctx.isEditDialogOpen} onOpenChange={ctx.setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Item</DialogTitle>
+            <DialogTitle>{t("editDialog.title")}</DialogTitle>
           </DialogHeader>
           {ctx.editingItem && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Product</Label>
+                <Label>{t("editDialog.product")}</Label>
                 <Input value={ctx.editingItem?.productName} disabled className="bg-muted" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-quantity">Quantity</Label>
+                <Label htmlFor="edit-quantity">{t("editDialog.quantity")}</Label>
                 <NumberField
                   id="edit-quantity"
                   precision={0}
@@ -345,7 +334,7 @@ export default function EditPurchaseOrderPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-price">Price</Label>
+                <Label htmlFor="edit-price">{t("editDialog.price")}</Label>
                 <NumberField
                   id="edit-price"
                   precision={2}
@@ -363,7 +352,7 @@ export default function EditPurchaseOrderPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-discount">Discount</Label>
+                <Label htmlFor="edit-discount">{t("editDialog.discount")}</Label>
                 <NumberField
                   id="edit-discount"
                   precision={2}
@@ -378,7 +367,7 @@ export default function EditPurchaseOrderPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-cost">Cost Price</Label>
+                <Label htmlFor="edit-cost">{t("editDialog.costPrice")}</Label>
                 <NumberField
                   id="edit-cost"
                   precision={2}
@@ -395,7 +384,7 @@ export default function EditPurchaseOrderPage() {
               <div className="flex items-center space-x-2">
                 <Checkbox id="edit-keep" disabled />
                 <Label htmlFor="edit-keep" className="text-sm font-normal text-muted-foreground">
-                  Per-line cost will update product cost on save
+                  {t("editDialog.perLineCostNote")}
                 </Label>
               </div>
             </div>
@@ -403,9 +392,9 @@ export default function EditPurchaseOrderPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => ctx.setIsEditDialogOpen(false)}>
-              Cancel
+              {tActions("cancel")}
             </Button>
-            <Button onClick={ctx.handleSaveEdit}>Save</Button>
+            <Button onClick={ctx.handleSaveEdit}>{t("editDialog.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

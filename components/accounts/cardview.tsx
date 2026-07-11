@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import type { Account } from "@/types";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -30,6 +32,7 @@ import {
 } from "lucide-react";
 import { useCurrency } from "@/lib/currency";
 import { Skeleton } from "@/ui/components/skeleton";
+import type { Translator } from "@/i18n/config";
 
 // ── Skeleton loader matching the card layout ────────────────────────────
 export function AccountCardSkeleton() {
@@ -69,7 +72,9 @@ export function AccountCardSkeleton() {
 }
 
 // ── Design tokens per account type ──────────────────────────────────────
-const typeConfig: Record<
+const getTypeConfig = (
+  t: Translator,
+): Record<
   string,
   {
     icon: typeof Wallet;
@@ -83,10 +88,10 @@ const typeConfig: Record<
     /** small dot colour for status row */
     dot: string;
   }
-> = {
+> => ({
   cash: {
     icon: Wallet,
-    label: "Cash",
+    label: t("types.cash"),
     gradient: "from-emerald-500 to-teal-400",
     iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
     iconColor: "text-emerald-600 dark:text-emerald-400",
@@ -94,7 +99,7 @@ const typeConfig: Record<
   },
   bank: {
     icon: Building2,
-    label: "Bank",
+    label: t("types.bank"),
     gradient: "from-blue-500 to-indigo-400",
     iconBg: "bg-blue-50 dark:bg-blue-950/40",
     iconColor: "text-blue-600 dark:text-blue-400",
@@ -102,7 +107,7 @@ const typeConfig: Record<
   },
   mfs: {
     icon: Smartphone,
-    label: "Mobile Banking",
+    label: t("types.mfs"),
     gradient: "from-violet-500 to-purple-400",
     iconBg: "bg-violet-50 dark:bg-violet-950/40",
     iconColor: "text-violet-600 dark:text-violet-400",
@@ -110,13 +115,13 @@ const typeConfig: Record<
   },
   custom: {
     icon: CreditCard,
-    label: "Custom",
+    label: t("types.custom"),
     gradient: "from-amber-500 to-orange-400",
     iconBg: "bg-amber-50 dark:bg-amber-950/40",
     iconColor: "text-amber-600 dark:text-amber-400",
     dot: "bg-amber-500",
   },
-};
+});
 
 // ── Props ───────────────────────────────────────────────────────────────
 interface AccountCardViewProps {
@@ -134,7 +139,9 @@ export default function AccountCardView({
   item,
   actions,
 }: AccountCardViewProps) {
+  const t = useTranslations("accounts.accounts");
   const { format } = useCurrency();
+  const typeConfig = getTypeConfig(t);
   const config = typeConfig[item.type] || typeConfig.cash;
   const TypeIcon = config.icon;
   const isPositive = item.balance >= 0;
@@ -184,7 +191,7 @@ export default function AccountCardView({
                     <TooltipTrigger asChild>
                       <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />
                     </TooltipTrigger>
-                    <TooltipContent side="top">Default account</TooltipContent>
+                    <TooltipContent side="top">{t("card.defaultAccount")}</TooltipContent>
                   </Tooltip>
                 )}
               </div>
@@ -218,12 +225,12 @@ export default function AccountCardView({
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onClick={() => actions.onEdit(item)}>
                 <Pencil className="mr-2 h-3.5 w-3.5" />
-                Edit
+                {t("card.edit")}
               </DropdownMenuItem>
               {actions.onAddInvestment && (
                 <DropdownMenuItem onClick={() => actions.onAddInvestment!(item)}>
                   <PlusCircle className="mr-2 h-3.5 w-3.5" />
-                  Add Investment
+                  {t("card.addInvestment")}
                 </DropdownMenuItem>
               )}
               {actions.onViewTransactions && (
@@ -231,7 +238,7 @@ export default function AccountCardView({
                   onClick={() => actions.onViewTransactions!(item)}
                 >
                   <Receipt className="mr-2 h-3.5 w-3.5" />
-                  View Transactions
+                  {t("card.viewTransactions")}
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -240,7 +247,7 @@ export default function AccountCardView({
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Delete
+                {t("card.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -249,7 +256,7 @@ export default function AccountCardView({
         {/* Row 2 — Balance (the hero number) */}
         <div className="space-y-1">
           <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/60">
-            Current Balance
+            {t("card.currentBalance")}
           </p>
           <p
             className={cn(
@@ -283,7 +290,7 @@ export default function AccountCardView({
             />
           </span>
           <span className="text-xs text-muted-foreground">
-            {isActive ? "Active" : "Inactive"}
+            {isActive ? t("card.active") : t("card.inactive")}
           </span>
 
           {item.isDefault && (
@@ -293,7 +300,7 @@ export default function AccountCardView({
                 variant="secondary"
                 className="h-5 rounded-md px-1.5 text-[10px] font-semibold uppercase tracking-wider"
               >
-                Default
+                {t("card.default")}
               </Badge>
             </>
           )}

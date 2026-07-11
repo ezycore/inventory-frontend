@@ -1,5 +1,7 @@
 ﻿"use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/ui/components/button";
 import PageHeader from "@/ui/components/header";
 import { Download } from "lucide-react";
@@ -17,6 +19,7 @@ import { useAuthStore } from "@/services/stores";
 import { Suspense } from "react";
 
 function PurchasesPageContent() {
+  const t = useTranslations("purchases");
   const ctx = usePurchasePage();
   const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
   const {
@@ -82,8 +85,8 @@ function PurchasesPageContent() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="New Purchase"
-        subTitle="Record stock you buy from suppliers."
+        title={t("create.title")}
+        subTitle={t("create.subtitle")}
       />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ==================== LEFT COLUMN ==================== */}
@@ -95,7 +98,7 @@ function PurchasesPageContent() {
             <div className="rounded-md border bg-card p-3">
               <BarcodeInput
                 onScan={handleBarcodeScan}
-                placeholder="Scan barcode to add a line…"
+                placeholder={t("create.scanPlaceholder")}
               />
             </div>
           )}
@@ -106,7 +109,7 @@ function PurchasesPageContent() {
             config={productFormConfig}
             onSubmit={handleAddToOrder}
             onFieldChange={handleProductFieldChange}
-            submitLabel="Add to Order"
+            submitLabel={t("create.addToOrder")}
             actions={(
               <Button
                 type="button"
@@ -116,7 +119,7 @@ function PurchasesPageContent() {
                 className="gap-1.5 text-xs"
               >
                 <Download className="h-3.5 w-3.5" />
-                Import Low Stock
+                {t("create.importLowStock")}
               </Button>
             )}
           />

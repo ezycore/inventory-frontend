@@ -1,9 +1,10 @@
 "use client";
+// coding-standard: maintained
 
 // Components & Configs
-import { inventoryColumns } from "@/components/inventory/columns";
-import { inventoryFilterConfig, inventorySearchConfig } from "@/components/inventory/filters";
-import { inventoryFormConfig, inventoryDefaultValues } from "@/components/inventory/form-config";
+import { getInventoryColumns } from "@/components/inventory/columns";
+import { getInventoryFilterConfig } from "@/components/inventory/filters";
+import { getInventoryFormConfig, inventoryDefaultValues } from "@/components/inventory/form-config";
 import { prepareSubmitData } from "@/components/inventory/helpers";
 import { getInventoryKpiStats, getInventorySummaryMetrics } from "@/components/inventory/stats";
 
@@ -33,8 +34,11 @@ import { BarcodeInput } from "@/components/shared/barcode";
 import { useAuthStore } from "@/services/stores";
 import { useBarcodeLookupAction } from "@/services/api/modules/barcode";
 import { toast } from "sonner";
+import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 
 export default function InventoryPage() {
+  const t = useTranslations("inventory");
   const { data: dashboardData, isLoading: dashLoading } = useDashboardStats();
   const { format: formatCurrency } = useCurrency();
   const stats = dashboardData?.data;
@@ -43,30 +47,39 @@ export default function InventoryPage() {
     (s) => s.user?.organization?.features?.expiryTracking ?? false,
   );
   const lookupBarcode = useBarcodeLookupAction();
-  const columns = useCostGatedColumns(inventoryColumns);
+  const baseColumns = useMemo(() => getInventoryColumns(t), [t]);
+  const columns = useCostGatedColumns(baseColumns);
+  const filterConfig = useMemo(() => getInventoryFilterConfig(t), [t]);
+  const formConfig = useMemo(() => getInventoryFormConfig(t), [t]);
 
   const handleBarcodeScan = async (code: string) => {
     try {
       const r = await lookupBarcode(code);
       if (!r.hasInventoryAtLocation) {
-        toast.warning(`${r.name}: no stock at this location`);
+        toast.warning(t("stock.scanNoStock", { name: r.name }));
       } else {
-        toast.success(`${r.name} — qty ${r.quantity} ${r.unitName || ""}`);
+        toast.success(
+          t("stock.scanFound", {
+            name: r.name,
+            quantity: r.quantity,
+            unit: r.unitName || "",
+          }),
+        );
       }
     } catch (err: any) {
-      toast.error(err?.message || `No product found for "${code}"`);
+      toast.error(err?.message || t("stock.scanNotFound", { code }));
     }
   };
 
-  const kpiStats = getInventoryKpiStats(stats, formatCurrency);
-  const summaryMetrics = getInventorySummaryMetrics(stats, formatCurrency);
+  const kpiStats = getInventoryKpiStats(stats, formatCurrency, t);
+  const summaryMetrics = getInventorySummaryMetrics(stats, formatCurrency, t);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Current Stock"
-        subTitle="Live stock levels for every product."
+        title={t("stock.title")}
+        subTitle={t("stock.subtitle")}
       />
 
       {/* Quick Summary Banner */}
@@ -95,44 +108,40 @@ export default function InventoryPage() {
         <div className="rounded-md border bg-card p-3">
           <BarcodeInput
             onScan={handleBarcodeScan}
-            placeholder="Scan a barcode to check stock at this location…"
+            placeholder={t("stock.scanPlaceholder")}
           />
         </div>
       )}
 
       <DataTable
-        cardTitle={(dataLength: number) => `Inventory Items (${dataLength})`}
+        cardTitle={(dataLength: number) => t("stock.itemsTitle", { count: dataLength })}
         defaultPageSize={10}
         pageSizes={[10, 20, 50, 100]}
-        filterConfig={inventoryFilterConfig}
+        filterConfig={filterConfig}
         columns={columns}
         selectable={true}
-        // searchConfig={inventorySearchConfig}
         enableSorting={true}
-        // defaultColumnVisibility={{ 
-        //   costPrice: true 
-        // }}
-         searchConfig={{
-            globalSearch: true,
-            placeholder: "Search products by name...",
-          }}
+        searchConfig={{
+          globalSearch: true,
+          placeholder: t("stock.searchPlaceholder"),
+        }}
         enableRowHover={true}
         exportConfig={{
           download: (params) =>
             params.dataset === "batch"
               ? inventoryApi.exportBatchCsv(params)
               : inventoryApi.exportCsv(params),
-          note: "Exports the active location's stock. Switch location to export another.",
+          note: t("stock.exportNote"),
           options: [
             {
               key: "stock-all",
-              label: "Stock — all columns",
-              description: "Product, variant, qty, cost, value, alert level, status.",
+              label: t("stock.exportStockAll"),
+              description: t("stock.exportStockAllDesc"),
             },
             {
               key: "stock-essential",
-              label: "Stock — essential (re-importable)",
-              description: "Barcode, Location, Quantity, Cost Price — round-trips via opening-stock import.",
+              label: t("stock.exportStockEssential"),
+              description: t("stock.exportStockEssentialDesc"),
               params: { columns: "essential" },
             },
             // Batch/expiry rows — only when the org tracks expiry.
@@ -140,8 +149,8 @@ export default function InventoryPage() {
               ? [
                   {
                     key: "batch",
-                    label: "Batch & expiry",
-                    description: "One row per batch: batch no, qty, cost, mfg & expiry dates.",
+                    label: t("stock.exportBatch"),
+                    description: t("stock.exportBatchDesc"),
                     params: { dataset: "batch" },
                   },
                 ]
@@ -161,7 +170,7 @@ export default function InventoryPage() {
               : ""
         }
         operations={{
-          formConfig: inventoryFormConfig,
+          formConfig,
           defaultValues: inventoryDefaultValues,
           getAllData: inventoryApi.getAll,
           disabledFieldsInEdit: ['productId', 'variantId'],
@@ -170,7 +179,7 @@ export default function InventoryPage() {
           deleteMutation: useDeleteInventory(),
           bulkDeleteMutation: useBulkDeleteInventory(),
           queryKey: [...queryKeys.inventory.all()],
-          entityName: "Inventory",
+          entityName: t("stock.entity"),
           prepareSubmitData: (data: Inventory, isEdit: boolean, item: Inventory) =>
             prepareSubmitData(data, isEdit, item),
         }}

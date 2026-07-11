@@ -1,0 +1,173 @@
+{
+  "accounts": {
+    "page": {
+      "title": "Accounts",
+      "subtitle": "Manage your cash, bank, and mobile wallet accounts",
+      "transactions": "Transactions",
+      "allAccountsCount": "All Accounts ({count})",
+      "searchLabel": "Search accounts",
+      "searchPlaceholder": "Search accounts...",
+      "entity": "Account"
+    },
+    "stats": {
+      "totalBalance": "Total Balance",
+      "totalBalanceDescription": "Across {count} accounts",
+      "cash": "Cash",
+      "cashDescription": "Cash accounts",
+      "bank": "Bank",
+      "bankDescription": "Bank balances",
+      "mobileBanking": "Mobile Banking",
+      "mobileBankingDescription": "Mobile Financial Service"
+    },
+    "types": {
+      "cash": "Cash",
+      "bank": "Bank",
+      "mfs": "Mobile Banking",
+      "custom": "Custom"
+    },
+    "card": {
+      "defaultAccount": "Default account",
+      "currentBalance": "Current Balance",
+      "active": "Active",
+      "inactive": "Inactive",
+      "default": "Default",
+      "edit": "Edit",
+      "addInvestment": "Add Investment",
+      "viewTransactions": "View Transactions",
+      "delete": "Delete"
+    },
+    "form": {
+      "name": "Account Name",
+      "namePlaceholder": "e.g., Main Cash, Business Bank Account",
+      "type": "Account Type",
+      "typeCash": "Cash",
+      "typeBank": "Bank Account",
+      "typeMfs": "Mobile Financial Service",
+      "typeCustom": "Custom",
+      "balance": "Balance",
+      "balancePlaceholder": "Enter opening balance",
+      "balanceHint": "Set initial balance for new accounts (cannot be changed later)",
+      "accountNumber": "Account Number",
+      "accountNumberPlaceholder": "Enter account/card number",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "isDefault": "Set as Default Account",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional notes about this account"
+    },
+    "filters": {
+      "typeLabel": "Account Type",
+      "typePlaceholder": "All types",
+      "statusLabel": "Status",
+      "statusPlaceholder": "All statuses"
+    }
+  },
+  "investmentDialog": {
+    "title": "Add Investment",
+    "description": "Record a capital injection into <strong>{name}</strong>. This increases the account balance and is logged as an investment transaction.",
+    "amountLabel": "Investment Amount",
+    "amountPlaceholder": "Enter amount",
+    "referenceLabel": "Reference (Optional)",
+    "referencePlaceholder": "Cheque / transfer reference",
+    "noteLabel": "Note (Optional)",
+    "notePlaceholder": "e.g. Owner capital injection",
+    "submitLabel": "Add Investment",
+    "validation": {
+      "amountPositive": "Amount must be positive"
+    }
+  },
+  "transactions": {
+    "page": {
+      "title": "Transactions",
+      "subtitle": "Track all income, expenses, and transfers",
+      "showingFor": "Showing transactions for",
+      "selectedAccount": "selected account",
+      "clearFilter": "Clear filter",
+      "allTransactionsCount": "All Transactions ({count})",
+      "searchPlaceholder": "Search transactions...",
+      "entity": "Transaction"
+    },
+    "columns": {
+      "date": "Date",
+      "type": "Type",
+      "category": "Category",
+      "amount": "Amount",
+      "balanceAfter": "Balance After",
+      "description": "Description",
+      "reference": "Reference"
+    },
+    "categories": {
+      "sale": "Sale",
+      "purchase": "Purchase",
+      "salary": "Salary",
+      "rent": "Rent",
+      "utilities": "Utilities",
+      "refund": "Refund",
+      "adjustment": "Adjustment",
+      "transfer": "Transfer",
+      "investment": "Investment",
+      "other": "Other"
+    },
+    "types": {
+      "income": "Income",
+      "expense": "Expense",
+      "transfer": "Transfer"
+    },
+    "filters": {
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search transactions...",
+      "typeLabel": "Type",
+      "typePlaceholder": "All types",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "All categories"
+    },
+    "stats": {
+      "totalIncome": "Total Income",
+      "totalExpense": "Total Expense",
+      "transfers": "Transfers",
+      "netChange": "Net Change",
+      "vsPreviousDay": "vs previous day",
+      "vsPreviousWeek": "vs previous week",
+      "vsPreviousMonth": "vs previous month",
+      "vsPreviousPeriod": "vs previous period",
+      "chartTitle": "Income vs Expense",
+      "chartIncome": "Income",
+      "chartExpense": "Expense",
+      "breakdownSuffix": "{period} – {grouping} breakdown"
+    },
+    "dialogs": {
+      "addIncome": "Add Income",
+      "recordIncomeTitle": "Record Income",
+      "recordIncomeSubmit": "Record Income",
+      "addExpense": "Add Expense",
+      "recordExpenseTitle": "Record Expense",
+      "recordExpenseSubmit": "Record Expense",
+      "transfer": "Transfer",
+      "transferTitle": "Transfer Between Accounts",
+      "transferSubmit": "Complete Transfer",
+      "account": "Account",
+      "accountPlaceholder": "Select account",
+      "amount": "Amount",
+      "amountPlaceholder": "Enter amount",
+      "category": "Category",
+      "categoryPlaceholder": "Select category",
+      "reference": "Reference (Optional)",
+      "referencePlaceholder": "Invoice/receipt number",
+      "transferReferencePlaceholder": "Transfer reference",
+      "description": "Description (Optional)",
+      "descriptionPlaceholder": "Add a note...",
+      "fromAccount": "From Account",
+      "fromAccountPlaceholder": "Select source account",
+      "toAccount": "To Account",
+      "toAccountPlaceholder": "Select destination account",
+      "validation": {
+        "selectAccount": "Select an account",
+        "amountPositive": "Amount must be positive",
+        "selectCategory": "Select a category",
+        "selectSourceAccount": "Select source account",
+        "selectDestinationAccount": "Select destination account"
+      }
+    }
+  }
+}

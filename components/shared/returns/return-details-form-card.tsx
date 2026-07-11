@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { CornerUpLeft } from 'lucide-react';
 import {
   Card,
@@ -46,6 +47,7 @@ export function ReturnDetailsFormCard({
   grossRefundAmount,
   formatCurrency,
 }: ReturnDetailsFormCardProps) {
+  const t = useTranslations('common.returns');
   const showDeduction = typeof onDeductionChange === 'function';
   const deduction = deductionAmount ?? 0;
   const netRefund =
@@ -64,7 +66,7 @@ export function ReturnDetailsFormCard({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Reason for Return</Label>
+            <Label>{t('reasonForReturn')}</Label>
             <Select value={reason} onValueChange={onReasonChange}>
               <SelectTrigger>
                 <SelectValue />
@@ -80,9 +82,9 @@ export function ReturnDetailsFormCard({
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label>Notes (Optional)</Label>
+          <Label>{t('notesOptional')}</Label>
           <Textarea
-            placeholder="Additional notes about the return..."
+            placeholder={t('notesPlaceholder')}
             value={notes}
             onChange={(e) => onNotesChange(e.target.value)}
             rows={3}
@@ -92,7 +94,7 @@ export function ReturnDetailsFormCard({
         {showDeduction && (
           <div className="space-y-1.5 rounded-lg border border-dashed border-border p-3">
             <div className="flex items-center justify-between">
-              <Label>Deduction / Fee (Optional)</Label>
+              <Label>{t('deductionFeeOptional')}</Label>
               <span className="text-xs text-muted-foreground">
                 e.g. restocking fee, handling charge
               </span>

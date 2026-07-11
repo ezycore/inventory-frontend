@@ -1,7 +1,9 @@
+// coding-standard: maintained
 /**
  * Purchases-specific adapter for the shared RefundAllocationCard.
  * Maps purchase-domain props (orderDueAmount, orderNumber) to the generic shared component.
  */
+import { useTranslations } from 'next-intl';
 import { RefundAllocationCard as SharedRefundAllocationCard } from '@/components/shared/returns/refund-allocation-card';
 import type { Account } from '@/types';
 import type { DueAllocation } from './types';
@@ -34,16 +36,17 @@ export function RefundAllocationCard({
   onSupplierCreditChange,
   ...rest
 }: RefundAllocationCardProps) {
+  const t = useTranslations('purchases.returns');
   return (
     <SharedRefundAllocationCard
       {...rest}
       documentDueAmount={orderDueAmount}
       adjustDocumentDueAmount={adjustOrderDueAmount}
-      documentDueTitle="Adjust This Order's Due"
-      documentDueSubtitle="Current due on this order:"
-      otherDuesTitle="Adjust Other Dues to This Supplier"
+      documentDueTitle={t('adjustThisOrderDue')}
+      documentDueSubtitle={t('currentDueOnOrder')}
+      otherDuesTitle={t('adjustOtherDuesSupplier')}
       adjustmentColorClass="text-blue-600"
-      descriptionSuffix=" from the supplier"
+      descriptionSuffix={t('fromSupplierSuffix')}
       dueAllocations={dueAllocations.map((d) => ({
         dueId: d.dueId,
         dueAmount: d.dueAmount,
@@ -54,8 +57,8 @@ export function RefundAllocationCard({
       showCounterpartyCredit={true}
       counterpartyCreditAmount={supplierCreditAmount ?? 0}
       onCounterpartyCreditChange={onSupplierCreditChange}
-      creditSectionTitle="Convert to Supplier Credit"
-      creditSectionDescription="Park the refund as supplier credit balance instead of cash."
+      creditSectionTitle={t('convertToSupplierCredit')}
+      creditSectionDescription={t('supplierCreditDesc')}
     />
   );
 }

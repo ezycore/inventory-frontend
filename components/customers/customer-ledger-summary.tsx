@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/ui/components/skeleton";
 import { cn } from "@/ui/lib/utils";
 
@@ -24,18 +26,19 @@ export function CustomerLedgerSummary({
   creditBalance,
   formatCurrency,
 }: CustomerLedgerSummaryProps) {
+  const t = useTranslations("customers.ledger");
   if (!isAccountsEnabled) return null;
   return (
     <div className="px-6 py-4 border-b bg-muted/30">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">Total Paid</p>
+          <p className="text-xs text-muted-foreground">{t("statTotalPaid")}</p>
           <p className="text-lg font-semibold text-green-600">
             {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(totalPaid)}
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">Total Due</p>
+          <p className="text-xs text-muted-foreground">{t("statTotalDue")}</p>
           <p
             className={cn(
               "text-lg font-semibold",
@@ -46,7 +49,7 @@ export function CustomerLedgerSummary({
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">Refunded</p>
+          <p className="text-xs text-muted-foreground">{t("statRefunded")}</p>
           <p
             className={cn(
               "text-lg font-semibold",
@@ -57,12 +60,12 @@ export function CustomerLedgerSummary({
           </p>
           {totalRefundCredit > 0 && (
             <p className="text-[11px] text-muted-foreground">
-              + {formatCurrency(totalRefundCredit)} credit
+              {t("creditSuffix", { amount: formatCurrency(totalRefundCredit) })}
             </p>
           )}
         </div>
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">Store Credit</p>
+          <p className="text-xs text-muted-foreground">{t("statStoreCredit")}</p>
           <p
             className={cn(
               "text-lg font-semibold",

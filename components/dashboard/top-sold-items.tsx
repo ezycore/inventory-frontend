@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import {
   Card,
   CardContent,
@@ -19,15 +21,16 @@ interface TopSoldItemsProps {
 }
 
 export function TopSoldItems({ items, isLoading, formatCurrency }: TopSoldItemsProps) {
+  const t = useTranslations('dashboard.topSold')
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <div>
           <CardTitle className="text-base flex items-center gap-2">
             <Trophy className="h-4 w-4 text-chart-4" />
-            Top Sold Items
+            {t('title')}
           </CardTitle>
-          <CardDescription>Best sellers for this period</CardDescription>
+          <CardDescription>{t('subtitle')}</CardDescription>
         </div>
       </CardHeader>
       <CardContent>
@@ -57,7 +60,7 @@ export function TopSoldItems({ items, isLoading, formatCurrency }: TopSoldItemsP
                       {item.variantName ? ` — ${item.variantName}` : ''}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {item.totalQuantity} sold · Profit {formatCurrency(item.profit)}
+                      {t('soldProfit', { count: item.totalQuantity, amount: formatCurrency(item.profit) })}
                     </p>
                   </div>
                 </div>
@@ -70,8 +73,8 @@ export function TopSoldItems({ items, isLoading, formatCurrency }: TopSoldItemsP
         ) : (
           <EmptyState
             icon={ShoppingCart}
-            title="No sales yet"
-            description="Top sold items will appear here once you make sales"
+            title={t('emptyTitle')}
+            description={t('emptyDescription')}
             compact
           />
         )}

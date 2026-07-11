@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useLocale, useTranslations } from "next-intl";
 import StatsCard, { type StatData } from "@/ui/components/StatsCard";
 import { AreaChart } from "@/ui/components/charts";
 import {
@@ -12,6 +13,7 @@ import {
 import { useCurrency } from "@/lib/currency";
 import { formatPeriodLabel } from "@/components/dashboard/helpers";
 import { useTransactionStats } from "@/services/api";
+import type { AppLocale } from "@/i18n/config";
 
 export interface TransactionStatsParams {
   period?: string;
@@ -25,22 +27,33 @@ export function TransactionStatsSection({
 }: {
   statsParams?: TransactionStatsParams;
 }) {
+  const t = useTranslations("accounts.transactions.stats");
+  const locale = useLocale() as AppLocale;
   const { data: stats, isLoading } = useTransactionStats(statsParams);
   const { format } = useCurrency();
 
   // Dynamic trend label based on period
   const trendLabel = stats?.period
-    ? `vs previous ${stats.period.chartGrouping === "hourly" ? "day" : stats.period.key === "thisWeek" ? "week" : stats.period.key === "thisMonth" ? "month" : "period"}`
-    : "vs previous period";
+    ? stats.period.chartGrouping === "hourly"
+      ? t("vsPreviousDay")
+      : stats.period.key === "thisWeek"
+        ? t("vsPreviousWeek")
+        : stats.period.key === "thisMonth"
+          ? t("vsPreviousMonth")
+          : t("vsPreviousPeriod")
+    : t("vsPreviousPeriod");
 
   // Dynamic chart subtitle
   const chartSubtitle = stats?.period
-    ? `${formatPeriodLabel(stats.period)} – ${stats.period.chartGrouping} breakdown`
+    ? t("breakdownSuffix", {
+        period: formatPeriodLabel(stats.period, locale),
+        grouping: stats.period.chartGrouping,
+      })
     : "";
 
   const statData: StatData[] = [
     {
-      label: "Total Income",
+      label: t("totalIncome"),
       value: stats ? format(stats.totalIncome) : "0",
       icon: TrendingUp,
       variant: "success",
@@ -54,7 +67,7 @@ export function TransactionStatsSection({
       prefix: "+",
     },
     {
-      label: "Total Expense",
+      label: t("totalExpense"),
       value: stats ? format(stats.totalExpense) : "0",
       icon: TrendingDown,
       variant: "destructive",
@@ -68,13 +81,13 @@ export function TransactionStatsSection({
       prefix: "-",
     },
     {
-      label: "Transfers",
+      label: t("transfers"),
       value: stats ? format(stats.totalTransfers) : "0",
       icon: ArrowRightLeft,
       variant: "info",
     },
     {
-      label: "Net Change",
+      label: t("netChange"),
       value: stats ? format(Math.abs(stats.netChange)) : "0",
       icon: Wallet,
       variant: stats && stats.netChange >= 0 ? "success" : "destructive",
@@ -104,16 +117,16 @@ export function TransactionStatsSection({
         series={[
           {
             dataKey: "income",
-            name: "Income",
+            name: t("chartIncome"),
             color: "var(--color-chart-2)",
           },
           {
             dataKey: "expense",
-            name: "Expense",
+            name: t("chartExpense"),
             color: "var(--color-destructive)",
           },
         ]}
-        title="Income vs Expense"
+        title={t("chartTitle")}
         subtitle={chartSubtitle}
         height={280}
         className="overflow-hidden"

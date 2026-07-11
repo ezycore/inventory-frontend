@@ -1,0 +1,101 @@
+{
+  "title": "ড্যাশবোর্ড",
+  "greeting": {
+    "morning": "শুভ সকাল",
+    "afternoon": "শুভ বিকাল",
+    "evening": "শুভ সন্ধ্যা",
+    "fallbackName": "প্রিয় ব্যবহারকারী"
+  },
+  "period": {
+    "startDate": "শুরুর তারিখ",
+    "endDate": "শেষের তারিখ"
+  },
+  "kpi": {
+    "salesRevenue": "বিক্রয় আয়",
+    "purchaseCost": "ক্রয় খরচ",
+    "totalDue": "মোট বাকি",
+    "transactions": "লেনদেন",
+    "vsPrevious": "আগের তুলনায়",
+    "salesPurchaseDue": "বিক্রয় {sales} · ক্রয় {purchase}",
+    "salesPurchaseCount": "{sales}টি বিক্রয় · {purchases}টি ক্রয়"
+  },
+  "chart": {
+    "title": "বিক্রয় বনাম ক্রয়",
+    "sales": "বিক্রয়",
+    "purchases": "ক্রয়",
+    "groupingHourly": "প্রতি ঘণ্টা",
+    "groupingDaily": "প্রতিদিন",
+    "groupingWeekly": "প্রতি সপ্তাহ",
+    "groupingMonthly": "প্রতি মাস",
+    "breakdownSuffix": "{grouping} বিভাজন",
+    "emptyTitle": "এখনও কোনো লেনদেনের ডেটা নেই",
+    "emptyDescription": "লেনদেন রেকর্ড করলে বিক্রয় ও ক্রয়ের প্রবণতা এখানে দেখা যাবে"
+  },
+  "summary": {
+    "periodSales": "এই সময়ের বিক্রয়",
+    "transactionsCollected": "{count, plural, one {#টি লেনদেন} other {#টি লেনদেন}} · সংগৃহীত {amount}",
+    "periodPurchases": "এই সময়ের ক্রয়",
+    "ordersPaid": "{count, plural, one {#টি অর্ডার} other {#টি অর্ডার}} · পরিশোধিত {amount}",
+    "inventoryValueCost": "ইনভেন্টরির মূল্য (ক্রয়মূল্যে)",
+    "itemsInStock": "{count}টি আইটেম স্টকে আছে",
+    "periodDue": "এই সময়ের বাকি",
+    "salesPurchaseDue": "বিক্রয় {sales} · ক্রয় {purchase}"
+  },
+  "topSold": {
+    "title": "সর্বাধিক বিক্রিত আইটেম",
+    "subtitle": "এই সময়ের সেরা বিক্রি",
+    "soldProfit": "{count} বিক্রি · মুনাফা {amount}",
+    "emptyTitle": "এখনও কোনো বিক্রয় নেই",
+    "emptyDescription": "বিক্রয় করলে সর্বাধিক বিক্রিত আইটেম এখানে দেখা যাবে"
+  },
+  "lowStock": {
+    "title": "কম স্টকের সতর্কতা",
+    "subtitle": "রিস্টক দরকার এমন আইটেম",
+    "viewAll": "সব দেখুন",
+    "viewAllCount": "সব {count}টি আইটেম দেখুন",
+    "emptyTitle": "সব স্টক পর্যাপ্ত",
+    "emptyDescription": "সীমার নিচে কোনো আইটেম নেই"
+  },
+  "activity": {
+    "title": "সাম্প্রতিক কার্যক্রম",
+    "subtitle": "সর্বশেষ স্টক পরিবর্তন",
+    "viewAll": "সব দেখুন",
+    "unknownProduct": "অজানা পণ্য",
+    "stockIn": "স্টক ইন",
+    "stockOut": "স্টক আউট",
+    "emptyTitle": "কোনো সাম্প্রতিক কার্যক্রম নেই",
+    "emptyDescription": "স্টক পরিবর্তন এখানে দেখা যাবে",
+    "reasonSale": "বিক্রয়",
+    "reasonPurchaseReceived": "ক্রয় গৃহীত",
+    "reasonStockAdjustment": "স্টক সমন্বয়",
+    "reasonStockTransfer": "স্টক স্থানান্তর",
+    "reasonReturn": "ফেরত",
+    "reasonOpeningStock": "প্রারম্ভিক স্টক"
+  },
+  "financial": {
+    "title": "আর্থিক অন্তর্দৃষ্টি",
+    "subtitle": "এই সময়ের কার্যক্ষমতার পরিমাপ",
+    "emptyTitle": "এখনও কোনো ডেটা নেই",
+    "emptyDescription": "লেনদেনের সাথে আর্থিক অন্তর্দৃষ্টি দেখা যাবে",
+    "grossProfit": "গ্রস মুনাফা",
+    "marginSuffix": "% মার্জিন",
+    "avgSaleValue": "গড় বিক্রয় মূল্য",
+    "salesCount": "{count, plural, one {#টি বিক্রয়} other {#টি বিক্রয়}}",
+    "avgPurchaseValue": "গড় ক্রয় মূল্য",
+    "purchasesCount": "{count, plural, one {#টি অর্ডার} other {#টি অর্ডার}}",
+    "salesCollection": "বিক্রয় সংগ্রহ",
+    "collectedOfTotal": "{total}-এর মধ্যে {collected} সংগৃহীত",
+    "purchasePayment": "ক্রয়ের পরিশোধ",
+    "paidOfTotal": "{total}-এর মধ্যে {paid} পরিশোধিত"
+  },
+  "quickActions": {
+    "title": "দ্রুত কাজ",
+    "subtitle": "সাধারণ কাজে যান",
+    "newSale": "নতুন বিক্রয়",
+    "purchase": "ক্রয়",
+    "addProduct": "পণ্য যোগ করুন",
+    "transferStock": "স্টক স্থানান্তর",
+    "adjustStock": "স্টক সমন্বয়",
+    "viewReports": "রিপোর্ট দেখুন"
+  }
+}

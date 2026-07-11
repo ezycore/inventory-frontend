@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { Package } from 'lucide-react'
 import { Card } from '@ui/components/card'
@@ -34,6 +35,7 @@ function collectImages(product: any, variant: any): ProductImage[] {
 }
 
 export function DetailHero({ product, variant, sellingPrice, barcode, formatCurrency }: DetailHeroProps) {
+  const t = useTranslations('products.products.detail')
   const images = collectImages(product, variant)
   const [active, setActive] = useState(0)
   const primary = images[active] || images[0]
@@ -101,18 +103,18 @@ export function DetailHero({ product, variant, sellingPrice, barcode, formatCurr
           <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             {barcode && (
               <span className="text-muted-foreground">
-                Barcode <span className="font-mono font-medium text-foreground">{barcode}</span>
+                {t('barcode')} <span className="font-mono font-medium text-foreground">{barcode}</span>
               </span>
             )}
             {product.category?.name && (
               <span className="text-muted-foreground">
-                Category <span className="font-medium text-foreground">{product.category.name}</span>
+                {t('category')} <span className="font-medium text-foreground">{product.category.name}</span>
               </span>
             )}
           </div>
 
           <div className="mt-auto pt-4">
-            <span className="text-xs text-muted-foreground">Selling Price</span>
+            <span className="text-xs text-muted-foreground">{t('sellingPrice')}</span>
             <p className="text-3xl font-bold text-emerald-600">{formatCurrency(sellingPrice)}</p>
           </div>
         </div>

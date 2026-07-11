@@ -1,7 +1,11 @@
 'use client'
+// coding-standard: maintained
+
+import { useTranslations, useLocale } from 'next-intl'
 
 // Types
 import type { VariantAttribute } from '@/types'
+import type { AppLocale } from '@/i18n/config'
 
 // UI Components
 import { DataTable } from '@/ui/components/dataTable'
@@ -21,30 +25,30 @@ import {
 } from '@/services/api'
 import { variantAttributesApi } from '@/services/api'
 import { queryKeys } from '@/lib/query-keys'
-import variantAttributeFormConfig from '@/components/variants/form-config'
+import getVariantAttributeFormConfig from '@/components/variants/form-config'
 import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
 import { getVariantStats } from '@/components/variants/helper'
-import { variantColumns } from '@/components/variants/columns'
-import { variantFilterConfig } from '@/components/variants/filter'
-
-
-const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search attributes by name, values",
-}
+import { getVariantColumns } from '@/components/variants/columns'
+import { getVariantFilterConfig } from '@/components/variants/filter'
 
 export default function VariantsPage() {
+  const t = useTranslations('products.variants')
+  const locale = useLocale() as AppLocale
   const [viewMode, setViewMode, isMounted] = useViewMode('variants', 'card')
   const { data: statsData, isLoading: statsLoading } = useVariantStats()
+  const searchConfig = {
+    globalSearch: true,
+    placeholder: t('page.searchPlaceholder'),
+  }
 
   const sharedOperations = {
     getAllData: variantAttributesApi.getAll,
-    formConfig: variantAttributeFormConfig,
+    formConfig: getVariantAttributeFormConfig(t),
     createMutation: useCreateVariantAttribute(),
     updateMutation: useUpdateVariantAttribute(),
     deleteMutation: useDeleteVariantAttribute(),
-    entityName: "Variant Attribute" as const,
+    entityName: t('page.entityName'),
     queryKey: [...queryKeys.variantAttributes.all()],
     transformEditData: variantAttributesApi.transformForEdit,
   }
@@ -67,8 +71,8 @@ export default function VariantsPage() {
     <div className="container mx-auto space-y-6">
       {/* Header */}
       <PageHeader
-        title="Variants"
-        subTitle="Options of the same product — like size, strength, or pack."
+        title={t('page.title')}
+        subTitle={t('page.subtitle')}
         actions={
           <ViewToggle
             storageKey="variants"
@@ -79,17 +83,17 @@ export default function VariantsPage() {
       />
 
       {/* Stats Cards */}
-      <StatsCard data={getVariantStats(statsData)} isLoading={statsLoading} />
+      <StatsCard data={getVariantStats(statsData, t)} isLoading={statsLoading} />
 
       {/* Table View */}
       {viewMode === 'table' && (
         <DataTable<VariantAttribute>
-          cardTitle={(dataLength: number) => `All Variants (${dataLength})`}
-          columns={variantColumns}
+          cardTitle={(dataLength: number) => t('page.allVariantsTitle', { count: dataLength })}
+          columns={getVariantColumns(t)}
           selectable={true}
           searchConfig={searchConfig}
           operations={sharedOperations}
-          filterConfig={variantFilterConfig}
+          filterConfig={getVariantFilterConfig(t)}
           enableSorting={true}
           sortingConfig={sortingConfig}
           defaultColumnVisibility={{ status: false }}
@@ -103,7 +107,7 @@ export default function VariantsPage() {
       {/* Card View */}
       {viewMode === 'card' && (
         <DataCard
-          cardTitle={(n) => `All Variants (${n})`}
+          cardTitle={(n) => t('page.allVariantsTitle', { count: n })}
           defaultPageSize={12}
           sortingConfig={sortingConfig}
           pageSizes={[6, 12, 24, 48]}
@@ -112,9 +116,9 @@ export default function VariantsPage() {
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "md",
           }}
-          filterConfig={variantFilterConfig}
+          filterConfig={getVariantFilterConfig(t)}
           searchConfig={searchConfig}
-          renderCard={VariantCardView}
+          renderCard={(item, actions) => VariantCardView(item, actions, { t, locale })}
           loadingRenderCard={VariantCardLoading}
           operations={sharedOperations}
         />

@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import DynamicForm from "@/ui/components/form";
 import { Card, CardContent } from "@/ui/components/card";
 import type { UseFormReturn } from "react-hook-form";
@@ -15,14 +17,15 @@ type Props = {
   actions?: React.ReactNode;
 };
 
-export const ProductForm: FC<Props> = ({ form, config, onFieldChange, onSubmit, submitLabel, title = "Add Products", actions }) => {
+export const ProductForm: FC<Props> = ({ form, config, onFieldChange, onSubmit, submitLabel, title, actions }) => {
+  const t = useTranslations("purchases.create");
   return (
     <Card>
       <CardContent>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
-            <h3 className="font-semibold text-sm">{title}</h3>
+            <h3 className="font-semibold text-sm">{title ?? t("addProducts")}</h3>
           </div>
           {actions && <div className="flex items-center">{actions}</div>}
         </div>

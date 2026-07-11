@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
@@ -33,6 +34,7 @@ export function useEnhancedColumns<TData, TValue>({
   customActions,
   serverSortableFields,
 }: UseEnhancedColumnsProps<TData, TValue>) {
+  const t = useTranslations("common");
   return useMemo(() => {
     // When server-side sorting is active, restrict sortable columns to allowed fields only
     const cols = serverSortableFields
@@ -80,7 +82,7 @@ export function useEnhancedColumns<TData, TValue>({
     if (hasActions && !cols.some((col: any) => col.id === "actions")) {
       cols.push({
         id: "actions",
-        header: "Actions",
+        header: t("table.actions"),
         cell: ({ row }) => {
           const rowData = row.original;
           return (
@@ -101,7 +103,7 @@ export function useEnhancedColumns<TData, TValue>({
                     <TooltipContent>
                       {typeof actions?.viewable === "object" && actions?.viewable?.tooltip
                         ? actions.viewable.tooltip
-                        : "View details"}
+                        : t("actions.viewDetails")}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -126,7 +128,7 @@ export function useEnhancedColumns<TData, TValue>({
                       <TooltipContent>
                         {typeof actions?.editable === "object" && actions?.editable?.tooltip
                           ? actions.editable.tooltip
-                          : customEdit?.tooltip || "Edit"}
+                          : customEdit?.tooltip || t("actions.edit")}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -149,7 +151,7 @@ export function useEnhancedColumns<TData, TValue>({
                     <TooltipContent>
                       {typeof actions?.deletable === "object" && actions?.deletable?.tooltip
                         ? actions.deletable.tooltip
-                        : "Delete"}
+                        : t("actions.delete")}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -226,5 +228,5 @@ export function useEnhancedColumns<TData, TValue>({
     }
     
     return cols;
-  }, [columns, selectable, actions, onView, onEdit, openDeleteDialog, customActions, serverSortableFields]);
+  }, [columns, selectable, actions, onView, onEdit, openDeleteDialog, customActions, serverSortableFields, t]);
 }

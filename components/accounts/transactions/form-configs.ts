@@ -1,56 +1,69 @@
 // coding-standard: maintained
 import { z } from "zod";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
+import type { Translator } from "@/i18n/config";
 
-// Form Schemas
-export const incomeSchema = z.object({
-  accountId: z.string().min(1, "Select an account"),
-  amount: z.number().positive("Amount must be positive"),
-  category: z.string().min(1, "Select a category"),
-  description: z.string().optional(),
-  reference: z.string().optional(),
-});
+/**
+ * Per-form zod messages (zod v4 ships no bn locale — docs/I18N.md). Callers pass
+ * a `transactions.dialogs.validation`-bound translator; the default keeps
+ * English for module-level use before a translator exists.
+ */
+export const makeIncomeSchema = (msg?: {
+  selectAccount: string;
+  amountPositive: string;
+  selectCategory: string;
+}) =>
+  z.object({
+    accountId: z.string().min(1, msg?.selectAccount ?? "Select an account"),
+    amount: z.number().positive(msg?.amountPositive ?? "Amount must be positive"),
+    category: z.string().min(1, msg?.selectCategory ?? "Select a category"),
+    description: z.string().optional(),
+    reference: z.string().optional(),
+  });
 
-export const expenseSchema = z.object({
-  accountId: z.string().min(1, "Select an account"),
-  amount: z.number().positive("Amount must be positive"),
-  category: z.string().min(1, "Select a category"),
-  description: z.string().optional(),
-  reference: z.string().optional(),
-});
+export const makeExpenseSchema = makeIncomeSchema;
 
-export const transferSchema = z.object({
-  fromAccountId: z.string().min(1, "Select source account"),
-  toAccountId: z.string().min(1, "Select destination account"),
-  amount: z.number().positive("Amount must be positive"),
-  description: z.string().optional(),
-  reference: z.string().optional(),
-});
+export const makeTransferSchema = (msg?: {
+  selectSourceAccount: string;
+  selectDestinationAccount: string;
+  amountPositive: string;
+}) =>
+  z.object({
+    fromAccountId: z.string().min(1, msg?.selectSourceAccount ?? "Select source account"),
+    toAccountId: z.string().min(1, msg?.selectDestinationAccount ?? "Select destination account"),
+    amount: z.number().positive(msg?.amountPositive ?? "Amount must be positive"),
+    description: z.string().optional(),
+    reference: z.string().optional(),
+  });
 
-export type IncomeFormData = z.infer<typeof incomeSchema>;
-export type ExpenseFormData = z.infer<typeof expenseSchema>;
-export type TransferFormData = z.infer<typeof transferSchema>;
+export type IncomeFormData = z.infer<ReturnType<typeof makeIncomeSchema>>;
+export type ExpenseFormData = z.infer<ReturnType<typeof makeExpenseSchema>>;
+export type TransferFormData = z.infer<ReturnType<typeof makeTransferSchema>>;
 
-const categories = [
-  { value: "sale", label: "Sale" },
-  { value: "purchase", label: "Purchase" },
-  { value: "salary", label: "Salary" },
-  { value: "rent", label: "Rent" },
-  { value: "utilities", label: "Utilities" },
-  { value: "refund", label: "Refund" },
-  { value: "adjustment", label: "Adjustment" },
-  { value: "investment", label: "Investment" },
-  { value: "other", label: "Other" },
-];
+const CATEGORY_KEYS = [
+  "sale",
+  "purchase",
+  "salary",
+  "rent",
+  "utilities",
+  "refund",
+  "adjustment",
+  "investment",
+  "other",
+] as const;
 
-// Dynamic form configs
-export const incomeFormConfig: DynamicFormConfig = {
+/** `tCategories` is bound to `transactions.categories`. */
+const getCategories = (tCategories: Translator) =>
+  CATEGORY_KEYS.map((value) => ({ value, label: tCategories(value) }));
+
+/** `t` is bound to `transactions.dialogs`, `tCategories` to `transactions.categories`. */
+export const getIncomeFormConfig = (t: Translator, tCategories: Translator): DynamicFormConfig => ({
   fields: [
     {
       name: "accountId",
       type: "select",
-      label: "Account",
-      placeholder: "Select account",
+      label: t("account"),
+      placeholder: t("accountPlaceholder"),
       required: true,
       columnSpan: 12,
       optionsApi: "/accounts",
@@ -58,89 +71,46 @@ export const incomeFormConfig: DynamicFormConfig = {
     {
       name: "amount",
       type: "number",
-      label: "Amount",
-      placeholder: "Enter amount",
+      label: t("amount"),
+      placeholder: t("amountPlaceholder"),
       required: true,
       columnSpan: 6,
     },
     {
       name: "category",
       type: "select",
-      label: "Category",
-      placeholder: "Select category",
+      label: t("category"),
+      placeholder: t("categoryPlaceholder"),
       required: true,
       columnSpan: 6,
-      options: categories,
+      options: getCategories(tCategories),
     },
     {
       name: "reference",
       type: "input",
-      label: "Reference (Optional)",
-      placeholder: "Invoice/receipt number",
+      label: t("reference"),
+      placeholder: t("referencePlaceholder"),
       columnSpan: 6,
     },
     {
       name: "description",
       type: "textarea",
-      label: "Description (Optional)",
-      placeholder: "Add a note...",
+      label: t("description"),
+      placeholder: t("descriptionPlaceholder"),
       columnSpan: 12,
     },
   ],
-};
+});
 
-export const expenseFormConfig: DynamicFormConfig = {
-  fields: [
-    {
-      name: "accountId",
-      type: "select",
-      label: "Account",
-      placeholder: "Select account",
-      required: true,
-      columnSpan: 12,
-      optionsApi: "/accounts",
-    },
-    {
-      name: "amount",
-      type: "number",
-      label: "Amount",
-      placeholder: "Enter amount",
-      required: true,
-      columnSpan: 6,
-    },
-    {
-      name: "category",
-      type: "select",
-      label: "Category",
-      placeholder: "Select category",
-      required: true,
-      columnSpan: 6,
-      options: categories,
-    },
-    {
-      name: "reference",
-      type: "input",
-      label: "Reference (Optional)",
-      placeholder: "Invoice/receipt number",
-      columnSpan: 6,
-    },
-    {
-      name: "description",
-      type: "textarea",
-      label: "Description (Optional)",
-      placeholder: "Add a note...",
-      columnSpan: 12,
-    },
-  ],
-};
+export const getExpenseFormConfig = getIncomeFormConfig;
 
-export const transferFormConfig: DynamicFormConfig = {
+export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [
     {
       name: "fromAccountId",
       type: "select",
-      label: "From Account",
-      placeholder: "Select source account",
+      label: t("fromAccount"),
+      placeholder: t("fromAccountPlaceholder"),
       required: true,
       columnSpan: 6,
       optionsApi: "/accounts",
@@ -148,8 +118,8 @@ export const transferFormConfig: DynamicFormConfig = {
     {
       name: "toAccountId",
       type: "select",
-      label: "To Account",
-      placeholder: "Select destination account",
+      label: t("toAccount"),
+      placeholder: t("toAccountPlaceholder"),
       required: true,
       columnSpan: 6,
       optionsApi: "/accounts",
@@ -157,24 +127,24 @@ export const transferFormConfig: DynamicFormConfig = {
     {
       name: "amount",
       type: "number",
-      label: "Amount",
-      placeholder: "Enter amount",
+      label: t("amount"),
+      placeholder: t("amountPlaceholder"),
       required: true,
       columnSpan: 6,
     },
     {
       name: "reference",
       type: "input",
-      label: "Reference (Optional)",
-      placeholder: "Transfer reference",
+      label: t("reference"),
+      placeholder: t("transferReferencePlaceholder"),
       columnSpan: 6,
     },
     {
       name: "description",
       type: "textarea",
-      label: "Description (Optional)",
-      placeholder: "Add a note...",
+      label: t("description"),
+      placeholder: t("descriptionPlaceholder"),
       columnSpan: 12,
     },
   ],
-};
+});

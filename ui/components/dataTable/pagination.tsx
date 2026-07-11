@@ -1,4 +1,5 @@
 import { DataTablePagination as PaginationConfig } from "@/types/DataTable";
+import { useTranslations } from "next-intl";
 import { Table } from "@tanstack/react-table";
 import {
   ChevronLeft,
@@ -29,6 +30,7 @@ export function DataTablePagination<TData>({
   paginationState,
   onPaginationChange,
 }: DataTablePaginationProps<TData>) {
+  const t = useTranslations("common.table");
   const currentPage = paginationState.pageIndex + 1;
   const getPageNumbers = () => {
     const totalPages = pagination?.totalPages || table.getPageCount();
@@ -66,7 +68,7 @@ export function DataTablePagination<TData>({
       {/* Page Size Selector - always order-1 */}
       <div className="flex items-center gap-2 order-1">
         <span className="sm:inline text-sm text-muted-foreground">
-          Rows Per page
+          {t("rowsPerPage")}
         </span>
         <Select
           value={`${paginationState.pageSize}`}
@@ -99,7 +101,7 @@ export function DataTablePagination<TData>({
           }
           disabled={!table.getCanPreviousPage()}
           className="p-2 rounded-lg hover:bg-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          aria-label="First page"
+          aria-label={t("firstPage")}
         >
           <ChevronsLeft className="w-4 h-4 text-secondary-foreground" />
         </button>
@@ -107,7 +109,7 @@ export function DataTablePagination<TData>({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
           className="p-2 rounded-lg hover:bg-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          aria-label="Previous page"
+          aria-label={t("previousPage")}
         >
           <ChevronLeft className="w-4 h-4 text-secondary-foreground" />
         </button>
@@ -143,7 +145,7 @@ export function DataTablePagination<TData>({
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
           className="p-2 rounded-lg hover:bg-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          aria-label="Next page"
+          aria-label={t("nextPage")}
         >
           <ChevronRight className="w-4 h-4 text-secondary-foreground" />
         </button>
@@ -151,7 +153,7 @@ export function DataTablePagination<TData>({
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}
           disabled={!table.getCanNextPage()}
           className="p-2 rounded-lg hover:bg-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          aria-label="Last page"
+          aria-label={t("lastPage")}
         >
           <ChevronsRight className="w-4 h-4 text-secondary-foreground" />
         </button>

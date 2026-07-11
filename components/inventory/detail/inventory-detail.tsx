@@ -1,6 +1,7 @@
 // coding-standard: maintained
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { AlertCircle, MapPin, Package, TrendingDown, TrendingUp, Wallet, Bell } from 'lucide-react'
 import { Card, CardContent } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
@@ -21,6 +22,8 @@ interface InventoryDetailProps {
 }
 
 export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) {
+  const t = useTranslations('inventory.detail')
+  const tCommon = useTranslations('common')
   const { format: formatCurrency } = useCurrency()
   const canViewCosts = useHasPermission(PERMISSIONS.costsView)
   const features = useAuthStore((s) => s.user?.organization?.features)
@@ -46,17 +49,17 @@ export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) 
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-        <h2 className="mb-2 text-xl font-semibold">Inventory Record Not Found</h2>
+        <h2 className="mb-2 text-xl font-semibold">{t('notFoundTitle')}</h2>
         <p className="mb-4 text-muted-foreground">
-          This stock record doesn&apos;t exist or has been removed.
+          {t('notFoundBody')}
         </p>
-        {onClose && <Button onClick={onClose}>Close</Button>}
+        {onClose && <Button onClick={onClose}>{tCommon('actions.close')}</Button>}
       </div>
     )
   }
 
   const { inventory, product, variant, location, movement, batches } = analytics
-  const unitLabel = product?.unit?.shortName || product?.unit?.name || 'units'
+  const unitLabel = product?.unit?.shortName || product?.unit?.name || t('unitsLabel')
 
   // Link to the full movements page, scoped to this exact inventory record
   // (product + variant + location), shown only when more than the 10 listed exist.
@@ -80,16 +83,16 @@ export function InventoryDetail({ inventoryId, onClose }: InventoryDetailProps) 
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={Package} label="On Hand" value={`${inventory.quantity.toLocaleString()}`} sub={unitLabel} />
+        <StatTile icon={Package} label={t('onHand')} value={`${inventory.quantity.toLocaleString()}`} sub={unitLabel} />
         {canViewCosts && (
-          <StatTile icon={Wallet} label="Stock Value" value={formatCurrency(inventory.stockValue)} sub="at cost price" />
+          <StatTile icon={Wallet} label={t('stockValue')} value={formatCurrency(inventory.stockValue)} sub={t('atCostPrice')} />
         )}
-        <StatTile icon={Bell} label="Alert Level" value={inventory.quantityAlert.toLocaleString()} sub="reorder threshold" />
+        <StatTile icon={Bell} label={t('alertLevel')} value={inventory.quantityAlert.toLocaleString()} sub={t('reorderThreshold')} />
         <StatTile
           icon={movement.netChange >= 0 ? TrendingUp : TrendingDown}
-          label="Net Change"
+          label={t('netChange')}
           value={`${movement.netChange >= 0 ? '+' : ''}${movement.netChange.toLocaleString()}`}
-          sub={`${movement.stockIn.quantity} in · ${movement.stockOut.quantity} out`}
+          sub={t('inOutSummary', { in: movement.stockIn.quantity, out: movement.stockOut.quantity })}
         />
       </div>
 
@@ -131,6 +134,8 @@ function Hero({
   status,
   isLowStock,
 }: HeroProps) {
+  const t = useTranslations('inventory.detail')
+  const tStatus = useTranslations('common.status')
   return (
     <Card>
       <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -169,8 +174,10 @@ function Hero({
 
         <div className="flex flex-col items-start gap-2 sm:items-end">
           <div className="flex items-center gap-2">
-            <Badge variant={status === 'active' ? 'secondary' : 'outline'}>{status}</Badge>
-            {isLowStock && <Badge variant="destructive">Low stock</Badge>}
+            <Badge variant={status === 'active' ? 'secondary' : 'outline'}>
+              {tStatus.has(status) ? tStatus(status) : status}
+            </Badge>
+            {isLowStock && <Badge variant="destructive">{t('lowStockBadge')}</Badge>}
           </div>
           <p className="text-3xl font-bold">
             {quantity.toLocaleString()} <span className="text-base font-medium text-muted-foreground">{unitLabel}</span>

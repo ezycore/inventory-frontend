@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { useStockValuation } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
@@ -14,6 +16,8 @@ import {
 import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 
 export function ValuationReport() {
+  const t = useTranslations('reports.valuation')
+  const tEmpty = useTranslations('common.empty')
   // The whole report is valuation at cost — costs.view only.
   const canViewCosts = useHasPermission(PERMISSIONS.costsView)
   const { data, isLoading } = useStockValuation({ enabled: canViewCosts })
@@ -23,10 +27,9 @@ export function ValuationReport() {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <Lock className="mb-3 h-10 w-10 text-muted-foreground opacity-50" />
-        <h2 className="text-lg font-semibold">Cost data restricted</h2>
+        <h2 className="text-lg font-semibold">{t('restrictedTitle')}</h2>
         <p className="mt-1 max-w-md text-sm text-muted-foreground">
-          Stock valuation is based on cost prices, which your role doesn&apos;t have
-          permission to view. Ask an administrator for the cost visibility permission.
+          {t('restrictedBody')}
         </p>
       </div>
     )
@@ -36,9 +39,9 @@ export function ValuationReport() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Stock Value</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            What your current stock is worth, by product and category.
+            {t('subtitle')}
           </p>
         </div>
       </div>
@@ -55,7 +58,7 @@ export function ValuationReport() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Stock Value</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalStockValue')}</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -63,42 +66,42 @@ export function ValuationReport() {
                   {formatCurrency(data.summary.totalCostValue)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Based on cost price
+                  {t('basedOnCost')}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalProducts')}</CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{data.summary.totalProducts}</div>
-                <p className="text-xs text-muted-foreground">Active inventory items</p>
+                <p className="text-xs text-muted-foreground">{t('activeItems')}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Quantity</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalQuantity')}</CardTitle>
                 <Database className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {data.summary.totalQuantity.toLocaleString()}
                 </div>
-                <p className="text-xs text-muted-foreground">Items in stock</p>
+                <p className="text-xs text-muted-foreground">{t('itemsInStock')}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Avg. Cost Price</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('avgCostPrice')}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {formatCurrency(data.summary.averageCostPrice)}
                 </div>
-                <p className="text-xs text-muted-foreground">Per inventory item</p>
+                <p className="text-xs text-muted-foreground">{t('perItem')}</p>
               </CardContent>
             </Card>
           </div>
@@ -106,20 +109,20 @@ export function ValuationReport() {
           {/* Category Valuation */}
           <Card>
             <CardHeader>
-              <CardTitle>Valuation by Category</CardTitle>
+              <CardTitle>{t('valuationByCategory')}</CardTitle>
             </CardHeader>
             <CardContent>
               {data.categoryValuation.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No data available</p>
+                <p className="text-sm text-muted-foreground">{tEmpty('noData')}</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-left">
-                        <th className="pb-2 font-medium">Category</th>
-                        <th className="pb-2 font-medium text-right">Products</th>
-                        <th className="pb-2 font-medium text-right">Quantity</th>
-                        <th className="pb-2 font-medium text-right">Total Value</th>
+                        <th className="pb-2 font-medium">{t('colCategory')}</th>
+                        <th className="pb-2 font-medium text-right">{t('colProducts')}</th>
+                        <th className="pb-2 font-medium text-right">{t('colQuantity')}</th>
+                        <th className="pb-2 font-medium text-right">{t('colTotalValue')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -143,20 +146,20 @@ export function ValuationReport() {
           {/* Top Value Products */}
           <Card>
             <CardHeader>
-              <CardTitle>Highest Value Products</CardTitle>
+              <CardTitle>{t('highestValueProducts')}</CardTitle>
             </CardHeader>
             <CardContent>
               {data.topValueProducts.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No data available</p>
+                <p className="text-sm text-muted-foreground">{tEmpty('noData')}</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-left">
-                        <th className="pb-2 font-medium">Product</th>
-                        <th className="pb-2 font-medium text-right">Quantity</th>
-                        <th className="pb-2 font-medium text-right">Cost Price</th>
-                        <th className="pb-2 font-medium text-right">Stock Value</th>
+                        <th className="pb-2 font-medium">{t('colProduct')}</th>
+                        <th className="pb-2 font-medium text-right">{t('colQuantity')}</th>
+                        <th className="pb-2 font-medium text-right">{t('colCostPrice')}</th>
+                        <th className="pb-2 font-medium text-right">{t('colStockValue')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -187,7 +190,7 @@ export function ValuationReport() {
       ) : (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No data available
+            {tEmpty('noData')}
           </CardContent>
         </Card>
       )}

@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -134,13 +136,17 @@ function getUrgency(quantity: number, alertQty: number) {
   return "Medium";
 }
 
-function getUrgencyBadge(quantity: number, alertQty: number) {
+function getUrgencyBadge(
+  quantity: number,
+  alertQty: number,
+  labels: { critical: string; high: string; medium: string },
+) {
   const urgency = getUrgency(quantity, alertQty);
   if (urgency === "Critical") {
     return (
       <Badge variant="destructive" className="gap-1 text-xs">
         <AlertOctagon className="h-3 w-3" />
-        Critical
+        {labels.critical}
       </Badge>
     );
   }
@@ -148,14 +154,14 @@ function getUrgencyBadge(quantity: number, alertQty: number) {
     return (
       <Badge className="bg-chart-1/10 text-chart-1 border-chart-1/20 gap-1 text-xs">
         <AlertTriangle className="h-3 w-3" />
-        High
+        {labels.high}
       </Badge>
     );
   }
   return (
     <Badge variant="secondary" className="gap-1 text-xs">
       <AlertTriangle className="h-3 w-3" />
-      Medium
+      {labels.medium}
     </Badge>
   );
 }
@@ -177,8 +183,8 @@ function getDefaultOrderQty(item: ShortlistItem): number {
   return Math.max(1, Math.ceil(neededQty / conversionFactor));
 }
 
-function getProductDisplayName(item: ShortlistItem): string {
-  const name = item.name || "Unknown Product";
+function getProductDisplayName(item: ShortlistItem, fallbackName: string): string {
+  const name = item.name || fallbackName;
   if (item.variant?.attributes) {
     const attrs = Object.entries(item.variant.attributes)
       .map(([k, v]) => `${k}: ${v}`)
@@ -201,6 +207,9 @@ export function ImportLowStockDialog({
   initialDiscountType = "fixed",
   initialDiscountValue = 0,
 }: ImportLowStockDialogProps) {
+  const t = useTranslations("purchases.import");
+  const tActions = useTranslations("common.actions");
+  const tForm = useTranslations("purchases.form");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -366,7 +375,7 @@ export function ImportLowStockDialog({
 
   const handleImport = useCallback(() => {
     if (!supplierId) {
-      toast.error("Please select a supplier first");
+      toast.error(t("selectSupplierFirst"));
       return;
     }
 
@@ -394,7 +403,7 @@ export function ImportLowStockDialog({
         inventoryId: item._id,
         productId: item.productId || "",
         variantId: item.variant?._id || null,
-        productName: getProductDisplayName(item),
+        productName: getProductDisplayName(item, t("unknownProduct")),
         quantity,
         price,
         costPrice,
@@ -417,7 +426,7 @@ export function ImportLowStockDialog({
       discountValue,
     });
     onOpenChange(false);
-  }, [items, selectedIds, orderQuantities, supplierId, supplierName, purchaseType, discountType, discountValue, onImport, onOpenChange]);
+  }, [items, selectedIds, orderQuantities, supplierId, supplierName, purchaseType, discountType, discountValue, onImport, onOpenChange, t]);
 
   const isAllSelected =
     filteredItems.length > 0 && selectedIds.size === filteredItems.length;
@@ -428,27 +437,27 @@ export function ImportLowStockDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Download className="h-5 w-5 text-primary" />
-            Import Low Stock Products
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
-            Select products that need restocking and import them into your purchase order.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         {/* Purchase Settings */}
         <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Purchase Settings
+            {t("purchaseSettings")}
           </p>
           <div className="grid grid-cols-2 gap-3">
             {/* Supplier */}
             <div className="space-y-1 w-full">
               <Label className="text-xs">
-                Supplier <span className="text-destructive">*</span>
+                {t("supplier")} <span className="text-destructive">*</span>
               </Label>
               <Select value={supplierId} onValueChange={handleSupplierChange}>
                 <SelectTrigger className="h-9 w-full">
-                  <SelectValue placeholder="Select supplier..." />
+                  <SelectValue placeholder={t("selectSupplier")} />
                 </SelectTrigger>
                 <SelectContent>
                   {supplierOptions?.map((opt) => (
@@ -462,7 +471,7 @@ export function ImportLowStockDialog({
 
             {/* Purchase Type */}
             <div className="space-y-1 w-full">
-              <Label className="text-xs">Purchase Type</Label>
+              <Label className="text-xs">{t("purchaseType")}</Label>
               <Select
                 value={purchaseType}
                 onValueChange={(v) => setPurchaseTypeState(v as "instant" | "order")}
@@ -471,15 +480,15 @@ export function ImportLowStockDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="instant">Instant Purchase (Receive Now)</SelectItem>
-                  <SelectItem value="order">Create Order (Receive Later)</SelectItem>
+                  <SelectItem value="instant">{tForm("instantOption")}</SelectItem>
+                  <SelectItem value="order">{tForm("orderOption")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>            
 
             {/* Discount Value */}
             <div className="space-y-1 w-full">
-              <Label className="text-xs">Discount Value</Label>
+              <Label className="text-xs">{t("discountValue")}</Label>
               <NumberField
                 precision={2}
                 min={0}
@@ -497,7 +506,7 @@ export function ImportLowStockDialog({
           <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-3">
             <div className="flex items-center gap-1.5 text-xs text-destructive font-medium">
               <AlertOctagon className="h-3.5 w-3.5" />
-              Out of Stock
+              {t("outOfStock")}
             </div>
             <p className="text-xl font-bold text-destructive mt-1">
               {outOfStockCount}
@@ -506,7 +515,7 @@ export function ImportLowStockDialog({
           <div className="rounded-lg border-2 border-chart-1/30 bg-chart-1/5 p-3">
             <div className="flex items-center gap-1.5 text-xs text-chart-1 font-medium">
               <AlertTriangle className="h-3.5 w-3.5" />
-              Low Stock Items
+              {t("lowStockItems")}
             </div>
             <p className="text-xl font-bold text-chart-1 mt-1">
               {lowStockCount}
@@ -515,7 +524,7 @@ export function ImportLowStockDialog({
           <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3">
             <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Selected
+              {t("selected")}
             </div>
             <p className="text-xl font-bold text-primary mt-1">
               {selectedIds.size}
@@ -528,7 +537,7 @@ export function ImportLowStockDialog({
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by product name or variant..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 h-9"
@@ -536,10 +545,10 @@ export function ImportLowStockDialog({
           </div>
           <Select value={brandFilter} onValueChange={setBrandFilter}>
             <SelectTrigger className="w-[140px] h-9">
-              <SelectValue placeholder="All Brands" />
+              <SelectValue placeholder={t("allBrands")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Brands</SelectItem>
+              <SelectItem value="all">{t("allBrands")}</SelectItem>
               {brandOptions?.map((brand) => (
                 <SelectItem key={brand.value} value={brand.value}>
                   {brand.label}
@@ -549,10 +558,10 @@ export function ImportLowStockDialog({
           </Select>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-[150px] h-9">
-              <SelectValue placeholder="All Categories" />
+              <SelectValue placeholder={t("allCategories")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all">{t("allCategories")}</SelectItem>
               {categoryOptions?.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>
                   {cat.label}
@@ -573,24 +582,24 @@ export function ImportLowStockDialog({
                     onCheckedChange={toggleSelectAll}
                   />
                 </th>
-                <th className="p-2 text-left font-medium">Product</th>
-                <th className="p-2 text-right font-medium">Stock</th>
-                <th className="p-2 text-right font-medium">Needed Qty</th>
-                <th className="p-2 text-center font-medium">Order Qty</th>
-                <th className="p-2 text-center font-medium">Urgency</th>
+                <th className="p-2 text-left font-medium">{t("colProduct")}</th>
+                <th className="p-2 text-right font-medium">{t("colStock")}</th>
+                <th className="p-2 text-right font-medium">{t("colNeededQty")}</th>
+                <th className="p-2 text-center font-medium">{t("colOrderQty")}</th>
+                <th className="p-2 text-center font-medium">{t("colUrgency")}</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                    Loading low stock items...
+                    {t("loading")}
                   </td>
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                    No low stock items found.
+                    {t("empty")}
                   </td>
                 </tr>
               ) : (
@@ -623,7 +632,7 @@ export function ImportLowStockDialog({
                       <td className="p-2">
                         <div>
                           <span className="font-medium">
-                            {getProductDisplayName(item)}
+                            {getProductDisplayName(item, t("unknownProduct"))}
                           </span>
                         </div>
                       </td>
@@ -657,7 +666,11 @@ export function ImportLowStockDialog({
                         </div>
                       </td>
                       <td className="p-2 text-center">
-                        {getUrgencyBadge(item.quantity, item.quantityAlert || 1)}
+                        {getUrgencyBadge(item.quantity, item.quantityAlert || 1, {
+                          critical: t("urgencyCritical"),
+                          high: t("urgencyHigh"),
+                          medium: t("urgencyMedium"),
+                        })}
                       </td>
                     </tr>
                   );
@@ -670,7 +683,7 @@ export function ImportLowStockDialog({
         {/* Footer */}
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tActions("cancel")}
           </Button>
           <Button
             onClick={handleImport}
@@ -678,7 +691,7 @@ export function ImportLowStockDialog({
             className="gap-1.5"
           >
             <Download className="h-4 w-4" />
-            Import {selectedIds.size} {selectedIds.size === 1 ? "Product" : "Products"}
+            {t("importCount", { count: selectedIds.size })}
           </Button>
         </DialogFooter>
       </DialogContent>

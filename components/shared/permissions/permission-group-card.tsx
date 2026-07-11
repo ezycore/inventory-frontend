@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { Badge } from "@/ui/components/badge";
 import { cn } from "@/ui/lib/utils";
 import {
@@ -22,7 +23,8 @@ export function PermissionGroupCard({
   category,
   permissions,
 }: PermissionGroupCardProps) {
-  const config = getCategoryConfig(category);
+  const t = useTranslations("settings.permissions");
+  const config = getCategoryConfig(category, t);
 
   return (
     <div

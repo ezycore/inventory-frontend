@@ -4,6 +4,7 @@
  * Mirrors the backend `ReceiptSettings`. Imported by the auth store, the org update
  * hook, the print renderer, and the receipt-settings builder so the shape can't drift.
  */
+import type { Translator } from "@/i18n/config";
 
 export type ReceiptPaperSize = "a4" | "thermal80" | "thermal58";
 export type ReceiptHeaderAlign = "left" | "center" | "right";
@@ -54,36 +55,40 @@ export interface ReceiptSettings {
 }
 
 // --- UI metadata (labels / option lists), colocated so the builder stays lean ---
+// `t` is bound to the `settings.receipt` namespace by the caller.
 
-export const LOGO_PLACEMENT_OPTIONS: {
-  value: ReceiptLogoPlacement;
-  label: string;
-}[] = [
-  { value: "top", label: "Top of header" },
-  { value: "watermark", label: "Watermark (A4 only)" },
-  { value: "both", label: "Both" },
-  { value: "hidden", label: "Hidden" },
+export const getLogoPlacementOptions = (
+  t: Translator,
+): { value: ReceiptLogoPlacement; label: string }[] => [
+  { value: "top", label: t("logoPlacementOptions.top") },
+  { value: "watermark", label: t("logoPlacementOptions.watermark") },
+  { value: "both", label: t("logoPlacementOptions.both") },
+  { value: "hidden", label: t("logoPlacementOptions.hidden") },
 ];
 
 /** Display labels + short hints for each identity-line source, shown in the builder. */
-export const HEADER_LINE_META: Record<
+export const getHeaderLineMeta = (
+  t: Translator,
+): Record<
   ReceiptHeaderLineSource,
   { label: string; hint: string; editableLabel: boolean; custom: boolean }
-> = {
-  orgName: { label: "Business name", hint: "Organization profile", editableLabel: false, custom: false },
-  taxId: { label: "Tax Reg. No.", hint: "From this page", editableLabel: true, custom: false },
-  storeName: { label: "Store / branch", hint: "Active location", editableLabel: false, custom: false },
-  address: { label: "Address", hint: "Organization profile", editableLabel: false, custom: false },
-  contact: { label: "Phone · Email", hint: "From this page", editableLabel: false, custom: false },
-  custom: { label: "Custom line", hint: "Your own text", editableLabel: true, custom: true },
-};
+> => ({
+  orgName: { label: t("headerLineMeta.orgName.label"), hint: t("headerLineMeta.orgName.hint"), editableLabel: false, custom: false },
+  taxId: { label: t("headerLineMeta.taxId.label"), hint: t("headerLineMeta.taxId.hint"), editableLabel: true, custom: false },
+  storeName: { label: t("headerLineMeta.storeName.label"), hint: t("headerLineMeta.storeName.hint"), editableLabel: false, custom: false },
+  address: { label: t("headerLineMeta.address.label"), hint: t("headerLineMeta.address.hint"), editableLabel: false, custom: false },
+  contact: { label: t("headerLineMeta.contact.label"), hint: t("headerLineMeta.contact.hint"), editableLabel: false, custom: false },
+  custom: { label: t("headerLineMeta.custom.label"), hint: t("headerLineMeta.custom.hint"), editableLabel: true, custom: true },
+});
 
-export const META_FIELD_OPTIONS: { key: ReceiptMetaKey; label: string }[] = [
-  { key: "customer", label: "Customer" },
-  { key: "phone", label: "Customer phone" },
-  { key: "status", label: "Status" },
-  { key: "cashier", label: "Cashier" },
-  { key: "address", label: "Customer address" },
+export const getMetaFieldOptions = (
+  t: Translator,
+): { key: ReceiptMetaKey; label: string }[] => [
+  { key: "customer", label: t("metaFieldOptions.customer") },
+  { key: "phone", label: t("metaFieldOptions.phone") },
+  { key: "status", label: t("metaFieldOptions.status") },
+  { key: "cashier", label: t("metaFieldOptions.cashier") },
+  { key: "address", label: t("metaFieldOptions.address") },
 ];
 
 export const DEFAULT_META_FIELDS: Record<ReceiptMetaKey, boolean> = {

@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useWatch } from "react-hook-form";
 import VariantManager from "./variant-manager";

@@ -48,6 +48,7 @@ interface SellPageStore {
   // Customer details
   customerId: string | null;
   customerName: string | null;
+  customerEmail: string | null;
 
   // Order-level discount (from customer)
   orderDiscountType: DiscountType;
@@ -97,6 +98,7 @@ export const useSellPageStore = create<SellPageStore>()(
     (set, get) => ({
       customerId: null,
       customerName: null,
+      customerEmail: null,
       orderDiscountType: "percentage",
       orderDiscountValue: 0,
       additionalDiscount: 0,
@@ -123,6 +125,7 @@ export const useSellPageStore = create<SellPageStore>()(
         set({
           customerId: customer.value,
           customerName: customer.label,
+          customerEmail: customer.email ?? null,
           orderDiscountType: customer.discountType,
           orderDiscountValue: customer.discountValue,
         }),
@@ -185,6 +188,7 @@ export const useSellPageStore = create<SellPageStore>()(
         set({
           customerId: null,
           customerName: null,
+          customerEmail: null,
           orderDiscountType: "percentage",
           orderDiscountValue: 0,
           additionalDiscount: 0,

@@ -1,0 +1,256 @@
+{
+  "sell": {
+    "title": "নতুন বিক্রয়",
+    "subtitle": "বিক্রয় তৈরি করুন এবং পেমেন্ট নিন।",
+    "selectCustomer": "গ্রাহক নির্বাচন",
+    "addProducts": "পণ্য যোগ করুন",
+    "orderItems": "অর্ডারের আইটেম",
+    "itemCount": "{count}টি আইটেম",
+    "clearAllTooltip": "সব আইটেম মুছুন",
+    "clearAllTitle": "সব আইটেম মুছবেন?",
+    "clearAllDescription": "অর্ডার থেকে সব আইটেম মুছে যাবে।",
+    "clear": "মুছুন",
+    "scanBarcode": "কার্টে যোগ করতে বারকোড স্ক্যান করুন…",
+    "noItems": "এখনো কোনো আইটেম যোগ হয়নি",
+    "summary": {
+      "orderSummary": "অর্ডার সারাংশ",
+      "dueChip": "বাকি: {amount}",
+      "creditChip": "ক্রেডিট: {amount}",
+      "subtotal": "সাবটোটাল",
+      "additionalDiscount": "অতিরিক্ত ছাড়",
+      "totalAmount": "মোট টাকা",
+      "useStoreCredit": "স্টোর ক্রেডিট ব্যবহার করুন",
+      "available": "উপলব্ধ {amount}",
+      "paid": "পরিশোধিত",
+      "storeCreditApplied": "স্টোর ক্রেডিট প্রয়োগ হয়েছে",
+      "due": "বাকি",
+      "change": "ফেরত টাকা",
+      "processing": "প্রক্রিয়া চলছে...",
+      "finalizeSale": "বিক্রয় সম্পন্ন করুন",
+      "confirmOrder": "অর্ডার নিশ্চিত করুন",
+      "saving": "সংরক্ষণ হচ্ছে...",
+      "updateDraft": "খসড়া আপডেট করুন",
+      "saveAsDraft": "খসড়া হিসেবে সংরক্ষণ",
+      "lastSale": "শেষ বিক্রয় · {invoice}",
+      "invoiceLabel": "চালান"
+    },
+    "toasts": {
+      "outOfStock": "{name} স্টকে নেই",
+      "noStockAtLocation": "\"{name}\" পণ্যটির এই লোকেশনে স্টক নেই",
+      "noProductForCode": "\"{code}\" কোডে কোনো পণ্য পাওয়া যায়নি",
+      "addItems": "অর্ডারে আইটেম যোগ করুন",
+      "selectPaymentAccount": "পেমেন্ট অ্যাকাউন্ট নির্বাচন করুন",
+      "selectCustomer": "অর্ডারের জন্য গ্রাহক নির্বাচন করুন",
+      "saleFailed": "বিক্রয় সম্পন্ন করা যায়নি",
+      "addItemsDraft": "খসড়া সংরক্ষণে আইটেম যোগ করুন",
+      "selectCustomerDraft": "খসড়ার জন্য গ্রাহক নির্বাচন করুন"
+    },
+    "cart": {
+      "product": "পণ্য",
+      "priceMrp": "মূল্য (MRP)",
+      "costPrice": "ক্রয়মূল্য",
+      "quantity": "পরিমাণ",
+      "batch": "ব্যাচ",
+      "discount": "ছাড় ({symbol})",
+      "tax": "কর",
+      "total": "মোট",
+      "fefoTooltip": "অটো = যেটার মেয়াদ আগে শেষ হবে সেটা আগে (FEFO)",
+      "autoFefo": "অটো (FEFO)",
+      "combo": "কম্বো"
+    },
+    "form": {
+      "customer": "গ্রাহক",
+      "searchSelectCustomer": "গ্রাহক খুঁজুন বা নির্বাচন করুন...",
+      "discountValue": "ছাড়ের হার",
+      "paymentMethod": "পেমেন্ট মাধ্যম",
+      "selectAccount": "অ্যাকাউন্ট নির্বাচন করুন",
+      "paidAmount": "পরিশোধিত টাকা",
+      "notes": "নোট",
+      "addNotes": "নোট লিখুন (ঐচ্ছিক)"
+    },
+    "search": {
+      "products": "নাম বা ক্যাটাগরি দিয়ে পণ্য খুঁজুন...",
+      "noProducts": "কোনো পণ্য পাওয়া যায়নি"
+    }
+  },
+  "history": {
+    "title": "বিক্রয় ইতিহাস",
+    "subtitle": "আপনার বিক্রয় দেখুন ও পরিচালনা করুন",
+    "newSale": "নতুন বিক্রয়",
+    "tableTitle": "বিক্রয়",
+    "walkInCustomer": "সাধারণ ক্রেতা",
+    "columns": {
+      "saleDate": "বিক্রয়ের তারিখ",
+      "customer": "গ্রাহক",
+      "status": "স্ট্যাটাস",
+      "createdBy": "তৈরি করেছেন",
+      "copyInvoice": "চালান নম্বর কপি করুন",
+      "invoice": "চালান #"
+    },
+    "actions": {
+      "summary": "সারাংশ",
+      "summaryTooltip": "বিক্রয়ের সারাংশ ও আইটেম দেখুন",
+      "payment": "পেমেন্ট",
+      "paymentTooltip": "পেমেন্ট রেকর্ড করুন",
+      "editDraft": "খসড়া সম্পাদনা",
+      "editDraftTooltip": "এই খসড়া সম্পাদনা চালিয়ে যান",
+      "deleteDraft": "খসড়া মুছুন",
+      "deleteDraftTooltip": "এই খসড়া স্থায়ীভাবে মুছুন"
+    },
+    "summary": {
+      "today": "আজ",
+      "thisMonth": "এই মাস",
+      "totalPaidAllTime": "মোট পরিশোধিত (সর্বমোট)",
+      "totalDueAllTime": "মোট বাকি (সর্বমোট)",
+      "outstandingBalance": "বকেয়া ব্যালেন্স",
+      "salesCount": "{count}টি বিক্রয়",
+      "fromSales": "{count}টি বিক্রয় থেকে"
+    },
+    "drawer": {
+      "payments": "পেমেন্ট",
+      "returns": "ফেরত",
+      "transactions": "লেনদেন",
+      "recordPayment": "পেমেন্ট রেকর্ড করুন",
+      "saleSummary": "বিক্রয় সারাংশ",
+      "reviewAndPay": "বিক্রয়টি দেখে পেমেন্ট জমা দিন",
+      "fullDetails": "বিক্রয়ের পূর্ণ বিবরণ ও পেমেন্ট ইতিহাস",
+      "invoice": "চালান",
+      "history": "ইতিহাস",
+      "received": "{amount} প্রাপ্ত",
+      "addPayment": "পেমেন্ট যোগ করুন"
+    },
+    "emailReceipt": {
+      "emailTo": "রসিদ ইমেইল করুন",
+      "sending": "পাঠানো হচ্ছে…",
+      "send": "রসিদ পাঠান",
+      "email": "ইমেইল",
+      "leaveEmpty": "খালি রাখলে গ্রাহকের সংরক্ষিত ইমেইল ব্যবহার হবে।"
+    },
+    "paymentForm": {
+      "useStoreCredit": "স্টোর ক্রেডিট ব্যবহার করুন"
+    },
+    "returnsList": {
+      "adjustedAgainstSaleDue": "বিক্রয়ের বাকির সাথে সমন্বয়",
+      "adjustedAgainst": "সমন্বয় হয়েছে",
+      "convertedToStoreCredit": "স্টোর ক্রেডিটে রূপান্তরিত",
+      "noReturns": "এই বিক্রয়ে কোনো ফেরত নেই",
+      "otherDue": "অন্য বাকি"
+    },
+    "details": {
+      "invoiceTotal": "চালানের মোট",
+      "paid": "পরিশোধিত",
+      "due": "বাকি",
+      "refunded": "রিফান্ড হয়েছে",
+      "item": "আইটেম",
+      "qty": "পরিমাণ",
+      "price": "মূল্য",
+      "disc": "ছাড়",
+      "tax": "কর",
+      "total": "মোট",
+      "subtotal": "সাবটোটাল",
+      "additionalDiscount": "অতিরিক্ত ছাড়",
+      "taxAdded": "অতিরিক্ত কর",
+      "taxInPrice": "মূল্যসহ কর",
+      "customer": "গ্রাহক",
+      "createdBy": "তৈরি করেছেন",
+      "createdAt": "তৈরির সময়",
+      "updatedAt": "আপডেটের সময়",
+      "costPrice": "ক্রয়মূল্য",
+      "combo": "কম্বো",
+      "itemsHeading": "আইটেম",
+      "meta": "{products}টি পণ্য · {units} একক"
+    },
+    "timeline": {
+      "cashPayment": "নগদ পেমেন্ট",
+      "storeCreditApplied": "স্টোর ক্রেডিট প্রয়োগ",
+      "cashRefund": "নগদ রিফান্ড",
+      "returnCredit": "ফেরত ক্রেডিট",
+      "creditFromOtherSale": "অন্য বিক্রয়ের ক্রেডিট",
+      "cashPaid": "নগদ পরিশোধ",
+      "creditPaid": "ক্রেডিটে পরিশোধ",
+      "refundCredit": "রিফান্ড ক্রেডিট",
+      "netReceived": "নিট প্রাপ্তি",
+      "due": "বাকি",
+      "fromSale": "যে বিক্রয় থেকে"
+    },
+    "toasts": {
+      "invoiceCopied": "চালান নম্বর কপি হয়েছে",
+      "copied": "{value} কপি হয়েছে",
+      "copyFailed": "কপি করা যায়নি",
+      "loadSaleFailed": "বিক্রয় লোড করা যায়নি",
+      "selectPaymentAccount": "পেমেন্ট অ্যাকাউন্ট নির্বাচন করুন",
+      "invalidAmount": "সঠিক টাকার অঙ্ক লিখুন",
+      "exceedsDue": "পেমেন্ট বাকির চেয়ে বেশি হতে পারে না",
+      "paymentRecorded": "পেমেন্ট রেকর্ড হয়েছে"
+    },
+    "filters": {
+      "status": "স্ট্যাটাস",
+      "search": "খুঁজুন",
+      "searchPlaceholder": "চালান নম্বর, নোট...",
+      "draft": "খসড়া",
+      "paid": "পরিশোধিত",
+      "partial": "আংশিক",
+      "due": "বাকি",
+      "cancelled": "বাতিল"
+    }
+  },
+  "returns": {
+    "title": "বিক্রয় ফেরত",
+    "subtitle": "পণ্য ফেরত ও রিফান্ড পরিচালনা করুন",
+    "findSale": "বিক্রয় খুঁজুন",
+    "findSaleDescription": "ফেরত প্রক্রিয়া করতে বিক্রয় আইডি বা চালান নম্বর লিখুন",
+    "findSalePlaceholder": "বিক্রয় আইডি বা চালান নম্বর লিখুন...",
+    "saleLabel": "বিক্রয়",
+    "customerLabel": "গ্রাহক",
+    "walkInCustomer": "সাধারণ ক্রেতা",
+    "itemsDescription": "গ্রাহক কোন আইটেম ফেরত দিচ্ছেন তা নির্বাচন করে পরিমাণ দিন",
+    "columns": {
+      "returnId": "ফেরত আইডি",
+      "date": "তারিখ",
+      "invoice": "চালান",
+      "customer": "গ্রাহক",
+      "items": "আইটেম",
+      "amount": "টাকার অঙ্ক",
+      "reason": "কারণ",
+      "status": "স্ট্যাটাস",
+      "viewDetails": "বিস্তারিত দেখুন",
+      "cancelled": "বাতিল"
+    },
+    "summary": {
+      "totalReturns": "মোট ফেরত",
+      "returnAmount": "ফেরতের টাকা",
+      "pending": "অপেক্ষমাণ",
+      "cashRefunded": "নগদ রিফান্ড",
+      "allTime": "সর্বমোট",
+      "totalRefunded": "মোট রিফান্ড",
+      "awaitingReview": "পর্যালোচনার অপেক্ষায়"
+    },
+    "allocation": {
+      "adjustCurrentSaleDue": "এই বিক্রয়ের বাকি সমন্বয়",
+      "currentDueOnSale": "এই বিক্রয়ে বর্তমান বাকি:",
+      "adjustOtherCustomerDues": "গ্রাহকের অন্যান্য বাকি সমন্বয়"
+    },
+    "reasons": {
+      "damaged": "ক্ষতিগ্রস্ত",
+      "defective": "ত্রুটিপূর্ণ",
+      "wrongItem": "ভুল পণ্য",
+      "customerChangedMind": "গ্রাহকের মত পরিবর্তন",
+      "expired": "মেয়াদোত্তীর্ণ",
+      "other": "অন্যান্য"
+    },
+    "filters": {
+      "status": "স্ট্যাটাস",
+      "reason": "কারণ",
+      "pending": "অপেক্ষমাণ",
+      "processed": "প্রক্রিয়াকৃত",
+      "cancelled": "বাতিল"
+    },
+    "toasts": {
+      "selectSaleFirst": "আগে একটি বিক্রয় নির্বাচন করুন",
+      "selectItems": "ফেরতের জন্য অন্তত একটি আইটেম নির্বাচন করুন"
+    },
+    "validation": {
+      "enterSaleId": "বিক্রয় আইডি বা চালান নম্বর লিখুন"
+    }
+  }
+}

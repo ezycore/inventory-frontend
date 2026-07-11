@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 import { Card, CardContent } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
@@ -37,6 +38,9 @@ interface LocationDetailProps {
 }
 
 export function LocationDetailView({ locationId, onBack }: LocationDetailProps) {
+  const t = useTranslations("settings.locations.stockReport");
+  const tDetail = useTranslations("settings.locations.stockReport.detail");
+  const tType = useTranslations("settings.locations.type");
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   const [filters, setFilters] = useState<LocationStockFilters>({
     page: 1,
@@ -86,12 +90,12 @@ export function LocationDetailView({ locationId, onBack }: LocationDetailProps) 
   if (!report) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No data available for this location.</p>
+        <p className="text-muted-foreground">{t("noDataForLocation")}</p>
         <button
           onClick={onBack}
           className="mt-4 text-sm text-primary hover:underline"
         >
-          Go back
+          {t("goBack")}
         </button>
       </div>
     );
@@ -128,7 +132,9 @@ export function LocationDetailView({ locationId, onBack }: LocationDetailProps) 
             <h2 className="text-xl font-bold">{location.name}</h2>
             <p className="text-xs text-muted-foreground">
               {location.address} &middot;{" "}
-              <span className="capitalize">{location.locationType}</span>
+              <span className="capitalize">
+                {location.locationType === "warehouse" ? tType("warehouse") : tType("store")}
+              </span>
             </p>
           </div>
         </div>
@@ -138,21 +144,21 @@ export function LocationDetailView({ locationId, onBack }: LocationDetailProps) 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
         {[
           {
-            label: "Unique Products",
+            label: tDetail("uniqueProducts"),
             value: summary.uniqueProducts,
             icon: Package,
             color: "text-primary",
             bg: "bg-primary/10",
           },
           {
-            label: "Total Items",
+            label: tDetail("totalItems"),
             value: summary.totalProducts,
             icon: Boxes,
             color: "text-blue-600 dark:text-blue-400",
             bg: "bg-blue-50 dark:bg-blue-950/40",
           },
           {
-            label: "Total Quantity",
+            label: tDetail("totalQuantity"),
             value: summary.totalQuantity.toLocaleString(),
             icon: BarChart3,
             color: "text-indigo-600 dark:text-indigo-400",
@@ -161,7 +167,7 @@ export function LocationDetailView({ locationId, onBack }: LocationDetailProps) 
           ...(canViewCosts
             ? [
                 {
-                  label: "Stock Value",
+                  label: tDetail("stockValue"),
                   value: `৳${summary.totalValue.toLocaleString()}`,
                   icon: DollarSign,
                   color: "text-violet-600 dark:text-violet-400",
@@ -170,21 +176,21 @@ export function LocationDetailView({ locationId, onBack }: LocationDetailProps) 
               ]
             : []),
           {
-            label: "In Stock",
+            label: tDetail("inStock"),
             value: summary.inStockCount,
             icon: CheckCircle2,
             color: "text-emerald-600 dark:text-emerald-400",
             bg: "bg-emerald-50 dark:bg-emerald-950/40",
           },
           {
-            label: "Low Stock",
+            label: tDetail("lowStock"),
             value: summary.lowStockCount,
             icon: AlertTriangle,
             color: "text-amber-600 dark:text-amber-400",
             bg: "bg-amber-50 dark:bg-amber-950/40",
           },
           {
-            label: "Out of Stock",
+            label: tDetail("outOfStock"),
             value: summary.outOfStockCount,
             icon: XCircle,
             color: "text-red-600 dark:text-red-400",
@@ -227,7 +233,7 @@ export function LocationDetailView({ locationId, onBack }: LocationDetailProps) 
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search products..."
+                placeholder={tDetail("searchPlaceholder")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -239,20 +245,20 @@ export function LocationDetailView({ locationId, onBack }: LocationDetailProps) 
               onValueChange={handleStockStatusChange}
             >
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Stock Status" />
+                <SelectValue placeholder={tDetail("stockStatusPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Stock</SelectItem>
-                <SelectItem value="in-stock">In Stock</SelectItem>
-                <SelectItem value="low-stock">Low Stock</SelectItem>
-                <SelectItem value="out-of-stock">Out of Stock</SelectItem>
+                <SelectItem value="all">{tDetail("allStock")}</SelectItem>
+                <SelectItem value="in-stock">{tDetail("inStockOption")}</SelectItem>
+                <SelectItem value="low-stock">{tDetail("lowStockOption")}</SelectItem>
+                <SelectItem value="out-of-stock">{tDetail("outOfStockOption")}</SelectItem>
               </SelectContent>
             </Select>
             <button
               onClick={handleSearch}
               className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              Search
+              {tDetail("search")}
             </button>
           </div>
         </CardContent>

@@ -1,6 +1,9 @@
 'use client'
+// coding-standard: maintained
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import type { Translator } from '@/i18n/config'
 import { useExpiringBatches, useExpiredBatches } from '@/services/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
@@ -31,10 +34,13 @@ function BatchTable({
   rows,
   emptyText,
   tone,
+  t,
 }: {
   rows: BatchRow[]
   emptyText: string
   tone: 'expired' | 'expiring'
+  /** Bound to the `reports.expiry` namespace. */
+  t: Translator
 }) {
   if (rows.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyText}</p>
@@ -45,14 +51,14 @@ function BatchTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left">
-            <th className="pb-2 font-medium">Product</th>
-            <th className="pb-2 font-medium">Batch</th>
-            <th className="pb-2 font-medium">Location</th>
-            <th className="pb-2 font-medium">Expiry</th>
+            <th className="pb-2 font-medium">{t('colProduct')}</th>
+            <th className="pb-2 font-medium">{t('colBatch')}</th>
+            <th className="pb-2 font-medium">{t('colLocation')}</th>
+            <th className="pb-2 font-medium">{t('colExpiry')}</th>
             <th className="pb-2 font-medium text-right">
-              {tone === 'expired' ? 'Days overdue' : 'Days left'}
+              {tone === 'expired' ? t('colDaysOverdue') : t('colDaysLeft')}
             </th>
-            <th className="pb-2 font-medium text-right">Qty</th>
+            <th className="pb-2 font-medium text-right">{t('colQty')}</th>
           </tr>
         </thead>
         <tbody>
@@ -60,7 +66,7 @@ function BatchTable({
             const left = daysUntil(b.expiryDate)
             return (
               <tr key={b._id} className="border-b last:border-0">
-                <td className="py-2">{b.productId?.name || 'Unknown product'}</td>
+                <td className="py-2">{b.productId?.name || t('unknownProduct')}</td>
                 <td className="py-2">{b.batchNumber || '-'}</td>
                 <td className="py-2">{b.locationId?.name || '-'}</td>
                 <td className="py-2">{formatDate(b.expiryDate)}</td>
@@ -84,6 +90,7 @@ function BatchTable({
 }
 
 export function ExpiryReport() {
+  const t = useTranslations('reports.expiry')
   const [days, setDays] = useState(30)
 
   const { data: expiringResp, isLoading: loadingExpiring } = useExpiringBatches({
@@ -106,14 +113,14 @@ export function ExpiryReport() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Expiry Report</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Batches that have expired or are expiring soon at this location
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <label htmlFor="expiry-window" className="text-sm text-muted-foreground">
-            Expiring within
+            {t('expiringWithin')}
           </label>
           <select
             id="expiry-window"
@@ -123,7 +130,7 @@ export function ExpiryReport() {
           >
             {DAY_OPTIONS.map((d) => (
               <option key={d} value={d}>
-                {d} days
+                {t('daysSuffix', { count: d })}
               </option>
             ))}
           </select>
@@ -141,68 +148,70 @@ export function ExpiryReport() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Expired Batches</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('expiredBatches')}</CardTitle>
                 <PackageX className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{expired.length}</div>
-                <p className="text-xs text-muted-foreground">Past expiry, still in stock</p>
+                <p className="text-xs text-muted-foreground">{t('pastExpiryStillInStock')}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Expired Units</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('expiredUnits')}</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{expiredUnits.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">Quantity to write off</p>
+                <p className="text-xs text-muted-foreground">{t('qtyToWriteOff')}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('expiringSoon')}</CardTitle>
                 <CalendarClock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{expiring.length}</div>
-                <p className="text-xs text-muted-foreground">Within {days} days</p>
+                <p className="text-xs text-muted-foreground">{t('withinDays', { count: days })}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Expiring Units</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('expiringUnits')}</CardTitle>
                 <Boxes className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{expiringUnits.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">Quantity at risk</p>
+                <p className="text-xs text-muted-foreground">{t('qtyAtRisk')}</p>
               </CardContent>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Expired</CardTitle>
+              <CardTitle>{t('expiredSection')}</CardTitle>
             </CardHeader>
             <CardContent>
               <BatchTable
                 rows={expired}
                 tone="expired"
-                emptyText="No expired stock. 🎉"
+                emptyText={t('noExpiredStock')}
+                t={t}
               />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Expiring within {days} days</CardTitle>
+              <CardTitle>{t('expiringSection', { count: days })}</CardTitle>
             </CardHeader>
             <CardContent>
               <BatchTable
                 rows={expiring}
                 tone="expiring"
-                emptyText="Nothing expiring in this window."
+                emptyText={t('nothingExpiring')}
+                t={t}
               />
             </CardContent>
           </Card>

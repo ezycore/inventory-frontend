@@ -1,4 +1,6 @@
+// coding-standard: maintained
 import type { PurchaseOrderItem } from "@/services/stores";
+import type { Translator } from "@/i18n/config";
 import { Button } from "@/ui/components/button";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Edit2, Trash2 } from "lucide-react";
@@ -7,7 +9,8 @@ import { LineTaxCell } from "@/components/shared/line-tax-cell";
 import { BatchNumberCell, ExpiryDateCell } from "./expiry-cells";
 
 /**
- * Generate purchase order columns with edit/remove actions.
+ * Generate purchase order columns with edit/remove actions. `t` is bound to
+ * the `purchases` namespace.
  *
  * When `showExpiryCapture` is set (expiry tracking on + instant purchase), two
  * inline columns let the user record expiry date / batch number per line —
@@ -18,6 +21,7 @@ export const getPurchaseColumns = (
   onRemove: (sellerId: string, itemId: string) => void,
   formatCurrency: (amount: number) => string,
   sellerId: string,
+  t: Translator,
   _isUOMEnabled?: boolean,
   isTaxEnabled?: boolean,
   showExpiryCapture?: boolean,
@@ -30,14 +34,14 @@ export const getPurchaseColumns = (
   const columns: ColumnDef<PurchaseOrderItem>[] = [
     {
       accessorKey: "productName",
-      header: "Product",
+      header: t("items.colProduct"),
       cell: ({ row }) => (
         <span className="font-medium text-sm">{row.original.productName}</span>
       ),
     },
     {
       accessorKey: "quantity",
-      header: "Qty",
+      header: t("items.colQty"),
       cell: ({ row }) => {
         return (
         <span className="text-sm tabular-nums">
@@ -56,7 +60,7 @@ export const getPurchaseColumns = (
   columns.push(
     {
       accessorKey: "price",
-      header: "Price (MRP)",
+      header: t("items.colPriceMrp"),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">
           {formatCurrency(row.original.price)}
@@ -65,7 +69,7 @@ export const getPurchaseColumns = (
     },
     {
       accessorKey: "discount",
-      header: "Discount",
+      header: t("items.colDiscount"),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">
           {formatCurrency(row.original.discount)}
@@ -74,7 +78,7 @@ export const getPurchaseColumns = (
     },
     {
       accessorKey: "costPrice",
-      header: "Cost Price",
+      header: t("items.colCostPrice"),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">
           {formatCurrency(row.original.costPrice)}
@@ -85,7 +89,7 @@ export const getPurchaseColumns = (
       ? [
           {
             id: "tax",
-            header: "Tax",
+            header: t("items.colTax"),
             cell: ({ row }: { row: { original: PurchaseOrderItem } }) => {
               const item = row.original;
               const { taxAmount } = computeLineTax({
@@ -111,7 +115,7 @@ export const getPurchaseColumns = (
       ? [
           {
             id: "expiryDate",
-            header: "Expiry",
+            header: t("items.colExpiry"),
             cell: ({ row }: { row: { original: PurchaseOrderItem } }) => (
               <ExpiryDateCell
                 item={row.original}
@@ -122,7 +126,7 @@ export const getPurchaseColumns = (
           } as ColumnDef<PurchaseOrderItem>,
           {
             id: "batchNumber",
-            header: "Batch #",
+            header: t("items.colBatch"),
             cell: ({ row }: { row: { original: PurchaseOrderItem } }) => (
               <BatchNumberCell
                 item={row.original}
@@ -135,7 +139,7 @@ export const getPurchaseColumns = (
       : []),
     {
       accessorKey: "total",
-      header: "Total",
+      header: t("items.colTotal"),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">
           {formatCurrency(row.original.total)}

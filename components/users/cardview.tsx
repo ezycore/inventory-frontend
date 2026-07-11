@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import type { User } from "@/types/users";
+import type { Translator } from "@/i18n/config";
 import { Card } from "@/ui/components/card";
 import { Badge } from "@/ui/components/badge";
 import {
@@ -23,6 +25,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { bn as bnDateLocale } from "date-fns/locale";
 
 const roleConfig: Record<string, { color: string; icon: string }> = {
   admin: {
@@ -77,8 +80,14 @@ function getAvatarGradient(name: string) {
 const UserCardView = (
   item: User,
   { onEdit, onDelete }: { onEdit?: () => void; onView?: () => void; onDelete?: () => void },
-  options: { roleLabel?: string; hasAllLocationAccess?: boolean } = {},
+  options: {
+    roleLabel?: string;
+    hasAllLocationAccess?: boolean;
+    t: Translator;
+    locale?: "en" | "bn";
+  },
 ) => {
+  const { t, locale } = options;
   const fullName = `${item.firstName} ${item.lastName}`;
   const initials = `${item.firstName?.charAt(0) || ""}${item.lastName?.charAt(0) || ""}`.toUpperCase();
   const gradient = getAvatarGradient(fullName);
@@ -130,12 +139,12 @@ const UserCardView = (
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}>
                 <Edit2 className="h-4 w-4 mr-2" />
-                Edit
+                {t("card.edit")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={onDelete}>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                {t("card.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -153,7 +162,7 @@ const UserCardView = (
             variant={isActive ? "default" : "destructive"}
             className="text-xs font-medium"
           >
-            {isActive ? "Active" : "Inactive"}
+            {isActive ? t("card.active") : t("card.inactive")}
           </Badge>
           <span
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs border ${
@@ -167,7 +176,7 @@ const UserCardView = (
             ) : (
               <AlertCircle className="h-3 w-3" />
             )}
-            {item.emailVerified ? "Verified" : "Unverified"}
+            {item.emailVerified ? t("card.verified") : t("card.unverified")}
           </span>
         </div>
 
@@ -183,8 +192,8 @@ const UserCardView = (
             <MapPin className="h-3.5 w-3.5 shrink-0" />
             <span>
               {typeof locationCount === "string"
-                ? "All locations"
-                : `${locationCount} location${locationCount !== 1 ? "s" : ""}`}
+                ? t("card.allLocations")
+                : t("card.locationsCount", { count: locationCount })}
             </span>
           </div>
         </div>
@@ -193,9 +202,11 @@ const UserCardView = (
         <div className="mt-4 pt-3 border-t border-border/60 flex items-center gap-1.5 text-xs text-muted-foreground">
           <Calendar className="h-3 w-3 shrink-0" />
           <span>
-            Joined{" "}
-            {formatDistanceToNow(new Date(item.createdAt), {
-              addSuffix: true,
+            {t("card.joined", {
+              time: formatDistanceToNow(new Date(item.createdAt), {
+                addSuffix: true,
+                locale: locale === "bn" ? bnDateLocale : undefined,
+              }),
             })}
           </span>
         </div>

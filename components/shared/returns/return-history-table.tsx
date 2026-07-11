@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Card, CardContent } from '@/ui/components/card';
 import { BaseDataTable } from '@/ui/components/dataTable/base-data-table ';
@@ -35,18 +36,19 @@ export function ReturnHistoryTable<TData>({
   setPage,
   setLimit,
 }: ReturnHistoryTableProps<TData>) {
+  const t = useTranslations('common.returns');
   return (
     <Card className="p-0">
       <CardContent className="p-6">
         <BaseDataTable
-          title="Returns"
+          title={t('returnsTitle')}
           columns={columns}
           data={data}
           isLoading={isLoading}
           filterConfig={filterConfig}
           searchConfig={{
             globalSearch: true,
-            placeholder: 'Search returns...',
+            placeholder: t('searchReturns'),
           }}
           actions={{}}
           pagination={{

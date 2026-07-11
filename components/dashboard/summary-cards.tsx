@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { Card } from '@ui/components/card'
 import type { DashboardOverview } from '@/services/api'
 import {
@@ -15,6 +17,7 @@ interface SummaryCardsProps {
 }
 
 export function SummaryCards({ overview, formatCurrency }: SummaryCardsProps) {
+  const t = useTranslations('dashboard.summary')
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       <Card className="p-4">
@@ -23,12 +26,12 @@ export function SummaryCards({ overview, formatCurrency }: SummaryCardsProps) {
             <DollarSign className="h-5 w-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">Period Sales</p>
+            <p className="text-xs text-muted-foreground">{t('periodSales')}</p>
             <p className="text-lg font-bold truncate">
               {formatCurrency(overview.sales.total)}
             </p>
             <p className="text-xs text-muted-foreground">
-              {overview.sales.count} transaction{overview.sales.count !== 1 ? 's' : ''} · Collected {formatCurrency(overview.sales.paid)}
+              {t('transactionsCollected', { count: overview.sales.count, amount: formatCurrency(overview.sales.paid) })}
             </p>
           </div>
         </div>
@@ -39,12 +42,12 @@ export function SummaryCards({ overview, formatCurrency }: SummaryCardsProps) {
             <ArrowDownToLine className="h-5 w-5 text-chart-2" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">Period Purchases</p>
+            <p className="text-xs text-muted-foreground">{t('periodPurchases')}</p>
             <p className="text-lg font-bold truncate">
               {formatCurrency(overview.purchases.total)}
             </p>
             <p className="text-xs text-muted-foreground">
-              {overview.purchases.count} order{overview.purchases.count !== 1 ? 's' : ''} · Paid {formatCurrency(overview.purchases.paid)}
+              {t('ordersPaid', { count: overview.purchases.count, amount: formatCurrency(overview.purchases.paid) })}
             </p>
           </div>
         </div>
@@ -55,12 +58,12 @@ export function SummaryCards({ overview, formatCurrency }: SummaryCardsProps) {
             <Warehouse className="h-5 w-5 text-chart-4" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">Inventory Value (Cost)</p>
+            <p className="text-xs text-muted-foreground">{t('inventoryValueCost')}</p>
             <p className="text-lg font-bold truncate">
               {formatCurrency(overview.inventory.totalValue)}
             </p>
             <p className="text-xs text-muted-foreground">
-              {overview.inventory.totalItems.toLocaleString()} items in stock
+              {t('itemsInStock', { count: overview.inventory.totalItems.toLocaleString() })}
             </p>
           </div>
         </div>
@@ -71,12 +74,12 @@ export function SummaryCards({ overview, formatCurrency }: SummaryCardsProps) {
             <TrendingUp className="h-5 w-5 text-chart-1" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">Period Due</p>
+            <p className="text-xs text-muted-foreground">{t('periodDue')}</p>
             <p className="text-lg font-bold truncate">
               {formatCurrency((overview.sales.due || 0) + (overview.purchases.due || 0))}
             </p>
             <p className="text-xs text-muted-foreground">
-              Sales {formatCurrency(overview.sales.due)} · Purchase {formatCurrency(overview.purchases.due)}
+              {t('salesPurchaseDue', { sales: formatCurrency(overview.sales.due), purchase: formatCurrency(overview.purchases.due) })}
             </p>
           </div>
         </div>

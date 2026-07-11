@@ -1,5 +1,6 @@
 "use client";
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { OrganizationDomain } from "@/types";
 import { CopyField } from "@/ui/components/copy";
 import { Info } from "lucide-react";
@@ -16,14 +17,15 @@ interface DnsRecordRowProps {
 }
 
 function DnsRecordRow({ type, name, value }: DnsRecordRowProps) {
+  const t = useTranslations("settings.domains.dns");
   return (
     <div className="grid grid-cols-[70px_1fr] gap-x-4 gap-y-1 rounded-md border bg-muted/30 p-3 text-sm sm:grid-cols-[80px_180px_1fr]">
-      <span className="font-medium text-muted-foreground">Type</span>
+      <span className="font-medium text-muted-foreground">{t("type")}</span>
       <span className="hidden font-medium text-muted-foreground sm:block">
-        Name / Host
+        {t("nameHost")}
       </span>
       <span className="hidden font-medium text-muted-foreground sm:block">
-        Value
+        {t("value")}
       </span>
 
       <span className="font-mono">{type}</span>
@@ -41,6 +43,7 @@ function DnsRecordRow({ type, name, value }: DnsRecordRowProps) {
  * pointing record (CNAME for a subdomain, A for an apex). See CUSTOM-DOMAINS-P1.md.
  */
 export function DnsInstructions({ domain }: { domain: OrganizationDomain }) {
+  const t = useTranslations("settings.domains.dns");
   const parts = domain.domain.split(".");
   const isApex = parts.length <= 2;
   const label = parts.slice(0, parts.length - 2).join(".");
@@ -49,7 +52,7 @@ export function DnsInstructions({ domain }: { domain: OrganizationDomain }) {
   return (
     <div className="space-y-3">
       <div>
-        <p className="mb-1 text-sm font-medium">1. Verify ownership</p>
+        <p className="mb-1 text-sm font-medium">{t("verifyStep")}</p>
         <DnsRecordRow
           type="TXT"
           name={txtName}
@@ -58,7 +61,7 @@ export function DnsInstructions({ domain }: { domain: OrganizationDomain }) {
       </div>
 
       <div>
-        <p className="mb-1 text-sm font-medium">2. Point the domain to us</p>
+        <p className="mb-1 text-sm font-medium">{t("pointStep")}</p>
         {isApex ? (
           <DnsRecordRow type="A" name="@" value={APEX_IP} />
         ) : (
@@ -69,9 +72,9 @@ export function DnsInstructions({ domain }: { domain: OrganizationDomain }) {
       <div className="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
-          Using Cloudflare? Set the record to <strong>DNS only</strong> (grey
-          cloud), not Proxied. DNS changes can take a few minutes up to 24h to
-          propagate — add the records, then use <strong>Re-check</strong>.
+          {t.rich("cloudflareWarning", {
+            strong: (chunks) => <strong>{chunks}</strong>,
+          })}
         </p>
       </div>
     </div>

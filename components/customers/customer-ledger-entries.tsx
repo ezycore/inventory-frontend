@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import {
   CreditCard,
   Receipt,
@@ -20,14 +22,15 @@ import type {
   CustomerLedgerSale,
 } from "@/types";
 
+/** Status → badge variant + `customers.ledger.status*` message key. */
 const statusConfig: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  { labelKey: string; variant: "default" | "secondary" | "destructive" | "outline" }
 > = {
-  draft: { label: "Draft", variant: "secondary" },
-  partial: { label: "Partial", variant: "outline" },
-  paid: { label: "Paid", variant: "default" },
-  cancelled: { label: "Cancelled", variant: "destructive" },
+  draft: { labelKey: "statusDraft", variant: "secondary" },
+  partial: { labelKey: "statusPartial", variant: "outline" },
+  paid: { labelKey: "statusPaid", variant: "default" },
+  cancelled: { labelKey: "statusCancelled", variant: "destructive" },
 };
 
 export type LedgerEntry =
@@ -53,6 +56,7 @@ export function CustomerLedgerEntries({
   onStartPayment,
   onOpenSale,
 }: CustomerLedgerEntriesProps) {
+  const t = useTranslations("customers.ledger");
   return (
     <ScrollArea className="flex-1 px-6 overflow-y-auto">
       <div className="py-4 space-y-3">
@@ -61,7 +65,7 @@ export function CustomerLedgerEntries({
         ) : ledgerEntries.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Wallet className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No transactions found</p>
+            <p className="text-sm">{t("noTransactions")}</p>
           </div>
         ) : (
           ledgerEntries.map((entry, index) => {
@@ -85,6 +89,7 @@ export function CustomerLedgerEntries({
                     isAccountsEnabled={isAccountsEnabled}
                     formatCurrency={formatCurrency}
                     onStartPayment={onStartPayment}
+                    t={t}
                   />
                 ) : entry.type === "inboundCredit" ? (
                   <InboundCreditEntry
@@ -92,6 +97,7 @@ export function CustomerLedgerEntries({
                     date={entry.date}
                     formatCurrency={formatCurrency}
                     onOpenSale={onOpenSale}
+                    t={t}
                   />
                 ) : entry.type === "return" ? (
                   <ReturnEntry
@@ -99,11 +105,12 @@ export function CustomerLedgerEntries({
                     date={entry.date}
                     isAccountsEnabled={isAccountsEnabled}
                     formatCurrency={formatCurrency}
+                    t={t}
                   />
                 ) : entry.data.type === "salesRefund" ? (
-                  <CashRefundEntry data={entry.data} date={entry.date} formatCurrency={formatCurrency} />
+                  <CashRefundEntry data={entry.data} date={entry.date} formatCurrency={formatCurrency} t={t} />
                 ) : (
-                  <PaymentEntry data={entry.data} date={entry.date} formatCurrency={formatCurrency} />
+                  <PaymentEntry data={entry.data} date={entry.date} formatCurrency={formatCurrency} t={t} />
                 )}
               </div>
             );
@@ -120,12 +127,14 @@ function SaleEntry({
   isAccountsEnabled,
   formatCurrency,
   onStartPayment,
+  t,
 }: {
   sale: CustomerLedgerSale;
   date: Date;
   isAccountsEnabled: boolean;
   formatCurrency: (n: number) => string;
   onStartPayment: (sale: CustomerLedgerSale) => void;
+  t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <>
@@ -134,26 +143,26 @@ function SaleEntry({
           <Receipt className="h-4 w-4 text-muted-foreground" />
           <span className="font-medium">{sale.invoiceNumber}</span>
           <Badge variant={statusConfig[sale.status]?.variant || "secondary"}>
-            {statusConfig[sale.status]?.label || sale.status}
+            {statusConfig[sale.status] ? t(statusConfig[sale.status].labelKey) : sale.status}
           </Badge>
         </div>
         <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
       </div>
       <div className="grid grid-cols-3 gap-2 text-sm">
         <div>
-          <span className="text-muted-foreground">Amount:</span>{" "}
+          <span className="text-muted-foreground">{t("amount")}</span>{" "}
           <span className="font-medium">{formatCurrency(sale.totalAmount)}</span>
         </div>
         {isAccountsEnabled && (
           <>
             <div>
-              <span className="text-muted-foreground">Paid:</span>{" "}
+              <span className="text-muted-foreground">{t("paid")}</span>{" "}
               <span className="font-medium text-green-600">
                 {formatCurrency(sale.paidAmount)}
               </span>
             </div>
             <div>
-              <span className="text-muted-foreground">Due:</span>{" "}
+              <span className="text-muted-foreground">{t("due")}</span>{" "}
               <span
                 className={cn(
                   "font-medium",
@@ -175,7 +184,7 @@ function SaleEntry({
             onClick={() => onStartPayment(sale)}
           >
             <CreditCard className="h-3.5 w-3.5" />
-            Pay Due
+            {t("payDue")}
           </Button>
         </div>
       )}
@@ -188,29 +197,31 @@ function InboundCreditEntry({
   date,
   formatCurrency,
   onOpenSale,
+  t,
 }: {
   data: CustomerLedgerInboundCredit;
   date: Date;
   formatCurrency: (n: number) => string;
   onOpenSale?: (saleId: string, invoiceNumber?: string) => void;
+  t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <Undo2 className="h-4 w-4 text-blue-600" />
-          <span className="font-medium text-blue-600">Credit Applied</span>
+          <span className="font-medium text-blue-600">{t("creditApplied")}</span>
         </div>
         <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
       </div>
       <div className="text-sm space-y-1">
         <div>
-          <span className="text-muted-foreground">From return:</span>{" "}
+          <span className="text-muted-foreground">{t("fromReturn")}</span>{" "}
           <span className="font-mono">{data.returnNumber}</span>
           {data.sourceInvoiceNumber && (
             <>
               {" "}
-              <span className="text-muted-foreground">(sale</span>{" "}
+              <span className="text-muted-foreground">{t("saleOpenParen")}</span>{" "}
               {onOpenSale && data.sourceSaleId ? (
                 <button
                   type="button"
@@ -222,13 +233,13 @@ function InboundCreditEntry({
               ) : (
                 <span className="font-mono">{data.sourceInvoiceNumber}</span>
               )}
-              <span className="text-muted-foreground">)</span>
+              <span className="text-muted-foreground">{t("closeParen")}</span>
             </>
           )}
         </div>
         {data.targetInvoiceNumber && (
           <div>
-            <span className="text-muted-foreground">Applied to:</span>{" "}
+            <span className="text-muted-foreground">{t("appliedTo")}</span>{" "}
             {onOpenSale && data.targetSaleId ? (
               <button
                 type="button"
@@ -243,7 +254,7 @@ function InboundCreditEntry({
           </div>
         )}
         <div>
-          <span className="text-muted-foreground">Amount:</span>{" "}
+          <span className="text-muted-foreground">{t("amount")}</span>{" "}
           <span className="font-medium text-blue-600">{formatCurrency(data.amount)}</span>
         </div>
       </div>
@@ -256,35 +267,37 @@ function ReturnEntry({
   date,
   isAccountsEnabled,
   formatCurrency,
+  t,
 }: {
   data: CustomerLedgerReturn;
   date: Date;
   isAccountsEnabled: boolean;
   formatCurrency: (n: number) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <RefreshCw className="h-4 w-4 text-orange-600" />
-          <span className="font-medium text-orange-600">Return {data.returnNumber}</span>
+          <span className="font-medium text-orange-600">{t("returnPrefix", { number: data.returnNumber })}</span>
         </div>
         <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
       </div>
       <div className="text-sm space-y-1">
         <div>
-          <span className="text-muted-foreground">Original Sale:</span>{" "}
+          <span className="text-muted-foreground">{t("originalSale")}</span>{" "}
           <span>{data.invoiceNumber}</span>
         </div>
         <div>
-          <span className="text-muted-foreground">Refund Amount:</span>{" "}
+          <span className="text-muted-foreground">{t("refundAmount")}</span>{" "}
           <span className="font-medium text-orange-600">
             {formatCurrency(data.totalRefundAmount)}
           </span>
         </div>
         {isAccountsEnabled && data.refundedAmount > 0 && (
           <div>
-            <span className="text-muted-foreground">Cash Refunded:</span>{" "}
+            <span className="text-muted-foreground">{t("cashRefunded")}</span>{" "}
             <span className="font-medium text-red-600">
               {formatCurrency(data.refundedAmount)}
             </span>
@@ -292,7 +305,7 @@ function ReturnEntry({
         )}
         {isAccountsEnabled && (data.refundAllocation?.adjustSaleDue ?? 0) > 0 && (
           <div>
-            <span className="text-muted-foreground">Due Adjusted:</span>{" "}
+            <span className="text-muted-foreground">{t("dueAdjusted")}</span>{" "}
             <span className="font-medium text-blue-600">
               {formatCurrency(data.refundAllocation!.adjustSaleDue!)}
             </span>
@@ -300,7 +313,7 @@ function ReturnEntry({
         )}
         {(data.refundAllocation?.customerCredit?.amount ?? 0) > 0 && (
           <div>
-            <span className="text-muted-foreground">Credit Added:</span>{" "}
+            <span className="text-muted-foreground">{t("creditAdded")}</span>{" "}
             <span className="font-medium text-green-600">
               +{formatCurrency(data.refundAllocation!.customerCredit!.amount)}
             </span>
@@ -315,34 +328,36 @@ function CashRefundEntry({
   data,
   date,
   formatCurrency,
+  t,
 }: {
   data: CustomerLedgerPayment;
   date: Date;
   formatCurrency: (n: number) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <CreditCard className="h-4 w-4 text-red-600" />
-          <span className="font-medium text-red-600">Cash Refund Issued</span>
+          <span className="font-medium text-red-600">{t("cashRefundIssued")}</span>
         </div>
         <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
       </div>
       <div className="text-sm space-y-1">
         <div>
-          <span className="text-muted-foreground">Amount:</span>{" "}
+          <span className="text-muted-foreground">{t("amount")}</span>{" "}
           <span className="font-medium text-red-600">{formatCurrency(data.amount)}</span>
         </div>
         {data.referenceId && (
           <div>
-            <span className="text-muted-foreground">Invoice:</span>{" "}
+            <span className="text-muted-foreground">{t("invoice")}</span>{" "}
             <span>{data.referenceId.invoiceNumber}</span>
           </div>
         )}
         {data.accountId && (
           <div>
-            <span className="text-muted-foreground">Account:</span>{" "}
+            <span className="text-muted-foreground">{t("account")}</span>{" "}
             <span>{data.accountId.name}</span>
           </div>
         )}
@@ -355,34 +370,36 @@ function PaymentEntry({
   data,
   date,
   formatCurrency,
+  t,
 }: {
   data: CustomerLedgerPayment;
   date: Date;
   formatCurrency: (n: number) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <CreditCard className="h-4 w-4 text-green-600" />
-          <span className="font-medium text-green-600">Payment Received</span>
+          <span className="font-medium text-green-600">{t("paymentReceived")}</span>
         </div>
         <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
       </div>
       <div className="text-sm space-y-1">
         <div>
-          <span className="text-muted-foreground">Amount:</span>{" "}
+          <span className="text-muted-foreground">{t("amount")}</span>{" "}
           <span className="font-medium text-green-600">{formatCurrency(data.amount)}</span>
         </div>
         {data.referenceId && (
           <div>
-            <span className="text-muted-foreground">Invoice:</span>{" "}
+            <span className="text-muted-foreground">{t("invoice")}</span>{" "}
             <span>{data.referenceId.invoiceNumber}</span>
           </div>
         )}
         {data.accountId && (
           <div>
-            <span className="text-muted-foreground">Account:</span>{" "}
+            <span className="text-muted-foreground">{t("account")}</span>{" "}
             <span>{data.accountId.name}</span>
           </div>
         )}

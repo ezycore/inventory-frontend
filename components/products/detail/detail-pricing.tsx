@@ -1,6 +1,7 @@
 // coding-standard: maintained
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Separator } from '@ui/components/separator'
 import { Tag } from 'lucide-react'
@@ -43,53 +44,54 @@ export function DetailPricing({
 }: DetailPricingProps) {
   // Cost and cost-derived figures (profit/unit) require the costs.view permission.
   const canViewCosts = useHasPermission(PERMISSIONS.costsView)
+  const t = useTranslations('products.products.detail.pricing')
 
   return (
     <Card>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-base">
           <Tag className="h-4 w-4 text-emerald-600" />
-          Pricing
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {canViewCosts && (
             <Row
-              label="Cost Price"
+              label={t('costPrice')}
               value={<span className="text-sm font-medium">{formatCurrency(costPrice)}</span>}
             />
           )}
           <Row
-            label="Selling Price"
+            label={t('sellingPrice')}
             value={<span className="text-sm font-semibold text-emerald-600">{formatCurrency(sellingPrice)}</span>}
           />
           {product.mrp != null && product.mrp > 0 && (
-            <Row label="MRP" value={<span className="text-sm font-medium">{formatCurrency(product.mrp)}</span>} />
+            <Row label={t('mrp')} value={<span className="text-sm font-medium">{formatCurrency(product.mrp)}</span>} />
           )}
           {canViewCosts && (
             <Row
-              label="Profit/Unit"
+              label={t('profitPerUnit')}
               value={<span className="text-sm font-medium">{formatCurrency(profitPerUnit)}</span>}
             />
           )}
           {salesTaxActive && salesTaxRate > 0 && (
-            <Row label="Sales Tax" value={<span className="text-sm font-medium">{salesTaxRate}%</span>} />
+            <Row label={t('salesTax')} value={<span className="text-sm font-medium">{salesTaxRate}%</span>} />
           )}
           {purchaseTaxActive && purchaseTaxRate > 0 && (
-            <Row label="Purchase Tax" value={<span className="text-sm font-medium">{purchaseTaxRate}%</span>} />
+            <Row label={t('purchaseTax')} value={<span className="text-sm font-medium">{purchaseTaxRate}%</span>} />
           )}
           {product.discountValue != null && product.discountValue > 0 && (
             <>
               <Separator />
               <Row
-                label="Discount"
+                label={t('discount')}
                 value={
                   <span className="text-sm font-medium text-orange-600">
                     {product.discountType === 'fixed'
                       ? formatCurrency(product.discountValue)
                       : `${product.discountValue}%`}{' '}
-                    off
+                    {t('off')}
                   </span>
                 }
               />

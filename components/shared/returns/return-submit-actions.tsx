@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { CornerUpLeft } from 'lucide-react';
 import { Button } from '@/ui/components/button';
 
@@ -15,8 +16,9 @@ export function ReturnSubmitActions({
   onSubmit,
   isSubmitting,
   disabled,
-  submitLabel = 'Process Return',
+  submitLabel,
 }: ReturnSubmitActionsProps) {
+  const t = useTranslations('common.returns');
   return (
     <div className="flex justify-end gap-4">
       <Button variant="outline" onClick={onCancel}>
@@ -24,7 +26,7 @@ export function ReturnSubmitActions({
       </Button>
       <Button onClick={onSubmit} disabled={disabled || isSubmitting}>
         <CornerUpLeft className="h-4 w-4 mr-2" />
-        {isSubmitting ? 'Processing...' : submitLabel}
+        {isSubmitting ? t('processing') : (submitLabel ?? t('processReturn'))}
       </Button>
     </div>
   );

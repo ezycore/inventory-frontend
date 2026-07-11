@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { CreditCard, Printer, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
@@ -55,6 +57,7 @@ export function PaymentHistoryList({
   onPrintReceipt,
   bare = false,
 }: PaymentHistoryListProps) {
+  const t = useTranslations("common.payments");
   const showAddButton =
     canAddPayment && doc.dueAmount > 0 && doc.status !== "cancelled" && !isInPaymentMode;
 
@@ -70,12 +73,12 @@ export function PaymentHistoryList({
         emptyState ??
         (bare ? (
           <p className="py-2 text-center text-sm text-muted-foreground">
-            No payments recorded yet
+            {t("noPayments")}
           </p>
         ) : (
           <div className="py-8 text-center text-muted-foreground">
             <Wallet className="mx-auto mb-3 h-10 w-10 opacity-50" />
-            <p>No payments recorded yet</p>
+            <p>{t("noPayments")}</p>
           </div>
         ))
       ) : (
@@ -102,8 +105,8 @@ export function PaymentHistoryList({
                       size="icon"
                       className="h-7 w-7 text-muted-foreground"
                       onClick={() => onPrintReceipt(payment)}
-                      aria-label="Print receipt"
-                      title="Print receipt"
+                      aria-label={t("printReceipt")}
+                      title={t("printReceipt")}
                     >
                       <Printer className="h-4 w-4" />
                     </Button>
@@ -113,7 +116,7 @@ export function PaymentHistoryList({
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Wallet className="h-3 w-3" />
-                {payment.accountName || "Unknown Account"}
+                {payment.accountName || t("unknownAccount")}
               </div>
 
               {payment.notes && (
@@ -131,11 +134,11 @@ export function PaymentHistoryList({
   return (
     <div className="rounded-lg border p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="font-medium">Payment History</div>
+        <div className="font-medium">{t("historyTitle")}</div>
         {showAddButton && (
           <Button variant="outline" size="sm" onClick={onAddPayment}>
             <CreditCard className="mr-2 h-4 w-4" />
-            Add Payment
+            {t("addPayment")}
           </Button>
         )}
       </div>

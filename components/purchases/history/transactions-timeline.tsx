@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   TransactionsTimeline as SharedTransactionsTimeline,
   type TimelineData,
@@ -11,12 +13,12 @@ import type {
   PurchaseTransactionsResponse,
 } from "@/types";
 
-const KIND_META: Record<PurchaseTransactionEntry["kind"], { label: string; tone: Tone }> = {
-  payment: { label: "Cash payment", tone: "out" },
-  credit_balance_payment: { label: "Supplier credit applied", tone: "out" },
-  cash_refund: { label: "Cash refund received", tone: "in" },
-  credit_applied_self: { label: "Return credit", tone: "neutral" },
-  credit_applied_from_other: { label: "Credit from other PO", tone: "neutral" },
+const KIND_META: Record<PurchaseTransactionEntry["kind"], { labelKey: string; tone: Tone }> = {
+  payment: { labelKey: "kindCashPayment", tone: "out" },
+  credit_balance_payment: { labelKey: "kindSupplierCreditApplied", tone: "out" },
+  cash_refund: { labelKey: "kindCashRefundReceived", tone: "in" },
+  credit_applied_self: { labelKey: "kindReturnCredit", tone: "neutral" },
+  credit_applied_from_other: { labelKey: "kindCreditFromOtherPo", tone: "neutral" },
 };
 
 interface TransactionsTimelineProps {
@@ -35,40 +37,41 @@ export function TransactionsTimeline({
   onNavigateToPurchaseOrder,
   bare,
 }: TransactionsTimelineProps) {
+  const t = useTranslations("purchases.history");
   const data = useMemo<TimelineData | undefined>(() => {
     if (!transactions) return undefined;
     const s = transactions.summary;
     return {
       chips: [
-        { label: "Cash paid", value: s.cashPaid, tone: "out" },
-        { label: "Credit paid", value: s.supplierCreditPaid, tone: "neutral" },
-        { label: "Cash refund", value: s.cashRefunded, tone: "in" },
-        { label: "Refund credit", value: s.refundCreditApplied, tone: "neutral" },
-        { label: "Net paid", value: s.netPaid, tone: "out" },
-        { label: "Due", value: s.dueAmount, tone: s.dueAmount > 0 ? "out" : "in" },
+        { label: t("chipCashPaid"), value: s.cashPaid, tone: "out" },
+        { label: t("chipCreditPaid"), value: s.supplierCreditPaid, tone: "neutral" },
+        { label: t("chipCashRefund"), value: s.cashRefunded, tone: "in" },
+        { label: t("chipRefundCredit"), value: s.refundCreditApplied, tone: "neutral" },
+        { label: t("chipNetPaid"), value: s.netPaid, tone: "out" },
+        { label: t("chipDue"), value: s.dueAmount, tone: s.dueAmount > 0 ? "out" : "in" },
       ],
-      entries: transactions.transactions.map((t) => ({
-        id: t.id,
-        label: KIND_META[t.kind].label,
-        direction: t.direction,
-        amount: t.amount,
-        date: t.date,
-        accountName: t.accountName,
-        paymentMethod: t.paymentMethod,
-        reference: t.reference ? { label: t.reference.label } : undefined,
-        notes: t.notes,
-        source: t.sourcePurchase
+      entries: transactions.transactions.map((entry) => ({
+        id: entry.id,
+        label: t(KIND_META[entry.kind].labelKey as never),
+        direction: entry.direction,
+        amount: entry.amount,
+        date: entry.date,
+        accountName: entry.accountName,
+        paymentMethod: entry.paymentMethod,
+        reference: entry.reference ? { label: entry.reference.label } : undefined,
+        notes: entry.notes,
+        source: entry.sourcePurchase
           ? {
-              prefix: "From PO",
-              label: t.sourcePurchase.orderNumber,
+              prefix: t("fromPo"),
+              label: entry.sourcePurchase.orderNumber,
               onClick: onNavigateToPurchaseOrder
-                ? () => onNavigateToPurchaseOrder(t.sourcePurchase!.id)
+                ? () => onNavigateToPurchaseOrder(entry.sourcePurchase!.id)
                 : undefined,
             }
           : undefined,
       })),
     };
-  }, [transactions, onNavigateToPurchaseOrder]);
+  }, [transactions, onNavigateToPurchaseOrder, t]);
 
   return (
     <SharedTransactionsTimeline

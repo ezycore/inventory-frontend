@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { ChevronDown, Printer } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
@@ -38,19 +39,20 @@ export function PrintMenu({
   defaultPaper = "a4",
   appearance = "outline",
 }: PrintMenuProps) {
+  const t = useTranslations("common.print");
   // Single gate for every print entry point: hide when the org lacks the
   // Invoice Printing feature (the backend `invoicePrinting` featureGate).
   const features = useAuthStore((s) => s.user?.organization?.features);
   const run = (paper: PaperSize) => {
-    if (!onPrint(paper)) toast.error("Please allow pop-ups to print.");
+    if (!onPrint(paper)) toast.error(t("popupBlocked"));
   };
 
   if (!isFeatureEnabled(features, "invoicePrinting")) return null;
 
   const options: { paper: PaperSize; label: string }[] = [
     { paper: "a4", label: `${a4Label} (A4)` },
-    { paper: "thermal80", label: "Receipt (80mm)" },
-    { paper: "thermal58", label: "Receipt (58mm)" },
+    { paper: "thermal80", label: t("receipt80") },
+    { paper: "thermal58", label: t("receipt58") },
   ];
 
   const solid = appearance === "solid";
@@ -71,7 +73,7 @@ export function PrintMenu({
         onClick={() => run(defaultPaper)}
       >
         <Printer className="h-4 w-4" />
-        Print
+        {t("print")}
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -80,7 +82,7 @@ export function PrintMenu({
             variant={btnVariant}
             size="sm"
             className={cn("rounded-l-none px-2", caretSeam)}
-            aria-label="Choose paper size"
+            aria-label={t("choosePaper")}
           >
             <ChevronDown className="h-4 w-4" />
           </Button>
@@ -89,7 +91,7 @@ export function PrintMenu({
           {options.map((option) => (
             <DropdownMenuItem key={option.paper} onClick={() => run(option.paper)}>
               {option.label}
-              {option.paper === defaultPaper ? " · default" : ""}
+              {option.paper === defaultPaper ? t("defaultSuffix") : ""}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

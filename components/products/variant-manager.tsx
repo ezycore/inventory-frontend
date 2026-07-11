@@ -1,6 +1,8 @@
 'use client'
+// coding-standard: maintained
 
 import React, { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useWatch } from 'react-hook-form'
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
@@ -22,7 +24,7 @@ import { Plus, PlusCircle, Upload, X, ImageIcon } from 'lucide-react'
 import { useVariantAttributes, useCreateVariantAttribute, useSelectOptions } from '@/services/api'
 import type { VariantAttribute } from '@/types'
 import DynamicForm from '@/ui/components/form'
-import variantAttributeFormConfig from '../variants/form-config'
+import getVariantAttributeFormConfig from '../variants/form-config'
 import useDynamicForm from '@/hooks/use-dynamic-form'
 import {
   FileUpload,
@@ -88,6 +90,8 @@ export default function VariantManager({
   value = [],
   onChange,
 }: VariantManagerProps) {
+  const t = useTranslations('products.products.variantManager')
+  const tVariants = useTranslations('products.variants')
   const [selectedAttributeId, setSelectedAttributeId] = useState<string>('')
   const [variants, setVariants] = useState<VariantRow[]>(value)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -116,7 +120,7 @@ export default function VariantManager({
 
   const baseUnitLabel: string | undefined = (baseUnit as { shortName?: string })?.shortName 
 
-  const {form: variantCreateForm} = useDynamicForm(variantAttributeFormConfig)
+  const {form: variantCreateForm} = useDynamicForm(getVariantAttributeFormConfig(tVariants))
   
   // Update internal state when value prop changes (for edit mode)
   useEffect(() => {
@@ -203,15 +207,15 @@ export default function VariantManager({
       const { purchaseUnit, saleUnit } = editingVariant
       const hasAny = !!purchaseUnit?.unitId || !!saleUnit?.unitId
       if (!hasAny) {
-        toast.error('Select at least one unit (purchase or sale) for UOM conversion')
+        toast.error(t('toasts.selectUnit'))
         return
       }
       if (purchaseUnit?.unitId && (!purchaseUnit.conversionFactor || purchaseUnit.conversionFactor <= 0)) {
-        toast.error('Purchase conversion factor is required')
+        toast.error(t('toasts.purchaseFactorRequired'))
         return
       }
       if (saleUnit?.unitId && (!saleUnit.conversionFactor || saleUnit.conversionFactor <= 0)) {
-        toast.error('Sale conversion factor is required')
+        toast.error(t('toasts.saleFactorRequired'))
         return
       }
     }
@@ -240,7 +244,7 @@ export default function VariantManager({
     })
     setEditModalOpen(false)
     setEditingVariant(null)
-    toast.success('Variant updated')
+    toast.success(t('toasts.variantUpdated'))
   }
 
   const handleInlineUpdate = (id: string, field: keyof VariantRow, value: any) => {
@@ -256,7 +260,7 @@ export default function VariantManager({
 
   const handleCreateAttribute = async () => {
     if (!newAttributeName.trim() || !newAttributeValues.trim()) {
-      toast.error('Please enter attribute name and values')
+      toast.error(t('toasts.enterNameAndValues'))
       return
     }
 
@@ -268,7 +272,7 @@ export default function VariantManager({
         .filter(v => v)
 
       if (values.length === 0) {
-        toast.error('Please enter at least one value')
+        toast.error(t('toasts.enterValue'))
         setIsCreating(false)
         return
       }
@@ -279,13 +283,13 @@ export default function VariantManager({
         status: 'active',
       })
 
-      toast.success('Variant attribute created successfully')
+      toast.success(t('toasts.attributeCreated'))
       setCreateModalOpen(false)
       setNewAttributeName('')
       setNewAttributeValues('')
       refetch()
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to create variant attribute')
+      toast.error(error?.message || t('toasts.attributeCreateFailed'))
     } finally {
       setIsCreating(false)
     }
@@ -318,7 +322,7 @@ export default function VariantManager({
     },
     {
       key: 'value',
-      header: 'Variant Value',
+      header: t('valueColumn'),
       headClassName: 'w-[160px] py-2 text-xs',
       cellClassName: 'font-medium py-1 text-sm',
       cell: (variant) => variant.value,
@@ -327,7 +331,7 @@ export default function VariantManager({
       key: 'price',
       header: (
         <>
-          Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
+          {t('priceColumn')}{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
         </>
       ),
       headClassName: 'w-[180px] py-2 text-xs',
@@ -357,7 +361,7 @@ export default function VariantManager({
       cellClassName: 'py-1',
       header: (
         <div className="flex items-center justify-end pr-2 gap-1">
-          <span>Active</span>
+          <span>{t('activeColumn')}</span>
           <Checkbox
             checked={
               variants.every(v => v.enabled)
@@ -367,7 +371,7 @@ export default function VariantManager({
                   : false
             }
             onCheckedChange={handleToggleAll}
-            title={variants.every(v => v.enabled) ? 'Deselect all' : 'Select all'}
+            title={variants.every(v => v.enabled) ? t('deselectAll') : t('selectAll')}
             className="h-4 w-4"
           />
         </div>
@@ -377,7 +381,7 @@ export default function VariantManager({
           <Checkbox
             checked={variant.enabled}
             onCheckedChange={() => handleEnableToggle(variant.id)}
-            title={variant.enabled ? 'Disable variant' : 'Enable variant'}
+            title={variant.enabled ? t('disableVariant') : t('enableVariant')}
             className="h-6 w-6"
           />
           <Button
@@ -386,7 +390,7 @@ export default function VariantManager({
             size="icon"
             className="h-7 w-7"
             onClick={() => handleEditClick(variant)}
-            title="More details"
+            title={t('moreDetails')}
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>
@@ -399,7 +403,7 @@ export default function VariantManager({
     <div className="space-y-4">
       {/* Variant Attribute Selector */}
       <div className="space-y-2">
-        <Label htmlFor="variant-attribute">Variant Attribute *</Label>
+        <Label htmlFor="variant-attribute">{t('attributeLabel')}</Label>
         <div className="flex gap-2">
           <Select
             value={selectedAttributeId}
@@ -409,10 +413,10 @@ export default function VariantManager({
             <SelectTrigger id="variant-attribute" className="flex-1">
               <SelectValue placeholder={
                 isLoading
-                  ? "Loading attributes..."
+                  ? t('loadingAttributes')
                   : error
-                    ? "Error loading attributes"
-                    : "Choose variant attribute (e.g., Color, Size)"
+                    ? t('errorLoadingAttributes')
+                    : t('choosePlaceholder')
               } />
             </SelectTrigger>
             <SelectContent>
@@ -420,7 +424,7 @@ export default function VariantManager({
                 .filter((attr: VariantAttribute) => attr.status === 'active')
                 .map((attr: VariantAttribute) => (
                   <SelectItem key={attr._id} value={attr._id}>
-                    {attr.name} ({attr.values.length} values)
+                    {attr.name} ({t('valuesCount', { count: attr.values.length })})
                   </SelectItem>
                 ))}
             </SelectContent>
@@ -433,7 +437,7 @@ export default function VariantManager({
             className="shrink-0"
           >
             <PlusCircle className="h-4 w-4" />
-            Create New
+            {t('createNew')}
           </Button>
         </div>
       </div>
@@ -455,13 +459,13 @@ export default function VariantManager({
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Variant Details</DialogTitle>
+            <DialogTitle>{t('modalTitle')}</DialogTitle>
           </DialogHeader>
           {editingVariant && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-price">
-                  Price{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
+                  {t('priceLabel')}{baseUnitLabel ? <span className="text-muted-foreground font-normal"> / {baseUnitLabel}</span> : null}
                 </Label>
                 <NumberField
                   id="edit-price"
@@ -479,17 +483,17 @@ export default function VariantManager({
                   once on the product form and shared by every variant. */}
               <div className="grid grid-cols-2 gap-3 border-t pt-4">
                 <div className="space-y-1 col-span-2">
-                  <Label htmlFor="edit-barcode" className="text-xs">Barcode</Label>
+                  <Label htmlFor="edit-barcode" className="text-xs">{t('barcodeLabel')}</Label>
                   <Input
                     id="edit-barcode"
                     value={editingVariant.barcode || ''}
-                    placeholder="Scan or type barcode (leave empty to auto-generate)"
+                    placeholder={t('barcodePlaceholder')}
                     onChange={e =>
                       setEditingVariant({ ...editingVariant, barcode: e.target.value })
                     }
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Barcode type is set on the product form and shared by all variants.
+                    {t('barcodeHint')}
                   </p>
                 </div>
               </div>
@@ -498,7 +502,7 @@ export default function VariantManager({
               {addToInventory && (
                 <div className="grid grid-cols-2 gap-3 border-t pt-4">
                   <div className="space-y-1">
-                    <Label htmlFor="edit-opening-stock" className="text-xs">Opening stock</Label>
+                    <Label htmlFor="edit-opening-stock" className="text-xs">{t('openingStockLabel')}</Label>
                     <NumberField
                       id="edit-opening-stock"
                       min={0}
@@ -510,7 +514,7 @@ export default function VariantManager({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="edit-cost-price" className="text-xs">Cost price (per unit)</Label>
+                    <Label htmlFor="edit-cost-price" className="text-xs">{t('costPriceLabel')}</Label>
                     <NumberField
                       id="edit-cost-price"
                       precision={2}
@@ -523,7 +527,7 @@ export default function VariantManager({
                     />
                   </div>
                   <div className="space-y-1 col-span-2">
-                    <Label htmlFor="edit-alert-level" className="text-xs">Low stock threshold</Label>
+                    <Label htmlFor="edit-alert-level" className="text-xs">{t('alertLevelLabel')}</Label>
                     <NumberField
                       id="edit-alert-level"
                       precision={0}
@@ -532,7 +536,7 @@ export default function VariantManager({
                       onChange={v =>
                         setEditingVariant({ ...editingVariant, inventoryAlertLevel: v ?? 0 })
                       }
-                      placeholder="e.g. 20"
+                      placeholder={t('alertLevelPlaceholder')}
                     />
                   </div>
                 </div>
@@ -543,21 +547,21 @@ export default function VariantManager({
               {addToInventory && hasExpiry && (editingVariant.openingStock ?? 0) > 0 && (
                 <div className="grid grid-cols-2 gap-3 border-t pt-4">
                   <div className="space-y-1">
-                    <Label htmlFor="edit-expiry" className="text-xs">Opening expiry date</Label>
+                    <Label htmlFor="edit-expiry" className="text-xs">{t('expiryDateLabel')}</Label>
                     <DatePicker
                       date={editingVariant.expiryDate || undefined}
                       onSelect={d =>
                         setEditingVariant({ ...editingVariant, expiryDate: d ?? '' })
                       }
-                      placeholder="Pick expiry date"
+                      placeholder={t('expiryDatePlaceholder')}
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="edit-batch" className="text-xs">Batch number</Label>
+                    <Label htmlFor="edit-batch" className="text-xs">{t('batchNumberLabel')}</Label>
                     <Input
                       id="edit-batch"
                       value={editingVariant.batchNumber || ''}
-                      placeholder="Optional"
+                      placeholder={t('batchNumberPlaceholder')}
                       onChange={e =>
                         setEditingVariant({ ...editingVariant, batchNumber: e.target.value })
                       }
@@ -581,10 +585,10 @@ export default function VariantManager({
                   />
                   <div className="space-y-0.5">
                     <Label htmlFor="edit-enable-uom" className="cursor-pointer">
-                      Enable UOM Conversion
+                      {t('enableUomLabel')}
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Allow different units for purchase and sale for this variant
+                      {t('enableUomHint')}
                     </p>
                   </div>
                 </div>
@@ -592,7 +596,7 @@ export default function VariantManager({
                 {editingVariant.enableUOMConversion && (
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Purchase Unit</Label>
+                      <Label className="text-xs">{t('purchaseUnitLabel')}</Label>
                       <Select
                         value={editingVariant.purchaseUnit?.unitId || ''}
                         onValueChange={(val) =>
@@ -603,7 +607,7 @@ export default function VariantManager({
                         }
                       >
                         <SelectTrigger className="h-9 w-full">
-                          <SelectValue placeholder="Select unit" />
+                          <SelectValue placeholder={t('purchaseUnitPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
                           {unitOptions.map((opt: any) => (
@@ -615,7 +619,7 @@ export default function VariantManager({
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Purchase Conversion Factor</Label>
+                      <Label className="text-xs">{t('purchaseFactorLabel')}</Label>
                       <NumberField
                         step={1}
                         min={1}
@@ -679,7 +683,7 @@ export default function VariantManager({
 
               {/* Variant Image Upload */}
               <div className="space-y-2 border-t pt-4">
-                <Label>Variant Images</Label>
+                <Label>{t('imagesLabel')}</Label>
                 <FileUpload
                   value={(editingVariant.images || []) as (File | string)[]}
                   onValueChange={(files) =>
@@ -694,11 +698,11 @@ export default function VariantManager({
                       <div className="flex flex-col items-center gap-2">
                         <Upload className="h-8 w-8 text-muted-foreground" />
                         <div className="text-sm">
-                          <span className="font-semibold text-primary">Click to upload</span>
-                          <span className="text-muted-foreground"> or drag and drop</span>
+                          <span className="font-semibold text-primary">{t('clickToUpload')}</span>
+                          <span className="text-muted-foreground">{t('orDragDrop')}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          PNG, JPG, GIF up to 5MB (Max 3 images)
+                          {t('uploadHint')}
                         </p>
                       </div>
                     </FileUploadDropzone>
@@ -719,8 +723,8 @@ export default function VariantManager({
                           previewUrl = URL.createObjectURL(file)
                         } else if (file && typeof file === 'object' && file.publicId) {
                           fileKey = `${file.publicId}-${index}`
-                          fileName = file.publicId?.split('/').pop() || 'Existing image'
-                          fileSize = 'Uploaded'
+                          fileName = file.publicId?.split('/').pop() || t('existingImage')
+                          fileSize = t('uploaded')
                           previewUrl = file.thumbnailUrl || file.url
                         } else {
                           return null
@@ -761,9 +765,9 @@ export default function VariantManager({
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditModalOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
-            <Button onClick={handleSaveEdit}>Save Changes</Button>
+            <Button onClick={handleSaveEdit}>{t('saveChanges')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -772,13 +776,13 @@ export default function VariantManager({
         id='variant-form'
         className="space-y-6"
         form={variantCreateForm}
-        config={variantAttributeFormConfig}
+        config={getVariantAttributeFormConfig(tVariants)}
         // Container props
         openInside="modal"
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
-        title="Create Variant Attribute"
-        cancelLabel="Cancel"
+        title={t('createModalTitle')}
+        cancelLabel={t('cancel')}
         resetAfterSubmit
         // Mutation hook
         mutationHook={createVariantAttribute}

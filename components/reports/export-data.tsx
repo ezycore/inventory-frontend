@@ -1,6 +1,8 @@
 'use client'
+// coding-standard: maintained
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useExportData, type ExportDataType } from '@/services/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Button } from '@ui/components/button'
@@ -19,44 +21,44 @@ import {
 
 const EXPORT_OPTIONS: {
   value: ExportDataType
-  label: string
-  description: string
+  labelKey: string
+  descriptionKey: string
   icon: typeof Download
 }[] = [
   {
     value: 'sales',
-    label: 'Sales Data',
-    description: 'Export all sales records for the selected period',
+    labelKey: 'salesData',
+    descriptionKey: 'salesDataDesc',
     icon: ShoppingCart,
   },
   {
     value: 'purchases',
-    label: 'Purchase Data',
-    description: 'Export all purchase orders for the selected period',
+    labelKey: 'purchaseData',
+    descriptionKey: 'purchaseDataDesc',
     icon: ShoppingBag,
   },
   {
     value: 'inventory',
-    label: 'Inventory Data',
-    description: 'Export current inventory stock levels',
+    labelKey: 'inventoryData',
+    descriptionKey: 'inventoryDataDesc',
     icon: Package,
   },
   {
     value: 'products',
-    label: 'Products Data',
-    description: 'Export all product information',
+    labelKey: 'productsData',
+    descriptionKey: 'productsDataDesc',
     icon: FileSpreadsheet,
   },
   {
     value: 'customers',
-    label: 'Customer Data',
-    description: 'Export all customer records',
+    labelKey: 'customerData',
+    descriptionKey: 'customerDataDesc',
     icon: Users,
   },
   {
     value: 'suppliers',
-    label: 'Supplier Data',
-    description: 'Export all supplier records',
+    labelKey: 'supplierData',
+    descriptionKey: 'supplierDataDesc',
     icon: Truck,
   },
 ]
@@ -109,6 +111,7 @@ function downloadCSV(data: any[], filename: string) {
 }
 
 export function ExportData() {
+  const t = useTranslations('reports.export')
   const { period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd, params } =
     useReportPeriod()
   const [selectedType, setSelectedType] = useState<ExportDataType | null>(null)
@@ -135,9 +138,9 @@ export function ExportData() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Export Data</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Download your data as CSV files
+            {t('subtitle')}
           </p>
         </div>
       </div>
@@ -163,12 +166,12 @@ export function ExportData() {
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-base">{option.label}</CardTitle>
+                  <CardTitle className="text-base">{t(option.labelKey)}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  {option.description}
+                  {t(option.descriptionKey)}
                 </p>
                 <Button
                   size="sm"
@@ -180,12 +183,12 @@ export function ExportData() {
                   {isExporting ? (
                     <>
                       <Skeleton className="mr-2 h-4 w-4 animate-spin rounded-full" />
-                      Exporting...
+                      {t('exporting')}
                     </>
                   ) : (
                     <>
                       <Download className="mr-2 h-4 w-4" />
-                      Export CSV
+                      {t('exportCsv')}
                     </>
                   )}
                 </Button>

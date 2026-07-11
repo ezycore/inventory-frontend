@@ -1,6 +1,7 @@
 'use client'
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { Button } from '@/ui/components/button'
 import { Card, CardContent } from '@/ui/components/card'
 import { Label } from '@/ui/components/label'
@@ -15,6 +16,7 @@ import { AdjustmentFormCard } from '@/components/inventory/adjust/adjustment-for
 import { getAdjustmentColumns } from '@/components/inventory/adjust/columns'
 
 export default function StockAdjustmentPage() {
+  const t = useTranslations('inventory')
   const ctx = useAdjustStock()
   const {
     items,
@@ -35,13 +37,14 @@ export default function StockAdjustmentPage() {
     editingId,
     onEdit: handleEdit,
     onRemove: removeItem,
+    t,
   })
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Adjust Stock"
-        subTitle="Correct stock counts after recounts, damage, or loss."
+        title={t('adjust.title')}
+        subTitle={t('adjust.subtitle')}
       />
 
       {/* Step Indicator */}
@@ -61,13 +64,14 @@ export default function StockAdjustmentPage() {
           <CardContent className="pt-6">
             <div className="space-y-1.5">
               <Label htmlFor="reason">
-                Adjustment Reason <span className="text-muted-foreground text-xs">(optional, applies to all items)</span>
+                {t('adjust.reasonLabel')}{' '}
+                <span className="text-muted-foreground text-xs">{t('adjust.reasonOptionalHint')}</span>
               </Label>
               <Textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Reason for stock adjustment (e.g., physical count discrepancy, inventory audit, damage report...)"
+                placeholder={t('adjust.reasonPlaceholder')}
                 rows={2}
               />
             </div>
@@ -78,32 +82,32 @@ export default function StockAdjustmentPage() {
       {/* Items Table */}
       {items.length > 0 && (
         <CardTable
-          title={`Adjustment Items (${items.length})`}
-          description="Review items before submitting. All adjustments are processed as a single transaction."
+          title={t('adjust.itemsTitle', { count: items.length })}
+          description={t('adjust.itemsDescription')}
           headerAction={
             <Button
               variant="destructive"
               size="icon"
               onClick={clearAll}
-              title="Clear all items"
+              title={t('shared.clearAllItems')}
             >
               <Trash className="h-4 w-4" />
             </Button>
           }
           columns={columns}
           data={items}
-          emptyMessage="No items to adjust"
+          emptyMessage={t('adjust.emptyItems')}
           actions={[
             {
-              label: `Submit All (${items.length})`,
+              label: t('shared.submitAll', { count: items.length }),
               onClick: handleSubmitAll,
               variant: 'default',
               loading: bulkAdjustMutation.isPending,
               disabled: bulkAdjustMutation.isPending,
               requiresConfirmation: true,
-              confirmationTitle: 'Submit Stock Adjustments?',
-              confirmationDescription: `This will adjust stock for ${items.length} item(s). This action processes as a single transaction and cannot be undone.`,
-              confirmLabel: 'Submit All',
+              confirmationTitle: t('adjust.confirmTitle'),
+              confirmationDescription: t('adjust.confirmDescription', { count: items.length }),
+              confirmLabel: t('shared.submitAllLabel'),
             },
           ]}
         />

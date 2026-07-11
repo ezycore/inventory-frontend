@@ -1,5 +1,6 @@
 "use client";
-
+// coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { useSelectOptions } from "@/services/api";
 import { formatCurrency } from "@/lib/currency";
 import {
@@ -32,7 +33,9 @@ interface ProductSearchProps {
   placeholder?: string;
 }
 
-export function ProductSearch({ onSelect, placeholder = "Search products by name or category..." }: ProductSearchProps) {
+export function ProductSearch({ onSelect, placeholder }: ProductSearchProps) {
+  const t = useTranslations("sales.sell.search");
+  const resolvedPlaceholder = placeholder ?? t("products");
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,7 +97,7 @@ export function ProductSearch({ onSelect, placeholder = "Search products by name
                   inputRef.current?.blur();
                 }
               }}
-              placeholder={placeholder}
+              placeholder={resolvedPlaceholder}
               className="pl-9"
             />
           </div>
@@ -122,7 +125,7 @@ export function ProductSearch({ onSelect, placeholder = "Search products by name
               </div>
             ) : (
               <>
-                <CommandEmpty className="p-2">No products found</CommandEmpty>
+                <CommandEmpty className="p-2">{t("noProducts")}</CommandEmpty>
                 <CommandGroup>
                   {filteredProducts.map((product) => (
                     <CommandItem

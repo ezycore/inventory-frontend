@@ -1,6 +1,8 @@
 'use client'
+// coding-standard: maintained
 
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import StatsCard, { type StatData } from '@ui/components/StatsCard'
 import {
   useDashboardOverview,
@@ -28,6 +30,8 @@ import { FinancialInsights } from '@/components/dashboard/financial-insights'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard.kpi')
+  const tGreeting = useTranslations('dashboard.greeting')
   const user = useAuthStore((s) => s.user)
   const timezone = user?.organization?.timezone
   const { format: formatCurrency } = useCurrency()
@@ -58,7 +62,7 @@ export default function DashboardPage() {
     useStockMovements({ page: 1, limit: 4 })
 
   const overview = overviewData?.data
-  const firstName = user?.firstName || 'there'
+  const firstName = user?.firstName || tGreeting('fallbackName')
 
   // ── KPI Stats (period-based) ──
   const salesChange = overview ? calcChange(overview.sales.total, overview.sales.previousTotal) : null
@@ -67,7 +71,7 @@ export default function DashboardPage() {
 
   const kpiStats: StatData[] = [
     {
-      label: 'Sales Revenue',
+      label: t('salesRevenue'),
       value: formatCurrency(overview?.sales.total || 0),
       icon: DollarSign,
       variant: 'success',
@@ -75,12 +79,12 @@ export default function DashboardPage() {
         ? {
             value: `${salesChange.value}%`,
             direction: salesChange.direction,
-            label: 'vs previous',
+            label: t('vsPrevious'),
           }
         : undefined,
     },
     {
-      label: 'Purchase Cost',
+      label: t('purchaseCost'),
       value: formatCurrency(overview?.purchases.total || 0),
       icon: ArrowDownToLine,
       variant: 'info',
@@ -88,26 +92,32 @@ export default function DashboardPage() {
         ? {
             value: `${purchasesChange.value}%`,
             direction: purchasesChange.direction,
-            label: 'vs previous',
+            label: t('vsPrevious'),
           }
         : undefined,
     },
     {
-      label: 'Total Due',
+      label: t('totalDue'),
       value: formatCurrency(dueTotal),
       icon: AlertTriangle,
       variant: dueTotal > 0 ? 'warning' : 'success',
       description: overview
-        ? `Sales ${formatCurrency(overview.sales.due)} · Purchase ${formatCurrency(overview.purchases.due)}`
+        ? t('salesPurchaseDue', {
+            sales: formatCurrency(overview.sales.due),
+            purchase: formatCurrency(overview.purchases.due),
+          })
         : undefined,
     },
     {
-      label: 'Transactions',
+      label: t('transactions'),
       value: (overview?.sales.count || 0) + (overview?.purchases.count || 0),
       icon: ShoppingCart,
       variant: 'primary',
       description: overview
-        ? `${overview.sales.count} sales · ${overview.purchases.count} purchases`
+        ? t('salesPurchaseCount', {
+            sales: overview.sales.count,
+            purchases: overview.purchases.count,
+          })
         : undefined,
     },
   ]

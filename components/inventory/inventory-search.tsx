@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { useSelectOptions } from "@/services/api";
 import { formatCurrency } from "@/lib/currency";
 import {
@@ -67,10 +69,11 @@ interface InventorySearchProps {
 
 export function InventorySearch({
   onSelect,
-  placeholder = "Search products by name or category...",
+  placeholder,
   excludeIds = [],
   apiUrl,
 }: InventorySearchProps) {
+  const t = useTranslations("inventory.search");
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -138,7 +141,7 @@ export function InventorySearch({
                   inputRef.current?.blur();
                 }
               }}
-              placeholder={placeholder}
+              placeholder={placeholder ?? t("placeholder")}
               className="pl-9 h-11"
             />
           </div>
@@ -158,11 +161,11 @@ export function InventorySearch({
           <CommandList>
             {isLoading ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
-                Loading inventory...
+                {t("loading")}
               </div>
             ) : (
               <>
-                <CommandEmpty className="p-2">No products found</CommandEmpty>
+                <CommandEmpty className="p-2">{t("noProducts")}</CommandEmpty>
                 <CommandGroup>
                   {filteredProducts.map((product) => (
                     <CommandItem
@@ -198,7 +201,9 @@ export function InventorySearch({
                                   : "text-green-600"
                           }`}
                         >
-                          {product.quantity}{product.baseUnitName ? ` ${product.baseUnitName}` : ''} in stock
+                          {t("inStock", {
+                            stock: `${product.quantity}${product.baseUnitName ? ` ${product.baseUnitName}` : ""}`,
+                          })}
                           {product.enableUOMConversion && product.conversionFactor
                             ? ` (≈${formatQuantity(fromBaseUnit(product.quantity, product.conversionFactor))} ${product.purchaseUnitName})`
                             : ''

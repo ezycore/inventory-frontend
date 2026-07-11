@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/ui/components/button";
@@ -22,7 +24,25 @@ import {
   ReturnHistoryTable,
 } from "@/components/shared/returns";
 
+const REASON_KEYS: Record<string, string> = {
+  damaged: "reasonDamaged",
+  defective: "reasonDefective",
+  wrong_item: "reasonWrongItem",
+  excess_quantity: "reasonExcessQuantity",
+  expired: "reasonExpired",
+  other: "reasonOther",
+};
+
 function PurchaseReturnsPageContent() {
+  const t = useTranslations("purchases.returns");
+  const returnReasons = useMemo(
+    () =>
+      RETURN_REASONS.map((r) => ({
+        ...r,
+        label: t(REASON_KEYS[r.value] ?? "reasonOther"),
+      })),
+    [t],
+  );
   const ctx = usePurchaseReturnsPage();
   const { order, pendingDues, initFromOrder, initFromPendingDues } = ctx;
 
@@ -45,21 +65,21 @@ function PurchaseReturnsPageContent() {
     (order?.supplierId as { name?: string } | undefined)?.name ||
     (order as unknown as { supplier?: { name?: string } } | undefined)
       ?.supplier?.name ||
-    "Unknown Supplier";
+    t("unknownSupplier");
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Purchase Returns</h1>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Manage product returns and refunds
+            {t("subtitle")}
           </p>
         </div>
         <Button onClick={() => ctx.setShowNewReturn(!ctx.showNewReturn)}>
           <Plus className="h-4 w-4 mr-2" />
-          New Return
+          {t("newReturn")}
         </Button>
       </div>
 
@@ -72,9 +92,9 @@ function PurchaseReturnsPageContent() {
 
       {/* Search Order */}
       <ReturnSearchCard
-        title="Find Purchase Order"
-        description="Enter an order ID or order number to process a return"
-        placeholder="Enter order ID or order number..."
+        title={t("findOrder")}
+        description={t("findOrderDesc")}
+        placeholder={t("findOrderPlaceholder")}
         inputProps={ctx.searchForm.register("orderId")}
         isLoading={ctx.isLoadingOrder}
         hasValue={!!ctx.searchForm.watch("orderId")}
@@ -88,9 +108,9 @@ function PurchaseReturnsPageContent() {
         <>
           {/* Order Summary */}
           <ReturnDocumentSummaryCard
-            documentLabel="Order"
+            documentLabel={t("documentLabel")}
             documentNumber={ctx.order.orderNumber}
-            counterpartyLabel="Supplier"
+            counterpartyLabel={t("counterpartyLabel")}
             counterpartyName={supplierName}
             subtotal={ctx.order.subtotal}
             additionalDiscount={ctx.order.additionalDiscount}
@@ -105,7 +125,7 @@ function PurchaseReturnsPageContent() {
 
           {/* Items Selection */}
           <ReturnItemsCard
-            description="Choose which items to return to the supplier and specify quantities"
+            description={t("itemsDesc")}
             items={ctx.returnableItems}
             totalReturnQty={ctx.totalReturnQty}
             totalRefundAmount={ctx.totalRefundAmount}
@@ -122,7 +142,7 @@ function PurchaseReturnsPageContent() {
 
           {/* Return Details */}
           <ReturnDetailsFormCard
-            reasons={RETURN_REASONS}
+            reasons={returnReasons}
             reason={ctx.reason}
             onReasonChange={(v) => ctx.setReason(v as PurchaseReturnReason)}
             notes={ctx.notes}
@@ -190,9 +210,14 @@ function PurchaseReturnsPageContent() {
   );
 }
 
+function ReturnsFallback() {
+  const t = useTranslations("common.empty");
+  return <div className="p-6">{t("loading")}</div>;
+}
+
 export default function PurchaseReturnsPage() {
   return (
-    <Suspense fallback={<div className="p-6">Loading...</div>}>
+    <Suspense fallback={<ReturnsFallback />}>
       <PurchaseReturnsPageContent />
     </Suspense>
   );
