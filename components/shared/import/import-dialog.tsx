@@ -12,7 +12,12 @@ import { Button } from "@ui/components/button";
 import { SimpleTable, type SimpleColumn } from "@ui/components/simple-table";
 import { Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import type { ImportResult, ImportRowError } from "@/types/DataTable";
+import type {
+  ImportColumnMapping,
+  ImportResult,
+  ImportRowError,
+} from "@/types/DataTable";
+import { ColumnMapper } from "./column-mapper";
 
 interface ImportDialogProps {
   open: boolean;
@@ -21,9 +26,9 @@ interface ImportDialogProps {
   /** Trigger a template CSV download. */
   downloadTemplate: () => Promise<void>;
   /** Dry-run: validate the file without writing, return per-row results. */
-  preview: (file: File) => Promise<ImportResult>;
+  preview: (file: File, mapping?: ImportColumnMapping) => Promise<ImportResult>;
   /** Commit valid rows; returns the final result. */
-  commit: (file: File) => Promise<ImportResult>;
+  commit: (file: File, mapping?: ImportColumnMapping) => Promise<ImportResult>;
   /** Called after a successful commit (e.g. refetch the list). */
   onCommitted?: () => void;
 }
@@ -50,12 +55,18 @@ export function ImportDialog({
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [busy, setBusy] = useState<false | "preview" | "commit">(false);
+  // Explicit column mapping (expected header → CSV header). Edits mark the
+  // preview stale (`mappingDirty`) until re-checked against the server.
+  const [mapping, setMapping] = useState<ImportColumnMapping>({});
+  const [mappingDirty, setMappingDirty] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setFile(null);
     setResult(null);
     setBusy(false);
+    setMapping({});
+    setMappingDirty(false);
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -68,6 +79,8 @@ export function ImportDialog({
     if (!picked) return;
     setFile(picked);
     setResult(null);
+    setMapping({});
+    setMappingDirty(false);
     setBusy("preview");
     try {
       setResult(await preview(picked));
@@ -79,11 +92,24 @@ export function ImportDialog({
     }
   };
 
+  const handleApplyMapping = async () => {
+    if (!file) return;
+    setBusy("preview");
+    try {
+      setResult(await preview(file, mapping));
+      setMappingDirty(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Preview failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleCommit = async () => {
     if (!file) return;
     setBusy("commit");
     try {
-      const res = await commit(file);
+      const res = await commit(file, mapping);
       toast.success(
         `Imported ${res.created} · skipped ${res.skipped} · failed ${res.invalid}`,
       );
@@ -160,6 +186,31 @@ export function ImportDialog({
                 <span className="text-red-600">Invalid: <b>{result.invalid}</b></span>
               </div>
 
+              {result.headerInfo && (
+                <ColumnMapper
+                  headerInfo={result.headerInfo}
+                  mapping={mapping}
+                  onChange={(next) => {
+                    setMapping(next);
+                    setMappingDirty(true);
+                  }}
+                />
+              )}
+              {mappingDirty && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  disabled={busy !== false}
+                  onClick={handleApplyMapping}
+                >
+                  {busy === "preview" && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  Apply mapping & re-check
+                </Button>
+              )}
+
               {result.warnings && result.warnings.length > 0 && (
                 <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
                   <p className="mb-1 font-medium">
@@ -197,7 +248,9 @@ export function ImportDialog({
           </Button>
           <Button
             onClick={handleCommit}
-            disabled={!result || result.valid === 0 || busy !== false}
+            disabled={
+              !result || result.valid === 0 || busy !== false || mappingDirty
+            }
           >
             {busy === "commit" && <Loader2 className="h-4 w-4 animate-spin" />}
             Import {result?.valid ? `${result.valid}` : ""}
