@@ -40,7 +40,7 @@ interface PrintDocColumn {
   align?: "left" | "right";
 }
 
-interface PrintDoc {
+export interface PrintDoc {
   docTitle: string;
   number: string;
   /** `key` (when set) lets a receipt setting hide this row; keyless rows always print. */
@@ -56,7 +56,7 @@ interface PrintDoc {
   signature?: boolean;
 }
 
-interface DocHeader {
+export interface DocHeader {
   orgName?: string;
   storeName?: string;
   /** Absolute logo URL (printed at the top; the print window waits for it to load). */
@@ -131,16 +131,17 @@ export const resolveDefaultPaper = (org?: PrintableOrg): PaperSize =>
   org?.receiptSettings?.defaultPaperSize ?? "a4";
 
 const BASE_STYLES = `
-  body { font-family: Arial, Helvetica, sans-serif; color: #000; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #111827; }
   .doc { position: relative; z-index: 1; }
   .doc-title { font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.02em; }
-  .muted { color: #444; }
+  .muted { color: #6b7280; }
   .header { margin-bottom: 4px; }
   /* Breathing room between stacked identity/meta lines so they don't jam together. */
-  .header > div { line-height: 1.5; }
-  .header .org { line-height: 1.25; margin-bottom: 1px; }
-  .meta > div { line-height: 1.5; }
-  .logo { display: inline-block; object-fit: contain; margin-bottom: 4px; }
+  .header .ident > div, .header .doc-head > div { line-height: 1.5; }
+  .header .org { line-height: 1.25; margin-bottom: 1px; color: #111827; }
+  .meta > div { line-height: 1.6; }
+  .meta b { font-weight: 600; }
+  .logo { display: inline-block; object-fit: contain; margin-bottom: 6px; }
   /* Faint centered background image; fixed so it repeats behind every printed page. */
   .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
     max-width: 60%; max-height: 60%; object-fit: contain; z-index: 0; pointer-events: none; }
@@ -153,33 +154,61 @@ const BASE_STYLES = `
   .num { text-align: right; white-space: nowrap; }
   table.totals { width: 100%; margin-top: 8px; }
   table.totals td { padding: 1px 0; }
-  .t-val { text-align: right; }
+  .t-val { text-align: right; font-variant-numeric: tabular-nums; }
   .strong { font-weight: 700; }
-  .hr { border-top: 1px dashed #000; margin: 6px 0; }
+  .strong td { color: #111827; }
+  .hr { border-top: 1px dashed #9ca3af; margin: 6px 0; }
   .words { margin-top: 6px; }
   .signature { margin-top: 40px; text-align: right; }
-  .signature-line { display: inline-block; border-top: 1px solid #000; padding-top: 2px; min-width: 180px; text-align: center; }
+  .signature-line { display: inline-block; border-top: 1px solid #111827; padding-top: 3px; min-width: 180px; text-align: center; color: #374151; }
 `;
 
 const PAPER_STYLES: Record<PaperSize, string> = {
   a4: `
-    @page { size: A4; margin: 14mm; }
-    body { font-size: 12px; }
-    .doc { max-width: 760px; margin: 0 auto; }
-    .org { font-size: 20px; font-weight: 700; }
+    /* Page margin 0 so the browser can't paint its default title/URL/date
+       header-footer; whitespace lives in body (left/right — repeats on every
+       page) and .doc (top/bottom — repeats per document in bulk printing). */
+    @page { size: A4; margin: 0; }
+    body { font-size: 12px; line-height: 1.45; padding: 0 14mm; }
+    .doc { max-width: 760px; margin: 0 auto; padding: 12mm 0 10mm; }
+    /* Two-column head: identity left, document title right. A centered/right
+       letterhead (owner's align choice) falls back to the stacked layout. */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; padding-bottom: 14px; }
+    .header.stack { display: block; padding-bottom: 8px; }
+    .doc-head { text-align: right; }
+    .header.stack .doc-head { text-align: inherit; }
+    .doc-title { font-size: 23px; font-weight: 800; letter-spacing: 0.03em; margin-top: 0; }
+    .doc-number { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+    .org { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; }
+    .ident .contact { line-height: 1.65; }
     .logo { max-height: 64px; max-width: 220px; }
-    table.items th, table.items td { border-bottom: 1px solid #eee; }
+    /* Meta rows read in two columns (Date / Customer / …) like a form header. */
+    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 40px; }
+    .meta { margin-top: 10px; }
+    .hr { border-top: 1px solid #e5e7eb; margin: 10px 0; }
+    table.items { margin-top: 8px; }
+    table.items th { text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em;
+      color: #6b7280; border-bottom: 2px solid #111827; padding: 8px 0 6px; }
+    table.items td { border-bottom: 1px solid #f0f1f3; padding: 8px 0; }
+    table.items td:first-child { font-weight: 600; }
+    /* Totals as a compact right-aligned block, grand total ruled off. */
+    table.totals { width: auto; min-width: 300px; margin-left: auto; margin-top: 14px; }
+    table.totals td { padding: 3px 0 3px 24px; color: #4b5563; }
+    table.totals td:first-child { padding-left: 0; }
+    table.totals tr.strong td { border-top: 2px solid #111827; padding-top: 8px; font-size: 14px; }
+    .words { text-align: right; margin-top: 10px; }
+    .footer { margin-top: 10px; font-size: 11.5px; }
   `,
   thermal80: `
-    @page { size: 80mm auto; margin: 3mm; }
-    body { font-size: 11px; width: 74mm; }
+    @page { size: 80mm auto; margin: 0; }
+    body { font-size: 11px; width: 80mm; padding: 3mm; }
     .org { font-size: 14px; font-weight: 700; }
     .header { text-align: center; }
     .logo { max-height: 40px; max-width: 70mm; }
   `,
   thermal58: `
-    @page { size: 58mm auto; margin: 2mm; }
-    body { font-size: 10px; width: 54mm; }
+    @page { size: 58mm auto; margin: 0; }
+    body { font-size: 10px; width: 58mm; padding: 2mm; }
     .org { font-size: 12px; font-weight: 700; }
     .header { text-align: center; }
     .logo { max-height: 32px; max-width: 50mm; }
@@ -253,9 +282,10 @@ const resolveHeaderLines = (
  * Compose a generic PrintDoc into the standalone `{ body, styles, title }` a
  * print window (or an inline preview iframe) renders. Pure — no DOM side effects
  * — so the settings live-preview and the actual printout share ONE renderer and
- * can never drift.
+ * can never drift. Exported for per-entity adapters that live in their own
+ * modules (e.g. `utils/print-storefront-order.ts`).
  */
-const composeDocument = (
+export const composeDocument = (
   doc: PrintDoc,
   paper: PaperSize,
   header: DocHeader,
@@ -264,6 +294,9 @@ const composeDocument = (
   const contactLine = [header.phone, header.email].filter(Boolean).join(" · ");
   // Explicit alignment overrides the paper default (A4 left, thermal centered).
   const alignStyle = header.align ? ` style="text-align:${header.align}"` : "";
+  // Centered/right letterheads read as the classic stacked head; the default
+  // (left) A4 layout puts the document title opposite the identity block.
+  const stacked = header.align === "center" || header.align === "right";
 
   // Logo placement. Watermark is A4-only (thermal is 1-bit: a grey wash either
   // vanishes or smears solid), so on thermal only the top-logo part of "both" runs.
@@ -294,13 +327,17 @@ const composeDocument = (
       : `<div class="doc-title">${escapeHtml(doc.docTitle)}</div>`;
 
   const head = `
-    <div class="header"${alignStyle}>
-      ${topLogo}
-      ${resolveHeaderLines(header, contactLine, t).join("")}
-      ${docTitle}
-      <div class="muted">#${escapeHtml(doc.number)}</div>
+    <div class="header${stacked ? " stack" : ""}"${alignStyle}>
+      <div class="ident">
+        ${topLogo}
+        ${resolveHeaderLines(header, contactLine, t).join("")}
+      </div>
+      <div class="doc-head">
+        ${docTitle}
+        <div class="muted doc-number">#${escapeHtml(doc.number)}</div>
+      </div>
     </div>
-    <div class="meta"${alignStyle}>
+    <div class="meta${stacked ? "" : " meta-grid"}"${alignStyle}>
       ${metaHtml}
     </div>
   `;
@@ -606,7 +643,7 @@ interface PrintEntityOptions {
   locale?: AppLocale;
 }
 
-/** Print a sale as an invoice (A4) or receipt (thermal). Returns false if popup blocked. */
+/** Print a sale as an invoice (A4) or receipt (thermal). Returns false if printing could not start. */
 export const printSaleInvoice = (sale: Sale, opts: PrintEntityOptions): boolean =>
   printDoc(
     saleToDoc(sale, opts.currency, opts.t, opts.locale),
@@ -616,7 +653,7 @@ export const printSaleInvoice = (sale: Sale, opts: PrintEntityOptions): boolean 
     opts.locale,
   );
 
-/** Print a purchase order. Returns false if popup blocked. */
+/** Print a purchase order. Returns false if printing could not start. */
 export const printPurchaseOrder = (
   order: PurchaseOrder,
   opts: PrintEntityOptions,
@@ -629,7 +666,7 @@ export const printPurchaseOrder = (
     opts.locale,
   );
 
-/** Print a sales/purchase return (credit/debit note). Returns false if popup blocked. */
+/** Print a sales/purchase return (credit/debit note). Returns false if printing could not start. */
 export const printReturn = (
   data: ReturnDetailsData,
   variant: "sales" | "purchases",
@@ -704,7 +741,7 @@ const paymentReceiptToDoc = (
   };
 };
 
-/** Print a money receipt for a single payment. Returns false if popup blocked. */
+/** Print a money receipt for a single payment. Returns false if printing could not start. */
 export const printPaymentReceipt = (
   input: PaymentReceiptInput,
   opts: PrintEntityOptions,
@@ -716,6 +753,46 @@ export const printPaymentReceipt = (
     opts.t,
     opts.locale,
   );
+
+/**
+ * Delivery note / challan: the sale's items + quantities with NO prices or money
+ * — a goods-dispatch document. Built from the same populated sale as the invoice.
+ */
+const saleToDeliveryDoc = (
+  sale: Sale,
+  t?: Translator,
+  locale: AppLocale = "en",
+): PrintDoc => {
+  const tt = tr(t);
+  const customer = sale.customerId;
+  const totalUnits = sale.items.reduce((sum, i) => sum + (i.quantity ?? 0), 0);
+  return {
+    docTitle: tt("deliveryNote", "Delivery Note"),
+    number: sale.invoiceNumber,
+    meta: [
+      { label: tt("date", "Date"), value: dateStr(sale.createdAt, locale) },
+      { label: tt("customer", "Customer"), value: customer?.name ?? tt("walkIn", "Walk-in Customer"), key: "customer" },
+      ...(customer?.phone
+        ? [{ label: tt("phone", "Phone"), value: customer.phone, key: "phone" as const }]
+        : []),
+      ...(customer?.address
+        ? [{ label: tt("address", "Address"), value: customer.address, key: "address" as const }]
+        : []),
+    ],
+    columns: [{ header: tt("item", "Item") }, { header: tt("qty", "Qty"), align: "right" }],
+    rows: sale.items.map((item) => [
+      item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
+      item.quantity,
+    ]),
+    totals: [{ label: tt("totalUnits", "Total units"), value: String(totalUnits), strong: true }],
+    notes: sale.notes,
+    signature: true,
+  };
+};
+
+/** Print a sale as a delivery note / challan (no prices). Returns false if printing could not start. */
+export const printDeliveryNote = (sale: Sale, opts: PrintEntityOptions): boolean =>
+  printDoc(saleToDeliveryDoc(sale, opts.t, opts.locale), opts.paper, opts.header, opts.t, opts.locale);
 
 /**
  * Account statement (customer or supplier): a chronological transaction list plus
@@ -789,7 +866,7 @@ const statementToDoc = (
   };
 };
 
-/** Print a customer/supplier account statement. Returns false if popup blocked. */
+/** Print a customer/supplier account statement. Returns false if printing could not start. */
 export const printStatement = (
   input: StatementInput,
   opts: PrintEntityOptions,

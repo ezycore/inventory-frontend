@@ -90,6 +90,7 @@ export const getFeatureDisplayNames = (t: Translator): Record<FeatureName, strin
   invoicePrinting: t("names.invoicePrinting"),
   returns: t("names.returns"),
   uomConversion: t("names.uomConversion"),
+  storefront: t("names.storefront"),
   tax: t("names.tax"),
   combo: t("names.combo"),
 });
@@ -105,6 +106,7 @@ export const getFeatureDescriptions = (t: Translator): Record<FeatureName, strin
   invoicePrinting: t("descriptions.invoicePrinting"),
   returns: t("descriptions.returns"),
   uomConversion: t("descriptions.uomConversion"),
+  storefront: t("descriptions.storefront"),
   tax: t("descriptions.tax"),
   combo: t("descriptions.combo"),
 });
@@ -120,6 +122,7 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   invoicePrinting: "printer",
   returns: "undo-2",
   uomConversion: "repeat",
+  storefront: "store",
   tax: "percent",
   combo: "package",
 };

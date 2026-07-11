@@ -17,7 +17,7 @@ import { isFeatureEnabled } from "@/lib/feature-utils";
 import { cn } from "@ui/lib/utils";
 
 interface PrintMenuProps {
-  /** Print at the chosen paper size; returns false when the popup was blocked. */
+  /** Print at the chosen paper size; returns false when printing couldn't start. */
   onPrint: (paper: PaperSize) => boolean;
   /** Label for the A4 option (e.g. "Invoice", "Purchase Order"). */
   a4Label?: string;
@@ -29,9 +29,8 @@ interface PrintMenuProps {
 
 /**
  * Split print button: the primary segment prints at the org's default paper size
- * in one click; the caret opens the paper-size menu (A4 / 80mm / 58mm). Both call
- * `onPrint` synchronously (inside the click) so the popup isn't blocked; a blocked
- * popup surfaces a toast.
+ * in one click; the caret opens the paper-size menu (A4 / 80mm / 58mm). Printing
+ * renders into a hidden iframe (utils/print.ts) — no popups involved.
  */
 export function PrintMenu({
   onPrint,

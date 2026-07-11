@@ -18,6 +18,7 @@
       "invoicePrinting": "Invoice Printing",
       "returns": "Returns Management",
       "uomConversion": "Unit Conversion",
+      "storefront": "Ecommerce Storefront",
       "tax": "Tax Management",
       "combo": "Combo Products"
     },
@@ -29,6 +30,7 @@
       "invoicePrinting": "Generate and print invoices for sales and purchases",
       "returns": "Enable sales returns, purchase returns, and credit management",
       "uomConversion": "Enable unit of measure conversion for products",
+      "storefront": "Enable a public online store with shopper accounts, online orders, and courier delivery",
       "tax": "Enable tax rates and apply tax on purchases and sales",
       "combo": "Sell several products bundled together as one priced unit"
     }

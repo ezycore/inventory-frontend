@@ -179,6 +179,91 @@ export const navGroups: NavGroup[] = [
   },
 
   {
+    label: "Ecommerce",
+    items: [
+      {
+        title: "Ecommerce",
+        url: "/ecommerce",
+        icon: "store",
+        isActive: false,
+        features: ["storefront"],
+        items: [
+          {
+            title: "Dashboard",
+            url: "/ecommerce/dashboard",
+            icon: "layout-dashboard",
+            features: ["storefront"],
+            permissions: ["storefront.view"],
+          },
+          {
+            title: "Orders",
+            url: "/ecommerce/orders",
+            icon: "receipt",
+            features: ["storefront"],
+            permissions: ["storefront.orders.view"],
+          },
+          {
+            title: "Catalog",
+            url: "/ecommerce/catalog",
+            icon: "package",
+            features: ["storefront"],
+            permissions: ["storefront.view"],
+          },
+          {
+            title: "Campaigns",
+            url: "/ecommerce/campaigns",
+            icon: "megaphone",
+            features: ["storefront"],
+            permissions: ["storefront.manage"],
+          },
+          {
+            title: "Coupons",
+            url: "/ecommerce/coupons",
+            icon: "ticket-percent",
+            features: ["storefront"],
+            permissions: ["storefront.manage"],
+          },
+          {
+            title: "Customize",
+            url: "/ecommerce/customize",
+            icon: "palette",
+            features: ["storefront"],
+            permissions: ["storefront.manage"],
+          },
+          {
+            title: "Content",
+            url: "/ecommerce/content",
+            icon: "file-text",
+            features: ["storefront"],
+            permissions: ["storefront.manage"],
+          },
+          {
+            title: "Navigation",
+            url: "/ecommerce/navigation",
+            icon: "menu",
+            features: ["storefront"],
+            permissions: ["storefront.manage"],
+          },
+          {
+            title: "Customers",
+            url: "/ecommerce/customers",
+            icon: "users",
+            features: ["storefront"],
+            permissions: ["storefront.view"],
+          },
+          {
+            title: "Store Settings",
+            url: "/ecommerce/settings",
+            icon: "settings",
+            features: ["storefront"],
+            permissions: ["storefront.view"],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
     label: "Contacts",
     items: [
       {
