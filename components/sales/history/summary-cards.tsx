@@ -1,3 +1,5 @@
+// coding-standard: maintained
+import { useTranslations } from 'next-intl';
 import {
   Card,
   CardContent,
@@ -21,6 +23,7 @@ export function SummaryCards({
   isAccountsEnabled,
   formatCurrency,
 }: SummaryCardsProps) {
+  const t = useTranslations('sales.history.summary');
   return (
     <div
       className={`grid gap-4 ${
@@ -28,31 +31,31 @@ export function SummaryCards({
       }`}
     >
       <StatCard
-        label="Today"
+        label={t('today')}
         value={formatCurrency(summary?.today?.totalSales ?? 0)}
-        sub={`${summary?.today?.salesCount ?? 0} sale(s)`}
+        sub={t('salesCount', { count: summary?.today?.salesCount ?? 0 })}
         isLoading={isLoading}
       />
       <StatCard
-        label="This Month"
+        label={t('thisMonth')}
         value={formatCurrency(summary?.thisMonth?.totalSales ?? 0)}
-        sub={`${summary?.thisMonth?.salesCount ?? 0} sale(s)`}
+        sub={t('salesCount', { count: summary?.thisMonth?.salesCount ?? 0 })}
         isLoading={isLoading}
       />
       {isAccountsEnabled && (
         <StatCard
-          label="Total Paid (All Time)"
+          label={t('totalPaidAllTime')}
           value={formatCurrency(summary?.allTime?.totalPaid ?? 0)}
-          sub={`From ${summary?.allTime?.salesCount ?? 0} sale(s)`}
+          sub={t('fromSales', { count: summary?.allTime?.salesCount ?? 0 })}
           valueClassName="text-green-600"
           isLoading={isLoading}
         />
       )}
       {isAccountsEnabled && (
         <StatCard
-          label="Total Due (All Time)"
+          label={t('totalDueAllTime')}
           value={formatCurrency(summary?.allTime?.totalDue ?? 0)}
-          sub="Outstanding balance"
+          sub={t('outstandingBalance')}
           valueClassName={
             (summary?.allTime?.totalDue ?? 0) > 0
               ? 'text-red-600'

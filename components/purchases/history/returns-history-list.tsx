@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   ReturnsHistoryList as SharedReturnsHistoryList,
   type NormalizedReturn,
@@ -21,6 +23,7 @@ export function ReturnsHistoryList({
   formatCurrency,
   bare,
 }: ReturnsHistoryListProps) {
+  const t = useTranslations("purchases.history");
   const normalized = useMemo<NormalizedReturn[]>(
     () =>
       purchaseReturns.map((ret) => ({
@@ -45,12 +48,12 @@ export function ReturnsHistoryList({
               documentDueAdjustment:
                 (ret.refundAllocation.adjustPurchaseDue ?? 0) > 0
                   ? {
-                      label: "Adjusted against order due",
+                      label: t("adjustedAgainstOrderDue"),
                       amount: ret.refundAllocation.adjustPurchaseDue!,
                     }
                   : undefined,
               otherDueAdjustments: ret.refundAllocation.adjustOtherDues?.map((d) => ({
-                label: "Adjusted against other due",
+                label: t("adjustedAgainstOtherDue"),
                 amount: d.amount,
               })),
               accountRefund: ret.refundAllocation.accountRefund
@@ -62,14 +65,14 @@ export function ReturnsHistoryList({
               counterpartyCredit:
                 (ret.refundAllocation.supplierCredit?.amount ?? 0) > 0
                   ? {
-                      label: "Adjusted to supplier credit",
+                      label: t("adjustedToSupplierCredit"),
                       amount: ret.refundAllocation.supplierCredit!.amount,
                     }
                   : undefined,
             }
           : undefined,
       })),
-    [purchaseReturns],
+    [purchaseReturns, t],
   );
 
   return (
@@ -77,7 +80,7 @@ export function ReturnsHistoryList({
       returns={normalized}
       isLoading={isLoadingReturns}
       formatCurrency={formatCurrency}
-      emptyMessage="No returns for this purchase"
+      emptyMessage={t("noReturnsForPurchase")}
       bare={bare}
     />
   );

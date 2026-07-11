@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations, useLocale } from "next-intl";
 import { ColumnDef } from "@tanstack/react-table";
 
 // Types
@@ -30,6 +32,8 @@ import { locationsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { FilterConfig } from "@/types/DataTable";
+import type { Translator } from "@/i18n/config";
+import type { AppLocale } from "@/i18n/config";
 import PageHeader from "@/ui/components/header";
 import { sanitize } from "@/utils";
 import { useViewMode } from "@/hooks/use-view-mode";
@@ -63,43 +67,44 @@ interface SummaryItem {
 
 function getLocationStats(
   stats: Record<string, any> | undefined,
+  t: Translator,
 ): SummaryItem[] {
   return [
     {
-      label: "Total Locations",
+      label: t("stats.total"),
       value: stats?.total || 0,
       icon: MapPin,
       gradient: "from-primary/10 to-primary/5",
       iconBg: "bg-primary/10",
       iconColor: "text-primary",
-      description: "All registered locations",
+      description: t("stats.totalDescription"),
     },
     {
-      label: "Active",
+      label: t("stats.active"),
       value: stats?.active || 0,
       icon: CheckCircle2,
       gradient: "from-emerald-500/10 to-emerald-500/5",
       iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
       iconColor: "text-emerald-600 dark:text-emerald-400",
-      description: "Currently active",
+      description: t("stats.activeDescription"),
     },
     {
-      label: "Stores",
+      label: t("stats.stores"),
       value: stats?.stores || 0,
       icon: Store,
       gradient: "from-blue-500/10 to-blue-500/5",
       iconBg: "bg-blue-50 dark:bg-blue-950/40",
       iconColor: "text-blue-600 dark:text-blue-400",
-      description: "Retail locations",
+      description: t("stats.storesDescription"),
     },
     {
-      label: "Warehouses",
+      label: t("stats.warehouses"),
       value: stats?.warehouses || 0,
       icon: Warehouse,
       gradient: "from-amber-500/10 to-amber-500/5",
       iconBg: "bg-amber-50 dark:bg-amber-950/40",
       iconColor: "text-amber-600 dark:text-amber-400",
-      description: "Storage locations",
+      description: t("stats.warehousesDescription"),
     },
   ];
 }
@@ -173,48 +178,48 @@ function LocationSummaryBanner({
 }
 
 // Column definitions
-const columns: ColumnDef<LocationType>[] = [
+const getColumns = (t: Translator): ColumnDef<LocationType>[] => [
   {
     accessorKey: "name",
-    header: "Location Name",
+    header: t("columns.name"),
   },
   {
     accessorKey: "address",
-    header: "Address",
+    header: t("columns.address"),
   },
   {
     accessorKey: "locationType",
-    header: "Type",
+    header: t("columns.type"),
   },
   {
     accessorKey: "users",
-    header: "Users",
+    header: t("columns.users"),
     cell: ({ row }) => <UserCountCell users={row.original.users} />,
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: t("columns.status"),
   },
   {
     accessorKey: "createdAt",
-    header: "Created Date",
+    header: t("columns.createdDate"),
     cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
   },
   {
     accessorKey: "updatedAt",
-    header: "Updated Date",
+    header: t("columns.updatedDate"),
     cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
   },
 ];
 
 // Form configuration
-const locationFormConfig: DynamicFormConfig = {
+const getLocationFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [
     {
       name: "name",
       type: "input",
-      label: "Location Name",
-      placeholder: "Enter location name",
+      label: t("form.name"),
+      placeholder: t("form.namePlaceholder"),
       required: true,
       columnSpan: 12,
       validation: { minLength: 1, maxLength: 100 },
@@ -222,32 +227,31 @@ const locationFormConfig: DynamicFormConfig = {
     {
       name: "address",
       type: "input",
-      label: "Address",
-      placeholder: "Enter address",
+      label: t("form.address"),
+      placeholder: t("form.addressPlaceholder"),
       required: true,
       columnSpan: 12,
     },
     {
       name: "locationType",
       type: "select",
-      label: "Location Type",
+      label: t("form.type"),
       required: true,
       columnSpan: 12,
       options: [
-        { value: "store", label: "Store" },
-        { value: "warehouse", label: "Warehouse" },
+        { value: "store", label: t("type.store") },
+        { value: "warehouse", label: t("type.warehouse") },
       ],
     },
     {
       name: "users",
       type: "select",
-      label: "Assign Users",
+      label: t("form.users"),
       optionsApi: "/users",
       mode: "multiple",
       columnSpan: 12,
       required: false,
-      description:
-        "Select users for roles without all-location access.",
+      description: t("form.usersDescription"),
       itemsCreateCallback: (response: ApiResponse<PaginatedResponse<User>>) => {
         const items = sanitize(response?.data?.items, 'array');
         return items
@@ -260,35 +264,35 @@ const locationFormConfig: DynamicFormConfig = {
     {
       name: "status",
       type: "select",
-      label: "Status",
+      label: t("form.status"),
       required: true,
       columnSpan: 12,
       options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
+        { value: "active", label: t("status.active") },
+        { value: "inactive", label: t("status.inactive") },
       ],
     },
   ],
-};
+});
 
 // Filter configuration
-const locationFilterConfig: FilterConfig = {
+const getLocationFilterConfig = (t: Translator): FilterConfig => ({
   fields: [
     {
       name: "name",
-      label: "Search location",
+      label: t("filters.searchLabel"),
       type: "text",
-      placeholder: "Search by name...",
+      placeholder: t("filters.searchPlaceholder"),
     },
     {
       name: "status",
-      label: "Status",
+      label: t("filters.statusLabel"),
       type: "select",
-      placeholder: "All statuses",
+      placeholder: t("filters.statusPlaceholder"),
       columnSpan: 2,
       options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
+        { label: t("status.active"), value: "active" },
+        { label: t("status.inactive"), value: "inactive" },
       ],
     },
   ],
@@ -297,12 +301,12 @@ const locationFilterConfig: FilterConfig = {
   applyOnChange: false,
   showResetButton: true,
   showApplyButton: true,
-};
+});
 
-const searchConfig = {
+const getSearchConfig = (t: Translator) => ({
   globalSearch: true,
-  placeholder: "Search locations by name, address, or status...",
-};
+  placeholder: t("searchPlaceholder"),
+});
 
 const defaultValues = {
   name: "",
@@ -312,6 +316,8 @@ const defaultValues = {
 };
 
 export default function LocationsPage() {
+  const t = useTranslations("settings.locations");
+  const locale = useLocale() as AppLocale;
   const currentUser = useAuthStore((state) => state.user);
   const [viewMode, setViewMode] = useViewMode("locations", 'card');
   const { data: statsData, isLoading: statsLoading } = useLocationStats?.() ?? { data: undefined, isLoading: false };
@@ -337,13 +343,13 @@ export default function LocationsPage() {
   );
 
   const roleAwareLocationFormConfig = useMemo<DynamicFormConfig>(() => {
+    const locationFormConfig = getLocationFormConfig(t);
     const fields = locationFormConfig.fields.map((field) => {
       if (field.name !== "users") return field;
 
       return {
         ...field,
-        description:
-          "Select users for roles without all-location access.",
+        description: t("form.usersDescription"),
         itemsCreateCallback: (response: ApiResponse<PaginatedResponse<User>>) => {
           const items = sanitize(response?.data?.items, "array");
           return items
@@ -362,7 +368,11 @@ export default function LocationsPage() {
       ...locationFormConfig,
       fields,
     };
-  }, [allLocationRoleSlugs, roleLabels]);
+  }, [allLocationRoleSlugs, roleLabels, t]);
+
+  const columns = useMemo(() => getColumns(t), [t]);
+  const locationFilterConfig = useMemo(() => getLocationFilterConfig(t), [t]);
+  const searchConfig = useMemo(() => getSearchConfig(t), [t]);
 
   const sharedOperations = {
     formConfig: roleAwareLocationFormConfig,
@@ -374,8 +384,8 @@ export default function LocationsPage() {
     queryKey: [...queryKeys.locations.all()],
     entityName: "Location" as const,
     isViewAvailable: false,
-    editTooltip: "Edit Location",
-    deleteTooltip: "Delete Location",
+    editTooltip: t("form.editTooltip"),
+    deleteTooltip: t("form.deleteTooltip"),
     prepareSubmitData: (
       data: LocationType,
       isEdit: boolean,
@@ -390,8 +400,8 @@ export default function LocationsPage() {
     <div className="space-y-8">
       {/* Header */}
       <PageHeader
-        title="Locations"
-        subTitle="Your stores and warehouses in one place."
+        title={t("title")}
+        subTitle={t("subtitle")}
         actions={
           <ViewToggle
             storageKey="locations"
@@ -403,14 +413,14 @@ export default function LocationsPage() {
 
       {/* Stats Banner */}
       <LocationSummaryBanner
-        stats={getLocationStats(statsData)}
+        stats={getLocationStats(statsData, t)}
         isLoading={statsLoading}
       />
 
       {/* Table View */}
       {viewMode === "table" && (
         <DataTable
-          cardTitle={(dataLength: number) => `All Locations (${dataLength})`}
+          cardTitle={(dataLength: number) => t("allLocationsCount", { count: dataLength })}
           defaultPageSize={10}
           pageSizes={[10, 20, 50, 100]}
           filterConfig={locationFilterConfig}
@@ -430,7 +440,7 @@ export default function LocationsPage() {
       {/* Card View */}
       {viewMode === "card" && (
         <DataCard
-          cardTitle={(n) => `All Locations (${n})`}
+          cardTitle={(n) => t("allLocationsCount", { count: n })}
           defaultPageSize={12}
           pageSizes={[12, 24, 48]}
           filterConfig={locationFilterConfig}
@@ -440,7 +450,7 @@ export default function LocationsPage() {
             gap: "lg",
           }}
           searchConfig={searchConfig}
-          renderCard={LocationCardView}
+          renderCard={(item, actions) => LocationCardView(item, actions, { t, locale })}
           loadingRenderCard={() => <LocationCardSkeleton />}
           operations={sharedOperations}
         />

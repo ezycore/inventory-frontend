@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { useSalesReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
@@ -27,6 +29,10 @@ function calcChange(current: number, previous: number) {
 }
 
 export function SalesReport() {
+  const t = useTranslations('reports.sales')
+  const tCommon = useTranslations('reports')
+  const tEmpty = useTranslations('common.empty')
+  const tPaymentStatus = useTranslations('common.paymentStatus')
   const { period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd, params } =
     useReportPeriod()
   const { data, isLoading } = useSalesReport(params)
@@ -38,9 +44,9 @@ export function SalesReport() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Sales Report</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Detailed analysis of sales performance
+            {t('subtitle')}
           </p>
         </div>
       </div>
@@ -66,7 +72,7 @@ export function SalesReport() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalSales')}</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -80,14 +86,14 @@ export function SalesReport() {
                     ) : (
                       <ArrowDown className="h-3 w-3 text-red-500" />
                     )}
-                    {salesChange.value}% vs previous period
+                    {tCommon('vsPreviousPeriod', { value: salesChange.value })}
                   </p>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Gross Profit</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('grossProfit')}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -95,29 +101,30 @@ export function SalesReport() {
                   {formatCurrency(data.summary.grossProfit)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Margin:{' '}
-                  {data.summary.totalSales > 0
-                    ? Math.round((data.summary.grossProfit / data.summary.totalSales) * 100)
-                    : 0}
-                  %
+                  {t('margin', {
+                    value:
+                      data.summary.totalSales > 0
+                        ? Math.round((data.summary.grossProfit / data.summary.totalSales) * 100)
+                        : 0,
+                  })}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Orders</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('orders')}</CardTitle>
                 <ShoppingCart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{data.summary.count}</div>
                 <p className="text-xs text-muted-foreground">
-                  {data.summary.totalItems} items sold
+                  {t('itemsSold', { count: data.summary.totalItems })}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Due</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalDue')}</CardTitle>
                 <DollarSign className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
@@ -125,7 +132,7 @@ export function SalesReport() {
                   {formatCurrency(data.summary.totalDue)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Paid: {formatCurrency(data.summary.totalPaid)}
+                  {t('paid', { amount: formatCurrency(data.summary.totalPaid) })}
                 </p>
               </CardContent>
             </Card>
@@ -135,7 +142,7 @@ export function SalesReport() {
           {data.chartData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Sales Trend</CardTitle>
+                <CardTitle>{t('salesTrend')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -168,12 +175,12 @@ export function SalesReport() {
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Top Selling Products</CardTitle>
+                <CardTitle>{t('topSellingProducts')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {data.topProducts.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No sales data</p>
+                    <p className="text-sm text-muted-foreground">{t('noSalesData')}</p>
                   ) : (
                     data.topProducts.map((p, i) => (
                       <div key={i} className="flex items-center justify-between text-sm">
@@ -198,27 +205,27 @@ export function SalesReport() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Top Customers
+                  {t('topCustomers')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {data.topCustomers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No customer data</p>
+                    <p className="text-sm text-muted-foreground">{t('noCustomerData')}</p>
                   ) : (
                     data.topCustomers.map((c, i) => (
                       <div key={i} className="flex items-center justify-between text-sm">
                         <div>
                           <span className="font-medium">{c.customerName}</span>
                           <span className="ml-2 text-muted-foreground">
-                            {c.orderCount} orders
+                            {t('ordersCount', { count: c.orderCount })}
                           </span>
                         </div>
                         <div className="text-right">
                           <span className="font-medium">{formatCurrency(c.totalSpent)}</span>
                           {c.totalDue > 0 && (
                             <span className="ml-2 text-xs text-red-500">
-                              Due: {formatCurrency(c.totalDue)}
+                              {t('due', { amount: formatCurrency(c.totalDue) })}
                             </span>
                           )}
                         </div>
@@ -234,7 +241,7 @@ export function SalesReport() {
           {data.statusBreakdown.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Payment Status</CardTitle>
+                <CardTitle>{t('paymentStatus')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -249,7 +256,7 @@ export function SalesReport() {
                         <div className={`text-xl font-bold capitalize ${colors[s.status] || ''}`}>
                           {s.count}
                         </div>
-                        <p className="text-xs text-muted-foreground capitalize">{s.status}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{tPaymentStatus.has(s.status) ? tPaymentStatus(s.status) : s.status}</p>
                         <p className="text-sm font-medium">{formatCurrency(s.total)}</p>
                       </div>
                     )
@@ -263,7 +270,7 @@ export function SalesReport() {
           <TopCombosCard params={params} formatCurrency={formatCurrency} />
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">No data available</p>
+        <p className="text-sm text-muted-foreground">{tEmpty('noData')}</p>
       )}
     </div>
   )

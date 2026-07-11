@@ -9,12 +9,9 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
 import { Edit2, Hash, MoreVertical, Percent, Trash2 } from "lucide-react";
-
-const applicableLabels: Record<string, string> = {
-  sales: "Sales",
-  purchase: "Purchase",
-  both: "Both",
-};
+import { formatDate } from "@/lib/format";
+import type { Translator } from "@/i18n/config";
+import type { AppLocale } from "@/i18n/config";
 
 const applicableColors: Record<string, string> = {
   sales: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -25,7 +22,9 @@ const applicableColors: Record<string, string> = {
 const DiscountCardView = (
   discount: any,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
+  options: { t: Translator; locale: AppLocale },
 ) => {
+  const { t, locale } = options;
   const {
     name,
     value,
@@ -41,11 +40,13 @@ const DiscountCardView = (
   const displayValue =
     type === "percentage" ? `${value}%` : `৳${Number(value).toLocaleString()}`;
 
-  const createdDate = new Date(createdAt).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
+
+  const applicableLabels: Record<string, string> = {
+    sales: t("card.sales"),
+    purchase: t("card.purchase"),
+    both: t("card.both"),
+  };
 
   const TypeIcon = type === "percentage" ? Percent : Hash;
 
@@ -84,7 +85,7 @@ const DiscountCardView = (
                   variant={status === "active" ? "default" : "secondary"}
                   className="text-[11px] px-2 py-0"
                 >
-                  {status === "active" ? "Active" : "Inactive"}
+                  {status === "active" ? t("card.active") : t("card.inactive")}
                 </Badge>
                 <span
                   className={`inline-flex items-center px-2 py-0 rounded-full text-[11px] font-medium border ${applicableColors[applicableTo] || ""}`}
@@ -96,7 +97,7 @@ const DiscountCardView = (
                     variant="outline"
                     className="text-[11px] px-2 py-0 border-primary text-primary"
                   >
-                    S default
+                    {t("card.salesDefault")}
                   </Badge>
                 )}
                 {isDefaultPurchase && !isBoth && (
@@ -104,7 +105,7 @@ const DiscountCardView = (
                     variant="outline"
                     className="text-[11px] px-2 py-0 border-primary text-primary"
                   >
-                    P default
+                    {t("card.purchaseDefault")}
                   </Badge>
                 )}
                 {isBoth && (
@@ -112,7 +113,7 @@ const DiscountCardView = (
                     variant="outline"
                     className="text-[11px] px-2 py-0 border-primary text-primary"
                   >
-                    P & S default
+                    {t("card.bothDefault")}
                   </Badge>
                 )}
               </div>
@@ -127,12 +128,12 @@ const DiscountCardView = (
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}>
                 <Edit2 className="h-4 w-4 mr-2" />
-                Edit
+                {t("card.edit")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={onDelete}>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                {t("card.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -142,7 +143,7 @@ const DiscountCardView = (
         <div className="rounded-lg bg-muted/50 px-4 py-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground font-medium">
-              Discount Value
+              {t("card.discountValue")}
             </span>
             <span className="text-xl font-bold tracking-tight text-foreground">
               {displayValue}
@@ -154,14 +155,14 @@ const DiscountCardView = (
             </p>
           ) : (
             <p className="text-xs text-muted-foreground/50 italic mt-1.5">
-              No description
+              {t("card.noDescription")}
             </p>
           )}
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs text-muted-foreground">
-          <span>Created {createdDate}</span>
+          <span>{t("card.createdOn", { date: createdDate })}</span>
           <span
             className={`inline-flex items-center gap-1 font-medium ${
               status === "active" ? "text-emerald-600" : "text-muted-foreground"
@@ -172,7 +173,7 @@ const DiscountCardView = (
                 status === "active" ? "bg-emerald-500" : "bg-muted-foreground"
               }`}
             />
-            {status === "active" ? "In use" : "Disabled"}
+            {status === "active" ? t("card.inUse") : t("card.disabled")}
           </span>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client'
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { Package } from 'lucide-react'
 import { useComboSalesReport } from '@/services/api'
 import type {
@@ -23,6 +24,7 @@ export function TopCombosCard({
   params?: ReportParams
   formatCurrency: (n: number) => string
 }) {
+  const t = useTranslations('reports.sales')
   const comboEnabled = !!useAuthStore(
     (s) => s.user?.organization?.features?.combo,
   )
@@ -33,17 +35,17 @@ export function TopCombosCard({
   if (combos.length === 0) return null
 
   const columns: SimpleColumn<ComboSalesRow>[] = [
-    { key: 'name', header: 'Combo', cell: (r) => r.comboName ?? '—' },
+    { key: 'name', header: t('colCombo'), cell: (r) => r.comboName ?? '—' },
     {
       key: 'units',
-      header: 'Units sold',
+      header: t('colUnitsSold'),
       align: 'right',
       cell: (r) => Math.round(r.unitsSold),
     },
-    { key: 'orders', header: 'Sales', align: 'right', cell: (r) => r.orders },
+    { key: 'orders', header: t('colSales'), align: 'right', cell: (r) => r.orders },
     {
       key: 'revenue',
-      header: 'Revenue',
+      header: t('colRevenue'),
       align: 'right',
       cell: (r) => formatCurrency(r.revenue),
     },
@@ -54,7 +56,7 @@ export function TopCombosCard({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <Package className="h-4 w-4 text-orange-600" />
-          Top Combos
+          {t('topCombos')}
         </CardTitle>
       </CardHeader>
       <CardContent>

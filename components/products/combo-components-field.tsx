@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { useWatch } from "react-hook-form";
 import { X } from "lucide-react";
 import { Button } from "@ui/components/button";
@@ -41,6 +42,7 @@ export default function ComboComponentsField({
   value = [],
   onChange,
 }: ComboComponentsFieldProps) {
+  const t = useTranslations("products.products.comboField");
   const productType = useWatch({ control, name: "productType" });
   const selfId = useWatch({ control, name: "_id" });
   const { data: options = [] } = useSelectOptions(
@@ -120,13 +122,13 @@ export default function ComboComponentsField({
   const columns: SimpleColumn<ComboRow>[] = [
     {
       key: "name",
-      header: "Component",
+      header: t("componentHeader"),
       cellClassName: "font-medium text-sm py-1",
       cell: (row) => labelOf(row),
     },
     {
       key: "quantity",
-      header: "Qty per combo",
+      header: t("qtyHeader"),
       headClassName: "w-[160px]",
       cellClassName: "py-1",
       cell: (row) => (
@@ -153,7 +155,7 @@ export default function ComboComponentsField({
           size="icon"
           className="h-7 w-7"
           onClick={() => removeComponent(rowKey(row))}
-          title="Remove component"
+          title={t("removeComponent")}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -165,12 +167,12 @@ export default function ComboComponentsField({
     <div className="space-y-3">
       <Select value="" onValueChange={addComponent}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Add a product to this combo…" />
+          <SelectValue placeholder={t("addPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           {pickable.length === 0 ? (
             <div className="px-3 py-2 text-sm text-muted-foreground">
-              No more products to add
+              {t("noMoreProducts")}
             </div>
           ) : (
             pickable.map((o) => (
@@ -192,7 +194,7 @@ export default function ComboComponentsField({
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Add at least one product. The combo sells as one unit at the price you set above.
+          {t("emptyHint")}
         </p>
       )}
     </div>

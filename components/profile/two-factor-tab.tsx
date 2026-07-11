@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import {
   use2FAStatus,
   useDisable2FA,
@@ -33,6 +35,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function TwoFactorTab() {
+  const t = useTranslations("settings.profile.twoFactor");
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [showEnableDialog, setShowEnableDialog] = useState(false);
   const [showDisableDialog, setShowDisableDialog] = useState(false);
@@ -64,14 +67,14 @@ export function TwoFactorTab() {
         setShowEnableDialog(true);
       },
       onError: () => {
-        toast.error("Failed to enable 2FA. Please try again.");
+        toast.error(t("enableError"));
       },
     });
   };
 
   const handleVerify = () => {
     if (!verificationToken || verificationToken.length !== 6) {
-      toast.error("Please enter a valid 6-digit code.");
+      toast.error(t("invalidCodeError"));
       return;
     }
 
@@ -89,7 +92,7 @@ export function TwoFactorTab() {
 
   const handleDisable = () => {
     if (!disablePassword) {
-      toast.error("Please enter your password to disable 2FA.");
+      toast.error(t("passwordRequiredError"));
       return;
     }
 
@@ -104,12 +107,12 @@ export function TwoFactorTab() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
+    toast.success(t("copied"));
   };
 
   const copyAllBackupCodes = () => {
     navigator.clipboard.writeText(backupCodes.join("\n"));
-    toast.success("All backup codes copied to clipboard");
+    toast.success(t("allCodesCopied"));
   };
 
   return (
@@ -141,18 +144,18 @@ export function TwoFactorTab() {
 
           <div className="flex-1 text-center sm:text-left">
             <h3 className="text-lg font-semibold">
-              Two-Factor Authentication
+              {t("title")}
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {is2FAEnabled
-                ? "Your account is protected with an additional layer of security."
-                : "Add an extra layer of security by requiring a verification code when signing in."}
+                ? t("enabledDescription")
+                : t("disabledDescription")}
             </p>
 
             {is2FAEnabled && (
               <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-green-100 dark:bg-green-900/40 px-3 py-1 text-sm text-green-700 dark:text-green-300">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>2FA is active</span>
+                <span>{t("active")}</span>
               </div>
             )}
           </div>
@@ -165,8 +168,8 @@ export function TwoFactorTab() {
                 className="gap-2"
               >
                 <ShieldOff className="h-4 w-4" />
-                <span className="hidden sm:inline">Disable 2FA</span>
-                <span className="sm:hidden">Disable</span>
+                <span className="hidden sm:inline">{t("disable")}</span>
+                <span className="sm:hidden">{t("disableShort")}</span>
               </Button>
             ) : (
               <Button onClick={handleEnable} disabled={isEnabling} className="gap-2">
@@ -175,8 +178,8 @@ export function TwoFactorTab() {
                 ) : (
                   <ShieldCheck className="h-4 w-4" />
                 )}
-                <span className="hidden sm:inline">Enable 2FA</span>
-                <span className="sm:hidden">Enable</span>
+                <span className="hidden sm:inline">{t("enable")}</span>
+                <span className="sm:hidden">{t("enableShort")}</span>
               </Button>
             )}
           </div>
@@ -187,24 +190,24 @@ export function TwoFactorTab() {
       <div className="rounded-lg border bg-card p-4 sm:p-6">
         <h4 className="font-medium mb-4 flex items-center gap-2">
           <Smartphone className="h-4 w-4 text-primary" />
-          How it works
+          {t("howItWorks")}
         </h4>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
             {
               step: "1",
-              title: "Download App",
-              desc: "Get an authenticator app like Google Authenticator or Authy",
+              title: t("steps.download"),
+              desc: t("steps.downloadDescription"),
             },
             {
               step: "2",
-              title: "Scan QR Code",
-              desc: "Scan the QR code with your authenticator app",
+              title: t("steps.scan"),
+              desc: t("steps.scanDescription"),
             },
             {
               step: "3",
-              title: "Enter Code",
-              desc: "Enter the 6-digit code from your app to verify",
+              title: t("steps.enter"),
+              desc: t("steps.enterDescription"),
             },
           ].map((item) => (
             <div key={item.step} className="flex gap-3">
@@ -226,9 +229,7 @@ export function TwoFactorTab() {
       <Alert>
         <Key className="h-4 w-4" />
         <AlertDescription className="text-sm">
-          Two-factor authentication adds a second verification step when signing
-          in. Even if someone gets your password, they won&apos;t be able to
-          access your account without the verification code.
+          {t("infoAlert")}
         </AlertDescription>
       </Alert>
 
@@ -236,10 +237,9 @@ export function TwoFactorTab() {
       <Dialog open={showEnableDialog} onOpenChange={setShowEnableDialog}>
         <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Set Up Two-Factor Authentication</DialogTitle>
+            <DialogTitle>{t("setupTitle")}</DialogTitle>
             <DialogDescription>
-              Scan the QR code with your authenticator app, then enter the
-              verification code.
+              {t("setupDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -261,7 +261,7 @@ export function TwoFactorTab() {
                 {/* Manual Code */}
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">
-                    Or enter this code manually:
+                    {t("manualCodeLabel")}
                   </Label>
                   <div className="flex gap-2">
                     <code className="flex-1 rounded-lg bg-muted px-3 py-2 text-xs sm:text-sm font-mono break-all">
@@ -282,10 +282,10 @@ export function TwoFactorTab() {
 
             {/* Verification Input */}
             <div className="space-y-2">
-              <Label htmlFor="verify-code">Verification Code</Label>
+              <Label htmlFor="verify-code">{t("verificationCode")}</Label>
               <Input
                 id="verify-code"
-                placeholder="Enter 6-digit code"
+                placeholder={t("verificationCodePlaceholder")}
                 value={verificationToken}
                 onChange={(e) =>
                   setVerificationToken(e.target.value.replace(/\D/g, ""))
@@ -307,7 +307,7 @@ export function TwoFactorTab() {
               }}
               className="w-full sm:w-auto"
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleVerify}
@@ -321,7 +321,7 @@ export function TwoFactorTab() {
               {isVerifying ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Verify & Enable
+              {t("verifyAndEnable")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -331,17 +331,18 @@ export function TwoFactorTab() {
       <Dialog open={showBackupCodes} onOpenChange={setShowBackupCodes}>
         <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Save Your Backup Codes</DialogTitle>
+            <DialogTitle>{t("backupCodesTitle")}</DialogTitle>
             <DialogDescription>
-              Store these codes safely. Use them to access your account if you
-              lose your authenticator device.
+              {t("backupCodesDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <Alert>
               <AlertDescription className="text-sm">
-                <strong>Important:</strong> Each code can only be used once.
+                {t.rich("backupCodesWarning", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </AlertDescription>
             </Alert>
 
@@ -362,7 +363,7 @@ export function TwoFactorTab() {
               onClick={copyAllBackupCodes}
             >
               <Copy className="h-4 w-4" />
-              Copy All Codes
+              {t("copyAllCodes")}
             </Button>
           </div>
 
@@ -375,7 +376,7 @@ export function TwoFactorTab() {
               }}
               className="w-full sm:w-auto"
             >
-              I&apos;ve Saved My Codes
+              {t("savedCodes")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -385,20 +386,19 @@ export function TwoFactorTab() {
       <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
         <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
+            <DialogTitle>{t("disableTitle")}</DialogTitle>
             <DialogDescription>
-              Enter your password to disable 2FA. This will make your account
-              less secure.
+              {t("disableDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="disable-password">Password</Label>
+              <Label htmlFor="disable-password">{t("passwordLabel")}</Label>
               <Input
                 id="disable-password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t("passwordPlaceholder")}
                 value={disablePassword}
                 onChange={(e) => setDisablePassword(e.target.value)}
               />
@@ -414,7 +414,7 @@ export function TwoFactorTab() {
               }}
               className="w-full sm:w-auto"
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -425,7 +425,7 @@ export function TwoFactorTab() {
               {isDisabling ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Disable 2FA
+              {t("disable")}
             </Button>
           </DialogFooter>
         </DialogContent>

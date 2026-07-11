@@ -1,11 +1,12 @@
 // coding-standard: maintained
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { format } from 'date-fns'
 import { AreaChart, BarChart, DonutChart } from '@ui/components/charts'
 import { Card } from '@ui/components/card'
 import type { ProductAnalytics } from '@/services/api/modules/inventory/analytics.types'
-import { MOVEMENT_REASON_LABEL } from './utils'
+import { useMovementReasonLabel } from '@/hooks/use-movement-reason-label'
 
 interface DetailChartsProps {
   analytics: ProductAnalytics
@@ -26,16 +27,18 @@ function shortDate(iso: string): string {
 }
 
 export function DetailCharts({ analytics, salesEnabled, formatCurrency }: DetailChartsProps) {
+  const t = useTranslations('products.products.detail.charts')
+  const reasonLabel = useMovementReasonLabel()
   const { trend, movement, stock } = analytics
 
-  const trendData = trend.map((t) => ({
-    label: shortDate(t.date),
-    in: t.in,
-    out: t.out,
+  const trendData = trend.map((pt) => ({
+    label: shortDate(pt.date),
+    in: pt.in,
+    out: pt.out,
   }))
 
   const reasonData = movement.reasonBreakdown.map((r) => ({
-    name: MOVEMENT_REASON_LABEL[r.reason] || r.reason,
+    name: reasonLabel(r.reason),
     value: r.quantity,
   }))
 
@@ -48,12 +51,12 @@ export function DetailCharts({ analytics, salesEnabled, formatCurrency }: Detail
   return (
     <div className="space-y-6">
       <AreaChart
-        title="Stock Movement"
-        subtitle="Units in vs out — last 30 days"
+        title={t('movementTitle')}
+        subtitle={t('movementSubtitle')}
         data={trendData}
         series={[
-          { dataKey: 'in', name: 'Stock In', color: 'var(--color-chart-2)' },
-          { dataKey: 'out', name: 'Stock Out', color: 'var(--color-chart-1)' },
+          { dataKey: 'in', name: t('stockIn'), color: 'var(--color-chart-2)' },
+          { dataKey: 'out', name: t('stockOut'), color: 'var(--color-chart-1)' },
         ]}
         height={260}
         showYAxis
@@ -62,38 +65,38 @@ export function DetailCharts({ analytics, salesEnabled, formatCurrency }: Detail
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {reasonData.length > 0 ? (
           <DonutChart
-            title="Movement by Reason"
-            subtitle="Share of units moved"
+            title={t('reasonTitle')}
+            subtitle={t('reasonSubtitle')}
             data={reasonData}
             centerValue={totalMovedUnits.toLocaleString()}
-            centerLabel="units"
+            centerLabel={t('units')}
             legendPosition="bottom"
           />
         ) : (
-          <EmptyChart title="Movement by Reason" />
+          <EmptyChart title={t('reasonTitle')} noData={t('noData')} />
         )}
 
         {locationData.length > 0 ? (
           <BarChart
-            title="Stock by Location"
-            subtitle="On-hand units per location"
+            title={t('locationTitle')}
+            subtitle={t('locationSubtitle')}
             data={locationData}
-            series={[{ dataKey: 'quantity', name: 'On hand' }]}
+            series={[{ dataKey: 'quantity', name: t('onHand') }]}
             height={250}
             showYAxis
-            tooltipFormatter={(v) => `${v.toLocaleString()} units`}
+            tooltipFormatter={(v) => t('unitsSuffix', { value: v.toLocaleString() })}
           />
         ) : (
-          <EmptyChart title="Stock by Location" />
+          <EmptyChart title={t('locationTitle')} noData={t('noData')} />
         )}
       </div>
 
       {salesEnabled && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <MiniStat label="Units Sold" value={analytics.sales.unitsSold.toLocaleString()} />
-          <MiniStat label="Revenue" value={formatCurrency(analytics.sales.revenue)} />
-          <MiniStat label="Gross Profit" value={formatCurrency(analytics.sales.grossProfit)} />
-          <MiniStat label="Orders" value={analytics.sales.orderCount.toLocaleString()} />
+          <MiniStat label={t('unitsSold')} value={analytics.sales.unitsSold.toLocaleString()} />
+          <MiniStat label={t('revenue')} value={formatCurrency(analytics.sales.revenue)} />
+          <MiniStat label={t('grossProfit')} value={formatCurrency(analytics.sales.grossProfit)} />
+          <MiniStat label={t('orders')} value={analytics.sales.orderCount.toLocaleString()} />
         </div>
       )}
     </div>
@@ -109,11 +112,11 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   )
 }
 
-function EmptyChart({ title }: { title: string }) {
+function EmptyChart({ title, noData }: { title: string; noData: string }) {
   return (
     <Card className="flex flex-col items-center justify-center p-5 text-center">
       <h3 className="self-start text-sm font-semibold">{title}</h3>
-      <p className="py-12 text-sm text-muted-foreground">No data yet</p>
+      <p className="py-12 text-sm text-muted-foreground">{noData}</p>
     </Card>
   )
 }

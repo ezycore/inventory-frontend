@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { PurchaseOrderItem } from "@/services/stores";
 import { Input } from "@/ui/components/input";
 import { DatePicker } from "@/ui/components/date-picker";
@@ -21,16 +22,20 @@ type CellProps = {
   ) => void;
 };
 
-export const ExpiryDateCell = ({ item, sellerId, onUpdate }: CellProps) => (
-  <DatePicker
-    date={item.expiryDate || undefined}
-    onSelect={(d) => onUpdate(sellerId, item.id, { expiryDate: d ?? "" })}
-    placeholder="Expiry"
-    className="h-7 w-36 text-xs"
-  />
-);
+export const ExpiryDateCell = ({ item, sellerId, onUpdate }: CellProps) => {
+  const t = useTranslations("purchases.items");
+  return (
+    <DatePicker
+      date={item.expiryDate || undefined}
+      onSelect={(d) => onUpdate(sellerId, item.id, { expiryDate: d ?? "" })}
+      placeholder={t("expiryPlaceholder")}
+      className="h-7 w-36 text-xs"
+    />
+  );
+};
 
 export const BatchNumberCell = ({ item, sellerId, onUpdate }: CellProps) => {
+  const t = useTranslations("purchases.items");
   // Local state commits on blur so typing doesn't write to the persisted store
   // on every keystroke (and avoids controlled-input cursor jumps).
   const [value, setValue] = useState(item.batchNumber ?? "");
@@ -52,7 +57,7 @@ export const BatchNumberCell = ({ item, sellerId, onUpdate }: CellProps) => {
           onUpdate(sellerId, item.id, { batchNumber: value });
         }
       }}
-      placeholder="optional"
+      placeholder={t("batchOptional")}
       className="h-7 w-28 text-xs"
     />
   );

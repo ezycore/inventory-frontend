@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useCallback, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 import {
@@ -26,6 +28,7 @@ import {
 
 export function useCreatedOrdersPage() {
   const router = useRouter();
+  const t = useTranslations("purchases");
   const { format: formatCurrency } = useCurrency();
 
   const [page, setPage] = useState(1);
@@ -113,15 +116,16 @@ export function useCreatedOrdersPage() {
     }
   }, [selectedOrderId, cancelMutation, refetch]);
 
-  const columns = useMemo(() => getCreatedOrdersColumns({ formatCurrency }), [formatCurrency]);
+  const columns = useMemo(() => getCreatedOrdersColumns({ formatCurrency, t }), [formatCurrency, t]);
 
   const customActions = useMemo(
     () =>
       getCreatedOrderActions({
         onViewOrder: handleViewOrder,
         onEditOrder: handleEditOrder,
+        t,
       }),
-    [handleViewOrder, handleEditOrder],
+    [handleViewOrder, handleEditOrder, t],
   );
 
   const filterConfig = useMemo(
@@ -135,8 +139,9 @@ export function useCreatedOrdersPage() {
           setFilters(defaultCreatedOrderFilters);
           setPage(1);
         },
+        t,
       }),
-    [],
+    [t],
   );
 
   return {

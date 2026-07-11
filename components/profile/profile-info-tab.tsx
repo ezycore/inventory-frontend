@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
@@ -10,6 +12,7 @@ import { Loader2, MapPin, User, Mail } from "lucide-react";
 import { ChangeDefaultLocationDialog } from "./change-default-location-dialog";
 
 export function ProfileInfoTab() {
+  const t = useTranslations("settings.profile.info");
   const { user } = useAuthStore();
   const updateProfile = useUpdateProfile();
   const { data: locationsData } = useMyLocations();
@@ -71,29 +74,29 @@ export function ProfileInfoTab() {
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <User className="h-4 w-4" />
-          <span>Personal Information</span>
+          <span>{t("personalInfo")}</span>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="firstName">
-              First Name <span className="text-destructive">*</span>
+              {t("firstName")} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="firstName"
               value={formData.firstName}
               onChange={(e) => handleChange("firstName", e.target.value)}
-              placeholder="Enter first name"
+              placeholder={t("firstNamePlaceholder")}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
+            <Label htmlFor="lastName">{t("lastName")}</Label>
             <Input
               id="lastName"
               value={formData.lastName}
               onChange={(e) => handleChange("lastName", e.target.value)}
-              placeholder="Enter last name"
+              placeholder={t("lastNamePlaceholder")}
             />
           </div>
         </div>
@@ -103,11 +106,11 @@ export function ProfileInfoTab() {
       <div className="space-y-4 pt-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Mail className="h-4 w-4" />
-          <span>Contact Information</span>
+          <span>{t("contactInfo")}</span>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="email">{t("email")}</Label>
             <Input
               id="email"
               value={formData.email}
@@ -115,18 +118,18 @@ export function ProfileInfoTab() {
               className="bg-muted/50 cursor-not-allowed"
             />
             <p className="text-xs text-muted-foreground">
-              Email cannot be changed
+              {t("emailHint")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone">{t("phone")}</Label>
             <Input
               id="phone"
               type="tel"
               value={formData.phone}
               onChange={(e) => handleChange("phone", e.target.value)}
-              placeholder="Enter phone number"
+              placeholder={t("phonePlaceholder")}
             />
           </div>
         </div>
@@ -136,18 +139,18 @@ export function ProfileInfoTab() {
       <div className="space-y-4 pt-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <MapPin className="h-4 w-4" />
-          <span>Default Location</span>
+          <span>{t("defaultLocation")}</span>
         </div>
         <div className="rounded-lg border bg-muted/30 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="space-y-1 min-w-0">
               <p className="text-sm font-medium truncate">
-                {currentDefaultLocation?.name ?? "No default location set"}
+                {currentDefaultLocation?.name ?? t("noDefaultLocation")}
               </p>
               <p className="text-xs text-muted-foreground">
                 {currentDefaultLocation
-                  ? "This location is selected by default when you log in"
-                  : "Pick a location to be selected by default at login"}
+                  ? t("defaultLocationSetHint")
+                  : t("defaultLocationUnsetHint")}
               </p>
             </div>
             {hasMultipleLocations && <ChangeDefaultLocationDialog />}
@@ -165,7 +168,7 @@ export function ProfileInfoTab() {
           {updateProfile.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          Save Changes
+          {t("saveChanges")}
         </Button>
       </div>
     </form>

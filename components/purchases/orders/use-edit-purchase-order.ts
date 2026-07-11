@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { useForm, useWatch } from "react-hook-form";
@@ -10,6 +12,7 @@ import { toast } from "sonner";
 import {
   getProductFormConfig,
   getSupplierFormConfig,
+  makeProductFormSchema,
 } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { isTaxActive } from "@/lib/feature-utils";
@@ -21,33 +24,7 @@ import type { CreatePurchaseOrderItemDto, UpdatePurchaseOrderDto } from "@/types
 import type { SupplierFormData } from "@/components/purchases";
 import { useRouter } from "next/navigation";
 
-const productFormSchema = z.object({
-  productId: z.union([
-    z.string().min(1, "Product is required"),
-    z.object({
-      label: z.string(),
-      value: z.string(),
-      price: z.number().optional(),
-      conversionFactor: z.number().optional(),
-      productId: z.string().optional(),
-      variantId: z.string().nullable().optional(),
-      purchaseUnitName: z.string().nullable().optional(),
-      unitName: z.string().nullable().optional(),
-      // Preserve per-line purchase tax through zod parsing (object strips unknown keys).
-      purchaseTaxRate: z.number().optional(),
-      purchaseTaxType: z.enum(["inclusive", "exclusive"]).optional(),
-    }),
-  ]),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  convertedQuantity: z.number().min(0),
-  price: z.number().min(0),
-  discount: z.number().min(0),
-  costPrice: z.number().min(0),
-  rememberCostPrice: z.boolean().optional(),
-  stock: z.string().optional(),
-});
-
-export type ProductFormValues = z.infer<typeof productFormSchema>;
+export type ProductFormValues = z.infer<ReturnType<typeof makeProductFormSchema>>;
 
 /**
  * Map edit-PO items to the tax util's input shape. Per-line net is `costPrice *
@@ -68,6 +45,7 @@ const toPurchaseTaxInputs = (
 
 export function useEditPurchaseOrder(orderId: string | undefined) {
   const router = useRouter();
+  const t = useTranslations("purchases");
   const { format: formatCurrency, symbol } = useCurrency();
   const { user } = useAuthStore();
   const isUOMEnabled = user?.organization?.features?.uomConversion ?? false;
@@ -87,6 +65,15 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
 
   const [editingItem, setEditingItem] = useState<PurchaseOrderItem | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const productFormSchema = useMemo(
+    () =>
+      makeProductFormSchema({
+        productRequired: t("form.productRequired"),
+        quantityMin: t("form.quantityMin"),
+      }),
+    [t],
+  );
 
   const supplierForm = useForm<SupplierFormData>({
     defaultValues: {
@@ -209,16 +196,16 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
   const paidSoFar = order?.paidAmount ?? 0;
   const newDue = Math.max(0, finalNet - paidSoFar);
 
-  const productFormConfig = useMemo(() => getProductFormConfig(isUOMEnabled), [isUOMEnabled]);
+  const productFormConfig = useMemo(() => getProductFormConfig(t, isUOMEnabled), [t, isUOMEnabled]);
   const supplierFormConfig = useMemo(() => {
-    const cfg = getSupplierFormConfig();
+    const cfg = getSupplierFormConfig(t);
     return {
       ...cfg,
       fields: cfg.fields.map((f) =>
         ["supplierId", "purchaseType"].includes(f.name) ? { ...f, disabled: true } : f,
       ),
     };
-  }, []);
+  }, [t]);
 
   const handleProductFieldChange = useCallback(
     (fieldName: string, value: unknown) => {
@@ -272,7 +259,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
     (data: ProductFormValues) => {
       const product = extractProductValue(data.productId);
       if (!product) {
-        toast.error("Please select a product");
+        toast.error(t("create.selectProduct"));
         return;
       }
       const conversionFactor = product.conversionFactor || 1;
@@ -305,7 +292,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         }
         return [...prev, newItem];
       });
-      toast.success(`${product.label} added`);
+      toast.success(t("edit.productAdded", { name: product.label }));
       productForm.reset({
         productId: "",
         quantity: 1,
@@ -316,7 +303,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         rememberCostPrice: false,
       });
     },
-    [productForm, isTaxEnabled],
+    [productForm, isTaxEnabled, t],
   );
 
   const handleRemoveItem = useCallback((_sellerId: string, itemId: string) => {
@@ -385,7 +372,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
   const handleSave = useCallback(async () => {
     if (!order) return;
     if (items.length === 0) {
-      toast.error("Order must contain at least one item");
+      toast.error(t("edit.orderMinOneItem"));
       return;
     }
 
@@ -423,7 +410,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
     } catch {
       // mutation toasts
     }
-  }, [order, items, additionalDiscount, invoiceNumber, invoiceDate, notes, updateMutation, router]);
+  }, [order, items, additionalDiscount, invoiceNumber, invoiceDate, notes, updateMutation, router, t]);
 
   const isEditable = order?.status === "ordered" || order?.status === "draft";
 

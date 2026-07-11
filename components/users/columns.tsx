@@ -10,16 +10,18 @@ import {
   Mail,
   MailCheck,
 } from "lucide-react";
+import type { Translator } from "@/i18n/config";
 import { formatRoleName } from "./helpers";
 
 // Column definitions
 export const getUserColumns = (
   allLocationRoleSlugs: Set<string>,
   roleLabels: Map<string, string>,
+  t: Translator,
 ): ColumnDef<User>[] => [
   {
     accessorKey: "firstName",
-    header: "Name",
+    header: t("columns.name"),
     cell: ({ row }) => {
       const firstName = row.getValue("firstName") as string;
       const lastName = row.original.lastName;
@@ -37,7 +39,7 @@ export const getUserColumns = (
   },
   {
     accessorKey: "role",
-    header: "Role",
+    header: t("columns.role"),
     cell: ({ row }) => {
       const role = row.getValue("role") as string;
       const variants: Record<string, "default" | "secondary" | "outline"> = {
@@ -55,7 +57,7 @@ export const getUserColumns = (
   },
   {
     accessorKey: "defaultLocationId",
-    header: "Location",
+    header: t("columns.location"),
     cell: ({ row }) => {
       const user = row.original;
       return (
@@ -69,7 +71,7 @@ export const getUserColumns = (
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: t("columns.status"),
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
       return (
@@ -77,12 +79,12 @@ export const getUserColumns = (
           {status === "active" ? (
             <>
               <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <span className="text-green-600 font-medium">Active</span>
+              <span className="text-green-600 font-medium">{t("columns.active")}</span>
             </>
           ) : (
             <>
               <AlertCircle className="h-4 w-4 text-red-600" />
-              <span className="text-red-600 font-medium">Inactive</span>
+              <span className="text-red-600 font-medium">{t("columns.inactive")}</span>
             </>
           )}
         </div>
@@ -91,7 +93,7 @@ export const getUserColumns = (
   },
   {
     accessorKey: "emailVerified",
-    header: "Email Status",
+    header: t("columns.emailStatus"),
     cell: ({ row }) => {
       const emailVerified = row.getValue("emailVerified") as boolean;
       return (
@@ -99,12 +101,12 @@ export const getUserColumns = (
           {emailVerified ? (
             <>
               <MailCheck className="h-4 w-4 text-green-600" />
-              <span className="text-green-600 font-medium">Verified</span>
+              <span className="text-green-600 font-medium">{t("columns.verified")}</span>
             </>
           ) : (
             <>
               <Mail className="h-4 w-4 text-amber-600" />
-              <span className="text-amber-600 font-medium">Unverified</span>
+              <span className="text-amber-600 font-medium">{t("columns.unverified")}</span>
             </>
           )}
         </div>
@@ -113,12 +115,12 @@ export const getUserColumns = (
   },
   {
     accessorKey: "phone",
-    header: "Phone",
+    header: t("columns.phone"),
     cell: ({ row }) => row.getValue("phone") || "—",
   },
   {
     accessorKey: "createdAt",
-    header: "Created Date",
+    header: t("columns.createdDate"),
     cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
   },
 ];

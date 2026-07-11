@@ -1,7 +1,9 @@
+// coding-standard: maintained
 /**
  * Sales-specific adapter for the shared RefundAllocationCard.
  * Maps sale-domain props (saleDueAmount, invoiceNumber) to the generic shared component.
  */
+import { useTranslations } from 'next-intl';
 import { RefundAllocationCard as SharedRefundAllocationCard } from '@/components/shared/returns/refund-allocation-card';
 import type { Account } from '@/types';
 import type { DueAllocation } from './types';
@@ -36,14 +38,15 @@ export function RefundAllocationCard({
   currentCustomerCreditBalance,
   ...rest
 }: RefundAllocationCardProps) {
+  const t = useTranslations('sales.returns');
   return (
     <SharedRefundAllocationCard
       {...rest}
       documentDueAmount={saleDueAmount}
       adjustDocumentDueAmount={adjustSaleDueAmount}
-      documentDueTitle="Adjust Current Sale Due"
-      documentDueSubtitle="Current due on this sale:"
-      otherDuesTitle="Adjust Other Customer Dues"
+      documentDueTitle={t('allocation.adjustCurrentSaleDue')}
+      documentDueSubtitle={t('allocation.currentDueOnSale')}
+      otherDuesTitle={t('allocation.adjustOtherCustomerDues')}
       adjustmentColorClass="text-green-600"
       showCounterpartyCredit={!!onCustomerCreditChange}
       counterpartyCreditAmount={customerCreditAmount}

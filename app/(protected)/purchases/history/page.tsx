@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import {
   usePurchaseHistoryPage,
   SummaryCards,
@@ -13,6 +15,7 @@ import { useRouter } from "next/navigation";
 
 export default function PurchaseHistoryPage() {
   const router = useRouter();
+  const t = useTranslations("purchases");
   const ctx = usePurchaseHistoryPage();
 
   return (
@@ -20,14 +23,14 @@ export default function PurchaseHistoryPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Purchase History</h1>
+          <h1 className="text-3xl font-bold">{t("history.title")}</h1>
           <p className="text-muted-foreground">
-            All purchases you have recorded.
+            {t("history.subtitle")}
           </p>
         </div>
         <Button onClick={() => router.push("/purchases")}>
           <Plus className="h-4 w-4 mr-2" />
-          New Purchase
+          {t("orders.newPurchase")}
         </Button>
       </div>
 
@@ -43,7 +46,7 @@ export default function PurchaseHistoryPage() {
       <Card className="p-0">
         <CardContent className="p-6">
           <BaseDataTable
-            title="Purchases"
+            title={t("history.tableTitle")}
             columns={ctx.columns}
             data={ctx.purchases}
             isLoading={ctx.isLoading}

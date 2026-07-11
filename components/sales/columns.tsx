@@ -1,10 +1,13 @@
+// coding-standard: maintained
 import { formatCurrency } from "@/lib/currency";
+import type { Translator } from "@/i18n/config";
 import { useProductBatches } from "@/services/api";
 import { SellOrderItem } from "@/services/stores";
 import { Button } from "@/ui/components/button";
 import { NumberField } from "@/ui/components/number-field";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { computeLineTax } from "@/utils/tax";
 import { LineTaxCell } from "@/components/shared/line-tax-cell";
 
@@ -55,6 +58,7 @@ function BatchPickerCell({
   item: SellOrderItem;
   onUpdateBatch: (id: string, batchId: string | null) => void;
 }) {
+  const t = useTranslations("sales.sell.cart");
   // Only fetch batches for expiry-tracked lines — the Batch column renders a cell
   // for every row, so gating on `hasExpiry` avoids one /batches request per
   // non-tracked product in the cart.
@@ -75,9 +79,9 @@ function BatchPickerCell({
       onChange={(e) => onUpdateBatch(item.id, e.target.value || null)}
       disabled={isLoading}
       className="h-7 w-[150px] rounded-md border bg-background px-1 text-xs"
-      title="Auto = earliest expiry first (FEFO)"
+      title={t("fefoTooltip")}
     >
-      <option value="">Auto (FEFO)</option>
+      <option value="">{t("autoFefo")}</option>
       {batches.map((b) => {
         const exp = b.expiryDate
           ? new Date(b.expiryDate).toISOString().slice(0, 10)
@@ -101,6 +105,8 @@ export const getSalesColumns = (
   onUpdateQuantity: (id: string, quantity: number) => void,
   onUpdateDiscount: (id: string, discount: number, price: number) => void,
   onRemove: (id: string) => void,
+  /** Caller's `t` bound to "sales.sell.cart" (docs/I18N.md). */
+  t: Translator,
   currencySymbol?: string,
   onUpdateBatch?: (id: string, batchId: string | null) => void,
   expiryEnabled?: boolean,
@@ -108,7 +114,7 @@ export const getSalesColumns = (
 ): ColumnDef<SellOrderItem>[] => [
     {
       accessorKey: "productName",
-      header: "Product",
+      header: t("product"),
       cell: ({ row }) => (
         <div className="min-w-[100px]">
           <span className="font-medium text-sm">{row.original.productName}</span>
@@ -122,7 +128,7 @@ export const getSalesColumns = (
     },
     {
       accessorKey: "price",
-      header: "Price (MRP)",
+      header: t("priceMrp"),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">
           {formatCurrency(row.original.price)}
@@ -131,7 +137,7 @@ export const getSalesColumns = (
     },
     {
       accessorKey: "costPrice",
-      header: "Cost Price",
+      header: t("costPrice"),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">
           {formatCurrency(row.original.costPrice)}
@@ -140,7 +146,7 @@ export const getSalesColumns = (
     },
     {
       accessorKey: "quantity",
-      header: "Quantity",
+      header: t("quantity"),
       cell: ({ row }) => {
         const item = row.original;
         return (
@@ -187,7 +193,7 @@ export const getSalesColumns = (
       ? [
           {
             id: "batch",
-            header: "Batch",
+            header: t("batch"),
             cell: ({ row }: { row: { original: SellOrderItem } }) => (
               <BatchPickerCell
                 item={row.original}
@@ -199,7 +205,7 @@ export const getSalesColumns = (
       : []),
     {
       accessorKey: "discount",
-      header: `Discount (${currencySymbol || ""})`,
+      header: t("discount", { symbol: currencySymbol || "" }),
       cell: ({ row }) => {
         const item = row.original;
         return (
@@ -219,7 +225,7 @@ export const getSalesColumns = (
       ? [
           {
             id: "tax",
-            header: "Tax",
+            header: t("tax"),
             cell: ({ row }: { row: { original: SellOrderItem } }) => {
               const item = row.original;
               const { taxAmount } = computeLineTax({
@@ -243,7 +249,7 @@ export const getSalesColumns = (
       : []),
     {
       accessorKey: "total",
-      header: "Total",
+      header: t("total"),
       cell: ({ row }) => (
         <span className="text-sm font-semibold tabular-nums">
           {formatCurrency(row.original.total)}

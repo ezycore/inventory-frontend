@@ -8,17 +8,21 @@ import {
   KBarProvider,
   KBarSearch
 } from 'kbar';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import RenderResults from './render-result';
 import useThemeSwitching from './use-theme-switching';
 import { navItems } from '@/constants/navItem';
+import { useNavLabels } from '@/hooks/use-nav-labels';
 import { filterNavItems } from '@/lib/nav-utils';
 import { useAuthStore } from '@/services/stores/use-auth-store';
 
 export default function KBar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const { itemLabel } = useNavLabels();
+  const tKbar = useTranslations('layout.kbar');
 
   // These actions are for navigation — same role/permission/feature filtering
   // as the sidebar, so search can't reach pages the user can't see.
@@ -38,15 +42,17 @@ export default function KBar({ children }: { children: React.ReactNode }) {
 
     return visibleItems.flatMap((navItem) => {
       // Only include base action if the navItem has a real URL and is not just a container
+      // English title stays in keywords alongside the translated one, so
+      // search matches in either language.
       const baseAction =
         navItem.url !== '#'
           ? {
               id: `nav-${navItem.url}`,
-              name: navItem.title,
+              name: itemLabel(navItem.title),
               shortcut: navItem.shortcut,
-              keywords: navItem.title.toLowerCase(),
-              section: 'Navigation',
-              subtitle: `Go to ${navItem.title}`,
+              keywords: `${navItem.title.toLowerCase()} ${itemLabel(navItem.title).toLowerCase()}`,
+              section: tKbar('navigation'),
+              subtitle: tKbar('goTo', { title: itemLabel(navItem.title) }),
               perform: () => navigateTo(navItem.url)
             }
           : null;
@@ -55,18 +61,18 @@ export default function KBar({ children }: { children: React.ReactNode }) {
       const childActions =
         navItem.items?.map((childItem) => ({
           id: `nav-${childItem.url}`,
-          name: childItem.title,
+          name: itemLabel(childItem.title),
           shortcut: childItem.shortcut,
-          keywords: childItem.title.toLowerCase(),
-          section: navItem.title,
-          subtitle: `Go to ${childItem.title}`,
+          keywords: `${childItem.title.toLowerCase()} ${itemLabel(childItem.title).toLowerCase()}`,
+          section: itemLabel(navItem.title),
+          subtitle: tKbar('goTo', { title: itemLabel(childItem.title) }),
           perform: () => navigateTo(childItem.url)
         })) ?? [];
 
       // Return only valid actions (ignoring null base actions for containers)
       return baseAction ? [baseAction, ...childActions] : childActions;
     });
-  }, [router, user]);
+  }, [router, user, itemLabel, tKbar]);
 
   return (
     <KBarProvider actions={actions}>

@@ -1,10 +1,13 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { brandFormConfig } from "@/components/brands/form-config";
 import { categoryFormConfig } from "@/components/categories/form-config";
 import FieldSettingsManager from "@/components/products/field-settings-manager";
 import { productFormConfig } from "@/components/products/form-config";
 import { useAuthStore } from "@/services/stores";
+import type { Translator } from "@/i18n/config";
 import PageHeader from "@/ui/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { Loader2, Package, Star, Tag } from "lucide-react";
@@ -13,35 +16,38 @@ import React, { Suspense } from "react";
 import { toast } from "sonner";
 import { useUpdateFormSettings } from "@/services/api";
 
-const modules = [
+const getModules = (t: Translator) => [
   {
     key: "product",
-    label: "Products",
+    label: t("tabs.product"),
     icon: Package,
     formConfig: productFormConfig,
   },
   {
     key: "brand",
-    label: "Brands",
+    label: t("tabs.brand"),
     icon: Star,
     formConfig: brandFormConfig,
   },
   {
     key: "category",
-    label: "Categories",
+    label: t("tabs.category"),
     icon: Tag,
     formConfig: categoryFormConfig,
   },
 ];
 
-const validTabs = modules.map((m) => m.key);
+const validTabs = ["product", "brand", "category"];
 
 function FieldSettingsForm() {
+  const t = useTranslations("settings.fields");
+  const tShell = useTranslations("settings.shell");
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const defaultTab = validTabs.includes(tabParam || "") ? tabParam! : "product";
   const { mutateAsync: updateFormSettings } = useUpdateFormSettings();
+  const modules = getModules(t);
 
   const user = useAuthStore((state) => state.user);
   const canManageSettings =
@@ -52,10 +58,10 @@ function FieldSettingsForm() {
   // Redirect if user doesn't have permission
   React.useEffect(() => {
     if (user && !canManageSettings) {
-      toast.error("You don't have permission to access this page");
+      toast.error(tShell("noPermission"));
       router.push("/");
     }
-  }, [user, canManageSettings, router]);
+  }, [user, canManageSettings, router, tShell]);
 
   // Don't render if no permission
   if (!canManageSettings) {
@@ -69,8 +75,8 @@ function FieldSettingsForm() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Field Settings"
-        subTitle="Customize which fields appear in forms for your organization"
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

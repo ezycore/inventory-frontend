@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { Suspense, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Wallet } from "lucide-react";
@@ -13,7 +14,7 @@ import { useCurrency } from "@/lib/currency";
 import { PeriodFilter } from "@/components/dashboard/period-filter";
 import {
   getTransactionColumns,
-  transactionFilterConfig,
+  getTransactionFilterConfig,
   transactionTypeColorMap,
 } from "@/components/accounts/transactions/columns";
 import {
@@ -41,6 +42,8 @@ export default function TransactionsPage() {
 }
 
 function TransactionsContent() {
+  const t = useTranslations("accounts.transactions.page");
+  const tColumns = useTranslations("accounts.transactions");
   const { format } = useCurrency();
 
   const searchParams = useSearchParams();
@@ -66,7 +69,7 @@ function TransactionsContent() {
   // Fetch stats to get resolved date range for table filtering
   const { data: stats } = useTransactionStats(statsParams);
 
-  const columns = getTransactionColumns(format);
+  const columns = getTransactionColumns(format, tColumns);
 
   // Wrap getAllData to inject the account scope so the table only shows filtered rows.
   // No manual memoization: the React Compiler infers a more precise dependency
@@ -84,8 +87,8 @@ function TransactionsContent() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader
-          title="Transactions"
-          subTitle="Track all income, expenses, and transfers"
+          title={t("title")}
+          subTitle={t("subtitle")}
         />
         <div className="flex gap-2">
           <TransferDialog />
@@ -97,13 +100,13 @@ function TransactionsContent() {
       {accountId && (
         <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-4 py-2 text-sm">
           <Wallet className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Showing transactions for</span>
+          <span className="text-muted-foreground">{t("showingFor")}</span>
           <span className="font-semibold">
-            {scopedAccount?.name ?? "selected account"}
+            {scopedAccount?.name ?? t("selectedAccount")}
           </span>
           <Link href="/accounts/transactions" className="ml-auto">
             <Button variant="ghost" size="sm">
-              Clear filter
+              {t("clearFilter")}
             </Button>
           </Link>
         </div>
@@ -123,21 +126,21 @@ function TransactionsContent() {
       <TransactionStatsSection statsParams={statsParams} />
 
       <DataTable
-        cardTitle={(n: number) => `All Transactions (${n})`}
+        cardTitle={(n: number) => t("allTransactionsCount", { count: n })}
         defaultPageSize={20}
         pageSizes={[10, 20, 50, 100]}
-        filterConfig={transactionFilterConfig}
+        filterConfig={getTransactionFilterConfig(tColumns)}
         columns={columns}
         searchConfig={{
           globalSearch: true,
-          placeholder: "Search transactions...",
+          placeholder: t("searchPlaceholder"),
         }}
         enableSorting
         rowClassName={(row) => transactionTypeColorMap[row.type] || ""}
         operations={{
           getAllData: getAllDataWithPeriod,
           queryKey: [...queryKeys.transactions.all(), { periodStart: stats?.period?.startDate, periodEnd: stats?.period?.endDate, accountId }],
-          entityName: "Transaction",
+          entityName: t("entity"),
         }}
       />
     </div>

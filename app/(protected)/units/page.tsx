@@ -1,8 +1,11 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations, useLocale } from "next-intl";
+
 // Types
 import type { DynamicFormConfig } from "@/ui/components/form/type";
+import type { Translator, AppLocale } from "@/i18n/config";
 
 // UI Components
 import { DataCard } from "@/ui/components/dataCard";
@@ -17,67 +20,67 @@ import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
 // ── Form config ─────────────────────────────────────────────────────────
-const unitFormConfig: DynamicFormConfig = {
+const getUnitFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [
     {
       name: "name",
       type: "input",
-      label: "Unit Name",
-      placeholder: "Enter unit name",
+      label: t("form.name"),
+      placeholder: t("form.namePlaceholder"),
       required: true,
       columnSpan: 12,
     },
     {
       name: "shortName",
       type: "input",
-      label: "Short Name",
-      placeholder: "e.g. pcs, kg",
+      label: t("form.shortName"),
+      placeholder: t("form.shortNamePlaceholder"),
       columnSpan: 12,
     },
     {
       name: "status",
       type: "select",
-      label: "Status",
+      label: t("form.status"),
       required: true,
       columnSpan: 12,
       options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
+        { value: "active", label: t("form.statusActive") },
+        { value: "inactive", label: t("form.statusInactive") },
       ],
     },
     {
       name: "isDefault",
       type: "checkbox",
-      label: "Set as default unit",
-      description: "Pre-selected on new product forms",
+      label: t("form.isDefault"),
+      description: t("form.isDefaultDescription"),
       columnSpan: 12,
       defaultValue: false,
     },
   ],
-};
+});
 
 // ── Filter config ───────────────────────────────────────────────────────
-const unitFilterConfig: FilterConfig = {
+const getUnitFilterConfig = (t: Translator): FilterConfig => ({
   fields: [
     {
       name: "search",
-      label: "Search units",
+      label: t("filters.searchLabel"),
       type: "text",
-      placeholder: "Search units...",
+      placeholder: t("filters.searchPlaceholder"),
     },
     {
       name: "status",
-      label: "Status",
+      label: t("filters.statusLabel"),
       type: "select",
-      placeholder: "All statuses",
+      placeholder: t("filters.statusPlaceholder"),
       options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
+        { label: t("filters.statusActive"), value: "active" },
+        { label: t("filters.statusInactive"), value: "inactive" },
       ],
     },
   ],
   viewMode: "popover",
-};
+});
 
 const defaultValues = {
   name: "",
@@ -86,14 +89,11 @@ const defaultValues = {
   isDefault: false,
 };
 
-const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search units by name or short name...",
-};
-
 export default function UnitsPage() {
+  const t = useTranslations("products.units");
+  const locale = useLocale() as AppLocale;
   const sharedOperations = {
-    formConfig: unitFormConfig,
+    formConfig: getUnitFormConfig(t),
     defaultValues,
     getAllData: unitsApi.getAll,
     createMutation: useCreateUnit(),
@@ -107,13 +107,13 @@ export default function UnitsPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Units"
-        subTitle="Measurement units used across your products and inventory."
+        title={t("page.title")}
+        subTitle={t("page.subtitle")}
       />
 
       {/* Card View */}
       <DataCard
-        cardTitle={(n) => `All Units (${n})`}
+        cardTitle={(n) => t("page.allUnitsTitle", { count: n })}
         defaultPageSize={12}
         pageSizes={[12, 24, 48]}
         layoutConfig={{
@@ -121,9 +121,9 @@ export default function UnitsPage() {
           columns: { default: 1, sm: 2, lg: 3 },
           gap: "md",
         }}
-        filterConfig={unitFilterConfig}
-        searchConfig={searchConfig}
-        renderCard={UnitCardView}
+        filterConfig={getUnitFilterConfig(t)}
+        searchConfig={{ globalSearch: true, placeholder: t("page.searchPlaceholder") }}
+        renderCard={(item, actions) => UnitCardView(item, actions, { t, locale })}
         loadingRenderCard={UnitCardLoading}
         operations={sharedOperations}
       />

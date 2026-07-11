@@ -1,9 +1,8 @@
 "use client";
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { useLogin } from "@/services/api";
 import {
-  getOrganizationSlugDescription,
-  getOrganizationSlugPlaceholder,
   getRootDomain,
   isWorkspaceHost,
   shouldShowOrganizationSlugField,
@@ -42,6 +41,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const t = useTranslations("auth.login");
   const [formData, setFormData] = useState({
     organizationSlug: "",
     email: "",
@@ -106,12 +106,12 @@ export function LoginForm({
           <CardHeader>
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              <CardTitle>Two-Factor Authentication</CardTitle>
+              <CardTitle>{t("twoFactor.title")}</CardTitle>
             </div>
             <CardDescription>
               {useBackupCode
-                ? "Enter one of your backup codes"
-                : "Enter the 6-digit code from your authenticator app"}
+                ? t("twoFactor.backupDescription")
+                : t("twoFactor.authenticatorDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -119,12 +119,12 @@ export function LoginForm({
               <div className="flex flex-col gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="twoFactorToken">
-                    {useBackupCode ? "Backup Code" : "Authentication Code"}
+                    {useBackupCode ? t("twoFactor.backupCodeLabel") : t("twoFactor.authCodeLabel")}
                   </Label>
                   <Input
                     id="twoFactorToken"
                     type="text"
-                    placeholder={useBackupCode ? "XXXX-XXXX-XXXX" : "000000"}
+                    placeholder={useBackupCode ? t("twoFactor.backupCodePlaceholder") : t("twoFactor.authCodePlaceholder")}
                     value={twoFactorToken}
                     onChange={(e) => setTwoFactorToken(e.target.value)}
                     maxLength={useBackupCode ? 14 : 6}
@@ -135,8 +135,8 @@ export function LoginForm({
                   />
                   <p className="text-xs text-muted-foreground">
                     {useBackupCode
-                      ? "Each backup code can only be used once"
-                      : "Open your authenticator app to get the code"}
+                      ? t("twoFactor.backupCodeHint")
+                      : t("twoFactor.authCodeHint")}
                   </p>
                 </div>
 
@@ -149,7 +149,7 @@ export function LoginForm({
                     {loginMutation.isPending && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    {loginMutation.isPending ? "Verifying..." : "Verify"}
+                    {loginMutation.isPending ? t("twoFactor.verifying") : t("twoFactor.verify")}
                   </Button>
 
                   <Button
@@ -159,8 +159,8 @@ export function LoginForm({
                     onClick={() => setUseBackupCode(!useBackupCode)}
                   >
                     {useBackupCode
-                      ? "Use authenticator code"
-                      : "Use backup code instead"}
+                      ? t("twoFactor.useAuthenticator")
+                      : t("twoFactor.useBackupCode")}
                   </Button>
 
                   <Button
@@ -170,7 +170,7 @@ export function LoginForm({
                     onClick={handleBackToLogin}
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to login
+                    {t("twoFactor.backToLogin")}
                   </Button>
                 </div>
               </div>
@@ -186,9 +186,9 @@ export function LoginForm({
       <LoginNotices />
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            {t("subtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -196,11 +196,11 @@ export function LoginForm({
             <div className="flex flex-col gap-6">
               {showSlugField && (
                 <div className="grid gap-3">
-                  <Label htmlFor="organizationSlug">Organization Slug</Label>
+                  <Label htmlFor="organizationSlug">{t("orgSlugLabel")}</Label>
                   <Input
                     id="organizationSlug"
                     type="text"
-                    placeholder={getOrganizationSlugPlaceholder()}
+                    placeholder={t("orgSlugPlaceholder")}
                     value={formData.organizationSlug}
                     onChange={(e) =>
                       setFormData({
@@ -211,16 +211,16 @@ export function LoginForm({
                     required
                   />
                   <p className="text-xs text-muted-foreground">
-                    {getOrganizationSlugDescription()}
+                    {t("orgSlugDescription")}
                   </p>
                 </div>
               )}
               <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("emailLabel")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder={t("emailPlaceholder")}
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -230,12 +230,12 @@ export function LoginForm({
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t("passwordLabel")}</Label>
                   <Link
                     href="/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
-                    Forgot your password?
+                    {t("forgotPassword")}
                   </Link>
                 </div>
                 <Input
@@ -257,17 +257,17 @@ export function LoginForm({
                   {loginMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {loginMutation.isPending ? "Logging in..." : "Login"}
+                  {loginMutation.isPending ? t("submitting") : t("submit")}
                 </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              {t("noAccount")}{" "}
               <Link
                 href={signupUrl()}
                 className="underline underline-offset-4"
               >
-                Sign up
+                {t("signUp")}
               </Link>
             </div>
             <div className="mt-2 text-center text-sm">
@@ -275,7 +275,7 @@ export function LoginForm({
                 href="/resend-verification"
                 className="text-muted-foreground hover:underline underline-offset-4"
               >
-                Resend verification email
+                {t("resendVerification")}
               </Link>
             </div>
           </form>

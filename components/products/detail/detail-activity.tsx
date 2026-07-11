@@ -1,13 +1,15 @@
 // coding-standard: maintained
 'use client'
 
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
 import { Button } from '@ui/components/button'
 import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { Activity, ArrowDownLeft, ArrowRight, ArrowUpRight } from 'lucide-react'
-import { formatDateTz, MOVEMENT_REASON_LABEL } from './utils'
+import { formatDateTz } from './utils'
+import { useMovementReasonLabel } from '@/hooks/use-movement-reason-label'
 
 interface DetailActivityProps {
   movements: any[]
@@ -22,30 +24,32 @@ function locationName(m: any): string {
 }
 
 export function DetailActivity({ movements, timezone, viewAllHref }: DetailActivityProps) {
+  const t = useTranslations('products.products.detail.activity')
+  const reasonLabel = useMovementReasonLabel()
   const columns: SimpleColumn<any>[] = [
     {
       key: 'date',
-      header: 'Date',
+      header: t('date'),
       cellClassName: 'text-muted-foreground',
       cell: (m) => formatDateTz(m.createdAt, timezone),
     },
     {
       key: 'type',
-      header: 'Type',
+      header: t('type'),
       cell: (m) => (
         <Badge variant="secondary" className="font-medium">
-          {MOVEMENT_REASON_LABEL[m.reason] || m.reason}
+          {reasonLabel(m.reason)}
         </Badge>
       ),
     },
     {
       key: 'location',
-      header: 'Location',
+      header: t('location'),
       cell: (m) => locationName(m),
     },
     {
       key: 'change',
-      header: 'Change',
+      header: t('change'),
       align: 'right',
       cell: (m) => {
         const isIn = m.movementType === 'in'
@@ -64,7 +68,7 @@ export function DetailActivity({ movements, timezone, viewAllHref }: DetailActiv
     },
     {
       key: 'balance',
-      header: 'Balance',
+      header: t('balance'),
       align: 'right',
       cellClassName: 'font-medium',
       cell: (m) => m.newQuantity ?? '—',
@@ -77,12 +81,12 @@ export function DetailActivity({ movements, timezone, viewAllHref }: DetailActiv
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-4 w-4 text-emerald-600" />
-            Stock Activity
+            {t('title')}
           </CardTitle>
           {viewAllHref && (
             <Button asChild variant="outline" size="sm">
               <Link href={viewAllHref}>
-                View all
+                {t('viewAll')}
                 <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Link>
             </Button>
@@ -95,7 +99,7 @@ export function DetailActivity({ movements, timezone, viewAllHref }: DetailActiv
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Activity className="mb-2 h-10 w-10 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">No stock activity yet</p>
+            <p className="text-sm text-muted-foreground">{t('noActivity')}</p>
           </div>
         )}
       </CardContent>

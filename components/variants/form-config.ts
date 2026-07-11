@@ -1,13 +1,15 @@
+// coding-standard: maintained
 import { DynamicFormConfig } from "@/ui/components/form/type";
+import type { Translator } from "@/i18n/config";
 
 // Form configuration
-const variantAttributeFormConfig: DynamicFormConfig = {
+const getVariantAttributeFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [
     {
       name: "name",
       type: "input",
-      label: "Attribute Name",
-      placeholder: "Enter attribute name (e.g., Color, Size, Material)",
+      label: t("form.name"),
+      placeholder: t("form.namePlaceholder"),
       required: true,
       columnSpan: 12,
       validation: {
@@ -18,12 +20,12 @@ const variantAttributeFormConfig: DynamicFormConfig = {
     {
       name: "values",
       type: "textarea",
-      label: "Attribute Values",
-      placeholder: "Enter values separated by commas (e.g., Red, Blue, Green)",
+      label: t("form.values"),
+      placeholder: t("form.valuesPlaceholder"),
       required: true,
       rows: 3,
       columnSpan: 12,
-      helperText: "Separate multiple values with commas",
+      helperText: t("form.valuesHelper"),
       validation: {
         minLength: 1,
       },
@@ -31,17 +33,16 @@ const variantAttributeFormConfig: DynamicFormConfig = {
     {
       name: "status",
       type: "select",
-      label: "Status",
+      label: t("form.status"),
       required: true,
       columnSpan: 12,
       defaultValue: "active",
       options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
+        { value: "active", label: t("form.statusActive") },
+        { value: "inactive", label: t("form.statusInactive") },
       ],
     },
   ],
-};
+});
 
-
-export default variantAttributeFormConfig;
+export default getVariantAttributeFormConfig;

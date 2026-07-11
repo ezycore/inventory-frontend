@@ -2,6 +2,8 @@
 // coding-standard: maintained
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import type { AppLocale } from "@/i18n/config";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -66,6 +68,10 @@ const buildPreviewSrcDoc = (
   </style></head><body><div class="preview-paper">${body}</div></body></html>`;
 
 export default function ReceiptSettingsPage() {
+  const t = useTranslations("settings.receipt");
+  const tShell = useTranslations("settings.shell");
+  const tPrintDoc = useTranslations("common.printDoc");
+  const locale = useLocale() as AppLocale;
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const canManage = user?.permissions?.includes("organization.edit") ?? false;
@@ -92,13 +98,13 @@ export default function ReceiptSettingsPage() {
   useEffect(() => {
     if (!user) return;
     if (!canManage) {
-      toast.error("You don't have permission to access this page");
+      toast.error(tShell("noPermission"));
       router.push("/");
     } else if (!canPrint) {
-      toast.error("Invoice printing isn't enabled for your organization");
+      toast.error(t("notEnabled"));
       router.push("/");
     }
-  }, [user, canManage, canPrint, router]);
+  }, [user, canManage, canPrint, router, t, tShell]);
 
   // The live preview reuses the exact renderer the printout uses (over a sample
   // invoice), so what's shown here is what prints. Logo + address come from the
@@ -129,9 +135,11 @@ export default function ReceiptSettingsPage() {
       amountInWordsLabel: previewState.amountInWordsLabel,
       currencyCode: org?.currency,
       salesTaxActive,
+      t: tPrintDoc,
+      locale,
     });
     return buildPreviewSrcDoc(body, styles, previewState.paper);
-  }, [previewState, org?.name, logoUrl, org?.address, org?.currency, salesTaxActive]);
+  }, [previewState, org?.name, logoUrl, org?.address, org?.currency, salesTaxActive, tPrintDoc, locale]);
 
   // Size the preview iframe to its content so short (thermal) receipts leave no
   // dead space below. Content is same-origin (allow-same-origin, no scripts), so
@@ -159,18 +167,17 @@ export default function ReceiptSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Receipt & Print"
-        subTitle="The letterhead printed on every invoice, receipt, purchase order and return."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Builder */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Letterhead</CardTitle>
+            <CardTitle className="text-base">{t("letterheadTitle")}</CardTitle>
             <CardDescription>
-              Compose what prints at the top of every document — reorder lines,
-              hide what you don&apos;t need, and add your own.
+              {t("letterheadDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -185,7 +192,7 @@ export default function ReceiptSettingsPage() {
                 onClick={handleSave}
                 disabled={!hasChanges || updateOrganization.isPending}
               >
-                {updateOrganization.isPending ? "Saving…" : "Save changes"}
+                {updateOrganization.isPending ? t("saving") : t("save")}
               </Button>
             </div>
           </CardContent>
@@ -194,15 +201,14 @@ export default function ReceiptSettingsPage() {
         {/* Live preview — pinned so it stays in view while the builder scrolls. */}
         <Card className="lg:sticky lg:top-6 lg:self-start">
           <CardHeader>
-            <CardTitle className="text-base">Live preview</CardTitle>
+            <CardTitle className="text-base">{t("previewTitle")}</CardTitle>
             <CardDescription>
-              A sample invoice rendered exactly as it will print at the selected
-              paper size.
+              {t("previewDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <iframe
-              title="Receipt preview"
+              title={t("previewIframeTitle")}
               srcDoc={previewSrcDoc}
               sandbox="allow-same-origin"
               onLoad={handlePreviewLoad}

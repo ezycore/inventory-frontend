@@ -1,6 +1,7 @@
 import { Brand } from "@/types";
 import { StatData } from "@/ui/components/StatsCard";
 import { CheckCircle2, ShoppingBag, Tags, XCircle } from "lucide-react";
+import type { Translator } from "@/i18n/config";
 
 export const prepareSubmitData = (
   data: Brand,
@@ -61,33 +62,34 @@ export const prepareSubmitData = (
 
 export const getBrandStats = (
   stats: Record<string, any> | undefined,
+  t: Translator,
 ): StatData[] => [
   {
-    label: "Total Brands",
+    label: t("stats.total"),
     value: stats?.total || 0,
     icon: Tags,
     variant: "primary",
-    description: "All registered brands",
+    description: t("stats.totalDescription"),
   },
   {
-    label: "Active Brands",
+    label: t("stats.active"),
     value: stats?.active || 0,
     icon: CheckCircle2,
     variant: "success",
-    description: "Currently active",
+    description: t("stats.activeDescription"),
   },
   {
-    label: "Inactive Brands",
+    label: t("stats.inactive"),
     value: stats?.inactive || 0,
     icon: XCircle,
     variant: "warning",
-    description: "Currently inactive",
+    description: t("stats.inactiveDescription"),
   },
   {
-    label: "Total Products",
+    label: t("stats.totalProducts"),
     value: stats?.totalProducts || 0,
     icon: ShoppingBag,
     variant: "info",
-    description: "Across all brands",
+    description: t("stats.totalProductsDescription"),
   },
 ];

@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
@@ -38,18 +40,20 @@ import {
 } from "@/app/(auth)/signup/page";
 import { getCountryDefaults } from "@/constants/organization-options";
 import { useGetOrganizationApi } from "@/hooks";
+import { formatDate } from "@/lib/format";
+import type { AppLocale } from "@/i18n/config";
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB — must match backend uploadConfig limit
 
-// "21" → "9:00 PM" for the digest-hour dropdown.
-const hourLabel = (hour: number) => {
-  const suffix = hour < 12 ? "AM" : "PM";
-  const display = hour % 12 === 0 ? 12 : hour % 12;
-  return `${display}:00 ${suffix}`;
-};
+// "21" → "9:00 PM" (locale-aware AM/PM) for the digest-hour dropdown.
+const hourLabel = (hour: number, locale: AppLocale) =>
+  formatDate(new Date(2000, 0, 1, hour, 0), "h:mm a", locale);
 const DIGEST_HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 export function OrganizationTab() {
+  const t = useTranslations("settings.organization");
+  const tTab = useTranslations("settings.organization.tab");
+  const locale = useLocale() as AppLocale;
   const { data } = useGetOrganizationApi();
   const { address, country, currency, name, timezone, logo, notificationSettings } =
     data?.data || {};
@@ -88,11 +92,11 @@ export function OrganizationTab() {
     e.target.value = ""; // allow re-selecting the same file
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image file");
+      toast.error(t("invalidImageType"));
       return;
     }
     if (file.size > MAX_LOGO_SIZE) {
-      toast.error("Logo must be smaller than 5MB");
+      toast.error(t("logoTooLarge"));
       return;
     }
     setPendingLogo(file);
@@ -201,10 +205,9 @@ export function OrganizationTab() {
         <div className="rounded-full bg-muted p-4 mb-4">
           <Lock className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold">Access Restricted</h3>
+        <h3 className="text-lg font-semibold">{t("accessRestrictedTitle")}</h3>
         <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-          You do not have permission to view and modify organization settings. Please
-          contact your administrator if you need to make changes.
+          {t("accessRestrictedDescription")}
         </p>
       </div>
     );
@@ -224,7 +227,7 @@ export function OrganizationTab() {
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <ImageIcon className="h-4 w-4" />
-          <span>Organization Logo</span>
+          <span>{tTab("logoSectionLabel")}</span>
         </div>
 
         <div className="flex items-center gap-4">
@@ -234,7 +237,7 @@ export function OrganizationTab() {
                 <AvatarImage
                   key={currentLogoUrl}
                   src={currentLogoUrl}
-                  alt={formData.name || "Organization logo"}
+                  alt={formData.name || tTab("logoSectionLabel")}
                   className="object-contain bg-muted"
                 />
               ) : null}
@@ -246,7 +249,7 @@ export function OrganizationTab() {
 
           <div className="flex-1 space-y-2">
             <p className="text-sm text-muted-foreground">
-              PNG, JPG, SVG or WebP. Square images work best. Max 5MB.
+              {tTab("logoHint")}
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Button
@@ -256,7 +259,7 @@ export function OrganizationTab() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Camera className="mr-2 h-4 w-4" />
-                {currentLogoUrl ? "Change logo" : "Upload logo"}
+                {currentLogoUrl ? tTab("changeLogo") : tTab("uploadLogo")}
               </Button>
               {currentLogoUrl && (
                 <Button
@@ -267,7 +270,7 @@ export function OrganizationTab() {
                   onClick={() => setPendingLogo("remove")}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Remove
+                  {tTab("removeLogo")}
                 </Button>
               )}
               {pendingLogo && (
@@ -277,7 +280,7 @@ export function OrganizationTab() {
                   size="sm"
                   onClick={() => setPendingLogo(null)}
                 >
-                  Cancel
+                  {tTab("cancel")}
                 </Button>
               )}
             </div>
@@ -296,19 +299,19 @@ export function OrganizationTab() {
       <div className="space-y-4 pt-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Building2 className="h-4 w-4" />
-          <span>Organization Identity</span>
+          <span>{tTab("identitySectionLabel")}</span>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="orgName">
-              Organization Name <span className="text-destructive">*</span>
+              {tTab("orgName")} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="orgName"
               value={formData.name}
               onChange={(e) => handleChange("name", e.target.value)}
-              placeholder="Enter organization name"
+              placeholder={tTab("orgNamePlaceholder")}
               required
             />
           </div>
@@ -316,7 +319,7 @@ export function OrganizationTab() {
           <div className="space-y-2">
             <Label htmlFor="slug" className="flex items-center gap-1.5">
               <Link2 className="h-3.5 w-3.5" />
-              Organization Slug
+              {tTab("slug")}
             </Label>
             <Input
               id="slug"
@@ -325,7 +328,7 @@ export function OrganizationTab() {
               className="bg-muted/50 cursor-not-allowed"
             />
             <p className="text-xs text-muted-foreground">
-              Used in your organization&apos;s URL
+              {tTab("slugHint")}
             </p>
           </div>
         </div>
@@ -335,21 +338,21 @@ export function OrganizationTab() {
       <div className="space-y-4 pt-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Globe className="h-4 w-4" />
-          <span>Regional Settings</span>
+          <span>{tTab("regionalSectionLabel")}</span>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="country" className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5" />
-              Country <span className="text-destructive">*</span>
+              {tTab("country")} <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.country}
               onValueChange={handleCountryChange}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select country" />
+                <SelectValue placeholder={tTab("countryPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {countryOptions.map((country) => (
@@ -364,14 +367,14 @@ export function OrganizationTab() {
           <div className="space-y-2">
             <Label htmlFor="currency" className="flex items-center gap-1.5">
               <DollarSign className="h-3.5 w-3.5" />
-              Currency <span className="text-destructive">*</span>
+              {tTab("currency")} <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.currency}
               onValueChange={(value) => handleChange("currency", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select currency" />
+                <SelectValue placeholder={tTab("currencyPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {currencyOptions.map((currency) => (
@@ -386,14 +389,14 @@ export function OrganizationTab() {
           <div className="space-y-2 sm:col-span-2 lg:col-span-1">
             <Label htmlFor="timezone" className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5" />
-              Timezone <span className="text-destructive">*</span>
+              {tTab("timezone")} <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.timezone}
               onValueChange={(value) => handleChange("timezone", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select timezone" />
+                <SelectValue placeholder={tTab("timezonePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {timezoneOptions.map((tz) => (
@@ -411,16 +414,16 @@ export function OrganizationTab() {
       <div className="space-y-4 pt-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <MapPin className="h-4 w-4" />
-          <span>Business Address</span>
+          <span>{tTab("addressSectionLabel")}</span>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="address">Address</Label>
+          <Label htmlFor="address">{tTab("address")}</Label>
           <Textarea
             id="address"
             value={formData.address}
             onChange={(e) => handleChange("address", e.target.value)}
-            placeholder="Enter organization address"
+            placeholder={tTab("addressPlaceholder")}
             rows={3}
             className="resize-none"
           />
@@ -431,15 +434,15 @@ export function OrganizationTab() {
       <div className="space-y-4 pt-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Mail className="h-4 w-4" />
-          <span>Email Reports</span>
+          <span>{tTab("emailReportsSectionLabel")}</span>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex items-center justify-between gap-3 rounded-md border p-3">
             <div className="space-y-0.5">
-              <Label htmlFor="salesDigestEnabled">Daily sales digest</Label>
+              <Label htmlFor="salesDigestEnabled">{tTab("dailyDigest")}</Label>
               <p className="text-xs text-muted-foreground">
-                Emails the owner a summary on days with sales.
+                {tTab("dailyDigestHint")}
               </p>
             </div>
             <Switch
@@ -454,7 +457,7 @@ export function OrganizationTab() {
           <div className="space-y-2">
             <Label htmlFor="salesDigestHour" className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5" />
-              Send at
+              {tTab("sendAt")}
             </Label>
             <Select
               value={formData.salesDigestHour}
@@ -462,18 +465,18 @@ export function OrganizationTab() {
               disabled={!formData.salesDigestEnabled}
             >
               <SelectTrigger id="salesDigestHour" className="w-full">
-                <SelectValue placeholder="Select time" />
+                <SelectValue placeholder={tTab("sendAtPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {DIGEST_HOURS.map((hour) => (
                   <SelectItem key={hour} value={String(hour)}>
-                    {hourLabel(hour)}
+                    {hourLabel(hour, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              In your organization&apos;s timezone.
+              {tTab("sendAtHint")}
             </p>
           </div>
         </div>
@@ -489,7 +492,7 @@ export function OrganizationTab() {
           {updateOrganization.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          Save Changes
+          {tTab("saveChanges")}
         </Button>
       </div>
     </form>

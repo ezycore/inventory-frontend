@@ -1,20 +1,22 @@
 'use client';
-
+// coding-standard: maintained
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Check, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/ui/components/button';
 
 export function CopyableInvoice({ value }: { value: string }) {
+  const t = useTranslations('sales.history');
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      toast.success(`Copied ${value}`);
+      toast.success(t('toasts.copied', { value }));
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error('Failed to copy');
+      toast.error(t('toasts.copyFailed'));
     }
   };
   return (

@@ -1,34 +1,44 @@
 'use client'
+// coding-standard: maintained
 
 import { memo, useEffect, useState } from 'react'
-import { getGreetingMessage } from './helpers'
+import { useTranslations } from 'next-intl'
+import { formatInTimeZone } from 'date-fns-tz'
+import { bn as bnDateLocale } from 'date-fns/locale'
+import { getGreetingKey } from './helpers'
+import { useFormatters } from '@/hooks/use-formatters'
 import { Spinner } from '@/ui/components/spinner'
 
 // ── Live Clock (isolated to prevent full-page re-renders) ──
 const LiveClock = memo(function LiveClock({ timezone }: { timezone?: string }) {
-  // Lazy initializer avoids the SSR hydration mismatch and the
-  // "setState in effect" anti-pattern (initial value computed once on mount).
-  const [time, setTime] = useState<Date | null>(() =>
-    typeof window === 'undefined' ? null : new Date(),
-  )
+  const { locale } = useFormatters()
+  // Start null on BOTH server and client so the first (hydration) render matches
+  // — a live clock's value inevitably differs between the SSR instant and the
+  // hydration instant, so seeding a real Date here desyncs the two trees. The
+  // effect fills in the time immediately after mount (client only).
+  const [time, setTime] = useState<Date | null>(null)
 
   useEffect(() => {
     const tick = () => setTime(new Date())
+    // First tick deferred a task: keeps the hydration render null-matched and
+    // avoids the synchronous setState-in-effect cascade lint errors on.
+    const firstTick = setTimeout(tick, 0)
     const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
+    return () => {
+      clearTimeout(firstTick)
+      clearInterval(id)
+    }
   }, [])
 
-  const formatted = !time ? <Spinner /> :  time.toLocaleString('en-US', {
-    timeZone: timezone || 'Asia/Dhaka',
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  })
+  // formatInTimeZone applies the org timezone before date-fns renders it in
+  // the active app locale (EEEE/MMMM localize automatically via the bn locale).
+  const formatted = !time ? (
+    <Spinner />
+  ) : (
+    formatInTimeZone(time, timezone || 'Asia/Dhaka', 'EEEE, MMMM d, yyyy, hh:mm:ss a', {
+      locale: locale === 'bn' ? bnDateLocale : undefined,
+    })
+  )
 
   return <p className="font-medium tabular-nums">{formatted}</p>
 })
@@ -39,14 +49,15 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ firstName, timezone }: DashboardHeaderProps) {
+  const t = useTranslations('dashboard')
   const hour = new Date().getHours()
-  const greeting = getGreetingMessage(hour)
+  const greeting = t(`greeting.${getGreetingKey(hour)}`)
 
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline-last justify-between">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          Dashboard
+          {t('title')}
         </h1>
         <p className="text-base text-muted-foreground">
           {greeting},{' '}

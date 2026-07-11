@@ -40,11 +40,16 @@ beforeEach(() => {
   hrefSpy = "";
   // jsdom does not implement navigation; swap location for a capturable stub.
   // `protocol` is read by workspaceUrl when building the redirect target.
+  // `assign` must be overridden too — the spread copies jsdom's real assign,
+  // which throws when called with the stub as `this`.
   Object.defineProperty(window, "location", {
     configurable: true,
     value: {
       ...originalLocation,
       protocol: "http:",
+      assign(v: string) {
+        hrefSpy = v;
+      },
       set href(v: string) {
         hrefSpy = v;
       },

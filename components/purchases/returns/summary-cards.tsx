@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Undo2, DollarSign, Clock } from "lucide-react";
 
 import StatsCard, { type StatData } from "@/ui/components/StatsCard";
@@ -16,27 +18,28 @@ export function SummaryCards({
   summary,
   formatCurrency,
 }: SummaryCardsProps) {
+  const t = useTranslations("purchases.returns");
   const stats: StatData[] = [
     {
-      label: "Total Returns",
+      label: t("statTotalReturns"),
       value: summary?.totalReturns ?? 0,
       icon: Undo2,
       variant: "primary",
-      description: "All time",
+      description: t("statTotalReturnsDesc"),
     },
     {
-      label: "Total Refund Amount",
+      label: t("statRefundAmount"),
       value: formatCurrency(summary?.totalRefundAmount ?? 0),
       icon: DollarSign,
       variant: "warning",
-      description: "Value returned",
+      description: t("statRefundAmountDesc"),
     },
     {
-      label: "Pending Returns",
+      label: t("statPending"),
       value: summary?.pendingReturns ?? 0,
       icon: Clock,
       variant: "info",
-      description: "Awaiting processing",
+      description: t("statPendingDesc"),
     },
   ];
 

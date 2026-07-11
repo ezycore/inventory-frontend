@@ -1,5 +1,6 @@
 "use client";
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import {
   useAddDomain,
   useDomains,
@@ -25,6 +26,7 @@ const errMessage = (error: unknown, fallback: string): string =>
   (error as { message?: string })?.message || fallback;
 
 export default function DomainsSettingsPage() {
+  const t = useTranslations("settings.domains");
   const [newDomain, setNewDomain] = useState("");
   const [pendingDomain, setPendingDomain] = useState<string | null>(null);
 
@@ -39,14 +41,14 @@ export default function DomainsSettingsPage() {
     if (!value) return;
     addDomain.mutate(value, {
       onSuccess: () => {
-        toast.success("Domain added", {
-          description: "Add the DNS records shown, then re-check.",
+        toast.success(t("toasts.added"), {
+          description: t("toasts.addedDescription"),
         });
         setNewDomain("");
       },
       onError: (error) =>
-        toast.error("Could not add domain", {
-          description: errMessage(error, "Please try again."),
+        toast.error(t("toasts.addFailed"), {
+          description: errMessage(error, t("toasts.addFailedDescription")),
         }),
     });
   };
@@ -54,12 +56,12 @@ export default function DomainsSettingsPage() {
   const handleVerify = (domain: string) => {
     setPendingDomain(domain);
     verifyDomain.mutate(domain, {
-      onSuccess: () => toast.success("Domain verified"),
+      onSuccess: () => toast.success(t("toasts.verified")),
       onError: (error) =>
-        toast.error("Verification failed", {
+        toast.error(t("toasts.verifyFailed"), {
           description: errMessage(
             error,
-            "TXT record not found yet — DNS may still be propagating.",
+            t("toasts.verifyFailedDescription"),
           ),
         }),
       onSettled: () => setPendingDomain(null),
@@ -69,10 +71,10 @@ export default function DomainsSettingsPage() {
   const handleRemove = (domain: string) => {
     setPendingDomain(domain);
     removeDomain.mutate(domain, {
-      onSuccess: () => toast.success("Domain removed"),
+      onSuccess: () => toast.success(t("toasts.removed")),
       onError: (error) =>
-        toast.error("Could not remove domain", {
-          description: errMessage(error, "Please try again."),
+        toast.error(t("toasts.removeFailed"), {
+          description: errMessage(error, t("toasts.addFailedDescription")),
         }),
       onSettled: () => setPendingDomain(null),
     });
@@ -81,15 +83,15 @@ export default function DomainsSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Custom Domains"
-        subTitle="Connect your own domain to this workspace. Add the DNS records we show, then verify ownership."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Add a domain</CardTitle>
+          <CardTitle className="text-base">{t("addTitle")}</CardTitle>
           <CardDescription>
-            e.g. shop.yourbrand.com — a subdomain you control.
+            {t("addDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -97,7 +99,7 @@ export default function DomainsSettingsPage() {
             <Input
               value={newDomain}
               onChange={(e) => setNewDomain(e.target.value)}
-              placeholder="shop.yourbrand.com"
+              placeholder={t("placeholder")}
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
@@ -108,7 +110,7 @@ export default function DomainsSettingsPage() {
               ) : (
                 <Plus className="h-4 w-4" />
               )}
-              Add
+              {t("addButton")}
             </Button>
           </form>
         </CardContent>
@@ -138,7 +140,7 @@ export default function DomainsSettingsPage() {
       ) : (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center text-muted-foreground">
           <Globe className="h-8 w-8" />
-          <p className="text-sm">No custom domains yet.</p>
+          <p className="text-sm">{t("empty")}</p>
         </div>
       )}
     </div>

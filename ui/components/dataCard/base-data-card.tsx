@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 import { CardItem, CardEmptyState, CardSkeleton } from "./card-variants";
 import { DataCardToolbar } from "./toolbar";
@@ -90,6 +91,7 @@ export function BaseDataCard<TData extends { _id: string }>({
   emptyMessage,
   emptyIcon,
 }: BaseDataCardProps<TData>) {
+  const t = useTranslations("common");
   // Local state
   const [globalFilter, setGlobalFilter] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -381,10 +383,9 @@ export function BaseDataCard<TData extends { _id: string }>({
       <EasyAlertDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Are you sure?"
-        description="This action cannot be undone. This will permanently delete the selected item."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t("confirm.title")}
+        description={t("confirm.deleteSelectedItem")}
+        confirmLabel={t("actions.delete")}
         onConfirm={handleDeleteConfirm}
         isConfirming={isDeleting}
         confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"

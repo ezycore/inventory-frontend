@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useMemo, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import PageHeader from "@/ui/components/header";
 import StatsCard, { type StatData } from "@/ui/components/StatsCard";
@@ -18,7 +20,7 @@ import {
 } from "lucide-react";
 import { QuickFilters, QuickFiltersResult } from "@/components/inventory/stock-movement/quick-filters";
 import { ReasonChart } from "@/components/inventory/stock-movement/reason-chart";
-import { columns } from "@/components/inventory/stock-movement/columns";
+import { getMovementColumns } from "@/components/inventory/stock-movement/columns";
 import {
   InventoryScopeFilter,
   type MovementScope,
@@ -27,6 +29,7 @@ import {
 
 // ─── Page Component ──────────────────────────────────────────────────────────
 export default function StockMovementsPage() {
+  const t = useTranslations("inventory");
   const searchParams = useSearchParams();
   const [quickFilters, setQuickFilters] = useState<QuickFiltersResult>({});
   // Product/variant/location scope — seeded from the URL (deep links from the
@@ -65,11 +68,13 @@ export default function StockMovementsPage() {
     () => ({
       getAllData: (params: any) =>
         stockMovementsApi.getAll({ ...params, ...mergedFilters }),
-      entityName: "Stock Change",
+      entityName: t("movements.entity"),
       queryKey: [...queryKeys.stockMovements.all(), mergedFilters],
     }),
-    [mergedFilters],
+    [mergedFilters, t],
   );
+
+  const columns = useMemo(() => getMovementColumns(t), [t]);
 
   // Build stats cards from API data
   const stats: StatData[] = useMemo(() => {
@@ -83,36 +88,36 @@ export default function StockMovementsPage() {
 
     return [
       {
-        label: "Total Movements",
+        label: t("movements.statTotal"),
         value: totalMovements,
         icon: Activity,
         variant: "primary",
-        description: "All tracked movements",
+        description: t("movements.statTotalDesc"),
       },
       {
-        label: "Stock In",
-        value: `${inCount} (${inQty} units)`,
+        label: t("movements.statIn"),
+        value: t("movements.countWithUnits", { count: inCount, quantity: inQty }),
         icon: ArrowDownToLine,
         variant: "success",
       },
       {
-        label: "Stock Out",
-        value: `${outCount} (${outQty} units)`,
+        label: t("movements.statOut"),
+        value: t("movements.countWithUnits", { count: outCount, quantity: outQty }),
         icon: ArrowUpFromLine,
         variant: "destructive",
       },
       {
-        label: "Net Change",
-        value: `${netChange >= 0 ? "+" : ""}${netChange} units`,
+        label: t("movements.statNet"),
+        value: t("movements.unitsValue", { value: `${netChange >= 0 ? "+" : ""}${netChange}` }),
         icon: ArrowUpDown,
         variant: netChange >= 0 ? "success" : "warning",
         trend: {
-          value: netChange >= 0 ? "Stock growing" : "Stock decreasing",
+          value: netChange >= 0 ? t("movements.trendGrowing") : t("movements.trendDecreasing"),
           direction: netChange >= 0 ? "up" : "down",
         },
       },
     ];
-  }, [statsData]);
+  }, [statsData, t]);
 
   // Reason chart data from stats API
   const reasonChartData = useMemo(() => {
@@ -124,8 +129,8 @@ export default function StockMovementsPage() {
     <div className="space-y-6">
       {/* ── Header ───────────────────────────────────────────────── */}
       <PageHeader
-        title="Stock History"
-        subTitle="Every stock change, recorded automatically."
+        title={t("movements.title")}
+        subTitle={t("movements.subtitle")}
       />
 
       {/* ── Stats ────────────────────────────────────────────────── */}

@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 import { Hash } from "lucide-react";
 import { Separator } from "@/ui/components/separator";
 import { Skeleton } from "@/ui/components/skeleton";
@@ -66,6 +68,7 @@ export function TransactionsTimeline({
   formatCurrency,
   bare = false,
 }: TransactionsTimelineProps) {
+  const tDetail = useTranslations("common.detail");
   const content = (
     <div className="space-y-3">
       {isLoading ? (
@@ -75,7 +78,7 @@ export function TransactionsTimeline({
           ))}
         </div>
       ) : !data ? (
-        <div className="py-6 text-center text-muted-foreground text-sm">No transactions</div>
+        <div className="py-6 text-center text-muted-foreground text-sm">{tDetail("noTransactions")}</div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -86,7 +89,7 @@ export function TransactionsTimeline({
 
           {data.entries.length === 0 ? (
             <div className="py-6 text-center text-muted-foreground text-sm">
-              No transactions recorded yet
+              {tDetail("noTransactionsYet")}
             </div>
           ) : (
             <div className="space-y-2">
@@ -122,7 +125,7 @@ export function TransactionsTimeline({
                       )}
                       {t.reference?.label && (
                         <div className="text-xs text-muted-foreground">
-                          Ref: <span className="font-mono">{t.reference.label}</span>
+                          {tDetail("ref")} <span className="font-mono">{t.reference.label}</span>
                         </div>
                       )}
                       {t.notes && (
@@ -149,7 +152,7 @@ export function TransactionsTimeline({
     <div className="rounded-lg border p-4 space-y-3">
       <div className="font-medium flex items-center gap-2">
         <Hash className="h-4 w-4" />
-        Transactions
+        {tDetail("transactionsTitle")}
         {data && (
           <span className="text-xs text-muted-foreground font-normal">
             ({data.entries.length})

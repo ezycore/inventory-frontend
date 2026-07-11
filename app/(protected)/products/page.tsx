@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations, useLocale } from 'next-intl'
 import PageHeader from '@/ui/components/header'
 import { useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
@@ -8,10 +10,10 @@ import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
 import { productsApi, useProductStats } from '@/services/api'
-import { productFormConfig } from '@/components/products/form-config'
-import { productColumns } from '@/components/products/columns'
-import { productFilterConfig } from '@/components/products/filters'
-import { getProductStats, prepareSubmitData } from '@/components/products/helpers'
+import { getProductFormConfig } from '@/components/products/form-config'
+import { getProductColumns } from '@/components/products/columns'
+import { getProductFilterConfig } from '@/components/products/filters'
+import { getProductStats, makePrepareSubmitData } from '@/components/products/helpers'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/services/api'
 import { Sheet, SheetContent } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
@@ -25,24 +27,26 @@ import MountingHandler from '@/components/MountingHandler';
 import { useAuthStore } from '@/services/stores';
 import { BarcodeLabelSheet, type LabelItem } from '@/components/shared/barcode';
 import { toast } from 'sonner';
+import type { AppLocale } from '@/i18n/config'
 
-
- const sortingConfig = {
+export default function ProductsPage() {
+  const t = useTranslations('products.products')
+  const locale = useLocale() as AppLocale
+  const sortingConfig = {
     sortOptions: [
-      { field: "name", label: "Name" },
-      { field: "price", label: "Price" },
-      {field: "status", label: "Status"},
+      { field: "name", label: t('page.sortName') },
+      { field: "price", label: t('page.sortPrice') },
+      { field: "status", label: t('page.sortStatus') },
     ],
     defaultSortBy: "createdAt",
     defaultSortOrder: "desc" as const,
   }
-
-export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [labelSheet, setLabelSheet] = useState<{ open: boolean; items: LabelItem[] }>({ open: false, items: [] })
   const [viewMode, setViewMode, isMounted] = useViewMode('products')
-  const filteredFormConfig = useFilteredFormConfig(productFormConfig, 'product')
-  const filteredColumns = useFilteredColumns(productColumns, 'product')
+  const filteredFormConfig = useFilteredFormConfig(getProductFormConfig(t), 'product')
+  const filteredColumns = useFilteredColumns(getProductColumns(t), 'product')
+  const productFilterConfig = getProductFilterConfig(t)
   const { data: statsData, isLoading: statsLoading } = useProductStats()
   const { user, activeLocationId } = useAuthStore();
 
@@ -127,14 +131,14 @@ export default function ProductsPage() {
       }
     }
     if (items.length === 0) {
-      toast.error("No barcodes set on selected product(s)");
+      toast.error(t("page.noBarcodes"));
       return;
     }
     setLabelSheet({ open: true, items });
   };
 
   // Product stats (only product-relevant data, no inventory stats)
-  const productStats = getProductStats(statsData)
+  const productStats = getProductStats(statsData, t)
 
   // Shared operations config
   const sharedOperations = {
@@ -146,10 +150,10 @@ export default function ProductsPage() {
     defaultValues: { locationId: activeLocationId },
     isViewAvailable: false,
     queryKey: [...queryKeys.products.all()],
-    entityName: "Product" as const,
+    entityName: t("page.entity"),
     openInside: "drawer" as const,
-    editTooltip: "Edit Product",
-    deleteTooltip: "Delete Product",
+    editTooltip: t("page.editTooltip"),
+    deleteTooltip: t("page.deleteTooltip"),
     transformEditData: (item: any) => {
       const transformedVariants =
         item.variants?.map((variant: any) => {
@@ -183,7 +187,7 @@ export default function ProductsPage() {
         variants: transformedVariants,
       }
     },
-    prepareSubmitData,
+    prepareSubmitData: makePrepareSubmitData(t),
   }
 
  if(!isMounted) {
@@ -193,8 +197,8 @@ export default function ProductsPage() {
   return (
     <div className="container mx-auto space-y-6">
       <PageHeader
-        title="Products"
-        subTitle="All the products you stock and sell."
+        title={t("page.title")}
+        subTitle={t("page.subtitle")}
         actions={
           <div className="flex items-center gap-3">
             <ViewToggle
@@ -219,9 +223,9 @@ export default function ProductsPage() {
       {/* Table View */}
       {viewMode === 'table' && (
         <DataTable
-          cardTitle="All Products"
+          cardTitle={t("page.allProductsTitle")}
           columns={filteredColumns}
-          fullColumns={productColumns}
+          fullColumns={getProductColumns(t)}
           selectable={true}
           manageColumns={true}
           module="product"
@@ -229,7 +233,7 @@ export default function ProductsPage() {
           stickyHeader={true}
           searchConfig={{
             globalSearch: true,
-            placeholder: "Search products by name...",
+            placeholder: t("page.searchPlaceholder"),
           }}
           filterConfig={productFilterConfig}
           operations={sharedOperations}
@@ -238,7 +242,7 @@ export default function ProductsPage() {
           enableRowHover={true}
           exportConfig={{
             download: (params) => productsApi.exportCsv(params),
-            note: "Only single products are exported — variant & combo products aren't supported in CSV export; manage them in the product form.",
+            note: t("page.exportNote"),
           }}
           importConfig={{
             downloadTemplate: productsApi.downloadImportTemplate,
@@ -252,7 +256,7 @@ export default function ProductsPage() {
                     type: "print-label",
                     placement: "cell",
                     icon: <Printer className="h-4 w-4" />,
-                    tooltip: "Print label",
+                    tooltip: t("page.printLabel"),
                     onClick: (row: any) => openLabelsFor([row]),
                     disabled: (row: any) =>
                       !row.barcode &&
@@ -267,21 +271,21 @@ export default function ProductsPage() {
       {/* Card View */}
       {viewMode === 'card' && (
         <DataCard
-          cardTitle="All Products"
+          cardTitle={t("page.allProductsTitle")}
           defaultPageSize={12}
           pageSizes={[12, 24, 48]}
           layoutConfig={{
             layout: 'grid',
             columns: { default: 1, sm: 2, md: 3, lg: 4 },
             gap: 'md',
-            
+
           }}
           sortingConfig={sortingConfig}
           variant="default"
           enableCardHover={true}
           searchConfig={{
             globalSearch: true,
-            placeholder: "Search products by name...",
+            placeholder: t("page.searchPlaceholder"),
           }}
           filterConfig={productFilterConfig}
           renderCard={(row: any, actions) => (

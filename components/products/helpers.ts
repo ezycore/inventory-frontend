@@ -1,12 +1,16 @@
+// coding-standard: maintained
 import { StatData } from "@/ui/components/StatsCard"
 import { Box, CheckCircle2, XCircle, Layers } from "lucide-react"
 import { toast } from "sonner"
+import type { Translator } from "@/i18n/config"
 
-export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
+/** `prepareSubmitData` is called by DataTable/DataCard as `(data, isEdit, item)` — no
+ * room for a `t` param, so the page closes over the translator via this factory. */
+export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: boolean, item?: any) => {
   const formData = new FormData()
   if(data.enableUOMConversion){
     if(!data.purchaseUnit?.unitId && !data.saleUnit?.unitId){
-      toast.error("Please select at least one unit (purchase or sale) when UOM conversion is enabled.")
+      toast.error(t("toasts.uomRequired"))
       throw new Error("Validation error: No units selected for UOM conversion.")
     }
   }
@@ -131,39 +135,39 @@ export const prepareSubmitData = (data: any, isEdit: boolean, item?: any) => {
     })
     formData.append('variants', JSON.stringify(variantsData))
   }
-  console.log("Prepared FormData for submission:", formData)
   return formData
 }
 
 export const getProductStats = (
   stats: Record<string, any> | undefined,
+  t: Translator,
 ): StatData[] => [
   {
-    label: "Total Products",
+    label: t("stats.total"),
     value: stats?.total || 0,
     icon: Box,
     variant: "primary",
-    description: "All registered products",
+    description: t("stats.totalDescription"),
   },
   {
-    label: "Variant Products",
+    label: t("stats.variantProducts"),
     value: stats?.variantProducts || 0,
     icon: Box,
     variant: "default",
-    description: "Products with variants",
+    description: t("stats.variantProductsDescription"),
   },
   {
-    label: "Active Products",
+    label: t("stats.active"),
     value: stats?.active || 0,
     icon: CheckCircle2,
     variant: "success",
-    description: "Currently active",
+    description: t("stats.activeDescription"),
   },
   {
-    label: "Inactive Products",
+    label: t("stats.inactive"),
     value: stats?.inactive || 0,
     icon: XCircle,
     variant: stats?.inactive > 0 ? "warning" : "default",
-    description: "Currently inactive",
+    description: t("stats.inactiveDescription"),
   },
 ];

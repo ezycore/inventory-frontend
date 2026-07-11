@@ -6,6 +6,7 @@ import {
   Table as TanStackTable,
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronsUpDown, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -65,6 +66,7 @@ export function DataTableBody<TData, TValue>({
   stickyHeader = false,
   rowBgColor,
 }: DataTableBodyProps<TData, TValue>) {
+  const t = useTranslations("common.table");
   // Calculate row background color
   const getRowBgColor = (row: TData): string => {
     if (typeof rowBgColor === "function") {
@@ -207,7 +209,7 @@ export function DataTableBody<TData, TValue>({
               <TableCell colSpan={columns.length} className="h-24 text-center">
                 <div className="flex flex-col items-center justify-center text-muted-foreground">
                   <Search className="h-8 w-8 mb-2 opacity-50" />
-                  <p>No results found</p>
+                  <p>{t("noResults")}</p>
                 </div>
               </TableCell>
             </TableRow>

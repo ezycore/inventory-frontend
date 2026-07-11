@@ -1,6 +1,7 @@
 'use client';
-
+// coding-standard: maintained
 import { useState, useMemo, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -35,13 +36,14 @@ import { getReturnsColumns } from './columns';
 import { useReturnableItems } from './use-returnable-items';
 import { useRefundAllocation } from './use-refund-allocation';
 
-const saleSearchSchema = z.object({
-  saleId: z.string().min(1, 'Please enter a sale ID or invoice number'),
-});
+// Message resolved per-locale inside the hook (docs/I18N.md)
+const makeSaleSearchSchema = (message: string) =>
+  z.object({ saleId: z.string().min(1, message) });
 
-type SaleSearchData = z.infer<typeof saleSearchSchema>;
+type SaleSearchData = z.infer<ReturnType<typeof makeSaleSearchSchema>>;
 
 export function useSalesReturnPage() {
+  const t = useTranslations('sales.returns');
   // ── Core UI state ─────────────────────────────────────────────
   const [showNewReturn, setShowNewReturn] = useState(false);
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
@@ -128,7 +130,7 @@ export function useSalesReturnPage() {
 
   // ── Search form ───────────────────────────────────────────────
   const searchForm = useForm<SaleSearchData>({
-    resolver: zodResolver(saleSearchSchema),
+    resolver: zodResolver(makeSaleSearchSchema(t('validation.enterSaleId'))),
     defaultValues: { saleId: '' },
   });
 
@@ -151,25 +153,25 @@ export function useSalesReturnPage() {
       fields: [
         {
           name: 'status',
-          label: 'Status',
+          label: t('filters.status'),
           type: 'select' as const,
           options: [
-            { label: 'Pending', value: 'pending' },
-            { label: 'Processed', value: 'completed' },
-            { label: 'Cancelled', value: 'cancelled' },
+            { label: t('filters.pending'), value: 'pending' },
+            { label: t('filters.processed'), value: 'completed' },
+            { label: t('filters.cancelled'), value: 'cancelled' },
           ],
         },
         {
           name: 'reason',
-          label: 'Reason',
+          label: t('filters.reason'),
           type: 'select' as const,
           options: [
-            { label: 'Damaged', value: 'damaged' },
-            { label: 'Defective', value: 'defective' },
-            { label: 'Wrong Item', value: 'wrong_item' },
-            { label: 'Customer Changed Mind', value: 'customer_changed_mind' },
-            { label: 'Expired', value: 'expired' },
-            { label: 'Other', value: 'other' },
+            { label: t('reasons.damaged'), value: 'damaged' },
+            { label: t('reasons.defective'), value: 'defective' },
+            { label: t('reasons.wrongItem'), value: 'wrong_item' },
+            { label: t('reasons.customerChangedMind'), value: 'customer_changed_mind' },
+            { label: t('reasons.expired'), value: 'expired' },
+            { label: t('reasons.other'), value: 'other' },
           ],
         },
       ] as FilterField[],
@@ -182,7 +184,7 @@ export function useSalesReturnPage() {
         setPage(1);
       },
     }),
-    [],
+    [t],
   );
 
   const initFromSale = useCallback(
@@ -196,7 +198,7 @@ export function useSalesReturnPage() {
 
   const handleSubmitReturn = useCallback(async () => {
     if (!selectedSaleId || !sale) {
-      toast.error('Please select a sale first');
+      toast.error(t('toasts.selectSaleFirst'));
       return;
     }
 
@@ -215,7 +217,7 @@ export function useSalesReturnPage() {
     }));
 
     if (items.length === 0) {
-      toast.error('Please select at least one item to return');
+      toast.error(t('toasts.selectItems'));
       return;
     }
 
@@ -284,8 +286,7 @@ export function useSalesReturnPage() {
     createReturnMutation,
     reason,
     notes,
-    handleClearSearch,
-  ]);
+    handleClearSearch, t]);
 
   const handleViewDetails = useCallback((ret: SalesReturn) => {
     setSelectedReturn(ret);
@@ -293,8 +294,8 @@ export function useSalesReturnPage() {
   }, []);
 
   const returnsColumns = useMemo(
-    () => getReturnsColumns(formatCurrency, isAccountsEnabled, handleViewDetails),
-    [formatCurrency, isAccountsEnabled, handleViewDetails],
+    () => getReturnsColumns(formatCurrency, isAccountsEnabled, handleViewDetails, t),
+    [formatCurrency, isAccountsEnabled, handleViewDetails, t],
   );
 
   return {

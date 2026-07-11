@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import PageHeader from "@/ui/components/header";
 import {
   Tabs,
@@ -20,6 +21,7 @@ import { LocationDetailView } from "@/components/locations/stock-report/location
 import { ComparisonView } from "@/components/locations/stock-report/comparison-view";
 
 export default function LocationStockReportPage() {
+  const t = useTranslations("settings.locations.stockReport");
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(
     null,
   );
@@ -45,8 +47,8 @@ export default function LocationStockReportPage() {
     <div className="space-y-8">
       {/* Header */}
       <PageHeader
-        title="Stock by Location"
-        subTitle="What each location holds, side by side."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       {/* Overall Stats */}
@@ -63,11 +65,11 @@ export default function LocationStockReportPage() {
         <TabsList>
           <TabsTrigger value="overview" className="gap-1.5">
             <MapPin className="h-3.5 w-3.5" />
-            Location Overview
+            {t("overviewTab")}
           </TabsTrigger>
           <TabsTrigger value="comparison" className="gap-1.5">
             <TrendingUp className="h-3.5 w-3.5" />
-            Stock Comparison
+            {t("comparisonTab")}
           </TabsTrigger>
         </TabsList>
 
@@ -84,9 +86,9 @@ export default function LocationStockReportPage() {
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
                 <MapPin className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold text-lg mb-1">No Locations Found</h3>
+              <h3 className="font-semibold text-lg mb-1">{t("noLocationsTitle")}</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
-                Add locations and inventory to see stock reports here.
+                {t("noLocationsDescription")}
               </p>
             </div>
           ) : (

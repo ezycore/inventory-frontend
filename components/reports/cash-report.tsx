@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { useCashReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
@@ -26,6 +28,9 @@ function calcChange(current: number, previous: number) {
 }
 
 export function CashReport() {
+  const t = useTranslations('reports.cash')
+  const tCommon = useTranslations('reports')
+  const tEmpty = useTranslations('common.empty')
   const { period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd, params } =
     useReportPeriod()
   const { data, isLoading } = useCashReport(params)
@@ -42,9 +47,9 @@ export function CashReport() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Cash Report</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Cash flow and account balances overview
+            {t('subtitle')}
           </p>
         </div>
       </div>
@@ -70,7 +75,7 @@ export function CashReport() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalBalance')}</CardTitle>
                 <Wallet className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -78,13 +83,13 @@ export function CashReport() {
                   {formatCurrency(data.summary.totalBalance)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Across {data.summary.accountCount} accounts
+                  {t('acrossAccounts', { count: data.summary.accountCount })}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalIncome')}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
@@ -98,14 +103,14 @@ export function CashReport() {
                     ) : (
                       <ArrowDown className="h-3 w-3 text-red-500" />
                     )}
-                    {incomeChange.value}% vs previous
+                    {tCommon('vsPrevious', { value: incomeChange.value })}
                   </p>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Expense</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalExpense')}</CardTitle>
                 <TrendingDown className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
@@ -119,14 +124,14 @@ export function CashReport() {
                     ) : (
                       <ArrowDown className="h-3 w-3 text-green-500" />
                     )}
-                    {expenseChange.value}% vs previous
+                    {tCommon('vsPrevious', { value: expenseChange.value })}
                   </p>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Net Cash Flow</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('netCashFlow')}</CardTitle>
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -138,7 +143,7 @@ export function CashReport() {
                   {formatCurrency(data.summary.netCashFlow)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {data.summary.incomeCount + data.summary.expenseCount} transactions
+                  {t('transactionsCount', { count: data.summary.incomeCount + data.summary.expenseCount })}
                 </p>
               </CardContent>
             </Card>
@@ -148,19 +153,19 @@ export function CashReport() {
           {data.accountBreakdown.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Account Breakdown</CardTitle>
+                <CardTitle>{t('accountBreakdown')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="py-2 text-left font-medium">Account</th>
-                        <th className="py-2 text-left font-medium">Type</th>
-                        <th className="py-2 text-right font-medium">Balance</th>
-                        <th className="py-2 text-right font-medium">Income</th>
-                        <th className="py-2 text-right font-medium">Expense</th>
-                        <th className="py-2 text-right font-medium">Transactions</th>
+                        <th className="py-2 text-left font-medium">{t('colAccount')}</th>
+                        <th className="py-2 text-left font-medium">{t('colType')}</th>
+                        <th className="py-2 text-right font-medium">{t('colBalance')}</th>
+                        <th className="py-2 text-right font-medium">{t('colIncome')}</th>
+                        <th className="py-2 text-right font-medium">{t('colExpense')}</th>
+                        <th className="py-2 text-right font-medium">{t('colTransactions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -191,13 +196,13 @@ export function CashReport() {
           {data.categoryBreakdown.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Transaction Categories</CardTitle>
+                <CardTitle>{t('transactionCategories')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-6 lg:grid-cols-2">
                   {/* Income categories */}
                   <div>
-                    <h3 className="text-sm font-semibold text-green-600 mb-3">Income</h3>
+                    <h3 className="text-sm font-semibold text-green-600 mb-3">{t('income')}</h3>
                     <div className="space-y-2">
                       {data.categoryBreakdown
                         .filter((c) => c.type === 'income')
@@ -214,7 +219,7 @@ export function CashReport() {
                   </div>
                   {/* Expense categories */}
                   <div>
-                    <h3 className="text-sm font-semibold text-red-600 mb-3">Expense</h3>
+                    <h3 className="text-sm font-semibold text-red-600 mb-3">{t('expense')}</h3>
                     <div className="space-y-2">
                       {data.categoryBreakdown
                         .filter((c) => c.type === 'expense')
@@ -235,7 +240,7 @@ export function CashReport() {
           )}
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">No data available</p>
+        <p className="text-sm text-muted-foreground">{tEmpty('noData')}</p>
       )}
     </div>
   )

@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { StatData } from "@/ui/components/StatsCard";
 import { CheckCircle2, Shield, UserCheck, Users } from "lucide-react";
+import type { Translator } from "@/i18n/config";
 
 export function formatRoleName(role: string): string {
   return role
@@ -10,7 +11,10 @@ export function formatRoleName(role: string): string {
     .join(" ");
 }
 
-export function getUserStats(stats: Record<string, any> | undefined): StatData[] {
+export function getUserStats(
+  stats: Record<string, any> | undefined,
+  t: Translator,
+): StatData[] {
   const byRole = stats?.byRole || {};
   const topRoles = Object.entries(byRole)
     .sort(([, a], [, b]) => Number(b) - Number(a))
@@ -18,34 +22,34 @@ export function getUserStats(stats: Record<string, any> | undefined): StatData[]
 
   return [
     {
-      label: "Total Users",
+      label: t("stats.total"),
       value: stats?.total || 0,
       icon: Users,
       variant: "primary",
-      description: "All registered users",
+      description: t("stats.totalDescription"),
     },
     {
-      label: "Active",
+      label: t("stats.active"),
       value: stats?.active || 0,
       icon: CheckCircle2,
       variant: "success",
-      description: "Currently active",
+      description: t("stats.activeDescription"),
     },
     {
-      label: topRoles[0]?.[0] ? formatRoleName(String(topRoles[0][0])) : "Top Role",
+      label: topRoles[0]?.[0] ? formatRoleName(String(topRoles[0][0])) : t("stats.topRole"),
       value: Number(topRoles[0]?.[1] || 0),
       icon: Shield,
       variant: "danger",
-      description: "Most assigned role",
+      description: t("stats.topRoleDescription"),
     },
     {
       label: topRoles[1]?.[0]
         ? formatRoleName(String(topRoles[1][0]))
-        : "Second Role",
+        : t("stats.secondRole"),
       value: Number(topRoles[1]?.[1] || 0),
       icon: UserCheck,
       variant: "info",
-      description: "Second most assigned role",
+      description: t("stats.secondRoleDescription"),
     },
   ];
 }

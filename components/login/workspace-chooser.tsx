@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import {
   getRootDomain,
   isValidOrganizationSlug,
@@ -42,6 +43,7 @@ export function WorkspaceChooser({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const t = useTranslations("auth.workspaceChooser");
   const [mode, setMode] = useState<"email" | "slug">("email");
   const [email, setEmail] = useState("");
   const [slug, setSlug] = useState("");
@@ -72,9 +74,7 @@ export function WorkspaceChooser({
       }
       setIsChecking(false);
       if (result.workspaces.length === 0) {
-        setError(
-          "No workspace found for this email. Check the address, or sign up below.",
-        );
+        setError(t("errors.noWorkspaceForEmail"));
       } else {
         setWorkspaces(result.workspaces);
       }
@@ -84,8 +84,8 @@ export function WorkspaceChooser({
     setIsChecking(false);
     setError(
       result.kind === "ratelimited"
-        ? "Too many attempts. Please try again in a few minutes."
-        : "Something went wrong. Please try again.",
+        ? t("errors.rateLimited")
+        : t("errors.generic"),
     );
   };
 
@@ -94,9 +94,7 @@ export function WorkspaceChooser({
     const normalized = slug.trim().toLowerCase();
 
     if (!isValidOrganizationSlug(normalized)) {
-      setError(
-        "Enter a valid workspace name (lowercase letters, numbers and hyphens).",
-      );
+      setError(t("errors.invalidSlug"));
       return;
     }
 
@@ -111,11 +109,11 @@ export function WorkspaceChooser({
 
     setIsChecking(false);
     if (result.kind === "notfound") {
-      setError("No workspace found with that name.");
+      setError(t("errors.workspaceNotFound"));
     } else if (result.kind === "unavailable") {
-      setError("This workspace is currently unavailable.");
+      setError(t("errors.workspaceUnavailable"));
     } else {
-      setError("Something went wrong. Please try again.");
+      setError(t("errors.generic"));
     }
   };
 
@@ -131,10 +129,9 @@ export function WorkspaceChooser({
         <LoginNotices />
         <Card>
           <CardHeader>
-            <CardTitle>Choose a workspace</CardTitle>
+            <CardTitle>{t("chooseTitle")}</CardTitle>
             <CardDescription>
-              {email} belongs to {workspaces.length} workspaces. Pick one to
-              continue to its sign-in page.
+              {t("chooseDescription", { email, count: workspaces.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -173,7 +170,7 @@ export function WorkspaceChooser({
               onClick={() => setWorkspaces(null)}
               disabled={isChecking}
             >
-              Use a different email
+              {t("useOtherEmail")}
             </Button>
           </CardContent>
         </Card>
@@ -186,11 +183,11 @@ export function WorkspaceChooser({
       <LoginNotices />
       <Card>
         <CardHeader>
-          <CardTitle>Find your workspace</CardTitle>
+          <CardTitle>{t("findTitle")}</CardTitle>
           <CardDescription>
             {mode === "email"
-              ? "Enter your email and we'll take you to your workspace sign-in page."
-              : "Enter your workspace name to continue to its sign-in page."}
+              ? t("findByEmailDescription")
+              : t("findBySlugDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -198,7 +195,7 @@ export function WorkspaceChooser({
             <div className="flex flex-col gap-6">
               {mode === "email" ? (
                 <div className="grid gap-3">
-                  <Label htmlFor="workspace-email">Email</Label>
+                  <Label htmlFor="workspace-email">{t("emailLabel")}</Label>
                   <Input
                     id="workspace-email"
                     type="email"
@@ -211,12 +208,12 @@ export function WorkspaceChooser({
                 </div>
               ) : (
                 <div className="grid gap-3">
-                  <Label htmlFor="workspace">Workspace</Label>
+                  <Label htmlFor="workspace">{t("workspaceLabel")}</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       id="workspace"
                       type="text"
-                      placeholder="your-workspace"
+                      placeholder={t("workspacePlaceholder")}
                       value={slug}
                       onChange={(e) => setSlug(e.target.value)}
                       autoFocus
@@ -239,7 +236,7 @@ export function WorkspaceChooser({
 
               <Button type="submit" className="w-full" disabled={isChecking}>
                 {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isChecking ? "Checking..." : "Continue"}
+                {isChecking ? t("checking") : t("continue")}
               </Button>
             </div>
 
@@ -250,7 +247,7 @@ export function WorkspaceChooser({
                   className="text-muted-foreground underline-offset-4 hover:underline"
                   onClick={() => switchMode("slug")}
                 >
-                  Know your workspace name? Enter it instead
+                  {t("knowWorkspaceName")}
                 </button>
               ) : (
                 <button
@@ -258,15 +255,15 @@ export function WorkspaceChooser({
                   className="text-muted-foreground underline-offset-4 hover:underline"
                   onClick={() => switchMode("email")}
                 >
-                  Forgot your workspace name? Find it by email
+                  {t("forgotWorkspaceName")}
                 </button>
               )}
             </div>
 
             <div className="mt-2 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              {t("noAccount")}{" "}
               <Link href={signupUrl()} className="underline underline-offset-4">
-                Sign up
+                {t("signUp")}
               </Link>
             </div>
           </form>

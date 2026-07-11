@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Package, Eye, Pencil, Trash2, MoreVertical } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
@@ -23,8 +25,9 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardProps) {
+  const t = useTranslations("products.products");
   const thumbnailUrl = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
-  const categoryName = product.category?.name || "Uncategorized";
+  const categoryName = product.category?.name || t("columns.uncategorized");
   const brandName = product.brand?.name;
   const price = product.price;
   const productType = product.productType;
@@ -68,13 +71,13 @@ export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardPr
               {onView && (
                 <DropdownMenuItem onClick={onView}>
                   <Eye className="h-4 w-4 mr-2" />
-                  View Details
+                  {t("card.viewDetails")}
                 </DropdownMenuItem>
               )}
               {onEdit && (
                 <DropdownMenuItem onClick={onEdit}>
                   <Pencil className="h-4 w-4 mr-2" />
-                  Edit
+                  {t("card.edit")}
                 </DropdownMenuItem>
               )}
               {onDelete && (
@@ -85,7 +88,7 @@ export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardPr
                     className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    {t("card.delete")}
                   </DropdownMenuItem>
                 </>
               )}
@@ -135,7 +138,7 @@ export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardPr
               </span>
             ) : (
               <span className="text-sm text-muted-foreground italic">
-                No price
+                {t("card.noPrice")}
               </span>
             )}
           </div>

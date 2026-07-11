@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Layers } from "lucide-react";
 import { Button } from "@/ui/components/button";
 
@@ -18,14 +20,15 @@ export default function VariantEmptyState({
   onMakeVariable,
   disabled,
 }: VariantEmptyStateProps) {
+  const t = useTranslations("products.products.variantEmptyState");
   return (
     <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-2 text-sm text-muted-foreground">
         <Layers className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
-          This product is set as <span className="font-medium text-foreground">Single</span>.
-          Use variants when the same product comes in different sizes, colors,
-          strengths, etc.
+          {t.rich("message", {
+            strong: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+          })}
         </p>
       </div>
       <Button
@@ -36,7 +39,7 @@ export default function VariantEmptyState({
         onClick={() => onMakeVariable?.()}
         className="shrink-0"
       >
-        Make variable
+        {t("makeVariable")}
       </Button>
     </div>
   );

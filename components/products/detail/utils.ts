@@ -50,14 +50,3 @@ export function getQuantityColor(qty: number): string {
   if (qty >= 20) return 'bg-amber-100 text-amber-700'
   return 'bg-red-100 text-red-700'
 }
-
-/** Human label for a stock-movement reason. */
-export const MOVEMENT_REASON_LABEL: Record<string, string> = {
-  opening_stock: 'Opening Stock',
-  purchase: 'Purchase',
-  adjustment: 'Adjustment',
-  sale: 'Sale',
-  return: 'Return',
-  transfer: 'Transfer',
-  expiry: 'Expiry',
-}

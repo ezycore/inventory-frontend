@@ -31,7 +31,8 @@ interface FilterBarProps {
  * state — editing either updates the same source. Selects apply live on change.
  */
 export function FilterBar({ config, className }: FilterBarProps) {
-  const fields = config.fields ?? [];
+  // Memoized so inlineEligible below doesn't recompute on every render.
+  const fields = useMemo(() => config.fields ?? [], [config.fields]);
   const state = useFilters(
     fields,
     config.onApply,

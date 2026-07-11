@@ -4,13 +4,14 @@ import { ArrowRight, Package, Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '@/ui/components/badge'
 import { Button } from '@/ui/components/button'
 import type { AdjustmentItem } from '@/services/stores/stock-adjustment-store'
+import type { Translator } from '@/i18n/config'
 import { formatCurrency } from '@/lib/currency'
 import { fromBaseUnit, formatQuantity } from '@/utils/uom-conversion'
 
 // Compute quantity change for display
-const getQuantityChange = (current: number, newQty: number) => {
+const getQuantityChange = (current: number, newQty: number, noChangeLabel: string) => {
   const diff = newQty - current
-  if (diff === 0) return { text: 'No change', className: 'text-muted-foreground' }
+  if (diff === 0) return { text: noChangeLabel, className: 'text-muted-foreground' }
   if (diff > 0) return { text: `+${diff}`, className: 'text-green-600' }
   return { text: `${diff}`, className: 'text-red-500' }
 }
@@ -19,17 +20,20 @@ interface AdjustmentColumnOptions {
   editingId: string | null
   onEdit: (item: AdjustmentItem) => void
   onRemove: (id: string) => void
+  /** Bound to the `inventory` namespace. */
+  t: Translator
 }
 
 export function getAdjustmentColumns({
   editingId,
   onEdit,
   onRemove,
+  t,
 }: AdjustmentColumnOptions): ColumnDef<AdjustmentItem>[] {
   return [
     {
       accessorKey: 'product_name',
-      header: 'Product',
+      header: t('shared.product'),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-muted-foreground" />
@@ -44,7 +48,7 @@ export function getAdjustmentColumns({
     },
     {
       accessorKey: 'currentQuantity',
-      header: 'Current',
+      header: t('adjust.colCurrent'),
       cell: ({ row }) => {
         const item = row.original
         return (
@@ -68,7 +72,7 @@ export function getAdjustmentColumns({
     },
     {
       accessorKey: 'newQuantity',
-      header: 'New Qty',
+      header: t('adjust.colNewQty'),
       cell: ({ row }) => {
         const item = row.original
         return (
@@ -87,10 +91,10 @@ export function getAdjustmentColumns({
     },
     {
       id: 'change',
-      header: 'Change',
+      header: t('adjust.colChange'),
       cell: ({ row }) => {
         const item = row.original
-        const change = getQuantityChange(item.currentQuantity, item.newQuantity)
+        const change = getQuantityChange(item.currentQuantity, item.newQuantity, t('adjust.noChange'))
         return (
           <div>
             <Badge variant="outline" className={change.className}>
@@ -108,7 +112,7 @@ export function getAdjustmentColumns({
     },
     {
       accessorKey: 'notes',
-      header: 'Notes',
+      header: t('shared.notes'),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground max-w-[200px] truncate block">
           {row.original.notes || '-'}

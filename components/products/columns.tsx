@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { ColumnDef } from '@tanstack/react-table'
 import { Package } from 'lucide-react'
 import { AvatarCell } from '@/ui/components/dataTable/cells'
@@ -5,10 +6,11 @@ import { StatusBadge } from '@/ui/components/status-badge'
 import { ProductStatus } from '@/types'
 import { Badge } from '@/ui/components/badge'
 import Link from 'next/link'
+import type { Translator } from '@/i18n/config'
 
-export const productColumns: ColumnDef<any>[] = [
+export const getProductColumns = (t: Translator): ColumnDef<any>[] => [
   {
-    header: 'Name',
+    header: t('columns.name'),
     accessorKey: 'name',
     cell: ({ row }) => (
       <Link href={`/products/${row.original.slug}`} className="block hover:underline">
@@ -22,7 +24,7 @@ export const productColumns: ColumnDef<any>[] = [
     ),
   },
   {
-    header: 'Barcode',
+    header: t('columns.barcode'),
     accessorKey: 'barcode',
     cell: ({ row }) => {
       const code = row.original.barcode as string | undefined
@@ -30,7 +32,7 @@ export const productColumns: ColumnDef<any>[] = [
       if (!code) {
         return (
           <span className="text-xs text-muted-foreground">
-            {productType === 'variable' ? 'per-variant' : '—'}
+            {productType === 'variable' ? t('columns.barcodePerVariant') : '—'}
           </span>
         )
       }
@@ -42,19 +44,19 @@ export const productColumns: ColumnDef<any>[] = [
     },
   },
   {
-    header: 'Category',
+    header: t('columns.category'),
     accessorKey: 'category',
     cell: ({ row }) => {
       const category = row.getValue("category") as any
       return (
         <span className="text-muted-foreground text-sm">
-          {category?.name || 'Uncategorized'}
+          {category?.name || t('columns.uncategorized')}
         </span>
       )
     },
   },
   {
-    header: 'Brand',
+    header: t('columns.brand'),
     accessorKey: 'brand',
     cell: ({ row }) => {
       const brand = row.getValue("brand") as any
@@ -66,7 +68,7 @@ export const productColumns: ColumnDef<any>[] = [
     },
   },
   {
-    header: 'Type',
+    header: t('columns.type'),
     accessorKey: 'productType',
     cell: ({ row }) => {
       const type = row.getValue("productType") as string
@@ -78,7 +80,7 @@ export const productColumns: ColumnDef<any>[] = [
     },
   },
   {
-    header: 'Price',
+    header: t('columns.price'),
     accessorKey: 'price',
     cell: ({ row }) => {
       const price = row.getValue("price") as number
@@ -97,7 +99,7 @@ export const productColumns: ColumnDef<any>[] = [
     }
   },
   {
-    header: 'Status',
+    header: t('columns.status'),
     accessorKey: 'status',
     cell: ({ row }) => <StatusBadge status={row.original.status} />
   },

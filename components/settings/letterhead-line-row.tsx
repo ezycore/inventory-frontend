@@ -1,7 +1,9 @@
+"use client";
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
-import { HEADER_LINE_META, type ReceiptHeaderLine } from "@/types/receipt";
+import { getHeaderLineMeta, type ReceiptHeaderLine } from "@/types/receipt";
 import type { ReceiptSettingsActions } from "@/hooks";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
@@ -25,7 +27,9 @@ export default function LetterheadLineRow({
   isLast,
   actions,
 }: LetterheadLineRowProps) {
-  const meta = HEADER_LINE_META[line.source];
+  const t = useTranslations("settings.receipt");
+  const tLine = useTranslations("settings.receipt.lineRow");
+  const meta = getHeaderLineMeta(t)[line.source];
 
   return (
     <div className="flex items-start gap-3 rounded-md border bg-card p-3">
@@ -37,7 +41,7 @@ export default function LetterheadLineRow({
           className="h-5 w-5"
           disabled={isFirst}
           onClick={() => actions.moveLine(line.id, -1)}
-          aria-label="Move up"
+          aria-label={tLine("moveUp")}
         >
           <ChevronUp className="h-3.5 w-3.5" />
         </Button>
@@ -48,7 +52,7 @@ export default function LetterheadLineRow({
           className="h-5 w-5"
           disabled={isLast}
           onClick={() => actions.moveLine(line.id, 1)}
-          aria-label="Move down"
+          aria-label={tLine("moveDown")}
         >
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
@@ -65,19 +69,19 @@ export default function LetterheadLineRow({
             <Input
               value={line.label ?? ""}
               onChange={(e) => actions.setLineLabel(line.id, e.target.value)}
-              placeholder="Label (optional)"
+              placeholder={tLine("labelPlaceholderOptional")}
             />
             <Input
               value={line.text ?? ""}
               onChange={(e) => actions.setLineText(line.id, e.target.value)}
-              placeholder="e.g. Trade Licence: 12345"
+              placeholder={tLine("labelPlaceholderCustomText")}
             />
           </div>
         ) : meta.editableLabel ? (
           <Input
             value={line.label ?? ""}
             onChange={(e) => actions.setLineLabel(line.id, e.target.value)}
-            placeholder="Label shown before the value"
+            placeholder={tLine("labelPlaceholderGeneric")}
           />
         ) : null}
       </div>
@@ -86,7 +90,7 @@ export default function LetterheadLineRow({
         <Switch
           checked={line.visible}
           onCheckedChange={() => actions.toggleLine(line.id)}
-          aria-label={line.visible ? "Hide line" : "Show line"}
+          aria-label={line.visible ? tLine("hideLine") : tLine("showLine")}
         />
         {meta.custom ? (
           <Button
@@ -95,7 +99,7 @@ export default function LetterheadLineRow({
             size="icon"
             className="h-7 w-7 text-muted-foreground hover:text-destructive"
             onClick={() => actions.removeLine(line.id)}
-            aria-label="Remove line"
+            aria-label={tLine("removeLine")}
           >
             <Trash2 className="h-4 w-4" />
           </Button>

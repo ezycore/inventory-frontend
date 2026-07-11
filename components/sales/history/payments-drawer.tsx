@@ -2,7 +2,9 @@
 // coding-standard: maintained
 
 import { CreditCard, ReceiptText } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRef } from 'react';
+import type { AppLocale } from '@/i18n/config';
 import { useAuthStore } from '@/services/stores';
 import { PrintMenu } from '@/components/shared/print/print-menu';
 import { SheetHeaderBar } from '@/components/shared/print/sheet-header-bar';
@@ -13,7 +15,6 @@ import {
 } from '@/components/shared/detail-sheet';
 import {
   orgToPrintHeader,
-  printDeliveryNote,
   printSaleInvoice,
   resolveDefaultPaper,
 } from '@/utils/print-documents';
@@ -99,6 +100,10 @@ export function PaymentsDrawer({
   isLoadingTransactions,
   onNavigateToSale,
 }: PaymentsDrawerProps) {
+  const t = useTranslations('sales.history.drawer');
+  const tHistory = useTranslations('sales.history');
+  const tPrintDoc = useTranslations('common.printDoc');
+  const locale = useLocale() as AppLocale;
   const internalRef = useRef<HTMLDivElement>(null);
   const scrollRef = externalRef || internalRef;
   const { user } = useAuthStore();
@@ -123,9 +128,9 @@ export function PaymentsDrawer({
   const showReturnsFold = isLoadingReturns || returnsCount > 0;
   const showTransactionsFold = !!isLoadingTransactions || transactionsCount > 0;
   const emptySections = [
-    ...(showPaymentsFold ? [] : ['Payments']),
-    ...(showReturnsFold ? [] : ['Returns']),
-    ...(showTransactionsFold ? [] : ['Transactions']),
+    ...(showPaymentsFold ? [] : [t('payments')]),
+    ...(showReturnsFold ? [] : [t('returns')]),
+    ...(showTransactionsFold ? [] : [t('transactions')]),
   ];
 
   return (
@@ -138,24 +143,15 @@ export function PaymentsDrawer({
                 <div className="flex flex-wrap items-center gap-2">
                   <PrintMenu
                     appearance="solid"
-                    a4Label="Invoice"
+                    a4Label={t('invoice')}
                     defaultPaper={resolveDefaultPaper(user?.organization)}
                     onPrint={(paper) =>
                       printSaleInvoice(sale, {
                         paper,
                         currency: formatCurrency,
                         header: orgToPrintHeader(user?.organization),
-                      })
-                    }
-                  />
-                  <PrintMenu
-                    a4Label="Delivery Note"
-                    defaultPaper={resolveDefaultPaper(user?.organization)}
-                    onPrint={(paper) =>
-                      printDeliveryNote(sale, {
-                        paper,
-                        currency: formatCurrency,
-                        header: orgToPrintHeader(user?.organization),
+                        t: tPrintDoc,
+                        locale,
                       })
                     }
                   />
@@ -166,19 +162,17 @@ export function PaymentsDrawer({
           >
             <SheetTitle className="flex flex-wrap items-center gap-2">
               <ReceiptText className="h-5 w-5" />
-              {mode === 'payment' ? 'Record Payment' : 'Sale Summary'}
+              {mode === 'payment' ? t('recordPayment') : t('saleSummary')}
               {sale ? ` — ${sale.invoiceNumber}` : ''}
               {sale && <CopyField value={sale.invoiceNumber} showValue={false} />}
               {sale && (
                 <Badge variant={statusConfig[sale.status]?.variant ?? 'outline'}>
-                  {statusConfig[sale.status]?.label ?? sale.status}
+                  {tHistory(`filters.${sale.status}`)}
                 </Badge>
               )}
             </SheetTitle>
             <SheetDescription>
-              {mode === 'payment'
-                ? 'Review the sale and submit a payment'
-                : 'Full sale details and payment history'}
+              {mode === 'payment' ? t('reviewAndPay') : t('fullDetails')}
             </SheetDescription>
           </SheetHeaderBar>
         </SheetHeader>
@@ -214,13 +208,13 @@ export function PaymentsDrawer({
 
               {!isDraft && (
                 <div className="space-y-2">
-                  <div className="text-sm font-medium">History</div>
+                  <div className="text-sm font-medium">{t('history')}</div>
 
                   {showPaymentsFold && (
                     <SectionFold
-                      title="Payments"
+                      title={t('payments')}
                       count={isLoadingPayments ? '…' : payments.length}
-                      peek={`${formatCurrency(sale.paidAmount)} received`}
+                      peek={t('received', { amount: formatCurrency(sale.paidAmount) })}
                       defaultOpen
                       action={
                         showAddPayment ? (
@@ -233,7 +227,7 @@ export function PaymentsDrawer({
                             }}
                           >
                             <CreditCard className="mr-2 h-4 w-4" />
-                            Add Payment
+                            {t('addPayment')}
                           </Button>
                         ) : undefined
                       }
@@ -254,7 +248,7 @@ export function PaymentsDrawer({
 
                   {showReturnsFold && (
                     <SectionFold
-                      title="Returns"
+                      title={t('returns')}
                       count={isLoadingReturns ? '…' : returnsCount}
                       peek={
                         refundedTotal > 0
@@ -273,7 +267,7 @@ export function PaymentsDrawer({
 
                   {showTransactionsFold && (
                     <SectionFold
-                      title="Transactions"
+                      title={t('transactions')}
                       count={isLoadingTransactions ? '…' : transactionsCount}
                     >
                       <TransactionsTimeline

@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { differenceInCalendarDays } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
@@ -9,6 +10,7 @@ import { Button } from '@ui/components/button'
 import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { CalendarClock, ChevronDown, ChevronUp } from 'lucide-react'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
+import type { Translator } from '@/i18n/config'
 import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 import { formatDate } from '@/components/products/detail/utils'
 
@@ -21,17 +23,19 @@ interface InventoryBatchesProps {
 // let the user expand the rest in place — the full set is already loaded.
 const BATCH_PREVIEW_COUNT = 5
 
-/** Expiry badge: expired / near (≤30d) / ok. */
-function expiryBadge(expiryDate?: string | null) {
+/** Expiry badge: expired / near (≤30d) / ok. `t` is bound to `inventory.detail`. */
+function expiryBadge(expiryDate: string | null | undefined, t: Translator) {
   if (!expiryDate) return <span className="text-muted-foreground">—</span>
   const days = differenceInCalendarDays(new Date(expiryDate), new Date())
-  if (days < 0) return <Badge variant="destructive">Expired</Badge>
+  if (days < 0) return <Badge variant="destructive">{t('expired')}</Badge>
   if (days <= 30)
-    return <Badge className="bg-amber-100 text-amber-700">{days}d left</Badge>
-  return <Badge variant="secondary">{days}d left</Badge>
+    return <Badge className="bg-amber-100 text-amber-700">{t('daysLeft', { days })}</Badge>
+  return <Badge variant="secondary">{t('daysLeft', { days })}</Badge>
 }
 
 export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesProps) {
+  const t = useTranslations('inventory.detail')
+  const tStatus = useTranslations('common.status')
   const canViewCosts = useHasPermission(PERMISSIONS.costsView)
   const [expanded, setExpanded] = useState(false)
   const hasMore = batches.length > BATCH_PREVIEW_COUNT
@@ -40,13 +44,13 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
   const columns: SimpleColumn<BatchRow>[] = [
     {
       key: 'batch',
-      header: 'Batch',
+      header: t('colBatch'),
       cellClassName: 'font-medium',
       cell: (b) => b.batchNumber || '—',
     },
     {
       key: 'onHand',
-      header: 'On hand',
+      header: t('colOnHand'),
       align: 'right',
       cell: (b) => b.remainingQuantity.toLocaleString(),
     },
@@ -54,7 +58,7 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       ? [
           {
             key: 'cost',
-            header: 'Cost',
+            header: t('colCost'),
             align: 'right',
             cellClassName: 'text-muted-foreground',
             cell: (b) => (b.costPrice != null ? formatCurrency(b.costPrice) : '—'),
@@ -63,15 +67,15 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       : []),
     {
       key: 'expiry',
-      header: 'Expiry',
+      header: t('colExpiry'),
       cellClassName: 'text-muted-foreground',
       cell: (b) => formatDate(b.expiryDate ?? undefined),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: tStatus('label'),
       align: 'right',
-      cell: (b) => expiryBadge(b.expiryDate),
+      cell: (b) => expiryBadge(b.expiryDate, t),
     },
   ]
 
@@ -80,7 +84,7 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarClock className="h-4 w-4 text-amber-600" />
-          Batches ({batches.length})
+          {t('batchesTitle', { count: batches.length })}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -91,12 +95,12 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
             <Button variant="ghost" size="sm" onClick={() => setExpanded((v) => !v)}>
               {expanded ? (
                 <>
-                  Show less
+                  {t('showLess')}
                   <ChevronUp className="ml-1 h-3.5 w-3.5" />
                 </>
               ) : (
                 <>
-                  Show all {batches.length}
+                  {t('showAll', { count: batches.length })}
                   <ChevronDown className="ml-1 h-3.5 w-3.5" />
                 </>
               )}

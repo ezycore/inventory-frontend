@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Lock, Search, ShieldCheck } from "lucide-react";
 import { Badge } from "@/ui/components/badge";
 import { CopyField } from "@/ui/components/copy";
@@ -21,6 +22,7 @@ import {
   groupPermissions,
   PermissionGroupCard,
 } from "@/components/shared/permissions";
+import type { Translator } from "@/i18n/config";
 import type { OrganizationRole } from "@/types/users";
 
 interface RoleDetailsSheetProps {
@@ -30,11 +32,11 @@ interface RoleDetailsSheetProps {
 }
 
 /** Matches the full key, the formatted action, or the category display name. */
-function matchesQuery(permission: string, query: string) {
+function matchesQuery(permission: string, query: string, tCategories: Translator) {
   return (
     permission.toLowerCase().includes(query) ||
     formatPermission(permission).toLowerCase().includes(query) ||
-    getCategoryConfig(permission.split(".")[0]).name.toLowerCase().includes(query)
+    getCategoryConfig(permission.split(".")[0], tCategories).name.toLowerCase().includes(query)
   );
 }
 
@@ -44,6 +46,9 @@ export function RoleDetailsSheet({
   open,
   onOpenChange,
 }: RoleDetailsSheetProps) {
+  const t = useTranslations("settings.roles.details");
+  const tTable = useTranslations("settings.roles.table");
+  const tPermissions = useTranslations("settings.permissions");
   const [query, setQuery] = useState("");
 
   const handleOpenChange = (next: boolean) => {
@@ -56,7 +61,7 @@ export function RoleDetailsSheet({
 
   const trimmedQuery = query.trim().toLowerCase();
   const filtered = trimmedQuery
-    ? permissions.filter((permission) => matchesQuery(permission, trimmedQuery))
+    ? permissions.filter((permission) => matchesQuery(permission, trimmedQuery, tPermissions))
     : permissions;
   const groups = groupPermissions(filtered);
 
@@ -69,22 +74,22 @@ export function RoleDetailsSheet({
             {role?.name}
             {role && (
               <Badge variant={role.source === "system" ? "secondary" : "outline"}>
-                {role.source === "system" ? "System" : "Mission Control"}
+                {role.source === "system" ? tTable("system") : tTable("missionControl")}
               </Badge>
             )}
             {role?.locked && (
               <Badge variant="outline" className="gap-1">
                 <Lock className="h-3 w-3" />
-                Locked
+                {t("locked")}
               </Badge>
             )}
           </SheetTitle>
           <SheetDescription>
-            {role?.description || "No description provided."}
+            {role?.description || t("noDescription")}
           </SheetDescription>
           {role && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              Slug: <span className="font-mono text-foreground">{role.slug}</span>
+              {t("slug")}: <span className="font-mono text-foreground">{role.slug}</span>
               <CopyField value={role.slug} showValue={false} />
             </div>
           )}
@@ -93,11 +98,11 @@ export function RoleDetailsSheet({
         {role && (
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             <StatStrip>
-              <StatTile label="Permissions" value={permissions.length} />
-              <StatTile label="Categories" value={totalCategories} />
+              <StatTile label={t("permissionsStat")} value={permissions.length} />
+              <StatTile label={t("categoriesStat")} value={totalCategories} />
               <StatTile
-                label="Assignable"
-                value={role.assignable ? "Yes" : "No"}
+                label={t("assignableStat")}
+                value={role.assignable ? t("yes") : t("no")}
                 valueClassName={
                   role.assignable ? "text-green-600" : "text-muted-foreground"
                 }
@@ -108,8 +113,8 @@ export function RoleDetailsSheet({
               <EmptyState
                 compact
                 icon={Lock}
-                title="No permissions"
-                description="This role has no permissions assigned."
+                title={t("noPermissionsTitle")}
+                description={t("noPermissionsDescription")}
               />
             ) : (
               <>
@@ -118,14 +123,14 @@ export function RoleDetailsSheet({
                   <Input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Filter permissions…"
+                    placeholder={t("filterPlaceholder")}
                     className="pl-8"
                   />
                 </div>
 
                 {Object.keys(groups).length === 0 ? (
                   <p className="py-4 text-center text-sm text-muted-foreground">
-                    No permissions match &quot;{query.trim()}&quot;.
+                    {t("noMatch", { query: query.trim() })}
                   </p>
                 ) : (
                   <div className="space-y-3">

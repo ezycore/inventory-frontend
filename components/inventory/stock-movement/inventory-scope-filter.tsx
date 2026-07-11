@@ -2,6 +2,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { inventoryApi } from "@/services/api";
 import { FuseAdvancedSelect } from "@ui/components/fuse-advanced-select";
@@ -27,13 +28,15 @@ interface InventoryScopeFilterProps {
  * detail page) by matching a row on productId + variantId.
  */
 export function InventoryScopeFilter({ value, onChange }: InventoryScopeFilterProps) {
+  const t = useTranslations("inventory.movements");
   const { data } = useQuery({
     queryKey: ["inventory", "scope-options"],
     queryFn: () => inventoryApi.getAll({ limit: 1000 }),
     select: (res) => res.data?.items ?? [],
     staleTime: 5 * 60 * 1000,
   });
-  const rows: any[] = data ?? [];
+  // Memoized so the derived useMemos below don't recompute on every render.
+  const rows: any[] = useMemo(() => data ?? [], [data]);
 
   const { options, byId } = useMemo(() => {
     const byId = new Map<string, MovementScope>();
@@ -60,7 +63,7 @@ export function InventoryScopeFilter({ value, onChange }: InventoryScopeFilterPr
         <Package className="h-4 w-4 shrink-0 text-muted-foreground" />
         <FuseAdvancedSelect
           className="w-full"
-          placeholder="Filter by product / inventory…"
+          placeholder={t("scopePlaceholder")}
           options={options}
           value={selectedId}
           onValueChange={(v) => {

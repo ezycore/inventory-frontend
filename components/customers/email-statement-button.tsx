@@ -3,6 +3,7 @@
 
 import { Mail } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/ui/components/button';
 import { Input } from '@/ui/components/input';
 import { Label } from '@/ui/components/label';
@@ -27,6 +28,7 @@ interface EmailStatementButtonProps {
  * email on file (it rejects with a clear error when there is none).
  */
 export function EmailStatementButton({ customer, totalDue }: EmailStatementButtonProps) {
+  const t = useTranslations('customers.emailStatement');
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const sendStatement = useEmailCustomerStatement();
@@ -62,16 +64,16 @@ export function EmailStatementButton({ customer, totalDue }: EmailStatementButto
           className="whitespace-nowrap"
         >
           <Mail className="h-4 w-4" />
-          Email
+          {t('button')}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 space-y-3">
         <div className="space-y-1">
-          <Label htmlFor="statement-email">Email statement to</Label>
+          <Label htmlFor="statement-email">{t('label')}</Label>
           <Input
             id="statement-email"
             type="email"
-            placeholder="customer@example.com"
+            placeholder={t('placeholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => {
@@ -80,7 +82,7 @@ export function EmailStatementButton({ customer, totalDue }: EmailStatementButto
           />
           {!knownEmail && (
             <p className="text-xs text-muted-foreground">
-              Leave empty to use the customer&apos;s email on file.
+              {t('emptyHint')}
             </p>
           )}
         </div>
@@ -91,7 +93,7 @@ export function EmailStatementButton({ customer, totalDue }: EmailStatementButto
           onClick={handleSend}
           disabled={sendStatement.isPending}
         >
-          {sendStatement.isPending ? 'Sending…' : 'Send statement'}
+          {sendStatement.isPending ? t('sending') : t('send')}
         </Button>
       </PopoverContent>
     </Popover>

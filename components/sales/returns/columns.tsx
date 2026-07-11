@@ -1,5 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
+import type { Translator } from '@/i18n/config';
 import { Badge } from '@/ui/components/badge';
 import { Button } from '@/ui/components/button';
 import { DateCell } from '@/ui/components/dataTable/cells/date-cell';
@@ -8,7 +9,7 @@ import { CopyField } from '@/ui/components/copy';
 
 // ── Status badge helper ─────────────────────────────────────────────
 
-export function getStatusBadge(status: string) {
+export function getStatusBadge(status: string, t?: Translator) {
   switch (status) {
     case 'completed':
       return (
@@ -24,7 +25,7 @@ export function getStatusBadge(status: string) {
       );
     case 'cancelled':
       return (
-        <Badge variant="destructive">Cancelled</Badge>
+        <Badge variant="destructive">{t ? t('columns.cancelled') : 'Cancelled'}</Badge>
       );
     default:
       return <Badge variant="outline">{status}</Badge>;
@@ -36,12 +37,14 @@ export function getStatusBadge(status: string) {
 export function getReturnsColumns(
   formatCurrency: (n: number) => string,
   _isAccountsEnabled: boolean,
-  onViewDetails?: (ret: SalesReturn) => void,
+  onViewDetails: ((ret: SalesReturn) => void) | undefined,
+  /** Caller's `t` bound to "sales.returns" (docs/I18N.md). */
+  t: Translator,
 ): ColumnDef<SalesReturn>[] {
   return [
     {
       accessorKey: 'returnNumber',
-      header: 'Return ID',
+      header: t('columns.returnId'),
       cell: ({ row }) => (
         <span className="font-mono text-sm text-primary font-medium">
           <CopyField value={row.original.returnNumber} />
@@ -50,12 +53,12 @@ export function getReturnsColumns(
     },
     {
       accessorKey: 'createdAt',
-      header: 'Date',
+      header: t('columns.date'),
       cell: ({ row }) => <DateCell value={row.original.createdAt} />,
     },
     {
       accessorKey: 'invoiceNumber',
-      header: 'Invoice',
+      header: t('columns.invoice'),
       cell: ({ row }) => {
         const { saleId, invoiceNumber } = row.original;
         const display =
@@ -71,7 +74,7 @@ export function getReturnsColumns(
     },
     {
       id: 'customer',
-      header: 'Customer',
+      header: t('columns.customer'),
       cell: ({ row }) => {
         // customerId can be a string ID or a populated object { _id, name }
         const cid = row.original.customerId as unknown;
@@ -84,7 +87,7 @@ export function getReturnsColumns(
     },
     {
       accessorKey: 'items',
-      header: 'Items',
+      header: t('columns.items'),
       cell: ({ row }) => (
         <span className="text-sm font-medium text-center">
           {row.original.items?.length ?? 0}
@@ -93,7 +96,7 @@ export function getReturnsColumns(
     },
     {
       accessorKey: 'totalRefundAmount',
-      header: 'Amount',
+      header: t('columns.amount'),
       cell: ({ row }) => (
         <span className="font-medium">
           {formatCurrency(row.original.totalRefundAmount ?? 0)}
@@ -102,7 +105,7 @@ export function getReturnsColumns(
     },
     {
       accessorKey: 'reason',
-      header: 'Reason',
+      header: t('columns.reason'),
       cell: ({ row }) => (
         <span className="text-sm capitalize">
           {row.original.reason?.replace(/_/g, ' ')}
@@ -111,8 +114,8 @@ export function getReturnsColumns(
     },
     {
       accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => getStatusBadge(row.original.status),
+      header: t('columns.status'),
+      cell: ({ row }) => getStatusBadge(row.original.status, t),
     },
     ...(onViewDetails
       ? [
@@ -124,7 +127,7 @@ export function getReturnsColumns(
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0"
-                title="View Details"
+                title={t('columns.viewDetails')}
                 onClick={() => onViewDetails(row.original)}
               >
                 <Eye className="h-4 w-4" />
