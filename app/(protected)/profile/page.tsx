@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import {
   PasswordChangeTab,
   PermissionsTab,
@@ -11,52 +12,55 @@ import {
 import { ScrollArea, ScrollBar } from "@/ui/components/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { cn } from "@/ui/lib/utils";
+import type { Translator } from "@/i18n/config";
 import { KeyRound, Lock, Shield, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
 
-const tabItems = [
+const getTabItems = (t: Translator) => [
   {
     value: "profile",
-    title: "Profile",
-    shortTitle: "Profile",
-    description: "Update your personal information",
+    title: t("tabs.profile"),
+    shortTitle: t("tabs.profile"),
+    description: t("tabs.profileDescription"),
     icon: User,
     content: <ProfileInfoTab />,
   },
   {
     value: "password",
-    title: "Password",
-    shortTitle: "Password",
-    description: "Change your account password",
+    title: t("tabs.password"),
+    shortTitle: t("tabs.password"),
+    description: t("tabs.passwordDescription"),
     icon: Lock,
     content: <PasswordChangeTab />,
   },
   {
     value: "2fa",
-    title: "Two-Factor Auth",
-    shortTitle: "2FA",
-    description: "Enhance account security",
+    title: t("tabs.twoFactor"),
+    shortTitle: t("tabs.twoFactorShort"),
+    description: t("tabs.twoFactorDescription"),
     icon: KeyRound,
     content: <TwoFactorTab />,
   },
   {
     value: "permissions",
-    title: "Permissions",
-    shortTitle: "Permissions",
-    description: "View your access rights",
+    title: t("tabs.permissions"),
+    shortTitle: t("tabs.permissions"),
+    description: t("tabs.permissionsDescription"),
     icon: Shield,
     content: <PermissionsTab />,
   },
 ];
 
-const validTabValues = tabItems.map((tab) => tab.value);
+const validTabValues = ["profile", "password", "2fa", "permissions"];
 
 // Organization admin moved to Settings → Organization; old profile hashes
 // should land there instead of dead-ending.
 const legacyOrgHashes = ["organization", "transfer"];
 
 export default function ProfilePage() {
+  const t = useTranslations("settings.profile");
+  const tabItems = getTabItems(t);
   const router = useRouter();
 
   // Always start with "profile" — consistent between server render and the

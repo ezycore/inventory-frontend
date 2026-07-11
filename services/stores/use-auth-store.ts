@@ -5,6 +5,7 @@ import {
   TaxSettings,
 } from "@/types";
 import type { ReceiptSettings } from "@/types/receipt";
+import type { AppLocale } from "@/i18n/config";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
@@ -18,6 +19,8 @@ export interface User {
   lastName: string;
   phone?: string;
   avatar?: Image; // Single image object, not array
+  /** Preferred UI language — source of truth; mirrored into NEXT_LOCALE (docs/I18N.md). */
+  locale?: AppLocale;
   role: string;
   permissions: string[];
   /** Array of assigned location IDs; roles with locations.all can access all locations. */

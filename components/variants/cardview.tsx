@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { Badge } from "@/ui/components/badge";
 import { Card } from "@/ui/components/card";
 import {
@@ -9,26 +10,21 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { Edit2, MoreVertical, Palette, Trash2 } from "lucide-react";
 import { ValuesPopover } from "@/components/shared/values-popover";
+import { formatDate } from "@/lib/format";
+import type { Translator, AppLocale } from "@/i18n/config";
 
 const VariantCardView = (
   variant: any,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
+  options: { t: Translator; locale: AppLocale },
 ) => {
+  const { t, locale } = options;
   const { name, values = [], status, createdAt } = variant;
 
   const allValues = Array.isArray(values) ? values : [];
 
-  const createdDate = new Date(createdAt).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-
-  const updatedDate = new Date(variant.updatedAt).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
+  const updatedDate = formatDate(variant.updatedAt, "dd MMM yyyy", locale);
 
   return (
     <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-3">
@@ -46,11 +42,11 @@ const VariantCardView = (
               variant={status === "active" ? "default" : "secondary"}
               className="text-xs shrink-0"
             >
-              {status}
+              {status === "active" ? t("filters.statusActive") : t("filters.statusInactive")}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {allValues.length} value{allValues.length !== 1 ? "s" : ""}
+            {t("card.valuesCount", { count: allValues.length })}
           </p>
         </div>
 
@@ -62,12 +58,12 @@ const VariantCardView = (
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onEdit}>
               <Edit2 className="h-4 w-4 mr-2" />
-              Edit
+              {t("card.edit")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={onDelete}>
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              {t("card.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -82,8 +78,8 @@ const VariantCardView = (
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-muted-foreground">
-        <span>Created: {createdDate}</span>
-        <span>Updated: {updatedDate}</span>
+        <span>{t("card.createdOn", { date: createdDate })}</span>
+        <span>{t("card.updatedOn", { date: updatedDate })}</span>
       </div>
     </Card>
   );

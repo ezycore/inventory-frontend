@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
 import { Separator } from "@/ui/components/separator";
@@ -46,6 +48,7 @@ export default function OrderSummary({
   onComplete,
   onSaveDraft,
 }: Props) {
+  const t = useTranslations("purchases.summary");
   return (
     <div className="lg:col-span-1">
       <div className="sticky top-20">
@@ -54,16 +57,16 @@ export default function OrderSummary({
             {/* Header */}
             <div className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold text-base">Order Summary</h3>
+              <h3 className="font-semibold text-base">{t("title")}</h3>
             </div>
 
             {/* Seller count & item count */}
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Suppliers</span>
+              <span className="text-muted-foreground">{t("suppliers")}</span>
               <span className="tabular-nums">{sellersCount}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Total Items</span>
+              <span className="text-muted-foreground">{t("totalItems")}</span>
               <span className="tabular-nums">{totalItemCount}</span>
             </div>
 
@@ -74,7 +77,7 @@ export default function OrderSummary({
               includedTax={grandIncludedTax}
               taxTotal={grandTax}
               total={grandTotal}
-              totalLabel="Grand Total"
+              totalLabel={t("grandTotal")}
               totalSize="lg"
               formatCurrency={formatCurrency}
             />
@@ -85,21 +88,21 @@ export default function OrderSummary({
             {isAccountsEnabled && (grandPaid > 0 || grandCreditApplied > 0) && (
               <div className="space-y-1.5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total Paid</span>
+                  <span className="text-muted-foreground">{t("totalPaid")}</span>
                   <span className="font-semibold text-green-600 dark:text-green-500 tabular-nums">
                     {formatCurrency(grandPaid)}
                   </span>
                 </div>
                 {grandCreditApplied > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Credit Applied</span>
+                    <span className="text-muted-foreground">{t("creditApplied")}</span>
                     <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
                       −{formatCurrency(grandCreditApplied)}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total Due</span>
+                  <span className="text-muted-foreground">{t("totalDue")}</span>
                   <span
                     className={`font-semibold tabular-nums ${
                       grandDue > 0
@@ -124,10 +127,10 @@ export default function OrderSummary({
             >
               <CheckCircleIcon className="h-5 w-5" />
               {isPending || isFinalizing
-                ? "Processing..."
+                ? t("processing")
                 : isDraftMode
-                ? "Finalize Order"
-                : "Complete Order"}
+                ? t("finalizeOrder")
+                : t("completeOrder")}
             </Button>
             <Button
               type="button"
@@ -137,7 +140,7 @@ export default function OrderSummary({
               size="lg"
               className="w-full font-semibold mt-2"
             >
-              {isSaving ? "Saving..." : isDraftMode ? "Update Draft" : "Save as Draft"}
+              {isSaving ? t("saving") : isDraftMode ? t("updateDraft") : t("saveAsDraft")}
             </Button>
           </CardContent>
         </Card>

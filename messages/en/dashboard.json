@@ -1,0 +1,101 @@
+{
+  "title": "Dashboard",
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "fallbackName": "there"
+  },
+  "period": {
+    "startDate": "Start date",
+    "endDate": "End date"
+  },
+  "kpi": {
+    "salesRevenue": "Sales Revenue",
+    "purchaseCost": "Purchase Cost",
+    "totalDue": "Total Due",
+    "transactions": "Transactions",
+    "vsPrevious": "vs previous",
+    "salesPurchaseDue": "Sales {sales} · Purchase {purchase}",
+    "salesPurchaseCount": "{sales} sales · {purchases} purchases"
+  },
+  "chart": {
+    "title": "Sales vs Purchases",
+    "sales": "Sales",
+    "purchases": "Purchases",
+    "groupingHourly": "Hourly",
+    "groupingDaily": "Daily",
+    "groupingWeekly": "Weekly",
+    "groupingMonthly": "Monthly",
+    "breakdownSuffix": "{grouping} breakdown",
+    "emptyTitle": "No transaction data yet",
+    "emptyDescription": "Sales and purchase trends will appear here as you record transactions"
+  },
+  "summary": {
+    "periodSales": "Period Sales",
+    "transactionsCollected": "{count, plural, one {# transaction} other {# transactions}} · Collected {amount}",
+    "periodPurchases": "Period Purchases",
+    "ordersPaid": "{count, plural, one {# order} other {# orders}} · Paid {amount}",
+    "inventoryValueCost": "Inventory Value (Cost)",
+    "itemsInStock": "{count} items in stock",
+    "periodDue": "Period Due",
+    "salesPurchaseDue": "Sales {sales} · Purchase {purchase}"
+  },
+  "topSold": {
+    "title": "Top Sold Items",
+    "subtitle": "Best sellers for this period",
+    "soldProfit": "{count} sold · Profit {amount}",
+    "emptyTitle": "No sales yet",
+    "emptyDescription": "Top sold items will appear here once you make sales"
+  },
+  "lowStock": {
+    "title": "Low Stock Alerts",
+    "subtitle": "Items needing restocking",
+    "viewAll": "View All",
+    "viewAllCount": "View All {count} Items",
+    "emptyTitle": "All stock healthy",
+    "emptyDescription": "No items below threshold levels"
+  },
+  "activity": {
+    "title": "Recent Activity",
+    "subtitle": "Latest stock movements",
+    "viewAll": "View All",
+    "unknownProduct": "Unknown Product",
+    "stockIn": "Stock In",
+    "stockOut": "Stock Out",
+    "emptyTitle": "No recent activity",
+    "emptyDescription": "Stock movements will appear here",
+    "reasonSale": "Sale",
+    "reasonPurchaseReceived": "Purchase Received",
+    "reasonStockAdjustment": "Stock Adjustment",
+    "reasonStockTransfer": "Stock Transfer",
+    "reasonReturn": "Return",
+    "reasonOpeningStock": "Opening Stock"
+  },
+  "financial": {
+    "title": "Financial Insights",
+    "subtitle": "Period performance metrics",
+    "emptyTitle": "No data yet",
+    "emptyDescription": "Financial insights will appear with transactions",
+    "grossProfit": "Gross Profit",
+    "marginSuffix": "% margin",
+    "avgSaleValue": "Avg Sale Value",
+    "salesCount": "{count, plural, one {# sale} other {# sales}}",
+    "avgPurchaseValue": "Avg Purchase Value",
+    "purchasesCount": "{count, plural, one {# order} other {# orders}}",
+    "salesCollection": "Sales Collection",
+    "collectedOfTotal": "{collected} collected of {total}",
+    "purchasePayment": "Purchase Payment",
+    "paidOfTotal": "{paid} paid of {total}"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "subtitle": "Jump to common tasks",
+    "newSale": "New Sale",
+    "purchase": "Purchase",
+    "addProduct": "Add Product",
+    "transferStock": "Transfer Stock",
+    "adjustStock": "Adjust Stock",
+    "viewReports": "View Reports"
+  }
+}

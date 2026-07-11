@@ -1,4 +1,5 @@
 import { Search, X, Trash2, ChevronDown, Settings } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Table } from "@tanstack/react-table";
 import Link from "next/link";
 import { cn } from "@/ui/lib/utils";
@@ -68,6 +69,7 @@ export function DataTableToolbar<TData>({
   manageColumns,
   onColumnSettingsClick,
 }: DataTableToolbarProps<TData>) {
+  const t = useTranslations("common");
 
   const hasSearch = searchConfig?.globalSearch || !!searchConfig?.searchableColumn;
   const hasInlineFilters = !!filterConfig?.fields?.length;
@@ -107,7 +109,7 @@ export function DataTableToolbar<TData>({
           {searchConfig?.globalSearch ? (
             <>
               <Input
-                placeholder={searchConfig.placeholder || "Search all columns..."}
+                placeholder={searchConfig.placeholder || t("table.searchAll")}
                 value={globalFilter ?? ""}
                 onChange={(event) => onGlobalFilterChange?.(event.target.value)}
                 className="pl-10 pr-6 h-8 w-full"
@@ -126,7 +128,7 @@ export function DataTableToolbar<TData>({
           ) : searchConfig?.searchableColumn ? (
             <>
               <Input
-                placeholder={searchConfig.placeholder || "Search..."}
+                placeholder={searchConfig.placeholder || t("table.search")}
                 value={
                   (table
                     .getColumn(searchConfig.searchableColumn as string)
@@ -176,23 +178,23 @@ export function DataTableToolbar<TData>({
                 className="whitespace-nowrap"
               >
                 <Trash2 className="h-4 w-4" />
-                Delete {selectedRowsCount}
+                {t("table.deleteCount", { count: selectedRowsCount })}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t("confirm.titleStrong")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete {selectedRowsCount} {selectedRowsCount === 1 ? 'item' : 'items'} from the database.
+                  {t("confirm.deleteCountItems", { count: selectedRowsCount })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("actions.cancel")}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={onBulkDelete}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  {isDeleting ? "Deleting..." : "Delete"}
+                  {isDeleting ? t("confirm.deleting") : t("actions.delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -205,7 +207,7 @@ export function DataTableToolbar<TData>({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="whitespace-nowrap">
                 <ChevronDown className="h-4 w-4 mr-2" />
-                Columns
+                {t("table.columns")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -237,7 +239,7 @@ export function DataTableToolbar<TData>({
             className="whitespace-nowrap"
           >
             <Settings className="h-4 w-4" />
-            Columns
+            {t("table.columns")}
           </Button>
         )}
 

@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { usePurchaseReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
@@ -25,6 +27,10 @@ function calcChange(current: number, previous: number) {
 }
 
 export function PurchaseReport() {
+  const t = useTranslations('reports.purchases')
+  const tCommon = useTranslations('reports')
+  const tEmpty = useTranslations('common.empty')
+  const tStatus = useTranslations('purchases.status')
   const { period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd, params } =
     useReportPeriod()
   const { data, isLoading } = usePurchaseReport(params)
@@ -38,9 +44,9 @@ export function PurchaseReport() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Purchase Report</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Detailed analysis of purchase orders
+            {t('subtitle')}
           </p>
         </div>
       </div>
@@ -66,7 +72,7 @@ export function PurchaseReport() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Purchases</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalPurchases')}</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -80,26 +86,26 @@ export function PurchaseReport() {
                     ) : (
                       <ArrowDown className="h-3 w-3 text-green-500" />
                     )}
-                    {purchaseChange.value}% vs previous period
+                    {tCommon('vsPreviousPeriod', { value: purchaseChange.value })}
                   </p>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Orders</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('orders')}</CardTitle>
                 <ShoppingBag className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{data.summary.count}</div>
                 <p className="text-xs text-muted-foreground">
-                  {data.summary.totalItems} items received
+                  {t('itemsReceived', { count: data.summary.totalItems })}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalPaid')}</CardTitle>
                 <DollarSign className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
@@ -110,7 +116,7 @@ export function PurchaseReport() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Due</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('totalDue')}</CardTitle>
                 <DollarSign className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
@@ -125,7 +131,7 @@ export function PurchaseReport() {
           {data.chartData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Purchase Trend</CardTitle>
+                <CardTitle>{t('purchaseTrend')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -158,12 +164,12 @@ export function PurchaseReport() {
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Top Purchased Products</CardTitle>
+                <CardTitle>{t('topPurchasedProducts')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {data.topProducts.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No purchase data</p>
+                    <p className="text-sm text-muted-foreground">{t('noPurchaseData')}</p>
                   ) : (
                     data.topProducts.map((p, i) => (
                       <div key={i} className="flex items-center justify-between text-sm">
@@ -183,27 +189,27 @@ export function PurchaseReport() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Truck className="h-4 w-4" />
-                  Top Suppliers
+                  {t('topSuppliers')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {data.topSuppliers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No supplier data</p>
+                    <p className="text-sm text-muted-foreground">{t('noSupplierData')}</p>
                   ) : (
                     data.topSuppliers.map((s, i) => (
                       <div key={i} className="flex items-center justify-between text-sm">
                         <div>
                           <span className="font-medium">{s.supplierName}</span>
                           <span className="ml-2 text-muted-foreground">
-                            {s.orderCount} orders
+                            {t('ordersCount', { count: s.orderCount })}
                           </span>
                         </div>
                         <div className="text-right">
                           <span className="font-medium">{formatCurrency(s.totalAmount)}</span>
                           {s.totalDue > 0 && (
                             <span className="ml-2 text-xs text-red-500">
-                              Due: {formatCurrency(s.totalDue)}
+                              {t('due', { amount: formatCurrency(s.totalDue) })}
                             </span>
                           )}
                         </div>
@@ -219,7 +225,7 @@ export function PurchaseReport() {
           {data.statusBreakdown.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Order Status</CardTitle>
+                <CardTitle>{t('orderStatus')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -234,7 +240,7 @@ export function PurchaseReport() {
                         <div className={`text-xl font-bold capitalize ${colors[s.status] || ''}`}>
                           {s.count}
                         </div>
-                        <p className="text-xs text-muted-foreground capitalize">{s.status}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{tStatus.has(s.status) ? tStatus(s.status) : s.status}</p>
                         <p className="text-sm font-medium">{formatCurrency(s.total)}</p>
                       </div>
                     )
@@ -245,7 +251,7 @@ export function PurchaseReport() {
           )}
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">No data available</p>
+        <p className="text-sm text-muted-foreground">{tEmpty('noData')}</p>
       )}
     </div>
   )

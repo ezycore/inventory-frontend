@@ -1,53 +1,61 @@
+// coding-standard: maintained
 import { FilterConfig } from "@/types/DataTable";
+import type { Translator } from "@/i18n/config";
 
-export const customerFilterConfig: FilterConfig = {
-  fields: [
-    {
-      name: "name",
-      label: "Search customer",
-      type: "text",
-      placeholder: "Search by customer name...",
-    },
-    {
-      name: "email",
-      label: "Email",
-      type: "text",
-      placeholder: "Search by email...",
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      placeholder: "All statuses",
-      columnSpan: 2,
-      options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
-      ],
-    },
-    {
-      name: "createdAt",
-      label: "Created Date",
-      type: "date-range",
-      placeholder: "Select date range",
-      columnSpan: 2,
-    },
-    {
-      name: "updatedAt",
-      label: "Updated Date",
-      type: "date",
-      placeholder: "Select date",
-      columnSpan: 2,
-    },
-  ],
-  viewMode: "popover",
-  columns: 2,
-  applyOnChange: false,
-  showResetButton: true,
-  showApplyButton: true,
-};
+/** `t` is bound to the `customers` namespace. */
+export function getCustomerFilterConfig(t: Translator): FilterConfig {
+  return {
+    fields: [
+      {
+        name: "name",
+        label: t("filters.searchCustomer"),
+        type: "text",
+        placeholder: t("filters.searchPlaceholder"),
+      },
+      {
+        name: "email",
+        label: t("filters.email"),
+        type: "text",
+        placeholder: t("filters.emailPlaceholder"),
+      },
+      {
+        name: "status",
+        label: t("filters.status"),
+        type: "select",
+        placeholder: t("filters.allStatuses"),
+        columnSpan: 2,
+        options: [
+          { label: t("filters.active"), value: "active" },
+          { label: t("filters.inactive"), value: "inactive" },
+        ],
+      },
+      {
+        name: "createdAt",
+        label: t("filters.createdDate"),
+        type: "date-range",
+        placeholder: t("filters.selectDateRange"),
+        columnSpan: 2,
+      },
+      {
+        name: "updatedAt",
+        label: t("filters.updatedDate"),
+        type: "date",
+        placeholder: t("filters.selectDate"),
+        columnSpan: 2,
+      },
+    ],
+    viewMode: "popover",
+    columns: 2,
+    applyOnChange: false,
+    showResetButton: true,
+    showApplyButton: true,
+  };
+}
 
-export const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search customers by name, email, phone, or status...",
-};
+/** `t` is bound to the `customers` namespace. */
+export function getSearchConfig(t: Translator) {
+  return {
+    globalSearch: true,
+    placeholder: t("filters.globalSearchPlaceholder"),
+  };
+}

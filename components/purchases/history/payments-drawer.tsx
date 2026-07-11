@@ -3,6 +3,8 @@
 
 import { CreditCard, ReceiptText } from 'lucide-react';
 import { useRef } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import type { AppLocale } from '@/i18n/config';
 import { useAuthStore } from '@/services/stores';
 import { PrintMenu } from '@/components/shared/print/print-menu';
 import { SheetHeaderBar } from '@/components/shared/print/sheet-header-bar';
@@ -101,6 +103,11 @@ export function PaymentsDrawer({
   useSupplierCredit = false,
   setUseSupplierCredit,
 }: PaymentsDrawerProps) {
+  const t = useTranslations('purchases.history');
+  const tStatus = useTranslations('purchases.status');
+  const tOrders = useTranslations('purchases.orders');
+  const tPrintDoc = useTranslations('common.printDoc');
+  const locale = useLocale() as AppLocale;
   const internalRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = externalRef || internalRef;
   const { user } = useAuthStore();
@@ -139,13 +146,15 @@ export function PaymentsDrawer({
               order && (
                 <PrintMenu
                   appearance="solid"
-                  a4Label="Purchase Order"
+                  a4Label={tOrders('printA4Label')}
                   defaultPaper={resolveDefaultPaper(user?.organization)}
                   onPrint={(paper) =>
                     printPurchaseOrder(order, {
                       paper,
                       currency: formatCurrency,
                       header: orgToPrintHeader(user?.organization),
+                      t: tPrintDoc,
+                      locale,
                     })
                   }
                 />
@@ -154,7 +163,7 @@ export function PaymentsDrawer({
           >
             <SheetTitle className="flex flex-wrap items-center gap-2">
               <ReceiptText className="h-5 w-5" />
-              {mode === 'payment' ? 'Record Payment' : 'Purchase Summary'}
+              {mode === 'payment' ? t('recordPayment') : t('purchaseSummary')}
               {order ? ` — ${order.orderNumber}` : ''}
               {order && <CopyField value={order.orderNumber} showValue={false} />}
               {order && (
@@ -163,14 +172,14 @@ export function PaymentsDrawer({
                   className="flex w-fit gap-1"
                 >
                   {status?.icon}
-                  {status?.label ?? order.status}
+                  {order.status ? tStatus(order.status) : order.status}
                 </Badge>
               )}
             </SheetTitle>
             <SheetDescription>
               {mode === 'payment'
-                ? 'Review the purchase order and submit a payment'
-                : 'Full purchase details and payment history'}
+                ? t('drawerPaymentDesc')
+                : t('drawerSummaryDesc')}
             </SheetDescription>
           </SheetHeaderBar>
         </SheetHeader>
@@ -205,13 +214,13 @@ export function PaymentsDrawer({
               {order.notes && <NoteCallout>{order.notes}</NoteCallout>}
 
               <div className="space-y-2">
-                <div className="text-sm font-medium">History</div>
+                <div className="text-sm font-medium">{t('historySection')}</div>
 
                 {showPaymentsFold && (
                   <SectionFold
-                    title="Payments"
+                    title={t('payments')}
                     count={isLoadingPayments ? '…' : payments.length}
-                    peek={`${formatCurrency(order.paidAmount ?? 0)} paid`}
+                    peek={t('paidPeek', { amount: formatCurrency(order.paidAmount ?? 0) })}
                     defaultOpen
                     action={
                       showAddPayment ? (
@@ -224,7 +233,7 @@ export function PaymentsDrawer({
                           }}
                         >
                           <CreditCard className="mr-2 h-4 w-4" />
-                          Add Payment
+                          {t('addPayment')}
                         </Button>
                       ) : undefined
                     }
@@ -245,7 +254,7 @@ export function PaymentsDrawer({
 
                 {showReturnsFold && (
                   <SectionFold
-                    title="Returns"
+                    title={t('returns')}
                     count={isLoadingReturns ? '…' : returnsCount}
                     peek={
                       refundedTotal > 0 ? `−${formatCurrency(refundedTotal)}` : undefined
@@ -262,7 +271,7 @@ export function PaymentsDrawer({
 
                 {showTransactionsFold && (
                   <SectionFold
-                    title="Transactions"
+                    title={t('transactions')}
                     count={isLoadingTransactions ? '…' : transactionsCount}
                   >
                     <TransactionsTimeline

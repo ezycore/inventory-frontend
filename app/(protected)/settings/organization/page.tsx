@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { OrganizationTab, TransferOwnershipTab } from "@/components/profile";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
@@ -13,14 +14,15 @@ import {
 import PageHeader from "@/ui/components/header";
 
 export default function OrganizationSettingsPage() {
+  const t = useTranslations("settings.organization");
   const user = useAuthStore((state) => state.user);
   const isOwner = !!user && user.organization?.ownerId === user.id;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Organization"
-        subTitle="Your organization's name, logo, region, and ownership."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       <Card>
@@ -32,10 +34,9 @@ export default function OrganizationSettingsPage() {
       {isOwner && (
         <Card>
           <CardHeader>
-            <CardTitle>Transfer Ownership</CardTitle>
+            <CardTitle>{t("transferTitle")}</CardTitle>
             <CardDescription>
-              Hand this organization over to another user. Only the current
-              owner can do this.
+              {t("transferDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>

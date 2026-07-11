@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
@@ -15,6 +16,8 @@ import PageHeader from "@/ui/components/header";
 import type { OrganizationRole } from "@/types/users";
 
 export default function RolesSettingsPage() {
+  const t = useTranslations("settings.roles");
+  const tShell = useTranslations("settings.shell");
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const canManageUsers = useHasPermission(PERMISSIONS.usersManage);
@@ -34,10 +37,10 @@ export default function RolesSettingsPage() {
 
   useEffect(() => {
     if (user && !canView) {
-      toast.error("You don't have permission to access this page");
+      toast.error(tShell("noPermission"));
       router.push("/");
     }
-  }, [user, canView, router]);
+  }, [user, canView, router, tShell]);
 
   if (user && !canView) {
     return null;
@@ -48,16 +51,16 @@ export default function RolesSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Roles"
-        subTitle="Roles and their permissions are synced to this workspace and are read-only here."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       {isError ? (
         <EmptyState
           icon={AlertCircle}
-          title="Couldn't load roles"
-          description="Something went wrong while fetching this workspace's roles."
-          action={{ label: "Retry", onClick: () => void refetch() }}
+          title={t("loadErrorTitle")}
+          description={t("loadErrorDescription")}
+          action={{ label: t("retry"), onClick: () => void refetch() }}
         />
       ) : (
         <RolesTable

@@ -1,10 +1,13 @@
 // coding-standard: maintained
 /**
- * Convert a monetary amount to English words for the "amount in words" line on
- * invoices. Short-scale (Thousand / Million / Billion), two-decimal fraction
- * rendered as `NN/100`. Currency-agnostic — the caller prefixes the currency
- * name/code if desired.
+ * Convert a monetary amount to words for the "amount in words" line on
+ * invoices/receipts. English uses short-scale (Thousand / Million / Billion);
+ * Bangla uses the lakh/crore grouping that matches `lib/format.ts`'s digit
+ * convention (docs/I18N.md). Both render the fraction as Western-digit `NN/100`
+ * — digits stay Western app-wide, only the words translate. Currency-agnostic —
+ * the caller prefixes the currency name/code if desired.
  */
+import type { AppLocale } from "@/i18n/config";
 
 const ONES = [
   "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
@@ -55,10 +58,10 @@ const integerToWords = (value: number): string => {
 };
 
 /**
- * Amount to words with a two-decimal fraction, e.g. `840` → "Eight Hundred Forty
- * and 00/100". Negative amounts are prefixed "Minus".
+ * Amount to words (English) with a two-decimal fraction, e.g. `840` → "Eight
+ * Hundred Forty and 00/100". Negative amounts are prefixed "Minus".
  */
-export const amountToWords = (value: number): string => {
+const amountToWordsEn = (value: number): string => {
   if (!Number.isFinite(value)) return "";
   const sign = value < 0 ? "Minus " : "";
   const rounded = Math.round(Math.abs(value) * 100) / 100;
@@ -67,3 +70,60 @@ export const amountToWords = (value: number): string => {
   const centStr = String(cents).padStart(2, "0");
   return `${sign}${integerToWords(whole)} ${centStr != "00" ? `and ${centStr} Only` : ""}`;
 };
+
+// Bangla counting words 0–99 are irregular (not tens+ones compounds like
+// English), so this is a full lookup table — the standard forms taught in
+// Bengali-medium schools. REVIEW: worth a native-speaker proofread pass
+// (docs/I18N-GLOSSARY.md REVIEW convention), same as the rest of the glossary.
+const WORDS_BN_0_99 = [
+  "শূন্য", "এক", "দুই", "তিন", "চার", "পাঁচ", "ছয়", "সাত", "আট", "নয়",
+  "দশ", "এগারো", "বারো", "তেরো", "চৌদ্দ", "পনেরো", "ষোলো", "সতেরো", "আঠারো", "উনিশ",
+  "বিশ", "একুশ", "বাইশ", "তেইশ", "চব্বিশ", "পঁচিশ", "ছাব্বিশ", "সাতাশ", "আটাশ", "উনত্রিশ",
+  "ত্রিশ", "একত্রিশ", "বত্রিশ", "তেত্রিশ", "চৌত্রিশ", "পঁয়ত্রিশ", "ছত্রিশ", "সাঁইত্রিশ", "আটত্রিশ", "উনচল্লিশ",
+  "চল্লিশ", "একচল্লিশ", "বিয়াল্লিশ", "তেতাল্লিশ", "চুয়াল্লিশ", "পঁয়তাল্লিশ", "ছেচল্লিশ", "সাতচল্লিশ", "আটচল্লিশ", "উনপঞ্চাশ",
+  "পঞ্চাশ", "একান্ন", "বায়ান্ন", "তিপ্পান্ন", "চুয়ান্ন", "পঞ্চান্ন", "ছাপ্পান্ন", "সাতান্ন", "আটান্ন", "উনষাট",
+  "ষাট", "একষট্টি", "বাষট্টি", "তেষট্টি", "চৌষট্টি", "পঁয়ষট্টি", "ছেষট্টি", "সাতষট্টি", "আটষট্টি", "ঊনসত্তর",
+  "সত্তর", "একাত্তর", "বাহাত্তর", "তিয়াত্তর", "চুয়াত্তর", "পঁচাত্তর", "ছিয়াত্তর", "সাতাত্তর", "আটাত্তর", "ঊনআশি",
+  "আশি", "একাশি", "বিরাশি", "তিরাশি", "চুরাশি", "পঁচাশি", "ছিয়াশি", "সাতাশি", "আটাশি", "ঊননব্বই",
+  "নব্বই", "একানব্বই", "বিরানব্বই", "তিরানব্বই", "চুরানব্বই", "পঁচানব্বই", "ছিয়ানব্বই", "সাতানব্বই", "আটানব্বই", "নিরানব্বই",
+];
+
+/** Words for a whole number, lakh/crore grouped; ≥100 crore recurses on the crore count. */
+const integerToWordsBn = (value: number): string => {
+  if (value === 0) return "শূন্য";
+  let n = value;
+  const crore = Math.floor(n / 1e7);
+  n %= 1e7;
+  const lakh = Math.floor(n / 1e5);
+  n %= 1e5;
+  const thousand = Math.floor(n / 1000);
+  n %= 1000;
+  const hundred = Math.floor(n / 100);
+  const rest = n % 100;
+
+  const parts: string[] = [];
+  if (crore > 0) {
+    const croreWords = crore < 100 ? WORDS_BN_0_99[crore] : integerToWordsBn(crore);
+    parts.push(`${croreWords} কোটি`);
+  }
+  if (lakh > 0) parts.push(`${WORDS_BN_0_99[lakh]} লক্ষ`);
+  if (thousand > 0) parts.push(`${WORDS_BN_0_99[thousand]} হাজার`);
+  if (hundred > 0) parts.push(`${WORDS_BN_0_99[hundred]} শত`);
+  if (rest > 0) parts.push(WORDS_BN_0_99[rest]);
+  return parts.join(" ");
+};
+
+/** Amount to words (Bangla), mirroring `amountToWordsEn`'s shape/fraction rules. */
+const amountToWordsBn = (value: number): string => {
+  if (!Number.isFinite(value)) return "";
+  const sign = value < 0 ? "ঋণাত্মক " : "";
+  const rounded = Math.round(Math.abs(value) * 100) / 100;
+  const whole = Math.floor(rounded);
+  const cents = Math.round((rounded - whole) * 100);
+  const centStr = String(cents).padStart(2, "0");
+  return `${sign}${integerToWordsBn(whole)} ${centStr != "00" ? `এবং ${centStr}/100 মাত্র` : ""}`;
+};
+
+/** Amount to words in the given locale (defaults to English). */
+export const amountToWords = (value: number, locale: AppLocale = "en"): string =>
+  locale === "bn" ? amountToWordsBn(value) : amountToWordsEn(value);

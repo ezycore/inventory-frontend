@@ -2,7 +2,9 @@
 // coding-standard: maintained
 
 import { format as formatDate } from 'date-fns';
+import { useLocale, useTranslations } from 'next-intl';
 import { Edit3, PackageCheck, ReceiptText, XCircle } from 'lucide-react';
+import type { AppLocale } from '@/i18n/config';
 import { Badge } from '@/ui/components/badge';
 import { Button } from '@/ui/components/button';
 import { CopyField } from '@/ui/components/copy';
@@ -48,6 +50,8 @@ interface OrderDetailsDrawerProps {
 }
 
 function OrderStats({ order }: { order: PurchaseOrder }) {
+  const t = useTranslations('purchases.orders');
+  const tStatus = useTranslations('purchases.status');
   const { format: fmt } = useCurrency();
   const orderTotal =
     order.invoiceAmount ?? order.grandTotal ?? order.totalAmount ?? order.subtotal ?? 0;
@@ -60,21 +64,21 @@ function OrderStats({ order }: { order: PurchaseOrder }) {
 
   return (
     <StatStrip>
-      <StatTile label="Order total" value={fmt(orderTotal)} />
+      <StatTile label={t('statOrderTotal')} value={fmt(orderTotal)} />
       <StatTile
-        label="Paid"
+        label={t('statPaid')}
         value={fmt(order.paidAmount ?? 0)}
         valueClassName="text-green-600"
       />
       <StatTile
-        label="Due"
+        label={t('statDue')}
         value={fmt(due)}
         valueClassName={due > 0 ? 'text-red-600' : 'text-green-600'}
       />
       <StatTile
-        label="Received"
+        label={t('statReceived')}
         value={`${receivedQty} / ${orderedQty}`}
-        sub="of ordered qty"
+        sub={t('ofOrderedQty')}
       />
     </StatStrip>
   );
@@ -90,6 +94,10 @@ export function OrderDetailsDrawer({
   onCancelOrder,
   onEditOrder,
 }: OrderDetailsDrawerProps) {
+  const t = useTranslations('purchases.orders');
+  const tStatus = useTranslations('purchases.status');
+  const tPrintDoc = useTranslations('common.printDoc');
+  const locale = useLocale() as AppLocale;
   const { user } = useAuthStore();
   const canReceive = order?.status === 'ordered' || order?.status === 'partial';
   const canCancel = order?.status === 'ordered' || order?.status === 'draft';
@@ -105,13 +113,15 @@ export function OrderDetailsDrawer({
               order && (
                 <PrintMenu
                   appearance="solid"
-                  a4Label="Purchase Order"
+                  a4Label={t('printA4Label')}
                   defaultPaper={resolveDefaultPaper(user?.organization)}
                   onPrint={(paper) =>
                     printPurchaseOrder(order, {
                       paper,
                       currency: formatCurrency,
                       header: orgToPrintHeader(user?.organization),
+                      t: tPrintDoc,
+                      locale,
                     })
                   }
                 />
@@ -120,18 +130,18 @@ export function OrderDetailsDrawer({
           >
             <SheetTitle className="flex flex-wrap items-center gap-2">
               <ReceiptText className="h-5 w-5" />
-              Order Details
+              {t('drawerTitle')}
               {order ? ` — ${order.orderNumber}` : ''}
               {order && <CopyField value={order.orderNumber} showValue={false} />}
               {order && (
                 <Badge variant={status?.variant ?? 'outline'} className="flex w-fit gap-1">
                   {status?.icon}
-                  {status?.label ?? order.status}
+                  {order.status ? tStatus(order.status) : order.status}
                 </Badge>
               )}
             </SheetTitle>
             <SheetDescription>
-              Full purchase order information and item breakdown
+              {t('drawerDescription')}
             </SheetDescription>
           </SheetHeaderBar>
         </SheetHeader>
@@ -154,7 +164,7 @@ export function OrderDetailsDrawer({
               <PurchaseItemsTable
                 order={order}
                 variant="order"
-                totalLabel="Order total"
+                totalLabel={t('statOrderTotal')}
                 documentTotal={
                   order.invoiceAmount ??
                   order.grandTotal ??
@@ -168,25 +178,25 @@ export function OrderDetailsDrawer({
 
               <DetailsKv
                 rows={[
-                  { label: 'Supplier', value: order.supplierId?.name ?? '—' },
-                  { label: 'Supplier address', value: order.supplierId?.address },
-                  { label: 'Supplier invoice', value: order.invoiceNumber },
+                  { label: t('kvSupplier'), value: order.supplierId?.name ?? '—' },
+                  { label: t('kvSupplierAddress'), value: order.supplierId?.address },
+                  { label: t('kvSupplierInvoice'), value: order.invoiceNumber },
                   {
-                    label: 'Invoice date',
+                    label: t('kvInvoiceDate'),
                     value: order.invoiceDate
                       ? formatDate(new Date(order.invoiceDate), 'dd MMM yyyy')
                       : undefined,
                   },
                   {
-                    label: 'Created by',
+                    label: t('kvCreatedBy'),
                     value: order.createdBy ? getCreatedByName(order) : undefined,
                   },
                   {
-                    label: 'Created at',
+                    label: t('kvCreatedAt'),
                     value: formatDate(new Date(order.createdAt), 'dd MMM yyyy hh:mm aa'),
                   },
                   {
-                    label: 'Updated at',
+                    label: t('kvUpdatedAt'),
                     value: formatDate(new Date(order.updatedAt), 'dd MMM yyyy hh:mm aa'),
                   },
                 ]}
@@ -205,7 +215,7 @@ export function OrderDetailsDrawer({
                 }}
               >
                 <PackageCheck className="mr-2 h-4 w-4" />
-                Receive Items
+                {t('receiveItems')}
               </Button>
             )}
             {canEdit && onEditOrder && (
@@ -215,7 +225,7 @@ export function OrderDetailsDrawer({
                 onClick={() => onEditOrder(order)}
               >
                 <Edit3 className="mr-2 h-4 w-4" />
-                Edit Order
+                {t('editOrder')}
               </Button>
             )}
             {canCancel && onCancelOrder && (
@@ -225,7 +235,7 @@ export function OrderDetailsDrawer({
                 onClick={() => onCancelOrder(order)}
               >
                 <XCircle className="mr-2 h-4 w-4" />
-                Cancel Order
+                {t('cancelOrder')}
               </Button>
             )}
           </div>

@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import {
   Card,
   CardContent,
@@ -23,6 +25,7 @@ interface LowStockAlertsProps {
 
 export function LowStockAlerts({ lowStock, isLoading }: LowStockAlertsProps) {
   const router = useRouter()
+  const t = useTranslations('dashboard.lowStock')
 
   return (
     <Card>
@@ -30,9 +33,9 @@ export function LowStockAlerts({ lowStock, isLoading }: LowStockAlertsProps) {
         <div>
           <CardTitle className="text-base flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-chart-1" />
-            Low Stock Alerts
+            {t('title')}
           </CardTitle>
-          <CardDescription>Items needing restocking</CardDescription>
+          <CardDescription>{t('subtitle')}</CardDescription>
         </div>
         <Button
           variant="ghost"
@@ -40,7 +43,7 @@ export function LowStockAlerts({ lowStock, isLoading }: LowStockAlertsProps) {
           className="text-xs"
           onClick={() => router.push('/inventory/lowstock')}
         >
-          View All <ArrowRight className="h-3 w-3 ml-1" />
+          {t('viewAll')} <ArrowRight className="h-3 w-3 ml-1" />
         </Button>
       </CardHeader>
       <CardContent>
@@ -93,15 +96,15 @@ export function LowStockAlerts({ lowStock, isLoading }: LowStockAlertsProps) {
                 onClick={() => router.push('/inventory/shortlist')}
               >
                 <Eye className="h-3.5 w-3.5 mr-1.5" />
-                View All {lowStock!.count + lowStock!.outOfStockCount} Items
+                {t('viewAllCount', { count: lowStock!.count + lowStock!.outOfStockCount })}
               </Button>
             )}
           </div>
         ) : (
           <EmptyState
             icon={Boxes}
-            title="All stock healthy"
-            description="No items below threshold levels"
+            title={t('emptyTitle')}
+            description={t('emptyDescription')}
             compact
           />
         )}

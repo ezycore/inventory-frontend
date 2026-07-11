@@ -12,6 +12,7 @@ export type { SaleItemPayload };
 export interface CustomerApiItem {
   _id: string;
   name: string;
+  email?: string;
   defaultDiscount?: {
     value?: number;
     type?: DiscountType;
@@ -65,6 +66,7 @@ export interface AccountApiResponse {
 export interface ExtractedCustomer {
   value: string | null;
   label: string | null;
+  email?: string | null;
   discountType: DiscountType;
   discountValue: number;
 }

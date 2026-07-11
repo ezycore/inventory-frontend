@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { ArrowLeft, CreditCard } from "lucide-react";
 import { Button } from "@/ui/components/button";
 import { NumberField } from "@/ui/components/number-field";
@@ -58,6 +60,9 @@ export function CustomerPaymentForm({
   onCancel,
   onSubmit,
 }: CustomerPaymentFormProps) {
+  const t = useTranslations("customers.paymentForm");
+  const tPayments = useTranslations("common.payments");
+  const tActions = useTranslations("common.actions");
   return (
     <ScrollArea className="flex-1 px-6 overflow-y-auto">
       <div className="py-4 space-y-4">
@@ -68,26 +73,26 @@ export function CustomerPaymentForm({
           onClick={onCancel}
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Ledger
+          {t("backToLedger")}
         </Button>
 
         <div className="rounded-lg border bg-muted/20 p-4 space-y-1">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Invoice</span>
+            <span className="text-muted-foreground">{t("invoice")}</span>
             <span className="font-mono font-medium">{paymentSale.invoiceNumber}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Total</span>
+            <span className="text-muted-foreground">{t("total")}</span>
             <span className="font-medium">{formatCurrency(paymentSale.totalAmount)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Paid</span>
+            <span className="text-muted-foreground">{t("paid")}</span>
             <span className="font-medium text-green-600">
               {formatCurrency(paymentSale.paidAmount)}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Due</span>
+            <span className="text-muted-foreground">{t("due")}</span>
             <span className="font-medium text-red-600">
               {formatCurrency(paymentSale.dueAmount)}
             </span>
@@ -99,9 +104,9 @@ export function CustomerPaymentForm({
         {creditBalance > 0 && (
           <div className="flex items-center justify-between rounded-md border bg-blue-50 px-3 py-2 dark:bg-blue-950/20">
             <div className="text-sm">
-              <div className="font-medium">Use store credit</div>
+              <div className="font-medium">{t("useStoreCredit")}</div>
               <div className="text-xs text-muted-foreground">
-                Available: {formatCurrency(creditBalance)}
+                {t("available", { amount: formatCurrency(creditBalance) })}
               </div>
             </div>
             <Switch
@@ -114,7 +119,7 @@ export function CustomerPaymentForm({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="cust-pay-amount">Payment Amount</Label>
+            <Label htmlFor="cust-pay-amount">{tPayments("paymentAmount")}</Label>
             <NumberField
               id="cust-pay-amount"
               precision={2}
@@ -126,16 +131,16 @@ export function CustomerPaymentForm({
               }
               value={paymentAmount === "" ? null : Number(paymentAmount)}
               onChange={(v) => setPaymentAmount(v == null ? "" : String(v))}
-              placeholder="Enter amount"
+              placeholder={tPayments("enterAmount")}
             />
           </div>
 
           {!useCreditBalance && (
             <div className="space-y-2">
-              <Label htmlFor="cust-pay-account">Payment Account</Label>
+              <Label htmlFor="cust-pay-account">{tPayments("paymentAccount")}</Label>
               <Select value={paymentAccountId} onValueChange={setPaymentAccountId}>
                 <SelectTrigger id="cust-pay-account">
-                  <SelectValue placeholder="Select account" />
+                  <SelectValue placeholder={tPayments("selectAccount")} />
                 </SelectTrigger>
                 <SelectContent>
                   {accounts.map((account) => (
@@ -150,12 +155,12 @@ export function CustomerPaymentForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="cust-pay-notes">Notes (optional)</Label>
+            <Label htmlFor="cust-pay-notes">{t("notesOptional")}</Label>
             <Textarea
               id="cust-pay-notes"
               value={paymentNotes}
               onChange={(e) => setPaymentNotes(e.target.value)}
-              placeholder="Add notes..."
+              placeholder={t("notesPlaceholder")}
               rows={2}
             />
           </div>
@@ -167,7 +172,7 @@ export function CustomerPaymentForm({
               onClick={onCancel}
               disabled={isSubmitting}
             >
-              Cancel
+              {tActions("cancel")}
             </Button>
             <Button
               className="flex-1"
@@ -177,7 +182,7 @@ export function CustomerPaymentForm({
               }
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Processing..." : "Record Payment"}
+              {isSubmitting ? tPayments("processing") : tPayments("recordPayment")}
             </Button>
           </div>
         </div>

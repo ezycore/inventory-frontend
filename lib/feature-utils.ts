@@ -1,4 +1,5 @@
 import { FeatureName, OrganizationFeatures, TaxSettings } from "@/types";
+import type { Translator } from "@/i18n/config";
 
 /**
  * Check if a specific feature is enabled
@@ -79,35 +80,34 @@ export function getDisabledFeatures(
 }
 
 /**
- * Feature display names for UI
+ * Feature display names for UI. `t` is bound to `settings.features` by the caller.
  */
-export const FEATURE_DISPLAY_NAMES: Record<FeatureName, string> = {
-  sales: "Sales Management",
-  accounts: "Account Management",
-  expiryTracking: "Expiry Tracking",
-  barcodeSystem: "Barcode System",
-  invoicePrinting: "Invoice Printing",
-  returns: "Returns Management",
-  uomConversion: "Unit Conversion",
-  tax: "Tax Management",
-  combo: "Combo Products",
-};
+export const getFeatureDisplayNames = (t: Translator): Record<FeatureName, string> => ({
+  sales: t("names.sales"),
+  accounts: t("names.accounts"),
+  expiryTracking: t("names.expiryTracking"),
+  barcodeSystem: t("names.barcodeSystem"),
+  invoicePrinting: t("names.invoicePrinting"),
+  returns: t("names.returns"),
+  uomConversion: t("names.uomConversion"),
+  tax: t("names.tax"),
+  combo: t("names.combo"),
+});
 
 /**
- * Feature descriptions for UI
+ * Feature descriptions for UI. `t` is bound to `settings.features` by the caller.
  */
-export const FEATURE_DESCRIPTIONS: Record<FeatureName, string> = {
-  sales: "Enable sales orders, customer invoices, and sales history tracking",
-  accounts:
-    "Enable account management, payment tracking, and financial records",
-  expiryTracking: "Track product expiry dates with batch management and alerts",
-  barcodeSystem: "Enable barcode scanning and barcode-based product lookup",
-  invoicePrinting: "Generate and print invoices for sales and purchases",
-  returns: "Enable sales returns, purchase returns, and credit management",
-  uomConversion: "Enable unit of measure conversion for products",
-  tax: "Enable tax rates and apply tax on purchases and sales",
-  combo: "Sell several products bundled together as one priced unit",
-};
+export const getFeatureDescriptions = (t: Translator): Record<FeatureName, string> => ({
+  sales: t("descriptions.sales"),
+  accounts: t("descriptions.accounts"),
+  expiryTracking: t("descriptions.expiryTracking"),
+  barcodeSystem: t("descriptions.barcodeSystem"),
+  invoicePrinting: t("descriptions.invoicePrinting"),
+  returns: t("descriptions.returns"),
+  uomConversion: t("descriptions.uomConversion"),
+  tax: t("descriptions.tax"),
+  combo: t("descriptions.combo"),
+});
 
 /**
  * Feature icons for UI (lucide icon names)

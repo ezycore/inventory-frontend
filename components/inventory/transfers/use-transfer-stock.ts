@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ListChecks, MapPin, Package } from 'lucide-react'
 import type { StatData } from '@/ui/components/StatsCard'
@@ -15,6 +16,7 @@ export type TransferStockContext = ReturnType<typeof useTransferStock>
 
 /** State, derived values, and handlers for the Transfer Stock page. */
 export function useTransferStock() {
+  const t = useTranslations('inventory')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(null)
   const [inputValue, setInputValue] = useState<number>(0)
@@ -65,7 +67,7 @@ export function useTransferStock() {
     if (!location) return
 
     if (items.length > 0) {
-      toast.info('Items cleared — source location changed')
+      toast.info(t('transfers.itemsCleared'))
     }
     setFromLocation(value, location.label || location.name)
     resetForm()
@@ -100,15 +102,15 @@ export function useTransferStock() {
   // Handle add or update item
   const handleAddOrUpdate = () => {
     if (!selectedProduct) {
-      toast.error('Please select a product')
+      toast.error(t('shared.selectProductFirst'))
       return
     }
     if (computedBaseQuantity < 1) {
-      toast.error('Transfer quantity must be at least 1')
+      toast.error(t('transfers.quantityMin'))
       return
     }
     if (computedBaseQuantity > selectedProduct.quantity) {
-      toast.error(`Insufficient stock. Available: ${selectedProduct.quantity}`)
+      toast.error(t('transfers.insufficientStock', { stock: selectedProduct.quantity }))
       return
     }
 
@@ -118,7 +120,7 @@ export function useTransferStock() {
         notes: notes || undefined,
       })
       setEditingId(null)
-      toast.success('Item updated')
+      toast.success(t('shared.itemUpdated'))
     } else {
       addItem({
         inventoryId: selectedProduct.value,
@@ -136,7 +138,7 @@ export function useTransferStock() {
           baseUnitName: selectedProduct.baseUnitName,
         } : {}),
       })
-      toast.success('Item added to list')
+      toast.success(t('shared.itemAdded'))
     }
 
     resetForm()
@@ -184,7 +186,7 @@ export function useTransferStock() {
   // Submit all transfers
   const handleSubmitAll = async () => {
     if (items.length === 0) {
-      toast.error('No items to submit')
+      toast.error(t('shared.noItemsToSubmit'))
       return
     }
 
@@ -209,9 +211,9 @@ export function useTransferStock() {
   // Step indicator
   const currentStep = items.length === 0 ? 0 : 1
   const steps = [
-    { label: 'Add Items', description: 'Select products to transfer' },
-    { label: 'Review', description: `${items.length} item(s) pending` },
-    { label: 'Submit', description: 'Confirm transfers' },
+    { label: t('shared.stepAddItems'), description: t('transfers.stepAddDesc') },
+    { label: t('shared.stepReview'), description: t('shared.stepPendingCount', { count: items.length }) },
+    { label: t('shared.stepSubmit'), description: t('transfers.stepSubmitDesc') },
   ]
 
   // Stats
@@ -219,24 +221,24 @@ export function useTransferStock() {
 
   const pendingStats: StatData[] = [
     {
-      label: 'Pending Transfers',
+      label: t('transfers.statPending'),
       value: items.length,
       icon: ListChecks,
       variant: items.length > 0 ? 'primary' : 'default',
     },
     {
-      label: 'Total Units',
+      label: t('transfers.statTotalUnits'),
       value: totalUnits,
       icon: Package,
       variant: 'info',
-      description: 'Units to transfer',
+      description: t('transfers.statTotalUnitsDesc'),
     },
     {
-      label: 'Route',
+      label: t('transfers.statRoute'),
       value: fromLocationName && toLocationName ? `${fromLocationName} → ${toLocationName}` : '-',
       icon: MapPin,
       variant: 'success',
-      description: 'Source → Destination',
+      description: t('transfers.statRouteDesc'),
     },
   ]
 

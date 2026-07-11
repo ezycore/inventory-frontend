@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { Card } from "@/ui/components/card";
 
 /**

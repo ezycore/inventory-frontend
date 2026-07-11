@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import {
   PaymentEntryForm as SharedPaymentEntryForm,
 } from "@/components/shared/payments";
@@ -31,6 +33,7 @@ export function PaymentEntryForm({
   onSubmitPayment,
   ...rest
 }: PaymentEntryFormProps) {
+  const t = useTranslations("purchases.payment");
   const creditAvailable = order.supplierId?.creditBalance ?? 0;
   return (
     <SharedPaymentEntryForm
@@ -39,7 +42,7 @@ export function PaymentEntryForm({
       onSubmit={onSubmitPayment}
       credit={{
         available: creditAvailable,
-        label: "Use supplier credit",
+        label: t("applySupplierCredit"),
         enabled: useSupplierCredit,
         setEnabled: setUseSupplierCredit,
       }}

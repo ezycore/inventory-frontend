@@ -1,6 +1,7 @@
 'use client'
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import type { TaxChartPoint } from '@/services/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 
@@ -12,21 +13,22 @@ export function TaxTrendChart({
   data: TaxChartPoint[]
   formatCurrency: (n: number) => string
 }) {
+  const t = useTranslations('reports.tax')
   if (data.length === 0) return null
   const max = Math.max(1, ...data.map((d) => Math.max(d.output, d.input)))
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Tax Trend</CardTitle>
+        <CardTitle className="text-base">{t('trendTitle')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-3 flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-sm bg-primary/80" /> Output (collected)
+            <span className="h-2 w-2 rounded-sm bg-primary/80" /> {t('outputCollectedLegend')}
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-sm bg-orange-400" /> Input (paid)
+            <span className="h-2 w-2 rounded-sm bg-orange-400" /> {t('inputPaidLegend')}
           </span>
         </div>
         <div className="space-y-2">

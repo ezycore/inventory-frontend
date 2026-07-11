@@ -1,5 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye, CreditCard, Copy, Pencil, Trash2 } from 'lucide-react';
+import type { Translator } from '@/i18n/config';
 import { Badge } from '@/ui/components/badge';
 import { Button } from '@/ui/components/button';
 import { DateCell } from '@/ui/components/dataTable/cells/date-cell';
@@ -32,11 +33,13 @@ export function getSalesHistoryColumns(
   isAccountsEnabled: boolean,
   onViewPayments: (sale: Sale) => void,
   onMakePayment: (sale: Sale) => void,
+  /** Caller's `t` bound to "sales.history" (docs/I18N.md). */
+  t: Translator,
 ): ColumnDef<Sale>[] {
   return [
     {
       accessorKey: 'invoiceNumber',
-      header: 'Invoice #',
+      header: t('columns.invoice'),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <span className="font-mono font-medium">
@@ -48,9 +51,9 @@ export function getSalesHistoryColumns(
             className="h-6 w-6 p-0"
             onClick={() => {
               navigator.clipboard.writeText(row.original.invoiceNumber);
-              toast.success('Invoice number copied');
+              toast.success(t('toasts.invoiceCopied'));
             }}
-            title="Copy invoice number"
+            title={t('columns.copyInvoice')}
           >
             <Copy className="h-3.5 w-3.5" />
           </Button>
@@ -59,12 +62,12 @@ export function getSalesHistoryColumns(
     },
     {
       accessorKey: 'createdAt',
-      header: 'Sale Date',
+      header: t('columns.saleDate'),
       cell: ({ row }) => <DateCell value={row.original.createdAt} />,
     },
     {
       accessorKey: 'customerId',
-      header: 'Customer',
+      header: t('columns.customer'),
       cell: ({ row }) => {
         const customer = row.original.customerId;
         return (
@@ -151,19 +154,19 @@ export function getSalesHistoryColumns(
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: t('columns.status'),
       cell: ({ row }) => {
         const config = statusConfig[row.original.status];
         return (
           <Badge variant={config?.variant} className="w-fit">
-            {config?.label}
+            {t(`filters.${row.original.status}`)}
           </Badge>
         );
       },
     },
     {
       accessorKey: 'createdBy',
-      header: 'Created By',
+      header: t('columns.createdBy'),
       cell: ({ row }) => {
         const cb = row.original.createdBy;
         return cb ? (
@@ -182,16 +185,18 @@ export function getSalesHistoryActions(
   isAccountsEnabled: boolean,
   onViewSummary: (sale: Sale) => void,
   onMakePayment: (sale: Sale) => void,
-  onEditDraft?: (sale: Sale) => void,
-  onDeleteDraft?: (sale: Sale) => void,
+  onEditDraft: ((sale: Sale) => void) | undefined,
+  onDeleteDraft: ((sale: Sale) => void) | undefined,
+  /** Caller's `t` bound to "sales.history" (docs/I18N.md). */
+  t: Translator,
 ) {
   return [
     {
       type: 'custom' as const,
       placement: 'cell' as const,
       icon: <Eye className="h-4 w-4" />,
-      label: 'Summary',
-      tooltip: 'View sale summary and items',
+      label: t('actions.summary'),
+      tooltip: t('actions.summaryTooltip'),
       onClick: (row: Sale) => onViewSummary(row),
     },
     ...(isAccountsEnabled
@@ -200,8 +205,8 @@ export function getSalesHistoryActions(
             type: 'custom' as const,
             placement: 'cell' as const,
             icon: <CreditCard className="h-4 w-4" />,
-            label: 'Payment',
-            tooltip: 'Record payment',
+            label: t('actions.payment'),
+            tooltip: t('actions.paymentTooltip'),
             onClick: (row: Sale) => onMakePayment(row),
             disabled: (row: Sale) =>
               row.status === 'draft' ||
@@ -216,8 +221,8 @@ export function getSalesHistoryActions(
             type: 'custom' as const,
             placement: 'cell' as const,
             icon: <Pencil className="h-4 w-4" />,
-            label: 'Edit draft',
-            tooltip: 'Resume editing this draft',
+            label: t('actions.editDraft'),
+            tooltip: t('actions.editDraftTooltip'),
             onClick: (row: Sale) => onEditDraft(row),
             hidden: (row: Sale) => row.status !== 'draft',
           },
@@ -229,8 +234,8 @@ export function getSalesHistoryActions(
             type: 'custom' as const,
             placement: 'cell' as const,
             icon: <Trash2 className="h-4 w-4" />,
-            label: 'Delete draft',
-            tooltip: 'Permanently delete this draft',
+            label: t('actions.deleteDraft'),
+            tooltip: t('actions.deleteDraftTooltip'),
             onClick: (row: Sale) => onDeleteDraft(row),
             hidden: (row: Sale) => row.status !== 'draft',
           },

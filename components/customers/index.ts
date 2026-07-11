@@ -1,4 +1,4 @@
 export { CustomerLedgerSheet } from "./customer-ledger-sheet";
-export { customerColumns } from "./columns";
-export { customerFilterConfig, searchConfig } from "./filters";
-export { customerFormConfig, defaultValues } from "./form-config";
+export { getCustomerColumns } from "./columns";
+export { getCustomerFilterConfig, getSearchConfig } from "./filters";
+export { getCustomerFormConfig, customerFormConfig, defaultValues } from "./form-config";

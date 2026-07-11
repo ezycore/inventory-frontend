@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import {
   Collapsible,
@@ -65,12 +66,16 @@ export function SectionFold({
  * stacked full-height empty states ("Returns — none · Transactions — none").
  */
 export function EmptySectionsLine({ sections }: { sections: string[] }) {
+  const t = useTranslations('common.detail');
   if (sections.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-lg border border-dashed px-3.5 py-2.5 text-xs text-muted-foreground">
       {sections.map((name) => (
         <span key={name}>
-          <span className="font-medium">{name}</span> — none
+          {t.rich('sectionNone', {
+            name,
+            b: (chunks) => <span className="font-medium">{chunks}</span>,
+          })}
         </span>
       ))}
     </div>

@@ -1,7 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import type { FC } from "react";
-import { taxInclusiveMemo } from "@/utils/tax";
+import { useTranslations } from "next-intl";
 
 /**
  * Shared "added vs included" tax summary block: an optional **Tax (added)** row
@@ -35,13 +36,18 @@ export const TaxSummaryLines: FC<Props> = ({
   totalSize = "sm",
   formatCurrency,
 }) => {
+  const t = useTranslations("common.tax");
   const lg = totalSize === "lg";
-  const memo = show ? taxInclusiveMemo(includedTax, taxTotal, addedTax, formatCurrency) : null;
+  const memo =
+    show && includedTax > 0
+      ? t("includesInPrice", { amount: formatCurrency(includedTax) }) +
+        (addedTax > 0 ? t("totalTaxSuffix", { amount: formatCurrency(taxTotal) }) : "")
+      : null;
   return (
     <>
       {show && addedTax > 0 && (
         <div className="flex justify-between items-center text-sm">
-          <span className="text-muted-foreground font-medium">Tax (added)</span>
+          <span className="text-muted-foreground font-medium">{t("added")}</span>
           <span className="tabular-nums">+{formatCurrency(addedTax)}</span>
         </div>
       )}

@@ -2,6 +2,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import type { Transaction } from "@/types";
 import type { FilterConfig } from "@/types/DataTable";
+import type { Translator } from "@/i18n/config";
 import { Badge } from "@/ui/components/badge";
 import { DateCell } from "@/ui/components/dataTable/cells";
 import {
@@ -23,61 +24,56 @@ const getTransactionTypeIcon = (type: string) => {
   }
 };
 
-const getCategoryLabel = (category: string) => {
-  const labels: Record<string, string> = {
-    sale: "Sale",
-    purchase: "Purchase",
-    salary: "Salary",
-    rent: "Rent",
-    utilities: "Utilities",
-    refund: "Refund",
-    adjustment: "Adjustment",
-    transfer: "Transfer",
-    investment: "Investment",
-    other: "Other",
-  };
-  return labels[category] || category;
-};
+const CATEGORY_KEYS = [
+  "sale",
+  "purchase",
+  "salary",
+  "rent",
+  "utilities",
+  "refund",
+  "adjustment",
+  "transfer",
+  "investment",
+  "other",
+] as const;
 
-export const transactionFilterConfig: FilterConfig = {
+// `category`/`type` are backend-typed enums (`TransactionCategory`/`TransactionType`)
+// with full coverage in accounts.json, so no runtime fallback guard is needed.
+const getCategoryLabel = (category: string, t: Translator) =>
+  t(`categories.${category}` as never);
+
+export const getTransactionFilterConfig = (t: Translator): FilterConfig => ({
   fields: [
     {
       name: "search",
-      label: "Search",
+      label: t("filters.searchLabel"),
       type: "text",
-      placeholder: "Search transactions...",
+      placeholder: t("filters.searchPlaceholder"),
     },
     {
       name: "type",
-      label: "Type",
+      label: t("filters.typeLabel"),
       type: "select",
-      placeholder: "All types",
+      placeholder: t("filters.typePlaceholder"),
       options: [
-        { label: "Income", value: "income" },
-        { label: "Expense", value: "expense" },
-        { label: "Transfer", value: "transfer" },
+        { label: t("types.income"), value: "income" },
+        { label: t("types.expense"), value: "expense" },
+        { label: t("types.transfer"), value: "transfer" },
       ],
     },
     {
       name: "category",
-      label: "Category",
+      label: t("filters.categoryLabel"),
       type: "select",
-      placeholder: "All categories",
-      options: [
-        { label: "Sale", value: "sale" },
-        { label: "Purchase", value: "purchase" },
-        { label: "Salary", value: "salary" },
-        { label: "Rent", value: "rent" },
-        { label: "Utilities", value: "utilities" },
-        { label: "Refund", value: "refund" },
-        { label: "Adjustment", value: "adjustment" },
-        { label: "Investment", value: "investment" },
-        { label: "Other", value: "other" },
-      ],
+      placeholder: t("filters.categoryPlaceholder"),
+      options: CATEGORY_KEYS.filter((c) => c !== "transfer").map((c) => ({
+        label: t(`categories.${c}`),
+        value: c,
+      })),
     },
   ],
   viewMode: "popover",
-};
+});
 
 // Left border tint per transaction type, for DataTable rowClassName.
 export const transactionTypeColorMap: Record<string, string> = {
@@ -88,39 +84,42 @@ export const transactionTypeColorMap: Record<string, string> = {
 
 export function getTransactionColumns(
   format: (value: number) => string,
+  t: Translator,
 ): ColumnDef<Transaction>[] {
   return [
     {
       accessorKey: "createdAt",
-      header: "Date",
+      header: t("columns.date"),
       cell: ({ row }) => (
         <DateCell value={row.getValue("createdAt")} isShowDateOnly={false} />
       ),
     },
     {
       accessorKey: "type",
-      header: "Type",
+      header: t("columns.type"),
       cell: ({ row }) => {
         const type = row.getValue("type") as string;
         return (
           <div className="flex items-center gap-2">
             {getTransactionTypeIcon(type)}
-            <span className="capitalize">{type}</span>
+            <span className="capitalize">
+              {t(`types.${type}` as never)}
+            </span>
           </div>
         );
       },
     },
     {
       accessorKey: "category",
-      header: "Category",
+      header: t("columns.category"),
       cell: ({ row }) => {
         const category = row.getValue("category") as string;
-        return <Badge variant="outline">{getCategoryLabel(category)}</Badge>;
+        return <Badge variant="outline">{getCategoryLabel(category, t)}</Badge>;
       },
     },
     {
       accessorKey: "amount",
-      header: "Amount",
+      header: t("columns.amount"),
       cell: ({ row }) => {
         const type = row.original.type;
         const amount = row.getValue("amount") as number;
@@ -140,7 +139,7 @@ export function getTransactionColumns(
     },
     {
       accessorKey: "balanceAfter",
-      header: "Balance After",
+      header: t("columns.balanceAfter"),
       cell: ({ row }) => {
         const balance = row.getValue("balanceAfter") as number;
         return <span>{format(balance)}</span>;
@@ -148,12 +147,12 @@ export function getTransactionColumns(
     },
     {
       accessorKey: "description",
-      header: "Description",
+      header: t("columns.description"),
       cell: ({ row }) => row.getValue("description") || "-",
     },
     {
       accessorKey: "reference",
-      header: "Reference",
+      header: t("columns.reference"),
       cell: ({ row }) => row.getValue("reference") || "-",
     },
   ];

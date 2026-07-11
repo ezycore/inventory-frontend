@@ -13,6 +13,7 @@ import { printTable } from "@/utils/print";
 import { useQuery } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
 import { Download, Plus, Printer, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent } from "../card";
@@ -23,6 +24,7 @@ import { stripHiddenValues } from "../form/type";
 export function DataTable<TData extends { _id: string }, TValue = any>(
   props: DataTableProps<TData, TValue>,
 ) {
+  const t = useTranslations("common");
   const {
     cardTitle,
     defaultPageSize,
@@ -199,7 +201,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     transformEditData,
     onDeleteFn: deleteMutation?.mutateAsync,
     onBulkDeleteFn: bulkDeleteMutation?.mutateAsync,
-    entityName: "Brand",
+    entityName,
   });
 
   // Export / Print header buttons — expressed as customActions so no new props
@@ -212,7 +214,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
       actions.push({
         type: "import",
         placement: "header",
-        label: importConfig.label || "Import",
+        label: importConfig.label || t("table.import"),
         icon: <Upload className="h-4 w-4" />,
         variant: "outline",
         onClick: () => setImportOpen(true),
@@ -225,7 +227,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
       actions.push({
         type: "export",
         placement: "header",
-        label: exportConfig.label || "Export CSV",
+        label: exportConfig.label || t("table.exportCsv"),
         icon: <Download className="h-4 w-4" />,
         variant: "outline",
         onClick: () => setExportOpen(true),
@@ -236,7 +238,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
       actions.push({
         type: "print",
         placement: "header",
-        label: printConfig.label || "Print",
+        label: printConfig.label || t("table.print"),
         icon: <Printer className="h-4 w-4" />,
         variant: "outline",
         onClick: () => {
@@ -244,13 +246,13 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           const opened = printTable(data, printConfig.columns, {
             title: printConfig.title,
           });
-          if (!opened) toast.error("Please allow pop-ups to print.");
+          if (!opened) toast.error(t("table.popupBlocked"));
         },
       });
     }
 
     return actions;
-  }, [customActions, exportConfig, importConfig, printConfig, data]);
+  }, [customActions, exportConfig, importConfig, printConfig, data, t, setImportOpen, setExportOpen]);
 
   // Export query params (current filters + server sort) + the server-side match
   // count, threaded into the ExportDialog. Kept before the early return so the
@@ -310,21 +312,21 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
       : {
           deletable: deleteTooltip
             ? { tooltip: deleteTooltip }
-            : { tooltip: `Delete ${entityName}` },
+            : { tooltip: t("table.deleteEntity", { entity: entityName }) },
         }),
     ...(!isViewAvailable
       ? {}
       : {
           viewable: viewTooltip
             ? { tooltip: viewTooltip }
-            : { tooltip: `View ${entityName}` },
+            : { tooltip: t("table.viewEntity", { entity: entityName }) },
         }),
     ...(!updateMutation
       ? {}
       : {
           editable: editTooltip
             ? { tooltip: editTooltip }
-            : { tooltip: `Edit ${entityName}` },
+            : { tooltip: t("table.editEntity", { entity: entityName }) },
         }),
   };
 
@@ -334,7 +336,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     (!createMutation
       ? undefined
       : {
-          label: `Add ${entityName}`,
+          label: t("table.addEntity", { entity: entityName }),
           icon: <Plus className="h-4 w-4" />,
           onClick: handleAdd,
           variant: "default" as const,
@@ -393,13 +395,15 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             onOpenChange={handleCloseModal}
             title={
               isViewMode
-                ? `${entityName} Details`
+                ? t("table.entityDetails", { entity: entityName })
                 : editingItem
-                  ? `Edit ${entityName}`
-                  : `Add New ${entityName}`
+                  ? t("table.editEntity", { entity: entityName })
+                  : t("table.addNewEntity", { entity: entityName })
             }
             submitLabel={
-              editingItem ? `Update ${entityName}` : `Create ${entityName}`
+              editingItem
+                ? t("table.updateEntity", { entity: entityName })
+                : t("table.createEntity", { entity: entityName })
             }
             modalSize="md"
             viewMode={isViewMode}

@@ -13,6 +13,7 @@ import { useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
 import { DynamicFormConfig } from "@/ui/components/form/type";
+import Image from "next/image";
 import { Switch } from "@/ui/components/switch";
 import { cn } from "@/ui/lib/utils";
 import {
@@ -352,7 +353,7 @@ export default function Signup() {
         {/* Logo */}
         <div className="relative flex items-center gap-1">
           <div className="flex h-11 w-11 items-center justify-center">
-            <img
+            <Image
               src="/logo/ezycore-mark-inverse.svg"
               alt="EzyCore"
               width={24}

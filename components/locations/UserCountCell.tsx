@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
@@ -22,6 +24,7 @@ function formatRoleName(role: string) {
 }
 
 export function UserCountCell({ users }: UserCountCellProps) {
+  const t = useTranslations("settings.locations.usersPopover");
   const userCount = users?.length;
 
   if (!userCount) {
@@ -39,8 +42,8 @@ export function UserCountCell({ users }: UserCountCellProps) {
       <PopoverContent className="w-80" align="start">
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-sm">Users at this location</h4>
-            <Badge variant="secondary">{userCount} total</Badge>
+            <h4 className="font-semibold text-sm">{t("usersTitle")}</h4>
+            <Badge variant="secondary">{t("total", { count: userCount })}</Badge>
           </div>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {users.map((user) => (

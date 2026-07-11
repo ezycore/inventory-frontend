@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 import { Badge } from "@/ui/components/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/card";
@@ -16,6 +17,9 @@ export function ComparisonView({
   summaries: LocationStockSummary[];
   isLoading: boolean;
 }) {
+  const t = useTranslations("settings.locations.stockReport.comparison");
+  const tReport = useTranslations("settings.locations.stockReport");
+  const tType = useTranslations("settings.locations.type");
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   if (isLoading) {
     return (
@@ -29,7 +33,7 @@ export function ComparisonView({
   if (!summaries || summaries.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No locations to compare.
+        {tReport("noLocationsToCompare")}
       </div>
     );
   }
@@ -46,7 +50,7 @@ export function ComparisonView({
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-violet-500" />
-              Stock Value Comparison
+              {t("valueTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -85,7 +89,7 @@ export function ComparisonView({
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Boxes className="h-4 w-4 text-blue-500" />
-            Stock Quantity Comparison
+            {t("quantityTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -103,7 +107,7 @@ export function ComparisonView({
                     <span className="font-medium">{loc.locationName}</span>
                   </div>
                   <span className="text-muted-foreground tabular-nums font-medium">
-                    {loc.totalQuantity.toLocaleString()} units
+                    {t("units", { count: loc.totalQuantity.toLocaleString() })}
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -123,7 +127,7 @@ export function ComparisonView({
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-emerald-500" />
-            Stock Health Breakdown
+            {t("healthTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -132,25 +136,25 @@ export function ComparisonView({
               <thead>
                 <tr className="border-b">
                   <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">
-                    Location
+                    {t("location")}
                   </th>
                   <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">
-                    Type
+                    {t("type")}
                   </th>
                   <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">
-                    Total Items
+                    {t("totalItems")}
                   </th>
                   <th className="px-3 py-2 text-right text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    In Stock
+                    {t("inStock")}
                   </th>
                   <th className="px-3 py-2 text-right text-xs font-medium text-amber-600 dark:text-amber-400">
-                    Low Stock
+                    {t("lowStock")}
                   </th>
                   <th className="px-3 py-2 text-right text-xs font-medium text-red-600 dark:text-red-400">
-                    Out of Stock
+                    {t("outOfStock")}
                   </th>
                   <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">
-                    Health
+                    {t("health")}
                   </th>
                 </tr>
               </thead>
@@ -179,7 +183,7 @@ export function ComparisonView({
                       </td>
                       <td className="px-3 py-2.5">
                         <Badge variant="outline" className="capitalize text-[10px]">
-                          {loc.locationType}
+                          {loc.locationType === "warehouse" ? tType("warehouse") : tType("store")}
                         </Badge>
                       </td>
                       <td className="px-3 py-2.5 text-sm tabular-nums text-right">

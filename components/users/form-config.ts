@@ -2,15 +2,16 @@
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { ApiResponse, Location, PaginatedResponse } from "@/types";
 import { sanitize } from "@/utils";
+import type { Translator } from "@/i18n/config";
 
 // Form configuration for user management
-export const userFormConfig: DynamicFormConfig = {
+export const getUserFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [
     {
       name: "firstName",
       type: "input",
-      label: "First Name",
-      placeholder: "Enter first name",
+      label: t("form.firstName"),
+      placeholder: t("form.firstNamePlaceholder"),
       required: true,
       columnSpan: 6,
       validation: { minLength: 1, maxLength: 50 },
@@ -18,8 +19,8 @@ export const userFormConfig: DynamicFormConfig = {
     {
       name: "lastName",
       type: "input",
-      label: "Last Name",
-      placeholder: "Enter last name",
+      label: t("form.lastName"),
+      placeholder: t("form.lastNamePlaceholder"),
       required: true,
       columnSpan: 6,
       validation: { minLength: 1, maxLength: 50 },
@@ -27,8 +28,8 @@ export const userFormConfig: DynamicFormConfig = {
     {
       name: "email",
       type: "input",
-      label: "Email",
-      placeholder: "Enter email address",
+      label: t("form.email"),
+      placeholder: t("form.emailPlaceholder"),
       required: true,
       columnSpan: 12,
       validation: {
@@ -39,14 +40,14 @@ export const userFormConfig: DynamicFormConfig = {
     {
       name: "phone",
       type: "input",
-      label: "Phone Number",
-      placeholder: "Enter phone number (optional)",
+      label: t("form.phone"),
+      placeholder: t("form.phonePlaceholder"),
       columnSpan: 12,
     },
     {
       name: "role",
       type: "select",
-      label: "Role",
+      label: t("form.role"),
       required: true,
       columnSpan: 12,
       defaultValue: "",
@@ -55,12 +56,12 @@ export const userFormConfig: DynamicFormConfig = {
     {
       name: "locationIds",
       type: "select",
-      label: "Assign Locations",
+      label: t("form.locations"),
       optionsApi: "/locations/active",
       mode: "multiple",
       columnSpan: 12,
       required: false,
-      description: "Select locations for roles without all-location access.",
+      description: t("form.locationsDescription"),
       itemsCreateCallback: (response: ApiResponse<PaginatedResponse<Location>>) => {
         const items = sanitize(response?.data?.items, 'array');
         return items.map((item) => ({
@@ -71,12 +72,12 @@ export const userFormConfig: DynamicFormConfig = {
       },
     },
   ],
-};
+});
 
-export const userSearchConfig = {
+export const getUserSearchConfig = (t: Translator) => ({
   globalSearch: true,
-  placeholder: "Search users by name, role...",
-};
+  placeholder: t("searchPlaceholder"),
+});
 
 export const userFormDefaultValues = {
   firstName: "",

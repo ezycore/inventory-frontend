@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Plus, Minus } from 'lucide-react';
 import { Button } from '@/ui/components/button';
 import { Input } from '@/ui/components/input';
@@ -49,9 +50,10 @@ export function ReturnItemRow({
   onQtyChange,
   onRefundChange: _onRefundChange,
 }: ReturnItemRowProps) {
+  const t = useTranslations('common.returns');
   const isDisabled = item.maxReturnableQty === 0;
   const displayPrice = item.price ?? 0;
-  const displayName = item.productName ?? item.product?.name ?? 'Product';
+  const displayName = item.productName ?? item.product?.name ?? t('product');
 
   return (
     <div

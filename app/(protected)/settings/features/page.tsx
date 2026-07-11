@@ -1,8 +1,10 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import {
-  FEATURE_DESCRIPTIONS,
-  FEATURE_DISPLAY_NAMES,
+  getFeatureDescriptions,
+  getFeatureDisplayNames,
   FEATURE_ICONS,
 } from "@/lib/feature-utils";
 import { useAuthStore } from "@/services/stores";
@@ -37,6 +39,8 @@ const FEATURE_ORDER: FeatureName[] = [
 ];
 
 export default function FeatureSettingsPage() {
+  const t = useTranslations("settings.features");
+  const tShell = useTranslations("settings.shell");
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const updateFeaturesStore = useAuthStore((state) => state.updateFeatures);
@@ -61,10 +65,10 @@ export default function FeatureSettingsPage() {
   // Redirect if user doesn't have permission
   useEffect(() => {
     if (user && !canManageSettings) {
-      toast.error("You don't have permission to access this page");
+      toast.error(tShell("noPermission"));
       router.push("/");
     }
-  }, [user, canManageSettings, router]);
+  }, [user, canManageSettings, router, tShell]);
 
   // Keep the auth store in sync with the fetched effective features.
   useEffect(() => {
@@ -94,11 +98,14 @@ export default function FeatureSettingsPage() {
     );
   };
 
+  const featureNames = getFeatureDisplayNames(t);
+  const featureDescriptions = getFeatureDescriptions(t);
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Feature Settings"
-        subTitle="Your subscription plan decides which features are available. Enable or disable any included feature below — disabled features are hidden from the navigation and cannot be accessed. Features not in your plan are locked."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -137,7 +144,7 @@ export default function FeatureSettingsPage() {
                       />
                     </div>
                     <CardTitle className="text-base">
-                      {FEATURE_DISPLAY_NAMES[feature]}
+                      {featureNames[feature]}
                     </CardTitle>
                   </div>
                   {inPlan ? (
@@ -154,18 +161,18 @@ export default function FeatureSettingsPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <CardDescription className="text-sm">
-                  {FEATURE_DESCRIPTIONS[feature]}
+                  {featureDescriptions[feature]}
                 </CardDescription>
                 {!inPlan && (
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Not included in your plan.{" "}
+                    {t("notIncluded")}{" "}
                     <Link
                       href="/dashboard/billing"
                       className="font-medium text-primary underline-offset-4 hover:underline"
                     >
-                      Upgrade
+                      {t("upgrade")}
                     </Link>{" "}
-                    to enable.
+                    {t("toEnable")}
                   </p>
                 )}
               </CardContent>
@@ -180,18 +187,18 @@ export default function FeatureSettingsPage() {
             <Lock className="h-5 w-5" />
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-medium">Plan-managed availability</p>
+            <p className="text-sm font-medium">{t("planManaged")}</p>
             <p className="text-sm text-muted-foreground">
-              You control which of your plan&apos;s features are turned on here.
-              To unlock features that aren&apos;t in your plan, change your plan on
-              the{" "}
-              <Link
-                href="/dashboard/billing"
-                className="font-medium text-primary underline-offset-4 hover:underline"
-              >
-                Billing
-              </Link>{" "}
-              page.
+              {t.rich("planManagedBody", {
+                link: (chunks) => (
+                  <Link
+                    href="/dashboard/billing"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         </CardContent>

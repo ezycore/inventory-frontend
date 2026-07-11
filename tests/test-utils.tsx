@@ -1,6 +1,11 @@
+// coding-standard: maintained
 import type { ReactElement, ReactNode } from "react";
 import { render, type RenderOptions } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NextIntlClientProvider } from "next-intl";
+
+import commonMessages from "@/messages/en/common.json";
+import authMessages from "@/messages/en/auth.json";
 
 export function createTestQueryClient() {
   return new QueryClient({
@@ -18,7 +23,13 @@ interface WrapperProps {
 
 export function TestProviders({ children, client }: WrapperProps) {
   const qc = client ?? createTestQueryClient();
-  return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+  return (
+    // Tests always run in English so getByText("...") assertions stay stable
+    // (docs/I18N.md). Add namespaces here as tests need them.
+    <NextIntlClientProvider locale="en" messages={{ common: commonMessages, auth: authMessages }}>
+      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+    </NextIntlClientProvider>
+  );
 }
 
 export function renderWithProviders(

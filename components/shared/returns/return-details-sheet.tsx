@@ -1,8 +1,10 @@
 'use client';
 // coding-standard: maintained
 
+import { useLocale, useTranslations } from 'next-intl';
 import { format as formatDate } from 'date-fns';
 import { RotateCcw } from 'lucide-react';
+import type { AppLocale } from '@/i18n/config';
 import { Badge } from '@/ui/components/badge';
 import { CopyField } from '@/ui/components/copy';
 import {
@@ -86,22 +88,22 @@ export interface ReturnDetailsData {
 
 // ── Internal helpers ─────────────────────────────────────────────────────────
 
-function getStatusBadge(status: string) {
+function getStatusBadge(status: string, t: (key: string) => string) {
   switch (status) {
     case 'completed':
       return (
         <Badge className="border-0 bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-400">
-          Processed
+          {t('processed')}
         </Badge>
       );
     case 'pending':
       return (
         <Badge className="border-0 bg-yellow-100 text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-400">
-          Pending
+          {t('pending')}
         </Badge>
       );
     case 'cancelled':
-      return <Badge variant="destructive">Cancelled</Badge>;
+      return <Badge variant="destructive">{t('cancelled')}</Badge>;
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
@@ -111,29 +113,29 @@ function getStatusBadge(status: string) {
 
 const VARIANT_CONFIG = {
   sales: {
-    counterpartyLabel: 'Customer',
-    counterpartyFallback: 'Walk-in Customer',
-    documentLabel: 'Original invoice',
-    sheetDescription: 'Full details of this sales return transaction',
+    counterpartyLabel: 'customer',
+    counterpartyFallback: 'walkInCustomer',
+    documentLabel: 'originalInvoice',
+    sheetDescription: 'salesSheetDescription',
     totalRefundColor: 'text-red-600',
     totalRefundPrefix: '-',
-    adjustDocumentDueLabel: 'Adjusted against sale due',
-    creditConversionLabel: 'Converted to store credit',
+    adjustDocumentDueLabel: 'adjustedSaleDue',
+    creditConversionLabel: 'convertedStoreCredit',
     refundAmountColor: 'text-red-600',
-    printLabel: 'Sales Return',
+    printLabel: 'salesReturn',
     showSalePrice: true,
   },
   purchases: {
-    counterpartyLabel: 'Supplier',
-    counterpartyFallback: 'Unknown supplier',
-    documentLabel: 'Original order',
-    sheetDescription: 'Full details of this purchase return transaction',
+    counterpartyLabel: 'supplier',
+    counterpartyFallback: 'unknownSupplier',
+    documentLabel: 'originalOrder',
+    sheetDescription: 'purchaseSheetDescription',
     totalRefundColor: 'text-orange-600',
     totalRefundPrefix: '',
-    adjustDocumentDueLabel: 'Adjusted against supplier due',
-    creditConversionLabel: 'Adjusted to supplier credit',
+    adjustDocumentDueLabel: 'adjustedSupplierDue',
+    creditConversionLabel: 'adjustedSupplierCredit',
     refundAmountColor: 'text-orange-600',
-    printLabel: 'Purchase Return',
+    printLabel: 'purchaseReturn',
     showSalePrice: false,
   },
 } as const;
@@ -146,10 +148,12 @@ function ReturnStats({
   returnData,
   cfg,
   formatCurrency,
+  t,
 }: {
   returnData: ReturnDetailsData;
   cfg: VariantConfig;
   formatCurrency: (n: number) => string;
+  t: (key: string) => string;
 }) {
   const deduction = returnData.deductionAmount ?? 0;
   // Added (exclusive, real money) vs in-price (inclusive, informational) tax of the
@@ -159,34 +163,34 @@ function ReturnStats({
   return (
     <StatStrip>
       <StatTile
-        label={deduction > 0 ? 'Net refund' : 'Total refund'}
+        label={deduction > 0 ? t('netRefundLabel') : t('totalRefundLabel')}
         value={`${cfg.totalRefundPrefix}${formatCurrency(returnData.totalRefundAmount)}`}
         valueClassName={cfg.totalRefundColor}
       />
       {deduction > 0 && (
         <StatTile
-          label="Gross refund"
+          label={t('grossRefundLabel')}
           value={formatCurrency(returnData.totalRefundAmount + deduction)}
           valueClassName="text-muted-foreground"
         />
       )}
       {deduction > 0 && (
         <StatTile
-          label="Deduction / fee"
+          label={t('deductionFeeLabel')}
           value={`-${formatCurrency(deduction)}`}
           valueClassName="text-destructive"
         />
       )}
       {addedTax > 0 && (
         <StatTile
-          label="Tax (added)"
+          label={t('taxAddedLabel')}
           value={formatCurrency(addedTax)}
           valueClassName="text-muted-foreground"
         />
       )}
       {includedTax > 0 && (
         <StatTile
-          label="Tax (in price)"
+          label={t('taxInPriceLabel')}
           value={formatCurrency(includedTax)}
           valueClassName="text-muted-foreground"
         />
@@ -201,18 +205,20 @@ function RefundAllocationPanel({
   allocation,
   cfg,
   formatCurrency,
+  t,
 }: {
   allocation: NonNullable<ReturnDetailsData['refundAllocation']>;
   cfg: VariantConfig;
   formatCurrency: (n: number) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 }) {
   return (
     <div className="space-y-2">
-      <div className="text-sm font-medium">Where the refund went</div>
+      <div className="text-sm font-medium">{t('whereRefundWent')}</div>
       <div className="space-y-1 rounded-lg border px-3.5 py-3 text-sm">
         {(allocation.adjustDocumentDue ?? 0) > 0 && (
           <div className="flex justify-between gap-6 py-0.5">
-            <span className="text-muted-foreground">{cfg.adjustDocumentDueLabel}</span>
+            <span className="text-muted-foreground">{t(cfg.adjustDocumentDueLabel)}</span>
             <span className="font-medium text-blue-600">
               {formatCurrency(allocation.adjustDocumentDue!)}
             </span>
@@ -221,13 +227,13 @@ function RefundAllocationPanel({
         {allocation.adjustOtherDues?.map((due, idx) => (
           <div key={idx} className="flex items-center justify-between gap-6 py-0.5">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              Adjusted against
+              {t('adjustedAgainst')}
               {due.referenceLabel ? (
                 <span className="font-mono font-medium text-primary">
                   <CopyField value={due.referenceLabel} />
                 </span>
               ) : (
-                'other due'
+                t('otherDue')
               )}
             </span>
             <span className="font-medium text-blue-600">{formatCurrency(due.amount)}</span>
@@ -236,7 +242,7 @@ function RefundAllocationPanel({
         {allocation.accountRefund && (
           <div className="flex justify-between gap-6 py-0.5">
             <span className="text-muted-foreground">
-              Cash refund ({allocation.accountRefund.paymentMethod})
+              {t('cashRefundMethod', { method: allocation.accountRefund.paymentMethod })}
             </span>
             <span className={`font-medium ${cfg.totalRefundColor}`}>
               {formatCurrency(allocation.accountRefund.amount)}
@@ -245,7 +251,7 @@ function RefundAllocationPanel({
         )}
         {(allocation.counterpartyCredit?.amount ?? 0) > 0 && (
           <div className="flex justify-between gap-6 py-0.5">
-            <span className="text-muted-foreground">{cfg.creditConversionLabel}</span>
+            <span className="text-muted-foreground">{t(cfg.creditConversionLabel)}</span>
             <span className="font-medium text-blue-600">
               {formatCurrency(allocation.counterpartyCredit!.amount)}
             </span>
@@ -262,14 +268,14 @@ type ReturnItemRow =
   | { kind: 'combo'; key: string; name: string; refundTotal: number }
   | { kind: 'item'; key: string; item: ReturnDetailsItem; inCombo: boolean };
 
-function buildItemRows(items: ReturnDetailsItem[]): ReturnItemRow[] {
+function buildItemRows(items: ReturnDetailsItem[], comboLabel: string): ReturnItemRow[] {
   const rows: ReturnItemRow[] = [];
   for (const group of groupSaleItemsByCombo(items)) {
     if (group.comboLineId) {
       rows.push({
         kind: 'combo',
         key: group.key,
-        name: group.comboName ?? 'Combo',
+        name: group.comboName ?? comboLabel,
         refundTotal: group.items.reduce((sum, it) => sum + it.refundAmount, 0),
       });
       group.items.forEach((item, i) =>
@@ -292,15 +298,15 @@ function itemSubline(
   cfg: VariantConfig,
   formatCurrency: (n: number) => string,
   canViewCosts: boolean,
+  t: (key: string, values?: Record<string, string | number>) => string,
 ): string {
   const parts: string[] = [];
   if (cfg.showSalePrice && canViewCosts) {
-    parts.push(`Cost ${formatCurrency(item.costPrice * item.quantity)}`);
+    parts.push(t('costLine', { amount: formatCurrency(item.costPrice * item.quantity) }));
   }
   if ((item.taxAmount ?? 0) > 0) {
-    parts.push(
-      `Tax ${item.taxRate ?? 0}%${item.taxType === 'inclusive' ? ' incl.' : ''} · ${formatCurrency(item.taxAmount!)}`,
-    );
+    const key = item.taxType === 'inclusive' ? 'taxLineIncl' : 'taxLineExcl';
+    parts.push(t(key, { rate: item.taxRate ?? 0, amount: formatCurrency(item.taxAmount!) }));
   }
   return parts.join(' · ');
 }
@@ -309,13 +315,15 @@ function ReturnItemsTable({
   returnData,
   cfg,
   formatCurrency,
+  t,
 }: {
   returnData: ReturnDetailsData;
   cfg: VariantConfig;
   formatCurrency: (n: number) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 }) {
   const items = returnData.items ?? [];
-  const rows = buildItemRows(items);
+  const rows = buildItemRows(items, t('combo'));
   // Sales-return item cost is COGS; the purchases Cost column stays — it's the
   // refund basis of the document itself.
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
@@ -323,7 +331,7 @@ function ReturnItemsTable({
   const columns: SimpleColumn<ReturnItemRow>[] = [
     {
       key: 'item',
-      header: 'Item',
+      header: t('item'),
       cell: (row) =>
         row.kind === 'combo' ? (
           <span className="flex items-center gap-2 font-medium">
@@ -334,13 +342,13 @@ function ReturnItemsTable({
           <ItemCell
             name={row.item.productName}
             indent={row.inCombo}
-            sub={itemSubline(row.item, cfg, formatCurrency, canViewCosts) || undefined}
+            sub={itemSubline(row.item, cfg, formatCurrency, canViewCosts, t) || undefined}
           />
         ),
     },
     {
       key: 'qty',
-      header: 'Qty',
+      header: t('qty'),
       align: 'right',
       cell: (row) => (row.kind === 'item' ? row.item.quantity : null),
     },
@@ -348,7 +356,7 @@ function ReturnItemsTable({
       ? ([
           {
             key: 'price',
-            header: 'Sale price',
+            header: t('salePrice'),
             align: 'right',
             cell: (row) =>
               row.kind === 'item' && row.item.price != null
@@ -359,7 +367,7 @@ function ReturnItemsTable({
           },
           {
             key: 'discount',
-            header: 'Disc.',
+            header: t('disc'),
             align: 'right',
             cell: (row) =>
               row.kind === 'item'
@@ -372,7 +380,7 @@ function ReturnItemsTable({
       : ([
           {
             key: 'units',
-            header: 'Units',
+            header: t('units'),
             align: 'right',
             cell: (row) =>
               row.kind === 'item'
@@ -383,7 +391,7 @@ function ReturnItemsTable({
           },
           {
             key: 'cost',
-            header: 'Cost',
+            header: t('cost'),
             align: 'right',
             cell: (row) =>
               row.kind === 'item'
@@ -393,7 +401,7 @@ function ReturnItemsTable({
         ] as SimpleColumn<ReturnItemRow>[])),
     {
       key: 'refund',
-      header: 'Refund',
+      header: t('refund'),
       align: 'right',
       cellClassName: `font-semibold ${cfg.refundAmountColor}`,
       cell: (row) =>
@@ -406,12 +414,12 @@ function ReturnItemsTable({
   return (
     <div className="space-y-3">
       <div className="text-sm font-medium">
-        Returned items{' '}
+        {t('returnedItems')}{' '}
         <span className="font-normal text-muted-foreground">({items.length})</span>
       </div>
       {items.length === 0 ? (
         <p className="rounded-lg border border-dashed py-4 text-center text-sm text-muted-foreground">
-          No items recorded
+          {t('noItemsRecorded')}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
@@ -447,6 +455,9 @@ export function ReturnDetailsSheet({
   isLoading,
   variant,
 }: ReturnDetailsSheetProps) {
+  const t = useTranslations('common.returns.sheet');
+  const tPrintDoc = useTranslations('common.printDoc');
+  const locale = useLocale() as AppLocale;
   const { user } = useAuthStore();
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   if (!returnData && !isLoading) return null;
@@ -469,13 +480,15 @@ export function ReturnDetailsSheet({
               returnData && (
                 <PrintMenu
                   appearance="solid"
-                  a4Label={cfg.printLabel}
+                  a4Label={t(cfg.printLabel)}
                   defaultPaper={resolveDefaultPaper(user?.organization)}
                   onPrint={(paper) =>
                     printReturn(returnData, variant, {
                       paper,
                       currency: formatCurrency,
                       header: orgToPrintHeader(user?.organization),
+                      t: tPrintDoc,
+                      locale,
                     })
                   }
                 />
@@ -484,14 +497,14 @@ export function ReturnDetailsSheet({
           >
             <SheetTitle className="flex flex-wrap items-center gap-2">
               <RotateCcw className="h-5 w-5" />
-              Return Details
+              {t('title')}
               {returnData?.returnNumber ? ` — ${returnData.returnNumber}` : ''}
               {returnData?.returnNumber && (
                 <CopyField value={returnData.returnNumber} showValue={false} />
               )}
-              {returnData && getStatusBadge(returnData.status)}
+              {returnData && getStatusBadge(returnData.status, t)}
             </SheetTitle>
-            <SheetDescription>{cfg.sheetDescription}</SheetDescription>
+            <SheetDescription>{t(cfg.sheetDescription)}</SheetDescription>
           </SheetHeaderBar>
         </SheetHeader>
 
@@ -508,6 +521,7 @@ export function ReturnDetailsSheet({
                 returnData={returnData}
                 cfg={cfg}
                 formatCurrency={formatCurrency}
+                t={t}
               />
 
               {hasAllocation && (
@@ -515,6 +529,7 @@ export function ReturnDetailsSheet({
                   allocation={allocation!}
                   cfg={cfg}
                   formatCurrency={formatCurrency}
+                  t={t}
                 />
               )}
 
@@ -522,6 +537,7 @@ export function ReturnDetailsSheet({
                 returnData={returnData}
                 cfg={cfg}
                 formatCurrency={formatCurrency}
+                t={t}
               />
 
               {returnData.notes && <NoteCallout>{returnData.notes}</NoteCallout>}
@@ -529,11 +545,11 @@ export function ReturnDetailsSheet({
               <DetailsKv
                 rows={[
                   {
-                    label: cfg.counterpartyLabel,
-                    value: returnData.counterpartyName ?? cfg.counterpartyFallback,
+                    label: t(cfg.counterpartyLabel),
+                    value: returnData.counterpartyName ?? t(cfg.counterpartyFallback),
                   },
                   {
-                    label: 'Reason',
+                    label: t('reasonLabel'),
                     value: returnData.reason ? (
                       <span className="capitalize">
                         {returnData.reason.replace(/_/g, ' ')}
@@ -541,7 +557,7 @@ export function ReturnDetailsSheet({
                     ) : undefined,
                   },
                   {
-                    label: cfg.documentLabel,
+                    label: t(cfg.documentLabel),
                     value: (
                       <span className="font-mono text-primary">
                         <CopyField value={returnData.documentRef} />
@@ -549,14 +565,14 @@ export function ReturnDetailsSheet({
                     ),
                   },
                   {
-                    label: 'Return date',
+                    label: t('returnDate'),
                     value: formatDate(
                       new Date(returnData.date),
                       'dd MMM yyyy hh:mm aa',
                     ),
                   },
                   {
-                    label: 'Cost amount',
+                    label: t('costAmount'),
                     value:
                       canViewCosts && returnData.totalCostAmount != null
                         ? formatCurrency(returnData.totalCostAmount)

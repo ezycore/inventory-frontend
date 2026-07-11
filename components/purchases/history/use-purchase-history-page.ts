@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -31,6 +33,8 @@ import { ALL_ORDER_STATUSES } from "../orders/filters";
 
 export function usePurchaseHistoryPage() {
   const router = useRouter();
+  const t = useTranslations("purchases");
+  const tActions = useTranslations("common.actions");
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const { format: formatCurrency } = useCurrency();
@@ -121,10 +125,10 @@ export function usePurchaseHistoryPage() {
 
   const handleDeleteDraft = useCallback(async (order: PurchaseOrder) => {
     const ok = await confirm({
-      title: "Delete Draft Order?",
-      description: `"${order.orderNumber}" will be permanently deleted. This action cannot be undone.`,
-      confirmLabel: "Delete",
-      cancelLabel: "Cancel",
+      title: t("history.deleteDraftTitle"),
+      description: t("history.deleteDraftDescription", { number: order.orderNumber }),
+      confirmLabel: tActions("delete"),
+      cancelLabel: tActions("cancel"),
       confirmClassName: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
     });
     if (!ok) return;
@@ -133,7 +137,7 @@ export function usePurchaseHistoryPage() {
     } catch {
       // toast handled by mutation
     }
-  }, [confirm, deleteDraftMutation]);
+  }, [confirm, deleteDraftMutation, t, tActions]);
 
   const handleEditDraft = useCallback(
     (order: PurchaseOrder) => {
@@ -145,18 +149,18 @@ export function usePurchaseHistoryPage() {
   const handlePaymentSubmit = useCallback(async () => {
     if (!selectedOrder) return;
     if (!useSupplierCredit && !paymentAccountId) {
-      toast.error("Please select a payment account");
+      toast.error(t("history.selectPaymentAccount"));
       return;
     }
 
     const amount = parseFloat(paymentAmount);
     if (Number.isNaN(amount) || amount <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error(t("history.enterValidAmount"));
       return;
     }
 
     if (amount > (selectedOrder.dueAmount || 0)) {
-      toast.error("Payment amount cannot exceed due amount");
+      toast.error(t("history.exceedsDue"));
       return;
     }
 
@@ -191,6 +195,7 @@ export function usePurchaseHistoryPage() {
     useSupplierCredit,
     addPaymentMutation,
     refetch,
+    t,
   ]);
 
   const formatDateTime = (date: string | Date) =>
@@ -198,8 +203,8 @@ export function usePurchaseHistoryPage() {
 
   // Columns, actions, filters — memoised
   const columns = useMemo(
-    () => getPurchaseHistoryColumns({ formatCurrency }),
-    [formatCurrency],
+    () => getPurchaseHistoryColumns({ formatCurrency, t }),
+    [formatCurrency, t],
   );
 
   const customActions = useMemo(
@@ -210,6 +215,7 @@ export function usePurchaseHistoryPage() {
         isAccountsEnabled,
         onEditDraft: handleEditDraft,
         onDeleteDraft: handleDeleteDraft,
+        t,
       }),
     [
       handleViewSummary,
@@ -217,6 +223,7 @@ export function usePurchaseHistoryPage() {
       isAccountsEnabled,
       handleEditDraft,
       handleDeleteDraft,
+      t,
     ],
   );
 
@@ -231,8 +238,9 @@ export function usePurchaseHistoryPage() {
           setFilters({});
           setPage(1);
         },
+        t,
       }),
-    [],
+    [t],
   );
 
   return {
