@@ -99,6 +99,11 @@ Query keys are centrally defined in `services/api/query-keys.ts` (re-exported fr
 3. Add query keys to `services/api/query-keys.ts`
 4. Export both from `services/api/index.ts`
 
+If the resource supports CSV import, spread `createImportApi("/<resource>")`
+(`services/api/modules/import-api.ts`) into the api object — it provides
+`importPreview`/`importCommit` with optional column-mapping support (the shared
+`ImportDialog` + `ColumnMapper` in `components/shared/import/` drive the flow).
+
 ### UI Components
 
 Shadcn/Radix-based primitives live in `ui/components/`. Feature-specific components are in `components/<feature>/`. Shared/cross-feature components are in `components/shared/`.

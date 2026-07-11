@@ -296,6 +296,27 @@ export interface ImportRowError {
   row: number;
   errors: string[];
 }
+
+/** One expected column's header-resolution outcome (mirrors the backend). */
+export interface ImportHeaderColumn {
+  header: string;
+  required?: boolean;
+  /** CSV header this column reads from, or null when nothing matched. */
+  matched: string | null;
+}
+
+/**
+ * Header-resolution report returned on preview — drives the column-mapping
+ * step when the user's CSV headers differ from the template.
+ */
+export interface ImportHeaderInfo {
+  csvHeaders: string[];
+  columns: ImportHeaderColumn[];
+}
+
+/** Explicit `expected header → CSV header` overrides from the mapping step. */
+export type ImportColumnMapping = Record<string, string>;
+
 export interface ImportResult {
   total: number;
   valid: number;
@@ -303,6 +324,8 @@ export interface ImportResult {
   skipped: number;
   created: number;
   committed: boolean;
+  /** Present on preview responses; feeds the column-mapping step. */
+  headerInfo?: ImportHeaderInfo;
   errors: ImportRowError[];
   /** Aggregated non-fatal skip notices ("message (N rows)"). */
   warnings?: string[];
@@ -310,14 +333,15 @@ export interface ImportResult {
 
 /**
  * Import configuration. When provided, the DataTable renders an "Import" button
- * that opens a dialog: download template → upload → dry-run preview → commit.
+ * that opens a dialog: download template → upload → dry-run preview → commit,
+ * with an inline column-mapping step when the file's headers don't match.
  * The three callbacks map to the resource's API module; on commit the table
  * refetches automatically.
  */
 export interface DataTableImportConfig {
   downloadTemplate: () => Promise<void>;
-  preview: (file: File) => Promise<ImportResult>;
-  commit: (file: File) => Promise<ImportResult>;
+  preview: (file: File, mapping?: ImportColumnMapping) => Promise<ImportResult>;
+  commit: (file: File, mapping?: ImportColumnMapping) => Promise<ImportResult>;
   /** Button label (default "Import"). */
   label?: string;
 }
