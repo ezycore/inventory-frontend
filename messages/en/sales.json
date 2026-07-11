@@ -1,0 +1,256 @@
+{
+  "sell": {
+    "title": "New Sale",
+    "subtitle": "Create a sale and take payment.",
+    "selectCustomer": "Select Customer",
+    "addProducts": "Add Products",
+    "orderItems": "Order Items",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "clearAllTooltip": "Clear all items",
+    "clearAllTitle": "Clear all items?",
+    "clearAllDescription": "All items will be removed from the order.",
+    "clear": "Clear",
+    "scanBarcode": "Scan barcode to add to cart…",
+    "noItems": "No items added yet",
+    "summary": {
+      "orderSummary": "Order Summary",
+      "dueChip": "Due: {amount}",
+      "creditChip": "Credit: {amount}",
+      "subtotal": "Subtotal",
+      "additionalDiscount": "Additional Discount",
+      "totalAmount": "Total Amount",
+      "useStoreCredit": "Use store credit",
+      "available": "Available {amount}",
+      "paid": "Paid",
+      "storeCreditApplied": "Store credit applied",
+      "due": "Due",
+      "change": "Change",
+      "processing": "Processing...",
+      "finalizeSale": "Finalize Sale",
+      "confirmOrder": "Confirm Order",
+      "saving": "Saving...",
+      "updateDraft": "Update Draft",
+      "saveAsDraft": "Save as Draft",
+      "lastSale": "Last sale · {invoice}",
+      "invoiceLabel": "Invoice"
+    },
+    "toasts": {
+      "outOfStock": "{name} is out of stock",
+      "noStockAtLocation": "Product \"{name}\" has no stock at this location",
+      "noProductForCode": "No product found for \"{code}\"",
+      "addItems": "Please add items to the order",
+      "selectPaymentAccount": "Please select a payment account",
+      "selectCustomer": "Please select a customer for the order",
+      "saleFailed": "Failed to complete sale",
+      "addItemsDraft": "Please add items to save as draft",
+      "selectCustomerDraft": "Please select a customer for the draft"
+    },
+    "cart": {
+      "product": "Product",
+      "priceMrp": "Price (MRP)",
+      "costPrice": "Cost Price",
+      "quantity": "Quantity",
+      "batch": "Batch",
+      "discount": "Discount ({symbol})",
+      "tax": "Tax",
+      "total": "Total",
+      "fefoTooltip": "Auto = earliest expiry first (FEFO)",
+      "autoFefo": "Auto (FEFO)",
+      "combo": "Combo"
+    },
+    "form": {
+      "customer": "Customer",
+      "searchSelectCustomer": "Search or select customer...",
+      "discountValue": "Discount Value",
+      "paymentMethod": "Payment Method",
+      "selectAccount": "Select account",
+      "paidAmount": "Paid Amount",
+      "notes": "Notes",
+      "addNotes": "Add notes (optional)"
+    },
+    "search": {
+      "products": "Search products by name or category...",
+      "noProducts": "No products found"
+    }
+  },
+  "history": {
+    "title": "Sales History",
+    "subtitle": "View and manage your sales",
+    "newSale": "New Sale",
+    "tableTitle": "Sales",
+    "walkInCustomer": "Walk-in Customer",
+    "columns": {
+      "saleDate": "Sale Date",
+      "customer": "Customer",
+      "status": "Status",
+      "createdBy": "Created By",
+      "copyInvoice": "Copy invoice number",
+      "invoice": "Invoice #"
+    },
+    "actions": {
+      "summary": "Summary",
+      "summaryTooltip": "View sale summary and items",
+      "payment": "Payment",
+      "paymentTooltip": "Record payment",
+      "editDraft": "Edit draft",
+      "editDraftTooltip": "Resume editing this draft",
+      "deleteDraft": "Delete draft",
+      "deleteDraftTooltip": "Permanently delete this draft"
+    },
+    "summary": {
+      "today": "Today",
+      "thisMonth": "This Month",
+      "totalPaidAllTime": "Total Paid (All Time)",
+      "totalDueAllTime": "Total Due (All Time)",
+      "outstandingBalance": "Outstanding balance",
+      "salesCount": "{count} sale(s)",
+      "fromSales": "From {count} sale(s)"
+    },
+    "drawer": {
+      "payments": "Payments",
+      "returns": "Returns",
+      "transactions": "Transactions",
+      "recordPayment": "Record Payment",
+      "saleSummary": "Sale Summary",
+      "reviewAndPay": "Review the sale and submit a payment",
+      "fullDetails": "Full sale details and payment history",
+      "invoice": "Invoice",
+      "history": "History",
+      "received": "{amount} received",
+      "addPayment": "Add Payment"
+    },
+    "emailReceipt": {
+      "emailTo": "Email receipt to",
+      "sending": "Sending…",
+      "send": "Send receipt",
+      "email": "Email",
+      "leaveEmpty": "Leave empty to use the customer's email on file."
+    },
+    "paymentForm": {
+      "useStoreCredit": "Use store credit"
+    },
+    "returnsList": {
+      "adjustedAgainstSaleDue": "Adjusted against sale due",
+      "adjustedAgainst": "Adjusted against",
+      "convertedToStoreCredit": "Converted to store credit",
+      "noReturns": "No returns for this sale",
+      "otherDue": "other due"
+    },
+    "details": {
+      "invoiceTotal": "Invoice total",
+      "paid": "Paid",
+      "due": "Due",
+      "refunded": "Refunded",
+      "item": "Item",
+      "qty": "Qty",
+      "price": "Price",
+      "disc": "Disc.",
+      "tax": "Tax",
+      "total": "Total",
+      "subtotal": "Subtotal",
+      "additionalDiscount": "Additional discount",
+      "taxAdded": "Tax (added)",
+      "taxInPrice": "Tax (in price)",
+      "customer": "Customer",
+      "createdBy": "Created by",
+      "createdAt": "Created at",
+      "updatedAt": "Updated at",
+      "costPrice": "Cost price",
+      "combo": "Combo",
+      "itemsHeading": "Items",
+      "meta": "{products, plural, one {# product} other {# products}} · {units, plural, one {# unit} other {# units}}"
+    },
+    "timeline": {
+      "cashPayment": "Cash payment",
+      "storeCreditApplied": "Store credit applied",
+      "cashRefund": "Cash refund",
+      "returnCredit": "Return credit",
+      "creditFromOtherSale": "Credit from other sale",
+      "cashPaid": "Cash paid",
+      "creditPaid": "Credit paid",
+      "refundCredit": "Refund credit",
+      "netReceived": "Net received",
+      "due": "Due",
+      "fromSale": "From sale"
+    },
+    "toasts": {
+      "invoiceCopied": "Invoice number copied",
+      "copied": "Copied {value}",
+      "copyFailed": "Failed to copy",
+      "loadSaleFailed": "Failed to load sale",
+      "selectPaymentAccount": "Please select a payment account",
+      "invalidAmount": "Please enter a valid amount",
+      "exceedsDue": "Payment amount cannot exceed due amount",
+      "paymentRecorded": "Payment recorded successfully"
+    },
+    "filters": {
+      "status": "Status",
+      "search": "Search",
+      "searchPlaceholder": "Invoice number, notes...",
+      "draft": "Draft",
+      "paid": "Paid",
+      "partial": "Partial",
+      "due": "Due",
+      "cancelled": "Cancelled"
+    }
+  },
+  "returns": {
+    "title": "Sales Returns",
+    "subtitle": "Manage product returns and refunds",
+    "findSale": "Find Sale",
+    "findSaleDescription": "Enter a sale ID or invoice number to process a return",
+    "findSalePlaceholder": "Enter sale ID or invoice number...",
+    "saleLabel": "Sale",
+    "customerLabel": "Customer",
+    "walkInCustomer": "Walk-in Customer",
+    "itemsDescription": "Choose which items the customer is returning and specify quantities",
+    "columns": {
+      "returnId": "Return ID",
+      "date": "Date",
+      "invoice": "Invoice",
+      "customer": "Customer",
+      "items": "Items",
+      "amount": "Amount",
+      "reason": "Reason",
+      "status": "Status",
+      "viewDetails": "View Details",
+      "cancelled": "Cancelled"
+    },
+    "summary": {
+      "totalReturns": "Total Returns",
+      "returnAmount": "Return Amount",
+      "pending": "Pending",
+      "cashRefunded": "Cash Refunded",
+      "allTime": "all time",
+      "totalRefunded": "total refunded",
+      "awaitingReview": "awaiting review"
+    },
+    "allocation": {
+      "adjustCurrentSaleDue": "Adjust Current Sale Due",
+      "currentDueOnSale": "Current due on this sale:",
+      "adjustOtherCustomerDues": "Adjust Other Customer Dues"
+    },
+    "reasons": {
+      "damaged": "Damaged",
+      "defective": "Defective",
+      "wrongItem": "Wrong Item",
+      "customerChangedMind": "Customer Changed Mind",
+      "expired": "Expired",
+      "other": "Other"
+    },
+    "filters": {
+      "status": "Status",
+      "reason": "Reason",
+      "pending": "Pending",
+      "processed": "Processed",
+      "cancelled": "Cancelled"
+    },
+    "toasts": {
+      "selectSaleFirst": "Please select a sale first",
+      "selectItems": "Please select at least one item to return"
+    },
+    "validation": {
+      "enterSaleId": "Please enter a sale ID or invoice number"
+    }
+  }
+}

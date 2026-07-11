@@ -1,11 +1,14 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import {
   useGetAvailablePlans,
   useGetSubscription,
   useRequestPlanChange,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { useFormatters } from "@/hooks/use-formatters";
 import { formatCurrency } from "@/lib/currency";
 import { getScheduledPlanChange } from "@/lib/subscription-utils";
 import {
@@ -23,12 +26,6 @@ import { toast } from "sonner";
 import type { AvailablePlan } from "@/types";
 import { cn } from "@/ui/lib/utils";
 
-const INTERVAL_LABELS: Record<string, string> = {
-  month: "/mo",
-  year: "/yr",
-  one_time: "",
-};
-
 function PlansSkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -40,7 +37,11 @@ function PlansSkeleton() {
 }
 
 export function AvailablePlans() {
+  const t = useTranslations("settings.billing");
+  const tPlans = useTranslations("settings.billing.plans");
+  const tInterval = useTranslations("settings.billing.interval");
   const currency = useAuthStore((s) => s.user?.organization?.currency);
+  const { formatDate } = useFormatters();
   const { data: sub } = useGetSubscription();
   const { data, isLoading, isError } = useGetAvailablePlans();
   const planChange = useRequestPlanChange();
@@ -54,6 +55,12 @@ export function AvailablePlans() {
   const currentSlug = sub?.entitlement?.planSlug;
   const currentAmount = sub?.entitlement?.amount ?? null;
   const scheduledChange = getScheduledPlanChange(sub?.entitlement);
+
+  const intervalSuffix = (interval: string) => {
+    if (interval === "month") return tInterval("monthSuffix");
+    if (interval === "year") return tInterval("yearSuffix");
+    return "";
+  };
 
   const handleChange = (plan: AvailablePlan) => {
     if (planChange.isPending) return;
@@ -74,17 +81,18 @@ export function AvailablePlans() {
               break;
             case "scheduled":
               toast.success(
-                `Downgrade to ${result.planName} scheduled for ${new Date(
-                  result.effectiveAt,
-                ).toLocaleDateString()}. You keep your current plan until then.`,
+                t("toasts.downgradeScheduled", {
+                  planName: result.planName,
+                  date: formatDate(result.effectiveAt),
+                }),
               );
               break;
             case "activated":
-              toast.success(`You're now on the ${result.planName} plan.`);
+              toast.success(t("toasts.activated", { planName: result.planName }));
               break;
             case "current":
               toast.success(
-                `Downgrade cancelled. You'll stay on the ${result.planName} plan.`,
+                t("toasts.downgradeCancelled", { planName: result.planName }),
               );
               break;
           }
@@ -96,9 +104,9 @@ export function AvailablePlans() {
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">Available Plans</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{tPlans("title")}</h2>
         <p className="text-sm text-muted-foreground">
-          Compare plans and change your subscription.
+          {tPlans("subtitle")}
         </p>
       </div>
 
@@ -127,8 +135,8 @@ export function AvailablePlans() {
                 <div className="flex items-center justify-between">
                   <CardTitle>{plan.name}</CardTitle>
                   <div className="flex items-center gap-2">
-                    {isScheduled && <Badge variant="secondary">Scheduled</Badge>}
-                    {isCurrent && <Badge>Current</Badge>}
+                    {isScheduled && <Badge variant="secondary">{tPlans("scheduled")}</Badge>}
+                    {isCurrent && <Badge>{tPlans("current")}</Badge>}
                   </div>
                 </div>
                 {plan.description && (
@@ -139,7 +147,7 @@ export function AvailablePlans() {
                     {formatCurrency(plan.amount, currency)}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {INTERVAL_LABELS[plan.interval] ?? ""}
+                    {intervalSuffix(plan.interval)}
                   </span>
                 </div>
               </CardHeader>
@@ -162,7 +170,7 @@ export function AvailablePlans() {
 
                 {isScheduled ? (
                   <Button variant="outline" className="w-full" disabled>
-                    Downgrade Scheduled
+                    {tPlans("downgradeScheduledBtn")}
                   </Button>
                 ) : isCurrent && scheduledChange ? (
                   <Button
@@ -171,11 +179,11 @@ export function AvailablePlans() {
                     disabled={planChange.isPending}
                     onClick={() => handleChange(plan)}
                   >
-                    Cancel Downgrade
+                    {tPlans("cancelDowngrade")}
                   </Button>
                 ) : isCurrent ? (
                   <Button variant="outline" className="w-full" disabled>
-                    Current Plan
+                    {tPlans("currentPlanBtn")}
                   </Button>
                 ) : currentAmount == null ? (
                   <Button
@@ -183,7 +191,7 @@ export function AvailablePlans() {
                     disabled={planChange.isPending}
                     onClick={() => handleChange(plan)}
                   >
-                    Choose Plan
+                    {tPlans("choosePlan")}
                   </Button>
                 ) : direction === "upgrade" ? (
                   <Button
@@ -192,7 +200,7 @@ export function AvailablePlans() {
                     onClick={() => handleChange(plan)}
                   >
                     <ArrowUpCircle className="size-4" />
-                    Upgrade
+                    {tPlans("upgrade")}
                   </Button>
                 ) : (
                   <Button
@@ -202,7 +210,7 @@ export function AvailablePlans() {
                     onClick={() => handleChange(plan)}
                   >
                     <ArrowDownCircle className="size-4" />
-                    Downgrade
+                    {tPlans("downgrade")}
                   </Button>
                 )}
               </CardContent>

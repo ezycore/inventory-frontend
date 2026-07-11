@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { FileText } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import type { Supplier } from "@/types";
@@ -11,11 +13,11 @@ import PageHeader from "@/ui/components/header";
 
 import {
   SupplierLedgerSheet,
-  supplierColumns,
-  supplierFilterConfig,
-  supplierSearchConfig,
+  getSupplierColumns,
+  getSupplierFilterConfig,
+  getSupplierSearchConfig,
   supplierDefaultValues,
-  supplierFormConfig,
+  getSupplierFormConfig,
 } from "@/components/suppliers";
 import {
   suppliersApi,
@@ -27,6 +29,7 @@ import { queryKeys } from "@/services/api/query-keys";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 
 export default function SuppliersPage() {
+  const t = useTranslations("suppliers");
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
 
@@ -49,29 +52,29 @@ export default function SuppliersPage() {
         type: "ledger",
         placement: "cell",
         icon: <FileText className="h-4 w-4" />,
-        tooltip: "View Ledger",
+        tooltip: t("page.viewLedgerTooltip"),
         onClick: (row: Supplier) => handleViewLedger(row),
       },
     ],
-    [],
+    [t],
   );
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Suppliers"
-        subTitle="Vendors you buy from."
+        title={t("page.title")}
+        subTitle={t("page.subtitle")}
       />
 
       <DataTable
-        cardTitle={(dataLength: number) => `All Suppliers (${dataLength})`}
+        cardTitle={(dataLength: number) => t("page.cardTitle", { count: dataLength })}
         defaultPageSize={10}
         pageSizes={[10, 20, 50, 100]}
-        filterConfig={supplierFilterConfig}
-        columns={supplierColumns}
+        filterConfig={getSupplierFilterConfig(t)}
+        columns={getSupplierColumns(t)}
         selectable={true}
-        searchConfig={supplierSearchConfig}
+        searchConfig={getSupplierSearchConfig(t)}
         enableSorting={true}
         defaultColumnVisibility={{ email: false, phone: false }}
         enableRowHover={true}
@@ -80,18 +83,18 @@ export default function SuppliersPage() {
         }
         customActions={customActions}
         operations={{
-          formConfig: supplierFormConfig,
+          formConfig: getSupplierFormConfig(t),
           defaultValues: supplierDefaultValues,
           getAllData: suppliersApi.getAll,
           createMutation: useCreateSupplier(),
           updateMutation: useUpdateSupplier(),
           deleteMutation: useDeleteSupplier(),
           queryKey: [...queryKeys.suppliers.all()],
-          entityName: "Supplier",
+          entityName: t("page.entity"),
           isViewAvailable: false,
-          editTooltip: "Edit Supplier",
-          deleteTooltip: "Delete Supplier",
-          viewTooltip: "View Supplier Details",
+          editTooltip: t("page.editTooltip"),
+          deleteTooltip: t("page.deleteTooltip"),
+          viewTooltip: t("page.viewTooltip"),
           prepareSubmitData: (
             data: Supplier,
             isEdit: boolean,

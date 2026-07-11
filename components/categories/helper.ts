@@ -1,35 +1,39 @@
 import { StatData } from "@/ui/components/StatsCard";
 import { CheckCircle2, ShoppingBag, Tag, XCircle } from "lucide-react";
+import type { Translator } from "@/i18n/config";
 
-export function getCategoryStats(stats: Record<string, any> | undefined): StatData[] {
+export function getCategoryStats(
+  stats: Record<string, any> | undefined,
+  t: Translator,
+): StatData[] {
   return [
     {
-      label: "Total Categories",
+      label: t("stats.total"),
       value: stats?.total || 0,
       icon: Tag,
       variant: "primary",
-      description: "All registered categories",
+      description: t("stats.totalDescription"),
     },
     {
-      label: "Active",
+      label: t("stats.active"),
       value: stats?.active || 0,
       icon: CheckCircle2,
       variant: "success",
-      description: "Currently active",
+      description: t("stats.activeDescription"),
     },
     {
-      label: "Inactive",
+      label: t("stats.inactive"),
       value: stats?.inactive || 0,
       icon: XCircle,
       variant: "warning",
-      description: "Currently inactive",
+      description: t("stats.inactiveDescription"),
     },
     {
-      label: "Total Products",
+      label: t("stats.totalProducts"),
       value: stats?.totalProducts || 0,
       icon: ShoppingBag,
       variant: "info",
-      description: "Across all categories",
+      description: t("stats.totalProductsDescription"),
     },
   ]
 }

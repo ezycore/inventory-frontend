@@ -1,12 +1,13 @@
 // coding-standard: maintained
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { formatInTimeZone } from 'date-fns-tz'
 import { format } from 'date-fns'
 import { AreaChart, DonutChart } from '@ui/components/charts'
 import { Card } from '@ui/components/card'
 import type { InventoryAnalytics } from '@/services/api/modules/inventory/analytics.types'
-import { MOVEMENT_REASON_LABEL } from '@/components/products/detail/utils'
+import { useMovementReasonLabel } from '@/hooks/use-movement-reason-label'
 
 interface InventoryChartsProps {
   analytics: InventoryAnalytics
@@ -24,6 +25,8 @@ function shortStamp(iso: string, timezone?: string): string {
 }
 
 export function InventoryCharts({ analytics }: InventoryChartsProps) {
+  const t = useTranslations('inventory.detail')
+  const reasonLabel = useMovementReasonLabel()
   const { balanceTrend, movement, timezone } = analytics
 
   const balanceData = balanceTrend.map((b) => ({
@@ -32,7 +35,7 @@ export function InventoryCharts({ analytics }: InventoryChartsProps) {
   }))
 
   const reasonData = movement.reasonBreakdown.map((r) => ({
-    name: MOVEMENT_REASON_LABEL[r.reason] || r.reason,
+    name: reasonLabel(r.reason),
     value: r.quantity,
   }))
 
@@ -43,44 +46,44 @@ export function InventoryCharts({ analytics }: InventoryChartsProps) {
       <div className="lg:col-span-2">
         {balanceData.length > 0 ? (
           <AreaChart
-            title="Stock Level Over Time"
-            subtitle="Running balance after each movement"
+            title={t('chartBalanceTitle')}
+            subtitle={t('chartBalanceSubtitle')}
             data={balanceData}
             series={[
-              { dataKey: 'balance', name: 'On hand', color: 'var(--color-primary)' },
+              { dataKey: 'balance', name: t('chartBalanceSeries'), color: 'var(--color-primary)' },
             ]}
             height={280}
             showYAxis
-            tooltipFormatter={(v) => `${v.toLocaleString()} units`}
+            tooltipFormatter={(v) => t('unitsTooltip', { value: v.toLocaleString() })}
           />
         ) : (
-          <EmptyChart title="Stock Level Over Time" />
+          <EmptyChart title={t('chartBalanceTitle')} emptyText={t('chartEmpty')} />
         )}
       </div>
 
       {reasonData.length > 0 ? (
         <DonutChart
-          title="Movement by Reason"
-          subtitle="Units moved at this location"
+          title={t('chartReasonTitle')}
+          subtitle={t('chartReasonSubtitle')}
           data={reasonData}
           centerValue={totalMovedUnits.toLocaleString()}
-          centerLabel="units"
+          centerLabel={t('unitsLabel')}
           height={220}
           showLegend
           legendPosition="bottom"
         />
       ) : (
-        <EmptyChart title="Movement by Reason" />
+        <EmptyChart title={t('chartReasonTitle')} emptyText={t('chartEmpty')} />
       )}
     </div>
   )
 }
 
-function EmptyChart({ title }: { title: string }) {
+function EmptyChart({ title, emptyText }: { title: string; emptyText: string }) {
   return (
     <Card className="flex flex-col items-center justify-center p-5 text-center">
       <h3 className="self-start text-sm font-semibold">{title}</h3>
-      <p className="py-12 text-sm text-muted-foreground">No movement data yet</p>
+      <p className="py-12 text-sm text-muted-foreground">{emptyText}</p>
     </Card>
   )
 }

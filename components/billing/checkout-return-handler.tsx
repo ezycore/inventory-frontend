@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useReconcilePlanChange } from "@/services/api";
@@ -15,6 +17,7 @@ import { useReconcilePlanChange } from "@/services/api";
  * doesn't re-trigger. On `?checkout=cancel|fail` it informs the user.
  */
 export function CheckoutReturnHandler() {
+  const t = useTranslations("settings.billing.toasts");
   const params = useSearchParams();
   const router = useRouter();
   const reconcile = useReconcilePlanChange();
@@ -33,19 +36,19 @@ export function CheckoutReturnHandler() {
         reconcile.mutate(
           { sessionId },
           {
-            onSuccess: () => toast.success("Your plan has been updated."),
+            onSuccess: () => toast.success(t("planUpdated")),
           },
         );
       } else {
         // SSLCommerz: the IPN already activated the plan — just confirm.
-        toast.success("Your plan has been updated.");
+        toast.success(t("planUpdated"));
       }
     } else if (checkout === "cancel" || checkout === "fail") {
-      toast.info("Checkout was not completed. Your plan is unchanged.");
+      toast.info(t("checkoutCancelled"));
     }
 
     router.replace("/dashboard/billing");
-  }, [checkout, sessionId, reconcile, router]);
+  }, [checkout, sessionId, reconcile, router, t]);
 
   return null;
 }

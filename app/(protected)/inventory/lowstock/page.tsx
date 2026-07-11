@@ -1,8 +1,10 @@
 "use client";
+// coding-standard: maintained
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 // UI Components
 import { DataTable } from "@/ui/components/dataTable";
@@ -10,8 +12,8 @@ import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Progress } from "@/ui/components/progress";
 import PageHeader from "@/ui/components/header";
-import { FilterConfig } from "@/types/DataTable";
 import StatsCard, { type StatData } from "@/ui/components/StatsCard";
+import type { Translator } from "@/i18n/config";
 
 // Hooks & API
 import { queryKeys } from "@/services/api/query-keys";
@@ -23,7 +25,7 @@ import {
   ShoppingCart,
   TrendingDown,
 } from "lucide-react";
-import { inventoryFilterConfig } from "@/components/inventory/filters";
+import { getInventoryFilterConfig } from "@/components/inventory/filters";
 
 // Shortlist item type (flat structure from API)
 interface ShortlistItem {
@@ -66,8 +68,8 @@ interface ShortlistItem {
 }
 
 /** Get display name: product name + variant attributes */
-function getDisplayName(item: ShortlistItem): string {
-  let name = item.name || "Unknown Product";
+function getDisplayName(item: ShortlistItem, fallbackName: string): string {
+  let name = item.name || fallbackName;
   if (item.variant?.attributes) {
     const attrs = Object.values(item.variant.attributes).join(", ");
     if (attrs) name = `${name} (${attrs})`;
@@ -95,171 +97,180 @@ function getNeededQtyDisplay(item: ShortlistItem): string {
 }
 
 // Column definitions for shortlist with enhanced visuals
-const columns: ColumnDef<ShortlistItem>[] = [
-  {
-    accessorKey: "name",
-    header: "Product",
-    cell: ({ row }) => {
-      const attributes = row.original.attributes;
-      return (
-        <div className="min-w-[180px]">
-          <span className="font-medium">{getDisplayName(row.original)}</span>
-          {row.original.location?.name && (
-            <div className="text-xs text-muted-foreground">{row.original.location.name}</div>
-          )}
-          {attributes && (
-            <div className="flex flex-wrap gap-1 mt-1">
-              {Object.entries(attributes).map(([key, value]) => (
-                <span
-                  key={key}
-                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
-                >
-                  {key}: {String(value)}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "quantity",
-    header: "Stock Level",
-    cell: ({ row }) => {
-      const quantity = row.getValue("quantity") as number;
-      const alertQty = row.original.quantityAlert || 1;
-      const unitName = getUnitShortName(row.original);
-      const ratio = Math.min((quantity / alertQty) * 100, 100);
-      const isCritical = quantity === 0;
-
-      const breakdown = row.original.quantityBreakdown;
-      const saleUnitObj = row.original.saleUnit?.unitId;
-      const saleFactor = Number(row.original.saleUnit?.conversionFactor || 0);
-      const baseUnitId = row.original.unit?._id;
-      const showSale =
-        saleUnitObj &&
-        saleFactor > 1 &&
-        saleUnitObj._id &&
-        saleUnitObj._id !== baseUnitId;
-      const saleQty = showSale ? Math.floor(quantity / saleFactor) : 0;
-
-      return (
-        <div className="space-y-1 min-w-[140px]">
-          <div className="flex items-start justify-between text-sm gap-2">
-            <div className="flex flex-col leading-tight">
-              <span
-                className={
-                  isCritical
-                    ? "text-destructive font-bold"
-                    : "text-chart-1 font-semibold"
-                }
-              >
-                {quantity} {unitName}
-              </span>
-              {breakdown?.enabled && (breakdown?.conversionFactor ?? 0) > 1 && (
-                <span className="text-[11px] text-muted-foreground tabular-nums">
-                  ≈ {breakdown.displayText}
-                  <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
-                    (purchase)
-                  </span>
-                </span>
-              )}
-              {showSale && saleQty > 0 && (
-                <span className="text-[11px] text-muted-foreground tabular-nums">
-                  ≈ {saleQty} {saleUnitObj?.shortName || saleUnitObj?.name}
-                  <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
-                    (sale)
-                  </span>
-                </span>
-              )}
-            </div>
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
-              alert: {alertQty} {unitName}
+function getShortlistColumns(t: Translator): ColumnDef<ShortlistItem>[] {
+  return [
+    {
+      accessorKey: "name",
+      header: t("columns.product"),
+      cell: ({ row }) => {
+        const attributes = row.original.attributes;
+        return (
+          <div className="min-w-[180px]">
+            <span className="font-medium">
+              {getDisplayName(row.original, t("lowstock.unknownProduct"))}
             </span>
+            {row.original.location?.name && (
+              <div className="text-xs text-muted-foreground">{row.original.location.name}</div>
+            )}
+            {attributes && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {Object.entries(attributes).map(([key, value]) => (
+                  <span
+                    key={key}
+                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground"
+                  >
+                    {key}: {String(value)}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          <Progress
-            value={ratio}
-            className="h-1.5"
-            indicatorClassName={
-              isCritical
-                ? "bg-destructive"
-                : ratio < 50
-                  ? "bg-chart-1"
-                  : "bg-chart-2"
-            }
-          />
-        </div>
-      );
+        );
+      },
     },
-  },
-  {
-    accessorKey: "neededQuantity",
-    header: "Needed Qty",
-    cell: ({ row }) => {
-      const { enableUOMConversion } = row.original;
-      const neededQuantity =  (row.original.quantityAlert as number) - (row.original.quantity as number) + 1;
-      const unitLabel = getNeededQtyDisplay(row.original);
-      const display = enableUOMConversion ? `${neededQuantity} ${getUnitShortName(row.original)} (${unitLabel})` : `${neededQuantity} ${getUnitShortName(row.original)}`;
-      return (
-        <Badge
-          variant={neededQuantity > 0 ? "destructive" : "secondary"}
-          className="font-semibold gap-1"
-        >
-          {neededQuantity > 0 && <TrendingDown className="h-3 w-3" />}
-          {neededQuantity > 0 ? `+${display}` : display}
+    {
+      accessorKey: "quantity",
+      header: t("columns.stockLevel"),
+      cell: ({ row }) => {
+        const quantity = row.getValue("quantity") as number;
+        const alertQty = row.original.quantityAlert || 1;
+        const unitName = getUnitShortName(row.original);
+        const ratio = Math.min((quantity / alertQty) * 100, 100);
+        const isCritical = quantity === 0;
 
-        </Badge>
-      );
+        const breakdown = row.original.quantityBreakdown;
+        const saleUnitObj = row.original.saleUnit?.unitId;
+        const saleFactor = Number(row.original.saleUnit?.conversionFactor || 0);
+        const baseUnitId = row.original.unit?._id;
+        const showSale =
+          saleUnitObj &&
+          saleFactor > 1 &&
+          saleUnitObj._id &&
+          saleUnitObj._id !== baseUnitId;
+        const saleQty = showSale ? Math.floor(quantity / saleFactor) : 0;
+
+        return (
+          <div className="space-y-1 min-w-[140px]">
+            <div className="flex items-start justify-between text-sm gap-2">
+              <div className="flex flex-col leading-tight">
+                <span
+                  className={
+                    isCritical
+                      ? "text-destructive font-bold"
+                      : "text-chart-1 font-semibold"
+                  }
+                >
+                  {quantity} {unitName}
+                </span>
+                {breakdown?.enabled && (breakdown?.conversionFactor ?? 0) > 1 && (
+                  <span className="text-[11px] text-muted-foreground tabular-nums">
+                    ≈ {breakdown.displayText}
+                    <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                      ({t("stockLevel.hintPurchase")})
+                    </span>
+                  </span>
+                )}
+                {showSale && saleQty > 0 && (
+                  <span className="text-[11px] text-muted-foreground tabular-nums">
+                    ≈ {saleQty} {saleUnitObj?.shortName || saleUnitObj?.name}
+                    <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                      ({t("stockLevel.hintSale")})
+                    </span>
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {t("lowstock.alertHint", { level: alertQty, unit: unitName })}
+              </span>
+            </div>
+            <Progress
+              value={ratio}
+              className="h-1.5"
+              indicatorClassName={
+                isCritical
+                  ? "bg-destructive"
+                  : ratio < 50
+                    ? "bg-chart-1"
+                    : "bg-chart-2"
+              }
+            />
+          </div>
+        );
+      },
     },
-  },
-  {
-    accessorKey: "isLowStock",
-    header: "Urgency",
-    cell: ({ row }) => {
-      const quantity = row.original.quantity || 0;
-      const alertQty = row.original.quantityAlert || 1;
-      const ratio = quantity / alertQty;
-
-      if (quantity === 0) {
+    {
+      accessorKey: "neededQuantity",
+      header: t("lowstock.colNeededQty"),
+      cell: ({ row }) => {
+        const { enableUOMConversion } = row.original;
+        const neededQuantity = (row.original.quantityAlert as number) - (row.original.quantity as number) + 1;
+        const unitLabel = getNeededQtyDisplay(row.original);
+        const display = enableUOMConversion ? `${neededQuantity} ${getUnitShortName(row.original)} (${unitLabel})` : `${neededQuantity} ${getUnitShortName(row.original)}`;
         return (
           <Badge
-            variant="destructive"
-            className="gap-1"
+            variant={neededQuantity > 0 ? "destructive" : "secondary"}
+            className="font-semibold gap-1"
           >
-            <AlertOctagon className="h-3 w-3" />
-            Critical
+            {neededQuantity > 0 && <TrendingDown className="h-3 w-3" />}
+            {neededQuantity > 0 ? `+${display}` : display}
           </Badge>
         );
-      }
-      if (ratio < 0.5) {
-        return (
-          <Badge className="bg-chart-1/10 text-chart-1 border-chart-1/20 gap-1">
-            <AlertTriangle className="h-3 w-3" />
-            High
-          </Badge>
-        );
-      }
-      return (
-        <Badge variant="secondary" className="gap-1">
-          <AlertTriangle className="h-3 w-3" />
-          Medium
-        </Badge>
-      );
+      },
     },
-  },
-];
+    {
+      accessorKey: "isLowStock",
+      header: t("lowstock.colUrgency"),
+      cell: ({ row }) => {
+        const quantity = row.original.quantity || 0;
+        const alertQty = row.original.quantityAlert || 1;
+        const ratio = quantity / alertQty;
 
-const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search by product, variant, or location...",
-};
+        if (quantity === 0) {
+          return (
+            <Badge
+              variant="destructive"
+              className="gap-1"
+            >
+              <AlertOctagon className="h-3 w-3" />
+              {t("lowstock.urgencyCritical")}
+            </Badge>
+          );
+        }
+        if (ratio < 0.5) {
+          return (
+            <Badge className="bg-chart-1/10 text-chart-1 border-chart-1/20 gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {t("lowstock.urgencyHigh")}
+            </Badge>
+          );
+        }
+        return (
+          <Badge variant="secondary" className="gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            {t("lowstock.urgencyMedium")}
+          </Badge>
+        );
+      },
+    },
+  ];
+}
 
 export default function LowStock() {
+  const t = useTranslations("inventory");
   const router = useRouter();
   const [selectedItems, setSelectedItems] = useState<ShortlistItem[]>([]);
   const { data: dashboardData, isLoading: dashLoading } = useDashboardStats();
   const stats = dashboardData?.data;
+
+  const columns = useMemo(() => getShortlistColumns(t), [t]);
+  const filterConfig = useMemo(() => getInventoryFilterConfig(t), [t]);
+  const searchConfig = useMemo(
+    () => ({
+      globalSearch: true,
+      placeholder: t("lowstock.searchPlaceholder"),
+    }),
+    [t],
+  );
 
   const handleSelectionChange = useCallback((rows: ShortlistItem[]) => {
     setSelectedItems(rows);
@@ -273,39 +284,39 @@ export default function LowStock() {
 
   const shortlistStats: StatData[] = [
     {
-      label: "Low Stock Items",
+      label: t("lowstock.statLowStock"),
       value: stats?.variants?.lowStock || 0,
       icon: AlertTriangle,
       variant: (stats?.variants?.lowStock || 0) > 0 ? "warning" : "success",
-      description: "Below alert threshold",
+      description: t("lowstock.statLowStockDesc"),
     },
     {
-      label: "Out of Stock",
+      label: t("lowstock.statOutOfStock"),
       value: stats?.variants?.outOfStock || 0,
       icon: AlertOctagon,
       variant:
         (stats?.variants?.outOfStock || 0) > 0 ? "destructive" : "success",
-      description: "Zero quantity - critical",
+      description: t("lowstock.statOutOfStockDesc"),
     },
     {
-      label: "Total Alerts",
+      label: t("lowstock.statTotalAlerts"),
       value: (stats?.variants?.lowStock || 0) + (stats?.variants?.outOfStock || 0),
       icon: Package,
       variant: "info",
-      description: "Across all locations",
+      description: t("lowstock.statTotalAlertsDesc"),
     },
   ];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Low Stock"
-        subTitle="Items running low that need restocking."
+        title={t("lowstock.title")}
+        subTitle={t("lowstock.subtitle")}
         actions={
           selectedItems.length > 0 ? (
             <Button onClick={handleCreatePurchase} className="gap-1.5">
               <ShoppingCart className="h-4 w-4" />
-              Create Purchase Order
+              {t("lowstock.createPurchaseOrder")}
               <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-[10px] rounded-full">
                 {selectedItems.length}
               </Badge>
@@ -322,9 +333,9 @@ export default function LowStock() {
       />
 
       <DataTable<ShortlistItem>
-        cardTitle={(dataLength: number) => `Items (${dataLength})`}
+        cardTitle={(dataLength: number) => t("lowstock.itemsTitle", { count: dataLength })}
         columns={columns}
-        filterConfig={inventoryFilterConfig}
+        filterConfig={filterConfig}
         searchConfig={searchConfig}
         enableSorting={true}
         enableRowHover={true}
@@ -338,7 +349,7 @@ export default function LowStock() {
         operations={{
           getAllData: (params: any) => inventoryApi.getShortlist(params),
           queryKey: [...queryKeys.inventory.list({})],
-          entityName: "Shortlist Item",
+          entityName: t("lowstock.entity"),
         }}
         defaultPageSize={50}
         pageSizes={[10, 25, 50, 100]}

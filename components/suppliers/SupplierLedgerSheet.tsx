@@ -1,7 +1,10 @@
 "use client";
+// coding-standard: maintained
 
 import { useState } from "react";
 import { format } from "date-fns";
+import { useLocale, useTranslations } from "next-intl";
+import type { AppLocale } from "@/i18n/config";
 import {
   Sheet,
   SheetContent,
@@ -69,19 +72,19 @@ interface SupplierLedgerSheetProps {
   onOpenPurchaseOrder?: (purchaseOrderId: string, orderNumber?: string) => void;
 }
 
-// Status configuration for badges
+// Status configuration for badges — labelKey resolves against `suppliers.ledger.status*`
 const statusConfig: Record<
   string,
   {
-    label: string;
+    labelKey: string;
     variant: "default" | "secondary" | "destructive" | "outline";
   }
 > = {
-  draft: { label: "Draft", variant: "secondary" },
-  ordered: { label: "Ordered", variant: "outline" },
-  partial: { label: "Partial", variant: "outline" },
-  received: { label: "Received", variant: "default" },
-  cancelled: { label: "Cancelled", variant: "destructive" },
+  draft: { labelKey: "statusDraft", variant: "secondary" },
+  ordered: { labelKey: "statusOrdered", variant: "outline" },
+  partial: { labelKey: "statusPartial", variant: "outline" },
+  received: { labelKey: "statusReceived", variant: "default" },
+  cancelled: { labelKey: "statusCancelled", variant: "destructive" },
 };
 
 export function SupplierLedgerSheet({
@@ -91,6 +94,13 @@ export function SupplierLedgerSheet({
   isAccountsEnabled,
   onOpenPurchaseOrder,
 }: SupplierLedgerSheetProps) {
+  const t = useTranslations("suppliers.ledger");
+  const tPayForm = useTranslations("suppliers.paymentForm");
+  const tPayments = useTranslations("common.payments");
+  const tActions = useTranslations("common.actions");
+  const tStatement = useTranslations("common.statement");
+  const tPrintDoc = useTranslations("common.printDoc");
+  const locale = useLocale() as AppLocale;
   const { format: formatCurrency } = useCurrency();
   const { user } = useAuthStore();
   const [page, setPage] = useState(1);
@@ -127,18 +137,18 @@ export function SupplierLedgerSheet({
     if (!statement) return false;
     return printStatement(
       {
-        title: "Supplier Statement",
-        partyLabel: "Supplier",
+        title: t("statementTitle"),
+        partyLabel: t("statementPartyLabel"),
         partyName: statement.supplier.name || supplier?.name || "",
         partyPhone: statement.supplier.phone || supplier?.phone,
         transactions: statement.transactions,
         summary: [
-          { label: "Total billed", value: statement.summary.totalBilled },
-          { label: "Total paid", value: statement.summary.totalPaid },
-          { label: "Total returned", value: statement.summary.totalReturned },
-          { label: "Outstanding due", value: statement.summary.totalDue, strong: true },
+          { label: tStatement("totalBilled"), value: statement.summary.totalBilled },
+          { label: tStatement("totalPaid"), value: statement.summary.totalPaid },
+          { label: tStatement("totalReturned"), value: statement.summary.totalReturned },
+          { label: tStatement("outstandingDue"), value: statement.summary.totalDue, strong: true },
           ...(statement.summary.creditBalance > 0
-            ? [{ label: "Credit balance", value: statement.summary.creditBalance }]
+            ? [{ label: tStatement("creditBalance"), value: statement.summary.creditBalance }]
             : []),
         ],
       },
@@ -146,6 +156,8 @@ export function SupplierLedgerSheet({
         paper,
         currency: formatCurrency,
         header: orgToPrintHeader(user?.organization),
+        t: tPrintDoc,
+        locale,
       },
     );
   };
@@ -252,19 +264,19 @@ export function SupplierLedgerSheet({
               <SheetTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 {paymentPO
-                  ? `Pay — ${paymentPO.invoiceNumber || paymentPO.orderNumber}`
-                  : `Supplier Ledger - ${supplier?.name}`}
+                  ? t("payTitle", { reference: paymentPO.invoiceNumber || paymentPO.orderNumber })
+                  : t("title", { name: supplier?.name ?? "" })}
               </SheetTitle>
               <SheetDescription>
                 {paymentPO
-                  ? "Record a payment for this purchase order"
-                  : "Transaction history and account summary"}
+                  ? t("payDescription")
+                  : t("description")}
               </SheetDescription>
             </div>
             {!paymentPO && statement && (
               <PrintMenu
                 appearance="solid"
-                a4Label="Statement"
+                a4Label={t("statementA4Label")}
                 defaultPaper={resolveDefaultPaper(user?.organization)}
                 onPrint={printStatementDoc}
               />
@@ -279,7 +291,7 @@ export function SupplierLedgerSheet({
               {isAccountsEnabled && (
                 <>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Total Paid</p>
+                    <p className="text-xs text-muted-foreground">{t("statTotalPaid")}</p>
                     <p className="text-lg font-semibold text-green-600">
                       {isLoading ? (
                         <Skeleton className="h-6 w-20" />
@@ -289,7 +301,7 @@ export function SupplierLedgerSheet({
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Total Due</p>
+                    <p className="text-xs text-muted-foreground">{t("statTotalDue")}</p>
                     <p
                       className={cn(
                         "text-lg font-semibold",
@@ -304,7 +316,7 @@ export function SupplierLedgerSheet({
                     </p>
                   </div>
                     <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">Refunded</p>
+                      <p className="text-xs text-muted-foreground">{t("statRefunded")}</p>
                       <p
                         className={cn(
                           "text-lg font-semibold",
@@ -319,13 +331,13 @@ export function SupplierLedgerSheet({
                       </p>
                       {totalRefundCredit > 0 && (
                         <p className="text-[11px] text-muted-foreground">
-                          + {formatCurrency(totalRefundCredit)} credit
+                          {t("creditSuffix", { amount: formatCurrency(totalRefundCredit) })}
                         </p>
                       )}
                     </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">
-                      Supplier Credit
+                      {t("statSupplierCredit")}
                     </p>
                     <p
                       className={cn(
@@ -354,30 +366,30 @@ export function SupplierLedgerSheet({
                   onClick={handleCancelPayment}
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back to Ledger
+                  {tPayForm("backToLedger")}
                 </Button>
 
                 <div className="rounded-lg border bg-muted/20 p-4 space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Order</span>
+                    <span className="text-muted-foreground">{tPayForm("order")}</span>
                     <span className="font-mono font-medium">
                       {paymentPO.invoiceNumber || paymentPO.orderNumber}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Amount</span>
+                    <span className="text-muted-foreground">{tPayForm("amount")}</span>
                     <span className="font-medium">
                       {formatCurrency(paymentPO.invoiceAmount)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Paid</span>
+                    <span className="text-muted-foreground">{tPayForm("paid")}</span>
                     <span className="font-medium text-green-600">
                       {formatCurrency(paymentPO.paidAmount)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Due</span>
+                    <span className="text-muted-foreground">{tPayForm("due")}</span>
                     <span className="font-medium text-red-600">
                       {formatCurrency(paymentPO.dueAmount)}
                     </span>
@@ -388,7 +400,7 @@ export function SupplierLedgerSheet({
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="sup-pay-amount">Payment Amount</Label>
+                    <Label htmlFor="sup-pay-amount">{tPayments("paymentAmount")}</Label>
                     <NumberField
                       id="sup-pay-amount"
                       precision={2}
@@ -403,7 +415,7 @@ export function SupplierLedgerSheet({
                       }
                       value={paymentAmount === "" ? null : Number(paymentAmount)}
                       onChange={(v) => setPaymentAmount(v == null ? "" : String(v))}
-                      placeholder="Enter amount"
+                      placeholder={tPayments("enterAmount")}
                     />
                   </div>
 
@@ -414,11 +426,10 @@ export function SupplierLedgerSheet({
                           htmlFor="sup-use-credit"
                           className="text-sm font-medium"
                         >
-                          Use supplier credit
+                          {tPayForm("useSupplierCredit")}
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          Available:{" "}
-                          {formatCurrency(supplier?.creditBalance ?? 0)}
+                          {tPayForm("available", { amount: formatCurrency(supplier?.creditBalance ?? 0) })}
                         </p>
                       </div>
                       <Switch
@@ -441,13 +452,13 @@ export function SupplierLedgerSheet({
 
                   {!useSupplierCredit && (
                     <div className="space-y-2">
-                      <Label htmlFor="sup-pay-account">Payment Account</Label>
+                      <Label htmlFor="sup-pay-account">{tPayments("paymentAccount")}</Label>
                       <Select
                         value={paymentAccountId}
                         onValueChange={setPaymentAccountId}
                       >
                         <SelectTrigger id="sup-pay-account">
-                          <SelectValue placeholder="Select account" />
+                          <SelectValue placeholder={tPayments("selectAccount")} />
                         </SelectTrigger>
                         <SelectContent>
                           {accounts.map((account) => (
@@ -463,32 +474,32 @@ export function SupplierLedgerSheet({
 
                   {!useSupplierCredit && (
                     <div className="space-y-2">
-                      <Label htmlFor="sup-pay-method">Payment Method</Label>
+                      <Label htmlFor="sup-pay-method">{tPayForm("paymentMethod")}</Label>
                       <Select
                         value={paymentMethod}
                         onValueChange={setPaymentMethod}
                       >
                         <SelectTrigger id="sup-pay-method">
-                          <SelectValue placeholder="Select method" />
+                          <SelectValue placeholder={tPayForm("selectMethod")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="card">Card</SelectItem>
-                          <SelectItem value="bank">Bank Transfer</SelectItem>
-                          <SelectItem value="mfs">Mobile Banking</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="cash">{tPayForm("methodCash")}</SelectItem>
+                          <SelectItem value="card">{tPayForm("methodCard")}</SelectItem>
+                          <SelectItem value="bank">{tPayForm("methodBank")}</SelectItem>
+                          <SelectItem value="mfs">{tPayForm("methodMfs")}</SelectItem>
+                          <SelectItem value="other">{tPayForm("methodOther")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="sup-pay-notes">Notes (optional)</Label>
+                    <Label htmlFor="sup-pay-notes">{tPayForm("notesOptional")}</Label>
                     <Textarea
                       id="sup-pay-notes"
                       value={paymentNotes}
                       onChange={(e) => setPaymentNotes(e.target.value)}
-                      placeholder="Add notes..."
+                      placeholder={tPayForm("notesPlaceholder")}
                       rows={2}
                     />
                   </div>
@@ -500,7 +511,7 @@ export function SupplierLedgerSheet({
                       onClick={handleCancelPayment}
                       disabled={addPaymentMutation.isPending}
                     >
-                      Cancel
+                      {tActions("cancel")}
                     </Button>
                     <Button
                       className="flex-1"
@@ -513,8 +524,8 @@ export function SupplierLedgerSheet({
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
                       {addPaymentMutation.isPending
-                        ? "Processing..."
-                        : "Record Payment"}
+                        ? tPayments("processing")
+                        : tPayments("recordPayment")}
                     </Button>
                   </div>
                 </div>
@@ -532,7 +543,7 @@ export function SupplierLedgerSheet({
                   ) : ledgerEntries.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
                       <Wallet className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">No transactions found</p>
+                      <p className="text-sm">{t("noTransactions")}</p>
                     </div>
                   ) : (
                     ledgerEntries.map((entry, index) => (
@@ -559,8 +570,9 @@ export function SupplierLedgerSheet({
                                     "secondary"
                                   }
                                 >
-                                  {statusConfig[entry.data.status]?.label ||
-                                    entry.data.status}
+                                  {statusConfig[entry.data.status]
+                                    ? t(statusConfig[entry.data.status].labelKey)
+                                    : entry.data.status}
                                 </Badge>
                               </div>
                               <span className="text-sm text-muted-foreground">
@@ -570,7 +582,7 @@ export function SupplierLedgerSheet({
                             <div className="grid grid-cols-3 gap-2 text-sm">
                               <div>
                                 <span className="text-muted-foreground">
-                                  Amount:
+                                  {t("amount")}
                                 </span>{" "}
                                 <span className="font-medium">
                                   {formatCurrency(entry.data.invoiceAmount)}
@@ -580,7 +592,7 @@ export function SupplierLedgerSheet({
                                 <>
                                   <div>
                                     <span className="text-muted-foreground">
-                                      Paid:
+                                      {t("paid")}
                                     </span>{" "}
                                     <span className="font-medium text-green-600">
                                       {formatCurrency(entry.data.paidAmount)}
@@ -588,7 +600,7 @@ export function SupplierLedgerSheet({
                                   </div>
                                   <div>
                                     <span className="text-muted-foreground">
-                                      Due:
+                                      {t("due")}
                                     </span>{" "}
                                     <span
                                       className={cn(
@@ -617,7 +629,7 @@ export function SupplierLedgerSheet({
                                     }
                                   >
                                     <CreditCard className="h-3.5 w-3.5" />
-                                    Pay Due
+                                    {t("payDue")}
                                   </Button>
                                 </div>
                               )}
@@ -628,7 +640,7 @@ export function SupplierLedgerSheet({
                               <div className="flex items-center gap-2">
                                 <RefreshCw className="h-4 w-4 text-orange-600" />
                                 <span className="font-medium text-orange-600">
-                                  Return {entry.data.returnNumber}
+                                  {t("returnPrefix", { number: entry.data.returnNumber })}
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
@@ -638,13 +650,13 @@ export function SupplierLedgerSheet({
                             <div className="text-sm space-y-1">
                               <div>
                                 <span className="text-muted-foreground">
-                                  Original Order:
+                                  {t("originalOrder")}
                                 </span>{" "}
                                 <span>{entry.data.orderNumber}</span>
                               </div>
                               <div>
                                 <span className="text-muted-foreground">
-                                  Refund Amount:
+                                  {t("refundAmount")}
                                 </span>{" "}
                                 <span className="font-medium text-orange-600">
                                   {formatCurrency(entry.data.totalRefundAmount)}
@@ -654,7 +666,7 @@ export function SupplierLedgerSheet({
                                 entry.data.refundedAmount > 0 && (
                                   <div>
                                     <span className="text-muted-foreground">
-                                      Cash Refunded:
+                                      {t("cashRefunded")}
                                     </span>{" "}
                                     <span className="font-medium text-green-600">
                                       {formatCurrency(entry.data.refundedAmount)}
@@ -666,7 +678,7 @@ export function SupplierLedgerSheet({
                                   entry.data.refundedAmount && (
                                   <div>
                                     <span className="text-muted-foreground">
-                                      Due Adjusted:
+                                      {t("dueAdjusted")}
                                     </span>{" "}
                                     <span className="font-medium text-blue-600">
                                       {formatCurrency(
@@ -685,7 +697,7 @@ export function SupplierLedgerSheet({
                               <div className="flex items-center gap-2">
                                 <Undo2 className="h-4 w-4 text-blue-600" />
                                 <span className="font-medium text-blue-600">
-                                  Credit Applied
+                                  {t("creditApplied")}
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
@@ -695,7 +707,7 @@ export function SupplierLedgerSheet({
                             <div className="text-sm space-y-1">
                               <div>
                                 <span className="text-muted-foreground">
-                                  From return:
+                                  {t("fromReturn")}
                                 </span>{" "}
                                 <span className="font-mono">
                                   {entry.data.returnNumber}
@@ -704,7 +716,7 @@ export function SupplierLedgerSheet({
                                   <>
                                     {" "}
                                     <span className="text-muted-foreground">
-                                      (PO
+                                      {t("poOpenParen")}
                                     </span>{" "}
                                     {onOpenPurchaseOrder &&
                                     entry.data.sourcePurchaseOrderId ? (
@@ -726,7 +738,7 @@ export function SupplierLedgerSheet({
                                       </span>
                                     )}
                                     <span className="text-muted-foreground">
-                                      )
+                                      {t("closeParen")}
                                     </span>
                                   </>
                                 )}
@@ -734,7 +746,7 @@ export function SupplierLedgerSheet({
                               {entry.data.targetOrderNumber && (
                                 <div>
                                   <span className="text-muted-foreground">
-                                    Applied to:
+                                    {t("appliedTo")}
                                   </span>{" "}
                                   {onOpenPurchaseOrder &&
                                   entry.data.targetPurchaseOrderId ? (
@@ -759,7 +771,7 @@ export function SupplierLedgerSheet({
                               )}
                               <div>
                                 <span className="text-muted-foreground">
-                                  Amount:
+                                  {t("amount")}
                                 </span>{" "}
                                 <span className="font-medium text-blue-600">
                                   {formatCurrency(entry.data.amount)}
@@ -773,7 +785,7 @@ export function SupplierLedgerSheet({
                               <div className="flex items-center gap-2">
                                 <CreditCard className="h-4 w-4 text-green-600" />
                                 <span className="font-medium text-green-600">
-                                  Refund Received
+                                  {t("refundReceived")}
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
@@ -783,7 +795,7 @@ export function SupplierLedgerSheet({
                             <div className="text-sm space-y-1">
                               <div>
                                 <span className="text-muted-foreground">
-                                  Amount:
+                                  {t("amount")}
                                 </span>{" "}
                                 <span className="font-medium text-green-600">
                                   {formatCurrency(entry.data.amount)}
@@ -792,7 +804,7 @@ export function SupplierLedgerSheet({
                               {entry.data.referenceId && (
                                 <div>
                                   <span className="text-muted-foreground">
-                                    Order:
+                                    {t("order")}
                                   </span>{" "}
                                   <span>
                                     {entry.data.referenceId.invoiceNumber ||
@@ -803,7 +815,7 @@ export function SupplierLedgerSheet({
                               {entry.data.accountId && (
                                 <div>
                                   <span className="text-muted-foreground">
-                                    Account:
+                                    {t("account")}
                                   </span>{" "}
                                   <span>{entry.data.accountId.name}</span>
                                 </div>
@@ -816,7 +828,7 @@ export function SupplierLedgerSheet({
                               <div className="flex items-center gap-2">
                                 <CreditCard className="h-4 w-4 text-blue-600" />
                                 <span className="font-medium text-blue-600">
-                                  Cancelled Order Refund
+                                  {t("cancelledOrderRefund")}
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
@@ -826,7 +838,7 @@ export function SupplierLedgerSheet({
                             <div className="text-sm space-y-1">
                               <div>
                                 <span className="text-muted-foreground">
-                                  Amount:
+                                  {t("amount")}
                                 </span>{" "}
                                 <span className="font-medium text-blue-600">
                                   {formatCurrency(entry.data.amount)}
@@ -835,7 +847,7 @@ export function SupplierLedgerSheet({
                               {entry.data.referenceId && (
                                 <div>
                                   <span className="text-muted-foreground">
-                                    Order:
+                                    {t("order")}
                                   </span>{" "}
                                   <span>
                                     {entry.data.referenceId.invoiceNumber ||
@@ -846,7 +858,7 @@ export function SupplierLedgerSheet({
                               {entry.data.accountId && (
                                 <div>
                                   <span className="text-muted-foreground">
-                                    Account:
+                                    {t("account")}
                                   </span>{" "}
                                   <span>{entry.data.accountId.name}</span>
                                 </div>
@@ -859,7 +871,7 @@ export function SupplierLedgerSheet({
                               <div className="flex items-center gap-2">
                                 <CreditCard className="h-4 w-4 text-red-600" />
                                 <span className="font-medium text-red-600">
-                                  Payment Made
+                                  {t("paymentMade")}
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
@@ -869,7 +881,7 @@ export function SupplierLedgerSheet({
                             <div className="text-sm space-y-1">
                               <div>
                                 <span className="text-muted-foreground">
-                                  Amount:
+                                  {t("amount")}
                                 </span>{" "}
                                 <span className="font-medium text-red-600">
                                   {formatCurrency(entry.data.amount)}
@@ -878,7 +890,7 @@ export function SupplierLedgerSheet({
                               {entry.data.referenceId && (
                                 <div>
                                   <span className="text-muted-foreground">
-                                    Order:
+                                    {t("order")}
                                   </span>{" "}
                                   <span>
                                     {entry.data.referenceId.invoiceNumber ||
@@ -889,7 +901,7 @@ export function SupplierLedgerSheet({
                               {entry.data.accountId && (
                                 <div>
                                   <span className="text-muted-foreground">
-                                    Account:
+                                    {t("account")}
                                   </span>{" "}
                                   <span>{entry.data.accountId.name}</span>
                                 </div>
@@ -907,7 +919,7 @@ export function SupplierLedgerSheet({
               {ledger && ledger.totalPages > 1 && (
                 <div className="px-6 py-3 border-t flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    Page {page} of {ledger.totalPages}
+                    {t("page", { page, totalPages: ledger.totalPages })}
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -917,7 +929,7 @@ export function SupplierLedgerSheet({
                       disabled={!ledger.hasPrev}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Previous
+                      {t("previous")}
                     </Button>
                     <Button
                       variant="outline"
@@ -925,7 +937,7 @@ export function SupplierLedgerSheet({
                       onClick={() => setPage((p) => p + 1)}
                       disabled={!ledger.hasNext}
                     >
-                      Next
+                      {t("next")}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>

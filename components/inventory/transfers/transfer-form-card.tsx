@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import {
   Card,
   CardContent,
@@ -35,6 +36,8 @@ import type { TransferStockContext } from './use-transfer-stock'
 
 /** The "Add/Edit Transfer" card: location selectors, product search, quantity, notes. */
 export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
+  const t = useTranslations('inventory')
+  const tCommon = useTranslations('common.actions')
   const {
     editingId,
     selectedProduct,
@@ -67,16 +70,16 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
           <div>
             <CardTitle className="flex items-center gap-2 text-lg">
               <ArrowRightLeft className="h-5 w-5 text-primary" />
-              {editingId ? 'Edit Transfer' : 'Add Transfer'}
+              {editingId ? t('transfers.editTitle') : t('transfers.addTitle')}
             </CardTitle>
             <CardDescription>
               {editingId
-                ? 'Update the transfer quantity for this item'
-                : 'Select locations, search a product, set the quantity, and add to the list'}
+                ? t('transfers.editDescription')
+                : t('transfers.addDescription')}
             </CardDescription>
           </div>
           {editingId && (
-            <Badge variant="secondary">Editing</Badge>
+            <Badge variant="secondary">{t('shared.editing')}</Badge>
           )}
         </div>
       </CardHeader>
@@ -84,14 +87,14 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
         {/* Location Selectors */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>From Location</Label>
+            <Label>{t('transfers.fromLocation')}</Label>
             <Select
               value={fromLocationId}
               onValueChange={handleFromLocationChange}
               disabled={!!editingId}
             >
               <SelectTrigger className="h-11">
-                <SelectValue placeholder="Select source location" />
+                <SelectValue placeholder={t('transfers.selectSource')} />
               </SelectTrigger>
               <SelectContent>
                 {fromLocationOptions.map((loc: any) => (
@@ -103,14 +106,14 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>To Location</Label>
+            <Label>{t('transfers.toLocation')}</Label>
             <Select
               value={toLocationId}
               onValueChange={handleToLocationChange}
               disabled={!!editingId}
             >
               <SelectTrigger className="h-11">
-                <SelectValue placeholder="Select destination location" />
+                <SelectValue placeholder={t('transfers.selectDestination')} />
               </SelectTrigger>
               <SelectContent>
                 {toLocationOptions.map((loc: any) => (
@@ -128,11 +131,10 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
           <>
             {!selectedProduct ? (
               <div className="space-y-1.5">
-                <Label>Search Product</Label>
+                <Label>{t('shared.searchProduct')}</Label>
                 <InventorySearch
                   key={fromLocationId}
                   onSelect={handleProductSelect}
-                  placeholder="Search products by name or category..."
                   excludeIds={editingId ? [] : addedInventoryIds}
                   apiUrl={`/inventory/adjustable-products?locationId=${fromLocationId}`}
                 />
@@ -158,7 +160,9 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
                               : 'text-green-600 font-medium'
                         }
                       >
-                        {selectedProduct.quantity}{selectedProduct.baseUnitName ? ` ${selectedProduct.baseUnitName}` : ''} available
+                        {t('transfers.availableSuffix', {
+                          stock: `${selectedProduct.quantity}${selectedProduct.baseUnitName ? ` ${selectedProduct.baseUnitName}` : ''}`,
+                        })}
                       </span>
                       {hasUOM && (
                         <>
@@ -188,9 +192,11 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="transferQuantity">
-                        Transfer Quantity
+                        {t('transfers.transferQuantity')}
                         <span className="text-muted-foreground text-xs ml-2">
-                          (Max: {selectedProduct.quantity}{selectedProduct.baseUnitName ? ` ${selectedProduct.baseUnitName}` : ''})
+                          {t('transfers.maxHint', {
+                            stock: `${selectedProduct.quantity}${selectedProduct.baseUnitName ? ` ${selectedProduct.baseUnitName}` : ''}`,
+                          })}
                         </span>
                       </Label>
                       {hasUOM && (
@@ -208,7 +214,9 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
                           className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                         >
                           <ArrowLeftRight className="h-3 w-3" />
-                          Switch to {inputInPurchaseUnit ? selectedProduct.baseUnitName : selectedProduct.purchaseUnitName}
+                          {t('shared.switchTo', {
+                            unit: inputInPurchaseUnit ? selectedProduct.baseUnitName : selectedProduct.purchaseUnitName,
+                          })}
                         </button>
                       )}
                     </div>
@@ -223,11 +231,13 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
                         }
                         value={inputValue}
                         onChange={(v) => setInputValue(Math.max(0, v ?? 0))}
-                        placeholder={`Enter quantity in ${hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || 'units')}`}
+                        placeholder={t('shared.enterQuantityIn', {
+                          unit: hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || t('shared.unitsFallback')),
+                        })}
                         className="h-11 pr-16"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                        {hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || 'units')}
+                        {hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || t('shared.unitsFallback'))}
                       </span>
                     </div>
                     {/* UOM conversion breakdown */}
@@ -243,17 +253,20 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
                     {/* Stock warning */}
                     {computedBaseQuantity > selectedProduct.quantity && (
                       <p className="text-xs font-medium text-red-500">
-                        Exceeds available stock by {computedBaseQuantity - selectedProduct.quantity} {selectedProduct.baseUnitName || 'units'}
+                        {t('transfers.exceedsStock', {
+                          amount: computedBaseQuantity - selectedProduct.quantity,
+                          unit: selectedProduct.baseUnitName || t('shared.unitsFallback'),
+                        })}
                       </p>
                     )}
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="notes">Notes <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                    <Label htmlFor="notes">{t('shared.notesOptional')}</Label>
                     <Input
                       id="notes"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="e.g., Restock branch, seasonal move..."
+                      placeholder={t('transfers.notesPlaceholder')}
                       className="h-11"
                     />
                   </div>
@@ -265,18 +278,18 @@ export function TransferFormCard({ ctx }: { ctx: TransferStockContext }) {
                     {editingId ? (
                       <>
                         <Pencil className="h-4 w-4" />
-                        Update Item
+                        {t('shared.updateItem')}
                       </>
                     ) : (
                       <>
                         <Plus className="h-4 w-4" />
-                        Add to List
+                        {t('shared.addToList')}
                       </>
                     )}
                   </Button>
                   {editingId && (
                     <Button variant="outline" onClick={handleCancelEdit}>
-                      Cancel
+                      {tCommon('cancel')}
                     </Button>
                   )}
                 </div>

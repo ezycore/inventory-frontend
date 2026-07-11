@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import {
   TransactionsTimeline as SharedTransactionsTimeline,
@@ -8,12 +9,13 @@ import {
 } from "@/components/shared/transactions";
 import type { SaleTransactionEntry, SaleTransactionsResponse } from "@/types";
 
-const KIND_META: Record<SaleTransactionEntry["kind"], { label: string; tone: Tone }> = {
-  payment: { label: "Cash payment", tone: "in" },
-  credit_balance_payment: { label: "Store credit applied", tone: "in" },
-  cash_refund: { label: "Cash refund", tone: "out" },
-  credit_applied_self: { label: "Return credit", tone: "neutral" },
-  credit_applied_from_other: { label: "Credit from other sale", tone: "neutral" },
+// labelKey resolves under "sales.history.timeline" (docs/I18N.md)
+const KIND_META: Record<SaleTransactionEntry["kind"], { labelKey: string; tone: Tone }> = {
+  payment: { labelKey: "cashPayment", tone: "in" },
+  credit_balance_payment: { labelKey: "storeCreditApplied", tone: "in" },
+  cash_refund: { labelKey: "cashRefund", tone: "out" },
+  credit_applied_self: { labelKey: "returnCredit", tone: "neutral" },
+  credit_applied_from_other: { labelKey: "creditFromOtherSale", tone: "neutral" },
 };
 
 interface TransactionsTimelineProps {
@@ -32,21 +34,22 @@ export function TransactionsTimeline({
   onNavigateToSale,
   bare,
 }: TransactionsTimelineProps) {
+  const tMsg = useTranslations("sales.history.timeline");
   const data = useMemo<TimelineData | undefined>(() => {
     if (!transactions) return undefined;
     const s = transactions.summary;
     return {
       chips: [
-        { label: "Cash paid", value: s.cashPaid, tone: "in" },
-        { label: "Credit paid", value: s.creditBalancePaid, tone: "neutral" },
-        { label: "Cash refund", value: s.cashRefunded, tone: "out" },
-        { label: "Refund credit", value: s.refundCreditApplied, tone: "neutral" },
-        { label: "Net received", value: s.netReceived, tone: "in" },
-        { label: "Due", value: s.dueAmount, tone: s.dueAmount > 0 ? "out" : "in" },
+        { label: tMsg("cashPaid"), value: s.cashPaid, tone: "in" },
+        { label: tMsg("creditPaid"), value: s.creditBalancePaid, tone: "neutral" },
+        { label: tMsg("cashRefund"), value: s.cashRefunded, tone: "out" },
+        { label: tMsg("refundCredit"), value: s.refundCreditApplied, tone: "neutral" },
+        { label: tMsg("netReceived"), value: s.netReceived, tone: "in" },
+        { label: tMsg("due"), value: s.dueAmount, tone: s.dueAmount > 0 ? "out" : "in" },
       ],
       entries: transactions.transactions.map((t) => ({
         id: t.id,
-        label: KIND_META[t.kind].label,
+        label: tMsg(KIND_META[t.kind].labelKey),
         direction: t.direction,
         amount: t.amount,
         date: t.date,
@@ -56,14 +59,14 @@ export function TransactionsTimeline({
         notes: t.notes,
         source: t.sourceSale
           ? {
-              prefix: "From sale",
+              prefix: tMsg("fromSale"),
               label: t.sourceSale.invoiceNumber,
               onClick: onNavigateToSale ? () => onNavigateToSale(t.sourceSale!.id) : undefined,
             }
           : undefined,
       })),
     };
-  }, [transactions, onNavigateToSale]);
+  }, [transactions, onNavigateToSale, tMsg]);
 
   return (
     <SharedTransactionsTimeline

@@ -6,11 +6,12 @@ import { AvatarCell } from "@/ui/components/dataTable/cells/avatar-cell";
 import { ColumnDef } from "@tanstack/react-table";
 import { Package } from "lucide-react";
 import Link from "next/link";
+import type { Translator } from "@/i18n/config";
 
-export const brandColumns: ColumnDef<Brand>[] = [
+export const getBrandColumns = (t: Translator): ColumnDef<Brand>[] => [
   {
     accessorKey: "name",
-    header: "Brand Name",
+    header: t("columns.name"),
     cell: ({ row }) => {
       return (
         <div className="flex items-center gap-2">
@@ -24,7 +25,7 @@ export const brandColumns: ColumnDef<Brand>[] = [
               variant="outline"
               className="text-xs shrink-0 border-primary text-primary"
             >
-              Default
+              {t("columns.default")}
             </Badge>
           )}
         </div>
@@ -33,32 +34,32 @@ export const brandColumns: ColumnDef<Brand>[] = [
   },
   {
     accessorKey: "productCount",
-    header: "Products",
+    header: t("columns.products"),
     cell: ({ row }) => (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Package className="h-4 w-4" />
         {row.original.productCount > 0 ? (
           <Link href={`/products?categoryId=${row.original._id}`} className="hover:underline">
-            {row.original.productCount || 0} Products
+            {t("columns.productsCount", { count: row.original.productCount || 0 })}
           </Link>
         ) : (
-          <span>{row.original.productCount || 0} Products</span>
+          <span>{t("columns.productsCount", { count: row.original.productCount || 0 })}</span>
         )}
       </div>
     ),
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: t("columns.status"),
   },
   {
     accessorKey: "createdAt",
-    header: "Created Date",
+    header: t("columns.createdDate"),
     cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
   },
   {
     accessorKey: "updatedAt",
-    header: "Updated Date",
+    header: t("columns.updatedDate"),
     cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
   },
 ];

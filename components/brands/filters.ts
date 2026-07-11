@@ -1,36 +1,37 @@
 import { FilterConfig } from "@/types/DataTable";
+import type { Translator } from "@/i18n/config";
 
-export const brandFilterConfig: FilterConfig = {
+export const getBrandFilterConfig = (t: Translator): FilterConfig => ({
   fields: [
     {
       name: "name",
-      label: "Search brand",
+      label: t("filters.searchLabel"),
       type: "text",
-      placeholder: "Search by brand...",
+      placeholder: t("filters.searchPlaceholder"),
     },
     {
       name: "status",
-      label: "Status",
+      label: t("filters.statusLabel"),
       type: "select",
-      placeholder: "All statuses",
+      placeholder: t("filters.statusPlaceholder"),
       columnSpan: 1,
       options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
+        { label: t("filters.statusActive"), value: "active" },
+        { label: t("filters.statusInactive"), value: "inactive" },
       ],
     },
     {
       name: "createdAt",
-      label: "Created Date",
+      label: t("filters.createdDateLabel"),
       type: "date-range",
-      placeholder: "Select date range",
+      placeholder: t("filters.createdDatePlaceholder"),
       columnSpan: 2,
     },
     {
       name: "updatedAt",
-      label: "Updated Date",
+      label: t("filters.updatedDateLabel"),
       type: "date-range",
-      placeholder: "Select date",
+      placeholder: t("filters.updatedDatePlaceholder"),
       columnSpan: 2,
     },
   ],
@@ -39,4 +40,4 @@ export const brandFilterConfig: FilterConfig = {
   applyOnChange: false,
   showResetButton: true,
   showApplyButton: true,
-};
+});

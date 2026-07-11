@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -19,15 +21,16 @@ import { customersApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import {
   CustomerLedgerSheet,
-  customerColumns,
-  customerFilterConfig,
-  searchConfig,
-  customerFormConfig,
+  getCustomerColumns,
+  getCustomerFilterConfig,
+  getSearchConfig,
+  getCustomerFormConfig,
   defaultValues,
 } from "@/components/customers";
 
 export default function CustomersPage() {
   const router = useRouter();
+  const t = useTranslations("customers");
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
 
@@ -39,29 +42,29 @@ export default function CustomersPage() {
       type: "ledger",
       placement: "cell",
       icon: <FileText className="h-4 w-4" />,
-      tooltip: "View Ledger",
+      tooltip: t("page.viewLedgerTooltip"),
       onClick: (row: Customer) => {
         setSelectedCustomer(row);
         setLedgerSheetOpen(true);
       },
     },
-  ], []);
+  ], [t]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Customers"
-        subTitle="People and businesses you sell to."
+        title={t("page.title")}
+        subTitle={t("page.subtitle")}
       />
 
       <DataTable
-        cardTitle={(dataLength: number) => `All Customers (${dataLength})`}
+        cardTitle={(dataLength: number) => t("page.cardTitle", { count: dataLength })}
         defaultPageSize={10}
         pageSizes={[10, 20, 50, 100]}
-        filterConfig={customerFilterConfig}
-        columns={customerColumns}
+        filterConfig={getCustomerFilterConfig(t)}
+        columns={getCustomerColumns(t)}
         selectable={true}
-        searchConfig={searchConfig}
+        searchConfig={getSearchConfig(t)}
         enableSorting={true}
         defaultColumnVisibility={{ email: false, phone: false }}
         enableRowHover={true}
@@ -70,18 +73,18 @@ export default function CustomersPage() {
         }
         customActions={customActions}
         operations={{
-          formConfig: customerFormConfig,
+          formConfig: getCustomerFormConfig(t),
           defaultValues: defaultValues,
           getAllData: customersApi.getAll,
           createMutation: useCreateCustomer(),
           updateMutation: useUpdateCustomer(),
           deleteMutation: useDeleteCustomer(),
           queryKey: [...queryKeys.customers.all()],
-          entityName: "Customer",
+          entityName: t("page.entity"),
           isViewAvailable: false,
-          editTooltip: "Edit Customer",
-          deleteTooltip: "Delete Customer",
-          viewTooltip: "View Customer Details",
+          editTooltip: t("page.editTooltip"),
+          deleteTooltip: t("page.deleteTooltip"),
+          viewTooltip: t("page.viewTooltip"),
           prepareSubmitData: (data: Customer, isEdit: boolean, item: Customer) => ({
             ...data,
             ...(isEdit && item ? { id: item._id } : {}),
@@ -96,7 +99,7 @@ export default function CustomersPage() {
         isAccountsEnabled={isAccountsEnabled}
         onOpenSale={(_saleId, invoiceNumber) => {
           if (invoiceNumber) {
-            toast.message(`Opening ${invoiceNumber} in Sales History…`);
+            toast.message(t("page.openingInvoiceMessage", { invoice: invoiceNumber }));
           }
           setLedgerSheetOpen(false);
           router.push("/sales/history");

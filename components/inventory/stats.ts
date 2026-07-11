@@ -1,4 +1,6 @@
+// coding-standard: maintained
 import { StatData } from "@/ui/components/StatsCard";
+import type { Translator } from "@/i18n/config";
 import {
   Package,
   AlertTriangle,
@@ -23,7 +25,8 @@ interface DashboardStats {
 
 export const getInventoryKpiStats = (
   stats: DashboardStats | undefined,
-  formatCurrency: (value: number) => string
+  formatCurrency: (value: number) => string,
+  t: Translator
 ): StatData[] => {
   const totalItems = stats?.stock?.totalItems || 0;
   const lowStockCount = stats?.variants?.lowStock || 0;
@@ -33,39 +36,40 @@ export const getInventoryKpiStats = (
 
   return [
     {
-      label: "Healthy Stock",
+      label: t("stats.healthyStock"),
       value: healthyStock.toLocaleString(),
       icon: Package,
       variant: "success",
-      description: `${healthyPercentage}% of total inventory`,
+      description: t("stats.healthyPct", { percentage: healthyPercentage }),
     },
     {
-      label: "Low Stock",
+      label: t("stats.lowStock"),
       value: lowStockCount,
       icon: AlertTriangle,
       variant: lowStockCount > 0 ? "warning" : "success",
-      description: lowStockCount > 0 ? "Items need restocking" : "All items healthy",
+      description: lowStockCount > 0 ? t("stats.needRestocking") : t("stats.allHealthy"),
     },
     {
-      label: "Out of Stock",
+      label: t("stats.outOfStock"),
       value: outOfStockCount,
       icon: PackageX,
       variant: outOfStockCount > 0 ? "destructive" : "success",
-      description: outOfStockCount > 0 ? "Urgent: No stock available" : "All items in stock",
+      description: outOfStockCount > 0 ? t("stats.urgentNoStock") : t("stats.allInStock"),
     },
     {
-      label: "Active Items",
+      label: t("stats.activeItems"),
       value: totalItems.toLocaleString(),
       icon: Boxes,
       variant: "primary",
-      description: "Currently tracked variants",
+      description: t("stats.trackedVariants"),
     },
   ];
 };
 
 export const getInventorySummaryMetrics = (
   stats: DashboardStats | undefined,
-  formatCurrency: (value: number) => string
+  formatCurrency: (value: number) => string,
+  t: Translator
 ) => {
   const totalItems = stats?.stock?.totalItems || 0;
   const totalValue = stats?.stock?.totalValue || 0;
@@ -77,25 +81,25 @@ export const getInventorySummaryMetrics = (
 
   return [
     {
-      label: "Total Inventory Price",
+      label: t("stats.totalInventoryPrice"),
       value: formatCurrency(totalRetailValue),
       icon: Wallet,
     },
     {
-      label: "Stock Value (Cost)",
+      label: t("stats.stockValueCost"),
       value: formatCurrency(totalValue),
       icon: DollarSign,
     },
     {
-      label: "Health Score",
+      label: t("stats.healthScore"),
       value: `${healthyPercentage}%`,
       icon: BarChart3,
       trend:
         healthyPercentage >= 80
-          ? { value: "Good", direction: "up" as const }
+          ? { value: t("stats.good"), direction: "up" as const }
           : healthyPercentage >= 50
-            ? { value: "Fair", direction: "neutral" as const }
-            : { value: "Poor", direction: "down" as const },
+            ? { value: t("stats.fair"), direction: "neutral" as const }
+            : { value: t("stats.poor"), direction: "down" as const },
     },
   ];
 };

@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 import { Badge } from "@/ui/components/badge";
 import { Card, CardHeader, CardTitle } from "@/ui/components/card";
@@ -8,6 +9,7 @@ import type {
   LocationStockItem,
   LocationStockDetailReport,
 } from "@/services/api/modules/locations/stock-report-api";
+import type { Translator } from "@/i18n/config";
 import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
 
@@ -26,13 +28,14 @@ export function StockItemsTable({
   onSort,
   onPageChange,
 }: StockItemsTableProps) {
+  const t = useTranslations("settings.locations.stockReport.table");
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
 
   return (
     <Card className="py-0 overflow-hidden">
       <CardHeader className="border-b bg-muted/30 py-3">
         <CardTitle className="text-sm font-medium">
-          Stock Items ({pagination.total.toLocaleString()})
+          {t("title", { count: pagination.total.toLocaleString() })}
         </CardTitle>
       </CardHeader>
       <div className="overflow-x-auto">
@@ -40,18 +43,18 @@ export function StockItemsTable({
           <thead>
             <tr className="border-b bg-muted/20">
               {[
-                { key: "productName", label: "Product" },
-                { key: "categoryName", label: "Category" },
-                { key: "brandName", label: "Brand" },
-                { key: "quantity", label: "Quantity" },
-                { key: "quantityAlert", label: "Alert Level" },
+                { key: "productName", label: t("product") },
+                { key: "categoryName", label: t("category") },
+                { key: "brandName", label: t("brand") },
+                { key: "quantity", label: t("quantity") },
+                { key: "quantityAlert", label: t("alertLevel") },
                 ...(canViewCosts
                   ? [
-                      { key: "costPrice", label: "Cost Price" },
-                      { key: "stockValue", label: "Stock Value" },
+                      { key: "costPrice", label: t("costPrice") },
+                      { key: "stockValue", label: t("stockValue") },
                     ]
                   : []),
-                { key: "status", label: "Status" },
+                { key: "status", label: t("status") },
               ].map((col) => (
                 <th
                   key={col.key}
@@ -73,12 +76,12 @@ export function StockItemsTable({
                   colSpan={8}
                   className="px-4 py-12 text-center text-muted-foreground text-sm"
                 >
-                  No stock items found
+                  {t("noItems")}
                 </td>
               </tr>
             ) : (
               items.map((item) => (
-                <StockItemRow key={item.inventoryId} item={item} />
+                <StockItemRow key={item.inventoryId} item={item} t={t} />
               ))
             )}
           </tbody>
@@ -89,10 +92,11 @@ export function StockItemsTable({
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/20">
           <p className="text-xs text-muted-foreground">
-            Showing{" "}
-            {(pagination.page - 1) * pagination.limit + 1}-
-            {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-            of {pagination.total}
+            {t("showing", {
+              from: (pagination.page - 1) * pagination.limit + 1,
+              to: Math.min(pagination.page * pagination.limit, pagination.total),
+              total: pagination.total,
+            })}
           </p>
           <div className="flex items-center gap-1">
             <button
@@ -140,7 +144,7 @@ export function StockItemsTable({
   );
 }
 
-function StockItemRow({ item }: { item: LocationStockItem }) {
+function StockItemRow({ item, t }: { item: LocationStockItem; t: Translator }) {
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   const variantLabel = item.variantAttributes
     ? Object.values(item.variantAttributes).join(" / ")
@@ -196,15 +200,15 @@ function StockItemRow({ item }: { item: LocationStockItem }) {
       <td className="px-4 py-3">
         {item.isOutOfStock ? (
           <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
-            Out of Stock
+            {t("outOfStock")}
           </Badge>
         ) : item.isLowStock ? (
           <Badge className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800">
-            Low Stock
+            {t("lowStock")}
           </Badge>
         ) : (
           <Badge className="text-[10px] px-1.5 py-0 bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800">
-            In Stock
+            {t("inStock")}
           </Badge>
         )}
       </td>

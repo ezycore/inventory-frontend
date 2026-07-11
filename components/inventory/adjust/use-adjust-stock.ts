@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ClipboardEdit, ListChecks, SendHorizonal } from 'lucide-react'
 import type { StatData } from '@/ui/components/StatsCard'
@@ -16,6 +17,7 @@ export type AdjustStockContext = ReturnType<typeof useAdjustStock>
 
 /** State, derived values, and handlers for the Adjust Stock page. */
 export function useAdjustStock() {
+  const t = useTranslations('inventory')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(null)
   const [notes, setNotes] = useState<string>('')
@@ -78,11 +80,11 @@ export function useAdjustStock() {
   // Handle add or update item
   const handleAddOrUpdate = () => {
     if (!selectedProduct) {
-      toast.error('Please select a product')
+      toast.error(t('shared.selectProductFirst'))
       return
     }
     if (effectiveNewQuantity < 0) {
-      toast.error('Quantity must be non-negative')
+      toast.error(t('adjust.quantityNonNegative'))
       return
     }
 
@@ -102,7 +104,7 @@ export function useAdjustStock() {
         ...expiryPayload,
       })
       setEditingId(null)
-      toast.success('Item updated')
+      toast.success(t('shared.itemUpdated'))
     } else {
       addItem({
         inventoryId: selectedProduct.value,
@@ -122,7 +124,7 @@ export function useAdjustStock() {
         } : {}),
         ...expiryPayload,
       })
-      toast.success('Item added to list')
+      toast.success(t('shared.itemAdded'))
     }
 
     resetForm()
@@ -176,7 +178,7 @@ export function useAdjustStock() {
   // Submit all adjustments
   const handleSubmitAll = async () => {
     if (items.length === 0) {
-      toast.error('No items to submit')
+      toast.error(t('shared.noItemsToSubmit'))
       return
     }
 
@@ -202,9 +204,9 @@ export function useAdjustStock() {
   // Step indicator
   const currentStep = items.length === 0 ? 0 : 1
   const steps = [
-    { label: 'Add Items', description: 'Select products to adjust' },
-    { label: 'Review', description: `${items.length} item(s) pending` },
-    { label: 'Submit', description: 'Confirm adjustments' },
+    { label: t('shared.stepAddItems'), description: t('adjust.stepAddDesc') },
+    { label: t('shared.stepReview'), description: t('shared.stepPendingCount', { count: items.length }) },
+    { label: t('shared.stepSubmit'), description: t('adjust.stepSubmitDesc') },
   ]
 
   // Stats
@@ -219,24 +221,24 @@ export function useAdjustStock() {
 
   const pendingStats: StatData[] = [
     {
-      label: 'Pending Items',
+      label: t('adjust.statPendingItems'),
       value: items.length,
       icon: ListChecks,
       variant: items.length > 0 ? 'primary' : 'default',
     },
     {
-      label: 'Stock Increase',
+      label: t('adjust.statIncrease'),
       value: `+${totalIncrease}`,
       icon: ClipboardEdit,
       variant: 'success',
-      description: 'Units to add',
+      description: t('adjust.statIncreaseDesc'),
     },
     {
-      label: 'Stock Decrease',
+      label: t('adjust.statDecrease'),
       value: `-${totalDecrease}`,
       icon: SendHorizonal,
       variant: totalDecrease > 0 ? 'destructive' : 'default',
-      description: 'Units to remove',
+      description: t('adjust.statDecreaseDesc'),
     },
   ]
 

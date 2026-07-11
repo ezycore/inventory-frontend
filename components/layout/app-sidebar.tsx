@@ -42,6 +42,8 @@ import {
   LogOutIcon,
   UserCircleIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useNavLabels } from "@/hooks/use-nav-labels";
 import { DynamicIcon } from "lucide-react/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -62,6 +64,7 @@ function NestedNavItem({
   pathname: string;
 }) {
   const { state, isMobile } = useSidebar();
+  const { itemLabel } = useNavLabels();
   const isCollapsed = state === "collapsed" && !isMobile;
   const subItems = item.items || [];
   const isParentActive =
@@ -74,11 +77,11 @@ function NestedNavItem({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              tooltip={item.title}
+              tooltip={itemLabel(item.title)}
               isActive={isParentActive}
             >
               {item.icon && <DynamicIcon name={item.icon as any} />}
-              <span>{item.title}</span>
+              <span>{itemLabel(item.title)}</span>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -87,7 +90,7 @@ function NestedNavItem({
             sideOffset={4}
             className="min-w-48"
           >
-            <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
+            <DropdownMenuLabel>{itemLabel(item.title)}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {subItems.map((subItem) => (
               <DropdownMenuItem key={subItem.title} asChild>
@@ -96,7 +99,7 @@ function NestedNavItem({
                   data-active={pathname === subItem.url}
                   className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
                 >
-                  {subItem.title}
+                  {itemLabel(subItem.title)}
                 </Link>
               </DropdownMenuItem>
             ))}
@@ -115,11 +118,11 @@ function NestedNavItem({
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton
-            tooltip={item.title}
+            tooltip={itemLabel(item.title)}
             isActive={pathname === item.url}
           >
             {item.icon && <DynamicIcon name={item.icon as any} />}
-            <span>{item.title}</span>
+            <span>{itemLabel(item.title)}</span>
             <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
@@ -132,7 +135,7 @@ function NestedNavItem({
                   isActive={pathname === subItem.url}
                 >
                   <Link href={subItem.url}>
-                    <span>{subItem.title}</span>
+                    <span>{itemLabel(subItem.title)}</span>
                   </Link>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
@@ -151,6 +154,8 @@ export default function AppSidebar() {
   const { features } = user?.organization || {};
   const logout = useLogout();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const tUserMenu = useTranslations("layout.userMenu");
+  const { itemLabel, groupLabel } = useNavLabels();
 
   // Filter each group's items based on user role, permissions, and features;
   // drop groups left empty by the filtering.
@@ -178,7 +183,7 @@ export default function AppSidebar() {
       <SidebarContent className="overflow-x-hidden">
         {filteredNavGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupLabel>{groupLabel(group.label)}</SidebarGroupLabel>
             <SidebarMenu>
               {group.items.map((item) => {
                 return item?.items && item?.items?.length > 0 ? (
@@ -191,12 +196,12 @@ export default function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      tooltip={item.title}
+                      tooltip={itemLabel(item.title)}
                       isActive={pathname === item.url}
                     >
                       <Link href={item.url}>
                         <DynamicIcon name={item.icon as any} />
-                        <span>{item.title}</span>
+                        <span>{itemLabel(item.title)}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -244,19 +249,19 @@ export default function AppSidebar() {
                   <DropdownMenuGroup>
                     <DropdownMenuItem onClick={() => router.push("/profile")}>
                       <UserCircleIcon className="mr-2 h-4 w-4" />
-                      Profile
+                      {tUserMenu("profile")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => router.push("/dashboard/billing")}
                     >
                       <CreditCardIcon className="mr-2 h-4 w-4" />
-                      Billing
+                      {tUserMenu("billing")}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>
                     <LogOutIcon className="mr-2 h-4 w-4" />
-                    Logout
+                    {tUserMenu("logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

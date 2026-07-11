@@ -1,5 +1,6 @@
-// components/ui/easy-alert-dialog.tsx
+// coding-standard: maintained
 import React from "react";
+import { useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,14 +31,17 @@ export function EasyAlertDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   isConfirming = false,
   children,
   confirmClassName = "bg-destructive text-destructive-foreground hover:bg-destructive/90",
 }: EasyAlertDialogProps) {
+  const t = useTranslations("common.actions");
+  const resolvedConfirmLabel = confirmLabel ?? t("confirm");
+  const resolvedCancelLabel = cancelLabel ?? t("cancel");
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -52,14 +56,14 @@ export function EasyAlertDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isConfirming} onClick={onCancel}>
-            {cancelLabel}
+            {resolvedCancelLabel}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isConfirming}
             className={confirmClassName}
           >
-            {isConfirming ? `${confirmLabel}...` : confirmLabel}
+            {isConfirming ? `${resolvedConfirmLabel}...` : resolvedConfirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

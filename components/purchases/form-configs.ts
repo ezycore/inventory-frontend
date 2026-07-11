@@ -1,43 +1,57 @@
+// coding-standard: maintained
 import { z } from "zod";
 import type { DynamicFormConfig, FormFieldConfig } from "@/ui/components/form/type";
+import type { Translator } from "@/i18n/config";
 import { accountItemsCreateCallback, customerItemsCreateCallback, productItemsCreateCallback } from "../sales";
 
-export const productFormSchema = z.object({
-  productId: z.union([
-    z.string().min(1, "Product is required"),
-    z.object({
-      label: z.string(),
-      value: z.string(),
-      price: z.number().optional(),
-      conversionFactor: z.number().optional(),
-      productId: z.string().optional(),
-      variantId: z.string().nullable().optional(),
-      purchaseUnitName: z.string().nullable().optional(),
-      unitName: z.string().nullable().optional(),
-      // Keep per-line purchase tax on the selected option through zod parsing
-      // (z.object strips unknown keys, which would drop the tax otherwise).
-      purchaseTaxRate: z.number().optional(),
-      purchaseTaxType: z.enum(["inclusive", "exclusive"]).optional(),
-    }),
-  ]),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  convertedQuantity: z.number().min(0),
-  price: z.number().min(0),
-  discount: z.number().min(0),
-  costPrice: z.number().min(0),
-  rememberCostPrice: z.boolean().optional(),
-  stock: z.string().optional(),
-});
+/**
+ * Per-form zod messages (zod v4 ships no bn locale — docs/I18N.md). Callers pass
+ * a `purchases.form`-bound translator; the default keeps English for module-level
+ * use before a translator exists.
+ */
+export const makeProductFormSchema = (msg?: {
+  productRequired: string;
+  quantityMin: string;
+}) =>
+  z.object({
+    productId: z.union([
+      z.string().min(1, msg?.productRequired ?? "Product is required"),
+      z.object({
+        label: z.string(),
+        value: z.string(),
+        price: z.number().optional(),
+        conversionFactor: z.number().optional(),
+        productId: z.string().optional(),
+        variantId: z.string().nullable().optional(),
+        purchaseUnitName: z.string().nullable().optional(),
+        unitName: z.string().nullable().optional(),
+        // Keep per-line purchase tax on the selected option through zod parsing
+        // (z.object strips unknown keys, which would drop the tax otherwise).
+        purchaseTaxRate: z.number().optional(),
+        purchaseTaxType: z.enum(["inclusive", "exclusive"]).optional(),
+      }),
+    ]),
+    quantity: z.number().min(1, msg?.quantityMin ?? "Quantity must be at least 1"),
+    convertedQuantity: z.number().min(0),
+    price: z.number().min(0),
+    discount: z.number().min(0),
+    costPrice: z.number().min(0),
+    rememberCostPrice: z.boolean().optional(),
+    stock: z.string().optional(),
+  });
 
-export const getSupplierFormConfig = (isDraft = false): DynamicFormConfig => {
+export const productFormSchema = makeProductFormSchema();
+
+/** Supplier/settings form. `t` is bound to the `purchases` namespace. */
+export const getSupplierFormConfig = (t: Translator, isDraft = false): DynamicFormConfig => {
   const fields: FormFieldConfig[] = [
     {
       name: "supplierId",
-      label: "Supplier",
+      label: t("form.supplier"),
       type: "fuseSelect",
       required: true,
       optionsApi: "/suppliers?all=true&fields=_id,name,defaultDiscountId",
-      placeholder: "Search or select supplier...",
+      placeholder: t("form.supplierPlaceholder"),
       labelInValue: true,
       itemsCreateCallback: customerItemsCreateCallback,
       autoFillFields: ["discountValue"],
@@ -46,23 +60,23 @@ export const getSupplierFormConfig = (isDraft = false): DynamicFormConfig => {
       creatable: true,
       ...(isDraft && {
         disabled: true,
-        helperText: "Can't change supplier in draft order",
+        helperText: t("form.draftSupplierHelp"),
       }),
     },
     {
       name: "purchaseType",
-      label: "Purchase Type",
+      label: t("form.purchaseType"),
       type: "select",
       required: true,
       options: [
-        { value: "instant", label: "Instant Purchase (Receive Now)" },
-        { value: "order", label: "Create Order (Receive Later)" },
+        { value: "instant", label: t("form.instantOption") },
+        { value: "order", label: t("form.orderOption") },
       ],
       columnSpan: 6,
     },
     {
       name: "discountValue",
-      label: "Discount Value",
+      label: t("form.discountValue"),
       type: "number",
       required: false,
       placeholder: "0",
@@ -72,15 +86,15 @@ export const getSupplierFormConfig = (isDraft = false): DynamicFormConfig => {
     },
     {
       name: "invoiceNumber",
-      label: "Invoice Number",
+      label: t("form.invoiceNumber"),
       type: "input",
       required: false,
-      placeholder: "Invoice number (optional)",
+      placeholder: t("form.invoiceNumberPlaceholder"),
       columnSpan: 3,
     },
     {
       name: "invoiceDate",
-      label: "Invoice Date",
+      label: t("form.invoiceDate"),
       type: "date",
       required: true,
       columnSpan: 3,
@@ -90,22 +104,23 @@ export const getSupplierFormConfig = (isDraft = false): DynamicFormConfig => {
   return { fields };
 };
 
-export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig => {
+/** Add-product form. `t` is bound to the `purchases` namespace. */
+export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): DynamicFormConfig => {
   const fields: FormFieldConfig[] = [
     {
       name: "productId",
-      label: "Product",
+      label: t("form.product"),
       type: "fuseSelect",
       required: true,
       optionsApi: "/inventory/purchasable-products",
-      placeholder: "Search product by name...",
+      placeholder: t("form.productPlaceholder"),
       labelInValue: true,
       itemsCreateCallback: productItemsCreateCallback,
       columnSpan: 4,
     },
     {
       name: "stock",
-      label: "Stock",
+      label: t("form.stock"),
       type: "input",
       disabled: true,
       placeholder: "1",
@@ -113,7 +128,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
     },
     {
       name: "purchaseUnitName",
-      label: "Purchase Unit",
+      label: t("form.purchaseUnit"),
       type: "input",
       disabled: true,
       placeholder: "1",
@@ -122,7 +137,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
     },
     {
       name: "quantity",
-      label: "Purchase Quantity",
+      label: t("form.purchaseQuantity"),
       type: "number",
       required: true,
       placeholder: "1",
@@ -135,7 +150,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
   fields.push(
     {
       name: "price",
-      label: "Price",
+      label: t("form.price"),
       type: "number",
       required: true,
       placeholder: "0",
@@ -145,7 +160,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
     },
     {
       name: "discount",
-      label: "Discount",
+      label: t("form.discount"),
       type: "number",
       required: false,
       placeholder: "0",
@@ -154,7 +169,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
     },
     {
       name: "costPrice",
-      label: "Cost Price",
+      label: t("form.costPrice"),
       type: "number",
       required: false,
       placeholder: "0",
@@ -163,7 +178,7 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
     },
     {
       name: "rememberCostPrice",
-      label: "Remember Cost Price",
+      label: t("form.rememberCostPrice"),
       type: "checkbox",
       required: false,
       columnSpan: 12,
@@ -173,25 +188,26 @@ export const getProductFormConfig = (isUOMEnabled: boolean): DynamicFormConfig =
   return { fields };
 };
 
-export const getPaymentFormConfig = (isAccountsEnabled: boolean): DynamicFormConfig => {
+/** Payment/notes form. `t` is bound to the `purchases` namespace. */
+export const getPaymentFormConfig = (t: Translator, isAccountsEnabled: boolean): DynamicFormConfig => {
   const fields: FormFieldConfig[] = [];
 
   if (isAccountsEnabled) {
     fields.push(
       {
         name: "accountId",
-        label: "Payment Account",
+        label: t("form.paymentAccount"),
         type: "select",
         required: false,
         optionsApi: "/accounts",
-        placeholder: "Select account",
+        placeholder: t("form.selectAccount"),
         labelInValue: true,
         itemsCreateCallback: accountItemsCreateCallback,
         columnSpan: 12,
       },
       {
         name: "paidAmount",
-        label: "Paid Amount",
+        label: t("form.paidAmount"),
         type: "number",
         required: false,
         placeholder: "0.00",
@@ -203,10 +219,10 @@ export const getPaymentFormConfig = (isAccountsEnabled: boolean): DynamicFormCon
 
   fields.push({
     name: "notes",
-    label: "Notes",
+    label: t("form.notes"),
     type: "textarea",
     required: false,
-    placeholder: "Add notes for this purchase (optional)",
+    placeholder: t("form.purchaseNotesPlaceholder"),
     columnSpan: 12,
     rows: 2,
   });

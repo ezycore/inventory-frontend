@@ -1,8 +1,9 @@
 'use client';
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl';
 import { Mail } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/ui/components/button';
 import { Input } from '@/ui/components/input';
 import { Label } from '@/ui/components/label';
@@ -27,9 +28,25 @@ interface EmailReceiptButtonProps {
  * backend refuses those too).
  */
 export function EmailReceiptButton({ sale }: EmailReceiptButtonProps) {
+  const t = useTranslations('sales.history.emailReceipt');
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const sendReceipt = useEmailSaleReceipt();
+
+  // On open, Radix auto-focuses the input and selects its text. We prefer the
+  // caret parked at the end so the prefilled email isn't wiped by the first
+  // keystroke. `setSelectionRange` throws on type="email", so re-assign the
+  // value instead — that lands the caret at the end with no selection.
+  const focusInputAtEnd = (e: Event) => {
+    e.preventDefault();
+    const el = inputRef.current;
+    if (!el) return;
+    el.focus();
+    const value = el.value;
+    el.value = '';
+    el.value = value;
+  };
 
   if (sale.status === 'draft' || sale.status === 'cancelled') return null;
 
@@ -62,13 +79,18 @@ export function EmailReceiptButton({ sale }: EmailReceiptButtonProps) {
           className="whitespace-nowrap"
         >
           <Mail className="h-4 w-4" />
-          Email
+          {t('email')}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 space-y-3">
+      <PopoverContent
+        align="end"
+        className="w-80 space-y-3"
+        onOpenAutoFocus={focusInputAtEnd}
+      >
         <div className="space-y-1">
-          <Label htmlFor="receipt-email">Email receipt to</Label>
+          <Label htmlFor="receipt-email">{t('emailTo')}</Label>
           <Input
+            ref={inputRef}
             id="receipt-email"
             type="email"
             placeholder="customer@example.com"
@@ -79,9 +101,7 @@ export function EmailReceiptButton({ sale }: EmailReceiptButtonProps) {
             }}
           />
           {!knownEmail && (
-            <p className="text-xs text-muted-foreground">
-              Leave empty to use the customer&apos;s email on file.
-            </p>
+            <p className="text-xs text-muted-foreground">{t('leaveEmpty')}</p>
           )}
         </div>
         <Button
@@ -91,7 +111,7 @@ export function EmailReceiptButton({ sale }: EmailReceiptButtonProps) {
           onClick={handleSend}
           disabled={sendReceipt.isPending}
         >
-          {sendReceipt.isPending ? 'Sending…' : 'Send receipt'}
+          {sendReceipt.isPending ? t('sending') : t('send')}
         </Button>
       </PopoverContent>
     </Popover>

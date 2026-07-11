@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@ui/components/button'
@@ -37,12 +38,13 @@ interface ProductDetailProps {
 }
 
 /** Short label for a variant tab from its attribute values. */
-function variantLabel(variant: any): string {
+function variantLabel(variant: any, fallback: string): string {
   const values = Object.values(variant?.attributes || {}).map((v) => String(v))
-  return values.length ? values.join(' / ') : 'Variant'
+  return values.length ? values.join(' / ') : fallback
 }
 
 export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) {
+  const t = useTranslations('products.products.detail')
   const { format: formatCurrency } = useCurrency()
   const organization = useAuthStore((s) => s.user?.organization)
 
@@ -100,11 +102,11 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-        <h2 className="mb-2 text-xl font-semibold">Product Not Found</h2>
+        <h2 className="mb-2 text-xl font-semibold">{t('notFoundTitle')}</h2>
         <p className="mb-4 text-muted-foreground">
-          The product you&apos;re looking for doesn&apos;t exist or has been removed.
+          {t('notFoundDescription')}
         </p>
-        {onClose && <Button onClick={onClose}>Close</Button>}
+        {onClose && <Button onClick={onClose}>{t('close')}</Button>}
       </div>
     )
   }
@@ -181,7 +183,7 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
             <TabsList className="w-max">
               {product.variants.map((v: any) => (
                 <TabsTrigger key={v._id} value={v._id}>
-                  {variantLabel(v)}
+                  {variantLabel(v, t('defaultVariantLabel'))}
                 </TabsTrigger>
               ))}
             </TabsList>

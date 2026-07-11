@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 import type { LocationStockSummary } from "@/services/api/modules/locations/stock-report-api";
 import {
@@ -20,6 +21,7 @@ interface OverallStatsProps {
 }
 
 export function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
+  const t = useTranslations("settings.locations.stockReport.stats");
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   const totals = useMemo(() => {
     if (!summaries?.length)
@@ -43,7 +45,7 @@ export function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
 
   const stats = [
     {
-      label: "Total Locations",
+      label: t("totalLocations"),
       value: totals.locations,
       icon: MapPin,
       gradient: "from-primary/10 to-primary/5",
@@ -51,7 +53,7 @@ export function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
       iconColor: "text-primary",
     },
     {
-      label: "Total Stock Items",
+      label: t("totalStockItems"),
       value: totals.products.toLocaleString(),
       icon: Package,
       gradient: "from-blue-500/10 to-blue-500/5",
@@ -59,7 +61,7 @@ export function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
       iconColor: "text-blue-600 dark:text-blue-400",
     },
     {
-      label: "Total Quantity",
+      label: t("totalQuantity"),
       value: totals.quantity.toLocaleString(),
       icon: Boxes,
       gradient: "from-emerald-500/10 to-emerald-500/5",
@@ -69,7 +71,7 @@ export function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
     ...(canViewCosts
       ? [
           {
-            label: "Total Value",
+            label: t("totalValue"),
             value: `৳${totals.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
             icon: DollarSign,
             gradient: "from-violet-500/10 to-violet-500/5",
@@ -79,7 +81,7 @@ export function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
         ]
       : []),
     {
-      label: "Low Stock",
+      label: t("lowStock"),
       value: totals.lowStock,
       icon: AlertTriangle,
       gradient: "from-amber-500/10 to-amber-500/5",
@@ -87,7 +89,7 @@ export function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
       iconColor: "text-amber-600 dark:text-amber-400",
     },
     {
-      label: "Out of Stock",
+      label: t("outOfStock"),
       value: totals.outOfStock,
       icon: XCircle,
       gradient: "from-red-500/10 to-red-500/5",

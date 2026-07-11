@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Lock } from "lucide-react";
@@ -24,6 +26,8 @@ import { Label } from "@/ui/components/label";
 const DEFAULT_FY = { startMonth: 7, startDay: 1, endMonth: 6, endDay: 30 };
 
 export default function TaxSettingsPage() {
+  const t = useTranslations("settings.taxSettings");
+  const tShell = useTranslations("settings.shell");
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const updateTaxConfig = useAuthStore((s) => s.updateTaxConfig);
@@ -66,10 +70,10 @@ export default function TaxSettingsPage() {
   // Redirect users without the manage permission.
   useEffect(() => {
     if (user && !canManage) {
-      toast.error("You don't have permission to access this page");
+      toast.error(tShell("noPermission"));
       router.push("/");
     }
-  }, [user, canManage, router]);
+  }, [user, canManage, router, tShell]);
 
   if (!canManage) return null;
 
@@ -109,8 +113,8 @@ export default function TaxSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Tax Settings"
-        subTitle="Control where tax applies and set your financial year for tax reporting."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       {!masterTaxOn && (
@@ -120,10 +124,9 @@ export default function TaxSettingsPage() {
               <Lock className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium">Tax is off for your plan</p>
+              <p className="text-sm font-medium">{t("offTitle")}</p>
               <p className="text-sm text-muted-foreground">
-                The Tax feature is managed by your subscription. These sub-toggles
-                only take effect once Tax is enabled on your plan.
+                {t("offBody")}
               </p>
             </div>
           </CardContent>
@@ -132,17 +135,17 @@ export default function TaxSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Where tax applies</CardTitle>
+          <CardTitle className="text-base">{t("whereTitle")}</CardTitle>
           <CardDescription>
-            Returns automatically follow their parent area.
+            {t("whereDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Sales tax</p>
+              <p className="text-sm font-medium">{t("salesLabel")}</p>
               <p className="text-sm text-muted-foreground">
-                Apply tax on sales and sales returns.
+                {t("salesHint")}
               </p>
             </div>
             <Switch
@@ -153,9 +156,9 @@ export default function TaxSettingsPage() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Purchase tax</p>
+              <p className="text-sm font-medium">{t("purchaseLabel")}</p>
               <p className="text-sm text-muted-foreground">
-                Apply tax on purchases and purchase returns.
+                {t("purchaseHint")}
               </p>
             </div>
             <Switch
@@ -169,22 +172,22 @@ export default function TaxSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Financial year</CardTitle>
+          <CardTitle className="text-base">{t("financialYearTitle")}</CardTitle>
           <CardDescription>
-            Used as the default range for tax reports (1-based month/day).
+            {t("financialYearDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {fyField("startMonth", "Start month", 12)}
-          {fyField("startDay", "Start day", 31)}
-          {fyField("endMonth", "End month", 12)}
-          {fyField("endDay", "End day", 31)}
+          {fyField("startMonth", t("startMonth"), 12)}
+          {fyField("startDay", t("startDay"), 31)}
+          {fyField("endMonth", t("endMonth"), 12)}
+          {fyField("endDay", t("endDay"), 31)}
         </CardContent>
       </Card>
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={isPending}>
-          {isPending ? "Saving…" : "Save changes"}
+          {isPending ? t("saving") : t("save")}
         </Button>
       </div>
     </div>

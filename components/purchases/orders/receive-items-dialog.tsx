@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { useAccounts, useDefaultAccount } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { Account, PurchaseOrder, ReceivePurchaseOrderDto } from "@/types";
@@ -59,6 +61,8 @@ export function ReceiveItemsDialog({
   isPending,
   onSubmit,
 }: ReceiveItemsDialogProps) {
+  const t = useTranslations("purchases.receive");
+  const tActions = useTranslations("common.actions");
   const router = useRouter();
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
@@ -125,7 +129,7 @@ export function ReceiveItemsDialog({
   const handleSubmit = async () => {
     if (!order) return;
     if (!hasAnyReceivableItems(receiveItems)) {
-      toast.error("Please enter quantity for at least one item");
+      toast.error(t("enterQtyOneItem"));
       return;
     }
 
@@ -149,7 +153,7 @@ export function ReceiveItemsDialog({
 
     if (isAccountsEnabled && cappedPaid > 0) {
       if (!accountId) {
-        toast.error("Please select a payment account");
+        toast.error(t("selectPaymentAccount"));
         return;
       }
       payload.payment = {
@@ -167,12 +171,12 @@ export function ReceiveItemsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <PackageCheck className="h-5 w-5 text-primary" />
-            Receive Items
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
             {order
-              ? `Order ${order.orderNumber} — ${order.supplierId?.name ?? "—"}`
-              : "Confirm received quantities and optionally record a payment."}
+              ? t("orderLine", { number: order.orderNumber, supplier: order.supplierId?.name ?? "—" })
+              : t("descriptionFallback")}
           </DialogDescription>
         </DialogHeader>
 
@@ -181,12 +185,12 @@ export function ReceiveItemsDialog({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead className="text-right">Ordered</TableHead>
+                <TableHead>{t("colProduct")}</TableHead>
+                <TableHead className="text-right">{t("colOrdered")}</TableHead>
                 {isExpiryEnabled && (
                   <>
-                    <TableHead className="w-40">Expiry Date</TableHead>
-                    <TableHead className="w-36">Batch #</TableHead>
+                    <TableHead className="w-40">{t("colExpiryDate")}</TableHead>
+                    <TableHead className="w-36">{t("colBatch")}</TableHead>
                   </>
                 )}
                 {/* <TableHead className="text-right">Remaining</TableHead> */}
@@ -210,7 +214,7 @@ export function ReceiveItemsDialog({
                           onSelect={(d) =>
                             handleExpiryFieldChange(index, "expiryDate", d ?? "")
                           }
-                          placeholder="Expiry"
+                          placeholder={t("expiryPlaceholder")}
                           className="h-8"
                         />
                       </TableCell>
@@ -224,7 +228,7 @@ export function ReceiveItemsDialog({
                               e.target.value,
                             )
                           }
-                          placeholder="optional"
+                          placeholder={t("batchOptional")}
                           className="h-8"
                         />
                       </TableCell>
@@ -256,13 +260,13 @@ export function ReceiveItemsDialog({
         <div className="grid gap-2 sm:grid-cols-3 text-sm">
           <div className="rounded-lg border bg-muted/30 p-3">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">
-              Items to receive
+              {t("itemsToReceive")}
             </div>
             <div className="text-lg font-semibold">{totalToReceive}</div>
           </div>
           <div className="rounded-lg border bg-muted/30 p-3">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">
-              Current due
+              {t("currentDue")}
             </div>
             <div className="text-lg font-semibold text-orange-600">
               {formatCurrency(currentDue)}
@@ -270,7 +274,7 @@ export function ReceiveItemsDialog({
           </div>
           <div className="rounded-lg border bg-muted/30 p-3">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">
-              Remaining after pay
+              {t("remainingAfterPay")}
             </div>
             <div
               className={`text-lg font-semibold ${
@@ -286,8 +290,7 @@ export function ReceiveItemsDialog({
         {isExpiryEnabled && (
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <PackageCheck className="h-3.5 w-3.5" />
-            Set an expiry date (and optional batch number) per line above — only
-            applied to expiry-tracked products.
+            {t("expiryHint")}
           </p>
         )}
 
@@ -298,15 +301,15 @@ export function ReceiveItemsDialog({
             <div className="space-y-3">
               <div className="flex items-center gap-2 font-medium text-sm">
                 <CreditCard className="h-4 w-4" />
-                Payment
+                {t("payment")}
                 <span className="text-xs font-normal text-muted-foreground">
-                  Leave empty to keep as due
+                  {t("leaveEmptyDue")}
                 </span>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-4">
                 <div className="space-y-1.5 col-span-2">
-                  <Label>Account</Label>
+                  <Label>{t("account")}</Label>
                   <SimpleSelect
                     value={accountId}
                     onValueChange={setAccountId}
@@ -314,11 +317,11 @@ export function ReceiveItemsDialog({
                       label: acc.name,
                       value: acc._id,
                     }))}
-                    placeholder="Select account"
+                    placeholder={t("selectAccount")}
                   />
                 </div>
                 <div className="space-y-1.5 col-span-2">
-                  <Label htmlFor="receive-paid">Paid Amount</Label>
+                  <Label htmlFor="receive-paid">{t("paidAmount")}</Label>
                   <NumberField
                     id="receive-paid"
                     precision={2}
@@ -333,7 +336,7 @@ export function ReceiveItemsDialog({
 
               {parsedPaid > currentDue && (
                 <p className="text-xs text-orange-600">
-                  Paid amount capped at current due ({formatCurrency(currentDue)}).
+                  {t("paidCapped", { amount: formatCurrency(currentDue) })}
                 </p>
               )}
             </div>
@@ -350,7 +353,7 @@ export function ReceiveItemsDialog({
             disabled={isPending}
           >
             <Pencil className="h-4 w-4 mr-1" />
-            Edit Order
+            {t("editOrder")}
           </Button>
           <div className="flex gap-2 ml-auto">
             <Button
@@ -358,10 +361,10 @@ export function ReceiveItemsDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {tActions("cancel")}
             </Button>
             <Button onClick={handleSubmit} disabled={isPending}>
-              {isPending ? "Processing..." : "Confirm Receipt"}
+              {isPending ? t("processing") : t("confirmReceipt")}
             </Button>
           </div>
         </DialogFooter>

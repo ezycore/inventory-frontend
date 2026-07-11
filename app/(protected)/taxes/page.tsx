@@ -2,8 +2,10 @@
 // coding-standard: maintained
 
 import { useEffect } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/services/stores";
+import type { AppLocale } from "@/i18n/config";
 
 // Types
 import type { DynamicFormConfig } from "@/ui/components/form/type";
@@ -21,89 +23,89 @@ import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 
 // ── Form config ─────────────────────────────────────────────────────────
-const taxFormConfig: DynamicFormConfig = {
+const getTaxFormConfig = (t: (key: string) => string): DynamicFormConfig => ({
   fields: [
     {
       name: "name",
       type: "input",
-      label: "Tax Name",
-      placeholder: "Enter tax name",
+      label: t("form.name"),
+      placeholder: t("form.namePlaceholder"),
       required: true,
       columnSpan: 12,
     },
     {
       name: "rate",
       type: "number",
-      label: "Rate",
-      placeholder: "Enter tax rate",
+      label: t("form.rate"),
+      placeholder: t("form.ratePlaceholder"),
       required: true,
       columnSpan: 6,
     },
     {
       name: "type",
       type: "select",
-      label: "Type",
+      label: t("form.type"),
       required: true,
       columnSpan: 6,
       options: [
-        { value: "percentage", label: "Percentage" },
-        { value: "fixed", label: "Fixed" },
+        { value: "percentage", label: t("form.percentage") },
+        { value: "fixed", label: t("form.fixed") },
       ],
     },
     {
       name: "status",
       type: "select",
-      label: "Status",
+      label: t("form.status"),
       required: true,
       columnSpan: 12,
       options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
+        { value: "active", label: t("form.active") },
+        { value: "inactive", label: t("form.inactive") },
       ],
     },
     {
       name: "isDefault",
       type: "checkbox",
-      label: "Set as default tax",
-      description: "Pre-selected on new product forms",
+      label: t("form.isDefault"),
+      description: t("form.isDefaultDescription"),
       columnSpan: 12,
       defaultValue: false,
     },
   ],
-};
+});
 
 // ── Filter config ───────────────────────────────────────────────────────
-const taxFilterConfig: FilterConfig = {
+const getTaxFilterConfig = (t: (key: string) => string): FilterConfig => ({
   fields: [
     {
       name: "search",
-      label: "Search taxes",
+      label: t("filters.searchLabel"),
       type: "text",
-      placeholder: "Search taxes...",
+      placeholder: t("filters.searchPlaceholder"),
     },
     {
       name: "type",
-      label: "Type",
+      label: t("filters.typeLabel"),
       type: "select",
-      placeholder: "All types",
+      placeholder: t("filters.typePlaceholder"),
       options: [
-        { label: "Percentage", value: "percentage" },
-        { label: "Fixed", value: "fixed" },
+        { label: t("form.percentage"), value: "percentage" },
+        { label: t("form.fixed"), value: "fixed" },
       ],
     },
     {
       name: "status",
-      label: "Status",
+      label: t("filters.statusLabel"),
       type: "select",
-      placeholder: "All statuses",
+      placeholder: t("filters.statusPlaceholder"),
       options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
+        { label: t("form.active"), value: "active" },
+        { label: t("form.inactive"), value: "inactive" },
       ],
     },
   ],
   viewMode: "popover",
-};
+});
 
 const defaultValues = {
   name: "",
@@ -113,12 +115,9 @@ const defaultValues = {
   isDefault: false,
 };
 
-const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search taxes by name or rate...",
-};
-
 export default function TaxesPage() {
+  const t = useTranslations("settings.taxRates");
+  const locale = useLocale() as AppLocale;
   const router = useRouter();
   const { user } = useAuthStore();
   const isTaxEnabled = user?.organization?.features?.tax ?? false;
@@ -132,7 +131,7 @@ export default function TaxesPage() {
   }, [user, isTaxEnabled, router]);
 
   const sharedOperations = {
-    formConfig: taxFormConfig,
+    formConfig: getTaxFormConfig(t),
     defaultValues,
     getAllData: taxesApi.getAll,
     createMutation: useCreateTax(),
@@ -148,13 +147,13 @@ export default function TaxesPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Tax Rates"
-        subTitle="The tax rates applied to your sales and purchases."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       {/* Card View */}
       <DataCard
-        cardTitle={(n) => `All Taxes (${n})`}
+        cardTitle={(n) => t("allTaxesCount", { count: n })}
         defaultPageSize={12}
         pageSizes={[12, 24, 48]}
         layoutConfig={{
@@ -162,9 +161,9 @@ export default function TaxesPage() {
           columns: { default: 1, sm: 2, lg: 3 },
           gap: "md",
         }}
-        filterConfig={taxFilterConfig}
-        searchConfig={searchConfig}
-        renderCard={TaxCardView}
+        filterConfig={getTaxFilterConfig(t)}
+        searchConfig={{ globalSearch: true, placeholder: t("searchPlaceholder") }}
+        renderCard={(item, actions) => TaxCardView(item, actions, { t, locale })}
         loadingRenderCard={TaxCardLoading}
         operations={sharedOperations}
       />

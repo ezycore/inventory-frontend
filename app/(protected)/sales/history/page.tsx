@@ -1,5 +1,6 @@
 'use client';
-
+// coding-standard: maintained
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/ui/components/button';
@@ -13,6 +14,7 @@ import {
 } from '@/components/sales/history';
 
 export default function SalesHistoryPage() {
+  const t = useTranslations('sales.history');
   const router = useRouter();
   const ctx = useSalesHistoryPage();
   return (
@@ -20,12 +22,12 @@ export default function SalesHistoryPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Sales History</h1>
-          <p className="text-muted-foreground">View and manage your sales</p>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         <Button onClick={() => router.push('/sales')}>
           <Plus className="h-4 w-4 mr-2" />
-          New Sale
+          {t('newSale')}
         </Button>
       </div>
 
@@ -41,7 +43,7 @@ export default function SalesHistoryPage() {
       <Card className="p-0">
         <CardContent className="p-6">
           <BaseDataTable
-            title="Sales"
+            title={t('tableTitle')}
             columns={ctx.columns}
             data={ctx.sales}
             isLoading={ctx.isLoading}

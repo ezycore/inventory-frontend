@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { useMyLocations, useUpdateMyDefaultLocation } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,6 +28,7 @@ import { toast } from "sonner";
 import { Label } from "@/ui/components/label";
 
 export function ChangeDefaultLocationDialog() {
+  const t = useTranslations("settings.profile.changeLocation");
   const { user, setActiveLocation, updateUser } = useAuthStore();
   const queryClient = useQueryClient();
   const { data: locationsData, isLoading } = useMyLocations();
@@ -41,7 +44,7 @@ export function ChangeDefaultLocationDialog() {
 
   const handleSave = async () => {
     if (!selectedLocationId) {
-      toast.error("Please select a location");
+      toast.error(t("selectRequired"));
       return;
     }
 
@@ -62,7 +65,7 @@ export function ChangeDefaultLocationDialog() {
   return locations.length === 1 ? (
     <div className="text-sm text-muted-foreground flex items-center gap-2">
       <Info className="h-4 w-4 shrink-0" />
-      <span>You only have access to one location.</span>
+      <span>{t("onlyOneLocation")}</span>
     </div>
   ) : (
     <Dialog open={open} onOpenChange={() => {
@@ -76,15 +79,15 @@ export function ChangeDefaultLocationDialog() {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <MapPin className="h-4 w-4" />
-          <span className="hidden sm:inline">Change Location</span>
-          <span className="sm:hidden">Change</span>
+          <span className="hidden sm:inline">{t("changeLocation")}</span>
+          <span className="sm:hidden">{t("change")}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[95vw] sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Change Default Location</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Select your default location for when you log in.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,15 +96,14 @@ export function ChangeDefaultLocationDialog() {
             <div className="text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800 flex items-start gap-2">
               <Info className="h-4 w-4 shrink-0 mt-0.5 text-blue-500" />
               <span>
-                You have access to all locations. Your default is used on first
-                login.
+                {t("allAccessHint")}
               </span>
             </div>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="location-select" className="text-sm font-medium">
-              Select Location
+              {t("selectLocation")}
             </Label>
             <Select
               value={selectedLocationId}
@@ -109,7 +111,7 @@ export function ChangeDefaultLocationDialog() {
               disabled={isLoading}
             >
               <SelectTrigger id="location-select">
-                <SelectValue placeholder="Choose a location..." />
+                <SelectValue placeholder={t("selectPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {locations.map((location) => (
@@ -134,7 +136,7 @@ export function ChangeDefaultLocationDialog() {
             onClick={() => setOpen(false)}
             className="w-full sm:w-auto"
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleSave}
@@ -144,7 +146,7 @@ export function ChangeDefaultLocationDialog() {
             {updateDefaultMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            Save
+            {t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

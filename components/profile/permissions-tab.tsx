@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   groupPermissions,
@@ -10,6 +11,7 @@ import { Eye, Layers, Lock, Pencil, Plus, Shield, Trash2 } from "lucide-react";
 
 /** Read-only overview of the signed-in user's permissions, grouped by category. */
 export function PermissionsTab() {
+  const t = useTranslations("settings.profile.permissionsTab");
   const { user } = useAuthStore();
   const permissions = user?.permissions || [];
   const groupedPermissions = groupPermissions(permissions);
@@ -43,10 +45,9 @@ export function PermissionsTab() {
         <div className="rounded-full bg-muted p-4 mb-4">
           <Lock className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold">No Permissions Assigned</h3>
+        <h3 className="text-lg font-semibold">{t("emptyTitle")}</h3>
         <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-          Your account doesn&apos;t have any specific permissions. Contact your
-          administrator to request access.
+          {t("emptyDescription")}
         </p>
       </div>
     );
@@ -63,7 +64,7 @@ export function PermissionsTab() {
             </div>
             <div>
               <p className="text-2xl font-bold">{totalPermissions}</p>
-              <p className="text-xs text-muted-foreground">Total Permissions</p>
+              <p className="text-xs text-muted-foreground">{t("totalPermissions")}</p>
             </div>
           </div>
         </div>
@@ -72,7 +73,7 @@ export function PermissionsTab() {
           <Eye className="h-4 w-4 text-blue-500" />
           <div>
             <p className="text-lg font-semibold">{breakdown.view}</p>
-            <p className="text-xs text-muted-foreground">View</p>
+            <p className="text-xs text-muted-foreground">{t("view")}</p>
           </div>
         </div>
 
@@ -80,7 +81,7 @@ export function PermissionsTab() {
           <Plus className="h-4 w-4 text-green-500" />
           <div>
             <p className="text-lg font-semibold">{breakdown.create}</p>
-            <p className="text-xs text-muted-foreground">Create</p>
+            <p className="text-xs text-muted-foreground">{t("create")}</p>
           </div>
         </div>
 
@@ -88,7 +89,7 @@ export function PermissionsTab() {
           <Pencil className="h-4 w-4 text-amber-500" />
           <div>
             <p className="text-lg font-semibold">{breakdown.update}</p>
-            <p className="text-xs text-muted-foreground">Update</p>
+            <p className="text-xs text-muted-foreground">{t("update")}</p>
           </div>
         </div>
 
@@ -96,7 +97,7 @@ export function PermissionsTab() {
           <Trash2 className="h-4 w-4 text-red-500" />
           <div>
             <p className="text-lg font-semibold">{breakdown.delete}</p>
-            <p className="text-xs text-muted-foreground">Delete</p>
+            <p className="text-xs text-muted-foreground">{t("delete")}</p>
           </div>
         </div>
       </div>
@@ -104,7 +105,7 @@ export function PermissionsTab() {
       {/* Categories Header */}
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
         <Layers className="h-4 w-4" />
-        <span>{totalCategories} Access Categories</span>
+        <span>{t("accessCategories", { count: totalCategories })}</span>
       </div>
 
       {/* Permissions Grid */}
@@ -121,24 +122,24 @@ export function PermissionsTab() {
       {/* Legend */}
       <div className="rounded-xl border bg-muted/30 p-4">
         <p className="text-xs font-medium text-muted-foreground mb-3">
-          Permission Types Legend
+          {t("legendTitle")}
         </p>
         <div className="flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-1.5">
             <Eye className="h-3.5 w-3.5 text-blue-500" />
-            <span className="text-muted-foreground">View/Read access</span>
+            <span className="text-muted-foreground">{t("legendView")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Plus className="h-3.5 w-3.5 text-green-500" />
-            <span className="text-muted-foreground">Create new items</span>
+            <span className="text-muted-foreground">{t("legendCreate")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Pencil className="h-3.5 w-3.5 text-amber-500" />
-            <span className="text-muted-foreground">Edit/Update items</span>
+            <span className="text-muted-foreground">{t("legendUpdate")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Trash2 className="h-3.5 w-3.5 text-red-500" />
-            <span className="text-muted-foreground">Delete items</span>
+            <span className="text-muted-foreground">{t("legendDelete")}</span>
           </div>
         </div>
       </div>

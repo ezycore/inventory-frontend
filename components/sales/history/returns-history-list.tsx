@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from 'next-intl';
 import { useMemo } from "react";
 import {
   ReturnsHistoryList as SharedReturnsHistoryList,
@@ -22,6 +23,7 @@ export function ReturnsHistoryList({
   formatCurrency,
   bare,
 }: ReturnsHistoryListProps) {
+  const t = useTranslations('sales.history.returnsList');
   const normalized = useMemo<NormalizedReturn[]>(
     () =>
       saleReturns.map((ret) => ({
@@ -46,17 +48,17 @@ export function ReturnsHistoryList({
               documentDueAdjustment:
                 (ret.refundAllocation.adjustSaleDue ?? 0) > 0
                   ? {
-                      label: "Adjusted against sale due",
+                      label: t('adjustedAgainstSaleDue'),
                       amount: ret.refundAllocation.adjustSaleDue!,
                     }
                   : undefined,
               otherDueAdjustments: ret.refundAllocation.adjustOtherDues?.map((d) => ({
-                label: "Adjusted against",
+                label: t('adjustedAgainst'),
                 amount: d.amount,
                 reference: d.invoiceNumber ? (
                   <CopyableInvoice value={d.invoiceNumber} />
                 ) : (
-                  "other due"
+                  t('otherDue')
                 ),
               })),
               accountRefund: ret.refundAllocation.accountRefund
@@ -68,14 +70,14 @@ export function ReturnsHistoryList({
               counterpartyCredit:
                 (ret.refundAllocation.customerCredit?.amount ?? 0) > 0
                   ? {
-                      label: "Converted to store credit",
+                      label: t('convertedToStoreCredit'),
                       amount: ret.refundAllocation.customerCredit!.amount,
                     }
                   : undefined,
             }
           : undefined,
       })),
-    [saleReturns],
+    [saleReturns, t],
   );
 
   return (
@@ -83,7 +85,7 @@ export function ReturnsHistoryList({
       returns={normalized}
       isLoading={isLoadingReturns}
       formatCurrency={formatCurrency}
-      emptyMessage="No returns for this sale"
+      emptyMessage={t('noReturns')}
       bare={bare}
     />
   );

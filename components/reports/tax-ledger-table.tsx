@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { format } from 'date-fns'
 import type { ReportParams, TaxLedgerKind } from '@/services/api'
 import { useTaxLedger } from '@/services/api'
@@ -9,11 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Button } from '@ui/components/button'
 import { Skeleton } from '@ui/components/skeleton'
 
-const KIND_LABEL: Record<TaxLedgerKind, string> = {
-  sale: 'Sale',
-  sales_return: 'Sales Return',
-  purchase: 'Purchase',
-  purchase_return: 'Purchase Return',
+/** TaxLedgerKind → `reports.tax.kind*` message key. */
+const KIND_LABEL_KEYS: Record<TaxLedgerKind, string> = {
+  sale: 'kindSale',
+  sales_return: 'kindSalesReturn',
+  purchase: 'kindPurchase',
+  purchase_return: 'kindPurchaseReturn',
 }
 
 /** Paginated, chronological list of every tax event for the period. */
@@ -26,6 +28,7 @@ export function TaxLedgerTable({
   enabled: boolean
   formatCurrency: (n: number) => string
 }) {
+  const t = useTranslations('reports.tax')
   const [page, setPage] = useState(1)
   // Reset to the first page whenever the period changes (render-phase reset —
   // avoids setState-in-effect cascading renders).
@@ -40,7 +43,7 @@ export function TaxLedgerTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Tax Ledger</CardTitle>
+        <CardTitle className="text-base">{t('ledgerTitle')}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -50,14 +53,14 @@ export function TaxLedgerTable({
             ))}
           </div>
         ) : !data || data.items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No tax events in this period</p>
+          <p className="text-sm text-muted-foreground">{t('noTaxEvents')}</p>
         ) : (
           <>
             <div className="grid grid-cols-4 gap-2 border-b pb-1 text-xs text-muted-foreground">
-              <span>Date</span>
-              <span>Type</span>
-              <span>Reference</span>
-              <span className="text-right">Tax</span>
+              <span>{t('colDate')}</span>
+              <span>{t('colType')}</span>
+              <span>{t('colReference')}</span>
+              <span className="text-right">{t('colTax')}</span>
             </div>
             <div className="divide-y">
               {data.items.map((e, i) => (
@@ -66,7 +69,7 @@ export function TaxLedgerTable({
                     {format(new Date(e.date), 'dd MMM yyyy')}
                   </span>
                   <span className={e.direction === 'output' ? 'text-blue-600' : 'text-orange-600'}>
-                    {KIND_LABEL[e.kind] ?? e.kind}
+                    {KIND_LABEL_KEYS[e.kind] ? t(KIND_LABEL_KEYS[e.kind] as never) : e.kind}
                   </span>
                   <span className="font-mono text-xs">{e.reference}</span>
                   <span
@@ -82,7 +85,7 @@ export function TaxLedgerTable({
             </div>
             <div className="flex items-center justify-between pt-3 text-sm">
               <span className="text-muted-foreground">
-                Page {data.page} of {data.totalPages || 1} · {data.total} events
+                {t('pageOfEvents', { page: data.page, totalPages: data.totalPages || 1, total: data.total })}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -91,7 +94,7 @@ export function TaxLedgerTable({
                   disabled={!data.hasPrev}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
-                  Previous
+                  {t('previous')}
                 </Button>
                 <Button
                   variant="outline"
@@ -99,7 +102,7 @@ export function TaxLedgerTable({
                   disabled={!data.hasNext}
                   onClick={() => setPage((p) => p + 1)}
                 >
-                  Next
+                  {t('next')}
                 </Button>
               </div>
             </div>

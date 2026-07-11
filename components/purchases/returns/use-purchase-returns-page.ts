@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,11 +43,12 @@ import { getReturnsColumns } from "./columns";
 // Schema
 // =====================
 
-const orderSearchSchema = z.object({
-  orderId: z.string().min(1, "Please enter an order ID or order number"),
-});
+const makeOrderSearchSchema = (message: string) =>
+  z.object({
+    orderId: z.string().min(1, message),
+  });
 
-type OrderSearchData = z.infer<typeof orderSearchSchema>;
+type OrderSearchData = { orderId: string };
 
 // =====================
 // Hook
@@ -53,6 +56,8 @@ type OrderSearchData = z.infer<typeof orderSearchSchema>;
 
 export function usePurchaseReturnsPage() {
   const searchParams = useSearchParams();
+  const t = useTranslations("purchases");
+  const tReturns = useTranslations("purchases.returns");
   const { format: formatCurrency } = useCurrency();
 
   // ── State ─────────────────────────────────────────────────────
@@ -145,6 +150,10 @@ export function usePurchaseReturnsPage() {
   const createReturnMutation = useCreatePurchaseReturn();
 
   // ── Form ──────────────────────────────────────────────────────
+  const orderSearchSchema = useMemo(
+    () => makeOrderSearchSchema(t("returns.searchValidation")),
+    [t],
+  );
   const searchForm = useForm<OrderSearchData>({
     resolver: zodResolver(orderSearchSchema),
     defaultValues: { orderId: "" },
@@ -305,7 +314,7 @@ export function usePurchaseReturnsPage() {
   // ── Submit ────────────────────────────────────────────────────
   const handleSubmitReturn = useCallback(async () => {
     if (!selectedOrderId || !order) {
-      toast.error("Please select an order first");
+      toast.error(t("returns.selectOrderFirst"));
       return;
     }
 
@@ -313,7 +322,7 @@ export function usePurchaseReturnsPage() {
       (i) => i.selected && i.returnQty > 0,
     );
     if (selectedItems.length === 0) {
-      toast.error("Please select at least one item to return");
+      toast.error(t("returns.selectItemFirst"));
       return;
     }
 
@@ -423,6 +432,7 @@ export function usePurchaseReturnsPage() {
     notes,
     deductionAmount,
     handleClearSearch,
+    t,
   ]);
 
   // ── Filter config ─────────────────────────────────────────────
@@ -431,25 +441,25 @@ export function usePurchaseReturnsPage() {
       fields: [
         {
           name: "status",
-          label: "Status",
+          label: t("returns.filterStatus"),
           type: "select" as const,
           options: [
-            { label: "Pending", value: "pending" },
-            { label: "Processed", value: "completed" },
-            { label: "Cancelled", value: "cancelled" },
+            { label: t("returns.statusPending"), value: "pending" },
+            { label: t("returns.statusProcessed"), value: "completed" },
+            { label: t("returns.statusCancelled"), value: "cancelled" },
           ],
         },
         {
           name: "reason",
-          label: "Reason",
+          label: t("returns.filterReason"),
           type: "select" as const,
           options: [
-            { label: "Damaged", value: "damaged" },
-            { label: "Defective", value: "defective" },
-            { label: "Wrong Item", value: "wrong_item" },
-            { label: "Expired", value: "expired" },
-            { label: "Quality Issue", value: "quality_issue" },
-            { label: "Other", value: "other" },
+            { label: t("returns.reasonDamaged"), value: "damaged" },
+            { label: t("returns.reasonDefective"), value: "defective" },
+            { label: t("returns.reasonWrongItem"), value: "wrong_item" },
+            { label: t("returns.reasonExpired"), value: "expired" },
+            { label: t("returns.reasonQualityIssue"), value: "quality_issue" },
+            { label: t("returns.reasonOther"), value: "other" },
           ],
         },
       ] as FilterField[],
@@ -462,14 +472,14 @@ export function usePurchaseReturnsPage() {
         setPage(1);
       },
     }),
-    [],
+    [t],
   );
 
   // ── Columns ───────────────────────────────────────────────────
   const returnsColumns = useMemo(
     () =>
-      getReturnsColumns(formatCurrency, isAccountsEnabled, handleViewDetails),
-    [formatCurrency, isAccountsEnabled, handleViewDetails],
+      getReturnsColumns(formatCurrency, isAccountsEnabled, handleViewDetails, tReturns),
+    [formatCurrency, isAccountsEnabled, handleViewDetails, tReturns],
   );
 
   // ── Public API ────────────────────────────────────────────────

@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import {
   Card,
   CardContent,
@@ -20,37 +22,37 @@ import {
 
 const ACTIONS = [
   {
-    label: 'New Sale',
+    labelKey: 'newSale',
     icon: ShoppingCart,
     path: '/sales',
     color: 'text-primary',
   },
   {
-    label: 'Purchase',
+    labelKey: 'purchase',
     icon: ArrowDownToLine,
     path: '/purchases',
     color: 'text-chart-2',
   },
   {
-    label: 'Add Product',
+    labelKey: 'addProduct',
     icon: Package,
     path: '/products',
     color: 'text-chart-4',
   },
   {
-    label: 'Transfer Stock',
+    labelKey: 'transferStock',
     icon: Repeat,
     path: '/inventory/transfers',
     color: 'text-chart-5',
   },
   {
-    label: 'Adjust Stock',
+    labelKey: 'adjustStock',
     icon: BarChart3,
     path: '/inventory/adjust',
     color: 'text-chart-1',
   },
   {
-    label: 'View Reports',
+    labelKey: 'viewReports',
     icon: Eye,
     path: '/reports',
     color: 'text-muted-foreground',
@@ -59,24 +61,25 @@ const ACTIONS = [
 
 export function QuickActions() {
   const router = useRouter()
+  const t = useTranslations('dashboard.quickActions')
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Quick Actions</CardTitle>
-        <CardDescription>Jump to common tasks</CardDescription>
+        <CardTitle className="text-base">{t('title')}</CardTitle>
+        <CardDescription>{t('subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {ACTIONS.map((action) => (
             <Button
-              key={action.label}
+              key={action.labelKey}
               variant="outline"
               className="h-auto py-3 px-3 flex flex-col items-center gap-1.5 hover:shadow-sm transition-shadow"
               onClick={() => router.push(action.path)}
             >
               <action.icon className={`h-5 w-5 ${action.color}`} />
-              <span className="text-xs font-medium">{action.label}</span>
+              <span className="text-xs font-medium">{t(action.labelKey)}</span>
             </Button>
           ))}
         </div>

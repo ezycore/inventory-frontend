@@ -1,3 +1,5 @@
+// coding-standard: maintained
+import { useTranslations } from 'next-intl';
 import {
   Card,
   CardContent,
@@ -21,6 +23,7 @@ export function SummaryCards({
   isAccountsEnabled,
   formatCurrency,
 }: SummaryCardsProps) {
+  const t = useTranslations('sales.returns.summary');
   return (
     <div
       className={`grid gap-4 ${
@@ -28,28 +31,28 @@ export function SummaryCards({
       }`}
     >
       <StatCard
-        label="Total Returns"
+        label={t('totalReturns')}
         value={String(summary?.allTime?.returnsCount ?? 0)}
-        sub="all time"
+        sub={t('allTime')}
         isLoading={isLoading}
       />
       <StatCard
-        label="Return Amount"
+        label={t('returnAmount')}
         value={formatCurrency(summary?.thisMonth?.totalRefunds ?? 0)}
-        sub="total refunded"
+        sub={t('totalRefunded')}
         isLoading={isLoading}
       />
       <StatCard
-        label="Pending"
+        label={t('pending')}
         value={String(summary?.pending?.returnsCount ?? 0)}
-        sub="awaiting review"
+        sub={t('awaitingReview')}
         isLoading={isLoading}
       />
       {isAccountsEnabled && (
         <StatCard
-          label="Cash Refunded"
+          label={t('cashRefunded')}
           value={formatCurrency(summary?.allTime?.totalCashRefunded ?? 0)}
-          sub="all time"
+          sub={t('allTime')}
           isLoading={isLoading}
         />
       )}

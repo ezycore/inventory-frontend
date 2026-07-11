@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useState, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { DateRange } from "react-day-picker";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -50,7 +52,8 @@ function todayStr(tz: string): string {
 // ─── Preset types ────────────────────────────────────────────────────────────
 export interface QuickPreset {
   id: string;
-  label: string;
+  /** inventory.movements.* message key for the chip label. */
+  labelKey: string;
   icon: React.ReactNode;
   /**
    * Returns period-based filter params.
@@ -65,7 +68,7 @@ export interface QuickPreset {
 const presets: QuickPreset[] = [
   {
     id: "today",
-    label: "Today",
+    labelKey: "movements.presetToday",
     icon: <CalendarDays className="h-3.5 w-3.5" />,
     getFilters: () => ({ period: "today" }),
     color:
@@ -73,7 +76,7 @@ const presets: QuickPreset[] = [
   },
   {
     id: "yesterday",
-    label: "Yesterday",
+    labelKey: "movements.presetYesterday",
     icon: <Clock className="h-3.5 w-3.5" />,
     getFilters: (tz) => ({
       period: "custom",
@@ -85,7 +88,7 @@ const presets: QuickPreset[] = [
   },
   {
     id: "last3",
-    label: "Last 3 Days",
+    labelKey: "movements.presetLast3",
     icon: <CalendarDays className="h-3.5 w-3.5" />,
     getFilters: (tz) => ({
       period: "custom",
@@ -97,7 +100,7 @@ const presets: QuickPreset[] = [
   },
   {
     id: "last7",
-    label: "Last 1 Week",
+    labelKey: "movements.presetLast7",
     icon: <CalendarDays className="h-3.5 w-3.5" />,
     getFilters: (tz) => ({
       period: "custom",
@@ -109,7 +112,7 @@ const presets: QuickPreset[] = [
   },
   {
     id: "last15",
-    label: "Last 15 Days",
+    labelKey: "movements.presetLast15",
     icon: <CalendarDays className="h-3.5 w-3.5" />,
     getFilters: (tz) => ({
       period: "custom",
@@ -121,7 +124,7 @@ const presets: QuickPreset[] = [
   },
   {
     id: "last30",
-    label: "Last 30 Days",
+    labelKey: "movements.presetLast30",
     icon: <CalendarDays className="h-3.5 w-3.5" />,
     getFilters: (tz) => ({
       period: "custom",
@@ -135,15 +138,15 @@ const presets: QuickPreset[] = [
 
 // ─── Direction presets ───────────────────────────────────────────────────────
 const directionOptions = [
-  { id: "all", label: "All", icon: null },
+  { id: "all", labelKey: "movements.directionAll", icon: null },
   {
     id: "in",
-    label: "Stock In",
+    labelKey: "movements.statIn",
     icon: <ArrowDownToLine className="h-3.5 w-3.5" />,
   },
   {
     id: "out",
-    label: "Stock Out",
+    labelKey: "movements.statOut",
     icon: <ArrowUpFromLine className="h-3.5 w-3.5" />,
   },
 ];
@@ -161,6 +164,7 @@ interface QuickFiltersProps {
 }
 
 export function QuickFilters({ onChange }: QuickFiltersProps) {
+  const t = useTranslations("inventory");
   const timezone =
     useAuthStore((s) => s.user?.organization?.timezone) || "UTC";
   const [activePreset, setActivePreset] = useState<string | null>(null);
@@ -246,17 +250,18 @@ export function QuickFilters({ onChange }: QuickFiltersProps) {
   const activeLabel = useMemo(() => {
     const parts: string[] = [];
     if (activePreset) {
-      parts.push(presets.find((p) => p.id === activePreset)?.label || "");
+      const preset = presets.find((p) => p.id === activePreset);
+      if (preset) parts.push(t(preset.labelKey));
     } else if (customRange?.from) {
       const from = formatDate(customRange.from);
       const to = customRange.to ? formatDate(customRange.to) : from;
       parts.push(`${from} → ${to}`);
     }
     if (direction !== "all") {
-      parts.push(direction === "in" ? "Stock In" : "Stock Out");
+      parts.push(direction === "in" ? t("movements.statIn") : t("movements.statOut"));
     }
     return parts.join(" · ");
-  }, [activePreset, customRange, direction]);
+  }, [activePreset, customRange, direction, t]);
 
   return (
     <Card className="h-full">
@@ -267,9 +272,9 @@ export function QuickFilters({ onChange }: QuickFiltersProps) {
               <Zap className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-sm">Quick Filters</CardTitle>
+              <CardTitle className="text-sm">{t("movements.quickFilters")}</CardTitle>
               <CardDescription className="text-xs">
-                One-click filters for common lookups
+                {t("movements.quickFiltersDesc")}
               </CardDescription>
             </div>
           </div>
@@ -283,7 +288,7 @@ export function QuickFilters({ onChange }: QuickFiltersProps) {
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
               >
                 <X className="h-3 w-3" />
-                Clear
+                {t("movements.clear")}
               </button>
             </div>
           )}
@@ -300,7 +305,7 @@ export function QuickFilters({ onChange }: QuickFiltersProps) {
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer ${preset.color}`}
             >
               {preset.icon}
-              {preset.label}
+              {t(preset.labelKey)}
             </button>
           ))}
 
@@ -309,7 +314,7 @@ export function QuickFilters({ onChange }: QuickFiltersProps) {
             <DateRangePicker
               value={customRange}
               onChange={handleCustomRange}
-              placeholder="Custom range"
+              placeholder={t("movements.customRange")}
             />
           </div>
         </div>
@@ -327,7 +332,7 @@ export function QuickFilters({ onChange }: QuickFiltersProps) {
               }`}
             >
               {opt.icon}
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           ))}
         </div>

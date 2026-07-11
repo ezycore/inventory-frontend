@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
 import { Alert, AlertDescription } from "@/ui/components/alert";
@@ -42,6 +44,7 @@ interface OrganizationUser {
 }
 
 export function TransferOwnershipTab() {
+  const t = useTranslations("settings.profile.transferOwnership");
   const { user } = useAuthStore();
   const [users, setUsers] = useState<OrganizationUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
@@ -66,11 +69,11 @@ export function TransferOwnershipTab() {
           setUsers(data);
         },
         onError: () => {
-          toast.error("Failed to load organization users.");
+          toast.error(t("loadUsersError"));
         },
       });
     }
-  }, [isOwner, fetchUsers]);
+  }, [isOwner, fetchUsers, t]);
 
   const handleTransfer = () => {
     const user = users.find((u) => u._id === selectedUserId);
@@ -108,10 +111,9 @@ export function TransferOwnershipTab() {
           <div className="rounded-full bg-muted p-4 mb-4">
             <Crown className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-semibold">Owner Access Required</h3>
+          <h3 className="text-lg font-semibold">{t("notOwnerTitle")}</h3>
           <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-            Only the organization owner can transfer ownership. Please contact
-            the current owner if you need ownership transferred.
+            {t("notOwnerDescription")}
           </p>
         </div>
       </div>
@@ -127,7 +129,7 @@ export function TransferOwnershipTab() {
             <Crown className="h-6 w-6 text-amber-600 dark:text-amber-400" />
           </div>
           <div className="text-center sm:text-left">
-            <p className="text-sm text-muted-foreground">Current Owner</p>
+            <p className="text-sm text-muted-foreground">{t("currentOwner")}</p>
             <p className="font-semibold">
               {user?.firstName} {user?.lastName}
             </p>
@@ -140,27 +142,27 @@ export function TransferOwnershipTab() {
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <ArrowRightLeft className="h-4 w-4" />
-          <span>Transfer to New Owner</span>
+          <span>{t("transferToNewOwner")}</span>
         </div>
 
         <div className="rounded-lg border bg-card p-4 sm:p-6 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="new-owner">Select New Owner</Label>
+            <Label htmlFor="new-owner">{t("selectNewOwner")}</Label>
             <Select value={selectedUserId} onValueChange={setSelectedUserId}>
               <SelectTrigger id="new-owner" className="w-full">
-                <SelectValue placeholder="Choose a user to transfer ownership to" />
+                <SelectValue placeholder={t("selectPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {isLoadingUsers ? (
                   <SelectItem value="loading" disabled>
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Loading users...
+                      {t("loadingUsers")}
                     </span>
                   </SelectItem>
                 ) : users.length === 0 ? (
                   <SelectItem value="no-users" disabled>
-                    No other users in organization
+                    {t("noOtherUsers")}
                   </SelectItem>
                 ) : (
                   users.map((user) => (
@@ -186,7 +188,7 @@ export function TransferOwnershipTab() {
             className="w-full gap-2"
           >
             <ArrowRightLeft className="h-4 w-4" />
-            Transfer Ownership
+            {t("transferButton")}
           </Button>
         </div>
       </div>
@@ -195,9 +197,7 @@ export function TransferOwnershipTab() {
       <Alert variant="destructive" className="border-destructive/50">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="text-sm">
-          <strong>Warning:</strong> Transferring ownership is permanent. You
-          will lose owner privileges, and the new owner will have full control
-          over the organization.
+          <strong>{t("warningTitle")}</strong> {t("warningBody")}
         </AlertDescription>
       </Alert>
 
@@ -205,9 +205,9 @@ export function TransferOwnershipTab() {
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm Ownership Transfer</DialogTitle>
+            <DialogTitle>{t("confirmTitle")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to transfer ownership?
+              {t("confirmDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -216,14 +216,14 @@ export function TransferOwnershipTab() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-sm">
-                  This action cannot be undone. You will no longer be the owner.
+                  {t("confirmWarning")}
                 </AlertDescription>
               </Alert>
 
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Crown className="h-4 w-4 text-amber-500" />
-                  <span className="text-sm font-medium">New Owner</span>
+                  <span className="text-sm font-medium">{t("newOwnerLabel")}</span>
                 </div>
                 <div className="pl-6 space-y-1">
                   <p className="font-semibold">
@@ -253,7 +253,7 @@ export function TransferOwnershipTab() {
               }}
               className="w-full sm:w-auto"
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -264,7 +264,7 @@ export function TransferOwnershipTab() {
               {isTransferring ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Confirm Transfer
+              {t("confirmButton")}
             </Button>
           </DialogFooter>
         </DialogContent>

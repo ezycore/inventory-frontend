@@ -1,35 +1,39 @@
 import { StatData } from "@/ui/components/StatsCard";
 import { CheckCircle2, Hash, Palette, XCircle } from "lucide-react";
+import type { Translator } from "@/i18n/config";
 
-export function getVariantStats(stats: Record<string, any> | undefined): StatData[] {
+export function getVariantStats(
+  stats: Record<string, any> | undefined,
+  t: Translator,
+): StatData[] {
   return [
     {
-      label: "Total Attributes",
+      label: t("stats.total"),
       value: stats?.total || 0,
       icon: Palette,
       variant: "primary",
-      description: "All variant attributes",
+      description: t("stats.totalDescription"),
     },
     {
-      label: "Active",
+      label: t("stats.active"),
       value: stats?.active || 0,
       icon: CheckCircle2,
       variant: "success",
-      description: "Currently active",
+      description: t("stats.activeDescription"),
     },
     {
-      label: "Inactive",
+      label: t("stats.inactive"),
       value: stats?.inactive || 0,
       icon: XCircle,
       variant: "warning",
-      description: "Currently inactive",
+      description: t("stats.inactiveDescription"),
     },
     {
-      label: "Total Values",
+      label: t("stats.totalValues"),
       value: stats?.totalValues || 0,
       icon: Hash,
       variant: "info",
-      description: "Across all attributes",
+      description: t("stats.totalValuesDescription"),
     },
   ]
 }

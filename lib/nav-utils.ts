@@ -1,6 +1,20 @@
+// coding-standard: maintained
 import { NavItem } from "@/types/layout";
 import { OrganizationFeatures } from "@/types";
 import { areAllFeaturesEnabled, isAnyFeatureEnabled } from "./feature-utils";
+
+/**
+ * Message key for a nav title/group label under `layout.nav.*` — kebab-cased
+ * title ("Receipt & Print" → "receipt-print"). Nav items are keyed by title,
+ * not URL, because parents and their first child often share a URL. Callers
+ * fall back to the English title when the key is missing (docs/I18N.md).
+ */
+export function navLabelKey(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 /**
  * Filter navigation items based on user role, permissions, and enabled features

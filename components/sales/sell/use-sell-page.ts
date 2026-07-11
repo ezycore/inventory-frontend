@@ -1,6 +1,7 @@
 "use client";
-
+// coding-standard: maintained
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ import {
   resolveDefaultPaper,
   type PaperSize,
 } from "@/utils/print-documents";
+import type { AppLocale } from "@/i18n/config";
 import type { Sale, TaxType } from "@/types";
 
 /**
@@ -91,6 +93,9 @@ const toSaleItemPayload = (item: {
       };
 
 export function useSellPage() {
+  const t = useTranslations("sales.sell");
+  const tPrintDoc = useTranslations("common.printDoc");
+  const locale = useLocale() as AppLocale;
   const [paidAmount, setPaidAmount] = useState(0);
   const [localAdditionalDiscount, setLocalAdditionalDiscount] = useState(0);
   const [useCreditBalance, setUseCreditBalance] = useState(false);
@@ -109,6 +114,7 @@ export function useSellPage() {
   const {
     customerId,
     customerName,
+    customerEmail,
     orderDiscountType,
     orderDiscountValue,
     additionalDiscount,
@@ -145,8 +151,8 @@ export function useSellPage() {
   const customerCreditBalance: number = customerInfo?.creditBalance ?? 0;
 
   const paymentFormConfig = useMemo(
-    () => getPaymentFormConfig(isAccountsEnabled),
-    [isAccountsEnabled],
+    () => getPaymentFormConfig(isAccountsEnabled, (key, values) => t(`form.${key}`, values)),
+    [isAccountsEnabled, t],
   );
 
   const { data: defaultAccount } = useDefaultAccount();
@@ -196,6 +202,7 @@ export function useSellPage() {
       setCustomer({
         value: cust._id,
         label: cust.name,
+        email: cust.email ?? null,
         discountType,
         discountValue,
       });
@@ -239,7 +246,7 @@ export function useSellPage() {
           inventoryId: `combo:${first.comboId ?? first.productId}`,
           productId: first.comboId ?? first.productId,
           variantId: null,
-          productName: first.comboName ?? "Combo",
+          productName: first.comboName ?? t("cart.combo"),
           quantity: comboQty,
           price: comboPrice,
           costPrice: comboCost,
@@ -274,7 +281,7 @@ export function useSellPage() {
         taxType: item.taxType ?? "inclusive",
       });
     }
-  }, [draftId, draftSale, clearAll, setCustomer, setOrderDiscount, setAdditionalDiscount, setNotes, addItem, customerForm, defaultCustomer, defaultAccountType, defaultAccount]);
+  }, [draftId, draftSale, clearAll, setCustomer, setOrderDiscount, setAdditionalDiscount, setNotes, addItem, customerForm, defaultCustomer, defaultAccountType, defaultAccount, t]);
 
   useEffect(() => {
     const total = Number(getTotalSalePrice().toFixed(2) || 0);
@@ -328,12 +335,13 @@ export function useSellPage() {
         (id, quantity) => updateItem(id, { quantity }),
         handleUpdateDiscount,
         removeItem,
+        (key, values) => t(`cart.${key}`, values),
         symbol,
         (id, batchId) => updateItem(id, { batchId }),
         isExpiryEnabled,
         isTaxEnabled,
       ),
-    [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled, isTaxEnabled],
+    [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled, isTaxEnabled, t],
   );
   const salesColumns = useCostGatedColumns(allSalesColumns);
 
@@ -360,7 +368,7 @@ export function useSellPage() {
     (product: ExtractedProduct) => {
       if (!product) return;
       if (product.availableQuantity <= 0) {
-        toast.error(`${product.label} is out of stock`);
+        toast.error(t("toasts.outOfStock", { name: product.label }));
         return;
       }
       const { value: inventoryId, label: productName, price, costPrice, productId, variantId, availableQuantity } = product;
@@ -383,7 +391,7 @@ export function useSellPage() {
         comboProductId: product.comboProductId,
       });
     },
-    [addItem, customerForm],
+    [addItem, customerForm, t],
   );
 
   // Barcode scan-to-add: look up by code → shape into ExtractedProduct → re-use selector
@@ -416,7 +424,7 @@ export function useSellPage() {
           return;
         }
         if (!r.hasInventoryAtLocation || !r._id) {
-          toast.error(`Product "${r.name}" has no stock at this location`);
+          toast.error(t("toasts.noStockAtLocation", { name: r.name }));
           return;
         }
         handleProductSelect({
@@ -437,10 +445,10 @@ export function useSellPage() {
           taxType: r.taxType ?? "inclusive",
         });
       } catch (err: any) {
-        toast.error(err?.message || `No product found for "${code}"`);
+        toast.error(err?.message || t("toasts.noProductForCode", { code }));
       }
     },
-    [lookupBarcode, handleProductSelect],
+    [lookupBarcode, handleProductSelect, t],
   );
 
   const handleAdditionalDiscountChange = useCallback(
@@ -459,7 +467,7 @@ export function useSellPage() {
 
   const handleMarkAsSold = useCallback(async () => {
     if (items.length === 0) {
-      toast.error("Please add items to the order");
+      toast.error(t("toasts.addItems"));
       return;
     }
     const accountId = customerForm.getValues("accountId");
@@ -470,11 +478,11 @@ export function useSellPage() {
     const formPaidAmount = customerForm.getValues("paidAmount") || 0;
     const formAdditionalDiscount = localAdditionalDiscount;
     if (isAccountsEnabled && formPaidAmount > 0 && !accountId) {
-      toast.error("Please select a payment account");
+      toast.error(t("toasts.selectPaymentAccount"));
       return;
     }
     if (!updatedCustomerId) {
-      toast.error("Please select a customer for the order");
+      toast.error(t("toasts.selectCustomer"));
       return;
     }
     try {
@@ -521,13 +529,19 @@ export function useSellPage() {
 
       if (createdSale) {
         // The create/finalize response isn't populated, so graft the client-known
-        // customer name + the logged-in cashier on — otherwise the receipt reads
-        // "Walk-in Customer" / "undefined undefined". Item names/totals are
-        // denormalized on the doc, so they're already right.
+        // customer name + email + the logged-in cashier on — otherwise the receipt
+        // reads "Walk-in Customer" / "undefined undefined" and the email-receipt
+        // popover can't prefill the recipient. Item names/totals are denormalized
+        // on the doc, so they're already right.
         setLastCompletedSale({
           ...createdSale,
           ...(customerName
-            ? { customerId: { name: customerName } as unknown as Sale["customerId"] }
+            ? {
+                customerId: {
+                  name: customerName,
+                  ...(customerEmail ? { email: customerEmail } : {}),
+                } as unknown as Sale["customerId"],
+              }
             : {}),
           createdBy: {
             firstName: user?.firstName ?? "",
@@ -547,9 +561,9 @@ export function useSellPage() {
       }
     } catch (error) {
       console.error("Failed to complete sale:", error);
-      toast.error("Failed to complete sale");
+      toast.error(t("toasts.saleFailed"));
     }
-  }, [items, customerId, customerName, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, user]);
+  }, [items, customerId, customerName, customerEmail, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, user, t]);
 
   // Reprint the just-completed sale's receipt (paper chosen in the PrintMenu).
   const printLastReceipt = useCallback(
@@ -559,14 +573,16 @@ export function useSellPage() {
         paper,
         currency: formatCurrency,
         header: orgToPrintHeader(user?.organization),
+        t: tPrintDoc,
+        locale,
       });
     },
-    [lastCompletedSale, formatCurrency, user],
+    [lastCompletedSale, formatCurrency, user, tPrintDoc, locale],
   );
 
   const handleSaveAsDraft = useCallback(async () => {
     if (items.length === 0) {
-      toast.error("Please add items to save as draft");
+      toast.error(t("toasts.addItemsDraft"));
       return;
     }
     let updatedCustomerId = customerForm.getValues("customerId") as unknown as { value?: string } | string | undefined;
@@ -574,7 +590,7 @@ export function useSellPage() {
       (typeof updatedCustomerId === "object" ? updatedCustomerId?.value : updatedCustomerId) ||
       customerId;
     if (!updatedCustomerId) {
-      toast.error("Please select a customer for the draft");
+      toast.error(t("toasts.selectCustomerDraft"));
       return;
     }
     try {
@@ -623,7 +639,7 @@ export function useSellPage() {
     } catch (error) {
       console.error("Failed to save draft:", error);
     }
-  }, [items, customerId, notes, getTotalCostPrice, localAdditionalDiscount, customerForm, isDraftMode, draftId, updateDraftMutation, mutateAsync, clearAll, router, isTaxEnabled]);
+  }, [items, customerId, notes, getTotalCostPrice, localAdditionalDiscount, customerForm, isDraftMode, draftId, updateDraftMutation, mutateAsync, clearAll, router, isTaxEnabled, t]);
 
   // Preview tax rollup (backend recomputes on save). Grand total drives payment math.
   const taxResult = computeOrderTax(toTaxInputs(items, isTaxEnabled), localAdditionalDiscount);

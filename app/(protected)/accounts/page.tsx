@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 // Types
@@ -34,6 +36,7 @@ import {
 import { accountsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
+import type { Translator } from "@/i18n/config";
 
 // ── Summary stat card config ──────────────────────────────────────────
 interface SummaryItem {
@@ -49,43 +52,44 @@ interface SummaryItem {
 function getAccountStats(
   summary: Record<string, any> | undefined,
   format: (v: number) => string,
+  t: Translator,
 ): SummaryItem[] {
   return [
     {
-      label: "Total Balance",
+      label: t("stats.totalBalance"),
       value: format(summary?.totalBalance || 0),
       icon: TrendingUp,
       gradient: "from-primary/10 to-primary/5",
       iconBg: "bg-primary/10",
       iconColor: "text-primary",
-      description: `Across ${summary?.accountCount || 0} accounts`,
+      description: t("stats.totalBalanceDescription", { count: summary?.accountCount || 0 }),
     },
     {
-      label: "Cash",
+      label: t("stats.cash"),
       value: format(summary?.byType?.cash || 0),
       icon: Wallet,
       gradient: "from-emerald-500/10 to-emerald-500/5",
       iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
       iconColor: "text-emerald-600 dark:text-emerald-400",
-      description: "Cash accounts",
+      description: t("stats.cashDescription"),
     },
     {
-      label: "Bank",
+      label: t("stats.bank"),
       value: format(summary?.byType?.bank || 0),
       icon: Building2,
       gradient: "from-blue-500/10 to-blue-500/5",
       iconBg: "bg-blue-50 dark:bg-blue-950/40",
       iconColor: "text-blue-600 dark:text-blue-400",
-      description: "Bank balances",
+      description: t("stats.bankDescription"),
     },
     {
-      label: "Mobile Banking",
+      label: t("stats.mobileBanking"),
       value: format(summary?.byType?.mfs || 0),
       icon: Smartphone,
       gradient: "from-violet-500/10 to-violet-500/5",
       iconBg: "bg-violet-50 dark:bg-violet-950/40",
       iconColor: "text-violet-600 dark:text-violet-400",
-      description: "Mobile Financial Service",
+      description: t("stats.mobileBankingDescription"),
     },
   ];
 }
@@ -159,104 +163,104 @@ function AccountSummaryBanner({
   );
 }
 
-const accountFormConfig: DynamicFormConfig = {
+const getAccountFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [
     {
       name: "name",
       type: "input",
-      label: "Account Name",
-      placeholder: "e.g., Main Cash, Business Bank Account",
+      label: t("form.name"),
+      placeholder: t("form.namePlaceholder"),
       required: true,
       columnSpan: 6,
     },
     {
       name: "type",
       type: "select",
-      label: "Account Type",
+      label: t("form.type"),
       required: true,
       columnSpan: 6,
       options: [
-        { value: "cash", label: "Cash" },
-        { value: "bank", label: "Bank Account" },
-        { value: "mfs", label: "Mobile Financial Service" },
-        { value: "custom", label: "Custom" },
+        { value: "cash", label: t("form.typeCash") },
+        { value: "bank", label: t("form.typeBank") },
+        { value: "mfs", label: t("form.typeMfs") },
+        { value: "custom", label: t("form.typeCustom") },
       ],
     },
     {
       name: "balance",
       type: "number",
-      label: "Balance",
-      placeholder: "Enter opening balance",
+      label: t("form.balance"),
+      placeholder: t("form.balancePlaceholder"),
       columnSpan: 6,
-      helperText: "Set initial balance for new accounts (cannot be changed later)",
+      helperText: t("form.balanceHint"),
     },
     {
       name: "accountNumber",
       type: "input",
-      label: "Account Number",
-      placeholder: "Enter account/card number",
+      label: t("form.accountNumber"),
+      placeholder: t("form.accountNumberPlaceholder"),
       columnSpan: 6,
     },
     //status field
     {
       name: "status",
       type: "select",
-      label: "Status",
+      label: t("form.status"),
       columnSpan: 6,
       options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
+        { value: "active", label: t("form.statusActive") },
+        { value: "inactive", label: t("form.statusInactive") },
       ],
     },
     {
       name: "isDefault",
       type: "checkbox",
-      label: "Set as Default Account",
+      label: t("form.isDefault"),
       columnSpan: 12,
     },
     {
       name: "description",
       type: "textarea",
-      label: "Description",
-      placeholder: "Optional notes about this account",
+      label: t("form.description"),
+      placeholder: t("form.descriptionPlaceholder"),
       columnSpan: 12,
     },
   ],
-};
+});
 
-const accountFilterConfig: FilterConfig = {
+const getAccountFilterConfig = (t: Translator): FilterConfig => ({
   fields: [
     {
       name: "search",
-      label: "Search accounts",
+      label: t("page.searchLabel"),
       type: "text",
-      placeholder: "Search accounts...",
+      placeholder: t("page.searchPlaceholder"),
     },
     {
       name: "type",
-      label: "Account Type",
+      label: t("filters.typeLabel"),
       type: "select",
-      placeholder: "All types",
+      placeholder: t("filters.typePlaceholder"),
       options: [
-        { label: "Cash", value: "cash" },
-        { label: "Bank", value: "bank" },
-        { label: "Mobile Financial Service", value: "mfs" },
-        { label: "Custom", value: "custom" },
+        { label: t("form.typeCash"), value: "cash" },
+        { label: t("form.typeBank"), value: "bank" },
+        { label: t("form.typeMfs"), value: "mfs" },
+        { label: t("form.typeCustom"), value: "custom" },
       ],
     },
     {
       name: "status",
-      label: "Status",
+      label: t("filters.statusLabel"),
       type: "select",
-      placeholder: "All statuses",
+      placeholder: t("filters.statusPlaceholder"),
       options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
+        { label: t("form.statusActive"), value: "active" },
+        { label: t("form.statusInactive"), value: "inactive" },
       ],
     },
   ],
   viewMode: "popover",
-};
+});
 
 const defaultValues = {
   name: "",
@@ -269,6 +273,7 @@ const defaultValues = {
 };
 
 export default function AccountsPage() {
+  const t = useTranslations("accounts.accounts");
   const { format } = useCurrency();
   const router = useRouter();
   const { data: summary, isLoading: summaryLoading } = useAccountSummary();
@@ -278,14 +283,14 @@ export default function AccountsPage() {
   );
 
   const sharedOperations = {
-    formConfig: accountFormConfig,
+    formConfig: getAccountFormConfig(t),
     defaultValues,
     getAllData: accountsApi.getAll,
     createMutation: useCreateAccount(),
     updateMutation: useUpdateAccount(),
     deleteMutation: useDeleteAccount(),
     queryKey: [...queryKeys.accounts.all()],
-    entityName: "Account",
+    entityName: t("page.entity"),
   };
 
   return (
@@ -293,27 +298,27 @@ export default function AccountsPage() {
       {/* ── Page header ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <PageHeader
-          title="Accounts"
-          subTitle="Manage your cash, bank, and mobile wallet accounts"
+          title={t("page.title")}
+          subTitle={t("page.subtitle")}
         />
         <Link href="/accounts/transactions">
           <Button variant="outline" className="rounded-xl">
             <ArrowRightLeft className="mr-2 h-4 w-4" />
-            Transactions
+            {t("page.transactions")}
           </Button>
         </Link>
       </div>
 
       {/* ── Stats summary ───────────────────────────────────────── */}
       <AccountSummaryBanner
-        stats={getAccountStats(summary, format)}
+        stats={getAccountStats(summary, format, t)}
         isLoading={summaryLoading}
       />
 
       {/* ── Account cards ───────────────────────────────────────── */}
       <DataCard
-        cardTitle={(n: number) => `All Accounts (${n})`}
-        filterConfig={accountFilterConfig}
+        cardTitle={(n: number) => t("page.allAccountsCount", { count: n })}
+        filterConfig={getAccountFilterConfig(t)}
         renderCard={(row: Account, actions) => (
           <AccountCardView
             item={row}

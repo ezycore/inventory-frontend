@@ -25,6 +25,7 @@ import {
 } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
 import React, { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { EasyAlertDialog } from "./easy-alert-dialog";
 
 interface TableAction {
@@ -123,6 +124,7 @@ export function CardTable<TData, TValue = any>({
   tableClassName,
   showCard = true,
 }: CardTableProps<TData, TValue>) {
+  const t = useTranslations("common.confirm");
   const [confirmationState, setConfirmationState] = useState<{
     open: boolean;
     action: TableAction | null;
@@ -289,12 +291,11 @@ export function CardTable<TData, TValue = any>({
           onOpenChange={(open) =>
             setConfirmationState({ open, action: confirmationState.action })
           }
-          title={confirmationState.action.confirmationTitle || "Confirm Action"}
+          title={confirmationState.action.confirmationTitle || t("actionTitle")}
           description={
-            confirmationState.action.confirmationDescription ||
-            "Are you sure you want to proceed?"
+            confirmationState.action.confirmationDescription || t("proceed")
           }
-          confirmLabel={confirmationState.action.confirmLabel || "Confirm"}
+          confirmLabel={confirmationState.action.confirmLabel}
           onConfirm={handleConfirm}
         />
       )}

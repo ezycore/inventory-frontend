@@ -1,6 +1,7 @@
 'use client'
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { Button } from '@/ui/components/button'
 import { Alert, AlertDescription, AlertTitle } from '@/ui/components/alert'
 import { CardTable } from '@/ui/components/custom/card-table'
@@ -13,6 +14,7 @@ import { TransferFormCard } from '@/components/inventory/transfers/transfer-form
 import { getTransferColumns } from '@/components/inventory/transfers/columns'
 
 export default function BulkStockTransferPage() {
+  const t = useTranslations('inventory')
   const ctx = useTransferStock()
   const {
     items,
@@ -36,6 +38,7 @@ export default function BulkStockTransferPage() {
     editingId,
     onEdit: handleEdit,
     onRemove: removeItem,
+    t,
   })
 
   // Single-location guard
@@ -43,16 +46,14 @@ export default function BulkStockTransferPage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Transfer Stock"
-          subTitle="Move stock from one location to another."
+          title={t('transfers.title')}
+          subTitle={t('transfers.subtitle')}
         />
         <Alert>
           <Info className="h-4 w-4" />
-          <AlertTitle>Stock Transfer Not Available</AlertTitle>
+          <AlertTitle>{t('transfers.notAvailableTitle')}</AlertTitle>
           <AlertDescription>
-            Stock transfer requires at least two locations. You currently have{' '}
-            {locationCount === 0 ? 'no locations' : 'only one location'} configured.
-            Please add more locations before using this feature.
+            {t('transfers.notAvailableBody', { count: locationCount })}
           </AlertDescription>
         </Alert>
       </div>
@@ -62,8 +63,8 @@ export default function BulkStockTransferPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Transfer Stock"
-        subTitle="Move stock from one location to another."
+        title={t('transfers.title')}
+        subTitle={t('transfers.subtitle')}
       />
 
       {/* Step Indicator */}
@@ -80,32 +81,40 @@ export default function BulkStockTransferPage() {
       {/* Items Table */}
       {items.length > 0 && (
         <CardTable
-          title={`Transfers to Process (${items.length})`}
-          description={`${fromLocationName} → ${toLocationName} · Review items before submitting.`}
+          title={t('transfers.itemsTitle', { count: items.length })}
+          description={t('transfers.itemsDescription', {
+            from: fromLocationName,
+            to: toLocationName,
+          })}
           headerAction={
             <Button
               variant="destructive"
               size="icon"
               onClick={clearAll}
-              title="Clear all items"
+              title={t('shared.clearAllItems')}
             >
               <Trash className="h-4 w-4" />
             </Button>
           }
           columns={columns}
           data={items}
-          emptyMessage="No transfers to process"
+          emptyMessage={t('transfers.emptyItems')}
           actions={[
             {
-              label: `Submit All (${items.length})`,
+              label: t('shared.submitAll', { count: items.length }),
               onClick: handleSubmitAll,
               variant: 'default',
               loading: bulkTransferMutation.isPending,
               disabled: bulkTransferMutation.isPending,
               requiresConfirmation: true,
-              confirmationTitle: 'Process Stock Transfers?',
-              confirmationDescription: `This will transfer ${totalUnits} unit(s) across ${items.length} product(s) from ${fromLocationName} to ${toLocationName}. This action cannot be undone.`,
-              confirmLabel: 'Submit All',
+              confirmationTitle: t('transfers.confirmTitle'),
+              confirmationDescription: t('transfers.confirmDescription', {
+                units: totalUnits,
+                count: items.length,
+                from: fromLocationName,
+                to: toLocationName,
+              }),
+              confirmLabel: t('shared.submitAllLabel'),
             },
           ]}
         />

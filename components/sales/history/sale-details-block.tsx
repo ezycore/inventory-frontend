@@ -1,6 +1,7 @@
 'use client';
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl';
 import { format as formatDate } from 'date-fns';
 import { SimpleTable, type SimpleColumn } from '@/ui/components/simple-table';
 import {
@@ -29,6 +30,7 @@ export function SaleStats({
   sale: Sale;
   saleReturns?: SalesReturn[];
 }) {
+  const t = useTranslations('sales.history.details');
   const { format: fmt } = useCurrency();
   const refunded = (saleReturns ?? []).reduce(
     (sum, r) => sum + (r.totalRefundAmount ?? 0),
@@ -39,24 +41,24 @@ export function SaleStats({
 
   return (
     <StatStrip>
-      <StatTile label="Invoice total" value={fmt(sale.totalAmount)} />
+      <StatTile label={t('invoiceTotal')} value={fmt(sale.totalAmount)} />
       {!isDraft && (
         <StatTile
-          label="Paid"
+          label={t('paid')}
           value={fmt(sale.paidAmount)}
           valueClassName="text-green-600"
         />
       )}
       {!isDraft && (
         <StatTile
-          label="Due"
+          label={t('due')}
           value={fmt(sale.dueAmount)}
           valueClassName={sale.dueAmount > 0 ? 'text-red-600' : 'text-green-600'}
         />
       )}
       {refunded > 0 && (
         <StatTile
-          label="Refunded"
+          label={t('refunded')}
           value={fmt(refunded)}
           valueClassName="text-red-600"
           sub={`${saleReturns!.length} return${saleReturns!.length === 1 ? '' : 's'}`}
@@ -72,14 +74,14 @@ type SaleItemRow =
   | { kind: 'combo'; key: string; name: string; total: number }
   | { kind: 'item'; key: string; item: SaleItem; inCombo: boolean };
 
-function buildItemRows(items: SaleItem[]): SaleItemRow[] {
+function buildItemRows(items: SaleItem[], comboLabel: string): SaleItemRow[] {
   const rows: SaleItemRow[] = [];
   for (const group of groupSaleItemsByCombo(items)) {
     if (group.comboLineId) {
       rows.push({
         kind: 'combo',
         key: group.key,
-        name: group.comboName ?? 'Combo',
+        name: group.comboName ?? comboLabel,
         total: group.comboSubtotal,
       });
       group.items.forEach((item, i) =>
@@ -98,9 +100,10 @@ function buildItemRows(items: SaleItem[]): SaleItemRow[] {
 }
 
 export function SaleItemsTable({ sale }: { sale: Sale }) {
+  const t = useTranslations('sales.history.details');
   const { format: fmt } = useCurrency();
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
-  const rows = buildItemRows(sale.items);
+  const rows = buildItemRows(sale.items, t('combo'));
   // Added (exclusive) vs in-price (inclusive, informational) tax of the sale.
   const { addedTax, includedTax } = splitLineTax(sale.items);
   const totalUnits = sale.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -108,7 +111,7 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
   const columns: SimpleColumn<SaleItemRow>[] = [
     {
       key: 'item',
-      header: 'Item',
+      header: t('item'),
       cell: (row) =>
         row.kind === 'combo' ? (
           <span className="flex items-center gap-2 font-medium">
@@ -129,19 +132,19 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
     },
     {
       key: 'qty',
-      header: 'Qty',
+      header: t('qty'),
       align: 'right',
       cell: (row) => (row.kind === 'item' ? row.item.quantity : null),
     },
     {
       key: 'price',
-      header: 'Price',
+      header: t('price'),
       align: 'right',
       cell: (row) => (row.kind === 'item' ? fmt(row.item.price) : null),
     },
     {
       key: 'discount',
-      header: 'Disc.',
+      header: t('disc'),
       align: 'right',
       cell: (row) =>
         row.kind === 'item'
@@ -152,7 +155,7 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
     },
     {
       key: 'tax',
-      header: 'Tax',
+      header: t('tax'),
       align: 'right',
       cell: (row) =>
         row.kind === 'item'
@@ -163,7 +166,7 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
     },
     {
       key: 'total',
-      header: 'Total',
+      header: t('total'),
       align: 'right',
       cellClassName: 'font-semibold',
       cell: (row) => (row.kind === 'combo' ? fmt(row.total) : fmt(row.item.subtotal)),
@@ -171,21 +174,21 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
   ];
 
   const totalsRows: TotalsRow[] = [
-    { label: 'Subtotal', value: fmt(sale.subtotal) },
+    { label: t('subtotal'), value: fmt(sale.subtotal) },
     {
-      label: 'Additional discount',
+      label: t('additionalDiscount'),
       value: sale.additionalDiscount > 0 ? `−${fmt(sale.additionalDiscount)}` : fmt(0),
     },
-    ...(addedTax > 0 ? [{ label: 'Tax (added)', value: fmt(addedTax) }] : []),
+    ...(addedTax > 0 ? [{ label: t('taxAdded'), value: fmt(addedTax) }] : []),
     ...(includedTax > 0
-      ? [{ label: 'Tax (in price)', value: fmt(includedTax), muted: true }]
+      ? [{ label: t('taxInPrice'), value: fmt(includedTax), muted: true }]
       : []),
   ];
 
   return (
     <div className="space-y-3">
       <div className="text-sm font-medium">
-        Items{' '}
+        {t('itemsHeading')}{' '}
         <span className="font-normal text-muted-foreground">({sale.items.length})</span>
       </div>
       <div className="overflow-x-auto rounded-lg border">
@@ -198,9 +201,9 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
         />
       </div>
       <TotalsBlock
-        meta={`${sale.items.length} product${sale.items.length === 1 ? '' : 's'} · ${totalUnits} unit${totalUnits === 1 ? '' : 's'}`}
+        meta={t('meta', { products: sale.items.length, units: totalUnits })}
         rows={totalsRows}
-        total={{ label: 'Invoice total', value: fmt(sale.totalAmount) }}
+        total={{ label: t('invoiceTotal'), value: fmt(sale.totalAmount) }}
       />
     </div>
   );
@@ -209,29 +212,31 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
 // ── Metadata ─────────────────────────────────────────────────────────────────
 
 export function SaleDetailsKv({ sale }: { sale: Sale }) {
+  const t = useTranslations('sales.history.details');
+  const tHistory = useTranslations('sales.history');
   const { format: fmt } = useCurrency();
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
 
   return (
     <DetailsKv
       rows={[
-        { label: 'Customer', value: sale.customerId?.name ?? 'Walk-in Customer' },
+        { label: t('customer'), value: sale.customerId?.name ?? tHistory('walkInCustomer') },
         {
-          label: 'Created by',
+          label: t('createdBy'),
           value: sale.createdBy
             ? `${sale.createdBy.firstName} ${sale.createdBy.lastName}`
             : '-',
         },
         {
-          label: 'Created at',
+          label: t('createdAt'),
           value: formatDate(new Date(sale.createdAt), 'dd MMM yyyy hh:mm aa'),
         },
         {
-          label: 'Updated at',
+          label: t('updatedAt'),
           value: formatDate(new Date(sale.updatedAt), 'dd MMM yyyy hh:mm aa'),
         },
         {
-          label: 'Cost price',
+          label: t('costPrice'),
           value:
             canViewCosts && sale.costPrice != null ? fmt(sale.costPrice) : undefined,
           muted: true,

@@ -1,8 +1,10 @@
+// coding-standard: maintained
 import { LocationSwitcher } from "@/ui/components/LocationSwitcher";
 import { Separator } from "@ui/components/separator";
 import { SidebarTrigger } from "@ui/components/sidebar";
 import { Breadcrumbs } from "../breadcrumbs";
 import SearchInput from "../search-input";
+import { LanguageToggle } from "./language-toggle";
 import { ModeToggle } from "./ThemeToggle/theme-toggle";
 
 export default function Header() {
@@ -20,6 +22,7 @@ export default function Header() {
           <SearchInput />
         </div>
         <ModeToggle />
+        <LanguageToggle />
         <LocationSwitcher />
       </div>
     </header>

@@ -1,7 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/ui/components/button";
@@ -24,20 +25,31 @@ import {
   useCreateTransfer,
 } from "@/services/api";
 import {
-  expenseFormConfig,
-  expenseSchema,
-  incomeFormConfig,
-  incomeSchema,
-  transferFormConfig,
-  transferSchema,
+  getExpenseFormConfig,
+  makeExpenseSchema,
+  getIncomeFormConfig,
+  makeIncomeSchema,
+  getTransferFormConfig,
+  makeTransferSchema,
   type ExpenseFormData,
   type IncomeFormData,
   type TransferFormData,
 } from "./form-configs";
 
 export function IncomeDialog() {
+  const t = useTranslations("accounts.transactions.dialogs");
+  const tCategories = useTranslations("accounts.transactions.categories");
   const [open, setOpen] = useState(false);
   const createIncome = useCreateIncome();
+  const incomeSchema = useMemo(
+    () =>
+      makeIncomeSchema({
+        selectAccount: t("validation.selectAccount"),
+        amountPositive: t("validation.amountPositive"),
+        selectCategory: t("validation.selectCategory"),
+      }),
+    [t],
+  );
 
   const form = useForm<IncomeFormData>({
     resolver: zodResolver(incomeSchema),
@@ -65,20 +77,20 @@ export function IncomeDialog() {
       <DialogTrigger asChild>
         <Button className="bg-green-600 hover:bg-green-700">
           <ArrowDownCircle className="mr-2 h-4 w-4" />
-          Add Income
+          {t("addIncome")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Record Income</DialogTitle>
+          <DialogTitle>{t("recordIncomeTitle")}</DialogTitle>
         </DialogHeader>
         <DynamicForm
           form={form}
-          config={incomeFormConfig}
+          config={getIncomeFormConfig(t, tCategories)}
           mutationHook={createIncome}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
-          submitLabel="Record Income"
+          submitLabel={t("recordIncomeSubmit")}
           actionsPlacement="bottom"
         />
       </DialogContent>
@@ -87,8 +99,19 @@ export function IncomeDialog() {
 }
 
 export function ExpenseDialog() {
+  const t = useTranslations("accounts.transactions.dialogs");
+  const tCategories = useTranslations("accounts.transactions.categories");
   const [open, setOpen] = useState(false);
   const createExpense = useCreateExpense();
+  const expenseSchema = useMemo(
+    () =>
+      makeExpenseSchema({
+        selectAccount: t("validation.selectAccount"),
+        amountPositive: t("validation.amountPositive"),
+        selectCategory: t("validation.selectCategory"),
+      }),
+    [t],
+  );
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
@@ -116,20 +139,20 @@ export function ExpenseDialog() {
       <DialogTrigger asChild>
         <Button variant="destructive">
           <ArrowUpCircle className="mr-2 h-4 w-4" />
-          Add Expense
+          {t("addExpense")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Record Expense</DialogTitle>
+          <DialogTitle>{t("recordExpenseTitle")}</DialogTitle>
         </DialogHeader>
         <DynamicForm
           form={form}
-          config={expenseFormConfig}
+          config={getExpenseFormConfig(t, tCategories)}
           mutationHook={createExpense}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
-          submitLabel="Record Expense"
+          submitLabel={t("recordExpenseSubmit")}
           actionsPlacement="bottom"
         />
       </DialogContent>
@@ -138,8 +161,18 @@ export function ExpenseDialog() {
 }
 
 export function TransferDialog() {
+  const t = useTranslations("accounts.transactions.dialogs");
   const [open, setOpen] = useState(false);
   const createTransfer = useCreateTransfer();
+  const transferSchema = useMemo(
+    () =>
+      makeTransferSchema({
+        selectSourceAccount: t("validation.selectSourceAccount"),
+        selectDestinationAccount: t("validation.selectDestinationAccount"),
+        amountPositive: t("validation.amountPositive"),
+      }),
+    [t],
+  );
 
   const form = useForm<TransferFormData>({
     resolver: zodResolver(transferSchema),
@@ -167,20 +200,20 @@ export function TransferDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">
           <ArrowRightLeft className="mr-2 h-4 w-4" />
-          Transfer
+          {t("transfer")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Transfer Between Accounts</DialogTitle>
+          <DialogTitle>{t("transferTitle")}</DialogTitle>
         </DialogHeader>
         <DynamicForm
           form={form}
-          config={transferFormConfig}
+          config={getTransferFormConfig(t)}
           mutationHook={createTransfer}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
-          submitLabel="Complete Transfer"
+          submitLabel={t("transferSubmit")}
           actionsPlacement="bottom"
         />
       </DialogContent>

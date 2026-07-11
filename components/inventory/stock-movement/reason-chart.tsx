@@ -1,9 +1,12 @@
 "use client";
+// coding-standard: maintained
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { DonutChart } from "@/ui/components/charts";
 import { Card } from "@/ui/components/card";
 import { Skeleton } from "@/ui/components/skeleton";
+import { useMovementReasonLabel } from "@/hooks/use-movement-reason-label";
 
 interface ReasonBreakdown {
   reason: string;
@@ -25,15 +28,15 @@ const reasonColors: Record<string, string> = {
 };
 
 export function ReasonChart({ data, isLoading }: ReasonChartProps) {
+  const t = useTranslations("inventory");
+  const reasonLabel = useMovementReasonLabel();
   const chartData = useMemo(() => {
     return data.map((item) => ({
-      name: item.reason
-        .replace(/_/g, " ")
-        .replace(/^./, (c) => c.toUpperCase()),
+      name: reasonLabel(item.reason),
       value: item.count,
       color: reasonColors[item.reason] || "var(--color-muted-foreground)",
     }));
-  }, [data]);
+  }, [data, reasonLabel]);
 
   if (isLoading) {
     return (
@@ -56,7 +59,7 @@ export function ReasonChart({ data, isLoading }: ReasonChartProps) {
   if (chartData.length === 0) {
     return (
       <Card className="h-full p-5 flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">No movement data</p>
+        <p className="text-sm text-muted-foreground">{t("movements.chartEmpty")}</p>
       </Card>
     );
   }
@@ -66,14 +69,14 @@ export function ReasonChart({ data, isLoading }: ReasonChartProps) {
   return (
     <DonutChart
       data={chartData}
-      title="Movements by Reason"
-      subtitle="Breakdown of stock movement reasons"
+      title={t("movements.chartTitle")}
+      subtitle={t("movements.chartSubtitle")}
       height={160}
       innerRadius={45}
       outerRadius={70}
       showLegend={true}
       centerValue={total}
-      centerLabel="Total"
+      centerLabel={t("movements.chartTotal")}
       className="h-full"
     />
   );

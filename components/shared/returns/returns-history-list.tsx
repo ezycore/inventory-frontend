@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from 'next-intl';
 import { format } from "date-fns";
 import { RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
@@ -157,6 +158,7 @@ export function ReturnsHistoryList({
   emptyMessage,
   bare = false,
 }: ReturnsHistoryListProps) {
+  const t = useTranslations('common.returns');
   const content = (
     <>
       {isLoading ? (
@@ -203,16 +205,16 @@ export function ReturnsHistoryList({
 
                 <div className="grid gap-2 sm:grid-cols-3">
                   <InfoField
-                    label="Reason"
+                    label={t('reason')}
                     value={<span className="capitalize">{ret.reason.replace(/_/g, " ")}</span>}
                   />
                   <InfoField
-                    label="Items"
+                    label={t('items')}
                     value={`${ret.items.reduce((s, i) => s + i.quantity, 0)} unit(s) across ${ret.items.length} product(s)`}
                   />
                   {hasDeduction && (
                     <InfoField
-                      label="Gross Refund"
+                      label={t('grossRefund')}
                       value={
                         <span className="text-muted-foreground">
                           -{formatCurrency(ret.totalRefundAmount + ret.deductionAmount!)}
@@ -222,7 +224,7 @@ export function ReturnsHistoryList({
                   )}
                   {hasDeduction && (
                     <InfoField
-                      label="Deduction / Fee"
+                      label={t('deductionFee')}
                       value={
                         <span className="text-destructive">
                           -{formatCurrency(ret.deductionAmount!)}
@@ -231,7 +233,7 @@ export function ReturnsHistoryList({
                     />
                   )}
                   <InfoField
-                    label={hasDeduction ? "Net Refund" : "Refund Amount"}
+                    label={hasDeduction ? t('netRefund') : t('refundAmount')}
                     value={
                       <span className="text-red-600">
                         -{formatCurrency(ret.totalRefundAmount)}

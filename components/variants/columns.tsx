@@ -1,18 +1,20 @@
+// coding-standard: maintained
 import { VariantAttribute } from "@/types";
 import { sanitize } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { ValuesPopover } from "../shared/values-popover";
 import { Badge } from "@/ui/components/badge";
 import { DateCell } from "@/ui/components/dataTable/cells";
+import type { Translator } from "@/i18n/config";
 
-export const variantColumns: ColumnDef<VariantAttribute>[] = [
+export const getVariantColumns = (t: Translator): ColumnDef<VariantAttribute>[] => [
   {
     accessorKey: "name",
-    header: "Attribute Name"
+    header: t("columns.name"),
   },
   {
     accessorKey: "values",
-    header: "Values",
+    header: t("columns.values"),
     cell: ({ row }) => {
       const values = sanitize(row.getValue("values"), 'array') as string[];
       return <ValuesPopover values={values} maxVisible={3} />;
@@ -20,21 +22,21 @@ export const variantColumns: ColumnDef<VariantAttribute>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: t("columns.status"),
     cell: ({ row }) => (
       <Badge variant={row.getValue("status") === "active" ? "default" : "secondary"}>
-        {row.getValue("status") as string}
+        {row.getValue("status") === "active" ? t("filters.statusActive") : t("filters.statusInactive")}
       </Badge>
     ),
   },
   {
     accessorKey: "createdAt",
-    header: "Created Date",
+    header: t("columns.createdDate"),
     cell: ({ row }) => <DateCell value={row.getValue("createdAt")} />,
   },
   {
     accessorKey: "updatedAt",
-    header: "Updated Date",
+    header: t("columns.updatedDate"),
     cell: ({ row }) => <DateCell value={row.getValue("updatedAt")} />,
   },
 ];

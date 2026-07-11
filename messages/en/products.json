@@ -1,0 +1,541 @@
+{
+  "products": {
+    "page": {
+      "title": "Products",
+      "subtitle": "All the products you stock and sell.",
+      "allProductsTitle": "All Products",
+      "searchPlaceholder": "Search products by name...",
+      "exportNote": "Only single products are exported — variant & combo products aren't supported in CSV export; manage them in the product form.",
+      "printLabel": "Print label",
+      "noBarcodes": "No barcodes set on selected product(s)",
+      "editTooltip": "Edit Product",
+      "deleteTooltip": "Delete Product",
+      "sortName": "Name",
+      "sortPrice": "Price",
+      "sortStatus": "Status",
+      "entity": "Product"
+    },
+    "detailPage": {
+      "back": "Back"
+    },
+    "columns": {
+      "name": "Name",
+      "barcode": "Barcode",
+      "barcodePerVariant": "per-variant",
+      "category": "Category",
+      "uncategorized": "Uncategorized",
+      "brand": "Brand",
+      "type": "Type",
+      "price": "Price",
+      "status": "Status"
+    },
+    "filters": {
+      "searchLabel": "Search product",
+      "searchPlaceholder": "Search by product name...",
+      "brandLabel": "Filter by Brand",
+      "brandPlaceholder": "All brands",
+      "categoryLabel": "Filter by Category",
+      "categoryPlaceholder": "All categories",
+      "statusLabel": "Status",
+      "statusPlaceholder": "All statuses",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "statusArchived": "Archived"
+    },
+    "stats": {
+      "total": "Total Products",
+      "totalDescription": "All registered products",
+      "variantProducts": "Variant Products",
+      "variantProductsDescription": "Products with variants",
+      "active": "Active Products",
+      "activeDescription": "Currently active",
+      "inactive": "Inactive Products",
+      "inactiveDescription": "Currently inactive"
+    },
+    "card": {
+      "viewDetails": "View Details",
+      "edit": "Edit",
+      "delete": "Delete",
+      "noPrice": "No price"
+    },
+    "toasts": {
+      "uomRequired": "Please select at least one unit (purchase or sale) when UOM conversion is enabled."
+    },
+    "form": {
+      "sections": {
+        "basicsTitle": "Basic Information",
+        "basicsDescription": "The essentials customers will see",
+        "barcodeTitle": "Barcode",
+        "barcodeDescription": "Scannable code and how it is rendered",
+        "expiryTitle": "Expiry & shelf life",
+        "expiryDescription": "Batch expiry tracking and alerts",
+        "unitsTitle": "Units of Measure",
+        "unitsDescription": "How you count this product when purchase and sell",
+        "pricingTitle": "Pricing",
+        "pricingDescription": "Set the sell price",
+        "taxTitle": "Tax",
+        "taxDescription": "How tax is applied — shared by all variants",
+        "inventoryTitle": "Inventory",
+        "inventoryDescription": "Stock levels and low-stock alerts",
+        "variantsTitle": "Variants",
+        "variantsDescription": "Different sizes, colors, or strengths of this product",
+        "comboTitle": "Combo composition",
+        "comboDescription": "The products bundled into this combo and how many of each",
+        "mediaTitle": "Media",
+        "mediaDescription": "Up to 5 images. First image is the primary."
+      },
+      "trackStock": "Track stock",
+      "name": "Product name",
+      "namePlaceholder": "Enter product name",
+      "status": "Status",
+      "statusActive": "Active — available for sale",
+      "statusInactive": "Inactive — hidden from sale",
+      "statusArchived": "Archived — kept for records",
+      "productType": "Product type",
+      "typeSingle": "Simple product",
+      "typeSingleDescription": "One product, one price",
+      "typeVariable": "Variable product",
+      "typeVariableDescription": "Multiple variants (size, color...)",
+      "typeCombo": "Combo / bundle",
+      "typeComboDescription": "Several products sold as one priced unit",
+      "category": "Category",
+      "categoryPlaceholder": "Choose category",
+      "brand": "Brand",
+      "brandPlaceholder": "Select brand",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter product description",
+      "barcode": "Barcode",
+      "barcodePlaceholder": "Scan or type barcode",
+      "barcodeTooltip": "The barcode printed on the product packaging. Scan it with a reader or type it in. Leave empty to auto-generate a barcode you can print labels for.",
+      "barcodeSymbology": "Barcode type (all variants)",
+      "barcodeSymbologyHint": "Shared by every variant of this product.",
+      "hasExpiry": "Track expiry dates",
+      "expiryAlertDays": "Expiry alert (days before)",
+      "expiryAlertDaysTooltip": "How many days before the expiry date the product should start appearing in expiry alerts, so you have time to act on soon-to-expire stock.",
+      "unitId": "Base unit",
+      "unitIdPlaceholder": "Select base unit",
+      "unitIdTooltip": "The unit all stock is counted and reported in (e.g. Piece). Choose carefully — every quantity, including purchases and sales, is recorded in this unit.",
+      "enableUOMConversion": "Different purchase & sales units",
+      "enableUOMConversionHint": "e.g. buy in Boxes from supplier, sell in Pieces at the counter.",
+      "purchaseUnit": "Purchase unit",
+      "purchaseUnitPlaceholder": "Select purchase unit",
+      "purchaseUnitTooltip": "The unit you buy this product in (e.g. Box). Stock received in this unit is converted to the base unit using the conversion factor.",
+      "purchaseConversionFactor": "Purchase conversion factor",
+      "purchaseConversionFactorTooltip": "How many base units make up one purchase unit. For example, if you buy in Boxes and 1 box holds 100 pieces, enter 100.",
+      "sellPrice": "Sell price (per unit)",
+      "salesTaxType": "Sales tax calculation",
+      "salesTaxRate": "Sales tax rate",
+      "purchaseTaxType": "Purchase tax calculation",
+      "purchaseTaxRate": "Purchase tax rate",
+      "taxSelectPlaceholder": "Select",
+      "taxRatePlaceholder": "Select tax",
+      "locationId": "Location",
+      "locationIdPlaceholder": "Select location",
+      "openingStock": "Opening stock",
+      "openingStockTooltip": "The quantity currently in stock at this location, entered in the product's base unit. Recorded as an opening-stock entry you can report on later; adjust it afterwards from the Inventory page.",
+      "costPrice": "Cost price (per unit)",
+      "costPriceTooltip": "Unit cost of the opening stock. Used for inventory valuation and the opening-stock report.",
+      "inventoryAlertLevel": "Low stock threshold",
+      "inventoryAlertLevelPlaceholder": "e.g. 20",
+      "inventoryAlertLevelTooltip": "When stock falls to or below this number, the product is flagged as low stock and added to your reorder shortlist so you know when to restock.",
+      "batchNumber": "Batch number",
+      "batchNumberPlaceholder": "Optional",
+      "batchNumberTooltip": "Batch/lot number for the opening-stock batch. Only applied when expiry tracking is on for this product.",
+      "expiryDate": "Opening expiry date",
+      "expiryDateTooltip": "Expiry date for the opening-stock batch. Only applied when expiry tracking is on for this product.",
+      "images": "Product images",
+      "imagesDropzone": "PNG, JPG, WEBP up to 5MB · Max 5 images"
+    },
+    "taxType": {
+      "inclusive": "Inclusive",
+      "exclusive": "Exclusive",
+      "exempt": "Exempt"
+    },
+    "comboField": {
+      "componentHeader": "Component",
+      "qtyHeader": "Qty per combo",
+      "removeComponent": "Remove component",
+      "addPlaceholder": "Add a product to this combo…",
+      "noMoreProducts": "No more products to add",
+      "emptyHint": "Add at least one product. The combo sells as one unit at the price you set above."
+    },
+    "tagsInput": {
+      "placeholder": "Type a tag and press Enter",
+      "removeTag": "Remove {tag}"
+    },
+    "variantEmptyState": {
+      "message": "This product is set as <strong>Single</strong>. Use variants when the same product comes in different sizes, colors, strengths, etc.",
+      "makeVariable": "Make variable"
+    },
+    "variantManager": {
+      "attributeLabel": "Variant Attribute *",
+      "loadingAttributes": "Loading attributes...",
+      "errorLoadingAttributes": "Error loading attributes",
+      "choosePlaceholder": "Choose variant attribute (e.g., Color, Size)",
+      "valuesCount": "{count} values",
+      "createNew": "Create New",
+      "valueColumn": "Variant Value",
+      "priceColumn": "Price",
+      "activeColumn": "Active",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "disableVariant": "Disable variant",
+      "enableVariant": "Enable variant",
+      "moreDetails": "More details",
+      "modalTitle": "Variant Details",
+      "priceLabel": "Price",
+      "barcodeLabel": "Barcode",
+      "barcodePlaceholder": "Scan or type barcode (leave empty to auto-generate)",
+      "barcodeHint": "Barcode type is set on the product form and shared by all variants.",
+      "openingStockLabel": "Opening stock",
+      "costPriceLabel": "Cost price (per unit)",
+      "alertLevelLabel": "Low stock threshold",
+      "alertLevelPlaceholder": "e.g. 20",
+      "expiryDateLabel": "Opening expiry date",
+      "expiryDatePlaceholder": "Pick expiry date",
+      "batchNumberLabel": "Batch number",
+      "batchNumberPlaceholder": "Optional",
+      "enableUomLabel": "Enable UOM Conversion",
+      "enableUomHint": "Allow different units for purchase and sale for this variant",
+      "purchaseUnitLabel": "Purchase Unit",
+      "purchaseUnitPlaceholder": "Select unit",
+      "purchaseFactorLabel": "Purchase Conversion Factor",
+      "imagesLabel": "Variant Images",
+      "clickToUpload": "Click to upload",
+      "orDragDrop": " or drag and drop",
+      "uploadHint": "PNG, JPG, GIF up to 5MB (Max 3 images)",
+      "existingImage": "Existing image",
+      "uploaded": "Uploaded",
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes",
+      "createModalTitle": "Create Variant Attribute",
+      "toasts": {
+        "selectUnit": "Select at least one unit (purchase or sale) for UOM conversion",
+        "purchaseFactorRequired": "Purchase conversion factor is required",
+        "saleFactorRequired": "Sale conversion factor is required",
+        "variantUpdated": "Variant updated",
+        "enterNameAndValues": "Please enter attribute name and values",
+        "enterValue": "Please enter at least one value",
+        "attributeCreated": "Variant attribute created successfully",
+        "attributeCreateFailed": "Failed to create variant attribute"
+      }
+    },
+    "detail": {
+      "notFoundTitle": "Product Not Found",
+      "notFoundDescription": "The product you're looking for doesn't exist or has been removed.",
+      "close": "Close",
+      "defaultVariantLabel": "Variant",
+      "barcode": "Barcode",
+      "category": "Category",
+      "sellingPrice": "Selling Price",
+      "stats": {
+        "inStock": "In Stock",
+        "acrossLocations": "across {count, plural, one {# location} other {# locations}}",
+        "stockValue": "Stock Value",
+        "atCostPrice": "at cost price",
+        "totalSold": "Total Sold",
+        "monthlyAvg": "~{count}/month avg",
+        "noSalesYet": "No sales yet",
+        "revenue": "Revenue",
+        "lifetimeEarnings": "lifetime earnings",
+        "profitMargin": "Profit Margin",
+        "perUnit": "{amount} per unit"
+      },
+      "charts": {
+        "movementTitle": "Stock Movement",
+        "movementSubtitle": "Units in vs out — last 30 days",
+        "stockIn": "Stock In",
+        "stockOut": "Stock Out",
+        "reasonTitle": "Movement by Reason",
+        "reasonSubtitle": "Share of units moved",
+        "units": "units",
+        "locationTitle": "Stock by Location",
+        "locationSubtitle": "On-hand units per location",
+        "onHand": "On hand",
+        "unitsSuffix": "{value} units",
+        "noData": "No data yet",
+        "unitsSold": "Units Sold",
+        "revenue": "Revenue",
+        "grossProfit": "Gross Profit",
+        "orders": "Orders"
+      },
+      "info": {
+        "title": "Product Information",
+        "productType": "Product Type",
+        "brand": "Brand",
+        "category": "Category",
+        "unit": "Unit",
+        "expiryTracking": "Expiry Tracking",
+        "enabled": "Enabled",
+        "off": "Off",
+        "expiryAlert": "Expiry Alert",
+        "daysBefore": "{count} days before",
+        "lowStockAlert": "Low Stock Alert",
+        "unitsThreshold": "≤ {count} units",
+        "description": "Description"
+      },
+      "pricing": {
+        "title": "Pricing",
+        "costPrice": "Cost Price",
+        "sellingPrice": "Selling Price",
+        "mrp": "MRP",
+        "profitPerUnit": "Profit/Unit",
+        "salesTax": "Sales Tax",
+        "purchaseTax": "Purchase Tax",
+        "discount": "Discount",
+        "off": "off"
+      },
+      "storefront": {
+        "title": "Online Storefront",
+        "listed": "Listed",
+        "yes": "Yes",
+        "no": "No",
+        "featured": "Featured",
+        "onlinePrice": "Online Price",
+        "onlineDescription": "Online Description"
+      },
+      "timeline": {
+        "title": "Timeline",
+        "created": "Created",
+        "lastUpdated": "Last Updated"
+      },
+      "variants": {
+        "title": "Product Variants ({count})",
+        "cost": "Cost: {amount}",
+        "marginSuffix": "% margin"
+      },
+      "stockCard": {
+        "title": "Stock by Location",
+        "location": "Location",
+        "shelf": "Shelf",
+        "quantity": "Quantity",
+        "noData": "No stock data available"
+      },
+      "activity": {
+        "title": "Stock Activity",
+        "viewAll": "View all",
+        "date": "Date",
+        "type": "Type",
+        "location": "Location",
+        "change": "Change",
+        "balance": "Balance",
+        "noActivity": "No stock activity yet"
+      }
+    }
+  },
+  "brands": {
+    "page": {
+      "title": "Brands",
+      "subtitle": "The brands you carry, used to group and filter products.",
+      "allBrandsTitle": "All Brands ({count})",
+      "searchPlaceholder": "Search brands by name"
+    },
+    "columns": {
+      "name": "Brand Name",
+      "default": "Default",
+      "products": "Products",
+      "productsCount": "{count} Products",
+      "status": "Status",
+      "createdDate": "Created Date",
+      "updatedDate": "Updated Date"
+    },
+    "filters": {
+      "searchLabel": "Search brand",
+      "searchPlaceholder": "Search by brand...",
+      "statusLabel": "Status",
+      "statusPlaceholder": "All statuses",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "createdDateLabel": "Created Date",
+      "createdDatePlaceholder": "Select date range",
+      "updatedDateLabel": "Updated Date",
+      "updatedDatePlaceholder": "Select date"
+    },
+    "form": {
+      "name": "Brand Name",
+      "namePlaceholder": "Enter brand name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter brand description",
+      "images": "Brand Images",
+      "imagesPlaceholder": "Upload brand images",
+      "imagesDropzone": "PNG, JPG, WEBP up to 5MB (max 5 images)",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "isDefault": "Set as default brand",
+      "isDefaultDescription": "Pre-selected on new product forms"
+    },
+    "stats": {
+      "total": "Total Brands",
+      "totalDescription": "All registered brands",
+      "active": "Active Brands",
+      "activeDescription": "Currently active",
+      "inactive": "Inactive Brands",
+      "inactiveDescription": "Currently inactive",
+      "totalProducts": "Total Products",
+      "totalProductsDescription": "Across all brands"
+    },
+    "card": {
+      "default": "Default",
+      "noDescription": "-",
+      "productsCount": "{count} Products",
+      "edit": "Edit",
+      "delete": "Delete",
+      "createdOn": "Created: {date}",
+      "updatedOn": "Updated: {date}"
+    }
+  },
+  "categories": {
+    "page": {
+      "title": "Categories",
+      "subtitle": "Organize your products with categories",
+      "allCategoriesTitle": "All Categories ({count})",
+      "searchPlaceholder": "Search categories by name"
+    },
+    "columns": {
+      "name": "Category Name",
+      "default": "Default",
+      "products": "Products",
+      "productsCount": "{count} Products",
+      "status": "Status",
+      "createdDate": "Created Date",
+      "updatedDate": "Updated Date"
+    },
+    "filters": {
+      "searchLabel": "Search category",
+      "searchPlaceholder": "Search by category name...",
+      "statusLabel": "Status",
+      "statusPlaceholder": "All statuses",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "createdDateLabel": "Created Date",
+      "createdDatePlaceholder": "Select date range",
+      "updatedDateLabel": "Updated Date",
+      "updatedDatePlaceholder": "Select date"
+    },
+    "form": {
+      "name": "Category Name",
+      "namePlaceholder": "Enter category name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter category description",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "isDefault": "Set as default category",
+      "isDefaultDescription": "Pre-selected on new product forms"
+    },
+    "stats": {
+      "total": "Total Categories",
+      "totalDescription": "All registered categories",
+      "active": "Active",
+      "activeDescription": "Currently active",
+      "inactive": "Inactive",
+      "inactiveDescription": "Currently inactive",
+      "totalProducts": "Total Products",
+      "totalProductsDescription": "Across all categories"
+    },
+    "card": {
+      "default": "Default",
+      "noDescription": "No description",
+      "productsCount": "{count} Products",
+      "edit": "Edit",
+      "delete": "Delete",
+      "createdOn": "Created: {date}",
+      "updatedOn": "Updated: {date}"
+    }
+  },
+  "units": {
+    "page": {
+      "title": "Units",
+      "subtitle": "Measurement units used across your products and inventory.",
+      "allUnitsTitle": "All Units ({count})",
+      "searchPlaceholder": "Search units by name or short name..."
+    },
+    "form": {
+      "name": "Unit Name",
+      "namePlaceholder": "Enter unit name",
+      "shortName": "Short Name",
+      "shortNamePlaceholder": "e.g. pcs, kg",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "isDefault": "Set as default unit",
+      "isDefaultDescription": "Pre-selected on new product forms"
+    },
+    "filters": {
+      "searchLabel": "Search units",
+      "searchPlaceholder": "Search units...",
+      "statusLabel": "Status",
+      "statusPlaceholder": "All statuses",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "card": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "default": "Default",
+      "abbreviation": "Abbreviation",
+      "notSet": "Not set",
+      "createdOn": "Created {date}",
+      "inUse": "In use",
+      "disabled": "Disabled",
+      "edit": "Edit",
+      "delete": "Delete"
+    }
+  },
+  "variants": {
+    "page": {
+      "title": "Variants",
+      "subtitle": "Options of the same product — like size, strength, or pack.",
+      "allVariantsTitle": "All Variants ({count})",
+      "searchPlaceholder": "Search attributes by name, values",
+      "entityName": "Variant Attribute"
+    },
+    "columns": {
+      "name": "Attribute Name",
+      "values": "Values",
+      "status": "Status",
+      "createdDate": "Created Date",
+      "updatedDate": "Updated Date"
+    },
+    "filters": {
+      "searchLabel": "Search category",
+      "searchPlaceholder": "Search by category name...",
+      "statusLabel": "Status",
+      "statusPlaceholder": "All statuses",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "createdDateLabel": "Created Date",
+      "createdDatePlaceholder": "Select date range",
+      "updatedDateLabel": "Updated Date",
+      "updatedDatePlaceholder": "Select date"
+    },
+    "form": {
+      "name": "Attribute Name",
+      "namePlaceholder": "Enter attribute name (e.g., Color, Size, Material)",
+      "values": "Attribute Values",
+      "valuesPlaceholder": "Enter values separated by commas (e.g., Red, Blue, Green)",
+      "valuesHelper": "Separate multiple values with commas",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "stats": {
+      "total": "Total Attributes",
+      "totalDescription": "All variant attributes",
+      "active": "Active",
+      "activeDescription": "Currently active",
+      "inactive": "Inactive",
+      "inactiveDescription": "Currently inactive",
+      "totalValues": "Total Values",
+      "totalValuesDescription": "Across all attributes"
+    },
+    "card": {
+      "valuesCount": "{count, plural, one {# value} other {# values}}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "createdOn": "Created: {date}",
+      "updatedOn": "Updated: {date}"
+    }
+  }
+}
