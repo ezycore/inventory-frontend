@@ -10,7 +10,7 @@ import { CustomAction, DataTableProps } from "@/types/DataTable";
 import DynamicForm from "@/ui/components/form";
 import { ImportDialog } from "@/components/shared/import/import-dialog";
 import { printTable } from "@/utils/print";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
 import { Download, Plus, Printer, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -75,6 +75,8 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
 
   // Read initial filter values from URL query params
   const urlFilters = useUrlFilters(filterConfig);
+
+  const queryClient = useQueryClient();
 
   // Internal state for self-contained mode
   const [page, setPage] = useState(1);
@@ -424,7 +426,14 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             downloadTemplate={importConfig.downloadTemplate}
             preview={importConfig.preview}
             commit={importConfig.commit}
-            onCommitted={() => refetch()}
+            // A bulk import stales the whole module family (stats cards,
+            // select-options, …), not just the visible list page — invalidate
+            // by the module root key so every active query refetches.
+            onCommitted={() =>
+              queryKey
+                ? queryClient.invalidateQueries({ queryKey })
+                : refetch()
+            }
           />
         )}
 
