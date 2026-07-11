@@ -17,7 +17,8 @@ every store; **the host picks the store**.
 ## Dev environment
 
 - Frontend `pnpm dev` on **:3000** (Turbopack). Backend (sibling repo `../inventory-backend`)
-  nodemon on **:5500**. `NEXT_PUBLIC_API_URL=http://localhost:5500/api`.
+  nodemon on **:5800** (was 5500 until 2026-07-11 — check `.env` PORT if refused).
+  `NEXT_PUBLIC_API_URL=http://localhost:5800/api`.
 - Test store: **rmc41** (seeded "sample data" org; owner `rashidul.karim7+41@gmail.com`).
   Public API: `http://localhost:5500/api/storefront/rmc41`.
 - Emails really send in dev (Gmail SMTP in backend `.env`; provider auto-detect resend→smtp→log).
@@ -135,6 +136,16 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
 
 ## Work log (what was built, newest first — as of 2026-07-11)
 
+- **Hero source switch (`templates.hero`: slides|banner)**: explicit control over what the home
+  hero shows — carousel (when slides exist) or the static banner hero — so slides can stay saved
+  but hidden. Standard surface-template plumbing (BE model/validator/types, FE `HERO` map in
+  `storefront-templates.ts`, default `slides`); `store-home.tsx` withholds `heroSlides` from
+  templates when resolved source is `banner`; preview store/bridge carry `heroSrc` (rides
+  `templates.hero` in the postMessage payload). Admin Templates "Home page" card redesigned →
+  `components/ecommerce/home-template-block.tsx` (wireframe layout tiles + "Hero area shows"
+  segmented control w/ slide-count chip, zero-slides warning + jump-to-Theme, Minimal note).
+  Banner MediaField now documents its double duty (static hero + og:image, `shop/page.tsx`).
+
 - **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/badge?/title/
   subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
   (`.sf-hero-*` in storefront.css; crossfade, 5s autoplay w/ progress dots, hover pause/arrows,
@@ -184,7 +195,13 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   (storefront-settings) is an unshipped SMS config shape ("dispatch is a separate backend job").
   Any future sender MUST filter on `prefs.*`; shopper transactional email (verify/reset) ignores prefs.
 - **i18n keys go in 3 places** (Dict + en + bn) — grep-count to confirm, IDE diagnostics lie mid-batch.
-- **Persisted-store reads need `useHydrated()`** before redirect/branch logic.
+- **Persisted-store reads need `useHydrated()`** before redirect/branch logic — and the
+  pre-hydration render must be **neutral** — page-level waits use `<LoadingSplash>`
+  (`components/storefront/loading-splash.tsx`, centered `.sf-spin` spinner, twin of the admin
+  layout's Loader2 splash); inline spots use a `.sf-skeleton` chip — never the guest state: rendering "Sign in"/auth-card while the session is unknown flashes at signed-in shoppers
+  on every reload (fixed 2026-07-11 in header account chip, /account, checkout, invoice page).
+  QA: detect flashes with a rAF frame-scanner injected via `Page.addScriptToEvaluateOnNewDocument`
+  (MutationObserver misses them) + a guest control run to prove the detector fires.
 - **`json.error` not `json.message`** is where backend error text lives.
 - **OAuth callback route order** (before `/:slug`), and same-document hash navigation does NOT
   remount the oauth landing page — QA must full-navigate.

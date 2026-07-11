@@ -82,6 +82,7 @@ export interface StoreTemplatesRaw {
   footer?: string;
   header?: string;
   productCard?: string;
+  hero?: string;
 }
 
 /** Normalized storefront page-layout variants (resolved from the raw admin ids). */
@@ -95,6 +96,8 @@ export interface StoreTemplates {
   footer: "columns" | "simple" | "rich";
   header: "classic" | "minimal" | "centered";
   productCard: "standard" | "compact" | "bold";
+  /** Home hero source: carousel (when slides exist) vs the static banner hero. */
+  hero: "slides" | "banner";
 }
 
 /** A header menu link target (category slug, page slug, or URL). */

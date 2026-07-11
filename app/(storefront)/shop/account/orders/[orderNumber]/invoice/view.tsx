@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
+import { useHydrated } from "@/hooks/use-hydrated";
+import { LoadingSplash } from "@/components/storefront/loading-splash";
 import { useShopperOrder, useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -28,7 +30,7 @@ const invoiceLabels = (t: Dict): OrderInvoiceLabels => ({
   phone: t.phone,
   address: t.address,
   paymentMethod: t.paymentMethod,
-  status: t.orderNo,
+  status: t.orderStatus,
   cod: t.cod,
   bankTransfer: t.bankTransfer,
   item: t.itemCol,
@@ -95,6 +97,7 @@ export default function InvoicePage() {
   const orderNumber = String(useParams().orderNumber);
 
   const shopper = useShopperStore((s) => s.shopper);
+  const hydrated = useHydrated();
   const { data: store } = useStore(slug);
   const { data: order, isLoading, isError } = useShopperOrder(slug, orderNumber);
 
@@ -142,6 +145,14 @@ export default function InvoicePage() {
 
   const wrapStyle: CSSProperties = { maxWidth: 900, margin: "0 auto", padding: "22px var(--pad) 48px" };
 
+  // Session unknown until the persisted store hydrates — don't flash "Sign in".
+  if (!hydrated) {
+    return (
+      <div style={wrapStyle}>
+        <LoadingSplash />
+      </div>
+    );
+  }
   if (!shopper) {
     return (
       <div style={{ ...wrapStyle, textAlign: "center" }}>

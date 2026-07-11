@@ -171,6 +171,7 @@ export interface Dict {
   orderPlaced: string;
   orderThanks: string;
   orderNo: string;
+  orderStatus: string;
   payStatus: string;
   payStatusPending: string;
   storeInfo: string;
@@ -459,6 +460,7 @@ const en: Dict = {
   orderPlaced: "Order placed",
   orderThanks: "We’ll send an SMS to confirm your order shortly.",
   orderNo: "Order",
+  orderStatus: "Status",
   payStatus: "Payment",
   payStatusPending: "Pending",
   storeInfo: "Your neighbourhood mart, online. Authentic brands, fair prices, delivered across Bangladesh — pay cash on delivery or by bank transfer.",
@@ -748,6 +750,7 @@ const bn: Dict = {
   orderPlaced: "অর্ডার সম্পন্ন",
   orderThanks: "অর্ডার নিশ্চিত করতে শীঘ্রই এসএমএস পাঠানো হবে।",
   orderNo: "অর্ডার",
+  orderStatus: "স্ট্যাটাস",
   payStatus: "পেমেন্ট",
   payStatusPending: "বাকি",
   storeInfo: "আপনার পাড়ার মার্ট, অনলাইনে। আসল ব্র্যান্ড, সঠিক দাম, সারা বাংলাদেশে ডেলিভারি — ক্যাশ অন ডেলিভারি বা ব্যাংক ট্রান্সফারে পেমেন্ট।",

@@ -18,6 +18,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { VerifyEmailGate } from "@/components/storefront/verify-email-gate";
+import { LoadingSplash } from "@/components/storefront/loading-splash";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {
   StepsBar,
@@ -68,8 +69,20 @@ export default function CheckoutPage() {
   const multi = variant === "multi";
   const methods = store?.allowedPaymentMethods ?? ["cod"];
 
-  const [addr, setAddr] = useState({ name: shopper?.name ?? "", phone: shopper?.phone ?? "", address: "", notes: "" });
+  const [addr, setAddr] = useState({ name: "", phone: "", address: "", notes: "" });
   const set = (k: keyof typeof addr, v: string) => setAddr((a) => ({ ...a, [k]: v }));
+  // Prefill from the shopper profile once it's available — on a hard load the
+  // persisted store serves its empty initial snapshot through the hydration
+  // render, so a mount-time initializer would miss it (render-time adjust).
+  const [prefilled, setPrefilled] = useState(false);
+  if (shopper && !prefilled) {
+    setPrefilled(true);
+    setAddr((a) => ({
+      ...a,
+      name: a.name || (shopper.name ?? ""),
+      phone: a.phone || (shopper.phone ?? ""),
+    }));
+  }
   const [zone, setZone] = useState<Zone>("inside");
   const [payment, setPayment] = useState<"cod" | "bank">(methods[0]);
   const effectivePayment = methods.includes(payment) ? payment : methods[0];
@@ -142,12 +155,11 @@ export default function CheckoutPage() {
 
   // ----- gates -----
   if (!shopper) {
-    // The effect above is redirecting to sign-in; render a quiet placeholder.
+    // Either the persisted session hasn't hydrated yet or the effect above is
+    // redirecting a guest to sign-in — both get a neutral splash.
     return (
       <div style={wrap}>
-        <p style={{ fontSize: 13, color: "var(--muted)", textAlign: "center" }}>
-          {t.signIn}…
-        </p>
+        <LoadingSplash />
       </div>
     );
   }

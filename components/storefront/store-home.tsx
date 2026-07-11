@@ -45,12 +45,21 @@ export function StoreHome({
   // so picking Classic/Hero-Split/Minimal repaints the homepage instantly.
   const previewHome = useSfPreview((s) => s.home);
   const previewSlides = useSfPreview((s) => s.heroSlides);
+  const previewHeroSrc = useSfPreview((s) => s.heroSrc);
+  const resolved = resolveTemplates(store);
   const tpl = HOME_VARIANTS.includes(previewHome ?? "")
     ? (previewHome as TplName)
-    : resolveTemplates(store).home;
+    : resolved.home;
 
   const banner = store.banner?.mediumUrl || store.banner?.url;
-  const heroSlides = previewSlides ?? store.heroSlides;
+  // Hero source (templates.hero): "banner" forces the static hero even when
+  // slides exist; "slides" (default) shows the carousel when there are slides.
+  const heroSrc =
+    previewHeroSrc === "slides" || previewHeroSrc === "banner"
+      ? previewHeroSrc
+      : resolved.hero;
+  const heroSlides =
+    heroSrc === "banner" ? undefined : (previewSlides ?? store.heroSlides);
   const shared = {
     base,
     currency,

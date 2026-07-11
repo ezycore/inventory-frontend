@@ -22,6 +22,7 @@ import type {
   StorefrontTrustBadge,
 } from "@/types";
 import { HeroSlidesEditor } from "@/components/ecommerce/hero-slides-editor";
+import { HomeTemplateBlock } from "@/components/ecommerce/home-template-block";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
@@ -98,6 +99,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [homeTemplate, setHomeTemplate] = useState(
     settings.templates?.home ?? "classic",
   );
+  const [heroSrc, setHeroSrc] = useState(settings.templates?.hero ?? "slides");
   const [footerTemplate, setFooterTemplate] = useState(
     settings.templates?.footer ?? "columns",
   );
@@ -158,6 +160,9 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setFooterTemplate={setFooterTemplate}
             setHeaderTemplate={setHeaderTemplate}
             setCardStyle={setCardStyle}
+            setHeroSrc={setHeroSrc}
+            slideCount={heroSlides.filter((s) => s.title.trim()).length}
+            onEditSlides={() => setSection("theme")}
           />
         )}
       </div>
@@ -174,6 +179,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           cardStyle={cardStyle}
           badges={badges}
           heroSlides={heroSlides}
+          heroSrc={heroSrc}
         />
       </div>
     </div>
@@ -339,6 +345,7 @@ function ThemeSection({
             disabled={media.isPending}
             onPick={(file) => uploadMedia("banner", file)}
             onRemove={settings.banner ? () => removeMedia("banner") : undefined}
+            hint="Hero image when the home page shows the static banner (Templates → Home page); always the preview image for shared store links."
           />
         </div>
       </Card>
@@ -504,12 +511,18 @@ function TemplatesSection({
   setFooterTemplate,
   setHeaderTemplate,
   setCardStyle,
+  setHeroSrc,
+  slideCount,
+  onEditSlides,
 }: {
   settings: StorefrontSettings;
   setHomeTemplate: (v: string) => void;
   setFooterTemplate: (v: string) => void;
   setHeaderTemplate: (v: string) => void;
   setCardStyle: (v: string) => void;
+  setHeroSrc: (v: string) => void;
+  slideCount: number;
+  onEditSlides: () => void;
 }) {
   const save = useUpdateStorefrontSettings();
   const [tpl, setTpl] = useState<Record<string, string>>(() => {
@@ -518,6 +531,7 @@ function TemplatesSection({
     for (const p of TEMPLATE_PAGES) {
       seed[p.key] = (t as Record<string, string>)[p.key] || p.options[0].value;
     }
+    seed.hero = t.hero || "slides";
     return seed;
   });
 
@@ -527,25 +541,24 @@ function TemplatesSection({
     if (key === "footer") setFooterTemplate(value);
     if (key === "header") setHeaderTemplate(value);
     if (key === "productCard") setCardStyle(value);
+    if (key === "hero") setHeroSrc(value);
   };
 
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-primary/40 bg-primary/5 px-4 py-3 text-xs text-primary">
-        Pick the layout template for each storefront page. Sections marked
-        &ldquo;Live preview&rdquo; update in the preview instantly; the rest
-        apply to your live store after you save.
-      </div>
-      {TEMPLATE_PAGES.map((p) => (
+      <HomeTemplateBlock
+        layout={tpl.home}
+        onLayoutChange={(v) => pick("home", v)}
+        heroSource={tpl.hero}
+        onHeroSourceChange={(v) => pick("hero", v)}
+        slideCount={slideCount}
+        onEditSlides={onEditSlides}
+      />
+      {TEMPLATE_PAGES.filter((p) => p.key !== "home").map((p) => (
         <Card key={p.key} className="space-y-3 p-5 shadow-none">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-semibold">
               {p.label}
-              {LIVE_PREVIEW_KEYS.has(p.key) && (
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                  Live preview
-                </span>
-              )}
             </h3>
             <p className="text-xs text-muted-foreground">{p.desc}</p>
           </div>
@@ -599,6 +612,7 @@ function BrowserPreview({
   cardStyle,
   badges,
   heroSlides,
+  heroSrc,
 }: {
   slug?: string;
   brandColor: string;
@@ -609,6 +623,7 @@ function BrowserPreview({
   cardStyle: string;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
+  heroSrc: string;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -633,6 +648,7 @@ function BrowserPreview({
             footer: footerTemplate,
             header: headerTemplate,
             productCard: cardStyle,
+            hero: heroSrc,
           },
           trustBadges: JSON.parse(badgesKey),
           heroSlides: JSON.parse(slidesKey),
@@ -640,7 +656,7 @@ function BrowserPreview({
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, badgesKey, slidesKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, badgesKey, slidesKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {
@@ -786,6 +802,7 @@ function MediaField({
   disabled,
   onPick,
   onRemove,
+  hint,
 }: {
   label: string;
   url?: string;
@@ -793,6 +810,7 @@ function MediaField({
   disabled: boolean;
   onPick: (file: File) => void;
   onRemove?: () => void;
+  hint?: string;
 }) {
   return (
     <div className="space-y-2">
@@ -841,6 +859,7 @@ function MediaField({
           </Button>
         )}
       </div>
+      {hint && <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>}
     </div>
   );
 }

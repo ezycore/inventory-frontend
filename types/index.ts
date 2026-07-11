@@ -147,6 +147,8 @@ export interface StorefrontTemplates {
   footer?: string;
   header?: string;
   productCard?: string;
+  /** Home hero source: "slides" (carousel when slides exist) | "banner" (static hero). */
+  hero?: string;
 }
 
 export interface StorefrontCustomersConfig {

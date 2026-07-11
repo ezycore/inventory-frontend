@@ -15,6 +15,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Icon } from "@/components/storefront/sf-icons";
 import { AccountArea } from "@/components/storefront/account/account-area";
 import { SocialLoginButtons } from "@/components/storefront/account/social-login-buttons";
+import { LoadingSplash } from "@/components/storefront/loading-splash";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -68,9 +69,17 @@ export default function AccountPage() {
     setForm((f) => ({ ...f, [k]: v }));
 
   /* ----------------------------- logged-in shopper ---------------------------- */
-  // Persisted-store gate: render nothing account-specific until hydration so
-  // the first client render matches the anonymous SSR HTML.
-  if (shopper && hydrated) {
+  // Until the persisted store hydrates we can't tell guest from member — render
+  // a neutral splash, never the auth card (a signed-in shopper reloading the
+  // page would see a "sign in" flash before their account appears).
+  if (!hydrated) {
+    return (
+      <div style={wrap}>
+        <LoadingSplash />
+      </div>
+    );
+  }
+  if (shopper) {
     return <AccountArea shopper={shopper} />;
   }
 

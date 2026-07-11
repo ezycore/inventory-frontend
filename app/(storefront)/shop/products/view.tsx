@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { Suspense, useState, type CSSProperties } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   useStore,
   useStoreCategories,
@@ -24,10 +24,20 @@ const wrap: CSSProperties = {
 function CollectionInner() {
   const { slug } = useStoreContext();
   const { t } = useStorefrontUI();
-  const initialCategory = useSearchParams().get("categoryId") ?? "";
+  const router = useRouter();
+  const pathname = usePathname();
+  // The URL is the single source of truth for the filter, so header/home
+  // category links keep working while already on this page (same-route query
+  // navigation re-renders without remounting).
+  const categoryId = useSearchParams().get("categoryId") ?? "";
 
-  const [categoryId, setCategoryId] = useState(initialCategory);
   const [page, setPage] = useState(1);
+  // Reset pagination whenever the active category changes (render-time adjust).
+  const [prevCategory, setPrevCategory] = useState(categoryId);
+  if (prevCategory !== categoryId) {
+    setPrevCategory(categoryId);
+    setPage(1);
+  }
 
   const { data: store } = useStore(slug);
   const { data: categories } = useStoreCategories(slug);
@@ -45,15 +55,12 @@ function CollectionInner() {
   const cats = categories ?? [];
   const activeCat = cats.find((c) => c._id === categoryId);
 
-  // Keep the filter in the URL (shareable, back-safe) without a Next re-render.
+  // Sidebar picks navigate too (shareable URL), keeping one code path with the
+  // header/home category links.
   const selectCategory = (id: string) => {
-    setCategoryId(id);
-    setPage(1);
-    window.history.replaceState(
-      null,
-      "",
-      id ? `?categoryId=${id}` : window.location.pathname,
-    );
+    router.replace(id ? `${pathname}?categoryId=${id}` : pathname, {
+      scroll: false,
+    });
   };
 
   const gridClass = variant === "grid3" || variant === "sidebar" ? "sf-grid-3" : "sf-grid-4";

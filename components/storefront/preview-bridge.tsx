@@ -33,6 +33,7 @@ export function StorePreviewBridge() {
         cardStyle: p.templates?.productCard,
         badges: p.trustBadges,
         heroSlides: p.heroSlides,
+        heroSrc: p.templates?.hero,
       });
     };
     window.addEventListener("message", onMsg);

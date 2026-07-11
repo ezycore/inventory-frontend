@@ -14,6 +14,7 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   footer: "columns",
   header: "classic",
   productCard: "standard",
+  hero: "slides",
 };
 
 // The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
@@ -27,6 +28,7 @@ const SEARCH = { grid: "grid", list: "list" } as const;
 const FOOTER = { columns: "columns", simple: "simple", rich: "rich" } as const;
 const HEADER = { classic: "classic", minimal: "minimal", centered: "centered" } as const;
 const PRODUCTCARD = { standard: "standard", compact: "compact", bold: "bold" } as const;
+const HERO = { slides: "slides", banner: "banner" } as const;
 
 function pick<M extends Record<string, string>>(
   map: M,
@@ -51,5 +53,6 @@ export function resolveTemplates(
     footer: pick(FOOTER, t.footer, DEFAULT_TEMPLATES.footer),
     header: pick(HEADER, t.header, DEFAULT_TEMPLATES.header),
     productCard: pick(PRODUCTCARD, t.productCard, DEFAULT_TEMPLATES.productCard),
+    hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
   };
 }

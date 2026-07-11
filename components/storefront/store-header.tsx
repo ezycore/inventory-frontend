@@ -14,6 +14,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { Icon } from "@/components/storefront/sf-icons";
 import { HeaderNav, menuHref } from "@/components/storefront/header-nav";
@@ -44,6 +45,8 @@ interface HeaderCtx {
   toggleTheme: () => void;
   toggleLang: () => void;
   shopperName?: string;
+  /** False until the persisted shopper store hydrates (guest vs member unknown). */
+  sessionKnown: boolean;
   cartCount: number;
   goCart: () => void;
   goSearch: () => void;
@@ -70,6 +73,7 @@ export function StoreHeader({
   const { t, theme, lang, toggleTheme, toggleLang } = useStorefrontUI();
   const { cartCount, goCart, goSearch } = useCartNav(slug, base);
   const shopper = useShopperStore((s) => s.shopper);
+  const hydrated = useHydrated();
   const previewHeader = useSfPreview((s) => s.header);
 
   const ctx: HeaderCtx = {
@@ -83,6 +87,7 @@ export function StoreHeader({
     toggleTheme,
     toggleLang,
     shopperName: shopper?.name,
+    sessionKnown: hydrated,
     cartCount,
     goCart,
     goSearch,
@@ -284,11 +289,18 @@ function SearchIconBtn({ ctx }: { ctx: HeaderCtx }) {
 }
 
 function AccountLink({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boolean }) {
-  const { base, shopperName, t } = ctx;
+  const { base, shopperName, sessionKnown, t } = ctx;
+  // Until the persisted session hydrates we don't know guest vs member — show a
+  // shimmer chip instead of flashing "Sign in" at signed-in shoppers on reload.
+  const label = !sessionKnown ? (
+    <span className="sf-skeleton" aria-hidden style={{ width: 40, height: 11, borderRadius: 6 }} />
+  ) : (
+    <span>{shopperName ? shopperName.split(" ")[0] : t.signIn}</span>
+  );
   return (
-    <Link href={storeHref(base, "/account")} aria-label={shopperName ? t.myAccount : t.signIn} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>
+    <Link href={storeHref(base, "/account")} aria-label={t.myAccount} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>
       <Icon name="user" size={18} />
-      {withLabel ? <span>{shopperName ? shopperName.split(" ")[0] : t.signIn}</span> : null}
+      {withLabel ? label : null}
     </Link>
   );
 }

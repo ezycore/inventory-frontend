@@ -66,9 +66,10 @@ export function HeroSlidesEditor({
         <div>
           <h3 className="text-sm font-semibold">Hero slides</h3>
           <p className="text-xs text-muted-foreground">
-            Rotating promos at the top of your home page (Classic &amp; Hero
-            Split templates). No slides → the standard hero. Slides without an
-            image get a brand-tinted panel.
+            Rotating promos at the top of your home page. Shown when Templates →
+            Home page → &ldquo;Hero area shows&rdquo; is set to Slides (Classic
+            &amp; Hero Split layouts). Slides without an image get a brand-tinted
+            panel.
           </p>
         </div>
         <Button

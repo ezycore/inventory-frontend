@@ -23,6 +23,8 @@ interface SfPreviewState {
   badges: { text: string; icon?: string }[] | null;
   /** Draft home hero carousel slides. */
   heroSlides: StoreHeroSlide[] | null;
+  /** Draft home hero source ("slides" | "banner") the editor is drafting. */
+  heroSrc: string | null;
   activate: () => void;
   apply: (patch: {
     brand?: string;
@@ -33,6 +35,7 @@ interface SfPreviewState {
     cardStyle?: string;
     badges?: { text: string; icon?: string }[];
     heroSlides?: StoreHeroSlide[];
+    heroSrc?: string;
   }) => void;
 }
 
@@ -46,6 +49,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   cardStyle: null,
   badges: null,
   heroSlides: null,
+  heroSrc: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
@@ -58,5 +62,6 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       badges: patch.badges !== undefined ? patch.badges : s.badges,
       heroSlides:
         patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
+      heroSrc: patch.heroSrc !== undefined ? patch.heroSrc : s.heroSrc,
     })),
 }));
