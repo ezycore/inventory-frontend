@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
@@ -10,11 +12,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { productFormSchema } from "./form-configs";
+import { makeProductFormSchema } from "./form-configs";
 import { usePurchasePageStore, useAuthStore } from "@/services/stores";
 import { useBarcodeLookupAction } from "@/services/api/modules/barcode";
 
 export function usePurchasePage() {
+  const t = useTranslations("purchases");
   const { format: formatCurrency, symbol } = useCurrency();
 
   const [editingItem, setEditingItem] = useState<any | null>(null);
@@ -88,8 +91,16 @@ export function usePurchasePage() {
   const draftOrder = draftResp?.data?.data as any | undefined;
   const hydratedDraftIdRef = useRef<string | null>(null);
 
-  const supplierFormConfig = useMemo(() => getSupplierFormConfig(isDraftMode), [isDraftMode]);
-  const productFormConfig = useMemo(() => getProductFormConfig(isUOMEnabled), [isUOMEnabled]);
+  const supplierFormConfig = useMemo(() => getSupplierFormConfig(t, isDraftMode), [t, isDraftMode]);
+  const productFormConfig = useMemo(() => getProductFormConfig(t, isUOMEnabled), [t, isUOMEnabled]);
+  const productFormSchema = useMemo(
+    () =>
+      makeProductFormSchema({
+        productRequired: t("form.productRequired"),
+        quantityMin: t("form.quantityMin"),
+      }),
+    [t],
+  );
 
   const supplierForm = useForm({
     defaultValues: {
@@ -234,13 +245,11 @@ export function usePurchasePage() {
         const state = usePurchasePageStore.getState();
         const sellerId = state.sellers[state.activeSellerIndex]?.id;
         if (!sellerId) {
-          toast.error("Add a supplier first");
+          toast.error(t("create.addSupplierFirst"));
           return;
         }
         if (!r._id) {
-          toast.error(
-            `No inventory record for "${r.name}" at this location yet — open it in Inventory first.`,
-          );
+          toast.error(t("create.noInventoryRecord", { name: r.name }));
           return;
         }
         addItem(sellerId, {
@@ -260,10 +269,10 @@ export function usePurchasePage() {
           taxType: isTaxEnabled ? r.purchaseTaxType ?? "inclusive" : undefined,
         });
       } catch (err: any) {
-        toast.error(err?.message || `No product found for "${code}"`);
+        toast.error(err?.message || t("create.scanNotFound", { code }));
       }
     },
-    [addItem, lookupBarcode, isTaxEnabled],
+    [addItem, lookupBarcode, isTaxEnabled, t],
   );
 
   const handleSupplierFieldChange = useCallback((fieldName: string, value: unknown) => {
@@ -348,7 +357,7 @@ export function usePurchasePage() {
   const handleAddToOrder = useCallback((data: any) => {
     const supplierValue = supplierForm.getValues("supplierId");
     const supplier = extractSupplierValue(supplierValue);
-    if (!supplier.value) { toast.error("Please select a supplier first"); return; }
+    if (!supplier.value) { toast.error(t("create.selectSupplierFirst")); return; }
     const storeState = usePurchasePageStore.getState();
     let currentSeller = storeState.sellers[storeState.activeSellerIndex];
     if (!currentSeller || currentSeller.supplierId !== supplier.value) {
@@ -358,7 +367,7 @@ export function usePurchasePage() {
       else { const newSellerId = addSeller(); setSupplier(newSellerId, supplier.value, supplier.label); const newState = usePurchasePageStore.getState(); currentSeller = newState.sellers[newState.activeSellerIndex]; }
     }
     const product = extractProductValue(data.productId);
-    if (!product) { toast.error("Please select a product"); return; }
+    if (!product) { toast.error(t("create.selectProduct")); return; }
     const conversionFactor = product.conversionFactor || 1;
     const boxPrice = product.price * conversionFactor;
     addItem(currentSeller.id, { inventoryId: product.value, productId: product.productId, variantId: product.variantId, productName: product.label, quantity: data.quantity, price: boxPrice, costPrice: data.costPrice, discount: data.discount, conversionFactor, convertedQuantity: data.convertedQuantity, unitName: product.unitName ?? undefined, purchaseUnitName: product.purchaseUnitName ?? undefined,
@@ -366,19 +375,19 @@ export function usePurchasePage() {
       taxRate: isTaxEnabled ? product.purchaseTaxRate ?? 0 : 0,
       taxType: isTaxEnabled ? product.purchaseTaxType ?? "inclusive" : undefined,
     });
-    toast.success(`${product.label} added to order`);
+    toast.success(t("create.addedToOrder", { name: product.label }));
     productForm.reset({ productId: "", quantity: 1, convertedQuantity: 1, price: 0, discount: 0, costPrice: 0, rememberCostPrice: false });
-  }, [addItem, productForm, supplierForm, setActiveSeller, setSupplier, addSeller, isTaxEnabled]);
+  }, [addItem, productForm, supplierForm, setActiveSeller, setSupplier, addSeller, isTaxEnabled, t]);
 
   const handleSaveEdit = useCallback(() => {
     if (!editingItem || !editingSellerId) return;
     const data = editForm.getValues();
     updateItem(editingSellerId, editingItem.id, { quantity: data.quantity, discount: data.discount, costPrice: data.costPrice, convertedQuantity: data.convertedQuantity });
-    toast.success("Item updated successfully");
+    toast.success(t("create.itemUpdated"));
     setIsEditDialogOpen(false);
     setEditingItem(null);
     setEditingSellerId(null);
-  }, [editingItem, editingSellerId, editForm, updateItem]);
+  }, [editingItem, editingSellerId, editForm, updateItem, t]);
 
   const handleEditFieldChange = useCallback((fieldName: string, value: unknown) => {
     if (fieldName === "quantity") {
@@ -411,8 +420,8 @@ export function usePurchasePage() {
       taxRate: isTaxEnabled ? item.purchaseTaxRate ?? 0 : 0,
       taxType: isTaxEnabled ? item.purchaseTaxType ?? "inclusive" : undefined,
     }); addedCount++; }
-    toast.success(`${addedCount} ${addedCount === 1 ? "product" : "products"} imported to order`);
-  }, [addItem, supplierForm, setActiveSeller, setSupplier, addSeller, setPurchaseType, setDiscountType, setDiscountValue, isTaxEnabled]);
+    toast.success(t("create.importedCount", { count: addedCount }));
+  }, [addItem, supplierForm, setActiveSeller, setSupplier, addSeller, setPurchaseType, setDiscountType, setDiscountValue, isTaxEnabled, t]);
 
   const sellersWithItems = useMemo(() => sellers.filter((s) => s.items.length > 0), [sellers]);
   const totalItemCount = getTotalItemCount();
@@ -426,7 +435,7 @@ export function usePurchasePage() {
 
   const handleCompleteOrder = useCallback(async () => {
     const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
-    if (validSellers.length === 0) { toast.error("Please add items to at least one supplier"); return; }
+    if (validSellers.length === 0) { toast.error(t("create.addItemsFirst")); return; }
     try {
       const ordersData: any[] = validSellers.map((seller) => {
         const isInstant = seller.purchaseType === "instant";
@@ -460,12 +469,12 @@ export function usePurchasePage() {
       clearAll();
       supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: "" });
       productForm.reset();
-    } catch (error) { console.error("Failed to complete purchase:", error); toast.error("Failed to complete purchase"); }
-  }, [sellers, isAccountsEnabled, isExpiryEnabled, getSellerNetAmount, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, finalizeDraftMutation, router]);
+    } catch (error) { console.error("Failed to complete purchase:", error); toast.error(t("create.completeFailed")); }
+  }, [sellers, isAccountsEnabled, isExpiryEnabled, getSellerNetAmount, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, finalizeDraftMutation, router, t]);
 
   const handleSaveAsDraft = useCallback(async () => {
     const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
-    if (validSellers.length === 0) { toast.error("Please add items to at least one supplier"); return; }
+    if (validSellers.length === 0) { toast.error(t("create.addItemsFirst")); return; }
     try {
       const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, notes: seller.notes || undefined }));
       if (isDraftMode && draftId) {
@@ -483,8 +492,8 @@ export function usePurchasePage() {
       supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: "" });
       productForm.reset();
       router.push("/purchases/history?status=draft");
-    } catch (error) { console.error("Failed to save purchase draft:", error); toast.error("Failed to save draft"); }
-  }, [sellers, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, updateDraftMutation, router]);
+    } catch (error) { console.error("Failed to save purchase draft:", error); toast.error(t("create.saveDraftFailed")); }
+  }, [sellers, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, updateDraftMutation, router, t]);
 
   return {
     formatCurrency,

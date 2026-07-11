@@ -1,6 +1,8 @@
 "use client";
+// coding-standard: maintained
 
 import type { Location as LocationType } from "@/types";
+import type { Translator } from "@/i18n/config";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
@@ -17,6 +19,8 @@ import {
 } from "@/ui/components/tooltip";
 import { Skeleton } from "@/ui/components/skeleton";
 import { cn } from "@/ui/lib/utils";
+import { formatDate } from "@/lib/format";
+import type { AppLocale } from "@/i18n/config";
 import {
   EllipsisVertical,
   MapPin,
@@ -29,7 +33,9 @@ import {
 } from "lucide-react";
 
 // ── Design tokens per location type ────────────────────────────────────
-const typeConfig: Record<
+const getTypeConfig = (
+  t: Translator,
+): Record<
   string,
   {
     icon: typeof Store;
@@ -39,10 +45,10 @@ const typeConfig: Record<
     iconColor: string;
     dot: string;
   }
-> = {
+> => ({
   store: {
     icon: Store,
-    label: "Store",
+    label: t("type.store"),
     gradient: "from-blue-500 to-cyan-400",
     iconBg: "bg-blue-50 dark:bg-blue-950/40",
     iconColor: "text-blue-600 dark:text-blue-400",
@@ -50,13 +56,13 @@ const typeConfig: Record<
   },
   warehouse: {
     icon: Warehouse,
-    label: "Warehouse",
+    label: t("type.warehouse"),
     gradient: "from-amber-500 to-orange-400",
     iconBg: "bg-amber-50 dark:bg-amber-950/40",
     iconColor: "text-amber-600 dark:text-amber-400",
     dot: "bg-amber-500",
   },
-};
+});
 
 // ── Skeleton ────────────────────────────────────────────────────────────
 export function LocationCardSkeleton() {
@@ -99,7 +105,9 @@ export function LocationCardSkeleton() {
 const LocationCardView = (
   location: LocationType,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
+  options: { t: Translator; locale: AppLocale },
 ) => {
+  const { t, locale } = options;
   const {
     name,
     address,
@@ -109,16 +117,13 @@ const LocationCardView = (
     createdAt,
   } = location;
 
+  const typeConfig = getTypeConfig(t);
   const config = typeConfig[locationType] || typeConfig.store;
   const TypeIcon = config.icon;
   const isActive = status === "active";
   const userCount = Array.isArray(users) ? users.length : 0;
 
-  const createdDate = new Date(createdAt).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
 
   return (
     <div
@@ -162,14 +167,14 @@ const LocationCardView = (
                       <Shield className="h-3.5 w-3.5 shrink-0 fill-primary/20 text-primary" />
                     </TooltipTrigger>
                     <TooltipContent side="top">
-                      Default location
+                      {t("card.defaultTooltip")}
                     </TooltipContent>
                   </Tooltip>
                 )}
               </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground/80 leading-none">
                 <MapPin className="h-3 w-3 shrink-0" />
-                <span className="truncate">{address || "No address"}</span>
+                <span className="truncate">{address || t("card.noAddress")}</span>
               </div>
             </div>
           </div>
@@ -193,7 +198,7 @@ const LocationCardView = (
             <DropdownMenuContent align="end" className="w-36">
               <DropdownMenuItem onClick={onEdit}>
                 <Pencil className="mr-2 h-3.5 w-3.5" />
-                Edit
+                {t("card.edit")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -201,7 +206,7 @@ const LocationCardView = (
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Delete
+                {t("card.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -224,7 +229,7 @@ const LocationCardView = (
                 className="h-6 gap-1 rounded-full px-2.5 text-xs font-medium cursor-default"
               >
                 <Users className="h-3 w-3" />
-                {userCount} user{userCount !== 1 ? "s" : ""}
+                {t("card.usersCount", { count: userCount })}
               </Badge>
             </TooltipTrigger>
             {userCount > 0 && (
@@ -237,7 +242,7 @@ const LocationCardView = (
                   ))}
                   {userCount > 5 && (
                     <li className="text-muted-foreground">
-                      +{userCount - 5} more
+                      {t("card.moreCount", { count: userCount - 5 })}
                     </li>
                   )}
                 </ul>
@@ -266,7 +271,7 @@ const LocationCardView = (
             />
           </span>
           <span className="text-xs text-muted-foreground">
-            {isActive ? "Active" : "Inactive"}
+            {isActive ? t("card.active") : t("card.inactive")}
           </span>
 
           {(location as any).default && (
@@ -276,13 +281,13 @@ const LocationCardView = (
                 variant="secondary"
                 className="h-5 rounded-md px-1.5 text-[10px] font-semibold uppercase tracking-wider"
               >
-                Default
+                {t("card.default")}
               </Badge>
             </>
           )}
 
           <span className="ml-auto text-[11px] text-muted-foreground/50">
-            Created {createdDate}
+            {t("card.createdOn", { date: createdDate })}
           </span>
         </div>
       </div>

@@ -1,6 +1,8 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations, useLocale } from "next-intl";
+
 // UI Components
 import { DataCard } from "@/ui/components/dataCard";
 import PageHeader from "@/ui/components/header";
@@ -18,86 +20,87 @@ import {
 import { discountsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
+import type { Translator, AppLocale } from "@/i18n/config";
 import { CheckCircle2, Hash, Percent, Tag } from "lucide-react";
-import { discountFormConfig } from "@/components/discounts/form-config";
+import { getDiscountFormConfig } from "@/components/discounts/form-config";
 
 // ── Stats helper ────────────────────────────────────────────────────────
-function getDiscountStats(stats: Record<string, any> | undefined): StatData[] {
+function getDiscountStats(stats: Record<string, any> | undefined, t: Translator): StatData[] {
   return [
     {
-      label: "Total Discounts",
+      label: t("stats.total"),
       value: stats?.total || 0,
       icon: Tag,
       variant: "primary",
-      description: "All registered discounts",
+      description: t("stats.totalDescription"),
     },
     {
-      label: "Active",
+      label: t("stats.active"),
       value: stats?.active || 0,
       icon: CheckCircle2,
       variant: "success",
-      description: "Currently active",
+      description: t("stats.activeDescription"),
     },
     {
-      label: "Percentage",
+      label: t("stats.percentage"),
       value: stats?.percentage || 0,
       icon: Percent,
       variant: "info",
-      description: "Percentage type",
+      description: t("stats.percentageDescription"),
     },
     {
-      label: "Fixed Amount",
+      label: t("stats.fixed"),
       value: stats?.fixed || 0,
       icon: Hash,
       variant: "warning",
-      description: "Fixed amount type",
+      description: t("stats.fixedDescription"),
     },
   ];
 }
 
 // ── Filter config ───────────────────────────────────────────────────────
-const discountFilterConfig: FilterConfig = {
+const getDiscountFilterConfig = (t: Translator): FilterConfig => ({
   fields: [
     {
       name: "search",
-      label: "Search discounts",
+      label: t("filters.searchLabel"),
       type: "text",
-      placeholder: "Search discounts...",
+      placeholder: t("filters.searchPlaceholder"),
     },
     {
       name: "type",
-      label: "Type",
+      label: t("filters.typeLabel"),
       type: "select",
-      placeholder: "All types",
+      placeholder: t("filters.typePlaceholder"),
       options: [
-        { label: "Percentage", value: "percentage" },
-        { label: "Fixed", value: "fixed" },
+        { label: t("form.percentage"), value: "percentage" },
+        { label: t("form.fixed"), value: "fixed" },
       ],
     },
     {
       name: "applicableTo",
-      label: "Applicable To",
+      label: t("filters.applicableLabel"),
       type: "select",
-      placeholder: "All",
+      placeholder: t("filters.applicablePlaceholder"),
       options: [
-        { label: "Sales", value: "sales" },
-        { label: "Purchase", value: "purchase" },
-        { label: "Both", value: "both" },
+        { label: t("filters.applicableSales"), value: "sales" },
+        { label: t("filters.applicablePurchase"), value: "purchase" },
+        { label: t("filters.applicableBoth"), value: "both" },
       ],
     },
     {
       name: "status",
-      label: "Status",
+      label: t("filters.statusLabel"),
       type: "select",
-      placeholder: "All statuses",
+      placeholder: t("filters.statusPlaceholder"),
       options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
+        { label: t("form.active"), value: "active" },
+        { label: t("form.inactive"), value: "inactive" },
       ],
     },
   ],
   viewMode: "popover",
-};
+});
 
 const defaultValues = {
   name: "",
@@ -110,16 +113,13 @@ const defaultValues = {
   description: "",
 };
 
-const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search discounts by name...",
-};
-
 export default function DiscountsPage() {
+  const t = useTranslations("settings.discounts");
+  const locale = useLocale() as AppLocale;
   const { data: statsData, isLoading: statsLoading } = useDiscountStats();
 
   const sharedOperations = {
-    formConfig: discountFormConfig,
+    formConfig: getDiscountFormConfig(t),
     defaultValues,
     getAllData: discountsApi.getAll,
     createMutation: useCreateDiscount(),
@@ -133,19 +133,19 @@ export default function DiscountsPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Discounts"
-        subTitle="Discount rates you can apply to sales and purchases."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
 
       {/* Stats Cards */}
       <StatsCard
-        data={getDiscountStats(statsData)}
+        data={getDiscountStats(statsData, t)}
         isLoading={statsLoading}
       />
 
       {/* Card View */}
       <DataCard
-        cardTitle={(n) => `All Discounts (${n})`}
+        cardTitle={(n) => t("allDiscountsCount", { count: n })}
         defaultPageSize={12}
         pageSizes={[12, 24, 48]}
         layoutConfig={{
@@ -153,9 +153,9 @@ export default function DiscountsPage() {
           columns: { default: 1, sm: 2, lg: 3 },
           gap: "md",
         }}
-        filterConfig={discountFilterConfig}
-        searchConfig={searchConfig}
-        renderCard={DiscountCardView}
+        filterConfig={getDiscountFilterConfig(t)}
+        searchConfig={{ globalSearch: true, placeholder: t("searchPlaceholder") }}
+        renderCard={(item, actions) => DiscountCardView(item, actions, { t, locale })}
         loadingRenderCard={DiscountCardLoading}
         operations={sharedOperations}
       />

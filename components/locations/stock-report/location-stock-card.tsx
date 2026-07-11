@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Progress } from "@/ui/components/progress";
@@ -20,6 +21,8 @@ interface LocationCardProps {
 }
 
 export function LocationStockCard({ location, onSelect }: LocationCardProps) {
+  const t = useTranslations("settings.locations.stockReport");
+  const tType = useTranslations("settings.locations.type");
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
   const totalCapacity =
     location.inStockCount + location.lowStockCount + location.outOfStockCount;
@@ -70,7 +73,7 @@ export function LocationStockCard({ location, onSelect }: LocationCardProps) {
                 {location.locationName}
               </h3>
               <span className="text-[11px] text-muted-foreground capitalize">
-                {location.locationType}
+                {location.locationType === "warehouse" ? tType("warehouse") : tType("store")}
               </span>
             </div>
           </div>
@@ -80,7 +83,7 @@ export function LocationStockCard({ location, onSelect }: LocationCardProps) {
                 <Eye className="h-4 w-4 text-muted-foreground" />
               </button>
             </TooltipTrigger>
-            <TooltipContent>View detailed report</TooltipContent>
+            <TooltipContent>{t("viewDetailedReport")}</TooltipContent>
           </Tooltip>
         </div>
 
@@ -88,7 +91,7 @@ export function LocationStockCard({ location, onSelect }: LocationCardProps) {
         {canViewCosts && (
           <div className="mb-4">
             <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/60 mb-0.5">
-              Stock Value
+              {t("detail.stockValue")}
             </p>
             <p className="text-2xl font-bold tracking-tight tabular-nums">
               ৳{location.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -99,7 +102,7 @@ export function LocationStockCard({ location, onSelect }: LocationCardProps) {
         {/* Health bar */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Stock Health</span>
+            <span className="text-muted-foreground">{t("stockHealth")}</span>
             <span className={cn("font-semibold tabular-nums", healthColor)}>
               {healthPercent}%
             </span>
@@ -116,22 +119,22 @@ export function LocationStockCard({ location, onSelect }: LocationCardProps) {
       <div className="border-t bg-muted/30 px-5 py-3">
         <div className="grid grid-cols-4 gap-2">
           <StockMiniStat
-            label="Items"
+            label={t("miniItems")}
             value={location.totalProducts}
             color="text-foreground"
           />
           <StockMiniStat
-            label="Qty"
+            label={t("miniQty")}
             value={location.totalQuantity}
             color="text-foreground"
           />
           <StockMiniStat
-            label="Low"
+            label={t("miniLow")}
             value={location.lowStockCount}
             color="text-amber-600 dark:text-amber-400"
           />
           <StockMiniStat
-            label="Out"
+            label={t("miniOut")}
             value={location.outOfStockCount}
             color="text-red-600 dark:text-red-400"
           />

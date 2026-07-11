@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import {
   Card,
   CardContent,
@@ -29,6 +30,8 @@ import type { AdjustStockContext } from './use-adjust-stock'
 
 /** The "Add/Edit Adjustment" card: product search, quantity, notes, expiry batch. */
 export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
+  const t = useTranslations('inventory')
+  const tCommon = useTranslations('common.actions')
   const {
     editingId,
     selectedProduct,
@@ -59,16 +62,16 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
           <div>
             <CardTitle className="flex items-center gap-2 text-lg">
               <ClipboardEdit className="h-5 w-5 text-primary" />
-              {editingId ? 'Edit Adjustment' : 'Add Adjustment'}
+              {editingId ? t('adjust.editTitle') : t('adjust.addTitle')}
             </CardTitle>
             <CardDescription>
               {editingId
-                ? 'Update the quantity for this item'
-                : 'Search and select a product, set the new quantity, and add it to the list'}
+                ? t('adjust.editDescription')
+                : t('adjust.addDescription')}
             </CardDescription>
           </div>
           {editingId && (
-            <Badge variant="secondary">Editing</Badge>
+            <Badge variant="secondary">{t('shared.editing')}</Badge>
           )}
         </div>
       </CardHeader>
@@ -76,10 +79,9 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
         {/* Product Search */}
         {!selectedProduct ? (
           <div className="space-y-1.5">
-            <Label>Search Product</Label>
+            <Label>{t('shared.searchProduct')}</Label>
             <InventorySearch
               onSelect={handleProductSelect}
-              placeholder="Search products by name or category..."
               excludeIds={editingId ? [] : addedInventoryIds}
             />
           </div>
@@ -104,7 +106,9 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                           : 'text-green-600 font-medium'
                     }
                   >
-                    {selectedProduct.quantity}{selectedProduct.baseUnitName ? ` ${selectedProduct.baseUnitName}` : ''} in stock
+                    {t('adjust.inStockSuffix', {
+                      stock: `${selectedProduct.quantity}${selectedProduct.baseUnitName ? ` ${selectedProduct.baseUnitName}` : ''}`,
+                    })}
                   </span>
                   {hasUOM && (
                     <>
@@ -134,9 +138,11 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="newQuantity">
-                    New Quantity
+                    {t('adjust.newQuantity')}
                     <span className="text-muted-foreground text-xs ml-2">
-                      (Current: {selectedProduct.quantity}{selectedProduct.baseUnitName ? ` ${selectedProduct.baseUnitName}` : ''})
+                      {t('adjust.currentHint', {
+                        stock: `${selectedProduct.quantity}${selectedProduct.baseUnitName ? ` ${selectedProduct.baseUnitName}` : ''}`,
+                      })}
                     </span>
                   </Label>
                   {/* UOM unit toggle */}
@@ -157,7 +163,9 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                       className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                     >
                       <ArrowLeftRight className="h-3 w-3" />
-                      Switch to {inputInPurchaseUnit ? selectedProduct.baseUnitName : selectedProduct.purchaseUnitName}
+                      {t('shared.switchTo', {
+                        unit: inputInPurchaseUnit ? selectedProduct.baseUnitName : selectedProduct.purchaseUnitName,
+                      })}
                     </button>
                   )}
                 </div>
@@ -168,12 +176,14 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                     min={0}
                     value={inputValue}
                     onChange={(v) => setInputValue(Math.max(0, v ?? 0))}
-                    placeholder={`Enter quantity in ${hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || 'units')}`}
+                    placeholder={t('shared.enterQuantityIn', {
+                      unit: hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || t('shared.unitsFallback')),
+                    })}
                     className="h-11 pr-16"
                   />
                   {/* Unit badge inside input */}
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                    {hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || 'units')}
+                    {hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || t('shared.unitsFallback'))}
                   </span>
                 </div>
                 {/* UOM conversion breakdown */}
@@ -192,17 +202,17 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                     computedBaseQuantity > selectedProduct.quantity ? 'text-green-600' : 'text-red-500'
                   }`}>
                     {computedBaseQuantity > selectedProduct.quantity ? '+' : ''}
-                    {computedBaseQuantity - selectedProduct.quantity} {selectedProduct.baseUnitName || 'units'}
+                    {computedBaseQuantity - selectedProduct.quantity} {selectedProduct.baseUnitName || t('shared.unitsFallback')}
                   </p>
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="notes">Notes <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                <Label htmlFor="notes">{t('shared.notesOptional')}</Label>
                 <Input
                   id="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g., Physical count, damage, theft..."
+                  placeholder={t('adjust.notesPlaceholder')}
                   className="h-11"
                 />
               </div>
@@ -213,28 +223,28 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg border border-dashed bg-muted/20 p-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="expiryDate">
-                    Expiry Date
+                    {t('adjust.expiryDateLabel')}
                     <span className="text-muted-foreground text-xs ml-2">
-                      (for the added stock)
+                      {t('adjust.expiryForAddedStock')}
                     </span>
                   </Label>
                   <DatePicker
                     date={expiryDate || undefined}
                     onSelect={(d) => setExpiryDate(d ?? '')}
                     className="h-11"
-                    placeholder="Pick expiry date"
+                    placeholder={t('adjust.pickExpiryDate')}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="batchNumber">
-                    Batch Number{' '}
-                    <span className="text-muted-foreground text-xs">(optional)</span>
+                    {t('adjust.batchNumber')}{' '}
+                    <span className="text-muted-foreground text-xs">({t('form.optionalPlaceholder')})</span>
                   </Label>
                   <Input
                     id="batchNumber"
                     value={batchNumber}
                     onChange={(e) => setBatchNumber(e.target.value)}
-                    placeholder="e.g., LOT-2026-01"
+                    placeholder={t('adjust.batchPlaceholder')}
                     className="h-11"
                   />
                 </div>
@@ -247,18 +257,18 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                 {editingId ? (
                   <>
                     <Pencil className="h-4 w-4" />
-                    Update Item
+                    {t('shared.updateItem')}
                   </>
                 ) : (
                   <>
                     <Plus className="h-4 w-4" />
-                    Add to List
+                    {t('shared.addToList')}
                   </>
                 )}
               </Button>
               {editingId && (
                 <Button variant="outline" onClick={handleCancelEdit}>
-                  Cancel
+                  {tCommon('cancel')}
                 </Button>
               )}
             </div>

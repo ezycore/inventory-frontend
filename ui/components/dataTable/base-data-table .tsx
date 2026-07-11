@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   ColumnFiltersState,
   SortingState,
@@ -61,6 +62,7 @@ export function BaseDataTable<TData, TValue>({
   stickyHeader = false,
   rowBgColor,
 }: BaseDataTableProps<TData, TValue>) {
+  const t = useTranslations("common");
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const sorting = manualSorting && externalSortingState ? externalSortingState : internalSorting;
   const setSorting = manualSorting && externalOnSortingChange ? externalOnSortingChange : setInternalSorting;
@@ -206,10 +208,9 @@ export function BaseDataTable<TData, TValue>({
       <EasyAlertDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Are you sure?"
-        description="This action cannot be undone. This will permanently delete the selected item."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t("confirm.title")}
+        description={t("confirm.deleteSelectedItem")}
+        confirmLabel={t("actions.delete")}
         onConfirm={handleDeleteConfirm}
         isConfirming={isDeleting}
         confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"

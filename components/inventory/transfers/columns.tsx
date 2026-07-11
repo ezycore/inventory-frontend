@@ -3,6 +3,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Package, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/ui/components/button'
 import type { TransferItem } from '@/services/stores/stock-transfer-store'
+import type { Translator } from '@/i18n/config'
 import { formatCurrency } from '@/lib/currency'
 import { fromBaseUnit, formatQuantity } from '@/utils/uom-conversion'
 
@@ -10,17 +11,20 @@ interface TransferColumnOptions {
   editingId: string | null
   onEdit: (item: TransferItem) => void
   onRemove: (id: string) => void
+  /** Bound to the `inventory` namespace. */
+  t: Translator
 }
 
 export function getTransferColumns({
   editingId,
   onEdit,
   onRemove,
+  t,
 }: TransferColumnOptions): ColumnDef<TransferItem>[] {
   return [
     {
       accessorKey: 'product_name',
-      header: 'Product',
+      header: t('shared.product'),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-muted-foreground" />
@@ -35,7 +39,7 @@ export function getTransferColumns({
     },
     {
       accessorKey: 'currentQuantity',
-      header: 'Available',
+      header: t('transfers.colAvailable'),
       cell: ({ row }) => {
         const item = row.original
         return (
@@ -54,7 +58,7 @@ export function getTransferColumns({
     },
     {
       accessorKey: 'transferQuantity',
-      header: 'Transfer Qty',
+      header: t('transfers.colTransferQty'),
       cell: ({ row }) => {
         const item = row.original
         return (
@@ -73,7 +77,7 @@ export function getTransferColumns({
     },
     {
       accessorKey: 'notes',
-      header: 'Notes',
+      header: t('shared.notes'),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground max-w-[200px] truncate block">
           {row.original.notes || '-'}

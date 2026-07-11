@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import {
   OrderDetailsDrawer,
   ReceiveItemsDialog,
@@ -28,6 +30,7 @@ import { useRouter } from "next/navigation";
 
 export default function CreatedOrdersPage() {
   const router = useRouter();
+  const t = useTranslations("purchases");
   const ctx = useCreatedOrdersPage();
 
   return (
@@ -35,14 +38,14 @@ export default function CreatedOrdersPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Purchase Orders</h1>
+          <h1 className="text-3xl font-bold">{t("orders.title")}</h1>
           <p className="text-muted-foreground">
-            Orders placed with suppliers, awaiting delivery.
+            {t("orders.subtitle")}
           </p>
         </div>
         <Button onClick={() => router.push("/purchases")}>
           <Plus className="h-4 w-4 mr-2" />
-          New Purchase
+          {t("orders.newPurchase")}
         </Button>
       </div>
 
@@ -50,7 +53,7 @@ export default function CreatedOrdersPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="gap-2">
           <CardHeader className="pb-2">
-            <CardDescription>Pending Orders</CardDescription>
+            <CardDescription>{t("orders.statPending")}</CardDescription>
             <CardTitle className="text-2xl">
               {ctx.isLoading ? (
                 <Skeleton className="h-8 w-16" />
@@ -60,13 +63,13 @@ export default function CreatedOrdersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Awaiting delivery</p>
+            <p className="text-xs text-muted-foreground">{t("orders.statPendingDesc")}</p>
           </CardContent>
         </Card>
 
         <Card className="gap-2">
           <CardHeader className="pb-2">
-            <CardDescription>Partial Received</CardDescription>
+            <CardDescription>{t("orders.statPartial")}</CardDescription>
             <CardTitle className="text-2xl">
               {ctx.isLoading ? (
                 <Skeleton className="h-8 w-16" />
@@ -76,13 +79,13 @@ export default function CreatedOrdersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Partially received</p>
+            <p className="text-xs text-muted-foreground">{t("orders.statPartialDesc")}</p>
           </CardContent>
         </Card>
 
         <Card className="gap-2">
           <CardHeader className="pb-2">
-            <CardDescription>Total Value</CardDescription>
+            <CardDescription>{t("orders.statTotalValue")}</CardDescription>
             <CardTitle className="text-2xl">
               {ctx.isLoading ? (
                 <Skeleton className="h-8 w-24" />
@@ -97,7 +100,7 @@ export default function CreatedOrdersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Of pending orders</p>
+            <p className="text-xs text-muted-foreground">{t("orders.statTotalValueDesc")}</p>
           </CardContent>
         </Card>
       </div>
@@ -108,7 +111,7 @@ export default function CreatedOrdersPage() {
           <BaseDataTable
             columns={ctx.columns}
             data={ctx.orders}
-            title="Purchase Orders"
+            title={t("orders.title")}
             isLoading={ctx.isLoading}
             filterConfig={ctx.filterConfig}
             actions={{}}
@@ -173,11 +176,10 @@ export default function CreatedOrdersPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <XCircle className="h-5 w-5" />
-              Cancel Order
+              {t("orders.cancelTitle")}
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to cancel this order? This action cannot be
-              undone.
+              {t("orders.cancelDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -187,14 +189,14 @@ export default function CreatedOrdersPage() {
               onClick={() => ctx.setCancelDialogOpen(false)}
               disabled={ctx.isCancelling}
             >
-              Keep Order
+              {t("orders.keepOrder")}
             </Button>
             <Button
               variant="destructive"
               onClick={ctx.handleCancelSubmit}
               disabled={ctx.isCancelling}
             >
-              {ctx.isCancelling ? "Cancelling..." : "Cancel Order"}
+              {ctx.isCancelling ? t("orders.cancelling") : t("orders.cancelOrder")}
             </Button>
           </DialogFooter>
         </DialogContent>

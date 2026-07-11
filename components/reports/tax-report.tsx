@@ -1,6 +1,7 @@
 'use client'
 // coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import { useTaxReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { useAuthStore } from '@/services/stores'
@@ -15,6 +16,8 @@ import { TaxLedgerTable } from './tax-ledger-table'
 import { ArrowDownCircle, ArrowUpCircle, Scale } from 'lucide-react'
 
 export function TaxReport() {
+  const t = useTranslations('reports.tax')
+  const tEmpty = useTranslations('common.empty')
   const { user } = useAuthStore()
   const taxOn =
     isTaxActive(user?.organization, 'sales') ||
@@ -30,16 +33,16 @@ export function TaxReport() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Tax Report</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
         <p className="text-sm text-muted-foreground">
-          Output tax, input tax, and net tax payable for the period
+          {t('subtitle')}
         </p>
       </div>
 
       {!taxOn ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Tax is not enabled for this organization. Enable it in Settings → Tax to see this report.
+            {t('notEnabled')}
           </CardContent>
         </Card>
       ) : (
@@ -65,14 +68,16 @@ export function TaxReport() {
                 {/* Output tax (sales) */}
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Output Tax (Sales)</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('outputTax')}</CardTitle>
                     <ArrowUpCircle className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{formatCurrency(data.output.net)}</div>
                     <p className="text-xs text-muted-foreground">
-                      Collected {formatCurrency(data.output.collected)} · Refunded{' '}
-                      {formatCurrency(data.output.refunded)}
+                      {t('collectedRefunded', {
+                        collected: formatCurrency(data.output.collected),
+                        refunded: formatCurrency(data.output.refunded),
+                      })}
                     </p>
                   </CardContent>
                 </Card>
@@ -80,14 +85,16 @@ export function TaxReport() {
                 {/* Input tax (purchases) */}
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Input Tax (Purchases)</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('inputTax')}</CardTitle>
                     <ArrowDownCircle className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{formatCurrency(data.input.net)}</div>
                     <p className="text-xs text-muted-foreground">
-                      Paid {formatCurrency(data.input.paid)} · Reclaimed{' '}
-                      {formatCurrency(data.input.reclaimed)}
+                      {t('paidReclaimed', {
+                        paid: formatCurrency(data.input.paid),
+                        reclaimed: formatCurrency(data.input.reclaimed),
+                      })}
                     </p>
                   </CardContent>
                 </Card>
@@ -95,7 +102,7 @@ export function TaxReport() {
                 {/* Net payable */}
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Net Tax Payable</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('netPayable')}</CardTitle>
                     <Scale className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -108,19 +115,17 @@ export function TaxReport() {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {payable > 0
-                        ? 'Payable to tax authority'
+                        ? t('payableToAuthority')
                         : payable < 0
-                          ? 'Reclaimable credit'
-                          : 'Nothing payable'}
+                          ? t('reclaimableCredit')
+                          : t('nothingPayable')}
                     </p>
                   </CardContent>
                 </Card>
               </div>
 
               <p className="text-xs text-muted-foreground leading-snug">
-                Net payable = Output tax (sales − sales returns) − Input tax (purchases −
-                purchase returns). Positive means tax is owed to the authority; negative is a
-                reclaimable credit. Drafts and cancelled documents are excluded.
+                {t('explainer')}
               </p>
 
               <TaxTrendChart data={data.chart} formatCurrency={formatCurrency} />
@@ -134,7 +139,7 @@ export function TaxReport() {
               <TaxLedgerTable params={params} enabled={taxOn} formatCurrency={formatCurrency} />
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">No data available</p>
+            <p className="text-sm text-muted-foreground">{tEmpty('noData')}</p>
           )}
         </>
       )}

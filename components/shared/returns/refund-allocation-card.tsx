@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Wallet, Gift } from 'lucide-react';
 import {
   Card,
@@ -103,11 +104,14 @@ export function RefundAllocationCard({
   counterpartyCreditAmount = 0,
   onCounterpartyCreditChange,
   currentCounterpartyCreditBalance,
-  creditSectionTitle = 'Convert to Store Credit',
-  creditSectionDescription = "Refund into the customer's store credit instead of cash.",
+  creditSectionTitle,
+  creditSectionDescription,
   adjustmentColorClass = 'text-green-600',
   descriptionSuffix = '',
 }: RefundAllocationCardProps) {
+  const t = useTranslations('common.returns');
+  const resolvedCreditTitle = creditSectionTitle ?? t('convertToStoreCredit');
+  const resolvedCreditDescription = creditSectionDescription ?? t('convertToStoreCreditDescription');
   return (
     <Card>
       <CardHeader>
@@ -191,7 +195,7 @@ export function RefundAllocationCard({
             <div className="flex items-center justify-between mb-2">
               <div className="font-medium flex items-center gap-2">
                 <Gift className="h-4 w-4 text-blue-600" />
-                {creditSectionTitle}
+                {resolvedCreditTitle}
               </div>
               {currentCounterpartyCreditBalance != null && (
                 <span className="text-xs text-muted-foreground">
@@ -200,11 +204,11 @@ export function RefundAllocationCard({
               )}
             </div>
             <div className="text-sm text-muted-foreground mb-3">
-              {creditSectionDescription}
+              {resolvedCreditDescription}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Credit Amount</Label>
+                <Label>{t('creditAmount')}</Label>
                 <NumberField
                   precision={2}
                   value={counterpartyCreditAmount}
@@ -235,13 +239,13 @@ export function RefundAllocationCard({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Account</Label>
+                <Label>{t('account')}</Label>
                 <Select
                   value={selectedAccountId}
                   onValueChange={onAccountChange}
                 >
                   <SelectTrigger className='w-full'>
-                    <SelectValue placeholder="Select account..." />
+                    <SelectValue placeholder={t('selectAccount')} />
                   </SelectTrigger>
                   <SelectContent>
                     {accounts.map((account) => (
@@ -259,7 +263,7 @@ export function RefundAllocationCard({
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Refund Amount</Label>
+                <Label>{t('refundAmount')}</Label>
                 <NumberField
                   precision={2}
                   value={accountRefundAmount}
@@ -278,7 +282,7 @@ export function RefundAllocationCard({
         {/* Allocation Summary */}
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span>Total Refund:</span>
+            <span>{t('totalRefund')}</span>
             <span>{formatCurrency(totalRefundAmount)}</span>
           </div>
           {adjustDocumentDueAmount > 0 && (
@@ -289,19 +293,19 @@ export function RefundAllocationCard({
           )}
           {totalOtherDuesAllocated > 0 && (
             <div className={`flex justify-between ${adjustmentColorClass}`}>
-              <span>Adjust Other Dues:</span>
+              <span>{t('adjustOtherDues')}</span>
               <span>-{formatCurrency(totalOtherDuesAllocated)}</span>
             </div>
           )}
           {accountRefundAmount > 0 && (
             <div className="flex justify-between text-green-600">
-              <span>Cash Refund:</span>
+              <span>{t('cashRefund')}</span>
               <span>{formatCurrency(accountRefundAmount)}</span>
             </div>
           )}
           {counterpartyCreditAmount > 0 && (
             <div className="flex justify-between text-blue-600">
-              <span>Store Credit:</span>
+              <span>{t('storeCredit')}</span>
               <span>{formatCurrency(counterpartyCreditAmount)}</span>
             </div>
           )}

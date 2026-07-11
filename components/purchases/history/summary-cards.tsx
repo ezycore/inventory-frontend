@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { ShoppingCart, DollarSign, CheckCircle2, AlertCircle } from "lucide-react";
 
 import StatsCard, { type StatData } from "@/ui/components/StatsCard";
@@ -24,38 +26,42 @@ export function SummaryCards({
   summary,
   formatCurrency,
 }: SummaryCardsProps) {
+  const t = useTranslations("purchases.history");
   const stats: StatData[] = [
     {
-      label: "Total Orders",
+      label: t("statTotalOrders"),
       value: summary?.totalOrders ?? 0,
       icon: ShoppingCart,
       variant: "primary",
-      description: `${summary?.receivedOrders ?? 0} received, ${summary?.orderedOrders ?? 0} pending`,
+      description: t("statTotalOrdersDesc", {
+        received: summary?.receivedOrders ?? 0,
+        pending: summary?.orderedOrders ?? 0,
+      }),
     },
     {
-      label: "Total Amount",
+      label: t("statTotalAmount"),
       value: formatCurrency(summary?.totalAmount ?? 0),
       icon: DollarSign,
       variant: "info",
-      description: "All time purchases",
+      description: t("statTotalAmountDesc"),
     },
   ];
 
   if (isAccountsEnabled) {
     stats.push(
       {
-        label: "Total Paid",
+        label: t("statTotalPaid"),
         value: formatCurrency(summary?.totalPaid ?? 0),
         icon: CheckCircle2,
         variant: "success",
-        description: "Amount paid to suppliers",
+        description: t("statTotalPaidDesc"),
       },
       {
-        label: "Total Due",
+        label: t("statTotalDue"),
         value: formatCurrency(summary?.totalDue ?? 0),
         icon: AlertCircle,
         variant: (summary?.totalDue ?? 0) > 0 ? "destructive" : "success",
-        description: "Outstanding balance",
+        description: t("statTotalDueDesc"),
       },
     );
   }

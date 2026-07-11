@@ -1,10 +1,12 @@
+"use client";
 // coding-standard: maintained
+import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 
 import {
-  HEADER_LINE_META,
-  LOGO_PLACEMENT_OPTIONS,
-  META_FIELD_OPTIONS,
+  getHeaderLineMeta,
+  getLogoPlacementOptions,
+  getMetaFieldOptions,
   type ReceiptHeaderAlign,
   type ReceiptLogoPlacement,
   type ReceiptPaperSize,
@@ -81,65 +83,68 @@ export default function LetterheadBuilder({
   hasLogo,
   onNavigateProfile,
 }: LetterheadBuilderProps) {
+  const t = useTranslations("settings.receipt");
   const showsWatermark =
     state.logoPlacement === "watermark" || state.logoPlacement === "both";
   const showsLogo = state.logoPlacement !== "hidden";
 
-  const profileLink = (
+  const profileLinkTag = (chunks: React.ReactNode) => (
     <button
       type="button"
       className="text-primary underline underline-offset-2"
       onClick={onNavigateProfile}
     >
-      Organization profile
+      {chunks}
     </button>
   );
+
+  const headerLineMeta = getHeaderLineMeta(t);
 
   return (
     <div className="space-y-5">
       {/* Contact values that feed the identity lines */}
       <Panel
-        title="Contact details"
-        hint="Printed in the letterhead lines below."
+        title={t("contactTitle")}
+        hint={t("contactHint")}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="receiptPhone">Phone</Label>
+            <Label htmlFor="receiptPhone">{t("phone")}</Label>
             <Input
               id="receiptPhone"
               value={state.phone}
               onChange={(e) => actions.update({ phone: e.target.value })}
-              placeholder="Phone shown on printouts"
+              placeholder={t("phonePlaceholder")}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="receiptEmail">Email</Label>
+            <Label htmlFor="receiptEmail">{t("email")}</Label>
             <Input
               id="receiptEmail"
               value={state.email}
               onChange={(e) => actions.update({ email: e.target.value })}
-              placeholder="Email shown on printouts"
+              placeholder={t("emailPlaceholder")}
             />
           </div>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="receiptTaxId">
-            Tax Registration No. (VAT / BIN / TIN)
+            {t("taxIdLabel")}
           </Label>
           <Input
             id="receiptTaxId"
             value={state.taxId}
             onChange={(e) => actions.update({ taxId: e.target.value })}
-            placeholder="Leave blank to hide"
+            placeholder={t("taxIdPlaceholder")}
           />
         </div>
       </Panel>
 
       {/* Logo placement + watermark opacity */}
-      <Panel title="Logo" hint="Where the logo prints on documents.">
+      <Panel title={t("logoTitle")} hint={t("logoHint")}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="logoPlacement">Placement</Label>
+            <Label htmlFor="logoPlacement">{t("placementLabel")}</Label>
             <Select
               value={state.logoPlacement}
               onValueChange={(v) =>
@@ -150,7 +155,7 @@ export default function LetterheadBuilder({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {LOGO_PLACEMENT_OPTIONS.map((o) => (
+                {getLogoPlacementOptions(t).map((o) => (
                   <SelectItem key={o.value} value={o.value}>
                     {o.label}
                   </SelectItem>
@@ -160,7 +165,7 @@ export default function LetterheadBuilder({
           </div>
           {showsWatermark ? (
             <div className="space-y-1.5">
-              <Label htmlFor="watermarkOpacity">Watermark opacity (%)</Label>
+              <Label htmlFor="watermarkOpacity">{t("watermarkOpacityLabel")}</Label>
               <NumberField
                 id="watermarkOpacity"
                 value={Math.round(state.watermarkOpacity * 100)}
@@ -177,21 +182,20 @@ export default function LetterheadBuilder({
         </div>
         {showsWatermark ? (
           <p className="text-xs text-muted-foreground">
-            Watermark prints on A4 only — thermal receipts can&apos;t render it.
+            {t("watermarkHint")}
           </p>
         ) : null}
         {showsLogo && !hasLogo ? (
           <p className="text-xs text-amber-600">
-            No logo uploaded yet — add one on the {profileLink} to have it appear
-            here.
+            {t.rich("noLogoWarning", { link: profileLinkTag })}
           </p>
         ) : null}
       </Panel>
 
       {/* Reorderable identity lines */}
       <Panel
-        title="Letterhead lines"
-        hint="Reorder with the arrows, hide with the switch, and add your own lines."
+        title={t("letterheadLinesTitle")}
+        hint={t("letterheadLinesHint")}
       >
         <div className="space-y-2.5">
           {state.headerLines.map((line, i) => (
@@ -211,19 +215,22 @@ export default function LetterheadBuilder({
           onClick={actions.addCustomLine}
         >
           <Plus className="mr-1.5 h-4 w-4" />
-          Add custom line
+          {t("addCustomLine")}
         </Button>
         <p className="text-xs text-muted-foreground">
-          {HEADER_LINE_META.orgName.label}, {HEADER_LINE_META.address.label} and
-          the logo come from the {profileLink}.
+          {t.rich("linesFromProfile", {
+            orgName: headerLineMeta.orgName.label,
+            address: headerLineMeta.address.label,
+            link: profileLinkTag,
+          })}
         </p>
       </Panel>
 
       {/* Paper + alignment */}
-      <Panel title="Layout" hint="Default paper size and how the header aligns.">
+      <Panel title={t("layoutTitle")} hint={t("layoutHint")}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="receiptPaperSize">Default paper size</Label>
+            <Label htmlFor="receiptPaperSize">{t("paperSizeLabel")}</Label>
             <Select
               value={state.paper}
               onValueChange={(v) =>
@@ -234,17 +241,17 @@ export default function LetterheadBuilder({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="a4">A4 (full page)</SelectItem>
-                <SelectItem value="thermal80">Receipt — 80mm thermal</SelectItem>
-                <SelectItem value="thermal58">Receipt — 58mm thermal</SelectItem>
+                <SelectItem value="a4">{t("paper.a4")}</SelectItem>
+                <SelectItem value="thermal80">{t("paper.thermal80")}</SelectItem>
+                <SelectItem value="thermal58">{t("paper.thermal58")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Pre-selected in the print menu; still overridable per print.
+              {t("paperSizeHint")}
             </p>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="receiptHeaderAlign">Header alignment</Label>
+            <Label htmlFor="receiptHeaderAlign">{t("headerAlignLabel")}</Label>
             <Select
               value={state.align}
               onValueChange={(v) =>
@@ -255,13 +262,13 @@ export default function LetterheadBuilder({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="left">Left</SelectItem>
-                <SelectItem value="center">Center</SelectItem>
-                <SelectItem value="right">Right</SelectItem>
+                <SelectItem value="left">{t("align.left")}</SelectItem>
+                <SelectItem value="center">{t("align.center")}</SelectItem>
+                <SelectItem value="right">{t("align.right")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Aligns the logo, name and contact block.
+              {t("headerAlignHint")}
             </p>
           </div>
         </div>
@@ -269,17 +276,17 @@ export default function LetterheadBuilder({
 
       {/* Per-document lines: title, meta rows */}
       <Panel
-        title="Show on documents"
-        hint="Which details print under the letterhead (Date always shows)."
+        title={t("showOnDocsTitle")}
+        hint={t("showOnDocsHint")}
       >
         <ToggleRow
-          label="Document title"
-          hint="The “Tax Invoice” / “Purchase Order” heading."
+          label={t("docTitleLabel")}
+          hint={t("docTitleHint")}
           checked={state.showDocTitle}
           onChange={(v) => actions.update({ showDocTitle: v })}
         />
         <div className="grid gap-2 sm:grid-cols-2">
-          {META_FIELD_OPTIONS.map((o) => (
+          {getMetaFieldOptions(t).map((o) => (
             <label
               key={o.key}
               className="flex items-center justify-between gap-2 rounded-md border p-2.5 text-sm"
@@ -296,36 +303,36 @@ export default function LetterheadBuilder({
 
       {/* Amount in words */}
       <Panel
-        title="Amount in words"
-        hint="Spell the invoice total out under the totals."
+        title={t("amountInWordsTitle")}
+        hint={t("amountInWordsHint")}
       >
         <ToggleRow
-          label="Show amount in words"
+          label={t("showAmountInWords")}
           checked={state.showAmountInWords}
           onChange={(v) => actions.update({ showAmountInWords: v })}
         />
         {state.showAmountInWords ? (
           <div className="space-y-1.5">
-            <Label htmlFor="amountInWordsLabel">Caption</Label>
+            <Label htmlFor="amountInWordsLabel">{t("captionLabel")}</Label>
             <Input
               id="amountInWordsLabel"
               value={state.amountInWordsLabel}
               onChange={(e) =>
                 actions.update({ amountInWordsLabel: e.target.value })
               }
-              placeholder="In words:"
+              placeholder={t("captionPlaceholder")}
             />
           </div>
         ) : null}
       </Panel>
 
       {/* Footer note */}
-      <Panel title="Footer note" hint="Printed at the bottom of every document.">
+      <Panel title={t("footerTitle")} hint={t("footerHint")}>
         <Textarea
           id="receiptFooter"
           value={state.footer}
           onChange={(e) => actions.update({ footer: e.target.value })}
-          placeholder="e.g. Thank you for your business! Returns accepted within 7 days."
+          placeholder={t("footerPlaceholder")}
           rows={3}
           className="resize-none"
         />

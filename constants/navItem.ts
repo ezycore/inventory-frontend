@@ -371,7 +371,7 @@ export const navGroups: NavGroup[] = [
             title: "Roles",
             url: "/settings/roles",
             icon: "shield",
-            permissions: ["organization.view"],
+            permissions: ["users.manage"],
           },
           {
             title: "Feature Settings",

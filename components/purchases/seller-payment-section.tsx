@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { WalletIcon } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { useAccounts, useSupplierPendingDues } from "@/services/api";
@@ -30,6 +32,7 @@ export function SellerPaymentSection({
   isAccountsEnabled,
   formatCurrency,
 }: Props) {
+  const t = useTranslations("purchases.payment");
   const setPaymentInfo = usePurchasePageStore((s) => s.setPaymentInfo);
   const setNotes = usePurchasePageStore((s) => s.setNotes);
   const setCreditApplied = usePurchasePageStore((s) => s.setCreditApplied);
@@ -124,13 +127,13 @@ export function SellerPaymentSection({
         <div className="flex flex-wrap gap-2">
           {supplierOutstandingDue > 0 && (
             <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 px-2.5 py-1 text-xs font-medium text-orange-700 dark:text-orange-300">
-              Supplier Due: {formatCurrency(supplierOutstandingDue)}
+              {t("supplierDue", { amount: formatCurrency(supplierOutstandingDue) })}
             </span>
           )}
           {supplierCreditBalance > 0 && (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
               <WalletIcon className="h-3 w-3" />
-              Credit Available: {formatCurrency(supplierCreditBalance)}
+              {t("creditAvailable", { amount: formatCurrency(supplierCreditBalance) })}
             </span>
           )}
         </div>
@@ -144,7 +147,7 @@ export function SellerPaymentSection({
               className="flex items-center gap-2 text-sm font-medium cursor-pointer"
             >
               <WalletIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              Apply supplier credit
+              {t("applySupplierCredit")}
             </Label>
             <Switch
               id={`use-credit-${seller.id}`}
@@ -164,7 +167,7 @@ export function SellerPaymentSection({
           {creditApplied > 0 && (
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs text-muted-foreground">
-                Max {formatCurrency(maxCreditApplicable)}
+                {t("maxAmount", { amount: formatCurrency(maxCreditApplicable) })}
               </span>
               <NumberField
                 precision={2}
@@ -187,17 +190,17 @@ export function SellerPaymentSection({
       {isAccountsEnabled && (
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <Label className="text-xs">Payment Account</Label>
+            <Label className="text-xs">{t("paymentAccount")}</Label>
             <SimpleSelect
               value={accountId}
               onValueChange={(v) => updatePayment(v, paidAmount)}
               options={accounts.map((a) => ({ label: a.name, value: a._id }))}
-              placeholder="Select account"
+              placeholder={t("selectAccount")}
               className="h-9 text-sm"
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Paid Amount</Label>
+            <Label className="text-xs">{t("paidAmount")}</Label>
             <NumberField
               precision={2}
               min={0}
@@ -211,11 +214,11 @@ export function SellerPaymentSection({
       )}
 
       <div className="space-y-1">
-        <Label className="text-xs">Notes</Label>
+        <Label className="text-xs">{t("notes")}</Label>
         <Textarea
           value={seller.notes}
           onChange={(e) => setNotes(seller.id, e.target.value)}
-          placeholder="Add notes for this supplier (optional)"
+          placeholder={t("supplierNotesPlaceholder")}
           rows={2}
           className="text-sm"
         />
@@ -224,21 +227,21 @@ export function SellerPaymentSection({
       {isAccountsEnabled && (paidAmount > 0 || creditApplied > 0) && (
         <div className="space-y-1 pt-1 border-t">
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Paid</span>
+            <span className="text-muted-foreground">{t("paid")}</span>
             <span className="font-semibold text-green-600 dark:text-green-500 tabular-nums">
               {formatCurrency(paidAmount)}
             </span>
           </div>
           {creditApplied > 0 && (
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Credit applied</span>
+              <span className="text-muted-foreground">{t("creditAppliedLabel")}</span>
               <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
                 −{formatCurrency(creditApplied)}
               </span>
             </div>
           )}
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Due</span>
+            <span className="text-muted-foreground">{t("due")}</span>
             <span
               className={`font-semibold tabular-nums ${dueAmount > 0
                 ? "text-orange-600 dark:text-orange-500"

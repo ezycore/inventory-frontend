@@ -1,5 +1,7 @@
 'use client'
+// coding-standard: maintained
 
+import { useTranslations } from 'next-intl'
 import {
   Card,
   CardContent,
@@ -14,7 +16,7 @@ import EmptyState from '@ui/components/EmptyState'
 import { ArrowRight, ArrowDownToLine, ArrowUpFromLine, RotateCcw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
-import { REASON_LABELS } from './helpers'
+import { REASON_LABEL_KEYS } from './helpers'
 
 interface ActivitySectionProps {
   stockMovements?: any
@@ -23,14 +25,17 @@ interface ActivitySectionProps {
 
 export function ActivitySection({ stockMovements, isLoading }: ActivitySectionProps) {
   const router = useRouter()
+  const t = useTranslations('dashboard.activity')
 
   const timelineItems: TimelineItem[] = (
     stockMovements?.data?.items || []
   )
     .slice(0, 6)
     .map((m: any) => {
-      const reasonLabel = REASON_LABELS[m.reason] || (m.movementType === 'in' ? 'Stock In' : 'Stock Out')
-      const productName = m.productId?.name || 'Unknown Product'
+      const reasonLabel = REASON_LABEL_KEYS[m.reason]
+        ? t(REASON_LABEL_KEYS[m.reason] as never)
+        : m.movementType === 'in' ? t('stockIn') : t('stockOut')
+      const productName = m.productId?.name || t('unknownProduct')
       return {
         id: m._id,
         title: reasonLabel,
@@ -50,8 +55,8 @@ export function ActivitySection({ stockMovements, isLoading }: ActivitySectionPr
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <div>
-          <CardTitle className="text-base">Recent Activity</CardTitle>
-          <CardDescription>Latest stock movements</CardDescription>
+          <CardTitle className="text-base">{t('title')}</CardTitle>
+          <CardDescription>{t('subtitle')}</CardDescription>
         </div>
         <Button
           variant="ghost"
@@ -59,7 +64,7 @@ export function ActivitySection({ stockMovements, isLoading }: ActivitySectionPr
           className="text-xs"
           onClick={() => router.push('/inventory/movements')}
         >
-          View All <ArrowRight className="h-3 w-3 ml-1" />
+          {t('viewAll')} <ArrowRight className="h-3 w-3 ml-1" />
         </Button>
       </CardHeader>
       <CardContent>
@@ -80,8 +85,8 @@ export function ActivitySection({ stockMovements, isLoading }: ActivitySectionPr
         ) : (
           <EmptyState
             icon={RotateCcw}
-            title="No recent activity"
-            description="Stock movements will appear here"
+            title={t('emptyTitle')}
+            description={t('emptyDescription')}
             compact
           />
         )}

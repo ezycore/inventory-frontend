@@ -1,6 +1,7 @@
 'use client';
-
-import { useEffect, useRef } from 'react';
+// coding-standard: maintained
+import { useEffect, useMemo, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Plus } from 'lucide-react';
 
 import { Button } from '@/ui/components/button';
@@ -22,7 +23,25 @@ import {
   ReturnHistoryTable,
 } from '@/components/shared/returns';
 
+const REASON_KEYS: Record<string, string> = {
+  damaged: 'damaged',
+  defective: 'defective',
+  wrong_item: 'wrongItem',
+  customer_changed_mind: 'customerChangedMind',
+  expired: 'expired',
+  other: 'other',
+};
+
 export default function SalesReturnsPage() {
+  const t = useTranslations('sales.returns');
+  const returnReasons = useMemo(
+    () =>
+      RETURN_REASONS.map((r) => ({
+        ...r,
+        label: t(`reasons.${REASON_KEYS[r.value] ?? 'other'}`),
+      })),
+    [t],
+  );
   const ctx = useSalesReturnPage();
   const {
     sale,
@@ -55,10 +74,8 @@ export default function SalesReturnsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Sales Returns</h1>
-          <p className="text-muted-foreground">
-            Manage product returns and refunds
-          </p>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
       </div>
 
@@ -72,9 +89,9 @@ export default function SalesReturnsPage() {
 
       {/* Search Sale */}
       <ReturnSearchCard
-        title="Find Sale"
-        description="Enter a sale ID or invoice number to process a return"
-        placeholder="Enter sale ID or invoice number..."
+        title={t('findSale')}
+        description={t('findSaleDescription')}
+        placeholder={t('findSalePlaceholder')}
         inputProps={ctx.searchForm.register('saleId')}
         isLoading={ctx.isLoadingSale}
         hasValue={!!ctx.searchForm.watch('saleId')}
@@ -88,10 +105,10 @@ export default function SalesReturnsPage() {
         <>
           {/* Sale Summary */}
           <ReturnDocumentSummaryCard
-            documentLabel="Sale"
+            documentLabel={t('saleLabel')}
             documentNumber={ctx.sale.invoiceNumber}
-            counterpartyLabel="Customer"
-            counterpartyName={ctx.sale.customerId?.name ?? 'Walk-in Customer'}
+            counterpartyLabel={t('customerLabel')}
+            counterpartyName={ctx.sale.customerId?.name ?? t('walkInCustomer')}
             subtotal={ctx.sale.subtotal}
             additionalDiscount={ctx.sale.additionalDiscount}
             items={ctx.sale.items}
@@ -103,7 +120,7 @@ export default function SalesReturnsPage() {
 
           {/* Items Selection */}
           <ReturnItemsCard
-            description="Choose which items the customer is returning and specify quantities"
+            description={t('itemsDescription')}
             items={ctx.returnableItems}
             totalReturnQty={ctx.totalReturnQty}
             totalRefundAmount={ctx.totalRefundAmount}
@@ -120,7 +137,7 @@ export default function SalesReturnsPage() {
 
           {/* Return Details */}
           <ReturnDetailsFormCard
-            reasons={RETURN_REASONS}
+            reasons={returnReasons}
             reason={ctx.reason}
             onReasonChange={(v) => ctx.setReason(v as SalesReturnReason)}
             notes={ctx.notes}

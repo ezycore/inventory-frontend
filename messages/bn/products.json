@@ -1,0 +1,541 @@
+{
+  "products": {
+    "page": {
+      "title": "পণ্য",
+      "subtitle": "আপনার মজুদ ও বিক্রি করা সব পণ্য।",
+      "allProductsTitle": "সব পণ্য",
+      "searchPlaceholder": "নাম দিয়ে পণ্য খুঁজুন...",
+      "exportNote": "শুধু সিঙ্গেল পণ্য এক্সপোর্ট হয় — ভ্যারিয়েন্ট ও কম্বো পণ্য CSV এক্সপোর্টে সমর্থিত নয়; পণ্য ফর্ম থেকে সেগুলো পরিচালনা করুন।",
+      "printLabel": "লেবেল প্রিন্ট করুন",
+      "noBarcodes": "নির্বাচিত পণ্যে কোনো বারকোড সেট নেই",
+      "editTooltip": "পণ্য সম্পাদনা",
+      "deleteTooltip": "পণ্য মুছুন",
+      "sortName": "নাম",
+      "sortPrice": "মূল্য",
+      "sortStatus": "স্ট্যাটাস",
+      "entity": "পণ্য"
+    },
+    "detailPage": {
+      "back": "ফিরে যান"
+    },
+    "columns": {
+      "name": "নাম",
+      "barcode": "বারকোড",
+      "barcodePerVariant": "প্রতি-ভ্যারিয়েন্ট",
+      "category": "ক্যাটাগরি",
+      "uncategorized": "ক্যাটাগরিহীন",
+      "brand": "ব্র্যান্ড",
+      "type": "ধরন",
+      "price": "মূল্য",
+      "status": "স্ট্যাটাস"
+    },
+    "filters": {
+      "searchLabel": "পণ্য খুঁজুন",
+      "searchPlaceholder": "পণ্যের নাম দিয়ে খুঁজুন...",
+      "brandLabel": "ব্র্যান্ড অনুযায়ী ফিল্টার",
+      "brandPlaceholder": "সব ব্র্যান্ড",
+      "categoryLabel": "ক্যাটাগরি অনুযায়ী ফিল্টার",
+      "categoryPlaceholder": "সব ক্যাটাগরি",
+      "statusLabel": "স্ট্যাটাস",
+      "statusPlaceholder": "সব স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "statusArchived": "আর্কাইভড"
+    },
+    "stats": {
+      "total": "মোট পণ্য",
+      "totalDescription": "সব নিবন্ধিত পণ্য",
+      "variantProducts": "ভ্যারিয়েন্ট পণ্য",
+      "variantProductsDescription": "ভ্যারিয়েন্টসহ পণ্য",
+      "active": "সক্রিয় পণ্য",
+      "activeDescription": "বর্তমানে সক্রিয়",
+      "inactive": "নিষ্ক্রিয় পণ্য",
+      "inactiveDescription": "বর্তমানে নিষ্ক্রিয়"
+    },
+    "card": {
+      "viewDetails": "বিবরণ দেখুন",
+      "edit": "সম্পাদনা",
+      "delete": "মুছুন",
+      "noPrice": "মূল্য নেই"
+    },
+    "toasts": {
+      "uomRequired": "UOM রূপান্তর চালু থাকলে অন্তত একটি একক (ক্রয় বা বিক্রয়) নির্বাচন করুন।"
+    },
+    "form": {
+      "sections": {
+        "basicsTitle": "মৌলিক তথ্য",
+        "basicsDescription": "গ্রাহকরা যা দেখবেন",
+        "barcodeTitle": "বারকোড",
+        "barcodeDescription": "স্ক্যানযোগ্য কোড এবং এটি কীভাবে দেখানো হয়",
+        "expiryTitle": "মেয়াদ ও শেলফ লাইফ",
+        "expiryDescription": "ব্যাচ মেয়াদ ট্র্যাকিং ও সতর্কতা",
+        "unitsTitle": "পরিমাপের একক",
+        "unitsDescription": "ক্রয়-বিক্রয়ের সময় এই পণ্য কীভাবে গণনা করবেন",
+        "pricingTitle": "মূল্য নির্ধারণ",
+        "pricingDescription": "বিক্রয় মূল্য নির্ধারণ করুন",
+        "taxTitle": "কর",
+        "taxDescription": "কর কীভাবে প্রয়োগ হয় — সব ভ্যারিয়েন্টে অভিন্ন",
+        "inventoryTitle": "ইনভেন্টরি",
+        "inventoryDescription": "স্টক লেভেল ও কম-স্টক সতর্কতা",
+        "variantsTitle": "ভ্যারিয়েন্ট",
+        "variantsDescription": "এই পণ্যের বিভিন্ন আকার, রঙ, বা মাত্রা",
+        "comboTitle": "কম্বো গঠন",
+        "comboDescription": "কম্বোতে বান্ডিল করা পণ্য এবং প্রতিটির পরিমাণ",
+        "mediaTitle": "মিডিয়া",
+        "mediaDescription": "সর্বোচ্চ ৫টি ছবি। প্রথম ছবিটি প্রধান।"
+      },
+      "trackStock": "স্টক ট্র্যাক করুন",
+      "name": "পণ্যের নাম",
+      "namePlaceholder": "পণ্যের নাম লিখুন",
+      "status": "স্ট্যাটাস",
+      "statusActive": "সক্রিয় — বিক্রয়ের জন্য উপলব্ধ",
+      "statusInactive": "নিষ্ক্রিয় — বিক্রয় থেকে লুকানো",
+      "statusArchived": "আর্কাইভড — রেকর্ডের জন্য সংরক্ষিত",
+      "productType": "পণ্যের ধরন",
+      "typeSingle": "সাধারণ পণ্য",
+      "typeSingleDescription": "একটি পণ্য, একটি মূল্য",
+      "typeVariable": "ভ্যারিয়েবল পণ্য",
+      "typeVariableDescription": "একাধিক ভ্যারিয়েন্ট (আকার, রঙ...)",
+      "typeCombo": "কম্বো / বান্ডেল",
+      "typeComboDescription": "একটি নির্ধারিত মূল্যে একসাথে বিক্রি হওয়া একাধিক পণ্য",
+      "category": "ক্যাটাগরি",
+      "categoryPlaceholder": "ক্যাটাগরি বাছাই করুন",
+      "brand": "ব্র্যান্ড",
+      "brandPlaceholder": "ব্র্যান্ড নির্বাচন করুন",
+      "description": "বিবরণ",
+      "descriptionPlaceholder": "পণ্যের বিবরণ লিখুন",
+      "barcode": "বারকোড",
+      "barcodePlaceholder": "বারকোড স্ক্যান বা লিখুন",
+      "barcodeTooltip": "পণ্যের প্যাকেজিংয়ে প্রিন্ট করা বারকোড। রিডার দিয়ে স্ক্যান করুন বা টাইপ করুন। লেবেল প্রিন্ট করার জন্য স্বয়ংক্রিয়ভাবে বারকোড তৈরি করতে খালি রাখুন।",
+      "barcodeSymbology": "বারকোডের ধরন (সব ভ্যারিয়েন্ট)",
+      "barcodeSymbologyHint": "এই পণ্যের প্রতিটি ভ্যারিয়েন্টে অভিন্ন।",
+      "hasExpiry": "মেয়াদের তারিখ ট্র্যাক করুন",
+      "expiryAlertDays": "মেয়াদ সতর্কতা (দিন আগে)",
+      "expiryAlertDaysTooltip": "মেয়াদ শেষ হওয়ার কত দিন আগে পণ্যটি মেয়াদ সতর্কতায় দেখাতে শুরু করবে, যাতে শীঘ্রই মেয়াদোত্তীর্ণ হতে যাওয়া স্টকের ব্যবস্থা নেওয়ার সময় পান।",
+      "unitId": "মূল একক",
+      "unitIdPlaceholder": "মূল একক নির্বাচন করুন",
+      "unitIdTooltip": "যে এককে সব স্টক গণনা ও রিপোর্ট করা হয় (যেমন পিস)। সতর্কতার সাথে নির্বাচন করুন — ক্রয়-বিক্রয়সহ প্রতিটি পরিমাণ এই এককে রেকর্ড হয়।",
+      "enableUOMConversion": "ভিন্ন ক্রয় ও বিক্রয় একক",
+      "enableUOMConversionHint": "যেমন সরবরাহকারীর কাছ থেকে বক্সে কেনা, কাউন্টারে পিসে বিক্রি।",
+      "purchaseUnit": "ক্রয় একক",
+      "purchaseUnitPlaceholder": "ক্রয় একক নির্বাচন করুন",
+      "purchaseUnitTooltip": "যে এককে আপনি এই পণ্য কেনেন (যেমন বক্স)। এই এককে গৃহীত স্টক রূপান্তর গুণক ব্যবহার করে মূল এককে রূপান্তরিত হয়।",
+      "purchaseConversionFactor": "ক্রয় রূপান্তর গুণক",
+      "purchaseConversionFactorTooltip": "একটি ক্রয় এককে কতগুলো মূল একক থাকে। উদাহরণস্বরূপ, আপনি বক্সে কেনেন এবং ১ বক্সে ১০০ পিস থাকলে, ১০০ লিখুন।",
+      "sellPrice": "বিক্রয় মূল্য (প্রতি একক)",
+      "salesTaxType": "বিক্রয় কর গণনা",
+      "salesTaxRate": "বিক্রয় কর হার",
+      "purchaseTaxType": "ক্রয় কর গণনা",
+      "purchaseTaxRate": "ক্রয় কর হার",
+      "taxSelectPlaceholder": "নির্বাচন করুন",
+      "taxRatePlaceholder": "কর নির্বাচন করুন",
+      "locationId": "লোকেশন",
+      "locationIdPlaceholder": "লোকেশন নির্বাচন করুন",
+      "openingStock": "প্রারম্ভিক স্টক",
+      "openingStockTooltip": "এই লোকেশনে বর্তমানে মজুদ থাকা পরিমাণ, পণ্যের মূল এককে লিখুন। পরে রিপোর্ট করা যায় এমন একটি প্রারম্ভিক-স্টক এন্ট্রি হিসেবে রেকর্ড হয়; পরবর্তীতে ইনভেন্টরি পৃষ্ঠা থেকে সমন্বয় করুন।",
+      "costPrice": "ক্রয়মূল্য (প্রতি একক)",
+      "costPriceTooltip": "প্রারম্ভিক স্টকের একক খরচ। ইনভেন্টরি মূল্যায়ন ও প্রারম্ভিক-স্টক রিপোর্টে ব্যবহৃত হয়।",
+      "inventoryAlertLevel": "কম স্টক সীমা",
+      "inventoryAlertLevelPlaceholder": "যেমন ২০",
+      "inventoryAlertLevelTooltip": "স্টক এই সংখ্যার সমান বা কম হলে, পণ্যটি কম স্টক হিসেবে চিহ্নিত হয়ে রিস্টক তালিকায় যোগ হয় যাতে আপনি জানতে পারেন কখন রিস্টক করতে হবে।",
+      "batchNumber": "ব্যাচ নম্বর",
+      "batchNumberPlaceholder": "ঐচ্ছিক",
+      "batchNumberTooltip": "প্রারম্ভিক-স্টক ব্যাচের ব্যাচ/লট নম্বর। এই পণ্যের মেয়াদ ট্র্যাকিং চালু থাকলেই প্রযোজ্য।",
+      "expiryDate": "প্রারম্ভিক মেয়াদের তারিখ",
+      "expiryDateTooltip": "প্রারম্ভিক-স্টক ব্যাচের মেয়াদের তারিখ। এই পণ্যের মেয়াদ ট্র্যাকিং চালু থাকলেই প্রযোজ্য।",
+      "images": "পণ্যের ছবি",
+      "imagesDropzone": "PNG, JPG, WEBP সর্বোচ্চ ৫MB · সর্বোচ্চ ৫টি ছবি"
+    },
+    "taxType": {
+      "inclusive": "অন্তর্ভুক্ত",
+      "exclusive": "বহির্ভূত",
+      "exempt": "মুক্ত"
+    },
+    "comboField": {
+      "componentHeader": "উপাদান",
+      "qtyHeader": "প্রতি কম্বোতে পরিমাণ",
+      "removeComponent": "উপাদান সরান",
+      "addPlaceholder": "এই কম্বোতে একটি পণ্য যোগ করুন…",
+      "noMoreProducts": "যোগ করার মতো আর কোনো পণ্য নেই",
+      "emptyHint": "অন্তত একটি পণ্য যোগ করুন। কম্বোটি উপরে নির্ধারিত মূল্যে একক ইউনিট হিসেবে বিক্রি হয়।"
+    },
+    "tagsInput": {
+      "placeholder": "একটি ট্যাগ লিখে Enter চাপুন",
+      "removeTag": "{tag} সরান"
+    },
+    "variantEmptyState": {
+      "message": "এই পণ্যটি <strong>সিঙ্গেল</strong> হিসেবে সেট করা আছে। একই পণ্য বিভিন্ন আকার, রঙ, মাত্রা ইত্যাদিতে আসলে ভ্যারিয়েন্ট ব্যবহার করুন।",
+      "makeVariable": "ভ্যারিয়েবল করুন"
+    },
+    "variantManager": {
+      "attributeLabel": "ভ্যারিয়েন্ট অ্যাট্রিবিউট *",
+      "loadingAttributes": "অ্যাট্রিবিউট লোড হচ্ছে...",
+      "errorLoadingAttributes": "অ্যাট্রিবিউট লোড করতে সমস্যা হয়েছে",
+      "choosePlaceholder": "ভ্যারিয়েন্ট অ্যাট্রিবিউট বাছাই করুন (যেমন রঙ, আকার)",
+      "valuesCount": "{count}টি মান",
+      "createNew": "নতুন তৈরি করুন",
+      "valueColumn": "ভ্যারিয়েন্ট মান",
+      "priceColumn": "মূল্য",
+      "activeColumn": "সক্রিয়",
+      "selectAll": "সব নির্বাচন করুন",
+      "deselectAll": "নির্বাচন বাতিল করুন",
+      "disableVariant": "ভ্যারিয়েন্ট নিষ্ক্রিয় করুন",
+      "enableVariant": "ভ্যারিয়েন্ট সক্রিয় করুন",
+      "moreDetails": "আরও বিবরণ",
+      "modalTitle": "ভ্যারিয়েন্টের বিবরণ",
+      "priceLabel": "মূল্য",
+      "barcodeLabel": "বারকোড",
+      "barcodePlaceholder": "বারকোড স্ক্যান বা লিখুন (স্বয়ংক্রিয়ভাবে তৈরি করতে খালি রাখুন)",
+      "barcodeHint": "বারকোডের ধরন পণ্য ফর্মে সেট করা এবং সব ভ্যারিয়েন্টে অভিন্ন।",
+      "openingStockLabel": "প্রারম্ভিক স্টক",
+      "costPriceLabel": "ক্রয়মূল্য (প্রতি একক)",
+      "alertLevelLabel": "কম স্টক সীমা",
+      "alertLevelPlaceholder": "যেমন ২০",
+      "expiryDateLabel": "প্রারম্ভিক মেয়াদের তারিখ",
+      "expiryDatePlaceholder": "মেয়াদের তারিখ বাছাই করুন",
+      "batchNumberLabel": "ব্যাচ নম্বর",
+      "batchNumberPlaceholder": "ঐচ্ছিক",
+      "enableUomLabel": "UOM রূপান্তর চালু করুন",
+      "enableUomHint": "এই ভ্যারিয়েন্টের জন্য ক্রয় ও বিক্রয়ে ভিন্ন একক অনুমোদন করুন",
+      "purchaseUnitLabel": "ক্রয় একক",
+      "purchaseUnitPlaceholder": "একক নির্বাচন করুন",
+      "purchaseFactorLabel": "ক্রয় রূপান্তর গুণক",
+      "imagesLabel": "ভ্যারিয়েন্টের ছবি",
+      "clickToUpload": "আপলোড করতে ক্লিক করুন",
+      "orDragDrop": " অথবা টেনে এনে ছাড়ুন",
+      "uploadHint": "PNG, JPG, GIF সর্বোচ্চ ৫MB (সর্বোচ্চ ৩টি ছবি)",
+      "existingImage": "বিদ্যমান ছবি",
+      "uploaded": "আপলোড হয়েছে",
+      "cancel": "বাতিল",
+      "saveChanges": "পরিবর্তন সংরক্ষণ করুন",
+      "createModalTitle": "ভ্যারিয়েন্ট অ্যাট্রিবিউট তৈরি করুন",
+      "toasts": {
+        "selectUnit": "UOM রূপান্তরের জন্য অন্তত একটি একক (ক্রয় বা বিক্রয়) নির্বাচন করুন",
+        "purchaseFactorRequired": "ক্রয় রূপান্তর গুণক আবশ্যক",
+        "saleFactorRequired": "বিক্রয় রূপান্তর গুণক আবশ্যক",
+        "variantUpdated": "ভ্যারিয়েন্ট আপডেট হয়েছে",
+        "enterNameAndValues": "অনুগ্রহ করে অ্যাট্রিবিউটের নাম ও মান লিখুন",
+        "enterValue": "অনুগ্রহ করে অন্তত একটি মান লিখুন",
+        "attributeCreated": "ভ্যারিয়েন্ট অ্যাট্রিবিউট সফলভাবে তৈরি হয়েছে",
+        "attributeCreateFailed": "ভ্যারিয়েন্ট অ্যাট্রিবিউট তৈরি করা যায়নি"
+      }
+    },
+    "detail": {
+      "notFoundTitle": "পণ্য পাওয়া যায়নি",
+      "notFoundDescription": "আপনি যে পণ্যটি খুঁজছেন তা নেই বা সরিয়ে ফেলা হয়েছে।",
+      "close": "বন্ধ করুন",
+      "defaultVariantLabel": "ভ্যারিয়েন্ট",
+      "barcode": "বারকোড",
+      "category": "ক্যাটাগরি",
+      "sellingPrice": "বিক্রয় মূল্য",
+      "stats": {
+        "inStock": "স্টকে আছে",
+        "acrossLocations": "{count, plural, one {#টি লোকেশনে} other {#টি লোকেশনে}}",
+        "stockValue": "স্টকের মূল্য",
+        "atCostPrice": "ক্রয়মূল্যে",
+        "totalSold": "মোট বিক্রি",
+        "monthlyAvg": "গড় ~{count}/মাস",
+        "noSalesYet": "এখনও কোনো বিক্রয় নেই",
+        "revenue": "আয়",
+        "lifetimeEarnings": "সর্বকালের আয়",
+        "profitMargin": "মুনাফার হার",
+        "perUnit": "প্রতি একক {amount}"
+      },
+      "charts": {
+        "movementTitle": "স্টক পরিবর্তন",
+        "movementSubtitle": "ইন বনাম আউট ইউনিট — গত ৩০ দিন",
+        "stockIn": "স্টক ইন",
+        "stockOut": "স্টক আউট",
+        "reasonTitle": "কারণ অনুযায়ী পরিবর্তন",
+        "reasonSubtitle": "সরানো ইউনিটের অংশ",
+        "units": "ইউনিট",
+        "locationTitle": "লোকেশন অনুযায়ী স্টক",
+        "locationSubtitle": "প্রতি লোকেশনে হাতে থাকা ইউনিট",
+        "onHand": "হাতে আছে",
+        "unitsSuffix": "{value} ইউনিট",
+        "noData": "এখনও কোনো ডেটা নেই",
+        "unitsSold": "বিক্রিত ইউনিট",
+        "revenue": "আয়",
+        "grossProfit": "গ্রস মুনাফা",
+        "orders": "অর্ডার"
+      },
+      "info": {
+        "title": "পণ্যের তথ্য",
+        "productType": "পণ্যের ধরন",
+        "brand": "ব্র্যান্ড",
+        "category": "ক্যাটাগরি",
+        "unit": "একক",
+        "expiryTracking": "মেয়াদ ট্র্যাকিং",
+        "enabled": "চালু",
+        "off": "বন্ধ",
+        "expiryAlert": "মেয়াদ সতর্কতা",
+        "daysBefore": "{count} দিন আগে",
+        "lowStockAlert": "কম স্টক সতর্কতা",
+        "unitsThreshold": "≤ {count} ইউনিট",
+        "description": "বিবরণ"
+      },
+      "pricing": {
+        "title": "মূল্য নির্ধারণ",
+        "costPrice": "ক্রয়মূল্য",
+        "sellingPrice": "বিক্রয় মূল্য",
+        "mrp": "MRP",
+        "profitPerUnit": "মুনাফা/একক",
+        "salesTax": "বিক্রয় কর",
+        "purchaseTax": "ক্রয় কর",
+        "discount": "ছাড়",
+        "off": "ছাড়"
+      },
+      "storefront": {
+        "title": "অনলাইন স্টোরফ্রন্ট",
+        "listed": "তালিকাভুক্ত",
+        "yes": "হ্যাঁ",
+        "no": "না",
+        "featured": "ফিচার্ড",
+        "onlinePrice": "অনলাইন মূল্য",
+        "onlineDescription": "অনলাইন বিবরণ"
+      },
+      "timeline": {
+        "title": "টাইমলাইন",
+        "created": "তৈরি",
+        "lastUpdated": "সর্বশেষ আপডেট"
+      },
+      "variants": {
+        "title": "পণ্যের ভ্যারিয়েন্ট ({count})",
+        "cost": "খরচ: {amount}",
+        "marginSuffix": "% মার্জিন"
+      },
+      "stockCard": {
+        "title": "লোকেশন অনুযায়ী স্টক",
+        "location": "লোকেশন",
+        "shelf": "শেলফ",
+        "quantity": "পরিমাণ",
+        "noData": "কোনো স্টক ডেটা নেই"
+      },
+      "activity": {
+        "title": "স্টক কার্যক্রম",
+        "viewAll": "সব দেখুন",
+        "date": "তারিখ",
+        "type": "ধরন",
+        "location": "লোকেশন",
+        "change": "পরিবর্তন",
+        "balance": "স্থিতি",
+        "noActivity": "এখনও কোনো স্টক কার্যক্রম নেই"
+      }
+    }
+  },
+  "brands": {
+    "page": {
+      "title": "ব্র্যান্ড",
+      "subtitle": "আপনার রাখা ব্র্যান্ড, পণ্য গোষ্ঠীভুক্ত ও ফিল্টার করতে ব্যবহৃত।",
+      "allBrandsTitle": "সব ব্র্যান্ড ({count})",
+      "searchPlaceholder": "নাম দিয়ে ব্র্যান্ড খুঁজুন"
+    },
+    "columns": {
+      "name": "ব্র্যান্ডের নাম",
+      "default": "ডিফল্ট",
+      "products": "পণ্য",
+      "productsCount": "{count}টি পণ্য",
+      "status": "স্ট্যাটাস",
+      "createdDate": "তৈরির তারিখ",
+      "updatedDate": "আপডেটের তারিখ"
+    },
+    "filters": {
+      "searchLabel": "ব্র্যান্ড খুঁজুন",
+      "searchPlaceholder": "ব্র্যান্ড দিয়ে খুঁজুন...",
+      "statusLabel": "স্ট্যাটাস",
+      "statusPlaceholder": "সব স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "createdDateLabel": "তৈরির তারিখ",
+      "createdDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন",
+      "updatedDateLabel": "আপডেটের তারিখ",
+      "updatedDatePlaceholder": "তারিখ নির্বাচন করুন"
+    },
+    "form": {
+      "name": "ব্র্যান্ডের নাম",
+      "namePlaceholder": "ব্র্যান্ডের নাম লিখুন",
+      "description": "বিবরণ",
+      "descriptionPlaceholder": "ব্র্যান্ডের বিবরণ লিখুন",
+      "images": "ব্র্যান্ডের ছবি",
+      "imagesPlaceholder": "ব্র্যান্ডের ছবি আপলোড করুন",
+      "imagesDropzone": "PNG, JPG, WEBP সর্বোচ্চ ৫MB (সর্বোচ্চ ৫টি ছবি)",
+      "status": "স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "isDefault": "ডিফল্ট ব্র্যান্ড হিসেবে নির্ধারণ করুন",
+      "isDefaultDescription": "নতুন পণ্য ফর্মে আগে থেকে নির্বাচিত থাকবে"
+    },
+    "stats": {
+      "total": "মোট ব্র্যান্ড",
+      "totalDescription": "সব নিবন্ধিত ব্র্যান্ড",
+      "active": "সক্রিয় ব্র্যান্ড",
+      "activeDescription": "বর্তমানে সক্রিয়",
+      "inactive": "নিষ্ক্রিয় ব্র্যান্ড",
+      "inactiveDescription": "বর্তমানে নিষ্ক্রিয়",
+      "totalProducts": "মোট পণ্য",
+      "totalProductsDescription": "সব ব্র্যান্ড জুড়ে"
+    },
+    "card": {
+      "default": "ডিফল্ট",
+      "noDescription": "-",
+      "productsCount": "{count}টি পণ্য",
+      "edit": "সম্পাদনা",
+      "delete": "মুছুন",
+      "createdOn": "তৈরি: {date}",
+      "updatedOn": "আপডেট: {date}"
+    }
+  },
+  "categories": {
+    "page": {
+      "title": "ক্যাটাগরি",
+      "subtitle": "ক্যাটাগরি দিয়ে আপনার পণ্য সংগঠিত করুন",
+      "allCategoriesTitle": "সব ক্যাটাগরি ({count})",
+      "searchPlaceholder": "নাম দিয়ে ক্যাটাগরি খুঁজুন"
+    },
+    "columns": {
+      "name": "ক্যাটাগরির নাম",
+      "default": "ডিফল্ট",
+      "products": "পণ্য",
+      "productsCount": "{count}টি পণ্য",
+      "status": "স্ট্যাটাস",
+      "createdDate": "তৈরির তারিখ",
+      "updatedDate": "আপডেটের তারিখ"
+    },
+    "filters": {
+      "searchLabel": "ক্যাটাগরি খুঁজুন",
+      "searchPlaceholder": "ক্যাটাগরির নাম দিয়ে খুঁজুন...",
+      "statusLabel": "স্ট্যাটাস",
+      "statusPlaceholder": "সব স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "createdDateLabel": "তৈরির তারিখ",
+      "createdDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন",
+      "updatedDateLabel": "আপডেটের তারিখ",
+      "updatedDatePlaceholder": "তারিখ নির্বাচন করুন"
+    },
+    "form": {
+      "name": "ক্যাটাগরির নাম",
+      "namePlaceholder": "ক্যাটাগরির নাম লিখুন",
+      "description": "বিবরণ",
+      "descriptionPlaceholder": "ক্যাটাগরির বিবরণ লিখুন",
+      "status": "স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "isDefault": "ডিফল্ট ক্যাটাগরি হিসেবে নির্ধারণ করুন",
+      "isDefaultDescription": "নতুন পণ্য ফর্মে আগে থেকে নির্বাচিত থাকবে"
+    },
+    "stats": {
+      "total": "মোট ক্যাটাগরি",
+      "totalDescription": "সব নিবন্ধিত ক্যাটাগরি",
+      "active": "সক্রিয়",
+      "activeDescription": "বর্তমানে সক্রিয়",
+      "inactive": "নিষ্ক্রিয়",
+      "inactiveDescription": "বর্তমানে নিষ্ক্রিয়",
+      "totalProducts": "মোট পণ্য",
+      "totalProductsDescription": "সব ক্যাটাগরি জুড়ে"
+    },
+    "card": {
+      "default": "ডিফল্ট",
+      "noDescription": "কোনো বিবরণ নেই",
+      "productsCount": "{count}টি পণ্য",
+      "edit": "সম্পাদনা",
+      "delete": "মুছুন",
+      "createdOn": "তৈরি: {date}",
+      "updatedOn": "আপডেট: {date}"
+    }
+  },
+  "units": {
+    "page": {
+      "title": "একক",
+      "subtitle": "আপনার পণ্য ও ইনভেন্টরিতে ব্যবহৃত পরিমাপের একক।",
+      "allUnitsTitle": "সব একক ({count})",
+      "searchPlaceholder": "নাম বা সংক্ষিপ্ত নাম দিয়ে একক খুঁজুন..."
+    },
+    "form": {
+      "name": "এককের নাম",
+      "namePlaceholder": "এককের নাম লিখুন",
+      "shortName": "সংক্ষিপ্ত নাম",
+      "shortNamePlaceholder": "যেমন pcs, kg",
+      "status": "স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "isDefault": "ডিফল্ট একক হিসেবে নির্ধারণ করুন",
+      "isDefaultDescription": "নতুন পণ্য ফর্মে আগে থেকে নির্বাচিত থাকবে"
+    },
+    "filters": {
+      "searchLabel": "একক খুঁজুন",
+      "searchPlaceholder": "একক খুঁজুন...",
+      "statusLabel": "স্ট্যাটাস",
+      "statusPlaceholder": "সব স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়"
+    },
+    "card": {
+      "active": "সক্রিয়",
+      "inactive": "নিষ্ক্রিয়",
+      "default": "ডিফল্ট",
+      "abbreviation": "সংক্ষিপ্ত রূপ",
+      "notSet": "নির্ধারিত নয়",
+      "createdOn": "তৈরি {date}",
+      "inUse": "ব্যবহৃত হচ্ছে",
+      "disabled": "নিষ্ক্রিয়",
+      "edit": "সম্পাদনা",
+      "delete": "মুছুন"
+    }
+  },
+  "variants": {
+    "page": {
+      "title": "ভ্যারিয়েন্ট",
+      "subtitle": "একই পণ্যের বিকল্প — যেমন আকার, মাত্রা, বা প্যাক।",
+      "allVariantsTitle": "সব ভ্যারিয়েন্ট ({count})",
+      "searchPlaceholder": "নাম, মান দিয়ে অ্যাট্রিবিউট খুঁজুন",
+      "entityName": "ভ্যারিয়েন্ট অ্যাট্রিবিউট"
+    },
+    "columns": {
+      "name": "অ্যাট্রিবিউটের নাম",
+      "values": "মান",
+      "status": "স্ট্যাটাস",
+      "createdDate": "তৈরির তারিখ",
+      "updatedDate": "আপডেটের তারিখ"
+    },
+    "filters": {
+      "searchLabel": "ক্যাটাগরি খুঁজুন",
+      "searchPlaceholder": "ক্যাটাগরির নাম দিয়ে খুঁজুন...",
+      "statusLabel": "স্ট্যাটাস",
+      "statusPlaceholder": "সব স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "createdDateLabel": "তৈরির তারিখ",
+      "createdDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন",
+      "updatedDateLabel": "আপডেটের তারিখ",
+      "updatedDatePlaceholder": "তারিখ নির্বাচন করুন"
+    },
+    "form": {
+      "name": "অ্যাট্রিবিউটের নাম",
+      "namePlaceholder": "অ্যাট্রিবিউটের নাম লিখুন (যেমন রঙ, আকার, উপাদান)",
+      "values": "অ্যাট্রিবিউটের মান",
+      "valuesPlaceholder": "কমা দিয়ে আলাদা করে মান লিখুন (যেমন লাল, নীল, সবুজ)",
+      "valuesHelper": "একাধিক মান কমা দিয়ে আলাদা করুন",
+      "status": "স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়"
+    },
+    "stats": {
+      "total": "মোট অ্যাট্রিবিউট",
+      "totalDescription": "সব ভ্যারিয়েন্ট অ্যাট্রিবিউট",
+      "active": "সক্রিয়",
+      "activeDescription": "বর্তমানে সক্রিয়",
+      "inactive": "নিষ্ক্রিয়",
+      "inactiveDescription": "বর্তমানে নিষ্ক্রিয়",
+      "totalValues": "মোট মান",
+      "totalValuesDescription": "সব অ্যাট্রিবিউট জুড়ে"
+    },
+    "card": {
+      "valuesCount": "{count, plural, one {#টি মান} other {#টি মান}}",
+      "edit": "সম্পাদনা",
+      "delete": "মুছুন",
+      "createdOn": "তৈরি: {date}",
+      "updatedOn": "আপডেট: {date}"
+    }
+  }
+}

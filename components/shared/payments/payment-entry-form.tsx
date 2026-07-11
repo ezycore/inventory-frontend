@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { NumberField } from "@/ui/components/number-field";
@@ -44,6 +46,8 @@ export function PaymentEntryForm({
   onSubmit,
   credit,
 }: PaymentEntryFormProps) {
+  const t = useTranslations("common.payments");
+  const tActions = useTranslations("common.actions");
   if (!isAccountsEnabled || doc.dueAmount <= 0 || doc.status === "cancelled") return null;
 
   const creditEnabled = credit?.enabled ?? false;
@@ -55,9 +59,9 @@ export function PaymentEntryForm({
     <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-medium">Payment entry</div>
+          <div className="text-sm font-medium">{t("entryTitle")}</div>
           <div className="text-sm text-muted-foreground">
-            Due amount: {formatCurrency(doc.dueAmount)}
+            {t("dueAmountLine", { amount: formatCurrency(doc.dueAmount) })}
           </div>
         </div>
         <Badge variant="outline" className="capitalize">
@@ -73,9 +77,10 @@ export function PaymentEntryForm({
             </Label>
             <p className="text-xs text-muted-foreground">
               {credit.description ??
-                `Available: ${formatCurrency(credit.available)} — applies up to ${formatCurrency(
-                  maxPayableViaCredit,
-                )}`}
+                t("creditAvailableUpTo", {
+                  available: formatCurrency(credit.available),
+                  max: formatCurrency(maxPayableViaCredit),
+                })}
             </p>
           </div>
           <Switch
@@ -92,7 +97,7 @@ export function PaymentEntryForm({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="pay-amount">Payment Amount</Label>
+          <Label htmlFor="pay-amount">{t("paymentAmount")}</Label>
           <NumberField
             id="pay-amount"
             precision={2}
@@ -100,13 +105,13 @@ export function PaymentEntryForm({
             max={maxAmount}
             value={paymentAmount === "" ? null : Number(paymentAmount)}
             onChange={(v) => setPaymentAmount(v == null ? "" : String(v))}
-            placeholder="Enter amount"
+            placeholder={t("enterAmount")}
           />
         </div>
 
         {!creditEnabled && (
           <div className="space-y-2">
-              <Label htmlFor="pay-account">Payment Account</Label>
+              <Label htmlFor="pay-account">{t("paymentAccount")}</Label>
               <SimpleSelect
                 id="pay-account"
                 value={paymentAccountId}
@@ -115,19 +120,19 @@ export function PaymentEntryForm({
                   value: a._id,
                   label: `${a.name}${a.type ? ` (${a.type})` : ""}`,
                 }))}
-                placeholder="Select account"
+                placeholder={t("selectAccount")}
                 disabled={isSubmitting}
               />
             </div>
         )}
 
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="pay-notes">Notes</Label>
+          <Label htmlFor="pay-notes">{t("notes")}</Label>
           <Textarea
             id="pay-notes"
             value={paymentNotes}
             onChange={(e) => setPaymentNotes(e.target.value)}
-            placeholder="Add notes about this payment..."
+            placeholder={t("notesPlaceholder")}
             rows={2}
           />
         </div>
@@ -135,13 +140,13 @@ export function PaymentEntryForm({
 
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
-          Cancel
+          {tActions("cancel")}
         </Button>
         <Button
           onClick={onSubmit}
           disabled={isSubmitting || !(Number(paymentAmount) > 0) || (!creditEnabled && !paymentAccountId)}
         >
-          {isSubmitting ? "Processing..." : "Record Payment"}
+          {isSubmitting ? t("processing") : t("recordPayment")}
         </Button>
       </div>
     </div>

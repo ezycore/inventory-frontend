@@ -2,6 +2,8 @@
 // coding-standard: maintained
 
 import { format as formatDate } from 'date-fns';
+import { useTranslations } from 'next-intl';
+import type { Translator } from '@/i18n/config';
 import { SimpleTable, type SimpleColumn } from '@/ui/components/simple-table';
 import {
   DetailsKv,
@@ -37,6 +39,7 @@ export function PurchaseStats({
   order: PurchaseOrder;
   purchaseReturns: PurchaseReturn[];
 }) {
+  const t = useTranslations('purchases.history');
   const { format: fmt } = useCurrency();
   const refunded = purchaseReturns.reduce(
     (sum, ret) => sum + (ret.totalRefundAmount ?? 0),
@@ -46,23 +49,23 @@ export function PurchaseStats({
 
   return (
     <StatStrip>
-      <StatTile label="Invoice total" value={fmt(order.invoiceAmount ?? 0)} />
+      <StatTile label={t('statInvoiceTotal')} value={fmt(order.invoiceAmount ?? 0)} />
       <StatTile
-        label="Paid"
+        label={t('statPaid')}
         value={fmt(order.paidAmount ?? 0)}
         valueClassName="text-green-600"
       />
       <StatTile
-        label="Due"
+        label={t('statDue')}
         value={fmt(due)}
         valueClassName={due > 0 ? 'text-red-600' : 'text-green-600'}
       />
       {refunded > 0 && (
         <StatTile
-          label="Refunded"
+          label={t('statRefunded')}
           value={fmt(refunded)}
           valueClassName="text-red-600"
-          sub={`${purchaseReturns.length} return${purchaseReturns.length === 1 ? '' : 's'}`}
+          sub={t('returnCount', { count: purchaseReturns.length })}
         />
       )}
     </StatStrip>
@@ -81,31 +84,37 @@ function itemSubline(
   fmt: (n: number) => string,
   variant: ItemsVariant,
   canViewCosts: boolean,
+  /** Bound to the `purchases.history` namespace. */
+  t: Translator,
 ): string {
   const parts: string[] = [];
   if (item.variantName) parts.push(item.variantName);
   if (variant === 'order') {
     if (canViewCosts && item.costPrice != null) {
-      parts.push(`Cost ${fmt(item.costPrice)}/unit`);
+      parts.push(t('costPerUnit', { amount: fmt(item.costPrice) }));
     }
-    if ((item.receivedQuantity ?? 0) > 0) parts.push(`Received ${item.receivedQuantity}`);
+    if ((item.receivedQuantity ?? 0) > 0) parts.push(t('receivedCount', { count: item.receivedQuantity }));
   } else {
     if (canViewCosts && item.costPrice != null) {
       parts.push(
-        `Cost ${fmt(item.costPrice)} × ${item.quantity} = ${fmt(item.costPrice * item.quantity)}`,
+        t('costTimes', {
+          price: fmt(item.costPrice),
+          qty: item.quantity,
+          total: fmt(item.costPrice * item.quantity),
+        }),
       );
       // The discount figure is derived from cost, so it shares the gate.
       const discount = (item.price - item.costPrice) * item.quantity;
-      if (discount > 0) parts.push(`Disc ${fmt(discount)}`);
+      if (discount > 0) parts.push(t('discAmount', { amount: fmt(discount) }));
     }
-    parts.push(`Received ${item.receivedQuantity ?? 0}/${item.quantity}`);
+    parts.push(t('receivedOf', { received: item.receivedQuantity ?? 0, qty: item.quantity }));
   }
   return parts.join(' · ');
 }
 
 export function PurchaseItemsTable({
   order,
-  totalLabel = 'Invoice total',
+  totalLabel,
   documentTotal,
   variant = 'history',
 }: {
@@ -115,8 +124,10 @@ export function PurchaseItemsTable({
   documentTotal?: number;
   variant?: ItemsVariant;
 }) {
+  const t = useTranslations('purchases.history');
   const { format: fmt } = useCurrency();
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
+  const resolvedTotalLabel = totalLabel ?? t('invoiceTotalLabel');
   // Added (exclusive) vs in-price (inclusive, informational) tax of the order.
   const { addedTax, includedTax } = splitLineTax(order.items);
   const hasLineTax = addedTax > 0 || includedTax > 0;
@@ -128,24 +139,24 @@ export function PurchaseItemsTable({
   const columns: SimpleColumn<PurchaseItem>[] = [
     {
       key: 'item',
-      header: 'Item',
+      header: t('colItem'),
       cell: (item) => (
         <ItemCell
-          name={item.productName || item.product?.name || 'Product'}
-          sub={itemSubline(item, fmt, variant, canViewCosts)}
+          name={item.productName || item.product?.name || t('itemsHeader')}
+          sub={itemSubline(item, fmt, variant, canViewCosts, t)}
         />
       ),
     },
     {
       key: 'qty',
-      header: 'Qty',
+      header: t('colQty'),
       align: 'right',
       cell: (item) =>
         `${item.quantity}${item.purchaseUnitName ? ` ${item.purchaseUnitName}` : ''}`,
     },
     {
       key: 'units',
-      header: 'Units',
+      header: t('colUnits'),
       align: 'right',
       cell: (item) =>
         item.conversionFactor && item.conversionFactor > 1
@@ -154,22 +165,24 @@ export function PurchaseItemsTable({
     },
     {
       key: 'price',
-      header: 'Price',
+      header: t('colPrice'),
       align: 'right',
       cell: (item) => fmt(item.price),
     },
     {
       key: 'tax',
-      header: 'Tax',
+      header: t('colTax'),
       align: 'right',
       cell: (item) =>
         item.taxRate
-          ? `${item.taxRate}%${item.taxType === 'inclusive' ? ' incl.' : ''} · ${fmt(item.taxAmount ?? 0)}`
+          ? item.taxType === 'inclusive'
+            ? t('taxCellIncl', { rate: item.taxRate, amount: fmt(item.taxAmount ?? 0) })
+            : t('taxCell', { rate: item.taxRate, amount: fmt(item.taxAmount ?? 0) })
           : '—',
     },
     {
       key: 'total',
-      header: 'Total',
+      header: t('colLineTotal'),
       align: 'right',
       cellClassName: 'font-semibold',
       cell: (item) => fmt(item.subtotal ?? item.price * item.quantity),
@@ -177,9 +190,9 @@ export function PurchaseItemsTable({
   ];
 
   const totalsRows: TotalsRow[] = [
-    { label: 'Subtotal', value: fmt(order.subtotal) },
+    { label: t('subtotal'), value: fmt(order.subtotal) },
     {
-      label: 'Additional discount',
+      label: t('additionalDiscount'),
       value:
         (order.additionalDiscount ?? 0) > 0
           ? `−${fmt(order.additionalDiscount!)}`
@@ -187,20 +200,20 @@ export function PurchaseItemsTable({
     },
     ...(hasLineTax
       ? [
-          ...(addedTax > 0 ? [{ label: 'Tax (added)', value: fmt(addedTax) }] : []),
+          ...(addedTax > 0 ? [{ label: t('taxAdded'), value: fmt(addedTax) }] : []),
           ...(includedTax > 0
-            ? [{ label: 'Tax (in price)', value: fmt(includedTax), muted: true }]
+            ? [{ label: t('taxInPrice'), value: fmt(includedTax), muted: true }]
             : []),
         ]
       : (order.taxTotal ?? 0) > 0
-        ? [{ label: 'Tax', value: fmt(order.taxTotal!) }]
+        ? [{ label: t('tax'), value: fmt(order.taxTotal!) }]
         : []),
   ];
 
   return (
     <div className="space-y-3">
       <div className="text-sm font-medium">
-        Items{' '}
+        {t('itemsHeader')}{' '}
         <span className="font-normal text-muted-foreground">({order.items.length})</span>
       </div>
       <div className="overflow-x-auto rounded-lg border">
@@ -212,10 +225,10 @@ export function PurchaseItemsTable({
         />
       </div>
       <TotalsBlock
-        meta={`${order.items.length} product${order.items.length === 1 ? '' : 's'} · ${totalUnits} unit${totalUnits === 1 ? '' : 's'}`}
+        meta={t('productUnitMeta', { products: order.items.length, units: totalUnits })}
         rows={totalsRows}
         total={{
-          label: totalLabel,
+          label: resolvedTotalLabel,
           value: fmt(documentTotal ?? order.invoiceAmount ?? 0),
         }}
       />
@@ -226,20 +239,21 @@ export function PurchaseItemsTable({
 // ── Metadata ─────────────────────────────────────────────────────────────────
 
 export function PurchaseDetailsKv({ order }: { order: PurchaseOrder }) {
+  const t = useTranslations('purchases.history');
   return (
     <DetailsKv
       rows={[
         {
-          label: 'Supplier',
-          value: order.supplierId?.name ?? order.supplier?.name ?? 'Unknown Supplier',
+          label: t('kvSupplier'),
+          value: order.supplierId?.name ?? order.supplier?.name ?? t('unknownSupplier'),
         },
-        { label: 'Created by', value: getCreatedByName(order) },
+        { label: t('kvCreatedBy'), value: getCreatedByName(order) },
         {
-          label: 'Created at',
+          label: t('kvCreatedAt'),
           value: formatDate(new Date(order.createdAt), 'dd MMM yyyy hh:mm aa'),
         },
         {
-          label: 'Updated at',
+          label: t('kvUpdatedAt'),
           value: formatDate(new Date(order.updatedAt), 'dd MMM yyyy hh:mm aa'),
         },
       ]}

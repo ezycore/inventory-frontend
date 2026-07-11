@@ -1,9 +1,12 @@
 'use client'
+// coding-standard: maintained
 
+import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@ui/components/button'
 import { Badge } from '@ui/components/badge'
 import { Calendar, Info } from 'lucide-react'
 import type { DashboardPeriod, DashboardOverview } from '@/services/api'
+import type { AppLocale } from '@/i18n/config'
 import { PERIOD_OPTIONS, formatPeriodLabel } from './helpers'
 import { DatePicker } from '@/ui/components/date-picker'
 
@@ -26,6 +29,9 @@ export function PeriodFilter({
   setCustomEnd,
   periodInfo,
 }: PeriodFilterProps) {
+  const tPeriod = useTranslations('reports.period')
+  const t = useTranslations('dashboard.period')
+  const locale = useLocale() as AppLocale
   return (
     <div className="flex flex-wrap items-center gap-2">
       {PERIOD_OPTIONS.map((opt) => (
@@ -40,7 +46,7 @@ export function PeriodFilter({
             }`}
         >
           {opt.value === 'custom' && <Calendar className="h-3 w-3 mr-1" />}
-          {opt.label}
+          {tPeriod(opt.labelKey)}
         </Button>
       ))}
       {period === 'custom' && (
@@ -50,15 +56,15 @@ export function PeriodFilter({
             onSelect={setCustomStart}
             outputFormat="yyyy-MM-dd"
             timezone="Asia/Dhaka"
-            placeholder="Start date"
+            placeholder={t('startDate')}
             className="w-40 h-8"
           />
 
-          <span className="text-xs text-muted-foreground">to</span>
+          <span className="text-xs text-muted-foreground">{tPeriod('to')}</span>
           <DatePicker
             date={customEnd}
             onSelect={setCustomEnd}
-            placeholder="End date"
+            placeholder={t('endDate')}
             className='w-40 h-8'
             outputFormat="yyyy-MM-dd"
             timezone="Asia/Dhaka"
@@ -68,7 +74,7 @@ export function PeriodFilter({
       {periodInfo && (
         <Badge variant="secondary" className="text-[11px] h-8 font-normal gap-1">
           <Info className="h-3 w-3" />
-          {formatPeriodLabel(periodInfo)}
+          {formatPeriodLabel(periodInfo, locale)}
         </Badge>
       )}
     </div>

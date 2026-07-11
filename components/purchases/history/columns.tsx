@@ -1,4 +1,6 @@
+// coding-standard: maintained
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Translator } from "@/i18n/config";
 import { Eye, CreditCard, Copy, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -12,14 +14,17 @@ import { statusConfig } from "../status-config";
 
 interface GetHistoryColumnsParams {
   formatCurrency: (n: number) => string;
+  /** Bound to the `purchases` namespace. */
+  t: Translator;
 }
 
 export const getPurchaseHistoryColumns = ({
   formatCurrency,
+  t,
 }: GetHistoryColumnsParams): ColumnDef<PurchaseOrder>[] => [
   {
     accessorKey: "orderNumber",
-    header: "Invoice #",
+    header: t("history.colInvoiceNo"),
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span className="font-mono font-medium">
@@ -31,9 +36,9 @@ export const getPurchaseHistoryColumns = ({
           className="h-6 w-6 p-0"
           onClick={() => {
             navigator.clipboard.writeText(row.original.orderNumber);
-            toast.success("Invoice number copied");
+            toast.success(t("history.invoiceCopied"));
           }}
-          title="Copy invoice number"
+          title={t("history.copyInvoiceTooltip")}
         >
           <Copy className="h-3.5 w-3.5" />
         </Button>
@@ -42,12 +47,12 @@ export const getPurchaseHistoryColumns = ({
   },
   {
     accessorKey: "createdAt",
-    header: "Purchase Date",
+    header: t("history.colPurchaseDate"),
     cell: ({ row }) => <DateCell value={row.original.createdAt} />,
   },
   {
     accessorKey: "supplierId",
-    header: "Supplier",
+    header: t("history.colSupplier"),
     cell: ({ row }) => {
       const supplier =
         (row.original as PurchaseOrder).supplierId ||
@@ -58,14 +63,14 @@ export const getPurchaseHistoryColumns = ({
           : undefined;
       return (
         <span className="font-medium">
-          {name || <span className="text-muted-foreground">Walk-in</span>}
+          {name || <span className="text-muted-foreground">{t("history.walkIn")}</span>}
         </span>
       );
     },
   },
   {
     accessorKey: "invoiceAmount",
-    header: () => <span className="flex justify-end">Total</span>,
+    header: () => <span className="flex justify-end">{t("history.colTotal")}</span>,
     cell: ({ row }) => (
       <span className="flex justify-end font-medium">
         {formatCurrency(row.original.invoiceAmount || 0)}
@@ -74,7 +79,7 @@ export const getPurchaseHistoryColumns = ({
   },
   {
     accessorKey: "paidAmount",
-    header: () => <span className="flex justify-end">Paid</span>,
+    header: () => <span className="flex justify-end">{t("history.colPaid")}</span>,
     cell: ({ row }) => (
       <span className="flex justify-end text-green-600">
         {formatCurrency(row.original.paidAmount || 0)}
@@ -83,7 +88,7 @@ export const getPurchaseHistoryColumns = ({
   },
   {
     accessorKey: "dueAmount",
-    header: () => <span className="flex justify-end">Due</span>,
+    header: () => <span className="flex justify-end">{t("history.colDue")}</span>,
     cell: ({ row }) => (
       <span
         className={`flex justify-end ${
@@ -98,20 +103,20 @@ export const getPurchaseHistoryColumns = ({
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: t("history.colStatus"),
     cell: ({ row }) => {
       const status = row.original.status;
       const config = statusConfig[status];
       return (
         <Badge variant={config.variant} className="w-fit">
-          {config.label}
+          {t(`status.${status}`)}
         </Badge>
       );
     },
   },
   {
     accessorKey: "createdBy",
-    header: "Created By",
+    header: t("history.colCreatedBy"),
     cell: ({ row }) => {
       const cb = row.original.createdBy;
       if (cb && typeof cb === "object") {
@@ -137,6 +142,8 @@ interface GetHistoryActionsParams {
   isAccountsEnabled: boolean;
   onEditDraft?: (order: PurchaseOrder) => void;
   onDeleteDraft?: (order: PurchaseOrder) => void;
+  /** Bound to the `purchases` namespace. */
+  t: Translator;
 }
 
 export const getPurchaseHistoryActions = ({
@@ -145,13 +152,14 @@ export const getPurchaseHistoryActions = ({
   isAccountsEnabled,
   onEditDraft,
   onDeleteDraft,
+  t,
 }: GetHistoryActionsParams): CustomAction[] => [
   {
     type: "custom",
     placement: "cell",
     icon: <Eye className="h-4 w-4" />,
-    label: "Summary",
-    tooltip: "View purchase summary and items",
+    label: t("history.actionSummary"),
+    tooltip: t("history.actionSummaryTooltip"),
     onClick: (row) => onViewSummary(row as PurchaseOrder),
   },
   ...(isAccountsEnabled
@@ -160,8 +168,8 @@ export const getPurchaseHistoryActions = ({
           type: "custom" as const,
           placement: "cell" as const,
           icon: <CreditCard className="h-4 w-4" />,
-          label: "Payment",
-          tooltip: "Record payment",
+          label: t("history.actionPayment"),
+          tooltip: t("history.actionPaymentTooltip"),
           onClick: (row: unknown) => onMakePayment(row as PurchaseOrder),
           disabled: (row: unknown) => {
             const order = row as PurchaseOrder;
@@ -180,8 +188,8 @@ export const getPurchaseHistoryActions = ({
           type: "custom" as const,
           placement: "cell" as const,
           icon: <Pencil className="h-4 w-4" />,
-          label: "Edit draft",
-          tooltip: "Resume editing this draft",
+          label: t("history.actionEditDraft"),
+          tooltip: t("history.actionEditDraftTooltip"),
           onClick: (row: unknown) => onEditDraft(row as PurchaseOrder),
           hidden: (row: unknown) => (row as PurchaseOrder).status !== "draft",
         },
@@ -193,8 +201,8 @@ export const getPurchaseHistoryActions = ({
           type: "custom" as const,
           placement: "cell" as const,
           icon: <Trash2 className="h-4 w-4" />,
-          label: "Delete draft",
-          tooltip: "Permanently delete this draft",
+          label: t("history.actionDeleteDraft"),
+          tooltip: t("history.actionDeleteDraftTooltip"),
           onClick: (row: unknown) => onDeleteDraft(row as PurchaseOrder),
           hidden: (row: unknown) => (row as PurchaseOrder).status !== "draft",
         },

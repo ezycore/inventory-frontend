@@ -1,8 +1,10 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { navItems } from "@/constants/navItem";
 import { filterNavItems } from "@/lib/nav-utils";
+import { useNavLabels } from "@/hooks/use-nav-labels";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Card, CardContent } from "@/ui/components/card";
 import PageHeader from "@/ui/components/header";
@@ -17,6 +19,8 @@ import { useMemo } from "react";
  * role, permissions, and enabled features.
  */
 export default function ReportsPage() {
+  const t = useTranslations("reports.landing");
+  const { itemLabel } = useNavLabels();
   const user = useAuthStore((state) => state.user);
 
   const reports = useMemo(() => {
@@ -34,8 +38,8 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Reports"
-        subTitle="Analyze sales, purchases, inventory, and finances — or export your data."
+        title={t("title")}
+        subTitle={t("subtitle")}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {reports.map((report) => (
@@ -45,7 +49,7 @@ export default function ReportsPage() {
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <DynamicIcon name={report.icon as any} className="h-5 w-5" />
                 </div>
-                <span className="flex-1 font-medium">{report.title}</span>
+                <span className="flex-1 font-medium">{itemLabel(report.title)}</span>
                 <ChevronRightIcon className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
               </CardContent>
             </Card>

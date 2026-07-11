@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { useRemoveAvatar, useUpdateAvatar } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
@@ -29,6 +31,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 export function ProfileHeader() {
+  const t = useTranslations("settings.profile.header");
   const { user: storedUser } = useAuthStore();
   const user = storedUser || {
     firstName: "-",
@@ -81,13 +84,13 @@ export function ProfileHeader() {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image file");
+      toast.error(t("invalidImageType"));
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size should be less than 5MB");
+      toast.error(t("imageTooLarge"));
       return;
     }
 
@@ -142,7 +145,7 @@ export function ProfileHeader() {
                     variant="secondary"
                     className="h-8 w-8 rounded-full shadow-lg"
                     onClick={() => fileInputRef.current?.click()}
-                    title={user.avatar ? "Change photo" : "Upload photo"}
+                    title={user.avatar ? t("changePhoto") : t("uploadPhoto")}
                   >
                     <Camera className="h-4 w-4" />
                   </Button>
@@ -153,7 +156,7 @@ export function ProfileHeader() {
                       variant="destructive"
                       className="h-8 w-8 rounded-full shadow-lg"
                       onClick={() => setShowRemoveDialog(true)}
-                      title="Remove photo"
+                      title={t("removePhoto")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -217,14 +220,13 @@ export function ProfileHeader() {
       <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Profile Picture?</AlertDialogTitle>
+            <AlertDialogTitle>{t("removeDialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove your profile picture? You can
-              always upload a new one later.
+              {t("removeDialogDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() =>
                 removeAvatar.mutate(undefined, {
@@ -233,7 +235,7 @@ export function ProfileHeader() {
               }
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Remove
+              {t("remove")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

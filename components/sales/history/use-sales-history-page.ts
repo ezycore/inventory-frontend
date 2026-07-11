@@ -1,6 +1,7 @@
 'use client';
-
+// coding-standard: maintained
 import { useState, useMemo, useCallback, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -25,6 +26,7 @@ import { getSalesHistoryColumns, getSalesHistoryActions } from './columns';
 // ── Hook ────────────────────────────────────────────────────────────
 
 export function useSalesHistoryPage() {
+  const t = useTranslations('sales.history');
   // ── Auth & features ───────────────────────────────────────────
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
@@ -102,9 +104,9 @@ export function useSalesHistoryPage() {
         setDrawerOpen(true);
       }
     } catch {
-      toast.error('Failed to load sale');
+      toast.error(t('toasts.loadSaleFailed'));
     }
-  }, []);
+  }, [t]);
 
   const handleEditDraft = useCallback((sale: Sale) => {
     router.push(`/sales?draftId=${sale._id}`);
@@ -127,16 +129,16 @@ export function useSalesHistoryPage() {
   const handlePaymentSubmit = useCallback(async () => {
     if (!selectedSale) return;
     if (!useCreditBalance && !paymentAccountId) {
-      toast.error('Please select a payment account');
+      toast.error(t('toasts.selectPaymentAccount'));
       return;
     }
     const amount = parseFloat(paymentAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error('Please enter a valid amount');
+      toast.error(t('toasts.invalidAmount'));
       return;
     }
     if (amount > selectedSale.dueAmount) {
-      toast.error('Payment amount cannot exceed due amount');
+      toast.error(t('toasts.exceedsDue'));
       return;
     }
     try {
@@ -150,14 +152,14 @@ export function useSalesHistoryPage() {
       setDrawerMode('summary');
       setPaymentAmount('');
       setUseCreditBalance(false);
-      toast.success('Payment recorded successfully');
+      toast.success(t('toasts.paymentRecorded'));
       refetch();
     } catch {
       // Handled by mutation's onError
     }
   }, [
     selectedSale, paymentAmount, paymentAccountId,
-    paymentNotes, useCreditBalance, addPaymentMutation, refetch,
+    paymentNotes, useCreditBalance, addPaymentMutation, refetch, t,
   ]);
 
   // ── Filter config ─────────────────────────────────────────────
@@ -166,21 +168,21 @@ export function useSalesHistoryPage() {
       fields: [
         {
           name: 'status',
-          label: 'Status',
+          label: t('filters.status'),
           type: 'select' as const,
           options: [
-            { label: 'Draft', value: 'draft' },
-            { label: 'Paid', value: 'paid' },
-            { label: 'Partial', value: 'partial' },
-            { label: 'Due', value: 'due' },
-            { label: 'Cancelled', value: 'cancelled' },
+            { label: t('filters.draft'), value: 'draft' },
+            { label: t('filters.paid'), value: 'paid' },
+            { label: t('filters.partial'), value: 'partial' },
+            { label: t('filters.due'), value: 'due' },
+            { label: t('filters.cancelled'), value: 'cancelled' },
           ],
         },
         {
           name: 'search',
-          label: 'Search',
+          label: t('filters.search'),
           type: 'text' as const,
-          placeholder: 'Invoice number, notes...',
+          placeholder: t('filters.searchPlaceholder'),
         },
       ] as FilterField[],
       onApply: (newFilters: Record<string, unknown>) => {
@@ -192,18 +194,18 @@ export function useSalesHistoryPage() {
         setPage(1);
       },
     }),
-    [],
+    [t],
   );
 
   // ── Table columns & actions (memoised) ────────────────────────
   const columns = useMemo(
-    () => getSalesHistoryColumns(formatCurrency, isAccountsEnabled, handleViewSummary, handleMakePayment),
-    [formatCurrency, isAccountsEnabled, handleViewSummary, handleMakePayment],
+    () => getSalesHistoryColumns(formatCurrency, isAccountsEnabled, handleViewSummary, handleMakePayment, t),
+    [formatCurrency, isAccountsEnabled, handleViewSummary, handleMakePayment, t],
   );
 
   const customActions = useMemo(
-    () => getSalesHistoryActions(isAccountsEnabled, handleViewSummary, handleMakePayment, handleEditDraft, handleDeleteDraft),
-    [isAccountsEnabled, handleViewSummary, handleMakePayment, handleEditDraft, handleDeleteDraft],
+    () => getSalesHistoryActions(isAccountsEnabled, handleViewSummary, handleMakePayment, handleEditDraft, handleDeleteDraft, t),
+    [isAccountsEnabled, handleViewSummary, handleMakePayment, handleEditDraft, handleDeleteDraft, t],
   );
 
   // ── Public API ────────────────────────────────────────────────

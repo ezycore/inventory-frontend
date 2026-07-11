@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Minus, Package, Plus } from 'lucide-react';
 import {
   Card,
@@ -153,7 +154,7 @@ function ComboReturnHeader({
 }
 
 export function ReturnItemsCard({
-  description = 'Choose which items to return and specify quantities',
+  description,
   items,
   totalReturnQty,
   totalRefundAmount,
@@ -163,6 +164,8 @@ export function ReturnItemsCard({
   onRefundChange,
   getItemKey,
 }: ReturnItemsCardProps) {
+  const t = useTranslations('common.returns');
+  const resolvedDescription = description ?? t('itemsDefaultDescription');
   const groups = groupReturnRows(items);
 
   const rowKey = (entry: IndexedItem) =>
@@ -179,7 +182,7 @@ export function ReturnItemsCard({
           <Package className="h-5 w-5 text-primary" />
           Select Items to Return
         </CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardDescription>{resolvedDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -224,7 +227,7 @@ export function ReturnItemsCard({
         {totalReturnQty > 0 && (
           <div className="mt-4 p-4 bg-muted rounded-lg">
             <div className="flex justify-between text-lg font-medium">
-              <span>Total Return:</span>
+              <span>{t('totalReturn')}</span>
               <span>
                 {totalReturnQty} items &bull;{' '}
                 {formatCurrency(totalRefundAmount)}

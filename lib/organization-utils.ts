@@ -1,3 +1,4 @@
+// coding-standard: maintained
 /**
  * Organization Utilities
  * Handles subdomain detection and organization slug management
@@ -168,7 +169,7 @@ export function getOrganizationSlug(): string | null {
  * @param manualSlug - Optional manual slug from form input
  * @returns Enhanced form data with organizationSlug populated
  */
-export function withOrganizationSlug<T extends Record<string, any>>(
+export function withOrganizationSlug<T extends object>(
   formData: T,
   manualSlug?: string,
 ): T & { organizationSlug?: string } {
@@ -272,4 +273,15 @@ export function workspaceUrl(slug: string, path = "/"): string {
   const root = getRootDomain();
   if (!root || typeof window === "undefined") return normalizedPath;
   return `${window.location.protocol}//${slug}.${root}${normalizedPath}`;
+}
+
+/**
+ * URL of the platform signup page. Signup lives on the shared platform host
+ * (`app.<root>`, e.g. "https://app.ezycore.com/signup") — a workspace subdomain
+ * or custom domain must cross origins to reach it. Falls back to the relative
+ * path when no root domain is configured (local dev / staging single-host).
+ */
+export function signupUrl(): string {
+  const root = getRootDomain();
+  return root ? `https://app.${root}/signup` : "/signup";
 }

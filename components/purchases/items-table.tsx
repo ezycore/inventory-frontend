@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/ui/components/card";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -53,6 +55,7 @@ export const ItemsTable: FC<Props> = ({
   isExpiryEnabled,
   symbol,
 }) => {
+  const t = useTranslations("purchases");
   const { confirm, ConfirmDialog } = useConfirm();
 
   return (
@@ -64,10 +67,10 @@ export const ItemsTable: FC<Props> = ({
             <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
             <h3 className="font-semibold text-sm">{seller.supplierName || "—"}</h3>
             <Badge variant="secondary" className="text-xs">
-              {seller.items.length} {seller.items.length === 1 ? "item" : "items"}
+              {t("items.itemCount", { count: seller.items.length })}
             </Badge>
             <Badge className="text-xs bg-primary/15 text-primary hover:bg-primary/20 border-0">
-              {seller.purchaseType === "instant" ? "Instant" : "Order"}
+              {seller.purchaseType === "instant" ? t("items.instant") : t("items.order")}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
@@ -77,7 +80,7 @@ export const ItemsTable: FC<Props> = ({
               size="sm"
               onClick={async () => {
                 if (await confirm({
-                  title: `Remove all items for ${seller.supplierName || "this supplier"}?`
+                  title: t("items.removeAllFor", { name: seller.supplierName || t("items.thisSupplier") })
                 })) removeSeller(seller.id);
               }}
               className="text-muted-foreground hover:text-destructive text-xs h-7"
@@ -88,20 +91,20 @@ export const ItemsTable: FC<Props> = ({
         </div>
 
         <CardTable
-          columns={getPurchaseColumns(handleEditItem, removeItem, formatCurrency, seller.id, isUOMEnabled, isTaxEnabled, isExpiryEnabled && seller.purchaseType === "instant", updateItem)}
+          columns={getPurchaseColumns(handleEditItem, removeItem, formatCurrency, seller.id, t, isUOMEnabled, isTaxEnabled, isExpiryEnabled && seller.purchaseType === "instant", updateItem)}
           data={seller.items}
-          emptyMessage="No items added yet"
+          emptyMessage={t("items.empty")}
           showCard={false}
         />
 
         <div className="mt-3 space-y-2">
           <Separator />
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Subtotal (Cost Price)</span>
+            <span className="text-muted-foreground">{t("items.subtotalCost")}</span>
             <span className="tabular-nums">{formatCurrency(getSellerSubtotal(seller.id))}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground font-medium">Additional Discount</span>
+            <span className="text-muted-foreground font-medium">{t("items.additionalDiscount")}</span>
             <div className="flex items-center gap-1">
               <span className="text-base text-muted-foreground">{symbol}</span>
               <NumberField
@@ -115,7 +118,7 @@ export const ItemsTable: FC<Props> = ({
             </div>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground font-medium">Net Amount</span>
+            <span className="text-muted-foreground font-medium">{t("items.netAmount")}</span>
             <span className="tabular-nums">
               {formatCurrency(getSellerTotal(seller.id))}
             </span>
@@ -126,7 +129,7 @@ export const ItemsTable: FC<Props> = ({
             includedTax={getSellerIncludedTax(seller.id)}
             taxTotal={getSellerTax(seller.id)}
             total={getSellerNetAmount(seller.id)}
-            totalLabel="Total"
+            totalLabel={t("items.total")}
             formatCurrency={formatCurrency}
           />
         </div>

@@ -1,4 +1,7 @@
+// coding-standard: maintained
 import type { NextConfig } from 'next'
+import createNextIntlPlugin from 'next-intl/plugin'
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   typescript: {
@@ -24,4 +27,7 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+// Locale comes from the NEXT_LOCALE cookie (no URL prefix) — see docs/I18N.md
+const withNextIntl = createNextIntlPlugin()
+
+export default withNextIntl(nextConfig)

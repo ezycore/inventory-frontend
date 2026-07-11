@@ -1,6 +1,7 @@
 // coding-standard: maintained
 'use client'
 
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
@@ -15,13 +16,14 @@ interface DetailVariantsProps {
 
 export function DetailVariants({ variants, formatCurrency }: DetailVariantsProps) {
   const canViewCosts = useHasPermission(PERMISSIONS.costsView)
+  const t = useTranslations('products.products.detail.variants')
 
   return (
     <Card>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-base">
           <Layers className="h-4 w-4 text-emerald-600" />
-          Product Variants ({variants.length})
+          {t('title', { count: variants.length })}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -63,11 +65,11 @@ export function DetailVariants({ variants, formatCurrency }: DetailVariantsProps
                 <div className="text-right">
                   <p className="text-lg font-bold text-emerald-600">{formatCurrency(variant.price)}</p>
                   {canViewCosts && (
-                    <p className="text-sm text-muted-foreground">Cost: {formatCurrency(variant.costPrice)}</p>
+                    <p className="text-sm text-muted-foreground">{t('cost', { amount: formatCurrency(variant.costPrice) })}</p>
                   )}
                   {canViewCosts && variant.costPrice > 0 && (
                     <p className="text-xs font-medium text-blue-600">
-                      {(((variant.price - variant.costPrice) / variant.price) * 100).toFixed(1)}% margin
+                      {(((variant.price - variant.costPrice) / variant.price) * 100).toFixed(1)}{t('marginSuffix')}
                     </p>
                   )}
                 </div>

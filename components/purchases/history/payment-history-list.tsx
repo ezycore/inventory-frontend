@@ -1,10 +1,12 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 import {
   PaymentHistoryList as SharedPaymentHistoryList,
   type PaymentHistoryItem,
 } from "@/components/shared/payments";
+import type { AppLocale } from "@/i18n/config";
 import { useAuthStore } from "@/services/stores";
 import { isFeatureEnabled } from "@/lib/feature-utils";
 import {
@@ -39,6 +41,8 @@ export function PaymentHistoryList({
   scrollRef,
   bare,
 }: PaymentHistoryListProps) {
+  const tPrintDoc = useTranslations("common.printDoc");
+  const locale = useLocale() as AppLocale;
   const { user } = useAuthStore();
   const canPrint = isFeatureEnabled(
     user?.organization?.features,
@@ -90,6 +94,8 @@ export function PaymentHistoryList({
                   paper: resolveDefaultPaper(user?.organization),
                   currency: formatCurrency,
                   header: orgToPrintHeader(user?.organization),
+                  t: tPrintDoc,
+                  locale,
                 },
               )
           : undefined

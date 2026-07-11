@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations, useLocale } from "next-intl";
 import {
   useCreateUser,
   useDeleteUser,
@@ -27,15 +28,17 @@ import UserCardLoading from "@/components/users/card-loading";
 import { getUserColumns } from "@/components/users/columns";
 import { getUserStats } from "@/components/users/helpers";
 import {
-  userFormConfig,
+  getUserFormConfig,
   userFormDefaultValues,
-  userSearchConfig,
+  getUserSearchConfig,
 } from "@/components/users/form-config";
 import { AlertCircle, Ban, CheckCircle } from "lucide-react";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { useMemo } from "react";
 
 export default function UsersPage() {
+  const t = useTranslations("settings.users");
+  const locale = useLocale() as "en" | "bn";
   const { user: currentUser } = useAuthStore();
   const [viewMode, setViewMode] = useViewMode("users", "card");
 
@@ -67,8 +70,8 @@ export default function UsersPage() {
   );
 
   const columns = useMemo(
-    () => getUserColumns(allLocationRoleSlugs, roleLabels),
-    [allLocationRoleSlugs, roleLabels],
+    () => getUserColumns(allLocationRoleSlugs, roleLabels, t),
+    [allLocationRoleSlugs, roleLabels, t],
   );
 
   const assignableRoles = useMemo(
@@ -83,6 +86,7 @@ export default function UsersPage() {
   );
 
   const roleAwareFormConfig = useMemo<DynamicFormConfig>(() => {
+    const userFormConfig = getUserFormConfig(t);
     const fields = userFormConfig.fields.map((field) => {
       if (field.name !== "role") return field;
       return {
@@ -95,7 +99,7 @@ export default function UsersPage() {
       ...userFormConfig,
       fields,
     };
-  }, [assignableRoles]);
+  }, [assignableRoles, t]);
 
   const roleAwareDefaultValues = useMemo(
     () => ({
@@ -126,12 +130,12 @@ export default function UsersPage() {
             {isActive ? (
               <>
                 <Ban className="h-4 w-4 mr-1" />
-                Disable
+                {t("actions.disable")}
               </>
             ) : (
               <>
                 <CheckCircle className="h-4 w-4 mr-1" />
-                Enable
+                {t("actions.enable")}
               </>
             )}
           </Button>
@@ -151,33 +155,33 @@ export default function UsersPage() {
     queryKey: [...queryKeys.users.all()],
     entityName: "User",
     isViewAvailable: false,
-    editTooltip: "Edit User",
-    deleteTooltip: "Delete User (must be deactivated first)",
+    editTooltip: t("form.editTooltip"),
+    deleteTooltip: t("form.deleteTooltip"),
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Users"
-        subTitle="The people in your organization and what they can access."
+        title={t("title")}
+        subTitle={t("subtitle")}
         actions={canManageUsers ? <ViewToggle storageKey="users" defaultView={viewMode} onChange={setViewMode} /> : undefined}
       />
 
       {canManageUsers ? (
         <>
           <StatsCard
-            data={getUserStats(statsData?.data)}
+            data={getUserStats(statsData?.data, t)}
             isLoading={statsLoading}
           />
 
           {viewMode === "table" ? (
             <DataTable
-              cardTitle={(dataLength: number) => `All Users (${dataLength})`}
+              cardTitle={(dataLength: number) => t("allUsersCount", { count: dataLength })}
               defaultPageSize={10}
               pageSizes={[10, 20, 50, 100]}
               columns={columns}
               selectable={false}
-              searchConfig={userSearchConfig}
+              searchConfig={getUserSearchConfig(t)}
               enableSorting={true}
               defaultColumnVisibility={{ phone: false }}
               enableRowHover={true}
@@ -189,7 +193,7 @@ export default function UsersPage() {
             />
           ) : (
             <DataCard<User>
-              cardTitle={(n: number) => `All Users (${n})`}
+              cardTitle={(n: number) => t("allUsersCount", { count: n })}
               defaultPageSize={12}
               pageSizes={[12, 24, 48]}
               layoutConfig={{
@@ -197,11 +201,13 @@ export default function UsersPage() {
                 columns: { default: 1, sm: 2, lg: 3 },
                 gap: "md",
               }}
-              searchConfig={userSearchConfig}
+              searchConfig={getUserSearchConfig(t)}
               renderCard={(item, actions) =>
                 UserCardView(item, actions, {
                   roleLabel: roleLabels.get(item.role),
                   hasAllLocationAccess: allLocationRoleSlugs.has(item.role),
+                  t,
+                  locale,
                 })
               }
               loadingRenderCard={UserCardLoading}
@@ -214,9 +220,9 @@ export default function UsersPage() {
         <div className="flex items-center justify-center p-12 border rounded-lg">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("accessRestrictedTitle")}</h3>
             <p className="text-muted-foreground">
-              You do not have permission to view user management.
+              {t("accessRestrictedDescription")}
             </p>
           </div>
         </div>

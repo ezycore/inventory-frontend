@@ -1,9 +1,12 @@
 'use client'
+// coding-standard: maintained
+
+import { useTranslations, useLocale } from 'next-intl'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
-import { categoryColumns } from '@/components/categories/columns'
-import { categoryFilterConfig } from '@/components/categories/filters'
-import { categoryFormConfig } from '@/components/categories/form-config'
+import { getCategoryColumns } from '@/components/categories/columns'
+import { getCategoryFilterConfig } from '@/components/categories/filters'
+import { getCategoryFormConfig } from '@/components/categories/form-config'
 import CategoryCardView from '@/components/categories/cardview'
 import CategoryCardLoading from '@/components/categories/card-loading'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
@@ -17,17 +20,20 @@ import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
 import { getCategoryStats } from '@/components/categories/helper'
-
-const searchConfig = {
-  globalSearch: true,
-  placeholder: "Search categories by name",
-  searchableColumns: ["name"],
-}
+import type { AppLocale } from '@/i18n/config'
 
 export default function CategoriesPage() {
+  const t = useTranslations('products.categories')
+  const locale = useLocale() as AppLocale
   const [viewMode, setViewMode, isMounted] = useViewMode('categories', 'card')
-  const filteredFormConfig = useFilteredFormConfig(categoryFormConfig, 'category')
-  const filteredColumns = useFilteredColumns(categoryColumns, 'category')
+  const filteredFormConfig = useFilteredFormConfig(getCategoryFormConfig(t), 'category')
+  const filteredColumns = useFilteredColumns(getCategoryColumns(t), 'category')
+  const categoryFilterConfig = getCategoryFilterConfig(t)
+  const searchConfig = {
+    globalSearch: true,
+    placeholder: t('page.searchPlaceholder'),
+    searchableColumns: ["name"],
+  }
   const { data: statsData, isLoading: statsLoading } = useCategoryStats?.() ?? { data: undefined, isLoading: false }
 
   const sharedOperations = {
@@ -58,9 +64,9 @@ export default function CategoriesPage() {
   return (
     <div className="container mx-auto space-y-6">
       {/* Header */}
-      <PageHeader 
-        title="Categories" 
-        subTitle="Organize your products with categories"
+      <PageHeader
+        title={t('page.title')}
+        subTitle={t('page.subtitle')}
         actions={
           <div className="flex items-center gap-3">
             <ViewToggle
@@ -74,12 +80,12 @@ export default function CategoriesPage() {
       />
 
       {/* Stats Cards */}
-      <StatsCard data={getCategoryStats(statsData)} isLoading={statsLoading} />
+      <StatsCard data={getCategoryStats(statsData, t)} isLoading={statsLoading} />
 
       {/* Table View */}
       {viewMode === 'table' && (
         <DataTable
-          cardTitle={(dataLength: number) => `All Categories (${dataLength})`}
+          cardTitle={(dataLength: number) => t('page.allCategoriesTitle', { count: dataLength })}
           defaultPageSize={10}
           pageSizes={[10, 20, 50, 100]}
           filterConfig={categoryFilterConfig}
@@ -100,7 +106,7 @@ export default function CategoriesPage() {
       {/* Card View */}
       {viewMode === 'card' && (
         <DataCard
-          cardTitle={(n) => `All Categories (${n})`}
+          cardTitle={(n) => t('page.allCategoriesTitle', { count: n })}
           defaultPageSize={12}
           pageSizes={[6, 12, 24, 48]}
           filterConfig={categoryFilterConfig}
@@ -111,7 +117,7 @@ export default function CategoriesPage() {
           }}
           sortingConfig={sortingConfig}
           searchConfig={searchConfig}
-          renderCard={CategoryCardView}
+          renderCard={(item, actions) => CategoryCardView(item, actions, { t, locale })}
           loadingRenderCard={CategoryCardLoading}
           operations={sharedOperations}
         />

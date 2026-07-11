@@ -52,7 +52,26 @@ export interface PrintHtmlOptions {
   title?: string;
   /** CSS injected into the print document's <style>. */
   styles?: string;
+  /**
+   * Print documents open in a fresh, isolated window (`window.open("", ...)`
+   * + `document.write`) — it does NOT inherit the app's self-hosted Bengali
+   * font (next/font is scoped to the main document). "bn" pulls in Noto Sans
+   * Bengali from Google Fonts so Bangla glyphs render instead of tofu boxes;
+   * omit/"en" for the Latin-only default (no extra network request).
+   */
+  locale?: "en" | "bn";
 }
+
+// Google Fonts CSS for the print window's Bengali fallback. Loaded only when
+// `locale: "bn"` — the print window already waits on <img> loads before
+// calling window.print(), so one more network fetch here is consistent with
+// that existing constraint (logo/watermark images are remote too).
+const BENGALI_FONT_LINK = `
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet" />
+`;
+const BENGALI_FONT_FAMILY = "'Noto Sans Bengali', sans-serif";
 
 /**
  * Render `bodyHtml` as a standalone document in a hidden iframe and open the
@@ -63,7 +82,14 @@ export const printHtml = (
   bodyHtml: string,
   options: PrintHtmlOptions = {},
 ): boolean => {
-  const { title = "Print", styles = "" } = options;
+  const { title = "Print", styles = "", locale = "en" } = options;
+
+  const fontLink = locale === "bn" ? BENGALI_FONT_LINK : "";
+  // Prepended so a document-level `body { font-family }` in `styles` still wins
+  // (later rule, same specificity) while every element without its own
+  // font-family falls back to the Bengali face instead of tofu boxes.
+  const fontFallback =
+    locale === "bn" ? `body { font-family: ${BENGALI_FONT_FAMILY}; }` : "";
 
   // One print frame at a time — a leftover frame belongs to a finished dialog.
   document.getElementById(FRAME_ID)?.remove();
@@ -88,9 +114,11 @@ export const printHtml = (
     <head>
       <meta charset="utf-8" />
       <title>${escapeHtml(title)}</title>
+      ${fontLink}
       <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; background: #fff; }
+        ${fontFallback}
         ${styles}
       </style>
     </head>

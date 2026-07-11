@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
@@ -26,8 +28,10 @@ export function LocationCountCell({
   role,
   hasAllLocationAccess = false,
 }: LocationCountCellProps) {
+  const t = useTranslations("settings.locations.usersPopover");
+  const tUsers = useTranslations("settings.users.card");
   if (hasAllLocationAccess || role === "admin" || role === "super_admin") {
-    return <Badge variant="default">All Locations</Badge>;
+    return <Badge variant="default">{tUsers("allLocations")}</Badge>;
   }
 
   const locationCount = locations?.length || 0;
@@ -47,8 +51,8 @@ export function LocationCountCell({
       <PopoverContent className="w-80" align="start">
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-sm">Locations</h4>
-            <Badge variant="secondary">{locationCount} total</Badge>
+            <h4 className="font-semibold text-sm">{t("title")}</h4>
+            <Badge variant="secondary">{t("total", { count: locationCount })}</Badge>
           </div>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {locations.map((loc) => (

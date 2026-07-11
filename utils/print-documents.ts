@@ -8,9 +8,16 @@ import type {
   ReceiptMetaFields,
   ReceiptMetaKey,
 } from "@/types/receipt";
+import type { AppLocale, Translator } from "@/i18n/config";
 import { formatCurrency } from "@/lib/currency";
+import { formatDateTime } from "@/lib/format";
 import { amountToWords } from "./number-to-words";
 import { escapeHtml, printHtml } from "./print";
+
+/** `t ? t(key) : fallback` — every builder below is callable without `t` (tests /
+ * back-compat), falling back to the English literal that used to be hardcoded. */
+const tr = (t: Translator | undefined) => (key: string, fallback: string): string =>
+  t ? t(key) : fallback;
 
 /**
  * POS document printing (invoice / receipt / purchase order) on top of the
@@ -222,6 +229,7 @@ const renderHeaderLine = (
   line: Pick<PrintHeaderLine, "source" | "label" | "text">,
   header: DocHeader,
   contactLine: string,
+  t?: Translator,
 ): string => {
   switch (line.source) {
     case "orgName":
@@ -230,7 +238,7 @@ const renderHeaderLine = (
         : "";
     case "taxId":
       return header.taxId
-        ? `<div class="muted contact">${escapeHtml(line.label || "Tax Reg. No")}: ${escapeHtml(header.taxId)}</div>`
+        ? `<div class="muted contact">${escapeHtml(line.label || tr(t)("taxRegNo", "Tax Reg. No"))}: ${escapeHtml(header.taxId)}</div>`
         : "";
     case "storeName":
       return header.storeName
@@ -256,13 +264,17 @@ const renderHeaderLine = (
 };
 
 /** Ordered identity lines: the user's visible list, or the classic fixed order. */
-const resolveHeaderLines = (header: DocHeader, contactLine: string): string[] => {
+const resolveHeaderLines = (
+  header: DocHeader,
+  contactLine: string,
+  t?: Translator,
+): string[] => {
   const lines =
     header.headerLines && header.headerLines.length > 0
       ? header.headerLines.filter((l) => l.visible)
       : LEGACY_HEADER_ORDER.map((source) => ({ source }));
   return lines
-    .map((line) => renderHeaderLine(line, header, contactLine))
+    .map((line) => renderHeaderLine(line, header, contactLine, t))
     .filter(Boolean);
 };
 
@@ -277,6 +289,7 @@ export const composeDocument = (
   doc: PrintDoc,
   paper: PaperSize,
   header: DocHeader,
+  t?: Translator,
 ): { body: string; styles: string; title: string } => {
   const contactLine = [header.phone, header.email].filter(Boolean).join(" · ");
   // Explicit alignment overrides the paper default (A4 left, thermal centered).
@@ -317,7 +330,7 @@ export const composeDocument = (
     <div class="header${stacked ? " stack" : ""}"${alignStyle}>
       <div class="ident">
         ${topLogo}
-        ${resolveHeaderLines(header, contactLine).join("")}
+        ${resolveHeaderLines(header, contactLine, t).join("")}
       </div>
       <div class="doc-head">
         ${docTitle}
@@ -346,15 +359,15 @@ export const composeDocument = (
 
   const totals = `<table class="totals">${doc.totals
     .map(
-      (t) =>
-        `<tr class="${t.strong ? "strong" : ""}"><td>${escapeHtml(t.label)}</td><td class="t-val">${escapeHtml(t.value)}</td></tr>`,
+      (row) =>
+        `<tr class="${row.strong ? "strong" : ""}"><td>${escapeHtml(row.label)}</td><td class="t-val">${escapeHtml(row.value)}</td></tr>`,
     )
     .join("")}</table>`;
 
   // Amount in words: gated by the org toggle (default on) with a configurable caption.
   const amountInWords =
     doc.amountInWords && header.showAmountInWords !== false
-      ? `<div class="words"><span class="muted">${escapeHtml(header.amountInWordsLabel || "In words:")}</span> <b>${escapeHtml(doc.amountInWords)}</b></div>`
+      ? `<div class="words"><span class="muted">${escapeHtml(header.amountInWordsLabel || tr(t)("inWords", "In words:"))}</span> <b>${escapeHtml(doc.amountInWords)}</b></div>`
       : "";
 
   const notes = doc.notes
@@ -364,7 +377,7 @@ export const composeDocument = (
   // Authorized-signature block — full documents only (looks wrong on a thermal slip).
   const signature =
     doc.signature && paper === "a4"
-      ? `<div class="signature"><div class="signature-line">Authorized Signature</div></div>`
+      ? `<div class="signature"><div class="signature-line">${escapeHtml(tr(t)("authorizedSignature", "Authorized Signature"))}</div></div>`
       : "";
 
   const footer = header.footer
@@ -382,13 +395,19 @@ export const composeDocument = (
 };
 
 /** Render a generic PrintDoc to a print window at the chosen paper size. */
-const printDoc = (doc: PrintDoc, paper: PaperSize, header: DocHeader): boolean => {
-  const { body, styles, title } = composeDocument(doc, paper, header);
-  return printHtml(body, { title, styles });
+const printDoc = (
+  doc: PrintDoc,
+  paper: PaperSize,
+  header: DocHeader,
+  t?: Translator,
+  locale?: AppLocale,
+): boolean => {
+  const { body, styles, title } = composeDocument(doc, paper, header, t);
+  return printHtml(body, { title, styles, locale });
 };
 
-const dateStr = (value?: string | Date): string =>
-  value ? new Date(value).toLocaleString() : "";
+const dateStr = (value?: string | Date, locale: AppLocale = "en"): string =>
+  value ? formatDateTime(value, locale) : "";
 
 type Currency = (n: number) => string;
 
@@ -397,7 +416,11 @@ type Currency = (n: number) => string;
  * that actually carried tax). Empty when no line was taxed — the caller then
  * falls back to a single "Tax" line (or nothing).
  */
-const taxByRate = (items: SaleItem[], currency: Currency): PrintDoc["totals"] => {
+const taxByRate = (
+  items: SaleItem[],
+  currency: Currency,
+  t?: Translator,
+): PrintDoc["totals"] => {
   const byRate = new Map<number, number>();
   for (const item of items) {
     const amount = item.taxAmount ?? 0;
@@ -407,27 +430,39 @@ const taxByRate = (items: SaleItem[], currency: Currency): PrintDoc["totals"] =>
   }
   return [...byRate.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([rate, amount]) => ({ label: `Tax ${rate}%`, value: currency(amount) }));
+    .map(([rate, amount]) => ({
+      label: t ? t("taxRate", { rate }) : `Tax ${rate}%`,
+      value: currency(amount),
+    }));
 };
 
-const saleToDoc = (sale: Sale, currency: Currency): PrintDoc => {
+const saleToDoc = (
+  sale: Sale,
+  currency: Currency,
+  t?: Translator,
+  locale: AppLocale = "en",
+): PrintDoc => {
+  const tt = tr(t);
   const totals: PrintDoc["totals"] = [
-    { label: "Subtotal", value: currency(sale.subtotal) },
+    { label: tt("subtotal", "Subtotal"), value: currency(sale.subtotal) },
   ];
   if (sale.additionalDiscount > 0) {
-    totals.push({ label: "Discount", value: `- ${currency(sale.additionalDiscount)}` });
+    totals.push({
+      label: tt("discount", "Discount"),
+      value: `- ${currency(sale.additionalDiscount)}`,
+    });
   }
   // Tax by rate when the per-line snapshot is present; else a single Tax line.
-  const taxRows = taxByRate(sale.items, currency);
+  const taxRows = taxByRate(sale.items, currency, t);
   if (taxRows.length > 0) {
     totals.push(...taxRows);
   } else if (sale.taxTotal && sale.taxTotal > 0) {
-    totals.push({ label: "Tax", value: currency(sale.taxTotal) });
+    totals.push({ label: tt("tax", "Tax"), value: currency(sale.taxTotal) });
   }
-  totals.push({ label: "Total", value: currency(sale.totalAmount), strong: true });
-  totals.push({ label: "Paid", value: currency(sale.paidAmount) });
+  totals.push({ label: tt("total", "Total"), value: currency(sale.totalAmount), strong: true });
+  totals.push({ label: tt("paid", "Paid"), value: currency(sale.paidAmount) });
   if (sale.dueAmount > 0) {
-    totals.push({ label: "Due", value: currency(sale.dueAmount), strong: true });
+    totals.push({ label: tt("due", "Due"), value: currency(sale.dueAmount), strong: true });
   }
 
   const hasTax =
@@ -440,27 +475,31 @@ const saleToDoc = (sale: Sale, currency: Currency): PrintDoc => {
 
   return {
     // "Tax Invoice" is the accepted wording once any tax applies.
-    docTitle: hasTax ? "Tax Invoice" : "Invoice",
+    docTitle: hasTax ? tt("taxInvoice", "Tax Invoice") : tt("invoice", "Invoice"),
     number: sale.invoiceNumber,
     meta: [
-      { label: "Date", value: dateStr(sale.createdAt) },
-      { label: "Customer", value: customer?.name ?? "Walk-in Customer", key: "customer" },
+      { label: tt("date", "Date"), value: dateStr(sale.createdAt, locale) },
+      {
+        label: tt("customer", "Customer"),
+        value: customer?.name ?? tt("walkInCustomer", "Walk-in Customer"),
+        key: "customer",
+      },
       ...(customer?.phone
-        ? [{ label: "Phone", value: customer.phone, key: "phone" as const }]
+        ? [{ label: tt("phone", "Phone"), value: customer.phone, key: "phone" as const }]
         : []),
       ...(customer?.address
-        ? [{ label: "Address", value: customer.address, key: "address" as const }]
+        ? [{ label: tt("address", "Address"), value: customer.address, key: "address" as const }]
         : []),
-      { label: "Status", value: sale.status, key: "status" },
+      { label: tt("status", "Status"), value: sale.status, key: "status" },
       ...(cashierName
-        ? [{ label: "Cashier", value: cashierName, key: "cashier" as const }]
+        ? [{ label: tt("cashier", "Cashier"), value: cashierName, key: "cashier" as const }]
         : []),
     ],
     columns: [
-      { header: "Item" },
-      { header: "Qty", align: "right" },
-      { header: "Price", align: "right" },
-      { header: "Amount", align: "right" },
+      { header: tt("item", "Item") },
+      { header: tt("qty", "Qty"), align: "right" },
+      { header: tt("price", "Price"), align: "right" },
+      { header: tt("amount", "Amount"), align: "right" },
     ],
     rows: sale.items.map((item) => [
       item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
@@ -469,47 +508,58 @@ const saleToDoc = (sale: Sale, currency: Currency): PrintDoc => {
       currency(item.subtotal),
     ]),
     totals,
-    amountInWords: amountToWords(sale.totalAmount),
+    amountInWords: amountToWords(sale.totalAmount, locale),
     notes: sale.notes,
     signature: true,
   };
 };
 
-const purchaseOrderToDoc = (order: PurchaseOrder, currency: Currency): PrintDoc => {
+const purchaseOrderToDoc = (
+  order: PurchaseOrder,
+  currency: Currency,
+  t?: Translator,
+  locale: AppLocale = "en",
+): PrintDoc => {
+  const tt = tr(t);
   const grand = order.grandTotal ?? order.totalAmount ?? order.subtotal;
   const totals: PrintDoc["totals"] = [
-    { label: "Subtotal", value: currency(order.subtotal) },
+    { label: tt("subtotal", "Subtotal"), value: currency(order.subtotal) },
   ];
   if (order.additionalDiscount && order.additionalDiscount > 0) {
-    totals.push({ label: "Discount", value: `- ${currency(order.additionalDiscount)}` });
+    totals.push({
+      label: tt("discount", "Discount"),
+      value: `- ${currency(order.additionalDiscount)}`,
+    });
   }
   if (order.taxTotal > 0) {
-    totals.push({ label: "Tax", value: currency(order.taxTotal) });
+    totals.push({ label: tt("tax", "Tax"), value: currency(order.taxTotal) });
   }
-  totals.push({ label: "Grand Total", value: currency(grand), strong: true });
+  totals.push({ label: tt("grandTotal", "Grand Total"), value: currency(grand), strong: true });
   if (order.paidAmount && order.paidAmount > 0) {
-    totals.push({ label: "Paid", value: currency(order.paidAmount) });
+    totals.push({ label: tt("paid", "Paid"), value: currency(order.paidAmount) });
   }
   if (order.dueAmount && order.dueAmount > 0) {
-    totals.push({ label: "Due", value: currency(order.dueAmount), strong: true });
+    totals.push({ label: tt("due", "Due"), value: currency(order.dueAmount), strong: true });
   }
 
   const supplierName = order.supplierId?.name ?? order.supplier?.name ?? "-";
 
   return {
-    docTitle: "Purchase Order",
+    docTitle: tt("purchaseOrder", "Purchase Order"),
     number: order.orderNumber,
     meta: [
-      { label: "Date", value: dateStr(order.invoiceDate ?? order.createdAt) },
-      { label: "Supplier", value: supplierName },
-      { label: "Status", value: order.status, key: "status" },
-      ...(order.invoiceNumber ? [{ label: "Invoice #", value: order.invoiceNumber }] : []),
+      { label: tt("date", "Date"), value: dateStr(order.invoiceDate ?? order.createdAt, locale) },
+      { label: tt("supplier", "Supplier"), value: supplierName },
+      { label: tt("status", "Status"), value: order.status, key: "status" },
+      ...(order.invoiceNumber
+        ? [{ label: tt("invoiceNumber", "Invoice #"), value: order.invoiceNumber }]
+        : []),
     ],
     columns: [
-      { header: "Item" },
-      { header: "Qty", align: "right" },
-      { header: "Price", align: "right" },
-      { header: "Amount", align: "right" },
+      { header: tt("item", "Item") },
+      { header: tt("qty", "Qty"), align: "right" },
+      { header: tt("price", "Price"), align: "right" },
+      { header: tt("amount", "Amount"), align: "right" },
     ],
     rows: order.items.map((item) => [
       item.productName ?? item.product?.name ?? "-",
@@ -526,43 +576,50 @@ const returnToDoc = (
   data: ReturnDetailsData,
   variant: "sales" | "purchases",
   currency: Currency,
+  t?: Translator,
+  locale: AppLocale = "en",
 ): PrintDoc => {
+  const tt = tr(t);
   const isSales = variant === "sales";
   const totals: PrintDoc["totals"] = [];
   if (data.deductionAmount && data.deductionAmount > 0) {
-    totals.push({ label: "Deduction", value: `- ${currency(data.deductionAmount)}` });
+    totals.push({ label: tt("deduction", "Deduction"), value: `- ${currency(data.deductionAmount)}` });
   }
   totals.push({
-    label: "Total Refund",
+    label: tt("totalRefund", "Total Refund"),
     value: currency(data.totalRefundAmount),
     strong: true,
   });
   if (data.refundedAmount !== undefined) {
-    totals.push({ label: "Refunded", value: currency(data.refundedAmount) });
+    totals.push({ label: tt("refunded", "Refunded"), value: currency(data.refundedAmount) });
   }
 
   return {
-    docTitle: isSales ? "Sales Return" : "Purchase Return",
+    docTitle: isSales
+      ? tt("salesReturn", "Sales Return")
+      : tt("purchaseReturn", "Purchase Return"),
     number: data.returnNumber,
     meta: [
-      { label: "Date", value: dateStr(data.date) },
+      { label: tt("date", "Date"), value: dateStr(data.date, locale) },
       {
-        label: isSales ? "Original Invoice" : "Original Order",
+        label: isSales
+          ? tt("originalInvoice", "Original Invoice")
+          : tt("originalOrder", "Original Order"),
         value: data.documentRef,
       },
       {
-        label: isSales ? "Customer" : "Supplier",
+        label: isSales ? tt("customer", "Customer") : tt("supplier", "Supplier"),
         value: data.counterpartyName ?? "-",
         ...(isSales ? { key: "customer" as const } : {}),
       },
-      { label: "Status", value: data.status, key: "status" },
-      ...(data.reason ? [{ label: "Reason", value: data.reason }] : []),
+      { label: tt("status", "Status"), value: data.status, key: "status" },
+      ...(data.reason ? [{ label: tt("reason", "Reason"), value: data.reason }] : []),
     ],
     columns: [
-      { header: "Item" },
-      { header: "Qty", align: "right" },
-      { header: isSales ? "Price" : "Cost", align: "right" },
-      { header: "Refund", align: "right" },
+      { header: tt("item", "Item") },
+      { header: tt("qty", "Qty"), align: "right" },
+      { header: isSales ? tt("price", "Price") : tt("cost", "Cost"), align: "right" },
+      { header: tt("refund", "Refund"), align: "right" },
     ],
     rows: data.items.map((item) => [
       item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
@@ -580,25 +637,48 @@ interface PrintEntityOptions {
   currency: Currency;
   /** Letterhead header — build via {@link orgToPrintHeader}. */
   header: DocHeader;
+  /** Bound to `common.printDoc` (docs/I18N.md). Omitted → English fallback labels. */
+  t?: Translator;
+  /** Drives the print window's Bengali font + locale-aware dates/amount-in-words. */
+  locale?: AppLocale;
 }
 
 /** Print a sale as an invoice (A4) or receipt (thermal). Returns false if printing could not start. */
 export const printSaleInvoice = (sale: Sale, opts: PrintEntityOptions): boolean =>
-  printDoc(saleToDoc(sale, opts.currency), opts.paper, opts.header);
+  printDoc(
+    saleToDoc(sale, opts.currency, opts.t, opts.locale),
+    opts.paper,
+    opts.header,
+    opts.t,
+    opts.locale,
+  );
 
 /** Print a purchase order. Returns false if printing could not start. */
 export const printPurchaseOrder = (
   order: PurchaseOrder,
   opts: PrintEntityOptions,
 ): boolean =>
-  printDoc(purchaseOrderToDoc(order, opts.currency), opts.paper, opts.header);
+  printDoc(
+    purchaseOrderToDoc(order, opts.currency, opts.t, opts.locale),
+    opts.paper,
+    opts.header,
+    opts.t,
+    opts.locale,
+  );
 
 /** Print a sales/purchase return (credit/debit note). Returns false if printing could not start. */
 export const printReturn = (
   data: ReturnDetailsData,
   variant: "sales" | "purchases",
   opts: PrintEntityOptions,
-): boolean => printDoc(returnToDoc(data, variant, opts.currency), opts.paper, opts.header);
+): boolean =>
+  printDoc(
+    returnToDoc(data, variant, opts.currency, opts.t, opts.locale),
+    opts.paper,
+    opts.header,
+    opts.t,
+    opts.locale,
+  );
 
 /**
  * A money-receipt for one payment against a sale/purchase. Flat input — the
@@ -624,65 +704,87 @@ export interface PaymentReceiptInput {
 const paymentReceiptToDoc = (
   p: PaymentReceiptInput,
   currency: Currency,
-): PrintDoc => ({
-  docTitle: "Payment Receipt",
-  number: p.docNumber,
-  meta: [
-    { label: "Date", value: dateStr(p.createdAt) },
-    { label: p.isSale ? "Received from" : "Paid to", value: p.counterparty },
-    { label: "Method", value: p.paymentMethod },
-    ...(p.accountName ? [{ label: "Account", value: p.accountName }] : []),
-  ],
-  columns: [{ header: "Description" }, { header: "Amount", align: "right" }],
-  rows: [[`Payment against ${p.docNumber}`, currency(p.amount)]],
-  totals: [
-    {
-      label: p.isSale ? "Amount received" : "Amount paid",
-      value: currency(p.amount),
-      strong: true,
-    },
-    ...(p.balanceDue != null
-      ? [{ label: "Balance due", value: currency(p.balanceDue) }]
-      : []),
-  ],
-  amountInWords: amountToWords(p.amount),
-  notes: p.notes,
-  signature: true,
-});
+  t?: Translator,
+  locale: AppLocale = "en",
+): PrintDoc => {
+  const tt = tr(t);
+  return {
+    docTitle: tt("paymentReceipt", "Payment Receipt"),
+    number: p.docNumber,
+    meta: [
+      { label: tt("date", "Date"), value: dateStr(p.createdAt, locale) },
+      {
+        label: p.isSale ? tt("receivedFrom", "Received from") : tt("paidTo", "Paid to"),
+        value: p.counterparty,
+      },
+      { label: tt("method", "Method"), value: p.paymentMethod },
+      ...(p.accountName ? [{ label: tt("account", "Account"), value: p.accountName }] : []),
+    ],
+    columns: [{ header: tt("description", "Description") }, { header: tt("amount", "Amount"), align: "right" }],
+    rows: [[
+      t ? t("paymentAgainst", { number: p.docNumber }) : `Payment against ${p.docNumber}`,
+      currency(p.amount),
+    ]],
+    totals: [
+      {
+        label: p.isSale ? tt("amountReceived", "Amount received") : tt("amountPaid", "Amount paid"),
+        value: currency(p.amount),
+        strong: true,
+      },
+      ...(p.balanceDue != null
+        ? [{ label: tt("balanceDue", "Balance due"), value: currency(p.balanceDue) }]
+        : []),
+    ],
+    amountInWords: amountToWords(p.amount, locale),
+    notes: p.notes,
+    signature: true,
+  };
+};
 
 /** Print a money receipt for a single payment. Returns false if printing could not start. */
 export const printPaymentReceipt = (
   input: PaymentReceiptInput,
   opts: PrintEntityOptions,
 ): boolean =>
-  printDoc(paymentReceiptToDoc(input, opts.currency), opts.paper, opts.header);
+  printDoc(
+    paymentReceiptToDoc(input, opts.currency, opts.t, opts.locale),
+    opts.paper,
+    opts.header,
+    opts.t,
+    opts.locale,
+  );
 
 /**
  * Delivery note / challan: the sale's items + quantities with NO prices or money
  * — a goods-dispatch document. Built from the same populated sale as the invoice.
  */
-const saleToDeliveryDoc = (sale: Sale): PrintDoc => {
+const saleToDeliveryDoc = (
+  sale: Sale,
+  t?: Translator,
+  locale: AppLocale = "en",
+): PrintDoc => {
+  const tt = tr(t);
   const customer = sale.customerId;
   const totalUnits = sale.items.reduce((sum, i) => sum + (i.quantity ?? 0), 0);
   return {
-    docTitle: "Delivery Note",
+    docTitle: tt("deliveryNote", "Delivery Note"),
     number: sale.invoiceNumber,
     meta: [
-      { label: "Date", value: dateStr(sale.createdAt) },
-      { label: "Customer", value: customer?.name ?? "Walk-in Customer", key: "customer" },
+      { label: tt("date", "Date"), value: dateStr(sale.createdAt, locale) },
+      { label: tt("customer", "Customer"), value: customer?.name ?? tt("walkIn", "Walk-in Customer"), key: "customer" },
       ...(customer?.phone
-        ? [{ label: "Phone", value: customer.phone, key: "phone" as const }]
+        ? [{ label: tt("phone", "Phone"), value: customer.phone, key: "phone" as const }]
         : []),
       ...(customer?.address
-        ? [{ label: "Address", value: customer.address, key: "address" as const }]
+        ? [{ label: tt("address", "Address"), value: customer.address, key: "address" as const }]
         : []),
     ],
-    columns: [{ header: "Item" }, { header: "Qty", align: "right" }],
+    columns: [{ header: tt("item", "Item") }, { header: tt("qty", "Qty"), align: "right" }],
     rows: sale.items.map((item) => [
       item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
       item.quantity,
     ]),
-    totals: [{ label: "Total units", value: String(totalUnits), strong: true }],
+    totals: [{ label: tt("totalUnits", "Total units"), value: String(totalUnits), strong: true }],
     notes: sale.notes,
     signature: true,
   };
@@ -690,7 +792,7 @@ const saleToDeliveryDoc = (sale: Sale): PrintDoc => {
 
 /** Print a sale as a delivery note / challan (no prices). Returns false if printing could not start. */
 export const printDeliveryNote = (sale: Sale, opts: PrintEntityOptions): boolean =>
-  printDoc(saleToDeliveryDoc(sale), opts.paper, opts.header);
+  printDoc(saleToDeliveryDoc(sale, opts.t, opts.locale), opts.paper, opts.header, opts.t, opts.locale);
 
 /**
  * Account statement (customer or supplier): a chronological transaction list plus
@@ -716,7 +818,15 @@ export interface StatementInput {
   summary: { label: string; value: number; strong?: boolean }[];
 }
 
-const STATEMENT_TXN_LABEL: Record<StatementTxn["type"], string> = {
+/** Message keys per transaction type (bound to `common.printDoc`, docs/I18N.md). */
+const STATEMENT_TXN_KEY: Record<StatementTxn["type"], string> = {
+  invoice: "invoice",
+  payment: "txnPayment",
+  refund: "txnCashRefund",
+  return: "txnReturn",
+  credit: "txnCreditApplied",
+};
+const STATEMENT_TXN_FALLBACK: Record<StatementTxn["type"], string> = {
   invoice: "Invoice",
   payment: "Payment",
   refund: "Cash refund",
@@ -724,35 +834,50 @@ const STATEMENT_TXN_LABEL: Record<StatementTxn["type"], string> = {
   credit: "Credit applied",
 };
 
-const statementToDoc = (s: StatementInput, currency: Currency): PrintDoc => ({
-  docTitle: s.title,
-  number: dateStr(new Date()),
-  meta: [
-    { label: s.partyLabel, value: s.partyName },
-    ...(s.partyPhone ? [{ label: "Phone", value: s.partyPhone }] : []),
-  ],
-  columns: [
-    { header: "Date" },
-    { header: "Transaction" },
-    { header: "Amount", align: "right" },
-  ],
-  rows: s.transactions.map((t) => [
-    dateStr(t.date),
-    `${STATEMENT_TXN_LABEL[t.type]}${t.reference ? ` ${t.reference}` : ""}`,
-    currency(t.amount),
-  ]),
-  totals: s.summary.map((r) => ({
-    label: r.label,
-    value: currency(r.value),
-    strong: r.strong,
-  })),
-});
+const statementToDoc = (
+  s: StatementInput,
+  currency: Currency,
+  t?: Translator,
+  locale: AppLocale = "en",
+): PrintDoc => {
+  const tt = tr(t);
+  return {
+    docTitle: s.title,
+    number: dateStr(new Date(), locale),
+    meta: [
+      { label: s.partyLabel, value: s.partyName },
+      ...(s.partyPhone ? [{ label: tt("phone", "Phone"), value: s.partyPhone }] : []),
+    ],
+    columns: [
+      { header: tt("date", "Date") },
+      { header: tt("transaction", "Transaction") },
+      { header: tt("amount", "Amount"), align: "right" },
+    ],
+    rows: s.transactions.map((txn) => [
+      dateStr(txn.date, locale),
+      `${tt(STATEMENT_TXN_KEY[txn.type], STATEMENT_TXN_FALLBACK[txn.type])}${txn.reference ? ` ${txn.reference}` : ""}`,
+      currency(txn.amount),
+    ]),
+    totals: s.summary.map((r) => ({
+      label: r.label,
+      value: currency(r.value),
+      strong: r.strong,
+    })),
+  };
+};
 
 /** Print a customer/supplier account statement. Returns false if printing could not start. */
 export const printStatement = (
   input: StatementInput,
   opts: PrintEntityOptions,
-): boolean => printDoc(statementToDoc(input, opts.currency), opts.paper, opts.header);
+): boolean =>
+  printDoc(
+    statementToDoc(input, opts.currency, opts.t, opts.locale),
+    opts.paper,
+    opts.header,
+    opts.t,
+    opts.locale,
+  );
 
 /**
  * A representative invoice used to render the receipt live-preview. Mirrors the
@@ -762,34 +887,37 @@ export const printStatement = (
 const buildSampleInvoiceDoc = (
   currency: Currency,
   hasTax: boolean,
+  t?: Translator,
+  locale: AppLocale = "en",
 ): PrintDoc => {
+  const tt = tr(t);
   const total = hasTax ? 840 : 800;
   return {
-    docTitle: hasTax ? "Tax Invoice" : "Invoice",
+    docTitle: hasTax ? tt("taxInvoice", "Tax Invoice") : tt("invoice", "Invoice"),
     number: "INV-0001",
     meta: [
-      { label: "Date", value: dateStr(new Date()) },
-      { label: "Customer", value: "John Doe", key: "customer" },
-      { label: "Phone", value: "01700-000000", key: "phone" },
-      { label: "Status", value: "completed", key: "status" },
+      { label: tt("date", "Date"), value: dateStr(new Date(), locale) },
+      { label: tt("customer", "Customer"), value: "John Doe", key: "customer" },
+      { label: tt("phone", "Phone"), value: "01700-000000", key: "phone" },
+      { label: tt("status", "Status"), value: "completed", key: "status" },
     ],
     columns: [
-      { header: "Item" },
-      { header: "Qty", align: "right" },
-      { header: "Price", align: "right" },
-      { header: "Amount", align: "right" },
+      { header: tt("item", "Item") },
+      { header: tt("qty", "Qty"), align: "right" },
+      { header: tt("price", "Price"), align: "right" },
+      { header: tt("amount", "Amount"), align: "right" },
     ],
     rows: [
       ["Sample product A", 2, currency(150), currency(300)],
       ["Sample product B", 1, currency(500), currency(500)],
     ],
     totals: [
-      { label: "Subtotal", value: currency(800) },
-      ...(hasTax ? [{ label: "Tax 5%", value: currency(40) }] : []),
-      { label: "Total", value: currency(total), strong: true },
-      { label: "Paid", value: currency(total) },
+      { label: tt("subtotal", "Subtotal"), value: currency(800) },
+      ...(hasTax ? [{ label: t ? t("taxRate", { rate: 5 }) : "Tax 5%", value: currency(40) }] : []),
+      { label: tt("total", "Total"), value: currency(total), strong: true },
+      { label: tt("paid", "Paid"), value: currency(total) },
     ],
-    amountInWords: amountToWords(total),
+    amountInWords: amountToWords(total, locale),
     signature: true,
   };
 };
@@ -817,6 +945,10 @@ export interface ReceiptPreviewInput {
   currencyCode?: string;
   /** Sales tax active for the org → sample reads "Tax Invoice" + shows a tax line. */
   salesTaxActive?: boolean;
+  /** Bound to `common.printDoc`. Omitted → English fallback labels. */
+  t?: Translator;
+  /** Drives the preview's Bengali font + locale-aware date/amount-in-words. */
+  locale?: AppLocale;
 }
 
 // Reuse the app's currency formatter (symbol map, e.g. BDT → ৳) so the preview
@@ -854,9 +986,12 @@ export const renderReceiptPreview = (
     buildSampleInvoiceDoc(
       previewCurrency(input.currencyCode),
       input.salesTaxActive === true,
+      input.t,
+      input.locale,
     ),
     input.paper,
     header,
+    input.t,
   );
   return { body, styles };
 };

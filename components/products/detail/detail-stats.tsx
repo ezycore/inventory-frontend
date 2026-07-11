@@ -1,6 +1,7 @@
 // coding-standard: maintained
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@ui/components/card'
 import {
   ShieldCheck,
@@ -61,21 +62,22 @@ export function DetailStats({
 }: DetailStatsProps) {
   // Stock value and profit tiles are cost-derived — costs.view only.
   const canViewCosts = useHasPermission(PERMISSIONS.costsView)
+  const t = useTranslations('products.products.detail.stats')
 
   const stats: Stat[] = [
     {
       icon: ShieldCheck,
-      label: 'In Stock',
+      label: t('inStock'),
       value: totalStock.toLocaleString(),
-      sub: `across ${locationCount} ${locationCount === 1 ? 'location' : 'locations'}`,
+      sub: t('acrossLocations', { count: locationCount }),
     },
     ...(canViewCosts
       ? [
           {
             icon: Wallet,
-            label: 'Stock Value',
+            label: t('stockValue'),
             value: formatCurrency(stockValue),
-            sub: 'at cost price',
+            sub: t('atCostPrice'),
           },
         ]
       : []),
@@ -84,15 +86,15 @@ export function DetailStats({
       ? [
           {
             icon: TrendingUp,
-            label: 'Total Sold',
+            label: t('totalSold'),
             value: totalSold.toLocaleString(),
-            sub: totalSold > 0 ? `~${Math.round(totalSold / 12)}/month avg` : 'No sales yet',
+            sub: totalSold > 0 ? t('monthlyAvg', { count: Math.round(totalSold / 12) }) : t('noSalesYet'),
           },
           {
             icon: DollarSign,
-            label: 'Revenue',
+            label: t('revenue'),
             value: formatCurrency(totalRevenue),
-            sub: 'lifetime earnings',
+            sub: t('lifetimeEarnings'),
           },
         ]
       : []),
@@ -100,9 +102,9 @@ export function DetailStats({
       ? [
           {
             icon: BarChart3,
-            label: 'Profit Margin',
+            label: t('profitMargin'),
             value: `${profitMarginPercent}%`,
-            sub: `${formatCurrency(profitPerUnit)} per unit`,
+            sub: t('perUnit', { amount: formatCurrency(profitPerUnit) }),
           },
         ]
       : []),

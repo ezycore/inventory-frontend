@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { Inventory } from "@/types";
 import {
   Package,
@@ -6,11 +7,11 @@ import {
   PackageX,
 } from "lucide-react";
 
-// Helper: Get stock level color and status
+// Helper: Get stock level color and status key (inventory.stockLevel.* message key)
 export const getStockLevelInfo = (quantity: number, alertLevel: number) => {
   if (quantity === 0) {
     return {
-      status: "Out of Stock",
+      statusKey: "outOfStock" as const,
       color: "text-destructive",
       bgColor: "bg-destructive/10",
       progressColor: "bg-destructive",
@@ -19,7 +20,7 @@ export const getStockLevelInfo = (quantity: number, alertLevel: number) => {
   }
   if (quantity <= alertLevel) {
     return {
-      status: "Low Stock",
+      statusKey: "lowStock" as const,
       color: "text-chart-1",
       bgColor: "bg-chart-1/10",
       progressColor: "bg-chart-1",
@@ -28,7 +29,7 @@ export const getStockLevelInfo = (quantity: number, alertLevel: number) => {
   }
   if (quantity <= alertLevel * 1.5) {
     return {
-      status: "Warning",
+      statusKey: "warning" as const,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
       progressColor: "bg-yellow-500",
@@ -36,7 +37,7 @@ export const getStockLevelInfo = (quantity: number, alertLevel: number) => {
     };
   }
   return {
-    status: "Healthy",
+    statusKey: "healthy" as const,
     color: "text-chart-2",
     bgColor: "bg-chart-2/10",
     progressColor: "bg-chart-2",

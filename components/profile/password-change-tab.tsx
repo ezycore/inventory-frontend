@@ -1,5 +1,7 @@
 "use client";
+// coding-standard: maintained
 
+import { useTranslations } from "next-intl";
 import { useUpdatePassword } from "@/services/api";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
@@ -19,6 +21,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export function PasswordChangeTab() {
+  const t = useTranslations("settings.profile.password");
   const updatePassword = useUpdatePassword();
 
   const [formData, setFormData] = useState({
@@ -41,7 +44,7 @@ export function PasswordChangeTab() {
     e.preventDefault();
 
     if (formData.newPassword === formData.currentPassword) {
-      return toast.error("New password cannot be the same as current password");
+      return toast.error(t("sameAsCurrentError"));
     }
 
     updatePassword.mutate(
@@ -67,14 +70,14 @@ export function PasswordChangeTab() {
 
   // Password requirements
   const requirements = [
-    { label: "At least 6 characters", met: formData.newPassword.length >= 6 },
-    { label: "Contains a number", met: /\d/.test(formData.newPassword) },
+    { label: t("requirements.minLength"), met: formData.newPassword.length >= 6 },
+    { label: t("requirements.number"), met: /\d/.test(formData.newPassword) },
     {
-      label: "Contains uppercase letter",
+      label: t("requirements.uppercase"),
       met: /[A-Z]/.test(formData.newPassword),
     },
     {
-      label: "Contains lowercase letter",
+      label: t("requirements.lowercase"),
       met: /[a-z]/.test(formData.newPassword),
     },
   ];
@@ -96,7 +99,7 @@ export function PasswordChangeTab() {
         <div className="space-y-2">
           <Label htmlFor="currentPassword" className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
-            Current Password <span className="text-destructive">*</span>
+            {t("currentPassword")} <span className="text-destructive">*</span>
           </Label>
           <div className="relative">
             <Input
@@ -104,7 +107,7 @@ export function PasswordChangeTab() {
               type={showPasswords.current ? "text" : "password"}
               value={formData.currentPassword}
               onChange={(e) => handleChange("currentPassword", e.target.value)}
-              placeholder="Enter your current password"
+              placeholder={t("currentPasswordPlaceholder")}
               required
               className="pr-10"
             />
@@ -127,7 +130,7 @@ export function PasswordChangeTab() {
           <div className="space-y-2">
             <Label htmlFor="newPassword" className="flex items-center gap-2">
               <KeyRound className="h-4 w-4 text-muted-foreground" />
-              New Password <span className="text-destructive">*</span>
+              {t("newPassword")} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
               <Input
@@ -135,7 +138,7 @@ export function PasswordChangeTab() {
                 type={showPasswords.new ? "text" : "password"}
                 value={formData.newPassword}
                 onChange={(e) => handleChange("newPassword", e.target.value)}
-                placeholder="Create a new password"
+                placeholder={t("newPasswordPlaceholder")}
                 required
                 className="pr-10"
               />
@@ -151,7 +154,7 @@ export function PasswordChangeTab() {
                 )}
               </button>
             </div>
-              <p className="text-sm text-muted-foreground">At least 8 characters.</p>
+              <p className="text-sm text-muted-foreground">{t("newPasswordHint")}</p>
           </div>
 
           {/* Confirm Password */}
@@ -161,7 +164,7 @@ export function PasswordChangeTab() {
               className="flex items-center gap-2"
             >
               <KeyRound className="h-4 w-4 text-muted-foreground" />
-              Confirm Password <span className="text-destructive">*</span>
+              {t("confirmPassword")} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
               <Input
@@ -171,7 +174,7 @@ export function PasswordChangeTab() {
                 onChange={(e) =>
                   handleChange("confirmPassword", e.target.value)
                 }
-                placeholder="Confirm your new password"
+                placeholder={t("confirmPasswordPlaceholder")}
                 required
                 className={cn(
                   "pr-10",
@@ -202,11 +205,11 @@ export function PasswordChangeTab() {
               >
                 {passwordsMatch ? (
                   <>
-                    <Check className="h-3 w-3" /> Passwords match
+                    <Check className="h-3 w-3" /> {t("passwordsMatch")}
                   </>
                 ) : (
                   <>
-                    <X className="h-3 w-3" /> Passwords do not match
+                    <X className="h-3 w-3" /> {t("passwordsNoMatch")}
                   </>
                 )}
               </p>
@@ -224,7 +227,7 @@ export function PasswordChangeTab() {
             {updatePassword.isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Change Password
+            {t("changePassword")}
           </Button>
         </div>
       </form>

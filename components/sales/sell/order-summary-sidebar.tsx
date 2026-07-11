@@ -1,6 +1,7 @@
 "use client";
-
+// coding-standard: maintained
 import { CheckCircleIcon, ClipboardList, Save, WalletIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/ui/components/button";
 import { Card, CardContent } from "@/ui/components/card";
 import DynamicForm from "@/ui/components/form";
@@ -15,6 +16,7 @@ import { EmailReceiptButton } from "@/components/sales/history/email-receipt-but
 import type { SellPageContext } from "./use-sell-page";
 
 export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
+  const t = useTranslations("sales.sell.summary");
   const {
     paidAmount,
     localAdditionalDiscount,
@@ -57,32 +59,32 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
         <CardContent className="pt-4 space-y-4">
           <div className="flex items-center gap-2">
             <ClipboardList className="h-4 w-4 text-muted-foreground" />
-            <h3 className="font-semibold text-base">Order Summary</h3>
+            <h3 className="font-semibold text-base">{t("orderSummary")}</h3>
           </div>
 
           {showCustomerBalances && (
             <div className="flex flex-wrap gap-2 -mt-1">
               {customerOutstandingDue > 0 && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 px-2.5 py-1 text-xs font-medium text-orange-700 dark:text-orange-300">
-                  Due: {formatCurrency(customerOutstandingDue)}
+                  {t("dueChip", { amount: formatCurrency(customerOutstandingDue) })}
                 </span>
               )}
               {customerCreditBalance > 0 && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
                   <WalletIcon className="h-3 w-3" />
-                  Credit: {formatCurrency(customerCreditBalance)}
+                  {t("creditChip", { amount: formatCurrency(customerCreditBalance) })}
                 </span>
               )}
             </div>
           )}
 
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Subtotal</span>
+            <span className="text-muted-foreground">{t("subtotal")}</span>
             <span className="tabular-nums">{formatCurrency(itemsSubtotal)}</span>
           </div>
 
           <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground font-medium">Additional Discount</span>
+            <span className="text-muted-foreground font-medium">{t("additionalDiscount")}</span>
             <div className="flex items-center gap-1">
               <span className="text-base text-muted-foreground">{symbol}</span>
               <NumberField
@@ -102,7 +104,7 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
             includedTax={includedTax}
             taxTotal={taxTotal}
             total={totalSalePrice}
-            totalLabel="Total Amount"
+            totalLabel={t("totalAmount")}
             totalSize="lg"
             formatCurrency={formatCurrency}
           />
@@ -121,7 +123,7 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
               <div className="flex items-center justify-between gap-2">
                 <Label htmlFor="use-store-credit" className="flex items-center gap-2 text-sm font-medium cursor-pointer">
                   <WalletIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  Use store credit
+                  {t("useStoreCredit")}
                 </Label>
                 <Switch
                   id="use-store-credit"
@@ -136,7 +138,7 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
               {useCreditBalance && (
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs text-muted-foreground">
-                    Available {formatCurrency(customerCreditBalance)}
+                    {t("available", { amount: formatCurrency(customerCreditBalance) })}
                   </span>
                   <NumberField
                     precision={2}
@@ -156,21 +158,21 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
           {isAccountsEnabled && (paidAmount > 0 || appliedCredit > 0) && (
             <div className="space-y-1.5">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Paid</span>
+                <span className="text-muted-foreground">{t("paid")}</span>
                 <span className="font-semibold text-green-600 dark:text-green-500 tabular-nums">
                   {formatCurrency(paidAmount)}
                 </span>
               </div>
               {appliedCredit > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Store credit applied</span>
+                  <span className="text-muted-foreground">{t("storeCreditApplied")}</span>
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
                     −{formatCurrency(appliedCredit)}
                   </span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Due</span>
+                <span className="text-muted-foreground">{t("due")}</span>
                 <span
                   className={`font-semibold tabular-nums ${
                     dueAmount > 0
@@ -183,7 +185,7 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
               </div>
               {paidAmount > totalSalePrice && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Change</span>
+                  <span className="text-muted-foreground">{t("change")}</span>
                   <span className="font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
                     {formatCurrency(paidAmount - totalSalePrice)}
                   </span>
@@ -202,10 +204,10 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
             >
               <CheckCircleIcon className="h-5 w-5" />
               {isPending || isFinalizing
-                ? "Processing..."
+                ? t("processing")
                 : isDraftMode
-                  ? "Finalize Sale"
-                  : "Confirm Order"}
+                  ? t("finalizeSale")
+                  : t("confirmOrder")}
             </Button>
             <Button
               type="button"
@@ -217,10 +219,10 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
             >
               <Save className="h-5 w-5" />
               {isSavingDraft
-                ? "Saving..."
+                ? t("saving")
                 : isDraftMode
-                  ? "Update Draft"
-                  : "Save as Draft"}
+                  ? t("updateDraft")
+                  : t("saveAsDraft")}
             </Button>
           </div>
 
@@ -228,12 +230,12 @@ export function OrderSummarySidebar({ ctx }: { ctx: SellPageContext }) {
           {lastCompletedSale && (
             <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 p-2.5 text-sm">
               <span className="min-w-0 truncate text-muted-foreground">
-                Last sale · {lastCompletedSale.invoiceNumber}
+                {t("lastSale", { invoice: lastCompletedSale.invoiceNumber })}
               </span>
               <div className="flex items-center gap-2">
                 <PrintMenu
                   appearance="solid"
-                  a4Label="Invoice"
+                  a4Label={t("invoiceLabel")}
                   defaultPaper={receiptDefaultPaper}
                   onPrint={printLastReceipt}
                 />

@@ -1,8 +1,8 @@
 // coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
-import type { ImportResult } from "@/types/DataTable";
 import { buildQueryParams, type BaseFilters } from "../../utils";
+import { createImportApi } from "../import-api";
 import type { ProductAnalytics, InventoryAnalytics } from "./analytics.types";
 
 interface InventoryFilters extends BaseFilters {
@@ -40,21 +40,7 @@ export const inventoryApi = {
       filename: "opening-stock-import-template.csv",
     }),
 
-  importPreview: (file: File): Promise<ImportResult> => {
-    const form = new FormData();
-    form.append("file", file);
-    return apiClient
-      .post<ApiResponse<ImportResult>>("/inventory/import?mode=preview", form)
-      .then((res) => res.data);
-  },
-
-  importCommit: (file: File): Promise<ImportResult> => {
-    const form = new FormData();
-    form.append("file", file);
-    return apiClient
-      .post<ApiResponse<ImportResult>>("/inventory/import?mode=commit", form)
-      .then((res) => res.data);
-  },
+  ...createImportApi("/inventory"),
 
   getShortlist: (filters: ShortlistFilters): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/inventory/shortlist${buildQueryParams(filters)}`),

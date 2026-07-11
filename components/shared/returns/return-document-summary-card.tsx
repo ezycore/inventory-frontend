@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { FileText } from 'lucide-react';
 import {
   Card,
@@ -45,6 +46,7 @@ export function ReturnDocumentSummaryCard({
   refundCreditApplied,
   formatCurrency,
 }: ReturnDocumentSummaryCardProps) {
+  const t = useTranslations('common.returns');
   // Split tax into added (charged on top → part of Total) vs in-price (already
   // inside Subtotal, informational). Exact via the canonical splitLineTax over the
   // posted line snapshot; fall back to deriving from the rolled-up totals
@@ -74,34 +76,34 @@ export function ReturnDocumentSummaryCard({
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {subtotal != null && (
-            <InfoField label="Subtotal" value={formatCurrency(subtotal)} />
+            <InfoField label={t('subtotal')} value={formatCurrency(subtotal)} />
           )}
 
           <InfoField
-            label="Discount"
+            label={t('discount')}
             value={`-${formatCurrency(additionalDiscount)}`}
             valueClassName="text-orange-600 dark:text-orange-400"
           />
 
           {addedTax > 0 && (
-            <InfoField label="Tax (added)" value={formatCurrency(addedTax)} />
+            <InfoField label={t('taxAdded')} value={formatCurrency(addedTax)} />
           )}
           {includedTax > 0 && (
             <InfoField
-              label="Tax (in price)"
+              label={t('taxInPrice')}
               value={formatCurrency(includedTax)}
               valueClassName="text-muted-foreground"
             />
           )}
-          <InfoField label="Total" value={formatCurrency(totalAmount)} />
+          <InfoField label={t('total')} value={formatCurrency(totalAmount)} />
           <InfoField
-            label="Paid"
+            label={t('paid')}
             value={formatCurrency(paidAmount)}
             valueClassName="text-green-600 dark:text-green-400"
           />
           {refundCreditApplied != null && refundCreditApplied > 0 && (
             <InfoField
-              label="Refund Credits Applied"
+              label={t('refundCreditsApplied')}
               value={formatCurrency(refundCreditApplied)}
               valueClassName="text-emerald-600 dark:text-emerald-400"
             />
@@ -110,7 +112,7 @@ export function ReturnDocumentSummaryCard({
           }
           {dueAmount != null && dueAmount > 0 && (
             <InfoField
-              label="Due"
+              label={t('due')}
               value={formatCurrency(dueAmount)}
               valueClassName="text-destructive"
             />

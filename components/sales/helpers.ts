@@ -78,6 +78,7 @@ export const customerItemsCreateCallback = (
   return items.map((item) => ({
     value: item._id,
     label: item.name,
+    email: item.email ?? null,
     discountValue: item.defaultDiscount?.value ?? 0,
     discountType: item.defaultDiscount?.type ?? "fixed",
   })) as SelectOption[];

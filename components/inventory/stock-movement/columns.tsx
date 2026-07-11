@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/ui/components/badge";
@@ -10,9 +11,11 @@ import {
   Package,
 } from "lucide-react";
 import { CopyField } from "@/ui/components/copy";
+import { useMovementReasonLabel } from "@/hooks/use-movement-reason-label";
+import type { Translator } from "@/i18n/config";
 
 // ─── Movement Type Badge ─────────────────────────────────────────────────────
-const MovementTypeBadge = ({ type }: { type: string }) => {
+const MovementTypeBadge = ({ type, t }: { type: string; t: Translator }) => {
   const isIn = type === "in";
   return (
     <Badge
@@ -24,13 +27,14 @@ const MovementTypeBadge = ({ type }: { type: string }) => {
       ) : (
         <ArrowUpFromLine className="h-3 w-3" />
       )}
-      {isIn ? "IN" : "OUT"}
+      {isIn ? t("movements.badgeIn") : t("movements.badgeOut")}
     </Badge>
   );
 };
 
 // ─── Reason Badge ────────────────────────────────────────────────────────────
 const ReasonBadge = ({ reason }: { reason: string }) => {
+  const reasonLabel = useMovementReasonLabel();
   const styles: Record<string, string> = {
     purchase: "bg-chart-2/10 text-chart-2 border-chart-2/20",
     adjustment: "bg-chart-4/10 text-chart-4 border-chart-4/20",
@@ -42,7 +46,7 @@ const ReasonBadge = ({ reason }: { reason: string }) => {
 
   return (
     <Badge variant="outline" className={`text-xs ${styles[reason] || ""}`}>
-      {reason.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())}
+      {reasonLabel(reason)}
     </Badge>
   );
 };
@@ -87,112 +91,115 @@ const QuantityChangeCell = ({
 };
 
 // ─── Column Definitions ──────────────────────────────────────────────────────
-export const columns: ColumnDef<any>[] = [
-  {
-    accessorKey: "createdAt",
-    header: "Date & Time",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-          <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-        </div>
-        <DateCell
-          value={row.getValue("createdAt")}
-          isShowDateOnly={false}
-        />
-      </div>
-    ),
-  },
-  {
-    accessorKey: "productId",
-    header: "Product",
-    cell: ({ row }) => {
-      const product = row.original.productId;
-      const variant = row.original.variantId;
-      return (
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Package className="h-3.5 w-3.5 text-primary" />
+/** Movement-history columns. `t` is bound to the `inventory` namespace. */
+export function getMovementColumns(t: Translator): ColumnDef<any>[] {
+  return [
+    {
+      accessorKey: "createdAt",
+      header: t("movements.colDateTime"),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
-          <div className="min-w-0">
-            <p className="font-medium text-sm truncate">
-              {product?.name || product || "-"}
-            </p>
-            {variant && (
-              <p className="text-xs text-muted-foreground truncate">
-                {variant.attributes
-                  ? Object.entries(variant.attributes)
-                    .map(([k, v]) => `${k}: ${v}`)
-                    .join(", ")
-                  : ""}
+          <DateCell
+            value={row.getValue("createdAt")}
+            isShowDateOnly={false}
+          />
+        </div>
+      ),
+    },
+    {
+      accessorKey: "productId",
+      header: t("columns.product"),
+      cell: ({ row }) => {
+        const product = row.original.productId;
+        const variant = row.original.variantId;
+        return (
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Package className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-sm truncate">
+                {product?.name || product || "-"}
               </p>
-            )}
+              {variant && (
+                <p className="text-xs text-muted-foreground truncate">
+                  {variant.attributes
+                    ? Object.entries(variant.attributes)
+                      .map(([k, v]) => `${k}: ${v}`)
+                      .join(", ")
+                    : ""}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      );
+        );
+      },
     },
-  },
-  {
-    accessorKey: "movementType",
-    header: "Type",
-    cell: ({ row }) => (
-      <MovementTypeBadge type={row.getValue("movementType")} />
-    ),
-  },
-  {
-    accessorKey: "reason",
-    header: "Reason",
-    cell: ({ row }) => <ReasonBadge reason={row.getValue("reason")} />,
-  },
-  {
-    accessorKey: "quantity",
-    header: "Qty Change",
-    cell: ({ row }) => {
-      const product = row.original.productId as
-        | { unitId?: { name?: string; shortName?: string } }
-        | undefined;
-      const unitLabel =
-        product?.unitId?.shortName || product?.unitId?.name || undefined;
-      return (
-        <QuantityChangeCell
-          previous={row.original.previousQuantity}
-          current={row.original.newQuantity}
-          type={row.original.movementType}
-          quantity={row.getValue("quantity") as number}
-          unitLabel={unitLabel}
-        />
-      );
+    {
+      accessorKey: "movementType",
+      header: t("movements.colType"),
+      cell: ({ row }) => (
+        <MovementTypeBadge type={row.getValue("movementType")} t={t} />
+      ),
     },
-  },
-  {
-    accessorKey: "notes",
-    header: "Notes",
-    cell: ({ row }) => {
-      const notes = row.getValue("notes") as string;
-      const id = (notes || "").match(/(?:INV|PO)-\d+-\d+/i)?.[0]
+    {
+      accessorKey: "reason",
+      header: t("movements.colReason"),
+      cell: ({ row }) => <ReasonBadge reason={row.getValue("reason")} />,
+    },
+    {
+      accessorKey: "quantity",
+      header: t("movements.colQtyChange"),
+      cell: ({ row }) => {
+        const product = row.original.productId as
+          | { unitId?: { name?: string; shortName?: string } }
+          | undefined;
+        const unitLabel =
+          product?.unitId?.shortName || product?.unitId?.name || undefined;
+        return (
+          <QuantityChangeCell
+            previous={row.original.previousQuantity}
+            current={row.original.newQuantity}
+            type={row.original.movementType}
+            quantity={row.getValue("quantity") as number}
+            unitLabel={unitLabel}
+          />
+        );
+      },
+    },
+    {
+      accessorKey: "notes",
+      header: t("shared.notes"),
+      cell: ({ row }) => {
+        const notes = row.getValue("notes") as string;
+        const id = (notes || "").match(/(?:INV|PO)-\d+-\d+/i)?.[0]
 
-      return notes ? (
-        <div className="flex items-center gap-1 max-w-[200px]">
-          <span className="text-xs text-muted-foreground truncate block">
-            {notes}
+        return notes ? (
+          <div className="flex items-center gap-1 max-w-[200px]">
+            <span className="text-xs text-muted-foreground truncate block">
+              {notes}
+            </span>
+            <CopyField value={id || notes} showValue={false} />
+          </div>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        );
+      },
+    },
+    {
+      accessorKey: "createdBy",
+      header: t("movements.colBy"),
+      cell: ({ row }) => {
+        const user = row.original.createdBy;
+        return (
+          <span className="text-sm text-muted-foreground">
+            {user?.name || user?.email || "-"}
           </span>
-          <CopyField value={id || notes} showValue={false} />
-        </div>
-      ) : (
-        <span className="text-muted-foreground text-xs">—</span>
-      );
+        );
+      },
     },
-  },
-  {
-    accessorKey: "createdBy",
-    header: "By",
-    cell: ({ row }) => {
-      const user = row.original.createdBy;
-      return (
-        <span className="text-sm text-muted-foreground">
-          {user?.name || user?.email || "-"}
-        </span>
-      );
-    },
-  },
-];
+  ];
+}
