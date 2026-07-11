@@ -22,6 +22,7 @@ import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
 import { ArrowLeft, Loader2, Shield } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { LoginNotices } from "./login-notices";
 import { WorkspaceChooser } from "./workspace-chooser";
@@ -42,9 +43,14 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const t = useTranslations("auth.login");
+  // The apex workspace chooser forwards the email the user already typed as an
+  // `?email=` param; seed the form with it so they don't retype it here, and
+  // send focus straight to the password field.
+  const searchParams = useSearchParams();
+  const prefilledEmail = searchParams.get("email") ?? "";
   const [formData, setFormData] = useState({
     organizationSlug: "",
-    email: "",
+    email: prefilledEmail,
     password: "",
   });
   const [show2FA, setShow2FA] = useState(false);
@@ -245,6 +251,7 @@ export function LoginForm({
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
+                  autoFocus={Boolean(prefilledEmail)}
                   required
                 />
               </div>
