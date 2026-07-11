@@ -54,10 +54,14 @@ export function WorkspaceChooser({
   const rootDomain = getRootDomain();
 
   // Cross-origin hop — full page load to the workspace login. The spinner stays
-  // on while the browser navigates.
-  const goToWorkspace = (workspaceSlug: string) => {
+  // on while the browser navigates. When the user reached us by email, carry it
+  // along so the workspace login can prefill it (they already typed it once).
+  const goToWorkspace = (workspaceSlug: string, prefillEmail?: string) => {
     setIsChecking(true);
-    window.location.assign(workspaceUrl(workspaceSlug, "/login"));
+    const path = prefillEmail
+      ? `/login?email=${encodeURIComponent(prefillEmail)}`
+      : "/login";
+    window.location.assign(workspaceUrl(workspaceSlug, path));
   };
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,11 +69,12 @@ export function WorkspaceChooser({
     setError(null);
     setIsChecking(true);
 
-    const result = await findWorkspacesByEmail(email.trim().toLowerCase());
+    const normalizedEmail = email.trim().toLowerCase();
+    const result = await findWorkspacesByEmail(normalizedEmail);
 
     if (result.kind === "ok") {
       if (result.workspaces.length === 1) {
-        goToWorkspace(result.workspaces[0].slug);
+        goToWorkspace(result.workspaces[0].slug, normalizedEmail);
         return;
       }
       setIsChecking(false);
@@ -140,7 +145,9 @@ export function WorkspaceChooser({
                 <button
                   key={workspace.slug}
                   type="button"
-                  onClick={() => goToWorkspace(workspace.slug)}
+                  onClick={() =>
+                    goToWorkspace(workspace.slug, email.trim().toLowerCase())
+                  }
                   disabled={isChecking}
                   className="flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
                 >

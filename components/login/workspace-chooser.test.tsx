@@ -81,7 +81,9 @@ describe("WorkspaceChooser", () => {
     await submitEmail("owner@acme.com");
 
     await waitFor(() =>
-      expect(hrefSpy).toBe("http://acme.ezycore.com/login"),
+      expect(hrefSpy).toBe(
+        "http://acme.ezycore.com/login?email=owner%40acme.com",
+      ),
     );
   });
 
@@ -99,7 +101,9 @@ describe("WorkspaceChooser", () => {
 
     await userEvent.click(screen.getByText("Beta"));
     await waitFor(() =>
-      expect(hrefSpy).toBe("http://beta.ezycore.com/login"),
+      expect(hrefSpy).toBe(
+        "http://beta.ezycore.com/login?email=owner%40acme.com",
+      ),
     );
   });
 
