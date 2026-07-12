@@ -1,4 +1,4 @@
-# EasyStock Frontend — Copilot Instructions
+# EzyCore Frontend — Copilot Instructions
 
 ## Stack
 

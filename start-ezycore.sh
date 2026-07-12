@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# start-easystock.sh
+# start-ezycore.sh
 # Starts both the frontend and backend in the workspace.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FRONTEND_DIR="$ROOT_DIR"
 BACKEND_DIR="$(cd "$ROOT_DIR/../easystock-backend" && pwd)"
-LOG_DIR="$ROOT_DIR/.easystock-logs"
+LOG_DIR="$ROOT_DIR/.ezycore-logs"
 
 mkdir -p "$LOG_DIR"
 
