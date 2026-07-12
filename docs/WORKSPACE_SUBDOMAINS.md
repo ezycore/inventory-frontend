@@ -1,6 +1,6 @@
 # Per-Workspace Subdomains
 
-How an EasyStock workspace gets its own subdomain (`acme.ezycore.com`), how users
+How an EzyCore workspace gets its own subdomain (`acme.ezycore.com`), how users
 sign up on the apex and are handed off to that subdomain, and everything needed to
 run it in production.
 

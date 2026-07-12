@@ -6,6 +6,7 @@ import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { storeHref } from "@/lib/storefront-links";
 import { computeShipping } from "@/lib/storefront-shipping";
 import { money } from "@/components/storefront/format";
@@ -38,6 +39,13 @@ export default function CartPage() {
   const allItems = useCartStore((s) => s.items);
   const updateQty = useCartStore((s) => s.updateQty);
   const removeItem = useCartStore((s) => s.removeItem);
+  const hydrated = useHydrated();
+
+  // The cart lives in a persisted (localStorage) store the server can't read.
+  // Hold the neutral shell until hydration so the first client render matches
+  // the SSR HTML — otherwise React hydration mismatches and the empty-cart CTA
+  // flashes before the persisted items appear.
+  if (!hydrated) return <div style={wrap} aria-busy="true" />;
 
   const items = storeSlug === slug ? allItems : [];
   const currency = store?.currency;
