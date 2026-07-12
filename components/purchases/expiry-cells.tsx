@@ -37,7 +37,8 @@ export const ExpiryDateCell = ({ item, sellerId, onUpdate }: CellProps) => {
 export const BatchNumberCell = ({ item, sellerId, onUpdate }: CellProps) => {
   const t = useTranslations("purchases.items");
   // Local state commits on blur so typing doesn't write to the persisted store
-  // on every keystroke (and avoids controlled-input cursor jumps).
+  // on every keystroke (and avoids controlled-input cursor jumps). When the
+  // stored value changes externally, sync during render (not in an effect).
   const [value, setValue] = useState(item.batchNumber ?? "");
 
   // Resync local value when the persisted batch changes externally (render-phase

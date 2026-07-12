@@ -10,6 +10,7 @@ import type {
   OrganizationFeatures,
   PlanChangeResult,
   SubscriptionInfo,
+  UpdateStorefrontSettingsDto,
   TaxSettings,
 } from "@/types";
 import type { ReceiptSettings } from "@/types/receipt";
@@ -281,6 +282,62 @@ export const useUpdateColumnSettings = () => {
       }
 
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// GET /api/organization/storefront - Get storefront settings (lazily created backend-side)
+export const useGetStorefrontSettings = () => {
+  return useQuery({
+    queryKey: queryKeys.organization.storefront(),
+    queryFn: () => organizationApi.getStorefrontSettings(),
+    select: (res) => res.data,
+    staleTime: 60 * 1000, // 1 minute
+  });
+};
+
+// PATCH /api/organization/storefront - Update storefront settings / publish state
+export const useUpdateStorefrontSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateStorefrontSettingsDto) =>
+      organizationApi.updateStorefrontSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(
+        result.message || "Store settings updated successfully!",
+      );
+      queryClient.setQueryData(queryKeys.organization.storefront(), result);
+    },
+    onError: handleMutationError,
+  });
+};
+
+// PATCH /api/organization/storefront/media - Upload/replace/remove logo + banner
+export const useUpdateStorefrontMedia = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: FormData) =>
+      organizationApi.updateStorefrontMedia(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Storefront media updated");
+      queryClient.setQueryData(queryKeys.organization.storefront(), result);
+    },
+    onError: handleMutationError,
+  });
+};
+
+// POST /api/organization/storefront/media/hero-slide - Upload one hero-slide
+// image. Returns uploadInfo only (no cache write): the editor embeds it in a
+// slide and persists via the heroSlides settings PATCH.
+export const useUploadHeroSlideImage = () => {
+  return useMutation({
+    mutationFn: (file: File) => {
+      const fd = new FormData();
+      fd.append("image", file);
+      return organizationApi.uploadHeroSlideImage(fd);
     },
     onError: handleMutationError,
   });

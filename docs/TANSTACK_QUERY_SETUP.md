@@ -1,4 +1,4 @@
-# TanStack Query v5 Setup for EasyStock Frontend
+# TanStack Query v5 Setup for EzyCore Frontend
 
 This setup provides a modern, developer-friendly TanStack Query v5 configuration with the latest best practices.
 

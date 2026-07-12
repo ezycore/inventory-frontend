@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import KBar from "@/components/kbar";
 import AppSidebar from "@/components/layout/app-sidebar";
@@ -8,9 +9,12 @@ import { DemoBanner } from "@/components/shared/demo-banner";
 import { shouldBlockWorkspaceAccess } from "@/lib/subscription-utils";
 import { useGetSubscription, useMe } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { useHydrated } from "@/hooks/use-hydrated";
+import { useOrgFavicon } from "@/hooks/use-org-favicon";
 import { SidebarInset, SidebarProvider } from "@ui/components/sidebar";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCookie } from "cookies-next";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -26,6 +30,9 @@ export default function ProtectedLayout({
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const subscriptionLogoutHandled = useRef(false);
+
+  // Browser-tab icon = the organization's logo (default icon until set).
+  useOrgFavicon();
 
   // Use consistent default for SSR, then update after mount
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -72,6 +79,20 @@ export default function ProtectedLayout({
       forceLogoutForSubscription();
     }
   }, [forceLogoutForSubscription, subscription.error, subscription.isError]);
+
+  // The org/user identity lives in the persisted auth store, which the server
+  // can't read — SSR HTML would show brand defaults that visibly "blink" into
+  // the real organization after hydration. Hold the shell behind a neutral
+  // splash until the client store is available (one frame; localStorage
+  // rehydrates synchronously), so the first thing painted is correct.
+  const hydrated = useHydrated();
+  if (!hydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <KBar>

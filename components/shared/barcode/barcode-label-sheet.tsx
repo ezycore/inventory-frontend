@@ -17,10 +17,12 @@ import { toast } from "sonner";
 import { printHtml } from "@/utils/print";
 
 // A4 grid layout for the printed label sheet. Passed to `printHtml`, which
-// already resets box-sizing + body margins and injects the print bootstrap.
+// resets box-sizing + body margins and opens the print dialog when ready.
+// Page margin 0 keeps the browser's default header/footer off the sheet;
+// body padding provides the same 8mm frame.
 const LABEL_PRINT_STYLES = `
-  @page { margin: 8mm; size: A4; }
-  body { font-family: Arial, sans-serif; }
+  @page { margin: 0; size: A4; }
+  body { font-family: Arial, sans-serif; padding: 8mm; }
   #print-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.5mm; }
   svg { height: 8mm; width: auto; display: block; margin: 0.8mm auto; }
 `;
@@ -228,12 +230,12 @@ export default function BarcodeLabelSheet({
   const grid = document.getElementById("bls-grid");
   if (!grid || grid.innerHTML.trim() === "" || selected.size === 0) return;
 
-  // Called synchronously from the click so the popup isn't blocked.
+  // Prints via the shared hidden-iframe path (utils/print.ts).
   const opened = printHtml(`<div id="print-grid">${grid.innerHTML}</div>`, {
    title: "Barcode Labels",
    styles: LABEL_PRINT_STYLES,
   });
-  if (!opened) toast.error("Please allow pop-ups to print labels.");
+  if (!opened) toast.error("Couldn't start printing. Please try again.");
  };
 
  const allSelected = items.length > 0 && selected.size === items.length;
