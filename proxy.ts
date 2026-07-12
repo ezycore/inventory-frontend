@@ -1,5 +1,7 @@
+// coding-standard: maintained
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { lookupStoreByHost } from "@/lib/storefront-domain-lookup";
 
 /**
  * Option A routing + admin auth gate.
@@ -7,21 +9,26 @@ import { NextResponse } from "next/server";
  * Tenant model: we own `ezycore.com`. On a tenant subdomain
  * (`{slug}.ezycore.com`) the admin owns the root and the public store lives at
  * `/shop`; internally everything renders from the `app/(storefront)/shop` tree.
- * The store slug always comes from the HOST (subdomain or custom-domain map),
- * never a path segment, and is forwarded to the storefront via `x-ezy-store-*`
- * request headers (read by `lib/storefront-host.ts`).
+ * The store slug always comes from the HOST (subdomain, custom-domain map, or
+ * the backend's domains registry), never a path segment, and is forwarded to
+ * the storefront via `x-ezy-store-*` request headers (read by
+ * `lib/storefront-host.ts`).
  *
  *   - tenant subdomain   `{slug}.ezycore.com/shop/…`  → store (base `/shop`)
- *   - custom domain      `mystore.com/…` (root)        → store (base ``)
+ *   - custom domain      `mystore.com/…` (root)        → store (base ``) —
+ *     resolved via the env map first, then the backend's Settings → Domains
+ *     registry (`lib/storefront-domain-lookup.ts`, cached ~60s)
  *   - `*.localhost`      `{slug}.localhost/shop/…`     → store, for local dev
  *   - everything else                                  → admin (auth-gated)
  *
  * `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN` is the tenant root (e.g. "ezycore.com");
- * empty in local dev, where `*.localhost` stands in for it.
+ * empty in local dev, where `*.localhost` stands in for it. Baked at BUILD
+ * time — must be passed as a Docker build-arg (deploy.yml).
  */
 const STOREFRONT_ROOT = process.env.NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN;
 
-/** Custom domains → store slug, e.g. `{"mystore.com":"rmc41"}`. Wired manually. */
+/** Custom domains → store slug, e.g. `{"mystore.com":"rmc41"}`. Manual
+ *  override/fallback — self-serve domains resolve dynamically instead. */
 const CUSTOM_DOMAIN_MAP: Record<string, string> = (() => {
   try {
     return JSON.parse(process.env.NEXT_PUBLIC_CUSTOM_DOMAIN_MAP || "{}");
@@ -71,17 +78,37 @@ function resolveStore(host: string): ResolvedStore | null {
   return null;
 }
 
+/**
+ * Hosts worth a dynamic custom-domain lookup: anything `resolveStore` couldn't
+ * place statically that isn't localhost, the tenant root itself, or one of its
+ * subdomains (reserved subdomains like `app`/`www` must stay admin, and a store
+ * subdomain never needs the API). Everything else may be a merchant domain from
+ * Settings → Domains.
+ */
+const isCustomDomainCandidate = (host: string): boolean =>
+  host.includes(".") &&
+  !host.endsWith(".localhost") &&
+  (!STOREFRONT_ROOT ||
+    (host !== STOREFRONT_ROOT && !host.endsWith(`.${STOREFRONT_ROOT}`)));
+
 const isStorePath = (pathname: string) =>
   pathname === "/shop" || pathname.startsWith("/shop/");
 
 const isLegacyStorePath = (pathname: string) =>
   pathname === "/s" || pathname.startsWith("/s/");
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const hostHeader = request.headers.get("host") || "";
   const host = hostHeader.split(":")[0];
   const { pathname } = request.nextUrl;
-  const store = resolveStore(host);
+
+  let store = resolveStore(host);
+  // Unrecognized host → maybe a merchant custom domain (Settings → Domains).
+  // Cached lookup, so steady-state traffic doesn't pay an extra round trip.
+  if (!store && isCustomDomainCandidate(host)) {
+    const slug = await lookupStoreByHost(host);
+    if (slug) store = { slug, base: "" };
+  }
 
   // Never trust client-supplied store headers — strip them, then set our own
   // from the resolved host so they can't be spoofed.

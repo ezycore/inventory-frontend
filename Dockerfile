@@ -11,6 +11,13 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Apex domain for per-workspace subdomain URLs (empty in staging — no wildcard there).
 ARG NEXT_PUBLIC_ROOT_DOMAIN
 ENV NEXT_PUBLIC_ROOT_DOMAIN=$NEXT_PUBLIC_ROOT_DOMAIN
+# Tenant root for the storefront: proxy.ts parses `{slug}.<this>` hosts into store
+# slugs. Without it resolveStore() returns null and every shop shows "Store unavailable".
+ARG NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN
+ENV NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN=$NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN
+# Custom domain → store slug JSON map (wired manually per merchant, see .env.example).
+ARG NEXT_PUBLIC_CUSTOM_DOMAIN_MAP
+ENV NEXT_PUBLIC_CUSTOM_DOMAIN_MAP=$NEXT_PUBLIC_CUSTOM_DOMAIN_MAP
 RUN pnpm build
 
 # ---- runner ----

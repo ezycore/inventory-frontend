@@ -12,7 +12,12 @@ every store; **the host picks the store**.
 - **Custom domains**: store at the domain root; link base = `""`. `proxy.ts` (root) resolves
   host → slug and injects headers; `shop/layout.tsx` reads them and provides `{slug, base}` via
   `StoreContextProvider`. **Never hardcode `/shop`** — always `storeHref(base, path)`
-  (`lib/storefront-links.ts`).
+  (`lib/storefront-links.ts`). Resolution order: `NEXT_PUBLIC_CUSTOM_DOMAIN_MAP` (manual
+  override) → **dynamic lookup** `lib/storefront-domain-lookup.ts` → BE
+  `GET /api/public/store-by-host?host=` (resolves the org `domains` array from Settings →
+  Domains; active entries only; 60s in-memory cache, errors cached 10s). Merchant flow is
+  fully self-serve: add domain in settings → TXT verify → Caddy on-demand cert → live.
+  A custom domain serves the SHOP at root — the admin stays on `{slug}.ezycore.com`.
 
 ## Dev environment
 
@@ -134,7 +139,17 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   links + fulfillment location, Publish, payments/shipping/checkout tabs). Custom domains under
   app Settings → Custom Domains.
 
-## Work log (what was built, newest first — as of 2026-07-11)
+## Work log (what was built, newest first — as of 2026-07-13)
+
+- **Dynamic custom-domain → store routing** (2026-07-13): closed the gap between Settings →
+  Domains and the storefront proxy. BE: `GET /api/public/store-by-host?host=` in
+  `public.routes.ts` (reuses `resolveOrgHost`; active domains only; tests
+  `public-store-by-host.test.ts` 5/5). FE: `lib/storefront-domain-lookup.ts` (cached fetch,
+  never throws) called from `proxy.ts` when static resolution misses; env map kept as manual
+  override. Verified e2e in dev via temporary env flips (BE `ROOT_DOMAIN` set + FE storefront
+  root blanked → `Host: rmc41.ezycore.com` rendered the store at root, `/shop` 307'd to `/`,
+  unknown hosts fell to the admin gate). Also fixed the prod outage: `Dockerfile` + `deploy.yml`
+  now pass `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN` (was never baked → every shop "unavailable").
 
 - **Customize left rail = fixed-height sticky column** (lg+): the rail matches the preview's
   height, sections scroll INSIDE it with their Save buttons pinned at the bottom, and the slides
@@ -201,6 +216,16 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   custom domains, storefront SEO metadata, bilingual i18n, dark mode.
 
 ## Gotchas that have bitten before
+
+- **Prod "Store unavailable" on every shop = missing build-arg** (bit us 2026-07-12):
+  `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN` is baked at BUILD time into `proxy.ts`; if the Docker
+  image is built without it, `resolveStore()` returns null for every host and `shop/layout.tsx`
+  renders the unavailable card (its `text-gray-500` variant = layout/no-slug branch;
+  `store-shell.tsx`'s `text-[var(--muted)]` variant = backend-rejected branch — tells you which
+  side failed from the SSR HTML alone). Wired in `Dockerfile` + `.github/workflows/deploy.yml`;
+  same applies to `NEXT_PUBLIC_CUSTOM_DOMAIN_MAP`. Prod API is `https://api.ezycore.com/api`
+  (NOT the onrender.com URL in `.env.example`); sanity-check with
+  `curl https://api.ezycore.com/api/storefront/{slug}`.
 
 - **Shopper notification prefs are consent flags only** (account → Notifications;
   `shopper.model.ts` `prefs`, `PUT /:slug/auth/me/prefs` — verified e2e 2026-07-11): no backend
