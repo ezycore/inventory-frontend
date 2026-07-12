@@ -136,6 +136,19 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
 
 ## Work log (what was built, newest first — as of 2026-07-11)
 
+- **Customize left rail = fixed-height sticky column** (lg+): the rail matches the preview's
+  height, sections scroll INSIDE it with their Save buttons pinned at the bottom, and the slides
+  panel fills the same frame (pinned header/footer, scrolling rows) — eliminates the height-jump
+  "blink" when the panel takes over. Mobile keeps natural flow (all `lg:` gated).
+- **Hero slides edit-in-place panel**: slide editing moved out of the Theme scroll into
+  `components/ecommerce/hero-slides-panel.tsx` — a takeover of the Customize LEFT rail (never a
+  modal/right-drawer: those would cover the live preview). Collapsed rows (SlideThumb + title,
+  expand one at a time), own footer **Save slides** (PATCHes only `heroSlides`) / Cancel-back-Esc
+  (restores an on-open snapshot). Opened from the Home template block's edit/add icon AND the Theme
+  section's compact "Hero slides" summary card ("Manage slides"); while open, BrowserPreview forces
+  `heroSrc="slides"` so edits always show. Theme's "Save theme" no longer saves slides.
+  `hero-slides-editor.tsx` deleted (superseded); shared `slide-thumb.tsx` added.
+  Design sample: claude.ai/code/artifact/09f51325-0c70-4b4d-9359-569d99895bcd.
 - **Hero source switch (`templates.hero`: slides|banner)**: explicit control over what the home
   hero shows — carousel (when slides exist) or the static banner hero — so slides can stay saved
   but hidden. Standard surface-template plumbing (BE model/validator/types, FE `HERO` map in
