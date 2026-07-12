@@ -47,6 +47,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ github.ref_name == 'main' && secrets.NEXT_PUBLIC_API_URL_PROD || secrets.NEXT_PUBLIC_API_URL_STAGING }}
             NEXT_PUBLIC_ROOT_DOMAIN=${{ github.ref_name == 'main' && 'ezycore.com' || '' }}
+            NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN=${{ github.ref_name == 'main' && 'ezycore.com' || '' }}
           tags: |
             ${{ env.IMAGE }}:${{ steps.env.outputs.tag }}
             ${{ env.IMAGE }}:${{ github.sha }}
