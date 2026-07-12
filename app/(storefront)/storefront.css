@@ -1,0 +1,488 @@
+/*
+ * Storefront design system — the "Rashid's Mart" / EzyCore storefront look.
+ * Intentionally SEPARATE from the admin/inventory app: everything is scoped under
+ * `.sf-root` so it never collides with the admin's shadcn tokens, and the admin's
+ * `dark` class on <html> can't restyle the storefront. Dark mode here is opt-in
+ * via `.sf-root[data-theme="dark"]` (toggled client-side, persisted to
+ * localStorage). The merchant's brand colour overrides `--primary` per store.
+ *
+ * Token + responsive system ported 1:1 from the design's `<style>` block.
+ */
+.sf-root {
+  /* ---- Colour tokens (light) ---- */
+  --page: #f8fafc;
+  --card: #ffffff;
+  --surface: #f1f5f9;
+  --surface-2: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --faint: #94a3b8;
+  --border: #e5e7eb;
+  --border-strong: #cbd5e1;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: #eff6ff;
+  --on-primary: #ffffff;
+  --discount: #b91c1c;
+  --discount-soft: #fee2e2;
+  --header: rgba(255, 255, 255, 0.85);
+
+  /* ---- Layout tokens (mobile-first base; widen at breakpoints below) ---- */
+  --maxw: 1200px;
+  --pad: 16px;
+  --gap: 12px;
+  --cols: 2;
+  --h1: 30px;
+  --h1m: 34px;
+  --h2: 20px;
+  --herocols: 1fr;
+  --bandcols: 2;
+  --footcols: 1fr;
+  --splitcols: 1fr;
+  --splith: 200px;
+  --trustcols: 1fr;
+  --promocols: 1fr;
+  --mincols: 2;
+  --colcols: 2;
+  --searchcols: 2;
+  --relcols: 2;
+  --pdpgrid: 1fr;
+  --cartgrid: 1fr;
+  --colmain: 1fr;
+  /* Account area: sidebar + content grid, profile detail columns. */
+  --acctgrid: 1fr;
+  --profcols: 1fr;
+  /* Invoice: billed-to + meta columns. */
+  --invcols: 1fr;
+  /* Height reserved for the fixed mobile bottom nav; 0 on desktop. */
+  --sf-bottom-nav-h: 0px;
+
+  /* ---- Type ---- */
+  --font-storefront: var(--font-inter), var(--font-noto-bengali),
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* ---- Backward-compat aliases (older not-yet-restyled pages) ---- */
+  --sf-bg: var(--page);
+  --sf-card: var(--card);
+  --sf-muted-bg: var(--surface);
+  --sf-fg: var(--text);
+  --sf-muted: var(--muted);
+  --sf-faint: var(--faint);
+  --sf-border: var(--border);
+  --sf-brand: var(--primary);
+  --sf-accent: var(--primary);
+
+  color-scheme: light;
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--font-storefront);
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Colour tokens (dark) ---- */
+.sf-root[data-theme="dark"] {
+  --page: #09090b;
+  --card: #18181b;
+  --surface: #27272a;
+  --surface-2: #3f3f46;
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --faint: #71717a;
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-soft: #172554;
+  --on-primary: #ffffff;
+  --discount: #f87171;
+  --discount-soft: #3f1d1d;
+  --header: rgba(9, 9, 11, 0.82);
+  color-scheme: dark;
+}
+
+/* ---- Merchant brand colour ----
+   StoreShell exposes the owner's brand as --sf-brand-* vars and stamps
+   [data-brand]; the tokens resolve per-theme HERE so the dark variant (a
+   luminance-lifted copy — lib/color-contrast.ts) applies with zero flash.
+   A navy brand stays navy on light but never disappears on near-black, and
+   --on-primary/--primary-soft follow the brand for contrast + hue. */
+.sf-shell[data-brand] {
+  --primary: var(--sf-brand-light);
+  --primary-hover: var(--sf-brand-light);
+  --on-primary: var(--sf-brand-on-light);
+  --primary-soft: color-mix(in srgb, var(--sf-brand-light) 13%, transparent);
+}
+.sf-root[data-theme="dark"] .sf-shell[data-brand] {
+  --primary: var(--sf-brand-dark);
+  --primary-hover: var(--sf-brand-dark);
+  --on-primary: var(--sf-brand-on-dark);
+  --primary-soft: color-mix(in srgb, var(--sf-brand-dark) 16%, transparent);
+}
+
+/* ---- Responsive layout tokens ---- */
+@media (min-width: 680px) {
+  .sf-root {
+    --pad: 28px;
+    --gap: 16px;
+    --cols: 3;
+    --h1: 38px;
+    --h1m: 44px;
+    --h2: 23px;
+    --herocols: 1.1fr 1fr;
+    --bandcols: 4;
+    --footcols: 2fr 1fr 1fr;
+    --splitcols: 1fr 1fr;
+    --splith: 340px;
+    --trustcols: 3;
+    --promocols: 1fr 1fr;
+    --mincols: 3;
+    --colcols: 3;
+    --searchcols: 3;
+    --relcols: 4;
+    --pdpgrid: minmax(0, 1.1fr) minmax(0, 1fr);
+    --cartgrid: minmax(0, 1.6fr) minmax(0, 1fr);
+    --colmain: 220px minmax(0, 1fr);
+    --acctgrid: 260px minmax(0, 1fr);
+    --profcols: 1fr 1fr;
+    --invcols: 1.2fr 1fr;
+  }
+}
+@media (min-width: 1000px) {
+  .sf-root {
+    --pad: 40px;
+    --cols: 4;
+    --h1: 46px;
+    --h1m: 52px;
+    --h2: 26px;
+    --colcols: 4;
+    --searchcols: 4;
+  }
+}
+
+/* ---- Print hygiene (order invoices print via the shared print engine in
+   their own document — utils/print-storefront-order.ts — so this only keeps
+   direct page printing sane) ---- */
+@media print {
+  .sf-noprint,
+  .sf-root .sf-mobile-only,
+  .sf-root .sf-desktop-only,
+  .sf-root footer,
+  .tsqd-parent-container /* TanStack Query devtools float (dev only) */ {
+    display: none !important;
+  }
+  /* Pages always print on white, whatever the on-screen theme. */
+  .sf-root,
+  .sf-root[data-theme="dark"] {
+    --page: #ffffff;
+    --card: #ffffff;
+    --surface: #f1f5f9;
+    --text: #0f172a;
+    --muted: #64748b;
+    --faint: #94a3b8;
+    --border: #e5e7eb;
+    --border-strong: #cbd5e1;
+    --primary: #2563eb;
+    --discount: #b91c1c;
+    color-scheme: light;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ---- Responsive show/hide (matches the design's 680px breakpoint) ---- */
+@media (max-width: 679px) {
+  .sf-desktop-only {
+    display: none !important;
+  }
+  /* Reserve room for the fixed bottom nav so the footer/last content clears it. */
+  .sf-root {
+    --sf-bottom-nav-h: calc(56px + env(safe-area-inset-bottom));
+  }
+  .sf-shell {
+    padding-bottom: var(--sf-bottom-nav-h);
+  }
+}
+@media (min-width: 680px) {
+  .sf-mobile-only {
+    display: none !important;
+  }
+}
+
+/* ---- Product grids ---- */
+.sf-grid-4 {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(var(--colcols), minmax(0, 1fr));
+}
+.sf-grid-3 {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 680px) {
+  .sf-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---- Helpers ---- */
+.sf-root :where(h1, h2, h3) {
+  letter-spacing: -0.02em;
+}
+.sf-mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+.sf-root ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.sf-root ::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 6px;
+}
+.sf-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+@keyframes ezSlideUp {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+/* Loading shimmer (SkeletonCard etc.) — theme-aware via surface tokens. */
+.sf-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--surface-2) 50%,
+    var(--surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: ezShimmer 1.4s ease-in-out infinite;
+}
+@keyframes ezShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+/* Centered page-loading spinner (LoadingSplash) — storefront twin of the
+   admin layout's Loader2 splash; theme-aware via border tokens. */
+.sf-spin {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--muted);
+  animation: ezSpin 0.7s linear infinite;
+}
+@keyframes ezSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ezPop {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ---- Home hero carousel (components/storefront/hero-carousel.tsx) ---- */
+.sf-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  height: clamp(320px, 40vw, 430px);
+  touch-action: pan-y;
+}
+.sf-hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.65s ease;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+.sf-hero-slide.sf-hero-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.sf-hero-art {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.sf-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    78deg,
+    rgba(10, 12, 24, 0.78) 0%,
+    rgba(10, 12, 24, 0.55) 44%,
+    rgba(10, 12, 24, 0.12) 78%
+  );
+}
+.sf-hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 520px;
+  padding: clamp(22px, 4.5vw, 48px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+/* staggered rise of the text block when a slide activates */
+.sf-hero-copy > * {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.sf-hero-active .sf-hero-copy > *:nth-child(1) { transition-delay: 0.12s; }
+.sf-hero-active .sf-hero-copy > *:nth-child(2) { transition-delay: 0.2s; }
+.sf-hero-active .sf-hero-copy > *:nth-child(3) { transition-delay: 0.28s; }
+.sf-hero-active .sf-hero-copy > *:nth-child(4) { transition-delay: 0.36s; }
+.sf-hero-active .sf-hero-copy > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+.sf-hero-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin: 0 0 14px;
+}
+.sf-hero-title {
+  color: #fff;
+  font-size: clamp(24px, 3.6vw, 40px);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+.sf-hero-sub {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(13px, 1.4vw, 15px);
+  margin: 0 0 22px;
+  max-width: 42ch;
+}
+.sf-hero-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(12, 14, 26, 0.35);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease, background 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+.sf-hero:hover .sf-hero-nav,
+.sf-hero-nav:focus-visible {
+  opacity: 1;
+}
+.sf-hero-nav:hover {
+  background: rgba(12, 14, 26, 0.6);
+}
+.sf-hero-prev { left: 14px; }
+.sf-hero-next { right: 14px; }
+.sf-hero-dots {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+.sf-hero-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: width 0.3s ease, background 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.sf-hero-dot-active {
+  width: 30px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.sf-hero-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #fff;
+  transform-origin: left;
+  transform: scaleX(0);
+  animation: sfHeroFill 5s linear forwards;
+}
+.sf-hero-paused .sf-hero-fill {
+  animation-play-state: paused;
+}
+@keyframes sfHeroFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (max-width: 640px) {
+  .sf-hero { height: 430px; }
+  .sf-hero-nav { display: none; } /* swipe instead */
+  .sf-hero-scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(10, 12, 24, 0.72) 8%,
+      rgba(10, 12, 24, 0.42) 62%,
+      rgba(10, 12, 24, 0.55) 100%
+    );
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-hero-slide { transition: none; }
+  .sf-hero-copy > * {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  .sf-hero-fill {
+    animation: none;
+    transform: scaleX(1);
+  }
+}

@@ -112,6 +112,28 @@ Shadcn/Radix-based primitives live in `ui/components/`. Feature-specific compone
 
 The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern for CRUD pages — it manages modal open state, edit/view/add modes, and delegates delete/bulkDelete to caller-provided async functions.
 
+**Hydration-safe client state:** components that read persisted zustand stores (auth/cart), `window`,
+or the current time/locale must gate on `useHydrated()` (`hooks/use-hydrated.ts`) so the first client
+render matches the SSR HTML — never hand-roll `useSyncExternalStore` or `typeof window` initializers.
+
+**Discount display:** campaign/coupon discount values render via `<DiscountCell>`
+(`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.
+
+**Printed documents (one engine):** every printout (sales invoice/receipt, PO, return, payment receipt,
+statement, AND storefront/ecommerce order invoices) renders through `utils/print-documents.ts`, whose
+letterhead is the org's `receiptSettings` (Settings → Receipt & Print) via `orgToPrintHeader`. Order
+invoices use the adapter `utils/print-storefront-order.ts`: admin orders pages print via
+`<OrderInvoicePrintButton>` (`components/ecommerce/order-invoice-print.tsx`, a `PrintMenu` wrapper —
+paper sizes, popup toast, `invoicePrinting` gate; one page per order in bulk), and the shopper route
+(`/shop/account/orders/[n]/invoice`) shows the composed document in a WYSIWYG iframe (letterhead comes
+from the public store payload's `printable` block). Never hand-roll invoice markup or a raw
+`window.print()` — add an adapter to the engine instead.
+
+**Storefront CMS page bodies** render through `lib/storefront-markdown.ts` (dependency-free subset
+parser → block model, XSS-safe by construction) + `<MarkdownView>` (`components/storefront/markdown-view.tsx`);
+consecutive `Q:`/`A:` lines become styled FAQ cards. Extend the parser — never dump raw page text or add
+a markdown dependency without checking here first.
+
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**
 - **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.
 - **`SimpleTable`** (`ui/components/simple-table.tsx`) for the small tables embedded in cards / detail panels. Column-driven: `<SimpleTable columns rows getRowKey />`, where each `SimpleColumn` has `header`, `cell: (row) => node`, optional `align`/`headClassName`/`cellClassName`; plus `rowClassName`/`headerRowClassName` for per-row styling. Cells can hold inputs/checkboxes, so lightly interactive grids fit too (see `variant-manager.tsx`).

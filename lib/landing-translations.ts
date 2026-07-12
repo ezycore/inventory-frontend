@@ -23,7 +23,7 @@ export const translations = {
       uptimeDesc: "Enterprise-grade",
     },
     benefits: {
-      badge: "Why EasyStock",
+      badge: "Why EzyCore",
       title: "Everything You Need to ",
       titleAccent: "Scale Efficiently",
       subtitle:
@@ -69,8 +69,8 @@ export const translations = {
       title: "Designed to ",
       titleAccent: "Scale With You",
       subtitle:
-        "From finance to operations, EasyStock unifies every department under one roof.",
-      hubLabel: "EasyStock ERP",
+        "From finance to operations, EzyCore unifies every department under one roof.",
+      hubLabel: "EzyCore ERP",
       hubDesc: "Central Hub",
       finance: "Finance",
       sales: "Sales",
@@ -121,10 +121,10 @@ export const translations = {
     resources: {
       badge: "Resources",
       title: "Learn More About ",
-      titleAccent: "EasyStockERP",
+      titleAccent: "EzyCore",
       subtitle: "Explore our library of resources to help you make informed decisions.",
       caseStudiesTitle: "Case Studies",
-      caseStudiesDesc: "See how SMEs transformed their operations with EasyStockERP.",
+      caseStudiesDesc: "See how SMEs transformed their operations with EzyCore.",
       caseStudiesLink: "Explore",
       whitepapersTitle: "Whitepapers",
       whitepapersDesc: "In-depth guides on ERP best practices and digital transformation.",
@@ -139,7 +139,7 @@ export const translations = {
       titleAccent: "10,000+ Companies",
       titleEnd: " Already Scaling Smarter",
       subtitle:
-        "From startups to enterprises, businesses trust EasyStock to power their operations.",
+        "From startups to enterprises, businesses trust EzyCore to power their operations.",
       metric1: "10,000+",
       metric1Label: "Active Users",
       metric2: "50M+",
@@ -149,7 +149,7 @@ export const translations = {
       metric4: "4.9/5",
       metric4Label: "Customer Rating",
       testimonial:
-        "EasyStock transformed how we manage inventory and sales. We've cut operational costs by 35% and increased efficiency across all departments.",
+        "EzyCore transformed how we manage inventory and sales. We've cut operational costs by 35% and increased efficiency across all departments.",
       author: "Sarah Chen",
       role: "COO, TechFlow Solutions",
     },
@@ -158,7 +158,7 @@ export const translations = {
       title: "Your Data is ",
       titleAccent: "Safe With Us",
       subtitle:
-        "We take security seriously. EasyStock is built with enterprise-grade protection and complies with global standards.",
+        "We take security seriously. EzyCore is built with enterprise-grade protection and complies with global standards.",
       soc2: "SOC 2 Certified",
       gdpr: "GDPR Compliant",
       iso: "ISO 27001",
@@ -175,7 +175,7 @@ export const translations = {
       title: "Ready to ",
       titleAccent: "Transform Your Business",
       titleEnd: "?",
-      subtitle: "Request a personalized demo and see EasyStock in action.",
+      subtitle: "Request a personalized demo and see EzyCore in action.",
       namePlaceholder: "Full Name",
       emailPlaceholder: "Work Email",
       companyPlaceholder: "Company Name",
@@ -212,7 +212,7 @@ export const translations = {
       terms: "Terms of Service",
       security: "Security",
       compliance: "Compliance",
-      copyright: "© 2024 EasyStockERP. All rights reserved.",
+      copyright: "© 2024 EzyCore. All rights reserved.",
     },
   },
   bn: {
@@ -239,7 +239,7 @@ export const translations = {
       uptimeDesc: "এন্টারপ্রাইজ-গ্রেড",
     },
     benefits: {
-      badge: "কেন EasyStock",
+      badge: "কেন EzyCore",
       title: "দক্ষতার সাথে স্কেল করার জন্য আপনার যা প্রয়োজন",
       titleAccent: "",
       subtitle:
@@ -281,8 +281,8 @@ export const translations = {
       badge: "সমস্ত দলের জন্য একটি প্ল্যাটফর্ম",
       title: "আপনার সাথে স্কেল করার জন্য ডিজাইন করা হয়েছে",
       titleAccent: "",
-      subtitle: "অর্থ থেকে অপারেশন, EasyStock এক ছাদের নিচে প্রতিটি বিভাগকে একত্রিত করে।",
-      hubLabel: "EasyStock ERP",
+      subtitle: "অর্থ থেকে অপারেশন, EzyCore এক ছাদের নিচে প্রতিটি বিভাগকে একত্রিত করে।",
+      hubLabel: "EzyCore ERP",
       hubDesc: "কেন্দ্রীয় হাব",
       finance: "অর্থ",
       sales: "বিক্রয়",
@@ -333,11 +333,11 @@ export const translations = {
     },
     resources: {
       badge: "সংস্থান",
-      title: "EasyStockERP সম্পর্কে আরও জানুন",
+      title: "EzyCore সম্পর্কে আরও জানুন",
       titleAccent: "",
       subtitle: "সচেতন সিদ্ধান্ত নিতে আপনাকে সাহায্য করার জন্য আমাদের সংস্থান লাইব্রেরি অন্বেষণ করুন।",
       caseStudiesTitle: "কেস স্টাডিজ",
-      caseStudiesDesc: "দেখুন কীভাবে এসএমই-রা EasyStockERP দিয়ে তাদের অপারেশন রূপান্তরিত করেছে।",
+      caseStudiesDesc: "দেখুন কীভাবে এসএমই-রা EzyCore দিয়ে তাদের অপারেশন রূপান্তরিত করেছে।",
       caseStudiesLink: "অন্বেষণ করুন",
       whitepapersTitle: "হোয়াইটপেপার",
       whitepapersDesc: "ERP সেরা অনুশীলন এবং ডিজিটাল রূপান্তরের উপর গভীর গাইড।",
@@ -352,7 +352,7 @@ export const translations = {
       titleAccent: " যারা ইতিমধ্যে স্মার্টভাবে স্কেল করছে",
       titleEnd: "",
       subtitle:
-        "স্টার্টআপ থেকে এন্টারপ্রাইজ পর্যন্ত, ব্যবসাগুলি তাদের অপারেশন শক্তিশালী করতে EasyStock-এ বিশ্বাস করে।",
+        "স্টার্টআপ থেকে এন্টারপ্রাইজ পর্যন্ত, ব্যবসাগুলি তাদের অপারেশন শক্তিশালী করতে EzyCore-এ বিশ্বাস করে।",
       metric1: "১০,০০০+",
       metric1Label: "সক্রিয় ব্যবহারকারী",
       metric2: "৫০M+",
@@ -362,7 +362,7 @@ export const translations = {
       metric4: "৪.৯/৫",
       metric4Label: "গ্রাহক রেটিং",
       testimonial:
-        "EasyStock আমরা কীভাবে ইনভেন্টরি এবং বিক্রয় পরিচালনা করি তা রূপান্তরিত করেছে। আমরা অপারেশনাল খরচ ৩৫% কমিয়েছি এবং সমস্ত বিভাগে দক্ষতা বাড়িয়েছি।",
+        "EzyCore আমরা কীভাবে ইনভেন্টরি এবং বিক্রয় পরিচালনা করি তা রূপান্তরিত করেছে। আমরা অপারেশনাল খরচ ৩৫% কমিয়েছি এবং সমস্ত বিভাগে দক্ষতা বাড়িয়েছি।",
       author: "সারাহ চেন",
       role: "COO, TechFlow Solutions",
     },
@@ -371,7 +371,7 @@ export const translations = {
       title: "আপনার ডেটা আমাদের সাথে",
       titleAccent: " নিরাপদ",
       subtitle:
-        "আমরা নিরাপত্তাকে গুরুত্ব সহকারে নিই। EasyStock এন্টারপ্রাইজ-গ্রেড সুরক্ষা দিয়ে নির্মিত এবং বৈশ্বিক মানগুলি মেনে চলে।",
+        "আমরা নিরাপত্তাকে গুরুত্ব সহকারে নিই। EzyCore এন্টারপ্রাইজ-গ্রেড সুরক্ষা দিয়ে নির্মিত এবং বৈশ্বিক মানগুলি মেনে চলে।",
       soc2: "SOC 2 সার্টিফাইড",
       gdpr: "GDPR সম্মত",
       iso: "ISO ২৭০০১",
@@ -388,7 +388,7 @@ export const translations = {
       title: "আপনার ব্যবসা",
       titleAccent: " রূপান্তরিত",
       titleEnd: " করতে প্রস্তুত?",
-      subtitle: "একটি ব্যক্তিগতকৃত ডেমো অনুরোধ করুন এবং EasyStock-কে কর্মে দেখুন।",
+      subtitle: "একটি ব্যক্তিগতকৃত ডেমো অনুরোধ করুন এবং EzyCore-কে কর্মে দেখুন।",
       namePlaceholder: "পূর্ণ নাম",
       emailPlaceholder: "কর্ম ইমেল",
       companyPlaceholder: "কোম্পানির নাম",
@@ -426,7 +426,7 @@ export const translations = {
       terms: "সেবা পাবার শর্ত",
       security: "নিরাপত্তা",
       compliance: "সম্মতি",
-      copyright: "© ২০২৪ EasyStockERP। সমস্ত অধিকার সংরক্ষিত।",
+      copyright: "© ২০২৪ EzyCore। সমস্ত অধিকার সংরক্ষিত।",
     },
   },
 };

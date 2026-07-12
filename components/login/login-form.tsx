@@ -23,20 +23,11 @@ import { cn } from "@ui/lib/utils";
 import { ArrowLeft, Loader2, Shield } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { LoginNotices } from "./login-notices";
 import { WorkspaceChooser } from "./workspace-chooser";
+import { useHydrated } from "@/hooks";
 
-// Returns false during SSR/hydration and true once running in the browser, without
-// an effect-driven setState — so host-dependent rendering never mismatches or flashes.
-const subscribeNoop = () => () => {};
-function useIsClient() {
-  return useSyncExternalStore(
-    subscribeNoop,
-    () => true,
-    () => false,
-  );
-}
 
 export function LoginForm({
   className,
@@ -60,7 +51,7 @@ export function LoginForm({
 
   // Host-dependent routing reads window.location, so it can only be resolved in the
   // browser. Gate on the client flag to keep SSR/hydration identical (no flash).
-  const isClient = useIsClient();
+  const isClient = useHydrated();
   const showSlugField = shouldShowOrganizationSlugField();
 
   if (!isClient) {

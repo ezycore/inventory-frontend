@@ -5,7 +5,10 @@ import type {
   FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
+  StorefrontHeroSlide,
+  StorefrontSettings,
   SubscriptionInfo,
+  UpdateStorefrontSettingsDto,
   TaxSettings,
 } from "@/types";
 
@@ -129,4 +132,30 @@ export const organizationApi = {
   // Used in: useClearDemoData → demo banner "Clear sample data" button
   clearDemoData: (): Promise<ApiResponse<any>> =>
     apiClient.delete(`/organization/demo-data`),
+
+  // ============= Storefront Settings (requires storefront feature) =============
+
+  // GET /api/organization/storefront - Get storefront settings
+  getStorefrontSettings: (): Promise<ApiResponse<StorefrontSettings>> =>
+    apiClient.get(`/organization/storefront`),
+
+  // PATCH /api/organization/storefront - Update storefront settings / publish
+  updateStorefrontSettings: (
+    data: UpdateStorefrontSettingsDto,
+  ): Promise<ApiResponse<StorefrontSettings>> =>
+    apiClient.patch(`/organization/storefront`, data),
+
+  // PATCH /api/organization/storefront/media - Upload/replace/remove logo + banner
+  // Accepts FormData with optional `logo`/`banner` files and `removeLogo`/`removeBanner` flags.
+  updateStorefrontMedia: (
+    data: FormData,
+  ): Promise<ApiResponse<StorefrontSettings>> =>
+    apiClient.patch(`/organization/storefront/media`, data),
+
+  // POST /api/organization/storefront/media/hero-slide - Upload one hero-slide
+  // image (FormData `image`); returns uploadInfo to embed in a heroSlides PATCH.
+  uploadHeroSlideImage: (
+    data: FormData,
+  ): Promise<ApiResponse<NonNullable<StorefrontHeroSlide["image"]>>> =>
+    apiClient.post(`/organization/storefront/media/hero-slide`, data),
 };
