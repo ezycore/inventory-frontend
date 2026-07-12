@@ -21,7 +21,8 @@ import type {
   StorefrontSettings,
   StorefrontTrustBadge,
 } from "@/types";
-import { HeroSlidesEditor } from "@/components/ecommerce/hero-slides-editor";
+import { HeroSlidesPanel } from "@/components/ecommerce/hero-slides-panel";
+import { SlideThumb } from "@/components/ecommerce/slide-thumb";
 import { HomeTemplateBlock } from "@/components/ecommerce/home-template-block";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
@@ -119,12 +120,24 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [heroSlides, setHeroSlides] = useState<StorefrontHeroSlide[]>(
     () => settings.heroSlides ?? [],
   );
+  // Edit-in-place slides panel: takes over the left rail (preview stays live).
+  const [slidesPanelOpen, setSlidesPanelOpen] = useState(false);
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
-      {/* LEFT — section switcher + controls */}
-      <div className="space-y-5">
-        <div className="flex gap-1 rounded-lg border bg-muted/40 p-1">
+      {/* LEFT — fixed-height sticky rail (matches the preview column): content
+          scrolls INSIDE it and each mode fills the same frame, so the slides
+          panel takeover never changes the column height (no layout blink). */}
+      <div className="flex flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-8.75rem)]">
+      {slidesPanelOpen ? (
+        <HeroSlidesPanel
+          slides={heroSlides}
+          setSlides={setHeroSlides}
+          onClose={() => setSlidesPanelOpen(false)}
+        />
+      ) : (
+      <div className="flex min-h-0 flex-1 flex-col gap-5">
+        <div className="flex flex-none gap-1 rounded-lg border bg-muted/40 p-1">
           {SECTIONS.map((s) => (
             <button
               key={s.id}
@@ -151,7 +164,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             badges={badges}
             setBadges={setBadges}
             heroSlides={heroSlides}
-            setHeroSlides={setHeroSlides}
+            onManageSlides={() => setSlidesPanelOpen(true)}
           />
         ) : (
           <TemplatesSection
@@ -162,9 +175,11 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setCardStyle={setCardStyle}
             setHeroSrc={setHeroSrc}
             slideCount={heroSlides.filter((s) => s.title.trim()).length}
-            onEditSlides={() => setSection("theme")}
+            onEditSlides={() => setSlidesPanelOpen(true)}
           />
         )}
+      </div>
+      )}
       </div>
 
       {/* RIGHT — live preview (the REAL storefront in preview mode) */}
@@ -179,7 +194,9 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           cardStyle={cardStyle}
           badges={badges}
           heroSlides={heroSlides}
-          heroSrc={heroSrc}
+          // While editing slides, always preview the carousel so edits are
+          // visible even if the hero-source switch is on "banner".
+          heroSrc={slidesPanelOpen ? "slides" : heroSrc}
         />
       </div>
     </div>
@@ -197,7 +214,7 @@ function ThemeSection({
   badges,
   setBadges,
   heroSlides,
-  setHeroSlides,
+  onManageSlides,
 }: {
   settings: StorefrontSettings;
   brandColor: string;
@@ -207,7 +224,7 @@ function ThemeSection({
   badges: StorefrontTrustBadge[];
   setBadges: (v: StorefrontTrustBadge[]) => void;
   heroSlides: StorefrontHeroSlide[];
-  setHeroSlides: (v: StorefrontHeroSlide[]) => void;
+  onManageSlides: () => void;
 }) {
   const save = useUpdateStorefrontSettings();
   const media = useUpdateStorefrontMedia();
@@ -237,18 +254,8 @@ function ThemeSection({
         footerText: footerText.trim() || undefined,
       },
       // Keep all three slots (empty = default) so positions survive a reload.
+      // (Hero slides save from their own panel, not here.)
       trustBadges: badges.map((b) => ({ text: b.text.trim(), icon: b.icon })),
-      // Untitled slides are drafts — dropped on save (title is required).
-      heroSlides: heroSlides
-        .filter((s) => s.title.trim())
-        .map((s) => ({
-          image: s.image ?? null,
-          badge: s.badge?.trim() || undefined,
-          title: s.title.trim(),
-          subtitle: s.subtitle?.trim() || undefined,
-          buttonLabel: s.buttonLabel?.trim() || undefined,
-          link: s.link?.trim() || undefined,
-        })),
     });
   };
 
@@ -265,7 +272,8 @@ function ThemeSection({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <div className="min-h-0 flex-1 space-y-5 lg:overflow-y-auto lg:pr-1">
       {/* Preset */}
       <Card className="p-5 shadow-none">
         <h3 className="mb-1 text-sm font-semibold">Preset</h3>
@@ -350,8 +358,29 @@ function ThemeSection({
         </div>
       </Card>
 
-      {/* Hero slides (home carousel) */}
-      <HeroSlidesEditor slides={heroSlides} setSlides={setHeroSlides} />
+      {/* Hero slides — summary only; editing happens in the takeover panel. */}
+      <Card className="space-y-3 p-5 shadow-none">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold">Hero slides</h3>
+            <p className="text-xs text-muted-foreground">
+              {heroSlides.length === 0
+                ? "No slides yet — the home page shows the standard hero."
+                : `${heroSlides.length} ${heroSlides.length === 1 ? "slide" : "slides"} rotating on your home page.`}
+            </p>
+          </div>
+          <Button size="sm" variant="outline" onClick={onManageSlides}>
+            Manage slides
+          </Button>
+        </div>
+        {heroSlides.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {heroSlides.map((s, i) => (
+              <SlideThumb key={i} slide={s} className="h-9 w-14" />
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* Trust badges (Rich footer) */}
       <Card className="space-y-4 p-5 shadow-none">
@@ -396,7 +425,9 @@ function ThemeSection({
         </div>
       </Card>
 
-      <div className="flex justify-end">
+      </div>
+
+      <div className="flex flex-none justify-end">
         <Button onClick={submit} disabled={save.isPending}>
           {save.isPending ? "Saving…" : "Save theme"}
         </Button>
@@ -502,9 +533,6 @@ const TEMPLATE_PAGES: {
     },
   ];
 
-// Surfaces that appear on the home preview → they repaint instantly as you pick.
-const LIVE_PREVIEW_KEYS = new Set(["home", "footer", "header", "productCard"]);
-
 function TemplatesSection({
   settings,
   setHomeTemplate,
@@ -545,7 +573,8 @@ function TemplatesSection({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <div className="min-h-0 flex-1 space-y-5 lg:overflow-y-auto lg:pr-1">
       <HomeTemplateBlock
         layout={tpl.home}
         onLayoutChange={(v) => pick("home", v)}
@@ -583,7 +612,8 @@ function TemplatesSection({
           </div>
         </Card>
       ))}
-      <div className="flex justify-end">
+      </div>
+      <div className="flex flex-none justify-end">
         <Button onClick={() => save.mutate({ templates: tpl })} disabled={save.isPending}>
           {save.isPending ? "Saving…" : "Save templates"}
         </Button>

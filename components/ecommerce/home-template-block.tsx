@@ -199,7 +199,7 @@ export function HomeTemplateBlock({
           </p>}
 
         </div>
-      )}anding layout and hero s
+      )}
     </Card>
   );
 }
