@@ -47,6 +47,26 @@ const whenImagesReady = (doc: Document): Promise<void> =>
     setTimeout(finish, 2500);
   });
 
+// Bengali print pulls its face from Google Fonts (see BENGALI_FONT_LINK). The
+// stylesheet <link> is not covered by whenImagesReady, so without this the
+// dialog can open before the webfont arrives and Bangla prints in a fallback
+// face. Explicitly load both weights, then await `fonts.ready`. Same 2.5s grace
+// as images so a slow/blocked font CDN can never hold the dialog hostage.
+const BENGALI_FONT_LOAD_FAMILY = "'Noto Sans Bengali'";
+const whenFontsReady = (doc: Document, locale: "en" | "bn"): Promise<void> => {
+  const fonts = (doc as Document & { fonts?: FontFaceSet }).fonts;
+  if (locale !== "bn" || !fonts) return Promise.resolve();
+  const ready = Promise.all([
+    fonts.load(`400 16px ${BENGALI_FONT_LOAD_FAMILY}`),
+    fonts.load(`700 16px ${BENGALI_FONT_LOAD_FAMILY}`),
+  ])
+    .then(() => fonts.ready)
+    .then(() => undefined)
+    .catch(() => undefined);
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, 2500));
+  return Promise.race([ready, timeout]);
+};
+
 export interface PrintHtmlOptions {
   /** Document title (becomes the suggested PDF filename). */
   title?: string;
@@ -62,10 +82,10 @@ export interface PrintHtmlOptions {
   locale?: "en" | "bn";
 }
 
-// Google Fonts CSS for the print window's Bengali fallback. Loaded only when
-// `locale: "bn"` — the print window already waits on <img> loads before
-// calling window.print(), so one more network fetch here is consistent with
-// that existing constraint (logo/watermark images are remote too).
+// Google Fonts CSS for the print document's Bengali fallback. Loaded only when
+// `locale: "bn"`; the print path awaits this face (whenFontsReady) alongside
+// <img> loads before calling window.print(), so the extra network fetch is
+// consistent with the existing image-load wait (logos/watermarks are remote too).
 const BENGALI_FONT_LINK = `
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -133,10 +153,12 @@ export const printHtml = (
   // blank the print preview. If afterprint never fires (old browsers), the
   // invisible frame is swept by the next print call.
   win.onafterprint = () => frame.remove();
-  void whenImagesReady(doc).then(() => {
-    win.focus();
-    win.print();
-  });
+  void Promise.all([whenImagesReady(doc), whenFontsReady(doc, locale)]).then(
+    () => {
+      win.focus();
+      win.print();
+    },
+  );
   return true;
 };
 
