@@ -1,121 +1,60 @@
 ---
 name: products
-description: 'Build, edit, debug, or audit the EzyCore Products feature end-to-end (BE Mongoose models + Zod validators + service + REST endpoints, FE list page + DynamicForm config + variant manager + helpers + TanStack Query hooks + cross-resource invalidation). USE WHEN: creating/editing single (`SINGLE`) or variable (`VARIABLE`) products, working with per-variant UOM conversion (enableUOMConversion + purchaseUnit + saleUnit), troubleshooting "purchaseUnit.unitId Required" 400s, variant fields silently dropped after save, edit modal not pre-filling variants, defaults (status=active, sellingType=retail, taxType=inclusive, productType=single, enableUOMConversion=false) not applying, related-resource changes (categories/brands/units/variant-attributes) not refreshing the products list, list response too verbose, hot-reload not picking up Mongoose schema changes. Touches `easystock-backend/src/{models,services,validators,controllers,routes,types}/product*` + `variant-product*`, `easystock-frontend/{app/(protected)/products,components/products,services/api/modules/products,services/api/modules/variants}`.'
+description: 'Build, edit, debug, or audit the EzyCore Products feature on the FRONTEND (list page + DynamicForm config + variant manager + helpers + TanStack Query hooks + cross-resource invalidation). USE WHEN: creating/editing single (`SINGLE`), variable (`VARIABLE`) or combo (`COMBO`) products, per-variant UOM conversion (enableUOMConversion + purchaseUnit + saleUnit), troubleshooting "purchaseUnit.unitId Required" 400s, variant fields silently dropped after save, edit modal not pre-filling variants, defaults (status=active, sellingType=retail, productType=single, enableUOMConversion=false) not applying, related-resource changes (categories/brands/units/variant-attributes) not refreshing the products list, list response too verbose. Touches `easystock-frontend/{app/(protected)/products,components/products,services/api/modules/products,services/api/modules/variants}`. For the BACKEND (models, validators, service, endpoints, combo rules) read `easystock-backend/.github/skills/products/SKILL.md` — this file does not duplicate it.'
 ---
 
-# Products Skill
+# Products Skill (Frontend)
 
-End-to-end map of the **Products** resource: backend (model → validator → service → controller → routes), frontend (list page → form config → variant manager → API hooks → cross-resource invalidation), the response shapes the FE depends on, default values, UOM rules, and the recurring pitfalls.
+Frontend map of the **Products** resource: list page → form config → variant manager → API hooks →
+cross-resource invalidation, plus default values, UOM rules, and the recurring pitfalls.
 
-> Treat this as the single source of truth. If a behavior contradicts what's here, **fix the code**, not the doc — but only after re-reading both layers.
+> **The backend is NOT documented here.** It lives in
+> [`easystock-backend/.github/skills/products/SKILL.md`](../../../../easystock-backend/.github/skills/products/SKILL.md)
+> — the model, the validator's cross-field rules, the full endpoint table, the combo invariants, and
+> the list projection this app prefills its edit form from. Read it before changing anything that
+> crosses the wire.
+>
+> Until 2026-07-13 this file carried its own copy of all that, and it had gone stale in four ways:
+> it named a route file that doesn't exist, listed 6 of the 15 endpoints, described a tax shape that
+> had been replaced, and told you to delete a variant field that had since been re-added. One copy
+> now, in the repo that owns the code.
 
 ---
 
 ## 1. Conceptual Model
 
-A **Product** is either:
+A **Product** is one of **three** types:
 
 | productType | Variants | UOM conversion location |
 |-------------|----------|--------------------------|
 | `single`   | none — sold as a single SKU                                      | on the **product** itself (`enableUOMConversion`, `purchaseUnit`, `saleUnit`) |
 | `variable` | 1..N rows in `VariantProduct` collection, one per attribute combo | on **each variant** (per-variant UOM, parent UOM hidden in UI) |
+| `combo`    | none — a fixed bundle of other (non-combo) products               | none — the backend clears UOM on combos |
 
 Multi-tenant: every doc is scoped by `organizationId`. Never trust org/loc from the request body.
 
 ---
 
-## 2. Backend Files Map
+## 2. The Backend Contract
 
-| File | Purpose |
-|------|---------|
-| [easystock-backend/src/models/product.model.ts](../../../../easystock-backend/src/models/product.model.ts) | Parent product schema (single OR variable) |
-| [easystock-backend/src/models/variant-product.model.ts](../../../../easystock-backend/src/models/variant-product.model.ts) | Per-variant doc — owns its own UOM fields |
-| [easystock-backend/src/validators/product.validator.ts](../../../../easystock-backend/src/validators/product.validator.ts) | Zod schemas for create/update + UOM superRefine gating |
-| [easystock-backend/src/services/product.service.ts](../../../../easystock-backend/src/services/product.service.ts) | `BaseService` impl: `projectListItem`, `attachVariantsToProduct`, `createVariants`, `updateVariants`, `processVariantImages` |
-| [easystock-backend/src/controllers/product.controller.ts](../../../../easystock-backend/src/controllers/product.controller.ts) | Extends `BaseController` — multipart parsing, image upload wiring |
-| [easystock-backend/src/routes/product.routes.ts](../../../../easystock-backend/src/routes/product.routes.ts) | `authenticate → authorize(perm) → validate → controller` |
-| [easystock-backend/src/types/variant.types.ts](../../../../easystock-backend/src/types/variant.types.ts) | `IVariantProductDocument`, `Variant`, `CreateVariantDto` |
+The model, validator rules, endpoint table, combo invariants and response shapes are documented once,
+in the repo that owns them:
+**[`easystock-backend/.github/skills/products/SKILL.md`](../../../../easystock-backend/.github/skills/products/SKILL.md)**.
 
-### Schema (variant-product.model.ts) — relevant fields
+Three things from it that this app's code directly depends on:
 
-```ts
-{
-  productId, organizationId, attributes: Mixed, price, images, status,
-  enableUOMConversion: { type: Boolean, default: false },
-  purchaseUnit: { unitId: ObjectId(ref Unit), conversionFactor: Number(min 0.0001, default 1) },
-  saleUnit:     { unitId: ObjectId(ref Unit), conversionFactor: Number(min 0.0001, default 1) },
-}
-```
+1. **The edit modal prefills from the list row — there is no `GET /:id` before opening it.** So the
+   backend's slim list projection (`projectListItem`) is a *contract*, not an optimization. If a field
+   disappears from it, the edit form renders that field blank and the next save can wipe the stored
+   value. When a select goes blank on edit, check the projection first.
+2. **Tax is per-side**: `salesTax` and `purchaseTax`, each `{ taxId, taxType, rate, taxName }`. There
+   is no flat top-level `taxId`/`taxType`. The rate arrives resolved — don't fetch it separately.
+   The FE/BE tax math must agree bit-for-bit; see
+   [`easystock-backend/docs/features/tax.md`](../../../../easystock-backend/docs/features/tax.md).
+3. **UOM requires *at least one* of purchase/sale unit** when `enableUOMConversion` is true — not both.
+   Any side you *do* send must be complete (`unitId` + `conversionFactor`, factor > 0).
 
-### Service rules
-
-- `afterGetMany` → `projectListItem(p)` returns the slim shape (≈10 keys + `variants[]` only when VARIABLE for `variant_count`). **Never expand list shape without checking FE table columns.**
-- `afterGetOne` → `attachVariantsToProduct(product)` returns the **full** variant docs (lean, all fields) so the edit form can prefill UOM.
-- `update(id, body)` — when `productType==='variable'` and `body.variants !== undefined`, calls `processVariantImages` then `updateVariants`. `updateVariants` must `findByIdAndUpdate` with `enableUOMConversion ?? false`, `purchaseUnit`, `saleUnit` for **both** the update-existing and create-new branches.
-
-### Validator rules (Zod superRefine)
-
-- `single` + `enableUOMConversion=true` → top-level `purchaseUnit.unitId` AND `saleUnit.unitId` required.
-- `variable` → per-variant: if `enableUOMConversion=true` → that variant's `purchaseUnit.unitId` AND `saleUnit.unitId` required.
-- `single` + `enableUOMConversion=false` → top-level `purchaseUnit`/`saleUnit` MUST be omitted entirely (the FE strips them).
-
-### REST endpoints (mounted at `/api/products`)
-
-| Method | Path | Notes |
-|--------|------|-------|
-| `GET` | `/products` | Paginated list (slim shape) |
-| `GET` | `/products/:id` | Full product + full variants |
-| `POST` | `/products` | multipart/form-data; `variants` is JSON-stringified field |
-| `PUT` | `/products/:id` | multipart/form-data; same |
-| `DELETE` | `/products/:id` | |
-| `GET` | `/products/:id/variants` | (read) |
-
-> **Frontend uses `/api/products/...` directly — NOT `/api/v1/...`. Don't add `v1` to FE calls.**
-
-### Slim list response shape (`projectListItem`)
-
-This shape is used for both the list table **and** the edit modal (no separate detail fetch). It must include all fields the edit form needs.
-
-```jsonc
-{
-  "_id": "...", "name": "...", "status": "active",
-  "sellingType": "retail", "taxType": "inclusive", "productType": "variable",
-  "price": 0, "description": "...",
-  "images": [],
-  // Raw IDs — required for the edit form to pre-select dropdowns
-  "categoryId": "...", "brandId": "...", "taxId": "...", "unitId": "...",
-  // Nested display objects — used by table cells / card subtitles
-  "category": { "_id", "name" }, "brand": { "_id", "name" }, "unit": { "_id", "name" },
-  "enableUOMConversion": false,
-  "purchaseUnit": { "conversionFactor": 1 }, "saleUnit": { "conversionFactor": 1 },
-  "createdAt": "...", "updatedAt": "...",
-  // Only for variable products:
-  "variants": [{ "_id", "productId", "organizationId", "attributes", "price", "images", "status", "enableUOMConversion", "purchaseUnit", "saleUnit", ... }],
-  "variant_count": 3
-}
-```
-
-> **Critical rule**: never remove `categoryId`/`brandId`/`taxId`/`unitId` raw IDs from this shape — the edit modal reads them directly from the list row (there is **no separate GET :id call** before opening the edit form). If they're missing, all select dropdowns appear blank in the edit form.
-
-### Detail response shape (`afterGetOne`) — extra keys
-
-```jsonc
-{
-  ...allParentFields,
-  "enableUOMConversion": false,
-  "purchaseUnit": { "unitId": "...", "conversionFactor": 1 },
-  "saleUnit":     { "unitId": "...", "conversionFactor": 1 },
-  "variants": [
-    {
-      "_id", "productId", "organizationId", "attributes": { "Strength": "5mg" },
-      "price", "images", "status",
-      "enableUOMConversion": true,
-      "purchaseUnit": { "unitId", "conversionFactor": 24 },
-      "saleUnit":     { "unitId", "conversionFactor": 1 }
-    }
-  ]
-}
-```
+> **Use `/api/products/...` — NOT `/api/v1/...`. Don't add `v1` to FE calls.**
 
 ---
 
@@ -217,7 +156,7 @@ The `enableUOMConversion` field's own `dependsOn` was **removed** — it is redu
 | FE PUT payload includes UOM, BE response missing `enableUOMConversion`/`purchaseUnit`/`saleUnit` on variant | **Mongoose model not re-registered** after schema edit (tsx watch hot-reloads service files but `mongoose.model()` is one-shot — old schema cached) | **Restart backend**: `kill <tsx-watch-pids>` then `pnpm dev`. Verify by direct API PUT round-trip. |
 | Defaults (Active / Retail / Inclusive / Single) blank in Add modal | `useCrudModal` was resetting form to prop-only `defaultValues` | `useDynamicForm` now exposes `mergedDefaults`; both `DataTable` and `DataCard` pass it to `useCrudModal` — don't regress |
 | Variant edit modal opens with UOM unchecked even when BE has it enabled | `transformEditData` not copying UOM keys on variants | Ensure each variant maps `enableUOMConversion`, `purchaseUnit`, `saleUnit` |
-| Variant SKU / cost / barcode silently lost after save | Those fields were intentionally **removed** from the variant model + UI | Don't re-add — variants only carry: attributes, price, images, status, UOM |
+| Variant SKU / cost silently lost after save | Those fields were intentionally **removed** from the variant model + UI | Don't re-add — variants carry: attributes, price, images, status, UOM, **barcode** |
 | Single product form shows no SKU field | Correct — `sku` has been fully removed from the single-product form, model, and validator. The `base_sku` in report/dashboard services is a legacy read-only field. | Don't re-add `sku` to the form or model |
 | UOM section still visible for variable product | `dependsOn` was applied at **field level** (on `enableUOMConversion`) instead of **section level** | Move `dependsOn` to the section definition itself — see Section 4 above |
 | Products list still shows stale category/brand/unit name after edit | Missing cross-resource invalidation | Add `relatedQueryKeys: [queryKeys.products.all()]` to the resource's `createResourceHooks` |
@@ -247,7 +186,9 @@ If the returned variant lacks `enableUOMConversion`/`purchaseUnit`/`saleUnit` �
 
 ## 6. Things NOT to do
 
-- Don't reintroduce variant `sku` / `costPrice` / `barcode` / `weight` / `dimensions` — they were removed deliberately.
+- Don't reintroduce variant `sku` / `costPrice` / `weight` / `dimensions` — they were removed deliberately.
+  **`barcode` is NOT in that list** — it was removed once and then deliberately re-added (with
+  `barcodeSymbology`) by the barcode feature. Variants carry a scannable code. Don't delete it.
 - Don't re-add `sku` to the single-product form, model, or validator — it has been fully removed.
 - Don't show the parent UOM section for variable products — the section-level `dependsOn` hides it. Don't move the `dependsOn` back to individual fields.
 - Don't add new `dependsOn` to `enableUOMConversion` field — the section hides it entirely; field-level `dependsOn` is redundant and was removed.
