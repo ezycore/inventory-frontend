@@ -48,6 +48,9 @@ export function DnsInstructions({ domain }: { domain: OrganizationDomain }) {
   const isApex = parts.length <= 2;
   const label = parts.slice(0, parts.length - 2).join(".");
   const txtName = isApex ? VERIFY_PREFIX : `${VERIFY_PREFIX}.${label}`;
+  // Admin app convention: `admin.<domain>`. As a DNS record on the domain's
+  // zone that's `admin` at the apex, or `admin.<label>` under a subdomain.
+  const adminName = isApex ? "admin" : `admin.${label}`;
 
   return (
     <div className="space-y-3">
@@ -67,6 +70,14 @@ export function DnsInstructions({ domain }: { domain: OrganizationDomain }) {
         ) : (
           <DnsRecordRow type="CNAME" name={label} value={CNAME_TARGET} />
         )}
+      </div>
+
+      <div>
+        <p className="mb-1 text-sm font-medium">{t("adminStep")}</p>
+        <DnsRecordRow type="CNAME" name={adminName} value={CNAME_TARGET} />
+        <p className="mt-1 text-xs text-muted-foreground">
+          {t("adminHint", { domain: domain.domain })}
+        </p>
       </div>
 
       <div className="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">

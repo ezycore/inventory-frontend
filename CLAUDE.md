@@ -180,3 +180,9 @@ The tax module is optional and per-line. Keep these single sources — never re-
   for the "Tax (added) / Total / Includes … in price" summary; `<LineTaxCell>`
   (`components/shared/line-tax-cell.tsx`) for the cart per-line Tax column.
 - Backend is authoritative; FE numbers are previews and must match `applyLineTaxes` exactly.
+- **The contract lives in the backend:** `easystock-backend/docs/features/tax.md` — the tax math,
+  the worked examples, and the sales/purchase/return rules. It used to be `docs/TAX_BACKEND_CONTRACT.md`
+  in *this* repo, still saying "backend pending" long after the backend shipped it; it moved because
+  8 of its 9 sections describe backend behavior. **If you change `utils/tax.ts`, change
+  `SaleUtils.applyLineTaxes` identically** — both sides now have tests
+  (`utils/tax.test.ts` here, `src/services/__tests__/tax-contract.test.ts` there).

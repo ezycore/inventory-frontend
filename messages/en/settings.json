@@ -99,11 +99,15 @@
       "custom": "Custom domain",
       "primary": "Primary",
       "recheck": "Re-check",
-      "remove": "Remove"
+      "remove": "Remove",
+      "storefrontUrl": "Storefront",
+      "adminUrl": "Admin"
     },
     "dns": {
       "verifyStep": "1. Verify ownership",
       "pointStep": "2. Point the domain to us",
+      "adminStep": "3. Point your admin app (optional)",
+      "adminHint": "Add this to manage your store at admin.{domain}. Optional — you can always sign in from your workspace subdomain.",
       "cloudflareWarning": "Using Cloudflare? Set the record to <strong>DNS only</strong> (grey cloud), not Proxied. DNS changes can take a few minutes up to 24h to propagate — add the records, then use <strong>Re-check</strong>.",
       "type": "Type",
       "nameHost": "Name / Host",
