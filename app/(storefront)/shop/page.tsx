@@ -6,18 +6,29 @@ import {
   getStoreProducts,
 } from "@/lib/storefront-server";
 import { getStoreContext } from "@/lib/storefront-host";
+import { adminUrlForDomain } from "@/lib/admin-url";
 import { StoreHome } from "@/components/storefront/store-home";
 
 // Host-resolved (dynamic render); product/store data is cached via the
 // fetch-level `revalidate` in lib/storefront-server.ts.
 export const revalidate = 60;
 
-const Unavailable = () => (
+// `adminUrl` is passed only on a custom domain (never redirect a shopper to an
+// admin login) — it gives the store owner a discreet path back into their app.
+const Unavailable = ({ adminUrl }: { adminUrl?: string }) => (
   <div className="py-20 text-center">
     <h1 className="text-xl font-semibold">Store unavailable</h1>
     <p className="mt-1 text-sm text-gray-500">
       This store doesn&apos;t exist or isn&apos;t published yet.
     </p>
+    {adminUrl && (
+      <p className="mt-4 text-sm text-gray-500">
+        Store owner?{" "}
+        <a href={adminUrl} className="font-medium text-primary hover:underline">
+          Sign in
+        </a>
+      </p>
+    )}
   </div>
 );
 
@@ -46,9 +57,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function StoreHomePage() {
-  const { slug, base } = await getStoreContext();
+  const { slug, base, origin } = await getStoreContext();
+  // Only on a custom domain (base === "") does the store live at the root and
+  // does an admin app exist at admin.<domain>; offer the owner link there.
+  const adminUrl = base === "" && origin ? adminUrlForDomain(origin) : undefined;
 
-  if (!slug) return <Unavailable />;
+  if (!slug) return <Unavailable adminUrl={adminUrl} />;
 
   // Fetch everything the homepage might render (server-side, in parallel) so the
   // preview can toggle/reorder any section without a round-trip.
@@ -60,7 +74,7 @@ export default async function StoreHomePage() {
     getStoreCampaigns(slug),
   ]);
 
-  if (!store) return <Unavailable />;
+  if (!store) return <Unavailable adminUrl={adminUrl} />;
 
   return (
     <StoreHome
