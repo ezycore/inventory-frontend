@@ -1,5 +1,4 @@
 // coding-standard: maintained
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { getStoreContext } from "@/lib/storefront-host";
 import {
@@ -9,18 +8,11 @@ import {
 } from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
 
-/**
- * Browser-tab icon for the whole storefront: the store's logo (same asset the
- * header shows), falling back to the platform default. The `getStore` call is
- * fetch-cached, so this shares the layout's request.
- */
-export async function generateMetadata(): Promise<Metadata> {
-  const { slug } = await getStoreContext();
-  const store = slug ? await getStore(slug) : null;
-  const icon =
-    store?.logo?.thumbnailUrl || store?.logo?.url || "/icon.png";
-  return { icons: { icon } };
-}
+// Note: the browser-tab icon (store logo) is applied client-side by
+// `useFaviconOverride` in StoreShell, NOT via `generateMetadata` here. An async
+// metadata icon re-resolves on every router-integrated navigation and flashes
+// the platform default first — the client hook mutates the icon in place, so it
+// stays put across page changes and the account tab switch's replaceState.
 
 /**
  * Resolves the active store from the request host (set by `proxy.ts`) and hands
