@@ -456,7 +456,7 @@ export default function Signup() {
           )}
 
           {/* Owner-access note */}
-          <div className="mt-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+          {/* <div className="mt-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
             <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
             <div className="space-y-1">
               <p className="text-sm font-semibold text-amber-900 dark:text-amber-400">
@@ -468,13 +468,13 @@ export default function Signup() {
                 settings.
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* Footer */}
-          <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+          {/* <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
             By creating an account, you agree to our Terms of Service and
             Privacy Policy.
-          </p>
+          </p> */}
         </div>
       </main>
     </div>

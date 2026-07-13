@@ -149,8 +149,12 @@ export async function proxy(request: NextRequest) {
     }
     // …otherwise fall through to the admin auth gate below.
   } else {
-    // Non-store host: the storefront route still exists but has no slug →
-    // render it (it shows "unavailable"); keep it public, never auth-gated.
+    // Non-store host. Two cases land here:
+    //  - the storefront route on an unknown host: it still renders (shows
+    //    "unavailable"); keep it public, never auth-gated.
+    //  - `admin.<custom-domain>`: `store-by-host` returns exists:false for the
+    //    admin kind, so it resolves to no store and falls through to the admin
+    //    auth gate below — i.e. the merchant admin app is served there.
     if (isStorePath(pathname)) {
       return NextResponse.next({ request: { headers } });
     }
