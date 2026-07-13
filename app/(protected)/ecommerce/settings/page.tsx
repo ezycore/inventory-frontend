@@ -369,7 +369,7 @@ function PaymentsTab({ settings }: { settings: StorefrontSettings }) {
 
   return (
     <div className="space-y-5">
-      <Card className="space-y-3 p-5 shadow-none">
+      <Card className="space-y-2 p-5 shadow-none">
         <div>
           <h3 className="text-sm font-semibold">Payment methods</h3>
           <p className="text-xs text-muted-foreground">
@@ -401,7 +401,7 @@ function PaymentsTab({ settings }: { settings: StorefrontSettings }) {
             maxLength={600}
             rows={3}
             placeholder="Bank transfer instructions shown to customers at checkout…"
-            className="ml-7"
+            className="w-full"
           />
         )}
         <div className="space-y-2 border-t pt-3">
