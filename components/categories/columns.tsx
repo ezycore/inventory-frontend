@@ -15,6 +15,7 @@ export const getCategoryColumns = (t: Translator): ColumnDef<Category>[] => [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <AvatarCell
+          imageUrl={row.original.images?.[0]?.thumbnailUrl}
           name={row.getValue("name")}
           fallbackIcon={Tag}
           isActive={row.original.status === "active"}

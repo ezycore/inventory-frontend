@@ -999,7 +999,7 @@ const FormField: FC<{
             ? field.helperText(allValues)
             : field.helperText;
         return helperTextValue ? (
-          <p className="text-xs text-muted-foreground">{helperTextValue}</p>
+          <p className="text-xs text-muted-foreground mt-1.5">{helperTextValue}</p>
         ) : null;
       })()}
       {!viewMode && error && (

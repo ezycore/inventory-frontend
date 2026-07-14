@@ -81,7 +81,7 @@ export default function EcommerceCatalogPage() {
 
   if (!isFeatureEnabled(features, "storefront")) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="space-y-4">
         <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
           The online store is not enabled on your plan.
         </div>
@@ -109,7 +109,7 @@ export default function EcommerceCatalogPage() {
   };
 
   return (
-    <div className="container mx-auto space-y-4 p-6">
+    <div className="space-y-4">
       <PageHeader
         title="Catalog"
         subTitle="Control which products and collections appear in your online store."

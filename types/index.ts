@@ -114,7 +114,6 @@ export interface StorefrontNav {
 }
 
 export interface StorefrontCheckout {
-  guestCheckout?: boolean;
   requiredFields?: string[];
   minOrderValue?: number;
   orderPrefix?: string;
@@ -153,7 +152,6 @@ export interface StorefrontTemplates {
 
 export interface StorefrontCustomersConfig {
   allowAccounts?: boolean;
-  phoneOtpLogin?: boolean;
 }
 
 export interface StorefrontSettings {
@@ -338,6 +336,7 @@ export interface Category extends BaseEntity {
   name: string;
   slug: string;
   description?: string;
+  images: Image[];
   status: "active" | "inactive";
   isDefault: boolean; // Pre-selected on new product forms
   productCount: number; // For displaying number of products in category
@@ -347,6 +346,7 @@ export interface CreateCategoryDto {
   name: string;
   slug?: string;
   description?: string;
+  images?: Image[];
   status?: "active" | "inactive";
   isDefault?: boolean;
 }
