@@ -5,11 +5,12 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import type {
   CatalogCategory,
+  HeaderMenuSource,
   StoreMenuItem,
   StoreTemplates,
   StorefrontStore,
 } from "@/lib/storefront-client";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { resolveHeaderMenu, resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
@@ -51,7 +52,25 @@ interface HeaderCtx {
   goCart: () => void;
   goSearch: () => void;
   headerMenu: StoreMenuItem[];
+  /** Where the top links come from — owner-chosen, never inferred from length. */
+  menuSource: HeaderMenuSource;
   cats: CatalogCategory[];
+}
+
+/** Top links for the compact header variants, per the resolved menu source. */
+function headerLinks(ctx: HeaderCtx): { key: string; label: string; href: string }[] {
+  const { base, headerMenu, menuSource, cats } = ctx;
+  return menuSource === "custom"
+    ? headerMenu.map((m) => ({
+        key: m.label,
+        label: m.label,
+        href: menuHref(m, base, cats),
+      }))
+    : cats.map((c) => ({
+        key: c._id,
+        label: c.name,
+        href: storeHref(base, `/products?categoryId=${c._id}`),
+      }));
 }
 
 /**
@@ -75,6 +94,15 @@ export function StoreHeader({
   const shopper = useShopperStore((s) => s.shopper);
   const hydrated = useHydrated();
   const previewHeader = useSfPreview((s) => s.header);
+  const previewMenuSrc = useSfPreview((s) => s.headerMenuSrc);
+  const previewNavHeader = useSfPreview((s) => s.navHeader);
+
+  // Drafts from the admin Navigation editor win over the saved store payload.
+  const headerMenu = previewNavHeader ?? store?.nav?.header ?? [];
+  const menuSource = resolveHeaderMenu(
+    { ...store?.templates, ...(previewMenuSrc ? { headerMenu: previewMenuSrc } : {}) },
+    headerMenu.length > 0,
+  );
 
   const ctx: HeaderCtx = {
     base,
@@ -91,7 +119,8 @@ export function StoreHeader({
     cartCount,
     goCart,
     goSearch,
-    headerMenu: store?.nav?.header ?? [],
+    headerMenu,
+    menuSource,
     cats: categories ?? [],
   };
 
@@ -169,11 +198,8 @@ function ClassicDesktop({ ctx }: { ctx: HeaderCtx }) {
 }
 
 function MinimalDesktop({ ctx }: { ctx: HeaderCtx }) {
-  const { base, name, logo, headerMenu, cats } = ctx;
-  const links =
-    headerMenu.length > 0
-      ? headerMenu.map((m) => ({ key: m.label, label: m.label, href: menuHref(m, base, cats) }))
-      : cats.map((c) => ({ key: c._id, label: c.name, href: storeHref(base, `/products?categoryId=${c._id}`) }));
+  const { base, name, logo } = ctx;
+  const links = headerLinks(ctx);
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "12px var(--pad)", display: "flex", alignItems: "center", gap: 24 }}>
       <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 9, flex: "none" }}>
@@ -317,8 +343,9 @@ function CartButton({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boolean })
 }
 
 function CategoryRow({ ctx, center }: { ctx: HeaderCtx; center?: boolean }) {
-  const { base, headerMenu, cats } = ctx;
-  if (headerMenu.length > 0) {
+  const { base, headerMenu, menuSource, cats } = ctx;
+  if (menuSource === "custom") {
+    if (headerMenu.length === 0) return null;
     return <HeaderNav base={base} menu={headerMenu} categories={cats} center={center} />;
   }
   if (cats.length === 0) return null;

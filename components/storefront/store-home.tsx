@@ -46,6 +46,7 @@ export function StoreHome({
   const previewHome = useSfPreview((s) => s.home);
   const previewSlides = useSfPreview((s) => s.heroSlides);
   const previewHeroSrc = useSfPreview((s) => s.heroSrc);
+  const previewCollections = useSfPreview((s) => s.collections);
   const resolved = resolveTemplates(store);
   const tpl = HOME_VARIANTS.includes(previewHome ?? "")
     ? (previewHome as TplName)
@@ -60,12 +61,21 @@ export function StoreHome({
       : resolved.hero;
   const heroSlides =
     heroSrc === "banner" ? undefined : (previewSlides ?? store.heroSlides);
+  // Category chips follow the Collections panel's unsaved draft under preview.
+  // The admin's collection list carries no image, so re-attach each category's
+  // own image by id — without this the chips would fall back to initial tiles
+  // and the preview would misrepresent the real homepage.
+  const previewCategories = previewCollections?.map((pc) => ({
+    ...pc,
+    image: pc.image ?? categories.find((c) => c._id === pc._id)?.image,
+  }));
+
   const shared = {
     base,
     currency,
     featured,
     latest,
-    categories,
+    categories: previewCategories ?? categories,
     campaigns,
     t,
     banner,

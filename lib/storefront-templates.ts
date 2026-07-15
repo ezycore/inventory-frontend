@@ -1,5 +1,7 @@
 import type {
+  HeaderMenuSource,
   StoreTemplates,
+  StoreTemplatesRaw,
   StorefrontStore,
 } from "@/lib/storefront-client";
 
@@ -29,6 +31,7 @@ const FOOTER = { columns: "columns", simple: "simple", rich: "rich" } as const;
 const HEADER = { classic: "classic", minimal: "minimal", centered: "centered" } as const;
 const PRODUCTCARD = { standard: "standard", compact: "compact", bold: "bold" } as const;
 const HERO = { slides: "slides", banner: "banner" } as const;
+const HEADER_MENU = { collections: "collections", custom: "custom" } as const;
 
 function pick<M extends Record<string, string>>(
   map: M,
@@ -55,4 +58,25 @@ export function resolveTemplates(
     productCard: pick(PRODUCTCARD, t.productCard, DEFAULT_TEMPLATES.productCard),
     hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
   };
+}
+
+/**
+ * Resolve what the header's top links are built from.
+ *
+ * `templates.headerMenu` is the explicit, owner-chosen source. It is unset on
+ * every store created before that control shipped, so the fallback reproduces
+ * the old implicit behaviour — a non-empty custom menu used to win over the
+ * category list — and only then lands on "collections". Defaulting straight to
+ * "collections" would silently replace the header of every store that had
+ * already built a menu.
+ *
+ * @param hasCustomMenu whether `nav.header` holds at least one item.
+ */
+export function resolveHeaderMenu(
+  templates: StoreTemplatesRaw | undefined,
+  hasCustomMenu: boolean,
+): HeaderMenuSource {
+  const raw = templates?.headerMenu;
+  if (raw && raw in HEADER_MENU) return HEADER_MENU[raw as HeaderMenuSource];
+  return hasCustomMenu ? "custom" : "collections";
 }
