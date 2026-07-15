@@ -1,9 +1,10 @@
 import { taxesApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
-import { CreateTaxDto, Tax } from "@/types";
+import { CreateTaxDto } from "@/types";
+import type { ApiTax } from "@/types/api";
 import { createResourceHooks } from "../query-helpers";
 
-const taxHooks = createResourceHooks<Tax, CreateTaxDto>(
+const taxHooks = createResourceHooks<ApiTax, CreateTaxDto>(
   taxesApi,
   queryKeys.taxes,
     { relatedQueryKeys: [queryKeys.products.all(), 

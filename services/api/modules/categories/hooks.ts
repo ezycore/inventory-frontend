@@ -1,9 +1,10 @@
-import { Category, CreateCategoryDto } from "@/types";
+import { CreateCategoryDto } from "@/types";
+import type { ApiCategory, CategoryListItem } from "@/types/api";
 import { createResourceHooks } from "../query-helpers";
 import { categoriesApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 
-const categoriesHooks = createResourceHooks<Category, CreateCategoryDto>(
+const categoriesHooks = createResourceHooks<ApiCategory, CreateCategoryDto, Partial<CreateCategoryDto>, CategoryListItem>(
   categoriesApi,
   queryKeys.categories,
   { relatedQueryKeys: [queryKeys.products.all(), 

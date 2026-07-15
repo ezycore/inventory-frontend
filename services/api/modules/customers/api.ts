@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, CustomerLedger, CustomerStatement, CustomersSummary, PaginatedResponse } from "@/types";
+import type { ApiCustomer, CustomerListItem } from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface CustomerLedgerFilters {
@@ -10,16 +11,16 @@ export interface CustomerLedgerFilters {
 }
 
 export const customersApi = {
-  getAll: (filters: BaseFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  getAll: (filters: BaseFilters = {}): Promise<ApiResponse<PaginatedResponse<CustomerListItem>>> =>
     apiClient.get(`/sales/customers${buildQueryParams(filters)}`),
 
-  getById: (id: string): Promise<ApiResponse<any>> =>
+  getById: (id: string): Promise<ApiResponse<ApiCustomer>> =>
     apiClient.get(`/sales/customers/${id}`),
 
-  create: (data: any): Promise<ApiResponse<any>> =>
+  create: (data: any): Promise<ApiResponse<ApiCustomer>> =>
     apiClient.post("/sales/customers", data),
 
-  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+  update: (id: string, data: any): Promise<ApiResponse<ApiCustomer>> =>
     apiClient.put(`/sales/customers/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>

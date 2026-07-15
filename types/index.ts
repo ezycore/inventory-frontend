@@ -1,3 +1,12 @@
+import type {
+  ApiPurchaseOrder,
+  ApiPurchaseReturn,
+  PurchaseTransactions as ApiPurchaseTransactions,
+  SaleListItem as ApiSaleListItem,
+  SalePayment as ApiSalePayment,
+  SaleTransactions as ApiSaleTransactions,
+} from "./api";
+
 // Common enums
 export enum ProductStatus {
   ACTIVE = "active",
@@ -1200,10 +1209,13 @@ export type AccountType = "cash" | "bank" | "mfs" | "custom";
 export interface Account extends BaseEntity {
   name: string;
   type: AccountType;
-  balance: number;
+  // `balance` and `isDefault` are optional on the wire (the backend `Account` DTO sends them
+  // optional) — see the generated `ApiAccount`. Marked optional here so hand-type consumers
+  // stay assignable from the real API shape.
+  balance?: number;
   accountNumber?: string;
   description?: string;
-  isDefault: boolean;
+  isDefault?: boolean;
   isActive?: boolean;
   status?: "active" | "inactive";
 }
@@ -1330,54 +1342,17 @@ export type PurchaseOrderStatus =
 
 export type PurchaseOrderDiscountType = "percentage" | "fixed";
 
-export interface PurchaseOrderItem {
-  productId: string;
-  variantId?: string | null;
-  inventoryId?: string;
-  quantity: number;
-  receivedQuantity: number;
-  // Sum of this line returned across COMPLETED returns (derived by the API on
-  // the order-detail read). Used to cap net-returnable in the return UI.
-  returnedQuantity?: number;
-  price: number;
-  costPrice?: number;
-  subtotal: number;
-  productName?: string;
-  conversionFactor?: number;
-  purchaseUnitName?: string;
-  discount?: number;
-  variantName?: string;
-  product?: { name: string };
-  // Per-line purchase tax snapshot (from the product's purchaseTax at posting time).
-  taxRate?: number;
-  taxType?: "inclusive" | "exclusive";
-  taxAmount?: number;
-}
+/** A purchase-order line — generated from the backend purchase DTO. */
+export type PurchaseOrderItem = ApiPurchaseOrder["items"][number];
 
-export interface PurchaseOrder extends BaseEntity {
-  organizationId: string;
-  orderNumber: string;
-  supplierId: Supplier;
-  locationId: string;
-  items: PurchaseOrderItem[];
-  status: PurchaseOrderStatus;
-  invoiceDate?: string;
-  subtotal: number;
-  taxTotal: number;
-  notes?: string;
-  createdBy?: string | { _id?: string; email?: string; firstName?: string; lastName?: string };
-  paymentStatus?: "unpaid" | "partial" | "paid";
-  paidAmount?: number;
-  dueAmount?: number;
-  invoiceNumber?: string;
-  // Additional fields from API
-  supplier?: Supplier;
-  grandTotal?: number;
-  totalAmount?: number;
-  additionalDiscount?: number;
-  invoiceAmount?: number;
-  refundCreditApplied?: number;
-}
+/**
+ * A purchase order — generated from the backend purchase DTOs (`ApiPurchaseOrder` is the detail
+ * shape; a list row is assignable to it). `supplierId` and `createdBy` are `string | populated |
+ * null` on the wire (the `maybeRef` DTO helper) — narrow with `populatedRef` before reading a
+ * sub-field. The old ad-hoc `supplier` / `grandTotal` / `paymentStatus` were never sent by the
+ * backend; use `supplierId` (populated) and `invoiceAmount` / `totalAmount`.
+ */
+export type PurchaseOrder = ApiPurchaseOrder;
 
 export interface CreatePurchaseOrderItemDto {
   productId: string;
@@ -1486,42 +1461,12 @@ export type PurchaseTransactionKind =
   | "credit_applied_self"
   | "credit_applied_from_other";
 
-export interface PurchaseTransactionEntry {
-  id: string;
-  kind: PurchaseTransactionKind;
-  direction: "in" | "out" | "neutral";
-  amount: number;
-  date: string;
-  paymentMethod?: string;
-  accountName?: string;
-  reference?: {
-    kind: "payment" | "purchaseReturn";
-    id: string;
-    label: string;
-  };
-  /** Present for `credit_applied_from_other` — the PO whose return generated the credit. */
-  sourcePurchase?: { id: string; orderNumber: string };
-  notes?: string;
-}
+/** One timeline entry — generated from the backend `purchaseTransactionsDto`. */
+export type PurchaseTransactionEntry = ApiPurchaseTransactions["transactions"][number];
 
-export interface PurchaseTransactionsSummary {
-  purchaseTotal: number;
-  cashPaid: number;
-  supplierCreditPaid: number;
-  cashRefunded: number;
-  refundCreditApplied: number;
-  netPaid: number;
-  paidAmount: number;
-  refundedAmount: number;
-  refundCreditAppliedOnOrder: number;
-  dueAmount: number;
-  status: string;
-}
+export type PurchaseTransactionsSummary = ApiPurchaseTransactions["summary"];
 
-export interface PurchaseTransactionsResponse {
-  transactions: PurchaseTransactionEntry[];
-  summary: PurchaseTransactionsSummary;
-}
+export type PurchaseTransactionsResponse = ApiPurchaseTransactions;
 
 export interface PurchaseOrdersSummary {
   totalOrders: number;
@@ -1568,63 +1513,19 @@ export type PurchaseReturnReason =
 /**
  * Purchase return item interface
  */
-export interface PurchaseReturnItem {
-  productId: string;
-  variantId?: string | null;
-  inventoryId: string;
-  productName: string;
-  quantity: number;
-  price: number;
-  costPrice: number;
-  discount?: number;
-  refundAmount: number;
-  lineTotal: number;
-  conversionFactor?: number; // For UoM conversion (e.g., 1 box = 100 pieces)
-  // Tax snapshot (proportional reversal of the original order line; set by the backend).
-  taxRate?: number;
-  taxType?: TaxType;
-  taxAmount?: number;
-}
+/** A purchase-return line — generated from the backend `purchaseReturnDto`. */
+export type PurchaseReturnItem = ApiPurchaseReturn["items"][number];
 
 /**
  * Purchase return interface
  */
-export interface PurchaseReturn extends BaseEntity {
-  returnNumber: string;
-  organizationId: string;
-  locationId: string;
-  purchaseOrderId: string | { _id: string; orderNumber: string };
-  orderNumber: string;
-  supplierId?: string | { _id: string; name: string; email?: string; phone?: string };
-  items: PurchaseReturnItem[];
-  totalRefundAmount: number;
-  deductionAmount?: number; // Optional fee withheld from gross refund
-  refundedAmount: number;
-  taxTotal?: number; // Σ line taxAmount refunded (mirrors PurchaseOrder.taxTotal)
-  totalCostAmount?: number;
-  reason: PurchaseReturnReason;
-  notes?: string;
-  status: PurchaseReturnStatus;
-  returnDate: string;
-  processedBy?: string;
-  refundAllocation?: {
-    adjustPurchaseDue?: number;
-    adjustOtherDues?: Array<{
-      dueId: string;
-      purchaseOrderId: string;
-      amount: number;
-    }>;
-    accountRefund?: {
-      accountId: string;
-      amount: number;
-      paymentMethod: string;
-    };
-    supplierCredit?: {
-      amount: number;
-    };
-  };
-  supplier?: Supplier;
-}
+/**
+ * A purchase return — generated from the backend `purchaseReturnDto`. `purchaseOrderId`,
+ * `supplierId` and `createdBy` are `string | populated | null` on the wire (the `maybeRef` DTO
+ * helper) — narrow with `populatedRef` before reading a sub-field. The old ad-hoc `supplier`
+ * field was never sent by the backend; use `supplierId` (populated).
+ */
+export type PurchaseReturn = ApiPurchaseReturn;
 
 /**
  * Create purchase return item DTO
@@ -1859,110 +1760,42 @@ export type PaymentMethod = "cash" | "card" | "bank" | "mfs" | "other" | "credit
 /**
  * Sale item interface - represents an item in a sale
  */
-export interface SaleItem {
-  productId: string;
-  variantId?: string | null;
-  inventoryId: string;
-  productName: string;
-  quantity: number;
-  price: number;
-  costPrice: number;
-  discount: number;
-  subtotal: number;
-  /** Tax rate (percent) applied to the line. */
-  taxRate?: number;
-  taxType?: TaxType;
-  /** Computed tax amount for the line (backend). */
-  taxAmount?: number;
-  /** Combo provenance — set only on lines exploded from a combo. Group by
-   *  comboLineId to render them under one combo header. */
-  comboId?: string | null;
-  comboName?: string;
-  comboLineId?: string;
-  /** Base units of this component per 1 combo (qtyPer); returns UI converts
-   *  combo units ↔ component units with it. Set only on combo lines. */
-  comboUnitQuantity?: number;
-}
+/** A sale line — generated from the backend `saleItem` DTO (one shape for list + detail). */
+export type SaleItem = ApiSaleListItem["items"][number];
 
 /**
- * Customer reference in sale
+ * The populated customer a sale carries — the *object* arm of the wire union
+ * (`customerId` is `string | populated | null`; see the backend `maybeRef`).
  */
-export interface SaleCustomer {
-  _id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  /** Populated on the sale-detail endpoint; printed on the invoice when present. */
-  address?: string;
-  /** Customer store-credit balance (echoed by backend on populate). */
-  creditBalance?: number;
-  /** Populated default discount (when backend nest-populates defaultDiscountId). */
-  defaultDiscountId?: { _id: string; value: number; type: "percentage" | "fixed" } | null;
-}
+export type SaleCustomer = Extract<
+  NonNullable<ApiSaleListItem["customerId"]>,
+  { _id: string }
+>;
+
+/** The populated creator a sale carries — the object arm of the wire union. */
+export type SaleCreatedBy = Extract<
+  NonNullable<ApiSaleListItem["createdBy"]>,
+  { _id: string }
+>;
 
 /**
- * Created by user reference
+ * A sale — generated from the backend sale DTOs. `SaleListItem` (the list row) plus an
+ * optional `payments` (present only on the detail read), so one type serves both.
+ *
+ * NOTE: `customerId` and `createdBy` are `string | populated | null` on the wire — the backend
+ * populates them on some reads and returns a bare id on others (`maybeRef`). Narrow with
+ * `typeof x === "object"` before reading a sub-field.
  */
-export interface SaleCreatedBy {
-  _id: string;
-  firstName: string;
-  lastName: string;
-}
+export type Sale = ApiSaleListItem & { payments?: ApiSalePayment[] };
 
-/**
- * Sale interface - represents a completed sale
- */
-export interface Sale extends BaseEntity {
-  invoiceNumber: string;
-  organizationId: string;
-  locationId: string;
-  customerId: SaleCustomer;
-  items: SaleItem[];
-  subtotal: number;
-  additionalDiscount: number;
-  /** Sum of line tax across the sale (backend-computed). */
-  taxTotal?: number;
-  /** Grand total payable = subtotal - additionalDiscount + taxTotal (tax-inclusive). */
-  totalAmount: number;
-  paidAmount: number;
-  dueAmount: number;
-  /** Total cash actually refunded to the customer across all returns. */
-  refundedAmount?: number;
-  /** Total amount of return credit applied to THIS sale's due (self + cross-invoice). */
-  refundCreditApplied?: number;
-  costPrice: number;
-  status: SaleStatus;
-  notes?: string;
-  createdBy?: SaleCreatedBy;
-}
+/** Payment account ref (populated `name type`) — the object arm of `accountId`. */
+export type PaymentAccount = Extract<
+  NonNullable<ApiSalePayment["accountId"]>,
+  { _id: string }
+>;
 
-/**
- * Payment account reference
- */
-export interface PaymentAccount {
-  _id: string;
-  name: string;
-  type?: string;
-}
-
-/**
- * Payment interface - represents a payment for a sale
- */
-export interface Payment extends BaseEntity {
-  organizationId: string;
-  locationId: string;
-  type: "sale" | "purchase";
-  referenceId: string;
-  customerId?: string;
-  supplierId?: string;
-  /** Optional — absent for credit-balance payments (paymentMethod === "credit"). */
-  accountId?: PaymentAccount;
-  amount: number;
-  paymentMethod: PaymentMethod;
-  notes?: string;
-  status: "completed" | "cancelled";
-  createdBy?: SaleCreatedBy;
-}
+/** A payment for a sale/purchase — generated from the backend `salePaymentDto`. */
+export type Payment = ApiSalePayment;
 
 /**
  * DTO for creating/adding a payment
@@ -1988,44 +1821,12 @@ export type SaleTransactionKind =
   | "credit_applied_self"
   | "credit_applied_from_other";
 
-export interface SaleTransactionEntry {
-  id: string;
-  kind: SaleTransactionKind;
-  direction: "in" | "out" | "neutral";
-  amount: number;
-  date: string;
-  paymentMethod?: string;
-  accountName?: string;
-  reference?: {
-    kind: "payment" | "salesReturn";
-    id: string;
-    label: string;
-  };
-  /** Present for `credit_applied_from_other` — the sale whose return generated the credit. */
-  sourceSale?: { id: string; invoiceNumber: string };
-  notes?: string;
-}
+/** One timeline entry — generated from the backend `saleTransactionsDto`. */
+export type SaleTransactionEntry = ApiSaleTransactions["transactions"][number];
 
-export interface SaleTransactionsSummary {
-  saleTotal: number;
-  cashPaid: number;
-  creditBalancePaid: number;
-  cashRefunded: number;
-  /** Self + from-other credit applied. */
-  refundCreditApplied: number;
-  /** cashPaid − cashRefunded — the real money kept. */
-  netReceived: number;
-  paidAmount: number;
-  refundedAmount: number;
-  refundCreditAppliedOnSale: number;
-  dueAmount: number;
-  status: SaleStatus;
-}
+export type SaleTransactionsSummary = ApiSaleTransactions["summary"];
 
-export interface SaleTransactionsResponse {
-  transactions: SaleTransactionEntry[];
-  summary: SaleTransactionsSummary;
-}
+export type SaleTransactionsResponse = ApiSaleTransactions;
 
 /**
  * Sale query filters

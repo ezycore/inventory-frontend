@@ -1,9 +1,10 @@
 import { locationsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
-import { CreateLocationDto, Location } from "@/types";
+import { CreateLocationDto } from "@/types";
+import type { ApiLocation } from "@/types/api";
 import { createResourceHooks } from "../query-helpers";
 
-const locationHooks = createResourceHooks<Location, CreateLocationDto>(
+const locationHooks = createResourceHooks<ApiLocation, CreateLocationDto>(
   locationsApi,
   queryKeys.locations,
 );

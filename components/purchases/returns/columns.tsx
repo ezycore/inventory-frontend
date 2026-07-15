@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { populatedRef } from "@/utils/populated-ref";
 import type { Translator } from "@/i18n/config";
 import { Eye, Minus, Plus } from "lucide-react";
 
@@ -86,10 +87,8 @@ export function getReturnsColumns(
       id: "supplier",
       header: t("colSupplier"),
       cell: ({ row }) => {
-        const sup =
-          (row.original.supplier as { name?: string } | undefined) ||
-          (row.original.supplierId as unknown as { name?: string } | undefined);
-        if (sup && typeof sup === "object" && sup.name) {
+        const sup = populatedRef(row.original.supplierId);
+        if (sup?.name) {
           return <span className="text-sm">{sup.name}</span>;
         }
         return <span className="text-sm text-muted-foreground">{t("unknownSupplier")}</span>;

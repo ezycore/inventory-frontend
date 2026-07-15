@@ -2,10 +2,10 @@ import { apiClient } from "@/lib/api-client";
 import type {
   ApiResponse,
   CreateDiscountDto,
-  Discount,
   PaginatedResponse,
   UpdateDiscountDto,
 } from "@/types";
+import type { ApiDiscount } from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface DiscountFilters extends BaseFilters {
@@ -16,10 +16,10 @@ export interface DiscountFilters extends BaseFilters {
 export const discountsApi = {
   getAll: (
     filters: DiscountFilters = {}
-  ): Promise<ApiResponse<PaginatedResponse<Discount>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<ApiDiscount>>> =>
     apiClient.get(`/discounts${buildQueryParams(filters)}`),
 
-  getById: (id: string): Promise<ApiResponse<Discount>> =>
+  getById: (id: string): Promise<ApiResponse<ApiDiscount>> =>
     apiClient.get(`/discounts/${id}`),
 
   getStats: (): Promise<ApiResponse<any>> =>
@@ -27,21 +27,21 @@ export const discountsApi = {
 
   getSalesDiscounts: (
     filters: BaseFilters = {}
-  ): Promise<ApiResponse<PaginatedResponse<Discount>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<ApiDiscount>>> =>
     apiClient.get(`/discounts/sales${buildQueryParams(filters)}`),
 
   getPurchaseDiscounts: (
     filters: BaseFilters = {}
-  ): Promise<ApiResponse<PaginatedResponse<Discount>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<ApiDiscount>>> =>
     apiClient.get(`/discounts/purchase${buildQueryParams(filters)}`),
 
-  create: (data: CreateDiscountDto): Promise<ApiResponse<Discount>> =>
+  create: (data: CreateDiscountDto): Promise<ApiResponse<ApiDiscount>> =>
     apiClient.post("/discounts", data),
 
   update: (
     id: string,
     data: UpdateDiscountDto
-  ): Promise<ApiResponse<Discount>> =>
+  ): Promise<ApiResponse<ApiDiscount>> =>
     apiClient.put(`/discounts/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>

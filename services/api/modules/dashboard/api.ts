@@ -1,7 +1,12 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
+// Response shapes are generated from the backend DTOs (`report.dto.ts` → OpenAPI). Re-exported
+// here so existing consumers keep importing `DashboardOverview` / `DashboardStats` from this module.
+import type { DashboardOverview, DashboardStats } from "@/types/api";
+export type { DashboardOverview, DashboardStats };
 
-// ── Period type ──
+// ── Period type — the FE-side vocabulary the period filter/query is built from. The wire
+// `period.key` is a plain `string`; this narrows it for the filter UI and query params. ──
 export type DashboardPeriod =
   | "today"
   | "thisWeek"
@@ -16,86 +21,6 @@ export interface DashboardOverviewParams {
   weekStartDay?: number;
   startDate?: string; // YYYY-MM-DD
   endDate?: string;   // YYYY-MM-DD
-}
-
-// ── Overview response ──
-export interface DashboardOverview {
-  period: {
-    key: DashboardPeriod;
-    startDate: string;
-    endDate: string;
-    chartGrouping: "hourly" | "daily" | "weekly" | "monthly";
-  };
-  sales: {
-    total: number;
-    paid: number;
-    due: number;
-    count: number;
-    previousTotal: number;
-    previousCount: number;
-  };
-  purchases: {
-    total: number;
-    paid: number;
-    due: number;
-    count: number;
-    previousTotal: number;
-    previousCount: number;
-  };
-  chartData: Array<{ label: string; sales: number; purchases: number }>;
-  topSoldItems: Array<{
-    productName: string;
-    variantName: string | null;
-    totalQuantity: number;
-    totalRevenue: number;
-    totalCost: number;
-    profit: number;
-  }>;
-  lowStock: {
-    count: number;
-    outOfStockCount: number;
-    items: Array<{
-      id: string;
-      productName: string;
-      variantName: string | null;
-      currentStock: number;
-      alertThreshold: number;
-    }>;
-  };
-  inventory: {
-    totalValue: number;
-    totalItems: number;
-  };
-  grossProfit: number;
-  totalCOGS: number;
-}
-
-// ── Stats response (basic counts) - used by Products & Inventory pages ──
-export interface DashboardStats {
-  products: {
-    total: number;
-    active: number;
-    inactive: number;
-  };
-  variants: {
-    total: number;
-    active: number;
-    lowStock: number;
-    outOfStock: number;
-  };
-  categories: {
-    total: number;
-    active: number;
-  };
-  brands: {
-    total: number;
-    active: number;
-  };
-  stock?: {
-    totalItems: number;
-    totalValue: number; // valued at cost (purchase) price
-    totalRetailValue: number; // quantity × product/variant price
-  };
 }
 
 export const dashboardApi = {

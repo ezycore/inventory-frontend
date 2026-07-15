@@ -783,7 +783,7 @@ Object.entries(filters).forEach(([key, value]) => {
 ### Backend Example (Express + MongoDB)
 
 ```typescript
-// routes/brands.ts
+// brand list controller — backend example
 export const getAll = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;

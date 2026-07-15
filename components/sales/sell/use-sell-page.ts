@@ -37,6 +37,7 @@ import {
 } from "@/utils/print-documents";
 import type { AppLocale } from "@/i18n/config";
 import type { Sale, TaxType } from "@/types";
+import { populatedRef } from "@/utils/populated-ref";
 
 /**
  * Map cart lines to the tax util's input shape (preview only; backend is authoritative).
@@ -193,9 +194,10 @@ export function useSellPage() {
     // Reuse the same logic as the customer-select handler: read the customer's
     // defaultDiscount and apply it. BE nest-populates `defaultDiscountId` as
     // `{ value, type }` on the sale's customer reference.
-    const cust = draftSale.customerId;
-    const cd = cust?.defaultDiscountId;
-    const discountType: "percentage" | "fixed" = cd?.type ?? "percentage";
+    const cust = populatedRef(draftSale.customerId);
+    const cd = populatedRef(cust?.defaultDiscountId);
+    const discountType: "percentage" | "fixed" =
+      (cd?.type as "percentage" | "fixed" | undefined) ?? "percentage";
     const discountValue = cd?.value ?? 0;
 
     if (cust) {

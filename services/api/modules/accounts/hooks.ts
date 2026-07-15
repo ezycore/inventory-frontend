@@ -1,11 +1,12 @@
 import { accountsApi } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
 import { queryKeys } from '@/lib/query-keys'
-import { Account, CreateAccountDto, UpdateAccountDto } from '@/types'
+import { CreateAccountDto, UpdateAccountDto } from '@/types'
+import type { ApiAccount } from '@/types/api'
 import { useQuery } from '@tanstack/react-query'
 import type { AccountFilters } from './api'
 
-const accountHooks = createResourceHooks<Account, CreateAccountDto, UpdateAccountDto>(
+const accountHooks = createResourceHooks<ApiAccount, CreateAccountDto, UpdateAccountDto>(
   accountsApi,
   queryKeys.accounts
 )

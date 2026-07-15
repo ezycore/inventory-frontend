@@ -149,7 +149,7 @@ return (
 
 ## File upload (same as DataTable)
 
-`prepareSubmitData` and `transformEditData` live on `operations` and are passed through to the internal `DynamicForm`. See [.github/skills/data-table/references/recipes.md](../../data-table/references/recipes.md#file-upload-via-preparesubmitdata).
+`prepareSubmitData` and `transformEditData` live on `operations` and are passed through to the internal `DynamicForm`. See [.claude/skills/data-table/references/recipes.md](../../data-table/references/recipes.md#file-upload-via-preparesubmitdata).
 
 ## Empty state
 

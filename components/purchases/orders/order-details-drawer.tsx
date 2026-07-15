@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { format as formatDate } from 'date-fns';
+import { populatedRef } from '@/utils/populated-ref';
 import { useLocale, useTranslations } from 'next-intl';
 import { Edit3, PackageCheck, ReceiptText, XCircle } from 'lucide-react';
 import type { AppLocale } from '@/i18n/config';
@@ -54,7 +55,7 @@ function OrderStats({ order }: { order: PurchaseOrder }) {
   const tStatus = useTranslations('purchases.status');
   const { format: fmt } = useCurrency();
   const orderTotal =
-    order.invoiceAmount ?? order.grandTotal ?? order.totalAmount ?? order.subtotal ?? 0;
+    order.invoiceAmount ?? order.totalAmount ?? order.subtotal ?? 0;
   const due = order.dueAmount ?? 0;
   const orderedQty = order.items.reduce((sum, item) => sum + item.quantity, 0);
   const receivedQty = order.items.reduce(
@@ -167,7 +168,6 @@ export function OrderDetailsDrawer({
                 totalLabel={t('statOrderTotal')}
                 documentTotal={
                   order.invoiceAmount ??
-                  order.grandTotal ??
                   order.totalAmount ??
                   order.subtotal ??
                   0
@@ -178,8 +178,8 @@ export function OrderDetailsDrawer({
 
               <DetailsKv
                 rows={[
-                  { label: t('kvSupplier'), value: order.supplierId?.name ?? '—' },
-                  { label: t('kvSupplierAddress'), value: order.supplierId?.address },
+                  { label: t('kvSupplier'), value: populatedRef(order.supplierId)?.name ?? '—' },
+                  { label: t('kvSupplierAddress'), value: populatedRef(order.supplierId)?.address },
                   { label: t('kvSupplierInvoice'), value: order.invoiceNumber },
                   {
                     label: t('kvInvoiceDate'),

@@ -14,6 +14,7 @@ import {
 } from '@/ui/components/popover';
 import { useEmailSaleReceipt } from '@/services/api';
 import type { Sale } from '@/types';
+import { populatedRef } from '@/utils/populated-ref';
 
 interface EmailReceiptButtonProps {
   sale: Sale;
@@ -50,7 +51,7 @@ export function EmailReceiptButton({ sale }: EmailReceiptButtonProps) {
 
   if (sale.status === 'draft' || sale.status === 'cancelled') return null;
 
-  const knownEmail = sale.customerId?.email;
+  const knownEmail = populatedRef(sale.customerId)?.email;
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);

@@ -68,7 +68,7 @@ export function useCreatedOrdersPage() {
 
   const getOrderDisplayTotal = useCallback(
     (order: PurchaseOrder) =>
-      order.invoiceAmount || order.grandTotal || order.totalAmount || order.subtotal || 0,
+      order.invoiceAmount || order.totalAmount || order.subtotal || 0,
     [],
   );
 

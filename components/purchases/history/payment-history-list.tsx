@@ -15,6 +15,7 @@ import {
   resolveDefaultPaper,
 } from "@/utils/print-documents";
 import type { PurchaseOrder } from "@/types";
+import { populatedRef } from "@/utils/populated-ref";
 import type { Payment } from "./types";
 
 interface PaymentHistoryListProps {
@@ -85,8 +86,7 @@ export function PaymentHistoryList({
                   accountName: p.accountName,
                   notes: p.notes,
                   docNumber: order.orderNumber,
-                  counterparty:
-                    order.supplierId?.name ?? order.supplier?.name ?? "-",
+                  counterparty: populatedRef(order.supplierId)?.name ?? "-",
                   isSale: false,
                   balanceDue: order.dueAmount ?? 0,
                 },
