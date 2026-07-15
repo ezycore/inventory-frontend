@@ -1,9 +1,10 @@
 import { discountsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
-import { CreateDiscountDto, Discount } from "@/types";
+import { CreateDiscountDto } from "@/types";
+import type { ApiDiscount } from "@/types/api";
 import { createResourceHooks } from "../query-helpers";
 
-const discountHooks = createResourceHooks<Discount, CreateDiscountDto>(
+const discountHooks = createResourceHooks<ApiDiscount, CreateDiscountDto>(
   discountsApi,
   queryKeys.discounts,
   {

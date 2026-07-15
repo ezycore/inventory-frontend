@@ -1,19 +1,10 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiCampaign } from "@/types/api";
 
-export type CampaignScope = "storewide" | "category" | "product";
-
-export interface Campaign {
-  _id: string;
-  name: string;
-  scope: CampaignScope;
-  targets: string[];
-  type: "percentage" | "fixed";
-  value: number;
-  startsAt: string;
-  endsAt: string;
-  status: "active" | "inactive";
-}
+// Response shape generated from the backend `campaignDto`. Kept under `Campaign`.
+export type Campaign = ApiCampaign;
+export type CampaignScope = ApiCampaign["scope"];
 
 export interface CampaignInput {
   name: string;

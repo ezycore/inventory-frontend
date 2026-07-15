@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse, SupplierLedger, SupplierStatement } from "@/types";
+import type { ApiSupplier, SupplierListItem } from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface SupplierLedgerFilters {
@@ -12,16 +13,16 @@ export interface SupplierLedgerFilters {
 export const suppliersApi = {
   getAll: (
     filters: BaseFilters = {},
-  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<SupplierListItem>>> =>
     apiClient.get(`/suppliers${buildQueryParams(filters)}`),
 
-  getById: (id: string): Promise<ApiResponse<any>> =>
+  getById: (id: string): Promise<ApiResponse<ApiSupplier>> =>
     apiClient.get(`/suppliers/${id}`),
 
-  create: (data: any): Promise<ApiResponse<any>> =>
+  create: (data: any): Promise<ApiResponse<ApiSupplier>> =>
     apiClient.post("/suppliers", data),
 
-  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+  update: (id: string, data: any): Promise<ApiResponse<ApiSupplier>> =>
     apiClient.put(`/suppliers/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>

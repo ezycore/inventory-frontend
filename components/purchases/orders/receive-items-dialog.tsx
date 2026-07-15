@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
+import { populatedRef } from "@/utils/populated-ref";
 import { useAccounts, useDefaultAccount } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { Account, PurchaseOrder, ReceivePurchaseOrderDto } from "@/types";
@@ -175,7 +176,7 @@ export function ReceiveItemsDialog({
           </DialogTitle>
           <DialogDescription>
             {order
-              ? t("orderLine", { number: order.orderNumber, supplier: order.supplierId?.name ?? "—" })
+              ? t("orderLine", { number: order.orderNumber, supplier: populatedRef(order.supplierId)?.name ?? "—" })
               : t("descriptionFallback")}
           </DialogDescription>
         </DialogHeader>

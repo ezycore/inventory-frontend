@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse, CreateVariantDto, UpdateVariantDto, VariantFilters } from "@/types";
+import type { ApiVariantAttribute } from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 /**
@@ -58,12 +59,15 @@ export const variantsApi = {
   transformForEdit,
 
   // Query methods
-  getAll: (filters: VariantFilters | BaseFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  // `/variants` is the variant-attribute-template collection (name + values[]).
+  getAll: (filters: VariantFilters | BaseFilters = {}): Promise<ApiResponse<PaginatedResponse<ApiVariantAttribute>>> =>
     apiClient.get(`/variants${buildQueryParams(filters)}`),
 
-  getById: (id: string): Promise<ApiResponse<any>> =>
+  getById: (id: string): Promise<ApiResponse<ApiVariantAttribute>> =>
     apiClient.get(`/variants/${id}`),
 
+  // NOTE: `?productId=` and `/low-stock` return a different (instance) shape with no dedicated
+  // generated schema yet — left `any` pending a backend DTO. TODO(backend): declare these.
   getByProduct: (productId: string): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/variants?productId=${productId}`),
 
@@ -74,12 +78,12 @@ export const variantsApi = {
     apiClient.get(`/variants/stats${productId ? `?productId=${productId}` : ""}`),
 
   // Mutation methods with data processing
-  create: (data: CreateVariantDto | any): Promise<ApiResponse<any>> => {
+  create: (data: CreateVariantDto | any): Promise<ApiResponse<ApiVariantAttribute>> => {
     const processedData = data.values ? processData(data) : data;
     return apiClient.post("/variants", processedData);
   },
 
-  update: (id: string, data: UpdateVariantDto | any): Promise<ApiResponse<any>> => {
+  update: (id: string, data: UpdateVariantDto | any): Promise<ApiResponse<ApiVariantAttribute>> => {
     const processedData = data.values ? processData(data) : data;
     return apiClient.put(`/variants/${id}`, processedData);
   },

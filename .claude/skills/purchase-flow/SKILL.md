@@ -1,6 +1,6 @@
 ---
 name: purchase-flow
-description: 'Build, edit, debug, or audit the EzyCore PURCHASE FLOW end-to-end (FE side): Purchases list/create → Payment drawer → Purchase Return creation & details → Supplier Ledger sheet → Supplier Credit Balance. USE WHEN: editing purchases history page, payments drawer (`components/purchases/history/payments-drawer.tsx`), return details sheet, supplier ledger sheet, debugging "Paid column wrong after return", "cash refund not in payment list", "where did N tk go?" reconciliation, "use supplier credit" toggle on payment forms, cross-PO navigation from credited PO to source return. Touches `app/(protected)/purchases/`, `app/(protected)/suppliers/`, `components/purchases/`, `components/suppliers/`, `services/api/modules/{purchase-orders,purchase-returns,suppliers,payments}`. **MUST be updated whenever purchases/return/payment/supplier-ledger code changes.** Backend mirror: `easystock-backend/.github/skills/purchase-flow/SKILL.md`.'
+description: 'Build, edit, debug, or audit the EzyCore PURCHASE FLOW end-to-end (FE side): Purchases list/create → Payment drawer → Purchase Return creation & details → Supplier Ledger sheet → Supplier Credit Balance. USE WHEN: editing purchases history page, payments drawer (`components/purchases/history/payments-drawer.tsx`), return details sheet, supplier ledger sheet, debugging "Paid column wrong after return", "cash refund not in payment list", "where did N tk go?" reconciliation, "use supplier credit" toggle on payment forms, cross-PO navigation from credited PO to source return. Touches `app/(protected)/purchases/`, `app/(protected)/suppliers/`, `components/purchases/`, `components/suppliers/`, `services/api/modules/{purchase-orders,purchase-returns,suppliers,payments}`. **MUST be updated whenever purchases/return/payment/supplier-ledger code changes.** Backend mirror: `easystock-backend/.claude/skills/purchase-flow/SKILL.md`.'
 ---
 
 # Purchase Flow Skill (Frontend)
@@ -8,8 +8,8 @@ description: 'Build, edit, debug, or audit the EzyCore PURCHASE FLOW end-to-end 
 Mirror of the backend purchase-flow skill, focused on FE wiring. Money flow is inverted vs. sales-flow:
 **we pay supplier (cash out); supplier may refund us (cash in)**. Read the BE skill before assuming a contract.
 
-> **Sister skill:** [`easystock-backend/.github/skills/purchase-flow/SKILL.md`](../../../../easystock-backend/.github/skills/purchase-flow/SKILL.md)
-> **Sales mirror:** [`.github/skills/sales-flow/SKILL.md`](../sales-flow/SKILL.md)
+> **Sister skill:** [`easystock-backend/.claude/skills/purchase-flow/SKILL.md`](../../../../easystock-backend/.claude/skills/purchase-flow/SKILL.md)
+> **Sales mirror:** [`.claude/skills/sales-flow/SKILL.md`](../sales-flow/SKILL.md)
 
 ---
 
@@ -45,10 +45,8 @@ Mirror of the backend purchase-flow skill, focused on FE wiring. Money flow is i
 ### API modules
 | Path | Endpoints |
 |------|-----------|
-| `services/api/modules/purchase-orders/api.ts` | `GET/POST/PUT/DELETE /purchases/orders`, `GET /purchases/orders/:id/payments`, `GET /purchases/orders/:id/transactions` |
-| `services/api/modules/purchase-returns/api.ts` | `GET/POST /purchases/returns` |
+| `services/api/modules/purchase-orders/api.ts` | `GET/POST/PUT/DELETE /purchases/orders`, `GET /purchases/orders/:id/payments`, `GET /purchases/orders/:id/transactions`; the file also exports the **returns** object (`GET/POST /purchases/returns`) and `addPayment` (`POST /payments`, `type: "purchase" \| "purchaseRefund"`) — there is no separate `purchase-returns` or `payments` module |
 | `services/api/modules/suppliers/api.ts` | `GET/POST/PUT/DELETE /suppliers`, `GET /suppliers/:id/ledger` |
-| `services/api/modules/payments/api.ts` | `POST /payments` (`type: "purchase" \| "purchaseRefund"`) |
 
 ### Types
 `types/index.ts`: `PurchaseOrder`, `PurchaseReturn`, `Supplier`, `SupplierDue`, `Payment`, `PurchaseRefundAllocation`, `SupplierLedgerEntry`, `SupplierLedger` (now includes `inboundCredits?: SupplierLedgerInboundCredit[]` + `creditBalance?: number`), `SupplierLedgerInboundCredit` (`returnId`, `returnNumber`, `sourcePurchaseOrderId`, `sourceOrderNumber`, `targetPurchaseOrderId`, `targetOrderNumber?`, `amount`, `date`), `PurchaseReturnsSummary`, `CreatePurchaseOrderDto` (now includes `creditBalanceAmount?: number` mirroring `sale.creditBalanceAmount`), `SupplierPendingDuesResponse` (`{ dues, totalDue, count, creditBalance }`).
@@ -142,7 +140,7 @@ The create-PO page (`app/(protected)/purchases/page.tsx`) supports **multi-suppl
 
 After touching ANY of the files above:
 1. Update this skill (file map, contract, pitfalls — whichever applies).
-2. Update the BE mirror (`easystock-backend/.github/skills/purchase-flow/SKILL.md`) if the contract crosses the wire.
+2. Update the BE mirror (`easystock-backend/.claude/skills/purchase-flow/SKILL.md`) if the contract crosses the wire.
 3. Never let the two skills drift. Either both move or neither moves.
 
 ---

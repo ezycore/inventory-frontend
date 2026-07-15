@@ -121,18 +121,17 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
     : inventoryItems
   const totalStock =
     analytics?.stock.totalQuantity ??
-    product.totalStock ??
     inventoryItems.reduce((sum, item) => sum + (item.quantity || 0), 0)
   const locationCount = analytics?.stock.locationCount ?? inventoryItems.length
-  const totalSold = analytics?.sales.unitsSold ?? product.totalSold ?? 0
-  const totalRevenue = analytics?.sales.revenue ?? product.totalRevenue ?? 0
-  // Cost lives on inventory (weighted moving avg), not the product. Derive a
-  // weighted-average unit cost from analytics; fall back to the product field.
+  const totalSold = analytics?.sales.unitsSold ?? 0
+  const totalRevenue = analytics?.sales.revenue ?? 0
+  // Cost lives on inventory (weighted moving avg), not the product — derive a
+  // weighted-average unit cost from analytics.
   const derivedCost =
     analytics && analytics.stock.totalQuantity > 0
       ? analytics.stock.stockValue / analytics.stock.totalQuantity
       : analytics?.stock.byLocation.find((l) => l.costPrice > 0)?.costPrice ?? 0
-  const costPrice = derivedCost || product.costPrice || 0
+  const costPrice = derivedCost || 0
   // Selling price is per-variant for variable products (product.price is unset
   // there); fall back to the product price for single products / the 'all' tab.
   const selectedVariant = selectedVariantId
@@ -142,7 +141,6 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
   const profitPerUnit = unitPrice ? unitPrice - costPrice : 0
   const profitMarginPercent =
     analytics?.sales.margin ??
-    product.profitMargin ??
     (unitPrice > 0 ? Math.round(((unitPrice - costPrice) / unitPrice) * 100) : 0)
   const stockValue = analytics?.stock.stockValue ?? totalStock * costPrice
   const salesTaxRate = product.salesTax?.taxType === 'exempt' ? 0 : product.salesTax?.rate ?? 0

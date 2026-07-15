@@ -2,7 +2,8 @@
 import { inventoryApi } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
 import { queryKeys } from '@/services/api/query-keys'
-import { Inventory, CreateInventoryDto, ReceiveStockDto } from '@/types'
+import { CreateInventoryDto, ReceiveStockDto } from '@/types'
+import type { ApiInventory } from '@/types/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
@@ -16,7 +17,7 @@ export interface BulkAdjustmentItem {
   batchNumber?: string
 }
 
-const inventoryHooks = createResourceHooks<Inventory, CreateInventoryDto>(
+const inventoryHooks = createResourceHooks<ApiInventory, CreateInventoryDto>(
   inventoryApi,
   queryKeys.inventory,
   // Adding/removing inventory changes which products+variants are "not yet in

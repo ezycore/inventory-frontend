@@ -30,6 +30,7 @@ import type {
   PaginatedResponse,
 } from '@/types';
 import type { FilterField } from '@/types/filter';
+import { populatedRef } from '@/utils/populated-ref';
 
 import type { PendingDueRaw } from './types';
 import { getReturnsColumns } from './columns';
@@ -95,7 +96,7 @@ export function useSalesReturnPage() {
   }, [returnsResponse]);
 
   const { data: pendingDuesData } = useCustomerPendingDues(
-    sale?.customerId?._id ?? '',
+    populatedRef(sale?.customerId)?._id ?? '',
     selectedSaleId ?? '',
   );
   const pendingDues = useMemo(

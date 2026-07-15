@@ -7,6 +7,7 @@ import { Button } from "@/ui/components/button";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import type { CustomAction } from "@/types/DataTable";
 import type { PurchaseOrder } from "@/types";
+import { populatedRef } from "@/utils/populated-ref";
 import { toast } from "sonner";
 import { statusConfig } from "../status-config";
 
@@ -54,13 +55,7 @@ export const getPurchaseHistoryColumns = ({
     accessorKey: "supplierId",
     header: t("history.colSupplier"),
     cell: ({ row }) => {
-      const supplier =
-        (row.original as PurchaseOrder).supplierId ||
-        (row.original as PurchaseOrder).supplier;
-      const name =
-        typeof supplier === "object" && supplier
-          ? (supplier as { name?: string }).name
-          : undefined;
+      const name = populatedRef(row.original.supplierId)?.name;
       return (
         <span className="font-medium">
           {name || <span className="text-muted-foreground">{t("history.walkIn")}</span>}

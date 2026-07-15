@@ -11,6 +11,7 @@ import type {
   UpdateStorefrontSettingsDto,
   TaxSettings,
 } from "@/types";
+import type { ApiOrganization } from "@/types/api";
 
 export interface ExcludedFieldsSettings {
   product?: string[];
@@ -42,7 +43,7 @@ export interface ExcludedColumnsSettings {
 export const organizationApi = {
   // GET /api/organization - Get organization details
   // Used in: useGetOrganizationApi → organization-tab.tsx
-  get: (): Promise<ApiResponse<any>> => apiClient.get(`/organization`),
+  get: (): Promise<ApiResponse<ApiOrganization>> => apiClient.get(`/organization`),
 
   // GET /api/organization/subscription - Current plan/entitlement + usage
   // Used in: useGetSubscription → app/(protected)/billing/page.tsx

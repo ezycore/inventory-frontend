@@ -1,20 +1,9 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiCoupon } from "@/types/api";
 
-export interface Coupon {
-  _id: string;
-  code: string;
-  type: "percentage" | "fixed";
-  value: number;
-  validFrom?: string;
-  validUntil?: string;
-  maxUses?: number;
-  usedCount: number;
-  perShopperLimit?: number;
-  minOrderValue?: number;
-  maxDiscountAmount?: number;
-  status: "active" | "inactive";
-}
+// Response shape generated from the backend `couponDto`. Kept under `Coupon`.
+export type Coupon = ApiCoupon;
 
 export interface CouponInput {
   code: string;
