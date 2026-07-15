@@ -40,7 +40,6 @@ export function ReturnsHistoryList({
           productName: i.productName,
           quantity: i.quantity,
           price: i.price,
-          discount: i.discount,
           refundAmount: i.refundAmount,
         })),
         allocation: ret.refundAllocation

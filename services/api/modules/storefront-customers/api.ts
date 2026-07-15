@@ -1,40 +1,12 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
+import type { ShopperDetail, ShopperListItem } from "@/types/api";
 
-export interface OnlineCustomer {
-  _id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  status: string;
-  orders: number;
-  totalSpent: number;
-  lastOrderAt: string | null;
-  createdAt: string;
-}
-
-export interface OnlineCustomerOrder {
-  _id: string;
-  orderNumber: string;
-  status: string;
-  paymentStatus: string;
-  paymentMethod: string;
-  totalAmount: number;
-  createdAt: string;
-}
-
-export interface OnlineCustomerDetail {
-  customer: {
-    _id: string;
-    name: string;
-    email: string;
-    phone?: string;
-    status: string;
-    createdAt: string;
-  };
-  stats: { orders: number; totalSpent: number; lastOrderAt: string | null };
-  orders: OnlineCustomerOrder[];
-}
+// Response shapes generated from the backend shopper DTOs (`ecommerce.dto.ts`). The
+// storefront "customers" surface is the Shopper (storefront login), not the accounting Customer.
+export type OnlineCustomer = ShopperListItem;
+export type OnlineCustomerDetail = ShopperDetail;
+export type OnlineCustomerOrder = ShopperDetail["orders"][number];
 
 const base = "/ecommerce/customers";
 

@@ -5,6 +5,7 @@ import {
   PaymentEntryForm as SharedPaymentEntryForm,
 } from "@/components/shared/payments";
 import type { Account, Sale } from "@/types";
+import { populatedRef } from "@/utils/populated-ref";
 
 interface PaymentEntryFormProps {
   sale: Sale;
@@ -33,7 +34,7 @@ export function PaymentEntryForm({
   ...rest
 }: PaymentEntryFormProps) {
   const t = useTranslations('sales.history.paymentForm');
-  const creditAvailable = sale.customerId?.creditBalance ?? 0;
+  const creditAvailable = populatedRef(sale.customerId)?.creditBalance ?? 0;
   return (
     <SharedPaymentEntryForm
       doc={{ status: sale.status, dueAmount: sale.dueAmount }}

@@ -9,7 +9,7 @@ Same `formConfig`, `defaultValues`, `useCreate*`, `useUpdate*`, `useDelete*`, `s
 ## 2. Card config (fields + image)
 
 ```ts
-// components/brands/card-config.ts
+// components/<resource>/card-config.ts   (create this for your resource; brands shown)
 import type { CardFieldConfig, CardImageConfig } from "@/types/DataCard";
 import type { Brand } from "@/types";
 

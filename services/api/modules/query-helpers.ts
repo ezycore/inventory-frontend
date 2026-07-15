@@ -9,14 +9,25 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface ResourceApi<T, CreateDto, UpdateDto> {
+/**
+ * `TDetail` is the shape `getById` / `create` / `update` return; `TList` is one row of the
+ * paginated `getAll` result (often a slimmer projection, so it is a separate generic that
+ * defaults to `TDetail`). Both flow through to the `select`ed hook data below, so a component
+ * reading a field the backend doesn't send is now a compile error instead of a silent
+ * `undefined`. Methods a resource types as `ApiResponse<any>` still satisfy this — `any` is
+ * assignable both ways — so modules can be tightened one at a time.
+ */
+interface ResourceApi<TDetail, CreateDto, UpdateDto, TList = TDetail> {
   getAll?: (
     filters?: Record<string, any>,
-  ) => Promise<ApiResponse<PaginatedResponse<any>>>;
-  getById?: (id: string) => Promise<ApiResponse<any>>;
-  getBySlug?: (slug: string) => Promise<ApiResponse<any>>;
-  create?: (data: FormData | CreateDto) => Promise<ApiResponse<any>>;
-  update?: (id: string, data: FormData | UpdateDto) => Promise<ApiResponse<T>>;
+  ) => Promise<ApiResponse<PaginatedResponse<TList>>>;
+  getById?: (id: string) => Promise<ApiResponse<TDetail>>;
+  getBySlug?: (slug: string) => Promise<ApiResponse<TDetail>>;
+  create?: (data: FormData | CreateDto) => Promise<ApiResponse<TDetail>>;
+  update?: (
+    id: string,
+    data: FormData | UpdateDto,
+  ) => Promise<ApiResponse<TDetail>>;
   delete?: (id: string) => Promise<ApiResponse<any>>;
   bulkDelete?: (ids: string[]) => Promise<ApiResponse<any>>;
   getStats?: (filters?: Record<string, any>) => Promise<ApiResponse<any>>;
@@ -45,11 +56,12 @@ export const handleMutationSuccess = (message: string | string[]) => {
 };
 
 export function createResourceHooks<
-  T,
+  TDetail,
   CreateDto = any,
   UpdateDto = Partial<CreateDto>,
+  TList = TDetail,
 >(
-  api: ResourceApi<T, CreateDto, UpdateDto>,
+  api: ResourceApi<TDetail, CreateDto, UpdateDto, TList>,
   queryKeys: QueryKeys,
   options: FactoryOptions = {},
 ) {

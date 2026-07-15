@@ -6,14 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
 import { Separator } from '@ui/components/separator'
 import { Globe } from 'lucide-react'
+import type { ProductDetail } from '@/types/api'
 
 interface DetailStorefrontProps {
-  storefront: {
-    isListed: boolean
-    onlinePrice?: number
-    featured?: boolean
-    onlineDescription?: string
-  }
+  // The backend's real storefront shape (from the generated API types), so this can't drift
+  // from what `/products/:id` sends. The parent guards `product.storefront` before rendering.
+  storefront: NonNullable<ProductDetail['storefront']>
   formatCurrency: (n: number) => string
 }
 

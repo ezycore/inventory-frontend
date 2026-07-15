@@ -190,4 +190,4 @@ Default `defaultPageSize` is `12` (vs `10` for DataTable).
 - [./references/recipes.md](./references/recipes.md) — variants, custom render, image patterns, shared operations with DataTable, sorting, bulk delete, list mode
 - [./references/props-reference.md](./references/props-reference.md) — full `DataCardProps`, `Operations`, `CardFieldConfig`, `CardImageConfig`, `CardCustomAction`, `CardLayoutConfig`
 - [ui/components/dataCard/datacard-doc.md](ui/components/dataCard/datacard-doc.md) and [ui/components/dataCard/DATACARD_PROPS_REFERENCE.md](ui/components/dataCard/DATACARD_PROPS_REFERENCE.md) — long-form reference
-- [.github/skills/data-table/SKILL.md](.github/skills/data-table/SKILL.md) — sister skill (CRUD `Operations` shape and pitfalls are largely shared)
+- [.claude/skills/data-table/SKILL.md](.claude/skills/data-table/SKILL.md) — sister skill (CRUD `Operations` shape and pitfalls are largely shared)

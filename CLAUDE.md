@@ -92,6 +92,55 @@ Everything is barrel-exported from `services/api/index.ts`.
 
 Query keys are centrally defined in `services/api/query-keys.ts` (re-exported from `lib/query-keys.ts` for backwards compatibility).
 
+### API response types are generated from the backend (single source of truth)
+
+Response shapes are **not** hand-written — they are generated from the backend's OpenAPI spec, which is
+itself emitted from the backend's tested response DTOs. So a field only has a frontend type if the
+backend really sends it, and a rename/removal on the backend becomes a **compile error** here instead of
+a silent `undefined`.
+
+- `types/api-generated.ts` — generated, **do not edit**. Regenerate with `pnpm gen:api-types` (reads
+  `../easystock-backend/docs/reference/openapi.json`).
+- `types/api.ts` — the only place that maps a backend schema to a friendly name (`Api`-prefixed where it
+  would clash with a hand-written type, e.g. `ApiInventory`, `ApiVariant`). **Import response types from
+  `@/types/api`**, never reach into `api-generated` directly.
+- In an `api.ts` module, type the response envelope with the generated type
+  (`Promise<ApiResponse<ProductDetail>>`, `Promise<ApiResponse<PaginatedResponse<ProductListItem>>>`).
+  The `createResourceHooks` factory is generic-preserving, so the type flows through to the hook and out
+  to components — a component reading a field the backend doesn't send then fails to compile.
+- Keep `any` only where the data is genuinely dynamic or the endpoint has **no backend DTO yet** (a few
+  are marked with `TODO(backend)` comments); prefer fixing the backend DTO over hand-typing.
+
+**Workflow when the backend response contract changes:** run `pnpm gen:api-types`, then `pnpm typecheck`
+and fix whatever breaks (that is the drift surfacing), then commit the regenerated `api-generated.ts`.
+
+**The gate:** `pnpm verify:api-types` regenerates into a temp file and fails if it differs from the
+committed `types/api-generated.ts` — i.e. it catches "backend contract changed but the frontend types
+weren't regenerated." `pnpm verify` runs that plus `pnpm docs:verify` plus `typecheck`. Wire
+`pnpm verify` into CI/pre-commit.
+
+### Docs must match the code (`pnpm docs:verify`)
+
+`scripts/verify-docs.mjs` (ported from the backend's `scripts/docs/verify-docs.ts`) fails the build when
+a doc/skill lies about the code — a dead file reference (`src/…`, `components/…`), a broken relative
+`.md` link, a phantom `/api/…` route the backend router does not serve, or something declared absent that
+now exists. It reads the backend's generated `docs/reference/endpoints.json` for the known-route set and
+resolves backend `src/…` citations against the `easystock-backend` repo checked out beside this one;
+when a sibling repo is absent it skips those checks rather than failing. Bare paths that resolve nowhere
+are advisory (never a failure) — they are genuinely ambiguous. `docs/archive/**` and `docs/plan/**` are
+exempt.
+
+### Skills are paired, one per repo, non-duplicating
+
+Skills live in `.claude/skills/<name>/SKILL.md` — Claude Code discovers them there (they were moved
+out of `.github/skills/`, Copilot's location, since the project uses Claude now).
+Each frontend skill that has a real backend half **links to the backend skill and does not restate it** —
+e.g. `api-module` → backend `api-contract`, `rbac-auth`/`inventory-stock`/`accounting-ledger`/
+`reporting-analytics`/`import-export` → their same-named backend counterparts, `storefront` →
+backend `storefront-orders`/`promotions-coupons`/`custom-domains`. The API contract is written once (the
+backend DTOs) and generated twice — never documented in both repos. `docs:verify` checks those
+cross-repo links resolve.
+
 ### Adding a New Resource Module
 
 1. Create `services/api/modules/<resource>/api.ts` with a plain object using `apiClient`

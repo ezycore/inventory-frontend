@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { PurchaseOrder } from "@/types";
+import { populatedRef } from "@/utils/populated-ref";
 import type { Translator } from "@/i18n/config";
 import { Badge } from "@/ui/components/badge";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
@@ -33,7 +34,7 @@ export const getCreatedOrdersColumns = ({
     accessorKey: "supplierId",
     header: t("orders.colSupplier"),
     cell: ({ row }) => {
-      const supplier = row.original.supplierId;
+      const supplier = populatedRef(row.original.supplierId);
       return (
         <div className="flex items-center gap-2">
           <Truck className="h-4 w-4 text-muted-foreground" />
@@ -60,7 +61,6 @@ export const getCreatedOrdersColumns = ({
       <span className="flex justify-end font-medium">
         {formatCurrency(
           row.original.invoiceAmount ||
-            row.original.grandTotal ||
             row.original.totalAmount ||
             row.original.subtotal ||
             0,

@@ -1,87 +1,25 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
+import type {
+  AdminStorefrontOrder,
+  CourierList,
+  CourierRemoved,
+  CourierUpsert,
+  FraudScore,
+  StorefrontOrderList,
+} from "@/types/api";
+export type { AdminStorefrontOrder };
 
-export interface AdminOrderItem {
-  productName: string;
-  quantity: number;
-  price: number;
-  subtotal: number;
-}
-
-export interface AdminOrderAddress {
-  name: string;
-  phone: string;
-  address: string;
-  city?: string;
-  area?: string;
-  zone?: "inside" | "outside";
-}
-
-export interface OrderCourier {
-  provider?: string;
-  consignmentId?: string;
-  trackingCode?: string;
-  status?: string;
-}
-
-export interface AdminStorefrontOrder {
-  _id: string;
-  orderNumber: string;
-  items: AdminOrderItem[];
-  subtotal: number;
-  discountAmount: number;
-  couponCode?: string;
-  shippingCharged: number;
-  shippingCost: number;
-  totalAmount: number;
-  status: string;
-  paymentMethod: string;
-  paymentStatus: string;
-  shippingAddress: AdminOrderAddress;
-  notes?: string;
-  saleId?: string;
-  courier?: OrderCourier;
-  createdAt: string;
-  statusHistory?: { status: string; at: string; by?: string }[];
-}
-
-export interface CourierCredField {
-  key: string;
-  label: string;
-  secret?: boolean;
-}
-export interface CourierConfigEntry {
-  provider: string;
-  mode: string;
-  enabled: boolean;
-  configured: boolean;
-}
-export interface CourierListResult {
-  couriers: CourierConfigEntry[];
-  providers: Record<string, CourierCredField[]>;
-}
-
-export interface AdminOrderListResult {
-  items: AdminStorefrontOrder[];
-  /** Per-status counts for the list tabs (keys include "all" + each status). */
-  counts?: Record<string, number>;
-  pagination: { page: number; limit: number; total: number; totalPages: number };
-}
-
-/**
- * Delivery-risk result for an order's customer phone. `available:false` means
- * there was no usable phone / history; `risk` is still returned for UI banding.
- */
-export interface OrderFraudScore {
-  available: boolean;
-  source: string;
-  phone: string;
-  totalParcels: number;
-  deliveredParcels: number;
-  cancelledParcels: number;
-  successRatio: number;
-  risk: "low" | "medium" | "high";
-}
+// Response shapes generated from the backend storefront-order + courier DTOs (`ecommerce.dto.ts`).
+// Order sub-shapes are derived from the parent so they cannot drift from it.
+export type AdminOrderItem = AdminStorefrontOrder["items"][number];
+export type AdminOrderAddress = AdminStorefrontOrder["shippingAddress"];
+export type OrderCourier = NonNullable<AdminStorefrontOrder["courier"]>;
+export type AdminOrderListResult = StorefrontOrderList;
+export type OrderFraudScore = FraudScore;
+export type CourierConfigEntry = CourierUpsert;
+export type CourierListResult = CourierList;
+export type CourierCredField = CourierList["providers"][string][number];
 
 const base = "/ecommerce/orders";
 
@@ -177,6 +115,6 @@ export const couriersApi = {
     body: { credentials?: Record<string, string>; mode?: string; enabled?: boolean },
   ): Promise<ApiResponse<CourierConfigEntry>> =>
     apiClient.put(`${couriersBase}/${provider}`, body),
-  remove: (provider: string): Promise<ApiResponse<{ provider: string }>> =>
+  remove: (provider: string): Promise<ApiResponse<CourierRemoved>> =>
     apiClient.delete(`${couriersBase}/${provider}`),
 };

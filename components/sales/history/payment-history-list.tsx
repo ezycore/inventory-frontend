@@ -15,6 +15,7 @@ import {
   resolveDefaultPaper,
 } from "@/utils/print-documents";
 import type { Payment, Sale } from "@/types";
+import { populatedRef } from "@/utils/populated-ref";
 
 interface PaymentHistoryListProps {
   sale: Sale;
@@ -55,7 +56,7 @@ export function PaymentHistoryList({
         amount: p.amount,
         createdAt: p.createdAt,
         paymentMethod: p.paymentMethod,
-        accountName: p.accountId?.name,
+        accountName: populatedRef(p.accountId)?.name,
         notes: p.notes,
       })),
     [payments],
@@ -85,7 +86,7 @@ export function PaymentHistoryList({
                   accountName: p.accountName,
                   notes: p.notes,
                   docNumber: sale.invoiceNumber,
-                  counterparty: sale.customerId?.name ?? t('walkInCustomer'),
+                  counterparty: populatedRef(sale.customerId)?.name ?? t('walkInCustomer'),
                   isSale: true,
                   balanceDue: sale.dueAmount,
                 },

@@ -5,10 +5,13 @@ import type {
   CreateIncomeDto,
   CreateTransferDto,
   PaginatedResponse,
-  Transaction,
+} from "@/types";
+import type {
+  ApiTransaction,
   TransactionStats,
   TransactionSummary,
-} from "@/types";
+  TransactionTransfer,
+} from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface TransactionFilters extends BaseFilters {
@@ -22,16 +25,16 @@ export interface TransactionFilters extends BaseFilters {
 export const transactionsApi = {
   getAll: (
     filters: TransactionFilters = {}
-  ): Promise<ApiResponse<PaginatedResponse<Transaction>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<ApiTransaction>>> =>
     apiClient.get(`/transactions${buildQueryParams(filters)}`),
 
-  getById: (id: string): Promise<ApiResponse<Transaction>> =>
+  getById: (id: string): Promise<ApiResponse<ApiTransaction>> =>
     apiClient.get(`/transactions/${id}`),
 
   getByAccount: (
     accountId: string,
     filters: Omit<TransactionFilters, "accountId"> = {}
-  ): Promise<ApiResponse<PaginatedResponse<Transaction>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<ApiTransaction>>> =>
     apiClient.get(`/transactions/account/${accountId}${buildQueryParams(filters)}`),
 
   getSummary: (
@@ -49,12 +52,14 @@ export const transactionsApi = {
   ): Promise<ApiResponse<TransactionStats>> =>
     apiClient.get(`/transactions/stats${buildQueryParams(params)}`),
 
-  createIncome: (data: CreateIncomeDto): Promise<ApiResponse<Transaction>> =>
+  createIncome: (data: CreateIncomeDto): Promise<ApiResponse<ApiTransaction>> =>
     apiClient.post("/transactions/income", data),
 
-  createExpense: (data: CreateExpenseDto): Promise<ApiResponse<Transaction>> =>
+  createExpense: (data: CreateExpenseDto): Promise<ApiResponse<ApiTransaction>> =>
     apiClient.post("/transactions/expense", data),
 
-  createTransfer: (data: CreateTransferDto): Promise<ApiResponse<{ outgoing: Transaction; incoming: Transaction }>> =>
+  createTransfer: (
+    data: CreateTransferDto,
+  ): Promise<ApiResponse<TransactionTransfer>> =>
     apiClient.post("/transactions/transfer", data),
 };

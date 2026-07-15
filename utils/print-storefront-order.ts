@@ -27,7 +27,7 @@ export interface PrintableStorefrontOrder {
   subtotal: number;
   discountAmount?: number;
   couponCode?: string;
-  shippingCharged: number;
+  shippingCharged?: number;
   totalAmount: number;
   shippingAddress: {
     name: string;
@@ -113,6 +113,7 @@ const orderToDoc = (
   const currency = opts.currency;
   const addr = order.shippingAddress;
   const discount = order.discountAmount ?? 0;
+  const shippingCharged = order.shippingCharged ?? 0;
   const zoneLabel = addr.zone === "outside" ? t.outsideDhaka : t.insideDhaka;
   const paid = order.paymentStatus === "paid";
 
@@ -127,7 +128,7 @@ const orderToDoc = (
   }
   totals.push({
     label: `${t.shipping} · ${zoneLabel}`,
-    value: order.shippingCharged === 0 ? t.free : currency(order.shippingCharged),
+    value: shippingCharged === 0 ? t.free : currency(shippingCharged),
   });
   totals.push({ label: t.total, value: currency(order.totalAmount), strong: true });
   totals.push(

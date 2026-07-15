@@ -19,6 +19,14 @@ every store; **the host picks the store**.
   fully self-serve: add domain in settings → TXT verify → Caddy on-demand cert → live.
   A custom domain serves the SHOP at root — the admin stays on `{slug}.ezycore.com`.
 
+> **Paired backend skills — the server rules are NOT duplicated here.** The shopper→order→confirm→Sale
+> pipeline (Shopper ≠ Customer), coupons/campaigns, and the custom-domain lifecycle are owned by the
+> backend:
+> [`storefront-orders`](../../../../easystock-backend/.claude/skills/storefront-orders/SKILL.md),
+> [`promotions-coupons`](../../../../easystock-backend/.claude/skills/promotions-coupons/SKILL.md),
+> [`custom-domains`](../../../../easystock-backend/.claude/skills/custom-domains/SKILL.md). This file is
+> the frontend + architecture map; read those before changing anything that crosses the wire.
+
 ## Dev environment
 
 - Frontend `pnpm dev` on **:3000** (Turbopack). Backend (sibling repo `../inventory-backend`)

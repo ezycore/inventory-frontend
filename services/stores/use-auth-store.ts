@@ -13,21 +13,24 @@ import { LoadingState, initialLoadingState } from "./store-utils";
 
 // User data interface
 export interface User {
-  id: string;
+  // Optionality mirrors the backend `authUserDto` (the generated `Me`/`AuthUser`): these are
+  // populate/resolve outputs the shared user contract doesn't guarantee on every user shape.
+  _id?: string;
+  id?: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   avatar?: Image; // Single image object, not array
   /** Preferred UI language — source of truth; mirrored into NEXT_LOCALE (docs/I18N.md). */
   locale?: AppLocale;
   role: string;
-  permissions: string[];
+  permissions?: string[];
   /** Array of assigned location IDs; roles with locations.all can access all locations. */
   locationIds?: string[];
   /** User's default location ID */
   defaultLocationId?: string;
-  organization: {
+  organization?: {
     name: string;
     slug: string;
     ownerId?: string;
@@ -38,7 +41,7 @@ export interface User {
     address?: string;
     /** Letterhead / print configuration — see {@link ReceiptSettings}. */
     receiptSettings?: ReceiptSettings;
-    settings: {
+    settings?: {
       excludedFields?: { [key: string]: string[] };
       excludedColumns?: { [key: string]: string[] };
     };
@@ -50,7 +53,7 @@ export interface User {
     /** Progress of background sample-data seeding; presence ⇒ workspace holds sample data. */
     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
   };
-  defaultData: {
+  defaultData?: {
     customerId?: string;
     accountId?: string;
     locationId?: string;

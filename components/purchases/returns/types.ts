@@ -7,6 +7,11 @@ export interface ReturnableItem extends PurchaseOrderItem {
   selected: boolean;
   /** Tax-inclusive refund per purchase unit, derived per-line via `computeLineTax`. */
   refundUnitPrice: number;
+  // FE-enriched display fields (the wire PO line carries only `productName`); the return page
+  // attaches these from the product lookup for the returnable-items table.
+  product?: { name: string };
+  variantName?: string;
+  discount?: number;
 }
 
 export interface DueAllocation {
