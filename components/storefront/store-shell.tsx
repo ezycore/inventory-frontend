@@ -50,8 +50,13 @@ export function StoreShell({
   const { t } = useStorefrontUI();
 
   const { data: store, isError } = useStore(slug, initialStore);
-  const { data: categories } = useStoreCategories(slug);
+  const { data: fetchedCategories } = useStoreCategories(slug);
   const previewBrand = useSfPreview((s) => s.brand);
+  const previewCollections = useSfPreview((s) => s.collections);
+
+  // The admin's Collections panel streams its unsaved draft; prefer it so
+  // reordering/hiding previews live instead of waiting on a save + refetch.
+  const categories = previewCollections ?? fetchedCategories;
 
   // Tab icon = the store's logo, swapped in place so router-integrated
   // navigations (page changes AND the account tab switch's replaceState) don't

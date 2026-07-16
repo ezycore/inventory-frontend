@@ -157,6 +157,12 @@ export interface StorefrontTemplates {
   productCard?: string;
   /** Home hero source: "slides" (carousel when slides exist) | "banner" (static hero). */
   hero?: string;
+  /**
+   * Header menu source: "collections" (listed categories) | "custom" (nav.header).
+   * Unset on stores predating the control — read it via `resolveHeaderMenu`,
+   * which reproduces the old implicit behaviour rather than defaulting.
+   */
+  headerMenu?: string;
 }
 
 export interface StorefrontCustomersConfig {

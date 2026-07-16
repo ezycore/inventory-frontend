@@ -238,13 +238,6 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.manage"],
           },
           {
-            title: "Navigation",
-            url: "/ecommerce/navigation",
-            icon: "menu",
-            features: ["storefront"],
-            permissions: ["storefront.manage"],
-          },
-          {
             title: "Customers",
             url: "/ecommerce/customers",
             icon: "users",

@@ -83,7 +83,11 @@ export interface StoreTemplatesRaw {
   header?: string;
   productCard?: string;
   hero?: string;
+  headerMenu?: string;
 }
+
+/** What the storefront header's top links are built from. */
+export type HeaderMenuSource = "collections" | "custom";
 
 /** Normalized storefront page-layout variants (resolved from the raw admin ids). */
 export interface StoreTemplates {
@@ -188,6 +192,8 @@ export interface CatalogCategory {
   _id: string;
   name: string;
   slug: string;
+  /** Collection thumbnail (single image); absent when the merchant set none. */
+  image?: StorefrontImage | null;
 }
 
 export interface ProductListResult {

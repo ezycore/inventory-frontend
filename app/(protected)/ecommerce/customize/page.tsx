@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ExternalLink,
   Lock,
@@ -10,17 +11,27 @@ import {
 } from "lucide-react";
 import {
   useGetStorefrontSettings,
+  useStorefrontCollections,
   useUpdateStorefrontMedia,
   useUpdateStorefrontSettings,
 } from "@/services/api";
 import { THEME_PRESETS, getPreset } from "@/lib/storefront-theme";
+import { resolveHeaderMenu } from "@/lib/storefront-templates";
+import type { HeaderMenuSource } from "@/lib/storefront-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { storefrontUrl } from "@/lib/storefront-url";
 import type {
   StorefrontHeroSlide,
+  StorefrontMenuItem,
   StorefrontSettings,
   StorefrontTrustBadge,
 } from "@/types";
+import {
+  toRowValue,
+  type CollectionRowValue,
+} from "@/components/ecommerce/collections/collection-row";
+import { CollectionsPanel } from "@/components/ecommerce/collections/collections-panel";
+import { NavigationSection } from "@/components/ecommerce/navigation/navigation-section";
 import { HeroSlidesPanel } from "@/components/ecommerce/hero-slides-panel";
 import { SlideThumb } from "@/components/ecommerce/slide-thumb";
 import { HomeTemplateBlock } from "@/components/ecommerce/home-template-block";
@@ -32,11 +43,12 @@ import { Label } from "@/ui/components/label";
 import { Icon as SfIcon, type IconName } from "@/components/storefront/sf-icons";
 
 type Option = { label: string; value: string };
-type SectionId = "theme" | "templates";
+type SectionId = "theme" | "templates" | "navigation";
 
 const SECTIONS: { id: SectionId; label: string }[] = [
   { id: "theme", label: "Theme" },
   { id: "templates", label: "Templates" },
+  { id: "navigation", label: "Navigation" },
 ];
 
 // Trust-badge editor (Rich footer). Rows seed empty with these defaults as
@@ -70,14 +82,17 @@ export default function CustomizePage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Customize</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Design your storefront — theme, brand colors, logo and page layouts —
-          with a live preview.
+          Design your storefront — theme, brand colors, logo, page layouts and
+          navigation — with a live preview.
         </p>
       </div>
       {isLoading || !settings ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (
-        <CustomizeWorkspace settings={settings} />
+        // useSearchParams (section deep-link) needs a boundary to render.
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+          <CustomizeWorkspace settings={settings} />
+        </Suspense>
       )}
     </div>
   );
@@ -85,7 +100,14 @@ export default function CustomizePage() {
 
 function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const slug = useAuthStore((s) => s.user?.organization?.slug);
-  const [section, setSection] = useState<SectionId>("theme");
+  // ?section= deep-links the rail — the retired /ecommerce/navigation route
+  // redirects here pointing at its section.
+  const sectionParam = useSearchParams().get("section");
+  const [section, setSection] = useState<SectionId>(() =>
+    SECTIONS.some((s) => s.id === sectionParam)
+      ? (sectionParam as SectionId)
+      : "theme",
+  );
 
   // Preview-relevant draft lifted here so both sections feed the ONE live
   // preview on the right.
@@ -120,8 +142,26 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [heroSlides, setHeroSlides] = useState<StorefrontHeroSlide[]>(
     () => settings.heroSlides ?? [],
   );
-  // Edit-in-place slides panel: takes over the left rail (preview stays live).
+  // Edit-in-place panels: each takes over the left rail (preview stays live).
   const [slidesPanelOpen, setSlidesPanelOpen] = useState(false);
+  const [collectionsPanelOpen, setCollectionsPanelOpen] = useState(false);
+
+  // Navigation draft (preview-relevant half — the section owns footer/announcement).
+  const [headerMenuSrc, setHeaderMenuSrc] = useState<HeaderMenuSource>(() =>
+    resolveHeaderMenu(settings.templates, (settings.nav?.header ?? []).length > 0),
+  );
+  const [navHeader, setNavHeader] = useState<StorefrontMenuItem[]>(
+    () => settings.nav?.header ?? [],
+  );
+
+  // Collections are Category docs, not settings — fetched here so the draft can
+  // feed the header-menu summary, the panel, and the preview from one place.
+  const { data: fetchedCollections } = useStorefrontCollections();
+  const [collections, setCollections] = useState<CollectionRowValue[] | null>(null);
+  useEffect(() => {
+    if (fetchedCollections) setCollections(fetchedCollections.map(toRowValue));
+  }, [fetchedCollections]);
+  const collectionsDraft = collections ?? [];
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
@@ -134,6 +174,12 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           slides={heroSlides}
           setSlides={setHeroSlides}
           onClose={() => setSlidesPanelOpen(false)}
+        />
+      ) : collectionsPanelOpen ? (
+        <CollectionsPanel
+          collections={collectionsDraft}
+          setCollections={setCollections}
+          onClose={() => setCollectionsPanelOpen(false)}
         />
       ) : (
       <div className="flex min-h-0 flex-1 flex-col gap-5">
@@ -166,7 +212,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             heroSlides={heroSlides}
             onManageSlides={() => setSlidesPanelOpen(true)}
           />
-        ) : (
+        ) : section === "templates" ? (
           <TemplatesSection
             settings={settings}
             setHomeTemplate={setHomeTemplate}
@@ -176,6 +222,16 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setHeroSrc={setHeroSrc}
             slideCount={heroSlides.filter((s) => s.title.trim()).length}
             onEditSlides={() => setSlidesPanelOpen(true)}
+          />
+        ) : (
+          <NavigationSection
+            settings={settings}
+            source={headerMenuSrc}
+            setSource={setHeaderMenuSrc}
+            header={navHeader}
+            setHeader={setNavHeader}
+            collections={collectionsDraft}
+            onManageCollections={() => setCollectionsPanelOpen(true)}
           />
         )}
       </div>
@@ -197,6 +253,11 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           // While editing slides, always preview the carousel so edits are
           // visible even if the hero-source switch is on "banner".
           heroSrc={slidesPanelOpen ? "slides" : heroSrc}
+          // Likewise, while managing collections force the collections header so
+          // reordering is visible even if the source is set to a custom menu.
+          headerMenuSrc={collectionsPanelOpen ? "collections" : headerMenuSrc}
+          navHeader={navHeader}
+          collections={collectionsDraft}
         />
       </div>
     </div>
@@ -555,7 +616,10 @@ function TemplatesSection({
   const save = useUpdateStorefrontSettings();
   const [tpl, setTpl] = useState<Record<string, string>>(() => {
     const t = settings.templates ?? {};
-    const seed: Record<string, string> = {};
+    // Seed from the saved object so keys this section doesn't edit (e.g. the
+    // Navigation section's `headerMenu`) survive: the settings PATCH replaces
+    // `templates` wholesale, so anything missing here would be wiped on save.
+    const seed: Record<string, string> = { ...(t as Record<string, string>) };
     for (const p of TEMPLATE_PAGES) {
       seed[p.key] = (t as Record<string, string>)[p.key] || p.options[0].value;
     }
@@ -643,6 +707,9 @@ function BrowserPreview({
   badges,
   heroSlides,
   heroSrc,
+  headerMenuSrc,
+  navHeader,
+  collections,
 }: {
   slug?: string;
   brandColor: string;
@@ -654,6 +721,9 @@ function BrowserPreview({
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
   heroSrc: string;
+  headerMenuSrc: HeaderMenuSource;
+  navHeader: StorefrontMenuItem[];
+  collections: CollectionRowValue[];
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -666,6 +736,19 @@ function BrowserPreview({
   const badgesKey = JSON.stringify(badges);
   // Only preview saveable slides (title required), like the save path.
   const slidesKey = JSON.stringify(heroSlides.filter((s) => s.title.trim()));
+  const navHeaderKey = JSON.stringify(navHeader.filter((m) => m.label.trim()));
+  // Mirror the public GET /:slug/categories contract exactly — listed only,
+  // display name wins, draft order preserved — so the preview can't drift from
+  // what shoppers will actually get.
+  const collectionsKey = JSON.stringify(
+    collections
+      .filter((c) => c.isListed)
+      .map((c) => ({
+        _id: c._id,
+        name: c.displayName.trim() || c.name,
+        slug: c.slug,
+      })),
+  );
 
   const post = useCallback(() => {
     ref.current?.contentWindow?.postMessage(
@@ -679,14 +762,17 @@ function BrowserPreview({
             header: headerTemplate,
             productCard: cardStyle,
             hero: heroSrc,
+            headerMenu: headerMenuSrc,
           },
           trustBadges: JSON.parse(badgesKey),
           heroSlides: JSON.parse(slidesKey),
+          nav: { header: JSON.parse(navHeaderKey) },
+          collections: JSON.parse(collectionsKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, badgesKey, slidesKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, navHeaderKey, collectionsKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {

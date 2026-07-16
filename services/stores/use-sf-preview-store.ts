@@ -1,5 +1,9 @@
 import { create } from "zustand";
-import type { StoreHeroSlide } from "@/lib/storefront-client";
+import type {
+  CatalogCategory,
+  StoreHeroSlide,
+  StoreMenuItem,
+} from "@/lib/storefront-client";
 
 /**
  * Ephemeral storefront preview overrides, streamed from the admin Theme editor
@@ -25,6 +29,17 @@ interface SfPreviewState {
   heroSlides: StoreHeroSlide[] | null;
   /** Draft home hero source ("slides" | "banner") the editor is drafting. */
   heroSrc: string | null;
+  /** Draft header menu source ("collections" | "custom"). */
+  headerMenuSrc: string | null;
+  /** Draft custom header menu items (Navigation → Header menu). */
+  navHeader: StoreMenuItem[] | null;
+  /**
+   * Draft collections from the Navigation → Collections panel: already ordered
+   * and filtered to the listed ones, with display names applied. Overrides the
+   * fetched category list everywhere it's shown (header links + home chips), so
+   * unsaved reordering previews live.
+   */
+  collections: CatalogCategory[] | null;
   activate: () => void;
   apply: (patch: {
     brand?: string;
@@ -36,6 +51,9 @@ interface SfPreviewState {
     badges?: { text: string; icon?: string }[];
     heroSlides?: StoreHeroSlide[];
     heroSrc?: string;
+    headerMenuSrc?: string;
+    navHeader?: StoreMenuItem[];
+    collections?: CatalogCategory[];
   }) => void;
 }
 
@@ -50,6 +68,9 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   badges: null,
   heroSlides: null,
   heroSrc: null,
+  headerMenuSrc: null,
+  navHeader: null,
+  collections: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
@@ -63,5 +84,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       heroSlides:
         patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
       heroSrc: patch.heroSrc !== undefined ? patch.heroSrc : s.heroSrc,
+      headerMenuSrc:
+        patch.headerMenuSrc !== undefined ? patch.headerMenuSrc : s.headerMenuSrc,
+      navHeader: patch.navHeader !== undefined ? patch.navHeader : s.navHeader,
+      collections:
+        patch.collections !== undefined ? patch.collections : s.collections,
     })),
 }));
