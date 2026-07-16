@@ -39,7 +39,6 @@ const TABS = [
   { id: "couriers", label: "Couriers" },
   { id: "checkout", label: "Checkout" },
   { id: "notifications", label: "Notifications" },
-  { id: "customers", label: "Customers" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -51,7 +50,7 @@ export default function StoreSettingsPage() {
   const [tab, setTab] = useState<TabId>("general");
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 py-6 pb-16">
+    <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Store Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -110,8 +109,6 @@ function SettingsTab({
       return <CheckoutTab settings={settings} />;
     case "notifications":
       return <NotificationsTab settings={settings} />;
-    case "customers":
-      return <CustomersTab settings={settings} />;
   }
 }
 
@@ -171,7 +168,7 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
 
   return (
     <div className="space-y-5">
-      <Card className="space-y-4 p-5 shadow-none">
+      <Card className="space-y-1 p-5 shadow-none">
         <div>
           <h3 className="text-sm font-semibold">Store details</h3>
           <p className="text-xs text-muted-foreground">
@@ -206,12 +203,12 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
         </div>
       </Card>
 
-      <Card className="space-y-4 p-5 shadow-none">
+      <Card className="space-y-1 p-5 shadow-none">
         <div>
           <h3 className="text-sm font-semibold">Social links</h3>
           <p className="text-xs text-muted-foreground">
-            Shown as the &quot;Follow us&quot; links in the storefront footer.
-            Leave a field empty to hide that link.
+            Shown as icon links at the bottom of every page of your store. Leave a
+            field empty to hide that link.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
@@ -239,7 +236,7 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
         </div>
       </Card>
 
-      <Card className="space-y-3 p-5 shadow-none">
+      <Card className="space-y-1 p-5 shadow-none">
         <div>
           <h3 className="text-sm font-semibold">
             Fulfillment location <span className="text-red-600">*</span>
@@ -369,7 +366,7 @@ function PaymentsTab({ settings }: { settings: StorefrontSettings }) {
 
   return (
     <div className="space-y-5">
-      <Card className="space-y-3 p-5 shadow-none">
+      <Card className="space-y-2 p-5 shadow-none">
         <div>
           <h3 className="text-sm font-semibold">Payment methods</h3>
           <p className="text-xs text-muted-foreground">
@@ -401,7 +398,7 @@ function PaymentsTab({ settings }: { settings: StorefrontSettings }) {
             maxLength={600}
             rows={3}
             placeholder="Bank transfer instructions shown to customers at checkout…"
-            className="ml-7"
+            className="w-full"
           />
         )}
         <div className="space-y-2 border-t pt-3">
@@ -597,7 +594,6 @@ const ADDRESS_FIELDS = [
 function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useSave();
   const c = settings.checkout ?? {};
-  const [guest, setGuest] = useState(c.guestCheckout ?? true);
   const [fields, setFields] = useState<string[]>(
     c.requiredFields ?? ["name", "phone", "address"],
   );
@@ -612,14 +608,8 @@ function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
 
   return (
     <div className="space-y-5">
-      <Card className="space-y-4 p-5 shadow-none">
-        <h3 className="text-sm font-semibold">Checkout</h3>
-        <ToggleRow
-          label="Guest checkout"
-          desc="Allow ordering without creating an account."
-          checked={guest}
-          onChange={setGuest}
-        />
+      <Card className="space-y-1 p-5 shadow-none">
+        {/* <h3 className="text-sm font-semibold">Checkout</h3> */}
         <ToggleRow
           label="Require terms acceptance"
           desc="Shopper must accept terms before placing an order."
@@ -665,7 +655,6 @@ function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
         onSave={() =>
           save({
             checkout: {
-              guestCheckout: guest,
               termsRequired: terms,
               requiredFields: fields,
               minOrderValue: num(minOrder),
@@ -726,6 +715,11 @@ function NotificationsTab({ settings }: { settings: StorefrontSettings }) {
 
   return (
     <div className="space-y-5">
+      <div className="rounded-lg bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-800">
+        SMS delivery isn&apos;t live yet — only email notifications currently
+        send. You can pre-configure your templates here; they&apos;ll start
+        sending once SMS is enabled.
+      </div>
       <Card className="space-y-4 p-5 shadow-none">
         <div>
           <h3 className="text-sm font-semibold">SMS notifications</h3>
@@ -752,8 +746,8 @@ function NotificationsTab({ settings }: { settings: StorefrontSettings }) {
           </Field>
         </div>
         <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-          The SMS gateway secret/API key is configured separately (encrypted)
-          and dispatch is handled server-side.
+          Once SMS is enabled, the gateway secret/API key is configured
+          separately (encrypted) and dispatch is handled server-side.
         </p>
       </Card>
 
@@ -804,46 +798,6 @@ function NotificationsTab({ settings }: { settings: StorefrontSettings }) {
                   template: events.delivered.template.trim() || undefined,
                 },
               },
-            },
-          })
-        }
-      />
-    </div>
-  );
-}
-
-/* ------------------------------- Customers -------------------------------- */
-
-function CustomersTab({ settings }: { settings: StorefrontSettings }) {
-  const { save, pending } = useSave();
-  const c = settings.customersConfig ?? {};
-  const [allowAccounts, setAllowAccounts] = useState(c.allowAccounts ?? true);
-  const [phoneOtp, setPhoneOtp] = useState(c.phoneOtpLogin ?? false);
-
-  return (
-    <div className="space-y-5">
-      <Card className="space-y-4 p-5 shadow-none">
-        <h3 className="text-sm font-semibold">Customer accounts</h3>
-        <ToggleRow
-          label="Allow account creation"
-          desc="Let shoppers register and track their orders."
-          checked={allowAccounts}
-          onChange={setAllowAccounts}
-        />
-        <ToggleRow
-          label="Phone-OTP login"
-          desc="Sign in with a one-time code sent over SMS (BD norm)."
-          checked={phoneOtp}
-          onChange={setPhoneOtp}
-        />
-      </Card>
-      <SaveBar
-        pending={pending}
-        onSave={() =>
-          save({
-            customersConfig: {
-              allowAccounts,
-              phoneOtpLogin: phoneOtp,
             },
           })
         }

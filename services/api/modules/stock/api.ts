@@ -4,6 +4,7 @@ import type {
   CreateStockMovementDto,
   PaginatedResponse,
 } from "@/types";
+import type { ApiStockMovement } from "@/types/api";
 import { buildQueryParams } from "../../utils";
 
 // ── Period type (shared with dashboard/reports) ──
@@ -35,12 +36,12 @@ interface StockMovementFilters {
 export const stockApi = {
   getMovements: (
     filters: StockMovementFilters = {},
-  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<ApiStockMovement>>> =>
     apiClient.get(`/stock/movements${buildQueryParams(filters)}`),
 
   getMovementsByVariant: (
     variantId: string,
-  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<ApiStockMovement>>> =>
     apiClient.get(`/stock/movements?variantId=${variantId}`),
 
   getStockLevels: (): Promise<ApiResponse<PaginatedResponse<any>>> =>
@@ -67,7 +68,7 @@ export const stockApi = {
 export const stockMovementsApi = {
   getAll: (
     filters: StockMovementFilters = {},
-  ): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<ApiStockMovement>>> =>
     apiClient.get(`/inventory-movements${buildQueryParams(filters)}`),
 
   getStats: (
@@ -79,7 +80,7 @@ export const stockMovementsApi = {
     productId: string,
     locationId: string,
     variantId?: string,
-  ): Promise<ApiResponse<PaginatedResponse<any>>> => {
+  ): Promise<ApiResponse<PaginatedResponse<ApiStockMovement>>> => {
     const url = variantId
       ? `/inventory-movements/inventory/${productId}/${locationId}?variantId=${variantId}`
       : `/inventory-movements/inventory/${productId}/${locationId}`;

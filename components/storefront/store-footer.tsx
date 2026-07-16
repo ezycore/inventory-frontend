@@ -15,6 +15,7 @@ import { useStorePages } from "@/services/storefront/hooks";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
+import { SocialLinks } from "@/components/storefront/social-links";
 import { Brand } from "@/components/storefront/logo-mark";
 
 const FOOTER_VARIANTS: readonly string[] = ["columns", "simple", "rich"];
@@ -89,6 +90,11 @@ function ColumnsFooter(props: FooterProps) {
   return (
     <FooterShell>
       <ColumnsBlock {...props} />
+      <SocialLinks
+        social={props.store?.social}
+        label={props.t.followUs}
+        style={{ paddingBottom: 20 }}
+      />
       <BottomBar name={props.name} currency={props.store?.currency} t={props.t} />
     </FooterShell>
   );
@@ -144,6 +150,7 @@ function SimpleFooter(props: FooterProps) {
         ) : null}
         <PaymentBadges store={props.store} t={props.t} />
       </div>
+      <SocialLinks social={props.store?.social} style={{ paddingBottom: 14 }} />
       <BottomBar name={props.name} currency={props.store?.currency} t={props.t} />
     </FooterShell>
   );
@@ -166,20 +173,6 @@ function RichFooter(props: FooterProps) {
       ? { icon: (saved[i].icon as IconName) || d.icon, label: text }
       : d;
   });
-  const social = props.store?.social ?? {};
-  // Owners often paste a bare phone number for WhatsApp — turn it into a wa.me link.
-  const whatsappHref = social.whatsapp
-    ? /^https?:\/\//i.test(social.whatsapp)
-      ? social.whatsapp
-      : `https://wa.me/${social.whatsapp.replace(/[^\d]/g, "")}`
-    : undefined;
-  const socialLinks = (
-    [
-      social.facebook ? { label: "Facebook", href: social.facebook } : null,
-      social.instagram ? { label: "Instagram", href: social.instagram } : null,
-      whatsappHref ? { label: "WhatsApp", href: whatsappHref } : null,
-    ].filter(Boolean) as { label: string; href: string }[]
-  );
 
   return (
     <FooterShell>
@@ -205,16 +198,11 @@ function RichFooter(props: FooterProps) {
 
       <ColumnsBlock {...props} />
 
-      {socialLinks.length > 0 ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 14, paddingBottom: 20, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)" }}>{t.followUs}</span>
-          {socialLinks.map((s) => (
-            <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" style={footerLink}>
-              {s.label}
-            </a>
-          ))}
-        </div>
-      ) : null}
+      <SocialLinks
+        social={props.store?.social}
+        label={t.followUs}
+        style={{ paddingBottom: 20 }}
+      />
 
       <BottomBar name={props.name} currency={props.store?.currency} t={t} />
     </FooterShell>

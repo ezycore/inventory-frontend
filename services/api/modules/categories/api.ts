@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, PaginatedResponse, CreateCategoryDto, UpdateCategoryDto } from "@/types";
+import type { ApiResponse, PaginatedResponse, UpdateCategoryDto } from "@/types";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 interface CategoryFilters extends BaseFilters {
@@ -16,11 +16,13 @@ export const categoriesApi = {
   getStats: (): Promise<ApiResponse<any>> =>
     apiClient.get("/categories/stats"),
 
-  create: (data: CreateCategoryDto): Promise<ApiResponse<any>> =>
+  create: (data: FormData): Promise<ApiResponse<any>> =>
     apiClient.post("/categories", data),
 
-  update: (id: string, data: UpdateCategoryDto): Promise<ApiResponse<any>> =>
-    apiClient.put(`/categories/${id}`, data),
+  update: (
+    id: string,
+    data: UpdateCategoryDto | FormData,
+  ): Promise<ApiResponse<any>> => apiClient.put(`/categories/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/categories/${id}`),

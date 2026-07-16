@@ -36,7 +36,7 @@ export default function CustomerDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl space-y-4 p-6">
+      <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -58,7 +58,7 @@ export default function CustomerDetailPage() {
   const { customer, stats, orders } = data;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 p-6">
+    <div className="space-y-5">
       <Button
         asChild
         variant="ghost"

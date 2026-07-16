@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
 import { Badge } from "@/ui/components/badge";
 import { Card } from "@/ui/components/card";
 import {
@@ -20,7 +21,7 @@ const CategoryCardView = (
   options: { t: Translator; locale: AppLocale },
 ) => {
   const { t, locale } = options;
-  const { name, description, status, isDefault, createdAt, updatedAt, productCount, _id } = category;
+  const { name, description, status, isDefault, images, createdAt, updatedAt, productCount, _id } = category;
 
   const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
   const updatedDate = formatDate(updatedAt, "dd MMM yyyy", locale);
@@ -28,10 +29,13 @@ const CategoryCardView = (
   return (
     <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-4">
       <div className="flex items-start gap-4">
-        {/* Icon */}
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 shrink-0">
-          <Tag className="h-5 w-5 text-primary" />
-        </div>
+        {/* Image / icon fallback */}
+        <Avatar className="h-11 w-11 rounded-lg shrink-0">
+          <AvatarImage src={images?.[0]?.url} alt={name} className="object-cover" />
+          <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+            <Tag className="h-5 w-5" />
+          </AvatarFallback>
+        </Avatar>
 
         {/* Content */}
         <div className="flex-1 min-w-0">

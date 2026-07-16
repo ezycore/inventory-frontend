@@ -198,11 +198,11 @@ async login(
 ### Frontend
 
 - ✅ `lib/organization-utils.ts` - Core utility functions
-- ✅ `components/login-form.tsx` - Login form with conditional slug field
+- ✅ `components/login/login-form.tsx` - Login form with conditional slug field
 - ✅ `app/(auth)/forgot-password/page.tsx` - Forgot password with conditional slug field
 - ✅ `app/(auth)/resend-verification/page.tsx` - Resend verification with conditional slug field
-- ✅ `lib/api/auth.ts` - Updated API types to accept organizationSlug
-- ✅ `hooks/queries/use-auth.ts` - Updated mutation types
+- ✅ `services/api/modules/auth/api.ts` - Updated API types to accept organizationSlug
+- ✅ `services/api/modules/auth/hooks.ts` - Updated mutation types
 
 ### Backend
 

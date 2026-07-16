@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, Location, PaginatedResponse } from "@/types";
-import type { CreateUserDto, UpdateUserDto, User } from "@/types/users";
+import type { CreateUserDto, UpdateUserDto } from "@/types/users";
+import type { AdminUser } from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 /**
@@ -22,7 +23,7 @@ export const usersApi = {
   // Used in: DataTable → users/page.tsx
   getAll: (
     filters: BaseFilters = {},
-  ): Promise<ApiResponse<PaginatedResponse<User>>> =>
+  ): Promise<ApiResponse<PaginatedResponse<AdminUser>>> =>
     apiClient.get(`/users${buildQueryParams(filters)}`),
 
   // GET /api/users/stats - Get user statistics
@@ -31,17 +32,17 @@ export const usersApi = {
 
   // POST /api/users - Create new user
   // Used in: useCreateUser → users/page.tsx
-  create: (data: CreateUserDto): Promise<ApiResponse<User>> =>
+  create: (data: CreateUserDto): Promise<ApiResponse<AdminUser>> =>
     apiClient.post("/users", data),
 
   // PUT /api/users/:id - Update user
   // Used in: useUpdateUser → users/page.tsx
-  update: (id: string, data: UpdateUserDto): Promise<ApiResponse<User>> =>
+  update: (id: string, data: UpdateUserDto): Promise<ApiResponse<AdminUser>> =>
     apiClient.put(`/users/${id}`, data),
 
   // PATCH /api/users/:id/toggle-status - Activate/deactivate user
   // Used in: useToggleUserStatus → users/page.tsx (custom actions)
-  toggleStatus: (id: string): Promise<ApiResponse<User>> =>
+  toggleStatus: (id: string): Promise<ApiResponse<AdminUser>> =>
     apiClient.patch(`/users/${id}/toggle-status`, {}),
 
   // DELETE /api/users/:id - Delete user
@@ -58,6 +59,6 @@ export const usersApi = {
 
   // PUT /api/users/me/default-location - Update current user's default location
   // Used in: useUpdateMyDefaultLocation → ChangeDefaultLocationDialog.tsx
-  updateMyDefaultLocation: (locationId: string): Promise<ApiResponse<User>> =>
+  updateMyDefaultLocation: (locationId: string): Promise<ApiResponse<AdminUser>> =>
     apiClient.put("/users/me/default-location", { locationId }),
 };

@@ -19,8 +19,16 @@ import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
-import { getCategoryStats } from '@/components/categories/helper'
+import { getCategoryStats, prepareSubmitData } from '@/components/categories/helper'
 import type { AppLocale } from '@/i18n/config'
+
+const defaultValues = {
+  name: "",
+  description: "",
+  images: [],
+  status: "active" as const,
+  isDefault: false,
+}
 
 export default function CategoriesPage() {
   const t = useTranslations('products.categories')
@@ -39,12 +47,14 @@ export default function CategoriesPage() {
   const sharedOperations = {
     isViewAvailable: false,
     formConfig: filteredFormConfig,
+    defaultValues: defaultValues,
     getAllData: categoriesApi.getAll,
     createMutation: useCreateCategory(),
     updateMutation: useUpdateCategory(),
     deleteMutation: useDeleteCategory(),
     queryKey: [...queryKeys.categories.all()],
     entityName: "Category" as const,
+    prepareSubmitData,
   }
   
   const sortingConfig = {

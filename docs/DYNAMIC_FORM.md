@@ -158,7 +158,7 @@ const brandFormConfig: DynamicFormConfig = {
   fields: [
     { name: "name", type: "input", label: "Brand Name", required: true, columnSpan: 12 },
     { name: "description", type: "textarea", label: "Description", rows: 3, columnSpan: 12 },
-    { name: "images", type: "file-upload", label: "Brand Images", columnSpan: 12, accept: "image/*", maxFiles: 1 },
+    { name: "images", type: "file-upload", label: "Brand Image", columnSpan: 12, accept: "image/*", maxFiles: 1 },
     { name: "status", type: "select", label: "Status", required: true, defaultValue: "active",
       options: [
         { value: "active", label: "Active" },

@@ -10,6 +10,7 @@ import type {
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { useStore, useStoreCategories } from "@/services/storefront/hooks";
+import { useFaviconOverride } from "@/hooks/use-favicon-override";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -49,8 +50,19 @@ export function StoreShell({
   const { t } = useStorefrontUI();
 
   const { data: store, isError } = useStore(slug, initialStore);
-  const { data: categories } = useStoreCategories(slug);
+  const { data: fetchedCategories } = useStoreCategories(slug);
   const previewBrand = useSfPreview((s) => s.brand);
+  const previewCollections = useSfPreview((s) => s.collections);
+
+  // The admin's Collections panel streams its unsaved draft; prefer it so
+  // reordering/hiding previews live instead of waiting on a save + refetch.
+  const categories = previewCollections ?? fetchedCategories;
+
+  // Tab icon = the store's logo, swapped in place so router-integrated
+  // navigations (page changes AND the account tab switch's replaceState) don't
+  // flash the platform default — that's why it's a client hook, not layout
+  // metadata (see use-favicon-override).
+  useFaviconOverride(store?.logo?.thumbnailUrl || store?.logo?.url);
 
   if (isError) {
     return (

@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiInventory } from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 import { createImportApi } from "../import-api";
 import type { ProductAnalytics, InventoryAnalytics } from "./analytics.types";
@@ -18,7 +19,7 @@ interface ShortlistFilters extends BaseFilters {
 }
 
 export const inventoryApi = {
-  getAll: (filters: InventoryFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  getAll: (filters: InventoryFilters = {}): Promise<ApiResponse<PaginatedResponse<ApiInventory>>> =>
     apiClient.get(`/inventory${buildQueryParams(filters)}`),
 
   // CSV export of current stock (active location) honouring the active filters +
@@ -42,16 +43,20 @@ export const inventoryApi = {
 
   ...createImportApi("/inventory"),
 
+  // NOTE: `/inventory/shortlist` returns a richer shape than the base `Inventory` schema
+  // (adds `neededQuantity`, `variant`, `location`) and has no dedicated backend response DTO
+  // yet, so it can't be typed off the generated schemas. Kept `any`; consumers use the local
+  // `ShortlistItem` type. TODO(backend): give `/inventory/shortlist` its own response DTO.
   getShortlist: (filters: ShortlistFilters): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/inventory/shortlist${buildQueryParams(filters)}`),
 
-  getById: (id: string): Promise<ApiResponse<any>> =>
+  getById: (id: string): Promise<ApiResponse<ApiInventory>> =>
     apiClient.get(`/inventory/${id}`),
 
-  create: (data: any): Promise<ApiResponse<any>> =>
+  create: (data: any): Promise<ApiResponse<ApiInventory>> =>
     apiClient.post("/inventory", data),
 
-  update: (id: string, data: any): Promise<ApiResponse<any>> =>
+  update: (id: string, data: any): Promise<ApiResponse<ApiInventory>> =>
     apiClient.put(`/inventory/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>

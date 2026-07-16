@@ -146,7 +146,7 @@ export function HeroCarousel({
 
         {count > 1 ? (
           <>
-            <button
+            {/* <button
               type="button"
               className="sf-hero-nav sf-hero-prev"
               aria-label="Previous slide"
@@ -161,7 +161,7 @@ export function HeroCarousel({
               onClick={() => go(current + 1)}
             >
               <Icon name="chevR" size={17} />
-            </button>
+            </button> */}
             <div className="sf-hero-dots">
               {slides.map((_, i) => (
                 <button

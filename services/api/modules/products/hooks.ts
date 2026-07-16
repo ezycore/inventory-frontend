@@ -2,9 +2,10 @@
 import { productsApi } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
 import { queryKeys } from '@/lib/query-keys'
-import { Product, CreateProductDto } from '@/types'
+import { CreateProductDto } from '@/types'
+import type { ProductDetail, ProductListItem } from '@/types/api'
 
-const productHooks = createResourceHooks<Product, CreateProductDto>(
+const productHooks = createResourceHooks<ProductDetail, CreateProductDto, Partial<CreateProductDto>, ProductListItem>(
   productsApi,
   queryKeys.products,
   { relatedQueryKeys: [

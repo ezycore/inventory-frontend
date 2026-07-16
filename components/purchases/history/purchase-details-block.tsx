@@ -17,6 +17,7 @@ import {
 import { useCurrency } from '@/lib/currency';
 import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission';
 import type { PurchaseOrder, PurchaseReturn } from '@/types';
+import { populatedRef } from '@/utils/populated-ref';
 import { splitLineTax } from '@/utils/tax';
 
 export function getCreatedByName(order: PurchaseOrder): string {
@@ -88,7 +89,6 @@ function itemSubline(
   t: Translator,
 ): string {
   const parts: string[] = [];
-  if (item.variantName) parts.push(item.variantName);
   if (variant === 'order') {
     if (canViewCosts && item.costPrice != null) {
       parts.push(t('costPerUnit', { amount: fmt(item.costPrice) }));
@@ -142,7 +142,7 @@ export function PurchaseItemsTable({
       header: t('colItem'),
       cell: (item) => (
         <ItemCell
-          name={item.productName || item.product?.name || t('itemsHeader')}
+          name={item.productName || t('itemsHeader')}
           sub={itemSubline(item, fmt, variant, canViewCosts, t)}
         />
       ),
@@ -245,7 +245,7 @@ export function PurchaseDetailsKv({ order }: { order: PurchaseOrder }) {
       rows={[
         {
           label: t('kvSupplier'),
-          value: order.supplierId?.name ?? order.supplier?.name ?? t('unknownSupplier'),
+          value: populatedRef(order.supplierId)?.name ?? t('unknownSupplier'),
         },
         { label: t('kvCreatedBy'), value: getCreatedByName(order) },
         {

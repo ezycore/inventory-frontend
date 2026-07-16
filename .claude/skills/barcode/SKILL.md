@@ -1,7 +1,7 @@
 # Barcode (Frontend) — SKILL
 
 > **Status**: IMPLEMENTED (B1–B6). Feature-gated by `user.organization.features.barcodeSystem`.
-> Backend mirror: `easystock-backend/.github/skills/barcode/SKILL.md`.
+> Backend mirror: `easystock-backend/.claude/skills/barcode/SKILL.md`.
 
 ## Scope
 - Capturing barcodes on Product form + per variant in Variant Manager (B2).
@@ -84,5 +84,5 @@ type BarcodeLookupResult = {
 ## Maintenance discipline (MANDATORY)
 Any PR touching the files above MUST in the same commit:
 1. Update this skill.
-2. Update `easystock-backend/.github/skills/barcode/SKILL.md` if the wire contract changes.
+2. Update `easystock-backend/.claude/skills/barcode/SKILL.md` if the wire contract changes.
 3. Never let the skill drift from the code.

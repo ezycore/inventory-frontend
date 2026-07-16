@@ -53,7 +53,7 @@ export default function EcommerceOrdersPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-6xl p-6">
+        <div className="space-y-5">
           <Skeleton className="h-8 w-48" />
         </div>
       }
@@ -147,7 +147,7 @@ function OrdersList() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5 p-6">
+    <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Online Orders</h1>
         <p className="mt-1 text-sm text-muted-foreground">

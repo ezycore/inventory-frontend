@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from '@/ui/components/tooltip';
 import type { Sale, SaleStatus } from '@/types';
+import { populatedRef } from '@/utils/populated-ref';
 import { toast } from 'sonner';
 
 // ── Status config ───────────────────────────────────────────────────
@@ -69,7 +70,7 @@ export function getSalesHistoryColumns(
       accessorKey: 'customerId',
       header: t('columns.customer'),
       cell: ({ row }) => {
-        const customer = row.original.customerId;
+        const customer = populatedRef(row.original.customerId);
         return (
           <span className="font-medium">
             {customer?.name ?? (
@@ -168,7 +169,7 @@ export function getSalesHistoryColumns(
       accessorKey: 'createdBy',
       header: t('columns.createdBy'),
       cell: ({ row }) => {
-        const cb = row.original.createdBy;
+        const cb = populatedRef(row.original.createdBy);
         return cb ? (
           <span>{cb.firstName} {cb.lastName}</span>
         ) : (

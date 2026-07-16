@@ -1,12 +1,13 @@
 import { usersApi } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
 import { queryKeys } from "@/services/api/query-keys";
-import type { CreateUserDto, UpdateUserDto, User } from "@/types/users";
+import type { CreateUserDto, UpdateUserDto } from "@/types/users";
+import type { AdminUser } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createResourceHooks, handleMutationSuccess } from "../query-helpers";
 
 // Create standard CRUD hooks using the factory
-const userHooks = createResourceHooks<User, CreateUserDto, UpdateUserDto>(
+const userHooks = createResourceHooks<AdminUser, CreateUserDto, UpdateUserDto>(
   usersApi,
   queryKeys.users,
 );

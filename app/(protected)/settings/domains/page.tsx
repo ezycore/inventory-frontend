@@ -56,7 +56,14 @@ export default function DomainsSettingsPage() {
   const handleVerify = (domain: string) => {
     setPendingDomain(domain);
     verifyDomain.mutate(domain, {
-      onSuccess: () => toast.success(t("toasts.verified")),
+      onSuccess: (res) =>
+        res.data?.domain?.status === "active"
+          ? toast.success(t("toasts.activated"), {
+              description: t("toasts.activatedDescription"),
+            })
+          : toast.success(t("toasts.verified"), {
+              description: t("toasts.verifiedDescription"),
+            }),
       onError: (error) =>
         toast.error(t("toasts.verifyFailed"), {
           description: errMessage(

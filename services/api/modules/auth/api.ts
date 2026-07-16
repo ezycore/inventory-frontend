@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
+import type { ApiMessage, Me, Login, Signup } from "@/types/api";
 
 export type SignupPayload = FormData | Record<string, any>;
 
@@ -20,7 +21,7 @@ export type SignupPayload = FormData | Record<string, any>;
 export const authApi = {
   // POST /api/auth/signup - Register new organization owner
   // Used in: useSignupAPi → signup/page.tsx
-  signup: (data: SignupPayload): Promise<ApiResponse<any>> =>
+  signup: (data: SignupPayload): Promise<ApiResponse<Signup>> =>
     apiClient.post("/auth/signup", data),
 
   // POST /api/auth/login - Login user
@@ -30,15 +31,15 @@ export const authApi = {
     password: string;
     organizationSlug?: string;
     twoFactorToken?: string;
-  }): Promise<ApiResponse<any>> => apiClient.post("/auth/login", credentials),
+  }): Promise<ApiResponse<Login>> => apiClient.post("/auth/login", credentials),
 
   // GET /api/auth/me - Get current authenticated user
   // Used in: useMe → (protected)/layout.tsx
-  me: (): Promise<ApiResponse<any>> => apiClient.get("/auth/me"),
+  me: (): Promise<ApiResponse<Me>> => apiClient.get("/auth/me"),
 
   // POST /api/auth/verify-email - Verify email with token
   // Used in: useVerifyEmail → verify-email/page.tsx
-  verifyEmail: (data: { token: string }): Promise<ApiResponse<any>> =>
+  verifyEmail: (data: { token: string }): Promise<ApiResponse<ApiMessage>> =>
     apiClient.post("/auth/verify-email", data),
 
   // POST /api/auth/resend-verification - Resend verification email
@@ -46,7 +47,7 @@ export const authApi = {
   resendVerification: (data: {
     email: string;
     organizationSlug?: string;
-  }): Promise<ApiResponse<any>> =>
+  }): Promise<ApiResponse<ApiMessage>> =>
     apiClient.post("/auth/resend-verification", data),
 
   // POST /api/auth/forgot-password - Request password reset
@@ -54,7 +55,7 @@ export const authApi = {
   forgotPassword: (data: {
     email: string;
     organizationSlug: string;
-  }): Promise<ApiResponse<any>> =>
+  }): Promise<ApiResponse<ApiMessage>> =>
     apiClient.post("/auth/forgot-password", data),
 
   // POST /api/auth/reset-password - Reset password with token
@@ -62,6 +63,6 @@ export const authApi = {
   resetPassword: (data: {
     token: string;
     newPassword: string;
-  }): Promise<ApiResponse<any>> =>
+  }): Promise<ApiResponse<ApiMessage>> =>
     apiClient.post("/auth/reset-password", data),
 };

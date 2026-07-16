@@ -258,8 +258,12 @@ export function ImportLowStockDialog({
   const { data: brandOptions } = useSelectOptions(open ? "/brands?all=true&fields=id,name" : null);
   const { data: categoryOptions } = useSelectOptions(open ? "/categories?all=true&fields=id,name" : null);
 
+  // This dialog reuses the plain inventory list (`inventoryApi.getAll`) as a low-stock source but
+  // reads a few shortlist-only fields (`variant`, `location`) that the base `Inventory` response
+  // shape doesn't declare. Cast until either the backend `Inventory` DTO declares them or this
+  // switches to `/inventory/shortlist` once that endpoint has its own response DTO.
   const items: ShortlistItem[] = useMemo(
-    () => shortlistData?.data?.items || [],
+    () => (shortlistData?.data?.items || []) as unknown as ShortlistItem[],
     [shortlistData],
   );
 

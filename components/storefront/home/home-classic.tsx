@@ -85,34 +85,46 @@ export function Classic(props: TplProps) {
       {categories.length > 0 ? (
         <div style={{ ...wrap, padding: "0 var(--pad) 8px" }}>
           <div style={{ display: "flex", gap: 11, overflowX: "auto", paddingBottom: 6 }}>
-            {categories.map((c) => (
-              <Link
-                key={c._id}
-                href={storeHref(base, `/products?categoryId=${c._id}`)}
-                style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: 84 }}
-              >
-                {/* Categories carry no images — an initial chip beats an empty placeholder. */}
-                <span
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 11,
-                    background: "var(--primary-soft)",
-                    color: "var(--primary)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 22,
-                    fontWeight: 700,
-                  }}
+            {categories.map((c) => {
+              const imgSrc = c.image?.thumbnailUrl || c.image?.url;
+              return (
+                <Link
+                  key={c._id}
+                  href={storeHref(base, `/products?categoryId=${c._id}`)}
+                  style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: 84 }}
                 >
-                  {c.name.trim().charAt(0).toUpperCase()}
-                </span>
-                <span style={{ fontSize: 11.5, fontWeight: 500, color: "var(--text)", textAlign: "center", lineHeight: 1.2 }}>
-                  {c.name}
-                </span>
-              </Link>
-            ))}
+                  {/* Category image when the merchant set one; initial chip is the fallback. */}
+                  {imgSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={imgSrc}
+                      alt={c.name}
+                      style={{ width: 60, height: 60, borderRadius: 11, objectFit: "cover" }}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 11,
+                        background: "var(--primary-soft)",
+                        color: "var(--primary)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 22,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {c.name.trim().charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 11.5, fontWeight: 500, color: "var(--text)", textAlign: "center", lineHeight: 1.2 }}>
+                    {c.name}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       ) : null}
