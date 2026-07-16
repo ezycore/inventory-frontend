@@ -8171,6 +8171,7 @@ export interface components {
             published: boolean;
             displayName: string;
             currency?: string;
+            customDomain: string | null;
             fulfillmentLocationSet: boolean;
             stats: {
                 todayOrders: number;

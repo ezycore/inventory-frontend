@@ -1,23 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { toast } from "sonner";
 import {
   AlertTriangle,
   Banknote,
   Clock,
-  Copy,
-  ExternalLink,
   Package,
   ShoppingBag,
 } from "lucide-react";
 import { useEcommerceDashboard } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
+import { StoreStatusCard } from "@/components/ecommerce/store-status-card";
 import { storefrontUrl } from "@/lib/storefront-url";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
-import { Button } from "@/ui/components/button";
 import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
 
@@ -42,17 +39,7 @@ export default function EcommerceDashboardPage() {
   const orgCurrency = useAuthStore((s) => s.user?.organization?.currency);
   const slug = useAuthStore((s) => s.user?.organization?.slug);
   const currency = data?.currency ?? orgCurrency;
-  const liveUrl = slug ? storefrontUrl(slug) : null;
-
-  const copyUrl = async () => {
-    if (!liveUrl) return;
-    try {
-      await navigator.clipboard.writeText(liveUrl);
-      toast.success("Store URL copied");
-    } catch {
-      toast.error("Couldn't copy the URL");
-    }
-  };
+  const subdomainUrl = slug ? storefrontUrl(slug) : null;
 
   return (
     <div className="space-y-6">
@@ -67,43 +54,12 @@ export default function EcommerceDashboardPage() {
       {isLoading || !data ? (
         <Skeleton className="h-20 w-full" />
       ) : (
-        <Card className="flex flex-wrap items-center justify-between gap-4 p-4 shadow-none">
-          <div className="flex items-center gap-3">
-            <StatusBadge
-              status={data.published ? "published" : "offline"}
-              size="lg"
-            />
-            <div>
-              <div className="text-sm font-semibold">
-                {data.displayName || "Your store"}
-              </div>
-              {liveUrl && (
-                <a
-                  href={liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="break-all text-xs text-muted-foreground hover:text-primary"
-                >
-                  {liveUrl}
-                </a>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {liveUrl && (
-              <Button variant="outline" size="sm" onClick={copyUrl}>
-                <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy
-              </Button>
-            )}
-            {liveUrl && (
-              <Button variant="outline" size="sm" asChild>
-                <a href={liveUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> View store
-                </a>
-              </Button>
-            )}
-          </div>
-        </Card>
+        <StoreStatusCard
+          published={data.published}
+          displayName={data.displayName}
+          subdomainUrl={subdomainUrl}
+          customDomain={data.customDomain}
+        />
       )}
 
       {/* Stat cards */}
