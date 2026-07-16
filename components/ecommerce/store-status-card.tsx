@@ -49,7 +49,7 @@ export function StoreStatusCard({
   };
 
   return (
-    <Card className="flex flex-wrap items-center justify-between gap-4 p-4 shadow-none">
+    <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4 shadow-none">
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <span
           className={cn(
