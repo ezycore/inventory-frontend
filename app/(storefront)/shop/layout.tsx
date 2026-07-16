@@ -1,5 +1,4 @@
 // coding-standard: maintained
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { getStoreContext } from "@/lib/storefront-host";
 import {
@@ -9,18 +8,12 @@ import {
 } from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
 
-/**
- * Browser-tab icon for the whole storefront: the store's logo (same asset the
- * header shows), falling back to the platform default. The `getStore` call is
- * fetch-cached, so this shares the layout's request.
- */
-export async function generateMetadata(): Promise<Metadata> {
-  const { slug } = await getStoreContext();
-  const store = slug ? await getStore(slug) : null;
-  const icon =
-    store?.logo?.thumbnailUrl || store?.logo?.url || "/icon.png";
-  return { icons: { icon } };
-}
+// Note: the browser-tab icon (store logo) is a raw <link rel="icon"> rendered
+// below (React hoists it into <head>), NOT `generateMetadata`. Metadata icons
+// are Next-managed and get re-asserted on every router-integrated navigation,
+// flashing the platform default. The raw link ships in the SSR HTML so the very
+// first paint already has the logo (no icon-less gap before hydration), and
+// `useFaviconOverride` in StoreShell keeps the same tag fresh client-side.
 
 /**
  * Resolves the active store from the request host (set by `proxy.ts`) and hands
@@ -55,15 +48,23 @@ export default async function ShopLayout({
     getStoreCampaigns(slug),
   ]);
 
+  const favicon = store?.logo?.thumbnailUrl || store?.logo?.url;
+
   return (
-    <StoreShell
-      slug={slug}
-      base={base}
-      initialStore={store ?? undefined}
-      initialPages={pages ?? undefined}
-      initialCampaigns={campaigns ?? undefined}
-    >
-      {children}
-    </StoreShell>
+    <>
+      {/* Store logo as tab icon, in the SSR <head> from the first byte (see
+          note above). Without a logo the browser's implicit /favicon.ico is
+          the right default anyway — render nothing. */}
+      {favicon ? <link rel="icon" href={favicon} /> : null}
+      <StoreShell
+        slug={slug}
+        base={base}
+        initialStore={store ?? undefined}
+        initialPages={pages ?? undefined}
+        initialCampaigns={campaigns ?? undefined}
+      >
+        {children}
+      </StoreShell>
+    </>
   );
 }

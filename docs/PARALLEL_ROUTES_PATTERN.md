@@ -23,7 +23,7 @@ app/(protected)/
 
 ### 1. Button in Form Config
 ```tsx
-// components/products/product-form-config.tsx
+// components/products/form-config.tsx
 action: {
   icon: <Plus />,
   label: "Add Category",
@@ -157,14 +157,19 @@ export default function ProtectedLayout({
 
 ### Modified:
 - `app/(protected)/layout.tsx`
-- `components/products/product-form-config.tsx`
-- `components/products/product-form.tsx`
+- `components/products/form-config.tsx`
 - `ui/components/form/helper.tsx`
 - `ui/components/form/type.ts`
 
 ### Removed:
 - `components/categories/category-quick-add.tsx`
 - `hooks/use-category-quick-add.ts`
+
+<!-- docs-verify: absent
+  components/categories/category-quick-add.tsx
+  hooks/use-category-quick-add.ts
+-->
+The two files above were deleted by this change and are intentionally gone.
 
 ## Best Practices
 

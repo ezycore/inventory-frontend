@@ -1,7 +1,7 @@
 # Expiry Tracking (Frontend) — SKILL
 
 > **Status**: PLANNED — not yet implemented. Master plan: `easystock-backend/docs/ai/BARCODE_AND_EXPIRY_PLAN.md`.
-> Backend mirror: `easystock-backend/.github/skills/expiry-tracking/SKILL.md`.
+> Backend mirror: `easystock-backend/.claude/skills/expiry-tracking/SKILL.md`.
 > Cross-cuts: sales-flow and purchase-flow FE skills (FEFO chip + batch picker live inside those flows).
 
 ## Scope
@@ -20,11 +20,11 @@ components/shared/expiry/
   batch-picker.tsx          # drawer: pick batch(es), shows expiry + qty + near-expiry badge
   batch-row-panel.tsx       # expanding row inside PO create with batch fields
   expiry-badge.tsx          # color-coded badge by daysToExpiry
-components/dashboard/expiry-widget.tsx
+components/dashboard/                                # + ExpiryWidget (planned, not built)
 app/(protected)/dashboard/reports/expiry/page.tsx
 services/api/modules/inventory-batches/{api.ts,hooks.ts,index.ts}
 services/api/query-keys.ts                          # + queryKeys.inventoryBatches
-components/purchases/create-purchase-order.tsx      # use BatchRowPanel when hasExpiry
+components/purchases/orders/                         # PO create form: use BatchRowPanel when hasExpiry
 components/sales/sell/*                             # FEFO chip + BatchPicker entry
 app/(protected)/inventory/page.tsx                  # + filter chips, + expandable batch rows
 components/sales/returns/*                          # batch picker + auto reason=expired when past date
@@ -71,7 +71,7 @@ type InventoryBatch = {
 ## Maintenance discipline (MANDATORY once code lands)
 Any PR touching the files listed above MUST in the same commit:
 1. Update this skill.
-2. Update `easystock-backend/.github/skills/expiry-tracking/SKILL.md` if the wire contract changes.
+2. Update `easystock-backend/.claude/skills/expiry-tracking/SKILL.md` if the wire contract changes.
 3. Update sales-flow + purchase-flow FE skills if their write path branched on expiry changes.
 4. Update `BARCODE_AND_EXPIRY_PLAN.md` if scope/phasing changes.
 

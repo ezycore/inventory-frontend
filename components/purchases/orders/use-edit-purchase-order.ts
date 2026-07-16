@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { populatedRef } from "@/utils/populated-ref";
 import { useTranslations } from "next-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -133,7 +134,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
           productId: it.productId,
           variantId: it.variantId ?? null,
           inventoryId: it.inventoryId ?? "",
-          productName: it.productName ?? it.product?.name ?? "Unknown",
+          productName: it.productName ?? "Unknown",
           quantity: qty,
           price: it.price,
           costPrice,
@@ -154,22 +155,15 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
     setInvoiceNumber(order.invoiceNumber ?? "");
     setInvoiceDate(order.invoiceDate ? order.invoiceDate.slice(0, 10) : "");
 
+    const sup = populatedRef(order.supplierId);
+    const supDiscount = populatedRef(sup?.defaultDiscountId);
     supplierForm.reset({
-      supplierId: order.supplierId
-        ? {
-            value: order.supplierId._id ?? (order.supplierId as unknown as string),
-            label: order.supplierId.name ?? "",
-          }
+      supplierId: sup
+        ? { value: sup._id, label: sup.name ?? "" }
         : null,
       purchaseType: order.status === "draft" ? "order" : "order",
-      discountType: (() => {
-        const d = order.supplierId?.defaultDiscountId;
-        return (d && typeof d === "object" ? d.type : undefined) ?? "percentage";
-      })(),
-      discountValue: (() => {
-        const d = order.supplierId?.defaultDiscountId;
-        return (d && typeof d === "object" ? d.value : undefined) ?? 0;
-      })(),
+      discountType: (supDiscount?.type as "percentage" | "fixed" | undefined) ?? "percentage",
+      discountValue: supDiscount?.value ?? 0,
       invoiceNumber: order.invoiceNumber ?? "",
       invoiceDate: order.invoiceDate ? order.invoiceDate.slice(0, 10) : "",
     });

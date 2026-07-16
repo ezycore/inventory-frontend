@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 
 import { Button } from '@/ui/components/button';
 import type { SalesReturnReason } from '@/types';
+import { populatedRef } from '@/utils/populated-ref';
 
 import {
   useSalesReturnPage,
@@ -108,7 +109,7 @@ export default function SalesReturnsPage() {
             documentLabel={t('saleLabel')}
             documentNumber={ctx.sale.invoiceNumber}
             counterpartyLabel={t('customerLabel')}
-            counterpartyName={ctx.sale.customerId?.name ?? t('walkInCustomer')}
+            counterpartyName={populatedRef(ctx.sale.customerId)?.name ?? t('walkInCustomer')}
             subtotal={ctx.sale.subtotal}
             additionalDiscount={ctx.sale.additionalDiscount}
             items={ctx.sale.items}
@@ -168,7 +169,7 @@ export default function SalesReturnsPage() {
               totalOtherDuesAllocated={ctx.totalOtherDuesAllocated}
               customerCreditAmount={ctx.customerCreditAmount}
               onCustomerCreditChange={ctx.setCustomerCreditAmount}
-              currentCustomerCreditBalance={ctx.sale?.customerId?.creditBalance}
+              currentCustomerCreditBalance={populatedRef(ctx.sale?.customerId)?.creditBalance}
             />
           )}
 

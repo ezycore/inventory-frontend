@@ -5,6 +5,7 @@ import {
   ReturnDetailsSheet as SharedReturnDetailsSheet,
   type ReturnDetailsData,
 } from "@/components/shared/returns/return-details-sheet";
+import { populatedRef } from "@/utils/populated-ref";
 
 function normalizePurchaseReturn(r: PurchaseReturn): ReturnDetailsData {
   const documentRef =
@@ -12,43 +13,46 @@ function normalizePurchaseReturn(r: PurchaseReturn): ReturnDetailsData {
       ? r.purchaseOrderId.orderNumber
       : r.orderNumber ?? "—";
 
-  const counterpartyName =
-    typeof r.supplierId === 'object' && r.supplierId !== null
-      ? r.supplierId.name
-      : r.supplier?.name ?? null;
+  const counterpartyName = populatedRef(r.supplierId)?.name ?? null;
+  const alloc = r.refundAllocation;
 
   return {
     returnNumber: r.returnNumber,
     status: r.status,
     documentRef,
     counterpartyName,
-    date: typeof (r.returnDate ?? r.createdAt) === 'string'
-      ? (r.returnDate ?? r.createdAt) as string
-      : new Date(r.returnDate ?? r.createdAt).toISOString(),
+    // The wire carries no separate `returnDate`; `createdAt` is when the return was recorded.
+    date: r.createdAt,
     reason: r.reason,
     totalRefundAmount: r.totalRefundAmount ?? 0,
     deductionAmount: r.deductionAmount,
     refundedAmount: r.refundedAmount,
-    totalCostAmount: r.totalCostAmount,
     notes: r.notes,
     items: r.items.map((item) => ({
       productId: item.productId,
       productName: item.productName,
       quantity: item.quantity,
       costPrice: item.costPrice,
-      discount: item.discount,
       conversionFactor: item.conversionFactor,
       refundAmount: item.refundAmount,
       taxRate: item.taxRate,
       taxType: item.taxType,
       taxAmount: item.taxAmount,
     })),
-    refundAllocation: r.refundAllocation
+    refundAllocation: alloc
       ? {
-          adjustDocumentDue: r.refundAllocation.adjustPurchaseDue,
-          adjustOtherDues: r.refundAllocation.adjustOtherDues,
-          accountRefund: r.refundAllocation.accountRefund,
-          counterpartyCredit: r.refundAllocation.supplierCredit,
+          adjustDocumentDue: alloc.adjustPurchaseDue,
+          adjustOtherDues: alloc.adjustOtherDues?.map((d) => ({
+            amount: d.amount ?? 0,
+            referenceLabel: d.orderNumber,
+          })),
+          accountRefund: alloc.accountRefund
+            ? {
+                amount: alloc.accountRefund.amount,
+                paymentMethod: alloc.accountRefund.paymentMethod ?? "",
+              }
+            : undefined,
+          counterpartyCredit: alloc.supplierCredit,
         }
       : undefined,
   };

@@ -90,7 +90,7 @@ export default function AdminOrderDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-5xl space-y-4 p-6">
+      <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-24 w-full" />
         <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
@@ -169,7 +169,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5 p-6 pb-16">
+    <div className="space-y-5">
       <Button
         asChild
         variant="ghost"

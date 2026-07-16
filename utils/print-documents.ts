@@ -12,6 +12,7 @@ import type { AppLocale, Translator } from "@/i18n/config";
 import { formatCurrency } from "@/lib/currency";
 import { formatDateTime } from "@/lib/format";
 import { amountToWords } from "./number-to-words";
+import { populatedRef } from "./populated-ref";
 import { escapeHtml, printHtml } from "./print";
 
 /** `t ? t(key) : fallback` — every builder below is callable without `t` (tests /
@@ -467,11 +468,12 @@ const saleToDoc = (
 
   const hasTax =
     (sale.taxTotal ?? 0) > 0 || sale.items.some((item) => (item.taxAmount ?? 0) > 0);
-  const customer = sale.customerId;
+  const customer = populatedRef(sale.customerId);
   // Only show a cashier line when the name is actually populated — a raw sale
   // (e.g. a POST response) carries `createdBy` as an id, which would otherwise
   // print "undefined undefined".
-  const cashierName = `${sale.createdBy?.firstName ?? ""} ${sale.createdBy?.lastName ?? ""}`.trim();
+  const cashier = populatedRef(sale.createdBy);
+  const cashierName = `${cashier?.firstName ?? ""} ${cashier?.lastName ?? ""}`.trim();
 
   return {
     // "Tax Invoice" is the accepted wording once any tax applies.
@@ -521,7 +523,7 @@ const purchaseOrderToDoc = (
   locale: AppLocale = "en",
 ): PrintDoc => {
   const tt = tr(t);
-  const grand = order.grandTotal ?? order.totalAmount ?? order.subtotal;
+  const grand = order.invoiceAmount ?? order.totalAmount ?? order.subtotal;
   const totals: PrintDoc["totals"] = [
     { label: tt("subtotal", "Subtotal"), value: currency(order.subtotal) },
   ];
@@ -542,7 +544,7 @@ const purchaseOrderToDoc = (
     totals.push({ label: tt("due", "Due"), value: currency(order.dueAmount), strong: true });
   }
 
-  const supplierName = order.supplierId?.name ?? order.supplier?.name ?? "-";
+  const supplierName = populatedRef(order.supplierId)?.name ?? "-";
 
   return {
     docTitle: tt("purchaseOrder", "Purchase Order"),
@@ -562,7 +564,7 @@ const purchaseOrderToDoc = (
       { header: tt("amount", "Amount"), align: "right" },
     ],
     rows: order.items.map((item) => [
-      item.productName ?? item.product?.name ?? "-",
+      item.productName ?? "-",
       item.quantity,
       currency(item.price),
       currency(item.subtotal),
@@ -764,7 +766,7 @@ const saleToDeliveryDoc = (
   locale: AppLocale = "en",
 ): PrintDoc => {
   const tt = tr(t);
-  const customer = sale.customerId;
+  const customer = populatedRef(sale.customerId);
   const totalUnits = sale.items.reduce((sum, i) => sum + (i.quantity ?? 0), 0);
   return {
     docTitle: tt("deliveryNote", "Delivery Note"),

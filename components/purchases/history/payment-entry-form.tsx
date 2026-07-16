@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
+import { populatedRef } from "@/utils/populated-ref";
 import {
   PaymentEntryForm as SharedPaymentEntryForm,
 } from "@/components/shared/payments";
@@ -34,7 +35,7 @@ export function PaymentEntryForm({
   ...rest
 }: PaymentEntryFormProps) {
   const t = useTranslations("purchases.payment");
-  const creditAvailable = order.supplierId?.creditBalance ?? 0;
+  const creditAvailable = populatedRef(order.supplierId)?.creditBalance ?? 0;
   return (
     <SharedPaymentEntryForm
       doc={{ status: order.status, dueAmount: order.dueAmount ?? 0 }}

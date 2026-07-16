@@ -64,6 +64,7 @@ export default function AccountPage() {
   const forgot = useForgotPassword(slug);
 
   const [mode, setMode] = useState<"login" | "register">("login");
+  const [redirecting, setRedirecting] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const set = (k: keyof typeof form, v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -72,7 +73,13 @@ export default function AccountPage() {
   // Until the persisted store hydrates we can't tell guest from member — render
   // a neutral splash, never the auth card (a signed-in shopper reloading the
   // page would see a "sign in" flash before their account appears).
-  if (!hydrated) {
+  //
+  // `redirecting` is armed synchronously at submit (before the request resolves),
+  // so once auth succeeds `setAuth` flips `shopper` truthy with the flag already
+  // set — the account view can never flash for the frame between login and the
+  // navigation landing (e.g. account → verify-email after signup). Gating on
+  // `shopper` too keeps the form visible while the request is still in flight.
+  if (!hydrated || (redirecting && shopper)) {
     return (
       <div style={wrap}>
         <LoadingSplash />
@@ -100,30 +107,48 @@ export default function AccountPage() {
     });
   };
 
-  // After auth, bounce back to where the shopper came from (e.g. checkout
-  // redirects here with ?next=/checkout). Relative store paths only.
+  // A safe in-store redirect target from ?next= (checkout sends shoppers here as
+  // /account?next=/checkout). Relative store paths only — never an open redirect.
+  const readNext = () => {
+    const next = new URLSearchParams(window.location.search).get("next");
+    return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+  };
+
+  // After auth, bounce back to where the shopper came from, else the fallback.
   const afterAuth = (message: string, fallback?: string) => {
     toast.success(message);
-    const next = new URLSearchParams(window.location.search).get("next");
-    const target =
-      next && next.startsWith("/") && !next.startsWith("//") ? next : fallback;
+    const target = readNext() ?? fallback;
     if (target) router.push(storeHref(base, target));
   };
 
   const submit = () => {
     if (isLogin) {
+      // A login only navigates when a ?next= is waiting; arm the splash up front
+      // only in that case so success can't flash the account view mid-redirect.
+      if (readNext()) setRedirecting(true);
       login.mutate(
         { email: form.email, password: form.password },
-        { onSuccess: () => afterAuth(t.welcomeBack), onError: (e) => toast.error((e as Error).message) },
+        {
+          onSuccess: () => afterAuth(t.welcomeBack),
+          onError: (e) => {
+            setRedirecting(false);
+            toast.error((e as Error).message);
+          },
+        },
       );
     } else {
+      // A new account always lands on the "confirm your email" screen (unless a
+      // checkout ?next= is waiting). Arm the splash now — before setAuth flips
+      // `shopper` truthy — so the account view can't flash before we navigate.
+      setRedirecting(true);
       register.mutate(
         { name: form.name, email: form.email, phone: form.phone || undefined, password: form.password },
-        // New account → the "confirm your email" screen (unless a checkout ?next=
-        // is waiting, which must not be interrupted).
         {
           onSuccess: () => afterAuth(t.accountCreated, "/account/verify-email"),
-          onError: (e) => toast.error((e as Error).message),
+          onError: (e) => {
+            setRedirecting(false);
+            toast.error((e as Error).message);
+          },
         },
       );
     }

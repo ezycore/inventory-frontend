@@ -1,15 +1,9 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiContentPage } from "@/types/api";
 
-export interface ContentPage {
-  _id: string;
-  slug: string;
-  title: string;
-  body: string;
-  published: boolean;
-  showInFooter: boolean;
-  sortOrder: number;
-}
+// Response shape generated from the backend `contentPageDto`. Kept under `ContentPage`.
+export type ContentPage = ApiContentPage;
 
 export interface ContentPageInput {
   slug: string;

@@ -249,7 +249,7 @@ GET /api/brands?page=1&limit=10&status=active&createdAt={"from":"2024-01-01","to
 ### Backend Filter Parsing
 
 ```typescript
-// routes/brands.ts (backend example)
+// brand list controller — backend example
 const filters: any = {};
 
 // Text filter (name search)
@@ -1298,7 +1298,7 @@ const customActions: CustomAction[] = [
 - **Hooks:** `hooks/use-crud-handlers.ts`, `hooks/queries/*` (mutations)
 - **Form:** `ui/components/form/index.tsx`, `ui/components/form/type.ts`
 - **Filters:** `ui/components/filters/global-filter.tsx`, `ui/components/filters/filter-field-renderer.tsx`
-- **UI:** `ui/components/easy-alert-dialog.tsx`, `ui/components/date-picker.tsx`, `ui/components/date-range-picker.tsx`
+- **UI:** `ui/components/custom/easy-alert-dialog.tsx`, `ui/components/date-picker.tsx`, `ui/components/date-range-picker.tsx`
 
 ---
 

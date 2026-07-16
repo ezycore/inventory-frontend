@@ -1,44 +1,21 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
+import type {
+  BulkOperationResult,
+  CatalogList,
+  StorefrontCollection,
+} from "@/types/api";
+export type { StorefrontCollection };
 
-export type OutOfStockBehavior = "hide" | "show" | "backorder";
-
-export interface CatalogProductStorefront {
-  isListed?: boolean;
-  onlinePrice?: number;
-  compareAtPrice?: number;
-  featured?: boolean;
-  slug?: string;
-  onlineTitle?: string;
-  onlineDescription?: string;
-  seo?: { title?: string; description?: string };
-  outOfStockBehavior?: OutOfStockBehavior;
-}
-
-export interface CatalogImage {
-  url?: string;
-  mediumUrl?: string;
-  thumbnailUrl?: string;
-  publicId?: string;
-}
-
-export interface CatalogProduct {
-  _id: string;
-  name: string;
-  base_sku?: string;
-  price?: number;
-  status: string;
-  productType: string;
-  images?: CatalogImage[];
-  storefront?: CatalogProductStorefront;
-  /** Stock at the storefront fulfillment location (0 if none configured). */
-  availableQuantity?: number;
-}
-
-export interface CatalogListResult {
-  items: CatalogProduct[];
-  pagination: { page: number; limit: number; total: number; totalPages: number };
-}
+// Response shapes generated from the backend catalog DTOs (`ecommerce.dto.ts`).
+// `CatalogProduct` is the list row (carries `availableQuantity`); the sub-shapes derive from it.
+export type CatalogListResult = CatalogList;
+export type CatalogProduct = CatalogList["items"][number];
+export type CatalogProductStorefront = NonNullable<CatalogProduct["storefront"]>;
+export type CatalogImage = NonNullable<CatalogProduct["images"]>[number];
+export type OutOfStockBehavior = NonNullable<
+  CatalogProductStorefront["outOfStockBehavior"]
+>;
 
 export interface CatalogListParams {
   search?: string;
@@ -67,22 +44,7 @@ export interface BulkStorefrontDto {
   patch: { isListed?: boolean; featured?: boolean };
 }
 
-export interface BulkStorefrontResult {
-  success: boolean;
-  total: number;
-  successful: number;
-  failed: number;
-  errors?: { id: string; error: string }[];
-}
-
-/** A category surfaced (or not) as a storefront collection. */
-export interface StorefrontCollection {
-  _id: string;
-  name: string;
-  slug?: string;
-  status: string;
-  storefront?: { isListed?: boolean; order?: number; displayName?: string };
-}
+export type BulkStorefrontResult = BulkOperationResult;
 
 const base = "/ecommerce/catalog";
 const collectionsBase = "/ecommerce/catalog/collections";

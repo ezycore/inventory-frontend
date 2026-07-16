@@ -1,6 +1,6 @@
 ---
 name: products
-description: 'Build, edit, debug, or audit the EzyCore Products feature on the FRONTEND (list page + DynamicForm config + variant manager + helpers + TanStack Query hooks + cross-resource invalidation). USE WHEN: creating/editing single (`SINGLE`), variable (`VARIABLE`) or combo (`COMBO`) products, per-variant UOM conversion (enableUOMConversion + purchaseUnit + saleUnit), troubleshooting "purchaseUnit.unitId Required" 400s, variant fields silently dropped after save, edit modal not pre-filling variants, defaults (status=active, sellingType=retail, productType=single, enableUOMConversion=false) not applying, related-resource changes (categories/brands/units/variant-attributes) not refreshing the products list, list response too verbose. Touches `easystock-frontend/{app/(protected)/products,components/products,services/api/modules/products,services/api/modules/variants}`. For the BACKEND (models, validators, service, endpoints, combo rules) read `easystock-backend/.github/skills/products/SKILL.md` — this file does not duplicate it.'
+description: 'Build, edit, debug, or audit the EzyCore Products feature on the FRONTEND (list page + DynamicForm config + variant manager + helpers + TanStack Query hooks + cross-resource invalidation). USE WHEN: creating/editing single (`SINGLE`), variable (`VARIABLE`) or combo (`COMBO`) products, per-variant UOM conversion (enableUOMConversion + purchaseUnit + saleUnit), troubleshooting "purchaseUnit.unitId Required" 400s, variant fields silently dropped after save, edit modal not pre-filling variants, defaults (status=active, sellingType=retail, productType=single, enableUOMConversion=false) not applying, related-resource changes (categories/brands/units/variant-attributes) not refreshing the products list, list response too verbose. Touches `easystock-frontend/{app/(protected)/products,components/products,services/api/modules/products,services/api/modules/variants}`. For the BACKEND (models, validators, service, endpoints, combo rules) read `easystock-backend/.claude/skills/products/SKILL.md` — this file does not duplicate it.'
 ---
 
 # Products Skill (Frontend)
@@ -9,7 +9,7 @@ Frontend map of the **Products** resource: list page → form config → variant
 cross-resource invalidation, plus default values, UOM rules, and the recurring pitfalls.
 
 > **The backend is NOT documented here.** It lives in
-> [`easystock-backend/.github/skills/products/SKILL.md`](../../../../easystock-backend/.github/skills/products/SKILL.md)
+> [`easystock-backend/.claude/skills/products/SKILL.md`](../../../../easystock-backend/.claude/skills/products/SKILL.md)
 > — the model, the validator's cross-field rules, the full endpoint table, the combo invariants, and
 > the list projection this app prefills its edit form from. Read it before changing anything that
 > crosses the wire.
@@ -39,7 +39,7 @@ Multi-tenant: every doc is scoped by `organizationId`. Never trust org/loc from 
 
 The model, validator rules, endpoint table, combo invariants and response shapes are documented once,
 in the repo that owns them:
-**[`easystock-backend/.github/skills/products/SKILL.md`](../../../../easystock-backend/.github/skills/products/SKILL.md)**.
+**[`easystock-backend/.claude/skills/products/SKILL.md`](../../../../easystock-backend/.claude/skills/products/SKILL.md)**.
 
 Three things from it that this app's code directly depends on:
 

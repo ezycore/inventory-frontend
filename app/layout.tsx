@@ -24,12 +24,19 @@ const notoSansBengali = Noto_Sans_Bengali({
 export const metadata = {
   title: `${BRAND.name} - Inventory Management System`,
   description: "Modern inventory management system for businesses",
-  // Default favicon lives in /public (NOT as an app/ icon file convention) so
-  // nested routes can override it — the storefront swaps in the store logo via
-  // generateMetadata, the admin app via useOrgFavicon. File-convention icons
-  // would silently win over both, and a shortcut .ico would outrank the
-  // dynamic icon in Chrome.
-  icons: { icon: "/icon.png" },
+  // NOTE: deliberately NO `icons` here. The default favicon is served as the
+  // static file `public/favicon.ico` (the browser's implicit request), which
+  // Next does NOT manage in the <head>. Both the storefront (store logo) and
+  // the admin app (org logo) then swap the tab icon in client-side via
+  // useFaviconOverride (hooks/use-favicon-override).
+  //
+  // Why not `metadata.icons`: Next owns that <link>, duplicates it on hydration,
+  // and RE-ASSERTS it on every client navigation — so the hook's in-place swap
+  // lost to a stale /icon.png, causing the "default → logo" blink on each nav
+  // (and the wrong icon after reload). With no metadata icon, the hook owns the
+  // only <link rel="icon"> and nothing fights it. File-convention icons
+  // (app/icon.*, app/favicon.ico) would re-introduce a Next-managed link — keep
+  // the default in /public instead.
 };
 
 export default async function RootLayout({

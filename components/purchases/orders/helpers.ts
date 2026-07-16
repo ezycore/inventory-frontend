@@ -21,7 +21,7 @@ export const buildReceiveItemsFromOrder = (
       inventoryId: item.inventoryId,
       receivedQuantity: maxQuantity,
       maxQuantity,
-      productName: item.productName || item.product?.name || "Unknown Product",
+      productName: item.productName || "Unknown Product",
     };
   });
 

@@ -1,9 +1,10 @@
 import { queryKeys } from "@/lib/query-keys";
 import { brandsApi } from "@/services/api";
-import { Brand, CreateBrandDto } from "@/types";
+import { CreateBrandDto } from "@/types";
+import type { ApiBrand, BrandListItem } from "@/types/api";
 import { createResourceHooks } from "../query-helpers";
 
-const brandHooks = createResourceHooks<Brand, CreateBrandDto>(
+const brandHooks = createResourceHooks<ApiBrand, CreateBrandDto, Partial<CreateBrandDto>, BrandListItem>(
   brandsApi,
   queryKeys.brands,
   {

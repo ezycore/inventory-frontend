@@ -18,6 +18,7 @@ import {
 import { useCurrency } from '@/lib/currency';
 import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission';
 import type { Sale, SaleItem, SalesReturn } from '@/types';
+import { populatedRef } from '@/utils/populated-ref';
 import { splitLineTax } from '@/utils/tax';
 import { groupSaleItemsByCombo } from '@/components/sales/helpers';
 
@@ -217,14 +218,16 @@ export function SaleDetailsKv({ sale }: { sale: Sale }) {
   const { format: fmt } = useCurrency();
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
 
+  const customer = populatedRef(sale.customerId);
+  const createdBy = populatedRef(sale.createdBy);
   return (
     <DetailsKv
       rows={[
-        { label: t('customer'), value: sale.customerId?.name ?? tHistory('walkInCustomer') },
+        { label: t('customer'), value: customer?.name ?? tHistory('walkInCustomer') },
         {
           label: t('createdBy'),
-          value: sale.createdBy
-            ? `${sale.createdBy.firstName} ${sale.createdBy.lastName}`
+          value: createdBy
+            ? `${createdBy.firstName} ${createdBy.lastName}`
             : '-',
         },
         {

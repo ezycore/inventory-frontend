@@ -1,10 +1,11 @@
 import { SupplierLedgerFilters, suppliersApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
-import { CreateSupplierDto, Supplier } from "@/types";
+import { CreateSupplierDto } from "@/types";
+import type { ApiSupplier, SupplierListItem } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { createResourceHooks } from "../query-helpers";
 
-const supplierHooks = createResourceHooks<Supplier, CreateSupplierDto>(
+const supplierHooks = createResourceHooks<ApiSupplier, CreateSupplierDto, Partial<CreateSupplierDto>, SupplierListItem>(
   suppliersApi,
   queryKeys.suppliers,
   {

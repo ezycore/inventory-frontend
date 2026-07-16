@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
+import type { ApiMessage, TwoFactorStatus, TwoFactorSetup, TwoFactorVerify } from "@/types/api";
 
 /**
  * Profile API - Current user profile management
@@ -28,30 +29,30 @@ export const profileApi = {
   updatePassword: (data: {
     currentPassword: string;
     newPassword: string;
-  }): Promise<ApiResponse<any>> => apiClient.put("/profile/password", data),
+  }): Promise<ApiResponse<ApiMessage>> => apiClient.put("/profile/password", data),
 
   // ============= 2FA Methods =============
 
   // GET /api/profile/2fa/status - Get 2FA enabled status
   // Used in: use2FAStatus → two-factor-tab.tsx
-  get2FAStatus: (): Promise<ApiResponse<{ enabled: boolean }>> =>
+  get2FAStatus: (): Promise<ApiResponse<TwoFactorStatus>> =>
     apiClient.get("/profile/2fa/status"),
 
   // POST /api/profile/2fa/enable - Enable 2FA and get QR code
   // Used in: useEnable2FA → two-factor-tab.tsx
-  enable2FA: (): Promise<ApiResponse<{ secret: string; qrCode: string }>> =>
+  enable2FA: (): Promise<ApiResponse<TwoFactorSetup>> =>
     apiClient.post("/profile/2fa/enable", {}),
 
   // POST /api/profile/2fa/verify - Verify 2FA token and get backup codes
   // Used in: useVerify2FA → two-factor-tab.tsx
   verify2FA: (data: {
     token: string;
-  }): Promise<ApiResponse<{ message: string; backupCodes: string[] }>> =>
+  }): Promise<ApiResponse<TwoFactorVerify>> =>
     apiClient.post("/profile/2fa/verify", data),
 
   // POST /api/profile/2fa/disable - Disable 2FA
   // Used in: useDisable2FA → two-factor-tab.tsx
-  disable2FA: (data: { password: string }): Promise<ApiResponse<any>> =>
+  disable2FA: (data: { password: string }): Promise<ApiResponse<ApiMessage>> =>
     apiClient.post("/profile/2fa/disable", data),
 
   // ============= Organization Ownership Methods =============

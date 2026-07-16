@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse, CreateProductDto, UpdateProductDto, ProductFilters } from "@/types";
+import type { ProductDetail, ProductListItem, ApiVariant } from "@/types/api";
 import { buildQueryParams } from "../../utils";
 import { createImportApi } from "../import-api";
 
@@ -24,27 +25,27 @@ export const productsApi = {
   getStats: (): Promise<ApiResponse<{ stats: { name: string; value: number }[] }>> =>
     apiClient.get("/products/stats"),
 
-  getAll: (filters: ProductFilters = {}): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  getAll: (filters: ProductFilters = {}): Promise<ApiResponse<PaginatedResponse<ProductListItem>>> =>
     apiClient.get(`/products${buildQueryParams(filters)}`),
 
-  getById: (id: string): Promise<ApiResponse<any>> =>
+  getById: (id: string): Promise<ApiResponse<ProductDetail>> =>
     apiClient.get(`/products/${id}`),
 
-  getBySlug: (slug: string): Promise<ApiResponse<any>> =>
+  getBySlug: (slug: string): Promise<ApiResponse<ProductDetail>> =>
     apiClient.get(`/products/slug/${slug}`),
 
-  search: (query: string): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  search: (query: string): Promise<ApiResponse<PaginatedResponse<ProductListItem>>> =>
     apiClient.get(`/products/search?q=${encodeURIComponent(query)}`),
 
-  create: (data: CreateProductDto): Promise<ApiResponse<any>> =>
+  create: (data: CreateProductDto): Promise<ApiResponse<ProductDetail>> =>
     apiClient.post("/products", data),
 
-  update: (id: string, data: UpdateProductDto): Promise<ApiResponse<any>> =>
+  update: (id: string, data: UpdateProductDto): Promise<ApiResponse<ProductDetail>> =>
     apiClient.put(`/products/${id}`, data),
 
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/products/${id}`),
 
-  getVariants: (productId: string): Promise<ApiResponse<PaginatedResponse<any>>> =>
+  getVariants: (productId: string): Promise<ApiResponse<PaginatedResponse<ApiVariant>>> =>
     apiClient.get(`/products/${productId}/variants`),
 };
