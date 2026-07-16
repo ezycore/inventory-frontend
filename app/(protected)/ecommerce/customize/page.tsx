@@ -158,9 +158,16 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   // feed the header-menu summary, the panel, and the preview from one place.
   const { data: fetchedCollections } = useStorefrontCollections();
   const [collections, setCollections] = useState<CollectionRowValue[] | null>(null);
-  useEffect(() => {
-    if (fetchedCollections) setCollections(fetchedCollections.map(toRowValue));
-  }, [fetchedCollections]);
+  // Seed the editable draft from the fetched collections once they arrive (and
+  // whenever a refetch returns a new array). Done during render via the "adjust
+  // state on prop change" pattern rather than an effect — an effect that only
+  // mirrors fetched data into state triggers a cascading re-render.
+  const [seededFrom, setSeededFrom] =
+    useState<typeof fetchedCollections>(undefined);
+  if (fetchedCollections && fetchedCollections !== seededFrom) {
+    setSeededFrom(fetchedCollections);
+    setCollections(fetchedCollections.map(toRowValue));
+  }
   const collectionsDraft = collections ?? [];
 
   return (
