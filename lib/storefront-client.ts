@@ -55,6 +55,12 @@ export interface StorefrontStore {
   };
   /** Dhaka inside/outside zone rates (override shippingRule when present). */
   shippingZones?: { inside?: number; outside?: number; freeThreshold?: number };
+  /** In-store pickup option + the collection location (when enabled). */
+  pickup?: {
+    enabled: boolean;
+    instructions?: string;
+    location?: { name: string; address?: string } | null;
+  };
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
@@ -253,7 +259,8 @@ export interface OrderItem {
 export interface ShippingAddress {
   name: string;
   phone: string;
-  address: string;
+  /** Street line — omitted for pickup orders (name + phone only). */
+  address?: string;
   /** Canonical BD district (courier-neutral). */
   district?: string;
   /** Area/upazila/thana — free text. */
@@ -272,6 +279,7 @@ export interface StorefrontOrder {
   shippingCharged: number;
   totalAmount: number;
   status: string;
+  fulfillmentType?: "delivery" | "pickup";
   paymentMethod: string;
   paymentStatus: string;
   shippingAddress: ShippingAddress;
@@ -288,6 +296,8 @@ export interface StorefrontOrder {
 
 export interface PlaceOrderInput {
   items: { productId: string; variantId?: string; quantity: number }[];
+  /** Delivery (default) or in-store pickup. Pickup drops the delivery address. */
+  fulfillmentType?: "delivery" | "pickup";
   shippingAddress: ShippingAddress;
   paymentMethod: "cod" | "bank";
   notes?: string;

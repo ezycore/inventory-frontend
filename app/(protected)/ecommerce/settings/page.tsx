@@ -464,6 +464,12 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
   const [zoneFree, setZoneFree] = useState(
     settings.shippingZones?.freeThreshold?.toString() ?? "",
   );
+  const [pickupEnabled, setPickupEnabled] = useState(
+    !!settings.pickup?.enabled,
+  );
+  const [pickupInstructions, setPickupInstructions] = useState(
+    settings.pickup?.instructions ?? "",
+  );
 
   return (
     <div className="space-y-5">
@@ -557,11 +563,39 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
         )}
       </Card>
 
+      <Card className="space-y-4 p-5 shadow-none">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold">Store pickup</h3>
+            <p className="text-xs text-muted-foreground">
+              Let shoppers collect from your store instead of courier delivery —
+              no shipping fee. Pickup uses your fulfillment location.
+            </p>
+          </div>
+          <Switch checked={pickupEnabled} onCheckedChange={setPickupEnabled} />
+        </div>
+        {pickupEnabled && (
+          <Field label="Pickup instructions (optional)">
+            <Textarea
+              value={pickupInstructions}
+              onChange={(e) => setPickupInstructions(e.target.value)}
+              rows={2}
+              maxLength={500}
+              placeholder="e.g. Collect from the front counter, 10am–8pm. Bring your order number."
+            />
+          </Field>
+        )}
+      </Card>
+
       <SaveBar
         pending={pending}
         onSave={() =>
           save({
             defaultDeliveryCost: num(defaultDeliveryCost) ?? 0,
+            pickup: {
+              enabled: pickupEnabled,
+              instructions: pickupInstructions.trim() || undefined,
+            },
             shippingRule: {
               mode,
               flatFee: mode === "none" ? undefined : num(flatFee),

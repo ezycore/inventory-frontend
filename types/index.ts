@@ -187,6 +187,8 @@ export interface StorefrontSettings {
    *  `null` on an update clears them (disables the zone toggle). */
   shippingZones?: { inside?: number; outside?: number; freeThreshold?: number } | null;
   defaultDeliveryCost: number;
+  /** In-store pickup option (collect from the fulfillment location). */
+  pickup?: { enabled?: boolean; instructions?: string };
   bankInstructions?: string;
   theme?: StorefrontTheme;
   nav?: StorefrontNav;

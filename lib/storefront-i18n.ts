@@ -163,6 +163,11 @@ export interface Dict {
   addrOffice: string;
   addrOther: string;
   addressLine: string;
+  fulfillmentDelivery: string;
+  fulfillmentPickup: string;
+  pickupFrom: string;
+  pickupHeading: string;
+  pickupFree: string;
   deliveryZone: string;
   insideDhaka: string;
   outsideDhaka: string;
@@ -467,6 +472,11 @@ const en: Dict = {
   addrOffice: "Office",
   addrOther: "Other",
   addressLine: "House, road, block",
+  fulfillmentDelivery: "Delivery",
+  fulfillmentPickup: "Store pickup",
+  pickupFrom: "Pick up from",
+  pickupHeading: "Your details",
+  pickupFree: "Free (pickup)",
   deliveryZone: "Delivery zone",
   insideDhaka: "Inside Dhaka",
   outsideDhaka: "Outside Dhaka",
@@ -772,6 +782,11 @@ const bn: Dict = {
   addrOffice: "অফিস",
   addrOther: "অন্যান্য",
   addressLine: "বাসা, রোড, ব্লক",
+  fulfillmentDelivery: "ডেলিভারি",
+  fulfillmentPickup: "স্টোরে পিকআপ",
+  pickupFrom: "পিকআপ স্থান",
+  pickupHeading: "আপনার তথ্য",
+  pickupFree: "ফ্রি (পিকআপ)",
   deliveryZone: "ডেলিভারি জোন",
   insideDhaka: "ঢাকার ভিতরে",
   outsideDhaka: "ঢাকার বাইরে",
@@ -943,6 +958,8 @@ export const ORDER_STATUS: Record<
   processing: { en: "Processing", bn: "প্রসেসিং", c: "#6d28d9" },
   shipped: { en: "Shipped", bn: "পাঠানো হয়েছে", c: "#0e7490" },
   delivered: { en: "Delivered", bn: "ডেলিভারড", c: "#15803d" },
+  ready_for_pickup: { en: "Ready for pickup", bn: "পিকআপের জন্য প্রস্তুত", c: "#0e7490" },
+  picked_up: { en: "Picked up", bn: "সংগ্রহ করা হয়েছে", c: "#15803d" },
   cancelled: { en: "Cancelled", bn: "বাতিল", c: "#b91c1c" },
   returned: { en: "Returned", bn: "ফেরত", c: "#b91c1c" },
   rejected: { en: "Rejected", bn: "বাতিল", c: "#b91c1c" },

@@ -134,11 +134,18 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1);
   const [placed, setPlaced] = useState<StorefrontOrder | null>(null);
 
+  // Fulfillment: courier delivery (default) or in-store pickup (when the store
+  // offers it). Pickup drops the whole delivery address + shipping fee.
+  const pickupOffered = !!store?.pickup?.enabled;
+  const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");
+  const isPickup = pickupOffered && fulfillment === "pickup";
+
   // Zone is derived from the picked district — no separate toggle (see zoneForDistrict).
   const zone = zoneForDistrict(geo.district);
   const zoned = hasZoneShipping(store);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = computeShipping(store, subtotal, zone);
+  // Pickup has no courier, so no shipping charge.
+  const shipping = isPickup ? 0 : computeShipping(store, subtotal, zone);
   const discount = applied?.discountAmount ?? 0;
   const total = Math.max(0, subtotal - discount) + shipping;
   const zoneLabel = zone === "inside" ? t.insideDhaka : t.outsideDhaka;
@@ -179,22 +186,22 @@ export default function CheckoutPage() {
     }
   };
 
-  const addressComplete = !!(
-    addr.name.trim() &&
-    addr.phone.trim() &&
-    addr.address.trim()
+  const contactComplete = !!(addr.name.trim() && addr.phone.trim());
+  // Delivery needs the full canonical address; pickup only needs name + phone.
+  const deliveryComplete = !!(
+    addr.address.trim() &&
+    geo.district.trim() &&
+    geo.area.trim()
   );
-  // District + area are the courier-neutral location the backend requires.
-  const locComplete = !!(geo.district.trim() && geo.area.trim());
-  const canSubmit = addressComplete && locComplete;
-  // Per-step advance gate (multi-step template): step 1 = full address (contact +
-  // district/area), step 2 = payment. Address is one step now, not split.
+  const canSubmit = isPickup ? contactComplete : contactComplete && deliveryComplete;
+  // Per-step advance gate (multi-step template): step 1 = address/contact,
+  // step 2 = payment.
   const stepBlocked = step === 1 && !canSubmit;
 
   // Best-effort: remember the picked district/area on the chosen address (or save
   // a brand-new one), so the next checkout is pre-filled. Never blocks the order.
   const rememberAddress = () => {
-    if (!token) return;
+    if (!token || isPickup) return; // pickup has no delivery address to remember
     const { district, area } = geo;
     if (!isNew && selectedId) {
       account.updateAddress.mutate({ addressId: selectedId, district, area });
@@ -210,20 +217,24 @@ export default function CheckoutPage() {
   };
 
   const submit = () => {
-    const shippingAddress: ShippingAddress = {
-      name: addr.name,
-      phone: addr.phone,
-      address: addr.address,
-      // Courier-neutral canonical location — the backend maps it to a courier's
-      // codes at dispatch, never here.
-      district: geo.district,
-      area: geo.area,
-      zone,
-      notes: addr.notes || undefined,
-    };
+    // Pickup carries only contact fields; delivery carries the full canonical address.
+    const shippingAddress: ShippingAddress = isPickup
+      ? { name: addr.name, phone: addr.phone, notes: addr.notes || undefined }
+      : {
+          name: addr.name,
+          phone: addr.phone,
+          address: addr.address,
+          // Courier-neutral canonical location — the backend maps it to a
+          // courier's codes at dispatch, never here.
+          district: geo.district,
+          area: geo.area,
+          zone,
+          notes: addr.notes || undefined,
+        };
     placeOrder.mutate(
       {
         items: items.map((i) => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })),
+        fulfillmentType: isPickup ? "pickup" : "delivery",
         shippingAddress,
         paymentMethod: effectivePayment,
         couponCode: applied?.code,
@@ -298,7 +309,37 @@ export default function CheckoutPage() {
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 22 }}>
           {showAddress ? (
             <div>
-              {savedAddresses.length > 0 ? (
+              {/* Delivery vs in-store pickup (only when the store offers pickup). */}
+              {pickupOffered ? (
+                <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+                  {(["delivery", "pickup"] as const).map((f) => {
+                    const active = fulfillment === f;
+                    return (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setFulfillment(f)}
+                        style={{
+                          flex: 1,
+                          border: `1px solid ${active ? "var(--primary)" : "var(--border-strong)"}`,
+                          background: active ? "var(--primary-soft)" : "var(--surface)",
+                          color: active ? "var(--primary)" : "var(--text)",
+                          borderRadius: 10,
+                          padding: "12px 14px",
+                          fontFamily: "inherit",
+                          fontSize: 14,
+                          fontWeight: active ? 700 : 500,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {f === "delivery" ? t.fulfillmentDelivery : t.fulfillmentPickup}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              {!isPickup && savedAddresses.length > 0 ? (
                 <>
                   <div style={label}>{t.savedAddresses}</div>
                   <CheckoutAddressBook
@@ -311,20 +352,39 @@ export default function CheckoutPage() {
                   />
                 </>
               ) : null}
-              <div style={label}>{t.deliveryAddress}</div>
+              <div style={label}>{isPickup ? t.pickupHeading : t.deliveryAddress}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
                 <input style={input} placeholder={t.fullName} value={addr.name} onChange={(e) => set("name", e.target.value)} />
                 <input style={input} placeholder={t.phone} value={addr.phone} onChange={(e) => set("phone", e.target.value)} />
-                <input style={input} placeholder={t.addressLine} value={addr.address} onChange={(e) => set("address", e.target.value)} />
-                <GeoPicker
-                  value={geo}
-                  onChange={setGeo}
-                  lang={lang}
-                  labels={{ district: t.selectDistrict, area: t.selectArea }}
-                />
+                {!isPickup ? (
+                  <>
+                    <input style={input} placeholder={t.addressLine} value={addr.address} onChange={(e) => set("address", e.target.value)} />
+                    <GeoPicker
+                      value={geo}
+                      onChange={setGeo}
+                      lang={lang}
+                      labels={{ district: t.selectDistrict, area: t.selectArea }}
+                    />
+                  </>
+                ) : null}
                 <input style={input} placeholder={t.orderNotesPh} value={addr.notes} onChange={(e) => set("notes", e.target.value)} />
+
+                {/* Pickup: show the collection location + any instructions (read-only). */}
+                {isPickup && store?.pickup?.location ? (
+                  <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: 14, background: "var(--muted-surface, var(--surface))" }}>
+                    <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 3 }}>{t.pickupFrom}</div>
+                    <div style={{ fontSize: 14.5, fontWeight: 700 }}>{store.pickup.location.name}</div>
+                    {store.pickup.location.address ? (
+                      <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2 }}>{store.pickup.location.address}</div>
+                    ) : null}
+                    {store.pickup.instructions ? (
+                      <div style={{ fontSize: 12.5, color: "var(--faint)", marginTop: 8, lineHeight: 1.5 }}>{store.pickup.instructions}</div>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 {/* Zone fee is derived from the district — shown read-only, not asked. */}
-                {zoned && geo.district ? (
+                {!isPickup && zoned && geo.district ? (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--muted)", padding: "2px 2px" }}>
                     <span>{t.deliveryZone} · {zoneLabel}</span>
                     <span className="sf-mono" style={{ color: "var(--text)", fontWeight: 600 }}>
@@ -332,7 +392,7 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                 ) : null}
-                {isNew && savedAddresses.length > 0 ? (
+                {!isPickup && isNew && savedAddresses.length > 0 ? (
                   <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--muted)", cursor: "pointer" }}>
                     <input type="checkbox" checked={saveNew} onChange={(e) => setSaveNew(e.target.checked)} />
                     {t.saveThisAddress}
@@ -400,7 +460,7 @@ export default function CheckoutPage() {
                 </div>
               ))}
               <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
-                {t.shipTo}: <span style={{ color: "var(--text)" }}>{[geo.area, geo.district].filter(Boolean).join(", ")} · {effectivePayment === "cod" ? t.cod : t.bankTransfer}</span>
+                {t.shipTo}: <span style={{ color: "var(--text)" }}>{(isPickup ? `${t.fulfillmentPickup}${store?.pickup?.location ? ` · ${store.pickup.location.name}` : ""}` : [geo.area, geo.district].filter(Boolean).join(", "))} · {effectivePayment === "cod" ? t.cod : t.bankTransfer}</span>
               </div>
             </div>
           ) : null}
@@ -443,7 +503,10 @@ export default function CheckoutPage() {
             {discount > 0 ? (
               <SummaryRow label={`${t.discount}${applied ? ` (${applied.code})` : ""}`} value={`− ${money(discount, currency)}`} accent />
             ) : null}
-            <SummaryRow label={zoned ? `${t.shipping} · ${zoneLabel}` : t.shipping} value={shipping === 0 ? t.free : money(shipping, currency)} />
+            <SummaryRow
+              label={isPickup ? t.fulfillmentPickup : zoned ? `${t.shipping} · ${zoneLabel}` : t.shipping}
+              value={isPickup ? t.pickupFree : shipping === 0 ? t.free : money(shipping, currency)}
+            />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 700, borderTop: "1px solid var(--border)", paddingTop: 14, letterSpacing: "-0.02em" }}>
             <span>{t.total}</span>

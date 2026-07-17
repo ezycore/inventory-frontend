@@ -11,6 +11,7 @@ import {
   Loader2,
   Lock,
   ShieldCheck,
+  Store,
   Truck,
 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
@@ -53,13 +54,17 @@ import {
 } from "@/ui/components/alert-dialog";
 
 /** The forward order pipeline (terminal Cancelled/Rejected sit outside it). */
-const STEPS = ["pending", "confirmed", "processing", "shipped", "delivered"] as const;
-const STEP_LABELS: Record<(typeof STEPS)[number], string> = {
+const DELIVERY_STEPS = ["pending", "confirmed", "processing", "shipped", "delivered"] as const;
+/** Pickup skips the courier legs: it goes ready-for-pickup → picked-up. */
+const PICKUP_STEPS = ["pending", "confirmed", "ready_for_pickup", "picked_up"] as const;
+const STEP_LABELS: Record<string, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
   processing: "Processing",
   shipped: "Shipped",
   delivered: "Delivered",
+  ready_for_pickup: "Ready for pickup",
+  picked_up: "Picked up",
 };
 
 const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
@@ -68,6 +73,9 @@ const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
   processing: "processing",
   shipped: "shipped",
   delivered: "delivered",
+  // Reuse existing badge variants for the pickup branch.
+  ready_for_pickup: "shipped",
+  picked_up: "delivered",
   cancelled: "cancelled",
   rejected: "rejected",
 };
@@ -158,6 +166,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
 
   const isPaid = order.paymentStatus === "paid";
   const isConfirmed = !!order.saleId || order.status !== "pending";
+  const isPickup = order.fulfillmentType === "pickup";
   const isTerminalBad =
     order.status === "cancelled" || order.status === "rejected";
   const canCancel = ["pending", "confirmed", "processing"].includes(order.status);
@@ -171,7 +180,8 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
   const money = (n: number | undefined) => formatMoney(n ?? 0, currency);
 
-  const currentStep = STEPS.indexOf(order.status as (typeof STEPS)[number]);
+  const steps = isPickup ? PICKUP_STEPS : DELIVERY_STEPS;
+  const currentStep = (steps as readonly string[]).indexOf(order.status);
 
   const saveShipping = () => {
     updateCourierCost.mutate(
@@ -255,7 +265,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
               onConfirm={() => cancel.mutate({ id: order._id, reject: false })}
             />
           )}
-          {order.status === "confirmed" && (
+          {order.status === "confirmed" && !isPickup && (
             <Button
               size="sm"
               onClick={() =>
@@ -263,6 +273,26 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
               }
             >
               Mark processing
+            </Button>
+          )}
+          {order.status === "confirmed" && isPickup && (
+            <Button
+              size="sm"
+              onClick={() =>
+                updateStatus.mutate({ id: order._id, status: "ready_for_pickup" })
+              }
+            >
+              Mark ready for pickup
+            </Button>
+          )}
+          {order.status === "ready_for_pickup" && (
+            <Button
+              size="sm"
+              onClick={() =>
+                updateStatus.mutate({ id: order._id, status: "picked_up" })
+              }
+            >
+              Mark collected
             </Button>
           )}
           {order.status === "shipped" && (
@@ -275,7 +305,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
               Mark delivered
             </Button>
           )}
-          {order.status === "delivered" && !isPaid && (
+          {(order.status === "delivered" || order.status === "picked_up") && !isPaid && (
             <Button
               size="sm"
               disabled={markPaid.isPending}
@@ -300,7 +330,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
               : " No stock was committed."}
           </div>
         ) : (
-          <Stepper currentStep={currentStep} />
+          <Stepper currentStep={currentStep} steps={steps} />
         )}
       </Card>
 
@@ -398,6 +428,23 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
           </Card>
 
           {/* Fulfillment */}
+          {isPickup ? (
+            <Card className="space-y-3 p-5 shadow-none">
+              <h3 className="text-sm font-semibold">Fulfillment</h3>
+              <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
+                <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border bg-card">
+                  <Store className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold">In-store pickup</div>
+                  <div className="text-xs text-muted-foreground">
+                    No courier — the customer collects from your store. Use the
+                    status button above to mark it ready / collected.
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ) : (
           <Card className="space-y-3 p-5 shadow-none">
             <h3 className="text-sm font-semibold">Fulfillment</h3>
             {hasTracking ? (
@@ -531,6 +578,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
               </p>
             )}
           </Card>
+          )}
 
           {/* Activity log */}
           <Card className="p-5 shadow-none">
@@ -543,24 +591,36 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
         <div className="space-y-5">
           {/* Customer & delivery + fraud */}
           <Card className="p-5 shadow-none">
-            <h3 className="mb-3 text-sm font-semibold">Customer &amp; delivery</h3>
+            <h3 className="mb-3 text-sm font-semibold">
+              {isPickup ? "Customer" : "Customer & delivery"}
+            </h3>
             <div className="text-sm font-semibold">
               {order.shippingAddress.name}
             </div>
             <div className="mt-0.5 text-sm text-muted-foreground">
               {order.shippingAddress.phone}
             </div>
-            <div className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
-              {order.shippingAddress.address}
-            </div>
-            {(order.shippingAddress.area || order.shippingAddress.district) && (
-              <div className="mt-2">
-                <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
-                  {[order.shippingAddress.area, order.shippingAddress.district]
-                    .filter(Boolean)
-                    .join(", ")}
+            {isPickup ? (
+              <div className="mt-2.5">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+                  <Store className="h-3 w-3" /> Store pickup
                 </span>
               </div>
+            ) : (
+              <>
+                <div className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
+                  {order.shippingAddress.address}
+                </div>
+                {(order.shippingAddress.area || order.shippingAddress.district) && (
+                  <div className="mt-2">
+                    <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+                      {[order.shippingAddress.area, order.shippingAddress.district]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </span>
+                  </div>
+                )}
+              </>
             )}
             {order.notes && (
               <div className="mt-3 rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">
@@ -646,10 +706,16 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
 
 /* ----------------------------- sub-components ----------------------------- */
 
-function Stepper({ currentStep }: { currentStep: number }) {
+function Stepper({
+  currentStep,
+  steps,
+}: {
+  currentStep: number;
+  steps: readonly string[];
+}) {
   return (
     <div className="flex items-center">
-      {STEPS.map((step, i) => {
+      {steps.map((step, i) => {
         const done = i < currentStep;
         const current = i === currentStep;
         return (
@@ -676,7 +742,7 @@ function Stepper({ currentStep }: { currentStep: number }) {
                 {STEP_LABELS[step]}
               </span>
             </div>
-            {i < STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div
                 className={cn(
                   "mx-1 mb-5 h-0.5 flex-1",

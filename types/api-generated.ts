@@ -8384,7 +8384,7 @@ export interface components {
                 _id: string;
                 orderNumber: string;
                 /** @enum {string} */
-                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "rejected";
+                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "cancelled" | "rejected";
                 /** @enum {string} */
                 paymentStatus: "pending" | "paid" | "refunded";
                 /** @enum {string} */
@@ -8442,7 +8442,10 @@ export interface components {
                 shippingCost?: number;
                 totalAmount: number;
                 /** @enum {string} */
-                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "rejected";
+                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "cancelled" | "rejected";
+                /** @enum {string} */
+                fulfillmentType?: "delivery" | "pickup";
+                pickupLocationId?: string | null;
                 /** @enum {string} */
                 paymentMethod: "cod" | "bank" | "manual";
                 /** @enum {string} */
@@ -8450,7 +8453,7 @@ export interface components {
                 shippingAddress: {
                     name: string;
                     phone: string;
-                    address: string;
+                    address?: string;
                     district?: string;
                     area?: string;
                     /** @enum {string} */
@@ -8512,7 +8515,10 @@ export interface components {
             shippingCost?: number;
             totalAmount: number;
             /** @enum {string} */
-            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "rejected";
+            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "cancelled" | "rejected";
+            /** @enum {string} */
+            fulfillmentType?: "delivery" | "pickup";
+            pickupLocationId?: string | null;
             /** @enum {string} */
             paymentMethod: "cod" | "bank" | "manual";
             /** @enum {string} */
@@ -8520,7 +8526,7 @@ export interface components {
             shippingAddress: {
                 name: string;
                 phone: string;
-                address: string;
+                address?: string;
                 district?: string;
                 area?: string;
                 /** @enum {string} */
@@ -8576,7 +8582,10 @@ export interface components {
                 shippingCost?: number;
                 totalAmount: number;
                 /** @enum {string} */
-                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "rejected";
+                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "cancelled" | "rejected";
+                /** @enum {string} */
+                fulfillmentType?: "delivery" | "pickup";
+                pickupLocationId?: string | null;
                 /** @enum {string} */
                 paymentMethod: "cod" | "bank" | "manual";
                 /** @enum {string} */
@@ -8584,7 +8593,7 @@ export interface components {
                 shippingAddress: {
                     name: string;
                     phone: string;
-                    address: string;
+                    address?: string;
                     district?: string;
                     area?: string;
                     /** @enum {string} */
@@ -9080,6 +9089,10 @@ export interface components {
                 freeThreshold?: number;
             };
             defaultDeliveryCost: number;
+            pickup?: {
+                enabled?: boolean;
+                instructions?: string;
+            };
             paymentAccountMap?: {
                 [key: string]: string;
             };
@@ -9351,6 +9364,14 @@ export interface components {
             nav?: unknown;
             checkout?: unknown;
             bankInstructions?: unknown;
+            pickup?: {
+                enabled: boolean;
+                instructions?: string;
+                location?: {
+                    name: string;
+                    address?: string;
+                } | null;
+            };
         };
         StorefrontCampaign: {
             _id: string;
@@ -9475,7 +9496,10 @@ export interface components {
             shippingCharged?: number;
             totalAmount: number;
             /** @enum {string} */
-            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "rejected";
+            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "cancelled" | "rejected";
+            /** @enum {string} */
+            fulfillmentType?: "delivery" | "pickup";
+            pickupLocationId?: string | null;
             /** @enum {string} */
             paymentMethod: "cod" | "bank" | "manual";
             /** @enum {string} */
@@ -9483,7 +9507,7 @@ export interface components {
             shippingAddress: {
                 name: string;
                 phone: string;
-                address: string;
+                address?: string;
                 district?: string;
                 area?: string;
                 /** @enum {string} */
@@ -12545,12 +12569,17 @@ export interface operations {
                         variantId?: string;
                         quantity: number;
                     }[];
+                    /**
+                     * @default delivery
+                     * @enum {string}
+                     */
+                    fulfillmentType?: "delivery" | "pickup";
                     shippingAddress: {
                         name: string;
                         phone: string;
-                        address: string;
-                        district: string;
-                        area: string;
+                        address?: string;
+                        district?: string;
+                        area?: string;
                         /** @enum {string} */
                         zone?: "inside" | "outside";
                         notes?: string;
@@ -13394,6 +13423,10 @@ export interface operations {
                         freeThreshold?: number;
                     } | null;
                     defaultDeliveryCost?: number;
+                    pickup?: {
+                        enabled?: boolean;
+                        instructions?: string;
+                    };
                     bankInstructions?: string;
                     theme?: {
                         preset?: string;
@@ -27996,7 +28029,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    status: "processing" | "shipped" | "delivered";
+                    status: "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up";
                 };
             };
         };
