@@ -5638,6 +5638,7 @@ export interface components {
                 };
                 /** @enum {string} */
                 outOfStockBehavior?: "hide" | "show" | "backorder";
+                weightKg?: number;
             };
             isDemoData?: boolean;
         };
@@ -8164,6 +8165,7 @@ export interface components {
                 };
                 /** @enum {string} */
                 outOfStockBehavior?: "hide" | "show" | "backorder";
+                weightKg?: number;
             };
             availableQuantity: number;
         };
@@ -8195,6 +8197,7 @@ export interface components {
                     };
                     /** @enum {string} */
                     outOfStockBehavior?: "hide" | "show" | "backorder";
+                    weightKg?: number;
                 };
                 availableQuantity: number;
             }[];
@@ -8232,6 +8235,7 @@ export interface components {
                 };
                 /** @enum {string} */
                 outOfStockBehavior?: "hide" | "show" | "backorder";
+                weightKg?: number;
             };
         };
         Collection: {
@@ -13388,7 +13392,7 @@ export interface operations {
                         inside?: number;
                         outside?: number;
                         freeThreshold?: number;
-                    };
+                    } | null;
                     defaultDeliveryCost?: number;
                     bankInstructions?: string;
                     theme?: {
@@ -17301,11 +17305,13 @@ export interface operations {
                         onlinePrice?: number;
                         featured?: boolean;
                         onlineDescription?: string;
+                        weightKg?: number;
                     }) & {
                         isListed?: boolean;
                         onlinePrice?: number;
                         featured?: boolean;
                         onlineDescription?: string;
+                        weightKg?: number;
                     };
                     locationId?: string;
                     openingStock?: number;
@@ -18002,11 +18008,13 @@ export interface operations {
                         onlinePrice?: number;
                         featured?: boolean;
                         onlineDescription?: string;
+                        weightKg?: number;
                     }) & {
                         isListed?: boolean;
                         onlinePrice?: number;
                         featured?: boolean;
                         onlineDescription?: string;
+                        weightKg?: number;
                     };
                     locationId?: string;
                     openingStock?: number;
@@ -30313,6 +30321,7 @@ export interface operations {
                     seoDescription?: string;
                     /** @enum {string} */
                     outOfStockBehavior?: "hide" | "show" | "backorder";
+                    weightKg?: number;
                     removeImages?: string | string[];
                 };
             };

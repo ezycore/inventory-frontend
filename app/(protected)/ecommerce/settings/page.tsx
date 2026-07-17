@@ -568,13 +568,18 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
               freeThreshold:
                 mode === "free_over_threshold" ? num(freeThreshold) : undefined,
             },
+            // Blank stays undefined (not 0) — a 0 fee reads as "ships free", which
+            // silently zeroed the zone's delivery charge. computeShipping falls back
+            // to the shipping rule for any direction left unset. Disabled sends an
+            // explicit `null` (not undefined, which JSON drops) so the backend
+            // actually clears the stored zones instead of leaving them to resurrect.
             shippingZones: zonesEnabled
               ? {
-                  inside: num(zoneInside) ?? 0,
-                  outside: num(zoneOutside) ?? 0,
+                  inside: num(zoneInside),
+                  outside: num(zoneOutside),
                   freeThreshold: num(zoneFree),
                 }
-              : undefined,
+              : null,
           })
         }
       />

@@ -30,6 +30,19 @@ type Draft = {
   district: string;
   area: string;
 };
+const chip = (active: boolean): CSSProperties => ({
+  flex: 1,
+  border: `1px solid ${active ? "var(--primary)" : "var(--border-strong)"}`,
+  background: active ? "var(--primary-soft)" : "var(--surface)",
+  color: active ? "var(--primary)" : "var(--text)",
+  borderRadius: 8,
+  padding: "10px 12px",
+  fontFamily: "inherit",
+  fontSize: 13.5,
+  fontWeight: active ? 700 : 500,
+  cursor: "pointer",
+});
+
 const emptyDraft: Draft = {
   label: "",
   line: "",
@@ -51,11 +64,15 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
   // null = closed, "new" = add form, otherwise the id of the card being edited.
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
+  // Label is a fixed choice (Home/Office/Other); "Other" reveals a free-text name.
+  const [otherLabel, setOtherLabel] = useState(false);
+  const labelPresets = [t.addrHome, t.addrOffice];
   const addresses = shopper.addresses ?? [];
   const pending = addAddress.isPending || updateAddress.isPending;
 
   const openNew = () => {
     setDraft(emptyDraft);
+    setOtherLabel(false);
     setEditing("new");
   };
   const openEdit = (a: ShopperAddress) => {
@@ -67,7 +84,12 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
       district: a.district ?? "",
       area: a.area ?? "",
     });
+    setOtherLabel(!!a.label && !labelPresets.includes(a.label));
     setEditing(a.id ?? null);
+  };
+  const pickLabel = (preset?: string) => {
+    setOtherLabel(!preset);
+    setDraft((d) => ({ ...d, label: preset ?? "" }));
   };
   const submit = () => {
     if (!draft.label.trim() || !draft.line.trim()) return;
@@ -92,8 +114,17 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
 
   const form = (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 14 }}>
-      <input placeholder={t.tabAddresses} value={draft.label} onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))} style={input} />
-      <input placeholder={t.address} value={draft.line} onChange={(e) => setDraft((d) => ({ ...d, line: e.target.value }))} style={input} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button type="button" onClick={() => pickLabel(t.addrHome)} style={chip(!otherLabel && draft.label === t.addrHome)}>{t.addrHome}</button>
+          <button type="button" onClick={() => pickLabel(t.addrOffice)} style={chip(!otherLabel && draft.label === t.addrOffice)}>{t.addrOffice}</button>
+          <button type="button" onClick={() => pickLabel()} style={chip(otherLabel)}>{t.addrOther}</button>
+        </div>
+        {otherLabel ? (
+          <input placeholder={t.addressLabelCustom} value={draft.label} onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))} style={input} />
+        ) : null}
+      </div>
+      <input placeholder={t.addressLine} value={draft.line} onChange={(e) => setDraft((d) => ({ ...d, line: e.target.value }))} style={input} />
       <GeoPicker
         value={{ district: draft.district, area: draft.area }}
         onChange={(g) => setDraft((d) => ({ ...d, district: g.district, area: g.area }))}

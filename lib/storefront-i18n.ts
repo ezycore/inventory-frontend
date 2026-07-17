@@ -157,6 +157,12 @@ export interface Dict {
   fullName: string;
   phone: string;
   address: string;
+  addressLabel: string;
+  addressLabelCustom: string;
+  addrHome: string;
+  addrOffice: string;
+  addrOther: string;
+  addressLine: string;
   deliveryZone: string;
   insideDhaka: string;
   outsideDhaka: string;
@@ -455,6 +461,12 @@ const en: Dict = {
   fullName: "Full name",
   phone: "Phone number",
   address: "Full address",
+  addressLabel: "Address label",
+  addressLabelCustom: "Label name",
+  addrHome: "Home",
+  addrOffice: "Office",
+  addrOther: "Other",
+  addressLine: "House, road, block",
   deliveryZone: "Delivery zone",
   insideDhaka: "Inside Dhaka",
   outsideDhaka: "Outside Dhaka",
@@ -754,6 +766,12 @@ const bn: Dict = {
   fullName: "পুরো নাম",
   phone: "ফোন নম্বর",
   address: "সম্পূর্ণ ঠিকানা",
+  addressLabel: "ঠিকানার লেবেল",
+  addressLabelCustom: "লেবেলের নাম",
+  addrHome: "বাসা",
+  addrOffice: "অফিস",
+  addrOther: "অন্যান্য",
+  addressLine: "বাসা, রোড, ব্লক",
   deliveryZone: "ডেলিভারি জোন",
   insideDhaka: "ঢাকার ভিতরে",
   outsideDhaka: "ঢাকার বাইরে",

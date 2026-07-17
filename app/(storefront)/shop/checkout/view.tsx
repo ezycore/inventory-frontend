@@ -21,7 +21,11 @@ import type {
   StorefrontOrder,
 } from "@/lib/storefront-client";
 import { resolveTemplates } from "@/lib/storefront-templates";
-import { computeShipping, type Zone } from "@/lib/storefront-shipping";
+import {
+  computeShipping,
+  hasZoneShipping,
+  zoneForDistrict,
+} from "@/lib/storefront-shipping";
 import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
@@ -31,7 +35,6 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import {
   StepsBar,
   SummaryRow,
-  ZoneTile,
   ghostBtn,
   input,
   label,
@@ -123,7 +126,6 @@ export default function CheckoutPage() {
     }
   }
 
-  const [zone, setZone] = useState<Zone>("inside");
   const [payment, setPayment] = useState<"cod" | "bank">(methods[0]);
   const effectivePayment = methods.includes(payment) ? payment : methods[0];
   const [coupon, setCoupon] = useState("");
@@ -132,20 +134,14 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1);
   const [placed, setPlaced] = useState<StorefrontOrder | null>(null);
 
+  // Zone is derived from the picked district — no separate toggle (see zoneForDistrict).
+  const zone = zoneForDistrict(geo.district);
+  const zoned = hasZoneShipping(store);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shipping = computeShipping(store, subtotal, zone);
   const discount = applied?.discountAmount ?? 0;
   const total = Math.max(0, subtotal - discount) + shipping;
   const zoneLabel = zone === "inside" ? t.insideDhaka : t.outsideDhaka;
-  const zones = store?.shippingZones;
-  const insideNote =
-    zones?.inside != null
-      ? `${money(zones.inside, currency)} · ${t.zoneDays12}`
-      : t.zoneDays12;
-  const outsideNote =
-    zones?.outside != null
-      ? `${money(zones.outside, currency)} · ${t.zoneDays35}`
-      : t.zoneDays35;
 
   // --- address book selection ---
   const pickSaved = (a: ShopperAddress) => {
@@ -191,9 +187,9 @@ export default function CheckoutPage() {
   // District + area are the courier-neutral location the backend requires.
   const locComplete = !!(geo.district.trim() && geo.area.trim());
   const canSubmit = addressComplete && locComplete;
-  // Per-step advance gate (multi-step template): step 1 = address, 2 = delivery.
-  const stepBlocked =
-    (step === 1 && !addressComplete) || (step === 2 && !locComplete);
+  // Per-step advance gate (multi-step template): step 1 = full address (contact +
+  // district/area), step 2 = payment. Address is one step now, not split.
+  const stepBlocked = step === 1 && !canSubmit;
 
   // Best-effort: remember the picked district/area on the chosen address (or save
   // a brand-new one), so the next checkout is pre-filled. Never blocks the order.
@@ -285,15 +281,13 @@ export default function CheckoutPage() {
   }
 
   const showAddress = !multi || step === 1;
-  const showDelivery = !multi || step === 2;
-  const showPayment = !multi || step === 3;
-  const showReview = multi && step === 4;
+  const showPayment = !multi || step === 2;
+  const showReview = multi && step === 3;
 
   const steps = [
     { n: 1, label: t.stepAddress },
-    { n: 2, label: t.stepDelivery },
-    { n: 3, label: t.stepPayment },
-    { n: 4, label: t.stepReview },
+    { n: 2, label: t.stepPayment },
+    { n: 3, label: t.stepReview },
   ];
 
   return (
@@ -317,37 +311,33 @@ export default function CheckoutPage() {
                   />
                 </>
               ) : null}
-              <div style={label}>{t.contactInfo}</div>
+              <div style={label}>{t.deliveryAddress}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
                 <input style={input} placeholder={t.fullName} value={addr.name} onChange={(e) => set("name", e.target.value)} />
                 <input style={input} placeholder={t.phone} value={addr.phone} onChange={(e) => set("phone", e.target.value)} />
-                <input style={input} placeholder={t.address} value={addr.address} onChange={(e) => set("address", e.target.value)} />
-                <input style={input} placeholder={t.orderNotesPh} value={addr.notes} onChange={(e) => set("notes", e.target.value)} />
-                {isNew && savedAddresses.length > 0 ? (
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--muted)", cursor: "pointer" }}>
-                    <input type="checkbox" checked={saveNew} onChange={(e) => setSaveNew(e.target.checked)} />
-                    {t.saveThisAddress}
-                  </label>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-
-          {showDelivery ? (
-            <div>
-              <div style={label}>{t.deliveryZone}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
-                <ZoneTile active={zone === "inside"} onClick={() => setZone("inside")} title={t.insideDhaka} note={insideNote} />
-                <ZoneTile active={zone === "outside"} onClick={() => setZone("outside")} title={t.outsideDhaka} note={outsideNote} />
-              </div>
-              <div style={{ marginBottom: 20 }}>
-                <div style={label}>{t.courierArea}</div>
+                <input style={input} placeholder={t.addressLine} value={addr.address} onChange={(e) => set("address", e.target.value)} />
                 <GeoPicker
                   value={geo}
                   onChange={setGeo}
                   lang={lang}
                   labels={{ district: t.selectDistrict, area: t.selectArea }}
                 />
+                <input style={input} placeholder={t.orderNotesPh} value={addr.notes} onChange={(e) => set("notes", e.target.value)} />
+                {/* Zone fee is derived from the district — shown read-only, not asked. */}
+                {zoned && geo.district ? (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--muted)", padding: "2px 2px" }}>
+                    <span>{t.deliveryZone} · {zoneLabel}</span>
+                    <span className="sf-mono" style={{ color: "var(--text)", fontWeight: 600 }}>
+                      {shipping === 0 ? t.free : money(shipping, currency)}
+                    </span>
+                  </div>
+                ) : null}
+                {isNew && savedAddresses.length > 0 ? (
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--muted)", cursor: "pointer" }}>
+                    <input type="checkbox" checked={saveNew} onChange={(e) => setSaveNew(e.target.checked)} />
+                    {t.saveThisAddress}
+                  </label>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -410,7 +400,7 @@ export default function CheckoutPage() {
                 </div>
               ))}
               <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
-                {t.shipTo}: <span style={{ color: "var(--text)" }}>{zoneLabel} · {effectivePayment === "cod" ? t.cod : t.bankTransfer}</span>
+                {t.shipTo}: <span style={{ color: "var(--text)" }}>{[geo.area, geo.district].filter(Boolean).join(", ")} · {effectivePayment === "cod" ? t.cod : t.bankTransfer}</span>
               </div>
             </div>
           ) : null}
@@ -422,8 +412,8 @@ export default function CheckoutPage() {
                   {t.backStep}
                 </button>
               ) : null}
-              {step < 4 ? (
-                <button type="button" onClick={() => setStep((s) => Math.min(4, s + 1))} disabled={stepBlocked} style={{ ...primaryBtn, flex: 1, opacity: stepBlocked ? 0.5 : 1 }}>
+              {step < 3 ? (
+                <button type="button" onClick={() => setStep((s) => Math.min(3, s + 1))} disabled={stepBlocked} style={{ ...primaryBtn, flex: 1, opacity: stepBlocked ? 0.5 : 1 }}>
                   {t.continueStep}
                 </button>
               ) : (
@@ -453,7 +443,7 @@ export default function CheckoutPage() {
             {discount > 0 ? (
               <SummaryRow label={`${t.discount}${applied ? ` (${applied.code})` : ""}`} value={`− ${money(discount, currency)}`} accent />
             ) : null}
-            <SummaryRow label={`${t.shipping} · ${zoneLabel}`} value={shipping === 0 ? t.free : money(shipping, currency)} />
+            <SummaryRow label={zoned ? `${t.shipping} · ${zoneLabel}` : t.shipping} value={shipping === 0 ? t.free : money(shipping, currency)} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 700, borderTop: "1px solid var(--border)", paddingTop: 14, letterSpacing: "-0.02em" }}>
             <span>{t.total}</span>
