@@ -40,6 +40,7 @@ export default function ContentPage() {
           createMutation: useCreateContentPage(),
           updateMutation: useUpdateContentPage(),
           deleteMutation: useDeleteContentPage(),
+         openInside: 'drawer', 
           queryKey: ["content-pages"],
           entityName: "Page",
           editTooltip: "Edit page",

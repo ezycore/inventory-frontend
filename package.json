@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "analyze": "cross-env ANALYZE=true next build --webpack",
     "start": "next start",
     "lint": "eslint . --max-warnings=-1",
     "lint:fix": "eslint . --fix",
@@ -87,6 +88,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@next/bundle-analyzer": "^16.2.10",
     "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -97,6 +99,7 @@
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.5",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "^16.1.6",
     "jsdom": "^29.0.2",
