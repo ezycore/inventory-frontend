@@ -1,35 +1,30 @@
 "use client";
+// coding-standard: maintained
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronRight, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import {
   storefrontOrdersApi,
+  useBulkConsignment,
+  useCouriers,
+  useOrderStats,
   useStorefrontOrders,
-  type AdminStorefrontOrder,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { formatMoney } from "@/components/storefront/format";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
+import { OrderRow } from "@/components/ecommerce/orders/order-row";
+import { getOrderStats } from "@/components/ecommerce/orders/helpers";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Checkbox } from "@/ui/components/checkbox";
+import { SimpleSelect } from "@/ui/components/simple-select";
 import { Skeleton } from "@/ui/components/skeleton";
-import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
-
-const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
-  pending: "pending",
-  confirmed: "confirmed",
-  processing: "processing",
-  shipped: "shipped",
-  delivered: "delivered",
-  cancelled: "cancelled",
-  rejected: "rejected",
-};
+import StatsCard from "@/ui/components/StatsCard";
 
 const TABS: { label: string; value: string }[] = [
   { label: "All", value: "" },
@@ -38,16 +33,26 @@ const TABS: { label: string; value: string }[] = [
   { label: "Processing", value: "processing" },
   { label: "Shipped", value: "shipped" },
   { label: "Delivered", value: "delivered" },
+  { label: "Returned", value: "returned" },
   { label: "Cancelled", value: "cancelled" },
 ];
 
-const PAGE_SIZES = [20, 50, 100];
+// Radix Select forbids an empty-string item value, so "all" is the clear-filter
+// sentinel and maps to `undefined` (no filter) when the query is built.
+const COURIER_OPTIONS = [
+  { label: "All couriers", value: "all" },
+  { label: "Pathao", value: "pathao" },
+  { label: "Steadfast", value: "steadfast" },
+  { label: "eCourier", value: "ecourier" },
+  { label: "No courier", value: "none" },
+];
+const FULFILLMENT_OPTIONS = [
+  { label: "All fulfillment", value: "all" },
+  { label: "Delivery", value: "delivery" },
+  { label: "Pickup", value: "pickup" },
+];
 
-const fmtDate = (iso: string) => {
-  const d = new Date(iso);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()}`;
-};
+const PAGE_SIZES = [20, 50, 100];
 
 export default function EcommerceOrdersPage() {
   return (
@@ -70,12 +75,20 @@ function OrdersList() {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
 
   const [status, setStatus] = useState(initialStatus);
+  const [courier, setCourier] = useState("all");
+  const [fulfillment, setFulfillment] = useState("all");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkProvider, setBulkProvider] = useState("");
+
+  const { data: couriersData } = useCouriers();
+  const enabledCouriers = (couriersData?.couriers ?? []).filter((c) => c.enabled);
+  const bulkConsign = useBulkConsignment();
+  const { data: stats, isLoading: statsLoading } = useOrderStats();
 
   // Debounce the search box; a new search resets paging + selection.
   useEffect(() => {
@@ -87,10 +100,20 @@ function OrdersList() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // View changes (tab / page size / page) reset selection in the handlers below,
-  // not in effects — synchronous setState in effects triggers cascading renders.
+  // View changes (tab / filter / page size / page) reset selection in the handlers
+  // below, not in effects — synchronous setState in effects cascades renders.
   const changeStatus = (v: string) => {
     setStatus(v);
+    setPage(1);
+    setSelected(new Set());
+  };
+  const changeCourier = (v: string) => {
+    setCourier(v);
+    setPage(1);
+    setSelected(new Set());
+  };
+  const changeFulfillment = (v: string) => {
+    setFulfillment(v);
     setPage(1);
     setSelected(new Set());
   };
@@ -107,6 +130,8 @@ function OrdersList() {
   const { data, isLoading, isFetching } = useStorefrontOrders({
     status: status || undefined,
     search: search || undefined,
+    courier: courier === "all" ? undefined : courier,
+    fulfillmentType: fulfillment === "all" ? undefined : fulfillment,
     page,
     limit,
   });
@@ -118,6 +143,13 @@ function OrdersList() {
   const allChecked = items.length > 0 && items.every((o) => selected.has(o._id));
   const confirmable = items.filter(
     (o) => selected.has(o._id) && o.status === "pending",
+  );
+  // Dispatchable = selected, confirmed/processing, not already sent to a courier.
+  const dispatchable = items.filter(
+    (o) =>
+      selected.has(o._id) &&
+      (o.status === "confirmed" || o.status === "processing") &&
+      !o.courier?.consignmentId,
   );
 
   const toggleAll = (on: boolean) =>
@@ -146,6 +178,24 @@ function OrdersList() {
     setBulkBusy(false);
   };
 
+  const onBulkDispatch = () => {
+    if (!bulkProvider || dispatchable.length === 0) return;
+    bulkConsign.mutate(
+      { orderIds: dispatchable.map((o) => o._id), provider: bulkProvider },
+      {
+        onSuccess: (res) => {
+          const { successful, failed } = res.data;
+          if (successful)
+            toast.success(`${successful} order${successful === 1 ? "" : "s"} dispatched`);
+          if (failed)
+            toast.error(`${failed} order${failed === 1 ? "" : "s"} could not be dispatched`);
+          setSelected(new Set());
+          setBulkProvider("");
+        },
+      },
+    );
+  };
+
   return (
     <div className="space-y-5">
       <div>
@@ -155,6 +205,13 @@ function OrdersList() {
         </p>
       </div>
 
+      {/* COD-cash stat cards */}
+      <StatsCard
+        data={getOrderStats(stats, currency)}
+        isLoading={statsLoading}
+        columns={{ default: 1, sm: 2, md: 3, lg: 6 }}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold">
           All Orders{" "}
@@ -162,14 +219,28 @@ function OrdersList() {
             ({counts.all ?? pagination?.total ?? 0})
           </span>
         </h2>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search order # or customer"
-            className="h-9 w-64 pl-8"
+        <div className="flex flex-wrap items-center gap-2">
+          <SimpleSelect
+            value={courier}
+            onValueChange={changeCourier}
+            options={COURIER_OPTIONS}
+            className="h-9 w-40"
           />
+          <SimpleSelect
+            value={fulfillment}
+            onValueChange={changeFulfillment}
+            options={FULFILLMENT_OPTIONS}
+            className="h-9 w-40"
+          />
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search order # or customer"
+              className="h-9 w-64 pl-8"
+            />
+          </div>
         </div>
       </div>
 
@@ -212,6 +283,27 @@ function OrdersList() {
           >
             Confirm{confirmable.length ? ` (${confirmable.length})` : ""}
           </Button>
+          {dispatchable.length > 0 && enabledCouriers.length > 0 ? (
+            <div className="flex items-center gap-2">
+              <SimpleSelect
+                value={bulkProvider}
+                onValueChange={setBulkProvider}
+                options={enabledCouriers.map((c) => ({
+                  label: `${c.provider[0].toUpperCase()}${c.provider.slice(1)} Courier`,
+                  value: c.provider,
+                }))}
+                placeholder="Courier"
+                className="h-9 w-40"
+              />
+              <Button
+                size="sm"
+                disabled={!bulkProvider || bulkConsign.isPending}
+                onClick={onBulkDispatch}
+              >
+                Send to courier ({dispatchable.length})
+              </Button>
+            </div>
+          ) : null}
           <OrderInvoicePrintButton
             orders={items.filter((o) => selected.has(o._id))}
           />
@@ -236,6 +328,7 @@ function OrdersList() {
                 <th className="px-3 py-3">Customer</th>
                 <th className="px-3 py-3">Total</th>
                 <th className="px-3 py-3">Payment</th>
+                <th className="px-3 py-3">Courier</th>
                 <th className="px-3 py-3">Status</th>
                 <th className="w-8" />
               </tr>
@@ -244,17 +337,17 @@ function OrdersList() {
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="border-b">
-                    <td colSpan={8} className="px-4 py-3">
+                    <td colSpan={9} className="px-4 py-3">
                       <Skeleton className="h-5 w-full" />
                     </td>
                   </tr>
                 ))
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-16 text-center">
+                  <td colSpan={9} className="px-4 py-16 text-center">
                     <div className="text-sm font-semibold">No orders found</div>
                     <div className="mt-1 text-xs text-muted-foreground">
-                      Try adjusting your search or status filter.
+                      Try adjusting your search or filters.
                     </div>
                   </td>
                 </tr>
@@ -315,54 +408,5 @@ function OrdersList() {
         </div>
       </div>
     </div>
-  );
-}
-
-function OrderRow({
-  order,
-  currency,
-  checked,
-  onToggle,
-  onOpen,
-}: {
-  order: AdminStorefrontOrder;
-  currency?: string;
-  checked: boolean;
-  onToggle: (on: boolean) => void;
-  onOpen: () => void;
-}) {
-  return (
-    <tr
-      onClick={onOpen}
-      className={cn(
-        "cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/40",
-        checked && "bg-primary/5",
-      )}
-    >
-      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-        <Checkbox
-          checked={checked}
-          onCheckedChange={(c) => onToggle(c === true)}
-          aria-label={`Select ${order.orderNumber}`}
-        />
-      </td>
-      <td className="px-3 py-3 font-semibold">{order.orderNumber}</td>
-      <td className="px-3 py-3 text-muted-foreground">
-        {fmtDate(order.createdAt)}
-      </td>
-      <td className="px-3 py-3 font-medium">{order.shippingAddress?.name}</td>
-      <td className="px-3 py-3 font-semibold tabular-nums">
-        {formatMoney(order.totalAmount, currency)}
-      </td>
-      <td className="px-3 py-3 capitalize text-muted-foreground">
-        {order.paymentMethod} · {order.paymentStatus}
-      </td>
-      <td className="px-3 py-3">
-        <StatusBadge status={ORDER_STATUS_BADGE[order.status] ?? "info"} />
-      </td>
-      <td className="px-3 py-3 text-muted-foreground">
-        <ChevronRight className="h-4 w-4" />
-      </td>
-    </tr>
   );
 }

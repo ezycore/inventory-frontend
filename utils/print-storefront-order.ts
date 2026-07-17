@@ -32,7 +32,8 @@ export interface PrintableStorefrontOrder {
   shippingAddress: {
     name: string;
     phone?: string;
-    address: string;
+    /** Omitted for pickup orders (name + phone only). */
+    address?: string;
     area?: string;
     zone?: string;
   };
@@ -154,7 +155,8 @@ const orderToDoc = (
         : []),
       {
         label: t.address,
-        value: addr.area ? `${addr.address}, ${addr.area}` : addr.address,
+        // Pickup orders have no address line — join whatever parts exist.
+        value: [addr.address, addr.area].filter(Boolean).join(", "),
         key: "address",
       },
       {

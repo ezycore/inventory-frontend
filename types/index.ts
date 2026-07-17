@@ -183,9 +183,12 @@ export interface StorefrontSettings {
   seo?: { title?: string; description?: string };
   currency?: string;
   shippingRule: StorefrontShippingRule;
-  /** Optional Dhaka inside/outside zone rates (override shippingRule when set). */
-  shippingZones?: { inside?: number; outside?: number; freeThreshold?: number };
+  /** Optional Dhaka inside/outside zone rates (override shippingRule when set).
+   *  `null` on an update clears them (disables the zone toggle). */
+  shippingZones?: { inside?: number; outside?: number; freeThreshold?: number } | null;
   defaultDeliveryCost: number;
+  /** In-store pickup option (collect from the fulfillment location). */
+  pickup?: { enabled?: boolean; instructions?: string };
   bankInstructions?: string;
   theme?: StorefrontTheme;
   nav?: StorefrontNav;
