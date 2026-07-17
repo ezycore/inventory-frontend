@@ -133,6 +133,43 @@ export const useRefreshTracking = () => {
   });
 };
 
+// Map an order's canonical address to a provider's location codes before dispatch.
+export const useResolveLocation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: {
+      id: string;
+      provider: string;
+      location: Record<string, string | number>;
+    }) => storefrontOrdersApi.resolveLocation(v.id, v.provider, v.location),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Delivery location resolved");
+      invalidateAll(qc);
+    },
+    onError: handleMutationError,
+  });
+};
+
+// A pre-dispatch delivery-price quote (no cache change — read-only).
+export const useCourierPrice = () =>
+  useMutation({
+    mutationFn: (v: { id: string; provider: string }) =>
+      storefrontOrdersApi.courierPrice(v.id, v.provider),
+    onError: handleMutationError,
+  });
+
+// Bulk dispatch: one call for many orders. Toast is left to the caller (it
+// summarizes the multi-status result), but the orders list is refreshed here.
+export const useBulkConsignment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { orderIds: string[]; provider: string }) =>
+      storefrontOrdersApi.bulkConsignment(v.orderIds, v.provider),
+    onSuccess: () => invalidateAll(qc),
+    onError: handleMutationError,
+  });
+};
+
 // --- Courier config ---
 export const useCouriers = () =>
   useQuery({
@@ -158,6 +195,46 @@ export const useUpsertCourier = () => {
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Courier saved");
       qc.invalidateQueries({ queryKey: COURIERS });
+    },
+    onError: handleMutationError,
+  });
+};
+
+export const useTestCourier = () =>
+  useMutation({
+    mutationFn: (provider: string) => couriersApi.test(provider),
+    onSuccess: (res) => handleMutationSuccess(res.message || "Connection ok"),
+    onError: handleMutationError,
+  });
+
+// Button-triggered fetch of the merchant's provider stores (for the store picker).
+export const useCourierStores = () =>
+  useMutation({
+    mutationFn: (provider: string) => couriersApi.stores(provider),
+    onError: handleMutationError,
+  });
+
+// Button-triggered fetch of the merchant's provider packages (eCourier picker).
+export const useCourierPackages = () =>
+  useMutation({
+    mutationFn: (provider: string) => couriersApi.packages(provider),
+    onError: handleMutationError,
+  });
+
+// The store's delivery-status webhook token + per-provider URLs (ensured on read).
+export const useCourierWebhook = () =>
+  useQuery({
+    queryKey: ["storefront-courier-webhook"],
+    queryFn: () => couriersApi.webhook(),
+  });
+
+export const useRegenerateWebhookToken = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => couriersApi.regenerateWebhook(),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Webhook URL regenerated");
+      qc.invalidateQueries({ queryKey: ["storefront-courier-webhook"] });
     },
     onError: handleMutationError,
   });

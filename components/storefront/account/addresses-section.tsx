@@ -8,6 +8,7 @@ import { useShopperAccount } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
+import { GeoPicker } from "@/components/storefront/checkout/geo-picker";
 
 const input: CSSProperties = {
   width: "100%",
@@ -21,8 +22,22 @@ const input: CSSProperties = {
   outline: "none",
 };
 
-type Draft = { label: string; line: string; phone: string; isDefault: boolean };
-const emptyDraft: Draft = { label: "", line: "", phone: "", isDefault: false };
+type Draft = {
+  label: string;
+  line: string;
+  phone: string;
+  isDefault: boolean;
+  district: string;
+  area: string;
+};
+const emptyDraft: Draft = {
+  label: "",
+  line: "",
+  phone: "",
+  isDefault: false,
+  district: "",
+  area: "",
+};
 
 /**
  * Addresses section — the shopper's saved delivery locations. One inline form
@@ -30,7 +45,7 @@ const emptyDraft: Draft = { label: "", line: "", phone: "", isDefault: false };
  */
 export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
   const { slug } = useStoreContext();
-  const { t } = useStorefrontUI();
+  const { t, lang } = useStorefrontUI();
   const { addAddress, updateAddress, deleteAddress } = useShopperAccount(slug);
 
   // null = closed, "new" = add form, otherwise the id of the card being edited.
@@ -44,7 +59,14 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
     setEditing("new");
   };
   const openEdit = (a: ShopperAddress) => {
-    setDraft({ label: a.label, line: a.line, phone: a.phone ?? "", isDefault: a.isDefault });
+    setDraft({
+      label: a.label,
+      line: a.line,
+      phone: a.phone ?? "",
+      isDefault: a.isDefault,
+      district: a.district ?? "",
+      area: a.area ?? "",
+    });
     setEditing(a.id ?? null);
   };
   const submit = () => {
@@ -54,6 +76,8 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
       line: draft.line.trim(),
       phone: draft.phone.trim() || undefined,
       isDefault: draft.isDefault,
+      district: draft.district,
+      area: draft.area,
     };
     const opts = {
       onSuccess: () => {
@@ -70,6 +94,12 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 14 }}>
       <input placeholder={t.tabAddresses} value={draft.label} onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))} style={input} />
       <input placeholder={t.address} value={draft.line} onChange={(e) => setDraft((d) => ({ ...d, line: e.target.value }))} style={input} />
+      <GeoPicker
+        value={{ district: draft.district, area: draft.area }}
+        onChange={(g) => setDraft((d) => ({ ...d, district: g.district, area: g.area }))}
+        lang={lang}
+        labels={{ district: t.selectDistrict, area: t.selectArea }}
+      />
       <input placeholder={t.phone} value={draft.phone} onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))} style={input} />
       <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text)", cursor: "pointer" }}>
         <input type="checkbox" checked={draft.isDefault} onChange={(e) => setDraft((d) => ({ ...d, isDefault: e.target.checked }))} />
@@ -114,6 +144,11 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
                   ) : null}
                 </div>
                 <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>{a.line}</div>
+                {a.district || a.area ? (
+                  <div style={{ fontSize: 12.5, color: "var(--faint)", marginTop: 2 }}>
+                    {[a.area, a.district].filter(Boolean).join(", ")}
+                  </div>
+                ) : null}
                 {a.phone ? (
                   <div className="sf-mono" style={{ fontSize: 12.5, color: "var(--faint)", marginTop: 4 }}>{a.phone}</div>
                 ) : null}

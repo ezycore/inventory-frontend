@@ -209,13 +209,17 @@ export interface ShopperPrefs {
   newsletter: boolean;
 }
 
-/** Saved delivery address (account address book). */
+/** Saved delivery address (account address book). Courier-neutral by design. */
 export interface ShopperAddress {
   id?: string;
   label: string;
   line: string;
   phone?: string;
   isDefault: boolean;
+  /** Canonical BD district (see `lib/bd-geo.ts`). */
+  district?: string;
+  /** Area/upazila/thana — free text. */
+  area?: string;
 }
 
 export interface ShopperProfile {
@@ -250,7 +254,9 @@ export interface ShippingAddress {
   name: string;
   phone: string;
   address: string;
-  city?: string;
+  /** Canonical BD district (courier-neutral). */
+  district?: string;
+  /** Area/upazila/thana — free text. */
   area?: string;
   zone?: "inside" | "outside";
   notes?: string;
@@ -402,7 +408,14 @@ export const storefrontApi = {
   addAddress: (
     slug: string,
     token: string,
-    body: { label: string; line: string; phone?: string; isDefault?: boolean },
+    body: {
+      label: string;
+      line: string;
+      phone?: string;
+      isDefault?: boolean;
+      district?: string;
+      area?: string;
+    },
   ) =>
     sfFetch<ShopperProfile>(slug, "/auth/me/addresses", {
       method: "POST",
@@ -418,6 +431,8 @@ export const storefrontApi = {
       line: string;
       phone: string;
       isDefault: boolean;
+      district: string;
+      area: string;
     }>,
   ) =>
     sfFetch<ShopperProfile>(slug, `/auth/me/addresses/${addressId}`, {

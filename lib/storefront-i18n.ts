@@ -162,6 +162,15 @@ export interface Dict {
   outsideDhaka: string;
   zoneDays12: string;
   zoneDays35: string;
+  courierArea: string;
+  selectDistrict: string;
+  selectCity: string;
+  selectZone: string;
+  selectArea: string;
+  selectThana: string;
+  loadingLocations: string;
+  newAddress: string;
+  saveThisAddress: string;
   orderNotesPh: string;
   paymentMethod: string;
   default: string;
@@ -451,6 +460,15 @@ const en: Dict = {
   outsideDhaka: "Outside Dhaka",
   zoneDays12: "1–2 days",
   zoneDays35: "3–5 days",
+  courierArea: "Delivery area",
+  selectDistrict: "Select district",
+  selectCity: "Select city",
+  selectZone: "Select zone",
+  selectArea: "Area / upazila",
+  selectThana: "Select thana",
+  loadingLocations: "Loading…",
+  newAddress: "New address",
+  saveThisAddress: "Save this address",
   orderNotesPh: "Delivery notes (optional)",
   paymentMethod: "Payment method",
   default: "Default",
@@ -741,6 +759,15 @@ const bn: Dict = {
   outsideDhaka: "ঢাকার বাইরে",
   zoneDays12: "১–২ দিন",
   zoneDays35: "৩–৫ দিন",
+  courierArea: "ডেলিভারি এলাকা",
+  selectDistrict: "জেলা নির্বাচন করুন",
+  selectCity: "শহর নির্বাচন করুন",
+  selectZone: "জোন নির্বাচন করুন",
+  selectArea: "এলাকা / উপজেলা",
+  selectThana: "থানা নির্বাচন করুন",
+  loadingLocations: "লোড হচ্ছে…",
+  newAddress: "নতুন ঠিকানা",
+  saveThisAddress: "এই ঠিকানা সংরক্ষণ করুন",
   orderNotesPh: "ডেলিভারি নোট (ঐচ্ছিক)",
   paymentMethod: "পেমেন্ট মাধ্যম",
   default: "ডিফল্ট",

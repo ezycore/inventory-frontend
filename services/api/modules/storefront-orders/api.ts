@@ -3,12 +3,28 @@ import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
   AdminStorefrontOrder,
   CourierList,
+  CourierLocation,
+  CourierPackage,
+  CourierPrice,
   CourierRemoved,
+  CourierStore,
+  CourierTest,
   CourierUpsert,
+  CourierWebhook,
   FraudScore,
   StorefrontOrderList,
 } from "@/types/api";
-export type { AdminStorefrontOrder };
+export type { AdminStorefrontOrder, CourierPrice };
+
+/** The multi-status envelope a bulk dispatch answers with (200 all-ok / 207 partial). */
+export interface CourierBulkResult {
+  success: boolean;
+  total: number;
+  successful: number;
+  failed: number;
+  results?: { id: string; orderNumber?: string; consignmentId?: string; trackingCode?: string }[];
+  errors?: { id: string; error?: string; code?: string }[];
+}
 
 // Response shapes generated from the backend storefront-order + courier DTOs (`ecommerce.dto.ts`).
 // Order sub-shapes are derived from the parent so they cannot drift from it.
@@ -103,6 +119,25 @@ export const storefrontOrdersApi = {
     apiClient.post(`${base}/${id}/consignment`, { provider }),
   refreshTracking: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/refresh-tracking`, {}),
+  courierPrice: (
+    id: string,
+    provider: string,
+  ): Promise<ApiResponse<CourierPrice>> =>
+    apiClient.get(
+      `${base}/${id}/courier-price?provider=${encodeURIComponent(provider)}`,
+    ),
+  bulkConsignment: (
+    orderIds: string[],
+    provider: string,
+  ): Promise<ApiResponse<CourierBulkResult>> =>
+    apiClient.post(`${base}/bulk-consignment`, { orderIds, provider }),
+  // Map an order's canonical address to a provider's own location codes before dispatch.
+  resolveLocation: (
+    id: string,
+    provider: string,
+    location: Record<string, string | number>,
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(`${base}/${id}/resolve-location`, { provider, location }),
 };
 
 const couriersBase = "/ecommerce/couriers";
@@ -117,4 +152,26 @@ export const couriersApi = {
     apiClient.put(`${couriersBase}/${provider}`, body),
   remove: (provider: string): Promise<ApiResponse<CourierRemoved>> =>
     apiClient.delete(`${couriersBase}/${provider}`),
+  test: (provider: string): Promise<ApiResponse<CourierTest>> =>
+    apiClient.post(`${couriersBase}/${provider}/test`, {}),
+  stores: (provider: string): Promise<ApiResponse<CourierStore[]>> =>
+    apiClient.get(`${couriersBase}/${provider}/stores`),
+  packages: (provider: string): Promise<ApiResponse<CourierPackage[]>> =>
+    apiClient.get(`${couriersBase}/${provider}/packages`),
+  locations: (
+    provider: string,
+    level: string,
+    parent?: string | number,
+  ): Promise<ApiResponse<CourierLocation[]>> =>
+    apiClient.get(
+      `${couriersBase}/${provider}/locations?level=${encodeURIComponent(level)}${
+        parent !== undefined && parent !== ""
+          ? `&parent=${encodeURIComponent(String(parent))}`
+          : ""
+      }`,
+    ),
+  webhook: (): Promise<ApiResponse<CourierWebhook>> =>
+    apiClient.get(`${couriersBase}/webhook`),
+  regenerateWebhook: (): Promise<ApiResponse<CourierWebhook>> =>
+    apiClient.post(`${couriersBase}/webhook/regenerate`, {}),
 };

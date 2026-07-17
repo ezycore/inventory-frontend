@@ -18,6 +18,7 @@ import {
   useCancelOrder,
   useConfirmOrder,
   useCouriers,
+  useCourierPrice,
   useCreateConsignment,
   useMarkOrderPaid,
   useOrderFraudScore,
@@ -30,6 +31,7 @@ import {
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
+import { CourierLocationResolver } from "@/components/ecommerce/courier-location-resolver";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
@@ -128,6 +130,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   const markPaid = useMarkOrderPaid();
   const createConsignment = useCreateConsignment();
   const refreshTracking = useRefreshTracking();
+  const courierPrice = useCourierPrice();
   const fraud = useOrderFraudScore();
   const { data: couriersData } = useCouriers();
 
@@ -135,6 +138,10 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   const [editingShipping, setEditingShipping] = useState(false);
   const [accountId, setAccountId] = useState("");
   const [provider, setProvider] = useState("");
+  const [quote, setQuote] = useState<number | null>(null);
+  // The manual resolver stays hidden — it opens only when auto-resolve can't map
+  // the address (COURIER_LOCATION_UNRESOLVED) or the admin opens it themselves.
+  const [showResolver, setShowResolver] = useState(false);
 
   const enabledCouriers = (couriersData?.couriers ?? []).filter((c) => c.enabled);
 
@@ -156,6 +163,11 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   const canCancel = ["pending", "confirmed", "processing"].includes(order.status);
   const hasTracking = !!order.courier?.consignmentId;
   const canShip = order.status === "processing" && !hasTracking;
+  // Pathao/eCourier map the canonical address to their codes at dispatch — the
+  // backend auto-resolves it (learned cache + name-match), and only when that is
+  // ambiguous does it answer COURIER_LOCATION_UNRESOLVED, which reveals the
+  // manual resolver. Steadfast dispatches off the address line.
+  const isLocationProvider = provider === "pathao" || provider === "ecourier";
   const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
   const money = (n: number | undefined) => formatMoney(n ?? 0, currency);
 
@@ -433,7 +445,11 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
                     <div className="flex-1">
                       <SimpleSelect
                         value={provider}
-                        onValueChange={setProvider}
+                        onValueChange={(v) => {
+                          setProvider(v);
+                          setQuote(null);
+                          setShowResolver(false);
+                        }}
                         options={enabledCouriers.map((c) => ({
                           label: `${cap(c.provider)} Courier`,
                           value: c.provider,
@@ -442,18 +458,71 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
                       />
                     </div>
                     <Button
+                      variant="outline"
+                      disabled={!provider || courierPrice.isPending}
+                      onClick={() =>
+                        courierPrice.mutate(
+                          { id: order._id, provider },
+                          {
+                            onSuccess: (res) => setQuote(res.data.price),
+                            onError: (e) => {
+                              if ((e as { code?: string }).code === "COURIER_LOCATION_UNRESOLVED")
+                                setShowResolver(true);
+                            },
+                          },
+                        )
+                      }
+                    >
+                      {courierPrice.isPending ? "…" : "Get price"}
+                    </Button>
+                    <Button
                       disabled={!provider || createConsignment.isPending}
                       onClick={() =>
-                        createConsignment.mutate({ id: order._id, provider })
+                        createConsignment.mutate(
+                          { id: order._id, provider },
+                          {
+                            onError: (e) => {
+                              if ((e as { code?: string }).code === "COURIER_LOCATION_UNRESOLVED")
+                                setShowResolver(true);
+                            },
+                          },
+                        )
                       }
                     >
                       Create consignment
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Creates a consignment with the courier and returns a tracking
-                    ID.
-                  </p>
+                  {showResolver && isLocationProvider ? (
+                    <CourierLocationResolver
+                      order={order}
+                      provider={provider}
+                      onResolved={() => {
+                        setShowResolver(false);
+                        setQuote(null);
+                      }}
+                    />
+                  ) : null}
+                  {quote !== null ? (
+                    <p className="text-xs font-medium text-primary">
+                      Estimated delivery price: {formatMoney(quote)}
+                    </p>
+                  ) : null}
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      Pathao/eCourier match the address to a delivery zone
+                      automatically; if it can&apos;t, a matcher appears.
+                      Steadfast ships off the address line.
+                    </p>
+                    {isLocationProvider && !showResolver ? (
+                      <button
+                        type="button"
+                        className="flex-none text-xs font-medium text-primary underline"
+                        onClick={() => setShowResolver(true)}
+                      >
+                        Set location
+                      </button>
+                    ) : null}
+                  </div>
                 </>
               )
             ) : (
@@ -484,10 +553,10 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
             <div className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
               {order.shippingAddress.address}
             </div>
-            {(order.shippingAddress.area || order.shippingAddress.city) && (
+            {(order.shippingAddress.area || order.shippingAddress.district) && (
               <div className="mt-2">
                 <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
-                  {[order.shippingAddress.area, order.shippingAddress.city]
+                  {[order.shippingAddress.area, order.shippingAddress.district]
                     .filter(Boolean)
                     .join(", ")}
                 </span>

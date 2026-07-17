@@ -156,6 +156,8 @@ export const useShopperAccount = (slug: string) => {
       line: string;
       phone?: string;
       isDefault?: boolean;
+      district?: string;
+      area?: string;
     }) => storefrontApi.addAddress(slug, token!, body),
     onSuccess,
   });
@@ -169,6 +171,8 @@ export const useShopperAccount = (slug: string) => {
       line?: string;
       phone?: string;
       isDefault?: boolean;
+      district?: string;
+      area?: string;
     }) => storefrontApi.updateAddress(slug, token!, addressId, body),
     onSuccess,
   });

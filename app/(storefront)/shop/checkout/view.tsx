@@ -5,13 +5,21 @@ import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { usePlaceOrder, useStore } from "@/services/storefront/hooks";
+import {
+  usePlaceOrder,
+  useShopperAccount,
+  useStore,
+} from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { storefrontApi } from "@/lib/storefront-client";
-import type { StorefrontOrder } from "@/lib/storefront-client";
+import type {
+  ShopperAddress,
+  ShippingAddress,
+  StorefrontOrder,
+} from "@/lib/storefront-client";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { computeShipping, type Zone } from "@/lib/storefront-shipping";
 import { storeHref } from "@/lib/storefront-links";
@@ -31,6 +39,11 @@ import {
   primaryLink,
 } from "@/components/storefront/checkout/checkout-bits";
 import { OrderPlacedCard } from "@/components/storefront/checkout/order-placed-card";
+import { CheckoutAddressBook } from "@/components/storefront/checkout/checkout-address-book";
+import {
+  GeoPicker,
+  type GeoValue,
+} from "@/components/storefront/checkout/geo-picker";
 
 const wrap: CSSProperties = {
   maxWidth: 940,
@@ -40,11 +53,14 @@ const wrap: CSSProperties = {
 };
 const PAY_ICON: Record<string, IconName> = { cod: "coins", bank: "bank" };
 
+const emptyGeo = (): GeoValue => ({ district: "", area: "" });
+
 export default function CheckoutPage() {
   const { slug, base } = useStoreContext();
   const { t, lang } = useStorefrontUI();
   const { data: store } = useStore(slug);
   const placeOrder = usePlaceOrder(slug);
+  const account = useShopperAccount(slug);
   const router = useRouter();
 
   const shopper = useShopperStore((s) => s.shopper);
@@ -69,20 +85,44 @@ export default function CheckoutPage() {
   const multi = variant === "multi";
   const methods = store?.allowedPaymentMethods ?? ["cod"];
 
+  const savedAddresses = shopper?.addresses ?? [];
+
   const [addr, setAddr] = useState({ name: "", phone: "", address: "", notes: "" });
   const set = (k: keyof typeof addr, v: string) => setAddr((a) => ({ ...a, [k]: v }));
+  // Which saved address is selected (null + isNew → the shopper is entering a new one).
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isNew, setIsNew] = useState(false);
+  const [saveNew, setSaveNew] = useState(true);
+  const [geo, setGeo] = useState<GeoValue>(emptyGeo);
+
   // Prefill from the shopper profile once it's available — on a hard load the
   // persisted store serves its empty initial snapshot through the hydration
   // render, so a mount-time initializer would miss it (render-time adjust).
   const [prefilled, setPrefilled] = useState(false);
   if (shopper && !prefilled) {
     setPrefilled(true);
-    setAddr((a) => ({
-      ...a,
-      name: a.name || (shopper.name ?? ""),
-      phone: a.phone || (shopper.phone ?? ""),
-    }));
+    const def =
+      savedAddresses.find((a) => a.isDefault) ?? savedAddresses[0] ?? null;
+    if (def) {
+      setSelectedId(def.id ?? null);
+      setIsNew(false);
+      setAddr((a) => ({
+        ...a,
+        name: a.name || (shopper.name ?? ""),
+        phone: def.phone || shopper.phone || "",
+        address: def.line,
+      }));
+      setGeo({ district: def.district ?? "", area: def.area ?? "" });
+    } else {
+      setIsNew(true);
+      setAddr((a) => ({
+        ...a,
+        name: a.name || (shopper.name ?? ""),
+        phone: a.phone || (shopper.phone ?? ""),
+      }));
+    }
   }
+
   const [zone, setZone] = useState<Zone>("inside");
   const [payment, setPayment] = useState<"cod" | "bank">(methods[0]);
   const effectivePayment = methods.includes(payment) ? payment : methods[0];
@@ -107,6 +147,24 @@ export default function CheckoutPage() {
       ? `${money(zones.outside, currency)} · ${t.zoneDays35}`
       : t.zoneDays35;
 
+  // --- address book selection ---
+  const pickSaved = (a: ShopperAddress) => {
+    setSelectedId(a.id ?? null);
+    setIsNew(false);
+    setAddr((prev) => ({
+      ...prev,
+      phone: a.phone || shopper?.phone || "",
+      address: a.line,
+    }));
+    setGeo({ district: a.district ?? "", area: a.area ?? "" });
+  };
+  const pickNew = () => {
+    setSelectedId(null);
+    setIsNew(true);
+    setAddr((prev) => ({ ...prev, phone: shopper?.phone || "", address: "" }));
+    setGeo(emptyGeo());
+  };
+
   const applyCoupon = async () => {
     if (!coupon.trim() || !token) return;
     setApplying(true);
@@ -125,25 +183,58 @@ export default function CheckoutPage() {
     }
   };
 
-  const canSubmit = addr.name.trim() && addr.phone.trim() && addr.address.trim();
+  const addressComplete = !!(
+    addr.name.trim() &&
+    addr.phone.trim() &&
+    addr.address.trim()
+  );
+  // District + area are the courier-neutral location the backend requires.
+  const locComplete = !!(geo.district.trim() && geo.area.trim());
+  const canSubmit = addressComplete && locComplete;
+  // Per-step advance gate (multi-step template): step 1 = address, 2 = delivery.
+  const stepBlocked =
+    (step === 1 && !addressComplete) || (step === 2 && !locComplete);
+
+  // Best-effort: remember the picked district/area on the chosen address (or save
+  // a brand-new one), so the next checkout is pre-filled. Never blocks the order.
+  const rememberAddress = () => {
+    if (!token) return;
+    const { district, area } = geo;
+    if (!isNew && selectedId) {
+      account.updateAddress.mutate({ addressId: selectedId, district, area });
+    } else if (isNew && saveNew && addr.address.trim()) {
+      account.addAddress.mutate({
+        label: addr.address.trim().slice(0, 38) || t.newAddress,
+        line: addr.address.trim(),
+        phone: addr.phone.trim() || undefined,
+        district,
+        area,
+      });
+    }
+  };
 
   const submit = () => {
+    const shippingAddress: ShippingAddress = {
+      name: addr.name,
+      phone: addr.phone,
+      address: addr.address,
+      // Courier-neutral canonical location — the backend maps it to a courier's
+      // codes at dispatch, never here.
+      district: geo.district,
+      area: geo.area,
+      zone,
+      notes: addr.notes || undefined,
+    };
     placeOrder.mutate(
       {
         items: items.map((i) => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })),
-        shippingAddress: {
-          name: addr.name,
-          phone: addr.phone,
-          address: addr.address,
-          area: zone === "inside" ? "Inside Dhaka" : "Outside Dhaka",
-          zone,
-          notes: addr.notes || undefined,
-        },
+        shippingAddress,
         paymentMethod: effectivePayment,
         couponCode: applied?.code,
       },
       {
         onSuccess: (order) => {
+          rememberAddress();
           clear();
           setPlaced(order);
           toast.success(t.orderPlaced);
@@ -213,12 +304,31 @@ export default function CheckoutPage() {
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 22 }}>
           {showAddress ? (
             <div>
+              {savedAddresses.length > 0 ? (
+                <>
+                  <div style={label}>{t.savedAddresses}</div>
+                  <CheckoutAddressBook
+                    addresses={savedAddresses}
+                    selectedId={selectedId}
+                    isNew={isNew}
+                    onPick={pickSaved}
+                    onNew={pickNew}
+                    labels={{ newAddress: t.newAddress, default: t.default }}
+                  />
+                </>
+              ) : null}
               <div style={label}>{t.contactInfo}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
                 <input style={input} placeholder={t.fullName} value={addr.name} onChange={(e) => set("name", e.target.value)} />
                 <input style={input} placeholder={t.phone} value={addr.phone} onChange={(e) => set("phone", e.target.value)} />
                 <input style={input} placeholder={t.address} value={addr.address} onChange={(e) => set("address", e.target.value)} />
                 <input style={input} placeholder={t.orderNotesPh} value={addr.notes} onChange={(e) => set("notes", e.target.value)} />
+                {isNew && savedAddresses.length > 0 ? (
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--muted)", cursor: "pointer" }}>
+                    <input type="checkbox" checked={saveNew} onChange={(e) => setSaveNew(e.target.checked)} />
+                    {t.saveThisAddress}
+                  </label>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -229,6 +339,15 @@ export default function CheckoutPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
                 <ZoneTile active={zone === "inside"} onClick={() => setZone("inside")} title={t.insideDhaka} note={insideNote} />
                 <ZoneTile active={zone === "outside"} onClick={() => setZone("outside")} title={t.outsideDhaka} note={outsideNote} />
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <div style={label}>{t.courierArea}</div>
+                <GeoPicker
+                  value={geo}
+                  onChange={setGeo}
+                  lang={lang}
+                  labels={{ district: t.selectDistrict, area: t.selectArea }}
+                />
               </div>
             </div>
           ) : null}
@@ -304,7 +423,7 @@ export default function CheckoutPage() {
                 </button>
               ) : null}
               {step < 4 ? (
-                <button type="button" onClick={() => setStep((s) => Math.min(4, s + 1))} disabled={step === 1 && !canSubmit} style={{ ...primaryBtn, flex: 1, opacity: step === 1 && !canSubmit ? 0.5 : 1 }}>
+                <button type="button" onClick={() => setStep((s) => Math.min(4, s + 1))} disabled={stepBlocked} style={{ ...primaryBtn, flex: 1, opacity: stepBlocked ? 0.5 : 1 }}>
                   {t.continueStep}
                 </button>
               ) : (
@@ -348,4 +467,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-

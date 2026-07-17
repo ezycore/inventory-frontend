@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { ChevronRight, Search } from "lucide-react";
 import {
   storefrontOrdersApi,
+  useBulkConsignment,
+  useCouriers,
   useStorefrontOrders,
   type AdminStorefrontOrder,
 } from "@/services/api";
@@ -18,6 +20,7 @@ import { Card } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Checkbox } from "@/ui/components/checkbox";
+import { SimpleSelect } from "@/ui/components/simple-select";
 import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
 
@@ -76,6 +79,11 @@ function OrdersList() {
   const [limit, setLimit] = useState(20);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkProvider, setBulkProvider] = useState("");
+
+  const { data: couriersData } = useCouriers();
+  const enabledCouriers = (couriersData?.couriers ?? []).filter((c) => c.enabled);
+  const bulkConsign = useBulkConsignment();
 
   // Debounce the search box; a new search resets paging + selection.
   useEffect(() => {
@@ -119,6 +127,13 @@ function OrdersList() {
   const confirmable = items.filter(
     (o) => selected.has(o._id) && o.status === "pending",
   );
+  // Dispatchable = selected, confirmed/processing, not already sent to a courier.
+  const dispatchable = items.filter(
+    (o) =>
+      selected.has(o._id) &&
+      (o.status === "confirmed" || o.status === "processing") &&
+      !o.courier?.consignmentId,
+  );
 
   const toggleAll = (on: boolean) =>
     setSelected(on ? new Set(items.map((o) => o._id)) : new Set());
@@ -144,6 +159,24 @@ function OrdersList() {
     qc.invalidateQueries({ queryKey: ["ecommerce-dashboard"] });
     setSelected(new Set());
     setBulkBusy(false);
+  };
+
+  const onBulkDispatch = () => {
+    if (!bulkProvider || dispatchable.length === 0) return;
+    bulkConsign.mutate(
+      { orderIds: dispatchable.map((o) => o._id), provider: bulkProvider },
+      {
+        onSuccess: (res) => {
+          const { successful, failed } = res.data;
+          if (successful)
+            toast.success(`${successful} order${successful === 1 ? "" : "s"} dispatched`);
+          if (failed)
+            toast.error(`${failed} order${failed === 1 ? "" : "s"} could not be dispatched`);
+          setSelected(new Set());
+          setBulkProvider("");
+        },
+      },
+    );
   };
 
   return (
@@ -212,6 +245,27 @@ function OrdersList() {
           >
             Confirm{confirmable.length ? ` (${confirmable.length})` : ""}
           </Button>
+          {dispatchable.length > 0 && enabledCouriers.length > 0 ? (
+            <div className="flex items-center gap-2">
+              <SimpleSelect
+                value={bulkProvider}
+                onValueChange={setBulkProvider}
+                options={enabledCouriers.map((c) => ({
+                  label: `${c.provider[0].toUpperCase()}${c.provider.slice(1)} Courier`,
+                  value: c.provider,
+                }))}
+                placeholder="Courier"
+                className="h-9 w-40"
+              />
+              <Button
+                size="sm"
+                disabled={!bulkProvider || bulkConsign.isPending}
+                onClick={onBulkDispatch}
+              >
+                Send to courier ({dispatchable.length})
+              </Button>
+            </div>
+          ) : null}
           <OrderInvoicePrintButton
             orders={items.filter((o) => selected.has(o._id))}
           />
