@@ -8,7 +8,7 @@ import { useStorePage } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
-import { MarkdownView } from "@/components/storefront/markdown-view";
+import { ContentBodyView } from "@/components/storefront/content-body-view";
 
 /**
  * CMS content page (About / FAQ / policies) — centered prose column rendering
@@ -54,7 +54,7 @@ export default function StoreContentPage() {
           </div>
         ) : null}
       </header>
-      <MarkdownView source={page.body} />
+      <ContentBodyView body={page.body} />
     </article>
   );
 }

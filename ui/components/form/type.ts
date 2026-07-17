@@ -5,6 +5,7 @@ import { z } from "zod";
 export type FormFieldType =
   | "input"
   | "textarea"
+  | "richtext"
   | "select"
   | "fuseSelect"
   | "radio-group"

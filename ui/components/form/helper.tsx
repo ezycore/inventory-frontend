@@ -3,6 +3,19 @@ import { ChevronDown, ChevronUp, Info, Upload, X } from "lucide-react";
 import { FC, memo, useMemo, useState } from "react";
 import { Controller, useWatch, useFormState } from "react-hook-form";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { ContentBodyView } from "@/components/storefront/content-body-view";
+
+// Loaded on demand: TipTap is heavy and helper.tsx is in every form's bundle.
+const RichTextEditor = dynamic(
+  () => import("@/components/shared/rich-text-editor").then((m) => m.RichTextEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[230px] w-full animate-pulse rounded-md border border-input bg-muted/40" />
+    ),
+  },
+);
 import { AdvancedSelect } from "../advanced-select";
 import { FuseAdvancedSelect } from "../fuse-advanced-select";
 import { Button } from "../button";
@@ -221,6 +234,21 @@ const FormField: FC<{
   const renderViewMode = () => {
     let displayValue = fieldValue;
 
+    if (field.type === "richtext") {
+      // Storefront-var → admin-token mapping so the storefront body renderer
+      // reads correctly against the admin theme.
+      const themeBridge = {
+        "--text": "var(--foreground)",
+        "--muted": "var(--muted-foreground)",
+        "--faint": "var(--muted-foreground)",
+      } as React.CSSProperties;
+      return (
+        <div style={themeBridge}>
+          <ContentBodyView body={typeof fieldValue === "string" ? fieldValue : ""} />
+        </div>
+      );
+    }
+
     if (field.type === "select" && field.options) {
       const option = field.options.find((opt) => opt.value === fieldValue);
       displayValue = option?.label || fieldValue;
@@ -374,6 +402,25 @@ const FormField: FC<{
                   controllerField.onChange(e.target.value);
                   handleChange(e.target.value);
                 }}
+                className={cn("w-full", error ? "border-red-500" : "")}
+              />
+            )}
+          />
+        );
+
+      case "richtext":
+        return (
+          <Controller
+            name={field.name}
+            control={control}
+            render={({ field: controllerField }) => (
+              <RichTextEditor
+                value={controllerField.value ?? ""}
+                onChange={(json) => {
+                  controllerField.onChange(json);
+                  handleChange(json);
+                }}
+                disabled={effectiveDisabled}
                 className={cn("w-full", error ? "border-red-500" : "")}
               />
             )}

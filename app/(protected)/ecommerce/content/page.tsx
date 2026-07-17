@@ -2,20 +2,8 @@
 
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
-import {
-  contentPagesApi,
-  useCreateContentPage,
-  useDeleteContentPage,
-  useUpdateContentPage,
-  type ContentPage,
-} from "@/services/api";
-import {
-  contentColumns,
-  contentDefaultValues,
-  contentFilterConfig,
-  contentFormConfig,
-  contentSearchConfig,
-} from "@/components/ecommerce/content";
+import { contentPagesApi, useCreateContentPage, useDeleteContentPage, useUpdateContentPage, type ContentPage } from "@/services/api";
+import { contentColumns, contentDefaultValues, contentFilterConfig, contentFormConfig, contentSearchConfig } from "@/components/ecommerce/content";
 
 function cleanContentPage(data: Record<string, any>) {
   return {
