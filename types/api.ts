@@ -108,6 +108,7 @@ export type ApiOrganizationFeatures = Schemas["OrganizationFeatures"];
 // Storefront (admin side) ----------------------------------------------------
 export type AdminStorefrontOrder = Schemas["StorefrontOrder"];
 export type StorefrontOrderList = Schemas["StorefrontOrderList"];
+export type OrderStats = Schemas["OrderStats"];
 export type StorefrontDashboard = Schemas["StorefrontDashboard"];
 export type CatalogList = Schemas["CatalogList"];
 export type StorefrontCollection = Schemas["Collection"];

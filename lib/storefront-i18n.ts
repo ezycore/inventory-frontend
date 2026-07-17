@@ -281,6 +281,8 @@ export interface Dict {
   timelineShipped: string;
   timelineDelivered: string;
   orderCancelled: string;
+  cancelOrder: string;
+  confirmCancelOrder: string;
   orderItems: string;
   deliveryAddress: string;
   paid: string;
@@ -590,6 +592,8 @@ const en: Dict = {
   timelineShipped: "Shipped",
   timelineDelivered: "Delivered",
   orderCancelled: "Order cancelled",
+  cancelOrder: "Cancel order",
+  confirmCancelOrder: "Cancel this order? This can’t be undone.",
   orderItems: "Order items",
   deliveryAddress: "Delivery address",
   paid: "Paid",
@@ -900,6 +904,8 @@ const bn: Dict = {
   timelineShipped: "পাঠানো হয়েছে",
   timelineDelivered: "ডেলিভারড",
   orderCancelled: "অর্ডার বাতিল",
+  cancelOrder: "অর্ডার বাতিল করুন",
+  confirmCancelOrder: "এই অর্ডারটি বাতিল করবেন? এটি আর ফেরানো যাবে না।",
   orderItems: "অর্ডারের পণ্য",
   deliveryAddress: "ডেলিভারি ঠিকানা",
   paid: "পরিশোধিত",

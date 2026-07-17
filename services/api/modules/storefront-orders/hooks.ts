@@ -1,26 +1,34 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
 import { handleMutationSuccess } from "../query-helpers";
-import { couriersApi, storefrontOrdersApi } from "./api";
+import {
+  couriersApi,
+  storefrontOrdersApi,
+  type AdminOrderListParams,
+} from "./api";
 
 const ROOT = ["storefront-orders"] as const;
 const COURIERS = ["storefront-couriers"] as const;
 const keys = {
   list: (params: unknown) => [...ROOT, "list", params] as const,
+  stats: () => [...ROOT, "stats"] as const,
   detail: (id: string) => [...ROOT, "detail", id] as const,
 };
 
-export const useStorefrontOrders = (params: {
-  status?: string;
-  search?: string;
-  page?: number;
-  limit?: number;
-}) =>
+export const useStorefrontOrders = (params: AdminOrderListParams) =>
   useQuery({
     queryKey: keys.list(params),
     queryFn: () => storefrontOrdersApi.list(params),
     select: (r) => r.data,
     placeholderData: (prev) => prev,
+  });
+
+/** The stat-card snapshot — under the ROOT key, so any order mutation refreshes it. */
+export const useOrderStats = () =>
+  useQuery({
+    queryKey: keys.stats(),
+    queryFn: () => storefrontOrdersApi.stats(),
+    select: (r) => r.data,
   });
 
 export const useStorefrontOrder = (id: string) =>
@@ -72,10 +80,37 @@ export const useUpdateOrderStatus = () => {
 export const useCancelOrder = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: string; reject?: boolean }) =>
-      storefrontOrdersApi.cancel(v.id, v.reject),
+    mutationFn: (v: {
+      id: string;
+      reject?: boolean;
+      refundAdvance?: boolean;
+      accountId?: string;
+    }) =>
+      storefrontOrdersApi.cancel(v.id, {
+        reject: v.reject,
+        refundAdvance: v.refundAdvance,
+        accountId: v.accountId,
+      }),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Order cancelled");
+      invalidateAll(qc);
+    },
+    onError: handleMutationError,
+  });
+};
+
+/**
+ * Record a COD delivery-charge advance (collected before shipping). Under the
+ * ROOT key like the other order mutations, so the stat cards and the order
+ * refresh together.
+ */
+export const useRecordAdvance = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; amount: number; accountId?: string }) =>
+      storefrontOrdersApi.recordAdvance(v.id, v.amount, v.accountId),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Advance recorded");
       invalidateAll(qc);
     },
     onError: handleMutationError,
@@ -102,6 +137,30 @@ export const useMarkOrderPaid = () => {
       storefrontOrdersApi.markPaid(v.id, v.accountId),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Payment recorded");
+      invalidateAll(qc);
+    },
+    onError: handleMutationError,
+  });
+};
+
+export const useReturnOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: {
+      id: string;
+      returnCharge?: number;
+      collectedAmount?: number;
+      accountId?: string;
+      refund?: { mode: "account" | "credit"; accountId?: string };
+    }) =>
+      storefrontOrdersApi.returnOrder(v.id, {
+        returnCharge: v.returnCharge,
+        collectedAmount: v.collectedAmount,
+        accountId: v.accountId,
+        refund: v.refund,
+      }),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order returned");
       invalidateAll(qc);
     },
     onError: handleMutationError,

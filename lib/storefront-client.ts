@@ -483,6 +483,12 @@ export const storefrontApi = {
     sfFetch<StorefrontOrder[]>(slug, "/orders", { token }),
   getOrder: (slug: string, token: string, orderNumber: string) =>
     sfFetch<StorefrontOrder>(slug, `/orders/${orderNumber}`, { token }),
+  // Shopper self-cancel while the order is still pending.
+  cancelOrder: (slug: string, token: string, orderNumber: string) =>
+    sfFetch<StorefrontOrder>(slug, `/orders/${orderNumber}/cancel`, {
+      method: "POST",
+      token,
+    }),
   validateCoupon: (
     slug: string,
     token: string,

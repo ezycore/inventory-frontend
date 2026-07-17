@@ -2,7 +2,11 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import { useShopperOrders, useStore } from "@/services/storefront/hooks";
+import {
+  useCancelShopperOrder,
+  useShopperOrders,
+  useStore,
+} from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
@@ -19,6 +23,7 @@ export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => v
   const { t, lang } = useStorefrontUI();
   const { data: store } = useStore(slug);
   const { data: orders, isLoading } = useShopperOrders(slug);
+  const cancelOrder = useCancelShopperOrder(slug);
   const currency = store?.currency;
 
   if (isLoading) {
@@ -68,6 +73,21 @@ export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => v
             >
               {t.viewDetails}
             </button>
+            {/* Self-cancel is only offered while pending — the server enforces the
+                same window (once the merchant confirms, the button is gone). */}
+            {o.status === "pending" && (
+              <button
+                type="button"
+                disabled={cancelOrder.isPending}
+                onClick={() => {
+                  if (window.confirm(t.confirmCancelOrder))
+                    cancelOrder.mutate(o.orderNumber);
+                }}
+                style={{ background: "transparent", color: "#b91c1c", border: "1px solid var(--border-strong)", padding: "9px 14px", borderRadius: 8, fontFamily: "inherit", fontSize: 12.5, fontWeight: 600, cursor: cancelOrder.isPending ? "default" : "pointer", opacity: cancelOrder.isPending ? 0.6 : 1 }}
+              >
+                {t.cancelOrder}
+              </button>
+            )}
           </div>
         );
       })}

@@ -226,3 +226,17 @@ export const usePlaceOrder = (slug: string) => {
       qc.invalidateQueries({ queryKey: key(slug, "orders") }),
   });
 };
+
+/** Shopper self-cancel — only a still-pending order can be cancelled server-side. */
+export const useCancelShopperOrder = (slug: string) => {
+  const token = useShopperStore((s) => s.token);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderNumber: string) =>
+      storefrontApi.cancelOrder(slug, token!, orderNumber),
+    onSuccess: (_data, orderNumber) => {
+      qc.invalidateQueries({ queryKey: key(slug, "orders") });
+      qc.invalidateQueries({ queryKey: key(slug, "order", orderNumber) });
+    },
+  });
+};
