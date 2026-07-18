@@ -8223,6 +8223,10 @@ export interface components {
             name: string;
             base_sku?: string;
             price?: number;
+            priceRange?: {
+                min: number;
+                max: number;
+            };
             status?: string;
             productType?: string;
             images?: {
@@ -8255,6 +8259,10 @@ export interface components {
                 name: string;
                 base_sku?: string;
                 price?: number;
+                priceRange?: {
+                    min: number;
+                    max: number;
+                };
                 status?: string;
                 productType?: string;
                 images?: {
