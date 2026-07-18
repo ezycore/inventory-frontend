@@ -55,6 +55,12 @@ export interface StorefrontStore {
   };
   /** Dhaka inside/outside zone rates (override shippingRule when present). */
   shippingZones?: { inside?: number; outside?: number; freeThreshold?: number };
+  /** In-store pickup option + the collection location (when enabled). */
+  pickup?: {
+    enabled: boolean;
+    instructions?: string;
+    location?: { name: string; address?: string } | null;
+  };
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
@@ -209,13 +215,17 @@ export interface ShopperPrefs {
   newsletter: boolean;
 }
 
-/** Saved delivery address (account address book). */
+/** Saved delivery address (account address book). Courier-neutral by design. */
 export interface ShopperAddress {
   id?: string;
   label: string;
   line: string;
   phone?: string;
   isDefault: boolean;
+  /** Canonical BD district (see `lib/bd-geo.ts`). */
+  district?: string;
+  /** Area/upazila/thana — free text. */
+  area?: string;
 }
 
 export interface ShopperProfile {
@@ -249,8 +259,11 @@ export interface OrderItem {
 export interface ShippingAddress {
   name: string;
   phone: string;
-  address: string;
-  city?: string;
+  /** Street line — omitted for pickup orders (name + phone only). */
+  address?: string;
+  /** Canonical BD district (courier-neutral). */
+  district?: string;
+  /** Area/upazila/thana — free text. */
   area?: string;
   zone?: "inside" | "outside";
   notes?: string;
@@ -266,6 +279,7 @@ export interface StorefrontOrder {
   shippingCharged: number;
   totalAmount: number;
   status: string;
+  fulfillmentType?: "delivery" | "pickup";
   paymentMethod: string;
   paymentStatus: string;
   shippingAddress: ShippingAddress;
@@ -282,6 +296,8 @@ export interface StorefrontOrder {
 
 export interface PlaceOrderInput {
   items: { productId: string; variantId?: string; quantity: number }[];
+  /** Delivery (default) or in-store pickup. Pickup drops the delivery address. */
+  fulfillmentType?: "delivery" | "pickup";
   shippingAddress: ShippingAddress;
   paymentMethod: "cod" | "bank";
   notes?: string;
@@ -402,7 +418,14 @@ export const storefrontApi = {
   addAddress: (
     slug: string,
     token: string,
-    body: { label: string; line: string; phone?: string; isDefault?: boolean },
+    body: {
+      label: string;
+      line: string;
+      phone?: string;
+      isDefault?: boolean;
+      district?: string;
+      area?: string;
+    },
   ) =>
     sfFetch<ShopperProfile>(slug, "/auth/me/addresses", {
       method: "POST",
@@ -418,6 +441,8 @@ export const storefrontApi = {
       line: string;
       phone: string;
       isDefault: boolean;
+      district: string;
+      area: string;
     }>,
   ) =>
     sfFetch<ShopperProfile>(slug, `/auth/me/addresses/${addressId}`, {
@@ -458,6 +483,12 @@ export const storefrontApi = {
     sfFetch<StorefrontOrder[]>(slug, "/orders", { token }),
   getOrder: (slug: string, token: string, orderNumber: string) =>
     sfFetch<StorefrontOrder>(slug, `/orders/${orderNumber}`, { token }),
+  // Shopper self-cancel while the order is still pending.
+  cancelOrder: (slug: string, token: string, orderNumber: string) =>
+    sfFetch<StorefrontOrder>(slug, `/orders/${orderNumber}/cancel`, {
+      method: "POST",
+      token,
+    }),
   validateCoupon: (
     slug: string,
     token: string,

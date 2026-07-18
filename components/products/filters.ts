@@ -7,7 +7,7 @@ export const getProductFilterConfig = (t: Translator): FilterConfig => ({
   viewMode: 'popover',
   fields: [
     {
-      name: "name",
+      name: "search",
       label: t("filters.searchLabel"),
       type: "text",
       placeholder: t("filters.searchPlaceholder"),

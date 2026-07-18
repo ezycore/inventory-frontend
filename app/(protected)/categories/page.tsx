@@ -37,11 +37,6 @@ export default function CategoriesPage() {
   const filteredFormConfig = useFilteredFormConfig(getCategoryFormConfig(t), 'category')
   const filteredColumns = useFilteredColumns(getCategoryColumns(t), 'category')
   const categoryFilterConfig = getCategoryFilterConfig(t)
-  const searchConfig = {
-    globalSearch: true,
-    placeholder: t('page.searchPlaceholder'),
-    searchableColumns: ["name"],
-  }
   const { data: statsData, isLoading: statsLoading } = useCategoryStats?.() ?? { data: undefined, isLoading: false }
 
   const sharedOperations = {
@@ -104,7 +99,6 @@ export default function CategoriesPage() {
           manageColumns={true}
           module="category"
           selectable={true}
-          searchConfig={searchConfig}
           enableSorting={true}
           defaultColumnVisibility={{ status: false }}
           enableRowHover={true}
@@ -126,7 +120,6 @@ export default function CategoriesPage() {
             gap: "md",
           }}
           sortingConfig={sortingConfig}
-          searchConfig={searchConfig}
           renderCard={(item, actions) => CategoryCardView(item, actions, { t, locale })}
           loadingRenderCard={CategoryCardLoading}
           operations={sharedOperations}

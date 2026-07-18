@@ -14,13 +14,15 @@ import {
   couponDefaultValues,
   couponFilterConfig,
   couponFormConfig,
-  couponSearchConfig,
 } from "@/components/ecommerce/coupons";
 
 // Optional caps/limits: empty / 0 / NaN all mean "unset" (no cap, unlimited).
-const toNum = (v: unknown): number | undefined => {
+// Return null (not undefined) so the key is always present in the PUT body —
+// undefined is dropped from JSON, so editing a value down to 0 would never
+// clear the stored value (the backend spread-update just skips a missing key).
+const toNum = (v: unknown): number | null => {
   const n = Number(v);
-  return v === "" || v == null || Number.isNaN(n) || n === 0 ? undefined : n;
+  return v === "" || v == null || Number.isNaN(n) || n === 0 ? null : n;
 };
 
 function cleanCoupon(data: Record<string, any>) {
@@ -52,7 +54,6 @@ export default function CouponsPage() {
         defaultPageSize={10}
         pageSizes={[10, 20, 50]}
         filterConfig={couponFilterConfig}
-        searchConfig={couponSearchConfig}
         enableSorting
         enableRowHover
         operations={{

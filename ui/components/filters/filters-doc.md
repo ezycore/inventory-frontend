@@ -69,6 +69,12 @@ const filterConfig: FilterConfig = {
 
 ### Standalone Usage (Without DataTable)
 
+> Both **DataTable and DataCard** now render the inline **`FilterBar`** (controls
+> packed inline, overflow folds to a panel). `GlobalFilter` below is the
+> **panel-only** standalone alternative (button → Sheet/Popover) for surfaces that
+> aren't a DataTable/DataCard. Search is just a `type: "text"` field placed first
+> in `filterConfig` — there is no separate search box anymore.
+
 ```tsx
 import { GlobalFilter } from "@/ui/components/filters/global-filter";
 import { FilterConfig } from "@/types/DataTable";

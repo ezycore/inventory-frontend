@@ -4,7 +4,7 @@ import type { Translator } from "@/i18n/config";
 export const getBrandFilterConfig = (t: Translator): FilterConfig => ({
   fields: [
     {
-      name: "name",
+      name: "search",
       label: t("filters.searchLabel"),
       type: "text",
       placeholder: t("filters.searchPlaceholder"),

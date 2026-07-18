@@ -44,11 +44,6 @@ export default function BrandsPage() {
   const filteredFormConfig = useFilteredFormConfig(getBrandFormConfig(t), "brand");
   const filteredColumns = useFilteredColumns(getBrandColumns(t), "brand");
   const brandFilterConfig = getBrandFilterConfig(t);
-  const searchConfig = {
-    globalSearch: true,
-    placeholder: t("page.searchPlaceholder"),
-    searchableColumns: ["name"],
-  };
   const { data, isLoading } = useBrandStats();
 
   const sharedOperations = {
@@ -112,7 +107,6 @@ export default function BrandsPage() {
           manageColumns={true}
           module="brand"
           selectable={true}
-          searchConfig={searchConfig}
           enableSorting={true}
           defaultColumnVisibility={{ status: false }}
           rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
@@ -134,7 +128,6 @@ export default function BrandsPage() {
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "md",
           }}
-          searchConfig={searchConfig}
           renderCard={(item, actions) => BrandCardView(item, actions, { t, locale })}
           loadingRenderCard={BrandCardLoading}
           operations={sharedOperations}

@@ -134,8 +134,3 @@ export const couponFilterConfig: FilterConfig = {
   ],
   viewMode: "popover",
 };
-
-export const couponSearchConfig = {
-  globalSearch: true,
-  placeholder: "Search coupons by code...",
-};

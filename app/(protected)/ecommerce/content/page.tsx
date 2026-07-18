@@ -2,20 +2,8 @@
 
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
-import {
-  contentPagesApi,
-  useCreateContentPage,
-  useDeleteContentPage,
-  useUpdateContentPage,
-  type ContentPage,
-} from "@/services/api";
-import {
-  contentColumns,
-  contentDefaultValues,
-  contentFilterConfig,
-  contentFormConfig,
-  contentSearchConfig,
-} from "@/components/ecommerce/content";
+import { contentPagesApi, useCreateContentPage, useDeleteContentPage, useUpdateContentPage, type ContentPage } from "@/services/api";
+import { contentColumns, contentDefaultValues, contentFilterConfig, contentFormConfig } from "@/components/ecommerce/content";
 
 function cleanContentPage(data: Record<string, any>) {
   return {
@@ -42,7 +30,6 @@ export default function ContentPage() {
         defaultPageSize={10}
         pageSizes={[10, 20, 50]}
         filterConfig={contentFilterConfig}
-        searchConfig={contentSearchConfig}
         enableSorting
         enableRowHover
         operations={{
@@ -52,6 +39,7 @@ export default function ContentPage() {
           createMutation: useCreateContentPage(),
           updateMutation: useUpdateContentPage(),
           deleteMutation: useDeleteContentPage(),
+         openInside: 'drawer', 
           queryKey: ["content-pages"],
           entityName: "Page",
           editTooltip: "Edit page",

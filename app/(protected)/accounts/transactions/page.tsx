@@ -131,10 +131,6 @@ function TransactionsContent() {
         pageSizes={[10, 20, 50, 100]}
         filterConfig={getTransactionFilterConfig(tColumns)}
         columns={columns}
-        searchConfig={{
-          globalSearch: true,
-          placeholder: t("searchPlaceholder"),
-        }}
         enableSorting
         rowClassName={(row) => transactionTypeColorMap[row.type] || ""}
         operations={{

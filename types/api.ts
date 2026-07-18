@@ -108,12 +108,19 @@ export type ApiOrganizationFeatures = Schemas["OrganizationFeatures"];
 // Storefront (admin side) ----------------------------------------------------
 export type AdminStorefrontOrder = Schemas["StorefrontOrder"];
 export type StorefrontOrderList = Schemas["StorefrontOrderList"];
+export type OrderStats = Schemas["OrderStats"];
 export type StorefrontDashboard = Schemas["StorefrontDashboard"];
 export type CatalogList = Schemas["CatalogList"];
 export type StorefrontCollection = Schemas["Collection"];
 export type CourierList = Schemas["CourierList"];
 export type CourierUpsert = Schemas["CourierUpsert"];
 export type CourierRemoved = Schemas["CourierRemoved"];
+export type CourierTest = Schemas["CourierTest"];
+export type CourierStore = Schemas["CourierStore"];
+export type CourierPackage = Schemas["CourierPackage"];
+export type CourierLocation = Schemas["CourierLocation"];
+export type CourierPrice = Schemas["CourierPrice"];
+export type CourierWebhook = Schemas["CourierWebhook"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 export type ApiCampaign = Schemas["Campaign"];
@@ -121,6 +128,7 @@ export type ApiCoupon = Schemas["Coupon"];
 export type ApiContentPage = Schemas["ContentPage"];
 export type ShopperListItem = Schemas["ShopperListItem"];
 export type ShopperDetail = Schemas["ShopperDetail"];
+export type ShopperOrder = Schemas["ShopperOrder"];
 
 // Auth & users ---------------------------------------------------------------
 export type Me = Schemas["Me"];

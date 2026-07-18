@@ -7,6 +7,12 @@ export function getInventoryFilterConfig(t: Translator): FilterConfig {
   return {
     fields: [
       {
+        name: "search",
+        label: t("filters.searchLabel"),
+        type: "text",
+        placeholder: t("filters.searchPlaceholder"),
+      },
+      {
         name: "brandId",
         label: t("filters.brand"),
         type: "select",

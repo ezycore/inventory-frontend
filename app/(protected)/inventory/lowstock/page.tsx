@@ -264,13 +264,6 @@ export default function LowStock() {
 
   const columns = useMemo(() => getShortlistColumns(t), [t]);
   const filterConfig = useMemo(() => getInventoryFilterConfig(t), [t]);
-  const searchConfig = useMemo(
-    () => ({
-      globalSearch: true,
-      placeholder: t("lowstock.searchPlaceholder"),
-    }),
-    [t],
-  );
 
   const handleSelectionChange = useCallback((rows: ShortlistItem[]) => {
     setSelectedItems(rows);
@@ -336,7 +329,6 @@ export default function LowStock() {
         cardTitle={(dataLength: number) => t("lowstock.itemsTitle", { count: dataLength })}
         columns={columns}
         filterConfig={filterConfig}
-        searchConfig={searchConfig}
         enableSorting={true}
         enableRowHover={true}
         rowClassName={(row: ShortlistItem) =>

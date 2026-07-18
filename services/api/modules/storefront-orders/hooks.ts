@@ -1,26 +1,34 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
 import { handleMutationSuccess } from "../query-helpers";
-import { couriersApi, storefrontOrdersApi } from "./api";
+import {
+  couriersApi,
+  storefrontOrdersApi,
+  type AdminOrderListParams,
+} from "./api";
 
 const ROOT = ["storefront-orders"] as const;
 const COURIERS = ["storefront-couriers"] as const;
 const keys = {
   list: (params: unknown) => [...ROOT, "list", params] as const,
+  stats: () => [...ROOT, "stats"] as const,
   detail: (id: string) => [...ROOT, "detail", id] as const,
 };
 
-export const useStorefrontOrders = (params: {
-  status?: string;
-  search?: string;
-  page?: number;
-  limit?: number;
-}) =>
+export const useStorefrontOrders = (params: AdminOrderListParams) =>
   useQuery({
     queryKey: keys.list(params),
     queryFn: () => storefrontOrdersApi.list(params),
     select: (r) => r.data,
     placeholderData: (prev) => prev,
+  });
+
+/** The stat-card snapshot — under the ROOT key, so any order mutation refreshes it. */
+export const useOrderStats = () =>
+  useQuery({
+    queryKey: keys.stats(),
+    queryFn: () => storefrontOrdersApi.stats(),
+    select: (r) => r.data,
   });
 
 export const useStorefrontOrder = (id: string) =>
@@ -72,10 +80,37 @@ export const useUpdateOrderStatus = () => {
 export const useCancelOrder = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: string; reject?: boolean }) =>
-      storefrontOrdersApi.cancel(v.id, v.reject),
+    mutationFn: (v: {
+      id: string;
+      reject?: boolean;
+      refundAdvance?: boolean;
+      accountId?: string;
+    }) =>
+      storefrontOrdersApi.cancel(v.id, {
+        reject: v.reject,
+        refundAdvance: v.refundAdvance,
+        accountId: v.accountId,
+      }),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Order cancelled");
+      invalidateAll(qc);
+    },
+    onError: handleMutationError,
+  });
+};
+
+/**
+ * Record a COD delivery-charge advance (collected before shipping). Under the
+ * ROOT key like the other order mutations, so the stat cards and the order
+ * refresh together.
+ */
+export const useRecordAdvance = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; amount: number; accountId?: string }) =>
+      storefrontOrdersApi.recordAdvance(v.id, v.amount, v.accountId),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Advance recorded");
       invalidateAll(qc);
     },
     onError: handleMutationError,
@@ -108,6 +143,30 @@ export const useMarkOrderPaid = () => {
   });
 };
 
+export const useReturnOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: {
+      id: string;
+      returnCharge?: number;
+      collectedAmount?: number;
+      accountId?: string;
+      refund?: { mode: "account" | "credit"; accountId?: string };
+    }) =>
+      storefrontOrdersApi.returnOrder(v.id, {
+        returnCharge: v.returnCharge,
+        collectedAmount: v.collectedAmount,
+        accountId: v.accountId,
+        refund: v.refund,
+      }),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order returned");
+      invalidateAll(qc);
+    },
+    onError: handleMutationError,
+  });
+};
+
 export const useCreateConsignment = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -129,6 +188,43 @@ export const useRefreshTracking = () => {
       handleMutationSuccess(res.message || "Tracking refreshed");
       invalidateAll(qc);
     },
+    onError: handleMutationError,
+  });
+};
+
+// Map an order's canonical address to a provider's location codes before dispatch.
+export const useResolveLocation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: {
+      id: string;
+      provider: string;
+      location: Record<string, string | number>;
+    }) => storefrontOrdersApi.resolveLocation(v.id, v.provider, v.location),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Delivery location resolved");
+      invalidateAll(qc);
+    },
+    onError: handleMutationError,
+  });
+};
+
+// A pre-dispatch delivery-price quote (no cache change — read-only).
+export const useCourierPrice = () =>
+  useMutation({
+    mutationFn: (v: { id: string; provider: string }) =>
+      storefrontOrdersApi.courierPrice(v.id, v.provider),
+    onError: handleMutationError,
+  });
+
+// Bulk dispatch: one call for many orders. Toast is left to the caller (it
+// summarizes the multi-status result), but the orders list is refreshed here.
+export const useBulkConsignment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { orderIds: string[]; provider: string }) =>
+      storefrontOrdersApi.bulkConsignment(v.orderIds, v.provider),
+    onSuccess: () => invalidateAll(qc),
     onError: handleMutationError,
   });
 };
@@ -158,6 +254,46 @@ export const useUpsertCourier = () => {
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Courier saved");
       qc.invalidateQueries({ queryKey: COURIERS });
+    },
+    onError: handleMutationError,
+  });
+};
+
+export const useTestCourier = () =>
+  useMutation({
+    mutationFn: (provider: string) => couriersApi.test(provider),
+    onSuccess: (res) => handleMutationSuccess(res.message || "Connection ok"),
+    onError: handleMutationError,
+  });
+
+// Button-triggered fetch of the merchant's provider stores (for the store picker).
+export const useCourierStores = () =>
+  useMutation({
+    mutationFn: (provider: string) => couriersApi.stores(provider),
+    onError: handleMutationError,
+  });
+
+// Button-triggered fetch of the merchant's provider packages (eCourier picker).
+export const useCourierPackages = () =>
+  useMutation({
+    mutationFn: (provider: string) => couriersApi.packages(provider),
+    onError: handleMutationError,
+  });
+
+// The store's delivery-status webhook token + per-provider URLs (ensured on read).
+export const useCourierWebhook = () =>
+  useQuery({
+    queryKey: ["storefront-courier-webhook"],
+    queryFn: () => couriersApi.webhook(),
+  });
+
+export const useRegenerateWebhookToken = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => couriersApi.regenerateWebhook(),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Webhook URL regenerated");
+      qc.invalidateQueries({ queryKey: ["storefront-courier-webhook"] });
     },
     onError: handleMutationError,
   });

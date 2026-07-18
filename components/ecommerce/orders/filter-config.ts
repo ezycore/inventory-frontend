@@ -13,6 +13,7 @@ export const orderFilterConfig: FilterConfig = {
         { label: "Processing", value: "processing" },
         { label: "Shipped", value: "shipped" },
         { label: "Delivered", value: "delivered" },
+        { label: "Returned", value: "returned" },
         { label: "Cancelled", value: "cancelled" },
         { label: "Rejected", value: "rejected" },
       ],

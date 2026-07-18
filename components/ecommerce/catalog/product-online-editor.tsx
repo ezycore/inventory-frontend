@@ -23,6 +23,7 @@ import {
   type UploadedImage,
 } from "@/components/shared/image-gallery-upload";
 import { onlineBlockReason } from "@/components/ecommerce/catalog/online-block-reason";
+import { formatMoney } from "@/components/storefront/format";
 
 const slugify = (s: string) =>
   s
@@ -52,6 +53,7 @@ export function ProductOnlineEditor({
   const [featured, setFeatured] = useState(false);
   const [onlinePrice, setOnlinePrice] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
+  const [weightKg, setWeightKg] = useState("");
   const [slug, setSlug] = useState("");
   const [onlineTitle, setOnlineTitle] = useState("");
   const [onlineDescription, setOnlineDescription] = useState("");
@@ -70,6 +72,7 @@ export function ProductOnlineEditor({
     setCompareAtPrice(
       typeof sf.compareAtPrice === "number" ? String(sf.compareAtPrice) : "",
     );
+    setWeightKg(typeof sf.weightKg === "number" ? String(sf.weightKg) : "");
     setSlug(sf.slug ?? "");
     setOnlineTitle(sf.onlineTitle ?? "");
     setOnlineDescription(sf.onlineDescription ?? "");
@@ -85,6 +88,16 @@ export function ProductOnlineEditor({
   const blockReason = onlineBlockReason(product);
   const stock = product.availableQuantity ?? 0;
 
+  // Placeholder mirrors the catalog's inherited base price: empty online price
+  // falls back to it on the storefront, so show the real value, not a label.
+  const basePlaceholder = product.priceRange
+    ? product.priceRange.min === product.priceRange.max
+      ? formatMoney(product.priceRange.min, currency)
+      : `${formatMoney(product.priceRange.min, currency)} – ${formatMoney(product.priceRange.max, currency)}`
+    : product.productType === "variable"
+      ? "Base price"
+      : formatMoney(product.price, currency);
+
   const save = async () => {
     const fd = new FormData();
     fd.append("isListed", String(isListed));
@@ -93,6 +106,7 @@ export function ProductOnlineEditor({
     if (onlinePrice !== "") fd.append("onlinePrice", String(Number(onlinePrice)));
     if (compareAtPrice !== "")
       fd.append("compareAtPrice", String(Number(compareAtPrice)));
+    if (weightKg !== "") fd.append("weightKg", String(Number(weightKg)));
     if (slug.trim()) fd.append("slug", slug.trim());
     if (onlineTitle.trim()) fd.append("onlineTitle", onlineTitle.trim());
     if (onlineDescription.trim())
@@ -173,7 +187,7 @@ export function ProductOnlineEditor({
                 min={0}
                 value={onlinePrice}
                 onChange={(e) => setOnlinePrice(e.target.value)}
-                placeholder="Base price"
+                placeholder={basePlaceholder}
               />
             </div>
             <div className="space-y-1">
@@ -186,6 +200,24 @@ export function ProductOnlineEditor({
                 placeholder="Optional"
               />
             </div>
+          </div>
+
+          {/* Shipping weight */}
+          <div className="space-y-1">
+            <Label>Shipping weight (kg)</Label>
+            <Input
+              type="number"
+              min={0}
+              max={10}
+              step={0.1}
+              value={weightKg}
+              onChange={(e) => setWeightKg(e.target.value)}
+              placeholder="Defaults to 0.5 kg at dispatch"
+            />
+            <p className="text-xs text-muted-foreground">
+              Used to bill the courier at the true parcel weight. Left empty, the
+              order ships at the 0.5 kg courier minimum.
+            </p>
           </div>
 
           {/* Title + slug */}

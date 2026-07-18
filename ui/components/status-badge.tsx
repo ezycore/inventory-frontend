@@ -26,6 +26,8 @@ const statusBadgeVariants = cva(
         draft: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
         offline: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
         suspended: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
+        // Reversed/RTO — a neutral terminal state, distinct from red cancelled/rejected.
+        returned: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
 
         // Warning states
         pending: "border-yellow-200 bg-yellow-50 text-yellow-800 hover:bg-yellow-100",
@@ -79,7 +81,7 @@ export interface StatusBadgeProps
     | "online" | "offline" | "verified" | "blocked" | "deleted"
     | "suspended" | "review" | "moderate" | "confirmed" | "premium"
     | "featured" | "vip" | "in_progress" | "in-progress"
-    | "shipped" | "delivered"
+    | "shipped" | "delivered" | "returned"
 }
 
 function StatusBadge({ className, status, size, ...props }: StatusBadgeProps) {
