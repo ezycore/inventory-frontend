@@ -19,37 +19,65 @@ const TYPE_OPTIONS: NavOption[] = [
   { label: "Page", value: "page" },
   { label: "URL", value: "url" },
 ];
+// The auto-synced block that expands to the listed collections (top level
+// only, one per menu — the parent gates whether the option is offered).
+const COLLECTIONS_OPTION: NavOption = {
+  label: "All collections",
+  value: "collections",
+};
 
 /** Label + target-type + target-value fields for one header menu link. */
 export function LinkFields({
   item,
   categoryOptions,
   pageOptions,
+  allowCollections,
   onChange,
 }: {
   item: StorefrontMenuItem;
   categoryOptions: NavOption[];
   pageOptions: NavOption[];
+  /** Offer the "All collections" type (top-level rows without another block). */
+  allowCollections?: boolean;
   onChange: (patch: Partial<StorefrontMenuItem>) => void;
 }) {
+  const isCollections = item.type === "collections";
+  const setType = (v: string) =>
+    onChange({
+      type: v as NavLinkType,
+      value: "",
+      // The block's label isn't rendered but the model requires one; auto-set
+      // it, and clear the leftover when switching back to a real link.
+      ...(v === "collections"
+        ? { label: "All collections" }
+        : isCollections
+          ? { label: "" }
+          : {}),
+    });
+
   // Label spans its own row: this lives in the 380px Customize rail, where a
   // three-across grid squeezes every field under ~70px ("New link 1" → "New li").
   return (
     <div className="grid flex-1 grid-cols-[110px_minmax(0,1fr)] gap-2">
-      <Input
-        value={item.label}
-        onChange={(e) => onChange({ label: e.target.value })}
-        placeholder="Label"
-        className="col-span-2 h-8"
-        aria-label="Link label"
-      />
+      {!isCollections && (
+        <Input
+          value={item.label}
+          onChange={(e) => onChange({ label: e.target.value })}
+          placeholder="Label"
+          className="col-span-2 h-8"
+          aria-label="Link label"
+        />
+      )}
       <SimpleSelect
         value={item.type}
-        onValueChange={(v) => onChange({ type: v as NavLinkType, value: "" })}
-        options={TYPE_OPTIONS}
-        className="h-8"
+        onValueChange={setType}
+        options={
+          allowCollections ? [...TYPE_OPTIONS, COLLECTIONS_OPTION] : TYPE_OPTIONS
+        }
+        // A collections block has no value field — the select is the whole row.
+        className={isCollections ? "col-span-2 h-8" : "h-8"}
       />
-      {item.type === "url" ? (
+      {isCollections ? null : item.type === "url" ? (
         <Input
           value={item.value}
           onChange={(e) => onChange({ value: e.target.value })}
@@ -77,6 +105,7 @@ export function MenuItemRow({
   count,
   categoryOptions,
   pageOptions,
+  allowCollections,
   onPatch,
   onRemove,
   onMove,
@@ -89,6 +118,7 @@ export function MenuItemRow({
   count: number;
   categoryOptions: NavOption[];
   pageOptions: NavOption[];
+  allowCollections?: boolean;
   onPatch: (patch: Partial<StorefrontMenuItem>) => void;
   onRemove: () => void;
   onMove: (dir: -1 | 1) => void;
@@ -124,6 +154,7 @@ export function MenuItemRow({
           item={item}
           categoryOptions={categoryOptions}
           pageOptions={pageOptions}
+          allowCollections={allowCollections}
           onChange={onPatch}
         />
         <button
@@ -136,7 +167,8 @@ export function MenuItemRow({
         </button>
       </div>
 
-      {children.length > 0 && (
+      {/* A collections block expands inline — dropdown children don't apply. */}
+      {item.type !== "collections" && children.length > 0 && (
         <div className="mt-3 space-y-2 border-l-2 pl-4">
           {children.map((child, ci) => (
             <div key={ci} className="flex items-start gap-2">
@@ -158,13 +190,15 @@ export function MenuItemRow({
           ))}
         </div>
       )}
-      <button
-        type="button"
-        onClick={onAddChild}
-        className="mt-2 text-xs font-semibold text-primary"
-      >
-        + Add sub-item
-      </button>
+      {item.type !== "collections" && (
+        <button
+          type="button"
+          onClick={onAddChild}
+          className="mt-2 text-xs font-semibold text-primary"
+        >
+          + Add sub-item
+        </button>
+      )}
     </div>
   );
 }

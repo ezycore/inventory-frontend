@@ -143,11 +143,48 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   `!emailVerified` (VerifyEmailGate), `placed` (OrderPlacedCard), empty cart. Single-page or
   multi-step per template. Coupons validated server-side; shipping = Dhaka inside/outside zones.
 - **Admin ecommerce pages** (`app/(protected)/ecommerce/*`): dashboard, orders (+detail, invoice
-  print), content, customize (theme/trust badges/templates/nav), settings (General incl. social
-  links + fulfillment location, Publish, payments/shipping/checkout tabs). Custom domains under
-  app Settings → Custom Domains.
+  print), content, customize (Theme | Templates | **Navigation** — header/footer/announcement moved
+  here 2026-07-18; `/ecommerce/navigation` is now a redirect to
+  `customize?section=navigation` and the sidebar entry is gone), catalog (products + collections),
+  settings (General incl. social links + fulfillment location, Publish, payments/shipping/checkout
+  tabs). Custom domains under app Settings → Custom Domains.
 
-## Work log (what was built, newest first — as of 2026-07-13)
+## Work log (what was built, newest first — as of 2026-07-18)
+
+- **Editable banner-hero copy (`heroBanner`)** (2026-07-18): the static banner hero's
+  badge/title/subtitle and its two buttons (labels + links) are merchant-editable.
+  `StorefrontSettings.heroBanner` (BE model/validator/organization+storefront DTOs +
+  `getStoreInfo` payload; all fields optional) → FE `StoreHeroBanner`
+  (`lib/storefront-client.ts`) / `StorefrontHeroBanner` (`types/index.ts`). Classic +
+  Hero Split fall back **per-field** to the built-in bilingual copy (`hb?.x || t.x`);
+  a custom badge also beats the live campaign badge; Hero Split renders the badge as
+  its uppercase kicker; Minimal's typographic hero is deliberately untouched. Buttons
+  render through the shared `HeroCtaLink` (`home-shared.tsx` — full URL = new tab,
+  else `storeHref(base, …)`, empty = `/products`; the carousel's `SlideCta` now uses
+  it too). Admin: Customize → Theme → **"Banner hero text"** card
+  (`components/ecommerce/banner-hero-card.tsx`; placeholders = the standard EN copy;
+  saved by Save theme via `cleanHeroBanner` — blank field ⇒ built-in copy, so custom
+  text replaces BOTH languages as-is); preview store + bridge stream `heroBanner`.
+
+- **Explicit header-menu source + Navigation folded into Customize** (2026-07-18): the store
+  header's top links used to be an invisible either/or (custom menu wins if non-empty, else raw
+  categories). Now `templates.headerMenu: "collections" | "custom"` — resolved via
+  `resolveHeaderMenu` (`lib/storefront-templates.ts`, tested): **unset = legacy fallback**
+  (non-empty `nav.header` → custom) so old stores' headers don't silently change; never default it
+  to "collections" blindly. `nav.header` items support **`type: "collections"`** — a block that
+  expands inline to the listed collections via `expandHeaderMenu` (`header-nav.tsx`, tested),
+  applied ONCE where `ctx.headerMenu` is built in `store-header.tsx` (covers all variants +
+  preview; expanded links are id-based `/products?categoryId=` so slugless cats work). Admin:
+  Customize gains a **Navigation** section (`components/ecommerce/navigation/*` — navigation-section,
+  header-menu-card w/ source picker, menu-item-fields, announcement-card, footer-links-card) and a
+  **CollectionsPanel** rail takeover (`components/ecommerce/collections/*`; HeroSlidesPanel
+  pattern — draft + snapshot Cancel, diff-based save; while open the preview forces
+  `headerMenuSrc="collections"`). Shared `CollectionRow`+`toRowValue` also drive Catalog →
+  Collections (kept, instant-save, with a state-aware banner cross-linking
+  `customize?section=navigation`). Preview bridge streams `templates.headerMenu`, `nav.header`,
+  and draft `collections` (listed-only, `displayName||name`, real ids — mirror of public
+  `GET /:slug/categories`); `store-home.tsx` re-attaches category images to the draft by id.
+  Customize reads `?section=` (Suspense-wrapped `useSearchParams`).
 
 - **Dynamic custom-domain → store routing** (2026-07-13): closed the gap between Settings →
   Domains and the storefront proxy. BE: `GET /api/public/store-by-host?host=` in
@@ -249,6 +286,11 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   QA: detect flashes with a rAF frame-scanner injected via `Page.addScriptToEvaluateOnNewDocument`
   (MutationObserver misses them) + a guest control run to prove the detector fires.
 - **`json.error` not `json.message`** is where backend error text lives.
+- **The settings PATCH replaces `templates` (and every provided sub-field) WHOLESALE** —
+  `updateSettings` is a shallow `Object.assign`. Any admin section saving one key inside
+  `templates` must spread the saved object first (`{ ...settings.templates, headerMenu }`), and
+  `TemplatesSection` seeds its draft from the full saved object for the same reason. Sending a
+  partial `templates` silently wipes the other sections' choices — this nearly shipped twice.
 - **OAuth callback route order** (before `/:slug`), and same-document hash navigation does NOT
   remount the oauth landing page — QA must full-navigate.
 - **Store payload is cached** (~60s revalidate + 5-min client staleTime) — settings changes lag.

@@ -75,8 +75,10 @@ export function NavigationSection({
         .map((it) => ({
           label: it.label.trim(),
           type: it.type,
-          value: it.value.trim(),
-          children: it.children?.length
+          value: it.type === "collections" ? "" : it.value.trim(),
+          // A collections block expands inline; drop children left over from
+          // before the row's type was switched.
+          children: it.type !== "collections" && it.children?.length
             ? it.children
                 .filter((c) => c.label.trim())
                 .map((c) => ({

@@ -90,7 +90,7 @@ export interface StorefrontTheme {
   homepageSections?: string[];
 }
 
-export type NavLinkType = "category" | "page" | "url";
+export type NavLinkType = "category" | "page" | "url" | "collections";
 
 export interface StorefrontMenuItem {
   label: string;
@@ -199,12 +199,29 @@ export interface StorefrontSettings {
   trustBadges?: StorefrontTrustBadge[];
   /** Home hero carousel slides; unset/empty → the static built-in hero. */
   heroSlides?: StorefrontHeroSlide[];
+  /** Static banner-hero copy overrides; unset fields → built-in copy. */
+  heroBanner?: StorefrontHeroBanner;
 }
 
 /** One owner-editable footer "trust" badge (Rich footer strip). */
 export interface StorefrontTrustBadge {
   text: string;
   icon?: string;
+}
+
+/**
+ * Owner overrides for the static banner hero's copy (Classic / Hero Split when
+ * the hero source is "banner" or no slides exist). Unset fields fall back to
+ * the storefront's built-in localized copy; button links default to /products.
+ */
+export interface StorefrontHeroBanner {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  primaryLabel?: string;
+  primaryLink?: string;
+  secondaryLabel?: string;
+  secondaryLink?: string;
 }
 
 /** One home-page hero slide (owner-managed carousel, max 5). */

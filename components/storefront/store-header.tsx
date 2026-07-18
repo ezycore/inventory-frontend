@@ -18,7 +18,11 @@ import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { Icon } from "@/components/storefront/sf-icons";
-import { HeaderNav, menuHref } from "@/components/storefront/header-nav";
+import {
+  HeaderNav,
+  expandHeaderMenu,
+  menuHref,
+} from "@/components/storefront/header-nav";
 import { Brand } from "@/components/storefront/logo-mark";
 
 const HEADER_VARIANTS: readonly string[] = ["classic", "minimal", "centered"];
@@ -98,10 +102,14 @@ export function StoreHeader({
   const previewNavHeader = useSfPreview((s) => s.navHeader);
 
   // Drafts from the admin Navigation editor win over the saved store payload.
-  const headerMenu = previewNavHeader ?? store?.nav?.header ?? [];
+  // The legacy-fallback check uses the RAW menu (a store whose menu is only a
+  // collections block with zero listed collections still chose "custom");
+  // ctx gets the menu with collections blocks expanded into category links.
+  const rawMenu = previewNavHeader ?? store?.nav?.header ?? [];
+  const headerMenu = expandHeaderMenu(rawMenu, categories ?? []);
   const menuSource = resolveHeaderMenu(
     { ...store?.templates, ...(previewMenuSrc ? { headerMenu: previewMenuSrc } : {}) },
-    headerMenu.length > 0,
+    rawMenu.length > 0,
   );
 
   const ctx: HeaderCtx = {

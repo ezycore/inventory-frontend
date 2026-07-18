@@ -34,6 +34,7 @@ export function StorePreviewBridge() {
         badges: p.trustBadges,
         heroSlides: p.heroSlides,
         heroSrc: p.templates?.hero,
+        heroBanner: p.heroBanner,
         headerMenuSrc: p.templates?.headerMenu,
         navHeader: p.nav?.header,
         collections: p.collections,

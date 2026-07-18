@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type {
   CatalogCategory,
+  StoreHeroBanner,
   StoreHeroSlide,
   StoreMenuItem,
 } from "@/lib/storefront-client";
@@ -29,6 +30,8 @@ interface SfPreviewState {
   heroSlides: StoreHeroSlide[] | null;
   /** Draft home hero source ("slides" | "banner") the editor is drafting. */
   heroSrc: string | null;
+  /** Draft static banner-hero copy overrides. */
+  heroBanner: StoreHeroBanner | null;
   /** Draft header menu source ("collections" | "custom"). */
   headerMenuSrc: string | null;
   /** Draft custom header menu items (Navigation → Header menu). */
@@ -51,6 +54,7 @@ interface SfPreviewState {
     badges?: { text: string; icon?: string }[];
     heroSlides?: StoreHeroSlide[];
     heroSrc?: string;
+    heroBanner?: StoreHeroBanner;
     headerMenuSrc?: string;
     navHeader?: StoreMenuItem[];
     collections?: CatalogCategory[];
@@ -68,6 +72,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   badges: null,
   heroSlides: null,
   heroSrc: null,
+  heroBanner: null,
   headerMenuSrc: null,
   navHeader: null,
   collections: null,
@@ -84,6 +89,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       heroSlides:
         patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
       heroSrc: patch.heroSrc !== undefined ? patch.heroSrc : s.heroSrc,
+      heroBanner:
+        patch.heroBanner !== undefined ? patch.heroBanner : s.heroBanner,
       headerMenuSrc:
         patch.headerMenuSrc !== undefined ? patch.headerMenuSrc : s.headerMenuSrc,
       navHeader: patch.navHeader !== undefined ? patch.navHeader : s.navHeader,

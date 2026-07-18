@@ -25,6 +25,7 @@ import {
   defaultSelection,
   matchVariant,
 } from "@/components/storefront/variant-selector";
+import { LoadingSplash } from "@/components/storefront/loading-splash";
 import type { StorefrontImage } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
@@ -80,7 +81,7 @@ export default function ProductDetailPage() {
     setImgIdx(0);
   }
 
-  if (isLoading) return <p style={{ ...wrap, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
+  if (isLoading) return <div style={wrap}><LoadingSplash /></div>;
   if (isError || !product) {
     return (
       <div style={{ ...wrap }}>

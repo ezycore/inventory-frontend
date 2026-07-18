@@ -46,6 +46,7 @@ export function StoreHome({
   const previewHome = useSfPreview((s) => s.home);
   const previewSlides = useSfPreview((s) => s.heroSlides);
   const previewHeroSrc = useSfPreview((s) => s.heroSrc);
+  const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
   const resolved = resolveTemplates(store);
   const tpl = HOME_VARIANTS.includes(previewHome ?? "")
@@ -80,6 +81,7 @@ export function StoreHome({
     t,
     banner,
     heroSlides,
+    heroBanner: previewHeroBanner ?? store.heroBanner,
   };
 
   if (tpl === "hero-split") return <HeroSplit {...shared} />;

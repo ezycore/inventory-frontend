@@ -4,10 +4,14 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ExternalLink,
+  ImagePlus,
+  Info,
+  Loader2,
   Lock,
   Monitor,
   RotateCw,
   Smartphone,
+  X,
 } from "lucide-react";
 import {
   useGetStorefrontSettings,
@@ -21,11 +25,16 @@ import type { HeaderMenuSource } from "@/lib/storefront-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { storefrontUrl } from "@/lib/storefront-url";
 import type {
+  StorefrontHeroBanner,
   StorefrontHeroSlide,
   StorefrontMenuItem,
   StorefrontSettings,
   StorefrontTrustBadge,
 } from "@/types";
+import {
+  BannerHeroCard,
+  cleanHeroBanner,
+} from "@/components/ecommerce/banner-hero-card";
 import {
   toRowValue,
   type CollectionRowValue,
@@ -40,6 +49,11 @@ import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/ui/components/tooltip";
 import { Icon as SfIcon, type IconName } from "@/components/storefront/sf-icons";
 
 type Option = { label: string; value: string };
@@ -87,13 +101,21 @@ export default function CustomizePage() {
         </p>
       </div>
       {isLoading || !settings ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <PageLoader />
       ) : (
         // useSearchParams (section deep-link) needs a boundary to render.
-        <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+        <Suspense fallback={<PageLoader />}>
           <CustomizeWorkspace settings={settings} />
         </Suspense>
       )}
+    </div>
+  );
+}
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-40 items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
 }
@@ -141,6 +163,10 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   );
   const [heroSlides, setHeroSlides] = useState<StorefrontHeroSlide[]>(
     () => settings.heroSlides ?? [],
+  );
+  // Static banner-hero copy overrides (empty fields → built-in storefront copy).
+  const [heroBanner, setHeroBanner] = useState<StorefrontHeroBanner>(
+    () => settings.heroBanner ?? {},
   );
   // Edit-in-place panels: each takes over the left rail (preview stays live).
   const [slidesPanelOpen, setSlidesPanelOpen] = useState(false);
@@ -217,6 +243,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             badges={badges}
             setBadges={setBadges}
             heroSlides={heroSlides}
+            heroBanner={heroBanner}
+            setHeroBanner={setHeroBanner}
             onManageSlides={() => setSlidesPanelOpen(true)}
           />
         ) : section === "templates" ? (
@@ -257,6 +285,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           cardStyle={cardStyle}
           badges={badges}
           heroSlides={heroSlides}
+          heroBanner={heroBanner}
           // While editing slides, always preview the carousel so edits are
           // visible even if the hero-source switch is on "banner".
           heroSrc={slidesPanelOpen ? "slides" : heroSrc}
@@ -282,6 +311,8 @@ function ThemeSection({
   badges,
   setBadges,
   heroSlides,
+  heroBanner,
+  setHeroBanner,
   onManageSlides,
 }: {
   settings: StorefrontSettings;
@@ -292,12 +323,21 @@ function ThemeSection({
   badges: StorefrontTrustBadge[];
   setBadges: (v: StorefrontTrustBadge[]) => void;
   heroSlides: StorefrontHeroSlide[];
+  heroBanner: StorefrontHeroBanner;
+  setHeroBanner: (v: StorefrontHeroBanner) => void;
   onManageSlides: () => void;
 }) {
   const save = useUpdateStorefrontSettings();
   const media = useUpdateStorefrontMedia();
   const logoInput = useRef<HTMLInputElement>(null);
   const bannerInput = useRef<HTMLInputElement>(null);
+  // One mutation serves both fields — inspect its FormData so only the field
+  // actually uploading/removing shows the busy spinner.
+  const pendingMedia = media.isPending
+    ? media.variables?.has("logo") || media.variables?.has("removeLogo")
+      ? "logo"
+      : "banner"
+    : null;
 
   const t = settings.theme ?? {};
   const [preset, setPreset] = useState(t.preset ?? "default");
@@ -324,6 +364,7 @@ function ThemeSection({
       // Keep all three slots (empty = default) so positions survive a reload.
       // (Hero slides save from their own panel, not here.)
       trustBadges: badges.map((b) => ({ text: b.text.trim(), icon: b.icon })),
+      heroBanner: cleanHeroBanner(heroBanner),
     });
   };
 
@@ -403,7 +444,7 @@ function ThemeSection({
       </Card>
 
       {/* Logo + banner */}
-      <Card className="space-y-4 p-5 shadow-none">
+      <Card className="space-y-2 p-5 shadow-none">
         <h3 className="text-sm font-semibold">Logo &amp; banner</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <MediaField
@@ -411,6 +452,7 @@ function ThemeSection({
             url={settings.logo?.thumbnailUrl || settings.logo?.url}
             inputRef={logoInput}
             disabled={media.isPending}
+            busy={pendingMedia === "logo"}
             onPick={(file) => uploadMedia("logo", file)}
             onRemove={settings.logo ? () => removeMedia("logo") : undefined}
           />
@@ -419,12 +461,16 @@ function ThemeSection({
             url={settings.banner?.mediumUrl || settings.banner?.url}
             inputRef={bannerInput}
             disabled={media.isPending}
+            busy={pendingMedia === "banner"}
             onPick={(file) => uploadMedia("banner", file)}
             onRemove={settings.banner ? () => removeMedia("banner") : undefined}
             hint="Hero image when the home page shows the static banner (Templates → Home page); always the preview image for shared store links."
           />
         </div>
       </Card>
+
+      {/* Static banner-hero copy (badge/title/subtitle + the two buttons) */}
+      <BannerHeroCard value={heroBanner} onChange={setHeroBanner} />
 
       {/* Hero slides — summary only; editing happens in the takeover panel. */}
       <Card className="space-y-3 p-5 shadow-none">
@@ -713,6 +759,7 @@ function BrowserPreview({
   cardStyle,
   badges,
   heroSlides,
+  heroBanner,
   heroSrc,
   headerMenuSrc,
   navHeader,
@@ -727,6 +774,7 @@ function BrowserPreview({
   cardStyle: string;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
+  heroBanner: StorefrontHeroBanner;
   heroSrc: string;
   headerMenuSrc: HeaderMenuSource;
   navHeader: StorefrontMenuItem[];
@@ -743,6 +791,8 @@ function BrowserPreview({
   const badgesKey = JSON.stringify(badges);
   // Only preview saveable slides (title required), like the save path.
   const slidesKey = JSON.stringify(heroSlides.filter((s) => s.title.trim()));
+  // Cleaned like the save path, so blank fields preview the built-in copy.
+  const heroBannerKey = JSON.stringify(cleanHeroBanner(heroBanner));
   const navHeaderKey = JSON.stringify(navHeader.filter((m) => m.label.trim()));
   // Mirror the public GET /:slug/categories contract exactly — listed only,
   // display name wins, draft order preserved — so the preview can't drift from
@@ -773,13 +823,14 @@ function BrowserPreview({
           },
           trustBadges: JSON.parse(badgesKey),
           heroSlides: JSON.parse(slidesKey),
+          heroBanner: JSON.parse(heroBannerKey),
           nav: { header: JSON.parse(navHeaderKey) },
           collections: JSON.parse(collectionsKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, navHeaderKey, collectionsKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, collectionsKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {
@@ -923,6 +974,7 @@ function MediaField({
   url,
   inputRef,
   disabled,
+  busy,
   onPick,
   onRemove,
   hint,
@@ -931,20 +983,74 @@ function MediaField({
   url?: string;
   inputRef: React.RefObject<HTMLInputElement | null>;
   disabled: boolean;
+  busy: boolean;
   onPick: (file: File) => void;
   onRemove?: () => void;
   hint?: string;
 }) {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex h-28 items-center justify-center overflow-hidden rounded-md border bg-muted/30">
-        {url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={label} className="h-full w-full object-contain" />
-        ) : (
-          <span className="text-xs text-muted-foreground">
-            No {label.toLowerCase()}
+      <div className="flex items-center gap-1.5">
+        <Label>{label}</Label>
+        {hint && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info
+                className="h-3.5 w-3.5 cursor-help text-muted-foreground"
+                aria-label={`About ${label.toLowerCase()}`}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-60">
+              {hint}
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+      {/* The preview IS the upload control — click to add or replace. */}
+      <div
+        className={cn(
+          "group relative h-28 overflow-hidden rounded-lg border bg-muted/30",
+          !url && "border-dashed",
+        )}
+      >
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => inputRef.current?.click()}
+          aria-label={`${url ? "Replace" : "Upload"} ${label.toLowerCase()}`}
+          className="flex h-full w-full cursor-pointer items-center justify-center disabled:cursor-not-allowed"
+        >
+          {url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={url} alt={label} className="h-full w-full object-contain" />
+          ) : (
+            <span className="flex flex-col items-center gap-1.5 text-muted-foreground transition-colors group-hover:text-foreground">
+              <ImagePlus className="h-5 w-5" />
+              <span className="text-xs font-medium">Upload {label.toLowerCase()}</span>
+            </span>
+          )}
+        </button>
+        {url && !busy && (
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
+            <span className="flex items-center gap-1.5 text-xs font-medium text-white">
+              <ImagePlus className="h-3.5 w-3.5" /> Replace
+            </span>
+          </span>
+        )}
+        {url && onRemove && !busy && (
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={disabled}
+            aria-label={`Remove ${label.toLowerCase()}`}
+            className="absolute right-1.5 top-1.5 rounded-md border bg-background/95 p-1 text-muted-foreground shadow-sm transition-colors hover:text-red-600"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {busy && (
+          <span className="absolute inset-0 flex items-center justify-center bg-background/60">
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
           </span>
         )}
       </div>
@@ -959,30 +1065,6 @@ function MediaField({
           e.target.value = "";
         }}
       />
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={disabled}
-          onClick={() => inputRef.current?.click()}
-        >
-          Upload
-        </Button>
-        {onRemove && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={disabled}
-            onClick={onRemove}
-            className="text-red-600"
-          >
-            Remove
-          </Button>
-        )}
-      </div>
-      {hint && <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>}
     </div>
   );
 }

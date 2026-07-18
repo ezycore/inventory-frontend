@@ -23,6 +23,21 @@ export interface StoreHeroSlide {
   link?: string;
 }
 
+/**
+ * Owner overrides for the static banner hero's copy (Classic / Hero Split).
+ * Unset fields fall back to the built-in localized copy; button links default
+ * to /products. Links are store paths or full URLs (same rules as slide links).
+ */
+export interface StoreHeroBanner {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  primaryLabel?: string;
+  primaryLink?: string;
+  secondaryLabel?: string;
+  secondaryLink?: string;
+}
+
 export interface StorefrontStore {
   name: string;
   slug: string;
@@ -67,6 +82,8 @@ export interface StorefrontStore {
   trustBadges?: { text: string; icon?: string }[];
   /** Home hero carousel slides; unset/empty → the static built-in hero. */
   heroSlides?: StoreHeroSlide[];
+  /** Static banner-hero copy overrides; unset fields → built-in copy. */
+  heroBanner?: StoreHeroBanner;
   /** Header menu / footer groups / announcement bar (admin Navigation tab). */
   nav?: StoreNav;
   /** Checkout behaviour (order prefix, min order, etc.). */
@@ -113,7 +130,8 @@ export interface StoreTemplates {
 /** A header menu link target (category slug, page slug, or URL). */
 export interface StoreMenuItem {
   label: string;
-  type: "category" | "page" | "url";
+  /** "collections" expands to the listed collections at that position (top level only). */
+  type: "category" | "page" | "url" | "collections";
   value: string;
   children?: StoreMenuItem[];
 }

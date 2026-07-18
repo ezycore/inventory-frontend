@@ -9352,6 +9352,15 @@ export interface components {
                 buttonLabel?: string;
                 link?: string;
             }[];
+            heroBanner?: {
+                badge?: string;
+                title?: string;
+                subtitle?: string;
+                primaryLabel?: string;
+                primaryLink?: string;
+                secondaryLabel?: string;
+                secondaryLink?: string;
+            };
             couriers: {
                 /** @enum {string} */
                 provider: "pathao" | "steadfast" | "ecourier";
@@ -9515,6 +9524,7 @@ export interface components {
             seo?: unknown;
             theme?: unknown;
             heroSlides?: unknown;
+            heroBanner?: unknown;
             printable?: unknown;
             oauthProviders: string[];
             allowedPaymentMethods: string[];
@@ -13645,12 +13655,12 @@ export interface operations {
                         header?: {
                             label: string;
                             /** @enum {string} */
-                            type: "category" | "page" | "url";
+                            type: "category" | "page" | "url" | "collections";
                             value: string;
                             children?: {
                                 label: string;
                                 /** @enum {string} */
-                                type: "category" | "page" | "url";
+                                type: "category" | "page" | "url" | "collections";
                                 value: string;
                             }[];
                         }[];
@@ -13729,6 +13739,15 @@ export interface operations {
                         buttonLabel?: string;
                         link?: string;
                     }[];
+                    heroBanner?: {
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        primaryLabel?: string;
+                        primaryLink?: string;
+                        secondaryLabel?: string;
+                        secondaryLink?: string;
+                    };
                 };
             };
         };
