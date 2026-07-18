@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "@/lib/storefront-toast";
 import { useStore } from "@/services/storefront/hooks";
 import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
 import { useCartUI } from "@/services/stores/use-cart-ui-store";
@@ -25,6 +27,12 @@ export function CartDrawer() {
 
   const open = useCartUI((s) => s.open);
   const closeCart = useCartUI((s) => s.closeCart);
+
+  // The drawer IS the add-to-cart confirmation — clear any in-flight "Added"
+  // toast so it can't double-speak (or cover the footer CTAs) over the drawer.
+  useEffect(() => {
+    if (open) toast.dismiss();
+  }, [open]);
 
   const storeSlug = useCartStore((s) => s.storeSlug);
   const allItems = useCartStore((s) => s.items);

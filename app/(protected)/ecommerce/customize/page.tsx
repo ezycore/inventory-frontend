@@ -338,30 +338,12 @@ const TEMPLATE_PAGES: {
       ],
     },
     {
-      key: "cart",
-      label: "Cart",
-      desc: "Cart layout",
-      options: [
-        { value: "two-column", label: "Two column" },
-        { value: "drawer", label: "Slide-over drawer" },
-      ],
-    },
-    {
       key: "checkout",
       label: "Checkout",
       desc: "Checkout flow",
       options: [
         { value: "single-page", label: "Single page" },
         { value: "multi-step", label: "Multi-step" },
-      ],
-    },
-    {
-      key: "search",
-      label: "Search results",
-      desc: "Search layout",
-      options: [
-        { value: "grid", label: "Grid" },
-        { value: "list", label: "List" },
       ],
     },
     {
@@ -416,6 +398,10 @@ function TemplatesSection({
       seed[p.key] = (t as Record<string, string>)[p.key] || p.options[0].value;
     }
     seed.hero = t.hero || "slides";
+    // Retired options — shoppers pick grid/list on the search page itself, and
+    // Buy now always opens the cart drawer.
+    delete seed.search;
+    delete seed.cart;
     return seed;
   });
 

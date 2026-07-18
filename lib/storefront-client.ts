@@ -99,9 +99,7 @@ export interface StoreTemplatesRaw {
   home?: string;
   collection?: string;
   product?: string;
-  cart?: string;
   checkout?: string;
-  search?: string;
   footer?: string;
   header?: string;
   productCard?: string;
@@ -118,8 +116,6 @@ export interface StoreTemplates {
   collection: "grid3" | "grid4" | "sidebar";
   product: "left" | "top" | "sticky";
   checkout: "single" | "multi";
-  cart: "page" | "drawer";
-  search: "grid" | "list";
   footer: "columns" | "simple" | "rich";
   header: "classic" | "minimal" | "centered";
   productCard: "standard" | "compact" | "bold";

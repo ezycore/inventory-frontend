@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import type { CatalogProduct } from "@/lib/storefront-client";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useStore } from "@/services/storefront/hooks";

@@ -212,6 +212,8 @@ export interface Dict {
   menu: string;
   allProducts: string;
   results: string;
+  gridView: string;
+  listView: string;
   filters: string;
   category: string;
   priceRange: string;
@@ -524,6 +526,8 @@ const en: Dict = {
   menu: "Menu",
   allProducts: "All products",
   results: "results",
+  gridView: "Grid view",
+  listView: "List view",
   filters: "Filters",
   category: "Category",
   priceRange: "Price range",
@@ -837,6 +841,8 @@ const bn: Dict = {
   menu: "মেনু",
   allProducts: "সব পণ্য",
   results: "ফলাফল",
+  gridView: "গ্রিড ভিউ",
+  listView: "তালিকা ভিউ",
   filters: "ফিল্টার",
   category: "ক্যাটাগরি",
   priceRange: "দামের পরিসীমা",

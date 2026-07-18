@@ -4,12 +4,11 @@
 import { Suspense, useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import { useStore, useStoreProducts } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
-import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
@@ -24,6 +23,10 @@ const wrap: CSSProperties = {
   width: "100%",
   padding: "22px var(--pad) 40px",
 };
+
+// Device-level shopper preference (like `sf-theme`) — grid vs list results.
+const VIEW_KEY = "sf-search-view";
+type SearchView = "grid" | "list";
 
 function SearchInner() {
   const { slug, base } = useStoreContext();
@@ -44,8 +47,19 @@ function SearchInner() {
     limit: 24,
   });
 
+  // The shopper picks grid vs list here (was an admin template). Default grid;
+  // the persisted choice is applied after mount so the first client render
+  // matches the SSR HTML.
+  const [view, setView] = useState<SearchView>("grid");
+  useEffect(() => {
+    if (localStorage.getItem(VIEW_KEY) === "list") setView("list");
+  }, []);
+  const pickView = (v: SearchView) => {
+    setView(v);
+    localStorage.setItem(VIEW_KEY, v);
+  };
+
   const currency = store?.currency;
-  const variant = resolveTemplates(store).search;
   const items = data?.items ?? [];
 
   return (
@@ -80,11 +94,42 @@ function SearchInner() {
         </div>
       ) : (
         <>
-          <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
-            {items.length} {t.results}
-            {q ? ` · "${q}"` : ""}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
+            <div style={{ fontSize: 13, color: "var(--muted)" }}>
+              {items.length} {t.results}
+              {q ? ` · "${q}"` : ""}
+            </div>
+            <div style={{ display: "flex", border: "1px solid var(--border-strong)", borderRadius: 8, overflow: "hidden" }}>
+              {(["grid", "list"] as const).map((v) => {
+                const active = view === v;
+                const label = v === "grid" ? t.gridView : t.listView;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => pickView(v)}
+                    aria-pressed={active}
+                    aria-label={label}
+                    title={label}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 36,
+                      height: 32,
+                      border: "none",
+                      cursor: "pointer",
+                      background: active ? "var(--primary)" : "var(--card)",
+                      color: active ? "var(--on-primary)" : "var(--muted)",
+                    }}
+                  >
+                    <Icon name={v} size={16} />
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          {variant === "list" ? (
+          {view === "list" ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {items.map((p) => (
                 <SearchRow key={p._id} product={p} currency={currency} base={base} slug={slug} addedLabel={t.added} addLabel={t.addToCart} outLabel={t.outOfStock} />

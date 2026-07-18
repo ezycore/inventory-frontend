@@ -4781,7 +4781,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/customers/:id
-         * @description Defined in `src/routes/storefront-customers.routes.ts:19`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-customers.routes.ts:24`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_customers_id"];
         put?: never;
@@ -4801,7 +4801,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/customers/:id/orders
-         * @description Defined in `src/routes/storefront-customers.routes.ts:24`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-customers.routes.ts:29`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_customers_id_orders"];
         put?: never;
@@ -9352,9 +9352,7 @@ export interface components {
                 home?: string;
                 collection?: string;
                 product?: string;
-                cart?: string;
                 checkout?: string;
-                search?: string;
                 footer?: string;
                 header?: string;
                 productCard?: string;
@@ -13738,9 +13736,7 @@ export interface operations {
                         home?: string;
                         collection?: string;
                         product?: string;
-                        cart?: string;
                         checkout?: string;
-                        search?: string;
                         footer?: string;
                         header?: string;
                         productCard?: string;
@@ -27871,7 +27867,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["ShopperListItem"][];
+                        data?: {
+                            items?: components["schemas"]["ShopperListItem"][];
+                            total?: number;
+                            page?: number;
+                            limit?: number;
+                            totalPages?: number;
+                            hasNext?: boolean;
+                            hasPrev?: boolean;
+                        };
                     };
                 };
             };

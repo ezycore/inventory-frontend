@@ -59,13 +59,20 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   (use `--muted` or `color-mix(... , var(--text))` for accents that must survive both themes).
 - **Icons**: `components/storefront/sf-icons.tsx` (`<Icon name=… />`, stroke, currentColor).
   Add paths there; do not import lucide into storefront components.
+- **Toasts**: import `toast` from `lib/storefront-toast.ts`, never from "sonner" directly —
+  storefront toasts render **top-center** (the bottom strip belongs to the cart-drawer
+  footer, the mobile bottom nav and the sticky buy bar; the admin's global Toaster default
+  is bottom-right). The cart drawer `toast.dismiss()`es on open (the drawer IS the
+  add-to-cart confirmation) and the PDP's Buy now doesn't toast at all.
 - **i18n**: bilingual EN/বাংলা. `lib/storefront-i18n.ts` — every string is a key in the `Dict`
   interface **plus** the `en` **plus** the `bn` object (3 places, always). Components read
   `const { t } = useStorefrontUI()`. (IDE diagnostics often flag "missing properties" mid-batch
   while editing this file — verify with a grep count, key×3, before believing them.)
 - **Templates**: per-page layout variants chosen in the admin (Customize) —
-  `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/cart/checkout
-  variant ids consumed by the views.
+  `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/checkout
+  (+ header/footer/productCard/hero) variant ids consumed by the views. `search` and `cart`
+  are retired: shoppers toggle grid/list on the search page, and Buy now always opens the
+  cart drawer.
 - **Client state (zustand, persisted)**: `services/stores/use-shopper-store.ts`
   (`easystock-shopper`: token/shopper/slug, `setAuth/setShopper/logout`),
   `use-cart-store` (slug-scoped items), `use-wishlist-store`. **Any component reading a persisted
@@ -149,7 +156,32 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   settings (General incl. social links + fulfillment location, Publish, payments/shipping/checkout
   tabs). Custom domains under app Settings → Custom Domains.
 
-## Work log (what was built, newest first — as of 2026-07-18)
+## Work log (what was built, newest first — as of 2026-07-19)
+
+- **Storefront toasts → top-center + drawer dedup** (2026-07-19): "Added to cart" used to
+  land bottom-right ON TOP of the cart drawer's footer CTAs (global root-layout Sonner).
+  New `lib/storefront-toast.ts` wrapper (per-toast `position: "top-center"`, sonner 2.x)
+  adopted by all 16 storefront toast call sites; drawer dismisses in-flight toasts on open;
+  PDP `add(notify)` flag lets Buy now skip the toast (the drawer is the confirmation).
+
+- **Cart template retired → Buy now always opens the drawer** (2026-07-19): `templates.cart`
+  removed end-to-end (same sweep as `templates.search` below: FE resolver/client/types +
+  admin card + seed `delete seed.cart`; BE model/validator/types/DTO; OpenAPI +
+  `api-generated.ts` regenerated). The only thing it ever controlled was where the PDP's
+  Buy now landed (drawer vs /cart page) — the /cart page itself never varied and the header
+  cart icon already always opened the drawer. Buy now now opens the drawer unconditionally
+  (`products/[productSlug]/view.tsx` `buyNow`); /cart stays reachable via the drawer's
+  "View cart". CDP-verified: Buy now keeps the PDP url and the drawer opens with Checkout.
+
+- **Search-results template retired → shopper grid/list toggle** (2026-07-19): the admin
+  Templates "Search results" card is gone and `templates.search` was removed end-to-end
+  (FE `storefront-templates.ts` / `storefront-client.ts` / `types/index.ts`, admin seed
+  `delete seed.search`; BE model + validator + types + organization DTO; OpenAPI and
+  `types/api-generated.ts` regenerated). The shop `/search` page now owns the choice: a
+  grid ⇄ list segmented toggle on the results row, persisted per device as
+  `sf-search-view` (applied post-mount so the first client render matches SSR), new
+  `list` icon in `sf-icons.tsx`, `gridView`/`listView` i18n keys ×3. Old saved
+  `templates.search` values are harmless — zod strips unknown keys on PATCH.
 
 - **Customize rail width toggle** (2026-07-18): the left rail expands 380↔560px via a
   ⇔ icon button beside the section tabs (lg-only, per-visit state, grid-template-columns

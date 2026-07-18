@@ -2,8 +2,8 @@
 
 import { useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useParams } from "next/navigation";
+import { toast } from "@/lib/storefront-toast";
 import {
   useStore,
   useStoreProduct,
@@ -61,7 +61,6 @@ export default function ProductDetailPage() {
       s.storeSlug === slug &&
       s.items.some((i) => i.productId === product?._id),
   );
-  const router = useRouter();
   const [qty, setQty] = useState(1);
   // Gallery image the shopper tapped (clamped later — variant switches can
   // swap in a shorter image list).
@@ -139,7 +138,7 @@ export default function ProductDetailPage() {
     .filter((p) => p.slug !== product.slug)
     .slice(0, 4);
 
-  const add = () => {
+  const add = (notify = true) => {
     if (variable && !selectedVariant) return;
     addItem(
       slug,
@@ -157,13 +156,14 @@ export default function ProductDetailPage() {
       },
       qty,
     );
-    toast.success(t.added);
+    if (notify) toast.success(t.added);
   };
   const buyNow = () => {
-    add();
-    // Honour the cart template: drawer opens the slide-over, page goes to /cart.
-    if (resolveTemplates(store).cart === "drawer") openCart();
-    else router.push(storeHref(base, "/cart"));
+    // No toast: the drawer opening with the item IS the confirmation — quick
+    // review in place, checkout one tap away; the full /cart page stays
+    // reachable via the drawer's "View cart".
+    add(false);
+    openCart();
   };
 
   const onWish = () =>
@@ -303,7 +303,7 @@ export default function ProductDetailPage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 11, flexWrap: "wrap", marginBottom: 20 }}>
-                <button type="button" disabled={outOfStock} onClick={add} style={{ flex: 1, minWidth: 150, background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "14px 22px", borderRadius: 9, fontFamily: "inherit", fontSize: 14.5, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
+                <button type="button" disabled={outOfStock} onClick={() => add()} style={{ flex: 1, minWidth: 150, background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "14px 22px", borderRadius: 9, fontFamily: "inherit", fontSize: 14.5, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
                   {outOfStock ? t.outOfStock : t.addToCartFull}
                 </button>
                 <button type="button" disabled={outOfStock} onClick={buyNow} style={{ flex: 1, minWidth: 130, background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", padding: "14px 22px", borderRadius: 9, fontFamily: "inherit", fontSize: 14.5, fontWeight: 600, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
@@ -377,7 +377,7 @@ export default function ProductDetailPage() {
             </div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>{money(price, currency)}</div>
           </div>
-          <button type="button" disabled={outOfStock} onClick={add} style={{ flex: "none", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "13px 26px", borderRadius: 9, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
+          <button type="button" disabled={outOfStock} onClick={() => add()} style={{ flex: "none", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "13px 26px", borderRadius: 9, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
             {outOfStock ? t.outOfStock : t.addToCartFull}
           </button>
         </div>

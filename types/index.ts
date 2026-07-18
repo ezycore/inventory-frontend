@@ -149,9 +149,7 @@ export interface StorefrontTemplates {
   home?: string;
   collection?: string;
   product?: string;
-  cart?: string;
   checkout?: string;
-  search?: string;
   footer?: string;
   header?: string;
   productCard?: string;
