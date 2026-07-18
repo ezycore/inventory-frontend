@@ -72,36 +72,6 @@ export const ghostLink: CSSProperties = {
 };
 
 /** Selectable delivery-zone card (Inside/Outside Dhaka). */
-export function ZoneTile({
-  active,
-  onClick,
-  title,
-  note,
-}: {
-  active: boolean;
-  onClick: () => void;
-  title: string;
-  note: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        border: `1px solid ${active ? "var(--primary)" : "var(--border-strong)"}`,
-        background: active ? "var(--primary-soft)" : "var(--card)",
-        borderRadius: 10,
-        padding: 14,
-        cursor: "pointer",
-        textAlign: "left",
-      }}
-    >
-      <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
-      <div className="sf-mono" style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>{note}</div>
-    </button>
-  );
-}
-
 /** Order-summary line (subtotal / discount / shipping). */
 export function SummaryRow({
   label: rowLabel,

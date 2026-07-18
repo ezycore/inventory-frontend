@@ -1,0 +1,78 @@
+/* coding-standard: maintained */
+/* Typography inside the rich-text editor's contenteditable area. Tailwind's
+   preflight strips heading/list/quote defaults, so the editor restores them
+   here, scoped to .rte-content. Visual parity with the storefront renderer is
+   not required — that look lives in components/storefront/. */
+
+.rte-content .ProseMirror {
+  outline: none;
+  min-height: 180px;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.rte-content h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0.9em 0 0.25em;
+}
+
+.rte-content h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0.9em 0 0.25em;
+}
+
+.rte-content h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.9em 0 0.25em;
+}
+
+.rte-content p {
+  margin: 0.4em 0;
+}
+
+.rte-content ul,
+.rte-content ol {
+  margin: 0.4em 0;
+  padding-left: 1.5rem;
+}
+
+.rte-content ul {
+  list-style: disc;
+}
+
+.rte-content ol {
+  list-style: decimal;
+}
+
+.rte-content blockquote {
+  margin: 0.6em 0;
+  padding: 0.15em 0 0.15em 0.9em;
+  border-left: 3px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.rte-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.2em 0;
+}
+
+.rte-content a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* FAQ answer wrapper (no React node view — see faq-node.ts) indents under the
+   Q. badge rendered by FaqQuestionView. */
+.rte-content .rte-faq-answer {
+  padding-left: 1.4rem;
+  color: var(--muted-foreground);
+}
+
+.rte-content .rte-faq-answer p {
+  margin: 0.2em 0;
+}

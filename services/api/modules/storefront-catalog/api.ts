@@ -37,6 +37,7 @@ export interface UpdateStorefrontListingDto {
   onlineTitle?: string;
   onlineDescription?: string;
   outOfStockBehavior?: OutOfStockBehavior;
+  weightKg?: number;
 }
 
 export interface BulkStorefrontDto {

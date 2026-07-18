@@ -279,7 +279,7 @@ const getLocationFormConfig = (t: Translator): DynamicFormConfig => ({
 const getLocationFilterConfig = (t: Translator): FilterConfig => ({
   fields: [
     {
-      name: "name",
+      name: "search",
       label: t("filters.searchLabel"),
       type: "text",
       placeholder: t("filters.searchPlaceholder"),
@@ -301,11 +301,6 @@ const getLocationFilterConfig = (t: Translator): FilterConfig => ({
   applyOnChange: false,
   showResetButton: true,
   showApplyButton: true,
-});
-
-const getSearchConfig = (t: Translator) => ({
-  globalSearch: true,
-  placeholder: t("searchPlaceholder"),
 });
 
 const defaultValues = {
@@ -372,7 +367,6 @@ export default function LocationsPage() {
 
   const columns = useMemo(() => getColumns(t), [t]);
   const locationFilterConfig = useMemo(() => getLocationFilterConfig(t), [t]);
-  const searchConfig = useMemo(() => getSearchConfig(t), [t]);
 
   const sharedOperations = {
     formConfig: roleAwareLocationFormConfig,
@@ -426,7 +420,6 @@ export default function LocationsPage() {
           filterConfig={locationFilterConfig}
           columns={columns}
           selectable={true}
-          searchConfig={searchConfig}
           enableSorting={true}
           defaultColumnVisibility={{ status: false }}
           enableRowHover={true}
@@ -449,7 +442,6 @@ export default function LocationsPage() {
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "lg",
           }}
-          searchConfig={searchConfig}
           renderCard={(item, actions) => LocationCardView(item, actions, { t, locale })}
           loadingRenderCard={() => <LocationCardSkeleton />}
           operations={sharedOperations}

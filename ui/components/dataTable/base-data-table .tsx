@@ -28,7 +28,6 @@ export function BaseDataTable<TData, TValue>({
   title,
   selectable = false,
   onSelectionChange,
-  searchConfig,
   actions,
   onEdit,
   onDelete,
@@ -69,7 +68,6 @@ export function BaseDataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility || {});
   const [rowSelection, setRowSelection] = useState({});
-  const [globalFilter, setGlobalFilter] = useState("");
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
 
   // Custom hooks
@@ -108,7 +106,6 @@ export function BaseDataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: handlePaginationChange,
     manualPagination: pagination?.manualPagination,
     manualSorting,
@@ -118,10 +115,8 @@ export function BaseDataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
       pagination: paginationState,
     },
-    globalFilterFn: "includesString",
   });
 
   // Notify parent of selection changes
@@ -162,9 +157,6 @@ export function BaseDataTable<TData, TValue>({
         table={table}
         title={title}
         filterConfig={filterConfig}
-        searchConfig={searchConfig}
-        globalFilter={globalFilter}
-        onGlobalFilterChange={setGlobalFilter}
         selectable={selectable}
         hasSelection={hasSelection}
         selectedRowsCount={selectedRowsCount}

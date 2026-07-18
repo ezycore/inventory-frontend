@@ -14,18 +14,17 @@ import {
   campaignDefaultValues,
   campaignFilterConfig,
   campaignFormConfig,
-  campaignSearchConfig,
 } from "@/components/ecommerce/campaigns";
 
 function cleanCampaign(data: Record<string, any>) {
   const scope = data.scope;
-  const targets =
-    scope === "storewide"
-      ? []
-      : String(data.targetsText ?? "")
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean);
+  const picked =
+    scope === "category"
+      ? data.categoryTargets
+      : scope === "product"
+        ? data.productTargets
+        : [];
+  const targets = (Array.isArray(picked) ? picked : []).filter(Boolean);
   return {
     name: String(data.name ?? "").trim(),
     scope,
@@ -52,7 +51,6 @@ export default function CampaignsPage() {
         defaultPageSize={10}
         pageSizes={[10, 20, 50]}
         filterConfig={campaignFilterConfig}
-        searchConfig={campaignSearchConfig}
         enableSorting
         enableRowHover
         operations={{
@@ -67,7 +65,7 @@ export default function CampaignsPage() {
           editTooltip: "Edit campaign",
           deleteTooltip: "Delete campaign",
           // Row → form values: numeric value, ISO dates the DatePicker parses,
-          // targets array joined back into the comma-separated input.
+          // targets array routed to the multi-select matching the scope.
           transformEditData: (c: Campaign) => ({
             name: c.name,
             scope: c.scope,
@@ -75,7 +73,8 @@ export default function CampaignsPage() {
             value: c.value ?? 0,
             startsAt: c.startsAt ?? "",
             endsAt: c.endsAt ?? "",
-            targetsText: (c.targets ?? []).join(", "),
+            categoryTargets: c.scope === "category" ? c.targets ?? [] : [],
+            productTargets: c.scope === "product" ? c.targets ?? [] : [],
             status: c.status,
           }),
           // Create → flat CampaignInput; edit → { body } (DataTable injects id),

@@ -64,6 +64,8 @@
     "hintSale": "sale"
   },
   "filters": {
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search products by name...",
     "brand": "Brand",
     "allBrands": "All brands",
     "category": "Category",

@@ -3,12 +3,40 @@ import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
   AdminStorefrontOrder,
   CourierList,
+  CourierLocation,
+  CourierPackage,
+  CourierPrice,
   CourierRemoved,
+  CourierStore,
+  CourierTest,
   CourierUpsert,
+  CourierWebhook,
   FraudScore,
+  OrderStats,
   StorefrontOrderList,
 } from "@/types/api";
-export type { AdminStorefrontOrder };
+export type { AdminStorefrontOrder, CourierPrice, OrderStats };
+
+/** The list-page filters — courier/fulfillment/payment narrow the status-tab counts too. */
+export interface AdminOrderListParams {
+  status?: string;
+  search?: string;
+  courier?: string;
+  fulfillmentType?: string;
+  paymentStatus?: string;
+  page?: number;
+  limit?: number;
+}
+
+/** The multi-status envelope a bulk dispatch answers with (200 all-ok / 207 partial). */
+export interface CourierBulkResult {
+  success: boolean;
+  total: number;
+  successful: number;
+  failed: number;
+  results?: { id: string; orderNumber?: string; consignmentId?: string; trackingCode?: string }[];
+  errors?: { id: string; error?: string; code?: string }[];
+}
 
 // Response shapes generated from the backend storefront-order + courier DTOs (`ecommerce.dto.ts`).
 // Order sub-shapes are derived from the parent so they cannot drift from it.
@@ -24,20 +52,24 @@ export type CourierCredField = CourierList["providers"][string][number];
 const base = "/ecommerce/orders";
 
 export const storefrontOrdersApi = {
-  list: (params: {
-    status?: string;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<ApiResponse<AdminOrderListResult>> => {
+  list: (
+    params: AdminOrderListParams,
+  ): Promise<ApiResponse<AdminOrderListResult>> => {
     const qs = new URLSearchParams();
     if (params.status) qs.append("status", params.status);
     if (params.search) qs.append("search", params.search);
+    if (params.courier) qs.append("courier", params.courier);
+    if (params.fulfillmentType)
+      qs.append("fulfillmentType", params.fulfillmentType);
+    if (params.paymentStatus) qs.append("paymentStatus", params.paymentStatus);
     if (params.page) qs.append("page", String(params.page));
     if (params.limit) qs.append("limit", String(params.limit));
     const s = qs.toString();
     return apiClient.get(`${base}${s ? `?${s}` : ""}`);
   },
+  // The COD-cash-cycle snapshot behind the stat cards (whole-org, ignores list filters).
+  stats: (): Promise<ApiResponse<OrderStats>> =>
+    apiClient.get(`${base}/stats`),
   // Adapter for DataTable's self-contained mode: list() already paginates and
   // filters by status server-side; this flattens its { items, pagination }
   // payload into the PaginatedResponse shape DataTable expects.
@@ -81,11 +113,23 @@ export const storefrontOrdersApi = {
     status: string,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.patch(`${base}/${id}/status`, { status }),
+  // Cancel/reject a pre-commit order (no Sale yet). `refundAdvance` returns a
+  // recorded COD delivery-charge advance to the shopper (books the reversing
+  // expense); `accountId` overrides the account it's refunded from.
   cancel: (
     id: string,
-    reject?: boolean,
+    body?: { reject?: boolean; refundAdvance?: boolean; accountId?: string },
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
-    apiClient.post(`${base}/${id}/cancel`, { reject }),
+    apiClient.post(`${base}/${id}/cancel`, body ?? {}),
+  // Record a COD delivery-charge advance collected before shipping. The server
+  // caps `amount` at the order's `shippingCharged`; the door/COD collection then
+  // shrinks by it. Delivery orders only, once, before dispatch.
+  recordAdvance: (
+    id: string,
+    amount: number,
+    accountId?: string,
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(`${base}/${id}/advance`, { amount, accountId }),
   updateCourierCost: (
     id: string,
     shippingCost: number,
@@ -96,6 +140,18 @@ export const storefrontOrdersApi = {
     accountId?: string,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/payment`, { accountId }),
+  // Reverse a committed delivery order (RTO / post-delivery) with a full Sales Return.
+  // `refund` routes the cash remainder of a *paid* order (account or store credit).
+  returnOrder: (
+    id: string,
+    body: {
+      returnCharge?: number;
+      collectedAmount?: number;
+      accountId?: string;
+      refund?: { mode: "account" | "credit"; accountId?: string };
+    },
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(`${base}/${id}/return`, body),
   createConsignment: (
     id: string,
     provider: string,
@@ -103,6 +159,25 @@ export const storefrontOrdersApi = {
     apiClient.post(`${base}/${id}/consignment`, { provider }),
   refreshTracking: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/refresh-tracking`, {}),
+  courierPrice: (
+    id: string,
+    provider: string,
+  ): Promise<ApiResponse<CourierPrice>> =>
+    apiClient.get(
+      `${base}/${id}/courier-price?provider=${encodeURIComponent(provider)}`,
+    ),
+  bulkConsignment: (
+    orderIds: string[],
+    provider: string,
+  ): Promise<ApiResponse<CourierBulkResult>> =>
+    apiClient.post(`${base}/bulk-consignment`, { orderIds, provider }),
+  // Map an order's canonical address to a provider's own location codes before dispatch.
+  resolveLocation: (
+    id: string,
+    provider: string,
+    location: Record<string, string | number>,
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(`${base}/${id}/resolve-location`, { provider, location }),
 };
 
 const couriersBase = "/ecommerce/couriers";
@@ -117,4 +192,26 @@ export const couriersApi = {
     apiClient.put(`${couriersBase}/${provider}`, body),
   remove: (provider: string): Promise<ApiResponse<CourierRemoved>> =>
     apiClient.delete(`${couriersBase}/${provider}`),
+  test: (provider: string): Promise<ApiResponse<CourierTest>> =>
+    apiClient.post(`${couriersBase}/${provider}/test`, {}),
+  stores: (provider: string): Promise<ApiResponse<CourierStore[]>> =>
+    apiClient.get(`${couriersBase}/${provider}/stores`),
+  packages: (provider: string): Promise<ApiResponse<CourierPackage[]>> =>
+    apiClient.get(`${couriersBase}/${provider}/packages`),
+  locations: (
+    provider: string,
+    level: string,
+    parent?: string | number,
+  ): Promise<ApiResponse<CourierLocation[]>> =>
+    apiClient.get(
+      `${couriersBase}/${provider}/locations?level=${encodeURIComponent(level)}${
+        parent !== undefined && parent !== ""
+          ? `&parent=${encodeURIComponent(String(parent))}`
+          : ""
+      }`,
+    ),
+  webhook: (): Promise<ApiResponse<CourierWebhook>> =>
+    apiClient.get(`${couriersBase}/webhook`),
+  regenerateWebhook: (): Promise<ApiResponse<CourierWebhook>> =>
+    apiClient.post(`${couriersBase}/webhook/regenerate`, {}),
 };

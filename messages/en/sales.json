@@ -239,6 +239,8 @@
       "other": "Other"
     },
     "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Return number...",
       "status": "Status",
       "reason": "Reason",
       "pending": "Pending",

@@ -70,10 +70,7 @@ import { DataCard } from "@/ui/components/dataCard";
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `searchConfig.globalSearch` | `boolean` | Enable global search |
-| `searchConfig.placeholder` | `string` | Search input placeholder |
-| `searchConfig.searchableKey` | `keyof TData` | Specific field to search |
-| `filterConfig` | `FilterConfig` | Filter configuration (same as DataTable) |
+| `filterConfig` | `FilterConfig` | Filter configuration (same as DataTable). Search is a server-side `search` **text field placed first** here — `searchConfig` was removed. The card toolbar renders the inline `FilterBar` (not the panel-only `GlobalFilter`). |
 
 ### CRUD Operations
 
@@ -188,10 +185,6 @@ export default function BrandsCardView() {
         src: "images",
         alt: "name",
         aspectRatio: "video",
-      }}
-      searchConfig={{
-        globalSearch: true,
-        placeholder: "Search brands...",
       }}
       filterConfig={brandFilterConfig}
       selectable={true}

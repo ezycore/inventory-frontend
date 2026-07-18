@@ -157,11 +157,32 @@ export interface Dict {
   fullName: string;
   phone: string;
   address: string;
+  addressLabel: string;
+  addressLabelCustom: string;
+  addrHome: string;
+  addrOffice: string;
+  addrOther: string;
+  addressLine: string;
+  fulfillmentDelivery: string;
+  fulfillmentPickup: string;
+  pickupFrom: string;
+  pickupHeading: string;
+  pickupFree: string;
   deliveryZone: string;
   insideDhaka: string;
   outsideDhaka: string;
   zoneDays12: string;
   zoneDays35: string;
+  courierArea: string;
+  selectDistrict: string;
+  selectCity: string;
+  selectZone: string;
+  selectArea: string;
+  comboNoMatch: string;
+  selectThana: string;
+  loadingLocations: string;
+  newAddress: string;
+  saveThisAddress: string;
   orderNotesPh: string;
   paymentMethod: string;
   default: string;
@@ -261,6 +282,8 @@ export interface Dict {
   timelineShipped: string;
   timelineDelivered: string;
   orderCancelled: string;
+  cancelOrder: string;
+  confirmCancelOrder: string;
   orderItems: string;
   deliveryAddress: string;
   paid: string;
@@ -446,11 +469,32 @@ const en: Dict = {
   fullName: "Full name",
   phone: "Phone number",
   address: "Full address",
+  addressLabel: "Address label",
+  addressLabelCustom: "Label name",
+  addrHome: "Home",
+  addrOffice: "Office",
+  addrOther: "Other",
+  addressLine: "House, road, block",
+  fulfillmentDelivery: "Delivery",
+  fulfillmentPickup: "Store pickup",
+  pickupFrom: "Pick up from",
+  pickupHeading: "Your details",
+  pickupFree: "Free (pickup)",
   deliveryZone: "Delivery zone",
   insideDhaka: "Inside Dhaka",
   outsideDhaka: "Outside Dhaka",
   zoneDays12: "1–2 days",
   zoneDays35: "3–5 days",
+  courierArea: "Delivery area",
+  selectDistrict: "Select district",
+  selectCity: "Select city",
+  selectZone: "Select zone",
+  selectArea: "Area / upazila / thana",
+  comboNoMatch: "No matches — type to add your own",
+  selectThana: "Select thana",
+  loadingLocations: "Loading…",
+  newAddress: "New address",
+  saveThisAddress: "Save this address",
   orderNotesPh: "Delivery notes (optional)",
   paymentMethod: "Payment method",
   default: "Default",
@@ -550,6 +594,8 @@ const en: Dict = {
   timelineShipped: "Shipped",
   timelineDelivered: "Delivered",
   orderCancelled: "Order cancelled",
+  cancelOrder: "Cancel order",
+  confirmCancelOrder: "Cancel this order? This can’t be undone.",
   orderItems: "Order items",
   deliveryAddress: "Delivery address",
   paid: "Paid",
@@ -736,11 +782,32 @@ const bn: Dict = {
   fullName: "পুরো নাম",
   phone: "ফোন নম্বর",
   address: "সম্পূর্ণ ঠিকানা",
+  addressLabel: "ঠিকানার লেবেল",
+  addressLabelCustom: "লেবেলের নাম",
+  addrHome: "বাসা",
+  addrOffice: "অফিস",
+  addrOther: "অন্যান্য",
+  addressLine: "বাসা, রোড, ব্লক",
+  fulfillmentDelivery: "ডেলিভারি",
+  fulfillmentPickup: "স্টোরে পিকআপ",
+  pickupFrom: "পিকআপ স্থান",
+  pickupHeading: "আপনার তথ্য",
+  pickupFree: "ফ্রি (পিকআপ)",
   deliveryZone: "ডেলিভারি জোন",
   insideDhaka: "ঢাকার ভিতরে",
   outsideDhaka: "ঢাকার বাইরে",
   zoneDays12: "১–২ দিন",
   zoneDays35: "৩–৫ দিন",
+  courierArea: "ডেলিভারি এলাকা",
+  selectDistrict: "জেলা নির্বাচন করুন",
+  selectCity: "শহর নির্বাচন করুন",
+  selectZone: "জোন নির্বাচন করুন",
+  selectArea: "এলাকা / উপজেলা / থানা",
+  comboNoMatch: "কোনো মিল নেই — নিজে টাইপ করুন",
+  selectThana: "থানা নির্বাচন করুন",
+  loadingLocations: "লোড হচ্ছে…",
+  newAddress: "নতুন ঠিকানা",
+  saveThisAddress: "এই ঠিকানা সংরক্ষণ করুন",
   orderNotesPh: "ডেলিভারি নোট (ঐচ্ছিক)",
   paymentMethod: "পেমেন্ট মাধ্যম",
   default: "ডিফল্ট",
@@ -840,6 +907,8 @@ const bn: Dict = {
   timelineShipped: "পাঠানো হয়েছে",
   timelineDelivered: "ডেলিভারড",
   orderCancelled: "অর্ডার বাতিল",
+  cancelOrder: "অর্ডার বাতিল করুন",
+  confirmCancelOrder: "এই অর্ডারটি বাতিল করবেন? এটি আর ফেরানো যাবে না।",
   orderItems: "অর্ডারের পণ্য",
   deliveryAddress: "ডেলিভারি ঠিকানা",
   paid: "পরিশোধিত",
@@ -898,6 +967,8 @@ export const ORDER_STATUS: Record<
   processing: { en: "Processing", bn: "প্রসেসিং", c: "#6d28d9" },
   shipped: { en: "Shipped", bn: "পাঠানো হয়েছে", c: "#0e7490" },
   delivered: { en: "Delivered", bn: "ডেলিভারড", c: "#15803d" },
+  ready_for_pickup: { en: "Ready for pickup", bn: "পিকআপের জন্য প্রস্তুত", c: "#0e7490" },
+  picked_up: { en: "Picked up", bn: "সংগ্রহ করা হয়েছে", c: "#15803d" },
   cancelled: { en: "Cancelled", bn: "বাতিল", c: "#b91c1c" },
   returned: { en: "Returned", bn: "ফেরত", c: "#b91c1c" },
   rejected: { en: "Rejected", bn: "বাতিল", c: "#b91c1c" },

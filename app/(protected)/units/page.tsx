@@ -122,7 +122,6 @@ export default function UnitsPage() {
           gap: "md",
         }}
         filterConfig={getUnitFilterConfig(t)}
-        searchConfig={{ globalSearch: true, placeholder: t("page.searchPlaceholder") }}
         renderCard={(item, actions) => UnitCardView(item, actions, { t, locale })}
         loadingRenderCard={UnitCardLoading}
         operations={sharedOperations}

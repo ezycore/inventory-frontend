@@ -1,8 +1,7 @@
 "use client";
 
-import { Search, X, Trash2, LayoutGrid, List, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Trash2, LayoutGrid, List, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
-import { Input } from "@/ui/components/input";
 import { Button } from "@/ui/components/button";
 import {
   AlertDialog,
@@ -22,16 +21,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { GlobalFilter } from "@/ui/components/filters/global-filter";
-import { DataCardSearchConfig, FilterConfig, CardCustomAction, CardLayout, CardSortingConfig } from "@/types/DataCard";
+import { FilterBar } from "@/ui/components/filters/filter-bar";
+import { FilterConfig, CardCustomAction, CardLayout, CardSortingConfig } from "@/types/DataCard";
 import { cn } from "@/ui/lib/utils";
 
 interface DataCardToolbarProps {
   title?: string;
   filterConfig?: FilterConfig;
-  searchConfig?: DataCardSearchConfig;
-  globalFilter?: string;
-  onGlobalFilterChange?: (value: string) => void;
   selectable?: boolean;
   hasSelection?: boolean;
   selectedRowsCount?: number;
@@ -58,10 +54,7 @@ interface DataCardToolbarProps {
 
 export function DataCardToolbar({
   title,
-  searchConfig,
   filterConfig,
-  globalFilter,
-  onGlobalFilterChange,
   selectable,
   hasSelection,
   selectedRowsCount,
@@ -78,58 +71,39 @@ export function DataCardToolbar({
   onSortChange,
   sortingConfig,
 }: DataCardToolbarProps) {
-  const hasSearch = searchConfig?.globalSearch || !!searchConfig?.searchableKey;
+  const hasInlineFilters = !!filterConfig?.fields?.length;
   const hasRightActions =
     (selectable && hasSelection && deletable) ||
     sortingConfig ||
     (showLayoutSwitcher && !!onLayoutChange) ||
-    (filterConfig && Object.keys(filterConfig).length > 0) ||
     !!actionButton ||
     customActions?.some((a) => a.placement === "header");
 
-  if (!title && !hasSearch && !hasRightActions) return null;
+  if (!title && !hasInlineFilters && !hasRightActions) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      {/* Title — mr-auto pushes right items to the end of the same row.
-          When the row is too narrow, following items wrap to the next row(s). */}
+      {/* Title — mr-auto pushes right items to the end when no inline filter
+          bar owns the flex-1 spacer. */}
       {title && (
-        <h2 className="mr-auto text-xl font-semibold tracking-tight">
+        <h2
+          className={cn(
+            "text-xl font-semibold tracking-tight",
+            !hasInlineFilters && "mr-auto",
+          )}
+        >
           {title}
         </h2>
       )}
 
-      {/* Search */}
-      {hasSearch && (
-        <div className={cn(
-          "relative h-8 shrink-0",
-          title ? "w-44 sm:w-52" : "flex-1 min-w-[140px] max-w-sm"
-        )}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder={searchConfig!.placeholder || "Search..."}
-            value={globalFilter ?? ""}
-            onChange={(event) => onGlobalFilterChange?.(event.target.value)}
-            className="pl-10 pr-6 h-8 w-full"
-          />
-          {globalFilter && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onGlobalFilterChange?.("")}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-      )}
+      {/* Inline filter bar — search + inline filters, overflow folds to panel */}
+      {hasInlineFilters && filterConfig && <FilterBar config={filterConfig} />}
 
       {/* Right-side actions */}
       {hasRightActions && (
         <div className={cn(
           "flex items-center gap-2 shrink-0",
-          !title && !hasSearch && "ml-auto"
+          !title && !hasInlineFilters && "ml-auto"
         )}>
         {/* Sort Dropdown */}
         {sortingConfig && onSortChange && (
@@ -252,11 +226,6 @@ export function DataCardToolbar({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        )}
-
-        {/* Global Filter */}
-        {filterConfig && Object.keys(filterConfig).length > 0 && (
-          <GlobalFilter config={filterConfig} />
         )}
 
         {/* Custom Action Button (e.g., Add Brand) */}
