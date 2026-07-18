@@ -46,10 +46,6 @@ export function ReturnHistoryTable<TData>({
           data={data}
           isLoading={isLoading}
           filterConfig={filterConfig}
-          searchConfig={{
-            globalSearch: true,
-            placeholder: t('searchReturns'),
-          }}
           actions={{}}
           pagination={{
             pageIndex: page - 1,

@@ -121,10 +121,6 @@ export default function InventoryPage() {
         columns={columns}
         selectable={true}
         enableSorting={true}
-        searchConfig={{
-          globalSearch: true,
-          placeholder: t("stock.searchPlaceholder"),
-        }}
         enableRowHover={true}
         exportConfig={{
           download: (params) =>

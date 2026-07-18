@@ -153,6 +153,12 @@ export function useSalesReturnPage() {
     () => ({
       fields: [
         {
+          name: 'search',
+          label: t('filters.search'),
+          type: 'text' as const,
+          placeholder: t('filters.searchPlaceholder'),
+        },
+        {
           name: 'status',
           label: t('filters.status'),
           type: 'select' as const,

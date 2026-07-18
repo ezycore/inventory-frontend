@@ -128,6 +128,7 @@ export type ApiCoupon = Schemas["Coupon"];
 export type ApiContentPage = Schemas["ContentPage"];
 export type ShopperListItem = Schemas["ShopperListItem"];
 export type ShopperDetail = Schemas["ShopperDetail"];
+export type ShopperOrder = Schemas["ShopperOrder"];
 
 // Auth & users ---------------------------------------------------------------
 export type Me = Schemas["Me"];
