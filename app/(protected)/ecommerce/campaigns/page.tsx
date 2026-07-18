@@ -14,7 +14,6 @@ import {
   campaignDefaultValues,
   campaignFilterConfig,
   campaignFormConfig,
-  campaignSearchConfig,
 } from "@/components/ecommerce/campaigns";
 
 function cleanCampaign(data: Record<string, any>) {
@@ -52,7 +51,6 @@ export default function CampaignsPage() {
         defaultPageSize={10}
         pageSizes={[10, 20, 50]}
         filterConfig={campaignFilterConfig}
-        searchConfig={campaignSearchConfig}
         enableSorting
         enableRowHover
         operations={{

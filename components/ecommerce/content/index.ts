@@ -3,5 +3,4 @@ export {
   contentFormConfig,
   contentDefaultValues,
   contentFilterConfig,
-  contentSearchConfig,
 } from "./form-config";

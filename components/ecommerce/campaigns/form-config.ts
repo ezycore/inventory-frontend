@@ -90,7 +90,7 @@ export const campaignFormConfig: DynamicFormConfig = {
       placeholder: "Search and select products...",
       helperText: "Only these products get the campaign discount.",
       columnSpan: 12,
-      optionsApi: "/products?all=true&inventory=false&fields=_id,name",
+      optionsApi: "/products?all=true&fields=_id,name",
       dependsOn: { field: "scope", matchWithProp: "value", condition: "eq", value: "product", action: "show" },
     },
     {
@@ -139,9 +139,4 @@ export const campaignFilterConfig: FilterConfig = {
     },
   ],
   viewMode: "popover",
-};
-
-export const campaignSearchConfig = {
-  globalSearch: true,
-  placeholder: "Search campaigns by name...",
 };
