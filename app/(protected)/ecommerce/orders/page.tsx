@@ -35,6 +35,7 @@ const TABS: { label: string; value: string }[] = [
   { label: "Delivered", value: "delivered" },
   { label: "Returned", value: "returned" },
   { label: "Cancelled", value: "cancelled" },
+  { label: "Rejected", value: "rejected" },
 ];
 
 // Radix Select forbids an empty-string item value, so "all" is the clear-filter

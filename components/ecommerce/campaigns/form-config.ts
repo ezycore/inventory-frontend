@@ -2,8 +2,9 @@ import type { FilterConfig } from "@/types/DataTable";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
 // Date fields use zodType "string" to keep the ISO value the DatePicker emits.
-// `targetsText` is a comma-separated input shown only for non-storewide scopes;
-// page-level prepareSubmitData splits it into the `targets` string array.
+// `categoryTargets`/`productTargets` are API-backed multi-selects, each shown for
+// its scope; page-level prepareSubmitData folds the active one into `targets`
+// (an id string array) so admins pick by name instead of pasting Mongo IDs.
 export const campaignFormConfig: DynamicFormConfig = {
   fields: [
     {
@@ -65,13 +66,32 @@ export const campaignFormConfig: DynamicFormConfig = {
       columnSpan: 6,
     },
     {
-      name: "targetsText",
-      type: "input",
-      label: "Category / Product IDs",
-      placeholder: "id1, id2",
-      helperText: "Comma-separated IDs to target with this campaign.",
+      name: "categoryTargets",
+      type: "select",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Categories",
+      placeholder: "Search and select categories...",
+      helperText: "Only these categories get the campaign discount.",
       columnSpan: 12,
-      dependsOn: { field: "scope", condition: "ne", value: "storewide", action: "show" },
+      optionsApi: "/categories?all=true&fields=_id,name",
+      // scope is a static-option select, so its watched value is enriched to the
+      // full option object — match on `.value` to compare the string.
+      dependsOn: { field: "scope", matchWithProp: "value", condition: "eq", value: "category", action: "show" },
+    },
+    {
+      name: "productTargets",
+      type: "select",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Products",
+      placeholder: "Search and select products...",
+      helperText: "Only these products get the campaign discount.",
+      columnSpan: 12,
+      optionsApi: "/products?all=true&inventory=false&fields=_id,name",
+      dependsOn: { field: "scope", matchWithProp: "value", condition: "eq", value: "product", action: "show" },
     },
     {
       name: "status",
@@ -94,7 +114,8 @@ export const campaignDefaultValues = {
   value: 0,
   startsAt: "",
   endsAt: "",
-  targetsText: "",
+  categoryTargets: [] as string[],
+  productTargets: [] as string[],
   status: "active" as const,
 };
 
