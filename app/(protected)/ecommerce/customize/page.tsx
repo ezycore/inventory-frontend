@@ -3,23 +3,21 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  ChevronsLeftRight,
+  ChevronsRightLeft,
   ExternalLink,
-  ImagePlus,
-  Info,
   Loader2,
   Lock,
   Monitor,
   RotateCw,
   Smartphone,
-  X,
 } from "lucide-react";
 import {
   useGetStorefrontSettings,
   useStorefrontCollections,
-  useUpdateStorefrontMedia,
   useUpdateStorefrontSettings,
 } from "@/services/api";
-import { THEME_PRESETS, getPreset } from "@/lib/storefront-theme";
+import { getPreset } from "@/lib/storefront-theme";
 import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import type { HeaderMenuSource } from "@/lib/storefront-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -31,10 +29,9 @@ import type {
   StorefrontSettings,
   StorefrontTrustBadge,
 } from "@/types";
-import {
-  BannerHeroCard,
-  cleanHeroBanner,
-} from "@/components/ecommerce/banner-hero-card";
+import { cleanHeroBanner } from "@/components/ecommerce/theme/banner-hero-fields";
+import { DEFAULT_BADGES } from "@/components/ecommerce/theme/footer-group";
+import { ThemeSection } from "@/components/ecommerce/theme/theme-section";
 import {
   toRowValue,
   type CollectionRowValue,
@@ -42,19 +39,10 @@ import {
 import { CollectionsPanel } from "@/components/ecommerce/collections/collections-panel";
 import { NavigationSection } from "@/components/ecommerce/navigation/navigation-section";
 import { HeroSlidesPanel } from "@/components/ecommerce/hero-slides-panel";
-import { SlideThumb } from "@/components/ecommerce/slide-thumb";
 import { HomeTemplateBlock } from "@/components/ecommerce/home-template-block";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
-import { Input } from "@/ui/components/input";
-import { Label } from "@/ui/components/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/ui/components/tooltip";
-import { Icon as SfIcon, type IconName } from "@/components/storefront/sf-icons";
 
 type Option = { label: string; value: string };
 type SectionId = "theme" | "templates" | "navigation";
@@ -63,29 +51,6 @@ const SECTIONS: { id: SectionId; label: string }[] = [
   { id: "theme", label: "Theme" },
   { id: "templates", label: "Templates" },
   { id: "navigation", label: "Navigation" },
-];
-
-// Trust-badge editor (Rich footer). Rows seed empty with these defaults as
-// placeholders/icons; unset rows fall back to the storefront's localized copy.
-const BADGE_ICON_CHOICES: IconName[] = [
-  "shield",
-  "truck",
-  "coins",
-  "check",
-  "star",
-  "tag",
-  "heart",
-  "clock",
-];
-const DEFAULT_BADGES: StorefrontTrustBadge[] = [
-  { text: "", icon: "shield" },
-  { text: "", icon: "truck" },
-  { text: "", icon: "coins" },
-];
-const BADGE_PLACEHOLDERS = [
-  "100% authentic",
-  "Same-day delivery",
-  "Cash on delivery",
 ];
 
 export default function CustomizePage() {
@@ -171,6 +136,9 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   // Edit-in-place panels: each takes over the left rail (preview stays live).
   const [slidesPanelOpen, setSlidesPanelOpen] = useState(false);
   const [collectionsPanelOpen, setCollectionsPanelOpen] = useState(false);
+  // Wide mode gives form-heavy editing (nav menu URLs, hero copy, panel rows)
+  // a 560px rail instead of 380 — toggled beside the section tabs, lg-only.
+  const [railWide, setRailWide] = useState(false);
 
   // Navigation draft (preview-relevant half — the section owns footer/announcement).
   const [headerMenuSrc, setHeaderMenuSrc] = useState<HeaderMenuSource>(() =>
@@ -197,7 +165,14 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const collectionsDraft = collections ?? [];
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
+    <div
+      className={cn(
+        "grid items-start gap-6 motion-safe:transition-[grid-template-columns] motion-safe:duration-300",
+        railWide
+          ? "lg:grid-cols-[560px_minmax(0,1fr)]"
+          : "lg:grid-cols-[380px_minmax(0,1fr)]",
+      )}
+    >
       {/* LEFT — fixed-height sticky rail (matches the preview column): content
           scrolls INSIDE it and each mode fills the same frame, so the slides
           panel takeover never changes the column height (no layout blink). */}
@@ -231,6 +206,20 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
               {s.label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setRailWide((w) => !w)}
+            aria-pressed={railWide}
+            aria-label={railWide ? "Narrow controls" : "Widen controls"}
+            title={railWide ? "Narrow controls" : "Widen controls"}
+            className="hidden flex-none items-center justify-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground hover:shadow-sm lg:flex"
+          >
+            {railWide ? (
+              <ChevronsRightLeft className="h-4 w-4" />
+            ) : (
+              <ChevronsLeftRight className="h-4 w-4" />
+            )}
+          </button>
         </div>
 
         {section === "theme" ? (
@@ -295,256 +284,6 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           navHeader={navHeader}
           collections={collectionsDraft}
         />
-      </div>
-    </div>
-  );
-}
-
-/* --------------------------------- Theme ---------------------------------- */
-
-function ThemeSection({
-  settings,
-  brandColor,
-  accentColor,
-  setBrandColor,
-  setAccentColor,
-  badges,
-  setBadges,
-  heroSlides,
-  heroBanner,
-  setHeroBanner,
-  onManageSlides,
-}: {
-  settings: StorefrontSettings;
-  brandColor: string;
-  accentColor: string;
-  setBrandColor: (v: string) => void;
-  setAccentColor: (v: string) => void;
-  badges: StorefrontTrustBadge[];
-  setBadges: (v: StorefrontTrustBadge[]) => void;
-  heroSlides: StorefrontHeroSlide[];
-  heroBanner: StorefrontHeroBanner;
-  setHeroBanner: (v: StorefrontHeroBanner) => void;
-  onManageSlides: () => void;
-}) {
-  const save = useUpdateStorefrontSettings();
-  const media = useUpdateStorefrontMedia();
-  const logoInput = useRef<HTMLInputElement>(null);
-  const bannerInput = useRef<HTMLInputElement>(null);
-  // One mutation serves both fields — inspect its FormData so only the field
-  // actually uploading/removing shows the busy spinner.
-  const pendingMedia = media.isPending
-    ? media.variables?.has("logo") || media.variables?.has("removeLogo")
-      ? "logo"
-      : "banner"
-    : null;
-
-  const t = settings.theme ?? {};
-  const [preset, setPreset] = useState(t.preset ?? "default");
-  const [footerText, setFooterText] = useState(t.footerText ?? "");
-
-  const pickPreset = (id: string) => {
-    setPreset(id);
-    const def = getPreset(id);
-    setBrandColor(def.brandColor);
-    setAccentColor(def.accentColor);
-  };
-
-  const setBadge = (i: number, patch: Partial<StorefrontTrustBadge>) =>
-    setBadges(badges.map((b, idx) => (idx === i ? { ...b, ...patch } : b)));
-
-  const submit = () => {
-    save.mutate({
-      theme: {
-        preset,
-        brandColor,
-        accentColor,
-        footerText: footerText.trim() || undefined,
-      },
-      // Keep all three slots (empty = default) so positions survive a reload.
-      // (Hero slides save from their own panel, not here.)
-      trustBadges: badges.map((b) => ({ text: b.text.trim(), icon: b.icon })),
-      heroBanner: cleanHeroBanner(heroBanner),
-    });
-  };
-
-  const uploadMedia = (field: "logo" | "banner", file: File) => {
-    const fd = new FormData();
-    fd.append(field, file);
-    media.mutate(fd);
-  };
-
-  const removeMedia = (field: "logo" | "banner") => {
-    const fd = new FormData();
-    fd.append(field === "logo" ? "removeLogo" : "removeBanner", "true");
-    media.mutate(fd);
-  };
-
-  return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <div className="min-h-0 flex-1 space-y-5 lg:overflow-y-auto lg:pr-1">
-      {/* Preset */}
-      <Card className="p-5 shadow-none">
-        <h3 className="mb-1 text-sm font-semibold">Preset</h3>
-        <p className="mb-3 text-xs text-muted-foreground">
-          A one-click baseline. You can still fine-tune colors below.
-        </p>
-        <div className="flex flex-wrap gap-2.5">
-          {THEME_PRESETS.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => pickPreset(p.id)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
-                preset === p.id
-                  ? "border-primary ring-2 ring-primary/30"
-                  : "hover:bg-muted/50",
-              )}
-            >
-              <span className="flex">
-                <span
-                  className="h-5 w-5 rounded-full border"
-                  style={{ backgroundColor: p.brandColor }}
-                />
-                <span
-                  className="-ml-1.5 h-5 w-5 rounded-full border"
-                  style={{ backgroundColor: p.accentColor }}
-                />
-              </span>
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      {/* Branding */}
-      <Card className="space-y-4 p-5 shadow-none">
-        <h3 className="text-sm font-semibold">Branding</h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <ColorField
-            label="Brand color"
-            value={brandColor}
-            onChange={setBrandColor}
-          />
-          <ColorField
-            label="Accent color"
-            value={accentColor}
-            onChange={setAccentColor}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Footer text</Label>
-          <Input
-            value={footerText}
-            onChange={(e) => setFooterText(e.target.value)}
-            maxLength={280}
-            placeholder="© Your store. All rights reserved."
-          />
-        </div>
-      </Card>
-
-      {/* Logo + banner */}
-      <Card className="space-y-2 p-5 shadow-none">
-        <h3 className="text-sm font-semibold">Logo &amp; banner</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <MediaField
-            label="Logo"
-            url={settings.logo?.thumbnailUrl || settings.logo?.url}
-            inputRef={logoInput}
-            disabled={media.isPending}
-            busy={pendingMedia === "logo"}
-            onPick={(file) => uploadMedia("logo", file)}
-            onRemove={settings.logo ? () => removeMedia("logo") : undefined}
-          />
-          <MediaField
-            label="Banner"
-            url={settings.banner?.mediumUrl || settings.banner?.url}
-            inputRef={bannerInput}
-            disabled={media.isPending}
-            busy={pendingMedia === "banner"}
-            onPick={(file) => uploadMedia("banner", file)}
-            onRemove={settings.banner ? () => removeMedia("banner") : undefined}
-            hint="Hero image when the home page shows the static banner (Templates → Home page); always the preview image for shared store links."
-          />
-        </div>
-      </Card>
-
-      {/* Static banner-hero copy (badge/title/subtitle + the two buttons) */}
-      <BannerHeroCard value={heroBanner} onChange={setHeroBanner} />
-
-      {/* Hero slides — summary only; editing happens in the takeover panel. */}
-      <Card className="space-y-3 p-5 shadow-none">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold">Hero slides</h3>
-            <p className="text-xs text-muted-foreground">
-              {heroSlides.length === 0
-                ? "No slides yet — the home page shows the standard hero."
-                : `${heroSlides.length} ${heroSlides.length === 1 ? "slide" : "slides"} rotating on your home page.`}
-            </p>
-          </div>
-          <Button size="sm" variant="outline" onClick={onManageSlides}>
-            Manage slides
-          </Button>
-        </div>
-        {heroSlides.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {heroSlides.map((s, i) => (
-              <SlideThumb key={i} slide={s} className="h-9 w-14" />
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Trust badges (Rich footer) */}
-      <Card className="space-y-4 p-5 shadow-none">
-        <div>
-          <h3 className="text-sm font-semibold">
-            Trust badges
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            The service highlights shown in the <span className="font-medium">Rich</span> footer.
-            Leave a row empty to keep the default text.
-          </p>
-        </div>
-        <div className="space-y-3">
-          {badges.map((b, i) => (
-            <div key={i} className="space-y-2 rounded-lg border p-3">
-              <div className="flex flex-wrap gap-1.5">
-                {BADGE_ICON_CHOICES.map((name) => (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => setBadge(i, { icon: name })}
-                    aria-label={name}
-                    className={cn(
-                      "flex items-center justify-center rounded-md border p-1.5 transition-colors",
-                      b.icon === name
-                        ? "border-primary text-primary ring-2 ring-primary/30"
-                        : "text-muted-foreground hover:bg-muted/50",
-                    )}
-                  >
-                    <SfIcon name={name} size={16} />
-                  </button>
-                ))}
-              </div>
-              <Input
-                value={b.text}
-                onChange={(e) => setBadge(i, { text: e.target.value })}
-                placeholder={BADGE_PLACEHOLDERS[i] ?? "Badge text"}
-                maxLength={40}
-              />
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      </div>
-
-      <div className="flex flex-none justify-end">
-        <Button onClick={submit} disabled={save.isPending}>
-          {save.isPending ? "Saving…" : "Save theme"}
-        </Button>
       </div>
     </div>
   );
@@ -943,128 +682,3 @@ function BrowserPreview({
   );
 }
 
-function ColorField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-12 flex-none rounded border"
-          aria-label={`${label} swatch`}
-        />
-        <Input value={value} onChange={(e) => onChange(e.target.value)} />
-      </div>
-    </div>
-  );
-}
-
-function MediaField({
-  label,
-  url,
-  inputRef,
-  disabled,
-  busy,
-  onPick,
-  onRemove,
-  hint,
-}: {
-  label: string;
-  url?: string;
-  inputRef: React.RefObject<HTMLInputElement | null>;
-  disabled: boolean;
-  busy: boolean;
-  onPick: (file: File) => void;
-  onRemove?: () => void;
-  hint?: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-1.5">
-        <Label>{label}</Label>
-        {hint && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info
-                className="h-3.5 w-3.5 cursor-help text-muted-foreground"
-                aria-label={`About ${label.toLowerCase()}`}
-              />
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-60">
-              {hint}
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-      {/* The preview IS the upload control — click to add or replace. */}
-      <div
-        className={cn(
-          "group relative h-28 overflow-hidden rounded-lg border bg-muted/30",
-          !url && "border-dashed",
-        )}
-      >
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => inputRef.current?.click()}
-          aria-label={`${url ? "Replace" : "Upload"} ${label.toLowerCase()}`}
-          className="flex h-full w-full cursor-pointer items-center justify-center disabled:cursor-not-allowed"
-        >
-          {url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt={label} className="h-full w-full object-contain" />
-          ) : (
-            <span className="flex flex-col items-center gap-1.5 text-muted-foreground transition-colors group-hover:text-foreground">
-              <ImagePlus className="h-5 w-5" />
-              <span className="text-xs font-medium">Upload {label.toLowerCase()}</span>
-            </span>
-          )}
-        </button>
-        {url && !busy && (
-          <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-            <span className="flex items-center gap-1.5 text-xs font-medium text-white">
-              <ImagePlus className="h-3.5 w-3.5" /> Replace
-            </span>
-          </span>
-        )}
-        {url && onRemove && !busy && (
-          <button
-            type="button"
-            onClick={onRemove}
-            disabled={disabled}
-            aria-label={`Remove ${label.toLowerCase()}`}
-            className="absolute right-1.5 top-1.5 rounded-md border bg-background/95 p-1 text-muted-foreground shadow-sm transition-colors hover:text-red-600"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-        {busy && (
-          <span className="absolute inset-0 flex items-center justify-center bg-background/60">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          </span>
-        )}
-      </div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onPick(file);
-          e.target.value = "";
-        }}
-      />
-    </div>
-  );
-}

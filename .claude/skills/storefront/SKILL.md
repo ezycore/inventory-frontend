@@ -151,6 +151,32 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
 
 ## Work log (what was built, newest first — as of 2026-07-18)
 
+- **Customize rail width toggle** (2026-07-18): the left rail expands 380↔560px via a
+  ⇔ icon button beside the section tabs (lg-only, per-visit state, grid-template-columns
+  animated; panels opened while wide inherit the width). Chosen over a drag resizer and a
+  hide-preview button after an interactive options mock
+  (claude.ai/code/artifact/c994f91d-82e3-4ab5-bc70-775c5ac62d0f) — hide-preview was
+  rejected because it kills the live edit-see loop the page exists for.
+
+- **Theme rail redesign (settings-list accordion) + logo inheritance** (2026-07-18):
+  Customize → Theme's six stacked cards became ONE surface in `components/ecommerce/theme/`:
+  `theme-section.tsx` (container: accordion state, dirty flag, save; slides group inline) +
+  `theme-group.tsx` (collapsible row primitive: icon chip / title / live one-line summary) +
+  `theme-capsule.tsx` (pinned mini-storefront strip repainting with the brand/accent draft) +
+  `preset-group.tsx` (presets as mini storefront previews) + `colors-group.tsx` (pickers +
+  light/dark **contrast check** strip) + `media-field.tsx` (`MediaField` moved out of the
+  page; uploads still save instantly) + `footer-group.tsx` (footer © text + trust badges,
+  icon picker now a Popover; exports `DEFAULT_BADGES`) + `banner-hero-fields.tsx` (ex
+  `banner-hero-card.tsx` minus the Card wrapper; still exports `cleanHeroBanner`).
+  Groups: Preset · Brand colors · Logo · Hero slides · **Banner hero** (image + copy in one
+  group — they compose one storefront card) · Footer. **Store logo inherits the org logo**:
+  `getStoreInfo` serves `s.logo ?? org.logo` (BE), so merchants upload once in org settings;
+  the Logo group shows the inherited mark ("Using your organization logo") and an upload
+  there is a store-only override (remove ⇒ back to inherited). Save payload, props from
+  CustomizeWorkspace, and preview streaming unchanged; sticky save bar shows an amber
+  "Unsaved changes" dot (media uploads don't trip it). Approved sample:
+  claude.ai/code/artifact/8b213c7c-35d0-4ac1-afd6-495c2b3b11b6.
+
 - **Editable banner-hero copy (`heroBanner`)** (2026-07-18): the static banner hero's
   badge/title/subtitle and its two buttons (labels + links) are merchant-editable.
   `StorefrontSettings.heroBanner` (BE model/validator/organization+storefront DTOs +
@@ -161,9 +187,9 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   its uppercase kicker; Minimal's typographic hero is deliberately untouched. Buttons
   render through the shared `HeroCtaLink` (`home-shared.tsx` — full URL = new tab,
   else `storeHref(base, …)`, empty = `/products`; the carousel's `SlideCta` now uses
-  it too). Admin: Customize → Theme → **"Banner hero text"** card
-  (`components/ecommerce/banner-hero-card.tsx`; placeholders = the standard EN copy;
-  saved by Save theme via `cleanHeroBanner` — blank field ⇒ built-in copy, so custom
+  it too). Admin: Customize → Theme → **"Banner hero"** group
+  (`components/ecommerce/theme/banner-hero-fields.tsx`; placeholders = the standard EN
+  copy; saved by Save theme via `cleanHeroBanner` — blank field ⇒ built-in copy, so custom
   text replaces BOTH languages as-is); preview store + bridge stream `heroBanner`.
 
 - **Explicit header-menu source + Navigation folded into Customize** (2026-07-18): the store

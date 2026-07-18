@@ -2,7 +2,6 @@
 // coding-standard: maintained
 
 import type { StorefrontHeroBanner } from "@/types";
-import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 
@@ -50,11 +49,12 @@ function TextRow({
 }
 
 /**
- * Customize → Theme: copy overrides for the static banner hero (the hero the
- * Classic / Hero Split home layouts show when the hero source is "banner" or
- * there are no slides). Placeholders show the standard English copy.
+ * Copy overrides for the static banner hero (shown when the home hero source
+ * is "banner" or no slides exist; Classic & Hero Split layouts). Placeholders
+ * show the standard English copy; an empty field keeps the built-in bilingual
+ * copy for that spot, while custom text shows as-is in both languages.
  */
-export function BannerHeroCard({
+export function BannerHeroFields({
   value,
   onChange,
 }: {
@@ -65,15 +65,10 @@ export function BannerHeroCard({
     onChange({ ...value, ...patch });
 
   return (
-    <Card className="space-y-4 p-5 shadow-none">
-      <div>
-        <h3 className="text-sm font-semibold">Banner hero text</h3>
-        <p className="text-xs text-muted-foreground">
-          Text on the static banner hero (Classic &amp; Hero Split home
-          layouts). Leave a field empty to keep the standard bilingual copy —
-          your own text shows as-is in both languages.
-        </p>
-      </div>
+    <div className="space-y-3">
+      <p className="text-[11px] text-muted-foreground">
+        Shown when the home hero is the static banner.
+      </p>
       <TextRow
         label="Badge"
         value={value.badge}
@@ -141,6 +136,6 @@ export function BannerHeroCard({
           </div>
         </div>
       ))}
-    </Card>
+    </div>
   );
 }
