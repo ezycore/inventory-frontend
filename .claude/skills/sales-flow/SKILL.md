@@ -7,7 +7,7 @@ description: 'Build, edit, debug, or audit the EzyCore SALES FLOW end-to-end (FE
 
 End-to-end map of the **Sale → Return → Payment → Customer Ledger** UI. Treat as the single source of truth.
 
-> **Sister skill:** `easystock-backend/.claude/skills/sales-flow/SKILL.md`. Keep them in sync. **Always read both** when touching this area.
+> **Sister skill:** `inventory-backend/.claude/skills/sales-flow/SKILL.md`. Keep them in sync. **Always read both** when touching this area.
 
 ---
 

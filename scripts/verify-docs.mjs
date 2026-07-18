@@ -52,7 +52,7 @@ const EXEMPT = [path.join("docs", "archive"), path.join("docs", "plan")];
  * Sibling repos in the ecosystem, resolved relative to this one. A frontend doc citing
  * `src/services/auth.service.ts` means the backend; a path is dead only if it exists in **no** repo.
  */
-const SIBLING_REPOS = ["easystock-backend", "easystock-frontend", "mission-control"];
+const SIBLING_REPOS = ["inventory-backend", "inventory-frontend", "mission-control"];
 const AVAILABLE_SIBLINGS = SIBLING_REPOS.filter(
   (r) => r !== THIS_REPO && fs.existsSync(path.join(ECOSYSTEM_ROOT, r)),
 );
@@ -68,7 +68,7 @@ const MISSING_SIBLINGS = SIBLING_REPOS.filter(
  */
 const ENDPOINTS_FILE = path.join(
   ECOSYSTEM_ROOT,
-  "easystock-backend",
+  "inventory-backend",
   "docs",
   "reference",
   "endpoints.json",
@@ -95,7 +95,7 @@ function resolveCitation(cited) {
 
 /**
  * A `src/…` reference (the backend, since the frontend has no `src/`) or a qualified sibling path
- * (`easystock-backend/docs/features/tax.md`). Both are unambiguous claims that the file exists.
+ * (`inventory-backend/docs/features/tax.md`). Both are unambiguous claims that the file exists.
  */
 const SRC_PATH = /(?<![\w/.-])(src\/[A-Za-z0-9_@/.-]+\.(?:tsx|ts|js))/g;
 
@@ -273,7 +273,7 @@ function main() {
   if (!knownRoutes) {
     console.warn(
       `⚠ Backend endpoint index not found at ${path.relative(REPO_ROOT, ENDPOINTS_FILE)}.\n` +
-        "  Skipping the phantom-route check (expected the easystock-backend repo beside this one,\n" +
+        "  Skipping the phantom-route check (expected the inventory-backend repo beside this one,\n" +
         "  with `pnpm docs:all` having generated docs/reference/endpoints.json). Path/link checks still run.",
     );
   }

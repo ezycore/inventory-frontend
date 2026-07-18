@@ -12,7 +12,7 @@
     "lint": "eslint . --max-warnings=-1",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
-    "gen:api-types": "openapi-typescript ../easystock-backend/docs/reference/openapi.json -o types/api-generated.ts",
+    "gen:api-types": "openapi-typescript ../inventory-backend/docs/reference/openapi.json -o types/api-generated.ts",
     "verify:api-types": "node scripts/verify-api-types.mjs",
     "docs:verify": "node scripts/verify-docs.mjs",
     "verify": "pnpm verify:api-types && pnpm docs:verify && pnpm typecheck",

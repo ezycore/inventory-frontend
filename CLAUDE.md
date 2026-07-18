@@ -100,7 +100,7 @@ backend really sends it, and a rename/removal on the backend becomes a **compile
 a silent `undefined`.
 
 - `types/api-generated.ts` — generated, **do not edit**. Regenerate with `pnpm gen:api-types` (reads
-  `../easystock-backend/docs/reference/openapi.json`).
+  `../inventory-backend/docs/reference/openapi.json`).
 - `types/api.ts` — the only place that maps a backend schema to a friendly name (`Api`-prefixed where it
   would clash with a hand-written type, e.g. `ApiInventory`, `ApiVariant`). **Import response types from
   `@/types/api`**, never reach into `api-generated` directly.
@@ -125,7 +125,7 @@ weren't regenerated." `pnpm verify` runs that plus `pnpm docs:verify` plus `type
 a doc/skill lies about the code — a dead file reference (`src/…`, `components/…`), a broken relative
 `.md` link, a phantom `/api/…` route the backend router does not serve, or something declared absent that
 now exists. It reads the backend's generated `docs/reference/endpoints.json` for the known-route set and
-resolves backend `src/…` citations against the `easystock-backend` repo checked out beside this one;
+resolves backend `src/…` citations against the `inventory-backend` repo checked out beside this one;
 when a sibling repo is absent it skips those checks rather than failing. Bare paths that resolve nowhere
 are advisory (never a failure) — they are genuinely ambiguous. `docs/archive/**` and `docs/plan/**` are
 exempt.
@@ -229,7 +229,7 @@ The tax module is optional and per-line. Keep these single sources — never re-
   for the "Tax (added) / Total / Includes … in price" summary; `<LineTaxCell>`
   (`components/shared/line-tax-cell.tsx`) for the cart per-line Tax column.
 - Backend is authoritative; FE numbers are previews and must match `applyLineTaxes` exactly.
-- **The contract lives in the backend:** `easystock-backend/docs/features/tax.md` — the tax math,
+- **The contract lives in the backend:** `inventory-backend/docs/features/tax.md` — the tax math,
   the worked examples, and the sales/purchase/return rules. It used to be `docs/TAX_BACKEND_CONTRACT.md`
   in *this* repo, still saying "backend pending" long after the backend shipped it; it moved because
   8 of its 9 sections describe backend behavior. **If you change `utils/tax.ts`, change

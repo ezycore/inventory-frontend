@@ -22,9 +22,9 @@ every store; **the host picks the store**.
 > **Paired backend skills — the server rules are NOT duplicated here.** The shopper→order→confirm→Sale
 > pipeline (Shopper ≠ Customer), coupons/campaigns, and the custom-domain lifecycle are owned by the
 > backend:
-> [`storefront-orders`](../../../../easystock-backend/.claude/skills/storefront-orders/SKILL.md),
-> [`promotions-coupons`](../../../../easystock-backend/.claude/skills/promotions-coupons/SKILL.md),
-> [`custom-domains`](../../../../easystock-backend/.claude/skills/custom-domains/SKILL.md). This file is
+> [`storefront-orders`](../../../../inventory-backend/.claude/skills/storefront-orders/SKILL.md),
+> [`promotions-coupons`](../../../../inventory-backend/.claude/skills/promotions-coupons/SKILL.md),
+> [`custom-domains`](../../../../inventory-backend/.claude/skills/custom-domains/SKILL.md). This file is
 > the frontend + architecture map; read those before changing anything that crosses the wire.
 
 ## Dev environment
