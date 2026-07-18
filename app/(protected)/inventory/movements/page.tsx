@@ -157,9 +157,6 @@ export default function StockMovementsPage() {
       <DataTable
         columns={columns}
         selectable={false}
-        searchConfig={{
-          globalSearch: false,
-        }}
         operations={tableOperations}
         enableSorting={true}
         enableRowHover={true}

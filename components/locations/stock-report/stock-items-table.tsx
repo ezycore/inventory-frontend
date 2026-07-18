@@ -10,8 +10,9 @@ import type {
   LocationStockDetailReport,
 } from "@/services/api/modules/locations/stock-report-api";
 import type { Translator } from "@/i18n/config";
-import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
+import { TablePager } from "@/components/shared/table-pager";
 
 interface StockItemsTableProps {
   items: LocationStockItem[];
@@ -88,58 +89,15 @@ export function StockItemsTable({
         </table>
       </div>
 
-      {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/20">
-          <p className="text-xs text-muted-foreground">
-            {t("showing", {
-              from: (pagination.page - 1) * pagination.limit + 1,
-              to: Math.min(pagination.page * pagination.limit, pagination.total),
-              total: pagination.total,
-            })}
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => onPageChange(pagination.page - 1)}
-              disabled={!pagination.hasPrev}
-              className="flex h-8 w-8 items-center justify-center rounded-md border bg-card hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            {generatePageNumbers(pagination.page, pagination.totalPages).map(
-              (pageNum, idx) =>
-                pageNum === -1 ? (
-                  <span
-                    key={`ellipsis-${idx}`}
-                    className="px-1 text-muted-foreground text-sm"
-                  >
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={pageNum}
-                    onClick={() => onPageChange(pageNum)}
-                    className={cn(
-                      "flex h-8 min-w-[32px] items-center justify-center rounded-md text-sm font-medium transition-colors",
-                      pageNum === pagination.page
-                        ? "bg-primary text-primary-foreground"
-                        : "border bg-card hover:bg-muted",
-                    )}
-                  >
-                    {pageNum}
-                  </button>
-                ),
-            )}
-            <button
-              onClick={() => onPageChange(pagination.page + 1)}
-              disabled={!pagination.hasNext}
-              className="flex h-8 w-8 items-center justify-center rounded-md border bg-card hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <TablePager
+        page={pagination.page}
+        limit={pagination.limit}
+        total={pagination.total}
+        totalPages={pagination.totalPages}
+        hasPrev={pagination.hasPrev}
+        hasNext={pagination.hasNext}
+        onPageChange={onPageChange}
+      />
     </Card>
   );
 }
@@ -216,21 +174,3 @@ function StockItemRow({ item, t }: { item: LocationStockItem; t: Translator }) {
   );
 }
 
-function generatePageNumbers(current: number, total: number): number[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-
-  const pages: number[] = [];
-  pages.push(1);
-
-  if (current > 3) pages.push(-1); // ellipsis
-
-  const start = Math.max(2, current - 1);
-  const end = Math.min(total - 1, current + 1);
-
-  for (let i = start; i <= end; i++) pages.push(i);
-
-  if (current < total - 2) pages.push(-1); // ellipsis
-
-  pages.push(total);
-  return pages;
-}

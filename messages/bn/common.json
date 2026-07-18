@@ -48,6 +48,7 @@
     "noResults": "কোনো ফলাফল পাওয়া যায়নি",
     "columns": "কলাম",
     "actions": "অ্যাকশন",
+    "showing": "{total}টির মধ্যে {from}-{to} দেখানো হচ্ছে",
     "deleteCount": "{count}টি মুছুন",
     "deleteEntity": "{entity} মুছুন",
     "viewEntity": "{entity} দেখুন",

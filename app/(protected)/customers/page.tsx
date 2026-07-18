@@ -23,7 +23,6 @@ import {
   CustomerLedgerSheet,
   getCustomerColumns,
   getCustomerFilterConfig,
-  getSearchConfig,
   getCustomerFormConfig,
   defaultValues,
 } from "@/components/customers";
@@ -64,7 +63,6 @@ export default function CustomersPage() {
         filterConfig={getCustomerFilterConfig(t)}
         columns={getCustomerColumns(t)}
         selectable={true}
-        searchConfig={getSearchConfig(t)}
         enableSorting={true}
         defaultColumnVisibility={{ email: false, phone: false }}
         enableRowHover={true}

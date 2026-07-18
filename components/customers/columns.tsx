@@ -3,6 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import type { Customer } from "@/types";
 import type { Translator } from "@/i18n/config";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { Badge } from "@/ui/components/badge";
 import { useCurrency } from "@/lib/currency";
 
 function CreditBalanceCell({ value }: { value: number }) {
@@ -35,6 +36,18 @@ export function getCustomerColumns(t: Translator): ColumnDef<Customer>[] {
           type === "percentage" ? `${value}%` : `$${value.toFixed(2)}`;
 
         return <span className="font-medium">{displayValue}</span>;
+      },
+    },
+    {
+      accessorKey: "source",
+      header: t("columns.source"),
+      cell: ({ row }) => {
+        const isStorefront = row.original.source === "storefront";
+        return (
+          <Badge variant={isStorefront ? "default" : "secondary"}>
+            {isStorefront ? t("columns.sourceStorefront") : t("columns.sourceManual")}
+          </Badge>
+        );
       },
     },
     {

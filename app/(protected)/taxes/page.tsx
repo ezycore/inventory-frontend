@@ -162,7 +162,6 @@ export default function TaxesPage() {
           gap: "md",
         }}
         filterConfig={getTaxFilterConfig(t)}
-        searchConfig={{ globalSearch: true, placeholder: t("searchPlaceholder") }}
         renderCard={(item, actions) => TaxCardView(item, actions, { t, locale })}
         loadingRenderCard={TaxCardLoading}
         operations={sharedOperations}

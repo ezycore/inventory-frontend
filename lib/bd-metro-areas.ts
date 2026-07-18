@@ -1,0 +1,136 @@
+// coding-standard: maintained
+import type { BdUpazila } from "./bd-geo";
+
+/**
+ * Metropolitan thanas per city-corporation district — the delivery areas the
+ * government upazila list in `bd-geo.json` omits (Gulshan, Dhanmondi, Mirpur…),
+ * yet where most orders actually land. `upazilasOf` merges these into the base
+ * upazilas so the area picker suggests real city areas, not just rural upazilas.
+ *
+ * Still courier-neutral static data (plain names, resolved to courier codes only
+ * at dispatch) and still only *suggestions* — the area field stays free-text, so
+ * anything missing here can be typed. Keyed by the exact `name` used in
+ * `bd-geo.json`. Extend a list rather than forking the picker.
+ */
+export const METRO_AREAS: Record<string, BdUpazila[]> = {
+  Dhaka: [
+    { name: "Adabor", bn: "আদাবর" },
+    { name: "Airport", bn: "বিমানবন্দর" },
+    { name: "Badda", bn: "বাড্ডা" },
+    { name: "Banani", bn: "বনানী" },
+    { name: "Bangshal", bn: "বংশাল" },
+    { name: "Bhashantek", bn: "ভাসানটেক" },
+    { name: "Bhatara", bn: "ভাটারা" },
+    { name: "Cantonment", bn: "ক্যান্টনমেন্ট" },
+    { name: "Chawkbazar", bn: "চকবাজার" },
+    { name: "Dakshinkhan", bn: "দক্ষিণখান" },
+    { name: "Darus Salam", bn: "দারুস সালাম" },
+    { name: "Demra", bn: "ডেমরা" },
+    { name: "Dhanmondi", bn: "ধানমন্ডি" },
+    { name: "Gendaria", bn: "গেন্ডারিয়া" },
+    { name: "Gulshan", bn: "গুলশান" },
+    { name: "Hazaribagh", bn: "হাজারীবাগ" },
+    { name: "Jatrabari", bn: "যাত্রাবাড়ী" },
+    { name: "Kadamtali", bn: "কদমতলী" },
+    { name: "Kafrul", bn: "কাফরুল" },
+    { name: "Kalabagan", bn: "কলাবাগান" },
+    { name: "Kamrangirchar", bn: "কামরাঙ্গীরচর" },
+    { name: "Khilgaon", bn: "খিলগাঁও" },
+    { name: "Khilkhet", bn: "খিলক্ষেত" },
+    { name: "Kotwali", bn: "কোতোয়ালী" },
+    { name: "Lalbagh", bn: "লালবাগ" },
+    { name: "Mirpur", bn: "মিরপুর" },
+    { name: "Mohammadpur", bn: "মোহাম্মদপুর" },
+    { name: "Motijheel", bn: "মতিঝিল" },
+    { name: "Mugda", bn: "মুগদা" },
+    { name: "New Market", bn: "নিউমার্কেট" },
+    { name: "Pallabi", bn: "পল্লবী" },
+    { name: "Paltan", bn: "পল্টন" },
+    { name: "Ramna", bn: "রমনা" },
+    { name: "Rampura", bn: "রামপুরা" },
+    { name: "Rupnagar", bn: "রূপনগর" },
+    { name: "Sabujbagh", bn: "সবুজবাগ" },
+    { name: "Shah Ali", bn: "শাহ আলী" },
+    { name: "Shahbagh", bn: "শাহবাগ" },
+    { name: "Shahjahanpur", bn: "শাহজাহানপুর" },
+    { name: "Sher-e-Bangla Nagar", bn: "শেরেবাংলা নগর" },
+    { name: "Shyampur", bn: "শ্যামপুর" },
+    { name: "Sutrapur", bn: "সূত্রাপুর" },
+    { name: "Tejgaon", bn: "তেজগাঁও" },
+    { name: "Tejgaon Industrial Area", bn: "তেজগাঁও শিল্পাঞ্চল" },
+    { name: "Turag", bn: "তুরাগ" },
+    { name: "Uttara", bn: "উত্তরা" },
+    { name: "Uttarkhan", bn: "উত্তরখান" },
+    { name: "Wari", bn: "ওয়ারী" },
+  ],
+  Chattogram: [
+    { name: "Akbar Shah", bn: "আকবর শাহ" },
+    { name: "Bakalia", bn: "বাকলিয়া" },
+    { name: "Bandar", bn: "বন্দর" },
+    { name: "Bayazid Bostami", bn: "বায়েজিদ বোস্তামী" },
+    { name: "Chandgaon", bn: "চান্দগাঁও" },
+    { name: "Chawkbazar", bn: "চকবাজার" },
+    { name: "Double Mooring", bn: "ডবলমুরিং" },
+    { name: "EPZ", bn: "ইপিজেড" },
+    { name: "Halishahar", bn: "হালিশহর" },
+    { name: "Khulshi", bn: "খুলশী" },
+    { name: "Kotwali", bn: "কোতোয়ালী" },
+    { name: "Pahartali", bn: "পাহাড়তলী" },
+    { name: "Panchlaish", bn: "পাঁচলাইশ" },
+    { name: "Patenga", bn: "পতেঙ্গা" },
+    { name: "Sadarghat", bn: "সদরঘাট" },
+  ],
+  Gazipur: [
+    { name: "Gazipur Sadar", bn: "গাজীপুর সদর" },
+    { name: "Tongi", bn: "টঙ্গী" },
+    { name: "Basan", bn: "বাসন" },
+    { name: "Konabari", bn: "কোনাবাড়ী" },
+    { name: "Kashimpur", bn: "কাশিমপুর" },
+    { name: "Gacha", bn: "গাছা" },
+    { name: "Pubail", bn: "পুবাইল" },
+  ],
+  Narayanganj: [
+    { name: "Narayanganj Sadar", bn: "নারায়ণগঞ্জ সদর" },
+    { name: "Fatullah", bn: "ফতুল্লা" },
+    { name: "Siddhirganj", bn: "সিদ্ধিরগঞ্জ" },
+    { name: "Bandar", bn: "বন্দর" },
+  ],
+  Khulna: [
+    { name: "Khulna Sadar", bn: "খুলনা সদর" },
+    { name: "Khalishpur", bn: "খালিশপুর" },
+    { name: "Sonadanga", bn: "সোনাডাঙ্গা" },
+    { name: "Daulatpur", bn: "দৌলতপুর" },
+    { name: "Khan Jahan Ali", bn: "খানজাহান আলী" },
+  ],
+  Rajshahi: [
+    { name: "Boalia", bn: "বোয়ালিয়া" },
+    { name: "Motihar", bn: "মতিহার" },
+    { name: "Rajpara", bn: "রাজপাড়া" },
+    { name: "Shah Makhdum", bn: "শাহ মখদুম" },
+  ],
+  Sylhet: [
+    { name: "Sylhet Sadar", bn: "সিলেট সদর" },
+    { name: "Kotwali", bn: "কোতোয়ালী" },
+    { name: "Jalalabad", bn: "জালালাবাদ" },
+    { name: "Airport", bn: "বিমানবন্দর" },
+    { name: "South Surma", bn: "দক্ষিণ সুরমা" },
+    { name: "Shah Poran", bn: "শাহপরান" },
+  ],
+  Barisal: [
+    { name: "Barishal Sadar (Kotwali)", bn: "বরিশাল সদর (কোতোয়ালী)" },
+    { name: "Airport", bn: "বিমানবন্দর" },
+    { name: "Kawnia", bn: "কাউনিয়া" },
+    { name: "Band Road", bn: "বান্দ রোড" },
+  ],
+  Rangpur: [
+    { name: "Rangpur Kotwali", bn: "রংপুর কোতোয়ালী" },
+    { name: "Mahiganj", bn: "মাহিগঞ্জ" },
+  ],
+  Comilla: [
+    { name: "Kotwali", bn: "কোতোয়ালী" },
+    { name: "Cumilla Sadar Dakshin", bn: "কুমিল্লা সদর দক্ষিণ" },
+  ],
+  Mymensingh: [
+    { name: "Mymensingh Kotwali", bn: "ময়মনসিংহ কোতোয়ালী" },
+  ],
+};

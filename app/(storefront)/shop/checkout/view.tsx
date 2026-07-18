@@ -363,7 +363,7 @@ export default function CheckoutPage() {
                       value={geo}
                       onChange={setGeo}
                       lang={lang}
-                      labels={{ district: t.selectDistrict, area: t.selectArea }}
+                      labels={{ district: t.selectDistrict, area: t.selectArea, noMatch: t.comboNoMatch }}
                     />
                   </>
                 ) : null}

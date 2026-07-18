@@ -30,7 +30,7 @@ import { getUserStats } from "@/components/users/helpers";
 import {
   getUserFormConfig,
   userFormDefaultValues,
-  getUserSearchConfig,
+  getUserFilterConfig,
 } from "@/components/users/form-config";
 import { AlertCircle, Ban, CheckCircle } from "lucide-react";
 import { useViewMode } from "@/hooks/use-view-mode";
@@ -181,7 +181,7 @@ export default function UsersPage() {
               pageSizes={[10, 20, 50, 100]}
               columns={columns}
               selectable={false}
-              searchConfig={getUserSearchConfig(t)}
+              filterConfig={getUserFilterConfig(t)}
               enableSorting={true}
               defaultColumnVisibility={{ phone: false }}
               enableRowHover={true}
@@ -201,7 +201,7 @@ export default function UsersPage() {
                 columns: { default: 1, sm: 2, lg: 3 },
                 gap: "md",
               }}
-              searchConfig={getUserSearchConfig(t)}
+              filterConfig={getUserFilterConfig(t)}
               renderCard={(item, actions) =>
                 UserCardView(item, actions, {
                   roleLabel: roleLabels.get(item.role),

@@ -64,6 +64,8 @@
     "hintSale": "বিক্রয়"
   },
   "filters": {
+    "searchLabel": "খুঁজুন",
+    "searchPlaceholder": "পণ্যের নাম দিয়ে খুঁজুন...",
     "brand": "ব্র্যান্ড",
     "allBrands": "সব ব্র্যান্ড",
     "category": "ক্যাটাগরি",

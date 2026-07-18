@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mail, Phone } from "lucide-react";
-import { useOnlineCustomer } from "@/services/api";
+import { useOnlineCustomer, useOnlineCustomerOrders } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
+import { TablePager } from "@/components/shared/table-pager";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Skeleton } from "@/ui/components/skeleton";
@@ -33,6 +35,11 @@ export default function CustomerDetailPage() {
   const router = useRouter();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { data, isLoading, isError } = useOnlineCustomer(id);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const { data: ordersData, isLoading: ordersLoading } = useOnlineCustomerOrders(
+    id,
+    ordersPage,
+  );
 
   if (isLoading) {
     return (
@@ -55,7 +62,9 @@ export default function CustomerDetailPage() {
     );
   }
 
-  const { customer, stats, orders } = data;
+  const { customer, stats } = data;
+  const orders = ordersData?.items ?? [];
+  const pagination = ordersData?.pagination;
 
   return (
     <div className="space-y-5">
@@ -107,44 +116,61 @@ export default function CustomerDetailPage() {
           <div className="border-b px-5 py-3.5">
             <h3 className="text-sm font-semibold">Order history</h3>
           </div>
-          {orders.length === 0 ? (
+          {ordersLoading && orders.length === 0 ? (
+            <div className="space-y-2 p-5">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : orders.length === 0 ? (
             <p className="p-8 text-center text-sm text-muted-foreground">
               No orders yet.
             </p>
           ) : (
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b bg-muted/40 text-left text-xs font-semibold text-muted-foreground">
-                  <th className="px-4 py-2.5">Order</th>
-                  <th className="px-3 py-2.5">Date</th>
-                  <th className="px-3 py-2.5">Total</th>
-                  <th className="px-3 py-2.5">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr
-                    key={o._id}
-                    onClick={() => router.push(`/ecommerce/orders/${o._id}`)}
-                    className="cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/40"
-                  >
-                    <td className="px-4 py-3 font-semibold">{o.orderNumber}</td>
-                    <td className="px-3 py-3 text-muted-foreground">
-                      {fmtDate(o.createdAt)}
-                    </td>
-                    <td className="px-3 py-3 font-semibold tabular-nums">
-                      {formatMoney(o.totalAmount, currency)}
-                    </td>
-                    <td className="px-3 py-3">
-                      <StatusBadge
-                        status={ORDER_STATUS_BADGE[o.status] ?? "info"}
-                        size="sm"
-                      />
-                    </td>
+            <>
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/40 text-left text-xs font-semibold text-muted-foreground">
+                    <th className="px-4 py-2.5">Order</th>
+                    <th className="px-3 py-2.5">Date</th>
+                    <th className="px-3 py-2.5">Total</th>
+                    <th className="px-3 py-2.5">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {orders.map((o) => (
+                    <tr
+                      key={o._id}
+                      onClick={() => router.push(`/ecommerce/orders/${o._id}`)}
+                      className="cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/40"
+                    >
+                      <td className="px-4 py-3 font-semibold">{o.orderNumber}</td>
+                      <td className="px-3 py-3 text-muted-foreground">
+                        {fmtDate(o.createdAt)}
+                      </td>
+                      <td className="px-3 py-3 font-semibold tabular-nums">
+                        {formatMoney(o.totalAmount, currency)}
+                      </td>
+                      <td className="px-3 py-3">
+                        <StatusBadge
+                          status={ORDER_STATUS_BADGE[o.status] ?? "info"}
+                          size="sm"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {pagination && (
+                <TablePager
+                  page={pagination.page}
+                  limit={pagination.limit}
+                  total={pagination.total}
+                  totalPages={pagination.totalPages}
+                  onPageChange={setOrdersPage}
+                />
+              )}
+            </>
           )}
         </Card>
       </div>

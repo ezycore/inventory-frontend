@@ -15,7 +15,6 @@ import {
   SupplierLedgerSheet,
   getSupplierColumns,
   getSupplierFilterConfig,
-  getSupplierSearchConfig,
   supplierDefaultValues,
   getSupplierFormConfig,
 } from "@/components/suppliers";
@@ -74,7 +73,6 @@ export default function SuppliersPage() {
         filterConfig={getSupplierFilterConfig(t)}
         columns={getSupplierColumns(t)}
         selectable={true}
-        searchConfig={getSupplierSearchConfig(t)}
         enableSorting={true}
         defaultColumnVisibility={{ email: false, phone: false }}
         enableRowHover={true}

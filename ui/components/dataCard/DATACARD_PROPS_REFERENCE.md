@@ -534,23 +534,18 @@ Configure filter panel.
 />
 ```
 
-### `searchConfig`
-Configure search functionality.
+### Search (removed `searchConfig`)
+`searchConfig` was removed — it filtered only the current server page. Add a
+server-side `search` **text field, first** in `filterConfig` instead; the card
+toolbar renders it inline via `FilterBar`.
 
 ```tsx
-// Global search across all fields
 <DataCard
-  searchConfig={{
-    globalSearch: true,
-    placeholder: "Search products...",
-  }}
-/>
-
-// Search specific field only
-<DataCard
-  searchConfig={{
-    searchableKey: "name",
-    placeholder: "Search by name...",
+  filterConfig={{
+    fields: [
+      { name: "search", label: "Search", type: "text", placeholder: "Search products..." },
+      // ...other filters
+    ],
   }}
 />
 ```
@@ -661,12 +656,9 @@ import { brandFormConfig } from "@/config/forms/brand";
     asAvatar: true,
     fallback: (row) => row.name.charAt(0),
   }}
-  searchConfig={{
-    globalSearch: true,
-    placeholder: "Search brands...",
-  }}
   filterConfig={{
     fields: [
+      { name: "search", label: "Search", type: "text", placeholder: "Search brands..." },
       { name: "status", label: "Status", type: "select", options: statusOptions },
     ],
     viewMode: "popover",
@@ -814,8 +806,7 @@ import { brandFormConfig } from "@/config/forms/brand";
 | `renderCard` | `(row, actions) => ReactNode` | - | Custom card render |
 | `toolbarAction` | `object` | - | Primary toolbar button |
 | `customActions` | `CardCustomAction[]` | - | Custom action buttons |
-| `filterConfig` | `FilterConfig` | - | Filter panel config |
-| `searchConfig` | `DataCardSearchConfig` | - | Search config |
+| `filterConfig` | `FilterConfig` | - | Filter config (put a `search` text field first for server-side search; rendered inline via `FilterBar`) |
 | `selectable` | `boolean` | `false` | Enable selection |
 | `onSelectionChange` | `(rows) => void` | - | Selection callback |
 | `operations` | `Operations` | - | CRUD operations config |

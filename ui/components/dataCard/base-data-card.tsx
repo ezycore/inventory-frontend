@@ -59,7 +59,6 @@ export function BaseDataCard<TData extends { _id: string }>({
   onBulkDelete,
   toolbarAction,
   selectable = false,
-  searchConfig,
   onSelectionChange,
   // Sorting
   sortBy,
@@ -93,7 +92,6 @@ export function BaseDataCard<TData extends { _id: string }>({
 }: BaseDataCardProps<TData>) {
   const t = useTranslations("common");
   // Local state
-  const [globalFilter, setGlobalFilter] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [layout, setLayout] = useState<CardLayout>(layoutConfig?.layout || "grid");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -114,36 +112,9 @@ export function BaseDataCard<TData extends { _id: string }>({
     pageSize: pagination?.pageSize ?? defaultPageSize,
   });
 
-  // Filter data based on global search
-  const filteredData = useMemo(() => {
-    if (!globalFilter || !data) return data;
-
-    const searchLower = globalFilter.toLowerCase();
-
-    // If specific searchable key is provided
-    if (searchConfig?.searchableKey) {
-      return data.filter((item) => {
-        const value = item[searchConfig.searchableKey as keyof TData];
-        return String(value || "").toLowerCase().includes(searchLower);
-      });
-    }
-
-    // Global search across all string fields or configured fields
-    return data.filter((item) => {
-      // Search in configured fields first
-      if (fields && fields.length > 0) {
-        return fields.some((field) => {
-          const value = getNestedValue(item, field.key as string);
-          return String(value || "").toLowerCase().includes(searchLower);
-        });
-      }
-
-      // Fallback: search all string values
-      return Object.values(item).some((value) =>
-        String(value || "").toLowerCase().includes(searchLower)
-      );
-    });
-  }, [data, globalFilter, searchConfig, fields]);
+  // Search is server-side (via the FilterBar `search` field → getAllData); the
+  // card grid renders whatever the current page returns.
+  const filteredData = useMemo(() => data ?? [], [data]);
 
   // Client-side pagination (if not manual)
   const paginatedData = useMemo(() => {
@@ -240,10 +211,7 @@ export function BaseDataCard<TData extends { _id: string }>({
       <div className="w-full space-y-4">
         <DataCardToolbar
           title={title}
-          searchConfig={searchConfig}
           filterConfig={filterConfig}
-          globalFilter={globalFilter}
-          onGlobalFilterChange={setGlobalFilter}
           selectable={selectable}
           hasSelection={selectedIds.size > 0}
           selectedRowsCount={selectedIds.size}
@@ -277,10 +245,7 @@ export function BaseDataCard<TData extends { _id: string }>({
       <div className="w-full space-y-4">
         <DataCardToolbar
           title={title}
-          searchConfig={searchConfig}
           filterConfig={filterConfig}
-          globalFilter={globalFilter}
-          onGlobalFilterChange={setGlobalFilter}
           selectable={selectable}
           hasSelection={selectedIds.size > 0}
           selectedRowsCount={selectedIds.size}
@@ -308,10 +273,7 @@ export function BaseDataCard<TData extends { _id: string }>({
       {/* Toolbar */}
       <DataCardToolbar
         title={title}
-        searchConfig={searchConfig}
         filterConfig={filterConfig}
-        globalFilter={globalFilter}
-        onGlobalFilterChange={setGlobalFilter}
         selectable={selectable}
         hasSelection={selectedIds.size > 0}
         selectedRowsCount={selectedIds.size}
@@ -392,9 +354,4 @@ export function BaseDataCard<TData extends { _id: string }>({
       />
     </div>
   );
-}
-
-// Helper function to get nested values
-function getNestedValue(obj: any, path: string): any {
-  return path.split(".").reduce((acc, part) => acc?.[part], obj);
 }

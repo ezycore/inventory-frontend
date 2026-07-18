@@ -239,6 +239,8 @@
       "other": "অন্যান্য"
     },
     "filters": {
+      "search": "খুঁজুন",
+      "searchPlaceholder": "রিটার্ন নম্বর...",
       "status": "স্ট্যাটাস",
       "reason": "কারণ",
       "pending": "অপেক্ষমাণ",

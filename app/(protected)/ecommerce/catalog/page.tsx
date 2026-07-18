@@ -28,6 +28,20 @@ import { ProductOnlineEditor } from "@/components/ecommerce/catalog/product-onli
 
 type ListedFilter = "all" | "listed" | "unlisted";
 
+/** Base-price cell text. VARIABLE products have no product-level price (it lives
+ *  per-variant), so show the variant price range — collapsing to a single value
+ *  when every variant matches, and a dash when no variant is priced. */
+function basePriceLabel(p: CatalogProduct, currency?: string): string {
+  if (p.priceRange) {
+    const { min, max } = p.priceRange;
+    return min === max
+      ? formatMoney(min, currency)
+      : `${formatMoney(min, currency)} – ${formatMoney(max, currency)}`;
+  }
+  if (p.productType === "variable") return "—";
+  return formatMoney(p.price, currency);
+}
+
 export default function EcommerceCatalogPage() {
   const features = useAuthStore((s) => s.user?.organization?.features);
   const currency = useAuthStore((s) => s.user?.organization?.currency);
@@ -256,12 +270,19 @@ export default function EcommerceCatalogPage() {
                           )}
                         </td>
                         <td className="p-3 tabular-nums text-muted-foreground">
-                          {formatMoney(p.price, currency)}
+                          {basePriceLabel(p, currency)}
                         </td>
                         <td className="p-3 tabular-nums">
-                          {typeof sf.onlinePrice === "number"
-                            ? formatMoney(sf.onlinePrice, currency)
-                            : "—"}
+                          {typeof sf.onlinePrice === "number" ? (
+                            formatMoney(sf.onlinePrice, currency)
+                          ) : (
+                            <span
+                              className="italic text-muted-foreground"
+                              title="Inherits the base price. Set an online price to override."
+                            >
+                              {basePriceLabel(p, currency)}
+                            </span>
+                          )}
                         </td>
                         <td className="p-3">
                           <Switch
