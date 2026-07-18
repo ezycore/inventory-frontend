@@ -95,35 +95,29 @@ const formConfig: DynamicFormConfig = {
 />
 ```
 
-### With Search (Global or Column-Specific)
+### With Search (server-side)
+
+> **`searchConfig` was removed.** It only filtered the rows on the current page
+> (the table is server-paginated), so it silently missed matches on other pages.
+> Search is now a **server-side `search` field, placed first in `filterConfig`** —
+> the FilterBar renders it inline (debounced, no Apply click) and the value flows
+> to `getAllData({ ...filters })`, so the backend searches the full dataset. The
+> backend resource must declare `searchFields` (see the backend `api-contract` /
+> resource service).
 
 ```tsx
-// Global search (searches all columns)
-const searchConfig: DataTableSearchConfig = {
-  globalSearch: true,
-  placeholder: "Search brands by name, description, or status...",
+const filterConfig: FilterConfig = {
+  fields: [
+    // First field = leftmost inline; free-text commits on a debounce.
+    { name: "search", label: "Search", type: "text", placeholder: "Search brands..." },
+    // ...other filters (status, date range, …)
+  ],
 };
 
 <DataTable
   cardTitle="Brands"
   columns={columns}
-  searchConfig={searchConfig}
-  operations={{
-    getAllData: brandsApi.getAll,
-    queryKey: queryKeys.brands.all(),
-  }}
-/>
-
-// Column-specific search (searches only 'name' column)
-const searchConfig: DataTableSearchConfig<Brand> = {
-  searchableColumn: "name",
-  placeholder: "Search by name...",
-};
-
-<DataTable
-  cardTitle="Brands"
-  columns={columns}
-  searchConfig={searchConfig}
+  filterConfig={filterConfig}
   operations={{
     getAllData: brandsApi.getAll,
     queryKey: queryKeys.brands.all(),
@@ -183,22 +177,14 @@ interface Operations<TData> {
 }
 ```
 
-### SearchConfig Interface
+### Search (removed `searchConfig`)
 
-```typescript
-interface DataTableSearchConfig<TData = any> {
-  /** Enable global search across all columns (client-side only) */
-  globalSearch?: boolean;
-  
-  /** Specific column to search (column-specific search) */
-  searchableColumn?: keyof TData;
-  
-  /** Placeholder text for search input */
-  placeholder?: string;
-}
-```
-
-**Note:** Search is **client-side only** (uses TanStack Table filtering). For server-side search, use `filterConfig` with a text field.
+`searchConfig` / `DataTableSearchConfig` and the toolbar search box have been
+**removed** — they filtered only the current server page (client-side TanStack
+filtering), so search silently missed matches on other pages. **Search is now a
+server-side `search` field, first in `filterConfig`** (a `type: "text"` field);
+the FilterBar renders it inline and its value flows to `getAllData({ ...filters })`.
+The backend resource must declare `searchFields` for `?search=` to match.
 
 ### FilterConfig Interface
 

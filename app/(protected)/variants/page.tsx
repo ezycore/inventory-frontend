@@ -37,10 +37,6 @@ export default function VariantsPage() {
   const locale = useLocale() as AppLocale
   const [viewMode, setViewMode, isMounted] = useViewMode('variants', 'card')
   const { data: statsData, isLoading: statsLoading } = useVariantStats()
-  const searchConfig = {
-    globalSearch: true,
-    placeholder: t('page.searchPlaceholder'),
-  }
 
   const sharedOperations = {
     getAllData: variantAttributesApi.getAll,
@@ -91,7 +87,6 @@ export default function VariantsPage() {
           cardTitle={(dataLength: number) => t('page.allVariantsTitle', { count: dataLength })}
           columns={getVariantColumns(t)}
           selectable={true}
-          searchConfig={searchConfig}
           operations={sharedOperations}
           filterConfig={getVariantFilterConfig(t)}
           enableSorting={true}
@@ -117,7 +112,6 @@ export default function VariantsPage() {
             gap: "md",
           }}
           filterConfig={getVariantFilterConfig(t)}
-          searchConfig={searchConfig}
           renderCard={(item, actions) => VariantCardView(item, actions, { t, locale })}
           loadingRenderCard={VariantCardLoading}
           operations={sharedOperations}

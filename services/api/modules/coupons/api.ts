@@ -11,10 +11,10 @@ export interface CouponInput {
   value: number;
   validFrom?: string;
   validUntil?: string;
-  maxUses?: number;
-  perShopperLimit?: number;
-  minOrderValue?: number;
-  maxDiscountAmount?: number;
+  maxUses?: number | null;
+  perShopperLimit?: number | null;
+  minOrderValue?: number | null;
+  maxDiscountAmount?: number | null;
   status?: "active" | "inactive";
 }
 

@@ -1,9 +1,8 @@
-import { Search, X, Trash2, ChevronDown, Settings } from "lucide-react";
+import { Trash2, ChevronDown, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Table } from "@tanstack/react-table";
 import Link from "next/link";
 import { cn } from "@/ui/lib/utils";
-import { Input } from "../input";
 import { Button } from "../button";
 import {
   DropdownMenu,
@@ -23,15 +22,12 @@ import {
   AlertDialogTrigger,
 } from "../alert-dialog";
 import { FilterBar } from "../filters/filter-bar";
-import { DataTableSearchConfig, FilterConfig, CustomAction } from "@/types/DataTable";
+import { FilterConfig, CustomAction } from "@/types/DataTable";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   title?: string;
   filterConfig?: FilterConfig;
-  searchConfig?: DataTableSearchConfig;
-  globalFilter?: string;
-  onGlobalFilterChange?: (value: string) => void;
   selectable?: boolean;
   hasSelection?: boolean;
   selectedRowsCount?: number;
@@ -53,10 +49,7 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
   title,
-  searchConfig,
   filterConfig,
-  globalFilter,
-  onGlobalFilterChange,
   selectable,
   hasSelection,
   selectedRowsCount,
@@ -71,7 +64,6 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const t = useTranslations("common");
 
-  const hasSearch = searchConfig?.globalSearch || !!searchConfig?.searchableColumn;
   const hasInlineFilters = !!filterConfig?.fields?.length;
   const hasRightActions =
     (selectable && hasSelection && deletable) ||
@@ -80,7 +72,7 @@ export function DataTableToolbar<TData>({
     !!actionButton ||
     customActions?.some((a) => a.placement === "header");
 
-  if (!title && !hasSearch && !hasRightActions && !hasInlineFilters) return null;
+  if (!title && !hasRightActions && !hasInlineFilters) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -99,73 +91,14 @@ export function DataTableToolbar<TData>({
         </h2>
       )}
 
-      {/* Search */}
-      {hasSearch && (
-        <div className={cn(
-          "relative h-8 shrink-0",
-          title ? "w-44 sm:w-52" : "flex-1 min-w-[140px] max-w-sm"
-        )}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-          {searchConfig?.globalSearch ? (
-            <>
-              <Input
-                placeholder={searchConfig.placeholder || t("table.searchAll")}
-                value={globalFilter ?? ""}
-                onChange={(event) => onGlobalFilterChange?.(event.target.value)}
-                className="pl-10 pr-6 h-8 w-full"
-              />
-              {globalFilter && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onGlobalFilterChange?.("")}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
-            </>
-          ) : searchConfig?.searchableColumn ? (
-            <>
-              <Input
-                placeholder={searchConfig.placeholder || t("table.search")}
-                value={
-                  (table
-                    .getColumn(searchConfig.searchableColumn as string)
-                    ?.getFilterValue() as string) ?? ""
-                }
-                onChange={(event) =>
-                  table
-                    .getColumn(searchConfig.searchableColumn as string)
-                    ?.setFilterValue(event.target.value)
-                }
-                className="pl-10 pr-6 h-8 w-full"
-              />
-              {table.getColumn(searchConfig.searchableColumn as string)?.getFilterValue() && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    table.getColumn(searchConfig.searchableColumn as string)?.setFilterValue("")
-                  }
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
-            </>
-          ) : null}
-        </div>
-      )}
-
-      {/* Inline filter bar — inline select controls + overflow-to-panel + reset */}
+      {/* Inline filter bar — search + inline filters, overflow folds to panel */}
       {hasInlineFilters && filterConfig && <FilterBar config={filterConfig} />}
 
       {/* Right-side actions */}
       {hasRightActions && (
         <div className={cn(
           "flex items-center gap-2 shrink-0",
-          !title && !hasSearch && "ml-auto"
+          !title && !hasInlineFilters && "ml-auto"
         )}>
         {/* Bulk Delete Button */}
         {selectable && hasSelection && deletable && (

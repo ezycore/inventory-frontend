@@ -7,7 +7,7 @@ export function getCustomerFilterConfig(t: Translator): FilterConfig {
   return {
     fields: [
       {
-        name: "name",
+        name: "search",
         label: t("filters.searchCustomer"),
         type: "text",
         placeholder: t("filters.searchPlaceholder"),
@@ -30,6 +30,17 @@ export function getCustomerFilterConfig(t: Translator): FilterConfig {
         ],
       },
       {
+        name: "source",
+        label: t("filters.source"),
+        type: "select",
+        placeholder: t("filters.allSources"),
+        columnSpan: 2,
+        options: [
+          { label: t("filters.sourceStorefront"), value: "storefront" },
+          { label: t("filters.sourceManual"), value: "manual" },
+        ],
+      },
+      {
         name: "createdAt",
         label: t("filters.createdDate"),
         type: "date-range",
@@ -49,13 +60,5 @@ export function getCustomerFilterConfig(t: Translator): FilterConfig {
     applyOnChange: false,
     showResetButton: true,
     showApplyButton: true,
-  };
-}
-
-/** `t` is bound to the `customers` namespace. */
-export function getSearchConfig(t: Translator) {
-  return {
-    globalSearch: true,
-    placeholder: t("filters.globalSearchPlaceholder"),
   };
 }

@@ -453,6 +453,10 @@ export interface Customer extends BaseEntity {
   defaultDiscount?: Discount;
   /** Store credit currently available to apply against this customer's dues. */
   creditBalance?: number;
+  /** How the customer record was created: staff-entered vs self-registered on the storefront. */
+  source?: "manual" | "storefront";
+  /** Backref to the public Shopper account when source === "storefront". */
+  shopperId?: string;
 }
 
 export interface CreateCustomerDto {

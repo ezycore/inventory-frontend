@@ -231,10 +231,6 @@ export default function ProductsPage() {
           module="product"
           variant="card"
           stickyHeader={true}
-          searchConfig={{
-            globalSearch: true,
-            placeholder: t("page.searchPlaceholder"),
-          }}
           filterConfig={productFilterConfig}
           operations={sharedOperations}
           enableSorting={true}
@@ -283,10 +279,6 @@ export default function ProductsPage() {
           sortingConfig={sortingConfig}
           variant="default"
           enableCardHover={true}
-          searchConfig={{
-            globalSearch: true,
-            placeholder: t("page.searchPlaceholder"),
-          }}
           filterConfig={productFilterConfig}
           renderCard={(row: any, actions) => (
             <ProductCard

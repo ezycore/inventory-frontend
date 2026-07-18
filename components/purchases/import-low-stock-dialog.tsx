@@ -5,13 +5,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  AlertOctagon,
-  AlertTriangle,
-  CheckCircle2,
-  Download,
-  Search,
-} from "lucide-react";
+import { AlertOctagon, AlertTriangle, Download, Search } from "lucide-react";
 
 import { inventoryApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
@@ -258,6 +252,18 @@ export function ImportLowStockDialog({
   const { data: brandOptions } = useSelectOptions(open ? "/brands?all=true&fields=id,name" : null);
   const { data: categoryOptions } = useSelectOptions(open ? "/categories?all=true&fields=id,name" : null);
 
+  // Resolve brand/category ids to display names using the already-fetched filter options.
+  const brandNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    brandOptions?.forEach((o) => map.set(o.value, o.label));
+    return map;
+  }, [brandOptions]);
+  const categoryNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    categoryOptions?.forEach((o) => map.set(o.value, o.label));
+    return map;
+  }, [categoryOptions]);
+
   // This dialog reuses the plain inventory list (`inventoryApi.getAll`) as a low-stock source but
   // reads a few shortlist-only fields (`variant`, `location`) that the base `Inventory` response
   // shape doesn't declare. Cast until either the backend `Inventory` DTO declares them or this
@@ -342,16 +348,6 @@ export function ImportLowStockDialog({
     });
   }, [items, searchQuery, brandFilter, categoryFilter]);
 
-  // Stats computed from fetched data
-  const outOfStockCount = useMemo(
-    () => items.filter((i) => i.quantity === 0).length,
-    [items],
-  );
-  const lowStockCount = useMemo(
-    () => items.length,
-    [items],
-  );
-
   // Handlers
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -402,7 +398,6 @@ export function ImportLowStockDialog({
 
       const convertedQuantity = quantity * conversionFactor;
       const total = convertedQuantity * costPrice;
-      console.log("item", item);
       return {
         inventoryId: item._id,
         productId: item.productId || "",
@@ -453,7 +448,7 @@ export function ImportLowStockDialog({
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             {t("purchaseSettings")}
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {/* Supplier */}
             <div className="space-y-1 w-full">
               <Label className="text-xs">
@@ -505,37 +500,6 @@ export function ImportLowStockDialog({
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-3">
-            <div className="flex items-center gap-1.5 text-xs text-destructive font-medium">
-              <AlertOctagon className="h-3.5 w-3.5" />
-              {t("outOfStock")}
-            </div>
-            <p className="text-xl font-bold text-destructive mt-1">
-              {outOfStockCount}
-            </p>
-          </div>
-          <div className="rounded-lg border-2 border-chart-1/30 bg-chart-1/5 p-3">
-            <div className="flex items-center gap-1.5 text-xs text-chart-1 font-medium">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              {t("lowStockItems")}
-            </div>
-            <p className="text-xl font-bold text-chart-1 mt-1">
-              {lowStockCount}
-            </p>
-          </div>
-          <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3">
-            <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              {t("selected")}
-            </div>
-            <p className="text-xl font-bold text-primary mt-1">
-              {selectedIds.size}
-            </p>
-          </div>
-        </div>
-
         {/* Search & Filters */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -575,128 +539,145 @@ export function ImportLowStockDialog({
           </Select>
         </div>
 
-        {/* Table */}
-        <div className="flex-1 overflow-auto border rounded-md min-h-0">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-muted/50 backdrop-blur-sm border-b">
-              <tr>
-                <th className="p-2 text-left w-10">
-                  <Checkbox
-                    checked={isAllSelected}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                </th>
-                <th className="p-2 text-left font-medium">{t("colProduct")}</th>
-                <th className="p-2 text-right font-medium">{t("colStock")}</th>
-                <th className="p-2 text-right font-medium">{t("colNeededQty")}</th>
-                <th className="p-2 text-center font-medium">{t("colOrderQty")}</th>
-                <th className="p-2 text-center font-medium">{t("colUrgency")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                    {t("loading")}
-                  </td>
-                </tr>
-              ) : filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                    {t("empty")}
-                  </td>
-                </tr>
-              ) : (
-                filteredItems.map((item) => {
-                  const isSelected = selectedIds.has(item._id);
-                  const isCritical = item.quantity === 0;
-                  const purchaseUnit = item.purchaseUnit?.unitId?.shortName || "";
-                  const unitName = item.unit?.shortName || "";
-                  const purchaseConversion = item.purchaseUnit?.conversionFactor || 1;
-                  const neededQty = Math.max(0, item.quantityAlert - item.quantity + 1);
-                  
-                  const stock = purchaseUnit ? `${Math.floor(item.quantity / purchaseConversion)} ${purchaseUnit} ${item.quantity % purchaseConversion > 0 ? `${item.quantity % purchaseConversion} ${unitName}` : ""}` : `${item.quantity} ${unitName}`;
+        {/* Select-all bar */}
+        <div className="flex items-center justify-between px-1">
+          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+            <Checkbox checked={isAllSelected} onCheckedChange={toggleSelectAll} />
+            {t("selectAll")}
+          </label>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {filteredItems.length} {t("lowStockItems")}
+          </span>
+        </div>
 
-                  const baseUnitShortName = getBaseUnitShortName(item);
-                  const purchaseUnitQty = Math.ceil(neededQty / purchaseConversion);
-                  const neededQtyDisplay = purchaseUnit ? `${purchaseUnitQty} ${purchaseUnit} (${neededQty} ${baseUnitShortName})` : `${neededQty} ${baseUnitShortName}`;
-                  return (
-                    <tr
-                      key={item._id}
-                      className={`border-b transition-colors cursor-pointer hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""
-                        } ${isCritical ? "bg-destructive/5" : ""}`}
-                      onClick={() => toggleSelect(item._id)}
-                    >
-                      <td className="p-2" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleSelect(item._id)}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <div>
-                          <span className="font-medium">
-                            {getProductDisplayName(item, t("unknownProduct"))}
+        {/* Product list — the primary focus */}
+        <div className="flex-1 overflow-auto min-h-0 space-y-1.5 pr-0.5">
+          {isLoading ? (
+            <p className="p-8 text-center text-sm text-muted-foreground">{t("loading")}</p>
+          ) : filteredItems.length === 0 ? (
+            <p className="p-8 text-center text-sm text-muted-foreground">{t("empty")}</p>
+          ) : (
+            filteredItems.map((item) => {
+              const isSelected = selectedIds.has(item._id);
+              const isCritical = item.quantity === 0;
+              const purchaseUnit = item.purchaseUnit?.unitId?.shortName || "";
+              const unitName = item.unit?.shortName || "";
+              const purchaseConversion = item.purchaseUnit?.conversionFactor || 1;
+              const neededQty = Math.max(0, item.quantityAlert - item.quantity + 1);
+
+              const stock = purchaseUnit
+                ? `${Math.floor(item.quantity / purchaseConversion)} ${purchaseUnit} ${item.quantity % purchaseConversion > 0 ? `${item.quantity % purchaseConversion} ${unitName}` : ""}`
+                : `${item.quantity} ${unitName}`;
+
+              const baseUnitShortName = getBaseUnitShortName(item);
+              const purchaseUnitQty = Math.ceil(neededQty / purchaseConversion);
+              const neededQtyDisplay = purchaseUnit
+                ? `${purchaseUnitQty} ${purchaseUnit} (${neededQty} ${baseUnitShortName})`
+                : `${neededQty} ${baseUnitShortName}`;
+
+              const categoryName = item.categoryId ? categoryNameById.get(item.categoryId) : undefined;
+              const brandName = item.brandId ? brandNameById.get(item.brandId) : undefined;
+
+              return (
+                <div
+                  key={item._id}
+                  onClick={() => toggleSelect(item._id)}
+                  className={`flex items-center gap-3 rounded-lg border border-l-2 px-3 py-2 cursor-pointer transition-colors ${
+                    isCritical ? "border-l-destructive" : "border-l-chart-1"
+                  } ${isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/40"}`}
+                >
+                  <div className="flex-none" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleSelect(item._id)}
+                    />
+                  </div>
+
+                  {/* Product — leads the row */}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold leading-tight truncate">
+                      {getProductDisplayName(item, t("unknownProduct"))}
+                    </div>
+                    {(categoryName || brandName) && (
+                      <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                        {categoryName && (
+                          <span className="rounded border bg-muted/50 px-1.5 py-px text-[11px] font-medium text-muted-foreground">
+                            {categoryName}
                           </span>
-                        </div>
-                      </td>
-                      <td className="p-2 text-right tabular-nums">
-                        <span
-                          className={
-                            isCritical
-                              ? "text-destructive font-bold"
-                              : "text-chart-1 font-semibold"
-                          }
-                        >
-                          {stock}
-                        </span>
-                      </td>
-                      <td className="p-2 text-right tabular-nums">
-                        <span className="font-medium">
-                          {/* {item.neededQuantity || 0} <span className="text-xs text-muted-foreground">{getBaseUnitShortName(item)}</span> */}
-                          {neededQtyDisplay}
-                        </span>
-                      </td>
-                      <td className="p-2 text-center" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-1">
-                          <NumberField
-                            precision={0}
-                            min={1}
-                            value={orderQuantities[item._id] ?? purchaseUnitQty}
-                            onChange={(v) => updateOrderQty(item._id, v ?? 1)}
-                            className="w-16 h-7 text-center text-sm"
-                          />
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">{getOrderUnitShortName(item)}</span>
-                        </div>
-                      </td>
-                      <td className="p-2 text-center">
-                        {getUrgencyBadge(item.quantity, item.quantityAlert || 1, {
-                          critical: t("urgencyCritical"),
-                          high: t("urgencyHigh"),
-                          medium: t("urgencyMedium"),
-                        })}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                        )}
+                        {brandName && (
+                          <span className="rounded border bg-muted/50 px-1.5 py-px text-[11px] font-medium text-muted-foreground">
+                            {brandName}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Stock + urgency */}
+                  <div className="flex flex-none flex-col items-end gap-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`text-sm tabular-nums ${
+                          isCritical ? "text-destructive font-bold" : "text-chart-1 font-semibold"
+                        }`}
+                      >
+                        {stock}
+                      </span>
+                      {getUrgencyBadge(item.quantity, item.quantityAlert || 1, {
+                        critical: t("urgencyCritical"),
+                        high: t("urgencyHigh"),
+                        medium: t("urgencyMedium"),
+                      })}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground tabular-nums">
+                      {t("colNeededQty")}: <span className="text-primary font-semibold">{neededQtyDisplay}</span>
+                    </div>
+                  </div>
+
+                  {/* Order qty */}
+                  <div
+                    className="flex flex-none items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <NumberField
+                      precision={0}
+                      min={1}
+                      value={orderQuantities[item._id] ?? purchaseUnitQty}
+                      onChange={(v) => updateOrderQty(item._id, v ?? 1)}
+                      className="w-16 h-7 text-center text-sm"
+                    />
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {getOrderUnitShortName(item)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Footer */}
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tActions("cancel")}
-          </Button>
-          <Button
-            onClick={handleImport}
-            disabled={selectedIds.size === 0}
-            className="gap-1.5"
-          >
-            <Download className="h-4 w-4" />
-            {t("importCount", { count: selectedIds.size })}
-          </Button>
+        <DialogFooter className="gap-2 sm:justify-between items-center">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="inline-flex min-w-6 items-center justify-center rounded-md bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground tabular-nums">
+              {selectedIds.size}
+            </span>
+            {t("selected")}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {tActions("cancel")}
+            </Button>
+            <Button
+              onClick={handleImport}
+              disabled={selectedIds.size === 0}
+              className="gap-1.5"
+            >
+              <Download className="h-4 w-4" />
+              {t("importCount", { count: selectedIds.size })}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

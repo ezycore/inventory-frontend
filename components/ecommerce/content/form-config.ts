@@ -84,8 +84,3 @@ export const contentFilterConfig: FilterConfig = {
   ],
   viewMode: "popover",
 };
-
-export const contentSearchConfig = {
-  globalSearch: true,
-  placeholder: "Search pages by title or slug...",
-};

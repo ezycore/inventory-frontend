@@ -440,6 +440,12 @@ export function usePurchaseReturnsPage() {
     () => ({
       fields: [
         {
+          name: "search",
+          label: t("returns.filterSearch"),
+          type: "text" as const,
+          placeholder: t("returns.filterSearchPlaceholder"),
+        },
+        {
           name: "status",
           label: t("returns.filterStatus"),
           type: "select" as const,

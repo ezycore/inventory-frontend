@@ -129,7 +129,7 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
         value={{ district: draft.district, area: draft.area }}
         onChange={(g) => setDraft((d) => ({ ...d, district: g.district, area: g.area }))}
         lang={lang}
-        labels={{ district: t.selectDistrict, area: t.selectArea }}
+        labels={{ district: t.selectDistrict, area: t.selectArea, noMatch: t.comboNoMatch }}
       />
       <input placeholder={t.phone} value={draft.phone} onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))} style={input} />
       <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text)", cursor: "pointer" }}>

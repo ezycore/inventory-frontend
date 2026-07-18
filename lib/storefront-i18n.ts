@@ -178,6 +178,7 @@ export interface Dict {
   selectCity: string;
   selectZone: string;
   selectArea: string;
+  comboNoMatch: string;
   selectThana: string;
   loadingLocations: string;
   newAddress: string;
@@ -488,7 +489,8 @@ const en: Dict = {
   selectDistrict: "Select district",
   selectCity: "Select city",
   selectZone: "Select zone",
-  selectArea: "Area / upazila",
+  selectArea: "Area / upazila / thana",
+  comboNoMatch: "No matches — type to add your own",
   selectThana: "Select thana",
   loadingLocations: "Loading…",
   newAddress: "New address",
@@ -800,7 +802,8 @@ const bn: Dict = {
   selectDistrict: "জেলা নির্বাচন করুন",
   selectCity: "শহর নির্বাচন করুন",
   selectZone: "জোন নির্বাচন করুন",
-  selectArea: "এলাকা / উপজেলা",
+  selectArea: "এলাকা / উপজেলা / থানা",
+  comboNoMatch: "কোনো মিল নেই — নিজে টাইপ করুন",
   selectThana: "থানা নির্বাচন করুন",
   loadingLocations: "লোড হচ্ছে…",
   newAddress: "নতুন ঠিকানা",

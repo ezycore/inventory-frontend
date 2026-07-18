@@ -7,7 +7,7 @@ export function getSupplierFilterConfig(t: Translator): FilterConfig {
   return {
     fields: [
       {
-        name: "name",
+        name: "search",
         label: t("filters.searchSupplier"),
         type: "text",
         placeholder: t("filters.searchPlaceholder"),
@@ -49,14 +49,6 @@ export function getSupplierFilterConfig(t: Translator): FilterConfig {
     applyOnChange: false,
     showResetButton: true,
     showApplyButton: true,
-  };
-}
-
-/** `t` is bound to the `suppliers` namespace. */
-export function getSupplierSearchConfig(t: Translator) {
-  return {
-    globalSearch: true,
-    placeholder: t("filters.globalSearchPlaceholder"),
   };
 }
 

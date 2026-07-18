@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { ApiResponse, Location, PaginatedResponse } from "@/types";
+import { FilterConfig } from "@/types/DataTable";
 import { sanitize } from "@/utils";
 import type { Translator } from "@/i18n/config";
 
@@ -74,9 +75,16 @@ export const getUserFormConfig = (t: Translator): DynamicFormConfig => ({
   ],
 });
 
-export const getUserSearchConfig = (t: Translator) => ({
-  globalSearch: true,
-  placeholder: t("searchPlaceholder"),
+/** Filter config for the users list — a server-side `search` field, first. */
+export const getUserFilterConfig = (t: Translator): FilterConfig => ({
+  fields: [
+    {
+      name: "search",
+      label: t("searchPlaceholder"),
+      type: "text",
+      placeholder: t("searchPlaceholder"),
+    },
+  ],
 });
 
 export const userFormDefaultValues = {

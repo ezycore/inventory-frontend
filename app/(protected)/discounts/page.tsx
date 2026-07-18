@@ -154,7 +154,6 @@ export default function DiscountsPage() {
           gap: "md",
         }}
         filterConfig={getDiscountFilterConfig(t)}
-        searchConfig={{ globalSearch: true, placeholder: t("searchPlaceholder") }}
         renderCard={(item, actions) => DiscountCardView(item, actions, { t, locale })}
         loadingRenderCard={DiscountCardLoading}
         operations={sharedOperations}
