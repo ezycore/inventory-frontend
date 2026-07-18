@@ -1,9 +1,9 @@
 "use client";
 // coding-standard: maintained
 
-import { useId, type CSSProperties } from "react";
+import { useMemo } from "react";
 import { BD_DISTRICTS, districtLabel, upazilasOf } from "@/lib/bd-geo";
-import { input } from "./checkout-bits";
+import { Combobox, type ComboOption } from "./combobox";
 
 /** The shopper's courier-neutral location — a canonical district + free-text area. */
 export interface GeoValue {
@@ -28,42 +28,39 @@ export function GeoPicker({
   value: GeoValue;
   onChange: (next: GeoValue) => void;
   lang: string;
-  labels: { district: string; area: string };
+  labels: { district: string; area: string; noMatch?: string };
 }) {
-  const listId = useId();
-  const upazilas = value.district ? upazilasOf(value.district) : [];
-  const select: CSSProperties = { ...input, appearance: "auto" };
+  // District is a strict pick (canonical name); area is free-text with the
+  // district's upazilas + metro thanas as searchable suggestions.
+  const districtOptions: ComboOption[] = useMemo(
+    () => BD_DISTRICTS.map((d) => ({ value: d.name, label: districtLabel(d, lang) })),
+    [lang],
+  );
+  const areaOptions: ComboOption[] = useMemo(() => {
+    if (!value.district) return [];
+    return upazilasOf(value.district).map((u) => {
+      const label = lang === "bn" ? u.bn : u.name;
+      return { value: label, label };
+    });
+  }, [value.district, lang]);
 
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      <select
-        style={select}
+      <Combobox
         value={value.district}
-        onChange={(e) => onChange({ district: e.target.value, area: "" })}
-      >
-        <option value="" disabled>
-          {labels.district}
-        </option>
-        {BD_DISTRICTS.map((d) => (
-          <option key={d.name} value={d.name}>
-            {districtLabel(d, lang)}
-          </option>
-        ))}
-      </select>
-
-      <input
-        style={{ ...input, opacity: value.district ? 1 : 0.6 }}
-        disabled={!value.district}
-        list={listId}
-        placeholder={labels.area}
-        value={value.area}
-        onChange={(e) => onChange({ ...value, area: e.target.value })}
+        onChange={(district) => onChange({ district, area: "" })}
+        options={districtOptions}
+        placeholder={labels.district}
       />
-      <datalist id={listId}>
-        {upazilas.map((u) => (
-          <option key={u.name} value={lang === "bn" ? u.bn : u.name} />
-        ))}
-      </datalist>
+      <Combobox
+        value={value.area}
+        onChange={(area) => onChange({ ...value, area })}
+        options={areaOptions}
+        placeholder={labels.area}
+        allowFreeText
+        disabled={!value.district}
+        noMatchText={labels.noMatch}
+      />
     </div>
   );
 }

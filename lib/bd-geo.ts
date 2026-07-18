@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import bdGeoRaw from "./bd-geo.json";
+import { METRO_AREAS } from "./bd-metro-areas";
 
 /**
  * Canonical Bangladesh geography (64 districts → upazilas) — the single
@@ -26,9 +27,19 @@ export const BD_DISTRICTS = bdGeoRaw as BdDistrict[];
 
 const byName = new Map(BD_DISTRICTS.map((d) => [d.name.trim().toLowerCase(), d]));
 
-/** The district's upazilas (autocomplete suggestions for the area field), or `[]`. */
+/**
+ * Area suggestions for the district — its government upazilas PLUS the city
+ * metropolitan thanas (see `bd-metro-areas.ts`), deduped by name and sorted. The
+ * area field stays free-text, so this is only the suggestion set, not a whitelist.
+ */
 export function upazilasOf(district: string): BdUpazila[] {
-  return byName.get(district.trim().toLowerCase())?.upazilas ?? [];
+  const key = district.trim();
+  const base = byName.get(key.toLowerCase())?.upazilas ?? [];
+  const metro = METRO_AREAS[key] ?? [];
+  if (metro.length === 0) return base;
+  const seen = new Set(base.map((u) => u.name.toLowerCase()));
+  const merged = [...base, ...metro.filter((u) => !seen.has(u.name.toLowerCase()))];
+  return merged.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /** Localized district label — Bangla name under `bn`, English otherwise. */
