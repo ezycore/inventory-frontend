@@ -4,6 +4,8 @@
  * SHOPPER token (not the staff token) and never sends `X-Active-Location`.
  */
 
+import type { CourierNormalizedStatus } from "@/lib/courier-status";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -288,7 +290,9 @@ export interface StorefrontOrder {
     provider?: string;
     trackingCode?: string;
     consignmentId?: string;
+    /** Raw provider status (admin-only). Shopper UI renders `normalizedStatus`. */
     status?: string;
+    normalizedStatus?: CourierNormalizedStatus;
   };
   createdAt: string;
   statusHistory?: { status: string; at: string }[];
