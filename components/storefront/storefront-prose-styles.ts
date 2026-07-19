@@ -82,3 +82,55 @@ export const proseFaqAnswerLine = (first: boolean): CSSProperties => ({
   lineHeight: 1.7,
   color: "var(--muted)",
 });
+
+// --- Tables ---
+// Horizontal scroll wrapper so wide tables (size charts) never break the page.
+export const proseTableWrap: CSSProperties = { margin: "16px 0", overflowX: "auto" };
+
+export const proseTable: CSSProperties = {
+  borderCollapse: "collapse",
+  width: "100%",
+  fontSize: 14,
+  color: "var(--text)",
+};
+
+export const proseTableCell: CSSProperties = {
+  border: "1px solid var(--border)",
+  padding: "8px 12px",
+  verticalAlign: "top",
+  lineHeight: 1.6,
+};
+
+export const proseTableHeader: CSSProperties = {
+  ...proseTableCell,
+  background: "var(--card)",
+  fontWeight: 700,
+  textAlign: "left",
+};
+
+// --- Callouts ---
+// Alpha-tinted so each variant reads on both light and dark storefront themes.
+const CALLOUT_COLORS: Record<"info" | "warning" | "success", { border: string; bg: string }> = {
+  info: { border: "#3b82f6", bg: "rgba(59,130,246,0.10)" },
+  warning: { border: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
+  success: { border: "#10b981", bg: "rgba(16,185,129,0.11)" },
+};
+
+export const proseCallout = (variant: "info" | "warning" | "success"): CSSProperties => ({
+  ...proseBodyText,
+  margin: "16px 0",
+  padding: "12px 16px",
+  borderRadius: 10,
+  borderLeft: `4px solid ${CALLOUT_COLORS[variant].border}`,
+  background: CALLOUT_COLORS[variant].bg,
+});
+
+// --- Highlight mark ---
+// Highlighter look: bright background with forced-dark text so it stays legible
+// over a light tint regardless of the page theme.
+export const proseHighlight = (color?: string): CSSProperties => ({
+  background: color ?? "#fde68a",
+  color: "#1f2937",
+  padding: "0.05em 0.2em",
+  borderRadius: 3,
+});

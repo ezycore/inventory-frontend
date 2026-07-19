@@ -76,3 +76,56 @@
 .rte-content .rte-faq-answer p {
   margin: 0.2em 0;
 }
+
+/* Tables — Tailwind preflight strips borders; restore them + TipTap's
+   column-resize / selected-cell affordances. */
+.rte-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.6em 0;
+  table-layout: fixed;
+  overflow: hidden;
+}
+
+.rte-content th,
+.rte-content td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  vertical-align: top;
+  position: relative;
+}
+
+.rte-content th {
+  background: var(--muted);
+  font-weight: 700;
+  text-align: left;
+}
+
+.rte-content .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  pointer-events: none;
+}
+
+.rte-content .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--primary);
+  cursor: col-resize;
+}
+
+.rte-content .tableWrapper {
+  overflow-x: auto;
+}
+
+/* Highlight mark — bright bg with dark text so it stays legible in dark mode. */
+.rte-content mark {
+  color: #1f2937;
+  padding: 0.05em 0.2em;
+  border-radius: 3px;
+}

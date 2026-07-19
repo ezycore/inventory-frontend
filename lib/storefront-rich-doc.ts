@@ -26,10 +26,22 @@ export const FAQ_LIST_NODE = "faqList" as const;
 export const FAQ_ITEM_NODE = "faqItem" as const;
 export const FAQ_QUESTION_NODE = "faqQuestion" as const;
 export const FAQ_ANSWER_NODE = "faqAnswer" as const;
+export const CALLOUT_NODE = "callout" as const;
+export const TABLE_NODE = "table" as const;
+export const TABLE_ROW_NODE = "tableRow" as const;
+export const TABLE_HEADER_NODE = "tableHeader" as const;
+export const TABLE_CELL_NODE = "tableCell" as const;
+
+export type RichDocAlign = "left" | "center" | "right" | "justify";
+export type RichDocCalloutVariant = "info" | "warning" | "success";
 
 export type RichDocMark =
   | { type: "bold" }
   | { type: "italic" }
+  | { type: "underline" }
+  | { type: "strike" }
+  | { type: "textStyle"; attrs?: { color?: string | null } }
+  | { type: "highlight"; attrs?: { color?: string | null } }
   | { type: "link"; attrs: { href: string } };
 
 export interface RichDocTextNode {
@@ -46,12 +58,13 @@ export type RichDocInlineNode = RichDocTextNode | RichDocHardBreakNode;
 
 export interface RichDocParagraphNode {
   type: "paragraph";
+  attrs?: { textAlign?: RichDocAlign | null };
   content?: RichDocInlineNode[];
 }
 
 export interface RichDocHeadingNode {
   type: "heading";
-  attrs: { level: 1 | 2 | 3 };
+  attrs: { level: 1 | 2 | 3; textAlign?: RichDocAlign | null };
   content?: RichDocInlineNode[];
 }
 
@@ -77,6 +90,40 @@ export interface RichDocBlockquoteNode {
 
 export interface RichDocHorizontalRuleNode {
   type: "horizontalRule";
+}
+
+interface RichDocCellAttrs {
+  colspan?: number;
+  rowspan?: number;
+  colwidth?: (number | null)[] | null;
+}
+
+export interface RichDocTableCellNode {
+  type: typeof TABLE_CELL_NODE;
+  attrs?: RichDocCellAttrs;
+  content?: RichDocBlockNode[];
+}
+
+export interface RichDocTableHeaderNode {
+  type: typeof TABLE_HEADER_NODE;
+  attrs?: RichDocCellAttrs;
+  content?: RichDocBlockNode[];
+}
+
+export interface RichDocTableRowNode {
+  type: typeof TABLE_ROW_NODE;
+  content?: (RichDocTableCellNode | RichDocTableHeaderNode)[];
+}
+
+export interface RichDocTableNode {
+  type: typeof TABLE_NODE;
+  content?: RichDocTableRowNode[];
+}
+
+export interface RichDocCalloutNode {
+  type: typeof CALLOUT_NODE;
+  attrs?: { variant?: RichDocCalloutVariant };
+  content?: RichDocParagraphNode[];
 }
 
 export interface RichDocFaqQuestionNode {
@@ -106,7 +153,9 @@ export type RichDocBlockNode =
   | RichDocOrderedListNode
   | RichDocBlockquoteNode
   | RichDocHorizontalRuleNode
-  | RichDocFaqListNode;
+  | RichDocFaqListNode
+  | RichDocTableNode
+  | RichDocCalloutNode;
 
 export interface RichDocRoot {
   type: "doc";
@@ -121,7 +170,49 @@ export type RichDocNode =
   | RichDocFaqItemNode
   | RichDocFaqQuestionNode
   | RichDocFaqAnswerNode
+  | RichDocTableRowNode
+  | RichDocTableCellNode
+  | RichDocTableHeaderNode
   | RichDocInlineNode;
+
+// --- Render-time attribute guards -------------------------------------------
+// The stored JSON is untrusted (writable via the raw API, not just the editor),
+// so every attribute the renderer turns into a style/attr is validated here —
+// the same posture as SAFE_RICH_HREF for links.
+
+// Hex (#rgb/#rrggbb), rgb()/rgba(), or a small named-colour set. Anything with a
+// `;`, `url(`, `expression(`, etc. fails, so no CSS can be smuggled through.
+const CSS_COLOR_RE =
+  /^(#(?:[0-9a-f]{3}|[0-9a-f]{6})|rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)|rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*(?:0|1|0?\.\d+)\s*\))$/i;
+const NAMED_COLORS = new Set([
+  "black", "white", "red", "green", "blue", "yellow", "orange", "purple", "pink",
+  "gray", "grey", "brown", "cyan", "magenta", "teal", "navy", "maroon", "olive",
+  "lime", "aqua", "silver", "gold", "transparent",
+]);
+
+/** A CSS colour safe to place in an inline `style`, or undefined. */
+export function safeCssColor(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const v = value.trim();
+  if (CSS_COLOR_RE.test(v)) return v;
+  if (NAMED_COLORS.has(v.toLowerCase())) return v;
+  return undefined;
+}
+
+const ALIGNS = new Set<string>(["left", "center", "right", "justify"]);
+
+/** A validated text-align value, or undefined (→ inherit/left). */
+export function safeAlign(value: unknown): RichDocAlign | undefined {
+  return typeof value === "string" && ALIGNS.has(value)
+    ? (value as RichDocAlign)
+    : undefined;
+}
+
+/** A table col/row span coerced to a sane integer in [1, 100]. */
+export function clampSpan(value: unknown): number {
+  const n = typeof value === "number" ? Math.floor(value) : 1;
+  return n >= 1 && n <= 100 ? n : 1;
+}
 
 /** A stored `body` is a rich doc when it parses as `{ type: "doc", content: [...] }`. */
 export function parseRichDoc(body: string | null | undefined): RichDocRoot | null {
