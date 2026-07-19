@@ -183,7 +183,11 @@ export default function AppSidebar() {
       <SidebarContent className="overflow-x-hidden">
         {filteredNavGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{groupLabel(group.label)}</SidebarGroupLabel>
+            {/* An empty group label renders no heading — `SidebarGroupLabel` is a
+                fixed-height row, so an empty one would leave a blank gap. */}
+            {group.label && (
+              <SidebarGroupLabel>{groupLabel(group.label)}</SidebarGroupLabel>
+            )}
             <SidebarMenu>
               {group.items.map((item) => {
                 return item?.items && item?.items?.length > 0 ? (

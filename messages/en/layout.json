@@ -1,11 +1,11 @@
 {
   "nav": {
     "groups": {
-      "overview": "Overview",
-      "operations": "Operations",
-      "contacts": "Contacts",
-      "catalog": "Catalog",
+      "sell": "Sell",
+      "buy": "Buy",
+      "stock": "Stock",
       "money": "Money",
+      "insights": "Insights",
       "admin": "Admin"
     },
     "items": {
@@ -39,6 +39,16 @@
       "stock-by-location": "Stock by Location",
       "customers": "Customers",
       "suppliers": "Suppliers",
+      "online-store": "Online Store",
+      "store-overview": "Store Overview",
+      "online-orders": "Online Orders",
+      "catalog": "Catalog",
+      "campaigns": "Campaigns",
+      "coupons": "Coupons",
+      "customize": "Customize",
+      "content": "Content",
+      "store-customers": "Store Customers",
+      "store-settings": "Store Settings",
       "products": "Products",
       "categories": "Categories",
       "brands": "Brands",
