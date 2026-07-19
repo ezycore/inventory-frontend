@@ -132,7 +132,7 @@ The entire **"UOM Conversion" section** in `form-config.tsx` carries:
 ```ts
 dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" }
 ```
-This means the section renders `null` when `productType !== "single"`. The `FormSection` type now supports `dependsOn?: FieldDependency` (added to [ui/components/form/type.ts](../../../ui/components/form/type.ts)), and `FormSectionComponent` in [ui/components/form/helper.tsx](../../../ui/components/form/helper.tsx) evaluates it via `evaluateFieldDependency` + `useWatch` before rendering.
+This means the section renders `null` when `productType !== "single"`. The `FormSection` type now supports `dependsOn?: FieldDependency` (added to [ui/components/form/type.ts](../../../ui/components/form/type.ts)), and `FormSectionComponent` in [ui/components/form/form-section.tsx](../../../ui/components/form/form-section.tsx) evaluates it via `normalizeDependencies` + `useWatch` + `evaluateFieldDependencies` before rendering.
 
 The `enableUOMConversion` field's own `dependsOn` was **removed** — it is redundant since the parent section already hides when not single. Keep it that way.
 

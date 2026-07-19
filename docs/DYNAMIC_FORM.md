@@ -124,7 +124,9 @@ That's it — validation schema, form state, and rendering are all handled autom
 |------|---------|
 | `ui/components/form/type.ts` | All TypeScript types, interfaces, and `generateSchemaFromConfig()` |
 | `ui/components/form/index.tsx` | Main `DynamicForm` component (drawer/modal/inline rendering) |
-| `ui/components/form/helper.tsx` | `FormField`, `FormSectionComponent`, `FormContent` |
+| `ui/components/form/form-field.tsx` | `FormField` — per-type field rendering |
+| `ui/components/form/form-section.tsx` | `FormSectionComponent` — section chrome + `dependsOn` gating |
+| `ui/components/form/form-content.tsx` | `FormContent` — lays the sections out |
 | `ui/components/form/dependency-utils.ts` | Field dependency evaluation logic |
 | `ui/components/form/custom-fields-manager.tsx` | Dynamic custom field builder UI |
 | `hooks/use-dynamic-form.ts` | `useDynamicForm` hook (schema generation + form creation) |

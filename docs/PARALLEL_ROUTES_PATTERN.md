@@ -115,7 +115,7 @@ queryClient.invalidateQueries({
 ### Form Helper Enhancement
 Added `href` support to action buttons:
 ```tsx
-// ui/components/form/helper.tsx
+// ui/components/form/form-field.tsx
 {field.action.href ? (
   <Link href={field.action.href}>
     <Button>{field.action.icon}</Button>
@@ -158,7 +158,7 @@ export default function ProtectedLayout({
 ### Modified:
 - `app/(protected)/layout.tsx`
 - `components/products/form-config.tsx`
-- `ui/components/form/helper.tsx`
+- `ui/components/form/form-field.tsx`
 - `ui/components/form/type.ts`
 
 ### Removed:
