@@ -10,6 +10,7 @@ import {
   type AdminStorefrontOrder,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { courierStatusPresentation } from "@/lib/courier-status";
 import { formatMoney } from "@/components/storefront/format";
 import { CourierLocationResolver } from "@/components/ecommerce/courier-location-resolver";
 import { Button } from "@/ui/components/button";
@@ -74,7 +75,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
           <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border bg-card">
             <Truck className="h-4 w-4" />
           </div>
-          <div className="flex-1">
+          <div className="flex flex-1 flex-col gap-1.5">
             <div className="text-sm font-semibold capitalize">
               {order.courier?.provider} · consignment created
             </div>
@@ -83,8 +84,36 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
               <span className="font-semibold text-foreground">
                 {order.courier?.trackingCode || order.courier?.consignmentId}
               </span>
-              {order.courier?.status ? ` · ${order.courier.status}` : ""}
             </div>
+            {order.courier?.normalizedStatus ? (
+              (() => {
+                const p = courierStatusPresentation(order.courier.normalizedStatus);
+                return (
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      style={{
+                        color: p.tone,
+                        background: `${p.tone}1f`,
+                        boxShadow: `inset 0 0 0 1px ${p.tone}52`,
+                      }}
+                    >
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ background: p.tone }}
+                      />
+                      {p.admin}
+                    </span>
+                    {order.courier?.status ? (
+                      <span className="text-[11px] text-muted-foreground">
+                        Courier reports{" "}
+                        <span className="font-mono">{order.courier.status}</span>
+                      </span>
+                    ) : null}
+                  </div>
+                );
+              })()
+            ) : null}
           </div>
           <Button
             variant="outline"
