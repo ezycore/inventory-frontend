@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { Suspense, useEffect, useState, type CSSProperties } from "react";
+import { Suspense, useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
@@ -9,6 +9,7 @@ import { useStore, useStoreProducts } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
@@ -48,14 +49,17 @@ function SearchInner() {
   });
 
   // The shopper picks grid vs list here (was an admin template). Default grid;
-  // the persisted choice is applied after mount so the first client render
-  // matches the SSR HTML.
-  const [view, setView] = useState<SearchView>("grid");
-  useEffect(() => {
-    if (localStorage.getItem(VIEW_KEY) === "list") setView("list");
-  }, []);
+  // the persisted choice applies once hydrated (not via a setState-in-effect)
+  // so the first client render matches the SSR HTML.
+  const hydrated = useHydrated();
+  const stored = useMemo<SearchView>(
+    () => (hydrated && localStorage.getItem(VIEW_KEY) === "list" ? "list" : "grid"),
+    [hydrated],
+  );
+  const [picked, setPicked] = useState<SearchView | null>(null);
+  const view = picked ?? stored;
   const pickView = (v: SearchView) => {
-    setView(v);
+    setPicked(v);
     localStorage.setItem(VIEW_KEY, v);
   };
 

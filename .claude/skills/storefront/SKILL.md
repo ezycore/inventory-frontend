@@ -154,9 +154,22 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   here 2026-07-18; `/ecommerce/navigation` is now a redirect to
   `customize?section=navigation` and the sidebar entry is gone), catalog (products + collections),
   settings (General incl. social links + fulfillment location, Publish, payments/shipping/checkout
-  tabs). Custom domains under app Settings → Custom Domains.
+  tabs). Custom domains under app Settings → Custom Domains. List pages come in two shapes:
+  CRUD-style (coupons/campaigns/content) are `DataTable` + `filterConfig` pages whose `getAll`
+  adapters filter/paginate CLIENT-side over the full backend list; workflow-style
+  (orders/customers/catalog) hand-roll their tables but share
+  `components/ecommerce/list-search-input.tsx` (debounced 300ms, trimmed commit) and
+  `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
+  these, never re-inline a search box or pagination row on an ecommerce list page.
 
 ## Work log (what was built, newest first — as of 2026-07-19)
+
+- **Ecommerce list-page dedup** (2026-07-19): orders/customers/catalog now share
+  `components/ecommerce/list-search-input.tsx` + `list-pagination.tsx` (see Admin ecommerce
+  pages above). Catalog gained the previously missing search debounce (it used to fetch per
+  keystroke) and dropped its awkward `DataCardPagination` shim. Deleted the never-imported
+  DataTable leftovers in the orders component folder (columns / filter-config / barrel index) —
+  the orders page ships its own `OrderRow` table, so that wiring was dead code.
 
 - **Storefront toasts → top-center + drawer dedup** (2026-07-19): "Added to cart" used to
   land bottom-right ON TOP of the cart drawer's footer CTAs (global root-layout Sonner).
