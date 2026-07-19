@@ -38,10 +38,14 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
   // The manual resolver stays hidden — it opens only when auto-resolve can't map
   // the address (COURIER_LOCATION_UNRESOLVED) or the admin opens it themselves.
   const [showResolver, setShowResolver] = useState(false);
+  // Re-dispatch reopens the courier picker for a cancelled consignment (the
+  // courier's Sale already exists, so this only books a fresh consignment).
+  const [reDispatch, setReDispatch] = useState(false);
 
   const enabledCouriers = (couriersData?.couriers ?? []).filter((c) => c.enabled);
   const hasTracking = !!order.courier?.consignmentId;
-  const canShip = order.status === "processing" && !hasTracking;
+  const isCancelled = order.courier?.normalizedStatus === "cancelled";
+  const canShip = (order.status === "processing" && !hasTracking) || reDispatch;
   const isLocationProvider = provider === "pathao" || provider === "ecourier";
   // A recorded delivery-charge advance shrinks what the courier collects COD.
   const advance = order.advanceAmount ?? 0;
@@ -70,7 +74,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
   return (
     <Card className="space-y-3 p-5 shadow-none">
       <h3 className="text-sm font-semibold">Fulfillment</h3>
-      {hasTracking ? (
+      {hasTracking && !reDispatch ? (
         <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
           <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border bg-card">
             <Truck className="h-4 w-4" />
@@ -115,14 +119,29 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
               })()
             ) : null}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={refreshTracking.isPending}
-            onClick={() => refreshTracking.mutate(order._id)}
-          >
-            Refresh
-          </Button>
+          <div className="flex flex-none flex-col gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={refreshTracking.isPending}
+              onClick={() => refreshTracking.mutate(order._id)}
+            >
+              Refresh
+            </Button>
+            {isCancelled ? (
+              <Button
+                size="sm"
+                onClick={() => {
+                  setProvider("");
+                  setQuote(null);
+                  setShowResolver(false);
+                  setReDispatch(true);
+                }}
+              >
+                Re-dispatch
+              </Button>
+            ) : null}
+          </div>
         </div>
       ) : canShip ? (
         enabledCouriers.length === 0 ? (
@@ -139,9 +158,19 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
         ) : (
           <>
             <p className="text-xs text-muted-foreground">
-              Dispatching books the sale (consuming the reserved stock) and marks
-              the order shipped.
+              {reDispatch
+                ? "The previous consignment was cancelled. Re-dispatching books a fresh consignment (same courier or another) — the sale is already recorded."
+                : "Dispatching books the sale (consuming the reserved stock) and marks the order shipped."}
             </p>
+            {reDispatch ? (
+              <button
+                type="button"
+                className="self-start text-xs font-medium text-muted-foreground underline"
+                onClick={() => setReDispatch(false)}
+              >
+                Cancel re-dispatch
+              </button>
+            ) : null}
             {advance > 0 && order.paymentMethod === "cod" && (
               <div className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-xs">
                 <span className="text-muted-foreground">
@@ -193,6 +222,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
                   createConsignment.mutate(
                     { id: order._id, provider },
                     {
+                      onSuccess: () => setReDispatch(false),
                       onError: (e) => {
                         if ((e as { code?: string }).code === "COURIER_LOCATION_UNRESOLVED")
                           setShowResolver(true);
@@ -201,7 +231,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
                   )
                 }
               >
-                Ship — create consignment
+                {reDispatch ? "Re-dispatch — create consignment" : "Ship — create consignment"}
               </Button>
             </div>
             {showResolver && isLocationProvider ? (
@@ -216,7 +246,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
             ) : null}
             {quote !== null ? (
               <p className="text-xs font-medium text-primary">
-                Estimated delivery price: {formatMoney(quote)}
+                Estimated delivery price: {formatMoney(quote, currency)}
               </p>
             ) : null}
             <div className="flex items-center justify-between gap-2">

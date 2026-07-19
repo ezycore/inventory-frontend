@@ -11,9 +11,7 @@ export function OrderActivityLog({ order }: { order: AdminStorefrontOrder }) {
       by: e.by,
     })),
     { text: "Order placed", at: order.createdAt, by: "shopper" },
-  ]
-    .slice()
-    .reverse();
+  ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   if (events.length === 0) {
     return <p className="text-sm text-muted-foreground">No activity yet.</p>;
