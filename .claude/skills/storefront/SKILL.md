@@ -164,6 +164,34 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
 
 ## Work log (what was built, newest first — as of 2026-07-19)
 
+- **Product-list filters + public brand facet** (2026-07-19): the shop `/products` page gained a
+  full filter system — Category · Brand · Price range · "In stock only" — plus server-side sort
+  (Featured/Newest/Price ↑↓), removable active-filter chips, and a Filters button with an
+  active-count badge. One `FilterPanel` (`components/storefront/filter-panel.tsx`), two homes:
+  inline aside on the Sidebar collection template (≥680px) and a LEFT `SideDrawer` everywhere
+  else (grid templates at all sizes + sidebar mobile). **`SideDrawer`**
+  (`components/storefront/side-drawer.tsx`) is the cart drawer's shell extracted (scrim + panel +
+  pinned header/footer, Esc closes; cart drawer now renders through it) — never hand-roll a
+  storefront drawer. It animates via `.sf-drawer*` classes in storefront.css (slide + scrim fade,
+  reduced-motion aware); the component stays mounted through the exit transition, so callers pass
+  `open` straight through (no early-return-null around it). Chips/Filters-button live in
+  `filter-toolbar.tsx`; sort uses **`SfSelect`** (`components/storefront/sf-select.tsx`) — the
+  storefront-native dropdown (button trigger + popover listbox, keyboard + outside-click), sharing
+  its menu card/row styles with the checkout Combobox via `menu-styles.ts`. Use it over a bare
+  `<select>` (OS picker, unthemed) and over the admin Radix `SimpleSelect` (Tailwind tokens). Everything is
+  URL-driven — `?brandId=&minPrice=&maxPrice=&inStock=1&sort=` extends the `?categoryId=`
+  pattern; filters apply instantly (no staged Apply) and a brand-only filter makes `/products`
+  that brand's landing page (h1 = brand name). BE: public `GET /:slug/brands` (auto-curated:
+  active, non-`isDefault`, ≥1 listed active product; productCount, alphabetical) and
+  `listProducts` grew the params. **Price bounds / price sorts / inStock take a computed path**
+  (`listProductsComputed`): displayed price (campaign-priced; variable = cheapest variant via the
+  extracted `cardPrice`) and availability don't live in the products collection, so the service
+  prices every match from a skinny projection, filters/sorts in memory, then hydrates just the
+  page — pagination totals stay correct. Tests: `storefront-brands.test.ts` (8) + brands in the
+  DTO contract test. i18n +11 keys ×3. OpenAPI + `types/api-generated.ts` regenerated. Parked
+  (approved design, artifact `fff70e82`): homepage "Shop by brand" strip + PDP brand line —
+  both cheap now that `/brands` exists.
+
 - **Ecommerce list-page dedup** (2026-07-19): orders/customers/catalog now share
   `components/ecommerce/list-search-input.tsx` + `list-pagination.tsx` (see Admin ecommerce
   pages above). Catalog gained the previously missing search debounce (it used to fetch per

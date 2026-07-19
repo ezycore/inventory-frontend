@@ -216,6 +216,19 @@ export interface CatalogCategory {
   image?: StorefrontImage | null;
 }
 
+/**
+ * One public brand (`GET …/brands`) — auto-curated server-side: active,
+ * non-default brands with ≥1 listed product. `productCount` feeds the facet
+ * rows and brand tiles.
+ */
+export interface StoreBrand {
+  _id: string;
+  name: string;
+  slug?: string;
+  image?: StorefrontImage | null;
+  productCount: number;
+}
+
 export interface ProductListResult {
   items: CatalogProduct[];
   pagination: { page: number; limit: number; total: number; totalPages: number };
@@ -392,6 +405,7 @@ export const storefrontApi = {
     sfFetch<CatalogProduct>(slug, `/products/${productSlug}`),
   listCategories: (slug: string) =>
     sfFetch<CatalogCategory[]>(slug, "/categories"),
+  listBrands: (slug: string) => sfFetch<StoreBrand[]>(slug, "/brands"),
   listCampaigns: (slug: string) =>
     sfFetch<StoreCampaign[]>(slug, "/campaigns"),
   listPages: (slug: string) =>

@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -13,6 +14,7 @@ import { computeShipping } from "@/lib/storefront-shipping";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
+import { SideDrawer } from "@/components/storefront/side-drawer";
 
 /**
  * Slide-over cart (the "drawer" cart variant). Quick cart review + totals; the
@@ -39,8 +41,8 @@ export function CartDrawer() {
   const updateQty = useCartStore((s) => s.updateQty);
   const removeItem = useCartStore((s) => s.removeItem);
 
-  if (!open) return null;
-
+  // No early return on !open — SideDrawer stays mounted through its exit
+  // animation and unmounts itself.
   const items = storeSlug === slug ? allItems : [];
   const currency = store?.currency;
   const count = items.reduce((n, i) => n + i.quantity, 0);
@@ -58,55 +60,57 @@ export function CartDrawer() {
   };
 
   return (
-    <>
-      <div
-        onClick={closeCart}
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(15,23,42,0.45)",
-          zIndex: 80,
-          backdropFilter: "blur(2px)",
-        }}
-      />
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: "min(420px, 94%)",
-          background: "var(--card)",
-          zIndex: 90,
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "-20px 0 50px -20px rgba(0,0,0,0.4)",
-        }}
-      >
-        <div
-          style={{
-            padding: "16px 20px",
-            borderBottom: "1px solid var(--border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
-            {t.yourCart}{" "}
-            <span style={{ color: "var(--muted)", fontWeight: 500 }}>({count})</span>
-          </h3>
-          <button
-            type="button"
-            onClick={closeCart}
-            aria-label="Close"
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "flex" }}
-          >
-            <Icon name="close" size={20} />
-          </button>
-        </div>
-
-        {items.length === 0 ? (
+    <SideDrawer
+      open={open}
+      onClose={closeCart}
+      side="right"
+      title={
+        <>
+          {t.yourCart}{" "}
+          <span style={{ color: "var(--muted)", fontWeight: 500 }}>({count})</span>
+        </>
+      }
+      footer={
+        items.length > 0 ? (
+          <>
+            <Row label={t.subtotal} value={money(subtotal, currency)} />
+            <Row
+              label={t.shipping}
+              value={shipping === 0 ? t.free : money(shipping, currency)}
+              muted
+            />
+            <button
+              type="button"
+              onClick={goCheckout}
+              style={{ ...primaryBtn(), width: "100%", marginTop: 6 }}
+            >
+              {t.proceed} · {money(total, currency)}
+            </button>
+            {/* Full cart page for editing at leisure — the drawer stays the quick path. */}
+            <button
+              type="button"
+              onClick={goCartPage}
+              style={{
+                width: "100%",
+                marginTop: 8,
+                background: "transparent",
+                color: "var(--text)",
+                border: "1px solid var(--border-strong)",
+                padding: "11px 22px",
+                borderRadius: 8,
+                fontFamily: "inherit",
+                fontSize: 13.5,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              {t.viewCart}
+            </button>
+          </>
+        ) : undefined
+      }
+    >
+      {items.length === 0 ? (
           <div
             style={{
               flex: 1,
@@ -132,8 +136,7 @@ export function CartDrawer() {
             </button>
           </div>
         ) : (
-          <>
-            <div style={{ flex: 1, overflowY: "auto", padding: "8px 20px" }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "8px 20px" }}>
               {items.map((i) => (
                 <div
                   key={cartLineKey(i)}
@@ -186,38 +189,9 @@ export function CartDrawer() {
                   </div>
                 </div>
               ))}
-            </div>
-            <div style={{ borderTop: "1px solid var(--border)", padding: "14px 20px" }}>
-              <Row label={t.subtotal} value={money(subtotal, currency)} />
-              <Row label={t.shipping} value={shipping === 0 ? t.free : money(shipping, currency)} muted />
-              <button type="button" onClick={goCheckout} style={{ ...primaryBtn(), width: "100%", marginTop: 6 }}>
-                {t.proceed} · {money(total, currency)}
-              </button>
-              {/* Full cart page for editing at leisure — the drawer stays the quick path. */}
-              <button
-                type="button"
-                onClick={goCartPage}
-                style={{
-                  width: "100%",
-                  marginTop: 8,
-                  background: "transparent",
-                  color: "var(--text)",
-                  border: "1px solid var(--border-strong)",
-                  padding: "11px 22px",
-                  borderRadius: 8,
-                  fontFamily: "inherit",
-                  fontSize: 13.5,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                {t.viewCart}
-              </button>
-            </div>
-          </>
+          </div>
         )}
-      </div>
-    </>
+    </SideDrawer>
   );
 }
 

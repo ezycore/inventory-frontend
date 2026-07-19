@@ -313,6 +313,52 @@
   }
 }
 
+/* ---- Slide-over drawers (components/storefront/side-drawer.tsx: cart + filters) ----
+   The component mounts closed, adds .sf-open a frame later (slide/fade in) and
+   removes it before unmounting (slide/fade out). */
+.sf-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 80;
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+.sf-drawer-scrim.sf-open {
+  opacity: 1;
+}
+.sf-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: min(420px, 94%);
+  background: var(--card);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.26s cubic-bezier(0.32, 0.72, 0.33, 1);
+}
+.sf-drawer-right {
+  right: 0;
+  transform: translateX(102%);
+  box-shadow: -20px 0 50px -20px rgba(0, 0, 0, 0.4);
+}
+.sf-drawer-left {
+  left: 0;
+  transform: translateX(-102%);
+  box-shadow: 20px 0 50px -20px rgba(0, 0, 0, 0.4);
+}
+.sf-drawer.sf-open {
+  transform: translateX(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-drawer,
+  .sf-drawer-scrim {
+    transition: none;
+  }
+}
+
 /* ---- Home hero carousel (components/storefront/hero-carousel.tsx) ---- */
 .sf-hero {
   position: relative;

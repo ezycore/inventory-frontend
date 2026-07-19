@@ -224,6 +224,18 @@ export interface Dict {
   prev: string;
   next: string;
   inStockFilter: string;
+  allBrands: string;
+  availability: string;
+  sortLabel: string;
+  sortFeatured: string;
+  sortNewest: string;
+  sortPriceLow: string;
+  sortPriceHigh: string;
+  minLabel: string;
+  maxLabel: string;
+  reset: string;
+  /** Drawer CTA — "{n}" is replaced with the live result count. */
+  showResults: string;
   onSale: string;
   inStock: string;
   outOfStock: string;
@@ -538,6 +550,17 @@ const en: Dict = {
   prev: "Prev",
   next: "Next",
   inStockFilter: "In stock only",
+  allBrands: "All brands",
+  availability: "Availability",
+  sortLabel: "Sort",
+  sortFeatured: "Featured",
+  sortNewest: "Newest",
+  sortPriceLow: "Price: low to high",
+  sortPriceHigh: "Price: high to low",
+  minLabel: "Min",
+  maxLabel: "Max",
+  reset: "Reset",
+  showResults: "Show {n} results",
   onSale: "On sale",
   inStock: "In stock",
   outOfStock: "Out of stock",
@@ -853,6 +876,17 @@ const bn: Dict = {
   prev: "আগের",
   next: "পরের",
   inStockFilter: "শুধু স্টকে আছে",
+  allBrands: "সব ব্র্যান্ড",
+  availability: "স্টক",
+  sortLabel: "সাজান",
+  sortFeatured: "ফিচার্ড",
+  sortNewest: "নতুন আগে",
+  sortPriceLow: "দাম: কম থেকে বেশি",
+  sortPriceHigh: "দাম: বেশি থেকে কম",
+  minLabel: "সর্বনিম্ন",
+  maxLabel: "সর্বোচ্চ",
+  reset: "রিসেট",
+  showResults: "{n}টি ফলাফল দেখুন",
   onSale: "ছাড়ে",
   inStock: "স্টকে আছে",
   outOfStock: "স্টকে নেই",
