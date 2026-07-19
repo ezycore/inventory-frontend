@@ -67,4 +67,33 @@ describe("parseStorefrontMarkdown", () => {
     const faq = blocks[0] as { items: { a: unknown[][] }[] };
     expect(faq.items[0].a).toHaveLength(2);
   });
+
+  it("parses a pipe table with a delimiter row", () => {
+    const blocks = parseStorefrontMarkdown("| Feature | When |\n|---|---|\n| Sales | You sell |\n| Tax | You charge VAT |");
+    expect(blocks).toHaveLength(1);
+    const table = blocks[0] as { kind: string; headers: unknown[]; rows: unknown[][] };
+    expect(table.kind).toBe("table");
+    expect(table.headers).toHaveLength(2);
+    expect(table.rows).toHaveLength(2);
+    expect(table.rows[1]).toHaveLength(2);
+  });
+
+  it("leaves pipe-containing prose alone when there is no delimiter row", () => {
+    const blocks = parseStorefrontMarkdown("Opening hours | 9am to 6pm\nCall us | 01700000000");
+    expect(blocks[0].kind).toBe("paragraph");
+  });
+});
+
+describe("inline code", () => {
+  it("parses backticked text as a code node", () => {
+    expect(parseInline("slug is `abc-company` here")).toEqual([
+      { kind: "text", text: "slug is " },
+      { kind: "code", text: "abc-company" },
+      { kind: "text", text: " here" },
+    ]);
+  });
+
+  it("does not re-parse emphasis inside code", () => {
+    expect(parseInline("`a **b** c`")).toEqual([{ kind: "code", text: "a **b** c" }]);
+  });
 });

@@ -36,9 +36,38 @@ file-by-file as touched** (via the marker below) — never mass-rewrite the repo
 - When you add a shared util/component, record it where the next change will look (the relevant skill
   doc and/or the matching CLAUDE.md section) so it gets reused, not re-duplicated.
 
-### Type-check & lint (ask first)
-- Do **not** run type-check or lint automatically. Ask the user for permission first. If granted, run
-  `pnpm typecheck` and `pnpm lint`. If declined, skip and proceed.
+### Docs on touch (mandatory)
+A change that makes a doc wrong is an **unfinished change** — the doc update ships in the *same* commit,
+never as a follow-up. Before calling any task done, ask: *does a doc now describe something that is no
+longer true?*
+
+- **Grep before you finish.** For every UI label, route, command, script, env var, filename or exported
+  symbol you renamed/moved/removed, grep `docs/` and `.claude/skills/` for it and fix every hit.
+- **Where to look, by what you changed:**
+  | Changed | Check |
+  |---|---|
+  | A route, or `constants/navItem.ts` | `docs/help/en/*.md` `covers_routes` + `docs/help/BACKLOG.md` |
+  | A user-facing label in `messages/**` | `ui_labels` in `docs/help/en/*.md` (a rename **breaks the build** on every page quoting it) |
+  | Nav / layout / an entry point | `docs/help/README.md`, this file's "Customer help docs" + "Route Structure" |
+  | A shared util/component/pattern | The matching `.claude/skills/*/SKILL.md` **and** this file's section for it |
+  | An API module or response type | `docs/` API notes; regenerate with `pnpm gen:api-types` |
+- **Bangla too.** Editing `messages/en/*.json` means editing `messages/bn/*.json` in the same commit —
+  use `docs/I18N-GLOSSARY.md` for the term, don't invent one. Same for `docs/help/en/` ↔ `docs/help/bn/`.
+- **Stale docs you pass through:** if you find a doc that is wrong *near* what you touched, fix it if the
+  truth is verifiable in the code; otherwise flag it to the user. Don't silently leave a known lie.
+- **Never hand-edit** `lib/help/content.generated.ts` — edit `docs/help/**` and run `pnpm help:build`.
+
+### Verification commands (ask first)
+- Do **not** run these automatically. Ask the user for permission first; if declined, skip and proceed.
+- `pnpm typecheck` and `pnpm lint` — after any source change.
+- `pnpm help:build` — after editing `docs/help/**` (regenerates `lib/help/content.generated.ts`;
+  `predev`/`prebuild` run it too, but the generated file must be committed).
+- `pnpm docs:verify` — after editing any `docs/**` or skill doc. Catches dead file refs, broken relative
+  `.md` links, phantom `/api/…` routes.
+- `pnpm help:verify` — after editing `docs/help/**`, `messages/**`, or `constants/navItem.ts`. The
+  freshness gate: stale `ui_labels`, phantom `covers_routes`, sidebar routes no page covers.
+- `pnpm verify` — all of the above except lint (`verify:api-types` + `docs:verify` + `help:verify` +
+  `typecheck`). Prefer this one when the change spans code **and** docs.
 
 ## Commands
 
@@ -51,6 +80,14 @@ pnpm typecheck    # TypeScript type check (tsc --noEmit)
 pnpm test         # Run tests once (Vitest)
 pnpm test:watch   # Run tests in watch mode
 pnpm test:coverage  # Run tests with coverage
+
+# Docs & contract gates — see "Docs on touch" above
+pnpm help:build       # Regenerate lib/help/content.generated.ts from docs/help/** (also predev/prebuild)
+pnpm help:verify      # Help freshness gate: stale ui_labels, phantom covers_routes, uncovered routes
+pnpm docs:verify      # Dead file refs, broken .md links, phantom /api/… routes in docs/ + skills
+pnpm gen:api-types    # Regenerate types/api-generated.ts from the backend OpenAPI spec
+pnpm verify:api-types # Fail if committed api-generated.ts drifted from the backend spec
+pnpm verify           # verify:api-types + docs:verify + help:verify + typecheck
 ```
 
 Run a single test file:
@@ -182,6 +219,31 @@ from the public store payload's `printable` block). Never hand-roll invoice mark
 parser → block model, XSS-safe by construction) + `<MarkdownView>` (`components/storefront/markdown-view.tsx`);
 consecutive `Q:`/`A:` lines become styled FAQ cards. Extend the parser — never dump raw page text or add
 a markdown dependency without checking here first.
+
+The parser is now shared with the **customer help docs**, so it is no longer storefront-only despite the
+filename. Two renderers consume it and both must handle every block kind, or new syntax silently vanishes
+on one surface: `<MarkdownView>` (storefront — inline styles against storefront CSS vars, so an owner's
+themed shop stays consistent) and `<HelpMarkdown>` (`components/help/help-markdown.tsx`, admin — Tailwind +
+shadcn tokens). They are deliberately separate: a themeable single renderer would thread a class map
+through every block for two callers whose styling primitives have nothing in common. Tables are recognised
+only by a `|---|---|` delimiter row — owner prose contains stray pipes far more often than tables.
+
+### Customer help docs (`docs/help/`)
+
+End-user guides for shop owners, reachable two ways — the header's "?" (`<HelpSheet>`), which opens the
+guide for the **current route** via each page's `covers_routes` frontmatter, and the sidebar user menu's
+**Help** item (`components/layout/app-sidebar.tsx`), which routes to `/help` for browsing all topics.
+Keep both: contextual help and a browsable index answer different questions, and `/help` has no other
+entry point. Content is Markdown in `docs/help/en/`,
+baked into `lib/help/content.generated.ts` by `pnpm help:build` (`predev`/`prebuild`) because `docs/` is not
+in the Docker image — a runtime read would work in dev and 404 in production.
+
+`pnpm help:verify` (in `pnpm verify` and the PR workflow) is the freshness gate: each page lists the
+message keys behind the UI text it quotes (`ui_labels`), and the gate fails when a key's current English
+value no longer appears in the page — i.e. **renaming a button breaks the build on every page quoting it**.
+It also fails on a sidebar route that no page covers and `docs/help/BACKLOG.md` does not defer. Write pages
+with the `help-docs` skill. Its one blind spot: a backend change that alters what a number *means* with no
+frontend diff (valuation method, tax rules) — check the reports pages by hand.
 
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**
 - **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.

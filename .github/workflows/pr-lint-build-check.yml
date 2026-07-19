@@ -36,6 +36,12 @@ jobs:
       - name: Run ESLint
         run: pnpm run lint
 
+      # Fails when a help page quotes UI text the app no longer renders, or when a new sidebar
+      # route is neither documented nor deferred in docs/help/BACKLOG.md. Self-contained — reads
+      # only this repo, so it needs no sibling checkout.
+      - name: Verify customer help docs
+        run: pnpm run help:verify
+
       - name: Run Next.js build
         run: pnpm run build
 

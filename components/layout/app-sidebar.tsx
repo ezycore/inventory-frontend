@@ -38,7 +38,7 @@ import {
 import {
   ChevronDownIcon,
   ChevronRightIcon,
-  CreditCardIcon,
+  HelpCircleIcon,
   LogOutIcon,
   UserCircleIcon,
 } from "lucide-react";
@@ -251,11 +251,12 @@ export default function AppSidebar() {
                       <UserCircleIcon className="mr-2 h-4 w-4" />
                       {tUserMenu("profile")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => router.push("/dashboard/billing")}
-                    >
-                      <CreditCardIcon className="mr-2 h-4 w-4" />
-                      {tUserMenu("billing")}
+                    {/* Billing lives in Settings → Billing, not here — one entry, one place.
+                        This slot gives the help guides their only route into `/help`; the
+                        header's "?" only ever opens the guide for the current screen. */}
+                    <DropdownMenuItem onClick={() => router.push("/help")}>
+                      <HelpCircleIcon className="mr-2 h-4 w-4" />
+                      {tUserMenu("help")}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />

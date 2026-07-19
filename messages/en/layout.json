@@ -64,11 +64,17 @@
   },
   "userMenu": {
     "profile": "Profile",
-    "billing": "Billing",
+    "help": "Help",
     "logout": "Logout"
   },
   "kbar": {
     "navigation": "Navigation",
     "goTo": "Go to {title}"
+  },
+  "help": {
+    "title": "Help",
+    "tooltip": "Help for this screen",
+    "subtitle": "Step-by-step guides for running your shop.",
+    "allTopics": "All help topics"
   }
 }
