@@ -9338,6 +9338,22 @@ export interface components {
                     text?: string;
                     link?: string;
                     bgColor?: string;
+                    textColor?: string;
+                    icon?: string;
+                    ctaLabel?: string;
+                    dismissible?: boolean;
+                    /** @enum {string} */
+                    size?: "sm" | "md" | "lg";
+                    bgImage?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                    } | null;
+                    overlay?: string;
+                    overlayOpacity?: number;
+                    /** @enum {string} */
+                    bgFit?: "cover" | "tile";
                 };
             };
             checkout?: {
@@ -13772,6 +13788,22 @@ export interface operations {
                             text?: string;
                             link?: string;
                             bgColor?: string;
+                            textColor?: string;
+                            icon?: string;
+                            ctaLabel?: string;
+                            dismissible?: boolean;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            bgImage?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            overlay?: string;
+                            overlayOpacity?: number;
+                            /** @enum {string} */
+                            bgFit?: "cover" | "tile";
                         };
                     };
                     checkout?: {

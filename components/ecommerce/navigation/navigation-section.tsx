@@ -35,6 +35,8 @@ export function NavigationSection({
   setSource,
   header,
   setHeader,
+  announcement,
+  setAnnouncement,
   collections,
   onManageCollections,
 }: {
@@ -43,6 +45,10 @@ export function NavigationSection({
   setSource: (v: HeaderMenuSource) => void;
   header: StorefrontMenuItem[];
   setHeader: (v: StorefrontMenuItem[]) => void;
+  // Announcement draft is lifted to CustomizeWorkspace so the live preview
+  // repaints as it's edited (footer stays local — the preview doesn't render it).
+  announcement: AnnouncementDraft;
+  setAnnouncement: (patch: Partial<AnnouncementDraft>) => void;
   collections: CollectionRowValue[];
   onManageCollections: () => void;
 }) {
@@ -51,12 +57,6 @@ export function NavigationSection({
 
   const nav = settings.nav;
   const [footer, setFooter] = useState<StorefrontFooterGroup[]>(nav?.footer ?? []);
-  const [announcement, setAnnouncement] = useState<AnnouncementDraft>({
-    enabled: nav?.announcement?.enabled ?? false,
-    text: nav?.announcement?.text ?? "",
-    link: nav?.announcement?.link ?? "",
-    bgColor: nav?.announcement?.bgColor ?? "#2563eb",
-  });
 
   // Menu links target categories by slug; slugless ones (legacy seed data) are
   // unlinkable — and Radix Select crashes on empty-string item values.
@@ -101,6 +101,17 @@ export function NavigationSection({
         text: announcement.text.trim() || undefined,
         link: announcement.link.trim() || undefined,
         bgColor: announcement.bgColor,
+        textColor: announcement.textColor.trim() || undefined,
+        icon: announcement.icon.trim() || undefined,
+        ctaLabel: announcement.ctaLabel.trim() || undefined,
+        dismissible: announcement.dismissible,
+        size: announcement.size,
+        // Sent wholesale (nav replaces on PATCH); null clears a removed image
+        // and the backend deletes the orphaned asset.
+        bgImage: announcement.bgImage,
+        overlay: announcement.overlay,
+        overlayOpacity: announcement.overlayOpacity,
+        bgFit: announcement.bgFit,
       },
     };
     save.mutate({
@@ -125,10 +136,7 @@ export function NavigationSection({
           pageOptions={pageOptions}
           onManageCollections={onManageCollections}
         />
-        <AnnouncementCard
-          value={announcement}
-          onChange={(patch) => setAnnouncement((a) => ({ ...a, ...patch }))}
-        />
+        <AnnouncementCard value={announcement} onChange={setAnnouncement} />
         <FooterLinksCard groups={footer} setGroups={setFooter} />
       </div>
       <div className="flex flex-none justify-end">

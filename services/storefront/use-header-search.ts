@@ -1,0 +1,179 @@
+"use client";
+// coding-standard: maintained
+
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { storeHref } from "@/lib/storefront-links";
+import { useStore, useStoreProducts } from "@/services/storefront/hooks";
+import { useStoreContext } from "@/services/storefront/store-context";
+import type { CatalogProduct } from "@/lib/storefront-client";
+
+const RESULT_LIMIT = 6;
+const RECENTS_LIMIT = 5;
+const DEBOUNCE_MS = 300;
+const recentsKey = (slug: string) => `sf-recent-${slug}`;
+
+function readRecents(slug: string): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(recentsKey(slug)) ?? "[]");
+    return Array.isArray(parsed)
+      ? parsed.filter((x): x is string => typeof x === "string").slice(0, RECENTS_LIMIT)
+      : [];
+  } catch {
+    return [];
+  }
+}
+function persistRecents(slug: string, list: string[]) {
+  try {
+    localStorage.setItem(recentsKey(slug), JSON.stringify(list.slice(0, RECENTS_LIMIT)));
+  } catch {
+    /* private mode / quota — recents are best-effort */
+  }
+}
+
+/** A keyboard-navigable row in the results list: a product, or the "view all" CTA. */
+export type SearchAction =
+  | { kind: "product"; product: CatalogProduct }
+  | { kind: "viewAll" };
+
+/**
+ * Header typeahead controller — shared by every search anchor (the classic
+ * bar, the minimal/centered expand layer, the mobile sheet). Owns the query,
+ * its debounced fetch, recent-search memory, and keyboard navigation; the
+ * caller owns whether its surface is `open` (passed in so a closed panel never
+ * fetches) and passes `onClose` so a commit or Escape can dismiss it. Reuses
+ * the same `useStoreProducts` hook (and cache) the full /search page uses — no
+ * backend change.
+ */
+export function useHeaderSearch(onClose: () => void, open: boolean) {
+  const { slug, base } = useStoreContext();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
+  const [active, setActive] = useState(-1);
+  const [recents, setRecents] = useState<string[]>([]);
+
+  // Recents load client-side only (the panel is never in the SSR HTML).
+  useEffect(() => setRecents(readRecents(slug)), [slug]);
+
+  // A committed search shouldn't linger in the header after you leave. The
+  // header never unmounts across routes, so clear the input on any navigation
+  // to a page other than the search results page (which keeps the term the
+  // shopper just searched, matching that page's own input).
+  const searchPath = storeHref(base, "/search");
+  useEffect(() => {
+    if (pathname !== searchPath) setQ("");
+  }, [pathname, searchPath]);
+
+  // One request per pause in typing instead of one per keystroke.
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQ(q.trim()), DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [q]);
+
+  const { data: store } = useStore(slug);
+  const { data, isLoading } = useStoreProducts(
+    slug,
+    { q: debouncedQ || undefined, limit: RESULT_LIMIT },
+    open && debouncedQ.length > 0,
+  );
+
+  const hasQuery = q.trim().length > 0;
+  const items = hasQuery ? data?.items ?? [] : [];
+  const total = data?.pagination.total ?? items.length;
+  // While the debounce catches up (or the fetch is in flight) show skeletons,
+  // never a premature "no results".
+  const loading = hasQuery && (isLoading || q.trim() !== debouncedQ);
+
+  const actions = useMemo<SearchAction[]>(() => {
+    if (!hasQuery || loading || items.length === 0) return [];
+    return [
+      ...items.map((product) => ({ kind: "product" as const, product })),
+      { kind: "viewAll" as const },
+    ];
+  }, [hasQuery, loading, items]);
+
+  // Drop the highlight whenever the resolved result set changes under the cursor.
+  useEffect(() => setActive(-1), [debouncedQ]);
+
+  const remember = (term: string) => {
+    const next = [term, ...recents.filter((r) => r.toLowerCase() !== term.toLowerCase())].slice(
+      0,
+      RECENTS_LIMIT,
+    );
+    setRecents(next);
+    persistRecents(slug, next);
+  };
+
+  const goSearchPage = (term = q) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    remember(trimmed);
+    onClose();
+    router.push(storeHref(base, `/search?q=${encodeURIComponent(trimmed)}`));
+  };
+  const goProduct = (product: CatalogProduct) => {
+    onClose();
+    router.push(storeHref(base, `/products/${product.slug}`));
+  };
+  const goCategory = (categoryId: string) => {
+    onClose();
+    router.push(storeHref(base, `/products?categoryId=${categoryId}`));
+  };
+  const runAction = (action: SearchAction) =>
+    action.kind === "product" ? goProduct(action.product) : goSearchPage();
+
+  const applyRecent = (term: string) => {
+    setQ(term);
+    setActive(-1);
+  };
+  const clearRecents = () => {
+    setRecents([]);
+    persistRecents(slug, []);
+  };
+  const clear = () => {
+    setQ("");
+    setActive(-1);
+  };
+
+  const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      onClose();
+    } else if (e.key === "ArrowDown" && actions.length) {
+      e.preventDefault();
+      setActive((i) => Math.min(i + 1, actions.length - 1));
+    } else if (e.key === "ArrowUp" && actions.length) {
+      e.preventDefault();
+      setActive((i) => Math.max(i - 1, -1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (active >= 0 && actions[active]) runAction(actions[active]);
+      else goSearchPage();
+    }
+  };
+
+  return {
+    q,
+    setQ,
+    clear,
+    hasQuery,
+    loading,
+    items,
+    total,
+    currency: store?.currency,
+    recents,
+    applyRecent,
+    clearRecents,
+    active,
+    setActive,
+    goProduct,
+    goCategory,
+    goSearchPage,
+    onInputKeyDown,
+  };
+}
+
+export type HeaderSearchController = ReturnType<typeof useHeaderSearch>;

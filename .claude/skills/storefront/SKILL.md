@@ -162,7 +162,58 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-07-19)
+## Work log (what was built, newest first — as of 2026-07-20)
+
+- **Announcement bar → richer + live-previewed** (2026-07-20): the Customize → Navigation
+  announcement bar gained `textColor` (blank ⇒ auto `readableTextOn(bgColor)` — the old sole
+  behaviour), `icon` (leading emoji), `ctaLabel` (explicit button vs whole-bar link), `dismissible`,
+  `size` (sm|md|lg), **and a background image** — `bgImage` (uploadInfo) + `overlay` colour +
+  `overlayOpacity` (0–100) + `bgFit` (`cover` photo | `tile` pattern), for festival/seasonal strips
+  (Halloween/Eid/Black Friday). All added across the 5 contract layers (BE model + validator +
+  `storefront-settings.types` + admin `storefrontSettingsDto`; the public `storeInfoDto` keeps
+  `nav: z.unknown()` so new fields pass through untouched). FE reads the hand-written types
+  (`StorefrontAnnouncement` in `types/index.ts`, `StoreAnnouncement` extracted in
+  `storefront-client.ts`) — `api-generated.ts` isn't consumed here, but the BE DTO change means
+  `verify:api-types` needs a regen. Render extracted from `store-shell.tsx` into
+  `components/storefront/announcement-bar.tsx` (icon + CTA + size + auto/explicit fg + bg image with a
+  readability overlay layer, fg defaults white over an image; dismiss via the `close` sf-icon,
+  persists per-device as `sf-ann-{slug}` keyed to `text|link` so a changed message re-shows, disabled
+  while the preview is active). Reuses `HeroCtaLink` — which also **fixed a latent bug**: the old
+  inline announcement link ignored `base`, breaking `/products` on `{slug}.domain/shop` hosts.
+  Image upload reuses the shared `MediaField` + a new `announcement-bg-field.tsx`, and the
+  hero-slide image uploader was **generalised** to `useUploadStorefrontImage` / `uploadStorefrontImage`
+  (same `POST …/media/hero-slide` route; the BE validator's `slideImageSchema` → shared
+  `storefrontImageSchema`); the settings PATCH now cleans up a dropped/replaced announcement image
+  the same way it does dropped hero slides. **Live preview**: the announcement draft was lifted from
+  `NavigationSection` up to `CustomizeWorkspace` and streams via the postMessage bridge
+  (`nav.announcement` in the payload → `use-sf-preview-store` `announcement` → `preview-bridge` →
+  `store-shell` prefers the override) — the bar was previously edited blind (footer still is). i18n
+  +1 key ×3 (`dismiss`). Both repos typecheck clean.
+
+- **Header search → in-place typeahead** (2026-07-20): the header "search bar" used to be a
+  button styled as an input that navigated to `/search` on click (the field never took a
+  keystroke). Replaced with a real typeahead: focus shows recent searches (localStorage
+  `sf-recent-{slug}`, ≤5, with Clear) + top category chips; typing (debounced 300ms) shows the
+  top 6 matches (thumb, highlighted match, campaign-aware price w/ strike, OOS badge, category
+  subtitle) with `↑↓`/`Enter`/`Esc` keyboard nav. `Enter`/"Show N results" still land on the
+  existing `/search?q=` page (unchanged; it already reads `?q`). One controller hook
+  `services/storefront/use-header-search.ts` (query + debounced `useStoreProducts(slug,{q,limit:6})`
+  — same hook/cache as the search page, **no backend change** — recents, keyboard) + one panel
+  `components/storefront/header-search-panel.tsx`, driving three anchors in
+  `components/storefront/header-search.tsx`: `HeaderSearchBar` (classic: focus-opens a popover),
+  `HeaderSearchIcon` (minimal/centered: the icon expands a full-width layer under the sticky
+  header — anchored via a `display:contents` wrapper so the layer resolves against the header),
+  `HeaderSearchMobile` (mobile: full-screen takeover sheet, body-scroll locked). The header never
+  unmounts across routes, so the controller **clears the input on any navigation off the /search
+  page** (`usePathname` vs `storeHref(base,"/search")`) — otherwise a committed term lingered in
+  the box on Home/product/category pages; the /search page keeps the term (matches its own input).
+  The typeahead fetch is gated on the panel being `open` (passed into the hook) so a retained term
+  never fires a background request. `goSearch`
+  retired from `use-cart-nav.ts` (`useCartNav(slug)` now). Styling = new `.sf-search-*` classes in
+  `storefront.css` (focus ring, pop-in, sheet fade, row/chip hover; reduced-motion aware). i18n
+  +2 keys ×3 (`recentSearches`, `categoriesLabel`); reuses `showResults`/`noResults`/
+  `viewAllProducts`/`cancelEdit`/`clearAll`. Approved design sample:
+  claude.ai/code/artifact/c3361a6f-2d0c-4cff-a452-5e9f95886e15.
 
 - **Product-list filters + public brand facet** (2026-07-19): the shop `/products` page gained a
   full filter system — Category · Brand · Price range · "In stock only" — plus server-side sort

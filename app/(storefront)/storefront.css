@@ -359,6 +359,69 @@
   }
 }
 
+/* ---- Header search typeahead (components/storefront/header-search.tsx) ----
+   The classic popover + the minimal/centered expand layer pop in; the mobile
+   takeover sheet fades up. Result rows / chips / view-all get their hover here
+   so the inline styles carry only the keyboard-active highlight. */
+.sf-search-box {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.sf-search-box:focus-within {
+  border-color: var(--primary);
+  background: var(--card);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.sf-search-pop {
+  animation: sfSearchPop 0.15s ease;
+}
+@keyframes sfSearchPop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sf-search-sheet {
+  animation: sfSearchSheet 0.2s ease;
+}
+@keyframes sfSearchSheet {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sf-search-row,
+.sf-search-viewall {
+  transition: background 0.12s ease;
+}
+.sf-search-row:hover {
+  background: var(--surface);
+}
+.sf-search-viewall:hover {
+  background: var(--primary-soft);
+}
+.sf-search-chip {
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.sf-search-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-search-pop,
+  .sf-search-sheet {
+    animation: none;
+  }
+}
+
 /* ---- Home hero carousel (components/storefront/hero-carousel.tsx) ---- */
 .sf-hero {
   position: relative;

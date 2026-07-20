@@ -37,6 +37,7 @@ export function StorePreviewBridge() {
         heroBanner: p.heroBanner,
         headerMenuSrc: p.templates?.headerMenu,
         navHeader: p.nav?.header,
+        announcement: p.nav?.announcement,
         collections: p.collections,
       });
     };

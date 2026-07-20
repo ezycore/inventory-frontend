@@ -114,6 +114,23 @@ export interface StorefrontAnnouncement {
   text?: string;
   link?: string;
   bgColor?: string;
+  /** Explicit text colour; blank ⇒ auto-derived from bgColor for readability. */
+  textColor?: string;
+  /** Leading emoji/glyph shown before the text. */
+  icon?: string;
+  /** When set (with a link), renders an explicit CTA button instead of a bare link. */
+  ctaLabel?: string;
+  /** Shopper can dismiss the bar (persisted per-device until the message changes). */
+  dismissible?: boolean;
+  size?: "sm" | "md" | "lg";
+  /** Background image (uploadInfo from the storefront image endpoint). */
+  bgImage?: Image | null;
+  /** Overlay colour painted over the image for text readability. */
+  overlay?: string;
+  /** Overlay strength, 0–100. */
+  overlayOpacity?: number;
+  /** cover = photo backdrop; tile = repeating pattern. */
+  bgFit?: "cover" | "tile";
 }
 
 export interface StorefrontNav {

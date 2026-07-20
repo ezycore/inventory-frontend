@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type {
   CatalogCategory,
+  StoreAnnouncement,
   StoreHeroBanner,
   StoreHeroSlide,
   StoreMenuItem,
@@ -36,6 +37,8 @@ interface SfPreviewState {
   headerMenuSrc: string | null;
   /** Draft custom header menu items (Navigation → Header menu). */
   navHeader: StoreMenuItem[] | null;
+  /** Draft announcement bar (Navigation → Announcement bar). */
+  announcement: StoreAnnouncement | null;
   /**
    * Draft collections from the Navigation → Collections panel: already ordered
    * and filtered to the listed ones, with display names applied. Overrides the
@@ -57,6 +60,7 @@ interface SfPreviewState {
     heroBanner?: StoreHeroBanner;
     headerMenuSrc?: string;
     navHeader?: StoreMenuItem[];
+    announcement?: StoreAnnouncement;
     collections?: CatalogCategory[];
   }) => void;
 }
@@ -75,6 +79,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   heroBanner: null,
   headerMenuSrc: null,
   navHeader: null,
+  announcement: null,
   collections: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
@@ -94,6 +99,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       headerMenuSrc:
         patch.headerMenuSrc !== undefined ? patch.headerMenuSrc : s.headerMenuSrc,
       navHeader: patch.navHeader !== undefined ? patch.navHeader : s.navHeader,
+      announcement:
+        patch.announcement !== undefined ? patch.announcement : s.announcement,
       collections:
         patch.collections !== undefined ? patch.collections : s.collections,
     })),

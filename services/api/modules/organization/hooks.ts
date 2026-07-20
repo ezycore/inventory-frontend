@@ -329,15 +329,16 @@ export const useUpdateStorefrontMedia = () => {
   });
 };
 
-// POST /api/organization/storefront/media/hero-slide - Upload one hero-slide
+// POST /api/organization/storefront/media/hero-slide - Upload one storefront
 // image. Returns uploadInfo only (no cache write): the editor embeds it in a
-// slide and persists via the heroSlides settings PATCH.
-export const useUploadHeroSlideImage = () => {
+// slide / announcement and persists via the settings PATCH. Shared by the hero
+// slides panel and the announcement-bar background.
+export const useUploadStorefrontImage = () => {
   return useMutation({
     mutationFn: (file: File) => {
       const fd = new FormData();
       fd.append("image", file);
-      return organizationApi.uploadHeroSlideImage(fd);
+      return organizationApi.uploadStorefrontImage(fd);
     },
     onError: handleMutationError,
   });

@@ -24,6 +24,11 @@ import {
   menuHref,
 } from "@/components/storefront/header-nav";
 import { Brand } from "@/components/storefront/logo-mark";
+import {
+  HeaderSearchBar,
+  HeaderSearchIcon,
+  HeaderSearchMobile,
+} from "@/components/storefront/header-search";
 
 const HEADER_VARIANTS: readonly string[] = ["classic", "minimal", "centered"];
 
@@ -54,7 +59,6 @@ interface HeaderCtx {
   sessionKnown: boolean;
   cartCount: number;
   goCart: () => void;
-  goSearch: () => void;
   headerMenu: StoreMenuItem[];
   /** Where the top links come from — owner-chosen, never inferred from length. */
   menuSource: HeaderMenuSource;
@@ -94,7 +98,7 @@ export function StoreHeader({
   categories: CatalogCategory[];
 }) {
   const { t, theme, lang, toggleTheme, toggleLang } = useStorefrontUI();
-  const { cartCount, goCart, goSearch } = useCartNav(slug, base);
+  const { cartCount, goCart } = useCartNav(slug);
   const shopper = useShopperStore((s) => s.shopper);
   const hydrated = useHydrated();
   const previewHeader = useSfPreview((s) => s.header);
@@ -126,7 +130,6 @@ export function StoreHeader({
     sessionKnown: hydrated,
     cartCount,
     goCart,
-    goSearch,
     headerMenu,
     menuSource,
     cats: categories ?? [],
@@ -157,7 +160,7 @@ export function StoreHeader({
 /* -------------------------------- mobile ---------------------------------- */
 
 function MobileHeader({ ctx }: { ctx: HeaderCtx }) {
-  const { base, name, logo, t, theme, lang, toggleTheme, toggleLang, goSearch } = ctx;
+  const { base, name, logo, t, theme, lang, toggleTheme, toggleLang, cats } = ctx;
   // Cart + account live in the bottom nav on mobile, so the top bar keeps just
   // the logo, locale/theme toggles and the search field.
   return (
@@ -175,10 +178,7 @@ function MobileHeader({ ctx }: { ctx: HeaderCtx }) {
           </button>
         </div>
       </div>
-      <button type="button" onClick={goSearch} style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--faint)", cursor: "pointer" }}>
-        <Icon name="search" size={18} />
-        <span style={{ fontSize: 13, color: "var(--muted)" }}>{t.searchPh}</span>
-      </button>
+      <HeaderSearchMobile categories={cats} />
     </div>
   );
 }
@@ -194,7 +194,7 @@ function ClassicDesktop({ ctx }: { ctx: HeaderCtx }) {
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
           <Brand name={name} logo={logo} markSize={38} nameSize={18} />
         </Link>
-        <SearchBar ctx={ctx} />
+        <HeaderSearchBar categories={ctx.cats} />
         <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none" }}>
           <AccountLink ctx={ctx} withLabel />
           <CartButton ctx={ctx} withLabel />
@@ -221,7 +221,7 @@ function MinimalDesktop({ ctx }: { ctx: HeaderCtx }) {
         ))}
       </nav>
       <div style={{ display: "flex", alignItems: "center", gap: 16, flex: "none" }}>
-        <SearchIconBtn ctx={ctx} />
+        <HeaderSearchIcon categories={ctx.cats} />
         <AccountLink ctx={ctx} />
         <CartButton ctx={ctx} />
       </div>
@@ -242,7 +242,7 @@ function CenteredDesktop({ ctx }: { ctx: HeaderCtx }) {
           <Brand name={name} logo={logo} markSize={34} nameSize={20} />
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 18, justifySelf: "end" }}>
-          <SearchIconBtn ctx={ctx} />
+          <HeaderSearchIcon categories={ctx.cats} />
           <AccountLink ctx={ctx} />
           <CartButton ctx={ctx} />
         </div>
@@ -301,23 +301,6 @@ function ThemeBtn({ ctx }: { ctx: HeaderCtx }) {
     <button type="button" onClick={toggleTheme} style={{ ...bareBtn, display: "flex", alignItems: "center", gap: 5, color: "inherit" }}>
       <Icon name={theme === "dark" ? "sun" : "moon"} size={14} />
       {theme === "dark" ? t.lightMode : t.darkMode}
-    </button>
-  );
-}
-
-function SearchBar({ ctx }: { ctx: HeaderCtx }) {
-  return (
-    <button type="button" onClick={ctx.goSearch} style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", color: "var(--faint)", cursor: "pointer", minWidth: 200 }}>
-      <Icon name="search" size={18} />
-      <span style={{ fontSize: 14, color: "var(--muted)" }}>{ctx.t.searchPh}</span>
-    </button>
-  );
-}
-
-function SearchIconBtn({ ctx }: { ctx: HeaderCtx }) {
-  return (
-    <button type="button" onClick={ctx.goSearch} aria-label={ctx.t.searchPh} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", color: "var(--text)" }}>
-      <Icon name="search" size={20} />
     </button>
   );
 }

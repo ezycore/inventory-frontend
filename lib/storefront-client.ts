@@ -137,15 +137,35 @@ export interface StoreFooterGroup {
   links: { label: string; url: string }[];
 }
 
+/** The single-line bar above the storefront header (admin Navigation tab). */
+export interface StoreAnnouncement {
+  enabled?: boolean;
+  text?: string;
+  link?: string;
+  bgColor?: string;
+  /** Explicit text colour; blank ⇒ auto-derived from bgColor for readability. */
+  textColor?: string;
+  /** Leading emoji/glyph shown before the text. */
+  icon?: string;
+  /** When set (with a link), renders an explicit CTA button instead of a bare link. */
+  ctaLabel?: string;
+  /** Shopper can dismiss the bar (persisted per-device until the message changes). */
+  dismissible?: boolean;
+  size?: "sm" | "md" | "lg";
+  /** Background image behind the bar (with the overlay below painted on top). */
+  bgImage?: StorefrontImage | null;
+  /** Overlay colour painted over the image for text readability. */
+  overlay?: string;
+  /** Overlay strength, 0–100. */
+  overlayOpacity?: number;
+  /** cover = photo backdrop (center-cropped); tile = repeating pattern. */
+  bgFit?: "cover" | "tile";
+}
+
 export interface StoreNav {
   header?: StoreMenuItem[];
   footer?: StoreFooterGroup[];
-  announcement?: {
-    enabled?: boolean;
-    text?: string;
-    link?: string;
-    bgColor?: string;
-  };
+  announcement?: StoreAnnouncement;
 }
 
 export interface CatalogProduct {

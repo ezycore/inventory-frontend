@@ -12,6 +12,9 @@ export interface Dict {
   langCode: string;
   langLabel: string;
   searchPh: string;
+  /** Header search typeahead: recents section heading + category-chips heading. */
+  recentSearches: string;
+  categoriesLabel: string;
   account: string;
   cart: string;
   addToCart: string;
@@ -48,6 +51,7 @@ export interface Dict {
   verified: string;
   saveChanges: string;
   cancelEdit: string;
+  dismiss: string;
   prefsTitle: string;
   prefsSub: string;
   promoEmailT: string;
@@ -344,6 +348,8 @@ const en: Dict = {
   langCode: "en-BD",
   langLabel: "English",
   searchPh: "Search products, brands & categories",
+  recentSearches: "Recent searches",
+  categoriesLabel: "Categories",
   account: "Account",
   cart: "Cart",
   addToCart: "Add to cart",
@@ -373,6 +379,7 @@ const en: Dict = {
   verified: "Verified",
   saveChanges: "Save changes",
   cancelEdit: "Cancel",
+  dismiss: "Dismiss",
   prefsTitle: "Notifications",
   prefsSub: "Choose what you want to hear about.",
   promoEmailT: "Promotional emails",
@@ -670,6 +677,8 @@ const bn: Dict = {
   langCode: "bn-BD",
   langLabel: "বাংলা",
   searchPh: "পণ্য, ব্র্যান্ড ও ক্যাটাগরি খুঁজুন",
+  recentSearches: "সাম্প্রতিক সার্চ",
+  categoriesLabel: "ক্যাটাগরি",
   account: "অ্যাকাউন্ট",
   cart: "কার্ট",
   addToCart: "কার্টে যোগ করুন",
@@ -699,6 +708,7 @@ const bn: Dict = {
   verified: "ভেরিফায়েড",
   saveChanges: "সেভ করুন",
   cancelEdit: "বাতিল",
+  dismiss: "বন্ধ করুন",
   prefsTitle: "নোটিফিকেশন",
   prefsSub: "আপনি কী জানতে চান তা বেছে নিন।",
   promoEmailT: "প্রোমোশনাল ইমেইল",

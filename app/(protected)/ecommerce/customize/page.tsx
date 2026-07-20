@@ -38,6 +38,7 @@ import {
 } from "@/components/ecommerce/collections/collection-row";
 import { CollectionsPanel } from "@/components/ecommerce/collections/collections-panel";
 import { NavigationSection } from "@/components/ecommerce/navigation/navigation-section";
+import type { AnnouncementDraft } from "@/components/ecommerce/navigation/announcement-card";
 import { HeroSlidesPanel } from "@/components/ecommerce/hero-slides-panel";
 import { HomeTemplateBlock } from "@/components/ecommerce/home-template-block";
 import { cn } from "@/ui/lib/utils";
@@ -147,6 +148,30 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [navHeader, setNavHeader] = useState<StorefrontMenuItem[]>(
     () => settings.nav?.header ?? [],
   );
+  // Announcement bar draft (lifted so the preview repaints as it's edited).
+  const [announcement, setAnnouncement] = useState<AnnouncementDraft>(() => {
+    const a = settings.nav?.announcement;
+    return {
+      enabled: a?.enabled ?? false,
+      text: a?.text ?? "",
+      link: a?.link ?? "",
+      bgColor: a?.bgColor ?? "#2563eb",
+      textColor: a?.textColor ?? "",
+      icon: a?.icon ?? "",
+      ctaLabel: a?.ctaLabel ?? "",
+      dismissible: a?.dismissible ?? false,
+      size: a?.size ?? "sm",
+      bgImage: a?.bgImage ?? null,
+      overlay: a?.overlay ?? "#000000",
+      overlayOpacity: a?.overlayOpacity ?? 40,
+      bgFit: a?.bgFit ?? "cover",
+    };
+  });
+  const patchAnnouncement = useCallback(
+    (patch: Partial<AnnouncementDraft>) =>
+      setAnnouncement((a) => ({ ...a, ...patch })),
+    [],
+  );
 
   // Collections are Category docs, not settings — fetched here so the draft can
   // feed the header-menu summary, the panel, and the preview from one place.
@@ -254,6 +279,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setSource={setHeaderMenuSrc}
             header={navHeader}
             setHeader={setNavHeader}
+            announcement={announcement}
+            setAnnouncement={patchAnnouncement}
             collections={collectionsDraft}
             onManageCollections={() => setCollectionsPanelOpen(true)}
           />
@@ -282,6 +309,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           // reordering is visible even if the source is set to a custom menu.
           headerMenuSrc={collectionsPanelOpen ? "collections" : headerMenuSrc}
           navHeader={navHeader}
+          announcement={announcement}
           collections={collectionsDraft}
         />
       </div>
@@ -488,6 +516,7 @@ function BrowserPreview({
   heroSrc,
   headerMenuSrc,
   navHeader,
+  announcement,
   collections,
 }: {
   slug?: string;
@@ -503,6 +532,7 @@ function BrowserPreview({
   heroSrc: string;
   headerMenuSrc: HeaderMenuSource;
   navHeader: StorefrontMenuItem[];
+  announcement: AnnouncementDraft;
   collections: CollectionRowValue[];
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
@@ -519,6 +549,7 @@ function BrowserPreview({
   // Cleaned like the save path, so blank fields preview the built-in copy.
   const heroBannerKey = JSON.stringify(cleanHeroBanner(heroBanner));
   const navHeaderKey = JSON.stringify(navHeader.filter((m) => m.label.trim()));
+  const announcementKey = JSON.stringify(announcement);
   // Mirror the public GET /:slug/categories contract exactly — listed only,
   // display name wins, draft order preserved — so the preview can't drift from
   // what shoppers will actually get.
@@ -549,13 +580,16 @@ function BrowserPreview({
           trustBadges: JSON.parse(badgesKey),
           heroSlides: JSON.parse(slidesKey),
           heroBanner: JSON.parse(heroBannerKey),
-          nav: { header: JSON.parse(navHeaderKey) },
+          nav: {
+            header: JSON.parse(navHeaderKey),
+            announcement: JSON.parse(announcementKey),
+          },
           collections: JSON.parse(collectionsKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, collectionsKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {
