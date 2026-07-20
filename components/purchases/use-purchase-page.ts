@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
-import { isTaxActive } from "@/lib/feature-utils";
+import { isVatActive } from "@/lib/feature-utils";
 import { useCreatePurchaseOrder, useFinalizeDraftPurchaseOrder, usePurchaseOrder, useUpdateDraftPurchaseOrder } from "@/services/api";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,7 +44,7 @@ export function usePurchasePage() {
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const isUOMEnabled = user?.organization?.features?.uomConversion ?? false;
-  const isTaxEnabled = isTaxActive(user?.organization, "purchase");
+  const isTaxEnabled = isVatActive(user?.organization);
   const isExpiryEnabled = user?.organization?.features?.expiryTracking ?? false;
 
   const {

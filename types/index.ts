@@ -237,10 +237,45 @@ export interface FinancialYearConfig {
   endDay: number;
 }
 
-/** Per-area tax sub-toggles, gated under the master `tax` feature flag. */
-export interface TaxSettings {
-  salesEnabled: boolean;
-  purchaseEnabled: boolean;
+/**
+ * How the organization is registered for VAT (Bangladesh). Mirrors the backend
+ * `VatRegistrationType` — keep the two in step.
+ *
+ * The distinction the UI must respect is **whether invoices carry per-line VAT
+ * at all**: a `turnover_4` taxpayer pays 4% of gross turnover and issues
+ * invoices with no VAT line, so it is not "VAT at 4%".
+ */
+export type VatRegistrationType =
+  | "standard_15"
+  | "reduced"
+  | "turnover_4"
+  | "exempt"
+  | "unregistered";
+
+/**
+ * One dated entry of the registration history. A document's VAT treatment comes
+ * from the entry in force on that document's date — never "the current status".
+ */
+export interface VatRegistrationEntry {
+  type: VatRegistrationType;
+  effectiveFrom: string;
+  changedBy?: string;
+  changedAt: string;
+}
+
+/** A filed (closed) VAT period — its 9.1 is with the NBR and cannot be re-stated. */
+export interface VatPeriod {
+  year: number;
+  month: number;
+  filedAt: string;
+  filedBy?: string;
+}
+
+/** Admin-configurable VAT settings (distinct from the dated registration status). */
+export interface VatSettings {
+  bin?: string;
+  pricesIncludeVat: boolean;
+  filingDayOfMonth: number;
 }
 
 /**

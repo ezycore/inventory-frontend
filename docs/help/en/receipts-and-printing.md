@@ -50,7 +50,7 @@ Where each line's content comes from matters when you want to change it:
 So if your business name prints wrong, this is not the page to fix it — see
 [Set up your shop](./set-up-your-shop.md).
 
-**Tax Registration No. (VAT / BIN / TIN)** prints in the letterhead. Leave it blank to hide it
+**VAT Registration No. (BIN)** prints in the letterhead. Leave it blank to hide it
 entirely rather than printing an empty label.
 
 ## Logo

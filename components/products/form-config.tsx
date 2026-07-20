@@ -337,7 +337,11 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             label: tr('form.salesTaxRate', "Sales tax rate"),
             columnSpan: 6,
-            optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
+            // `status=active` matters: rates are SUPERSEDED, not edited — when the
+            // Finance Act changes a rate you add a new row and deactivate the old
+            // one. Without this filter the retired rate stays selectable and the
+            // supersede rule achieves nothing.
+            optionsApi: '/taxes?all=true&status=active&fields=_id,name,rate,vatCategory,isDefault',
             defaultFlag: "isDefault",
             placeholder: tr('form.taxRatePlaceholder', "Select tax"),
           },
@@ -355,7 +359,11 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             label: tr('form.purchaseTaxRate', "Purchase tax rate"),
             columnSpan: 6,
-            optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
+            // `status=active` matters: rates are SUPERSEDED, not edited — when the
+            // Finance Act changes a rate you add a new row and deactivate the old
+            // one. Without this filter the retired rate stays selectable and the
+            // supersede rule achieves nothing.
+            optionsApi: '/taxes?all=true&status=active&fields=_id,name,rate,vatCategory,isDefault',
             defaultFlag: "isDefault",
             placeholder: tr('form.taxRatePlaceholder', "Select tax"),
           },

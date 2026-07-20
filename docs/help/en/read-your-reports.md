@@ -57,15 +57,17 @@ supplier negotiations, and for spotting a cost price that has crept up.
 count per account. Needs the Accounts feature — see
 [Track your cash and bank](./money-in-and-out.md).
 
-**Tax Report** — *Output tax, input tax, and net tax payable for the period.* This is your filing
+**VAT Report** — *Output VAT, input VAT, and net VAT payable for the period.* This is your filing
 report. It breaks down into:
 
-- **Output Tax by Rate (Sales)** — what you collected from customers.
-- **Input Tax by Rate (Purchases)** — what you paid to suppliers.
-- A Tax Ledger listing every taxable document, and a trend chart.
+- **Output VAT by Rate (Sales)** — what you collected from customers.
+- **Input VAT by Rate (Purchases)** — what you paid to suppliers.
+- A VAT Ledger listing every taxable document, and a trend chart.
 
-Net tax payable is output minus input. It opens on the financial year you set in Tax Settings — see
-[Set up discounts and tax](./discounts-and-tax.md).
+**Net VAT payable is not always output minus input.** Only a standard-rated registrant can reclaim
+the VAT it paid on purchases. On any other registration the input VAT is shown for information and
+is *not* deducted — it is part of your cost instead, and the report says so. Your registration type
+lives in Settings → VAT; see [Set up discounts and tax](./discounts-and-tax.md).
 
 ## Stock and staff
 

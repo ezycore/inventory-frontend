@@ -11,7 +11,8 @@ import type {
   PlanChangeResult,
   SubscriptionInfo,
   UpdateStorefrontSettingsDto,
-  TaxSettings,
+  VatSettings,
+  VatRegistrationType,
 } from "@/types";
 import type { ReceiptSettings } from "@/types/receipt";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -233,18 +234,19 @@ export const useUpdateFeatures = () => {
   });
 };
 
-// PUT /api/organization/tax-settings - Update tax sub-toggles + financial year
-export const useUpdateTaxSettings = () => {
+// PUT /api/organization/vat-settings - Update VAT settings / registration
+export const useUpdateVatSettings = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: {
-      taxSettings?: Partial<TaxSettings>;
+      vatSettings?: Partial<VatSettings>;
+      registration?: { type: VatRegistrationType; effectiveFrom: string };
       financialYear?: Partial<FinancialYearConfig>;
-    }) => organizationApi.updateTaxSettings(data),
+    }) => organizationApi.updateVatSettings(data),
     onSuccess: (result) => {
       handleMutationSuccess(
-        result.message || "Tax settings updated successfully!",
+        result.message || "VAT settings updated successfully!",
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
     },

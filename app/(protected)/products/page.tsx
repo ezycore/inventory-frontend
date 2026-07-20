@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import PageHeader from '@/ui/components/header'
 import { useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
-import { isTaxActive } from '@/lib/feature-utils'
+import { isVatActive } from '@/lib/feature-utils'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
@@ -54,10 +54,10 @@ export default function ProductsPage() {
   // (master `tax` feature off, or that area's sub-toggle off).
   const taxGatedFormConfig = useMemo(() => {
     const hide = new Set<string>()
-    if (!isTaxActive(user?.organization, 'sales')) {
+    if (!isVatActive(user?.organization)) {
       hide.add('salesTax.taxType'); hide.add('salesTax.taxId')
     }
-    if (!isTaxActive(user?.organization, 'purchase')) {
+    if (!isVatActive(user?.organization)) {
       hide.add('purchaseTax.taxType'); hide.add('purchaseTax.taxId')
     }
     if (hide.size === 0) return filteredFormConfig

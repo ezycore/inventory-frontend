@@ -69,6 +69,24 @@ longer true?*
 - `pnpm verify` — all of the above except lint (`verify:api-types` + `docs:verify` + `help:verify` +
   `typecheck`). Prefer this one when the change spans code **and** docs.
 
+## Pre-launch: there are no production users yet
+
+**As of 2026-07-20 the product has no live customers and no production data.** Every organization in
+any database is seed, demo, or test data.
+
+So a breaking change is cheap — prefer the clean shape over a compatibility shim:
+
+- Renaming a route, a message key, or a persisted field needs **no migration and no dual-read
+  window**. Wipe and reseed instead.
+- Don't build backwards-compatibility for data nobody has.
+
+Unchanged by this: the API contract gates (`pnpm verify`), the help-docs freshness gate
+(`pnpm help:verify` still fails on a renamed `ui_labels` string), and the backend's invariants —
+posted documents stay immutable by design, not for the sake of old rows.
+
+**Delete this section the day the first real customer signs up.** Mirrors the same section in
+`easystock-backend/CLAUDE.md`.
+
 ## Commands
 
 ```bash
@@ -257,6 +275,24 @@ frontend diff (valuation method, tax rules) — check the reports pages by hand.
 - **Do not add native `type="date"` / `type="number"` inputs** unless there's a documented technical reason. The repo currently has **zero** native date/number inputs — keep it that way. If you must add one, put a comment saying why.
 - **Never introduce a duplicate date/number input implementation.** Extend the shared primitive (add a prop) instead of forking it. New forms follow this shared-field pattern for consistency, validation, accessibility, and UX.
 
+### Navigation labels are translated, the constants are not
+
+`constants/navItem.ts` keeps **English titles as identity** — they are the message-key source
+(`navLabelKey`), the filter/permission keys and the kbar search keywords. They are never display
+strings.
+
+Everything that renders a nav title goes through **`useNavLabels().itemLabel(title)`**
+(`hooks/use-nav-labels.ts`), which maps the title to `layout.nav.items.<kebab-title>` and falls back
+to the English title when the key is missing. Sidebar, kbar and **breadcrumbs** all use it.
+
+Two consequences:
+
+- **Renaming a nav title renames its message key.** "Tax Settings" → "VAT" moves the lookup from
+  `items.tax-settings` to `items.vat`, so the `layout.json` key must be renamed in **both locales** in
+  the same commit — otherwise the fallback quietly serves English and nothing fails.
+- **Breadcrumbs used to render `navItem.title` raw**, so the whole trail stayed English in every
+  locale (fixed 2026-07-20). If you add a crumb source, translate it the same way.
+
 ### Feature Flags & Subscription
 
 `OrganizationFeatures` (defined in `types/index.ts`) controls which modules are enabled per organization. Helper functions in `lib/feature-utils.ts` (`isFeatureEnabled`, `areAllFeaturesEnabled`) check feature state from `user.organization.features` in the auth store.
@@ -278,12 +314,22 @@ Tests use Vitest + Testing Library + MSW for API mocking. Setup is in `tests/set
 
 The `NEXT_PUBLIC_API_URL` env var sets the backend base URL (defaults to `http://localhost:5000/api`).
 
-### Tax (UI) conventions
+### VAT (UI) conventions
 
-The tax module is optional and per-line. Keep these single sources — never re-derive tax inline:
+The VAT module is optional and per-line. **Operating manual: [`.claude/skills/vat/SKILL.md`](.claude/skills/vat/SKILL.md).**
+Keep these single sources — never re-derive VAT inline:
 
-- **Gate** every tax surface with `isTaxActive(org, "sales" | "purchase")` (`lib/feature-utils.ts`).
-  When inactive: hide tax UI/columns and neutralize tax in previews.
+- **Gate** every VAT surface with `isVatActive(org)` (`lib/feature-utils.ts`). When inactive: hide
+  VAT UI/columns and neutralize VAT in previews.
+  - There is **no per-area argument** any more. It replaced `isTaxActive(org, "sales" | "purchase")`:
+    VAT registration is a property of the organization, so sales and purchases share one answer.
+  - `isVatActive` mirrors the backend `resolveOrgVat(...).chargesLineVat`, including that
+    **`turnover_4` is false** — a turnover taxpayer issues invoices with no VAT line at all.
+  - `claimsInputRebate(org)` is the *separate* question (only `standard_15`). Charging VAT and
+    reclaiming it are not the same thing; conflating them is what made the VAT report wrong.
+  - `vatRegistrationOf(org)` carries a **temporary** bridge: feature ON + no declared history ⇒
+    `standard_15`. The backend has the identical branch — delete both together once onboarding
+    forces the choice.
 - **Math** only through `utils/tax.ts`: `computeOrderTax` (cart rollups → `addedTax`/`includedTax`/
   `taxTotal`/`grandTotal`), `computeLineTax` (one line), `splitLineTax` (added-vs-included from a posted
   doc's stored line snapshot, for detail/receipt views).
@@ -291,7 +337,7 @@ The tax module is optional and per-line. Keep these single sources — never re-
   for the "Tax (added) / Total / Includes … in price" summary; `<LineTaxCell>`
   (`components/shared/line-tax-cell.tsx`) for the cart per-line Tax column.
 - Backend is authoritative; FE numbers are previews and must match `applyLineTaxes` exactly.
-- **The contract lives in the backend:** `easystock-backend/docs/features/tax.md` — the tax math,
+- **The contract lives in the backend:** `easystock-backend/docs/features/vat.md` — the tax math,
   the worked examples, and the sales/purchase/return rules. It used to be `docs/TAX_BACKEND_CONTRACT.md`
   in *this* repo, still saying "backend pending" long after the backend shipped it; it moved because
   8 of its 9 sections describe backend behavior. **If you change `utils/tax.ts`, change

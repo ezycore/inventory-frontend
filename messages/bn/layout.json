@@ -15,7 +15,7 @@
       "sales-report": "বিক্রয় রিপোর্ট",
       "purchase-report": "ক্রয় রিপোর্ট",
       "cash-report": "নগদ রিপোর্ট",
-      "tax-report": "কর রিপোর্ট",
+      "vat-report": "ভ্যাট রিপোর্ট",
       "stock-value": "স্টক মূল্য",
       "expiry-report": "মেয়াদ রিপোর্ট",
       "staff-report": "কর্মচারী রিপোর্ট",
@@ -59,17 +59,18 @@
       "transactions": "লেনদেন",
       "pricing": "মূল্য নির্ধারণ",
       "discounts": "ছাড়",
-      "tax-rates": "করের হার",
+      "vat-rates": "ভ্যাটের হার",
       "settings": "সেটিংস",
       "organization": "প্রতিষ্ঠান",
       "users": "ব্যবহারকারী",
       "roles": "রোল",
       "feature-settings": "ফিচার সেটিংস",
       "field-settings": "ফিল্ড সেটিংস",
-      "tax-settings": "কর সেটিংস",
+      "vat": "ভ্যাট",
       "receipt-print": "রসিদ ও প্রিন্ট",
       "custom-domains": "কাস্টম ডোমেইন",
-      "billing": "বিলিং"
+      "billing": "বিলিং",
+      "details": "বিস্তারিত"
     }
   },
   "userMenu": {

@@ -51,7 +51,10 @@ every request via the `X-Active-Location` header in `lib/api-client.ts`.
 [`lib/feature-utils.ts`](../../../lib/feature-utils.ts) reads `user.organization.features`:
 
 - `isFeatureEnabled(org, key)` / `areAllFeaturesEnabled` / `isAnyFeatureEnabled` — gate a module/nav item.
-- `isTaxActive(org, "sales" | "purchase")` — the tax surfaces (see the tax conventions in CLAUDE.md).
+- `isVatActive(org)` — every VAT surface. **No area argument**: VAT registration belongs to the
+  organization, so sales and purchases share one answer. Replaced `isTaxActive(org, area)`.
+  `claimsInputRebate(org)` is the separate "may it reclaim input VAT?" question — see the
+  [`vat`](../vat/SKILL.md) skill.
 - `FEATURE`, `getFeatureDisplayNames`, `getFeatureDescriptions` — labels for the plan/settings UI.
 
 `OrganizationFeatures` is the org's plan ceiling ANDed with overrides on the backend; the FE just reads

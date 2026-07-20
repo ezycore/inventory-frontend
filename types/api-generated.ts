@@ -1108,7 +1108,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/organization/tax-settings": {
+    "/api/organization/vat-settings": {
         parameters: {
             query?: never;
             header?: never;
@@ -1117,10 +1117,10 @@ export interface paths {
         };
         get?: never;
         /**
-         * PUT /api/organization/tax-settings
+         * PUT /api/organization/vat-settings
          * @description Defined in `src/routes/organization.routes.ts:152`. Requires permission `organization.edit`.
          */
-        put: operations["put_api_organization_tax_settings"];
+        put: operations["put_api_organization_vat_settings"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2760,14 +2760,14 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/purchases/orders/:id
-         * @description Defined in `src/routes/purchase-orders.routes.ts:189`. Requires permission `purchases.delete`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:190`. Requires permission `purchases.delete`.
          */
         delete: operations["delete_api_purchases_orders_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/purchases/orders/:id
-         * @description Defined in `src/routes/purchase-orders.routes.ts:129`. Requires permission `purchases.edit`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:131`. Requires permission `purchases.edit`.
          */
         patch: operations["patch_api_purchases_orders_id"];
         trace?: never;
@@ -2783,7 +2783,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/purchases/orders/:id/receive
-         * @description Defined in `src/routes/purchase-orders.routes.ts:138`. Requires permission `purchases.edit`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:139`. Requires permission `purchases.edit`.
          */
         post: operations["post_api_purchases_orders_id_receive"];
         delete?: never;
@@ -2803,7 +2803,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/purchases/orders/:id/cancel
-         * @description Defined in `src/routes/purchase-orders.routes.ts:146`. Requires permission `purchases.delete`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:147`. Requires permission `purchases.delete`.
          */
         post: operations["post_api_purchases_orders_id_cancel"];
         delete?: never;
@@ -2823,7 +2823,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/purchases/orders/:id/finalize
-         * @description Defined in `src/routes/purchase-orders.routes.ts:154`. Requires permission `purchases.edit`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:156`. Requires permission `purchases.edit`.
          */
         post: operations["post_api_purchases_orders_id_finalize"];
         delete?: never;
@@ -2843,7 +2843,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/purchases/orders/:id/payment
-         * @description Defined in `src/routes/purchase-orders.routes.ts:163`. Requires permission `purchases.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:164`. Requires permission `purchases.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_purchases_orders_id_payment"];
         delete?: never;
@@ -2861,7 +2861,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/:id/payments
-         * @description Defined in `src/routes/purchase-orders.routes.ts:172`. Requires permission `purchases.view`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:173`. Requires permission `purchases.view`.
          */
         get: operations["get_api_purchases_orders_id_payments"];
         put?: never;
@@ -2881,7 +2881,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/:id/transactions
-         * @description Defined in `src/routes/purchase-orders.routes.ts:181`. Requires permission `purchases.view`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:182`. Requires permission `purchases.view`.
          */
         get: operations["get_api_purchases_orders_id_transactions"];
         put?: never;
@@ -4400,14 +4400,14 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:181`. Requires permission `sales.delete`.
+         * @description Defined in `src/routes/sales.routes.ts:182`. Requires permission `sales.delete`.
          */
         delete: operations["delete_api_sales_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:163`. Requires permission `sales.edit`.
+         * @description Defined in `src/routes/sales.routes.ts:165`. Requires permission `sales.edit`.
          */
         patch: operations["patch_api_sales_id"];
         trace?: never;
@@ -4523,7 +4523,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/finalize
-         * @description Defined in `src/routes/sales.routes.ts:172`. Requires permission `sales.edit`.
+         * @description Defined in `src/routes/sales.routes.ts:174`. Requires permission `sales.edit`.
          */
         post: operations["post_api_sales_id_finalize"];
         delete?: never;
@@ -4701,7 +4701,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax
-         * @description Defined in `src/routes/reports.routes.ts:41`. Requires permission `reports.view`. Gated by organization feature `tax` — returns 403 when disabled.
+         * @description Defined in `src/routes/reports.routes.ts:48`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax"];
         put?: never;
@@ -4721,7 +4721,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax/ledger
-         * @description Defined in `src/routes/reports.routes.ts:44`. Requires permission `reports.view`. Gated by organization feature `tax` — returns 403 when disabled.
+         * @description Defined in `src/routes/reports.routes.ts:51`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax_ledger"];
         put?: never;
@@ -5992,11 +5992,11 @@ export interface components {
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
+            isDefault?: boolean;
             storefront?: {
                 isListed?: boolean;
                 order?: number;
                 displayName?: string;
-                isDefault?: boolean;
             };
         };
         CategoryListItem: {
@@ -6017,11 +6017,11 @@ export interface components {
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
+            isDefault?: boolean;
             storefront?: {
                 isListed?: boolean;
                 order?: number;
                 displayName?: string;
-                isDefault?: boolean;
             };
             productCount: number;
         };
@@ -6068,7 +6068,7 @@ export interface components {
             name: string;
             rate: number;
             /** @enum {string} */
-            type: "percentage" | "fixed";
+            vatCategory: "standard" | "reduced" | "zero_rated" | "exempt";
             /** @enum {string} */
             status: "active" | "inactive";
             isDefault?: boolean;
@@ -6480,6 +6480,8 @@ export interface components {
             /** @enum {string} */
             taxType: "inclusive" | "exclusive" | "exempt";
             taxRate: number;
+            /** @enum {string} */
+            vatCategory: "standard" | "reduced" | "zero_rated" | "exempt";
             /** @enum {boolean} */
             isCombo?: true;
             comboProductId?: string;
@@ -6766,6 +6768,8 @@ export interface components {
                 /** @enum {string} */
                 taxType?: "inclusive" | "exclusive";
                 taxAmount?: number;
+                /** @enum {string} */
+                vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 batchAllocations?: {
                     batchId: string;
                     quantity: number;
@@ -6870,6 +6874,8 @@ export interface components {
                 /** @enum {string} */
                 taxType?: "inclusive" | "exclusive";
                 taxAmount?: number;
+                /** @enum {string} */
+                vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 batchAllocations?: {
                     batchId: string;
                     quantity: number;
@@ -6941,6 +6947,8 @@ export interface components {
                 /** @enum {string} */
                 taxType?: "inclusive" | "exclusive";
                 taxAmount?: number;
+                /** @enum {string} */
+                vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 batchAllocations?: {
                     batchId: string;
                     quantity: number;
@@ -7085,6 +7093,8 @@ export interface components {
                     /** @enum {string} */
                     taxType?: "inclusive" | "exclusive";
                     taxAmount?: number;
+                    /** @enum {string} */
+                    vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     batchAllocations?: {
                         batchId: string;
                         quantity: number;
@@ -7204,6 +7214,8 @@ export interface components {
                 /** @enum {string} */
                 taxType?: "inclusive" | "exclusive";
                 taxAmount?: number;
+                /** @enum {string} */
+                vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 batchAllocations?: {
                     _id?: string;
                     batchId: string;
@@ -7321,6 +7333,8 @@ export interface components {
                     /** @enum {string} */
                     taxType?: "inclusive" | "exclusive";
                     taxAmount?: number;
+                    /** @enum {string} */
+                    vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     batchAllocations?: {
                         _id?: string;
                         batchId: string;
@@ -7430,6 +7444,8 @@ export interface components {
                     /** @enum {string} */
                     taxType?: "inclusive" | "exclusive";
                     taxAmount?: number;
+                    /** @enum {string} */
+                    vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     batchAllocations?: {
                         _id?: string;
                         batchId: string;
@@ -7557,6 +7573,8 @@ export interface components {
                     /** @enum {string} */
                     taxType?: "inclusive" | "exclusive";
                     taxAmount?: number;
+                    /** @enum {string} */
+                    vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     conversionFactor?: number;
                     purchaseUnitName?: string | null;
                     /** Format: date-time */
@@ -7665,6 +7683,8 @@ export interface components {
                 /** @enum {string} */
                 taxType?: "inclusive" | "exclusive";
                 taxAmount?: number;
+                /** @enum {string} */
+                vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 conversionFactor?: number;
                 purchaseUnitName?: string | null;
                 /** Format: date-time */
@@ -7734,6 +7754,8 @@ export interface components {
                 /** @enum {string} */
                 taxType?: "inclusive" | "exclusive";
                 taxAmount?: number;
+                /** @enum {string} */
+                vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 conversionFactor?: number;
                 purchaseUnitName?: string | null;
                 /** Format: date-time */
@@ -7803,6 +7825,8 @@ export interface components {
                     /** @enum {string} */
                     taxType?: "inclusive" | "exclusive";
                     taxAmount?: number;
+                    /** @enum {string} */
+                    vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     conversionFactor?: number;
                     purchaseUnitName?: string | null;
                     /** Format: date-time */
@@ -7970,6 +7994,8 @@ export interface components {
                 /** @enum {string} */
                 taxType?: "inclusive" | "exclusive";
                 taxAmount?: number;
+                /** @enum {string} */
+                vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
             }[];
             totalRefundAmount: number;
             deductionAmount?: number;
@@ -9083,10 +9109,27 @@ export interface components {
                 endMonth: number;
                 endDay: number;
             };
-            taxSettings: {
-                salesEnabled: boolean;
-                purchaseEnabled: boolean;
+            vatSettings?: {
+                bin?: string;
+                pricesIncludeVat: boolean;
+                filingDayOfMonth: number;
             };
+            vatRegistrationHistory?: {
+                /** @enum {string} */
+                type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                /** Format: date-time */
+                effectiveFrom: string;
+                changedBy?: string;
+                /** Format: date-time */
+                changedAt: string;
+            }[];
+            vatPeriods?: {
+                year: number;
+                month: number;
+                /** Format: date-time */
+                filedAt: string;
+                filedBy?: string;
+            }[];
             planFeatures: {
                 sales: boolean;
                 accounts: boolean;
@@ -9156,11 +9199,28 @@ export interface components {
                 [key: string]: string[];
             };
         };
-        OrganizationTaxSettings: {
-            taxSettings: {
-                salesEnabled: boolean;
-                purchaseEnabled: boolean;
+        OrganizationVatSettings: {
+            vatSettings?: {
+                bin?: string;
+                pricesIncludeVat: boolean;
+                filingDayOfMonth: number;
             };
+            vatRegistrationHistory: {
+                /** @enum {string} */
+                type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                /** Format: date-time */
+                effectiveFrom: string;
+                changedBy?: string;
+                /** Format: date-time */
+                changedAt: string;
+            }[];
+            vatPeriods: {
+                year: number;
+                month: number;
+                /** Format: date-time */
+                filedAt: string;
+                filedBy?: string;
+            }[];
             financialYear: {
                 startMonth: number;
                 startDay: number;
@@ -9441,9 +9501,26 @@ export interface components {
                 inventory: number;
             };
         };
-        TaxSettings: {
-            salesEnabled: boolean;
-            purchaseEnabled: boolean;
+        VatPeriod: {
+            year: number;
+            month: number;
+            /** Format: date-time */
+            filedAt: string;
+            filedBy?: string;
+        };
+        VatRegistrationEntry: {
+            /** @enum {string} */
+            type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+            /** Format: date-time */
+            effectiveFrom: string;
+            changedBy?: string;
+            /** Format: date-time */
+            changedAt: string;
+        };
+        VatSettings: {
+            bin?: string;
+            pricesIncludeVat: boolean;
+            filingDayOfMonth: number;
         };
         WorkspaceStatus: {
             exists: boolean;
@@ -10151,8 +10228,15 @@ export interface components {
                 paid: number;
                 reclaimed: number;
                 net: number;
+                recoverable: boolean;
             };
             netPayable: number;
+            registration: {
+                /** @enum {string} */
+                type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                chargesLineVat: boolean;
+                claimsInputRebate: boolean;
+            };
             byRate: {
                 output: {
                     taxRate: number;
@@ -10235,10 +10319,6 @@ export interface components {
                     startDay: number;
                     endMonth: number;
                     endDay: number;
-                };
-                taxSettings?: {
-                    salesEnabled: boolean;
-                    purchaseEnabled: boolean;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -10353,10 +10433,6 @@ export interface components {
                     startDay: number;
                     endMonth: number;
                     endDay: number;
-                };
-                taxSettings?: {
-                    salesEnabled: boolean;
-                    purchaseEnabled: boolean;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -10475,10 +10551,6 @@ export interface components {
                         endMonth: number;
                         endDay: number;
                     };
-                    taxSettings?: {
-                        salesEnabled: boolean;
-                        purchaseEnabled: boolean;
-                    };
                     receiptSettings?: {
                         phone?: string;
                         email?: string;
@@ -10592,10 +10664,6 @@ export interface components {
                         startDay: number;
                         endMonth: number;
                         endDay: number;
-                    };
-                    taxSettings?: {
-                        salesEnabled: boolean;
-                        purchaseEnabled: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -10726,10 +10794,6 @@ export interface components {
                         startDay: number;
                         endMonth: number;
                         endDay: number;
-                    };
-                    taxSettings?: {
-                        salesEnabled: boolean;
-                        purchaseEnabled: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -10867,10 +10931,6 @@ export interface components {
                         startDay: number;
                         endMonth: number;
                         endDay: number;
-                    };
-                    taxSettings?: {
-                        salesEnabled: boolean;
-                        purchaseEnabled: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -13895,7 +13955,7 @@ export interface operations {
             };
         };
     };
-    put_api_organization_tax_settings: {
+    put_api_organization_vat_settings: {
         parameters: {
             query?: never;
             header?: {
@@ -13908,9 +13968,16 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    taxSettings?: {
-                        salesEnabled?: boolean;
-                        purchaseEnabled?: boolean;
+                    vatSettings?: {
+                        bin?: string;
+                        pricesIncludeVat?: boolean;
+                        filingDayOfMonth?: number;
+                    };
+                    registration?: {
+                        /** @enum {string} */
+                        type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                        /** Format: date-time */
+                        effectiveFrom: string;
                     };
                     financialYear?: {
                         startMonth?: number;
@@ -13929,7 +13996,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["OrganizationTaxSettings"];
+                        data?: components["schemas"]["OrganizationVatSettings"];
                     };
                 };
             };
@@ -24251,8 +24318,11 @@ export interface operations {
                 "application/json": {
                     name: string;
                     rate: number;
-                    /** @enum {string} */
-                    type: "percentage" | "fixed";
+                    /**
+                     * @default standard
+                     * @enum {string}
+                     */
+                    vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     /**
                      * @default active
                      * @enum {string}
@@ -24455,7 +24525,7 @@ export interface operations {
                     name?: string;
                     rate?: number;
                     /** @enum {string} */
-                    type?: "percentage" | "fixed";
+                    vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     /**
                      * @default active
                      * @enum {string}
@@ -27744,7 +27814,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied, or the required organization feature is disabled */
+            /** @description Permission denied */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27787,7 +27857,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied, or the required organization feature is disabled */
+            /** @description Permission denied */
             403: {
                 headers: {
                     [name: string]: unknown;

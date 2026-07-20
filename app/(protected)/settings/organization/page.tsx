@@ -3,6 +3,7 @@
 
 import { useTranslations } from "next-intl";
 import { OrganizationTab, TransferOwnershipTab } from "@/components/profile";
+import { FinancialYearCard } from "@/components/settings/financial-year-card";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   Card,
@@ -30,6 +31,8 @@ export default function OrganizationSettingsPage() {
           <OrganizationTab />
         </CardContent>
       </Card>
+
+      <FinancialYearCard />
 
       {isOwner && (
         <Card>

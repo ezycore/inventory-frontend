@@ -14,12 +14,13 @@ ui_labels:
   - settings:discounts.subtitle
   - settings:taxRates.title
   - settings:taxRates.subtitle
-  - settings:taxSettings.title
-  - settings:taxSettings.whereTitle
-  - settings:taxSettings.salesHint
-  - settings:taxSettings.purchaseHint
-  - settings:taxSettings.whereDescription
-  - settings:taxSettings.financialYearTitle
+  - settings:vatSettings.title
+  - settings:vatSettings.registrationTitle
+  - settings:vatSettings.typeLabel
+  - settings:vatSettings.effectiveFromLabel
+  - settings:vatSettings.binLabel
+  - settings:vatSettings.rebateNo
+  - settings:vatSettings.periodFixed
 ---
 
 # Set up discounts and tax
@@ -42,34 +43,57 @@ You can still apply a one-off discount on a line or a whole order at the point o
 
 ## Tax rates
 
-**Tax Rates** holds *The tax rates applied to your sales and purchases.* Add each rate you are
+**VAT Rates** holds *The VAT rates applied to your sales and purchases.* Add each rate you are
 required to charge, with its percentage.
 
 Tax is applied per line, so a single invoice can mix rates — some items taxed, others not. Products
 carry their own rate, which is why getting this list right before you add products saves rework.
 
-## Where tax applies
+## Your VAT registration
 
-**Tax Settings** controls the switches, under **Where tax applies**:
+**VAT** (Settings) is where you record *how* your business is registered — this is a legal status
+with a start date, not an on/off switch.
 
-- **Sales tax** — *Apply tax on sales and sales returns.*
-- **Purchase tax** — *Apply tax on purchases and purchase returns.*
+Pick your **Registration type**:
 
-You can have one on and the other off. *Returns automatically follow their parent area*, so you never
-configure returns separately — turning on sales tax covers sales returns too.
+- **Standard rate (15%)** — you charge VAT on invoices and can reclaim VAT paid on purchases.
+- **Reduced / truncated rate** — you charge VAT, but *You cannot reclaim input VAT. VAT paid on
+  purchases becomes part of your product cost.*
+- **Turnover tax (4%)** — your invoices carry **no VAT line** at all; you pay 4% of turnover.
+- **Exempt** / **Not registered** — no VAT on invoices.
 
-**Financial year** sets the default date range for your tax reports. Set it to your real financial
-year so the Tax Report opens on the right period instead of the calendar year.
+This choice changes what the VAT Report tells you to pay, so it matters more than any other setting
+on the page.
 
-## If tax is not showing up
+**BIN (Business Identification Number)** is printed on every tax invoice. A registered buyer needs
+it to claim their own rebate, so fill it in before you start invoicing businesses.
+
+### Changing it later
+
+When you change the type, you are asked for an **Effective from** date — the date on your NBR
+registration or de-registration. Two rules follow from that:
+
+- Documents dated **before** that date keep the treatment they were issued under. Changing your
+  registration never rewrites invoices you have already given customers.
+- A month whose return has already been filed **cannot** be changed.
+
+Mid-month dates are fine — NBR dates usually are.
+
+## Filing
+
+*The VAT period is always one calendar month.* You only choose which day of the following month your
+return is due (15 by default).
+
+## If VAT is not showing up
 
 Work down this list — it is almost always one of them:
 
-1. **Tax Management** is off in Feature Settings. Nothing tax-related appears at all. See
+1. **VAT** is off in Feature Settings. Nothing VAT-related appears at all. See
    [Set up your shop](./set-up-your-shop.md).
-2. The switch for that area is off — sales tax on, purchase tax off, or the reverse.
-3. The product has no tax rate set against it.
-4. Your plan does not include tax, in which case the settings page will say so.
+2. Your registration type is Turnover tax, Exempt or Not registered — those issue invoices with no
+   VAT line, by design.
+3. The product has no VAT rate set against it.
+4. Your plan does not include VAT, in which case the settings page will say so.
 
 ## Next
 

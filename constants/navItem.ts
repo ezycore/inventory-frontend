@@ -284,7 +284,7 @@ export const navGroups: NavGroup[] = [
             features: ["accounts"],
           },
           {
-            title: "Tax Report",
+            title: "VAT Report",
             url: "/reports/tax",
             icon: "percent",
             features: ["tax"],
@@ -340,7 +340,7 @@ export const navGroups: NavGroup[] = [
         items: [
           { title: "Discounts", url: "/discounts", icon: "tag" },
           {
-            title: "Tax Rates",
+            title: "VAT Rates",
             url: "/taxes",
             icon: "percent",
             features: ["tax"],
@@ -385,7 +385,7 @@ export const navGroups: NavGroup[] = [
             permissions: ["organization.edit"],
           },
           {
-            title: "Tax Settings",
+            title: "VAT",
             url: "/settings/tax",
             icon: "percent",
             features: ["tax"],

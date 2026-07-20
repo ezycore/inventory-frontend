@@ -14,9 +14,26 @@ import { TruncatedText } from "@/components/shared/truncated-text";
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import type { Translator, AppLocale } from "@/i18n/config";
+// NOTE: the legacy hand-written `Category` in types/index.ts, not the generated
+// `Category` — the page's `operations` are typed with it. The two duplicate
+// each other and should be reconciled; typed either way beats `any`.
+import type { Category } from "@/types";
+// The hand-written `Category` (types/index.ts), which the page's `operations` are
+// typed with. It duplicates the generated `Category` and differs only in
+// required-vs-optional — reconciling the two is a separate cleanup. It is at
+// least ACCURATE now: `isDefault` really is top-level (it was declared inside
+// `storefront` in the model, so it never persisted).
 
+/**
+ * Typed against the generated `Category`, deliberately — not `any`.
+ *
+ * A card renderer taking `any` opts out of the generated contract, so a field
+ * removed on the backend keeps compiling and fails silently at runtime. That is
+ * exactly how the taxes card kept reading a deleted `Tax.type` and rendered
+ * every rate as a currency amount.
+ */
 const CategoryCardView = (
-  category: any,
+  category: Category,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
   options: { t: Translator; locale: AppLocale },
 ) => {

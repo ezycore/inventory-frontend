@@ -18,6 +18,7 @@ import { useCreateUnit, useDeleteUnit, useUpdateUnit } from "@/services/api";
 import { unitsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
+import type { ApiUnit } from "@/types/api";
 
 // ── Form config ─────────────────────────────────────────────────────────
 const getUnitFormConfig = (t: Translator): DynamicFormConfig => ({
@@ -112,7 +113,7 @@ export default function UnitsPage() {
       />
 
       {/* Card View */}
-      <DataCard
+      <DataCard<ApiUnit>
         cardTitle={(n) => t("page.allUnitsTitle", { count: n })}
         defaultPageSize={12}
         pageSizes={[12, 24, 48]}

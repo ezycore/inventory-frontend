@@ -8,8 +8,9 @@ import { toast } from "sonner";
 import { Lock } from "lucide-react";
 
 import { useAuthStore } from "@/services/stores";
-import { useUpdateTaxSettings } from "@/services/api";
-import { isTaxActive } from "@/lib/feature-utils";
+import { useUpdateVatSettings } from "@/services/api";
+import { vatRegistrationOf } from "@/lib/feature-utils";
+import type { VatRegistrationType } from "@/types";
 import {
   Card,
   CardContent,
@@ -20,54 +21,68 @@ import {
 import PageHeader from "@/ui/components/header";
 import { Switch } from "@/ui/components/switch";
 import { Button } from "@/ui/components/button";
+import { Input } from "@/ui/components/input";
 import { NumberField } from "@/ui/components/number-field";
+import { DatePicker } from "@/ui/components/date-picker";
 import { Label } from "@/ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/components/select";
 
-const DEFAULT_FY = { startMonth: 7, startDay: 1, endMonth: 6, endDay: 30 };
+const REGISTRATION_TYPES: VatRegistrationType[] = [
+  "standard_15",
+  "reduced",
+  "turnover_4",
+  "exempt",
+  "unregistered",
+];
 
-export default function TaxSettingsPage() {
-  const t = useTranslations("settings.taxSettings");
+/** Only a standard-rated registrant may reclaim input VAT. */
+const CLAIMS_REBATE: VatRegistrationType = "standard_15";
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+export default function VatSettingsPage() {
+  const t = useTranslations("settings.vatSettings");
   const tShell = useTranslations("settings.shell");
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const updateTaxConfig = useAuthStore((s) => s.updateTaxConfig);
-  const { mutateAsync, isPending } = useUpdateTaxSettings();
+  const { mutateAsync, isPending } = useUpdateVatSettings();
 
-  const masterTaxOn = user?.organization?.features?.tax ?? false;
+  const masterVatOn = user?.organization?.features?.tax ?? false;
   const canManage = user?.permissions?.includes("organization.edit") ?? false;
 
-  const ts = user?.organization?.taxSettings;
-  const fyCfg = user?.organization?.financialYear;
+  const vs = user?.organization?.vatSettings;
+  const currentType = vatRegistrationOf(user?.organization);
 
-  const [salesEnabled, setSalesEnabled] = useState(ts?.salesEnabled ?? true);
-  const [purchaseEnabled, setPurchaseEnabled] = useState(
-    ts?.purchaseEnabled ?? true,
+  const [type, setType] = useState<VatRegistrationType>(currentType);
+  const [effectiveFrom, setEffectiveFrom] = useState<string>(today());
+  const [bin, setBin] = useState(vs?.bin ?? "");
+  const [pricesIncludeVat, setPricesIncludeVat] = useState(
+    vs?.pricesIncludeVat ?? true,
   );
-  const [fy, setFy] = useState(() => ({
-    startMonth: fyCfg?.startMonth ?? DEFAULT_FY.startMonth,
-    startDay: fyCfg?.startDay ?? DEFAULT_FY.startDay,
-    endMonth: fyCfg?.endMonth ?? DEFAULT_FY.endMonth,
-    endDay: fyCfg?.endDay ?? DEFAULT_FY.endDay,
-  }));
+  const [filingDay, setFilingDay] = useState<number | null>(
+    vs?.filingDayOfMonth ?? 15,
+  );
 
-  // Re-sync the form when fresh server values arrive (e.g. after `/me` updates
-  // the store post-mount). React-sanctioned "adjust state during render" — keyed
-  // on a signature of the server values so user edits aren't clobbered.
-  const serverSig = JSON.stringify({ ts, fyCfg });
+  // Re-sync when fresh server values land (e.g. `/me` after mount). Keyed on a
+  // signature so in-progress edits aren't clobbered — same pattern the previous
+  // page used.
+  const serverSig = JSON.stringify({ vs, currentType });
   const [syncedSig, setSyncedSig] = useState(serverSig);
   if (serverSig !== syncedSig) {
     setSyncedSig(serverSig);
-    setSalesEnabled(ts?.salesEnabled ?? true);
-    setPurchaseEnabled(ts?.purchaseEnabled ?? true);
-    setFy({
-      startMonth: fyCfg?.startMonth ?? DEFAULT_FY.startMonth,
-      startDay: fyCfg?.startDay ?? DEFAULT_FY.startDay,
-      endMonth: fyCfg?.endMonth ?? DEFAULT_FY.endMonth,
-      endDay: fyCfg?.endDay ?? DEFAULT_FY.endDay,
-    });
+    setType(currentType);
+    setBin(vs?.bin ?? "");
+    setPricesIncludeVat(vs?.pricesIncludeVat ?? true);
+    setFilingDay(vs?.filingDayOfMonth ?? 15);
   }
 
-  // Redirect users without the manage permission.
   useEffect(() => {
     if (user && !canManage) {
       toast.error(tShell("noPermission"));
@@ -77,47 +92,34 @@ export default function TaxSettingsPage() {
 
   if (!canManage) return null;
 
+  const typeChanged = type !== currentType;
+
   const handleSave = async () => {
     try {
       const res = await mutateAsync({
-        taxSettings: { salesEnabled, purchaseEnabled },
-        financialYear: fy,
+        vatSettings: {
+          bin: bin.trim() || undefined,
+          pricesIncludeVat,
+          filingDayOfMonth: filingDay ?? 15,
+        },
+        // Only send a registration change when the type actually changed —
+        // every send appends a history entry, and the history is the audit trail.
+        ...(typeChanged && { registration: { type, effectiveFrom } }),
       });
       updateTaxConfig({
-        taxSettings: res.data.taxSettings,
-        financialYear: res.data.financialYear,
+        vatSettings: res.data.vatSettings,
+        vatRegistrationHistory: res.data.vatRegistrationHistory,
       });
     } catch {
       // surfaced by the mutation's onError toast
     }
   };
 
-  const fyField = (
-    key: keyof typeof fy,
-    label: string,
-    max: number,
-  ) => (
-    <div className="space-y-1.5">
-      <Label htmlFor={key}>{label}</Label>
-      <NumberField
-        id={key}
-        precision={0}
-        min={1}
-        max={max}
-        value={fy[key]}
-        onChange={(v) => setFy((p) => ({ ...p, [key]: v ?? 1 }))}
-      />
-    </div>
-  );
-
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("title")}
-        subTitle={t("subtitle")}
-      />
+      <PageHeader title={t("title")} subTitle={t("subtitle")} />
 
-      {!masterTaxOn && (
+      {!masterVatOn && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="flex items-start gap-3 py-4">
             <div className="rounded-lg bg-primary/10 p-2 text-primary">
@@ -125,9 +127,7 @@ export default function TaxSettingsPage() {
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium">{t("offTitle")}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("offBody")}
-              </p>
+              <p className="text-sm text-muted-foreground">{t("offBody")}</p>
             </div>
           </CardContent>
         </Card>
@@ -135,36 +135,90 @@ export default function TaxSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("whereTitle")}</CardTitle>
-          <CardDescription>
-            {t("whereDescription")}
-          </CardDescription>
+          <CardTitle className="text-base">{t("registrationTitle")}</CardTitle>
+          <CardDescription>{t("registrationDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="vat-type">{t("typeLabel")}</Label>
+            <Select
+              value={type}
+              disabled={!masterVatOn}
+              onValueChange={(v) => setType(v as VatRegistrationType)}
+            >
+              <SelectTrigger id="vat-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REGISTRATION_TYPES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {t(`types.${value}.label`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              {t(`types.${type}.hint`)}
+            </p>
+          </div>
+
+          {/* The effective date is the whole point: registration and
+              de-registration both carry an NBR date, routinely mid-month. */}
+          {typeChanged && (
+            <div className="space-y-1.5">
+              <Label htmlFor="vat-effective-from">
+                {t("effectiveFromLabel")}
+              </Label>
+              <DatePicker
+                date={effectiveFrom}
+                onSelect={(v) => setEffectiveFrom(v ?? today())}
+              />
+              <p className="text-sm text-muted-foreground">
+                {t("effectiveFromHint")}
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-lg border bg-muted/40 p-3">
+            <p className="text-sm">
+              {type === CLAIMS_REBATE ? t("rebateYes") : t("rebateNo")}
+            </p>
+          </div>
+
+          {type !== "unregistered" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="vat-bin">{t("binLabel")}</Label>
+              <Input
+                id="vat-bin"
+                value={bin}
+                maxLength={20}
+                disabled={!masterVatOn}
+                placeholder={t("binPlaceholder")}
+                onChange={(e) => setBin(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">{t("binHint")}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("pricingTitle")}</CardTitle>
+          <CardDescription>{t("pricingDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">{t("salesLabel")}</p>
+              <p className="text-sm font-medium">{t("pricesIncludeVatLabel")}</p>
               <p className="text-sm text-muted-foreground">
-                {t("salesHint")}
+                {t("pricesIncludeVatHint")}
               </p>
             </div>
             <Switch
-              checked={masterTaxOn && salesEnabled}
-              disabled={!masterTaxOn}
-              onCheckedChange={setSalesEnabled}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">{t("purchaseLabel")}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("purchaseHint")}
-              </p>
-            </div>
-            <Switch
-              checked={masterTaxOn && purchaseEnabled}
-              disabled={!masterTaxOn}
-              onCheckedChange={setPurchaseEnabled}
+              checked={pricesIncludeVat}
+              disabled={!masterVatOn}
+              onCheckedChange={setPricesIncludeVat}
             />
           </div>
         </CardContent>
@@ -172,16 +226,26 @@ export default function TaxSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("financialYearTitle")}</CardTitle>
-          <CardDescription>
-            {t("financialYearDescription")}
-          </CardDescription>
+          <CardTitle className="text-base">{t("filingTitle")}</CardTitle>
+          <CardDescription>{t("filingDescription")}</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {fyField("startMonth", t("startMonth"), 12)}
-          {fyField("startDay", t("startDay"), 31)}
-          {fyField("endMonth", t("endMonth"), 12)}
-          {fyField("endDay", t("endDay"), 31)}
+        <CardContent className="space-y-4">
+          {/* The VAT period is always a calendar month — not configurable. */}
+          <div className="rounded-lg border bg-muted/40 p-3">
+            <p className="text-sm">{t("periodFixed")}</p>
+          </div>
+          <div className="space-y-1.5 sm:max-w-[200px]">
+            <Label htmlFor="filing-day">{t("filingDayLabel")}</Label>
+            <NumberField
+              id="filing-day"
+              precision={0}
+              min={1}
+              max={28}
+              value={filingDay}
+              disabled={!masterVatOn}
+              onChange={setFilingDay}
+            />
+          </div>
         </CardContent>
       </Card>
 

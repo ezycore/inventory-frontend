@@ -50,7 +50,7 @@ Three things from it that this app's code directly depends on:
 2. **Tax is per-side**: `salesTax` and `purchaseTax`, each `{ taxId, taxType, rate, taxName }`. There
    is no flat top-level `taxId`/`taxType`. The rate arrives resolved — don't fetch it separately.
    The FE/BE tax math must agree bit-for-bit; see
-   [`easystock-backend/docs/features/tax.md`](../../../../easystock-backend/docs/features/tax.md).
+   [`easystock-backend/docs/features/vat.md`](../../../../easystock-backend/docs/features/vat.md).
 3. **UOM requires *at least one* of purchase/sale unit** when `enableUOMConversion` is true — not both.
    Any side you *do* send must be complete (`unitId` + `conversionFactor`, factor > 0).
 

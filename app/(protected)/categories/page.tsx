@@ -21,6 +21,10 @@ import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
 import { getCategoryStats, prepareSubmitData } from '@/components/categories/helper'
 import type { AppLocale } from '@/i18n/config'
+// NOTE: the legacy hand-written `Category` in types/index.ts, not the generated
+// `Category` — the page's `operations` are typed with it. The two duplicate
+// each other and should be reconciled; typed either way beats `any`.
+import type { Category } from "@/types";
 
 const defaultValues = {
   name: "",
@@ -109,7 +113,7 @@ export default function CategoriesPage() {
 
       {/* Card View */}
       {viewMode === 'card' && (
-        <DataCard
+        <DataCard<Category>
           cardTitle={(n) => t('page.allCategoriesTitle', { count: n })}
           defaultPageSize={12}
           pageSizes={[6, 12, 24, 48]}
