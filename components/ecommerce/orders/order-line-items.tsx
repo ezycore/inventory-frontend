@@ -7,7 +7,7 @@ import { formatMoney } from "@/components/storefront/format";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
-import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 
 /**
  * Line items (prices snapshotted at purchase) + the money breakdown, including the
@@ -17,13 +17,15 @@ import { Input } from "@/ui/components/input";
 export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const updateCourierCost = useUpdateCourierCost();
-  const [courierCost, setCourierCost] = useState(String(order.shippingCost ?? 0));
+  const [courierCost, setCourierCost] = useState<number | null>(
+    order.shippingCost ?? 0,
+  );
   const [editingShipping, setEditingShipping] = useState(false);
   const money = (n: number | undefined) => formatMoney(n ?? 0, currency);
 
   const saveShipping = () => {
     updateCourierCost.mutate(
-      { id: order._id, shippingCost: Number(courierCost) || 0 },
+      { id: order._id, shippingCost: courierCost ?? 0 },
       { onSuccess: () => setEditingShipping(false) },
     );
   };
@@ -68,11 +70,11 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
           <span>Shipping fee</span>
           {editingShipping ? (
             <span className="flex items-center gap-2">
-              <Input
-                type="number"
+              <NumberField
                 min={0}
+                precision={2}
                 value={courierCost}
-                onChange={(e) => setCourierCost(e.target.value)}
+                onChange={setCourierCost}
                 className="h-7 w-24 text-right"
               />
               <Button

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { type CatalogProduct, useUpdateCatalogListing } from "@/services/api";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import { Switch } from "@/ui/components/switch";
 import { Textarea } from "@/ui/components/textarea";
@@ -51,9 +52,9 @@ export function ProductOnlineEditor({
   const update = useUpdateCatalogListing();
   const [isListed, setIsListed] = useState(true);
   const [featured, setFeatured] = useState(false);
-  const [onlinePrice, setOnlinePrice] = useState("");
-  const [compareAtPrice, setCompareAtPrice] = useState("");
-  const [weightKg, setWeightKg] = useState("");
+  const [onlinePrice, setOnlinePrice] = useState<number | null>(null);
+  const [compareAtPrice, setCompareAtPrice] = useState<number | null>(null);
+  const [weightKg, setWeightKg] = useState<number | null>(null);
   const [slug, setSlug] = useState("");
   const [onlineTitle, setOnlineTitle] = useState("");
   const [onlineDescription, setOnlineDescription] = useState("");
@@ -68,11 +69,11 @@ export function ProductOnlineEditor({
     const sf = product?.storefront ?? {};
     setIsListed(sf.isListed !== false);
     setFeatured(!!sf.featured);
-    setOnlinePrice(typeof sf.onlinePrice === "number" ? String(sf.onlinePrice) : "");
+    setOnlinePrice(typeof sf.onlinePrice === "number" ? sf.onlinePrice : null);
     setCompareAtPrice(
-      typeof sf.compareAtPrice === "number" ? String(sf.compareAtPrice) : "",
+      typeof sf.compareAtPrice === "number" ? sf.compareAtPrice : null,
     );
-    setWeightKg(typeof sf.weightKg === "number" ? String(sf.weightKg) : "");
+    setWeightKg(typeof sf.weightKg === "number" ? sf.weightKg : null);
     setSlug(sf.slug ?? "");
     setOnlineTitle(sf.onlineTitle ?? "");
     setOnlineDescription(sf.onlineDescription ?? "");
@@ -103,10 +104,10 @@ export function ProductOnlineEditor({
     fd.append("isListed", String(isListed));
     fd.append("featured", String(featured));
     fd.append("outOfStockBehavior", outOfStock);
-    if (onlinePrice !== "") fd.append("onlinePrice", String(Number(onlinePrice)));
-    if (compareAtPrice !== "")
-      fd.append("compareAtPrice", String(Number(compareAtPrice)));
-    if (weightKg !== "") fd.append("weightKg", String(Number(weightKg)));
+    if (onlinePrice !== null) fd.append("onlinePrice", String(onlinePrice));
+    if (compareAtPrice !== null)
+      fd.append("compareAtPrice", String(compareAtPrice));
+    if (weightKg !== null) fd.append("weightKg", String(weightKg));
     if (slug.trim()) fd.append("slug", slug.trim());
     if (onlineTitle.trim()) fd.append("onlineTitle", onlineTitle.trim());
     if (onlineDescription.trim())
@@ -182,21 +183,21 @@ export function ProductOnlineEditor({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Online price ({currency})</Label>
-              <Input
-                type="number"
+              <NumberField
                 min={0}
+                precision={2}
                 value={onlinePrice}
-                onChange={(e) => setOnlinePrice(e.target.value)}
+                onChange={setOnlinePrice}
                 placeholder={basePlaceholder}
               />
             </div>
             <div className="space-y-1">
               <Label>Compare-at price</Label>
-              <Input
-                type="number"
+              <NumberField
                 min={0}
+                precision={2}
                 value={compareAtPrice}
-                onChange={(e) => setCompareAtPrice(e.target.value)}
+                onChange={setCompareAtPrice}
                 placeholder="Optional"
               />
             </div>
@@ -205,13 +206,12 @@ export function ProductOnlineEditor({
           {/* Shipping weight */}
           <div className="space-y-1">
             <Label>Shipping weight (kg)</Label>
-            <Input
-              type="number"
+            <NumberField
               min={0}
               max={10}
               step={0.1}
               value={weightKg}
-              onChange={(e) => setWeightKg(e.target.value)}
+              onChange={setWeightKg}
               placeholder="Defaults to 0.5 kg at dispatch"
             />
             <p className="text-xs text-muted-foreground">

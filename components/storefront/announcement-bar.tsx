@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useState } from "react";
 import type { StoreAnnouncement } from "@/lib/storefront-client";
 import { readableTextOn } from "@/lib/color-contrast";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -47,14 +47,25 @@ export function AnnouncementBar({
   // Per-message key: a changed message re-shows a previously-dismissed bar.
   const msgKey = `${text ?? ""}|${announcement?.link ?? ""}`;
 
-  useEffect(() => {
-    if (!hydrated || !dismissible) return;
-    try {
-      setDismissed(localStorage.getItem(storageKey) === msgKey);
-    } catch {
-      /* storage disabled (private mode) — treat as not dismissed */
+  // Reflect the persisted dismissal once hydrated (client-only; SSR has no
+  // localStorage). Evaluated during render via the "store previous value"
+  // pattern so it re-checks when the message key changes but never loops; the
+  // dismiss click below writes storage and calls setDismissed(true) directly.
+  const evalKey =
+    hydrated && dismissible ? `${storageKey} ${msgKey}` : null;
+  const [lastEvalKey, setLastEvalKey] = useState<string | null>(null);
+  if (evalKey !== lastEvalKey) {
+    setLastEvalKey(evalKey);
+    let next = false;
+    if (evalKey) {
+      try {
+        next = localStorage.getItem(storageKey) === msgKey;
+      } catch {
+        /* storage disabled (private mode) — treat as not dismissed */
+      }
     }
-  }, [hydrated, dismissible, storageKey, msgKey]);
+    setDismissed(next);
+  }
 
   if (!announcement?.enabled || !text) return null;
   if (dismissible && dismissed && !previewActive) return null;

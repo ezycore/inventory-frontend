@@ -54,19 +54,23 @@ export function useHeaderSearch(onClose: () => void, open: boolean) {
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [active, setActive] = useState(-1);
-  const [recents, setRecents] = useState<string[]>([]);
-
-  // Recents load client-side only (the panel is never in the SSR HTML).
-  useEffect(() => setRecents(readRecents(slug)), [slug]);
+  // Recents seed from localStorage via a lazy initializer — client-only (SSR
+  // has no window, so readRecents returns []), and they render only once the
+  // panel is open (post-hydration), so the SSR/client seed difference never
+  // reaches the DOM. slug is stable for a mounted store, so no re-read needed.
+  const [recents, setRecents] = useState<string[]>(() => readRecents(slug));
 
   // A committed search shouldn't linger in the header after you leave. The
   // header never unmounts across routes, so clear the input on any navigation
   // to a page other than the search results page (which keeps the term the
-  // shopper just searched, matching that page's own input).
+  // shopper just searched, matching that page's own input). Done during render
+  // via the "store previous value" pattern rather than a setState-in-effect.
   const searchPath = storeHref(base, "/search");
-  useEffect(() => {
+  const [navPath, setNavPath] = useState(pathname);
+  if (navPath !== pathname) {
+    setNavPath(pathname);
     if (pathname !== searchPath) setQ("");
-  }, [pathname, searchPath]);
+  }
 
   // One request per pause in typing instead of one per keystroke.
   useEffect(() => {
@@ -82,7 +86,13 @@ export function useHeaderSearch(onClose: () => void, open: boolean) {
   );
 
   const hasQuery = q.trim().length > 0;
-  const items = hasQuery ? data?.items ?? [] : [];
+  // Memoized so its reference is stable across renders (react-query keeps
+  // data?.items stable via structural sharing) — otherwise the `actions` memo
+  // below, which lists `items` as a dependency, would recompute every render.
+  const items = useMemo<CatalogProduct[]>(
+    () => (hasQuery ? data?.items ?? [] : []),
+    [hasQuery, data?.items],
+  );
   const total = data?.pagination.total ?? items.length;
   // While the debounce catches up (or the fetch is in flight) show skeletons,
   // never a premature "no results".
@@ -96,8 +106,13 @@ export function useHeaderSearch(onClose: () => void, open: boolean) {
     ];
   }, [hasQuery, loading, items]);
 
-  // Drop the highlight whenever the resolved result set changes under the cursor.
-  useEffect(() => setActive(-1), [debouncedQ]);
+  // Drop the highlight whenever the resolved result set changes under the
+  // cursor — again via the "store previous value" render pattern, not an effect.
+  const [activeQ, setActiveQ] = useState(debouncedQ);
+  if (activeQ !== debouncedQ) {
+    setActiveQ(debouncedQ);
+    setActive(-1);
+  }
 
   const remember = (term: string) => {
     const next = [term, ...recents.filter((r) => r.toLowerCase() !== term.toLowerCase())].slice(
