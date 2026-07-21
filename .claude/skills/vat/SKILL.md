@@ -98,7 +98,49 @@ lied for a while afterwards.
 
 ---
 
-## 6. Labels: nav constants are identity, not display
+## 6. Which rate a new product starts with
+
+Three sources, most specific first: the product's own `taxId` → its **category's** `defaultTaxId` →
+the org-wide `Tax.isDefault`.
+
+Only the middle one is frontend logic: **`components/products/use-category-vat-prefill.ts`**, wired
+through the DataTable's `operations.onFieldChange` (which hands the caller the form, so it has
+`setValue` — the form is created inside the DataTable).
+
+Four rules, each load-bearing:
+
+- **Create only.** `form.getValues("_id")` short-circuits it. Re-categorising an existing product must
+  never silently re-price it.
+- **It overwrites.** The rate field auto-fills `Tax.isDefault` via `defaultFlag` as soon as its options
+  load — before the user scrolls to it. A "fill only when empty" rule would mean the category default
+  never applied at all.
+- **Both `salesTax.taxId` and `purchaseTax.taxId`** from one category field. A supply's VAT category
+  belongs to the good, not the direction it moves.
+- **`CATEGORY_OPTIONS_API` is exported from `components/products/form-config.tsx` and shared.** The URL
+  *is* the TanStack cache key, so drift between the picker and the prefill would double the request
+  and let the prefill read options with no `defaultTaxId` on them — a silent no-op.
+
+The category form's picker is in `components/categories/form-config.ts`; the categories **page** drops
+the field when `isVatActive` is false. `prepareSubmitData` must keep appending `defaultTaxId` — it
+hand-builds `FormData`, so a field it forgets is simply never sent.
+
+⚠️ `AdvancedSelect` has no clear affordance, so a category default can be changed but not removed from
+the UI. The wire format supports it (`""` → `null`).
+
+**Changing a category's default does NOT re-price its existing products** — inheritance is a copy at
+create time. The action that does is `<ApplyVatDialog>` (`components/categories/apply-vat-dialog.tsx`),
+offered on the category row in **both** the table and the card view. The card view is this page's
+default, so an action wired only into `customActions` would be invisible to most users — `renderCard`
+takes a fully custom renderer and DataCard's `customActions` never reach it.
+
+**Invalidation:** mutations that change an options list invalidate the `["select-options"]` **prefix**,
+not each URL. The per-URL literals in `services/api/modules/*/hooks.ts` silently stop matching the
+moment a picker's `fields=` changes — it had already happened to both categories and taxes. Categories
+and taxes now use the prefix; the other modules still list literals.
+
+---
+
+## 7. Labels: nav constants are identity, not display
 
 `constants/navItem.ts` titles are the **message-key source** (`navLabelKey`), the permission/feature
 filter keys and the kbar keywords. Everything that renders one goes through
@@ -113,7 +155,7 @@ Bangla keeps `কর` for four terms where it is the correct statutory word — 
 
 ---
 
-## 7. Change checklist
+## 8. Change checklist
 
 1. Gating a new surface? → `isVatActive(org)`, not the `tax` feature flag alone.
 2. Touching `utils/tax.ts`? → change `applyLineTaxes` in the backend and both test files.
@@ -121,16 +163,20 @@ Bangla keeps `কর` for four terms where it is the correct statutory word — 
    (`pnpm help:verify` fails the build on a renamed label a help page cites).
 4. Backend DTO changed? → `pnpm gen:api-types`, then `pnpm verify`.
 5. Renaming a nav title? → rename the `layout.nav.items.*` key too, both locales.
+6. Adding a field to a category/product form that posts multipart? → append it in that resource's
+   `prepareSubmitData`, or it silently never reaches the API.
 
 ---
 
-## 8. Traps table
+## 9. Traps table
 
 | Symptom | Cause | Fix |
 |---|---|---|
 | VAT column shows with the feature off | gated on `features.tax` instead of `isVatActive` | §1 |
 | Reduced-rate org shown a rebate | used `isVatActive` where `claimsInputRebate` was needed | §1, §5 |
 | Total jumps on save | preview drifted from `applyLineTaxes` | §2 |
-| Breadcrumb still English | rendering `navItem.title` raw instead of `itemLabel` | §6 |
-| Sidebar label reverted to English after a rename | `layout.nav.items.*` key not renamed with the title | §6 |
+| Category default rate never applies | prefill declined to overwrite, or the two option URLs drifted | §6 |
+| A form field is never saved | not appended in `prepareSubmitData` | §6 |
+| Breadcrumb still English | rendering `navItem.title` raw instead of `itemLabel` | §7 |
+| Sidebar label reverted to English after a rename | `layout.nav.items.*` key not renamed with the title | §7 |
 | Zero-rated and exempt look identical | reading only the rate; the category is on the line snapshot | the backend `vat` skill §4 |

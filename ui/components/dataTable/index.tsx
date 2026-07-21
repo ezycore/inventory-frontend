@@ -71,6 +71,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     transformEditData,
     prepareSubmitData,
     disabledFieldsInEdit,
+    onFieldChange,
   } = operations || {};
 
   // Read initial filter values from URL query params
@@ -412,9 +413,16 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
             onSuccess={handleCloseModal}
             disabledFieldsInEdit={disabledFieldsInEdit}
             isEditMode={!!editingItem}
-            onFieldChange={(fieldName, value, all) => {
-               console.log(name, value, stripHiddenValues(formConfig, all))
-            }}
+            onFieldChange={
+              onFieldChange &&
+              ((fieldName: string, value: any, all: any) =>
+                onFieldChange(
+                  fieldName,
+                  value,
+                  stripHiddenValues(formConfig, all),
+                  form,
+                ))
+            }
           />
         )}
 

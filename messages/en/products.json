@@ -425,7 +425,10 @@
       "statusActive": "Active",
       "statusInactive": "Inactive",
       "isDefault": "Set as default category",
-      "isDefaultDescription": "Pre-selected on new product forms"
+      "isDefaultDescription": "Pre-selected on new product forms",
+      "defaultTax": "Default VAT rate",
+      "defaultTaxPlaceholder": "Use the organization default",
+      "defaultTaxHint": "Prefilled on new products in this category, on both the purchase and the sales side. Existing products are never re-priced."
     },
     "stats": {
       "total": "Total Categories",
@@ -445,6 +448,17 @@
       "delete": "Delete",
       "createdOn": "Created: {date}",
       "updatedOn": "Updated: {date}"
+    },
+    "applyVat": {
+      "tooltip": "Apply this category's VAT rate to its products",
+      "menuItem": "Apply VAT rate to products",
+      "title": "Apply VAT rate to products?",
+      "body": "This sets every product in “{category}” ({count}) to {rate}, on both the purchase and the sales side.",
+      "overwrites": "It replaces each product's current rate — including any you set individually.",
+      "postedSafe": "Invoices already issued are not changed. They keep the rate they were issued with.",
+      "apply": "Apply",
+      "applying": "Applying…",
+      "cancel": "Cancel"
     }
   },
   "units": {

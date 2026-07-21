@@ -1497,13 +1497,13 @@ export interface paths {
         };
         /**
          * GET /api/categories
-         * @description Defined in `src/routes/categories.routes.ts:18`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:19`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories"];
         put?: never;
         /**
          * POST /api/categories
-         * @description Defined in `src/routes/categories.routes.ts:53`. Requires permission `categories.create`.
+         * @description Defined in `src/routes/categories.routes.ts:54`. Requires permission `categories.create`.
          */
         post: operations["post_api_categories"];
         delete?: never;
@@ -1521,7 +1521,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/stats
-         * @description Defined in `src/routes/categories.routes.ts:26`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:27`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_stats"];
         put?: never;
@@ -1541,7 +1541,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/active
-         * @description Defined in `src/routes/categories.routes.ts:29`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:30`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_active"];
         put?: never;
@@ -1561,7 +1561,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/slug/:slug
-         * @description Defined in `src/routes/categories.routes.ts:37`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:38`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_slug_slug"];
         put?: never;
@@ -1581,20 +1581,40 @@ export interface paths {
         };
         /**
          * GET /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:45`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:46`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_id"];
         /**
          * PUT /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:62`. Requires permission `categories.edit`.
+         * @description Defined in `src/routes/categories.routes.ts:63`. Requires permission `categories.edit`.
          */
         put: operations["put_api_categories_id"];
         post?: never;
         /**
          * DELETE /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:71`. Requires permission `categories.delete`.
+         * @description Defined in `src/routes/categories.routes.ts:72`. Requires permission `categories.delete`.
          */
         delete: operations["delete_api_categories_id"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/categories/{id}/apply-default-tax": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/categories/:id/apply-default-tax
+         * @description Defined in `src/routes/categories.routes.ts:83`. Requires permission `products.edit`. Gated by organization feature `tax` — returns 403 when disabled.
+         */
+        post: operations["post_api_categories_id_apply_default_tax"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1611,7 +1631,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/categories/bulk-delete
-         * @description Defined in `src/routes/categories.routes.ts:79`. Requires permission `categories.delete`.
+         * @description Defined in `src/routes/categories.routes.ts:92`. Requires permission `categories.delete`.
          */
         post: operations["post_api_categories_bulk_delete"];
         delete?: never;
@@ -5974,6 +5994,11 @@ export interface components {
             inactive: number;
             totalProducts: number;
         };
+        CategoryApplyTax: {
+            taxId: string;
+            matched: number;
+            modified: number;
+        };
         Category: {
             _id: string;
             organizationId: string;
@@ -5993,6 +6018,7 @@ export interface components {
             /** @enum {string} */
             status: "active" | "inactive";
             isDefault?: boolean;
+            defaultTaxId?: string | null;
             storefront?: {
                 isListed?: boolean;
                 order?: number;
@@ -6018,6 +6044,7 @@ export interface components {
             /** @enum {string} */
             status: "active" | "inactive";
             isDefault?: boolean;
+            defaultTaxId?: string | null;
             storefront?: {
                 isListed?: boolean;
                 order?: number;
@@ -15325,6 +15352,7 @@ export interface operations {
                      */
                     status?: "active" | "inactive";
                     isDefault?: boolean;
+                    defaultTaxId?: string | null;
                 };
             };
         };
@@ -15633,6 +15661,7 @@ export interface operations {
                     status?: "active" | "inactive";
                     removeImages?: string;
                     isDefault?: boolean;
+                    defaultTaxId?: string | null;
                 };
             };
         };
@@ -15730,6 +15759,69 @@ export interface operations {
                 };
             };
             /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_categories_id_apply_default_tax: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CategoryApplyTax"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;

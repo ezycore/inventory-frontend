@@ -268,6 +268,12 @@ frontend diff (valuation method, tax rules) — check the reports pages by hand.
 - **`SimpleTable`** (`ui/components/simple-table.tsx`) for the small tables embedded in cards / detail panels. Column-driven: `<SimpleTable columns rows getRowKey />`, where each `SimpleColumn` has `header`, `cell: (row) => node`, optional `align`/`headClassName`/`cellClassName`; plus `rowClassName`/`headerRowClassName` for per-row styling. Cells can hold inputs/checkboxes, so lightly interactive grids fit too (see `variant-manager.tsx`).
 - Only drop to the raw `ui/components/table` primitives inside `SimpleTable` itself.
 
+**Cross-field rules in a DataTable's CRUD form** go through `operations.onFieldChange(fieldName,
+value, allValues, form)`. The `form` argument is the DataTable's own `useForm` instance — the form is
+created inside the component, so that is the only way a caller gets `setValue`. See
+`components/products/use-category-vat-prefill.ts` (category → VAT rate). Do not fork the form or
+duplicate the field elsewhere to work around it.
+
 **Form inputs — use the shared primitives, never re-implement:** these carry the project's validation, empty-state, accessibility, and UX contracts. Reach for them before writing any new input, and before creating a new input abstraction.
 - **`NumberField`** (`ui/components/number-field.tsx`) for **every** numeric input — never a raw `<input type="number">`. Contract: `value: number | null`, `onChange: (number | null) => void`; empty → `null`; clamps `min`/`max` on blur; `precision` rounds (money `2`, qty/counts `0`, generic/UOM `undefined`); `showSteppers` for +/- buttons. Do **not** default `precision` in generic/config-driven renderers.
 - **`DatePicker`** (`ui/components/date-picker.tsx`) for **every** single date input. Props: `date?: Date | string`, `onSelect: (string | undefined) => void`. Default output is timezone-safe `yyyy-MM-dd` (never native ISO — avoids the BDT/UTC+ off-by-one); pass `outputFormat` only for datetime. Restrict selectable days with `fromDate`/`toDate`/`disabledDates`.

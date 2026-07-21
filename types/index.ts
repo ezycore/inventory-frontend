@@ -402,6 +402,8 @@ export interface CreateCategoryDto {
   images?: Image[];
   status?: "active" | "inactive";
   isDefault?: boolean;
+  /** VAT rate prefilled on new products in this category; `null`/"" clears it. */
+  defaultTaxId?: string | null;
 }
 
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }

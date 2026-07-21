@@ -14,6 +14,7 @@ import { getProductFormConfig } from '@/components/products/form-config'
 import { getProductColumns } from '@/components/products/columns'
 import { getProductFilterConfig } from '@/components/products/filters'
 import { getProductStats, makePrepareSubmitData } from '@/components/products/helpers'
+import { useCategoryVatPrefill } from '@/components/products/use-category-vat-prefill'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/services/api'
 import { Sheet, SheetContent } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
@@ -137,6 +138,9 @@ export default function ProductsPage() {
     setLabelSheet({ open: true, items });
   };
 
+  // Category → VAT-rate prefill on the create form (no-op when VAT is off).
+  const handleFieldChange = useCategoryVatPrefill(isVatActive(user?.organization))
+
   // Product stats (only product-relevant data, no inventory stats)
   const productStats = getProductStats(statsData, t)
 
@@ -152,6 +156,7 @@ export default function ProductsPage() {
     queryKey: [...queryKeys.products.all()],
     entityName: t("page.entity"),
     openInside: "drawer" as const,
+    onFieldChange: handleFieldChange,
     editTooltip: t("page.editTooltip"),
     deleteTooltip: t("page.deleteTooltip"),
     transformEditData: (item: any) => {

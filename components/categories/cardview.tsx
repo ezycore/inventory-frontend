@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { Edit2, MoreVertical, Package, Tag, Trash2 } from "lucide-react";
+import { Edit2, MoreVertical, Package, Percent, Tag, Trash2 } from "lucide-react";
 import { TruncatedText } from "@/components/shared/truncated-text";
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
@@ -34,7 +34,21 @@ import type { Category } from "@/types";
  */
 const CategoryCardView = (
   category: Category,
-  { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
+  {
+    onEdit,
+    onDelete,
+    onApplyVat,
+  }: {
+    onEdit?: () => void;
+    onDelete?: () => void;
+    /**
+     * Re-point this category's products at its default VAT rate. Passed only
+     * when VAT is on, the user may edit products, AND the category has a default
+     * — the card view is this page's DEFAULT view, so leaving the action out of
+     * it would hide the feature from most users.
+     */
+    onApplyVat?: () => void;
+  },
   options: { t: Translator; locale: AppLocale },
 ) => {
   const { t, locale } = options;
@@ -96,6 +110,12 @@ const CategoryCardView = (
               <Edit2 className="h-4 w-4 mr-2" />
               {t("card.edit")}
             </DropdownMenuItem>
+            {onApplyVat && (
+              <DropdownMenuItem onClick={onApplyVat}>
+                <Percent className="h-4 w-4 mr-2" />
+                {t("applyVat.menuItem")}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={onDelete}>
               <Trash2 className="h-4 w-4 mr-2" />
