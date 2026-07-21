@@ -180,7 +180,73 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-07-21)
+## Work log (what was built, newest first — as of 2026-07-22)
+
+- **Compare-at precedence → highest-anchor-wins (BE)** (2026-07-22): when a campaign AND a manual
+  compare-at both apply, the price is the campaign (lowest) price and the strikethrough is now
+  `max(campaign pre-discount price, manual compareAtPrice)` — not "campaign wins, else manual". Owners
+  want the biggest legitimate saving shown (e.g. online 80 + manual "was" 120 + 20% campaign → **64 ·
+  ~~120~~**, not 64 · ~~80~~). Changed in `storefront.service.ts` `toCatalogProduct` (single; product-level
+  manual still gated `!isVariable`) and `priceVariant` (per variant) — both build an `anchors[]` and take
+  the max, still never rendering an anchor ≤ the shown price. Price/charged unchanged (still the lowest
+  campaign price; `resolveItems` unaffected). No DTO/api-types change (shape identical). Test:
+  highest-anchor case in `storefront-products.test.ts`.
+
+- **Per-variant storefront pricing overlay (variable products can discount online) (FE + BE)**
+  (2026-07-21): variants had NO storefront overlay — a variant's POS `price` was its only price, so a
+  merchant couldn't show "৳80, was ৳100" on a variable product's option (only a Campaign could). Added
+  `storefront: { onlinePrice?, compareAtPrice? }` to `VariantProductModel` (+ `Variant` type). Storefront
+  read (`storefront.service.ts` `priceVariant`): base = `v.storefront?.onlinePrice ?? v.price`, and a
+  manual per-variant `compareAtPrice` anchors the struck "was" (highest-anchor-wins vs any campaign base —
+  see the 2026-07-22 entry) — so card ("From ৳X" cheapest) AND PDP variant selector both reflect the override. `resolveItems`
+  charges `variant.storefront?.onlinePrice ?? variant.price` (shown == charged); both variant selects gained
+  `storefront`. Admin: **`GET /ecommerce/catalog/:id/variants`** (new — `catalogService.listVariantPricing`,
+  `catalogVariantDto` array: `_id/label/attributes/price/onlinePrice/compareAtPrice`) feeds the editor, and
+  `PATCH /ecommerce/catalog/:id` now accepts a **`variantPricing`** JSON array (parsed in the controller,
+  `catalogService.updateVariantPricing` bulk-writes each variant's `storefront.*` — number sets, `null`
+  `$unset`s, foreign variant → `VARIANT_NOT_FOUND`). FE: the editor (`product-online-editor.tsx`) lazily
+  loads variants for a variable product (`useCatalogVariants`, gated on type) and renders an editable
+  per-variant row (online price + compare-at) via the extracted
+  `components/ecommerce/catalog/variant-pricing-fields.tsx` — replaces last pass's read-only range. The
+  **product-level** compare-at manual fallback stays gated `!isVariable` (variable uses per-variant), so
+  nothing double-applies. Tests: variant read (`storefront-products.test.ts`), charged==shown order
+  (`storefront-order.service.test.ts`), list/set/clear/foreign-variant (`catalog.service.test.ts`).
+  OpenAPI + `types/api-generated.ts` regenerated (new `CatalogVariant` schema + `variantPricing` request).
+
+- **Catalog online-listing editor fields were half-dead → now wired to the storefront (FE + BE)**
+  (2026-07-21): the per-product **Online listing** editor (`components/ecommerce/catalog/
+  product-online-editor.tsx`, opened from the Catalog → Products table) saved 12 fields but **6 did
+  nothing on the storefront** — `toCatalogProduct` returned the POS `name`/`slug`, compare-at came
+  only from campaigns, and `outOfStockBehavior`/`seo`/`onlineTitle`/`slug` had zero read consumers.
+  Wired end to end in `storefront.service.ts`: **onlineTitle** overrides the card/PDP name,
+  **storefront.slug** overrides the URL (`getProductBySlug` matches it via `$or`, base slug still
+  resolves — old links keep working), **manual compareAtPrice** renders as the strikethrough "was"
+  price when no campaign supplies one and it's genuinely higher, **seo.title/description** ride the
+  payload and drive the PDP `<title>`/meta (`app/(storefront)/.../products/[productSlug]/page.tsx`).
+  **outOfStockBehavior** is real now: **"hide"** drops a product from listings + 404s its page once
+  live stock is 0 (`listProducts` routes hide-stores through `listProductsComputed`, which already
+  prices/counts in memory so pagination totals stay correct; `getProductBySlug` 404s), and
+  **"backorder"** keeps the buy button live past zero stock (FE `view.tsx` + `product-card.tsx` gate on
+  a new `soldOut = outOfStock && !canBackorder`; `maxQty<=0` = uncapped in `use-cart-store`; i18n
+  `backorder` ×3). **Backorder is capture-only by design** — `resolveItems` lets the order be placed
+  past on-hand stock but the order sits `pending`; confirm→`reserveStock` and commit→`createSale` stay
+  the ≥0 guard, so the merchant reserves/ships once restocked (no invariant broken). Also fixed the
+  **can't-clear bug**: the editor only ever `$set` fields, so an emptied value never cleared — now it
+  sends `clearFields` (JSON) that the catalog service `$unset`s, and a **slug-uniqueness guard**
+  (`SLUG_IN_USE`) rejects a storefront slug already used by another product. Contract: `storefront.dto`
+  gained `seo` + `outOfStockBehavior` (else `respondFor` strips them); `catalog.validator`/controller
+  gained `clearFields`. **Variable products** price PER VARIANT (`VariantProductModel.price` — there is
+  NO per-variant storefront overlay; the variant's POS price IS its online price, campaign-adjusted),
+  so the product-level **Online price is inert** for them (`cardPrice` never reads `storefront.onlinePrice`
+  for VARIABLE) and the manual **compare-at is now gated `!isVariable`** in `toCatalogProduct` (card +
+  PDP stay consistent — both per-variant). The catalog editor hides the Online price / Compare-at inputs
+  for a variable product and shows the read-only variant price range + a "set prices in the variant
+  manager" note (`product-online-editor.tsx`), and `save()` never writes/clears those fields for it.
+  The OTHER overlay fields (title/slug/description/SEO/gallery/hide/backorder/weight) are product-level
+  and DO apply to variable products (hide uses summed stock; backorder applies to every variant line).
+  Tests: `storefront-products.test.ts` (7, new — incl. the variable per-variant pricing case) +
+  backorder ×2 in `storefront-order.service.test.ts` + clear/slug ×2 in `catalog.service.test.ts`.
+  OpenAPI + `types/api-generated.ts` regenerated.
 
 - **Checkout settings were dead → now enforced (FE + BE)** (2026-07-21): all four admin
   Settings → Checkout controls (`termsRequired`, `requiredFields`, `minOrderValue`, `orderPrefix`)

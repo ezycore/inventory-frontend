@@ -2,7 +2,12 @@
 // coding-standard: maintained
 
 import { useEffect, useState } from "react";
-import { type CatalogProduct, useUpdateCatalogListing } from "@/services/api";
+import {
+  type CatalogProduct,
+  type VariantPricingEntry,
+  useCatalogVariants,
+  useUpdateCatalogListing,
+} from "@/services/api";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { NumberField } from "@/ui/components/number-field";
@@ -24,6 +29,10 @@ import {
   type UploadedImage,
 } from "@/components/shared/image-gallery-upload";
 import { onlineBlockReason } from "@/components/ecommerce/catalog/online-block-reason";
+import {
+  VariantPricingFields,
+  type VariantPriceDraft,
+} from "@/components/ecommerce/catalog/variant-pricing-fields";
 import { formatMoney } from "@/components/storefront/format";
 
 const slugify = (s: string) =>
@@ -62,6 +71,41 @@ export function ProductOnlineEditor({
   const [seoDescription, setSeoDescription] = useState("");
   const [outOfStock, setOutOfStock] = useState("show");
   const [images, setImages] = useState<GalleryImage[]>([]);
+  const [variantDrafts, setVariantDrafts] = useState<
+    Record<string, VariantPriceDraft>
+  >({});
+
+  // Variable products are priced per variant — load their overlay lazily.
+  const isVariableProduct = product?.productType === "variable";
+  const { data: variantRows, isLoading: variantsLoading } = useCatalogVariants(
+    product?._id ?? null,
+    isVariableProduct,
+  );
+
+  // Seed the per-variant drafts once the rows arrive (and reset per product).
+  useEffect(() => {
+    const next: Record<string, VariantPriceDraft> = {};
+    for (const v of variantRows ?? []) {
+      next[v._id] = {
+        onlinePrice: typeof v.onlinePrice === "number" ? v.onlinePrice : null,
+        compareAtPrice:
+          typeof v.compareAtPrice === "number" ? v.compareAtPrice : null,
+      };
+    }
+    setVariantDrafts(next);
+  }, [variantRows]);
+
+  const setVariantDraft = (
+    variantId: string,
+    patch: Partial<VariantPriceDraft>,
+  ) =>
+    setVariantDrafts((prev) => ({
+      ...prev,
+      [variantId]: {
+        ...(prev[variantId] ?? { onlinePrice: null, compareAtPrice: null }),
+        ...patch,
+      },
+    }));
 
   // Re-seed local state when a different product opens.
   const key = product?._id ?? "";
@@ -88,32 +132,73 @@ export function ProductOnlineEditor({
 
   const blockReason = onlineBlockReason(product);
   const stock = product.availableQuantity ?? 0;
+  // Variable products price per variant — the product-level Online price /
+  // Compare-at don't apply to them, so those inputs are replaced with the range.
+  const isVariable = product.productType === "variable";
 
-  // Placeholder mirrors the catalog's inherited base price: empty online price
-  // falls back to it on the storefront, so show the real value, not a label.
-  const basePlaceholder = product.priceRange
+  const priceRangeLabel = product.priceRange
     ? product.priceRange.min === product.priceRange.max
       ? formatMoney(product.priceRange.min, currency)
       : `${formatMoney(product.priceRange.min, currency)} – ${formatMoney(product.priceRange.max, currency)}`
-    : product.productType === "variable"
-      ? "Base price"
-      : formatMoney(product.price, currency);
+    : null;
+
+  // Placeholder mirrors the catalog's inherited base price: empty online price
+  // falls back to it on the storefront, so show the real value, not a label.
+  const basePlaceholder =
+    priceRangeLabel ??
+    (isVariable ? "Base price" : formatMoney(product.price, currency));
 
   const save = async () => {
     const fd = new FormData();
     fd.append("isListed", String(isListed));
     fd.append("featured", String(featured));
     fd.append("outOfStockBehavior", outOfStock);
-    if (onlinePrice !== null) fd.append("onlinePrice", String(onlinePrice));
-    if (compareAtPrice !== null)
-      fd.append("compareAtPrice", String(compareAtPrice));
-    if (weightKg !== null) fd.append("weightKg", String(weightKg));
-    if (slug.trim()) fd.append("slug", slug.trim());
-    if (onlineTitle.trim()) fd.append("onlineTitle", onlineTitle.trim());
-    if (onlineDescription.trim())
-      fd.append("onlineDescription", onlineDescription.trim());
-    if (seoTitle.trim()) fd.append("seoTitle", seoTitle.trim());
-    if (seoDescription.trim()) fd.append("seoDescription", seoDescription.trim());
+
+    // Optional fields: send the value when present, else mark it cleared so the
+    // backend $unsets it (an emptied field falls back to the base product value —
+    // sending nothing would leave the old value in place).
+    const cleared: string[] = [];
+    const optional: [string, string | null][] = [
+      // Variable products are priced per variant — leave the (inert) product-level
+      // price fields untouched rather than writing or clearing them.
+      ...(isVariable
+        ? []
+        : ([
+            ["onlinePrice", onlinePrice !== null ? String(onlinePrice) : null],
+            [
+              "compareAtPrice",
+              compareAtPrice !== null ? String(compareAtPrice) : null,
+            ],
+          ] as [string, string | null][])),
+      ["weightKg", weightKg !== null ? String(weightKg) : null],
+      ["slug", slug.trim() || null],
+      ["onlineTitle", onlineTitle.trim() || null],
+      ["onlineDescription", onlineDescription.trim() || null],
+      ["seoTitle", seoTitle.trim() || null],
+      ["seoDescription", seoDescription.trim() || null],
+    ];
+    for (const [key, value] of optional) {
+      if (value !== null) fd.append(key, value);
+      else cleared.push(key);
+    }
+    if (cleared.length) fd.append("clearFields", JSON.stringify(cleared));
+
+    // Per-variant online price + compare-at (variable products only). null clears
+    // the field on the variant; the base variant price then sells online.
+    if (isVariable && variantRows?.length) {
+      const variantPricing: VariantPricingEntry[] = variantRows.map((v) => {
+        const draft = variantDrafts[v._id] ?? {
+          onlinePrice: null,
+          compareAtPrice: null,
+        };
+        return {
+          variantId: v._id,
+          onlinePrice: draft.onlinePrice,
+          compareAtPrice: draft.compareAtPrice,
+        };
+      });
+      fd.append("variantPricing", JSON.stringify(variantPricing));
+    }
 
     // Diff images against the product's current set: existing ones the user
     // removed go in `removeImages` (publicIds); new File objects are uploaded.
@@ -179,29 +264,46 @@ export function ProductOnlineEditor({
             </span>
           </div>
 
-          {/* Pricing */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label>Online price ({currency})</Label>
-              <NumberField
-                min={0}
-                precision={2}
-                value={onlinePrice}
-                onChange={setOnlinePrice}
-                placeholder={basePlaceholder}
+          {/* Pricing — variable products are priced per variant */}
+          {isVariable ? (
+            <div className="space-y-1.5">
+              <Label>Per-variant pricing</Label>
+              <p className="text-xs text-muted-foreground">
+                Set each option&apos;s online price (leave empty to sell at its base
+                price) and an optional compare-at &quot;was&quot; price.
+              </p>
+              <VariantPricingFields
+                variants={variantRows ?? []}
+                value={variantDrafts}
+                onChange={setVariantDraft}
+                currency={currency}
+                loading={variantsLoading}
               />
             </div>
-            <div className="space-y-1">
-              <Label>Compare-at price</Label>
-              <NumberField
-                min={0}
-                precision={2}
-                value={compareAtPrice}
-                onChange={setCompareAtPrice}
-                placeholder="Optional"
-              />
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Online price ({currency})</Label>
+                <NumberField
+                  min={0}
+                  precision={2}
+                  value={onlinePrice}
+                  onChange={setOnlinePrice}
+                  placeholder={basePlaceholder}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Compare-at price</Label>
+                <NumberField
+                  min={0}
+                  precision={2}
+                  value={compareAtPrice}
+                  onChange={setCompareAtPrice}
+                  placeholder="Optional"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Shipping weight */}
           <div className="space-y-1">

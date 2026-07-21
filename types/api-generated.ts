@@ -5481,7 +5481,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/catalog
-         * @description Defined in `src/routes/catalog.routes.ts:25`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:26`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_catalog"];
         put?: never;
@@ -5507,7 +5507,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/catalog/bulk
-         * @description Defined in `src/routes/catalog.routes.ts:32`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:33`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_catalog_bulk"];
         trace?: never;
@@ -5521,7 +5521,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/catalog/collections
-         * @description Defined in `src/routes/catalog.routes.ts:41`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:42`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_catalog_collections"];
         put?: never;
@@ -5547,7 +5547,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/catalog/collections/reorder
-         * @description Defined in `src/routes/catalog.routes.ts:46`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:47`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_catalog_collections_reorder"];
         trace?: never;
@@ -5567,9 +5567,29 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/catalog/collections/:id
-         * @description Defined in `src/routes/catalog.routes.ts:52`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:53`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_catalog_collections_id"];
+        trace?: never;
+    };
+    "/api/ecommerce/catalog/{id}/variants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/catalog/:id/variants
+         * @description Defined in `src/routes/catalog.routes.ts:62`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_catalog_id_variants"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/ecommerce/catalog/{id}": {
@@ -5587,7 +5607,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/catalog/:id
-         * @description Defined in `src/routes/catalog.routes.ts:59`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/catalog.routes.ts:69`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_catalog_id"];
         trace?: never;
@@ -8366,6 +8386,16 @@ export interface components {
                 weightKg?: number;
             };
         };
+        CatalogVariant: {
+            _id: string;
+            label: string;
+            attributes: {
+                [key: string]: unknown;
+            };
+            price: number | null;
+            onlinePrice: number | null;
+            compareAtPrice: number | null;
+        };
         Collection: {
             _id: string;
             name: string;
@@ -9664,6 +9694,12 @@ export interface components {
             productType: string;
             hasVariants: boolean;
             availableQuantity: number;
+            /** @enum {string} */
+            outOfStockBehavior?: "hide" | "show" | "backorder";
+            seo?: {
+                title?: string;
+                description?: string;
+            };
             variants?: {
                 _id: string;
                 label: string;
@@ -9701,6 +9737,12 @@ export interface components {
                 productType: string;
                 hasVariants: boolean;
                 availableQuantity: number;
+                /** @enum {string} */
+                outOfStockBehavior?: "hide" | "show" | "backorder";
+                seo?: {
+                    title?: string;
+                    description?: string;
+                };
                 variants?: {
                     _id: string;
                     label: string;
@@ -30960,6 +31002,69 @@ export interface operations {
             };
         };
     };
+    get_api_ecommerce_catalog_id_variants: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CatalogVariant"][];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     patch_api_ecommerce_catalog_id: {
         parameters: {
             query?: never;
@@ -30988,6 +31093,8 @@ export interface operations {
                     outOfStockBehavior?: "hide" | "show" | "backorder";
                     weightKg?: number;
                     removeImages?: string | string[];
+                    clearFields?: string | string[];
+                    variantPricing?: string | unknown[];
                 };
             };
         };

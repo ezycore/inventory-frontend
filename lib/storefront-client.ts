@@ -202,6 +202,10 @@ export interface CatalogProduct {
   productType: string;
   hasVariants?: boolean;
   availableQuantity: number;
+  /** "show"/"hide" cap at stock; "backorder" stays buyable past zero. */
+  outOfStockBehavior?: "hide" | "show" | "backorder";
+  /** Merchant SEO overrides for the product page (absent when unset). */
+  seo?: { title?: string; description?: string };
   /** Present only on the product-detail payload of variable products. */
   variants?: CatalogVariant[];
 }
