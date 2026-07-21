@@ -12,6 +12,9 @@ export interface Dict {
   langCode: string;
   langLabel: string;
   searchPh: string;
+  /** Header search typeahead: recents section heading + category-chips heading. */
+  recentSearches: string;
+  categoriesLabel: string;
   account: string;
   cart: string;
   addToCart: string;
@@ -48,6 +51,7 @@ export interface Dict {
   verified: string;
   saveChanges: string;
   cancelEdit: string;
+  dismiss: string;
   prefsTitle: string;
   prefsSub: string;
   promoEmailT: string;
@@ -184,6 +188,10 @@ export interface Dict {
   newAddress: string;
   saveThisAddress: string;
   orderNotesPh: string;
+  /** Sentence with a `{terms}` placeholder for the (optionally linked) terms label. */
+  agreeToTerms: string;
+  termsLinkLabel: string;
+  minOrderNotice: string;
   paymentMethod: string;
   default: string;
   cod: string;
@@ -212,6 +220,8 @@ export interface Dict {
   menu: string;
   allProducts: string;
   results: string;
+  gridView: string;
+  listView: string;
   filters: string;
   category: string;
   priceRange: string;
@@ -222,9 +232,22 @@ export interface Dict {
   prev: string;
   next: string;
   inStockFilter: string;
+  allBrands: string;
+  availability: string;
+  sortLabel: string;
+  sortFeatured: string;
+  sortNewest: string;
+  sortPriceLow: string;
+  sortPriceHigh: string;
+  minLabel: string;
+  maxLabel: string;
+  reset: string;
+  /** Drawer CTA — "{n}" is replaced with the live result count. */
+  showResults: string;
   onSale: string;
   inStock: string;
   outOfStock: string;
+  backorder: string;
   addToCartFull: string;
   buyNow: string;
   quantity: string;
@@ -330,6 +353,8 @@ const en: Dict = {
   langCode: "en-BD",
   langLabel: "English",
   searchPh: "Search products, brands & categories",
+  recentSearches: "Recent searches",
+  categoriesLabel: "Categories",
   account: "Account",
   cart: "Cart",
   addToCart: "Add to cart",
@@ -359,6 +384,7 @@ const en: Dict = {
   verified: "Verified",
   saveChanges: "Save changes",
   cancelEdit: "Cancel",
+  dismiss: "Dismiss",
   prefsTitle: "Notifications",
   prefsSub: "Choose what you want to hear about.",
   promoEmailT: "Promotional emails",
@@ -496,6 +522,9 @@ const en: Dict = {
   newAddress: "New address",
   saveThisAddress: "Save this address",
   orderNotesPh: "Delivery notes (optional)",
+  agreeToTerms: "I agree to the {terms}",
+  termsLinkLabel: "terms & conditions",
+  minOrderNotice: "Minimum order value:",
   paymentMethod: "Payment method",
   default: "Default",
   cod: "Cash on Delivery",
@@ -524,6 +553,8 @@ const en: Dict = {
   menu: "Menu",
   allProducts: "All products",
   results: "results",
+  gridView: "Grid view",
+  listView: "List view",
   filters: "Filters",
   category: "Category",
   priceRange: "Price range",
@@ -534,9 +565,21 @@ const en: Dict = {
   prev: "Prev",
   next: "Next",
   inStockFilter: "In stock only",
+  allBrands: "All brands",
+  availability: "Availability",
+  sortLabel: "Sort",
+  sortFeatured: "Featured",
+  sortNewest: "Newest",
+  sortPriceLow: "Price: low to high",
+  sortPriceHigh: "Price: high to low",
+  minLabel: "Min",
+  maxLabel: "Max",
+  reset: "Reset",
+  showResults: "Show {n} results",
   onSale: "On sale",
   inStock: "In stock",
   outOfStock: "Out of stock",
+  backorder: "Available on backorder",
   addToCartFull: "Add to cart",
   buyNow: "Buy now",
   quantity: "Quantity",
@@ -643,6 +686,8 @@ const bn: Dict = {
   langCode: "bn-BD",
   langLabel: "বাংলা",
   searchPh: "পণ্য, ব্র্যান্ড ও ক্যাটাগরি খুঁজুন",
+  recentSearches: "সাম্প্রতিক সার্চ",
+  categoriesLabel: "ক্যাটাগরি",
   account: "অ্যাকাউন্ট",
   cart: "কার্ট",
   addToCart: "কার্টে যোগ করুন",
@@ -672,6 +717,7 @@ const bn: Dict = {
   verified: "ভেরিফায়েড",
   saveChanges: "সেভ করুন",
   cancelEdit: "বাতিল",
+  dismiss: "বন্ধ করুন",
   prefsTitle: "নোটিফিকেশন",
   prefsSub: "আপনি কী জানতে চান তা বেছে নিন।",
   promoEmailT: "প্রোমোশনাল ইমেইল",
@@ -809,6 +855,9 @@ const bn: Dict = {
   newAddress: "নতুন ঠিকানা",
   saveThisAddress: "এই ঠিকানা সংরক্ষণ করুন",
   orderNotesPh: "ডেলিভারি নোট (ঐচ্ছিক)",
+  agreeToTerms: "আমি {terms}তে সম্মত",
+  termsLinkLabel: "নিয়ম ও শর্তাবলী",
+  minOrderNotice: "সর্বনিম্ন অর্ডার মূল্য:",
   paymentMethod: "পেমেন্ট মাধ্যম",
   default: "ডিফল্ট",
   cod: "ক্যাশ অন ডেলিভারি",
@@ -837,6 +886,8 @@ const bn: Dict = {
   menu: "মেনু",
   allProducts: "সব পণ্য",
   results: "ফলাফল",
+  gridView: "গ্রিড ভিউ",
+  listView: "তালিকা ভিউ",
   filters: "ফিল্টার",
   category: "ক্যাটাগরি",
   priceRange: "দামের পরিসীমা",
@@ -847,9 +898,21 @@ const bn: Dict = {
   prev: "আগের",
   next: "পরের",
   inStockFilter: "শুধু স্টকে আছে",
+  allBrands: "সব ব্র্যান্ড",
+  availability: "স্টক",
+  sortLabel: "সাজান",
+  sortFeatured: "ফিচার্ড",
+  sortNewest: "নতুন আগে",
+  sortPriceLow: "দাম: কম থেকে বেশি",
+  sortPriceHigh: "দাম: বেশি থেকে কম",
+  minLabel: "সর্বনিম্ন",
+  maxLabel: "সর্বোচ্চ",
+  reset: "রিসেট",
+  showResults: "{n}টি ফলাফল দেখুন",
   onSale: "ছাড়ে",
   inStock: "স্টকে আছে",
   outOfStock: "স্টকে নেই",
+  backorder: "প্রি-অর্ডার করা যাবে",
   addToCartFull: "কার্টে যোগ করুন",
   buyNow: "এখনই কিনুন",
   quantity: "পরিমাণ",

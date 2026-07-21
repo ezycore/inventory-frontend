@@ -1,6 +1,6 @@
 ---
 name: api-module
-description: 'Add or change a FRONTEND API module — the `api.ts` + `hooks.ts` + centralized query keys + `index.ts` barrel pattern every resource follows, built on `createResourceHooks` and the generated backend types. USE WHEN: wiring a new resource into the app, a list/detail/mutation hook, cross-resource cache invalidation (edit a category → refresh products), "Page 1 of undefined" / stale-after-edit / list not refetching bugs, a response field typed `any` you want real, `pnpm gen:api-types` / `pnpm verify:api-types` drift, or "backend added a field the FE never sees". Touches `easystock-frontend/{services/api,types/api.ts,types/api-generated.ts,lib/api-client.ts,lib/react-query.ts}`. This is the FE counterpart to the BACKEND `api-contract` skill (`easystock-backend/.claude/skills/api-contract/SKILL.md`) — that repo OWNS the contract (Zod DTOs → OpenAPI → these types); this file does not duplicate it.'
+description: 'Add or change a FRONTEND API module — the `api.ts` + `hooks.ts` + centralized query keys + `index.ts` barrel pattern every resource follows, built on `createResourceHooks` and the generated backend types. USE WHEN: wiring a new resource into the app, a list/detail/mutation hook, cross-resource cache invalidation (edit a category → refresh products), "Page 1 of undefined" / stale-after-edit / list not refetching bugs, a response field typed `any` you want real, `pnpm gen:api-types` / `pnpm verify:api-types` drift, or "backend added a field the FE never sees". Touches `inventory-frontend/{services/api,types/api.ts,types/api-generated.ts,lib/api-client.ts,lib/react-query.ts}`. This is the FE counterpart to the BACKEND `api-contract` skill (`inventory-backend/.claude/skills/api-contract/SKILL.md`) — that repo OWNS the contract (Zod DTOs → OpenAPI → these types); this file does not duplicate it.'
 ---
 
 # API Module Skill (Frontend)
@@ -12,7 +12,7 @@ off the **generated** backend types so a backend rename becomes a compile error 
 
 > **The API contract is NOT documented here.** It is *declared* in the backend as Zod response DTOs,
 > emitted to `docs/reference/openapi.json`, and generated into this repo's `types/api-generated.ts`.
-> Read [`easystock-backend/.claude/skills/api-contract/SKILL.md`](../../../../easystock-backend/.claude/skills/api-contract/SKILL.md)
+> Read [`inventory-backend/.claude/skills/api-contract/SKILL.md`](../../../../inventory-backend/.claude/skills/api-contract/SKILL.md)
 > before changing anything that crosses the wire. This file is the FE plumbing on top of that contract.
 
 ---

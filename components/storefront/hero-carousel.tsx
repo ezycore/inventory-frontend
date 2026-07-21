@@ -2,11 +2,9 @@
 // coding-standard: maintained
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import Link from "next/link";
 import type { StoreHeroSlide } from "@/lib/storefront-client";
-import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
-import { wrap } from "@/components/storefront/home/home-shared";
+import { HeroCtaLink, wrap } from "@/components/storefront/home/home-shared";
 
 const INTERVAL_MS = 5000;
 
@@ -35,19 +33,10 @@ const ctaStyle: CSSProperties = {
 
 function SlideCta({ slide, base }: { slide: StoreHeroSlide; base: string }) {
   if (!slide.buttonLabel?.trim()) return null;
-  const link = slide.link?.trim() || "/products";
-  const external = /^https?:\/\//i.test(link);
-  if (external) {
-    return (
-      <a href={link} target="_blank" rel="noopener noreferrer" style={ctaStyle}>
-        {slide.buttonLabel}
-      </a>
-    );
-  }
   return (
-    <Link href={storeHref(base, link)} style={ctaStyle}>
+    <HeroCtaLink base={base} link={slide.link} style={ctaStyle}>
       {slide.buttonLabel}
-    </Link>
+    </HeroCtaLink>
   );
 }
 

@@ -2,8 +2,8 @@
 
 import { useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useParams } from "next/navigation";
+import { toast } from "@/lib/storefront-toast";
 import {
   useStore,
   useStoreProduct,
@@ -25,6 +25,7 @@ import {
   defaultSelection,
   matchVariant,
 } from "@/components/storefront/variant-selector";
+import { LoadingSplash } from "@/components/storefront/loading-splash";
 import type { StorefrontImage } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
@@ -60,7 +61,6 @@ export default function ProductDetailPage() {
       s.storeSlug === slug &&
       s.items.some((i) => i.productId === product?._id),
   );
-  const router = useRouter();
   const [qty, setQty] = useState(1);
   // Gallery image the shopper tapped (clamped later — variant switches can
   // swap in a shorter image list).
@@ -80,7 +80,7 @@ export default function ProductDetailPage() {
     setImgIdx(0);
   }
 
-  if (isLoading) return <p style={{ ...wrap, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
+  if (isLoading) return <div style={wrap}><LoadingSplash /></div>;
   if (isError || !product) {
     return (
       <div style={{ ...wrap }}>
@@ -119,6 +119,10 @@ export default function ProductDetailPage() {
     ? (selectedVariant?.availableQuantity ?? 0)
     : product.availableQuantity;
   const outOfStock = availableQty <= 0;
+  // Backorder products stay buyable past zero stock; only "show"/"hide" products
+  // are truly sold out. `soldOut` gates the buy buttons + the red stock badge.
+  const canBackorder = product.outOfStockBehavior === "backorder";
+  const soldOut = outOfStock && !canBackorder;
   const images = variable && selectedVariant?.images?.length
     ? selectedVariant.images
     : (product.images ?? []);
@@ -138,7 +142,7 @@ export default function ProductDetailPage() {
     .filter((p) => p.slug !== product.slug)
     .slice(0, 4);
 
-  const add = () => {
+  const add = (notify = true) => {
     if (variable && !selectedVariant) return;
     addItem(
       slug,
@@ -152,17 +156,19 @@ export default function ProductDetailPage() {
         image:
           images[0]?.thumbnailUrl ||
           product.images?.[0]?.thumbnailUrl,
-        maxQty: availableQty,
+        // Backorder → uncapped (the store treats maxQty<=0 as no limit).
+        maxQty: canBackorder ? 0 : availableQty,
       },
       qty,
     );
-    toast.success(t.added);
+    if (notify) toast.success(t.added);
   };
   const buyNow = () => {
-    add();
-    // Honour the cart template: drawer opens the slide-over, page goes to /cart.
-    if (resolveTemplates(store).cart === "drawer") openCart();
-    else router.push(storeHref(base, "/cart"));
+    // No toast: the drawer opening with the item IS the confirmation — quick
+    // review in place, checkout one tap away; the full /cart page stays
+    // reachable via the drawer's "View cart".
+    add(false);
+    openCart();
   };
 
   const onWish = () =>
@@ -230,14 +236,14 @@ export default function ProductDetailPage() {
             <span
               style={{
                 fontSize: 12,
-                color: outOfStock ? "var(--discount)" : "var(--primary)",
+                color: soldOut ? "var(--discount)" : "var(--primary)",
                 fontWeight: 600,
-                background: outOfStock ? "var(--discount-soft)" : "var(--primary-soft)",
+                background: soldOut ? "var(--discount-soft)" : "var(--primary-soft)",
                 padding: "3px 9px",
                 borderRadius: 999,
               }}
             >
-              {outOfStock ? t.outOfStock : t.inStock}
+              {soldOut ? t.outOfStock : outOfStock ? t.backorder : t.inStock}
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 11, marginBottom: 18 }}>
@@ -293,7 +299,11 @@ export default function ProductDetailPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      setQty((q) => (availableQty > 0 ? Math.min(availableQty, q + 1) : q + 1))
+                      setQty((q) =>
+                        !canBackorder && availableQty > 0
+                          ? Math.min(availableQty, q + 1)
+                          : q + 1,
+                      )
                     }
                     style={qtyBtn}
                   >
@@ -302,10 +312,10 @@ export default function ProductDetailPage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 11, flexWrap: "wrap", marginBottom: 20 }}>
-                <button type="button" disabled={outOfStock} onClick={add} style={{ flex: 1, minWidth: 150, background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "14px 22px", borderRadius: 9, fontFamily: "inherit", fontSize: 14.5, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
-                  {outOfStock ? t.outOfStock : t.addToCartFull}
+                <button type="button" disabled={soldOut} onClick={() => add()} style={{ flex: 1, minWidth: 150, background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "14px 22px", borderRadius: 9, fontFamily: "inherit", fontSize: 14.5, fontWeight: 700, cursor: soldOut ? "not-allowed" : "pointer", opacity: soldOut ? 0.55 : 1 }}>
+                  {soldOut ? t.outOfStock : t.addToCartFull}
                 </button>
-                <button type="button" disabled={outOfStock} onClick={buyNow} style={{ flex: 1, minWidth: 130, background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", padding: "14px 22px", borderRadius: 9, fontFamily: "inherit", fontSize: 14.5, fontWeight: 600, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
+                <button type="button" disabled={soldOut} onClick={buyNow} style={{ flex: 1, minWidth: 130, background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", padding: "14px 22px", borderRadius: 9, fontFamily: "inherit", fontSize: 14.5, fontWeight: 600, cursor: soldOut ? "not-allowed" : "pointer", opacity: soldOut ? 0.55 : 1 }}>
                   {t.buyNow}
                 </button>
                 {/* Wishlist heart — saved items appear in Account → Wishlist. */}
@@ -376,8 +386,8 @@ export default function ProductDetailPage() {
             </div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>{money(price, currency)}</div>
           </div>
-          <button type="button" disabled={outOfStock} onClick={add} style={{ flex: "none", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "13px 26px", borderRadius: 9, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}>
-            {outOfStock ? t.outOfStock : t.addToCartFull}
+          <button type="button" disabled={soldOut} onClick={() => add()} style={{ flex: "none", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "13px 26px", borderRadius: 9, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: soldOut ? "not-allowed" : "pointer", opacity: soldOut ? 0.55 : 1 }}>
+            {soldOut ? t.outOfStock : t.addToCartFull}
           </button>
         </div>
       ) : null}

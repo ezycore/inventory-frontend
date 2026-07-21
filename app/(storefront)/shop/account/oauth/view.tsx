@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import { storefrontApi } from "@/lib/storefront-client";
 import { storeHref } from "@/lib/storefront-links";
 import { useShopperStore } from "@/services/stores/use-shopper-store";

@@ -22,9 +22,9 @@ every store; **the host picks the store**.
 > **Paired backend skills — the server rules are NOT duplicated here.** The shopper→order→confirm→Sale
 > pipeline (Shopper ≠ Customer), coupons/campaigns, and the custom-domain lifecycle are owned by the
 > backend:
-> [`storefront-orders`](../../../../easystock-backend/.claude/skills/storefront-orders/SKILL.md),
-> [`promotions-coupons`](../../../../easystock-backend/.claude/skills/promotions-coupons/SKILL.md),
-> [`custom-domains`](../../../../easystock-backend/.claude/skills/custom-domains/SKILL.md). This file is
+> [`storefront-orders`](../../../../inventory-backend/.claude/skills/storefront-orders/SKILL.md),
+> [`promotions-coupons`](../../../../inventory-backend/.claude/skills/promotions-coupons/SKILL.md),
+> [`custom-domains`](../../../../inventory-backend/.claude/skills/custom-domains/SKILL.md). This file is
 > the frontend + architecture map; read those before changing anything that crosses the wire.
 
 ## Dev environment
@@ -59,13 +59,20 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   (use `--muted` or `color-mix(... , var(--text))` for accents that must survive both themes).
 - **Icons**: `components/storefront/sf-icons.tsx` (`<Icon name=… />`, stroke, currentColor).
   Add paths there; do not import lucide into storefront components.
+- **Toasts**: import `toast` from `lib/storefront-toast.ts`, never from "sonner" directly —
+  storefront toasts render **top-center** (the bottom strip belongs to the cart-drawer
+  footer, the mobile bottom nav and the sticky buy bar; the admin's global Toaster default
+  is bottom-right). The cart drawer `toast.dismiss()`es on open (the drawer IS the
+  add-to-cart confirmation) and the PDP's Buy now doesn't toast at all.
 - **i18n**: bilingual EN/বাংলা. `lib/storefront-i18n.ts` — every string is a key in the `Dict`
   interface **plus** the `en` **plus** the `bn` object (3 places, always). Components read
   `const { t } = useStorefrontUI()`. (IDE diagnostics often flag "missing properties" mid-batch
   while editing this file — verify with a grep count, key×3, before believing them.)
 - **Templates**: per-page layout variants chosen in the admin (Customize) —
-  `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/cart/checkout
-  variant ids consumed by the views.
+  `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/checkout
+  (+ header/footer/productCard/hero) variant ids consumed by the views. `search` and `cart`
+  are retired: shoppers toggle grid/list on the search page, and Buy now always opens the
+  cart drawer.
 - **Client state (zustand, persisted)**: `services/stores/use-shopper-store.ts`
   (`easystock-shopper`: token/shopper/slug, `setAuth/setShopper/logout`),
   `use-cart-store` (slug-scoped items), `use-wishlist-store`. **Any component reading a persisted
@@ -136,18 +143,327 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   title/URL/date header-footer; whitespace lives in body padding (left/right — repeats every
   page) and `.doc` padding (top/bottom — repeats per document in bulk `.inv-page` breaks).
   Don't reintroduce `@page` margins or `window.open` printing.
-- **Footer**: variants incl. Rich (trust badges + "Follow us"). Social links are edited in
-  admin Store Settings → General → Social links card; a bare WhatsApp phone number is normalized
-  to `https://wa.me/<digits>` in `store-footer.tsx`.
+- **Footer**: `store-footer.tsx` is the slim entry (variant resolve + prop build); the bodies live in
+  `components/storefront/footer/` — `footer-pieces.tsx` (shell/brand/columns/aside/bottom-bar + the
+  `FooterColumn` model helpers `groupColumns`/`contentPagesColumn`/`footerColumns`) and
+  `footer-variants.tsx` (Columns/Rich/Simple). **Each footer group is its own auto-flowing column**
+  (`.sf-footer-*` in storefront.css: grid ≥680px, tap-to-open `<details>`-style accordions below via a
+  per-column `useState(true)` — SSR-safe, desktop heading is inert + always-open). The auto
+  **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is controlled by
+  `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy default), `title`
+  overrides the heading. Simple is a deliberately flat link row (drops group titles) but still honours
+  the show toggle. Edited in Customize → Navigation (`footer-links-card.tsx`, groups + the content-pages
+  Switch/heading) — **footer is NOT live-previewed** (only the variant is; group/content-pages edits
+  need a save + ~60s revalidate). Social links are edited in admin Store Settings → General → Social
+  links card; a bare WhatsApp phone number is normalized to `https://wa.me/<digits>` in `social-links.tsx`.
 - **Checkout**: gates in order — `!shopper` (redirect to `/account?next=/checkout`, hydration-gated),
   `!emailVerified` (VerifyEmailGate), `placed` (OrderPlacedCard), empty cart. Single-page or
   multi-step per template. Coupons validated server-side; shipping = Dhaka inside/outside zones.
+  **Merchant checkout rules (`store.checkout`, admin Settings → Checkout) are enforced on BOTH sides**
+  — `requiredFields` drive the address gates (name/phone always on; district/area forced when zone
+  shipping is on), `minOrderValue` blocks submit below the subtotal floor, `termsRequired` renders the
+  agree checkbox (submit sends `termsAccepted`), and `orderPrefix` feeds `generateOrderNumber`. The
+  backend `placeOrder` is authoritative (`TERMS_NOT_ACCEPTED` / `BELOW_MIN_ORDER` /
+  `MISSING_REQUIRED_FIELDS`); the FE gates are the preview. The delivery-address requirement moved OUT
+  of the zod validator INTO `placeOrder` (only there are store settings visible) — the schema now only
+  guarantees name/phone shape.
 - **Admin ecommerce pages** (`app/(protected)/ecommerce/*`): dashboard, orders (+detail, invoice
-  print), content, customize (theme/trust badges/templates/nav), settings (General incl. social
-  links + fulfillment location, Publish, payments/shipping/checkout tabs). Custom domains under
-  app Settings → Custom Domains.
+  print), content, customize (Theme | Templates | **Navigation** — header/footer/announcement moved
+  here 2026-07-18; `/ecommerce/navigation` is now a redirect to
+  `customize?section=navigation` and the sidebar entry is gone), catalog (products + collections),
+  settings (General incl. social links + fulfillment location, Publish, payments/shipping/checkout
+  tabs). Custom domains under app Settings → Custom Domains. List pages come in two shapes:
+  CRUD-style (coupons/campaigns/content) are `DataTable` + `filterConfig` pages whose `getAll`
+  adapters filter/paginate CLIENT-side over the full backend list; workflow-style
+  (orders/customers/catalog) hand-roll their tables but share
+  `components/ecommerce/list-search-input.tsx` (debounced 300ms, trimmed commit) and
+  `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
+  these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-07-13)
+## Work log (what was built, newest first — as of 2026-07-22)
+
+- **Compare-at precedence → highest-anchor-wins (BE)** (2026-07-22): when a campaign AND a manual
+  compare-at both apply, the price is the campaign (lowest) price and the strikethrough is now
+  `max(campaign pre-discount price, manual compareAtPrice)` — not "campaign wins, else manual". Owners
+  want the biggest legitimate saving shown (e.g. online 80 + manual "was" 120 + 20% campaign → **64 ·
+  ~~120~~**, not 64 · ~~80~~). Changed in `storefront.service.ts` `toCatalogProduct` (single; product-level
+  manual still gated `!isVariable`) and `priceVariant` (per variant) — both build an `anchors[]` and take
+  the max, still never rendering an anchor ≤ the shown price. Price/charged unchanged (still the lowest
+  campaign price; `resolveItems` unaffected). No DTO/api-types change (shape identical). Test:
+  highest-anchor case in `storefront-products.test.ts`.
+
+- **Per-variant storefront pricing overlay (variable products can discount online) (FE + BE)**
+  (2026-07-21): variants had NO storefront overlay — a variant's POS `price` was its only price, so a
+  merchant couldn't show "৳80, was ৳100" on a variable product's option (only a Campaign could). Added
+  `storefront: { onlinePrice?, compareAtPrice? }` to `VariantProductModel` (+ `Variant` type). Storefront
+  read (`storefront.service.ts` `priceVariant`): base = `v.storefront?.onlinePrice ?? v.price`, and a
+  manual per-variant `compareAtPrice` anchors the struck "was" (highest-anchor-wins vs any campaign base —
+  see the 2026-07-22 entry) — so card ("From ৳X" cheapest) AND PDP variant selector both reflect the override. `resolveItems`
+  charges `variant.storefront?.onlinePrice ?? variant.price` (shown == charged); both variant selects gained
+  `storefront`. Admin: **`GET /ecommerce/catalog/:id/variants`** (new — `catalogService.listVariantPricing`,
+  `catalogVariantDto` array: `_id/label/attributes/price/onlinePrice/compareAtPrice`) feeds the editor, and
+  `PATCH /ecommerce/catalog/:id` now accepts a **`variantPricing`** JSON array (parsed in the controller,
+  `catalogService.updateVariantPricing` bulk-writes each variant's `storefront.*` — number sets, `null`
+  `$unset`s, foreign variant → `VARIANT_NOT_FOUND`). FE: the editor (`product-online-editor.tsx`) lazily
+  loads variants for a variable product (`useCatalogVariants`, gated on type) and renders an editable
+  per-variant row (online price + compare-at) via the extracted
+  `components/ecommerce/catalog/variant-pricing-fields.tsx` — replaces last pass's read-only range. The
+  **product-level** compare-at manual fallback stays gated `!isVariable` (variable uses per-variant), so
+  nothing double-applies. Tests: variant read (`storefront-products.test.ts`), charged==shown order
+  (`storefront-order.service.test.ts`), list/set/clear/foreign-variant (`catalog.service.test.ts`).
+  OpenAPI + `types/api-generated.ts` regenerated (new `CatalogVariant` schema + `variantPricing` request).
+
+- **Catalog online-listing editor fields were half-dead → now wired to the storefront (FE + BE)**
+  (2026-07-21): the per-product **Online listing** editor (`components/ecommerce/catalog/
+  product-online-editor.tsx`, opened from the Catalog → Products table) saved 12 fields but **6 did
+  nothing on the storefront** — `toCatalogProduct` returned the POS `name`/`slug`, compare-at came
+  only from campaigns, and `outOfStockBehavior`/`seo`/`onlineTitle`/`slug` had zero read consumers.
+  Wired end to end in `storefront.service.ts`: **onlineTitle** overrides the card/PDP name,
+  **storefront.slug** overrides the URL (`getProductBySlug` matches it via `$or`, base slug still
+  resolves — old links keep working), **manual compareAtPrice** renders as the strikethrough "was"
+  price when no campaign supplies one and it's genuinely higher, **seo.title/description** ride the
+  payload and drive the PDP `<title>`/meta (`app/(storefront)/.../products/[productSlug]/page.tsx`).
+  **outOfStockBehavior** is real now: **"hide"** drops a product from listings + 404s its page once
+  live stock is 0 (`listProducts` routes hide-stores through `listProductsComputed`, which already
+  prices/counts in memory so pagination totals stay correct; `getProductBySlug` 404s), and
+  **"backorder"** keeps the buy button live past zero stock (FE `view.tsx` + `product-card.tsx` gate on
+  a new `soldOut = outOfStock && !canBackorder`; `maxQty<=0` = uncapped in `use-cart-store`; i18n
+  `backorder` ×3). **Backorder is capture-only by design** — `resolveItems` lets the order be placed
+  past on-hand stock but the order sits `pending`; confirm→`reserveStock` and commit→`createSale` stay
+  the ≥0 guard, so the merchant reserves/ships once restocked (no invariant broken). Also fixed the
+  **can't-clear bug**: the editor only ever `$set` fields, so an emptied value never cleared — now it
+  sends `clearFields` (JSON) that the catalog service `$unset`s, and a **slug-uniqueness guard**
+  (`SLUG_IN_USE`) rejects a storefront slug already used by another product. Contract: `storefront.dto`
+  gained `seo` + `outOfStockBehavior` (else `respondFor` strips them); `catalog.validator`/controller
+  gained `clearFields`. **Variable products** price PER VARIANT (`VariantProductModel.price` — there is
+  NO per-variant storefront overlay; the variant's POS price IS its online price, campaign-adjusted),
+  so the product-level **Online price is inert** for them (`cardPrice` never reads `storefront.onlinePrice`
+  for VARIABLE) and the manual **compare-at is now gated `!isVariable`** in `toCatalogProduct` (card +
+  PDP stay consistent — both per-variant). The catalog editor hides the Online price / Compare-at inputs
+  for a variable product and shows the read-only variant price range + a "set prices in the variant
+  manager" note (`product-online-editor.tsx`), and `save()` never writes/clears those fields for it.
+  The OTHER overlay fields (title/slug/description/SEO/gallery/hide/backorder/weight) are product-level
+  and DO apply to variable products (hide uses summed stock; backorder applies to every variant line).
+  Tests: `storefront-products.test.ts` (7, new — incl. the variable per-variant pricing case) +
+  backorder ×2 in `storefront-order.service.test.ts` + clear/slug ×2 in `catalog.service.test.ts`.
+  OpenAPI + `types/api-generated.ts` regenerated.
+
+- **Checkout settings were dead → now enforced (FE + BE)** (2026-07-21): all four admin
+  Settings → Checkout controls (`termsRequired`, `requiredFields`, `minOrderValue`, `orderPrefix`)
+  saved + round-tripped but were consumed by **nothing** — the checkout view hardcoded its field gates,
+  `placeOrder` never checked terms/min/fields, and `generateOrderNumber` hardcoded `ORD-`. Wired end to
+  end: FE checkout view (`app/(storefront)/shop/checkout/view.tsx`) now drives `contactComplete`/
+  `deliveryComplete` from `store.checkout.requiredFields` (name/phone always required; district+area
+  forced when zone shipping is on), blocks submit below `minOrderValue` with a notice, and renders an
+  "agree to terms" checkbox when `termsRequired` (submit sends `termsAccepted`). `StoreInfo.checkout`
+  gained `requiredFields`; `PlaceOrderInput` gained `termsAccepted` (`lib/storefront-client.ts`); i18n
+  +2 keys ×3 (`agreeToTerms`, `minOrderNotice`). Admin locks name/phone as always-required
+  (`ecommerce/settings/page.tsx` `CheckoutTab`). BE: `placeOrder` enforces all three rules
+  (`TERMS_NOT_ACCEPTED` / `BELOW_MIN_ORDER` / `MISSING_REQUIRED_FIELDS`) and threads `orderPrefix` into
+  `generateOrderNumber(orgId, prefix)`; `PlaceOrderDto` + `placeOrderSchema` gained `termsAccepted`; the
+  delivery-address requirement moved from the validator's `superRefine` into the service (only there can
+  it read per-store `requiredFields`). Tests: 5 new cases in `storefront-order.service.test.ts`.
+  **Terms link → a CMS page**: `checkout.termsPageSlug` (new across model/validator/types/organization
+  DTO + FE `StoreInfo.checkout`/`StorefrontCheckout`) picks which content page the "terms & conditions"
+  link opens. Resolution in the checkout view: explicit `termsPageSlug` (if it still resolves against
+  `useStorePages`) → else a published page slugged like `terms` (`/^terms($|-)|^tos$|conditions$/i`) →
+  else **plain text, no dead link**. i18n `agreeToTerms` became a `{terms}` template + `termsLinkLabel`
+  (so only the terms phrase links, word-order-safe for bn); the `<a>` sits inside the `<label>` — clicking
+  an interactive descendant of a label doesn't toggle its checkbox (HTML spec). Admin Checkout tab shows a
+  "Terms page" `SimpleSelect` (published pages; `__auto` sentinel = auto-detect) only when the toggle is on.
+  **`termsAccepted` (new field on `POST /storefront/{slug}/orders`, generated from the validator) AND the
+  admin `checkout.termsPageSlug` DTO change mean backend OpenAPI + FE `api-generated.ts` were regenerated.**
+
+- **Footer → groups-as-columns + controllable content-pages** (2026-07-21): the Columns/Rich footer
+  used a fixed `2fr 1fr 1fr` grid that stacked EVERY merchant group inside one middle cell (adding a
+  group made that column taller, never wider) and always rendered the auto "Information" block with no
+  way to hide it. Rebuilt: each `nav.footer` group is now its own auto-flowing column (`.sf-footer-*`,
+  grid ≥680px / accordions below), and a new **`nav.footerContentPages { show?, title? }`** setting hides
+  or renames the content-pages column. Absent ⇒ shown with the built-in "Information" heading (legacy
+  behaviour preserved). Contract added across BE (types + validator `navSchema` + model `nav` block +
+  admin `storefrontSettingsDto.nav`; public `storeInfoDto` keeps `nav: z.unknown()` passthrough, so no
+  public-DTO change) and FE (`StorefrontNav`/`StoreNav`). `store-footer.tsx` (was ~330 lines) split into
+  `components/storefront/footer/{footer-pieces,footer-variants}.tsx`. Simple footer stays a flat link row
+  (drops titles by design) but now honours the show toggle. Admin: Customize → Navigation
+  `footer-links-card.tsx` gained the content-pages Switch + heading input, wired through
+  `navigation-section.tsx`'s wholesale `nav` save. Mobile groups collapse to `useState`-driven
+  accordions (SSR-safe: render open, no hydration flash; desktop heading inert + always-open via CSS
+  `!important`). **Footer still isn't live-previewed** — only the variant streams; group/content-pages
+  edits need a save. BE DTO round-trip test extended (`organization.dto.test.ts`). Dead `--footcols` var
+  removed. `verify:api-types` needs a regen (admin DTO changed). Approved design sample:
+  claude.ai/code/artifact/49d51fad-2a9d-4302-b686-d298f621f67e.
+
+- **Announcement bar → richer + live-previewed** (2026-07-20): the Customize → Navigation
+  announcement bar gained `textColor` (blank ⇒ auto `readableTextOn(bgColor)` — the old sole
+  behaviour), `icon` (leading emoji), `ctaLabel` (explicit button vs whole-bar link), `dismissible`,
+  `size` (sm|md|lg), **and a background image** — `bgImage` (uploadInfo) + `overlay` colour +
+  `overlayOpacity` (0–100) + `bgFit` (`cover` photo | `tile` pattern), for festival/seasonal strips
+  (Halloween/Eid/Black Friday). All added across the 5 contract layers (BE model + validator +
+  `storefront-settings.types` + admin `storefrontSettingsDto`; the public `storeInfoDto` keeps
+  `nav: z.unknown()` so new fields pass through untouched). FE reads the hand-written types
+  (`StorefrontAnnouncement` in `types/index.ts`, `StoreAnnouncement` extracted in
+  `storefront-client.ts`) — `api-generated.ts` isn't consumed here, but the BE DTO change means
+  `verify:api-types` needs a regen. Render extracted from `store-shell.tsx` into
+  `components/storefront/announcement-bar.tsx` (icon + CTA + size + auto/explicit fg + bg image with a
+  readability overlay layer, fg defaults white over an image; dismiss via the `close` sf-icon,
+  persists per-device as `sf-ann-{slug}` keyed to `text|link` so a changed message re-shows, disabled
+  while the preview is active). Reuses `HeroCtaLink` — which also **fixed a latent bug**: the old
+  inline announcement link ignored `base`, breaking `/products` on `{slug}.domain/shop` hosts.
+  Image upload reuses the shared `MediaField` + a new `announcement-bg-field.tsx`, and the
+  hero-slide image uploader was **generalised** to `useUploadStorefrontImage` / `uploadStorefrontImage`
+  (same `POST …/media/hero-slide` route; the BE validator's `slideImageSchema` → shared
+  `storefrontImageSchema`); the settings PATCH now cleans up a dropped/replaced announcement image
+  the same way it does dropped hero slides. **Live preview**: the announcement draft was lifted from
+  `NavigationSection` up to `CustomizeWorkspace` and streams via the postMessage bridge
+  (`nav.announcement` in the payload → `use-sf-preview-store` `announcement` → `preview-bridge` →
+  `store-shell` prefers the override) — the bar was previously edited blind (footer still is). i18n
+  +1 key ×3 (`dismiss`). Both repos typecheck clean.
+
+- **Header search → in-place typeahead** (2026-07-20): the header "search bar" used to be a
+  button styled as an input that navigated to `/search` on click (the field never took a
+  keystroke). Replaced with a real typeahead: focus shows recent searches (localStorage
+  `sf-recent-{slug}`, ≤5, with Clear) + top category chips; typing (debounced 300ms) shows the
+  top 6 matches (thumb, highlighted match, campaign-aware price w/ strike, OOS badge, category
+  subtitle) with `↑↓`/`Enter`/`Esc` keyboard nav. `Enter`/"Show N results" still land on the
+  existing `/search?q=` page (unchanged; it already reads `?q`). One controller hook
+  `services/storefront/use-header-search.ts` (query + debounced `useStoreProducts(slug,{q,limit:6})`
+  — same hook/cache as the search page, **no backend change** — recents, keyboard) + one panel
+  `components/storefront/header-search-panel.tsx`, driving three anchors in
+  `components/storefront/header-search.tsx`: `HeaderSearchBar` (classic: focus-opens a popover),
+  `HeaderSearchIcon` (minimal/centered: the icon expands a full-width layer under the sticky
+  header — anchored via a `display:contents` wrapper so the layer resolves against the header),
+  `HeaderSearchMobile` (mobile: full-screen takeover sheet, body-scroll locked). The header never
+  unmounts across routes, so the controller **clears the input on any navigation off the /search
+  page** (`usePathname` vs `storeHref(base,"/search")`) — otherwise a committed term lingered in
+  the box on Home/product/category pages; the /search page keeps the term (matches its own input).
+  The typeahead fetch is gated on the panel being `open` (passed into the hook) so a retained term
+  never fires a background request. `goSearch`
+  retired from `use-cart-nav.ts` (`useCartNav(slug)` now). Styling = new `.sf-search-*` classes in
+  `storefront.css` (focus ring, pop-in, sheet fade, row/chip hover; reduced-motion aware). i18n
+  +2 keys ×3 (`recentSearches`, `categoriesLabel`); reuses `showResults`/`noResults`/
+  `viewAllProducts`/`cancelEdit`/`clearAll`. Approved design sample:
+  claude.ai/code/artifact/c3361a6f-2d0c-4cff-a452-5e9f95886e15.
+
+- **Product-list filters + public brand facet** (2026-07-19): the shop `/products` page gained a
+  full filter system — Category · Brand · Price range · "In stock only" — plus server-side sort
+  (Featured/Newest/Price ↑↓), removable active-filter chips, and a Filters button with an
+  active-count badge. One `FilterPanel` (`components/storefront/filter-panel.tsx`), two homes:
+  inline aside on the Sidebar collection template (≥680px) and a LEFT `SideDrawer` everywhere
+  else (grid templates at all sizes + sidebar mobile). **`SideDrawer`**
+  (`components/storefront/side-drawer.tsx`) is the cart drawer's shell extracted (scrim + panel +
+  pinned header/footer, Esc closes; cart drawer now renders through it) — never hand-roll a
+  storefront drawer. It animates via `.sf-drawer*` classes in storefront.css (slide + scrim fade,
+  reduced-motion aware); the component stays mounted through the exit transition, so callers pass
+  `open` straight through (no early-return-null around it). Chips/Filters-button live in
+  `filter-toolbar.tsx`; sort uses **`SfSelect`** (`components/storefront/sf-select.tsx`) — the
+  storefront-native dropdown (button trigger + popover listbox, keyboard + outside-click), sharing
+  its menu card/row styles with the checkout Combobox via `menu-styles.ts`. Use it over a bare
+  `<select>` (OS picker, unthemed) and over the admin Radix `SimpleSelect` (Tailwind tokens). Everything is
+  URL-driven — `?brandId=&minPrice=&maxPrice=&inStock=1&sort=` extends the `?categoryId=`
+  pattern; filters apply instantly (no staged Apply) and a brand-only filter makes `/products`
+  that brand's landing page (h1 = brand name). BE: public `GET /:slug/brands` (auto-curated:
+  active, non-`isDefault`, ≥1 listed active product; productCount, alphabetical) and
+  `listProducts` grew the params. **Price bounds / price sorts / inStock take a computed path**
+  (`listProductsComputed`): displayed price (campaign-priced; variable = cheapest variant via the
+  extracted `cardPrice`) and availability don't live in the products collection, so the service
+  prices every match from a skinny projection, filters/sorts in memory, then hydrates just the
+  page — pagination totals stay correct. Tests: `storefront-brands.test.ts` (8) + brands in the
+  DTO contract test. i18n +11 keys ×3. OpenAPI + `types/api-generated.ts` regenerated. Parked
+  (approved design, artifact `fff70e82`): homepage "Shop by brand" strip + PDP brand line —
+  both cheap now that `/brands` exists.
+
+- **Ecommerce list-page dedup** (2026-07-19): orders/customers/catalog now share
+  `components/ecommerce/list-search-input.tsx` + `list-pagination.tsx` (see Admin ecommerce
+  pages above). Catalog gained the previously missing search debounce (it used to fetch per
+  keystroke) and dropped its awkward `DataCardPagination` shim. Deleted the never-imported
+  DataTable leftovers in the orders component folder (columns / filter-config / barrel index) —
+  the orders page ships its own `OrderRow` table, so that wiring was dead code.
+
+- **Storefront toasts → top-center + drawer dedup** (2026-07-19): "Added to cart" used to
+  land bottom-right ON TOP of the cart drawer's footer CTAs (global root-layout Sonner).
+  New `lib/storefront-toast.ts` wrapper (per-toast `position: "top-center"`, sonner 2.x)
+  adopted by all 16 storefront toast call sites; drawer dismisses in-flight toasts on open;
+  PDP `add(notify)` flag lets Buy now skip the toast (the drawer is the confirmation).
+
+- **Cart template retired → Buy now always opens the drawer** (2026-07-19): `templates.cart`
+  removed end-to-end (same sweep as `templates.search` below: FE resolver/client/types +
+  admin card + seed `delete seed.cart`; BE model/validator/types/DTO; OpenAPI +
+  `api-generated.ts` regenerated). The only thing it ever controlled was where the PDP's
+  Buy now landed (drawer vs /cart page) — the /cart page itself never varied and the header
+  cart icon already always opened the drawer. Buy now now opens the drawer unconditionally
+  (`products/[productSlug]/view.tsx` `buyNow`); /cart stays reachable via the drawer's
+  "View cart". CDP-verified: Buy now keeps the PDP url and the drawer opens with Checkout.
+
+- **Search-results template retired → shopper grid/list toggle** (2026-07-19): the admin
+  Templates "Search results" card is gone and `templates.search` was removed end-to-end
+  (FE `storefront-templates.ts` / `storefront-client.ts` / `types/index.ts`, admin seed
+  `delete seed.search`; BE model + validator + types + organization DTO; OpenAPI and
+  `types/api-generated.ts` regenerated). The shop `/search` page now owns the choice: a
+  grid ⇄ list segmented toggle on the results row, persisted per device as
+  `sf-search-view` (applied post-mount so the first client render matches SSR), new
+  `list` icon in `sf-icons.tsx`, `gridView`/`listView` i18n keys ×3. Old saved
+  `templates.search` values are harmless — zod strips unknown keys on PATCH.
+
+- **Customize rail width toggle** (2026-07-18): the left rail expands 380↔560px via a
+  ⇔ icon button beside the section tabs (lg-only, per-visit state, grid-template-columns
+  animated; panels opened while wide inherit the width). Chosen over a drag resizer and a
+  hide-preview button after an interactive options mock
+  (claude.ai/code/artifact/c994f91d-82e3-4ab5-bc70-775c5ac62d0f) — hide-preview was
+  rejected because it kills the live edit-see loop the page exists for.
+
+- **Theme rail redesign (settings-list accordion) + logo inheritance** (2026-07-18):
+  Customize → Theme's six stacked cards became ONE surface in `components/ecommerce/theme/`:
+  `theme-section.tsx` (container: accordion state, dirty flag, save; slides group inline) +
+  `theme-group.tsx` (collapsible row primitive: icon chip / title / live one-line summary) +
+  `theme-capsule.tsx` (pinned mini-storefront strip repainting with the brand/accent draft) +
+  `preset-group.tsx` (presets as mini storefront previews) + `colors-group.tsx` (pickers +
+  light/dark **contrast check** strip) + `media-field.tsx` (`MediaField` moved out of the
+  page; uploads still save instantly) + `footer-group.tsx` (footer © text + trust badges,
+  icon picker now a Popover; exports `DEFAULT_BADGES`) + `banner-hero-fields.tsx` (ex
+  `banner-hero-card.tsx` minus the Card wrapper; still exports `cleanHeroBanner`).
+  Groups: Preset · Brand colors · Logo · Hero slides · **Banner hero** (image + copy in one
+  group — they compose one storefront card) · Footer. **Store logo inherits the org logo**:
+  `getStoreInfo` serves `s.logo ?? org.logo` (BE), so merchants upload once in org settings;
+  the Logo group shows the inherited mark ("Using your organization logo") and an upload
+  there is a store-only override (remove ⇒ back to inherited). Save payload, props from
+  CustomizeWorkspace, and preview streaming unchanged; sticky save bar shows an amber
+  "Unsaved changes" dot (media uploads don't trip it). Approved sample:
+  claude.ai/code/artifact/8b213c7c-35d0-4ac1-afd6-495c2b3b11b6.
+
+- **Editable banner-hero copy (`heroBanner`)** (2026-07-18): the static banner hero's
+  badge/title/subtitle and its two buttons (labels + links) are merchant-editable.
+  `StorefrontSettings.heroBanner` (BE model/validator/organization+storefront DTOs +
+  `getStoreInfo` payload; all fields optional) → FE `StoreHeroBanner`
+  (`lib/storefront-client.ts`) / `StorefrontHeroBanner` (`types/index.ts`). Classic +
+  Hero Split fall back **per-field** to the built-in bilingual copy (`hb?.x || t.x`);
+  a custom badge also beats the live campaign badge; Hero Split renders the badge as
+  its uppercase kicker; Minimal's typographic hero is deliberately untouched. Buttons
+  render through the shared `HeroCtaLink` (`home-shared.tsx` — full URL = new tab,
+  else `storeHref(base, …)`, empty = `/products`; the carousel's `SlideCta` now uses
+  it too). Admin: Customize → Theme → **"Banner hero"** group
+  (`components/ecommerce/theme/banner-hero-fields.tsx`; placeholders = the standard EN
+  copy; saved by Save theme via `cleanHeroBanner` — blank field ⇒ built-in copy, so custom
+  text replaces BOTH languages as-is); preview store + bridge stream `heroBanner`.
+
+- **Explicit header-menu source + Navigation folded into Customize** (2026-07-18): the store
+  header's top links used to be an invisible either/or (custom menu wins if non-empty, else raw
+  categories). Now `templates.headerMenu: "collections" | "custom"` — resolved via
+  `resolveHeaderMenu` (`lib/storefront-templates.ts`, tested): **unset = legacy fallback**
+  (non-empty `nav.header` → custom) so old stores' headers don't silently change; never default it
+  to "collections" blindly. `nav.header` items support **`type: "collections"`** — a block that
+  expands inline to the listed collections via `expandHeaderMenu` (`header-nav.tsx`, tested),
+  applied ONCE where `ctx.headerMenu` is built in `store-header.tsx` (covers all variants +
+  preview; expanded links are id-based `/products?categoryId=` so slugless cats work). Admin:
+  Customize gains a **Navigation** section (`components/ecommerce/navigation/*` — navigation-section,
+  header-menu-card w/ source picker, menu-item-fields, announcement-card, footer-links-card) and a
+  **CollectionsPanel** rail takeover (`components/ecommerce/collections/*`; HeroSlidesPanel
+  pattern — draft + snapshot Cancel, diff-based save; while open the preview forces
+  `headerMenuSrc="collections"`). Shared `CollectionRow`+`toRowValue` also drive Catalog →
+  Collections (kept, instant-save, with a state-aware banner cross-linking
+  `customize?section=navigation`). Preview bridge streams `templates.headerMenu`, `nav.header`,
+  and draft `collections` (listed-only, `displayName||name`, real ids — mirror of public
+  `GET /:slug/categories`); `store-home.tsx` re-attaches category images to the draft by id.
+  Customize reads `?section=` (Suspense-wrapped `useSearchParams`).
 
 - **Dynamic custom-domain → store routing** (2026-07-13): closed the gap between Settings →
   Domains and the storefront proxy. BE: `GET /api/public/store-by-host?host=` in
@@ -249,6 +565,11 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   QA: detect flashes with a rAF frame-scanner injected via `Page.addScriptToEvaluateOnNewDocument`
   (MutationObserver misses them) + a guest control run to prove the detector fires.
 - **`json.error` not `json.message`** is where backend error text lives.
+- **The settings PATCH replaces `templates` (and every provided sub-field) WHOLESALE** —
+  `updateSettings` is a shallow `Object.assign`. Any admin section saving one key inside
+  `templates` must spread the saved object first (`{ ...settings.templates, headerMenu }`), and
+  `TemplatesSection` seeds its draft from the full saved object for the same reason. Sending a
+  partial `templates` silently wipes the other sections' choices — this nearly shipped twice.
 - **OAuth callback route order** (before `/:slug`), and same-document hash navigation does NOT
   remount the oauth landing page — QA must full-navigate.
 - **Store payload is cached** (~60s revalidate + 5-min client staleTime) — settings changes lag.

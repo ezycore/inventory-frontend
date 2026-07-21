@@ -3,7 +3,10 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  ChevronsLeftRight,
+  ChevronsRightLeft,
   ExternalLink,
+  Loader2,
   Lock,
   Monitor,
   RotateCw,
@@ -12,35 +15,35 @@ import {
 import {
   useGetStorefrontSettings,
   useStorefrontCollections,
-  useUpdateStorefrontMedia,
   useUpdateStorefrontSettings,
 } from "@/services/api";
-import { THEME_PRESETS, getPreset } from "@/lib/storefront-theme";
+import { getPreset } from "@/lib/storefront-theme";
 import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import type { HeaderMenuSource } from "@/lib/storefront-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { storefrontUrl } from "@/lib/storefront-url";
 import type {
+  StorefrontHeroBanner,
   StorefrontHeroSlide,
   StorefrontMenuItem,
   StorefrontSettings,
   StorefrontTrustBadge,
 } from "@/types";
+import { cleanHeroBanner } from "@/components/ecommerce/theme/banner-hero-fields";
+import { DEFAULT_BADGES } from "@/components/ecommerce/theme/footer-group";
+import { ThemeSection } from "@/components/ecommerce/theme/theme-section";
 import {
   toRowValue,
   type CollectionRowValue,
 } from "@/components/ecommerce/collections/collection-row";
 import { CollectionsPanel } from "@/components/ecommerce/collections/collections-panel";
 import { NavigationSection } from "@/components/ecommerce/navigation/navigation-section";
+import type { AnnouncementDraft } from "@/components/ecommerce/navigation/announcement-card";
 import { HeroSlidesPanel } from "@/components/ecommerce/hero-slides-panel";
-import { SlideThumb } from "@/components/ecommerce/slide-thumb";
 import { HomeTemplateBlock } from "@/components/ecommerce/home-template-block";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
-import { Input } from "@/ui/components/input";
-import { Label } from "@/ui/components/label";
-import { Icon as SfIcon, type IconName } from "@/components/storefront/sf-icons";
 
 type Option = { label: string; value: string };
 type SectionId = "theme" | "templates" | "navigation";
@@ -49,29 +52,6 @@ const SECTIONS: { id: SectionId; label: string }[] = [
   { id: "theme", label: "Theme" },
   { id: "templates", label: "Templates" },
   { id: "navigation", label: "Navigation" },
-];
-
-// Trust-badge editor (Rich footer). Rows seed empty with these defaults as
-// placeholders/icons; unset rows fall back to the storefront's localized copy.
-const BADGE_ICON_CHOICES: IconName[] = [
-  "shield",
-  "truck",
-  "coins",
-  "check",
-  "star",
-  "tag",
-  "heart",
-  "clock",
-];
-const DEFAULT_BADGES: StorefrontTrustBadge[] = [
-  { text: "", icon: "shield" },
-  { text: "", icon: "truck" },
-  { text: "", icon: "coins" },
-];
-const BADGE_PLACEHOLDERS = [
-  "100% authentic",
-  "Same-day delivery",
-  "Cash on delivery",
 ];
 
 export default function CustomizePage() {
@@ -87,13 +67,21 @@ export default function CustomizePage() {
         </p>
       </div>
       {isLoading || !settings ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <PageLoader />
       ) : (
         // useSearchParams (section deep-link) needs a boundary to render.
-        <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+        <Suspense fallback={<PageLoader />}>
           <CustomizeWorkspace settings={settings} />
         </Suspense>
       )}
+    </div>
+  );
+}
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-40 items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
 }
@@ -142,9 +130,16 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [heroSlides, setHeroSlides] = useState<StorefrontHeroSlide[]>(
     () => settings.heroSlides ?? [],
   );
+  // Static banner-hero copy overrides (empty fields → built-in storefront copy).
+  const [heroBanner, setHeroBanner] = useState<StorefrontHeroBanner>(
+    () => settings.heroBanner ?? {},
+  );
   // Edit-in-place panels: each takes over the left rail (preview stays live).
   const [slidesPanelOpen, setSlidesPanelOpen] = useState(false);
   const [collectionsPanelOpen, setCollectionsPanelOpen] = useState(false);
+  // Wide mode gives form-heavy editing (nav menu URLs, hero copy, panel rows)
+  // a 560px rail instead of 380 — toggled beside the section tabs, lg-only.
+  const [railWide, setRailWide] = useState(false);
 
   // Navigation draft (preview-relevant half — the section owns footer/announcement).
   const [headerMenuSrc, setHeaderMenuSrc] = useState<HeaderMenuSource>(() =>
@@ -152,6 +147,30 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   );
   const [navHeader, setNavHeader] = useState<StorefrontMenuItem[]>(
     () => settings.nav?.header ?? [],
+  );
+  // Announcement bar draft (lifted so the preview repaints as it's edited).
+  const [announcement, setAnnouncement] = useState<AnnouncementDraft>(() => {
+    const a = settings.nav?.announcement;
+    return {
+      enabled: a?.enabled ?? false,
+      text: a?.text ?? "",
+      link: a?.link ?? "",
+      bgColor: a?.bgColor ?? "#2563eb",
+      textColor: a?.textColor ?? "",
+      icon: a?.icon ?? "",
+      ctaLabel: a?.ctaLabel ?? "",
+      dismissible: a?.dismissible ?? false,
+      size: a?.size ?? "sm",
+      bgImage: a?.bgImage ?? null,
+      overlay: a?.overlay ?? "#000000",
+      overlayOpacity: a?.overlayOpacity ?? 40,
+      bgFit: a?.bgFit ?? "cover",
+    };
+  });
+  const patchAnnouncement = useCallback(
+    (patch: Partial<AnnouncementDraft>) =>
+      setAnnouncement((a) => ({ ...a, ...patch })),
+    [],
   );
 
   // Collections are Category docs, not settings — fetched here so the draft can
@@ -171,7 +190,14 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const collectionsDraft = collections ?? [];
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
+    <div
+      className={cn(
+        "grid items-start gap-6 motion-safe:transition-[grid-template-columns] motion-safe:duration-300",
+        railWide
+          ? "lg:grid-cols-[560px_minmax(0,1fr)]"
+          : "lg:grid-cols-[380px_minmax(0,1fr)]",
+      )}
+    >
       {/* LEFT — fixed-height sticky rail (matches the preview column): content
           scrolls INSIDE it and each mode fills the same frame, so the slides
           panel takeover never changes the column height (no layout blink). */}
@@ -205,6 +231,20 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
               {s.label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setRailWide((w) => !w)}
+            aria-pressed={railWide}
+            aria-label={railWide ? "Narrow controls" : "Widen controls"}
+            title={railWide ? "Narrow controls" : "Widen controls"}
+            className="hidden flex-none items-center justify-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground hover:shadow-sm lg:flex"
+          >
+            {railWide ? (
+              <ChevronsRightLeft className="h-4 w-4" />
+            ) : (
+              <ChevronsLeftRight className="h-4 w-4" />
+            )}
+          </button>
         </div>
 
         {section === "theme" ? (
@@ -217,6 +257,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             badges={badges}
             setBadges={setBadges}
             heroSlides={heroSlides}
+            heroBanner={heroBanner}
+            setHeroBanner={setHeroBanner}
             onManageSlides={() => setSlidesPanelOpen(true)}
           />
         ) : section === "templates" ? (
@@ -237,6 +279,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setSource={setHeaderMenuSrc}
             header={navHeader}
             setHeader={setNavHeader}
+            announcement={announcement}
+            setAnnouncement={patchAnnouncement}
             collections={collectionsDraft}
             onManageCollections={() => setCollectionsPanelOpen(true)}
           />
@@ -257,6 +301,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           cardStyle={cardStyle}
           badges={badges}
           heroSlides={heroSlides}
+          heroBanner={heroBanner}
           // While editing slides, always preview the carousel so edits are
           // visible even if the hero-source switch is on "banner".
           heroSrc={slidesPanelOpen ? "slides" : heroSrc}
@@ -264,241 +309,9 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           // reordering is visible even if the source is set to a custom menu.
           headerMenuSrc={collectionsPanelOpen ? "collections" : headerMenuSrc}
           navHeader={navHeader}
+          announcement={announcement}
           collections={collectionsDraft}
         />
-      </div>
-    </div>
-  );
-}
-
-/* --------------------------------- Theme ---------------------------------- */
-
-function ThemeSection({
-  settings,
-  brandColor,
-  accentColor,
-  setBrandColor,
-  setAccentColor,
-  badges,
-  setBadges,
-  heroSlides,
-  onManageSlides,
-}: {
-  settings: StorefrontSettings;
-  brandColor: string;
-  accentColor: string;
-  setBrandColor: (v: string) => void;
-  setAccentColor: (v: string) => void;
-  badges: StorefrontTrustBadge[];
-  setBadges: (v: StorefrontTrustBadge[]) => void;
-  heroSlides: StorefrontHeroSlide[];
-  onManageSlides: () => void;
-}) {
-  const save = useUpdateStorefrontSettings();
-  const media = useUpdateStorefrontMedia();
-  const logoInput = useRef<HTMLInputElement>(null);
-  const bannerInput = useRef<HTMLInputElement>(null);
-
-  const t = settings.theme ?? {};
-  const [preset, setPreset] = useState(t.preset ?? "default");
-  const [footerText, setFooterText] = useState(t.footerText ?? "");
-
-  const pickPreset = (id: string) => {
-    setPreset(id);
-    const def = getPreset(id);
-    setBrandColor(def.brandColor);
-    setAccentColor(def.accentColor);
-  };
-
-  const setBadge = (i: number, patch: Partial<StorefrontTrustBadge>) =>
-    setBadges(badges.map((b, idx) => (idx === i ? { ...b, ...patch } : b)));
-
-  const submit = () => {
-    save.mutate({
-      theme: {
-        preset,
-        brandColor,
-        accentColor,
-        footerText: footerText.trim() || undefined,
-      },
-      // Keep all three slots (empty = default) so positions survive a reload.
-      // (Hero slides save from their own panel, not here.)
-      trustBadges: badges.map((b) => ({ text: b.text.trim(), icon: b.icon })),
-    });
-  };
-
-  const uploadMedia = (field: "logo" | "banner", file: File) => {
-    const fd = new FormData();
-    fd.append(field, file);
-    media.mutate(fd);
-  };
-
-  const removeMedia = (field: "logo" | "banner") => {
-    const fd = new FormData();
-    fd.append(field === "logo" ? "removeLogo" : "removeBanner", "true");
-    media.mutate(fd);
-  };
-
-  return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <div className="min-h-0 flex-1 space-y-5 lg:overflow-y-auto lg:pr-1">
-      {/* Preset */}
-      <Card className="p-5 shadow-none">
-        <h3 className="mb-1 text-sm font-semibold">Preset</h3>
-        <p className="mb-3 text-xs text-muted-foreground">
-          A one-click baseline. You can still fine-tune colors below.
-        </p>
-        <div className="flex flex-wrap gap-2.5">
-          {THEME_PRESETS.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => pickPreset(p.id)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
-                preset === p.id
-                  ? "border-primary ring-2 ring-primary/30"
-                  : "hover:bg-muted/50",
-              )}
-            >
-              <span className="flex">
-                <span
-                  className="h-5 w-5 rounded-full border"
-                  style={{ backgroundColor: p.brandColor }}
-                />
-                <span
-                  className="-ml-1.5 h-5 w-5 rounded-full border"
-                  style={{ backgroundColor: p.accentColor }}
-                />
-              </span>
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      {/* Branding */}
-      <Card className="space-y-4 p-5 shadow-none">
-        <h3 className="text-sm font-semibold">Branding</h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <ColorField
-            label="Brand color"
-            value={brandColor}
-            onChange={setBrandColor}
-          />
-          <ColorField
-            label="Accent color"
-            value={accentColor}
-            onChange={setAccentColor}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Footer text</Label>
-          <Input
-            value={footerText}
-            onChange={(e) => setFooterText(e.target.value)}
-            maxLength={280}
-            placeholder="© Your store. All rights reserved."
-          />
-        </div>
-      </Card>
-
-      {/* Logo + banner */}
-      <Card className="space-y-4 p-5 shadow-none">
-        <h3 className="text-sm font-semibold">Logo &amp; banner</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <MediaField
-            label="Logo"
-            url={settings.logo?.thumbnailUrl || settings.logo?.url}
-            inputRef={logoInput}
-            disabled={media.isPending}
-            onPick={(file) => uploadMedia("logo", file)}
-            onRemove={settings.logo ? () => removeMedia("logo") : undefined}
-          />
-          <MediaField
-            label="Banner"
-            url={settings.banner?.mediumUrl || settings.banner?.url}
-            inputRef={bannerInput}
-            disabled={media.isPending}
-            onPick={(file) => uploadMedia("banner", file)}
-            onRemove={settings.banner ? () => removeMedia("banner") : undefined}
-            hint="Hero image when the home page shows the static banner (Templates → Home page); always the preview image for shared store links."
-          />
-        </div>
-      </Card>
-
-      {/* Hero slides — summary only; editing happens in the takeover panel. */}
-      <Card className="space-y-3 p-5 shadow-none">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold">Hero slides</h3>
-            <p className="text-xs text-muted-foreground">
-              {heroSlides.length === 0
-                ? "No slides yet — the home page shows the standard hero."
-                : `${heroSlides.length} ${heroSlides.length === 1 ? "slide" : "slides"} rotating on your home page.`}
-            </p>
-          </div>
-          <Button size="sm" variant="outline" onClick={onManageSlides}>
-            Manage slides
-          </Button>
-        </div>
-        {heroSlides.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {heroSlides.map((s, i) => (
-              <SlideThumb key={i} slide={s} className="h-9 w-14" />
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Trust badges (Rich footer) */}
-      <Card className="space-y-4 p-5 shadow-none">
-        <div>
-          <h3 className="text-sm font-semibold">
-            Trust badges
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            The service highlights shown in the <span className="font-medium">Rich</span> footer.
-            Leave a row empty to keep the default text.
-          </p>
-        </div>
-        <div className="space-y-3">
-          {badges.map((b, i) => (
-            <div key={i} className="space-y-2 rounded-lg border p-3">
-              <div className="flex flex-wrap gap-1.5">
-                {BADGE_ICON_CHOICES.map((name) => (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => setBadge(i, { icon: name })}
-                    aria-label={name}
-                    className={cn(
-                      "flex items-center justify-center rounded-md border p-1.5 transition-colors",
-                      b.icon === name
-                        ? "border-primary text-primary ring-2 ring-primary/30"
-                        : "text-muted-foreground hover:bg-muted/50",
-                    )}
-                  >
-                    <SfIcon name={name} size={16} />
-                  </button>
-                ))}
-              </div>
-              <Input
-                value={b.text}
-                onChange={(e) => setBadge(i, { text: e.target.value })}
-                placeholder={BADGE_PLACEHOLDERS[i] ?? "Badge text"}
-                maxLength={40}
-              />
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      </div>
-
-      <div className="flex flex-none justify-end">
-        <Button onClick={submit} disabled={save.isPending}>
-          {save.isPending ? "Saving…" : "Save theme"}
-        </Button>
       </div>
     </div>
   );
@@ -553,30 +366,12 @@ const TEMPLATE_PAGES: {
       ],
     },
     {
-      key: "cart",
-      label: "Cart",
-      desc: "Cart layout",
-      options: [
-        { value: "two-column", label: "Two column" },
-        { value: "drawer", label: "Slide-over drawer" },
-      ],
-    },
-    {
       key: "checkout",
       label: "Checkout",
       desc: "Checkout flow",
       options: [
         { value: "single-page", label: "Single page" },
         { value: "multi-step", label: "Multi-step" },
-      ],
-    },
-    {
-      key: "search",
-      label: "Search results",
-      desc: "Search layout",
-      options: [
-        { value: "grid", label: "Grid" },
-        { value: "list", label: "List" },
       ],
     },
     {
@@ -631,6 +426,10 @@ function TemplatesSection({
       seed[p.key] = (t as Record<string, string>)[p.key] || p.options[0].value;
     }
     seed.hero = t.hero || "slides";
+    // Retired options — shoppers pick grid/list on the search page itself, and
+    // Buy now always opens the cart drawer.
+    delete seed.search;
+    delete seed.cart;
     return seed;
   });
 
@@ -713,9 +512,11 @@ function BrowserPreview({
   cardStyle,
   badges,
   heroSlides,
+  heroBanner,
   heroSrc,
   headerMenuSrc,
   navHeader,
+  announcement,
   collections,
 }: {
   slug?: string;
@@ -727,9 +528,11 @@ function BrowserPreview({
   cardStyle: string;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
+  heroBanner: StorefrontHeroBanner;
   heroSrc: string;
   headerMenuSrc: HeaderMenuSource;
   navHeader: StorefrontMenuItem[];
+  announcement: AnnouncementDraft;
   collections: CollectionRowValue[];
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
@@ -743,7 +546,10 @@ function BrowserPreview({
   const badgesKey = JSON.stringify(badges);
   // Only preview saveable slides (title required), like the save path.
   const slidesKey = JSON.stringify(heroSlides.filter((s) => s.title.trim()));
+  // Cleaned like the save path, so blank fields preview the built-in copy.
+  const heroBannerKey = JSON.stringify(cleanHeroBanner(heroBanner));
   const navHeaderKey = JSON.stringify(navHeader.filter((m) => m.label.trim()));
+  const announcementKey = JSON.stringify(announcement);
   // Mirror the public GET /:slug/categories contract exactly — listed only,
   // display name wins, draft order preserved — so the preview can't drift from
   // what shoppers will actually get.
@@ -773,13 +579,17 @@ function BrowserPreview({
           },
           trustBadges: JSON.parse(badgesKey),
           heroSlides: JSON.parse(slidesKey),
-          nav: { header: JSON.parse(navHeaderKey) },
+          heroBanner: JSON.parse(heroBannerKey),
+          nav: {
+            header: JSON.parse(navHeaderKey),
+            announcement: JSON.parse(announcementKey),
+          },
           collections: JSON.parse(collectionsKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, navHeaderKey, collectionsKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {
@@ -892,97 +702,3 @@ function BrowserPreview({
   );
 }
 
-function ColorField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-12 flex-none rounded border"
-          aria-label={`${label} swatch`}
-        />
-        <Input value={value} onChange={(e) => onChange(e.target.value)} />
-      </div>
-    </div>
-  );
-}
-
-function MediaField({
-  label,
-  url,
-  inputRef,
-  disabled,
-  onPick,
-  onRemove,
-  hint,
-}: {
-  label: string;
-  url?: string;
-  inputRef: React.RefObject<HTMLInputElement | null>;
-  disabled: boolean;
-  onPick: (file: File) => void;
-  onRemove?: () => void;
-  hint?: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex h-28 items-center justify-center overflow-hidden rounded-md border bg-muted/30">
-        {url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={label} className="h-full w-full object-contain" />
-        ) : (
-          <span className="text-xs text-muted-foreground">
-            No {label.toLowerCase()}
-          </span>
-        )}
-      </div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onPick(file);
-          e.target.value = "";
-        }}
-      />
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={disabled}
-          onClick={() => inputRef.current?.click()}
-        >
-          Upload
-        </Button>
-        {onRemove && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={disabled}
-            onClick={onRemove}
-            className="text-red-600"
-          >
-            Remove
-          </Button>
-        )}
-      </div>
-      {hint && <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>}
-    </div>
-  );
-}

@@ -25,6 +25,21 @@ export interface StoreHeroSlide {
   link?: string;
 }
 
+/**
+ * Owner overrides for the static banner hero's copy (Classic / Hero Split).
+ * Unset fields fall back to the built-in localized copy; button links default
+ * to /products. Links are store paths or full URLs (same rules as slide links).
+ */
+export interface StoreHeroBanner {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  primaryLabel?: string;
+  primaryLink?: string;
+  secondaryLabel?: string;
+  secondaryLink?: string;
+}
+
 export interface StorefrontStore {
   name: string;
   slug: string;
@@ -69,10 +84,20 @@ export interface StorefrontStore {
   trustBadges?: { text: string; icon?: string }[];
   /** Home hero carousel slides; unset/empty → the static built-in hero. */
   heroSlides?: StoreHeroSlide[];
+  /** Static banner-hero copy overrides; unset fields → built-in copy. */
+  heroBanner?: StoreHeroBanner;
   /** Header menu / footer groups / announcement bar (admin Navigation tab). */
   nav?: StoreNav;
-  /** Checkout behaviour (order prefix, min order, etc.). */
-  checkout?: { orderPrefix?: string; minOrderValue?: number; termsRequired?: boolean };
+  /** Checkout behaviour (order prefix, min order, required fields, terms). */
+  checkout?: {
+    orderPrefix?: string;
+    minOrderValue?: number;
+    termsRequired?: boolean;
+    /** Which address fields the shopper must fill (name/phone/address/area). */
+    requiredFields?: string[];
+    /** Slug of the CMS content page the terms checkbox links to. */
+    termsPageSlug?: string;
+  };
   /** Instructions shown to shoppers who pick bank/manual transfer. */
   bankInstructions?: string;
   /** Social sign-in providers with credentials configured on the backend. */
@@ -84,9 +109,7 @@ export interface StoreTemplatesRaw {
   home?: string;
   collection?: string;
   product?: string;
-  cart?: string;
   checkout?: string;
-  search?: string;
   footer?: string;
   header?: string;
   productCard?: string;
@@ -103,8 +126,6 @@ export interface StoreTemplates {
   collection: "grid3" | "grid4" | "sidebar";
   product: "left" | "top" | "sticky";
   checkout: "single" | "multi";
-  cart: "page" | "drawer";
-  search: "grid" | "list";
   footer: "columns" | "simple" | "rich";
   header: "classic" | "minimal" | "centered";
   productCard: "standard" | "compact" | "bold";
@@ -115,7 +136,8 @@ export interface StoreTemplates {
 /** A header menu link target (category slug, page slug, or URL). */
 export interface StoreMenuItem {
   label: string;
-  type: "category" | "page" | "url";
+  /** "collections" expands to the listed collections at that position (top level only). */
+  type: "category" | "page" | "url" | "collections";
   value: string;
   children?: StoreMenuItem[];
 }
@@ -125,15 +147,45 @@ export interface StoreFooterGroup {
   links: { label: string; url: string }[];
 }
 
+/** Owner controls for the auto content-pages footer column. */
+export interface StoreFooterContentPages {
+  /** `false` hides the column; absent/`true` ⇒ shown. */
+  show?: boolean;
+  /** Heading override; blank ⇒ the built-in localized "Information" label. */
+  title?: string;
+}
+
+/** The single-line bar above the storefront header (admin Navigation tab). */
+export interface StoreAnnouncement {
+  enabled?: boolean;
+  text?: string;
+  link?: string;
+  bgColor?: string;
+  /** Explicit text colour; blank ⇒ auto-derived from bgColor for readability. */
+  textColor?: string;
+  /** Leading emoji/glyph shown before the text. */
+  icon?: string;
+  /** When set (with a link), renders an explicit CTA button instead of a bare link. */
+  ctaLabel?: string;
+  /** Shopper can dismiss the bar (persisted per-device until the message changes). */
+  dismissible?: boolean;
+  size?: "sm" | "md" | "lg";
+  /** Background image behind the bar (with the overlay below painted on top). */
+  bgImage?: StorefrontImage | null;
+  /** Overlay colour painted over the image for text readability. */
+  overlay?: string;
+  /** Overlay strength, 0–100. */
+  overlayOpacity?: number;
+  /** cover = photo backdrop (center-cropped); tile = repeating pattern. */
+  bgFit?: "cover" | "tile";
+}
+
 export interface StoreNav {
   header?: StoreMenuItem[];
   footer?: StoreFooterGroup[];
-  announcement?: {
-    enabled?: boolean;
-    text?: string;
-    link?: string;
-    bgColor?: string;
-  };
+  /** Owner controls for the auto content-pages footer column. */
+  footerContentPages?: StoreFooterContentPages;
+  announcement?: StoreAnnouncement;
 }
 
 export interface CatalogProduct {
@@ -152,6 +204,10 @@ export interface CatalogProduct {
   productType: string;
   hasVariants?: boolean;
   availableQuantity: number;
+  /** "show"/"hide" cap at stock; "backorder" stays buyable past zero. */
+  outOfStockBehavior?: "hide" | "show" | "backorder";
+  /** Merchant SEO overrides for the product page (absent when unset). */
+  seo?: { title?: string; description?: string };
   /** Present only on the product-detail payload of variable products. */
   variants?: CatalogVariant[];
 }
@@ -202,6 +258,19 @@ export interface CatalogCategory {
   slug: string;
   /** Collection thumbnail (single image); absent when the merchant set none. */
   image?: StorefrontImage | null;
+}
+
+/**
+ * One public brand (`GET …/brands`) — auto-curated server-side: active,
+ * non-default brands with ≥1 listed product. `productCount` feeds the facet
+ * rows and brand tiles.
+ */
+export interface StoreBrand {
+  _id: string;
+  name: string;
+  slug?: string;
+  image?: StorefrontImage | null;
+  productCount: number;
 }
 
 export interface ProductListResult {
@@ -306,6 +375,8 @@ export interface PlaceOrderInput {
   paymentMethod: "cod" | "bank";
   notes?: string;
   couponCode?: string;
+  /** Shopper accepted the store's terms (required when `checkout.termsRequired`). */
+  termsAccepted?: boolean;
 }
 
 export interface CouponPreview {
@@ -382,6 +453,7 @@ export const storefrontApi = {
     sfFetch<CatalogProduct>(slug, `/products/${productSlug}`),
   listCategories: (slug: string) =>
     sfFetch<CatalogCategory[]>(slug, "/categories"),
+  listBrands: (slug: string) => sfFetch<StoreBrand[]>(slug, "/brands"),
   listCampaigns: (slug: string) =>
     sfFetch<StoreCampaign[]>(slug, "/campaigns"),
   listPages: (slug: string) =>

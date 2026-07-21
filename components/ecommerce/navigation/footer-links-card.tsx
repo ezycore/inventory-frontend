@@ -6,19 +6,31 @@ import type { StorefrontFooterGroup } from "@/types";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
+import { Label } from "@/ui/components/label";
+import { Switch } from "@/ui/components/switch";
 
 export const newFooterGroup = (): StorefrontFooterGroup => ({
   title: "New group",
   links: [],
 });
 
+/** Draft shape for the auto content-pages footer column (show + heading). */
+export interface FooterContentPagesDraft {
+  show: boolean;
+  title: string;
+}
+
 /** Customize → Navigation → the grouped links in the storefront footer. */
 export function FooterLinksCard({
   groups,
   setGroups,
+  contentPages,
+  setContentPages,
 }: {
   groups: StorefrontFooterGroup[];
   setGroups: (v: StorefrontFooterGroup[]) => void;
+  contentPages: FooterContentPagesDraft;
+  setContentPages: (patch: Partial<FooterContentPagesDraft>) => void;
 }) {
   const patchGroup = (i: number, patch: Partial<StorefrontFooterGroup>) =>
     setGroups(groups.map((g, idx) => (idx === i ? { ...g, ...patch } : g)));
@@ -57,7 +69,8 @@ export function FooterLinksCard({
         <div>
           <h3 className="text-sm font-semibold">Footer</h3>
           <p className="text-xs text-muted-foreground">
-            Grouped links shown in the storefront footer.
+            Each group is its own column in the footer (a flat row on the Simple
+            layout).
           </p>
         </div>
         <Button
@@ -131,6 +144,40 @@ export function FooterLinksCard({
           ))}
         </div>
       )}
+
+      {/* The auto "Information" column, built from published pages flagged
+          "Show in footer" (Ecommerce → Content). Merchants can hide it or
+          rename its heading. */}
+      <div className="space-y-2.5 rounded-lg border p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">Content pages column</p>
+            <p className="text-xs text-muted-foreground">
+              Show/Hide in the footer
+            </p>
+          </div>
+          <Switch
+            checked={contentPages.show}
+            onCheckedChange={(show) => setContentPages({ show })}
+            aria-label="Show the content pages footer column"
+          />
+        </div>
+        {contentPages.show ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="footer-info-title" className="text-xs">
+              Column heading
+            </Label>
+            <Input
+              id="footer-info-title"
+              value={contentPages.title}
+              onChange={(e) => setContentPages({ title: e.target.value })}
+              placeholder="Information"
+              maxLength={60}
+              className="h-8"
+            />
+          </div>
+        ) : null}
+      </div>
     </Card>
   );
 }

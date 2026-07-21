@@ -92,7 +92,7 @@ export interface StorefrontTheme {
   homepageSections?: string[];
 }
 
-export type NavLinkType = "category" | "page" | "url";
+export type NavLinkType = "category" | "page" | "url" | "collections";
 
 export interface StorefrontMenuItem {
   label: string;
@@ -111,16 +111,47 @@ export interface StorefrontFooterGroup {
   links: StorefrontFooterLink[];
 }
 
+/**
+ * Owner controls for the auto content-pages footer column (published pages
+ * flagged "Show in footer"). Absent ⇒ shown with the built-in "Information"
+ * heading, so existing stores are unaffected.
+ */
+export interface StorefrontFooterContentPages {
+  /** `false` hides the column entirely; absent/`true` ⇒ shown. */
+  show?: boolean;
+  /** Heading override; blank ⇒ the built-in localized "Information" label. */
+  title?: string;
+}
+
 export interface StorefrontAnnouncement {
   enabled: boolean;
   text?: string;
   link?: string;
   bgColor?: string;
+  /** Explicit text colour; blank ⇒ auto-derived from bgColor for readability. */
+  textColor?: string;
+  /** Leading emoji/glyph shown before the text. */
+  icon?: string;
+  /** When set (with a link), renders an explicit CTA button instead of a bare link. */
+  ctaLabel?: string;
+  /** Shopper can dismiss the bar (persisted per-device until the message changes). */
+  dismissible?: boolean;
+  size?: "sm" | "md" | "lg";
+  /** Background image (uploadInfo from the storefront image endpoint). */
+  bgImage?: Image | null;
+  /** Overlay colour painted over the image for text readability. */
+  overlay?: string;
+  /** Overlay strength, 0–100. */
+  overlayOpacity?: number;
+  /** cover = photo backdrop; tile = repeating pattern. */
+  bgFit?: "cover" | "tile";
 }
 
 export interface StorefrontNav {
   header: StorefrontMenuItem[];
   footer: StorefrontFooterGroup[];
+  /** Owner controls for the auto content-pages footer column. */
+  footerContentPages?: StorefrontFooterContentPages;
   announcement?: StorefrontAnnouncement;
 }
 
@@ -129,6 +160,8 @@ export interface StorefrontCheckout {
   minOrderValue?: number;
   orderPrefix?: string;
   termsRequired?: boolean;
+  /** Slug of the CMS content page the terms checkbox links to. */
+  termsPageSlug?: string;
 }
 
 export interface StorefrontNotifEvent {
@@ -151,9 +184,7 @@ export interface StorefrontTemplates {
   home?: string;
   collection?: string;
   product?: string;
-  cart?: string;
   checkout?: string;
-  search?: string;
   footer?: string;
   header?: string;
   productCard?: string;
@@ -201,12 +232,29 @@ export interface StorefrontSettings {
   trustBadges?: StorefrontTrustBadge[];
   /** Home hero carousel slides; unset/empty → the static built-in hero. */
   heroSlides?: StorefrontHeroSlide[];
+  /** Static banner-hero copy overrides; unset fields → built-in copy. */
+  heroBanner?: StorefrontHeroBanner;
 }
 
 /** One owner-editable footer "trust" badge (Rich footer strip). */
 export interface StorefrontTrustBadge {
   text: string;
   icon?: string;
+}
+
+/**
+ * Owner overrides for the static banner hero's copy (Classic / Hero Split when
+ * the hero source is "banner" or no slides exist). Unset fields fall back to
+ * the storefront's built-in localized copy; button links default to /products.
+ */
+export interface StorefrontHeroBanner {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  primaryLabel?: string;
+  primaryLink?: string;
+  secondaryLabel?: string;
+  secondaryLink?: string;
 }
 
 /** One home-page hero slide (owner-managed carousel, max 5). */

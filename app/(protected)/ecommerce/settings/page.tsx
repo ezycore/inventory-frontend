@@ -7,6 +7,7 @@ import { Copy, ExternalLink } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
+  useContentPages,
   useGetStorefrontSettings,
   useUpdateStorefrontSettings,
 } from "@/services/api";
@@ -21,6 +22,7 @@ import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
+import { NumberField } from "@/ui/components/number-field";
 import { Label } from "@/ui/components/label";
 import { Switch } from "@/ui/components/switch";
 import { Checkbox } from "@/ui/components/checkbox";
@@ -41,9 +43,6 @@ const TABS = [
   { id: "notifications", label: "Notifications" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
-
-const num = (v: string): number | undefined =>
-  v.trim() === "" ? undefined : Number(v);
 
 export default function StoreSettingsPage() {
   const { data: settings, isLoading } = useGetStorefrontSettings();
@@ -442,27 +441,27 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
   const [mode, setMode] = useState<ShippingRuleMode>(
     settings.shippingRule?.mode ?? "none",
   );
-  const [flatFee, setFlatFee] = useState(
-    settings.shippingRule?.flatFee?.toString() ?? "",
+  const [flatFee, setFlatFee] = useState<number | null>(
+    settings.shippingRule?.flatFee ?? null,
   );
-  const [freeThreshold, setFreeThreshold] = useState(
-    settings.shippingRule?.freeThreshold?.toString() ?? "",
+  const [freeThreshold, setFreeThreshold] = useState<number | null>(
+    settings.shippingRule?.freeThreshold ?? null,
   );
-  const [defaultDeliveryCost, setDefaultDeliveryCost] = useState(
-    settings.defaultDeliveryCost?.toString() ?? "0",
+  const [defaultDeliveryCost, setDefaultDeliveryCost] = useState<number | null>(
+    settings.defaultDeliveryCost ?? 0,
   );
   const [zonesEnabled, setZonesEnabled] = useState(
     settings.shippingZones?.inside != null ||
       settings.shippingZones?.outside != null,
   );
-  const [zoneInside, setZoneInside] = useState(
-    settings.shippingZones?.inside?.toString() ?? "",
+  const [zoneInside, setZoneInside] = useState<number | null>(
+    settings.shippingZones?.inside ?? null,
   );
-  const [zoneOutside, setZoneOutside] = useState(
-    settings.shippingZones?.outside?.toString() ?? "",
+  const [zoneOutside, setZoneOutside] = useState<number | null>(
+    settings.shippingZones?.outside ?? null,
   );
-  const [zoneFree, setZoneFree] = useState(
-    settings.shippingZones?.freeThreshold?.toString() ?? "",
+  const [zoneFree, setZoneFree] = useState<number | null>(
+    settings.shippingZones?.freeThreshold ?? null,
   );
   const [pickupEnabled, setPickupEnabled] = useState(
     !!settings.pickup?.enabled,
@@ -488,32 +487,32 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
               mode === "free_over_threshold" ? "Fee below threshold" : "Flat fee"
             }
           >
-            <Input
-              type="number"
+            <NumberField
               min={0}
+              precision={2}
               value={flatFee}
-              onChange={(e) => setFlatFee(e.target.value)}
+              onChange={setFlatFee}
               placeholder="0"
             />
           </Field>
         )}
         {mode === "free_over_threshold" && (
           <Field label="Free over (order subtotal)">
-            <Input
-              type="number"
+            <NumberField
               min={0}
+              precision={2}
               value={freeThreshold}
-              onChange={(e) => setFreeThreshold(e.target.value)}
+              onChange={setFreeThreshold}
               placeholder="0"
             />
           </Field>
         )}
         <Field label="Default courier cost (your expense, editable per order)">
-          <Input
-            type="number"
+          <NumberField
             min={0}
+            precision={2}
             value={defaultDeliveryCost}
-            onChange={(e) => setDefaultDeliveryCost(e.target.value)}
+            onChange={setDefaultDeliveryCost}
             placeholder="0"
           />
         </Field>
@@ -533,29 +532,29 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
         {zonesEnabled && (
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Inside Dhaka fee">
-              <Input
-                type="number"
+              <NumberField
                 min={0}
+                precision={2}
                 value={zoneInside}
-                onChange={(e) => setZoneInside(e.target.value)}
+                onChange={setZoneInside}
                 placeholder="60"
               />
             </Field>
             <Field label="Outside Dhaka fee">
-              <Input
-                type="number"
+              <NumberField
                 min={0}
+                precision={2}
                 value={zoneOutside}
-                onChange={(e) => setZoneOutside(e.target.value)}
+                onChange={setZoneOutside}
                 placeholder="120"
               />
             </Field>
             <Field label="Free over (subtotal)">
-              <Input
-                type="number"
+              <NumberField
                 min={0}
+                precision={2}
                 value={zoneFree}
-                onChange={(e) => setZoneFree(e.target.value)}
+                onChange={setZoneFree}
                 placeholder="2000"
               />
             </Field>
@@ -591,16 +590,18 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
         pending={pending}
         onSave={() =>
           save({
-            defaultDeliveryCost: num(defaultDeliveryCost) ?? 0,
+            defaultDeliveryCost: defaultDeliveryCost ?? 0,
             pickup: {
               enabled: pickupEnabled,
               instructions: pickupInstructions.trim() || undefined,
             },
             shippingRule: {
               mode,
-              flatFee: mode === "none" ? undefined : num(flatFee),
+              flatFee: mode === "none" ? undefined : (flatFee ?? undefined),
               freeThreshold:
-                mode === "free_over_threshold" ? num(freeThreshold) : undefined,
+                mode === "free_over_threshold"
+                  ? (freeThreshold ?? undefined)
+                  : undefined,
             },
             // Blank stays undefined (not 0) — a 0 fee reads as "ships free", which
             // silently zeroed the zone's delivery charge. computeShipping falls back
@@ -609,9 +610,9 @@ function ShippingTab({ settings }: { settings: StorefrontSettings }) {
             // actually clears the stored zones instead of leaving them to resurrect.
             shippingZones: zonesEnabled
               ? {
-                  inside: num(zoneInside),
-                  outside: num(zoneOutside),
-                  freeThreshold: num(zoneFree),
+                  inside: zoneInside ?? undefined,
+                  outside: zoneOutside ?? undefined,
+                  freeThreshold: zoneFree ?? undefined,
                 }
               : null,
           })
@@ -629,16 +630,35 @@ const ADDRESS_FIELDS = [
   { id: "address", label: "Address" },
   { id: "area", label: "Area / zone" },
 ];
+// Name + phone are always needed to fulfil an order, so they can't be turned off.
+// (Area is also forced when Dhaka zone shipping is on — it prices the order.)
+const LOCKED_FIELDS = ["name", "phone"];
+// Sentinel for "no explicit terms page" — the checkout then auto-detects a page
+// slugged like "terms" (Radix Select forbids an empty-string item value).
+const AUTO_TERMS = "__auto";
 
 function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useSave();
   const c = settings.checkout ?? {};
-  const [fields, setFields] = useState<string[]>(
-    c.requiredFields ?? ["name", "phone", "address"],
+  const [fields, setFields] = useState<string[]>(() =>
+    Array.from(
+      new Set([...LOCKED_FIELDS, ...(c.requiredFields ?? ["name", "phone", "address"])]),
+    ),
   );
-  const [minOrder, setMinOrder] = useState(c.minOrderValue?.toString() ?? "");
+  const [minOrder, setMinOrder] = useState<number | null>(
+    c.minOrderValue ?? null,
+  );
   const [prefix, setPrefix] = useState(c.orderPrefix ?? "");
   const [terms, setTerms] = useState(c.termsRequired ?? false);
+  const [termsPage, setTermsPage] = useState(c.termsPageSlug || AUTO_TERMS);
+
+  const { data: pages } = useContentPages();
+  const termsPageOptions: Option[] = [
+    { label: "Auto-detect (a published page slugged “terms”)", value: AUTO_TERMS },
+    ...(pages ?? [])
+      .filter((p) => p.published)
+      .map((p) => ({ label: p.title, value: p.slug })),
+  ];
 
   const toggleField = (id: string, on: boolean) =>
     setFields((prev) =>
@@ -655,27 +675,56 @@ function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
           checked={terms}
           onChange={setTerms}
         />
+        {terms ? (
+          <div className="space-y-1.5 pt-1">
+            <Label>Terms page</Label>
+            <SimpleSelect
+              value={termsPage}
+              onValueChange={setTermsPage}
+              options={termsPageOptions}
+              className="max-w-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Where the terms link goes at checkout. Manage pages under Content —
+              Auto-detect uses a published page slugged like terms.
+            </p>
+          </div>
+        ) : null}
         <div className="space-y-2">
           <Label>Required checkout fields</Label>
           <div className="flex flex-wrap gap-4">
-            {ADDRESS_FIELDS.map((f) => (
-              <label key={f.id} className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={fields.includes(f.id)}
-                  onCheckedChange={(v) => toggleField(f.id, v === true)}
-                />
-                {f.label}
-              </label>
-            ))}
+            {ADDRESS_FIELDS.map((f) => {
+              const locked = LOCKED_FIELDS.includes(f.id);
+              return (
+                <label
+                  key={f.id}
+                  className={cn(
+                    "flex items-center gap-2 text-sm",
+                    locked && "text-muted-foreground",
+                  )}
+                >
+                  <Checkbox
+                    checked={locked || fields.includes(f.id)}
+                    disabled={locked}
+                    onCheckedChange={(v) => toggleField(f.id, v === true)}
+                  />
+                  {f.label}
+                </label>
+              );
+            })}
           </div>
+          <p className="text-xs text-muted-foreground">
+            Name and phone are always required. Applies to delivery orders — pickup
+            only ever needs name and phone.
+          </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Minimum order value">
-            <Input
-              type="number"
+            <NumberField
               min={0}
+              precision={2}
               value={minOrder}
-              onChange={(e) => setMinOrder(e.target.value)}
+              onChange={setMinOrder}
               placeholder="0"
             />
           </Field>
@@ -696,8 +745,9 @@ function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
             checkout: {
               termsRequired: terms,
               requiredFields: fields,
-              minOrderValue: num(minOrder),
+              minOrderValue: minOrder ?? undefined,
               orderPrefix: prefix.trim() || undefined,
+              termsPageSlug: termsPage === AUTO_TERMS ? undefined : termsPage,
             },
           })
         }

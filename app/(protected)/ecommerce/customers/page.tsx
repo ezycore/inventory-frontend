@@ -1,17 +1,16 @@
 "use client";
+// coding-standard: maintained
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useOnlineCustomers, type OnlineCustomer } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
-import { Button } from "@/ui/components/button";
+import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { ListSearchInput } from "@/components/ecommerce/list-search-input";
 import { Card } from "@/ui/components/card";
-import { Input } from "@/ui/components/input";
 import { Skeleton } from "@/ui/components/skeleton";
-
-const PAGE_SIZES = [20, 50, 100];
 
 const fmtDate = (iso: string | null) => {
   if (!iso) return "—";
@@ -23,19 +22,9 @@ const fmtDate = (iso: string | null) => {
 export default function EcommerceCustomersPage() {
   const router = useRouter();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
-
-  // Debounce the search box; a new search resets paging.
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setSearch(searchInput.trim());
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(t);
-  }, [searchInput]);
 
   const { data, isLoading, isFetching } = useOnlineCustomers({
     search: search || undefined,
@@ -61,15 +50,13 @@ export default function EcommerceCustomersPage() {
             ({pagination?.total ?? 0})
           </span>
         </h2>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search name, phone, email"
-            className="h-9 w-64 pl-8"
-          />
-        </div>
+        <ListSearchInput
+          placeholder="Search name, phone, email"
+          onSearch={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
+        />
       </div>
 
       <Card className="overflow-hidden p-0 shadow-none">
@@ -121,48 +108,17 @@ export default function EcommerceCustomersPage() {
         </div>
       </Card>
 
-      {/* Pagination */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <span>Rows per page</span>
-          <select
-            value={limit}
-            onChange={(e) => {
-              setLimit(Number(e.target.value));
-              setPage(1);
-            }}
-            className="h-8 rounded-md border bg-background px-2 text-sm"
-          >
-            {PAGE_SIZES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          {isFetching && <span className="text-xs">Updating…</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          <span>
-            Page {pagination?.page ?? 1} of {pagination?.totalPages ?? 1}
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={(pagination?.page ?? 1) <= 1}
-            onClick={() => setPage(Math.max(1, page - 1))}
-          >
-            Previous
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={(pagination?.page ?? 1) >= (pagination?.totalPages ?? 1)}
-            onClick={() => setPage(page + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <ListPagination
+        page={page}
+        totalPages={pagination?.totalPages ?? 1}
+        limit={limit}
+        isFetching={isFetching}
+        onPageChange={setPage}
+        onLimitChange={(n) => {
+          setLimit(n);
+          setPage(1);
+        }}
+      />
     </div>
   );
 }

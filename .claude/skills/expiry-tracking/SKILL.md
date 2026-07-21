@@ -1,7 +1,7 @@
 # Expiry Tracking (Frontend) — SKILL
 
-> **Status**: PLANNED — not yet implemented. Master plan: `easystock-backend/docs/ai/BARCODE_AND_EXPIRY_PLAN.md`.
-> Backend mirror: `easystock-backend/.claude/skills/expiry-tracking/SKILL.md`.
+> **Status**: PLANNED — not yet implemented. Master plan: `inventory-backend/docs/ai/BARCODE_AND_EXPIRY_PLAN.md`.
+> Backend mirror: `inventory-backend/.claude/skills/expiry-tracking/SKILL.md`.
 > Cross-cuts: sales-flow and purchase-flow FE skills (FEFO chip + batch picker live inside those flows).
 
 ## Scope
@@ -71,7 +71,7 @@ type InventoryBatch = {
 ## Maintenance discipline (MANDATORY once code lands)
 Any PR touching the files listed above MUST in the same commit:
 1. Update this skill.
-2. Update `easystock-backend/.claude/skills/expiry-tracking/SKILL.md` if the wire contract changes.
+2. Update `inventory-backend/.claude/skills/expiry-tracking/SKILL.md` if the wire contract changes.
 3. Update sales-flow + purchase-flow FE skills if their write path branched on expiry changes.
 4. Update `BARCODE_AND_EXPIRY_PLAN.md` if scope/phasing changes.
 

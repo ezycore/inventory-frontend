@@ -187,7 +187,7 @@ export function HomeTemplateBlock({
               <span>
                 <span className="block text-xs font-semibold">Static banner</span>
                 <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
-                  One banner image with the standard copy
+                  One banner image; text editable in Theme
                 </span>
               </span>
             </button>
