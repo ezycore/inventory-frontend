@@ -126,7 +126,7 @@ export default function DiscountsPage() {
     createMutation: useCreateDiscount(),
     updateMutation: useUpdateDiscount(),
     deleteMutation: useDeleteDiscount(),
-    queryKey: [...queryKeys.discounts.all()],
+    queryKey: queryKeys.discounts.all(),
     entityName: "Discount" as const,
   };
 

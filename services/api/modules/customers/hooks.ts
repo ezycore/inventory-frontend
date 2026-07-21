@@ -1,6 +1,6 @@
 import { customersApi, CustomerLedgerFilters } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/services/api/query-keys'
 import { CreateCustomerDto } from '@/types'
 import type { ApiCustomer, CustomerListItem } from '@/types/api'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -10,7 +10,8 @@ import { handleMutationError } from '@/lib/error-handling'
 const customerHooks = createResourceHooks<ApiCustomer, CreateCustomerDto, Partial<CreateCustomerDto>, CustomerListItem>(
  customersApi,
  queryKeys.customers,
- {relatedQueryKeys: [queryKeys.customers.all(), ["select-options", "/sales/customers?all=true&fields=_id,name,defaultDiscountId"]]}
+ // Sales documents embed the customer's name and terms.
+ { events: ["party.changed"] },
 )
 
 export const useCustomers = customerHooks.useList

@@ -6,6 +6,7 @@ import { toast } from "@/lib/storefront-toast";
 import type { ShopperProfile } from "@/lib/storefront-client";
 import { storefrontApi } from "@/lib/storefront-client";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
+import { useShopperLogout } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
@@ -46,7 +47,8 @@ export function AccountArea({ shopper }: { shopper: ShopperProfile }) {
   const { t } = useStorefrontUI();
   const token = useShopperStore((s) => s.token);
   const setShopper = useShopperStore((s) => s.setShopper);
-  const logout = useShopperStore((s) => s.logout);
+  // Clears the session AND evicts this shopper's cached orders — see useShopperLogout.
+  const logout = useShopperLogout(slug);
 
   const [tab, setTabState] = useState<AccountTab>("profile");
   const [trackedOrder, setTrackedOrder] = useState<string | null>(null);

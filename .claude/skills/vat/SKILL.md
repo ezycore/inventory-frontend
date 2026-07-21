@@ -81,8 +81,8 @@ editable).
 Two rules the UI must keep:
 - The **effective date field only appears when the type actually changes** — every send appends a
   history entry, and the history is the audit trail.
-- `financialYear` does **not** belong here (the VAT period is a calendar month). It lives on
-  Settings → Organization via `components/settings/financial-year-card.tsx`.
+- There is **no financial-year setting** anywhere. It was removed 2026-07-21 (nothing read it), and
+  it would not belong on this page regardless — the VAT period is always a calendar month.
 
 ---
 

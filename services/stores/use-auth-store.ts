@@ -1,5 +1,4 @@
 import {
-  FinancialYearConfig,
   Image,
   OrganizationFeatures,
   VatSettings,
@@ -47,8 +46,6 @@ export interface User {
       excludedColumns?: { [key: string]: string[] };
     };
     features?: OrganizationFeatures;
-    /** Financial-year boundary for tax/FY reporting (defaults applied server-side). */
-    financialYear?: FinancialYearConfig;
     /** Admin-configurable VAT settings (BIN, default rate, price semantics). */
     vatSettings?: VatSettings;
     /**
@@ -86,7 +83,6 @@ interface AuthActions {
   updateTaxConfig: (config: {
     vatSettings?: VatSettings;
     vatRegistrationHistory?: VatRegistrationEntry[];
-    financialYear?: FinancialYearConfig;
   }) => void;
 }
 
@@ -167,11 +163,7 @@ export const useAuthStore = create<AuthStore>()(
             set({ user: updatedUser });
           }
         },
-        updateTaxConfig: ({
-          vatSettings,
-          vatRegistrationHistory,
-          financialYear,
-        }) => {
+        updateTaxConfig: ({ vatSettings, vatRegistrationHistory }) => {
           const currentUser = get().user;
           if (currentUser) {
             set({
@@ -181,7 +173,6 @@ export const useAuthStore = create<AuthStore>()(
                   ...currentUser.organization,
                   ...(vatSettings && { vatSettings }),
                   ...(vatRegistrationHistory && { vatRegistrationHistory }),
-                  ...(financialYear && { financialYear }),
                 },
               },
             });

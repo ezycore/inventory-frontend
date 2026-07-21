@@ -1,3 +1,4 @@
+import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import {
   ExcludedColumnsSettings,
@@ -6,7 +7,6 @@ import {
 } from "@/services/api";
 import type {
   ApiResponse,
-  FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
   SubscriptionInfo,
@@ -23,7 +23,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 // GET /api/organization - Get organization details
 export const useGetOrganizationApi = () => {
   return useQuery({
-    queryKey: queryKeys.organization.get(),
+    queryKey: queryKeys.organization.all(),
     queryFn: () => organizationApi.get(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -177,7 +177,7 @@ export const useUpdateOrganization = () => {
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -194,7 +194,7 @@ export const useUpdateFormSettings = () => {
       handleMutationSuccess(
         result.message || "Form settings updated successfully!",
       );
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -228,7 +228,7 @@ export const useUpdateFeatures = () => {
       // instead of invalidating: avoids a refetch where the other switches —
       // and the just-toggled one — briefly render stale (the blink).
       queryClient.setQueryData(queryKeys.organization.features(), result);
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -242,13 +242,12 @@ export const useUpdateVatSettings = () => {
     mutationFn: (data: {
       vatSettings?: Partial<VatSettings>;
       registration?: { type: VatRegistrationType; effectiveFrom: string };
-      financialYear?: Partial<FinancialYearConfig>;
     }) => organizationApi.updateVatSettings(data),
     onSuccess: (result) => {
       handleMutationSuccess(
         result.message || "VAT settings updated successfully!",
       );
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -283,7 +282,7 @@ export const useUpdateColumnSettings = () => {
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -370,7 +369,9 @@ export const useClearDemoData = () => {
         });
       }
 
-      // Demo data spanned every module — refresh everything.
+      // Clearing demo data deletes rows in every module at once — there is no smaller honest
+      // answer than "everything".
+      // eslint-disable-next-line query-cache/no-blanket-invalidate -- demo data spans every module
       queryClient.invalidateQueries();
     },
     onError: handleMutationError,

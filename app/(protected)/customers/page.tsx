@@ -77,7 +77,7 @@ export default function CustomersPage() {
           createMutation: useCreateCustomer(),
           updateMutation: useUpdateCustomer(),
           deleteMutation: useDeleteCustomer(),
-          queryKey: [...queryKeys.customers.all()],
+          queryKey: queryKeys.customers.all(),
           entityName: t("page.entity"),
           isViewAvailable: false,
           editTooltip: t("page.editTooltip"),

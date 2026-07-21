@@ -1,4 +1,5 @@
 import { purchaseOrdersApi, purchaseReturnsApi } from "@/services/api";
+import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import type {
   AddPurchasePaymentDto,
@@ -78,9 +79,7 @@ export const useCreatePurchaseOrder = () => {
     mutationFn: (data: CreatePurchaseOrdersDto) => purchaseOrdersApi.create(data),
     onSuccess: (data) => {
       toast.success(data.message || "Purchase order created successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() });
+      invalidate(queryClient, "purchase.ordered");
     },
     onError: handleMutationError,
   });
@@ -96,12 +95,9 @@ export const useUpdatePurchaseOrder = () => {
       ...data
     }: { id: string } & Partial<CreatePurchaseOrderDto>) =>
       purchaseOrdersApi.update(id, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Purchase order updated successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseOrders.detail(variables.id),
-      });
+      invalidate(queryClient, "purchase.ordered");
     },
     onError: handleMutationError,
   });
@@ -114,14 +110,9 @@ export const useReceivePurchaseOrder = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ReceivePurchaseOrderDto }) =>
       purchaseOrdersApi.receive(id, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Items received successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseOrders.detail(variables.id),
-      });
-      // Also invalidate inventory since stock levels changed
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+      invalidate(queryClient, "purchase.received");
     },
     onError: handleMutationError,
   });
@@ -133,13 +124,9 @@ export const useCancelPurchaseOrder = () => {
 
   return useMutation({
     mutationFn: (id: string) => purchaseOrdersApi.cancel(id),
-    onSuccess: (data, id) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Purchase order cancelled successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseOrders.detail(id),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+      invalidate(queryClient, "purchase.ordered");
     },
     onError: handleMutationError,
   });
@@ -153,7 +140,7 @@ export const useDeleteDraftPurchaseOrder = () => {
     mutationFn: (id: string) => purchaseOrdersApi.deleteDraft(id),
     onSuccess: (data) => {
       toast.success(data.message || "Draft purchase order deleted");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
+      invalidate(queryClient, "purchase.ordered");
     },
     onError: handleMutationError,
   });
@@ -171,12 +158,9 @@ export const useUpdateDraftPurchaseOrder = () => {
       id: string;
       data: UpdatePurchaseOrderDraftDto;
     }) => purchaseOrdersApi.updateDraft(id, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Draft purchase order updated");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseOrders.detail(variables.id),
-      });
+      invalidate(queryClient, "purchase.ordered");
     },
     onError: handleMutationError,
   });
@@ -194,15 +178,9 @@ export const useFinalizeDraftPurchaseOrder = () => {
       id: string;
       data: FinalizePurchaseOrderDto;
     }) => purchaseOrdersApi.finalizeDraft(id, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Purchase order finalized");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseOrders.detail(variables.id),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
+      invalidate(queryClient, "purchase.received");
     },
     onError: handleMutationError,
   });
@@ -215,17 +193,9 @@ export const useAddPurchasePayment = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: AddPurchasePaymentDto }) =>
       purchaseOrdersApi.addPayment(id, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Payment added successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseOrders.detail(variables.id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseOrders.payments(variables.id),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() });
+      invalidate(queryClient, "purchase.paid");
     },
     onError: handleMutationError,
   });
@@ -292,22 +262,11 @@ export const useCreatePurchaseReturn = () => {
 
   return useMutation({
     mutationFn: (data: CreatePurchaseReturnDto) => purchaseReturnsApi.create(data),
-    onSuccess: (response) => {
-      const result = (response as any)?.data;
+    onSuccess: () => {
       toast.success("Purchase return created successfully");
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseReturns.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() });
-      if (result?.purchaseOrderId) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.purchaseReturns.byPurchaseOrder(result.purchaseOrderId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.purchaseOrders.detail(result.purchaseOrderId),
-        });
-      }
+      // `byPurchaseOrder` and the PO detail both sit under their resource roots,
+      // so the event reaches them.
+      invalidate(queryClient, "purchase.returned");
     },
     onError: handleMutationError,
   });

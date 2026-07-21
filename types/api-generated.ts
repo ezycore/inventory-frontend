@@ -4145,7 +4145,7 @@ export interface paths {
         };
         /**
          * GET /api/transactions
-         * @description Defined in `src/routes/transactions.routes.ts:22`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/transactions.routes.ts:24`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_transactions"];
         put?: never;
@@ -4165,7 +4165,7 @@ export interface paths {
         };
         /**
          * GET /api/transactions/stats
-         * @description Defined in `src/routes/transactions.routes.ts:30`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/transactions.routes.ts:32`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_transactions_stats"];
         put?: never;
@@ -4185,7 +4185,7 @@ export interface paths {
         };
         /**
          * GET /api/transactions/summary
-         * @description Defined in `src/routes/transactions.routes.ts:37`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/transactions.routes.ts:39`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_transactions_summary"];
         put?: never;
@@ -4205,7 +4205,7 @@ export interface paths {
         };
         /**
          * GET /api/transactions/account/:accountId
-         * @description Defined in `src/routes/transactions.routes.ts:45`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/transactions.routes.ts:47`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_transactions_account_accountId"];
         put?: never;
@@ -4225,7 +4225,7 @@ export interface paths {
         };
         /**
          * GET /api/transactions/:id
-         * @description Defined in `src/routes/transactions.routes.ts:53`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/transactions.routes.ts:55`. Requires permission `transactions.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_transactions_id"];
         put?: never;
@@ -4247,7 +4247,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/transactions/income
-         * @description Defined in `src/routes/transactions.routes.ts:61`. Requires permission `transactions.create`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/transactions.routes.ts:64`. Requires permission `transactions.create`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_transactions_income"];
         delete?: never;
@@ -4267,9 +4267,29 @@ export interface paths {
         put?: never;
         /**
          * POST /api/transactions/expense
-         * @description Defined in `src/routes/transactions.routes.ts:69`. Requires permission `transactions.create`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/transactions.routes.ts:73`. Requires permission `transactions.create`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_transactions_expense"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/transactions/{id}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/transactions/:id/reverse
+         * @description Defined in `src/routes/transactions.routes.ts:85`. Requires permission `transactions.create`. Gated by organization feature `accounts` — returns 403 when disabled.
+         */
+        post: operations["post_api_transactions_id_reverse"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4287,7 +4307,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/transactions/transfer
-         * @description Defined in `src/routes/transactions.routes.ts:77`. Requires permission `transactions.create`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/transactions.routes.ts:93`. Requires permission `transactions.create`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_transactions_transfer"];
         delete?: never;
@@ -4672,6 +4692,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reports/capital": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/reports/capital
+         * @description Defined in `src/routes/reports.routes.ts:33`. Requires permission `reports.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         */
+        get: operations["get_api_reports_capital"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/profit-loss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/reports/profit-loss
+         * @description Defined in `src/routes/reports.routes.ts:44`. Requires permission `reports.view`.
+         */
+        get: operations["get_api_reports_profit_loss"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/position": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/reports/position
+         * @description Defined in `src/routes/reports.routes.ts:49`. Requires permission `reports.view`.
+         */
+        get: operations["get_api_reports_position"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/reports/valuation": {
         parameters: {
             query?: never;
@@ -4681,7 +4761,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/valuation
-         * @description Defined in `src/routes/reports.routes.ts:32`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:52`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_valuation"];
         put?: never;
@@ -4701,7 +4781,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/employees
-         * @description Defined in `src/routes/reports.routes.ts:35`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:55`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_employees"];
         put?: never;
@@ -4721,7 +4801,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/export
-         * @description Defined in `src/routes/reports.routes.ts:38`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:58`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_export"];
         put?: never;
@@ -4741,7 +4821,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax
-         * @description Defined in `src/routes/reports.routes.ts:48`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:68`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax"];
         put?: never;
@@ -4761,7 +4841,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax/ledger
-         * @description Defined in `src/routes/reports.routes.ts:51`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:71`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax_ledger"];
         put?: never;
@@ -9073,12 +9153,6 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        FinancialYear: {
-            startMonth: number;
-            startDay: number;
-            endMonth: number;
-            endDay: number;
-        };
         HeroSlideImage: {
             url: string;
             mediumUrl: string;
@@ -9183,12 +9257,6 @@ export interface components {
                 storefront: boolean;
                 tax: boolean;
                 combo: boolean;
-            };
-            financialYear: {
-                startMonth: number;
-                startDay: number;
-                endMonth: number;
-                endDay: number;
             };
             vatSettings?: {
                 bin?: string;
@@ -9302,12 +9370,6 @@ export interface components {
                 filedAt: string;
                 filedBy?: string;
             }[];
-            financialYear: {
-                startMonth: number;
-                startDay: number;
-                endMonth: number;
-                endDay: number;
-            };
         };
         PayLink: {
             url: string | null;
@@ -9946,6 +10008,36 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        CapitalReport: {
+            period: {
+                key: string;
+                /** Format: date-time */
+                startDate: string;
+                /** Format: date-time */
+                endDate: string;
+            };
+            summary: {
+                capitalIn: number;
+                capitalOut: number;
+                netCapital: number;
+                capitalInAllTime: number;
+                capitalOutAllTime: number;
+                netCapitalAllTime: number;
+            };
+            entries: {
+                _id: string;
+                /** Format: date-time */
+                date: string;
+                /** @enum {string} */
+                category: "capital_in" | "capital_out";
+                amount: number;
+                accountId: string | null;
+                accountName?: string | null;
+                reference?: string | null;
+                description?: string | null;
+            }[];
+            entriesTruncated: boolean;
+        };
         CashReport: {
             period: {
                 key: string;
@@ -9964,6 +10056,9 @@ export interface components {
                 expenseCount: number;
                 previousIncome: number;
                 previousExpense: number;
+                capitalIn: number;
+                capitalOut: number;
+                netCapital: number;
             };
             categoryBreakdown: {
                 type: string | null;
@@ -9978,6 +10073,8 @@ export interface components {
                 balance: number;
                 income: number;
                 expense: number;
+                capitalIn: number;
+                capitalOut: number;
                 count: number;
             }[];
         };
@@ -10212,6 +10309,74 @@ export interface components {
             lowStockCount: number;
             outOfStockCount: number;
             inStockCount: number;
+        };
+        PositionReport: {
+            assets: {
+                cash: number;
+                accountCount: number;
+                stockValue: number;
+                receivables: number;
+                receivableCount: number;
+                total: number;
+            };
+            liabilities: {
+                payables: number;
+                payableCount: number;
+                customerCredit: number;
+                total: number;
+            };
+            netPosition: number;
+            basis: {
+                /** @enum {string} */
+                stockValuation: "cost";
+                cashTracked: boolean;
+            };
+        };
+        ProfitLossReport: {
+            period: {
+                key: string;
+                /** Format: date-time */
+                startDate: string;
+                /** Format: date-time */
+                endDate: string;
+            };
+            summary: {
+                revenue: {
+                    gross: number;
+                    returns: number;
+                    net: number;
+                    saleCount: number;
+                    returnCount: number;
+                };
+                cogs: {
+                    sold: number;
+                    returned: number;
+                    net: number;
+                };
+                grossProfit: number;
+                otherIncome: number;
+                operatingExpenses: number;
+                netProfit: number;
+                expenseBreakdown: {
+                    category: string;
+                    total: number;
+                    count: number;
+                }[];
+            };
+            previous: {
+                revenue: number;
+                grossProfit: number;
+                operatingExpenses: number;
+                netProfit: number;
+            };
+            basis: {
+                /** @enum {string} */
+                revenue: "accrual";
+                /** @enum {string} */
+                expenses: "cash";
+                vatExcluded: boolean;
+                expensesTracked: boolean;
+            };
         };
         PurchaseReport: {
             period: {
@@ -10448,12 +10613,6 @@ export interface components {
                     tax: boolean;
                     combo: boolean;
                 };
-                financialYear?: {
-                    startMonth: number;
-                    startDay: number;
-                    endMonth: number;
-                    endDay: number;
-                };
                 receiptSettings?: {
                     phone?: string;
                     email?: string;
@@ -10561,12 +10720,6 @@ export interface components {
                     storefront: boolean;
                     tax: boolean;
                     combo: boolean;
-                };
-                financialYear?: {
-                    startMonth: number;
-                    startDay: number;
-                    endMonth: number;
-                    endDay: number;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -10679,12 +10832,6 @@ export interface components {
                         tax: boolean;
                         combo: boolean;
                     };
-                    financialYear?: {
-                        startMonth: number;
-                        startDay: number;
-                        endMonth: number;
-                        endDay: number;
-                    };
                     receiptSettings?: {
                         phone?: string;
                         email?: string;
@@ -10792,12 +10939,6 @@ export interface components {
                         storefront: boolean;
                         tax: boolean;
                         combo: boolean;
-                    };
-                    financialYear?: {
-                        startMonth: number;
-                        startDay: number;
-                        endMonth: number;
-                        endDay: number;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -10922,12 +11063,6 @@ export interface components {
                         storefront: boolean;
                         tax: boolean;
                         combo: boolean;
-                    };
-                    financialYear?: {
-                        startMonth: number;
-                        startDay: number;
-                        endMonth: number;
-                        endDay: number;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -11060,12 +11195,6 @@ export interface components {
                         tax: boolean;
                         combo: boolean;
                     };
-                    financialYear?: {
-                        startMonth: number;
-                        startDay: number;
-                        endMonth: number;
-                        endDay: number;
-                    };
                     receiptSettings?: {
                         phone?: string;
                         email?: string;
@@ -11154,7 +11283,7 @@ export interface components {
             /** @enum {string} */
             type: "income" | "expense" | "transfer" | "opening_balance";
             /** @enum {string} */
-            category: "sale" | "purchase" | "salary" | "rent" | "utilities" | "saleRefund" | "purchaseRefund" | "adjustment" | "transfer" | "investment" | "opening_balance" | "shipping" | "delivery" | "other";
+            category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
             /** Format: date-time */
             date: string;
             amount: number;
@@ -11166,6 +11295,8 @@ export interface components {
                 name: string;
                 type?: string;
             }) | null;
+            /** @enum {string|null} */
+            transferDirection?: "out" | "in" | null;
             customerId?: (string | {
                 _id: string;
                 name: string;
@@ -11175,6 +11306,7 @@ export interface components {
                 name: string;
             }) | null;
             createdBy?: string | null;
+            reversalOf?: string | null;
             isDemoData?: boolean;
             /** Format: date-time */
             createdAt: string;
@@ -11186,6 +11318,9 @@ export interface components {
             totalExpense: number;
             totalTransfers: number;
             netChange: number;
+            capitalIn: number;
+            capitalOut: number;
+            netCapital: number;
             transactionCount: number;
             incomeTrend: number;
             expenseTrend: number;
@@ -11211,6 +11346,9 @@ export interface components {
             totalTransferOut: number;
             totalTransferIn: number;
             netChange: number;
+            capitalIn: number;
+            capitalOut: number;
+            netCapital: number;
         };
         TransactionTransfer: {
             outTransaction: {
@@ -11225,7 +11363,7 @@ export interface components {
                 /** @enum {string} */
                 type: "income" | "expense" | "transfer" | "opening_balance";
                 /** @enum {string} */
-                category: "sale" | "purchase" | "salary" | "rent" | "utilities" | "saleRefund" | "purchaseRefund" | "adjustment" | "transfer" | "investment" | "opening_balance" | "shipping" | "delivery" | "other";
+                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 /** Format: date-time */
                 date: string;
                 amount: number;
@@ -11237,6 +11375,8 @@ export interface components {
                     name: string;
                     type?: string;
                 }) | null;
+                /** @enum {string|null} */
+                transferDirection?: "out" | "in" | null;
                 customerId?: (string | {
                     _id: string;
                     name: string;
@@ -11246,6 +11386,7 @@ export interface components {
                     name: string;
                 }) | null;
                 createdBy?: string | null;
+                reversalOf?: string | null;
                 isDemoData?: boolean;
                 /** Format: date-time */
                 createdAt: string;
@@ -11264,7 +11405,7 @@ export interface components {
                 /** @enum {string} */
                 type: "income" | "expense" | "transfer" | "opening_balance";
                 /** @enum {string} */
-                category: "sale" | "purchase" | "salary" | "rent" | "utilities" | "saleRefund" | "purchaseRefund" | "adjustment" | "transfer" | "investment" | "opening_balance" | "shipping" | "delivery" | "other";
+                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 /** Format: date-time */
                 date: string;
                 amount: number;
@@ -11276,6 +11417,8 @@ export interface components {
                     name: string;
                     type?: string;
                 }) | null;
+                /** @enum {string|null} */
+                transferDirection?: "out" | "in" | null;
                 customerId?: (string | {
                     _id: string;
                     name: string;
@@ -11285,6 +11428,7 @@ export interface components {
                     name: string;
                 }) | null;
                 createdBy?: string | null;
+                reversalOf?: string | null;
                 isDemoData?: boolean;
                 /** Format: date-time */
                 createdAt: string;
@@ -14179,12 +14323,6 @@ export interface operations {
                         type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
                         /** Format: date-time */
                         effectiveFrom: string;
-                    };
-                    financialYear?: {
-                        startMonth?: number;
-                        startDay?: number;
-                        endMonth?: number;
-                        endDay?: number;
                     };
                 };
             };
@@ -26333,7 +26471,7 @@ export interface operations {
                 "application/json": {
                     accountId: string;
                     /** @enum {string} */
-                    category: "sale" | "purchase" | "salary" | "rent" | "utilities" | "refund" | "adjustment" | "transfer" | "investment" | "other";
+                    category: "capital_in" | "shipping" | "adjustment" | "other";
                     amount: number;
                     description?: string;
                     reference?: string;
@@ -26399,7 +26537,7 @@ export interface operations {
                 "application/json": {
                     accountId: string;
                     /** @enum {string} */
-                    category: "sale" | "purchase" | "salary" | "rent" | "utilities" | "refund" | "adjustment" | "transfer" | "investment" | "other";
+                    category: "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_out";
                     amount: number;
                     description?: string;
                     reference?: string;
@@ -26441,6 +26579,75 @@ export interface operations {
             };
             /** @description Permission denied, or the required organization feature is disabled */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_transactions_id_reverse: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["Transaction"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -27896,6 +28103,135 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["CashReport"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_reports_capital: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CapitalReport"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_reports_profit_loss: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProfitLossReport"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_reports_position: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["PositionReport"];
                     };
                 };
             };

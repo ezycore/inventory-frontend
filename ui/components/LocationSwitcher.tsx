@@ -56,7 +56,12 @@ export function LocationSwitcher() {
     try {
       setActiveLocation(location.id);
       setOpen(false);
-      queryClient.invalidateQueries();
+      // Evict, don't invalidate. `invalidateQueries` refetches only the *active* queries;
+      // inactive ones keep the previous location's rows for their gcTime and render them
+      // synchronously on the next mount — the old warehouse's numbers under the new
+      // warehouse's heading. Location is request-scope state (the X-Active-Location header),
+      // so nothing in the cache survives a switch.
+      queryClient.clear();
       toast.success(`Switched to location: ${location.name}`);
     } catch (error) {
       toast.error("Failed to switch location");

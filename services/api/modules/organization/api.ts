@@ -2,7 +2,6 @@ import { apiClient } from "@/lib/api-client";
 import type {
   ApiResponse,
   AvailablePlansInfo,
-  FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
   StorefrontHeroSlide,
@@ -132,13 +131,11 @@ export const organizationApi = {
   updateVatSettings: (data: {
     vatSettings?: Partial<VatSettings>;
     registration?: { type: VatRegistrationType; effectiveFrom: string };
-    financialYear?: Partial<FinancialYearConfig>;
   }): Promise<
     ApiResponse<{
       vatSettings?: VatSettings;
       vatRegistrationHistory: VatRegistrationEntry[];
       vatPeriods: VatPeriod[];
-      financialYear: FinancialYearConfig;
     }>
   > => apiClient.put(`/organization/vat-settings`, data),
 

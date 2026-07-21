@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { ProductStatus } from "@/types";
 import { FilterConfig } from "@/types/DataTable";
 import type { Translator } from "@/i18n/config";
@@ -17,14 +18,14 @@ export const getProductFilterConfig = (t: Translator): FilterConfig => ({
       label: t("filters.brandLabel"),
       type: "select",
       placeholder: t("filters.brandPlaceholder"),
-      optionsApi: "/brands?all=true&fields=_id,name", // API endpoint to fetch brand options
+      optionsApi: selectOptions("brands", { fields: "_id,name" }),
     },
     {
       name: "categoryId",
       label: t("filters.categoryLabel"),
       type: "select",
       placeholder: t("filters.categoryPlaceholder"),
-      optionsApi: "/categories?all=true&fields=_id,name", // API endpoint to fetch category options
+      optionsApi: selectOptions("categories", { fields: "_id,name" }),
     },
     {
       name: "status",

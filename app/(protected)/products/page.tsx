@@ -6,7 +6,7 @@ import PageHeader from '@/ui/components/header'
 import { useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
 import { isVatActive } from '@/lib/feature-utils'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/services/api/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
 import { productsApi, useProductStats } from '@/services/api'
@@ -153,7 +153,7 @@ export default function ProductsPage() {
     deleteMutation: useDeleteProduct(),
     defaultValues: { locationId: activeLocationId },
     isViewAvailable: false,
-    queryKey: [...queryKeys.products.all()],
+    queryKey: queryKeys.products.all(),
     entityName: t("page.entity"),
     openInside: "drawer" as const,
     onFieldChange: handleFieldChange,

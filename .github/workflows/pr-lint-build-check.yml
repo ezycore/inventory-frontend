@@ -45,14 +45,17 @@ jobs:
       - name: Run Next.js build
         run: pnpm run build
 
-      # Optional: run tests if you have them
-      # - name: Run tests
-      #   run: pnpm test
+      # Includes services/api/__tests__/invalidation.test.ts — the gate that fails when a new
+      # mutation hook invalidates nothing, or an EFFECTS entry names a key no resource owns.
+      # See docs/plan/query-invalidation.md.
+      - name: Run tests
+        run: pnpm test
 
 # Local verification notes:
 # To validate locally before creating a PR, run the following in your macOS zsh terminal:
 #
 # pnpm install --frozen-lockfile
 # pnpm lint
+# pnpm test
 # pnpm build
 

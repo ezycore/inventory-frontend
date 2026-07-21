@@ -1,7 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { Suspense, useState } from "react";
+import { invalidate } from "@/services/api/invalidation";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -166,8 +167,7 @@ function OrdersList() {
     const fail = results.length - ok;
     if (ok) toast.success(`${ok} order${ok === 1 ? "" : "s"} confirmed`);
     if (fail) toast.error(`${fail} order${fail === 1 ? "" : "s"} could not be confirmed`);
-    qc.invalidateQueries({ queryKey: ["storefront-orders"] });
-    qc.invalidateQueries({ queryKey: ["ecommerce-dashboard"] });
+    invalidate(qc, "order.confirmed");
     setSelected(new Set());
     setBulkBusy(false);
   };

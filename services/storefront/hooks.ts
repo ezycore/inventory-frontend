@@ -1,5 +1,10 @@
 // coding-standard: maintained
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import {
   storefrontApi,
   type ContentPageLink,
@@ -10,14 +15,59 @@ import {
 } from "@/lib/storefront-client";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 
-const key = (slug: string, ...rest: unknown[]) =>
-  ["storefront", slug, ...rest] as const;
+/**
+ * Storefront query keys. Deliberately **separate from `services/api/query-keys.ts`**: this surface
+ * has a different session model (a shopper token, not the staff JWT), a slug dimension no admin key
+ * has, and SSR-seeded `initialData` — and a shopper mutation can never dirty an admin query. Folding
+ * it into the admin registry would thread `slug` through a graph where nothing else needs it.
+ *
+ * Same invariant, though: **every key starts with `storefront.all(slug)`**, and everything private to
+ * the signed-in shopper starts with `storefront.shopper(slug)`, so a session change is one eviction.
+ */
+export const storefront = {
+  all: (slug: string) => ["storefront", slug] as const,
+
+  // Public store data. SSR-seeded, shared by every visitor, survives a session change.
+  store: (slug: string) => ["storefront", slug, "store"] as const,
+  products: (slug: string, params: unknown) =>
+    ["storefront", slug, "products", params ?? {}] as const,
+  product: (slug: string, productSlug: string) =>
+    ["storefront", slug, "product", productSlug] as const,
+  categories: (slug: string) => ["storefront", slug, "categories"] as const,
+  brands: (slug: string) => ["storefront", slug, "brands"] as const,
+  campaigns: (slug: string) => ["storefront", slug, "campaigns"] as const,
+  pages: (slug: string) => ["storefront", slug, "pages"] as const,
+  page: (slug: string, pageSlug: string) =>
+    ["storefront", slug, "page", pageSlug] as const,
+
+  /**
+   * Everything private to the signed-in shopper. One prefix, on purpose: `clearShopperCache` drops
+   * it wholesale when the session changes, so the next shopper on a shared device can never be
+   * served the previous one's orders out of cache.
+   */
+  shopper: (slug: string) => ["storefront", slug, "shopper"] as const,
+  orders: (slug: string) => ["storefront", slug, "shopper", "orders"] as const,
+  order: (slug: string, orderNumber: string) =>
+    ["storefront", slug, "shopper", "order", orderNumber] as const,
+} as const;
+
+/**
+ * Drop everything the previous shopper could see. Called on login, register and logout.
+ *
+ * `removeQueries`, not `invalidateQueries`: invalidating leaves the rows in cache, and an inactive
+ * query hands them back synchronously on the next mount — which on a shared phone means shopper B
+ * reading shopper A's order history, addresses and phone numbers before the refetch lands. Public
+ * store data is deliberately untouched: it is identical for every visitor and SSR-seeded, so
+ * clearing it would only cause a flash.
+ */
+export const clearShopperCache = (qc: QueryClient, slug: string) =>
+  qc.removeQueries({ queryKey: storefront.shopper(slug) });
 
 // `initialData` (server-fetched in shop/layout.tsx) seeds the cache so the shell
 // renders the real name/brand/logo on the FIRST paint — no "Store"→name flash.
 export const useStore = (slug: string, initialData?: StorefrontStore) =>
   useQuery({
-    queryKey: key(slug, "store"),
+    queryKey: storefront.store(slug),
     queryFn: () => storefrontApi.getStore(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
@@ -30,21 +80,21 @@ export const useStoreProducts = (
   enabled = true,
 ) =>
   useQuery({
-    queryKey: key(slug, "products", params),
+    queryKey: storefront.products(slug, params),
     queryFn: () => storefrontApi.listProducts(slug, params),
     enabled: !!slug && enabled,
   });
 
 export const useStoreProduct = (slug: string, productSlug: string) =>
   useQuery({
-    queryKey: key(slug, "product", productSlug),
+    queryKey: storefront.product(slug, productSlug),
     queryFn: () => storefrontApi.getProduct(slug, productSlug),
     enabled: !!slug && !!productSlug,
   });
 
 export const useStoreCategories = (slug: string) =>
   useQuery({
-    queryKey: key(slug, "categories"),
+    queryKey: storefront.categories(slug),
     queryFn: () => storefrontApi.listCategories(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
@@ -53,7 +103,7 @@ export const useStoreCategories = (slug: string) =>
 /** Curated brand facet (products page filter; brand names for chips/headings). */
 export const useStoreBrands = (slug: string) =>
   useQuery({
-    queryKey: key(slug, "brands"),
+    queryKey: storefront.brands(slug),
     queryFn: () => storefrontApi.listBrands(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
@@ -63,7 +113,7 @@ export const useStoreBrands = (slug: string) =>
 // campaign strip is in the SSR HTML instead of popping in after hydration.
 export const useStoreCampaigns = (slug: string, initialData?: StoreCampaign[]) =>
   useQuery({
-    queryKey: key(slug, "campaigns"),
+    queryKey: storefront.campaigns(slug),
     queryFn: () => storefrontApi.listCampaigns(slug),
     enabled: !!slug,
     staleTime: 60 * 1000,
@@ -74,7 +124,7 @@ export const useStoreCampaigns = (slug: string, initialData?: StoreCampaign[]) =
 // page links are in the SSR HTML (SEO) instead of popping in after hydration.
 export const useStorePages = (slug: string, initialData?: ContentPageLink[]) =>
   useQuery({
-    queryKey: key(slug, "pages"),
+    queryKey: storefront.pages(slug),
     queryFn: () => storefrontApi.listPages(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
@@ -83,7 +133,7 @@ export const useStorePages = (slug: string, initialData?: ContentPageLink[]) =>
 
 export const useStorePage = (slug: string, pageSlug: string) =>
   useQuery({
-    queryKey: key(slug, "page", pageSlug),
+    queryKey: storefront.page(slug, pageSlug),
     queryFn: () => storefrontApi.getPage(slug, pageSlug),
     enabled: !!slug && !!pageSlug,
   });
@@ -112,9 +162,30 @@ export const useResetPassword = (slug: string) =>
       storefrontApi.resetPassword(slug, v.token, v.password),
   });
 
+/**
+ * Sign the shopper out. **Use this, never `useShopperStore().logout` directly** — clearing the token
+ * without evicting leaves the previous shopper's orders in the cache, and the next sign-in on the
+ * same device reads them back before its own fetch lands.
+ */
+export const useShopperLogout = (slug: string) => {
+  const qc = useQueryClient();
+  const logout = useShopperStore((s) => s.logout);
+  return () => {
+    logout();
+    clearShopperCache(qc, slug);
+  };
+};
+
 /** Register + login mutations that persist the shopper session on success. */
 export const useShopperAuth = (slug: string) => {
   const setAuth = useShopperStore((s) => s.setAuth);
+  const qc = useQueryClient();
+  // Drop whatever the previous shopper on this device left behind before the new
+  // session's queries can read it out of cache.
+  const onSuccess = (r: { token: string; shopper: Parameters<typeof setAuth>[2] }) => {
+    clearShopperCache(qc, slug);
+    setAuth(slug, r.token, r.shopper);
+  };
 
   const register = useMutation({
     mutationFn: (body: {
@@ -123,13 +194,13 @@ export const useShopperAuth = (slug: string) => {
       password: string;
       phone?: string;
     }) => storefrontApi.register(slug, body),
-    onSuccess: (r) => setAuth(slug, r.token, r.shopper),
+    onSuccess,
   });
 
   const login = useMutation({
     mutationFn: (body: { email: string; password: string }) =>
       storefrontApi.login(slug, body),
-    onSuccess: (r) => setAuth(slug, r.token, r.shopper),
+    onSuccess,
   });
 
   return { register, login };
@@ -210,7 +281,7 @@ export const useShopperAccount = (slug: string) => {
 export const useShopperOrders = (slug: string) => {
   const token = useShopperStore((s) => s.token);
   return useQuery({
-    queryKey: key(slug, "orders"),
+    queryKey: storefront.orders(slug),
     queryFn: () => storefrontApi.listOrders(slug, token!),
     enabled: !!slug && !!token,
   });
@@ -219,7 +290,7 @@ export const useShopperOrders = (slug: string) => {
 export const useShopperOrder = (slug: string, orderNumber: string) => {
   const token = useShopperStore((s) => s.token);
   return useQuery({
-    queryKey: key(slug, "order", orderNumber),
+    queryKey: storefront.order(slug, orderNumber),
     queryFn: () => storefrontApi.getOrder(slug, token!, orderNumber),
     enabled: !!slug && !!token && !!orderNumber,
   });
@@ -231,8 +302,7 @@ export const usePlaceOrder = (slug: string) => {
   return useMutation({
     mutationFn: (body: PlaceOrderInput) =>
       storefrontApi.placeOrder(slug, token!, body),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: key(slug, "orders") }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: storefront.shopper(slug) }),
   });
 };
 
@@ -243,9 +313,7 @@ export const useCancelShopperOrder = (slug: string) => {
   return useMutation({
     mutationFn: (orderNumber: string) =>
       storefrontApi.cancelOrder(slug, token!, orderNumber),
-    onSuccess: (_data, orderNumber) => {
-      qc.invalidateQueries({ queryKey: key(slug, "orders") });
-      qc.invalidateQueries({ queryKey: key(slug, "order", orderNumber) });
-    },
+    // One prefix covers the list and the order's own detail.
+    onSuccess: () => qc.invalidateQueries({ queryKey: storefront.shopper(slug) }),
   });
 };

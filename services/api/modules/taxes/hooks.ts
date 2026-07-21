@@ -8,15 +8,8 @@ const taxHooks = createResourceHooks<ApiTax, CreateTaxDto>(
   taxesApi,
   queryKeys.taxes,
   {
-    relatedQueryKeys: [
-      queryKeys.products.all(),
-      queryKeys.categories.all(),
-      // The PREFIX, not each URL — see the note in the categories hooks. Both
-      // literals above had gone stale: the pickers now ask for
-      // `status=active&…,vatCategory,isDefault`, so creating a rate never
-      // refreshed the product form's dropdown.
-      ["select-options"],
-    ],
+    // Products and categories store a rate snapshot.
+    events: ["catalog.changed"],
   },
 );
 

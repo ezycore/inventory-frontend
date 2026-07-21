@@ -99,6 +99,9 @@ export type StockValuationReport = Schemas["StockValuationReport"];
 export type TaxReport = Schemas["TaxReport"];
 export type TaxLedger = Schemas["TaxLedger"];
 export type CashReport = Schemas["CashReport"];
+export type CapitalReport = Schemas["CapitalReport"];
+export type ProfitLossReport = Schemas["ProfitLossReport"];
+export type PositionReport = Schemas["PositionReport"];
 export type EmployeeReport = Schemas["EmployeeReport"];
 export type ComboSalesReport = Schemas["ComboSalesReport"];
 

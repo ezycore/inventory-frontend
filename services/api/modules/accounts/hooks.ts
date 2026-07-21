@@ -1,6 +1,6 @@
 import { accountsApi } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/services/api/query-keys'
 import { CreateAccountDto, UpdateAccountDto } from '@/types'
 import type { ApiAccount } from '@/types/api'
 import { useQuery } from '@tanstack/react-query'

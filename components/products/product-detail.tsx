@@ -1,6 +1,7 @@
 // coding-standard: maintained
 'use client'
 
+import { queryKeys } from "@/services/api/query-keys";
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
@@ -64,7 +65,7 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
   const selectedVariantId = isVariableProduct ? variantTab || firstVariantId : undefined
 
   const { data: inventoryData } = useQuery({
-    queryKey: ['inventory', 'product', resolvedId],
+    queryKey: queryKeys.inventory.byProduct(resolvedId),
     queryFn: () => inventoryApi.getAll({ productId: resolvedId }),
     enabled: !!resolvedId,
     select: (data) => data.data,

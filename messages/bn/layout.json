@@ -70,7 +70,9 @@
       "receipt-print": "রসিদ ও প্রিন্ট",
       "custom-domains": "কাস্টম ডোমেইন",
       "billing": "বিলিং",
-      "details": "বিস্তারিত"
+      "details": "বিস্তারিত",
+      "profit-loss": "লাভ ও ক্ষতি",
+      "business-position": "ব্যবসার অবস্থান"
     }
   },
   "userMenu": {

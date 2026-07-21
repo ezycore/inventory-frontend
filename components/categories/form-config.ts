@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import type { Translator } from '@/i18n/config'
 
@@ -9,8 +10,10 @@ import type { Translator } from '@/i18n/config'
  * every category would silently claim the org-wide rate and the fallback would
  * never be reached.
  */
-export const TAX_OPTIONS_API =
-  '/taxes?all=true&status=active&fields=_id,name,rate,vatCategory'
+export const TAX_OPTIONS_API = selectOptions("taxes", {
+  status: "active",
+  fields: "_id,name,rate,vatCategory",
+});
 
 /**
  * Static English config — used by the module-scope quick-add registry and the

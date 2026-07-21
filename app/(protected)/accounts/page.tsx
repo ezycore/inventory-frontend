@@ -13,7 +13,10 @@ import type { DynamicFormConfig } from "@/ui/components/form/type";
 import { DataCard } from "@/ui/components/dataCard";
 import PageHeader from "@/ui/components/header";
 import AccountCardView, { AccountCardSkeleton } from "@/components/accounts/cardview";
-import InvestmentDialog from "@/components/accounts/investment-dialog";
+import CapitalDialog, {
+  type CapitalDirection,
+} from "@/components/accounts/capital-dialog";
+import CapitalSummary from "@/components/accounts/capital-summary";
 import {
   Wallet,
   Building2,
@@ -278,9 +281,11 @@ export default function AccountsPage() {
   const router = useRouter();
   const { data: summary, isLoading: summaryLoading } = useAccountSummary();
 
-  const [investmentTarget, setInvestmentTarget] = useState<Account | null>(
-    null,
-  );
+  // One dialog serves both directions; the target account and the direction move together.
+  const [capitalTarget, setCapitalTarget] = useState<{
+    account: Account;
+    direction: CapitalDirection;
+  } | null>(null)
 
   const sharedOperations = {
     formConfig: getAccountFormConfig(t),
@@ -289,7 +294,7 @@ export default function AccountsPage() {
     createMutation: useCreateAccount(),
     updateMutation: useUpdateAccount(),
     deleteMutation: useDeleteAccount(),
-    queryKey: [...queryKeys.accounts.all()],
+    queryKey: queryKeys.accounts.all(),
     entityName: t("page.entity"),
   };
 
@@ -315,6 +320,9 @@ export default function AccountsPage() {
         isLoading={summaryLoading}
       />
 
+      {/* ── Owner capital (equity, never income) ─────────────────── */}
+      <CapitalSummary />
+
       {/* ── Account cards ───────────────────────────────────────── */}
       <DataCard
         cardTitle={(n: number) => t("page.allAccountsCount", { count: n })}
@@ -325,7 +333,10 @@ export default function AccountsPage() {
             actions={{
               onEdit: () => actions.onEdit?.(),
               onDelete: () => actions.onDelete?.(),
-              onAddInvestment: () => setInvestmentTarget(row),
+              onAddInvestment: () =>
+                setCapitalTarget({ account: row, direction: "in" }),
+              onWithdrawCapital: () =>
+                setCapitalTarget({ account: row, direction: "out" }),
               onViewTransactions: () =>
                 router.push(`/accounts/transactions?accountId=${row._id}`),
             }}
@@ -339,10 +350,11 @@ export default function AccountsPage() {
         operations={sharedOperations}
       />
 
-      {/* ── Add investment dialog ───────────────────────────────── */}
-      <InvestmentDialog
-        account={investmentTarget}
-        onClose={() => setInvestmentTarget(null)}
+      {/* ── Owner capital dialog (investment in / withdrawal out) ── */}
+      <CapitalDialog
+        account={capitalTarget?.account ?? null}
+        direction={capitalTarget?.direction ?? "in"}
+        onClose={() => setCapitalTarget(null)}
       />
     </div>
   );

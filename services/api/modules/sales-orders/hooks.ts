@@ -1,4 +1,5 @@
 import { salesApi } from "@/services/api";
+import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import {
   AddPaymentDto,
@@ -43,7 +44,7 @@ export const useSale = (id: string) => {
  */
 export const useSalesSummary = () => {
   return useQuery({
-    queryKey: [...queryKeys.salesOrders.all(), "summary"],
+    queryKey: queryKeys.salesOrders.summary(),
     queryFn: () => salesApi.getSummary(),
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -54,7 +55,7 @@ export const useSalesSummary = () => {
  */
 export const useSalePayments = (saleId: string) => {
   return useQuery({
-    queryKey: [...queryKeys.salesOrders.detail(saleId), "payments"],
+    queryKey: queryKeys.salesOrders.payments(saleId),
     queryFn: () => salesApi.getPayments(saleId),
     enabled: !!saleId,
     staleTime: 2 * 60 * 1000,
@@ -67,7 +68,7 @@ export const useSalePayments = (saleId: string) => {
  */
 export const useSaleTransactions = (saleId: string) => {
   return useQuery({
-    queryKey: [...queryKeys.salesOrders.detail(saleId), "transactions"],
+    queryKey: queryKeys.salesOrders.transactions(saleId),
     queryFn: () => salesApi.getTransactions(saleId),
     enabled: !!saleId,
     staleTime: 2 * 60 * 1000,
@@ -86,26 +87,9 @@ export const useAddSalePayment = () => {
       ...data
     }: AddPaymentDto & { saleId: string }) =>
       salesApi.addPayment(saleId, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Payment added successfully");
-      // Invalidate sales list to refresh data
-      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
-      // Invalidate specific sale detail
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.salesOrders.detail(variables.saleId),
-      });
-      // Invalidate payments list for this sale
-      queryClient.invalidateQueries({
-        queryKey: [...queryKeys.salesOrders.detail(variables.saleId), "payments"],
-      });
-      // Invalidate transactions timeline for this sale
-      queryClient.invalidateQueries({
-        queryKey: [...queryKeys.salesOrders.detail(variables.saleId), "transactions"],
-      });
-      // Invalidate all customer queries to refresh ledger data
-      queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
-      // Also invalidate accounts since balance changed
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
+      invalidate(queryClient, "sale.paid");
     },
     onError: handleMutationError,
   });
@@ -118,7 +102,7 @@ export const useCreateSalesOrder = () => {
     mutationFn: (data: CreateSalesOrderDto) => salesApi.createSalesOrder(data),
     onSuccess: (data) => {
       toast.success(data.message || "Sales order created successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
+      invalidate(queryClient, "sale.posted");
     },
     onError: handleMutationError,
   });
@@ -138,12 +122,9 @@ export const useUpdateDraftSale = () => {
   return useMutation({
     mutationFn: ({ id, ...data }: UpdateSaleDraftDto & { id: string }) =>
       salesApi.updateDraftSale(id, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Draft updated");
-      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.salesOrders.detail(variables.id),
-      });
+      invalidate(queryClient, "sale.drafted");
     },
     onError: handleMutationError,
   });
@@ -159,15 +140,9 @@ export const useFinalizeDraftSale = () => {
   return useMutation({
     mutationFn: ({ id, ...data }: FinalizeSaleDto & { id: string }) =>
       salesApi.finalizeDraftSale(id, data),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Sale finalized");
-      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.salesOrders.detail(variables.id),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+      invalidate(queryClient, "sale.posted");
     },
     onError: handleMutationError,
   });
@@ -198,7 +173,7 @@ export const useDeleteDraftSale = () => {
     mutationFn: (id: string) => salesApi.deleteDraftSale(id),
     onSuccess: (data) => {
       toast.success(data.message || "Draft deleted");
-      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
+      invalidate(queryClient, "sale.drafted");
     },
     onError: handleMutationError,
   });

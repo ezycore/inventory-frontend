@@ -147,7 +147,7 @@ export default function TaxesPage() {
     createMutation: useCreateTax(),
     updateMutation: useUpdateTax(),
     deleteMutation: useDeleteTax(),
-    queryKey: [...queryKeys.taxes.all()],
+    queryKey: queryKeys.taxes.all(),
     entityName: "Tax" as const,
   };
 

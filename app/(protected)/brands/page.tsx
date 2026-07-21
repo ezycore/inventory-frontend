@@ -57,7 +57,7 @@ export default function BrandsPage() {
     createMutation: useCreateBrand(),
     updateMutation: useUpdateBrand(),
     deleteMutation: useDeleteBrand(),
-    queryKey: [...queryKeys.brands.all()],
+    queryKey: queryKeys.brands.all(),
     entityName: "Brand" as const,
     isViewAvailable: false,
     prepareSubmitData,

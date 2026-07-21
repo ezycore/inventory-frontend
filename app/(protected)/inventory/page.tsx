@@ -174,7 +174,7 @@ export default function InventoryPage() {
           updateMutation: useUpdateInventory(),
           deleteMutation: useDeleteInventory(),
           bulkDeleteMutation: useBulkDeleteInventory(),
-          queryKey: [...queryKeys.inventory.all()],
+          queryKey: queryKeys.inventory.all(),
           entityName: t("stock.entity"),
           prepareSubmitData: (data: Inventory, isEdit: boolean, item: Inventory) =>
             prepareSubmitData(data, isEdit, item),

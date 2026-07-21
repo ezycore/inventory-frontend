@@ -1,4 +1,4 @@
-import { queryKeys } from "@/lib/query-keys";
+import { queryKeys } from "@/services/api/query-keys";
 import { brandsApi } from "@/services/api";
 import { CreateBrandDto } from "@/types";
 import type { ApiBrand, BrandListItem } from "@/types/api";
@@ -8,11 +8,8 @@ const brandHooks = createResourceHooks<ApiBrand, CreateBrandDto, Partial<CreateB
   brandsApi,
   queryKeys.brands,
   {
-    relatedQueryKeys: [
-      queryKeys.products.all(),
-      ["select-options", "/brands?all=true&fields=_id,name"],
-      ["select-options", "/brands?all=true&fields=_id,name,isDefault"],
-    ],
+    // Product/inventory rows embed the brand name.
+    events: ["catalog.changed"],
   },
 );
 

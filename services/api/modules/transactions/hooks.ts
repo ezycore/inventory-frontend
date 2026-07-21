@@ -1,3 +1,4 @@
+import { invalidate } from "@/services/api/invalidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TransactionFilters, transactionsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
@@ -68,8 +69,7 @@ export function useCreateIncome() {
   return useMutation({
     mutationFn: (data: CreateIncomeDto) => transactionsApi.createIncome(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
+      invalidate(queryClient, "money.moved");
     },
   });
 }
@@ -80,8 +80,7 @@ export function useCreateExpense() {
   return useMutation({
     mutationFn: (data: CreateExpenseDto) => transactionsApi.createExpense(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
+      invalidate(queryClient, "money.moved");
     },
   });
 }
@@ -92,8 +91,7 @@ export function useCreateTransfer() {
   return useMutation({
     mutationFn: (data: CreateTransferDto) => transactionsApi.createTransfer(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all() });
+      invalidate(queryClient, "money.moved");
     },
   });
 }

@@ -125,6 +125,32 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
 - Status: Google works with any creds; **Facebook app is in Development Mode pending Meta
   Business Verification** (consent screen already round-trips for app admins).
 
+### Query cache + the session boundary (read before touching shopper auth)
+
+Storefront keys live in **`services/storefront/hooks.ts`**, not the admin registry
+(`services/api/query-keys.ts`) — different session model, a `slug` dimension no admin key has, and
+SSR-seeded `initialData`. Same invariant though: **every key starts with `storefront.all(slug)`**, and
+everything private to the signed-in shopper starts with **`storefront.shopper(slug)`**.
+
+That split exists because of a real defect: the orders key carried only the store slug, so signing out
+left the previous shopper's order history — numbers, addresses, phones — in cache for the full
+`gcTime`, and the next sign-in on the same device read it back before its own fetch landed. Shared
+phones and shop counters make that a routine path, not a race.
+
+**Rules:**
+- A new shopper-private query goes under `storefront.shopper(slug)`. No exceptions — that prefix is
+  what makes eviction one call.
+- Every session boundary calls `clearShopperCache(qc, slug)`: `useShopperLogout` (logout),
+  `useShopperAuth` (login/register), and the 401 auto-logout in `lib/storefront-client.ts`.
+- **Never call `useShopperStore().logout` directly** — use `useShopperLogout(slug)`. The raw store
+  action clears the token and leaves the cache.
+- Public store data (products, categories, campaigns, pages) is deliberately *not* evicted: identical
+  for every visitor, SSR-seeded, so clearing it only causes a flash.
+- `services/api/__tests__/invalidation.test.ts` covers this file too — a new mutation that invalidates
+  nothing fails CI unless it is allowlisted with a reason.
+
+Background: [`docs/plan/query-invalidation.md`](../../../docs/plan/query-invalidation.md) §P4.
+
 ## Other storefront subsystems
 
 - **CMS pages**: admin Ecommerce → Content (title/slug/body/published/showInFooter/sortOrder).

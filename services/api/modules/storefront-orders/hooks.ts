@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
+import { invalidate } from "@/services/api/invalidation";
+import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
 import {
   couriersApi,
@@ -7,33 +9,25 @@ import {
   type AdminOrderListParams,
 } from "./api";
 
-const ROOT = ["storefront-orders"] as const;
-const COURIERS = ["storefront-couriers"] as const;
-const keys = {
-  list: (params: unknown) => [...ROOT, "list", params] as const,
-  stats: () => [...ROOT, "stats"] as const,
-  detail: (id: string) => [...ROOT, "detail", id] as const,
-};
-
 export const useStorefrontOrders = (params: AdminOrderListParams) =>
   useQuery({
-    queryKey: keys.list(params),
+    queryKey: queryKeys.storefrontOrders.list(params),
     queryFn: () => storefrontOrdersApi.list(params),
     select: (r) => r.data,
     placeholderData: (prev) => prev,
   });
 
-/** The stat-card snapshot — under the ROOT key, so any order mutation refreshes it. */
+/** The stat-card snapshot — under the orders root, so any order mutation refreshes it. */
 export const useOrderStats = () =>
   useQuery({
-    queryKey: keys.stats(),
+    queryKey: queryKeys.storefrontOrders.stats(),
     queryFn: () => storefrontOrdersApi.stats(),
     select: (r) => r.data,
   });
 
 export const useStorefrontOrder = (id: string) =>
   useQuery({
-    queryKey: keys.detail(id),
+    queryKey: queryKeys.storefrontOrders.detail(id),
     queryFn: () => storefrontOrdersApi.get(id),
     enabled: !!id,
     select: (r) => r.data,
@@ -49,16 +43,13 @@ export const useOrderFraudScore = () =>
     onError: handleMutationError,
   });
 
-const invalidateAll = (qc: ReturnType<typeof useQueryClient>) =>
-  qc.invalidateQueries({ queryKey: ROOT });
-
 export const useConfirmOrder = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => storefrontOrdersApi.confirm(id),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Order confirmed");
-      invalidateAll(qc);
+      invalidate(qc, "order.confirmed");
     },
     onError: handleMutationError,
   });
@@ -71,7 +62,7 @@ export const useUpdateOrderStatus = () => {
       storefrontOrdersApi.updateStatus(v.id, v.status),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Status updated");
-      invalidateAll(qc);
+      invalidate(qc, "order.changed");
     },
     onError: handleMutationError,
   });
@@ -93,17 +84,13 @@ export const useCancelOrder = () => {
       }),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Order cancelled");
-      invalidateAll(qc);
+      invalidate(qc, "order.returned");
     },
     onError: handleMutationError,
   });
 };
 
-/**
- * Record a COD delivery-charge advance (collected before shipping). Under the
- * ROOT key like the other order mutations, so the stat cards and the order
- * refresh together.
- */
+/** Record a COD delivery-charge advance (collected before shipping). */
 export const useRecordAdvance = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -111,7 +98,7 @@ export const useRecordAdvance = () => {
       storefrontOrdersApi.recordAdvance(v.id, v.amount, v.accountId),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Advance recorded");
-      invalidateAll(qc);
+      invalidate(qc, "order.settled");
     },
     onError: handleMutationError,
   });
@@ -124,7 +111,7 @@ export const useUpdateCourierCost = () => {
       storefrontOrdersApi.updateCourierCost(v.id, v.shippingCost),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Courier cost updated");
-      invalidateAll(qc);
+      invalidate(qc, "order.settled");
     },
     onError: handleMutationError,
   });
@@ -137,7 +124,7 @@ export const useMarkOrderPaid = () => {
       storefrontOrdersApi.markPaid(v.id, v.accountId),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Payment recorded");
-      invalidateAll(qc);
+      invalidate(qc, "order.settled");
     },
     onError: handleMutationError,
   });
@@ -161,7 +148,7 @@ export const useReturnOrder = () => {
       }),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Order returned");
-      invalidateAll(qc);
+      invalidate(qc, "order.returned");
     },
     onError: handleMutationError,
   });
@@ -174,7 +161,7 @@ export const useCreateConsignment = () => {
       storefrontOrdersApi.createConsignment(v.id, v.provider),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Consignment created");
-      invalidateAll(qc);
+      invalidate(qc, "order.changed");
     },
     onError: handleMutationError,
   });
@@ -186,7 +173,7 @@ export const useRefreshTracking = () => {
     mutationFn: (id: string) => storefrontOrdersApi.refreshTracking(id),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Tracking refreshed");
-      invalidateAll(qc);
+      invalidate(qc, "order.changed");
     },
     onError: handleMutationError,
   });
@@ -203,7 +190,7 @@ export const useResolveLocation = () => {
     }) => storefrontOrdersApi.resolveLocation(v.id, v.provider, v.location),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Delivery location resolved");
-      invalidateAll(qc);
+      invalidate(qc, "order.changed");
     },
     onError: handleMutationError,
   });
@@ -224,7 +211,7 @@ export const useBulkConsignment = () => {
   return useMutation({
     mutationFn: (v: { orderIds: string[]; provider: string }) =>
       storefrontOrdersApi.bulkConsignment(v.orderIds, v.provider),
-    onSuccess: () => invalidateAll(qc),
+    onSuccess: () => invalidate(qc, "order.changed"),
     onError: handleMutationError,
   });
 };
@@ -232,7 +219,7 @@ export const useBulkConsignment = () => {
 // --- Courier config ---
 export const useCouriers = () =>
   useQuery({
-    queryKey: COURIERS,
+    queryKey: queryKeys.couriers.list(),
     queryFn: () => couriersApi.list(),
     select: (r) => r.data,
   });
@@ -253,7 +240,7 @@ export const useUpsertCourier = () => {
       }),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Courier saved");
-      qc.invalidateQueries({ queryKey: COURIERS });
+      qc.invalidateQueries({ queryKey: queryKeys.couriers.all() });
     },
     onError: handleMutationError,
   });
@@ -283,7 +270,7 @@ export const useCourierPackages = () =>
 // The store's delivery-status webhook token + per-provider URLs (ensured on read).
 export const useCourierWebhook = () =>
   useQuery({
-    queryKey: ["storefront-courier-webhook"],
+    queryKey: queryKeys.couriers.webhook(),
     queryFn: () => couriersApi.webhook(),
   });
 
@@ -293,7 +280,7 @@ export const useRegenerateWebhookToken = () => {
     mutationFn: () => couriersApi.regenerateWebhook(),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Webhook URL regenerated");
-      qc.invalidateQueries({ queryKey: ["storefront-courier-webhook"] });
+      qc.invalidateQueries({ queryKey: queryKeys.couriers.webhook() });
     },
     onError: handleMutationError,
   });
@@ -305,7 +292,7 @@ export const useDeleteCourier = () => {
     mutationFn: (provider: string) => couriersApi.remove(provider),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Courier removed");
-      qc.invalidateQueries({ queryKey: COURIERS });
+      qc.invalidateQueries({ queryKey: queryKeys.couriers.all() });
     },
     onError: handleMutationError,
   });

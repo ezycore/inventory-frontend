@@ -278,6 +278,16 @@ export const navGroups: NavGroup[] = [
             icon: "file-text",
           },
           {
+            title: "Profit & Loss",
+            url: "/reports/profit-loss",
+            icon: "trending-up",
+          },
+          {
+            title: "Business Position",
+            url: "/reports/position",
+            icon: "scale",
+          },
+          {
             title: "Cash Report",
             url: "/reports/cash",
             icon: "credit-card",
