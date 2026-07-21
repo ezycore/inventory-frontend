@@ -66,7 +66,7 @@ const READ_ONLY_MUTATIONS: Record<string, string> = {
   useEnable2FA: "returns the enrolment secret; the status query is written on verify",
 
   useUpdatePassword: "changes a credential, not anything this app caches",
-  useUploadHeroSlideImage:
+  useUploadStorefrontImage:
     "returns a URL for the form to hold; the storefront settings save is what persists it",
   useRequestPayLink: "sends a billing email; the entitlement is unchanged until MC pushes it",
 

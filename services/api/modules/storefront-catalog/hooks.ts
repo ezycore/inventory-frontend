@@ -10,12 +10,6 @@ import {
   storefrontCatalogApi,
 } from "./api";
 
-const ROOT = ["storefront-catalog"] as const;
-const keys = {
-  list: (params: unknown) => [...ROOT, "list", params] as const,
-  variants: (id: string) => [...ROOT, "variants", id] as const,
-};
-
 export const useCatalogProducts = (params: CatalogListParams) =>
   useQuery({
     queryKey: queryKeys.storefrontCatalog.list(params),
@@ -26,14 +20,11 @@ export const useCatalogProducts = (params: CatalogListParams) =>
 /** Per-variant pricing rows for the editor; only fetched for variable products. */
 export const useCatalogVariants = (id: string | null, enabled: boolean) =>
   useQuery({
-    queryKey: keys.variants(id ?? ""),
+    queryKey: queryKeys.storefrontCatalog.variants(id ?? ""),
     queryFn: () => storefrontCatalogApi.listVariants(id as string),
     select: (r) => r.data,
     enabled: !!id && enabled,
   });
-
-const invalidateAll = (qc: ReturnType<typeof useQueryClient>) =>
-  qc.invalidateQueries({ queryKey: ROOT });
 
 export const useUpdateCatalogListing = () => {
   const qc = useQueryClient();

@@ -245,6 +245,8 @@ export const queryKeys = {
   storefrontCatalog: {
     ...resourceKeys("storefront-catalog"),
     collections: () => ["storefront-catalog", "collections"] as const,
+    /** Per-variant storefront pricing rows for one product (the listing editor). */
+    variants: (id: string) => ["storefront-catalog", "variants", id] as const,
   },
 
   storefrontCustomers: {

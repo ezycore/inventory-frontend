@@ -34,6 +34,7 @@ export const storefront = {
   product: (slug: string, productSlug: string) =>
     ["storefront", slug, "product", productSlug] as const,
   categories: (slug: string) => ["storefront", slug, "categories"] as const,
+  brands: (slug: string) => ["storefront", slug, "brands"] as const,
   campaigns: (slug: string) => ["storefront", slug, "campaigns"] as const,
   pages: (slug: string) => ["storefront", slug, "pages"] as const,
   page: (slug: string, pageSlug: string) =>
@@ -102,7 +103,7 @@ export const useStoreCategories = (slug: string) =>
 /** Curated brand facet (products page filter; brand names for chips/headings). */
 export const useStoreBrands = (slug: string) =>
   useQuery({
-    queryKey: key(slug, "brands"),
+    queryKey: storefront.brands(slug),
     queryFn: () => storefrontApi.listBrands(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
