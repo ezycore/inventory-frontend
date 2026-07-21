@@ -9109,6 +9109,10 @@ export interface components {
                     enabled: boolean;
                     hour: number;
                 };
+                expiryDigest?: {
+                    enabled: boolean;
+                    hour: number;
+                };
             };
             settings?: {
                 excludedFields?: {
