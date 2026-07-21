@@ -24,7 +24,7 @@ import {
   useVariantStats,
 } from '@/services/api'
 import { variantAttributesApi } from '@/services/api'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/services/api/query-keys'
 import getVariantAttributeFormConfig from '@/components/variants/form-config'
 import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
@@ -46,7 +46,7 @@ export default function VariantsPage() {
     updateMutation: useUpdateVariantAttribute(),
     deleteMutation: useDeleteVariantAttribute(),
     entityName: t('page.entityName'),
-    queryKey: [...queryKeys.variantAttributes.all()],
+    queryKey: queryKeys.variantAttributes.all(),
     transformEditData: variantAttributesApi.transformForEdit,
   }
 

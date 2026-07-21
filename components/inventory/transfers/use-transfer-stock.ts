@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -39,7 +40,7 @@ export function useTransferStock() {
   const bulkTransferMutation = useBulkTransferStock()
 
   // Fetch all locations
-  const { data: locations = [], isLoading: locationsLoading } = useSelectOptions('/locations')
+  const { data: locations = [], isLoading: locationsLoading } = useSelectOptions(selectOptions("locations"))
   const locationCount = locations.length
 
   // Filter out destination options (exclude selected from location)

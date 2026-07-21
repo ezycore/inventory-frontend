@@ -9,10 +9,7 @@ const supplierHooks = createResourceHooks<ApiSupplier, CreateSupplierDto, Partia
   suppliersApi,
   queryKeys.suppliers,
   {
-    relatedQueryKeys: [
-      queryKeys.suppliers.all(),
-      ["select-options", "/suppliers?all=true&fields=_id,name,defaultDiscountId"],
-    ],
+    events: ["party.changed"],
   },
 );
 

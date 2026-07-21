@@ -3,6 +3,7 @@
  * Import these types when using the DataCard component
  */
 
+import type { QueryKey } from "@tanstack/react-query";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { FilterField } from "./filter";
 import { SortingConfig } from "./DataTable";
@@ -250,7 +251,7 @@ interface Operations<TData = any> {
   updateMutation?: any;
   deleteMutation?: any;
   bulkDeleteMutation?: any;
-  queryKey?: any[];
+  queryKey?: QueryKey;
   entityName?: string;
   isViewAvailable?: boolean;
   editTooltip?: string;

@@ -1,5 +1,5 @@
-// hooks/factories/useResourceFactory.ts
 import { handleMutationError } from "@/lib/error-handling";
+import { invalidate, type DomainEvent } from "@/services/api/invalidation";
 import { ApiResponse, PaginatedResponse } from "@/types";
 import {
   QueryKey,
@@ -33,16 +33,27 @@ interface ResourceApi<TDetail, CreateDto, UpdateDto, TList = TDetail> {
   getStats?: (filters?: Record<string, any>) => Promise<ApiResponse<any>>;
 }
 
+/**
+ * The slice of `services/api/query-keys.ts` a resource must expose to be driven by this factory.
+ * `list` takes the filters because **the filters are part of the cache identity** — two callers
+ * asking for different projections of the same resource are two different queries, not one.
+ */
 interface QueryKeys {
   all: () => QueryKey;
-  list: () => QueryKey;
+  list: (params?: unknown) => QueryKey;
   detail: (id: string) => QueryKey;
+  stats: (params?: unknown) => QueryKey;
   bySlug?: (slug: string) => QueryKey;
 }
 
 interface FactoryOptions {
   staleTime?: number;
-  relatedQueryKeys?: QueryKey[]; // For invalidating related queries
+  /**
+   * Domain events this resource's mutations cause, beyond dirtying itself. The resource's own
+   * `all()` is always flushed — declare here only what *else* changes, and declare it as an event
+   * so `services/api/invalidation.ts` stays the one place that knows the dependency graph.
+   */
+  events?: DomainEvent[];
 }
 
 export const handleMutationSuccess = (message: string | string[]) => {
@@ -65,12 +76,12 @@ export function createResourceHooks<
   queryKeys: QueryKeys,
   options: FactoryOptions = {},
 ) {
-  const { staleTime = 10 * 60 * 1000, relatedQueryKeys = [] } = options;
+  const { staleTime = 10 * 60 * 1000, events = [] } = options;
 
   const useStats = api.getStats
     ? () => {
         return useQuery({
-          queryKey: queryKeys.list(),
+          queryKey: queryKeys.stats(),
           queryFn: () => api.getStats!({}),
           select: (data) => data.data,
           staleTime,
@@ -82,7 +93,7 @@ export function createResourceHooks<
   const useList = api.getAll
     ? (filters?: Record<string, any>) => {
         return useQuery({
-          queryKey: queryKeys.list(),
+          queryKey: queryKeys.list(filters),
           queryFn: () => api.getAll!(filters),
           select: (data) => data.data,
           staleTime,
@@ -127,9 +138,7 @@ export function createResourceHooks<
           onSuccess: (data) => {
             handleMutationSuccess(data.message || "Item created successfully");
             queryClient.invalidateQueries({ queryKey: queryKeys.all() });
-            relatedQueryKeys.forEach((key) => {
-              queryClient.invalidateQueries({ queryKey: key });
-            });
+            invalidate(queryClient, ...events);
           },
           onError: handleMutationError,
         });
@@ -159,9 +168,7 @@ export function createResourceHooks<
 
             queryClient.invalidateQueries({ queryKey: queryKeys.all() });
             queryClient.invalidateQueries({ queryKey: queryKeys.detail(id) });
-            relatedQueryKeys.forEach((key) => {
-              queryClient.invalidateQueries({ queryKey: key });
-            });
+            invalidate(queryClient, ...events);
           },
           onError: handleMutationError,
         });
@@ -178,9 +185,7 @@ export function createResourceHooks<
           onSuccess: (data) => {
             handleMutationSuccess(data.message || "Item deleted successfully");
             queryClient.invalidateQueries({ queryKey: queryKeys.all() });
-            relatedQueryKeys.forEach((key) => {
-              queryClient.invalidateQueries({ queryKey: key });
-            });
+            invalidate(queryClient, ...events);
           },
           onError: handleMutationError,
         });
@@ -199,9 +204,7 @@ export function createResourceHooks<
               data?.message || "Items deleted successfully",
             );
             queryClient.invalidateQueries({ queryKey: queryKeys.all() });
-            relatedQueryKeys.forEach((key) => {
-              queryClient.invalidateQueries({ queryKey: key });
-            });
+            invalidate(queryClient, ...events);
           },
           onError: handleMutationError,
         });

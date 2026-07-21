@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { z } from "zod";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
@@ -69,7 +70,7 @@ const buildMoneyFormConfig = (
       placeholder: t("accountPlaceholder"),
       required: true,
       columnSpan: 12,
-      optionsApi: "/accounts",
+      optionsApi: selectOptions("accounts"),
     },
     {
       name: "amount",
@@ -120,7 +121,7 @@ export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
       placeholder: t("fromAccountPlaceholder"),
       required: true,
       columnSpan: 6,
-      optionsApi: "/accounts",
+      optionsApi: selectOptions("accounts"),
     },
     {
       name: "toAccountId",
@@ -129,7 +130,7 @@ export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
       placeholder: t("toAccountPlaceholder"),
       required: true,
       columnSpan: 6,
-      optionsApi: "/accounts",
+      optionsApi: selectOptions("accounts"),
     },
     {
       name: "amount",

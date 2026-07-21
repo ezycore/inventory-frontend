@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
 
@@ -13,7 +14,10 @@ export function getInventoryFormConfig(t: Translator): DynamicFormConfig {
         placeholder: t("form.selectProduct"),
         required: true,
         columnSpan: 6,
-        optionsApi: "/products?all=true&inventory=false&fields=_id,name,unitId,productType,hasExpiry",
+        optionsApi: selectOptions("products", {
+          inventory: false,
+          fields: "_id,name,unitId,productType,hasExpiry",
+        }),
         labelInValue: true,
         validation: { minLength: 1 },
       },
@@ -23,7 +27,10 @@ export function getInventoryFormConfig(t: Translator): DynamicFormConfig {
         label: t("form.variant"),
         placeholder: t("form.selectVariant"),
         columnSpan: 6,
-        optionsApi: "/products/{{_id}}/variants?inventory=false&fields=_id,attributes",
+        optionsApi: selectOptions("productVariants", {
+          inventory: false,
+          fields: "_id,attributes",
+        }),
         dependsOn: {
           field: "productId",
           condition: "gt",

@@ -87,7 +87,7 @@ export default function SuppliersPage() {
           createMutation: useCreateSupplier(),
           updateMutation: useUpdateSupplier(),
           deleteMutation: useDeleteSupplier(),
-          queryKey: [...queryKeys.suppliers.all()],
+          queryKey: queryKeys.suppliers.all(),
           entityName: t("page.entity"),
           isViewAvailable: false,
           editTooltip: t("page.editTooltip"),

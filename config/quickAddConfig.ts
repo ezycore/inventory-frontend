@@ -4,7 +4,9 @@ import { customerFormConfig } from "@/components/customers/form-config";
 import { discountFormConfig } from "@/components/discounts/form-config";
 import { supplierFormConfig } from "@/components/suppliers/form-config";
 import { useCreateBrand, useCreateCategory, useCreateCustomer, useCreateDiscount, useCreateSupplier } from "@/services/api";
+import { queryKeys } from "@/services/api/query-keys";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
+import type { QueryKey } from "@tanstack/react-query";
 
 /**
  * Quick-Add Module Configuration
@@ -17,7 +19,10 @@ import type { DynamicFormConfig } from "@/ui/components/form/type";
  * - formConfig: The form fields to show in the modal
  * - useMutation: The mutation hook to create the entity
  * - title: Modal title
- * - optionsApiPath: API path to invalidate after creation
+ * - queryRoot: the resource root to invalidate after creation, so the dropdown that
+ *   opened the modal picks the new row up. It is a registry root, not a URL: the
+ *   dropdown's own key is `[<root>, "options", <url>]`, so one root covers every
+ *   projection of it (see `services/api/modules/use-select-options.ts`).
  */
 
 export interface QuickAddModuleConfig {
@@ -25,7 +30,7 @@ export interface QuickAddModuleConfig {
   useMutation: () => any;
   title: string;
   submitLabel: string;
-  optionsApiPath: string;
+  queryRoot: () => QueryKey;
 }
 
 export const quickAddConfig: Record<string, QuickAddModuleConfig> = {
@@ -34,35 +39,35 @@ export const quickAddConfig: Record<string, QuickAddModuleConfig> = {
     useMutation: useCreateCategory,
     title: "Add New Category",
     submitLabel: "Create Category",
-    optionsApiPath: "/categories?all=true&fields=_id,name",
+    queryRoot: queryKeys.categories.all,
   },
   brand: {
     formConfig: brandFormConfig,
     useMutation: useCreateBrand,
     title: "Add New Brand",
     submitLabel: "Create Brand",
-    optionsApiPath: "/brands?all=true&fields=_id,name",
+    queryRoot: queryKeys.brands.all,
   },
   customer: {
     formConfig: customerFormConfig,
     useMutation: useCreateCustomer,
     title: "Add New Customer",
     submitLabel: "Create Customer",
-    optionsApiPath: "/sales/customers?all=true&fields=_id,name,defaultDiscountId",
+    queryRoot: queryKeys.customers.all,
   },
   supplier: {
     formConfig: supplierFormConfig,
     useMutation: useCreateSupplier,
     title: "Add New Supplier",
     submitLabel: "Create Supplier",
-    optionsApiPath: "/suppliers?all=true&fields=_id,name,defaultDiscountId",
+    queryRoot: queryKeys.suppliers.all,
   },
   discount: {
     formConfig: discountFormConfig,
     useMutation: useCreateDiscount,
     title: "Add New Discount",
     submitLabel: "Create Discount",
-    optionsApiPath: "",
+    queryRoot: queryKeys.discounts.all,
   }
   // Add more modules as needed:
   // brand: { ... },

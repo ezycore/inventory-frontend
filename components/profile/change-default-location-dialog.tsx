@@ -55,7 +55,9 @@ export function ChangeDefaultLocationDialog() {
       updateUser({ defaultLocationId: selectedLocationId });
       // 2. Also sync the active-location cookie/state.
       setActiveLocation(selectedLocationId);
-      await queryClient.invalidateQueries();
+      // 3. Evict the cache — see the note in `ui/components/LocationSwitcher.tsx`:
+      //    invalidating leaves inactive queries holding the previous location's rows.
+      queryClient.clear();
       setOpen(false);
     } catch {
       // Error already handled by mutation

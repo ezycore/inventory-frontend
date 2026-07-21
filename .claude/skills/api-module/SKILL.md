@@ -61,24 +61,19 @@ breaks (that is the drift surfacing) → commit the regenerated `api-generated.t
 
 ---
 
-## 3. Query keys — centralized, never inlined
+## 3. Query keys, invalidation, dropdown options → the `query-cache` skill
 
-All keys live in [`services/api/query-keys.ts`](../../../services/api/query-keys.ts) (re-exported from
-`lib/query-keys.ts` for back-compat). A resource exposes `all()` / `list()` / `detail(id)` (and
-`bySlug` where relevant). **Never inline a key array** — always `queryKeys.<resource>.*`, or invalidation
-misses.
+**Not documented here.** Keys, what a mutation refreshes, how a `<select>` caches its options, and the
+lint/test gates around all three live in [`query-cache`](../query-cache/SKILL.md). Read it before
+adding a `useQuery`, a `useMutation`, or a key.
 
-### Cross-resource invalidation (the recurring bug)
+The two facts you need while wiring a module:
 
-When resource A's data appears on resource B's list (a category name on the products table), mutating A
-must refetch B. Wire it once:
-
-```ts
-createResourceHooks({ ..., relatedQueryKeys: [queryKeys.products.all()] })
-```
-
-in the *mutated* resource's `hooks.ts` (see `categories`, `brands`, `units` → they all list
-`queryKeys.products.all()`). A stale name after an edit is almost always a missing `relatedQueryKeys`.
+- Keys come from [`services/api/query-keys.ts`](../../../services/api/query-keys.ts) via
+  `resourceKeys(root)` — **never an inline array** (ESLint rejects it).
+- `createResourceHooks` flushes the resource's own `all()` on every mutation. Anything *else* the
+  mutation dirties is declared as an event:
+  `createResourceHooks(api, queryKeys.brands, { events: ["catalog.changed"] })`.
 
 ---
 
@@ -100,7 +95,7 @@ in the *mutated* resource's `hooks.ts` (see `categories`, `brands`, `units` → 
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| List stale after editing a related resource | missing cross-invalidation | add `relatedQueryKeys: [queryKeys.<list>.all()]` to the mutated resource's hooks |
+| Anything cache-shaped (stale list, missing dropdown row, wrong location's data) | — | see the [`query-cache`](../query-cache/SKILL.md) skill's symptom table |
 | `Page 1 of undefined` | list envelope changed / dropped pagination meta | keep `{ success, data, message, meta }`; list `data` is `PaginatedResponse<T>` |
 | Response field is `any` in a component | module still typed `ApiResponse<any>` | alias the real type in `types/api.ts` and point the api method at it; regen if the DTO is missing |
 | `verify:api-types` fails in CI | backend contract changed, FE types not regenerated | `pnpm gen:api-types`, commit `api-generated.ts` |

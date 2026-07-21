@@ -108,11 +108,17 @@ Maps BE detail → form values. For each variant maps `_id → id + _id`, copies
 
 ### Cross-resource invalidation
 
-When categories / brands / units are mutated, the products list must refetch. This is wired via:
+When categories / brands / units / taxes / discounts are mutated, the products list must refetch —
+those rows embed the name and the rate. The mutation declares the **event**, and
+[services/api/invalidation.ts](../../../services/api/invalidation.ts) owns which keys it dirties:
 
 ```ts
-createResourceHooks({ ..., relatedQueryKeys: [queryKeys.products.all()] })
+createResourceHooks(api, queryKeys.brands, { events: ["catalog.changed"] })
 ```
+
+`catalog.changed` covers products, variants, categories, inventory and the derived read models.
+Never hand-list keys at the call site — fix the event's entry instead, and every call site is fixed
+with it. See the `api-module` skill.
 
 In:
 
@@ -159,7 +165,7 @@ The `enableUOMConversion` field's own `dependsOn` was **removed** — it is redu
 | Variant SKU / cost silently lost after save | Those fields were intentionally **removed** from the variant model + UI | Don't re-add — variants carry: attributes, price, images, status, UOM, **barcode** |
 | Single product form shows no SKU field | Correct — `sku` has been fully removed from the single-product form, model, and validator. The `base_sku` in report/dashboard services is a legacy read-only field. | Don't re-add `sku` to the form or model |
 | UOM section still visible for variable product | `dependsOn` was applied at **field level** (on `enableUOMConversion`) instead of **section level** | Move `dependsOn` to the section definition itself — see Section 4 above |
-| Products list still shows stale category/brand/unit name after edit | Missing cross-resource invalidation | Add `relatedQueryKeys: [queryKeys.products.all()]` to the resource's `createResourceHooks` |
+| Products list still shows stale category/brand/unit name after edit | The mutated resource doesn't declare `events: ["catalog.changed"]`, or the event's key list is short | Add the event to its `createResourceHooks` options; if the key is genuinely missing, add it in `services/api/invalidation.ts` |
 | Category / brand / unit selects blank when opening edit | `projectListItem` trimmed the raw `categoryId`/`brandId`/`unitId` IDs — only nested objects remained, but DynamicForm selects look for raw ID strings | Add raw IDs back to `projectListItem` (they're already there now — don't remove them) |
 | `Page 1 of undefined` on products list | List shape changed and dropped pagination meta | Don't change the response envelope — see [services/api/utils.ts](../../../services/api/utils.ts) |
 | FE hits `/api/v1/products/...` and 401s | Wrong base URL | Use `/api/products/...` (no `v1`). The 401 in logs is from a stray dev call, not from production code paths. |

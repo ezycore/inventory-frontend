@@ -1,5 +1,6 @@
 "use client";
 
+import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
 import { contentPagesApi, useCreateContentPage, useDeleteContentPage, useUpdateContentPage, type ContentPage } from "@/services/api";
@@ -40,7 +41,7 @@ export default function ContentPage() {
           updateMutation: useUpdateContentPage(),
           deleteMutation: useDeleteContentPage(),
          openInside: 'drawer', 
-          queryKey: ["content-pages"],
+          queryKey: queryKeys.contentPages.all(),
           entityName: "Page",
           editTooltip: "Edit page",
           deleteTooltip: "Delete page",

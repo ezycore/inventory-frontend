@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { selectOptions } from "@/services/api/select-options";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -228,7 +229,7 @@ export function ImportLowStockDialog({
   });
 
   // Fetch supplier options for the purchase settings section
-  const { data: supplierOptions } = useSelectOptions(open ? "/suppliers" : null);
+  const { data: supplierOptions } = useSelectOptions(open ? selectOptions("suppliers") : null);
 
   const handleSupplierChange = useCallback(
     (value: string) => {
@@ -249,8 +250,8 @@ export function ImportLowStockDialog({
   );
 
   // Fetch brands and categories for filters
-  const { data: brandOptions } = useSelectOptions(open ? "/brands?all=true&fields=id,name" : null);
-  const { data: categoryOptions } = useSelectOptions(open ? "/categories?all=true&fields=id,name" : null);
+  const { data: brandOptions } = useSelectOptions(open ? selectOptions("brands", { fields: "_id,name" }) : null);
+  const { data: categoryOptions } = useSelectOptions(open ? selectOptions("categories", { fields: "_id,name" }) : null);
 
   // Resolve brand/category ids to display names using the already-fetched filter options.
   const brandNameById = useMemo(() => {

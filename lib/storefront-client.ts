@@ -342,7 +342,19 @@ async function sfFetch<T>(
     if (res.status === 401 && opts.token) {
       const { useShopperStore } = await import("@/services/stores/use-shopper-store");
       const store = useShopperStore.getState();
-      if (store.token === opts.token) store.logout();
+      if (store.token === opts.token) {
+        store.logout();
+        // Evict too, not just forget the token: an expired session's orders would
+        // otherwise still be served from cache to whoever signs in next on this
+        // device. Same reason `useShopperLogout` exists — see services/storefront/hooks.ts.
+        if (typeof window !== "undefined" && store.slug) {
+          const [{ getQueryClient }, { clearShopperCache }] = await Promise.all([
+            import("@/lib/react-query"),
+            import("@/services/storefront/hooks"),
+          ]);
+          clearShopperCache(getQueryClient(), store.slug);
+        }
+      }
     }
     // Error payloads carry the human message in `error` (see backend errorHandler).
     throw new Error(json?.error || json?.message || `Request failed (${res.status})`);

@@ -13,7 +13,7 @@ import { FieldSettingsLink } from '@/components/shared/field-settings-link'
 import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
 import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategoryStats } from '@/services/api'
 import { categoriesApi } from '@/services/api'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/services/api/query-keys'
 import PageHeader from '@/ui/components/header'
 import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
@@ -67,7 +67,7 @@ export default function CategoriesPage() {
     createMutation: useCreateCategory(),
     updateMutation: useUpdateCategory(),
     deleteMutation: useDeleteCategory(),
-    queryKey: [...queryKeys.categories.all()],
+    queryKey: queryKeys.categories.all(),
     entityName: "Category" as const,
     prepareSubmitData,
   }

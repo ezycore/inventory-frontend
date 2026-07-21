@@ -1,3 +1,4 @@
+import { selectOptions } from "@/services/api/select-options";
 import type { FilterConfig } from "@/types/DataTable";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
@@ -75,7 +76,7 @@ export const campaignFormConfig: DynamicFormConfig = {
       placeholder: "Search and select categories...",
       helperText: "Only these categories get the campaign discount.",
       columnSpan: 12,
-      optionsApi: "/categories?all=true&fields=_id,name",
+      optionsApi: selectOptions("categories", { fields: "_id,name" }),
       // scope is a static-option select, so its watched value is enriched to the
       // full option object — match on `.value` to compare the string.
       dependsOn: { field: "scope", matchWithProp: "value", condition: "eq", value: "category", action: "show" },
@@ -90,7 +91,7 @@ export const campaignFormConfig: DynamicFormConfig = {
       placeholder: "Search and select products...",
       helperText: "Only these products get the campaign discount.",
       columnSpan: 12,
-      optionsApi: "/products?all=true&fields=_id,name",
+      optionsApi: selectOptions("products", { fields: "_id,name" }),
       dependsOn: { field: "scope", matchWithProp: "value", condition: "eq", value: "product", action: "show" },
     },
     {

@@ -100,7 +100,7 @@ export default function UnitsPage() {
     createMutation: useCreateUnit(),
     updateMutation: useUpdateUnit(),
     deleteMutation: useDeleteUnit(),
-    queryKey: [...queryKeys.units.all()],
+    queryKey: queryKeys.units.all(),
     entityName: "Unit" as const,
   };
 

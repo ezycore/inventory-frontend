@@ -294,7 +294,7 @@ export default function AccountsPage() {
     createMutation: useCreateAccount(),
     updateMutation: useUpdateAccount(),
     deleteMutation: useDeleteAccount(),
-    queryKey: [...queryKeys.accounts.all()],
+    queryKey: queryKeys.accounts.all(),
     entityName: t("page.entity"),
   };
 

@@ -1,3 +1,4 @@
+import { invalidate } from "@/services/api/invalidation";
 import { usersApi } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
 import { queryKeys } from "@/services/api/query-keys";
@@ -10,6 +11,7 @@ import { createResourceHooks, handleMutationSuccess } from "../query-helpers";
 const userHooks = createResourceHooks<AdminUser, CreateUserDto, UpdateUserDto>(
   usersApi,
   queryKeys.users,
+  { events: ["org.changed"] },
 );
 
 // Export standard hooks
@@ -38,7 +40,7 @@ export function useToggleUserStatus() {
 /** Get current user's accessible locations (in use changeDefaultLocationDialog) */
 export function useMyLocations() {
   return useQuery({
-    queryKey: ["users", "me", "locations"],
+    queryKey: queryKeys.users.myLocations(),
     queryFn: () => usersApi.getMyLocations(),
   });
 }
@@ -51,8 +53,7 @@ export function useUpdateMyDefaultLocation() {
     mutationFn: (locationId: string) =>
       usersApi.updateMyDefaultLocation(locationId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users", "me"] });
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
+      invalidate(queryClient, "org.changed");
       handleMutationSuccess("Default location updated successfully");
     },
     onError: handleMutationError,

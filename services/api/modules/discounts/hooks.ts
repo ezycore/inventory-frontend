@@ -7,16 +7,9 @@ import { createResourceHooks } from "../query-helpers";
 const discountHooks = createResourceHooks<ApiDiscount, CreateDiscountDto>(
   discountsApi,
   queryKeys.discounts,
-  {
-    relatedQueryKeys: [queryKeys.discounts.all(), 
-      [ "select-options", "/discounts/purchase?all=true&status=active&fields=_id,name,value"],
-      [ "select-options", "/discounts/purchase?all=true&status=active&fields=_id,name,value,isDefaultPurchase"],
-      [ "select-options", "/discounts/sales?all=true&status=active&fields=_id,name,value"],
-      [ "select-options", "/discounts/sales?all=true&status=active&fields=_id,name,value,isDefaultSales"]
-    ],
-  },
+  // Products and parties carry a default-discount reference.
+  { events: ["catalog.changed"] },
 );
-//  {relatedQueryKeys: [queryKeys.customers.all(), ["select-options", "/sales/customers?all=true&fields=_id,name,defaultDiscountId"]]}
 
 
 export const useDiscounts = discountHooks.useList;

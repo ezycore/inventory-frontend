@@ -7,6 +7,7 @@ import { createResourceHooks } from "../query-helpers";
 const locationHooks = createResourceHooks<ApiLocation, CreateLocationDto>(
   locationsApi,
   queryKeys.locations,
+  { events: ["org.changed"] },
 );
 
 export const useLocations = locationHooks.useList; // used in CreatePurchaseOrderPage (will removed later)

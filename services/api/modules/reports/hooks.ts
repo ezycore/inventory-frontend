@@ -1,44 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/services/api/query-keys";
 import {
   reportsApi,
   type ReportParams,
   type ExportDataType,
 } from "./api";
 
-const REPORT_KEYS = {
-  all: () => ["reports"] as const,
-  inventory: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "inventory", params || {}] as const,
-  sales: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "sales", params || {}] as const,
-  combos: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "combos", params || {}] as const,
-  purchases: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "purchases", params || {}] as const,
-  cash: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "cash", params || {}] as const,
-  capital: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "capital", params || {}] as const,
-  profitLoss: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "profit-loss", params || {}] as const,
-  position: () => [...REPORT_KEYS.all(), "position"] as const,
-  tax: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "tax", params || {}] as const,
-  taxLedger: (params?: ReportParams, page = 1, limit = 20) =>
-    [...REPORT_KEYS.all(), "tax-ledger", params || {}, page, limit] as const,
-  valuation: () => [...REPORT_KEYS.all(), "valuation"] as const,
-  employees: (params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "employees", params || {}] as const,
-  export: (dataType: ExportDataType, params?: ReportParams) =>
-    [...REPORT_KEYS.all(), "export", dataType, params || {}] as const,
-};
-
-export { REPORT_KEYS };
 
 /** Hook for fetching inventory report */
 export const useInventoryReport = (params?: ReportParams) => {
   return useQuery({
-    queryKey: REPORT_KEYS.inventory(params),
+    queryKey: queryKeys.reports.inventory(params),
     queryFn: () => reportsApi.getInventoryReport(params),
     select: (data) => data.data,
     enabled: !!params,
@@ -49,7 +21,7 @@ export const useInventoryReport = (params?: ReportParams) => {
 /** Hook for fetching sales report */
 export const useSalesReport = (params?: ReportParams) => {
   return useQuery({
-    queryKey: REPORT_KEYS.sales(params),
+    queryKey: queryKeys.reports.sales(params),
     queryFn: () => reportsApi.getSalesReport(params),
     select: (data) => data.data,
     enabled: !!params,
@@ -60,7 +32,7 @@ export const useSalesReport = (params?: ReportParams) => {
 /** Hook for fetching the combo-level sales report (feature-gated on the server). */
 export const useComboSalesReport = (params?: ReportParams, enabled = true) => {
   return useQuery({
-    queryKey: REPORT_KEYS.combos(params),
+    queryKey: queryKeys.reports.combos(params),
     queryFn: () => reportsApi.getComboSalesReport(params),
     select: (data) => data.data,
     enabled: !!params && enabled,
@@ -71,7 +43,7 @@ export const useComboSalesReport = (params?: ReportParams, enabled = true) => {
 /** Hook for fetching purchase report */
 export const usePurchaseReport = (params?: ReportParams) => {
   return useQuery({
-    queryKey: REPORT_KEYS.purchases(params),
+    queryKey: queryKeys.reports.purchases(params),
     queryFn: () => reportsApi.getPurchaseReport(params),
     select: (data) => data.data,
     enabled: !!params,
@@ -82,7 +54,7 @@ export const usePurchaseReport = (params?: ReportParams) => {
 /** Hook for fetching cash report */
 export const useCashReport = (params?: ReportParams) => {
   return useQuery({
-    queryKey: REPORT_KEYS.cash(params),
+    queryKey: queryKeys.reports.cash(params),
     queryFn: () => reportsApi.getCashReport(params),
     select: (data) => data.data,
     enabled: !!params,
@@ -96,7 +68,7 @@ export const useCashReport = (params?: ReportParams) => {
  */
 export const useCapitalReport = (params?: ReportParams, enabled = true) => {
   return useQuery({
-    queryKey: REPORT_KEYS.capital(params),
+    queryKey: queryKeys.reports.capital(params),
     queryFn: () => reportsApi.getCapitalReport(params),
     select: (data) => data.data,
     enabled: enabled && !!params,
@@ -111,7 +83,7 @@ export const useCapitalReport = (params?: ReportParams, enabled = true) => {
  */
 export const useProfitLossReport = (params?: ReportParams) => {
   return useQuery({
-    queryKey: REPORT_KEYS.profitLoss(params),
+    queryKey: queryKeys.reports.profitLoss(params),
     queryFn: () => reportsApi.getProfitLossReport(params),
     select: (data) => data.data,
     enabled: !!params,
@@ -125,7 +97,7 @@ export const useProfitLossReport = (params?: ReportParams) => {
  */
 export const usePositionReport = () => {
   return useQuery({
-    queryKey: REPORT_KEYS.position(),
+    queryKey: queryKeys.reports.position(),
     queryFn: () => reportsApi.getPositionReport(),
     select: (data) => data.data,
     staleTime: 2 * 60 * 1000,
@@ -135,7 +107,7 @@ export const usePositionReport = () => {
 /** Hook for fetching tax report (summary + net payable). Pass `enabled=false` when tax is off. */
 export const useTaxReport = (params?: ReportParams, enabled = true) => {
   return useQuery({
-    queryKey: REPORT_KEYS.tax(params),
+    queryKey: queryKeys.reports.tax(params),
     queryFn: () => reportsApi.getTaxReport(params),
     select: (data) => data.data,
     enabled: enabled && !!params,
@@ -151,7 +123,7 @@ export const useTaxLedger = (
   enabled = true,
 ) => {
   return useQuery({
-    queryKey: REPORT_KEYS.taxLedger(params, page, limit),
+    queryKey: queryKeys.reports.taxLedger(params, page, limit),
     queryFn: () => reportsApi.getTaxLedger(params, page, limit),
     select: (data) => data.data,
     enabled: enabled && !!params,
@@ -162,7 +134,7 @@ export const useTaxLedger = (
 /** Hook for fetching stock valuation report */
 export const useStockValuation = (options?: { enabled?: boolean }) => {
   return useQuery({
-    queryKey: REPORT_KEYS.valuation(),
+    queryKey: queryKeys.reports.valuation(),
     queryFn: () => reportsApi.getStockValuation(),
     select: (data) => data.data,
     staleTime: 2 * 60 * 1000,
@@ -173,7 +145,7 @@ export const useStockValuation = (options?: { enabled?: boolean }) => {
 /** Hook for fetching employee report */
 export const useEmployeeReport = (params?: ReportParams) => {
   return useQuery({
-    queryKey: REPORT_KEYS.employees(params),
+    queryKey: queryKeys.reports.employees(params),
     queryFn: () => reportsApi.getEmployeeReport(params),
     select: (data) => data.data,
     enabled: !!params,
@@ -188,7 +160,7 @@ export const useExportData = (
   enabled = false,
 ) => {
   return useQuery({
-    queryKey: REPORT_KEYS.export(dataType, params),
+    queryKey: queryKeys.reports.export(dataType, params),
     queryFn: () => reportsApi.getExportData(dataType, params),
     select: (data) => data.data,
     enabled: enabled && !!params,

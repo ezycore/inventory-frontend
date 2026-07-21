@@ -1,5 +1,7 @@
 "use client";
 
+import { selectOptions } from "@/services/api/select-options";
+import { queryKeys } from "@/services/api/query-keys";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -154,10 +156,10 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
   );
 
   const { data: locationsRes } = useQuery({
-    queryKey: ["locations", "storefront-options"],
+    queryKey: queryKeys.locations.storefrontOptions(),
     queryFn: () =>
       apiClient.get<{ data: { items: { _id: string; name: string }[] } }>(
-        "/locations?all=true&fields=_id,name",
+        selectOptions("locations", { fields: "_id,name" }),
       ),
     staleTime: 5 * 60 * 1000,
   });

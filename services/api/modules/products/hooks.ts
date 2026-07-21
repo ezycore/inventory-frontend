@@ -1,16 +1,16 @@
 // coding-standard: maintained
 import { productsApi } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/services/api/query-keys'
 import { CreateProductDto } from '@/types'
 import type { ProductDetail, ProductListItem } from '@/types/api'
 
 const productHooks = createResourceHooks<ProductDetail, CreateProductDto, Partial<CreateProductDto>, ProductListItem>(
   productsApi,
   queryKeys.products,
-  { relatedQueryKeys: [
-    [ "select-options", "/products?all=true&inventory=false&fields=_id,name,unitId,productType,hasExpiry"],
-  ] },
+  // The sellable/purchasable pickers are `/inventory/*` endpoints, so they live
+  // under the inventory root — `catalog.changed` carries it.
+  { events: ["catalog.changed"] },
 )
 
 export const useProductStats = productHooks.useStats

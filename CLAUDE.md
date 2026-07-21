@@ -145,7 +145,16 @@ API modules live under `services/api/modules/<resource>/` with two files each:
 
 Everything is barrel-exported from `services/api/index.ts`.
 
-Query keys are centrally defined in `services/api/query-keys.ts` (re-exported from `lib/query-keys.ts` for backwards compatibility).
+**Query cache — read [`.claude/skills/query-cache/SKILL.md`](.claude/skills/query-cache/SKILL.md)
+before adding any `useQuery`, `useMutation`, or query key.** Three files own the subject and there is
+no fourth: `services/api/query-keys.ts` (every key), `services/api/invalidation.ts` (what each domain
+event dirties), `services/api/select-options.ts` (every `<select>` endpoint + its cache root). The
+invariant: **every key a resource owns starts with its `all()`**, so one
+`invalidateQueries({ queryKey: queryKeys.<r>.all() })` flushes the whole resource — lists, details,
+stats and dropdowns. Never inline a key array (ESLint rejects it); never hand-list another resource's
+keys in a mutation (declare an event instead). Enforced by `pnpm lint` and
+`services/api/__tests__/invalidation.test.ts`, both in CI. Background:
+`docs/plan/query-invalidation.md`.
 
 ### API response types are generated from the backend (single source of truth)
 
@@ -196,11 +205,16 @@ backend `storefront-orders`/`promotions-coupons`/`custom-domains`. The API contr
 backend DTOs) and generated twice — never documented in both repos. `docs:verify` checks those
 cross-repo links resolve.
 
+The same rule applies **within** this repo: `query-cache` owns keys/invalidation/option caching, and
+`api-module` links to it rather than restating it. If two skills would say the same thing, one of them
+is wrong soon.
+
 ### Adding a New Resource Module
 
 1. Create `services/api/modules/<resource>/api.ts` with a plain object using `apiClient`
 2. Create `services/api/modules/<resource>/hooks.ts` using `createResourceHooks()` from `../query-helpers`
-3. Add query keys to `services/api/query-keys.ts`
+3. Add query keys to `services/api/query-keys.ts` (`resourceKeys(root)`) and declare what its
+   mutations dirty — see the [`query-cache`](.claude/skills/query-cache/SKILL.md) skill
 4. Export both from `services/api/index.ts`
 
 If the resource supports CSV import, spread `createImportApi("/<resource>")`

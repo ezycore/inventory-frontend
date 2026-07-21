@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
+import { invalidate } from "@/services/api/invalidation";
+import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
 import {
   BulkStorefrontDto,
@@ -8,20 +10,12 @@ import {
   storefrontCatalogApi,
 } from "./api";
 
-const ROOT = ["storefront-catalog"] as const;
-const keys = {
-  list: (params: unknown) => [...ROOT, "list", params] as const,
-};
-
 export const useCatalogProducts = (params: CatalogListParams) =>
   useQuery({
-    queryKey: keys.list(params),
+    queryKey: queryKeys.storefrontCatalog.list(params),
     queryFn: () => storefrontCatalogApi.list(params),
     select: (r) => r.data,
   });
-
-const invalidateAll = (qc: ReturnType<typeof useQueryClient>) =>
-  qc.invalidateQueries({ queryKey: ROOT });
 
 export const useUpdateCatalogListing = () => {
   const qc = useQueryClient();
@@ -37,7 +31,7 @@ export const useUpdateCatalogListing = () => {
     },
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Listing updated");
-      invalidateAll(qc);
+      invalidate(qc, "storefront.catalog.changed");
     },
     onError: handleMutationError,
   });
@@ -49,7 +43,7 @@ export const useBulkUpdateCatalogListing = () => {
     mutationFn: (dto: BulkStorefrontDto) => storefrontCatalogApi.bulkUpdate(dto),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Listings updated");
-      invalidateAll(qc);
+      invalidate(qc, "storefront.catalog.changed");
     },
     onError: handleMutationError,
   });
@@ -57,11 +51,9 @@ export const useBulkUpdateCatalogListing = () => {
 
 // ---- Collections (storefront category overlay) ----------------------------
 
-const COLLECTIONS = ["storefront-collections"] as const;
-
 export const useStorefrontCollections = () =>
   useQuery({
-    queryKey: COLLECTIONS,
+    queryKey: queryKeys.storefrontCatalog.collections(),
     queryFn: () => storefrontCatalogApi.listCollections(),
     select: (r) => r.data,
   });
@@ -76,7 +68,7 @@ export const useUpdateCollection = () => {
       }),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Collection updated");
-      qc.invalidateQueries({ queryKey: COLLECTIONS });
+      invalidate(qc, "storefront.catalog.changed");
     },
     onError: handleMutationError,
   });
@@ -88,8 +80,8 @@ export const useReorderCollections = () => {
     mutationFn: (ids: string[]) => storefrontCatalogApi.reorderCollections(ids),
     // Server returns the re-sorted list; seed the cache so the UI doesn't flash.
     onSuccess: (res) => {
-      if (res.data) qc.setQueryData(COLLECTIONS, res);
-      qc.invalidateQueries({ queryKey: COLLECTIONS });
+      if (res.data) qc.setQueryData(queryKeys.storefrontCatalog.collections(), res);
+      invalidate(qc, "storefront.catalog.changed");
     },
     onError: handleMutationError,
   });
