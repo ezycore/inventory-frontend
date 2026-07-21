@@ -99,6 +99,15 @@ export const useStoreCategories = (slug: string) =>
     staleTime: 5 * 60 * 1000,
   });
 
+/** Curated brand facet (products page filter; brand names for chips/headings). */
+export const useStoreBrands = (slug: string) =>
+  useQuery({
+    queryKey: key(slug, "brands"),
+    queryFn: () => storefrontApi.listBrands(slug),
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
+  });
+
 // `initialData` (server-fetched in shop/layout.tsx) seeds the cache so the
 // campaign strip is in the SSR HTML instead of popping in after hydration.
 export const useStoreCampaigns = (slug: string, initialData?: StoreCampaign[]) =>

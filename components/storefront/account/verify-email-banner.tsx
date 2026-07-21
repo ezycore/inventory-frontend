@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import { useResendVerification } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";

@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useNavLabels } from "@/hooks/use-nav-labels";
-import { DynamicIcon } from "lucide-react/dynamic";
+import { NavIcon } from "@/components/shared/nav-icon";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
@@ -80,7 +80,7 @@ function NestedNavItem({
               tooltip={itemLabel(item.title)}
               isActive={isParentActive}
             >
-              {item.icon && <DynamicIcon name={item.icon as any} />}
+              {item.icon && <NavIcon name={item.icon} />}
               <span>{itemLabel(item.title)}</span>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -121,7 +121,7 @@ function NestedNavItem({
             tooltip={itemLabel(item.title)}
             isActive={pathname === item.url}
           >
-            {item.icon && <DynamicIcon name={item.icon as any} />}
+            {item.icon && <NavIcon name={item.icon} />}
             <span>{itemLabel(item.title)}</span>
             <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
@@ -204,7 +204,7 @@ export default function AppSidebar() {
                       isActive={pathname === item.url}
                     >
                       <Link href={item.url}>
-                        <DynamicIcon name={item.icon as any} />
+                        <NavIcon name={item.icon} />
                         <span>{itemLabel(item.title)}</span>
                       </Link>
                     </SidebarMenuButton>

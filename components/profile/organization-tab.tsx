@@ -32,11 +32,11 @@ import { useUpdateOrganization } from "@/services/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
 import { toast } from "sonner";
 import {
-  countryOptions,
-  currencyOptions,
-  timezoneOptions,
-} from "@/app/(auth)/signup/page";
-import { getCountryDefaults } from "@/constants/organization-options";
+  COUNTRY_OPTIONS as countryOptions,
+  CURRENCY_OPTIONS as currencyOptions,
+  TIMEZONE_OPTIONS as timezoneOptions,
+  getCountryDefaults,
+} from "@/constants/organization-options";
 import { useGetOrganizationApi } from "@/hooks";
 import { isFeatureEnabled } from "@/lib/feature-utils";
 import { EmailReportsSection } from "./email-reports-section";

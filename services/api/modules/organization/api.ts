@@ -163,9 +163,10 @@ export const organizationApi = {
   ): Promise<ApiResponse<StorefrontSettings>> =>
     apiClient.patch(`/organization/storefront/media`, data),
 
-  // POST /api/organization/storefront/media/hero-slide - Upload one hero-slide
-  // image (FormData `image`); returns uploadInfo to embed in a heroSlides PATCH.
-  uploadHeroSlideImage: (
+  // POST /api/organization/storefront/media/hero-slide - Upload one storefront
+  // image (FormData `image`); returns uploadInfo to embed in a settings PATCH.
+  // Shared by hero slides and the announcement-bar background image.
+  uploadStorefrontImage: (
     data: FormData,
   ): Promise<ApiResponse<NonNullable<StorefrontHeroSlide["image"]>>> =>
     apiClient.post(`/organization/storefront/media/hero-slide`, data),

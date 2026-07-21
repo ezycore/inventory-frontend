@@ -6,7 +6,6 @@ import { populatedRef } from "@/utils/populated-ref";
 import { useAccounts, useDefaultAccount } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { Account, PurchaseOrder, ReceivePurchaseOrderDto } from "@/types";
-import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
   Dialog,
@@ -40,7 +39,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   buildReceiveItemsFromOrder,
-  clampReceiveQuantity,
   hasAnyReceivableItems,
 } from "./helpers";
 import type { ItemReceiveState } from "./types";
@@ -101,18 +99,6 @@ export function ReceiveItemsDialog({
     (sum, item) => sum + item.receivedQuantity,
     0,
   );
-
-  const handleQtyChange = (index: number, value: number) => {
-    setReceiveItems((prev) => {
-      if (!prev[index]) return prev;
-      const next = [...prev];
-      next[index] = {
-        ...next[index],
-        receivedQuantity: clampReceiveQuantity(value, next[index].maxQuantity),
-      };
-      return next;
-    });
-  };
 
   const handleExpiryFieldChange = (
     index: number,
@@ -235,22 +221,6 @@ export function ReceiveItemsDialog({
                       </TableCell>
                     </>
                   )}
-                  {/* <TableCell className="text-right">
-                    <Badge variant="outline">{item.maxQuantity}</Badge>
-                  </TableCell> */}
-                  {/* <TableCell className="text-right">
-                    <Input
-                      type="number"
-                      min={0}
-                      disabled={true}
-                      max={item.maxQuantity}
-                      value={item.receivedQuantity}
-                      onChange={(e) =>
-                        handleQtyChange(index, parseInt(e.target.value) || 0)
-                      }
-                      className="w-24 text-right ml-auto"
-                    />
-                  </TableCell> */}
                 </TableRow>
               ))}
             </TableBody>

@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import type { ShopperProfile } from "@/lib/storefront-client";
 import { storefrontApi } from "@/lib/storefront-client";
 import { useShopperStore } from "@/services/stores/use-shopper-store";

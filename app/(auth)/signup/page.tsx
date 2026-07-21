@@ -121,14 +121,6 @@ const SIGNUP_FEATURES = [
   },
 ];
 
-// Re-export for backward compatibility with organization-tab.tsx
-export {
-  COUNTRY_OPTIONS as countryOptions,
-  CURRENCY_OPTIONS as currencyOptions,
-  INDUSTRY_OPTIONS,
-  TIMEZONE_OPTIONS as timezoneOptions,
-} from "@/constants/organization-options";
-
 const ownerSetupFormConfig: DynamicFormConfig = {
   sections: [
     {

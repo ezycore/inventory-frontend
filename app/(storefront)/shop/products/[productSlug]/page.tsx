@@ -12,8 +12,12 @@ export async function generateMetadata({
   const { slug } = await getStoreContext();
   const product = slug ? await getStoreProduct(slug, productSlug) : null;
   return storePageMetadata({
-    title: product?.name || "Product",
-    description: product?.description?.slice(0, 200) || undefined,
+    // Merchant SEO overrides win; else the (online) title / description.
+    title: product?.seo?.title || product?.name || "Product",
+    description:
+      product?.seo?.description ||
+      product?.description?.slice(0, 200) ||
+      undefined,
     path: `/products/${productSlug}`,
     image: product?.images?.[0]?.url || product?.images?.[0]?.mediumUrl,
   });

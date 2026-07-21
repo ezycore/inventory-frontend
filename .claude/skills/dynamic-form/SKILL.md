@@ -22,7 +22,7 @@ Config-driven forms built on React Hook Form + Zod. Define fields, layout, valid
 |------|---------|
 | [ui/components/form/type.ts](ui/components/form/type.ts) | All types + `generateSchemaFromConfig()` |
 | [ui/components/form/index.tsx](ui/components/form/index.tsx) | `DynamicForm` component (drawer/modal/inline) |
-| [ui/components/form/form-field.tsx](ui/components/form/form-field.tsx) | `FormField` — per-type field rendering |
+| [ui/components/form/form-field.tsx](ui/components/form/form-field.tsx) | per-field orchestration; per-type inputs in `field-renderer.tsx` + `field-*-inputs.tsx`, sections in `form-section.tsx`, layout in `form-content.tsx` |
 | [ui/components/form/form-section.tsx](ui/components/form/form-section.tsx) | `FormSectionComponent` — section chrome + `dependsOn` gating |
 | [ui/components/form/form-content.tsx](ui/components/form/form-content.tsx) | `FormContent` — lays the sections out |
 | [ui/components/form/dependency-utils.ts](ui/components/form/dependency-utils.ts) | `evaluateFieldDependency`, `resolveApiTemplate` |

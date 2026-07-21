@@ -1,12 +1,15 @@
 // coding-standard: maintained
 import { describe, expect, it } from "vitest";
 import {
+  clampSpan,
   FAQ_ANSWER_NODE,
   FAQ_ITEM_NODE,
   FAQ_LIST_NODE,
   FAQ_QUESTION_NODE,
   isRichDocBody,
   parseRichDoc,
+  safeAlign,
+  safeCssColor,
   sfBlocksToTiptapDoc,
 } from "@/lib/storefront-rich-doc";
 import { parseStorefrontMarkdown } from "@/lib/storefront-markdown";
@@ -117,5 +120,43 @@ describe("sfBlocksToTiptapDoc", () => {
     const doc = sfBlocksToTiptapDoc([{ kind: "faq", items: [{ q: [{ kind: "text", text: "Q" }], a: [] }] }]);
     const faqList = doc.content[0] as { content: { content: [unknown, { content: unknown[] }] }[] };
     expect(faqList.content[0].content[1].content).toEqual([{ type: "paragraph" }]);
+  });
+});
+
+describe("render-time attribute guards", () => {
+  it("safeCssColor accepts hex, rgb/rgba, and named colours", () => {
+    expect(safeCssColor("#abc")).toBe("#abc");
+    expect(safeCssColor("#a1b2c3")).toBe("#a1b2c3");
+    expect(safeCssColor("rgb(255, 0, 128)")).toBe("rgb(255, 0, 128)");
+    expect(safeCssColor("rgba(0,0,0,0.5)")).toBe("rgba(0,0,0,0.5)");
+    expect(safeCssColor("red")).toBe("red");
+    expect(safeCssColor(" #FFF ")).toBe("#FFF"); // trimmed
+  });
+
+  it("safeCssColor drops anything that could smuggle CSS", () => {
+    expect(safeCssColor("red; background: url(javascript:alert(1))")).toBeUndefined();
+    expect(safeCssColor("expression(alert(1))")).toBeUndefined();
+    expect(safeCssColor("url(https://evil.test)")).toBeUndefined();
+    expect(safeCssColor("#12")).toBeUndefined(); // wrong length
+    expect(safeCssColor("boguscolor")).toBeUndefined();
+    expect(safeCssColor(123)).toBeUndefined();
+    expect(safeCssColor(null)).toBeUndefined();
+  });
+
+  it("safeAlign accepts only the four alignments", () => {
+    expect(safeAlign("center")).toBe("center");
+    expect(safeAlign("justify")).toBe("justify");
+    expect(safeAlign("middle")).toBeUndefined();
+    expect(safeAlign(undefined)).toBeUndefined();
+  });
+
+  it("clampSpan coerces to an integer in [1, 100]", () => {
+    expect(clampSpan(3)).toBe(3);
+    expect(clampSpan(2.9)).toBe(2);
+    expect(clampSpan(0)).toBe(1);
+    expect(clampSpan(-5)).toBe(1);
+    expect(clampSpan(9999)).toBe(1);
+    expect(clampSpan("4")).toBe(1);
+    expect(clampSpan(undefined)).toBe(1);
   });
 });

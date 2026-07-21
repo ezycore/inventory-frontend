@@ -17,8 +17,17 @@ import {
 
 /** Homepage template A: Classic — hero card, category chips, featured + latest. */
 export function Classic(props: TplProps) {
-  const { base, currency, featured, latest, categories, t, banner, heroSlides } =
-    props;
+  const {
+    base,
+    currency,
+    featured,
+    latest,
+    categories,
+    t,
+    banner,
+    heroSlides,
+    heroBanner: hb,
+  } = props;
   return (
     <div>
       {heroSlides?.length ? (
@@ -51,7 +60,8 @@ export function Classic(props: TplProps) {
                 marginBottom: 16,
               }}
             >
-              {campaignBadge(props) ?? t.eidBadge}
+              {/* Owner copy wins; else the live campaign; else template copy. */}
+              {hb?.badge || campaignBadge(props) || t.eidBadge}
             </span>
             <h1
               style={{
@@ -63,12 +73,12 @@ export function Classic(props: TplProps) {
                 whiteSpace: "pre-line",
               }}
             >
-              {t.heroAt}
+              {hb?.title || t.heroAt}
             </h1>
             <p style={{ fontSize: 15, color: "var(--muted)", lineHeight: 1.55, margin: "0 0 22px", maxWidth: 420 }}>
-              {t.heroAs}
+              {hb?.subtitle || t.heroAs}
             </p>
-            {heroBtns(base, t, t.shopNow)}
+            {heroBtns(base, t, t.shopNow, hb)}
             <div style={{ display: "flex", gap: 18, marginTop: 24, flexWrap: "wrap" }}>
               {[t.genuine, t.fastDelivery, t.codBadge].map((label) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--muted)", fontWeight: 500 }}>

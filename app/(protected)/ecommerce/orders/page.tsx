@@ -6,7 +6,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
 import {
   storefrontOrdersApi,
   useBulkConsignment,
@@ -18,10 +17,11 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { OrderRow } from "@/components/ecommerce/orders/order-row";
 import { getOrderStats } from "@/components/ecommerce/orders/helpers";
+import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { ListSearchInput } from "@/components/ecommerce/list-search-input";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
 import { Checkbox } from "@/ui/components/checkbox";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Skeleton } from "@/ui/components/skeleton";
@@ -54,8 +54,6 @@ const FULFILLMENT_OPTIONS = [
   { label: "Pickup", value: "pickup" },
 ];
 
-const PAGE_SIZES = [20, 50, 100];
-
 export default function EcommerceOrdersPage() {
   return (
     <Suspense
@@ -79,7 +77,6 @@ function OrdersList() {
   const [status, setStatus] = useState(initialStatus);
   const [courier, setCourier] = useState("all");
   const [fulfillment, setFulfillment] = useState("all");
-  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -92,18 +89,14 @@ function OrdersList() {
   const bulkConsign = useBulkConsignment();
   const { data: stats, isLoading: statsLoading } = useOrderStats();
 
-  // Debounce the search box; a new search resets paging + selection.
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setSearch(searchInput.trim());
-      setPage(1);
-      setSelected(new Set());
-    }, 300);
-    return () => clearTimeout(t);
-  }, [searchInput]);
-
-  // View changes (tab / filter / page size / page) reset selection in the handlers
-  // below, not in effects — synchronous setState in effects cascades renders.
+  // View changes (search / tab / filter / page size / page) reset selection in
+  // the handlers below, not in effects — synchronous setState in effects
+  // cascades renders.
+  const changeSearch = (v: string) => {
+    setSearch(v);
+    setPage(1);
+    setSelected(new Set());
+  };
   const changeStatus = (v: string) => {
     setStatus(v);
     setPage(1);
@@ -233,15 +226,10 @@ function OrdersList() {
             options={FULFILLMENT_OPTIONS}
             className="h-9 w-40"
           />
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search order # or customer"
-              className="h-9 w-64 pl-8"
-            />
-          </div>
+          <ListSearchInput
+            placeholder="Search order # or customer"
+            onSearch={changeSearch}
+          />
         </div>
       </div>
 
@@ -369,45 +357,14 @@ function OrdersList() {
         </div>
       </Card>
 
-      {/* Pagination */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <span>Rows per page</span>
-          <select
-            value={limit}
-            onChange={(e) => changeLimit(Number(e.target.value))}
-            className="h-8 rounded-md border bg-background px-2 text-sm"
-          >
-            {PAGE_SIZES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          {isFetching && <span className="text-xs">Updating…</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          <span>
-            Page {pagination?.page ?? 1} of {pagination?.totalPages ?? 1}
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={(pagination?.page ?? 1) <= 1}
-            onClick={() => goToPage(Math.max(1, page - 1))}
-          >
-            Previous
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={(pagination?.page ?? 1) >= (pagination?.totalPages ?? 1)}
-            onClick={() => goToPage(page + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <ListPagination
+        page={page}
+        totalPages={pagination?.totalPages ?? 1}
+        limit={limit}
+        isFetching={isFetching}
+        onPageChange={goToPage}
+        onLimitChange={changeLimit}
+      />
     </div>
   );
 }
