@@ -23,6 +23,7 @@ import {
   CreditCard,
   EllipsisVertical,
   Pencil,
+  MinusCircle,
   PlusCircle,
   Receipt,
   Smartphone,
@@ -130,6 +131,7 @@ interface AccountCardViewProps {
     onEdit: (item: Account) => void;
     onDelete: (item: Account) => void;
     onAddInvestment?: (item: Account) => void;
+    onWithdrawCapital?: (item: Account) => void;
     onViewTransactions?: (item: Account) => void;
   };
 }
@@ -231,6 +233,14 @@ export default function AccountCardView({
                 <DropdownMenuItem onClick={() => actions.onAddInvestment!(item)}>
                   <PlusCircle className="mr-2 h-3.5 w-3.5" />
                   {t("card.addInvestment")}
+                </DropdownMenuItem>
+              )}
+              {actions.onWithdrawCapital && (
+                <DropdownMenuItem
+                  onClick={() => actions.onWithdrawCapital!(item)}
+                >
+                  <MinusCircle className="mr-2 h-3.5 w-3.5" />
+                  {t("card.withdrawCapital")}
                 </DropdownMenuItem>
               )}
               {actions.onViewTransactions && (

@@ -2,6 +2,10 @@
 import { z } from "zod";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
+import {
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
+} from "@/constants/transactions";
 
 /**
  * Per-form zod messages (zod v4 ships no bn locale — docs/I18N.md). Callers pass
@@ -40,24 +44,23 @@ export type IncomeFormData = z.infer<ReturnType<typeof makeIncomeSchema>>;
 export type ExpenseFormData = z.infer<ReturnType<typeof makeExpenseSchema>>;
 export type TransferFormData = z.infer<ReturnType<typeof makeTransferSchema>>;
 
-const CATEGORY_KEYS = [
-  "sale",
-  "purchase",
-  "salary",
-  "rent",
-  "utilities",
-  "refund",
-  "adjustment",
-  "investment",
-  "other",
-] as const;
-
 /** `tCategories` is bound to `transactions.categories`. */
-const getCategories = (tCategories: Translator) =>
-  CATEGORY_KEYS.map((value) => ({ value, label: tCategories(value) }));
+const getCategories = (
+  tCategories: Translator,
+  keys: readonly string[],
+) => keys.map((value) => ({ value, label: tCategories(value) }));
 
-/** `t` is bound to `transactions.dialogs`, `tCategories` to `transactions.categories`. */
-export const getIncomeFormConfig = (t: Translator, tCategories: Translator): DynamicFormConfig => ({
+/**
+ * `t` is bound to `transactions.dialogs`, `tCategories` to `transactions.categories`.
+ *
+ * Income and expense share every field except the category list, so the shape is built once and
+ * the direction only picks the keys.
+ */
+const buildMoneyFormConfig = (
+  t: Translator,
+  tCategories: Translator,
+  categoryKeys: readonly string[],
+): DynamicFormConfig => ({
   fields: [
     {
       name: "accountId",
@@ -83,7 +86,7 @@ export const getIncomeFormConfig = (t: Translator, tCategories: Translator): Dyn
       placeholder: t("categoryPlaceholder"),
       required: true,
       columnSpan: 6,
-      options: getCategories(tCategories),
+      options: getCategories(tCategories, categoryKeys),
     },
     {
       name: "reference",
@@ -102,7 +105,11 @@ export const getIncomeFormConfig = (t: Translator, tCategories: Translator): Dyn
   ],
 });
 
-export const getExpenseFormConfig = getIncomeFormConfig;
+export const getIncomeFormConfig = (t: Translator, tCategories: Translator) =>
+  buildMoneyFormConfig(t, tCategories, INCOME_CATEGORIES);
+
+export const getExpenseFormConfig = (t: Translator, tCategories: Translator) =>
+  buildMoneyFormConfig(t, tCategories, EXPENSE_CATEGORIES);
 
 export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [

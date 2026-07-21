@@ -1,5 +1,6 @@
 import type {
   ApiPurchaseOrder,
+  ApiTransaction,
   BrandListItem,
   CategoryListItem,
   ApiPurchaseReturn,
@@ -227,17 +228,6 @@ export type UpdateStorefrontSettingsDto = Partial<
  * Feature name type for type-safe feature checks
  */
 export type FeatureName = keyof OrganizationFeatures;
-
-/**
- * Financial-year boundary (1-based month/day) used by tax/FY reporting.
- * Defaults to Jul 1 – Jun 30 when unset.
- */
-export interface FinancialYearConfig {
-  startMonth: number;
-  startDay: number;
-  endMonth: number;
-  endDay: number;
-}
 
 /**
  * How the organization is registered for VAT (Bangladesh). Mirrors the backend
@@ -1298,19 +1288,14 @@ export interface AccountSummary {
   };
 }
 
-// Transaction interfaces
-export type TransactionType = "income" | "expense" | "transfer";
-export type TransactionCategory =
-  | "sale"
-  | "purchase"
-  | "salary"
-  | "rent"
-  | "utilities"
-  | "refund"
-  | "adjustment"
-  | "transfer"
-  | "investment"
-  | "other";
+// Transaction interfaces.
+//
+// Both unions are DERIVED from the generated API types, which come from the backend's
+// `src/constants/transaction.ts`. They used to be retyped here and had drifted: this copy
+// offered `refund` (which the API rejects) and `investment` (renamed to `capital_in`), and was
+// missing `saleRefund` / `purchaseRefund` / `shipping` / `delivery`. Never retype the literals.
+export type TransactionType = ApiTransaction["type"];
+export type TransactionCategory = ApiTransaction["category"];
 
 export interface Transaction extends BaseEntity {
   accountId: string;

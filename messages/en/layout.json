@@ -70,7 +70,9 @@
       "receipt-print": "Receipt & Print",
       "custom-domains": "Custom Domains",
       "billing": "Billing",
-      "details": "Details"
+      "details": "Details",
+      "profit-loss": "Profit & Loss",
+      "business-position": "Business Position"
     }
   },
   "userMenu": {

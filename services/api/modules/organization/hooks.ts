@@ -6,7 +6,6 @@ import {
 } from "@/services/api";
 import type {
   ApiResponse,
-  FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
   SubscriptionInfo,
@@ -242,7 +241,6 @@ export const useUpdateVatSettings = () => {
     mutationFn: (data: {
       vatSettings?: Partial<VatSettings>;
       registration?: { type: VatRegistrationType; effectiveFrom: string };
-      financialYear?: Partial<FinancialYearConfig>;
     }) => organizationApi.updateVatSettings(data),
     onSuccess: (result) => {
       handleMutationSuccess(

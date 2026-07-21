@@ -17,6 +17,11 @@ const REPORT_KEYS = {
     [...REPORT_KEYS.all(), "purchases", params || {}] as const,
   cash: (params?: ReportParams) =>
     [...REPORT_KEYS.all(), "cash", params || {}] as const,
+  capital: (params?: ReportParams) =>
+    [...REPORT_KEYS.all(), "capital", params || {}] as const,
+  profitLoss: (params?: ReportParams) =>
+    [...REPORT_KEYS.all(), "profit-loss", params || {}] as const,
+  position: () => [...REPORT_KEYS.all(), "position"] as const,
   tax: (params?: ReportParams) =>
     [...REPORT_KEYS.all(), "tax", params || {}] as const,
   taxLedger: (params?: ReportParams, page = 1, limit = 20) =>
@@ -81,6 +86,48 @@ export const useCashReport = (params?: ReportParams) => {
     queryFn: () => reportsApi.getCashReport(params),
     select: (data) => data.data,
     enabled: !!params,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
+ * Owner capital in/out. Gated on the `accounts` feature at the route, so pass `enabled=false`
+ * when the org does not have it.
+ */
+export const useCapitalReport = (params?: ReportParams, enabled = true) => {
+  return useQuery({
+    queryKey: REPORT_KEYS.capital(params),
+    queryFn: () => reportsApi.getCapitalReport(params),
+    select: (data) => data.data,
+    enabled: enabled && !!params,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
+ * Profit & loss. Not feature-gated: revenue and COGS come from sale documents, so an org without
+ * the `accounts` module still gets a real gross profit — the response's `basis.expensesTracked`
+ * flags that expenses are unavailable.
+ */
+export const useProfitLossReport = (params?: ReportParams) => {
+  return useQuery({
+    queryKey: REPORT_KEYS.profitLoss(params),
+    queryFn: () => reportsApi.getProfitLossReport(params),
+    select: (data) => data.data,
+    enabled: !!params,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
+ * Business position — point-in-time, so it takes no period. Ungated: stock, receivables and
+ * payables exist without the `accounts` module; `basis.cashTracked` flags the missing wallets.
+ */
+export const usePositionReport = () => {
+  return useQuery({
+    queryKey: REPORT_KEYS.position(),
+    queryFn: () => reportsApi.getPositionReport(),
+    select: (data) => data.data,
     staleTime: 2 * 60 * 1000,
   });
 };

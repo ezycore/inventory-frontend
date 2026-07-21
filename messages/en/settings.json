@@ -75,15 +75,7 @@
       "sendAtPlaceholder": "Select time",
       "sendAtHint": "In your organization's timezone.",
       "saveChanges": "Save Changes"
-    },
-    "financialYearTitle": "Financial year",
-    "financialYearDescription": "Used as the default range for reports (1-based month/day). The VAT period is separate — it is always a calendar month.",
-    "startMonth": "Start month",
-    "startDay": "Start day",
-    "endMonth": "End month",
-    "endDay": "End day",
-    "saving": "Saving…",
-    "save": "Save"
+    }
   },
   "domains": {
     "title": "Custom Domains",

@@ -1,6 +1,9 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
 import type {
+  CapitalReport,
+  PositionReport,
+  ProfitLossReport,
   CashReport,
   ComboSalesReport,
   EmployeeReport,
@@ -38,6 +41,9 @@ export type InventoryReportData = InventoryReport;
 export type SalesReportData = SalesReport;
 export type PurchaseReportData = PurchaseReport;
 export type CashReportData = CashReport;
+export type CapitalReportData = CapitalReport;
+export type ProfitLossReportData = ProfitLossReport;
+export type PositionReportData = PositionReport;
 export type StockValuationData = StockValuationReport;
 export type EmployeeReportData = EmployeeReport;
 export type TaxReportData = TaxReport;
@@ -99,6 +105,20 @@ export const reportsApi = {
     params?: ReportParams,
   ): Promise<ApiResponse<CashReportData>> =>
     apiClient.get(`/reports/cash${buildReportParams(params)}`),
+
+  getCapitalReport: (
+    params?: ReportParams,
+  ): Promise<ApiResponse<CapitalReportData>> =>
+    apiClient.get(`/reports/capital${buildReportParams(params)}`),
+
+  getProfitLossReport: (
+    params?: ReportParams,
+  ): Promise<ApiResponse<ProfitLossReportData>> =>
+    apiClient.get(`/reports/profit-loss${buildReportParams(params)}`),
+
+  // Point-in-time — no period params.
+  getPositionReport: (): Promise<ApiResponse<PositionReportData>> =>
+    apiClient.get(`/reports/position`),
 
   getTaxReport: (
     params?: ReportParams,

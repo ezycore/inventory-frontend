@@ -10,6 +10,8 @@ covers_routes:
   - /reports/valuation
   - /reports/purchases
   - /reports/cash
+  - /reports/profit-loss
+  - /reports/position
   - /reports/tax
   - /reports/employees
   - /reports/export
@@ -21,6 +23,9 @@ ui_labels:
   - reports:landing.subtitle
   - reports:purchases.subtitle
   - reports:cash.subtitle
+  - reports:profitLoss.subtitle
+  - reports:profitLoss.expensesNotTracked
+  - reports:position.subtitle
   - reports:tax.subtitle
   - reports:tax.outputByRateTitle
   - reports:tax.inputByRateTitle
@@ -56,6 +61,48 @@ supplier negotiations, and for spotting a cost price that has crept up.
 **Cash Report** — a *Cash flow and account balances overview*, with income, expense and transaction
 count per account. Needs the Accounts feature — see
 [Track your cash and bank](./money-in-and-out.md).
+
+**Profit & Loss** — *Revenue minus cost of goods and operating expenses.* The one report that
+answers "did I actually make money this month". It reads top to bottom like a statement:
+
+- **Revenue**, less any **sales returns**, gives net revenue.
+- Less **cost of goods sold** — what the items you sold cost you — gives **gross profit**.
+- Less **operating expenses** (rent, salary, utilities and the rest, broken down by category),
+  plus any other income, gives **net profit**.
+
+Three things worth understanding before you rely on it:
+
+**Revenue counts the sale, not the payment.** A credit sale that nobody has paid yet is still
+revenue on the day you made it. Expenses work the other way — they count when you pay them. That
+means this is not an audited financial statement, and the report says so at the bottom.
+
+**Buying stock is not an expense here.** Money spent on stock becomes inventory, not cost. It only
+reaches this report as cost of goods sold, on the day the item actually sells. If purchases were
+subtracted as well, every restocking month would look like a loss.
+
+**Owner money in and out never appears.** Investing your own money into the business is not income,
+and taking money out is not an expense — both are capital, and they are reported separately on the
+Accounts page. See [Track your cash and bank](./money-in-and-out.md).
+
+If the Accounts feature is off, the report still shows revenue, cost of goods and gross profit — but
+it warns you: *The Accounts module is off, so operating expenses are not being tracked. Net profit
+below equals gross profit — it does not mean you had no expenses.* That is a gap in the data, not a
+month with no bills.
+
+**Business Position** — *What the business is worth right now — assets minus what you owe.* Unlike
+every other report this one has no date range: it is a snapshot of today.
+
+- **Assets** — cash and bank balances, stock value, and money customers owe you.
+- **Liabilities** — money you owe suppliers, plus any customer credit you are holding.
+- **Net position** — assets minus liabilities.
+
+**Stock is counted at what it cost you, not what you will sell it for.** The margin is not yours
+until the item actually sells, so counting stock at retail would inflate this number.
+
+It is a snapshot, not a balance sheet — there is no owner's equity side, and it is not something to
+file. If the Accounts feature is off, cash shows as zero and the report warns you; stock,
+receivables and payables are still real, because those come from your sales and purchases rather
+than from the Accounts module.
 
 **VAT Report** — *Output VAT, input VAT, and net VAT payable for the period.* This is your filing
 report. It breaks down into:

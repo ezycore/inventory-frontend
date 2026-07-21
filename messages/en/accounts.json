@@ -34,7 +34,8 @@
       "edit": "Edit",
       "addInvestment": "Add Investment",
       "viewTransactions": "View Transactions",
-      "delete": "Delete"
+      "delete": "Delete",
+      "withdrawCapital": "Withdraw capital"
     },
     "form": {
       "name": "Account Name",
@@ -63,20 +64,6 @@
       "statusPlaceholder": "All statuses"
     }
   },
-  "investmentDialog": {
-    "title": "Add Investment",
-    "description": "Record a capital injection into <strong>{name}</strong>. This increases the account balance and is logged as an investment transaction.",
-    "amountLabel": "Investment Amount",
-    "amountPlaceholder": "Enter amount",
-    "referenceLabel": "Reference (Optional)",
-    "referencePlaceholder": "Cheque / transfer reference",
-    "noteLabel": "Note (Optional)",
-    "notePlaceholder": "e.g. Owner capital injection",
-    "submitLabel": "Add Investment",
-    "validation": {
-      "amountPositive": "Amount must be positive"
-    }
-  },
   "transactions": {
     "page": {
       "title": "Transactions",
@@ -100,14 +87,19 @@
     "categories": {
       "sale": "Sale",
       "purchase": "Purchase",
+      "saleRefund": "Sale Refund",
+      "purchaseRefund": "Purchase Refund",
       "salary": "Salary",
       "rent": "Rent",
       "utilities": "Utilities",
-      "refund": "Refund",
+      "shipping": "Shipping",
+      "delivery": "Delivery",
       "adjustment": "Adjustment",
+      "other": "Other",
+      "capital_in": "Owner Investment",
+      "capital_out": "Owner Withdrawal",
       "transfer": "Transfer",
-      "investment": "Investment",
-      "other": "Other"
+      "opening_balance": "Opening Balance"
     },
     "types": {
       "income": "Income",
@@ -169,5 +161,32 @@
         "selectDestinationAccount": "Select destination account"
       }
     }
+  },
+  "capitalDialog": {
+    "titleIn": "Add Investment",
+    "titleOut": "Withdraw Capital",
+    "descriptionIn": "Record a capital injection into <strong>{name}</strong>. This increases the account balance and is recorded as owner capital — not as income.",
+    "descriptionOut": "Record an owner withdrawal from <strong>{name}</strong>. This reduces the account balance and is recorded as owner capital — not as a business expense.",
+    "amountLabelIn": "Investment Amount",
+    "amountLabelOut": "Withdrawal Amount",
+    "amountPlaceholder": "Enter amount",
+    "referenceLabel": "Reference (Optional)",
+    "referencePlaceholder": "Cheque / transfer reference",
+    "noteLabel": "Note (Optional)",
+    "notePlaceholder": "e.g. Owner capital injection",
+    "submitLabelIn": "Add Investment",
+    "submitLabelOut": "Withdraw",
+    "confirmOut": "Withdrawing {amount} leaves {name} with {balance}.",
+    "insufficient": "Amount exceeds the available balance of {balance}.",
+    "validation": {
+      "amountPositive": "Amount must be positive"
+    }
+  },
+  "capitalSummary": {
+    "title": "Owner capital",
+    "subtitle": "All time — equity, not income",
+    "invested": "Invested",
+    "withdrawn": "Withdrawn",
+    "net": "Net in business"
   }
 }
