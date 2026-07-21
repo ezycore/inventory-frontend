@@ -1,5 +1,7 @@
 import type {
   ApiPurchaseOrder,
+  BrandListItem,
+  CategoryListItem,
   ApiPurchaseReturn,
   PurchaseTransactions as ApiPurchaseTransactions,
   SaleListItem as ApiSaleListItem,
@@ -384,16 +386,14 @@ export interface BaseEntity {
   updatedAt: string | Date;
 }
 
-// Category interfaces
-export interface Category extends BaseEntity {
-  name: string;
-  slug: string;
-  description?: string;
-  images: Image[];
-  status: "active" | "inactive";
-  isDefault: boolean; // Pre-selected on new product forms
-  productCount: number; // For displaying number of products in category
-}
+/**
+ * A category list row — the generated backend contract, not a hand-written copy.
+ * See the note on `Brand`; the same drift applied here, and it hid a real bug.
+ *
+ * `CategoryListItem` also carries the `storefront` collection overlay, which the
+ * hand-written version omitted entirely.
+ */
+export type Category = CategoryListItem;
 
 export interface CreateCategoryDto {
   name: string;
@@ -414,16 +414,20 @@ export interface Image {
   publicId: string;
 }
 
-// Brand interfaces
-export interface Brand extends BaseEntity {
-  name: string;
-  slug: string;
-  description?: string;
-  images: Image[];
-  status: "active" | "inactive";
-  isDefault: boolean; // Pre-selected on new product forms
-  productCount: number; // For displaying number of products in brand
-}
+/**
+ * A brand list row — the generated backend contract, not a hand-written copy.
+ *
+ * This used to be declared by hand here and drifted from the API: it asserted
+ * `isDefault` and `slug` as required when the backend sends them optionally, so
+ * a component could read a field the server never sent and still compile. That
+ * is exactly how `Category.isDefault` stayed broken (the model declared it
+ * inside `storefront`, so it never persisted, yet the local type insisted it was
+ * always there).
+ *
+ * `BrandListItem` carries `productCount`, which the detail shape does not — the
+ * brand screens are list screens.
+ */
+export type Brand = BrandListItem;
 
 // Location interfaces (unified for stores and warehouses)
 export interface Location extends BaseEntity {

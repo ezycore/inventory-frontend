@@ -32,6 +32,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/components/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/ui/components/alert-dialog";
+import { describeVatPeriodSplit } from "@/lib/vat-period-split";
 
 const REGISTRATION_TYPES: VatRegistrationType[] = [
   "standard_15",
@@ -69,6 +80,11 @@ export default function VatSettingsPage() {
   const [filingDay, setFilingDay] = useState<number | null>(
     vs?.filingDayOfMonth ?? 15,
   );
+  // A registration change is appended, never edited, and re-treats every
+  // document from `effectiveFrom` on. Confirm it explicitly rather than letting
+  // a dropdown quietly redefine the month. Declared with the other hooks — it
+  // must not sit after the `!canManage` early return.
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Re-sync when fresh server values land (e.g. `/me` after mount). Keyed on a
   // signature so in-progress edits aren't clobbered — same pattern the previous
@@ -93,6 +109,7 @@ export default function VatSettingsPage() {
   if (!canManage) return null;
 
   const typeChanged = type !== currentType;
+  const split = describeVatPeriodSplit(effectiveFrom);
 
   const handleSave = async () => {
     try {
@@ -250,10 +267,52 @@ export default function VatSettingsPage() {
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isPending}>
+        <Button
+          onClick={() => (typeChanged ? setConfirmOpen(true) : handleSave())}
+          disabled={isPending}
+        >
           {isPending ? t("saving") : t("save")}
         </Button>
       </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("confirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  {t("confirm.body", {
+                    from: t(`types.${currentType}.label`),
+                    to: t(`types.${type}.label`),
+                    date: effectiveFrom,
+                  })}
+                </p>
+                {/* The split is the part people do not expect: one calendar
+                    month ends up with two VAT treatments. */}
+                {split.isMidPeriod && (
+                  <p className="rounded-md border bg-muted/40 p-3 text-sm">
+                    {t("confirm.split", {
+                      month: split.monthKey,
+                      firstDay: 1,
+                      lastOld: split.effectiveDay - 1,
+                      firstNew: split.effectiveDay,
+                      lastDay: split.lastDay,
+                    })}
+                  </p>
+                )}
+                <p className="font-medium">{t("confirm.immutable")}</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("confirm.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSave}>
+              {t("confirm.apply")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -889,6 +889,14 @@
     "periodFixed": "The VAT period is always one calendar month.",
     "filingDayLabel": "Due on day (of the following month)",
     "saving": "Saving…",
-    "save": "Save"
+    "save": "Save",
+    "confirm": {
+      "title": "Change your VAT registration?",
+      "body": "Switching from “{from}” to “{to}”, effective {date}.",
+      "split": "{month} will have two VAT treatments: days {firstDay}–{lastOld} under the old registration, days {firstNew}–{lastDay} under the new one.",
+      "immutable": "Documents you have already issued keep the VAT they were issued with — nothing is rewritten.",
+      "cancel": "Cancel",
+      "apply": "Change registration"
+    }
   }
 }
