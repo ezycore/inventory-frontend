@@ -19,7 +19,7 @@
       "returns": "Returns Management",
       "uomConversion": "Unit Conversion",
       "storefront": "Ecommerce Storefront",
-      "tax": "Tax Management",
+      "tax": "VAT",
       "combo": "Combo Products"
     },
     "descriptions": {
@@ -31,7 +31,7 @@
       "returns": "Enable sales returns, purchase returns, and credit management",
       "uomConversion": "Enable unit of measure conversion for products",
       "storefront": "Enable a public online store with shopper accounts, online orders, and courier delivery",
-      "tax": "Enable tax rates and apply tax on purchases and sales",
+      "tax": "Enable VAT rates and apply VAT on purchases and sales",
       "combo": "Sell several products bundled together as one priced unit"
     }
   },
@@ -69,11 +69,21 @@
       "emailReportsSectionLabel": "Email Reports",
       "dailyDigest": "Daily sales digest",
       "dailyDigestHint": "Emails the owner a summary on days with sales.",
+      "expiryReport": "Expiry report",
+      "expiryReportHint": "Emails the owner expiring-soon and expired stock.",
       "sendAt": "Send at",
       "sendAtPlaceholder": "Select time",
       "sendAtHint": "In your organization's timezone.",
       "saveChanges": "Save Changes"
-    }
+    },
+    "financialYearTitle": "Financial year",
+    "financialYearDescription": "Used as the default range for reports (1-based month/day). The VAT period is separate — it is always a calendar month.",
+    "startMonth": "Start month",
+    "startDay": "Start day",
+    "endMonth": "End month",
+    "endDay": "End day",
+    "saving": "Saving…",
+    "save": "Save"
   },
   "domains": {
     "title": "Custom Domains",
@@ -167,7 +177,7 @@
     "phonePlaceholder": "Phone shown on printouts",
     "email": "Email",
     "emailPlaceholder": "Email shown on printouts",
-    "taxIdLabel": "Tax Registration No. (VAT / BIN / TIN)",
+    "taxIdLabel": "VAT Registration No. (BIN)",
     "taxIdPlaceholder": "Leave blank to hide",
     "logoTitle": "Logo",
     "logoHint": "Where the logo prints on documents.",
@@ -189,7 +199,7 @@
     "showOnDocsTitle": "Show on documents",
     "showOnDocsHint": "Which details print under the letterhead (Date always shows).",
     "docTitleLabel": "Document title",
-    "docTitleHint": "The “Tax Invoice” / “Purchase Order” heading.",
+    "docTitleHint": "The “VAT Invoice” / “Purchase Order” heading.",
     "amountInWordsTitle": "Amount in words",
     "amountInWordsHint": "Spell the invoice total out under the totals.",
     "showAmountInWords": "Show amount in words",
@@ -215,12 +225,30 @@
       "hidden": "Hidden"
     },
     "headerLineMeta": {
-      "orgName": { "label": "Business name", "hint": "Organization profile" },
-      "taxId": { "label": "Tax Reg. No.", "hint": "From this page" },
-      "storeName": { "label": "Store / branch", "hint": "Active location" },
-      "address": { "label": "Address", "hint": "Organization profile" },
-      "contact": { "label": "Phone · Email", "hint": "From this page" },
-      "custom": { "label": "Custom line", "hint": "Your own text" }
+      "orgName": {
+        "label": "Business name",
+        "hint": "Organization profile"
+      },
+      "taxId": {
+        "label": "VAT Reg. No.",
+        "hint": "From this page"
+      },
+      "storeName": {
+        "label": "Store / branch",
+        "hint": "Active location"
+      },
+      "address": {
+        "label": "Address",
+        "hint": "Organization profile"
+      },
+      "contact": {
+        "label": "Phone · Email",
+        "hint": "From this page"
+      },
+      "custom": {
+        "label": "Custom line",
+        "hint": "Your own text"
+      }
     },
     "metaFieldOptions": {
       "customer": "Customer",
@@ -273,26 +301,6 @@
       "noMatch": "No permissions match \"{query}\"."
     }
   },
-  "taxSettings": {
-    "title": "Tax Settings",
-    "subtitle": "Control where tax applies and set your financial year for tax reporting.",
-    "offTitle": "Tax is off for your plan",
-    "offBody": "The Tax feature is managed by your subscription. These sub-toggles only take effect once Tax is enabled on your plan.",
-    "whereTitle": "Where tax applies",
-    "whereDescription": "Returns automatically follow their parent area.",
-    "salesLabel": "Sales tax",
-    "salesHint": "Apply tax on sales and sales returns.",
-    "purchaseLabel": "Purchase tax",
-    "purchaseHint": "Apply tax on purchases and purchase returns.",
-    "financialYearTitle": "Financial year",
-    "financialYearDescription": "Used as the default range for tax reports (1-based month/day).",
-    "startMonth": "Start month",
-    "startDay": "Start day",
-    "endMonth": "End month",
-    "endDay": "End day",
-    "saving": "Saving…",
-    "save": "Save changes"
-  },
   "permissions": {
     "categories": {
       "products": "Products",
@@ -305,7 +313,7 @@
       "suppliers": "Suppliers",
       "customers": "Customers",
       "locations": "Locations",
-      "taxes": "Taxes",
+      "taxes": "VAT",
       "units": "Units",
       "sales": "Sales",
       "variants": "Variants"
@@ -577,37 +585,42 @@
     }
   },
   "taxRates": {
-    "title": "Tax Rates",
-    "subtitle": "The tax rates applied to your sales and purchases.",
-    "allTaxesCount": "All Taxes ({count})",
-    "searchPlaceholder": "Search taxes by name or rate...",
+    "title": "VAT Rates",
+    "subtitle": "The VAT rates applied to your sales and purchases.",
+    "allTaxesCount": "All VAT Rates ({count})",
+    "searchPlaceholder": "Search VAT rates by name or rate...",
     "form": {
-      "name": "Tax Name",
-      "namePlaceholder": "Enter tax name",
+      "name": "VAT Name",
+      "namePlaceholder": "Enter VAT name",
       "rate": "Rate",
-      "ratePlaceholder": "Enter tax rate",
-      "type": "Type",
-      "percentage": "Percentage",
-      "fixed": "Fixed",
+      "ratePlaceholder": "Enter VAT rate",
       "status": "Status",
       "active": "Active",
       "inactive": "Inactive",
-      "isDefault": "Set as default tax",
-      "isDefaultDescription": "Pre-selected on new product forms"
+      "isDefault": "Set as default VAT rate",
+      "isDefaultDescription": "Pre-selected on new product forms",
+      "vatCategory": "Category",
+      "vatCategoryDescription": "What kind of supply this rate is. Zero-rated and exempt are both 0%, but only zero-rated lets you reclaim VAT on purchases.",
+      "categories": {
+        "standard": "Standard",
+        "reduced": "Reduced",
+        "zero_rated": "Zero-rated (export)",
+        "exempt": "Exempt"
+      }
     },
     "filters": {
-      "searchLabel": "Search taxes",
-      "searchPlaceholder": "Search taxes...",
-      "typeLabel": "Type",
-      "typePlaceholder": "All types",
+      "searchLabel": "Search VAT rates",
+      "searchPlaceholder": "Search VAT rates...",
       "statusLabel": "Status",
-      "statusPlaceholder": "All statuses"
+      "statusPlaceholder": "All statuses",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "All categories"
     },
     "card": {
       "active": "Active",
       "inactive": "Inactive",
       "default": "Default",
-      "taxRate": "Tax Rate",
+      "taxRate": "VAT Rate",
       "createdOn": "Created {date}",
       "inUse": "In use",
       "disabled": "Disabled",
@@ -830,6 +843,62 @@
       "newOwnerLabel": "New Owner",
       "cancel": "Cancel",
       "confirmButton": "Confirm Transfer"
+    }
+  },
+  "vatSettings": {
+    "title": "VAT",
+    "subtitle": "Your VAT registration, BIN, and how prices and filing work",
+    "offTitle": "VAT is not included in your plan",
+    "offBody": "Upgrade your plan to charge VAT on sales and purchases.",
+    "registrationTitle": "Registration",
+    "registrationDescription": "VAT registration is a legal status with a start date, not a switch. It decides whether you charge VAT and whether you can reclaim it — the rate each product carries is set in VAT Rates. Changing it never alters documents you have already issued.",
+    "typeLabel": "Registration type",
+    "types": {
+      "standard_15": {
+        "label": "Standard-rated (15% regime)",
+        "hint": "You charge VAT on invoices and can reclaim VAT paid on purchases. This does not set a rate on your products — most goods are 15%, but you can still assign reduced, zero-rated or exempt rates per product in VAT Rates."
+      },
+      "reduced": {
+        "label": "Reduced / truncated rate",
+        "hint": "You charge VAT at a reduced rate, but cannot reclaim VAT paid on purchases — it becomes part of your product cost."
+      },
+      "turnover_4": {
+        "label": "Turnover tax (4%)",
+        "hint": "You pay 4% of turnover. Your invoices carry no VAT line at all, and you cannot reclaim input VAT."
+      },
+      "exempt": {
+        "label": "Exempt",
+        "hint": "Your supplies are exempt. No VAT on invoices and no input rebate."
+      },
+      "unregistered": {
+        "label": "Not registered",
+        "hint": "No VAT on invoices."
+      }
+    },
+    "effectiveFromLabel": "Effective from",
+    "effectiveFromHint": "The date on your NBR registration or de-registration. Documents dated before this keep their current treatment. A month whose return has already been filed cannot be changed.",
+    "rebateYes": "You can reclaim input VAT on purchases.",
+    "rebateNo": "You cannot reclaim input VAT. VAT paid on purchases becomes part of your product cost.",
+    "binLabel": "BIN (Business Identification Number)",
+    "binPlaceholder": "13 digits",
+    "binHint": "Printed on every tax invoice. A registered buyer needs it to claim their rebate.",
+    "pricingTitle": "Prices",
+    "pricingDescription": "How VAT sits inside the prices you enter.",
+    "pricesIncludeVatLabel": "Prices include VAT",
+    "pricesIncludeVatHint": "Usual for retail in Bangladesh — the price on the shelf already contains VAT.",
+    "filingTitle": "Filing",
+    "filingDescription": "When your return is due.",
+    "periodFixed": "The VAT period is always one calendar month.",
+    "filingDayLabel": "Due on day (of the following month)",
+    "saving": "Saving…",
+    "save": "Save",
+    "confirm": {
+      "title": "Change your VAT registration?",
+      "body": "Switching from “{from}” to “{to}”, effective {date}.",
+      "split": "{month} will have two VAT treatments: days {firstDay}–{lastOld} under the old registration, days {firstNew}–{lastDay} under the new one.",
+      "immutable": "Documents you have already issued keep the VAT they were issued with — nothing is rewritten.",
+      "cancel": "Cancel",
+      "apply": "Change registration"
     }
   }
 }

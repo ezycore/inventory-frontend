@@ -23,6 +23,7 @@ import { FilterConfig } from "@/types/DataTable";
 import type { Translator, AppLocale } from "@/i18n/config";
 import { CheckCircle2, Hash, Percent, Tag } from "lucide-react";
 import { getDiscountFormConfig } from "@/components/discounts/form-config";
+import type { ApiDiscount } from "@/types/api";
 
 // ── Stats helper ────────────────────────────────────────────────────────
 function getDiscountStats(stats: Record<string, any> | undefined, t: Translator): StatData[] {
@@ -144,7 +145,7 @@ export default function DiscountsPage() {
       />
 
       {/* Card View */}
-      <DataCard
+      <DataCard<ApiDiscount>
         cardTitle={(n) => t("allDiscountsCount", { count: n })}
         defaultPageSize={12}
         pageSizes={[12, 24, 48]}

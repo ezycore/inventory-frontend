@@ -4,10 +4,16 @@ import { NavGroup, NavItem } from "@/types/layout";
 /**
  * Sidebar navigation, organized into labeled groups. Items are filtered per
  * user (role / permissions / features) by `filterNavItems` at render time.
+ *
+ * Groups follow the money flow a shop owner works in — sell, buy, stock, money —
+ * rather than object type, so the highest-frequency destinations sit near the top
+ * and setup-only screens collect under Admin. A group with an empty `label`
+ * renders without a heading (see `AppSidebar`); Dashboard uses that so the rail
+ * doesn't spend a row labelling a single item.
  */
 export const navGroups: NavGroup[] = [
   {
-    label: "Overview",
+    label: "",
     items: [
       {
         title: "Dashboard",
@@ -17,68 +23,11 @@ export const navGroups: NavGroup[] = [
         shortcut: ["d", "d"],
         items: [],
       },
-      {
-        title: "Reports",
-        url: "/reports",
-        icon: "file-text",
-        isActive: false,
-        items: [
-          {
-            title: "Inventory Report",
-            url: "/reports/inventory",
-            icon: "file-text",
-          },
-          {
-            title: "Sales Report",
-            url: "/reports/sales",
-            icon: "bar-chart-2",
-            features: ["sales"],
-          },
-          {
-            title: "Purchase Report",
-            url: "/reports/purchases",
-            icon: "file-text",
-          },
-          {
-            title: "Cash Report",
-            url: "/reports/cash",
-            icon: "credit-card",
-            features: ["accounts"],
-          },
-          {
-            title: "Tax Report",
-            url: "/reports/tax",
-            icon: "percent",
-            features: ["tax"],
-          },
-          {
-            title: "Stock Value",
-            url: "/reports/valuation",
-            icon: "database",
-          },
-          {
-            title: "Expiry Report",
-            url: "/reports/expiry",
-            icon: "calendar",
-            features: ["expiryTracking"],
-          },
-          {
-            title: "Staff Report",
-            url: "/reports/employees",
-            icon: "user-check",
-          },
-          {
-            title: "Export Data",
-            url: "/reports/export",
-            icon: "download-cloud",
-          },
-        ],
-      },
     ],
   },
 
   {
-    label: "Operations",
+    label: "Sell",
     items: [
       {
         title: "Sales",
@@ -108,95 +57,21 @@ export const navGroups: NavGroup[] = [
         ],
       },
       {
-        title: "Purchases",
-        url: "/purchases",
-        icon: "shopping-bag",
-        isActive: false,
-        items: [
-          {
-            title: "New Purchase",
-            url: "/purchases",
-            icon: "packages",
-          },
-          {
-            title: "Purchase Orders",
-            url: "/purchases/orders",
-            icon: "file-plus",
-          },
-          {
-            title: "Purchase History",
-            url: "/purchases/history",
-            icon: "clock",
-          },
-          {
-            title: "Purchase Returns",
-            url: "/purchases/returns",
-            icon: "package-minus",
-            features: ["returns"],
-          },
-        ],
-      },
-      {
-        title: "Inventory",
-        url: "/inventory",
-        icon: "database",
-        isActive: false,
-        items: [
-          { title: "Current Stock", url: "/inventory", icon: "list" },
-          {
-            title: "Low Stock",
-            url: "/inventory/lowstock",
-            icon: "clipboard-list",
-          },
-          { title: "Adjust Stock", url: "/inventory/adjust", icon: "edit" },
-          {
-            title: "Transfer Stock",
-            url: "/inventory/transfers",
-            icon: "truck",
-          },
-          {
-            title: "Stock History",
-            url: "/inventory/movements",
-            icon: "arrow-right-left",
-          },
-        ],
-      },
-      {
-        title: "Locations",
-        url: "/locations",
-        icon: "map-pin",
-        isActive: false,
-        items: [
-          { title: "Locations", url: "/locations", icon: "list" },
-          {
-            title: "Stock by Location",
-            url: "/locations/stock-report",
-            icon: "bar-chart-2",
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    label: "Ecommerce",
-    items: [
-      {
-        title: "Ecommerce",
+        title: "Online Store",
         url: "/ecommerce",
         icon: "store",
         isActive: false,
         features: ["storefront"],
         items: [
           {
-            title: "Dashboard",
+            title: "Store Overview",
             url: "/ecommerce/dashboard",
             icon: "layout-dashboard",
             features: ["storefront"],
             permissions: ["storefront.view"],
           },
           {
-            title: "Orders",
+            title: "Online Orders",
             url: "/ecommerce/orders",
             icon: "receipt",
             features: ["storefront"],
@@ -238,7 +113,7 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.manage"],
           },
           {
-            title: "Customers",
+            title: "Store Customers",
             url: "/ecommerce/customers",
             icon: "users",
             features: ["storefront"],
@@ -253,18 +128,47 @@ export const navGroups: NavGroup[] = [
           },
         ],
       },
-    ],
-  },
-
-  {
-    label: "Contacts",
-    items: [
       {
         title: "Customers",
         url: "/customers",
         icon: "users",
         isActive: false,
         items: [],
+      },
+    ],
+  },
+
+  {
+    label: "Buy",
+    items: [
+      {
+        title: "Purchases",
+        url: "/purchases",
+        icon: "shopping-bag",
+        isActive: false,
+        items: [
+          {
+            title: "New Purchase",
+            url: "/purchases",
+            icon: "packages",
+          },
+          {
+            title: "Purchase Orders",
+            url: "/purchases/orders",
+            icon: "file-plus",
+          },
+          {
+            title: "Purchase History",
+            url: "/purchases/history",
+            icon: "clock",
+          },
+          {
+            title: "Purchase Returns",
+            url: "/purchases/returns",
+            icon: "package-minus",
+            features: ["returns"],
+          },
+        ],
       },
       {
         title: "Suppliers",
@@ -277,8 +181,33 @@ export const navGroups: NavGroup[] = [
   },
 
   {
-    label: "Catalog",
+    label: "Stock",
     items: [
+      {
+        title: "Inventory",
+        url: "/inventory",
+        icon: "database",
+        isActive: false,
+        items: [
+          { title: "Current Stock", url: "/inventory", icon: "list" },
+          {
+            title: "Low Stock",
+            url: "/inventory/lowstock",
+            icon: "clipboard-list",
+          },
+          { title: "Adjust Stock", url: "/inventory/adjust", icon: "edit" },
+          {
+            title: "Transfer Stock",
+            url: "/inventory/transfers",
+            icon: "truck",
+          },
+          {
+            title: "Stock History",
+            url: "/inventory/movements",
+            icon: "arrow-right-left",
+          },
+        ],
+      },
       {
         title: "Products",
         url: "/products",
@@ -320,19 +249,66 @@ export const navGroups: NavGroup[] = [
           },
         ],
       },
+    ],
+  },
+
+  {
+    label: "Insights",
+    items: [
       {
-        title: "Pricing",
-        url: "#",
-        icon: "tags",
+        title: "Reports",
+        url: "/reports",
+        icon: "file-text",
         isActive: false,
         items: [
-          { title: "Discounts", url: "/discounts", icon: "tag" },
           {
-            title: "Tax Rates",
-            url: "/taxes",
+            title: "Inventory Report",
+            url: "/reports/inventory",
+            icon: "file-text",
+          },
+          {
+            title: "Sales Report",
+            url: "/reports/sales",
+            icon: "bar-chart-2",
+            features: ["sales"],
+          },
+          {
+            title: "Purchase Report",
+            url: "/reports/purchases",
+            icon: "file-text",
+          },
+          {
+            title: "Cash Report",
+            url: "/reports/cash",
+            icon: "credit-card",
+            features: ["accounts"],
+          },
+          {
+            title: "VAT Report",
+            url: "/reports/tax",
             icon: "percent",
             features: ["tax"],
-            permissions: ["taxes.view"],
+          },
+          {
+            title: "Stock Value",
+            url: "/reports/valuation",
+            icon: "database",
+          },
+          {
+            title: "Expiry Report",
+            url: "/reports/expiry",
+            icon: "calendar",
+            features: ["expiryTracking"],
+          },
+          {
+            title: "Staff Report",
+            url: "/reports/employees",
+            icon: "user-check",
+          },
+          {
+            title: "Export Data",
+            url: "/reports/export",
+            icon: "download-cloud",
           },
         ],
       },
@@ -342,6 +318,36 @@ export const navGroups: NavGroup[] = [
   {
     label: "Admin",
     items: [
+      {
+        title: "Locations",
+        url: "/locations",
+        icon: "map-pin",
+        isActive: false,
+        items: [
+          { title: "Locations", url: "/locations", icon: "list" },
+          {
+            title: "Stock by Location",
+            url: "/locations/stock-report",
+            icon: "bar-chart-2",
+          },
+        ],
+      },
+      {
+        title: "Pricing",
+        url: "#",
+        icon: "tags",
+        isActive: false,
+        items: [
+          { title: "Discounts", url: "/discounts", icon: "tag" },
+          {
+            title: "VAT Rates",
+            url: "/taxes",
+            icon: "percent",
+            features: ["tax"],
+            permissions: ["taxes.view"],
+          },
+        ],
+      },
       {
         title: "Settings",
         url: "#",
@@ -379,7 +385,7 @@ export const navGroups: NavGroup[] = [
             permissions: ["organization.edit"],
           },
           {
-            title: "Tax Settings",
+            title: "VAT",
             url: "/settings/tax",
             icon: "percent",
             features: ["tax"],

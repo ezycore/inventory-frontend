@@ -38,6 +38,8 @@ export type ApiBrand = Schemas["Brand"];
 export type BrandListItem = Schemas["BrandListItem"];
 export type ApiCategory = Schemas["Category"];
 export type CategoryListItem = Schemas["CategoryListItem"];
+/** Result of re-pointing a category's products at its default VAT rate. */
+export type CategoryApplyTaxResult = Schemas["CategoryApplyTax"];
 export type ApiUnit = Schemas["Unit"];
 export type ApiTax = Schemas["Tax"];
 export type ApiDiscount = Schemas["Discount"];

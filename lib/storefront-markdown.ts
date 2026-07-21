@@ -9,7 +9,7 @@
  */
 
 export type SfInline =
-  | { kind: "text" | "bold" | "italic"; text: string }
+  | { kind: "text" | "bold" | "italic" | "code"; text: string }
   | { kind: "link"; text: string; href: string };
 
 export interface SfFaqItem {
@@ -23,23 +23,26 @@ export type SfBlock =
   | { kind: "list"; ordered: boolean; items: SfInline[][] }
   | { kind: "quote"; inline: SfInline[] }
   | { kind: "divider" }
+  | { kind: "table"; headers: SfInline[][]; rows: SfInline[][][] }
   | { kind: "faq"; items: SfFaqItem[] };
 
 // Links render only for schemes that can't execute script.
 const SAFE_HREF = /^(https?:\/\/|mailto:|tel:|\/)/i;
 
-/** `**bold**`, `*italic*` and `[text](url)` inside one line of text. */
+/** `**bold**`, `*italic*`, `` `code` `` and `[text](url)` inside one line of text. */
 export function parseInline(text: string): SfInline[] {
   const out: SfInline[] = [];
-  const re = /\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  // `code` is matched first so backticked text is never re-scanned for emphasis.
+  const re = /`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     if (m.index > last) out.push({ kind: "text", text: text.slice(last, m.index) });
-    if (m[1] !== undefined) out.push({ kind: "bold", text: m[1] });
-    else if (m[2] !== undefined) out.push({ kind: "italic", text: m[2] });
-    else if (SAFE_HREF.test(m[4])) out.push({ kind: "link", text: m[3], href: m[4] });
-    else out.push({ kind: "text", text: m[3] });
+    if (m[1] !== undefined) out.push({ kind: "code", text: m[1] });
+    else if (m[2] !== undefined) out.push({ kind: "bold", text: m[2] });
+    else if (m[3] !== undefined) out.push({ kind: "italic", text: m[3] });
+    else if (SAFE_HREF.test(m[5])) out.push({ kind: "link", text: m[4], href: m[5] });
+    else out.push({ kind: "text", text: m[4] });
     last = re.lastIndex;
   }
   if (last < text.length) out.push({ kind: "text", text: text.slice(last) });
@@ -53,6 +56,25 @@ const ORDERED_RE = /^\d+[.)]\s+/;
 const QUOTE_RE = /^>\s?/;
 const Q_RE = /^q\s*[:).-]\s*/i;
 const A_RE = /^a\s*[:).-]\s*/i;
+const DELIMITER_CELL_RE = /^:?-{2,}:?$/;
+
+/** `| a | b |` → `["a", "b"]`, tolerating the optional leading/trailing pipes. */
+const splitTableRow = (line: string): string[] =>
+  line
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+
+/**
+ * A table is recognised only by its `|---|---|` delimiter row, never by pipes alone. Owner-written
+ * CMS prose contains stray pipes far more often than it contains tables, and treating those as a
+ * table would mangle a page that renders fine today.
+ */
+const isTableDelimiter = (line: string): boolean => {
+  const cells = splitTableRow(line);
+  return cells.length > 1 && cells.every((cell) => DELIMITER_CELL_RE.test(cell));
+};
 
 /** One blank-line-separated group of Q/A lines → FAQ items. */
 const parseFaqGroup = (lines: string[]): SfFaqItem[] => {
@@ -106,6 +128,12 @@ export function parseStorefrontMarkdown(source: string): SfBlock[] {
 
     if (lines.length === 1 && DIVIDER_RE.test(lines[0])) {
       blocks.push({ kind: "divider" });
+    } else if (lines.length >= 2 && lines[0].includes("|") && isTableDelimiter(lines[1])) {
+      blocks.push({
+        kind: "table",
+        headers: splitTableRow(lines[0]).map(parseInline),
+        rows: lines.slice(2).map((l) => splitTableRow(l).map(parseInline)),
+      });
     } else if (lines.every((l) => BULLET_RE.test(l))) {
       blocks.push({
         kind: "list",

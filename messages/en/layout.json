@@ -1,11 +1,11 @@
 {
   "nav": {
     "groups": {
-      "overview": "Overview",
-      "operations": "Operations",
-      "contacts": "Contacts",
-      "catalog": "Catalog",
+      "sell": "Sell",
+      "buy": "Buy",
+      "stock": "Stock",
       "money": "Money",
+      "insights": "Insights",
       "admin": "Admin"
     },
     "items": {
@@ -15,7 +15,7 @@
       "sales-report": "Sales Report",
       "purchase-report": "Purchase Report",
       "cash-report": "Cash Report",
-      "tax-report": "Tax Report",
+      "vat-report": "VAT Report",
       "stock-value": "Stock Value",
       "expiry-report": "Expiry Report",
       "staff-report": "Staff Report",
@@ -39,6 +39,16 @@
       "stock-by-location": "Stock by Location",
       "customers": "Customers",
       "suppliers": "Suppliers",
+      "online-store": "Online Store",
+      "store-overview": "Store Overview",
+      "online-orders": "Online Orders",
+      "catalog": "Catalog",
+      "campaigns": "Campaigns",
+      "coupons": "Coupons",
+      "customize": "Customize",
+      "content": "Content",
+      "store-customers": "Store Customers",
+      "store-settings": "Store Settings",
       "products": "Products",
       "categories": "Categories",
       "brands": "Brands",
@@ -49,26 +59,33 @@
       "transactions": "Transactions",
       "pricing": "Pricing",
       "discounts": "Discounts",
-      "tax-rates": "Tax Rates",
+      "vat-rates": "VAT Rates",
       "settings": "Settings",
       "organization": "Organization",
       "users": "Users",
       "roles": "Roles",
       "feature-settings": "Feature Settings",
       "field-settings": "Field Settings",
-      "tax-settings": "Tax Settings",
+      "vat": "VAT",
       "receipt-print": "Receipt & Print",
       "custom-domains": "Custom Domains",
-      "billing": "Billing"
+      "billing": "Billing",
+      "details": "Details"
     }
   },
   "userMenu": {
     "profile": "Profile",
-    "billing": "Billing",
+    "help": "Help",
     "logout": "Logout"
   },
   "kbar": {
     "navigation": "Navigation",
     "goTo": "Go to {title}"
+  },
+  "help": {
+    "title": "Help",
+    "tooltip": "Help for this screen",
+    "subtitle": "Step-by-step guides for running your shop.",
+    "allTopics": "All help topics"
   }
 }

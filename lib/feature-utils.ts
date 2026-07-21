@@ -1,4 +1,9 @@
-import { FeatureName, OrganizationFeatures, TaxSettings } from "@/types";
+import {
+  FeatureName,
+  OrganizationFeatures,
+  VatRegistrationEntry,
+  VatRegistrationType,
+} from "@/types";
 import type { Translator } from "@/i18n/config";
 
 /**
@@ -12,25 +17,72 @@ export function isFeatureEnabled(
   return features[feature] === true;
 }
 
-export type TaxArea = "sales" | "purchase";
+type VatOrg = {
+  features?: OrganizationFeatures;
+  vatRegistrationHistory?: VatRegistrationEntry[];
+};
 
 /**
- * Single source of truth (FE) for "is tax active here?". Mirrors the backend
- * `isTaxActive`: gated by the master `tax` feature AND the per-area `taxSettings`
- * sub-toggle (sub-toggles default ON when unset). Returns follow their parent
- * area, so pass "sales" for sales + sales-returns, "purchase" for purchases +
- * purchase-returns.
+ * The registration in force on `date`. Mirrors the backend
+ * `resolveVatRegistration` — keep the two in step.
  */
-export function isTaxActive(
-  org:
-    | { features?: OrganizationFeatures; taxSettings?: TaxSettings }
-    | undefined
-    | null,
-  area: TaxArea
-): boolean {
+export function resolveVatRegistration(
+  history: VatRegistrationEntry[] | undefined | null,
+  date: Date = new Date()
+): VatRegistrationType {
+  if (!history?.length) return "unregistered";
+
+  let current: VatRegistrationEntry | undefined;
+  for (const entry of history) {
+    const from = new Date(entry.effectiveFrom).getTime();
+    if (from > date.getTime()) continue;
+    if (!current || from >= new Date(current.effectiveFrom).getTime()) {
+      current = entry;
+    }
+  }
+  return current?.type ?? "unregistered";
+}
+
+/**
+ * Single source of truth (FE) for "does this org put VAT on its invoices?".
+ * Mirrors the backend `resolveOrgVat(...).chargesLineVat`.
+ *
+ * There is **no per-area toggle** any more: registration is a property of the
+ * organization, so sales and purchases share one answer. It replaced
+ * `isTaxActive(org, area)`, whose per-area sub-toggles treated a dated legal
+ * status as a daily preference.
+ *
+ * `turnover_4` is deliberately **false** — a turnover taxpayer pays 4% of gross
+ * turnover and issues invoices with no VAT line at all.
+ */
+export function isVatActive(org: VatOrg | undefined | null): boolean {
   if (!org?.features?.tax) return false;
-  if (area === "sales") return org.taxSettings?.salesEnabled !== false;
-  return org.taxSettings?.purchaseEnabled !== false;
+  const type = vatRegistrationOf(org);
+  return type === "standard_15" || type === "reduced";
+}
+
+/** May this org reclaim input VAT? Only a standard-rated registrant. */
+export function claimsInputRebate(org: VatOrg | undefined | null): boolean {
+  return Boolean(org?.features?.tax) && vatRegistrationOf(org) === "standard_15";
+}
+
+/**
+ * The org's registration today, including the backend's temporary bridge: an org
+ * with the feature ON and no declared history is treated as standard-rated.
+ * Remove both sides together once setup forces the choice.
+ */
+export function vatRegistrationOf(
+  org: VatOrg | undefined | null
+): VatRegistrationType {
+  const declared = resolveVatRegistration(org?.vatRegistrationHistory);
+  if (
+    declared === "unregistered" &&
+    !org?.vatRegistrationHistory?.length &&
+    org?.features?.tax
+  ) {
+    return "standard_15";
+  }
+  return declared;
 }
 
 /**

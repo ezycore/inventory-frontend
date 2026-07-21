@@ -36,9 +36,56 @@ file-by-file as touched** (via the marker below) — never mass-rewrite the repo
 - When you add a shared util/component, record it where the next change will look (the relevant skill
   doc and/or the matching CLAUDE.md section) so it gets reused, not re-duplicated.
 
-### Type-check & lint (ask first)
-- Do **not** run type-check or lint automatically. Ask the user for permission first. If granted, run
-  `pnpm typecheck` and `pnpm lint`. If declined, skip and proceed.
+### Docs on touch (mandatory)
+A change that makes a doc wrong is an **unfinished change** — the doc update ships in the *same* commit,
+never as a follow-up. Before calling any task done, ask: *does a doc now describe something that is no
+longer true?*
+
+- **Grep before you finish.** For every UI label, route, command, script, env var, filename or exported
+  symbol you renamed/moved/removed, grep `docs/` and `.claude/skills/` for it and fix every hit.
+- **Where to look, by what you changed:**
+  | Changed | Check |
+  |---|---|
+  | A route, or `constants/navItem.ts` | `docs/help/en/*.md` `covers_routes` + `docs/help/BACKLOG.md` |
+  | A user-facing label in `messages/**` | `ui_labels` in `docs/help/en/*.md` (a rename **breaks the build** on every page quoting it) |
+  | Nav / layout / an entry point | `docs/help/README.md`, this file's "Customer help docs" + "Route Structure" |
+  | A shared util/component/pattern | The matching `.claude/skills/*/SKILL.md` **and** this file's section for it |
+  | An API module or response type | `docs/` API notes; regenerate with `pnpm gen:api-types` |
+- **Bangla too.** Editing `messages/en/*.json` means editing `messages/bn/*.json` in the same commit —
+  use `docs/I18N-GLOSSARY.md` for the term, don't invent one. Same for `docs/help/en/` ↔ `docs/help/bn/`.
+- **Stale docs you pass through:** if you find a doc that is wrong *near* what you touched, fix it if the
+  truth is verifiable in the code; otherwise flag it to the user. Don't silently leave a known lie.
+- **Never hand-edit** `lib/help/content.generated.ts` — edit `docs/help/**` and run `pnpm help:build`.
+
+### Verification commands (ask first)
+- Do **not** run these automatically. Ask the user for permission first; if declined, skip and proceed.
+- `pnpm typecheck` and `pnpm lint` — after any source change.
+- `pnpm help:build` — after editing `docs/help/**` (regenerates `lib/help/content.generated.ts`;
+  `predev`/`prebuild` run it too, but the generated file must be committed).
+- `pnpm docs:verify` — after editing any `docs/**` or skill doc. Catches dead file refs, broken relative
+  `.md` links, phantom `/api/…` routes.
+- `pnpm help:verify` — after editing `docs/help/**`, `messages/**`, or `constants/navItem.ts`. The
+  freshness gate: stale `ui_labels`, phantom `covers_routes`, sidebar routes no page covers.
+- `pnpm verify` — all of the above except lint (`verify:api-types` + `docs:verify` + `help:verify` +
+  `typecheck`). Prefer this one when the change spans code **and** docs.
+
+## Pre-launch: there are no production users yet
+
+**As of 2026-07-20 the product has no live customers and no production data.** Every organization in
+any database is seed, demo, or test data.
+
+So a breaking change is cheap — prefer the clean shape over a compatibility shim:
+
+- Renaming a route, a message key, or a persisted field needs **no migration and no dual-read
+  window**. Wipe and reseed instead.
+- Don't build backwards-compatibility for data nobody has.
+
+Unchanged by this: the API contract gates (`pnpm verify`), the help-docs freshness gate
+(`pnpm help:verify` still fails on a renamed `ui_labels` string), and the backend's invariants —
+posted documents stay immutable by design, not for the sake of old rows.
+
+**Delete this section the day the first real customer signs up.** Mirrors the same section in
+`easystock-backend/CLAUDE.md`.
 
 ## Commands
 
@@ -51,6 +98,14 @@ pnpm typecheck    # TypeScript type check (tsc --noEmit)
 pnpm test         # Run tests once (Vitest)
 pnpm test:watch   # Run tests in watch mode
 pnpm test:coverage  # Run tests with coverage
+
+# Docs & contract gates — see "Docs on touch" above
+pnpm help:build       # Regenerate lib/help/content.generated.ts from docs/help/** (also predev/prebuild)
+pnpm help:verify      # Help freshness gate: stale ui_labels, phantom covers_routes, uncovered routes
+pnpm docs:verify      # Dead file refs, broken .md links, phantom /api/… routes in docs/ + skills
+pnpm gen:api-types    # Regenerate types/api-generated.ts from the backend OpenAPI spec
+pnpm verify:api-types # Fail if committed api-generated.ts drifted from the backend spec
+pnpm verify           # verify:api-types + docs:verify + help:verify + typecheck
 ```
 
 Run a single test file:
@@ -183,10 +238,41 @@ parser → block model, XSS-safe by construction) + `<MarkdownView>` (`component
 consecutive `Q:`/`A:` lines become styled FAQ cards. Extend the parser — never dump raw page text or add
 a markdown dependency without checking here first.
 
+The parser is now shared with the **customer help docs**, so it is no longer storefront-only despite the
+filename. Two renderers consume it and both must handle every block kind, or new syntax silently vanishes
+on one surface: `<MarkdownView>` (storefront — inline styles against storefront CSS vars, so an owner's
+themed shop stays consistent) and `<HelpMarkdown>` (`components/help/help-markdown.tsx`, admin — Tailwind +
+shadcn tokens). They are deliberately separate: a themeable single renderer would thread a class map
+through every block for two callers whose styling primitives have nothing in common. Tables are recognised
+only by a `|---|---|` delimiter row — owner prose contains stray pipes far more often than tables.
+
+### Customer help docs (`docs/help/`)
+
+End-user guides for shop owners, reachable two ways — the header's "?" (`<HelpSheet>`), which opens the
+guide for the **current route** via each page's `covers_routes` frontmatter, and the sidebar user menu's
+**Help** item (`components/layout/app-sidebar.tsx`), which routes to `/help` for browsing all topics.
+Keep both: contextual help and a browsable index answer different questions, and `/help` has no other
+entry point. Content is Markdown in `docs/help/en/`,
+baked into `lib/help/content.generated.ts` by `pnpm help:build` (`predev`/`prebuild`) because `docs/` is not
+in the Docker image — a runtime read would work in dev and 404 in production.
+
+`pnpm help:verify` (in `pnpm verify` and the PR workflow) is the freshness gate: each page lists the
+message keys behind the UI text it quotes (`ui_labels`), and the gate fails when a key's current English
+value no longer appears in the page — i.e. **renaming a button breaks the build on every page quoting it**.
+It also fails on a sidebar route that no page covers and `docs/help/BACKLOG.md` does not defer. Write pages
+with the `help-docs` skill. Its one blind spot: a backend change that alters what a number *means* with no
+frontend diff (valuation method, tax rules) — check the reports pages by hand.
+
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**
 - **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.
 - **`SimpleTable`** (`ui/components/simple-table.tsx`) for the small tables embedded in cards / detail panels. Column-driven: `<SimpleTable columns rows getRowKey />`, where each `SimpleColumn` has `header`, `cell: (row) => node`, optional `align`/`headClassName`/`cellClassName`; plus `rowClassName`/`headerRowClassName` for per-row styling. Cells can hold inputs/checkboxes, so lightly interactive grids fit too (see `variant-manager.tsx`).
 - Only drop to the raw `ui/components/table` primitives inside `SimpleTable` itself.
+
+**Cross-field rules in a DataTable's CRUD form** go through `operations.onFieldChange(fieldName,
+value, allValues, form)`. The `form` argument is the DataTable's own `useForm` instance — the form is
+created inside the component, so that is the only way a caller gets `setValue`. See
+`components/products/use-category-vat-prefill.ts` (category → VAT rate). Do not fork the form or
+duplicate the field elsewhere to work around it.
 
 **Form inputs — use the shared primitives, never re-implement:** these carry the project's validation, empty-state, accessibility, and UX contracts. Reach for them before writing any new input, and before creating a new input abstraction.
 - **`NumberField`** (`ui/components/number-field.tsx`) for **every** numeric input — never a raw `<input type="number">`. Contract: `value: number | null`, `onChange: (number | null) => void`; empty → `null`; clamps `min`/`max` on blur; `precision` rounds (money `2`, qty/counts `0`, generic/UOM `undefined`); `showSteppers` for +/- buttons. Do **not** default `precision` in generic/config-driven renderers.
@@ -194,6 +280,24 @@ a markdown dependency without checking here first.
 - **`DateRangePicker`** (`ui/components/date-range-picker.tsx`) for date **range** selection (`value: DateRange`, `onChange`). For a from/to pair backed by two separate string states, two `DatePicker`s with cross-bounds (`toDate`/`fromDate`) is the established pattern (see `report-period-filter.tsx`, `dashboard/period-filter.tsx`).
 - **Do not add native `type="date"` / `type="number"` inputs** unless there's a documented technical reason. The repo currently has **zero** native date/number inputs — keep it that way. If you must add one, put a comment saying why.
 - **Never introduce a duplicate date/number input implementation.** Extend the shared primitive (add a prop) instead of forking it. New forms follow this shared-field pattern for consistency, validation, accessibility, and UX.
+
+### Navigation labels are translated, the constants are not
+
+`constants/navItem.ts` keeps **English titles as identity** — they are the message-key source
+(`navLabelKey`), the filter/permission keys and the kbar search keywords. They are never display
+strings.
+
+Everything that renders a nav title goes through **`useNavLabels().itemLabel(title)`**
+(`hooks/use-nav-labels.ts`), which maps the title to `layout.nav.items.<kebab-title>` and falls back
+to the English title when the key is missing. Sidebar, kbar and **breadcrumbs** all use it.
+
+Two consequences:
+
+- **Renaming a nav title renames its message key.** "Tax Settings" → "VAT" moves the lookup from
+  `items.tax-settings` to `items.vat`, so the `layout.json` key must be renamed in **both locales** in
+  the same commit — otherwise the fallback quietly serves English and nothing fails.
+- **Breadcrumbs used to render `navItem.title` raw**, so the whole trail stayed English in every
+  locale (fixed 2026-07-20). If you add a crumb source, translate it the same way.
 
 ### Feature Flags & Subscription
 
@@ -216,12 +320,22 @@ Tests use Vitest + Testing Library + MSW for API mocking. Setup is in `tests/set
 
 The `NEXT_PUBLIC_API_URL` env var sets the backend base URL (defaults to `http://localhost:5000/api`).
 
-### Tax (UI) conventions
+### VAT (UI) conventions
 
-The tax module is optional and per-line. Keep these single sources — never re-derive tax inline:
+The VAT module is optional and per-line. **Operating manual: [`.claude/skills/vat/SKILL.md`](.claude/skills/vat/SKILL.md).**
+Keep these single sources — never re-derive VAT inline:
 
-- **Gate** every tax surface with `isTaxActive(org, "sales" | "purchase")` (`lib/feature-utils.ts`).
-  When inactive: hide tax UI/columns and neutralize tax in previews.
+- **Gate** every VAT surface with `isVatActive(org)` (`lib/feature-utils.ts`). When inactive: hide
+  VAT UI/columns and neutralize VAT in previews.
+  - There is **no per-area argument** any more. It replaced `isTaxActive(org, "sales" | "purchase")`:
+    VAT registration is a property of the organization, so sales and purchases share one answer.
+  - `isVatActive` mirrors the backend `resolveOrgVat(...).chargesLineVat`, including that
+    **`turnover_4` is false** — a turnover taxpayer issues invoices with no VAT line at all.
+  - `claimsInputRebate(org)` is the *separate* question (only `standard_15`). Charging VAT and
+    reclaiming it are not the same thing; conflating them is what made the VAT report wrong.
+  - `vatRegistrationOf(org)` carries a **temporary** bridge: feature ON + no declared history ⇒
+    `standard_15`. The backend has the identical branch — delete both together once onboarding
+    forces the choice.
 - **Math** only through `utils/tax.ts`: `computeOrderTax` (cart rollups → `addedTax`/`includedTax`/
   `taxTotal`/`grandTotal`), `computeLineTax` (one line), `splitLineTax` (added-vs-included from a posted
   doc's stored line snapshot, for detail/receipt views).
@@ -229,7 +343,7 @@ The tax module is optional and per-line. Keep these single sources — never re-
   for the "Tax (added) / Total / Includes … in price" summary; `<LineTaxCell>`
   (`components/shared/line-tax-cell.tsx`) for the cart per-line Tax column.
 - Backend is authoritative; FE numbers are previews and must match `applyLineTaxes` exactly.
-- **The contract lives in the backend:** `inventory-backend/docs/features/tax.md` — the tax math,
+- **The contract lives in the backend:** `easystock-backend/docs/features/vat.md` — the tax math,
   the worked examples, and the sales/purchase/return rules. It used to be `docs/TAX_BACKEND_CONTRACT.md`
   in *this* repo, still saying "backend pending" long after the backend shipped it; it moved because
   8 of its 9 sections describe backend behavior. **If you change `utils/tax.ts`, change

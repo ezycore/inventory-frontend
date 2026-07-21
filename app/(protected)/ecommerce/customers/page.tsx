@@ -37,7 +37,7 @@ export default function EcommerceCustomersPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Store Customers</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Shoppers who created an account on your storefront.
         </p>

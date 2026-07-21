@@ -7,10 +7,17 @@ import { createResourceHooks } from "../query-helpers";
 const taxHooks = createResourceHooks<ApiTax, CreateTaxDto>(
   taxesApi,
   queryKeys.taxes,
-    { relatedQueryKeys: [queryKeys.products.all(), 
-      [ "select-options", "/taxes?all=true&fields=_id,name,rate"],
-      [ "select-options", "/taxes?all=true&fields=_id,name,rate,isDefault"]
-    ] },
+  {
+    relatedQueryKeys: [
+      queryKeys.products.all(),
+      queryKeys.categories.all(),
+      // The PREFIX, not each URL — see the note in the categories hooks. Both
+      // literals above had gone stale: the pickers now ask for
+      // `status=active&…,vatCategory,isDefault`, so creating a rate never
+      // refreshed the product form's dropdown.
+      ["select-options"],
+    ],
+  },
 );
 
 export const useTaxes = taxHooks.useList;

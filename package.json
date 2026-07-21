@@ -5,7 +5,9 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "predev": "node scripts/build-help-content.mjs",
     "dev": "next dev --turbopack",
+    "prebuild": "node scripts/build-help-content.mjs",
     "build": "next build",
     "analyze": "cross-env ANALYZE=true next build --webpack",
     "start": "next start",
@@ -15,7 +17,9 @@
     "gen:api-types": "openapi-typescript ../inventory-backend/docs/reference/openapi.json -o types/api-generated.ts",
     "verify:api-types": "node scripts/verify-api-types.mjs",
     "docs:verify": "node scripts/verify-docs.mjs",
-    "verify": "pnpm verify:api-types && pnpm docs:verify && pnpm typecheck",
+    "help:build": "node scripts/build-help-content.mjs",
+    "help:verify": "node scripts/verify-help-docs.mjs",
+    "verify": "pnpm verify:api-types && pnpm docs:verify && pnpm help:verify && pnpm typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

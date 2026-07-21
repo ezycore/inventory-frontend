@@ -63,7 +63,8 @@ tightened backend-side), so the period header type-checks against the report res
 - **Stat tiles**: use the shared `StatsCard` (`ui/components/StatsCard`) — see the `stats-card` skill.
   Don't hand-roll a stat box.
 - **Charts**: follow the existing report charts (e.g. `tax-trend-chart.tsx`) — consistent axis/format.
-- **Tax reports** are gated by the `tax` feature; gate with `isTaxActive`/`isFeatureEnabled` and hide
+- **VAT reports** are gated by the `tax` feature; gate with `isVatActive` (see the
+  [`vat`](../vat/SKILL.md) skill — `isTaxActive` no longer exists) and hide
   tax reports when off.
 - **Export**: report CSV export goes through `export-data.tsx` / the report `export` route — reuse it.
 
@@ -76,7 +77,8 @@ tightened backend-side), so the period header type-checks against the report res
 | Report total ≠ detail view | aggregate wrong on the backend | fix the aggregation server-side; don't patch the FE number |
 | Off-by-one day at range edges | native ISO date output | use the shared `DatePicker` (`yyyy-MM-dd`) via the period filter |
 | Period header type error | grouping typed too loosely | it's the 4-value `chartGrouping` enum now — regen types |
-| Tax report visible without tax feature | missing gate | gate on `isTaxActive`/`tax` feature |
+| VAT report visible without the feature | missing gate | gate on `isVatActive` |
+| Net payable shown as output − input for every org | only a standard-rated org reclaims input VAT | branch on `data.input.recoverable` — [`vat`](../vat/SKILL.md) §5 |
 | Duplicated date-range picker | forked the filter | reuse `report-period-filter.tsx` |
 
 ---
