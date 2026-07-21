@@ -109,6 +109,18 @@ export interface StorefrontFooterGroup {
   links: StorefrontFooterLink[];
 }
 
+/**
+ * Owner controls for the auto content-pages footer column (published pages
+ * flagged "Show in footer"). Absent ⇒ shown with the built-in "Information"
+ * heading, so existing stores are unaffected.
+ */
+export interface StorefrontFooterContentPages {
+  /** `false` hides the column entirely; absent/`true` ⇒ shown. */
+  show?: boolean;
+  /** Heading override; blank ⇒ the built-in localized "Information" label. */
+  title?: string;
+}
+
 export interface StorefrontAnnouncement {
   enabled: boolean;
   text?: string;
@@ -136,6 +148,8 @@ export interface StorefrontAnnouncement {
 export interface StorefrontNav {
   header: StorefrontMenuItem[];
   footer: StorefrontFooterGroup[];
+  /** Owner controls for the auto content-pages footer column. */
+  footerContentPages?: StorefrontFooterContentPages;
   announcement?: StorefrontAnnouncement;
 }
 
@@ -144,6 +158,8 @@ export interface StorefrontCheckout {
   minOrderValue?: number;
   orderPrefix?: string;
   termsRequired?: boolean;
+  /** Slug of the CMS content page the terms checkbox links to. */
+  termsPageSlug?: string;
 }
 
 export interface StorefrontNotifEvent {

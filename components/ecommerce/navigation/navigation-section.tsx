@@ -19,7 +19,10 @@ import {
   AnnouncementCard,
   type AnnouncementDraft,
 } from "@/components/ecommerce/navigation/announcement-card";
-import { FooterLinksCard } from "@/components/ecommerce/navigation/footer-links-card";
+import {
+  FooterLinksCard,
+  type FooterContentPagesDraft,
+} from "@/components/ecommerce/navigation/footer-links-card";
 import { HeaderMenuCard } from "@/components/ecommerce/navigation/header-menu-card";
 import type { NavOption } from "@/components/ecommerce/navigation/menu-item-fields";
 
@@ -57,6 +60,14 @@ export function NavigationSection({
 
   const nav = settings.nav;
   const [footer, setFooter] = useState<StorefrontFooterGroup[]>(nav?.footer ?? []);
+  // Auto content-pages column: `show` defaults on (legacy behaviour) so existing
+  // stores keep showing it; blank title ⇒ the built-in "Information" heading.
+  const [contentPages, setContentPages] = useState<FooterContentPagesDraft>(() => ({
+    show: nav?.footerContentPages?.show ?? true,
+    title: nav?.footerContentPages?.title ?? "",
+  }));
+  const patchContentPages = (patch: Partial<FooterContentPagesDraft>) =>
+    setContentPages((c) => ({ ...c, ...patch }));
 
   // Menu links target categories by slug; slugless ones (legacy seed data) are
   // unlinkable — and Radix Select crashes on empty-string item values.
@@ -96,6 +107,10 @@ export function NavigationSection({
           title: g.title.trim(),
           links: g.links.filter((l) => l.label.trim()),
         })),
+      footerContentPages: {
+        show: contentPages.show,
+        title: contentPages.title.trim() || undefined,
+      },
       announcement: {
         enabled: announcement.enabled,
         text: announcement.text.trim() || undefined,
@@ -137,7 +152,12 @@ export function NavigationSection({
           onManageCollections={onManageCollections}
         />
         <AnnouncementCard value={announcement} onChange={setAnnouncement} />
-        <FooterLinksCard groups={footer} setGroups={setFooter} />
+        <FooterLinksCard
+          groups={footer}
+          setGroups={setFooter}
+          contentPages={contentPages}
+          setContentPages={patchContentPages}
+        />
       </div>
       <div className="flex flex-none justify-end">
         <Button onClick={submit} disabled={save.isPending}>

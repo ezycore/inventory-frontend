@@ -188,6 +188,10 @@ export interface Dict {
   newAddress: string;
   saveThisAddress: string;
   orderNotesPh: string;
+  /** Sentence with a `{terms}` placeholder for the (optionally linked) terms label. */
+  agreeToTerms: string;
+  termsLinkLabel: string;
+  minOrderNotice: string;
   paymentMethod: string;
   default: string;
   cod: string;
@@ -517,6 +521,9 @@ const en: Dict = {
   newAddress: "New address",
   saveThisAddress: "Save this address",
   orderNotesPh: "Delivery notes (optional)",
+  agreeToTerms: "I agree to the {terms}",
+  termsLinkLabel: "terms & conditions",
+  minOrderNotice: "Minimum order value:",
   paymentMethod: "Payment method",
   default: "Default",
   cod: "Cash on Delivery",
@@ -846,6 +853,9 @@ const bn: Dict = {
   newAddress: "নতুন ঠিকানা",
   saveThisAddress: "এই ঠিকানা সংরক্ষণ করুন",
   orderNotesPh: "ডেলিভারি নোট (ঐচ্ছিক)",
+  agreeToTerms: "আমি {terms}তে সম্মত",
+  termsLinkLabel: "নিয়ম ও শর্তাবলী",
+  minOrderNotice: "সর্বনিম্ন অর্ডার মূল্য:",
   paymentMethod: "পেমেন্ট মাধ্যম",
   default: "ডিফল্ট",
   cod: "ক্যাশ অন ডেলিভারি",

@@ -7,6 +7,7 @@ import { Copy, ExternalLink } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
+  useContentPages,
   useGetStorefrontSettings,
   useUpdateStorefrontSettings,
 } from "@/services/api";
@@ -629,18 +630,35 @@ const ADDRESS_FIELDS = [
   { id: "address", label: "Address" },
   { id: "area", label: "Area / zone" },
 ];
+// Name + phone are always needed to fulfil an order, so they can't be turned off.
+// (Area is also forced when Dhaka zone shipping is on — it prices the order.)
+const LOCKED_FIELDS = ["name", "phone"];
+// Sentinel for "no explicit terms page" — the checkout then auto-detects a page
+// slugged like "terms" (Radix Select forbids an empty-string item value).
+const AUTO_TERMS = "__auto";
 
 function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useSave();
   const c = settings.checkout ?? {};
-  const [fields, setFields] = useState<string[]>(
-    c.requiredFields ?? ["name", "phone", "address"],
+  const [fields, setFields] = useState<string[]>(() =>
+    Array.from(
+      new Set([...LOCKED_FIELDS, ...(c.requiredFields ?? ["name", "phone", "address"])]),
+    ),
   );
   const [minOrder, setMinOrder] = useState<number | null>(
     c.minOrderValue ?? null,
   );
   const [prefix, setPrefix] = useState(c.orderPrefix ?? "");
   const [terms, setTerms] = useState(c.termsRequired ?? false);
+  const [termsPage, setTermsPage] = useState(c.termsPageSlug || AUTO_TERMS);
+
+  const { data: pages } = useContentPages();
+  const termsPageOptions: Option[] = [
+    { label: "Auto-detect (a published page slugged “terms”)", value: AUTO_TERMS },
+    ...(pages ?? [])
+      .filter((p) => p.published)
+      .map((p) => ({ label: p.title, value: p.slug })),
+  ];
 
   const toggleField = (id: string, on: boolean) =>
     setFields((prev) =>
@@ -657,19 +675,48 @@ function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
           checked={terms}
           onChange={setTerms}
         />
+        {terms ? (
+          <div className="space-y-1.5 pt-1">
+            <Label>Terms page</Label>
+            <SimpleSelect
+              value={termsPage}
+              onValueChange={setTermsPage}
+              options={termsPageOptions}
+              className="max-w-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Where the terms link goes at checkout. Manage pages under Content —
+              Auto-detect uses a published page slugged like terms.
+            </p>
+          </div>
+        ) : null}
         <div className="space-y-2">
           <Label>Required checkout fields</Label>
           <div className="flex flex-wrap gap-4">
-            {ADDRESS_FIELDS.map((f) => (
-              <label key={f.id} className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={fields.includes(f.id)}
-                  onCheckedChange={(v) => toggleField(f.id, v === true)}
-                />
-                {f.label}
-              </label>
-            ))}
+            {ADDRESS_FIELDS.map((f) => {
+              const locked = LOCKED_FIELDS.includes(f.id);
+              return (
+                <label
+                  key={f.id}
+                  className={cn(
+                    "flex items-center gap-2 text-sm",
+                    locked && "text-muted-foreground",
+                  )}
+                >
+                  <Checkbox
+                    checked={locked || fields.includes(f.id)}
+                    disabled={locked}
+                    onCheckedChange={(v) => toggleField(f.id, v === true)}
+                  />
+                  {f.label}
+                </label>
+              );
+            })}
           </div>
+          <p className="text-xs text-muted-foreground">
+            Name and phone are always required. Applies to delivery orders — pickup
+            only ever needs name and phone.
+          </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Minimum order value">
@@ -700,6 +747,7 @@ function CheckoutTab({ settings }: { settings: StorefrontSettings }) {
               requiredFields: fields,
               minOrderValue: minOrder ?? undefined,
               orderPrefix: prefix.trim() || undefined,
+              termsPageSlug: termsPage === AUTO_TERMS ? undefined : termsPage,
             },
           })
         }

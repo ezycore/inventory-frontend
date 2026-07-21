@@ -143,12 +143,30 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   title/URL/date header-footer; whitespace lives in body padding (left/right — repeats every
   page) and `.doc` padding (top/bottom — repeats per document in bulk `.inv-page` breaks).
   Don't reintroduce `@page` margins or `window.open` printing.
-- **Footer**: variants incl. Rich (trust badges + "Follow us"). Social links are edited in
-  admin Store Settings → General → Social links card; a bare WhatsApp phone number is normalized
-  to `https://wa.me/<digits>` in `store-footer.tsx`.
+- **Footer**: `store-footer.tsx` is the slim entry (variant resolve + prop build); the bodies live in
+  `components/storefront/footer/` — `footer-pieces.tsx` (shell/brand/columns/aside/bottom-bar + the
+  `FooterColumn` model helpers `groupColumns`/`contentPagesColumn`/`footerColumns`) and
+  `footer-variants.tsx` (Columns/Rich/Simple). **Each footer group is its own auto-flowing column**
+  (`.sf-footer-*` in storefront.css: grid ≥680px, tap-to-open `<details>`-style accordions below via a
+  per-column `useState(true)` — SSR-safe, desktop heading is inert + always-open). The auto
+  **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is controlled by
+  `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy default), `title`
+  overrides the heading. Simple is a deliberately flat link row (drops group titles) but still honours
+  the show toggle. Edited in Customize → Navigation (`footer-links-card.tsx`, groups + the content-pages
+  Switch/heading) — **footer is NOT live-previewed** (only the variant is; group/content-pages edits
+  need a save + ~60s revalidate). Social links are edited in admin Store Settings → General → Social
+  links card; a bare WhatsApp phone number is normalized to `https://wa.me/<digits>` in `social-links.tsx`.
 - **Checkout**: gates in order — `!shopper` (redirect to `/account?next=/checkout`, hydration-gated),
   `!emailVerified` (VerifyEmailGate), `placed` (OrderPlacedCard), empty cart. Single-page or
   multi-step per template. Coupons validated server-side; shipping = Dhaka inside/outside zones.
+  **Merchant checkout rules (`store.checkout`, admin Settings → Checkout) are enforced on BOTH sides**
+  — `requiredFields` drive the address gates (name/phone always on; district/area forced when zone
+  shipping is on), `minOrderValue` blocks submit below the subtotal floor, `termsRequired` renders the
+  agree checkbox (submit sends `termsAccepted`), and `orderPrefix` feeds `generateOrderNumber`. The
+  backend `placeOrder` is authoritative (`TERMS_NOT_ACCEPTED` / `BELOW_MIN_ORDER` /
+  `MISSING_REQUIRED_FIELDS`); the FE gates are the preview. The delivery-address requirement moved OUT
+  of the zod validator INTO `placeOrder` (only there are store settings visible) — the schema now only
+  guarantees name/phone shape.
 - **Admin ecommerce pages** (`app/(protected)/ecommerce/*`): dashboard, orders (+detail, invoice
   print), content, customize (Theme | Templates | **Navigation** — header/footer/announcement moved
   here 2026-07-18; `/ecommerce/navigation` is now a redirect to
@@ -162,7 +180,52 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-07-20)
+## Work log (what was built, newest first — as of 2026-07-21)
+
+- **Checkout settings were dead → now enforced (FE + BE)** (2026-07-21): all four admin
+  Settings → Checkout controls (`termsRequired`, `requiredFields`, `minOrderValue`, `orderPrefix`)
+  saved + round-tripped but were consumed by **nothing** — the checkout view hardcoded its field gates,
+  `placeOrder` never checked terms/min/fields, and `generateOrderNumber` hardcoded `ORD-`. Wired end to
+  end: FE checkout view (`app/(storefront)/shop/checkout/view.tsx`) now drives `contactComplete`/
+  `deliveryComplete` from `store.checkout.requiredFields` (name/phone always required; district+area
+  forced when zone shipping is on), blocks submit below `minOrderValue` with a notice, and renders an
+  "agree to terms" checkbox when `termsRequired` (submit sends `termsAccepted`). `StoreInfo.checkout`
+  gained `requiredFields`; `PlaceOrderInput` gained `termsAccepted` (`lib/storefront-client.ts`); i18n
+  +2 keys ×3 (`agreeToTerms`, `minOrderNotice`). Admin locks name/phone as always-required
+  (`ecommerce/settings/page.tsx` `CheckoutTab`). BE: `placeOrder` enforces all three rules
+  (`TERMS_NOT_ACCEPTED` / `BELOW_MIN_ORDER` / `MISSING_REQUIRED_FIELDS`) and threads `orderPrefix` into
+  `generateOrderNumber(orgId, prefix)`; `PlaceOrderDto` + `placeOrderSchema` gained `termsAccepted`; the
+  delivery-address requirement moved from the validator's `superRefine` into the service (only there can
+  it read per-store `requiredFields`). Tests: 5 new cases in `storefront-order.service.test.ts`.
+  **Terms link → a CMS page**: `checkout.termsPageSlug` (new across model/validator/types/organization
+  DTO + FE `StoreInfo.checkout`/`StorefrontCheckout`) picks which content page the "terms & conditions"
+  link opens. Resolution in the checkout view: explicit `termsPageSlug` (if it still resolves against
+  `useStorePages`) → else a published page slugged like `terms` (`/^terms($|-)|^tos$|conditions$/i`) →
+  else **plain text, no dead link**. i18n `agreeToTerms` became a `{terms}` template + `termsLinkLabel`
+  (so only the terms phrase links, word-order-safe for bn); the `<a>` sits inside the `<label>` — clicking
+  an interactive descendant of a label doesn't toggle its checkbox (HTML spec). Admin Checkout tab shows a
+  "Terms page" `SimpleSelect` (published pages; `__auto` sentinel = auto-detect) only when the toggle is on.
+  **`termsAccepted` (new field on `POST /storefront/{slug}/orders`, generated from the validator) AND the
+  admin `checkout.termsPageSlug` DTO change mean backend OpenAPI + FE `api-generated.ts` were regenerated.**
+
+- **Footer → groups-as-columns + controllable content-pages** (2026-07-21): the Columns/Rich footer
+  used a fixed `2fr 1fr 1fr` grid that stacked EVERY merchant group inside one middle cell (adding a
+  group made that column taller, never wider) and always rendered the auto "Information" block with no
+  way to hide it. Rebuilt: each `nav.footer` group is now its own auto-flowing column (`.sf-footer-*`,
+  grid ≥680px / accordions below), and a new **`nav.footerContentPages { show?, title? }`** setting hides
+  or renames the content-pages column. Absent ⇒ shown with the built-in "Information" heading (legacy
+  behaviour preserved). Contract added across BE (types + validator `navSchema` + model `nav` block +
+  admin `storefrontSettingsDto.nav`; public `storeInfoDto` keeps `nav: z.unknown()` passthrough, so no
+  public-DTO change) and FE (`StorefrontNav`/`StoreNav`). `store-footer.tsx` (was ~330 lines) split into
+  `components/storefront/footer/{footer-pieces,footer-variants}.tsx`. Simple footer stays a flat link row
+  (drops titles by design) but now honours the show toggle. Admin: Customize → Navigation
+  `footer-links-card.tsx` gained the content-pages Switch + heading input, wired through
+  `navigation-section.tsx`'s wholesale `nav` save. Mobile groups collapse to `useState`-driven
+  accordions (SSR-safe: render open, no hydration flash; desktop heading inert + always-open via CSS
+  `!important`). **Footer still isn't live-previewed** — only the variant streams; group/content-pages
+  edits need a save. BE DTO round-trip test extended (`organization.dto.test.ts`). Dead `--footcols` var
+  removed. `verify:api-types` needs a regen (admin DTO changed). Approved design sample:
+  claude.ai/code/artifact/49d51fad-2a9d-4302-b686-d298f621f67e.
 
 - **Announcement bar → richer + live-previewed** (2026-07-20): the Customize → Navigation
   announcement bar gained `textColor` (blank ⇒ auto `readableTextOn(bgColor)` — the old sole

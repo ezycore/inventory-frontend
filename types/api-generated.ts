@@ -9333,6 +9333,10 @@ export interface components {
                         url?: string;
                     }[];
                 }[];
+                footerContentPages?: {
+                    show?: boolean;
+                    title?: string;
+                };
                 announcement?: {
                     enabled: boolean;
                     text?: string;
@@ -9361,6 +9365,7 @@ export interface components {
                 minOrderValue?: number;
                 orderPrefix?: string;
                 termsRequired?: boolean;
+                termsPageSlug?: string;
             };
             notifications?: {
                 senderId?: string;
@@ -12873,6 +12878,7 @@ export interface operations {
                     paymentMethod: "cod" | "bank";
                     notes?: string;
                     couponCode?: string;
+                    termsAccepted?: boolean;
                 };
             };
         };
@@ -13783,6 +13789,10 @@ export interface operations {
                                 url: string;
                             }[];
                         }[];
+                        footerContentPages?: {
+                            show?: boolean;
+                            title?: string;
+                        };
                         announcement?: {
                             enabled?: boolean;
                             text?: string;
@@ -13811,6 +13821,7 @@ export interface operations {
                         minOrderValue?: number;
                         orderPrefix?: string;
                         termsRequired?: boolean;
+                        termsPageSlug?: string;
                     };
                     notifications?: {
                         senderId?: string;

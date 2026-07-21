@@ -37,7 +37,6 @@
   --h2: 20px;
   --herocols: 1fr;
   --bandcols: 2;
-  --footcols: 1fr;
   --splitcols: 1fr;
   --splith: 200px;
   --trustcols: 1fr;
@@ -131,7 +130,6 @@
     --h2: 23px;
     --herocols: 1.1fr 1fr;
     --bandcols: 4;
-    --footcols: 2fr 1fr 1fr;
     --splitcols: 1fr 1fr;
     --splith: 340px;
     --trustcols: 3;
@@ -605,5 +603,119 @@
   .sf-hero-fill {
     animation: none;
     transform: scaleX(1);
+  }
+}
+
+/* ---- Footer (Columns / Rich) ----
+   One column PER footer group (auto-flowing) instead of the old fixed
+   2fr-1fr-1fr grid that stacked every group inside a single cell. Below 680px
+   each group collapses into a tap-to-open accordion; on desktop the heading is
+   inert and the links always show. */
+.sf-footer-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  margin-bottom: 26px;
+}
+.sf-footer-cols {
+  display: flex;
+  flex-direction: column;
+}
+.sf-footer-col {
+  border-top: 1px solid var(--border);
+}
+.sf-footer-col-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 0;
+  margin: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sf-footer-col-head:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.sf-footer-chev {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.2s ease;
+}
+.sf-footer-col.sf-open .sf-footer-chev {
+  transform: rotate(180deg);
+}
+.sf-footer-col-body {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0 0 16px;
+  list-style: none;
+}
+.sf-footer-col.sf-open .sf-footer-col-body {
+  display: flex;
+}
+.sf-footer-link {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.sf-footer-link:hover {
+  color: var(--text);
+}
+.sf-footer-aside {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+@media (min-width: 680px) {
+  .sf-footer-grid {
+    display: grid;
+    grid-template-columns: minmax(200px, 1.5fr) minmax(0, 3fr);
+    gap: 32px;
+    align-items: start;
+  }
+  .sf-footer-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 28px;
+  }
+  .sf-footer-col {
+    border-top: 0;
+  }
+  /* Desktop: the heading is a static label, links always visible. */
+  .sf-footer-col-head {
+    padding: 0 0 12px;
+    pointer-events: none;
+    cursor: default;
+  }
+  .sf-footer-chev {
+    display: none;
+  }
+  .sf-footer-col-body {
+    display: flex !important;
+    padding: 0;
+  }
+  .sf-footer-aside {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-footer-chev {
+    transition: none;
   }
 }

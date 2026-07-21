@@ -86,8 +86,16 @@ export interface StorefrontStore {
   heroBanner?: StoreHeroBanner;
   /** Header menu / footer groups / announcement bar (admin Navigation tab). */
   nav?: StoreNav;
-  /** Checkout behaviour (order prefix, min order, etc.). */
-  checkout?: { orderPrefix?: string; minOrderValue?: number; termsRequired?: boolean };
+  /** Checkout behaviour (order prefix, min order, required fields, terms). */
+  checkout?: {
+    orderPrefix?: string;
+    minOrderValue?: number;
+    termsRequired?: boolean;
+    /** Which address fields the shopper must fill (name/phone/address/area). */
+    requiredFields?: string[];
+    /** Slug of the CMS content page the terms checkbox links to. */
+    termsPageSlug?: string;
+  };
   /** Instructions shown to shoppers who pick bank/manual transfer. */
   bankInstructions?: string;
   /** Social sign-in providers with credentials configured on the backend. */
@@ -137,6 +145,14 @@ export interface StoreFooterGroup {
   links: { label: string; url: string }[];
 }
 
+/** Owner controls for the auto content-pages footer column. */
+export interface StoreFooterContentPages {
+  /** `false` hides the column; absent/`true` ⇒ shown. */
+  show?: boolean;
+  /** Heading override; blank ⇒ the built-in localized "Information" label. */
+  title?: string;
+}
+
 /** The single-line bar above the storefront header (admin Navigation tab). */
 export interface StoreAnnouncement {
   enabled?: boolean;
@@ -165,6 +181,8 @@ export interface StoreAnnouncement {
 export interface StoreNav {
   header?: StoreMenuItem[];
   footer?: StoreFooterGroup[];
+  /** Owner controls for the auto content-pages footer column. */
+  footerContentPages?: StoreFooterContentPages;
   announcement?: StoreAnnouncement;
 }
 
@@ -349,6 +367,8 @@ export interface PlaceOrderInput {
   paymentMethod: "cod" | "bank";
   notes?: string;
   couponCode?: string;
+  /** Shopper accepted the store's terms (required when `checkout.termsRequired`). */
+  termsAccepted?: boolean;
 }
 
 export interface CouponPreview {
