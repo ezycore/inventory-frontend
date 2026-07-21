@@ -6,6 +6,7 @@
 
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { ColumnDef, VisibilityState } from "@tanstack/react-table";
+import type { UseFormReturn } from "react-hook-form";
 import { FilterField } from "./filter";
 
 /**
@@ -256,6 +257,18 @@ interface Operations<TData = any> {
   transformEditData?: (item: TData) => any;
   openInside?: "modal" | "drawer";
   disabledFieldsInEdit?: string[];
+  /**
+   * Fires on every field change in the CRUD form. `form` is the DataTable's own
+   * `useForm` instance, handed over so a caller can express a cross-field rule
+   * (e.g. prefill the VAT rate from the chosen category) — the form is created
+   * inside the DataTable, so without it the caller has no `setValue`.
+   */
+  onFieldChange?: (
+    fieldName: string,
+    value: any,
+    allValues: any,
+    form: UseFormReturn<any>,
+  ) => void;
 }
 
 /**

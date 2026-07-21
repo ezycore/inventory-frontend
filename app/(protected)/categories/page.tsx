@@ -20,7 +20,16 @@ import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
 import { getCategoryStats, prepareSubmitData } from '@/components/categories/helper'
+import { isVatActive } from '@/lib/feature-utils'
+import { useAuthStore } from '@/services/stores'
+import { useMemo, useState } from 'react'
+import { Percent } from 'lucide-react'
+import { ApplyVatDialog, type ApplyVatTarget } from '@/components/categories/apply-vat-dialog'
 import type { AppLocale } from '@/i18n/config'
+// NOTE: the legacy hand-written `Category` in types/index.ts, not the generated
+// `Category` — the page's `operations` are typed with it. The two duplicate
+// each other and should be reconciled; typed either way beats `any`.
+import type { Category } from "@/types";
 
 const defaultValues = {
   name: "",
@@ -34,7 +43,18 @@ export default function CategoriesPage() {
   const t = useTranslations('products.categories')
   const locale = useLocale() as AppLocale
   const [viewMode, setViewMode, isMounted] = useViewMode('categories', 'card')
-  const filteredFormConfig = useFilteredFormConfig(getCategoryFormConfig(t), 'category')
+  const baseFormConfig = useFilteredFormConfig(getCategoryFormConfig(t), 'category')
+  const { user } = useAuthStore()
+  // The default-VAT-rate picker only means anything while the org charges VAT.
+  const filteredFormConfig = useMemo(() => {
+    if (isVatActive(user?.organization)) return baseFormConfig
+    return {
+      ...baseFormConfig,
+      fields: (baseFormConfig.fields || []).filter(
+        (field) => field.name !== 'defaultTaxId',
+      ),
+    }
+  }, [baseFormConfig, user?.organization])
   const filteredColumns = useFilteredColumns(getCategoryColumns(t), 'category')
   const categoryFilterConfig = getCategoryFilterConfig(t)
   const { data: statsData, isLoading: statsLoading } = useCategoryStats?.() ?? { data: undefined, isLoading: false }
@@ -52,6 +72,26 @@ export default function CategoriesPage() {
     prepareSubmitData,
   }
   
+  // "Apply this category's VAT rate to its products" — the action a Finance Act
+  // rate change needs. Only offered when VAT is on, the user may edit products,
+  // and the category actually has a default to apply.
+  const [vatTarget, setVatTarget] = useState<ApplyVatTarget | null>(null)
+  const canApplyVat =
+    isVatActive(user?.organization) &&
+    (user?.permissions?.includes('products.edit') ?? false)
+  const vatAction = canApplyVat
+    ? [
+        {
+          type: 'apply-vat',
+          placement: 'cell' as const,
+          icon: <Percent className="h-4 w-4" />,
+          tooltip: t('applyVat.tooltip'),
+          onClick: (row: any) => setVatTarget(row as ApplyVatTarget),
+          hidden: (row: any) => !row?.defaultTaxId,
+        },
+      ]
+    : []
+
   const sortingConfig = {
     sortOptions: [
       { field: "name", label: "Name" },
@@ -104,12 +144,13 @@ export default function CategoriesPage() {
           enableRowHover={true}
           rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
           operations={sharedOperations}
+          customActions={vatAction}
         />
       )}
 
       {/* Card View */}
       {viewMode === 'card' && (
-        <DataCard
+        <DataCard<Category>
           cardTitle={(n) => t('page.allCategoriesTitle', { count: n })}
           defaultPageSize={12}
           pageSizes={[6, 12, 24, 48]}
@@ -120,11 +161,27 @@ export default function CategoriesPage() {
             gap: "md",
           }}
           sortingConfig={sortingConfig}
-          renderCard={(item, actions) => CategoryCardView(item, actions, { t, locale })}
+          renderCard={(item, actions) =>
+            CategoryCardView(
+              item,
+              {
+                ...actions,
+                ...(canApplyVat && item.defaultTaxId
+                  ? { onApplyVat: () => setVatTarget(item as ApplyVatTarget) }
+                  : {}),
+              },
+              { t, locale },
+            )
+          }
           loadingRenderCard={CategoryCardLoading}
           operations={sharedOperations}
         />
       )}
+
+      <ApplyVatDialog
+        category={vatTarget}
+        onOpenChange={(open) => !open && setVatTarget(null)}
+      />
     </div>
   )
 }

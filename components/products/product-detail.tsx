@@ -16,7 +16,7 @@ import {
   inventoryApi,
 } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
-import { isFeatureEnabled, isTaxActive } from '@/lib/feature-utils'
+import { isFeatureEnabled, isVatActive } from '@/lib/feature-utils'
 import { useAuthStore } from '@/services/stores'
 import { DetailHero } from './detail/detail-hero'
 import { DetailStats } from './detail/detail-stats'
@@ -157,8 +157,8 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
   const expiryEnabled = isFeatureEnabled(organization?.features, 'expiryTracking')
   const barcodeEnabled = isFeatureEnabled(organization?.features, 'barcodeSystem')
   const salesEnabled = isFeatureEnabled(organization?.features, 'sales')
-  const salesTaxActive = isTaxActive(organization, 'sales')
-  const purchaseTaxActive = isTaxActive(organization, 'purchase')
+  const salesTaxActive = isVatActive(organization)
+  const purchaseTaxActive = isVatActive(organization)
   // Barcode is only meaningful with the barcode module on.
   const barcode = barcodeEnabled
     ? product.barcode || product.variants?.[0]?.barcode || ''

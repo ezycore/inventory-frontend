@@ -12,6 +12,7 @@ import { Edit2, Hash, MoreVertical, Percent, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import type { Translator } from "@/i18n/config";
 import type { AppLocale } from "@/i18n/config";
+import type { ApiDiscount } from "@/types/api";
 
 const applicableColors: Record<string, string> = {
   sales: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -19,8 +20,16 @@ const applicableColors: Record<string, string> = {
   both: "bg-purple-100 text-purple-800 border-purple-200",
 };
 
+/**
+ * Typed against the generated `ApiDiscount`, deliberately — not `any`.
+ *
+ * A card renderer taking `any` opts out of the generated contract, so a field
+ * removed on the backend keeps compiling and fails silently at runtime. That is
+ * exactly how the taxes card kept reading a deleted `Tax.type` and rendered
+ * every rate as a currency amount.
+ */
 const DiscountCardView = (
-  discount: any,
+  discount: ApiDiscount,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
   options: { t: Translator; locale: AppLocale },
 ) => {

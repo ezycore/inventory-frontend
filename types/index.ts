@@ -1,5 +1,7 @@
 import type {
   ApiPurchaseOrder,
+  BrandListItem,
+  CategoryListItem,
   ApiPurchaseReturn,
   PurchaseTransactions as ApiPurchaseTransactions,
   SaleListItem as ApiSaleListItem,
@@ -237,10 +239,45 @@ export interface FinancialYearConfig {
   endDay: number;
 }
 
-/** Per-area tax sub-toggles, gated under the master `tax` feature flag. */
-export interface TaxSettings {
-  salesEnabled: boolean;
-  purchaseEnabled: boolean;
+/**
+ * How the organization is registered for VAT (Bangladesh). Mirrors the backend
+ * `VatRegistrationType` — keep the two in step.
+ *
+ * The distinction the UI must respect is **whether invoices carry per-line VAT
+ * at all**: a `turnover_4` taxpayer pays 4% of gross turnover and issues
+ * invoices with no VAT line, so it is not "VAT at 4%".
+ */
+export type VatRegistrationType =
+  | "standard_15"
+  | "reduced"
+  | "turnover_4"
+  | "exempt"
+  | "unregistered";
+
+/**
+ * One dated entry of the registration history. A document's VAT treatment comes
+ * from the entry in force on that document's date — never "the current status".
+ */
+export interface VatRegistrationEntry {
+  type: VatRegistrationType;
+  effectiveFrom: string;
+  changedBy?: string;
+  changedAt: string;
+}
+
+/** A filed (closed) VAT period — its 9.1 is with the NBR and cannot be re-stated. */
+export interface VatPeriod {
+  year: number;
+  month: number;
+  filedAt: string;
+  filedBy?: string;
+}
+
+/** Admin-configurable VAT settings (distinct from the dated registration status). */
+export interface VatSettings {
+  bin?: string;
+  pricesIncludeVat: boolean;
+  filingDayOfMonth: number;
 }
 
 /**
@@ -349,16 +386,14 @@ export interface BaseEntity {
   updatedAt: string | Date;
 }
 
-// Category interfaces
-export interface Category extends BaseEntity {
-  name: string;
-  slug: string;
-  description?: string;
-  images: Image[];
-  status: "active" | "inactive";
-  isDefault: boolean; // Pre-selected on new product forms
-  productCount: number; // For displaying number of products in category
-}
+/**
+ * A category list row — the generated backend contract, not a hand-written copy.
+ * See the note on `Brand`; the same drift applied here, and it hid a real bug.
+ *
+ * `CategoryListItem` also carries the `storefront` collection overlay, which the
+ * hand-written version omitted entirely.
+ */
+export type Category = CategoryListItem;
 
 export interface CreateCategoryDto {
   name: string;
@@ -367,6 +402,8 @@ export interface CreateCategoryDto {
   images?: Image[];
   status?: "active" | "inactive";
   isDefault?: boolean;
+  /** VAT rate prefilled on new products in this category; `null`/"" clears it. */
+  defaultTaxId?: string | null;
 }
 
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
@@ -379,16 +416,20 @@ export interface Image {
   publicId: string;
 }
 
-// Brand interfaces
-export interface Brand extends BaseEntity {
-  name: string;
-  slug: string;
-  description?: string;
-  images: Image[];
-  status: "active" | "inactive";
-  isDefault: boolean; // Pre-selected on new product forms
-  productCount: number; // For displaying number of products in brand
-}
+/**
+ * A brand list row — the generated backend contract, not a hand-written copy.
+ *
+ * This used to be declared by hand here and drifted from the API: it asserted
+ * `isDefault` and `slug` as required when the backend sends them optionally, so
+ * a component could read a field the server never sent and still compile. That
+ * is exactly how `Category.isDefault` stayed broken (the model declared it
+ * inside `storefront`, so it never persisted, yet the local type insisted it was
+ * always there).
+ *
+ * `BrandListItem` carries `productCount`, which the detail shape does not — the
+ * brand screens are list screens.
+ */
+export type Brand = BrandListItem;
 
 // Location interfaces (unified for stores and warehouses)
 export interface Location extends BaseEntity {

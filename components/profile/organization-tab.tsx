@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
@@ -27,9 +27,7 @@ import {
   Camera,
   Trash2,
   ImageIcon,
-  Mail,
 } from "lucide-react";
-import { Switch } from "@/ui/components/switch";
 import { useUpdateOrganization } from "@/services/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
 import { toast } from "sonner";
@@ -40,27 +38,33 @@ import {
 } from "@/app/(auth)/signup/page";
 import { getCountryDefaults } from "@/constants/organization-options";
 import { useGetOrganizationApi } from "@/hooks";
-import { formatDate } from "@/lib/format";
-import type { AppLocale } from "@/i18n/config";
+import { isFeatureEnabled } from "@/lib/feature-utils";
+import { EmailReportsSection } from "./email-reports-section";
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB — must match backend uploadConfig limit
-
-// "21" → "9:00 PM" (locale-aware AM/PM) for the digest-hour dropdown.
-const hourLabel = (hour: number, locale: AppLocale) =>
-  formatDate(new Date(2000, 0, 1, hour, 0), "h:mm a", locale);
-const DIGEST_HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 export function OrganizationTab() {
   const t = useTranslations("settings.organization");
   const tTab = useTranslations("settings.organization.tab");
-  const locale = useLocale() as AppLocale;
   const { data } = useGetOrganizationApi();
-  const { address, country, currency, name, timezone, logo, notificationSettings } =
-    data?.data || {};
-  // Digest defaults mirror the backend schema: enabled, 21:00 org-local.
+  const {
+    address,
+    country,
+    currency,
+    name,
+    timezone,
+    logo,
+    features,
+    notificationSettings,
+  } = data?.data || {};
+  // Report-email defaults mirror the backend schema: enabled, 21:00 (sales) and
+  // 08:00 (expiry) org-local.
   const serverDigestEnabled: boolean =
     notificationSettings?.salesDigest?.enabled ?? true;
   const serverDigestHour: number = notificationSettings?.salesDigest?.hour ?? 21;
+  const serverExpiryEnabled: boolean =
+    notificationSettings?.expiryDigest?.enabled ?? true;
+  const serverExpiryHour: number = notificationSettings?.expiryDigest?.hour ?? 8;
   const { user } = useAuthStore();
 
   const canManageOrganization =
@@ -112,8 +116,20 @@ export function OrganizationTab() {
       currency: currency || "",
       salesDigestEnabled: serverDigestEnabled,
       salesDigestHour: String(serverDigestHour),
+      expiryDigestEnabled: serverExpiryEnabled,
+      expiryDigestHour: String(serverExpiryHour),
     }),
-    [name, address, country, timezone, currency, serverDigestEnabled, serverDigestHour]
+    [
+      name,
+      address,
+      country,
+      timezone,
+      currency,
+      serverDigestEnabled,
+      serverDigestHour,
+      serverExpiryEnabled,
+      serverExpiryHour,
+    ]
   );
 
   const [formData, setFormData] = useState(initialFormData);
@@ -160,6 +176,8 @@ export function OrganizationTab() {
       fd.append("currency", formData.currency);
       fd.append("salesDigestEnabled", String(formData.salesDigestEnabled));
       fd.append("salesDigestHour", formData.salesDigestHour);
+      fd.append("expiryDigestEnabled", String(formData.expiryDigestEnabled));
+      fd.append("expiryDigestHour", formData.expiryDigestHour);
       if (pendingLogo instanceof File) {
         fd.append("logo", pendingLogo);
       } else {
@@ -179,6 +197,8 @@ export function OrganizationTab() {
       currency: formData.currency,
       salesDigestEnabled: formData.salesDigestEnabled,
       salesDigestHour: Number(formData.salesDigestHour),
+      expiryDigestEnabled: formData.expiryDigestEnabled,
+      expiryDigestHour: Number(formData.expiryDigestHour),
     });
   };
 
@@ -190,7 +210,9 @@ export function OrganizationTab() {
     formData.timezone !== timezone ||
     formData.currency !== currency ||
     formData.salesDigestEnabled !== serverDigestEnabled ||
-    formData.salesDigestHour !== String(serverDigestHour);
+    formData.salesDigestHour !== String(serverDigestHour) ||
+    formData.expiryDigestEnabled !== serverExpiryEnabled ||
+    formData.expiryDigestHour !== String(serverExpiryHour);
 
   const canSubmit =
     hasChanges &&
@@ -430,57 +452,31 @@ export function OrganizationTab() {
         </div>
       </div>
 
-      {/* Email Reports */}
-      <div className="space-y-4 pt-2">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Mail className="h-4 w-4" />
-          <span>{tTab("emailReportsSectionLabel")}</span>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="flex items-center justify-between gap-3 rounded-md border p-3">
-            <div className="space-y-0.5">
-              <Label htmlFor="salesDigestEnabled">{tTab("dailyDigest")}</Label>
-              <p className="text-xs text-muted-foreground">
-                {tTab("dailyDigestHint")}
-              </p>
-            </div>
-            <Switch
-              id="salesDigestEnabled"
-              checked={formData.salesDigestEnabled}
-              onCheckedChange={(checked) =>
-                setFormData((prev) => ({ ...prev, salesDigestEnabled: checked }))
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="salesDigestHour" className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              {tTab("sendAt")}
-            </Label>
-            <Select
-              value={formData.salesDigestHour}
-              onValueChange={(value) => handleChange("salesDigestHour", value)}
-              disabled={!formData.salesDigestEnabled}
-            >
-              <SelectTrigger id="salesDigestHour" className="w-full">
-                <SelectValue placeholder={tTab("sendAtPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                {DIGEST_HOURS.map((hour) => (
-                  <SelectItem key={hour} value={String(hour)}>
-                    {hourLabel(hour, locale)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {tTab("sendAtHint")}
-            </p>
-          </div>
-        </div>
-      </div>
+      <EmailReportsSection
+        salesDigest={{
+          enabled: formData.salesDigestEnabled,
+          hour: formData.salesDigestHour,
+        }}
+        expiryDigest={{
+          enabled: formData.expiryDigestEnabled,
+          hour: formData.expiryDigestHour,
+        }}
+        showExpiryDigest={isFeatureEnabled(features, "expiryTracking")}
+        onSalesDigestChange={({ enabled, hour }) =>
+          setFormData((prev) => ({
+            ...prev,
+            salesDigestEnabled: enabled,
+            salesDigestHour: hour,
+          }))
+        }
+        onExpiryDigestChange={({ enabled, hour }) =>
+          setFormData((prev) => ({
+            ...prev,
+            expiryDigestEnabled: enabled,
+            expiryDigestHour: hour,
+          }))
+        }
+      />
 
       {/* Save Button */}
       <div className="flex justify-end pt-4 border-t">

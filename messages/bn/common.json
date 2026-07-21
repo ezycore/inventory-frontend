@@ -113,8 +113,8 @@
     "netRefund": "নিট রিফান্ড",
     "subtotal": "সাবটোটাল",
     "discount": "ছাড়",
-    "taxAdded": "অতিরিক্ত কর",
-    "taxInPrice": "মূল্যসহ কর",
+    "taxAdded": "অতিরিক্ত ভ্যাট",
+    "taxInPrice": "মূল্যসহ ভ্যাট",
     "total": "মোট",
     "paid": "পরিশোধিত",
     "refundCreditsApplied": "রিফান্ড ক্রেডিট প্রয়োগ",
@@ -138,8 +138,8 @@
       "totalRefundLabel": "মোট রিফান্ড",
       "grossRefundLabel": "মোট (গ্রস) রিফান্ড",
       "deductionFeeLabel": "কর্তন / ফি",
-      "taxAddedLabel": "অতিরিক্ত কর",
-      "taxInPriceLabel": "মূল্যসহ কর",
+      "taxAddedLabel": "অতিরিক্ত ভ্যাট",
+      "taxInPriceLabel": "মূল্যসহ ভ্যাট",
       "item": "আইটেম",
       "qty": "পরিমাণ",
       "salePrice": "বিক্রয়মূল্য",
@@ -162,8 +162,8 @@
       "returnedItems": "ফেরত আইটেম",
       "noItemsRecorded": "কোনো আইটেম রেকর্ড করা হয়নি",
       "costLine": "খরচ {amount}",
-      "taxLineIncl": "কর {rate}% অন্তর্ভুক্ত · {amount}",
-      "taxLineExcl": "কর {rate}% · {amount}"
+      "taxLineIncl": "ভ্যাট {rate}% অন্তর্ভুক্ত · {amount}",
+      "taxLineExcl": "ভ্যাট {rate}% · {amount}"
     }
   },
   "payments": {
@@ -195,9 +195,9 @@
     "ref": "রেফ:"
   },
   "tax": {
-    "added": "অতিরিক্ত কর",
-    "includesInPrice": "মূল্যের মধ্যে {amount} কর অন্তর্ভুক্ত",
-    "totalTaxSuffix": " · মোট কর {amount}"
+    "added": "অতিরিক্ত ভ্যাট",
+    "includesInPrice": "মূল্যের মধ্যে {amount} ভ্যাট অন্তর্ভুক্ত",
+    "totalTaxSuffix": " · মোট ভ্যাট {amount}"
   },
   "statement": {
     "totalBilled": "মোট বিলড",
@@ -229,10 +229,10 @@
     "bangla": "বাংলা"
   },
   "printDoc": {
-    "taxRegNo": "কর নিবন্ধন নং",
+    "taxRegNo": "ভ্যাট নিবন্ধন নং (BIN)",
     "inWords": "কথায়:",
     "authorizedSignature": "অনুমোদিত স্বাক্ষর",
-    "taxInvoice": "কর চালান",
+    "taxInvoice": "মূসক ৬.৩ চালানপত্র",
     "invoice": "চালান",
     "purchaseOrder": "ক্রয় অর্ডার",
     "salesReturn": "বিক্রয় ফেরত",
@@ -254,8 +254,8 @@
     "refund": "রিফান্ড",
     "subtotal": "সাবটোটাল",
     "discount": "ছাড়",
-    "tax": "কর",
-    "taxRate": "কর {rate}%",
+    "tax": "ভ্যাট",
+    "taxRate": "ভ্যাট {rate}%",
     "total": "মোট",
     "paid": "পরিশোধিত",
     "due": "বাকি",

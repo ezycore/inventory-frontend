@@ -9,7 +9,10 @@ import type {
   StorefrontSettings,
   SubscriptionInfo,
   UpdateStorefrontSettingsDto,
-  TaxSettings,
+  VatSettings,
+  VatRegistrationEntry,
+  VatRegistrationType,
+  VatPeriod,
 } from "@/types";
 import type { ApiOrganization } from "@/types/api";
 
@@ -120,14 +123,24 @@ export const organizationApi = {
   ): Promise<ApiResponse<{ excludedColumns: ExcludedColumnsSettings }>> =>
     apiClient.put(`/organization/column-settings`, data),
 
-  // PUT /api/organization/tax-settings - Update per-area tax sub-toggles +
-  // financial-year boundary. Used in: Tax settings page.
-  updateTaxSettings: (data: {
-    taxSettings?: Partial<TaxSettings>;
+  // PUT /api/organization/vat-settings - Update VAT settings and/or append a
+  // dated registration change. Used in: VAT settings page.
+  //
+  // `registration` is appended, never overwritten: the history is what decides
+  // every document's VAT treatment and doubles as the audit trail. The server
+  // rejects an `effectiveFrom` inside a filed period with `VAT_PERIOD_CLOSED`.
+  updateVatSettings: (data: {
+    vatSettings?: Partial<VatSettings>;
+    registration?: { type: VatRegistrationType; effectiveFrom: string };
     financialYear?: Partial<FinancialYearConfig>;
   }): Promise<
-    ApiResponse<{ taxSettings: TaxSettings; financialYear: FinancialYearConfig }>
-  > => apiClient.put(`/organization/tax-settings`, data),
+    ApiResponse<{
+      vatSettings?: VatSettings;
+      vatRegistrationHistory: VatRegistrationEntry[];
+      vatPeriods: VatPeriod[];
+      financialYear: FinancialYearConfig;
+    }>
+  > => apiClient.put(`/organization/vat-settings`, data),
 
   // DELETE /api/organization/demo-data - Clear all demo/sample data
   // Used in: useClearDemoData → demo banner "Clear sample data" button

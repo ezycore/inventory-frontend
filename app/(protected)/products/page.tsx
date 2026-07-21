@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import PageHeader from '@/ui/components/header'
 import { useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
-import { isTaxActive } from '@/lib/feature-utils'
+import { isVatActive } from '@/lib/feature-utils'
 import { queryKeys } from '@/lib/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
@@ -14,6 +14,7 @@ import { getProductFormConfig } from '@/components/products/form-config'
 import { getProductColumns } from '@/components/products/columns'
 import { getProductFilterConfig } from '@/components/products/filters'
 import { getProductStats, makePrepareSubmitData } from '@/components/products/helpers'
+import { useCategoryVatPrefill } from '@/components/products/use-category-vat-prefill'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/services/api'
 import { Sheet, SheetContent } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
@@ -54,10 +55,10 @@ export default function ProductsPage() {
   // (master `tax` feature off, or that area's sub-toggle off).
   const taxGatedFormConfig = useMemo(() => {
     const hide = new Set<string>()
-    if (!isTaxActive(user?.organization, 'sales')) {
+    if (!isVatActive(user?.organization)) {
       hide.add('salesTax.taxType'); hide.add('salesTax.taxId')
     }
-    if (!isTaxActive(user?.organization, 'purchase')) {
+    if (!isVatActive(user?.organization)) {
       hide.add('purchaseTax.taxType'); hide.add('purchaseTax.taxId')
     }
     if (hide.size === 0) return filteredFormConfig
@@ -137,6 +138,9 @@ export default function ProductsPage() {
     setLabelSheet({ open: true, items });
   };
 
+  // Category → VAT-rate prefill on the create form (no-op when VAT is off).
+  const handleFieldChange = useCategoryVatPrefill(isVatActive(user?.organization))
+
   // Product stats (only product-relevant data, no inventory stats)
   const productStats = getProductStats(statsData, t)
 
@@ -152,6 +156,7 @@ export default function ProductsPage() {
     queryKey: [...queryKeys.products.all()],
     entityName: t("page.entity"),
     openInside: "drawer" as const,
+    onFieldChange: handleFieldChange,
     editTooltip: t("page.editTooltip"),
     deleteTooltip: t("page.deleteTooltip"),
     transformEditData: (item: any) => {

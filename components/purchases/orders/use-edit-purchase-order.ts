@@ -16,7 +16,7 @@ import {
   makeProductFormSchema,
 } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
-import { isTaxActive } from "@/lib/feature-utils";
+import { isVatActive } from "@/lib/feature-utils";
 import { useCurrency } from "@/lib/currency";
 import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
 import { usePurchaseOrder, useUpdatePurchaseOrder } from "@/services/api";
@@ -50,7 +50,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
   const { format: formatCurrency, symbol } = useCurrency();
   const { user } = useAuthStore();
   const isUOMEnabled = user?.organization?.features?.uomConversion ?? false;
-  const isTaxEnabled = isTaxActive(user?.organization, "purchase");
+  const isTaxEnabled = isVatActive(user?.organization);
 
   const { data: orderResponse, isLoading } = usePurchaseOrder(orderId || "");
   const order = orderResponse?.data;

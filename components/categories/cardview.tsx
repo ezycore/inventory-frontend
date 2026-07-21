@@ -9,15 +9,46 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { Edit2, MoreVertical, Package, Tag, Trash2 } from "lucide-react";
+import { Edit2, MoreVertical, Package, Percent, Tag, Trash2 } from "lucide-react";
 import { TruncatedText } from "@/components/shared/truncated-text";
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import type { Translator, AppLocale } from "@/i18n/config";
+// NOTE: the legacy hand-written `Category` in types/index.ts, not the generated
+// `Category` — the page's `operations` are typed with it. The two duplicate
+// each other and should be reconciled; typed either way beats `any`.
+import type { Category } from "@/types";
+// The hand-written `Category` (types/index.ts), which the page's `operations` are
+// typed with. It duplicates the generated `Category` and differs only in
+// required-vs-optional — reconciling the two is a separate cleanup. It is at
+// least ACCURATE now: `isDefault` really is top-level (it was declared inside
+// `storefront` in the model, so it never persisted).
 
+/**
+ * Typed against the generated `Category`, deliberately — not `any`.
+ *
+ * A card renderer taking `any` opts out of the generated contract, so a field
+ * removed on the backend keeps compiling and fails silently at runtime. That is
+ * exactly how the taxes card kept reading a deleted `Tax.type` and rendered
+ * every rate as a currency amount.
+ */
 const CategoryCardView = (
-  category: any,
-  { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
+  category: Category,
+  {
+    onEdit,
+    onDelete,
+    onApplyVat,
+  }: {
+    onEdit?: () => void;
+    onDelete?: () => void;
+    /**
+     * Re-point this category's products at its default VAT rate. Passed only
+     * when VAT is on, the user may edit products, AND the category has a default
+     * — the card view is this page's DEFAULT view, so leaving the action out of
+     * it would hide the feature from most users.
+     */
+    onApplyVat?: () => void;
+  },
   options: { t: Translator; locale: AppLocale },
 ) => {
   const { t, locale } = options;
@@ -79,6 +110,12 @@ const CategoryCardView = (
               <Edit2 className="h-4 w-4 mr-2" />
               {t("card.edit")}
             </DropdownMenuItem>
+            {onApplyVat && (
+              <DropdownMenuItem onClick={onApplyVat}>
+                <Percent className="h-4 w-4 mr-2" />
+                {t("applyVat.menuItem")}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={onDelete}>
               <Trash2 className="h-4 w-4 mr-2" />

@@ -12,6 +12,10 @@ export const prepareSubmitData = (
   formData.append("name", data.name);
   formData.append("status", data.status);
   formData.append("isDefault", data.isDefault ? "true" : "false");
+  // Always sent, including empty: the validator maps "" to null, which is how a
+  // category's default VAT rate gets cleared. Omitting the key would mean
+  // "leave unchanged" and the rate could never be removed once set.
+  formData.append("defaultTaxId", data.defaultTaxId ?? "");
   if (data.description) {
     formData.append("description", data.description);
   }

@@ -14,9 +14,21 @@ import Link from "next/link";
 import { TruncatedText } from "@/components/shared/truncated-text";
 import { formatDate } from "@/lib/format";
 import type { Translator, AppLocale } from "@/i18n/config";
+// NOTE: the legacy hand-written `Brand` in types/index.ts, not the generated
+// `Brand` — the page's `operations` are typed with it. The two duplicate
+// each other and should be reconciled; typed either way beats `any`.
+import type { Brand } from "@/types";
 
+/**
+ * Typed against the generated `Brand`, deliberately — not `any`.
+ *
+ * A card renderer taking `any` opts out of the generated contract, so a field
+ * removed on the backend keeps compiling and fails silently at runtime. That is
+ * exactly how the taxes card kept reading a deleted `Tax.type` and rendered
+ * every rate as a currency amount.
+ */
 const BrandCardView = (
-  brand: any,
+  brand: Brand,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
   options: { t: Translator; locale: AppLocale },
 ) => {

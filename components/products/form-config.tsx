@@ -22,6 +22,16 @@ import PriceFieldWithUnit from './price-field-with-unit'
 import { Switch } from '@/ui/components/switch'
 import type { Translator } from '@/i18n/config'
 
+/**
+ * Category options for the product form.
+ *
+ * Exported so `use-category-vat-prefill` can read the same query — the URL *is*
+ * the TanStack cache key, so any drift between the two would double the request
+ * and, worse, let the prefill read an option list without `defaultTaxId`.
+ */
+export const CATEGORY_OPTIONS_API =
+  '/categories?all=true&fields=_id,name,isDefault,defaultTaxId'
+
 // Section header toggle that binds to `addToInventory`. Rendered via the
 // FormSection.headerAction slot, so it sits on the right of the header.
 function TrackStockToggle({ control, label }: { control: any; label: string }) {
@@ -123,7 +133,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             required: true,
             columnSpan: 6,
             placeholder: tr('form.categoryPlaceholder', "Choose category"),
-            optionsApi: `/categories?all=true&fields=_id,name,isDefault`,
+            optionsApi: CATEGORY_OPTIONS_API,
             defaultFlag: "isDefault",
             creatable: true,
             quickAddModule: "category",
@@ -337,7 +347,11 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             label: tr('form.salesTaxRate', "Sales tax rate"),
             columnSpan: 6,
-            optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
+            // `status=active` matters: rates are SUPERSEDED, not edited — when the
+            // Finance Act changes a rate you add a new row and deactivate the old
+            // one. Without this filter the retired rate stays selectable and the
+            // supersede rule achieves nothing.
+            optionsApi: '/taxes?all=true&status=active&fields=_id,name,rate,vatCategory,isDefault',
             defaultFlag: "isDefault",
             placeholder: tr('form.taxRatePlaceholder', "Select tax"),
           },
@@ -355,7 +369,11 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             label: tr('form.purchaseTaxRate', "Purchase tax rate"),
             columnSpan: 6,
-            optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
+            // `status=active` matters: rates are SUPERSEDED, not edited — when the
+            // Finance Act changes a rate you add a new row and deactivate the old
+            // one. Without this filter the retired rate stays selectable and the
+            // supersede rule achieves nothing.
+            optionsApi: '/taxes?all=true&status=active&fields=_id,name,rate,vatCategory,isDefault',
             defaultFlag: "isDefault",
             placeholder: tr('form.taxRatePlaceholder', "Select tax"),
           },

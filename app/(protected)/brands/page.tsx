@@ -28,6 +28,10 @@ import PageHeader from "@/ui/components/header";
 import StatsCard from "@/ui/components/StatsCard";
 import ViewToggle from "@/ui/components/ViewToggle";
 import MountingHandler from "@/components/MountingHandler";
+// NOTE: the legacy hand-written `Brand` in types/index.ts, not the generated
+// `Brand` — the page's `operations` are typed with it. The two duplicate
+// each other and should be reconciled; typed either way beats `any`.
+import type { Brand } from "@/types";
 
 const defaultValues = {
   name: "",
@@ -117,7 +121,7 @@ export default function BrandsPage() {
 
       {/* Card View */}
       {viewMode === "card" && (
-        <DataCard
+        <DataCard<Brand>
           cardTitle={(n) => t("page.allBrandsTitle", { count: n })}
           defaultPageSize={12}
           pageSizes={[6, 12, 24, 48]}

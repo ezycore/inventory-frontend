@@ -28,7 +28,7 @@ import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
 import { useCurrency } from "@/lib/currency";
 import { useCostGatedColumns } from "@/hooks/use-cost-gated-columns";
-import { isTaxActive } from "@/lib/feature-utils";
+import { isVatActive } from "@/lib/feature-utils";
 import {
   orgToPrintHeader,
   printSaleInvoice,
@@ -108,7 +108,7 @@ export function useSellPage() {
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const isExpiryEnabled = user?.organization?.features?.expiryTracking ?? false;
-  const isTaxEnabled = isTaxActive(user?.organization, "sales");
+  const isTaxEnabled = isVatActive(user?.organization);
   const defaultCustomer = user?.defaultData?.customerId;
   const defaultAccountType = user?.defaultData?.accountId;
 
