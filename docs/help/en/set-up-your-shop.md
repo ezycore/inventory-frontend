@@ -14,6 +14,9 @@ ui_labels:
   - settings:features.names.expiryTracking
   - settings:features.names.storefront
   - settings:features.descriptions.expiryTracking
+  - settings:organization.tab.emailReportsSectionLabel
+  - settings:organization.tab.dailyDigest
+  - settings:organization.tab.expiryReport
 ---
 
 # Set up your shop
@@ -24,6 +27,13 @@ Do this once, before you add products. A few minutes here saves a lot of correct
 
 Under Settings → Organization, fill in your business name, address, phone and logo. These appear on
 the invoices and receipts your customers receive, so use the details you want them to see.
+
+## Report emails
+
+The same page has an **Email Reports** section. EzyCore emails the owner a **Daily sales digest** on
+days you made sales, and — if Expiry Tracking is on — an **Expiry report** listing stock that has
+expired or is about to. Each one has its own switch and its own send time, in your own timezone. Turn
+off what you don't read; the expiry dates on your stock stay correct either way.
 
 ## Locations
 

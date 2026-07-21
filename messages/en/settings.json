@@ -69,6 +69,8 @@
       "emailReportsSectionLabel": "Email Reports",
       "dailyDigest": "Daily sales digest",
       "dailyDigestHint": "Emails the owner a summary on days with sales.",
+      "expiryReport": "Expiry report",
+      "expiryReportHint": "Emails the owner expiring-soon and expired stock.",
       "sendAt": "Send at",
       "sendAtPlaceholder": "Select time",
       "sendAtHint": "In your organization's timezone.",
