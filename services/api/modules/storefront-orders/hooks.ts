@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
@@ -7,6 +8,8 @@ import {
   couriersApi,
   storefrontOrdersApi,
   type AdminOrderListParams,
+  type CustomCourierPayload,
+  type ManualConsignmentPayload,
 } from "./api";
 
 export const useStorefrontOrders = (params: AdminOrderListParams) =>
@@ -154,6 +157,8 @@ export const useReturnOrder = () => {
   });
 };
 
+// Both dispatch paths are commit-first — they book the Sale and consume the stock
+// reservation — so they emit `order.dispatched`, not the narrower `order.changed`.
 export const useCreateConsignment = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -161,6 +166,42 @@ export const useCreateConsignment = () => {
       storefrontOrdersApi.createConsignment(v.id, v.provider),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Consignment created");
+      invalidate(qc, "order.dispatched");
+    },
+    onError: handleMutationError,
+  });
+};
+
+export const useManualConsignment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string } & ManualConsignmentPayload) => {
+      const { id, ...body } = v;
+      return storefrontOrdersApi.manualConsignment(id, body);
+    },
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order dispatched");
+      invalidate(qc, "order.dispatched");
+    },
+    onError: handleMutationError,
+  });
+};
+
+/**
+ * A merchant-set delivery status (manual couriers only). `delivered` auto-advances
+ * the order status server-side — same path the poll takes — but moves no money, so
+ * `order.changed` is the right event: the COD is still collected via Mark paid.
+ */
+export const useSetCourierStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; normalizedStatus: string; note?: string }) =>
+      storefrontOrdersApi.setCourierStatus(v.id, {
+        normalizedStatus: v.normalizedStatus,
+        note: v.note,
+      }),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Delivery status updated");
       invalidate(qc, "order.changed");
     },
     onError: handleMutationError,
@@ -209,9 +250,18 @@ export const useCourierPrice = () =>
 export const useBulkConsignment = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { orderIds: string[]; provider: string }) =>
-      storefrontOrdersApi.bulkConsignment(v.orderIds, v.provider),
-    onSuccess: () => invalidate(qc, "order.changed"),
+    mutationFn: (v: {
+      orderIds: string[];
+      provider?: string;
+      customCourierId?: string;
+    }) =>
+      storefrontOrdersApi.bulkConsignment(v.orderIds, {
+        provider: v.provider,
+        customCourierId: v.customCourierId,
+      }),
+    // Commit-first, same as the single-order paths — every dispatched order books
+    // a Sale and consumes its reservation.
+    onSuccess: () => invalidate(qc, "order.dispatched"),
     onError: handleMutationError,
   });
 };
@@ -290,6 +340,49 @@ export const useDeleteCourier = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (provider: string) => couriersApi.remove(provider),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Courier removed");
+      qc.invalidateQueries({ queryKey: queryKeys.couriers.all() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// --- Custom (manual) couriers ---
+// No read hook: `useCouriers` already carries `customCouriers`. All three
+// mutations flush the whole couriers root, which is what that list hangs off.
+
+export const useCreateCustomCourier = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CustomCourierPayload) => couriersApi.createCustom(body),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Courier added");
+      qc.invalidateQueries({ queryKey: queryKeys.couriers.all() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+export const useUpdateCustomCourier = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string } & CustomCourierPayload) => {
+      const { id, ...body } = v;
+      return couriersApi.updateCustom(id, body);
+    },
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Courier updated");
+      qc.invalidateQueries({ queryKey: queryKeys.couriers.all() });
+    },
+    onError: handleMutationError,
+  });
+};
+
+export const useDeleteCustomCourier = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => couriersApi.removeCustom(id),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Courier removed");
       qc.invalidateQueries({ queryKey: queryKeys.couriers.all() });

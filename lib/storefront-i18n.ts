@@ -309,6 +309,8 @@ export interface Dict {
   confirmCancelOrder: string;
   orderItems: string;
   deliveryAddress: string;
+  trackParcel: string;
+  deliveryUpdates: string;
   paid: string;
   viewAllProducts: string;
   darkMode: string;
@@ -641,6 +643,8 @@ const en: Dict = {
   confirmCancelOrder: "Cancel this order? This can’t be undone.",
   orderItems: "Order items",
   deliveryAddress: "Delivery address",
+  trackParcel: "Track parcel",
+  deliveryUpdates: "Delivery updates",
   paid: "Paid",
   viewAllProducts: "Browse all products",
   darkMode: "Dark",
@@ -974,6 +978,8 @@ const bn: Dict = {
   confirmCancelOrder: "এই অর্ডারটি বাতিল করবেন? এটি আর ফেরানো যাবে না।",
   orderItems: "অর্ডারের পণ্য",
   deliveryAddress: "ডেলিভারি ঠিকানা",
+  trackParcel: "পার্সেল ট্র্যাক করুন",
+  deliveryUpdates: "ডেলিভারি আপডেট",
   paid: "পরিশোধিত",
   viewAllProducts: "সব পণ্য দেখুন",
   darkMode: "ডার্ক",
