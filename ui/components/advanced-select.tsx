@@ -313,7 +313,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     if (moduleConfig && newItemId) {
       // Invalidate cache to refetch with new data
       await queryClient.invalidateQueries({
-        queryKey: ["select-options", moduleConfig.optionsApiPath],
+        queryKey: moduleConfig.queryRoot(),
       });
 
       // Wait a tick for React to re-render with updated options

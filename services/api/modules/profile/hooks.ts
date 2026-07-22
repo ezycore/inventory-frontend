@@ -1,14 +1,10 @@
+import { invalidate } from "@/services/api/invalidation";
 import { organizationApi, profileApi } from "@/services/api";
 import { handleMutationError } from "@/lib/error-handling";
+import { queryKeys } from "@/services/api/query-keys";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleMutationSuccess } from "../query-helpers";
-
-// Query keys
-export const profileKeys = {
-  all: () => ["profile"] as const,
-  twoFactorStatus: () => [...profileKeys.all(), "2fa-status"] as const,
-};
 
 // Profile DTO types
 interface UpdatePasswordDto {
@@ -45,8 +41,7 @@ export function useUpdateProfile() {
         updateUser(response.data);
       }
 
-      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
+      invalidate(queryClient, "org.changed");
 
       if (response.message) {
         handleMutationSuccess(response.message);
@@ -68,8 +63,7 @@ export function useUpdateAvatar() {
       if (response.data) {
         updateUser(response.data);
       }
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
-      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+      invalidate(queryClient, "org.changed");
       handleMutationSuccess(
         response.message || "Profile image updated successfully",
       );
@@ -94,8 +88,7 @@ export function useRemoveAvatar() {
       if (response.data) {
         updateUser(response.data);
       }
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
-      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+      invalidate(queryClient, "org.changed");
       handleMutationSuccess("Profile image removed successfully");
     },
     onError: handleMutationError,
@@ -131,7 +124,7 @@ export function use2FAStatus() {
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(profileKeys.twoFactorStatus(), data);
+      queryClient.setQueryData(queryKeys.profile.twoFactorStatus(), data);
     },
     onError: handleMutationError,
   });
@@ -156,9 +149,9 @@ export function useVerify2FA() {
     mutationFn: (token: string) => profileApi.verify2FA({ token }),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: profileKeys.twoFactorStatus(),
+        queryKey: queryKeys.profile.twoFactorStatus(),
       });
-      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+      invalidate(queryClient, "org.changed");
       if (response.message) {
         handleMutationSuccess(response.message);
       }
@@ -175,9 +168,9 @@ export function useDisable2FA() {
     mutationFn: (password: string) => profileApi.disable2FA({ password }),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: profileKeys.twoFactorStatus(),
+        queryKey: queryKeys.profile.twoFactorStatus(),
       });
-      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+      invalidate(queryClient, "org.changed");
       handleMutationSuccess(response.message || "2FA disabled successfully");
     },
     onError: handleMutationError,
@@ -207,8 +200,7 @@ export function useTransferOwnership() {
       profileApi.transferOwnership({ newOwnerId }),
     onSuccess: (response) => {
       // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
-      queryClient.invalidateQueries({ queryKey: profileKeys.all() });
+      invalidate(queryClient, "org.changed");
 
       // Update auth store - current user is no longer owner
       if (user && response.data) {

@@ -1,8 +1,8 @@
 import {
-  FinancialYearConfig,
   Image,
   OrganizationFeatures,
-  TaxSettings,
+  VatSettings,
+  VatRegistrationEntry,
 } from "@/types";
 import type { ReceiptSettings } from "@/types/receipt";
 import type { AppLocale } from "@/i18n/config";
@@ -46,10 +46,13 @@ export interface User {
       excludedColumns?: { [key: string]: string[] };
     };
     features?: OrganizationFeatures;
-    /** Financial-year boundary for tax/FY reporting (defaults applied server-side). */
-    financialYear?: FinancialYearConfig;
-    /** Per-area tax sub-toggles, gated by `features.tax`. */
-    taxSettings?: TaxSettings;
+    /** Admin-configurable VAT settings (BIN, default rate, price semantics). */
+    vatSettings?: VatSettings;
+    /**
+     * Dated VAT registration history. The entry in force on a document's date
+     * decides its VAT treatment — never "the current status".
+     */
+    vatRegistrationHistory?: VatRegistrationEntry[];
     /** Progress of background sample-data seeding; presence ⇒ workspace holds sample data. */
     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
   };
@@ -78,8 +81,8 @@ interface AuthActions {
   setActiveLocation: (locationId: string) => void;
   updateFeatures: (features: OrganizationFeatures) => void;
   updateTaxConfig: (config: {
-    taxSettings?: TaxSettings;
-    financialYear?: FinancialYearConfig;
+    vatSettings?: VatSettings;
+    vatRegistrationHistory?: VatRegistrationEntry[];
   }) => void;
 }
 
@@ -160,7 +163,7 @@ export const useAuthStore = create<AuthStore>()(
             set({ user: updatedUser });
           }
         },
-        updateTaxConfig: ({ taxSettings, financialYear }) => {
+        updateTaxConfig: ({ vatSettings, vatRegistrationHistory }) => {
           const currentUser = get().user;
           if (currentUser) {
             set({
@@ -168,8 +171,8 @@ export const useAuthStore = create<AuthStore>()(
                 ...currentUser,
                 organization: {
                   ...currentUser.organization,
-                  ...(taxSettings && { taxSettings }),
-                  ...(financialYear && { financialYear }),
+                  ...(vatSettings && { vatSettings }),
+                  ...(vatRegistrationHistory && { vatRegistrationHistory }),
                 },
               },
             });

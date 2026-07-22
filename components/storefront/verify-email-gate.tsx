@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useEffect, type CSSProperties } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import { storefrontApi } from "@/lib/storefront-client";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useResendVerification } from "@/services/storefront/hooks";

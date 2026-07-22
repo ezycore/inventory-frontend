@@ -23,6 +23,8 @@ export const useSignupAPi = () => {
     mutationFn: (data: SignupPayload) => authApi.signup(data),
     onSuccess: (data, variables) => {
       handleMutationSuccess(data.message || "Account created successfully");
+      // A brand-new workspace invalidates by definition: nothing in the cache belongs to it yet.
+      // eslint-disable-next-line query-cache/no-blanket-invalidate -- new workspace, empty cache
       queryClient.invalidateQueries();
 
       // Hand the new owner to their workspace login with the "verify your
@@ -71,7 +73,9 @@ export function useLogin(show2FASetter: (show: boolean) => void) {
         setUser(result.data.user, result.data.token);
       }
 
-      // Invalidate all queries to refresh data
+      // A session change: whatever is cached belongs to the previous user and org, so none of it
+      // may survive the login.
+      // eslint-disable-next-line query-cache/no-blanket-invalidate -- session boundary
       queryClient.invalidateQueries();
 
       handleMutationSuccess("Login successful!");

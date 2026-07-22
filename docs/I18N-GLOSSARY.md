@@ -75,6 +75,27 @@ question is "what would a shopkeeper call this?", not "what is the correct Bangl
 | Account | অ্যাকাউন্ট | transliterate | হিসাব alt — REVIEW |
 | Amount in words | কথায় | translate | receipts: "টাকা কথায়:" |
 
+## Online store (ecommerce)
+
+The storefront module names its screens "Store X" so they never collide with the counter-side
+screen of the same name — a shop owner has both an online and an in-person customer list, and the
+sidebar must say which one it is opening.
+
+| English | Bangla | Decision | Notes |
+|---|---|---|---|
+| Online Store | অনলাইন স্টোর | transliterate | what BD shopkeepers say; ই-কমার্স only for the plan/feature name |
+| Store Overview | স্টোর ওভারভিউ | transliterate | the storefront's own dashboard — never plain "Dashboard" |
+| Order (online) | অর্ডার | transliterate | matches Ordered = অর্ডারকৃত |
+| Online Orders | অনলাইন অর্ডার | mixed | distinct from Purchase Orders = ক্রয় অর্ডার |
+| Store Customers | স্টোর গ্রাহক | mixed | storefront shoppers, not counter Customers = গ্রাহক |
+| Catalog | ক্যাটালগ | transliterate | which products are listed online |
+| Campaign | ক্যাম্পেইন | transliterate | |
+| Coupon | কুপন | transliterate | |
+| Customize | কাস্টমাইজ | transliterate | storefront theme editor |
+| Content | কনটেন্ট | transliterate | CMS pages |
+| Courier | কুরিয়ার | transliterate | Pathao / Steadfast / eCourier |
+| Cash on Delivery (COD) | ক্যাশ অন ডেলিভারি | transliterate | universally said in full or as "COD" |
+
 ## Statuses
 
 | English | Bangla |

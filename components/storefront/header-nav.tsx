@@ -29,6 +29,33 @@ export function menuHref(
   return resolveHref(item, base, catMap(categories)).href;
 }
 
+/**
+ * Expand "collections" block items into the store's listed collections, in
+ * place. Runs once where the header menu enters the component tree
+ * (StoreHeader's ctx), so every variant — dropdown nav, Minimal, mobile — and
+ * the admin live preview render the expansion without knowing about the type.
+ * Expanded links use the id-based products URL (same as collections mode), so
+ * slugless legacy categories still filter correctly. Top level only; a block's
+ * `children` are ignored.
+ */
+export function expandHeaderMenu(
+  menu: StoreMenuItem[],
+  categories: CatalogCategory[],
+): StoreMenuItem[] {
+  if (!menu.some((m) => m.type === "collections")) return menu;
+  return menu.flatMap((m) =>
+    m.type === "collections"
+      ? categories.map(
+          (c): StoreMenuItem => ({
+            label: c.name,
+            type: "url",
+            value: `/products?categoryId=${c._id}`,
+          }),
+        )
+      : [m],
+  );
+}
+
 function resolveHref(
   item: StoreMenuItem,
   base: string,

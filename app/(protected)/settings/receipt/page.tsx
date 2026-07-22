@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/services/stores";
 import { useGetOrganizationApi, useReceiptSettings } from "@/hooks";
 import { useDebounce } from "@/hooks/use-debounce";
-import { isFeatureEnabled, isTaxActive } from "@/lib/feature-utils";
+import { isFeatureEnabled, isVatActive } from "@/lib/feature-utils";
 import { useUpdateOrganization } from "@/services/api";
 import type { ReceiptSettings } from "@/types/receipt";
 import {
@@ -77,7 +77,7 @@ export default function ReceiptSettingsPage() {
   const canManage = user?.permissions?.includes("organization.edit") ?? false;
   // Printing is a licensed feature; without it this page has nothing to configure.
   const canPrint = isFeatureEnabled(user?.organization?.features, "invoicePrinting");
-  const salesTaxActive = isTaxActive(user?.organization, "sales");
+  const salesTaxActive = isVatActive(user?.organization);
 
   const { data: orgData } = useGetOrganizationApi();
   const org = orgData?.data;

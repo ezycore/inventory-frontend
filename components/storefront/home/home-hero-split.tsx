@@ -15,7 +15,15 @@ import {
 } from "@/components/storefront/home/home-shared";
 
 /** Homepage template B: Hero Split — split hero, trust row, picks, promo tiles. */
-export function HeroSplit({ base, currency, featured, t, banner, heroSlides }: TplProps) {
+export function HeroSplit({
+  base,
+  currency,
+  featured,
+  t,
+  banner,
+  heroSlides,
+  heroBanner: hb,
+}: TplProps) {
   const trust: { icon: IconName; t1: string; t2: string }[] = [
     { icon: "truck", t1: t.trust1t, t2: t.trust1s },
     { icon: "shield", t1: t.trust2t, t2: t.trust2s },
@@ -39,15 +47,16 @@ export function HeroSplit({ base, currency, featured, t, banner, heroSlides }: T
         >
           <div style={{ padding: "clamp(26px,4vw,52px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <span style={{ fontSize: 11.5, color: "var(--primary)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
-              {t.weeklyEdit}
+              {/* The owner's banner "badge" renders as this template's kicker. */}
+              {hb?.badge || t.weeklyEdit}
             </span>
             <h1 style={{ fontSize: "var(--h1)", lineHeight: 1.06, fontWeight: 700, margin: "12px 0 16px", letterSpacing: "-0.03em", whiteSpace: "pre-line" }}>
-              {t.heroBt}
+              {hb?.title || t.heroBt}
             </h1>
             <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.6, margin: "0 0 24px", maxWidth: 400 }}>
-              {t.heroBs}
+              {hb?.subtitle || t.heroBs}
             </p>
-            {heroBtns(base, t, t.shopWeekly)}
+            {heroBtns(base, t, t.shopWeekly, hb)}
           </div>
           <Media
             src={banner}

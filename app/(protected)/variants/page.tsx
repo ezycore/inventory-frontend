@@ -24,13 +24,14 @@ import {
   useVariantStats,
 } from '@/services/api'
 import { variantAttributesApi } from '@/services/api'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/services/api/query-keys'
 import getVariantAttributeFormConfig from '@/components/variants/form-config'
 import { useViewMode } from '@/hooks/use-view-mode'
 import MountingHandler from '@/components/MountingHandler'
 import { getVariantStats } from '@/components/variants/helper'
 import { getVariantColumns } from '@/components/variants/columns'
 import { getVariantFilterConfig } from '@/components/variants/filter'
+import type { ApiVariantAttribute } from "@/types/api";
 
 export default function VariantsPage() {
   const t = useTranslations('products.variants')
@@ -45,7 +46,7 @@ export default function VariantsPage() {
     updateMutation: useUpdateVariantAttribute(),
     deleteMutation: useDeleteVariantAttribute(),
     entityName: t('page.entityName'),
-    queryKey: [...queryKeys.variantAttributes.all()],
+    queryKey: queryKeys.variantAttributes.all(),
     transformEditData: variantAttributesApi.transformForEdit,
   }
 
@@ -101,7 +102,7 @@ export default function VariantsPage() {
 
       {/* Card View */}
       {viewMode === 'card' && (
-        <DataCard
+        <DataCard<ApiVariantAttribute>
           cardTitle={(n) => t('page.allVariantsTitle', { count: n })}
           defaultPageSize={12}
           sortingConfig={sortingConfig}

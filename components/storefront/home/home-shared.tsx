@@ -1,12 +1,13 @@
 "use client";
 // coding-standard: maintained
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import type {
   CatalogCategory,
   CatalogProduct,
   StoreCampaign,
+  StoreHeroBanner,
   StoreHeroSlide,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
@@ -32,6 +33,8 @@ export interface TplProps {
   banner?: string;
   /** Owner-managed hero slides — when non-empty, replaces the static hero. */
   heroSlides?: StoreHeroSlide[];
+  /** Owner overrides for the static banner hero's copy; unset → template copy. */
+  heroBanner?: StoreHeroBanner;
 }
 
 /**
@@ -79,11 +82,48 @@ export function Grid({
   );
 }
 
-export function heroBtns(base: string, t: Dict, primaryLabel: string) {
+/**
+ * One hero CTA — an owner-entered link is either a store path (rides `base`) or
+ * a full URL (opens a new tab); empty falls back to the products collection.
+ * Shared by the static hero buttons and the carousel slide CTA.
+ */
+export function HeroCtaLink({
+  base,
+  link,
+  style,
+  children,
+}: {
+  base: string;
+  link?: string;
+  style: CSSProperties;
+  children: ReactNode;
+}) {
+  const target = link?.trim() || "/products";
+  if (/^https?:\/\//i.test(target)) {
+    return (
+      <a href={target} target="_blank" rel="noopener noreferrer" style={style}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={storeHref(base, target)} style={style}>
+      {children}
+    </Link>
+  );
+}
+
+export function heroBtns(
+  base: string,
+  t: Dict,
+  primaryLabel: string,
+  hb?: StoreHeroBanner,
+) {
   return (
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-      <Link
-        href={storeHref(base, "/products")}
+      <HeroCtaLink
+        base={base}
+        link={hb?.primaryLink}
         style={{
           background: "var(--primary)",
           color: "var(--on-primary)",
@@ -93,10 +133,11 @@ export function heroBtns(base: string, t: Dict, primaryLabel: string) {
           fontWeight: 600,
         }}
       >
-        {primaryLabel}
-      </Link>
-      <Link
-        href={storeHref(base, "/products")}
+        {hb?.primaryLabel || primaryLabel}
+      </HeroCtaLink>
+      <HeroCtaLink
+        base={base}
+        link={hb?.secondaryLink}
         style={{
           color: "var(--text)",
           border: "1px solid var(--border-strong)",
@@ -106,8 +147,8 @@ export function heroBtns(base: string, t: Dict, primaryLabel: string) {
           fontWeight: 600,
         }}
       >
-        {t.browseCats}
-      </Link>
+        {hb?.secondaryLabel || t.browseCats}
+      </HeroCtaLink>
     </div>
   );
 }

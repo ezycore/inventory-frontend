@@ -3,6 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import type { Transaction } from "@/types";
 import type { FilterConfig } from "@/types/DataTable";
 import type { Translator } from "@/i18n/config";
+import { ALL_TRANSACTION_CATEGORIES } from "@/constants/transactions";
 import { Badge } from "@/ui/components/badge";
 import { DateCell } from "@/ui/components/dataTable/cells";
 import {
@@ -23,19 +24,6 @@ const getTransactionTypeIcon = (type: string) => {
       return null;
   }
 };
-
-const CATEGORY_KEYS = [
-  "sale",
-  "purchase",
-  "salary",
-  "rent",
-  "utilities",
-  "refund",
-  "adjustment",
-  "transfer",
-  "investment",
-  "other",
-] as const;
 
 // `category`/`type` are backend-typed enums (`TransactionCategory`/`TransactionType`)
 // with full coverage in accounts.json, so no runtime fallback guard is needed.
@@ -66,7 +54,7 @@ export const getTransactionFilterConfig = (t: Translator): FilterConfig => ({
       label: t("filters.categoryLabel"),
       type: "select",
       placeholder: t("filters.categoryPlaceholder"),
-      options: CATEGORY_KEYS.filter((c) => c !== "transfer").map((c) => ({
+      options: ALL_TRANSACTION_CATEGORIES.filter((c) => c !== "transfer").map((c) => ({
         label: t(`categories.${c}`),
         value: c,
       })),

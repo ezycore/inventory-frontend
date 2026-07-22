@@ -38,13 +38,13 @@ import {
 import {
   ChevronDownIcon,
   ChevronRightIcon,
-  CreditCardIcon,
+  HelpCircleIcon,
   LogOutIcon,
   UserCircleIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useNavLabels } from "@/hooks/use-nav-labels";
-import { DynamicIcon } from "lucide-react/dynamic";
+import { NavIcon } from "@/components/shared/nav-icon";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
@@ -80,7 +80,7 @@ function NestedNavItem({
               tooltip={itemLabel(item.title)}
               isActive={isParentActive}
             >
-              {item.icon && <DynamicIcon name={item.icon as any} />}
+              {item.icon && <NavIcon name={item.icon} />}
               <span>{itemLabel(item.title)}</span>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -121,7 +121,7 @@ function NestedNavItem({
             tooltip={itemLabel(item.title)}
             isActive={pathname === item.url}
           >
-            {item.icon && <DynamicIcon name={item.icon as any} />}
+            {item.icon && <NavIcon name={item.icon} />}
             <span>{itemLabel(item.title)}</span>
             <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
@@ -183,7 +183,11 @@ export default function AppSidebar() {
       <SidebarContent className="overflow-x-hidden">
         {filteredNavGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{groupLabel(group.label)}</SidebarGroupLabel>
+            {/* An empty group label renders no heading — `SidebarGroupLabel` is a
+                fixed-height row, so an empty one would leave a blank gap. */}
+            {group.label && (
+              <SidebarGroupLabel>{groupLabel(group.label)}</SidebarGroupLabel>
+            )}
             <SidebarMenu>
               {group.items.map((item) => {
                 return item?.items && item?.items?.length > 0 ? (
@@ -200,7 +204,7 @@ export default function AppSidebar() {
                       isActive={pathname === item.url}
                     >
                       <Link href={item.url}>
-                        <DynamicIcon name={item.icon as any} />
+                        <NavIcon name={item.icon} />
                         <span>{itemLabel(item.title)}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -251,11 +255,12 @@ export default function AppSidebar() {
                       <UserCircleIcon className="mr-2 h-4 w-4" />
                       {tUserMenu("profile")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => router.push("/dashboard/billing")}
-                    >
-                      <CreditCardIcon className="mr-2 h-4 w-4" />
-                      {tUserMenu("billing")}
+                    {/* Billing lives in Settings → Billing, not here — one entry, one place.
+                        This slot gives the help guides their only route into `/help`; the
+                        header's "?" only ever opens the guide for the current screen. */}
+                    <DropdownMenuItem onClick={() => router.push("/help")}>
+                      <HelpCircleIcon className="mr-2 h-4 w-4" />
+                      {tUserMenu("help")}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />

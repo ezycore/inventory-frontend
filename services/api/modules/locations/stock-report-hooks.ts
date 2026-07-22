@@ -1,21 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/services/api/query-keys";
 import {
   locationStockReportApi,
   type LocationStockFilters,
 } from "./stock-report-api";
 
-const STOCK_REPORT_KEYS = {
-  all: () => ["location-stock-report"] as const,
-  summary: () => [...STOCK_REPORT_KEYS.all(), "summary"] as const,
-  detail: (locationId: string, filters?: LocationStockFilters) =>
-    [...STOCK_REPORT_KEYS.all(), "detail", locationId, filters || {}] as const,
-  comparison: () => [...STOCK_REPORT_KEYS.all(), "comparison"] as const,
-};
-
 /** Hook for fetching stock summary across all locations */
 export const useLocationStockSummary = () => {
   return useQuery({
-    queryKey: STOCK_REPORT_KEYS.summary(),
+    queryKey: queryKeys.locationStockReport.summary(),
     queryFn: () => locationStockReportApi.getSummary(),
     select: (data) => data.data,
     staleTime: 2 * 60 * 1000,
@@ -29,7 +22,7 @@ export const useLocationStockDetail = (
   filters?: LocationStockFilters,
 ) => {
   return useQuery({
-    queryKey: STOCK_REPORT_KEYS.detail(locationId, filters),
+    queryKey: queryKeys.locationStockReport.detail(locationId, filters),
     queryFn: () =>
       locationStockReportApi.getLocationDetail(locationId, filters),
     select: (data) => data.data,
@@ -41,7 +34,7 @@ export const useLocationStockDetail = (
 /** Hook for fetching cross-location comparison */
 export const useCrossLocationComparison = () => {
   return useQuery({
-    queryKey: STOCK_REPORT_KEYS.comparison(),
+    queryKey: queryKeys.locationStockReport.comparison(),
     queryFn: () => locationStockReportApi.getCrossLocationComparison(),
     select: (data) => data.data,
     staleTime: 2 * 60 * 1000,

@@ -1,5 +1,8 @@
 import type {
   ApiPurchaseOrder,
+  ApiTransaction,
+  BrandListItem,
+  CategoryListItem,
   ApiPurchaseReturn,
   PurchaseTransactions as ApiPurchaseTransactions,
   SaleListItem as ApiSaleListItem,
@@ -90,7 +93,7 @@ export interface StorefrontTheme {
   homepageSections?: string[];
 }
 
-export type NavLinkType = "category" | "page" | "url";
+export type NavLinkType = "category" | "page" | "url" | "collections";
 
 export interface StorefrontMenuItem {
   label: string;
@@ -109,16 +112,47 @@ export interface StorefrontFooterGroup {
   links: StorefrontFooterLink[];
 }
 
+/**
+ * Owner controls for the auto content-pages footer column (published pages
+ * flagged "Show in footer"). Absent ⇒ shown with the built-in "Information"
+ * heading, so existing stores are unaffected.
+ */
+export interface StorefrontFooterContentPages {
+  /** `false` hides the column entirely; absent/`true` ⇒ shown. */
+  show?: boolean;
+  /** Heading override; blank ⇒ the built-in localized "Information" label. */
+  title?: string;
+}
+
 export interface StorefrontAnnouncement {
   enabled: boolean;
   text?: string;
   link?: string;
   bgColor?: string;
+  /** Explicit text colour; blank ⇒ auto-derived from bgColor for readability. */
+  textColor?: string;
+  /** Leading emoji/glyph shown before the text. */
+  icon?: string;
+  /** When set (with a link), renders an explicit CTA button instead of a bare link. */
+  ctaLabel?: string;
+  /** Shopper can dismiss the bar (persisted per-device until the message changes). */
+  dismissible?: boolean;
+  size?: "sm" | "md" | "lg";
+  /** Background image (uploadInfo from the storefront image endpoint). */
+  bgImage?: Image | null;
+  /** Overlay colour painted over the image for text readability. */
+  overlay?: string;
+  /** Overlay strength, 0–100. */
+  overlayOpacity?: number;
+  /** cover = photo backdrop; tile = repeating pattern. */
+  bgFit?: "cover" | "tile";
 }
 
 export interface StorefrontNav {
   header: StorefrontMenuItem[];
   footer: StorefrontFooterGroup[];
+  /** Owner controls for the auto content-pages footer column. */
+  footerContentPages?: StorefrontFooterContentPages;
   announcement?: StorefrontAnnouncement;
 }
 
@@ -127,6 +161,8 @@ export interface StorefrontCheckout {
   minOrderValue?: number;
   orderPrefix?: string;
   termsRequired?: boolean;
+  /** Slug of the CMS content page the terms checkbox links to. */
+  termsPageSlug?: string;
 }
 
 export interface StorefrontNotifEvent {
@@ -149,9 +185,7 @@ export interface StorefrontTemplates {
   home?: string;
   collection?: string;
   product?: string;
-  cart?: string;
   checkout?: string;
-  search?: string;
   footer?: string;
   header?: string;
   productCard?: string;
@@ -199,12 +233,29 @@ export interface StorefrontSettings {
   trustBadges?: StorefrontTrustBadge[];
   /** Home hero carousel slides; unset/empty → the static built-in hero. */
   heroSlides?: StorefrontHeroSlide[];
+  /** Static banner-hero copy overrides; unset fields → built-in copy. */
+  heroBanner?: StorefrontHeroBanner;
 }
 
 /** One owner-editable footer "trust" badge (Rich footer strip). */
 export interface StorefrontTrustBadge {
   text: string;
   icon?: string;
+}
+
+/**
+ * Owner overrides for the static banner hero's copy (Classic / Hero Split when
+ * the hero source is "banner" or no slides exist). Unset fields fall back to
+ * the storefront's built-in localized copy; button links default to /products.
+ */
+export interface StorefrontHeroBanner {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  primaryLabel?: string;
+  primaryLink?: string;
+  secondaryLabel?: string;
+  secondaryLink?: string;
 }
 
 /** One home-page hero slide (owner-managed carousel, max 5). */
@@ -227,20 +278,44 @@ export type UpdateStorefrontSettingsDto = Partial<
 export type FeatureName = keyof OrganizationFeatures;
 
 /**
- * Financial-year boundary (1-based month/day) used by tax/FY reporting.
- * Defaults to Jul 1 – Jun 30 when unset.
+ * How the organization is registered for VAT (Bangladesh). Mirrors the backend
+ * `VatRegistrationType` — keep the two in step.
+ *
+ * The distinction the UI must respect is **whether invoices carry per-line VAT
+ * at all**: a `turnover_4` taxpayer pays 4% of gross turnover and issues
+ * invoices with no VAT line, so it is not "VAT at 4%".
  */
-export interface FinancialYearConfig {
-  startMonth: number;
-  startDay: number;
-  endMonth: number;
-  endDay: number;
+export type VatRegistrationType =
+  | "standard_15"
+  | "reduced"
+  | "turnover_4"
+  | "exempt"
+  | "unregistered";
+
+/**
+ * One dated entry of the registration history. A document's VAT treatment comes
+ * from the entry in force on that document's date — never "the current status".
+ */
+export interface VatRegistrationEntry {
+  type: VatRegistrationType;
+  effectiveFrom: string;
+  changedBy?: string;
+  changedAt: string;
 }
 
-/** Per-area tax sub-toggles, gated under the master `tax` feature flag. */
-export interface TaxSettings {
-  salesEnabled: boolean;
-  purchaseEnabled: boolean;
+/** A filed (closed) VAT period — its 9.1 is with the NBR and cannot be re-stated. */
+export interface VatPeriod {
+  year: number;
+  month: number;
+  filedAt: string;
+  filedBy?: string;
+}
+
+/** Admin-configurable VAT settings (distinct from the dated registration status). */
+export interface VatSettings {
+  bin?: string;
+  pricesIncludeVat: boolean;
+  filingDayOfMonth: number;
 }
 
 /**
@@ -349,16 +424,14 @@ export interface BaseEntity {
   updatedAt: string | Date;
 }
 
-// Category interfaces
-export interface Category extends BaseEntity {
-  name: string;
-  slug: string;
-  description?: string;
-  images: Image[];
-  status: "active" | "inactive";
-  isDefault: boolean; // Pre-selected on new product forms
-  productCount: number; // For displaying number of products in category
-}
+/**
+ * A category list row — the generated backend contract, not a hand-written copy.
+ * See the note on `Brand`; the same drift applied here, and it hid a real bug.
+ *
+ * `CategoryListItem` also carries the `storefront` collection overlay, which the
+ * hand-written version omitted entirely.
+ */
+export type Category = CategoryListItem;
 
 export interface CreateCategoryDto {
   name: string;
@@ -367,6 +440,8 @@ export interface CreateCategoryDto {
   images?: Image[];
   status?: "active" | "inactive";
   isDefault?: boolean;
+  /** VAT rate prefilled on new products in this category; `null`/"" clears it. */
+  defaultTaxId?: string | null;
 }
 
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> { }
@@ -379,16 +454,20 @@ export interface Image {
   publicId: string;
 }
 
-// Brand interfaces
-export interface Brand extends BaseEntity {
-  name: string;
-  slug: string;
-  description?: string;
-  images: Image[];
-  status: "active" | "inactive";
-  isDefault: boolean; // Pre-selected on new product forms
-  productCount: number; // For displaying number of products in brand
-}
+/**
+ * A brand list row — the generated backend contract, not a hand-written copy.
+ *
+ * This used to be declared by hand here and drifted from the API: it asserted
+ * `isDefault` and `slug` as required when the backend sends them optionally, so
+ * a component could read a field the server never sent and still compile. That
+ * is exactly how `Category.isDefault` stayed broken (the model declared it
+ * inside `storefront`, so it never persisted, yet the local type insisted it was
+ * always there).
+ *
+ * `BrandListItem` carries `productCount`, which the detail shape does not — the
+ * brand screens are list screens.
+ */
+export type Brand = BrandListItem;
 
 // Location interfaces (unified for stores and warehouses)
 export interface Location extends BaseEntity {
@@ -1257,19 +1336,14 @@ export interface AccountSummary {
   };
 }
 
-// Transaction interfaces
-export type TransactionType = "income" | "expense" | "transfer";
-export type TransactionCategory =
-  | "sale"
-  | "purchase"
-  | "salary"
-  | "rent"
-  | "utilities"
-  | "refund"
-  | "adjustment"
-  | "transfer"
-  | "investment"
-  | "other";
+// Transaction interfaces.
+//
+// Both unions are DERIVED from the generated API types, which come from the backend's
+// `src/constants/transaction.ts`. They used to be retyped here and had drifted: this copy
+// offered `refund` (which the API rejects) and `investment` (renamed to `capital_in`), and was
+// missing `saleRefund` / `purchaseRefund` / `shipping` / `delivery`. Never retype the literals.
+export type TransactionType = ApiTransaction["type"];
+export type TransactionCategory = ApiTransaction["category"];
 
 export interface Transaction extends BaseEntity {
   accountId: string;

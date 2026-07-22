@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { z } from "zod";
 import type { DynamicFormConfig, FormFieldConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
@@ -50,7 +51,7 @@ export const getSupplierFormConfig = (t: Translator, isDraft = false): DynamicFo
       label: t("form.supplier"),
       type: "fuseSelect",
       required: true,
-      optionsApi: "/suppliers?all=true&fields=_id,name,defaultDiscountId",
+      optionsApi: selectOptions("suppliers", { fields: "_id,name,defaultDiscountId" }),
       placeholder: t("form.supplierPlaceholder"),
       labelInValue: true,
       itemsCreateCallback: customerItemsCreateCallback,
@@ -112,7 +113,7 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       label: t("form.product"),
       type: "fuseSelect",
       required: true,
-      optionsApi: "/inventory/purchasable-products",
+      optionsApi: selectOptions("purchasableProducts"),
       placeholder: t("form.productPlaceholder"),
       labelInValue: true,
       itemsCreateCallback: productItemsCreateCallback,
@@ -199,7 +200,7 @@ export const getPaymentFormConfig = (t: Translator, isAccountsEnabled: boolean):
         label: t("form.paymentAccount"),
         type: "select",
         required: false,
-        optionsApi: "/accounts",
+        optionsApi: selectOptions("accounts"),
         placeholder: t("form.selectAccount"),
         labelInValue: true,
         itemsCreateCallback: accountItemsCreateCallback,

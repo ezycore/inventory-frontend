@@ -1,5 +1,6 @@
 "use client";
 
+import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
 import {
@@ -63,7 +64,7 @@ export default function CouponsPage() {
           createMutation: useCreateCoupon(),
           updateMutation: useUpdateCoupon(),
           deleteMutation: useDeleteCoupon(),
-          queryKey: ["coupons"],
+          queryKey: queryKeys.coupons.all(),
           entityName: "Coupon",
           editTooltip: "Edit coupon",
           deleteTooltip: "Delete coupon",

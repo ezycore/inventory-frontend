@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { inventoryApi } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
+import { invalidate } from '@/services/api/invalidation'
 import { queryKeys } from '@/services/api/query-keys'
 import { CreateInventoryDto, ReceiveStockDto } from '@/types'
 import type { ApiInventory } from '@/types/api'
@@ -20,12 +21,9 @@ export interface BulkAdjustmentItem {
 const inventoryHooks = createResourceHooks<ApiInventory, CreateInventoryDto>(
   inventoryApi,
   queryKeys.inventory,
-  // Adding/removing inventory changes which products+variants are "not yet in
-  // inventory", so refresh every select-options dropdown (the inventory "add"
-  // form's product + variant pickers query under this prefix).
-  { relatedQueryKeys: [
-    [ "select-options", "/products?all=true&inventory=false&fields=_id,name,unitId,productType,hasExpiry"],
-  ] },
+  // Creating an inventory row is opening stock: real stock movement, and it
+  // changes which products are "not yet in inventory" in the add-stock picker.
+  { events: ["stock.moved"] },
 )
 
 export const useInventories = inventoryHooks.useList
@@ -44,7 +42,7 @@ export const useInventoryShortlist = (filters: {
   limit?: number;
 }) => {
   return useQuery({
-    queryKey: [...queryKeys.inventory.list(filters), 'shortlist'],
+    queryKey: queryKeys.inventory.shortlist(filters),
     queryFn: () => inventoryApi.getShortlist(filters),
     enabled: !!filters.locationId, // Only fetch if locationId is provided
   })
@@ -74,8 +72,7 @@ export const useReceiveStock = () => {
   return useMutation({
     mutationFn: (data: ReceiveStockDto) => inventoryApi.receiveStock(data),
     onSuccess: () => {
-      // Invalidate inventory queries to refetch data
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      invalidate(queryClient, "stock.moved")
       toast.success('Stock received successfully')
     },
     onError: (error: any) => {
@@ -98,8 +95,7 @@ export const useBulkAdjustStock = () => {
       if (result?.success) {
         toast.success(`Successfully adjusted ${result.total} items`)
         // Transaction committed - safe to clear Zustand store
-        // Invalidate inventory queries to refetch data
-        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+          invalidate(queryClient, "stock.moved")
       }
     },
     onError: (error: any) => {
@@ -120,8 +116,7 @@ export const useBulkReceiveStock = () => {
       if (result?.success) {
         toast.success(`Successfully received ${result.total} items`)
         // Transaction committed - safe to clear Zustand store
-        // Invalidate inventory queries to refetch data
-        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+          invalidate(queryClient, "stock.moved")
       }
     },
     onError: (error: any) => {
@@ -139,7 +134,7 @@ export const useSellStock = () => {
   return useMutation({
     mutationFn: (data: any) => inventoryApi.sellStock(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      invalidate(queryClient, "stock.moved")
       toast.success('Stock sold successfully')
     },
     onError: (error: any) => {
@@ -159,7 +154,7 @@ export const useBulkSellStock = () => {
       const result = data?.data
       if (result?.success) {
         toast.success(`Successfully sold ${result.total} items`)
-        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+        invalidate(queryClient, "stock.moved")
       }
     },
     onError: (error: any) => {
@@ -178,7 +173,7 @@ export const useReturnSale = () => {
   return useMutation({
     mutationFn: (data: any) => inventoryApi.returnSale(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      invalidate(queryClient, "stock.moved")
       toast.success('Sales return processed successfully')
     },
     onError: (error: any) => {
@@ -197,7 +192,7 @@ export const useBulkReturnSale = () => {
       const result = data?.data
       if (result?.success) {
         toast.success(`Successfully processed ${result.total} sales returns`)
-        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+        invalidate(queryClient, "stock.moved")
       }
     },
     onError: (error: any) => {
@@ -214,7 +209,7 @@ export const useReturnPurchase = () => {
   return useMutation({
     mutationFn: (data: any) => inventoryApi.returnPurchase(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+      invalidate(queryClient, "stock.moved")
       toast.success('Purchase return processed successfully')
     },
     onError: (error: any) => {
@@ -233,7 +228,7 @@ export const useBulkReturnPurchase = () => {
       const result = data?.data
       if (result?.success) {
         toast.success(`Successfully processed ${result.total} purchase returns`)
-        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+        invalidate(queryClient, "stock.moved")
       }
     },
     onError: (error: any) => {
@@ -256,7 +251,7 @@ export const useBulkTransferStock = () => {
       const result = data?.data
       if (result?.success) {
         toast.success(`Successfully transferred ${result.total} items`)
-        queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() })
+        invalidate(queryClient, "stock.moved")
       }
     },
     onError: (error: any) => {
@@ -273,7 +268,7 @@ export const useExpiringBatches = (
   filters: { days?: number; page?: number; limit?: number } = {}
 ) => {
   return useQuery({
-    queryKey: [...queryKeys.inventory.all(), 'expiring', filters],
+    queryKey: queryKeys.inventory.expiring(filters),
     queryFn: () => inventoryApi.getExpiringBatches(filters),
   })
 }
@@ -283,7 +278,7 @@ export const useExpiredBatches = (
   filters: { page?: number; limit?: number } = {}
 ) => {
   return useQuery({
-    queryKey: [...queryKeys.inventory.all(), 'expired', filters],
+    queryKey: queryKeys.inventory.expired(filters),
     queryFn: () => inventoryApi.getExpiredBatches(filters),
   })
 }
@@ -295,7 +290,7 @@ export const useProductBatches = (
   options: { enabled?: boolean } = {}
 ) => {
   return useQuery({
-    queryKey: [...queryKeys.inventory.all(), 'product-batches', productId, filters],
+    queryKey: queryKeys.inventory.productBatches(productId, filters),
     queryFn: () => inventoryApi.getProductBatches(productId, filters),
     enabled: !!productId && (options.enabled ?? true),
   })

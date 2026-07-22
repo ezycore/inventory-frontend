@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { selectOptions } from "@/services/api/select-options";
 import { useTranslations } from "next-intl";
 import { useSelectOptions } from "@/services/api";
 import { formatCurrency } from "@/lib/currency";
@@ -79,7 +80,7 @@ export function InventorySearch({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: products = [], isLoading } = useSelectOptions(
-    apiUrl || "/inventory/adjustable-products",
+    apiUrl || selectOptions("adjustableProducts"),
     adjustableProductsCallback
   );
 

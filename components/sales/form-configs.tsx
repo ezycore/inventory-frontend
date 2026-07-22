@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import type { Translator } from "@/i18n/config";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import {
@@ -18,7 +19,7 @@ export const getCustomerFormConfig = (t: Translator): DynamicFormConfig => ({
       label: t("customer"),
       type: "select",
       required: true,
-      optionsApi: "/sales/customers?all=true&fields=_id,name,defaultDiscountId,email",
+      optionsApi: selectOptions("customers", { fields: "_id,name,defaultDiscountId,email" }),
       placeholder: t("searchSelectCustomer"),
       itemsCreateCallback: customerItemsCreateCallback,
       labelInValue: true, // To capture both ID and discount metadata
@@ -56,7 +57,7 @@ export const getPaymentFormConfig = (
         label: t("paymentMethod"),
         type: "select",
         required: false,
-        optionsApi: "/accounts?all=true&fields=_id,name,isDefault,balance,type,status",
+        optionsApi: selectOptions("accounts", { fields: "_id,name,isDefault,balance,type,status" }),
         placeholder: t("selectAccount"),
         itemsCreateCallback: accountItemsCreateCallback,
         columnSpan: 12,

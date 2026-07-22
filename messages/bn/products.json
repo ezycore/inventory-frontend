@@ -73,8 +73,8 @@
         "unitsDescription": "ক্রয়-বিক্রয়ের সময় এই পণ্য কীভাবে গণনা করবেন",
         "pricingTitle": "মূল্য নির্ধারণ",
         "pricingDescription": "বিক্রয় মূল্য নির্ধারণ করুন",
-        "taxTitle": "কর",
-        "taxDescription": "কর কীভাবে প্রয়োগ হয় — সব ভ্যারিয়েন্টে অভিন্ন",
+        "taxTitle": "ভ্যাট",
+        "taxDescription": "ভ্যাট কীভাবে প্রয়োগ হয় — সব ভ্যারিয়েন্টে অভিন্ন",
         "inventoryTitle": "ইনভেন্টরি",
         "inventoryDescription": "স্টক লেভেল ও কম-স্টক সতর্কতা",
         "variantsTitle": "ভ্যারিয়েন্ট",
@@ -123,12 +123,12 @@
       "purchaseConversionFactor": "ক্রয় রূপান্তর গুণক",
       "purchaseConversionFactorTooltip": "একটি ক্রয় এককে কতগুলো মূল একক থাকে। উদাহরণস্বরূপ, আপনি বক্সে কেনেন এবং ১ বক্সে ১০০ পিস থাকলে, ১০০ লিখুন।",
       "sellPrice": "বিক্রয় মূল্য (প্রতি একক)",
-      "salesTaxType": "বিক্রয় কর গণনা",
-      "salesTaxRate": "বিক্রয় কর হার",
-      "purchaseTaxType": "ক্রয় কর গণনা",
-      "purchaseTaxRate": "ক্রয় কর হার",
+      "salesTaxType": "বিক্রয় ভ্যাট গণনা",
+      "salesTaxRate": "বিক্রয় ভ্যাটের হার",
+      "purchaseTaxType": "ক্রয় ভ্যাট গণনা",
+      "purchaseTaxRate": "ক্রয় ভ্যাটের হার",
       "taxSelectPlaceholder": "নির্বাচন করুন",
-      "taxRatePlaceholder": "কর নির্বাচন করুন",
+      "taxRatePlaceholder": "ভ্যাট নির্বাচন করুন",
       "locationId": "লোকেশন",
       "locationIdPlaceholder": "লোকেশন নির্বাচন করুন",
       "openingStock": "প্রারম্ভিক স্টক",
@@ -280,8 +280,8 @@
         "sellingPrice": "বিক্রয় মূল্য",
         "mrp": "MRP",
         "profitPerUnit": "মুনাফা/একক",
-        "salesTax": "বিক্রয় কর",
-        "purchaseTax": "ক্রয় কর",
+        "salesTax": "বিক্রয় ভ্যাট",
+        "purchaseTax": "ক্রয় ভ্যাট",
         "discount": "ছাড়",
         "off": "ছাড়"
       },
@@ -425,7 +425,10 @@
       "statusActive": "সক্রিয়",
       "statusInactive": "নিষ্ক্রিয়",
       "isDefault": "ডিফল্ট ক্যাটাগরি হিসেবে নির্ধারণ করুন",
-      "isDefaultDescription": "নতুন পণ্য ফর্মে আগে থেকে নির্বাচিত থাকবে"
+      "isDefaultDescription": "নতুন পণ্য ফর্মে আগে থেকে নির্বাচিত থাকবে",
+      "defaultTax": "ডিফল্ট ভ্যাট হার",
+      "defaultTaxPlaceholder": "প্রতিষ্ঠানের ডিফল্ট ব্যবহার করুন",
+      "defaultTaxHint": "এই ক্যাটাগরির নতুন পণ্যে ক্রয় ও বিক্রয় — দুই দিকেই আগে থেকে বসানো হবে। বিদ্যমান পণ্যের হার কখনও বদলায় না।"
     },
     "stats": {
       "total": "মোট ক্যাটাগরি",
@@ -445,6 +448,17 @@
       "delete": "মুছুন",
       "createdOn": "তৈরি: {date}",
       "updatedOn": "আপডেট: {date}"
+    },
+    "applyVat": {
+      "tooltip": "এই ক্যাটাগরির ভ্যাট হার এর পণ্যগুলোতে প্রয়োগ করুন",
+      "menuItem": "পণ্যে ভ্যাট হার প্রয়োগ করুন",
+      "title": "পণ্যে ভ্যাট হার প্রয়োগ করবেন?",
+      "body": "“{category}” ক্যাটাগরির সব পণ্য ({count}) ক্রয় ও বিক্রয় — দুই দিকেই {rate} হারে বসানো হবে।",
+      "overwrites": "প্রতিটি পণ্যের বর্তমান হার বদলে যাবে — আপনি আলাদাভাবে যেগুলো ঠিক করেছিলেন সেগুলোসহ।",
+      "postedSafe": "ইতিমধ্যে ইস্যু করা চালান বদলাবে না। যে হারে ইস্যু হয়েছে সেটিই থাকবে।",
+      "apply": "প্রয়োগ করুন",
+      "applying": "প্রয়োগ হচ্ছে…",
+      "cancel": "বাতিল"
     }
   },
   "units": {

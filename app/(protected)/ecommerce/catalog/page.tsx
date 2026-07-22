@@ -14,14 +14,14 @@ import { isFeatureEnabled } from "@/lib/feature-utils";
 import { formatMoney } from "@/components/storefront/format";
 import { Switch } from "@/ui/components/switch";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
 import { Checkbox } from "@/ui/components/checkbox";
 import { Badge } from "@/ui/components/badge";
 import { cn } from "@/ui/lib/utils";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import PageHeader from "@/ui/components/header";
 import { SafeImage } from "@/ui/components/safeImage";
-import { DataCardPagination } from "@/ui/components/dataCard/pagination";
+import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { ListSearchInput } from "@/components/ecommerce/list-search-input";
 import { CollectionsTab } from "@/components/ecommerce/catalog/collections-tab";
 import { onlineBlockReason } from "@/components/ecommerce/catalog/online-block-reason";
 import { ProductOnlineEditor } from "@/components/ecommerce/catalog/product-online-editor";
@@ -126,14 +126,12 @@ export default function EcommerceCatalogPage() {
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <Input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
+            <ListSearchInput
+              placeholder="Search products…"
+              onSearch={(v) => {
+                setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search products…"
-              className="w-52"
             />
             <SimpleSelect
               value={listed}
@@ -325,27 +323,14 @@ export default function EcommerceCatalogPage() {
           </div>
 
           {pagination && pagination.total > 0 && (
-            <DataCardPagination
-              paginationState={{ pageIndex: page - 1, pageSize: limit }}
-              totalItems={pagination.total}
-              onPaginationChange={({ pageIndex, pageSize }) => {
-                if (pageSize !== limit) {
-                  setLimit(pageSize);
-                  setPage(1);
-                } else {
-                  setPage(pageIndex + 1);
-                }
-              }}
-              pagination={{
-                pageIndex: page - 1,
-                pageSize: limit,
-                totalPages: pagination.totalPages,
-                totalItems: pagination.total,
-                hasNext: page < pagination.totalPages,
-                hasPrev: page > 1,
-                manualPagination: true,
-                pageSizeOptions: [20, 50, 100],
-                onPaginationChange: () => {},
+            <ListPagination
+              page={page}
+              totalPages={pagination.totalPages}
+              limit={limit}
+              onPageChange={setPage}
+              onLimitChange={(n) => {
+                setLimit(n);
+                setPage(1);
               }}
             />
           )}

@@ -102,7 +102,7 @@ export function HeaderMenuCard({
     );
 
   return (
-    <Card className="space-y-3 p-5 shadow-none">
+    <Card className="space-y-1 p-5 shadow-none">
       <div>
         <h3 className="text-sm font-semibold">Header menu</h3>
         <p className="text-xs text-muted-foreground">
@@ -195,6 +195,12 @@ export function HeaderMenuCard({
                 count={header.length}
                 categoryOptions={categoryOptions}
                 pageOptions={pageOptions}
+                // One collections block per menu: offer the type only to the
+                // row that already is one, or to all rows while none exists.
+                allowCollections={
+                  item.type === "collections" ||
+                  !header.some((it) => it.type === "collections")
+                }
                 onPatch={(patch) => patchItem(i, patch)}
                 onRemove={() => removeItem(i)}
                 onMove={(dir) => moveItem(i, dir)}
@@ -211,22 +217,6 @@ export function HeaderMenuCard({
           >
             <Plus className="mr-1.5 h-4 w-4" /> Add item
           </Button>
-          <div className="space-y-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-            <p>
-              Your collections still power the homepage category chips and the
-              product filters — switching the header to a custom menu only
-              changes these top links.
-            </p>
-            {/* Reachable from here too: the note says collections still matter,
-                so don't make picking Collections the only way to manage them. */}
-            <button
-              type="button"
-              onClick={onManageCollections}
-              className="font-semibold underline underline-offset-2"
-            >
-              Manage collections
-            </button>
-          </div>
         </div>
       )}
     </Card>

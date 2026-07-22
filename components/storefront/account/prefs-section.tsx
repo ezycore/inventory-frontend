@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import type { ShopperPrefs, ShopperProfile } from "@/lib/storefront-client";
 import { useShopperAccount } from "@/services/storefront/hooks";
 import { useShopperStore } from "@/services/stores/use-shopper-store";

@@ -3,6 +3,7 @@
  * React Query hooks for sales return operations
  */
 
+import { invalidate } from "@/services/api/invalidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { queryKeys } from "../../query-keys";
@@ -56,7 +57,7 @@ export const useCustomerPendingDues = (customerId: string, excludeSaleId?: strin
  */
 export const useSalesReturnsSummary = () => {
   return useQuery({
-    queryKey: [...queryKeys.salesReturns.all(), "summary"],
+    queryKey: queryKeys.salesReturns.summary(),
     queryFn: () => salesReturnsApi.getSummary(),
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -70,19 +71,10 @@ export const useCreateSalesReturn = () => {
 
   return useMutation({
     mutationFn: (data: CreateSalesReturnDto) => salesReturnsApi.create(data),
-    onSuccess: (response: unknown) => {
-      const result = (response as any)?.data;
+    onSuccess: () => {
       toast.success("Sales return created successfully");
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.salesReturns.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
-      if (result?.saleId) {
-        queryClient.invalidateQueries({ 
-          queryKey: queryKeys.salesReturns.bySale(result.saleId) 
-        });
-      }
+      // `bySale` sits under the sales-returns root, so the event covers it.
+      invalidate(queryClient, "sale.returned");
     },
     onError: (error: unknown) => {
       const message = (error as any)?.response?.data?.error || "Failed to create sales return";

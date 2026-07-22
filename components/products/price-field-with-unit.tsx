@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { selectOptions } from "@/services/api/select-options";
 import { useWatch } from "react-hook-form";
 import { NumberField } from "@/ui/components/number-field";
 import { useSelectOptions } from "@/services/api";
@@ -37,7 +38,7 @@ export default function PriceFieldWithUnit({
   unitFieldName = "unitId",
 }: PriceFieldWithUnitProps) {
   const unitId = useWatch({ control, name: unitFieldName });
-  const { data: unitOptions = [] } = useSelectOptions("/units?all=true&fields=_id,name,shortName");
+  const { data: unitOptions = [] } = useSelectOptions(selectOptions("units", { fields: "_id,name,shortName" }));
 
   const selected = unitOptions.find(
     (opt: any) => opt.value === unitId || (opt as any)._id === unitId,

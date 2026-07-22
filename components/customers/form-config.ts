@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
 
@@ -42,8 +43,10 @@ export function getCustomerFormConfig(t: Translator): DynamicFormConfig {
         label: t("form.defaultDiscount"),
         placeholder: t("form.defaultDiscountPlaceholder"),
         columnSpan: 6,
-        optionsApi:
-          "/discounts/sales?all=true&status=active&fields=_id,name,value,isDefaultSales",
+        optionsApi: selectOptions("salesDiscounts", {
+          status: "active",
+          fields: "_id,name,value,isDefaultSales",
+        }),
         defaultFlag: "isDefaultSales",
         description: t("form.defaultDiscountHelp"),
         creatable: true,
@@ -119,8 +122,10 @@ export const customerFormConfig: DynamicFormConfig = {
       label: "Default Discount",
       placeholder: "Select a default discount (optional)",
       columnSpan: 6,
-      optionsApi:
-        "/discounts/sales?all=true&status=active&fields=_id,name,value,isDefaultSales",
+      optionsApi: selectOptions("salesDiscounts", {
+        status: "active",
+        fields: "_id,name,value,isDefaultSales",
+      }),
       defaultFlag: "isDefaultSales",
       description: "Applied automatically to sales for this customer",
       creatable: true,

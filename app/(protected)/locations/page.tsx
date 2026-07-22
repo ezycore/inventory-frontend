@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { selectOptions } from "@/services/api/select-options";
 import { useTranslations, useLocale } from "next-intl";
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -247,7 +248,7 @@ const getLocationFormConfig = (t: Translator): DynamicFormConfig => ({
       name: "users",
       type: "select",
       label: t("form.users"),
-      optionsApi: "/users",
+      optionsApi: selectOptions("users"),
       mode: "multiple",
       columnSpan: 12,
       required: false,
@@ -375,7 +376,7 @@ export default function LocationsPage() {
     createMutation: useCreateLocation(),
     updateMutation: useUpdateLocation(),
     deleteMutation: useDeleteLocation(),
-    queryKey: [...queryKeys.locations.all()],
+    queryKey: queryKeys.locations.all(),
     entityName: "Location" as const,
     isViewAvailable: false,
     editTooltip: t("form.editTooltip"),

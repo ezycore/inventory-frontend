@@ -5,7 +5,9 @@
  */
 
 import { DynamicFormConfig } from "@/ui/components/form/type";
+import type { QueryKey } from "@tanstack/react-query";
 import { ColumnDef, VisibilityState } from "@tanstack/react-table";
+import type { UseFormReturn } from "react-hook-form";
 import { FilterField } from "./filter";
 
 /**
@@ -223,8 +225,8 @@ export interface DataTableApiConfig<TData = any> {
     getAll: (params: any) => Promise<any>;
   };
 
-  /** TanStack Query key for caching */
-  queryKey: any[];
+  /** TanStack Query key for caching — always from `services/api/query-keys.ts`, never a literal. */
+  queryKey: QueryKey;
 
   /** Default page size */
   defaultPageSize?: number;
@@ -242,7 +244,7 @@ interface Operations<TData = any> {
   updateMutation?: any;
   deleteMutation?: any;
   bulkDeleteMutation?: any;
-  queryKey?: any[];
+  queryKey?: QueryKey;
   entityName?: string;
   isViewAvailable?: boolean;
   editTooltip?: string;
@@ -256,6 +258,18 @@ interface Operations<TData = any> {
   transformEditData?: (item: TData) => any;
   openInside?: "modal" | "drawer";
   disabledFieldsInEdit?: string[];
+  /**
+   * Fires on every field change in the CRUD form. `form` is the DataTable's own
+   * `useForm` instance, handed over so a caller can express a cross-field rule
+   * (e.g. prefill the VAT rate from the chosen category) — the form is created
+   * inside the DataTable, so without it the caller has no `setValue`.
+   */
+  onFieldChange?: (
+    fieldName: string,
+    value: any,
+    allValues: any,
+    form: UseFormReturn<any>,
+  ) => void;
 }
 
 /**

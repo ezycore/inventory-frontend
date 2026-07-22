@@ -1,6 +1,6 @@
 ---
 name: reporting-analytics
-description: 'Reports and dashboard on the FRONTEND — the report pages (inventory, sales, purchases, cash, employees, stock valuation, tax + tax ledger, combos, expiry), the shared period filter, stat tiles/charts, and report CSV export. USE WHEN: building or fixing a report page, a stat card or chart, the date-range/period filter, tax report/rate/ledger tables, the dashboard overview/stats, "report numbers don''t match the ledger", or report export. Touches `easystock-frontend/{app/(protected)/reports,components/reports,services/api/modules/reports,services/api/modules/dashboard}`. Reports are READ-ONLY aggregates; the BACKEND computes them from the ledger and never re-derives money — read `easystock-backend/.claude/skills/reporting-analytics/SKILL.md`; this file does not duplicate it.'
+description: 'Reports and dashboard on the FRONTEND — the report pages (inventory, sales, purchases, cash, employees, stock valuation, tax + tax ledger, combos, expiry), the shared period filter, stat tiles/charts, and report CSV export. USE WHEN: building or fixing a report page, a stat card or chart, the date-range/period filter, tax report/rate/ledger tables, the dashboard overview/stats, "report numbers don''t match the ledger", or report export. Touches `inventory-frontend/{app/(protected)/reports,components/reports,services/api/modules/reports,services/api/modules/dashboard}`. Reports are READ-ONLY aggregates; the BACKEND computes them from the ledger and never re-derives money — read `inventory-backend/.claude/skills/reporting-analytics/SKILL.md`; this file does not duplicate it.'
 ---
 
 # Reporting & Analytics Skill (Frontend)
@@ -11,7 +11,7 @@ that disagrees with a detail view means the aggregate is wrong on the backend, n
 
 > **The aggregations are NOT here.** What each report sums, how tax reporting reads the denormalized
 > `taxTotal` snapshot (never re-derives tax), and the `$group` shapes live in
-> [`easystock-backend/.claude/skills/reporting-analytics/SKILL.md`](../../../../easystock-backend/.claude/skills/reporting-analytics/SKILL.md).
+> [`inventory-backend/.claude/skills/reporting-analytics/SKILL.md`](../../../../inventory-backend/.claude/skills/reporting-analytics/SKILL.md).
 > Read it before adding a report — the FE is a viewer.
 
 ---
@@ -63,7 +63,8 @@ tightened backend-side), so the period header type-checks against the report res
 - **Stat tiles**: use the shared `StatsCard` (`ui/components/StatsCard`) — see the `stats-card` skill.
   Don't hand-roll a stat box.
 - **Charts**: follow the existing report charts (e.g. `tax-trend-chart.tsx`) — consistent axis/format.
-- **Tax reports** are gated by the `tax` feature; gate with `isTaxActive`/`isFeatureEnabled` and hide
+- **VAT reports** are gated by the `tax` feature; gate with `isVatActive` (see the
+  [`vat`](../vat/SKILL.md) skill — `isTaxActive` no longer exists) and hide
   tax reports when off.
 - **Export**: report CSV export goes through `export-data.tsx` / the report `export` route — reuse it.
 
@@ -76,7 +77,8 @@ tightened backend-side), so the period header type-checks against the report res
 | Report total ≠ detail view | aggregate wrong on the backend | fix the aggregation server-side; don't patch the FE number |
 | Off-by-one day at range edges | native ISO date output | use the shared `DatePicker` (`yyyy-MM-dd`) via the period filter |
 | Period header type error | grouping typed too loosely | it's the 4-value `chartGrouping` enum now — regen types |
-| Tax report visible without tax feature | missing gate | gate on `isTaxActive`/`tax` feature |
+| VAT report visible without the feature | missing gate | gate on `isVatActive` |
+| Net payable shown as output − input for every org | only a standard-rated org reclaims input VAT | branch on `data.input.recoverable` — [`vat`](../vat/SKILL.md) §5 |
 | Duplicated date-range picker | forked the filter | reuse `report-period-filter.tsx` |
 
 ---

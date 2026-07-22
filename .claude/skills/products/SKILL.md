@@ -1,6 +1,6 @@
 ---
 name: products
-description: 'Build, edit, debug, or audit the EzyCore Products feature on the FRONTEND (list page + DynamicForm config + variant manager + helpers + TanStack Query hooks + cross-resource invalidation). USE WHEN: creating/editing single (`SINGLE`), variable (`VARIABLE`) or combo (`COMBO`) products, per-variant UOM conversion (enableUOMConversion + purchaseUnit + saleUnit), troubleshooting "purchaseUnit.unitId Required" 400s, variant fields silently dropped after save, edit modal not pre-filling variants, defaults (status=active, sellingType=retail, productType=single, enableUOMConversion=false) not applying, related-resource changes (categories/brands/units/variant-attributes) not refreshing the products list, list response too verbose. Touches `easystock-frontend/{app/(protected)/products,components/products,services/api/modules/products,services/api/modules/variants}`. For the BACKEND (models, validators, service, endpoints, combo rules) read `easystock-backend/.claude/skills/products/SKILL.md` — this file does not duplicate it.'
+description: 'Build, edit, debug, or audit the EzyCore Products feature on the FRONTEND (list page + DynamicForm config + variant manager + helpers + TanStack Query hooks + cross-resource invalidation). USE WHEN: creating/editing single (`SINGLE`), variable (`VARIABLE`) or combo (`COMBO`) products, per-variant UOM conversion (enableUOMConversion + purchaseUnit + saleUnit), troubleshooting "purchaseUnit.unitId Required" 400s, variant fields silently dropped after save, edit modal not pre-filling variants, defaults (status=active, sellingType=retail, productType=single, enableUOMConversion=false) not applying, related-resource changes (categories/brands/units/variant-attributes) not refreshing the products list, list response too verbose. Touches `inventory-frontend/{app/(protected)/products,components/products,services/api/modules/products,services/api/modules/variants}`. For the BACKEND (models, validators, service, endpoints, combo rules) read `inventory-backend/.claude/skills/products/SKILL.md` — this file does not duplicate it.'
 ---
 
 # Products Skill (Frontend)
@@ -9,7 +9,7 @@ Frontend map of the **Products** resource: list page → form config → variant
 cross-resource invalidation, plus default values, UOM rules, and the recurring pitfalls.
 
 > **The backend is NOT documented here.** It lives in
-> [`easystock-backend/.claude/skills/products/SKILL.md`](../../../../easystock-backend/.claude/skills/products/SKILL.md)
+> [`inventory-backend/.claude/skills/products/SKILL.md`](../../../../inventory-backend/.claude/skills/products/SKILL.md)
 > — the model, the validator's cross-field rules, the full endpoint table, the combo invariants, and
 > the list projection this app prefills its edit form from. Read it before changing anything that
 > crosses the wire.
@@ -39,7 +39,7 @@ Multi-tenant: every doc is scoped by `organizationId`. Never trust org/loc from 
 
 The model, validator rules, endpoint table, combo invariants and response shapes are documented once,
 in the repo that owns them:
-**[`easystock-backend/.claude/skills/products/SKILL.md`](../../../../easystock-backend/.claude/skills/products/SKILL.md)**.
+**[`inventory-backend/.claude/skills/products/SKILL.md`](../../../../inventory-backend/.claude/skills/products/SKILL.md)**.
 
 Three things from it that this app's code directly depends on:
 
@@ -50,7 +50,7 @@ Three things from it that this app's code directly depends on:
 2. **Tax is per-side**: `salesTax` and `purchaseTax`, each `{ taxId, taxType, rate, taxName }`. There
    is no flat top-level `taxId`/`taxType`. The rate arrives resolved — don't fetch it separately.
    The FE/BE tax math must agree bit-for-bit; see
-   [`easystock-backend/docs/features/tax.md`](../../../../easystock-backend/docs/features/tax.md).
+   [`inventory-backend/docs/features/vat.md`](../../../../inventory-backend/docs/features/vat.md).
 3. **UOM requires *at least one* of purchase/sale unit** when `enableUOMConversion` is true — not both.
    Any side you *do* send must be complete (`unitId` + `conversionFactor`, factor > 0).
 
@@ -62,13 +62,13 @@ Three things from it that this app's code directly depends on:
 
 | File | Purpose |
 |------|---------|
-| [easystock-frontend/app/(protected)/products/page.tsx](../../../app/(protected)/products/page.tsx) | DataTable wiring + `transformEditData` |
-| [easystock-frontend/components/products/form-config.tsx](../../../components/products/form-config.tsx) | DynamicForm field config + defaults + dependsOn |
-| [easystock-frontend/components/products/variant-manager.tsx](../../../components/products/variant-manager.tsx) | Per-variant UI (table + edit modal with UOM) |
-| [easystock-frontend/components/products/helpers.ts](../../../components/products/helpers.ts) | `prepareSubmitData` — strips inapplicable UOM, maps variants to BE shape |
-| [easystock-frontend/components/products/columns.tsx](../../../components/products/columns.tsx) | List columns + cell formatters |
-| [easystock-frontend/services/api/modules/products/](../../../services/api/modules/products/) | api.ts + hooks.ts + index.ts |
-| [easystock-frontend/services/api/modules/variants/hooks.ts](../../../services/api/modules/variants/hooks.ts) | Variant-attribute hooks — invalidate `products.all()` |
+| [inventory-frontend/app/(protected)/products/page.tsx](../../../app/(protected)/products/page.tsx) | DataTable wiring + `transformEditData` |
+| [inventory-frontend/components/products/form-config.tsx](../../../components/products/form-config.tsx) | DynamicForm field config + defaults + dependsOn |
+| [inventory-frontend/components/products/variant-manager.tsx](../../../components/products/variant-manager.tsx) | Per-variant UI (table + edit modal with UOM) |
+| [inventory-frontend/components/products/helpers.ts](../../../components/products/helpers.ts) | `prepareSubmitData` — strips inapplicable UOM, maps variants to BE shape |
+| [inventory-frontend/components/products/columns.tsx](../../../components/products/columns.tsx) | List columns + cell formatters |
+| [inventory-frontend/services/api/modules/products/](../../../services/api/modules/products/) | api.ts + hooks.ts + index.ts |
+| [inventory-frontend/services/api/modules/variants/hooks.ts](../../../services/api/modules/variants/hooks.ts) | Variant-attribute hooks — invalidate `products.all()` |
 
 ### Default values (form-config.tsx)
 
@@ -108,11 +108,17 @@ Maps BE detail → form values. For each variant maps `_id → id + _id`, copies
 
 ### Cross-resource invalidation
 
-When categories / brands / units are mutated, the products list must refetch. This is wired via:
+When categories / brands / units / taxes / discounts are mutated, the products list must refetch —
+those rows embed the name and the rate. The mutation declares the **event**, and
+[services/api/invalidation.ts](../../../services/api/invalidation.ts) owns which keys it dirties:
 
 ```ts
-createResourceHooks({ ..., relatedQueryKeys: [queryKeys.products.all()] })
+createResourceHooks(api, queryKeys.brands, { events: ["catalog.changed"] })
 ```
+
+`catalog.changed` covers products, variants, categories, inventory and the derived read models.
+Never hand-list keys at the call site — fix the event's entry instead, and every call site is fixed
+with it. See the `api-module` skill.
 
 In:
 
@@ -132,7 +138,7 @@ The entire **"UOM Conversion" section** in `form-config.tsx` carries:
 ```ts
 dependsOn: { field: "productType", value: "single", condition: "eq", action: "show" }
 ```
-This means the section renders `null` when `productType !== "single"`. The `FormSection` type now supports `dependsOn?: FieldDependency` (added to [ui/components/form/type.ts](../../../ui/components/form/type.ts)), and `FormSectionComponent` in [ui/components/form/helper.tsx](../../../ui/components/form/helper.tsx) evaluates it via `evaluateFieldDependency` + `useWatch` before rendering.
+This means the section renders `null` when `productType !== "single"`. The `FormSection` type now supports `dependsOn?: FieldDependency` (added to [ui/components/form/type.ts](../../../ui/components/form/type.ts)), and `FormSectionComponent` in [ui/components/form/form-section.tsx](../../../ui/components/form/form-section.tsx) evaluates it via `normalizeDependencies` + `useWatch` + `evaluateFieldDependencies` before rendering.
 
 The `enableUOMConversion` field's own `dependsOn` was **removed** — it is redundant since the parent section already hides when not single. Keep it that way.
 
@@ -159,7 +165,7 @@ The `enableUOMConversion` field's own `dependsOn` was **removed** — it is redu
 | Variant SKU / cost silently lost after save | Those fields were intentionally **removed** from the variant model + UI | Don't re-add — variants carry: attributes, price, images, status, UOM, **barcode** |
 | Single product form shows no SKU field | Correct — `sku` has been fully removed from the single-product form, model, and validator. The `base_sku` in report/dashboard services is a legacy read-only field. | Don't re-add `sku` to the form or model |
 | UOM section still visible for variable product | `dependsOn` was applied at **field level** (on `enableUOMConversion`) instead of **section level** | Move `dependsOn` to the section definition itself — see Section 4 above |
-| Products list still shows stale category/brand/unit name after edit | Missing cross-resource invalidation | Add `relatedQueryKeys: [queryKeys.products.all()]` to the resource's `createResourceHooks` |
+| Products list still shows stale category/brand/unit name after edit | The mutated resource doesn't declare `events: ["catalog.changed"]`, or the event's key list is short | Add the event to its `createResourceHooks` options; if the key is genuinely missing, add it in `services/api/invalidation.ts` |
 | Category / brand / unit selects blank when opening edit | `projectListItem` trimmed the raw `categoryId`/`brandId`/`unitId` IDs — only nested objects remained, but DynamicForm selects look for raw ID strings | Add raw IDs back to `projectListItem` (they're already there now — don't remove them) |
 | `Page 1 of undefined` on products list | List shape changed and dropped pagination meta | Don't change the response envelope — see [services/api/utils.ts](../../../services/api/utils.ts) |
 | FE hits `/api/v1/products/...` and 401s | Wrong base URL | Use `/api/products/...` (no `v1`). The 401 in logs is from a stray dev call, not from production code paths. |

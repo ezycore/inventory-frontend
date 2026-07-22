@@ -1,6 +1,7 @@
 "use client"
 // coding-standard: maintained
 
+import { selectOptions } from "@/services/api/select-options";
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { Controller } from 'react-hook-form'
 import {
@@ -21,6 +22,27 @@ import ComboComponentsField from './combo-components-field'
 import PriceFieldWithUnit from './price-field-with-unit'
 import { Switch } from '@/ui/components/switch'
 import type { Translator } from '@/i18n/config'
+
+/**
+ * Category options for the product form.
+ *
+ * Exported so `use-category-vat-prefill` can read the same query — the URL *is*
+ * the TanStack cache key, so any drift between the two would double the request
+ * and, worse, let the prefill read an option list without `defaultTaxId`.
+ */
+export const CATEGORY_OPTIONS_API = selectOptions("categories", {
+  fields: "_id,name,isDefault,defaultTaxId",
+});
+
+/**
+ * The product form's rate picker. Distinct from the categories form's constant: this one also asks
+ * for `isDefault`, which the `defaultFlag` prefill reads. Collapsing the two would silently disable
+ * the default-rate prefill.
+ */
+const PRODUCT_TAX_OPTIONS_API = selectOptions("taxes", {
+  status: "active",
+  fields: "_id,name,rate,vatCategory,isDefault",
+});
 
 // Section header toggle that binds to `addToInventory`. Rendered via the
 // FormSection.headerAction slot, so it sits on the right of the header.
@@ -123,7 +145,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             required: true,
             columnSpan: 6,
             placeholder: tr('form.categoryPlaceholder', "Choose category"),
-            optionsApi: `/categories?all=true&fields=_id,name,isDefault`,
+            optionsApi: CATEGORY_OPTIONS_API,
             defaultFlag: "isDefault",
             creatable: true,
             quickAddModule: "category",
@@ -133,7 +155,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             label: tr('form.brand', "Brand"),
             columnSpan: 6,
-            optionsApi: `/brands?all=true&fields=_id,name,isDefault`,
+            optionsApi: selectOptions("brands", { fields: "_id,name,isDefault" }),
             defaultFlag: "isDefault",
             placeholder: tr('form.brandPlaceholder', "Select brand"),
             creatable: true,
@@ -250,7 +272,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             label: tr('form.unitId', "Base unit"),
             required: true,
             columnSpan: 12,
-            optionsApi: `/units?all=true&fields=_id,name,shortName,isDefault`,
+            optionsApi: selectOptions("units", { fields: "_id,name,shortName,isDefault" }),
             defaultFlag: "isDefault",
             copyValueTo: ["saleUnit.unitId"],
             placeholder: tr('form.unitIdPlaceholder', "Select base unit"),
@@ -270,7 +292,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             label: tr('form.purchaseUnit', "Purchase unit"),
             columnSpan: 6,
-            optionsApi: `/units?all=true&fields=_id,name,shortName`,
+            optionsApi: selectOptions("units", { fields: "_id,name,shortName" }),
             placeholder: tr('form.purchaseUnitPlaceholder', "Select purchase unit"),
             tooltip: tr('form.purchaseUnitTooltip', "The unit you buy this product in (e.g. Box). Stock received in this unit is converted to the base unit using the conversion factor."),
             dependsOn: { field: "enableUOMConversion", value: true, condition: "eq", action: "show" },
@@ -337,7 +359,11 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             label: tr('form.salesTaxRate', "Sales tax rate"),
             columnSpan: 6,
-            optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
+            // `status=active` matters: rates are SUPERSEDED, not edited — when the
+            // Finance Act changes a rate you add a new row and deactivate the old
+            // one. Without this filter the retired rate stays selectable and the
+            // supersede rule achieves nothing.
+            optionsApi: PRODUCT_TAX_OPTIONS_API,
             defaultFlag: "isDefault",
             placeholder: tr('form.taxRatePlaceholder', "Select tax"),
           },
@@ -355,7 +381,11 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             label: tr('form.purchaseTaxRate', "Purchase tax rate"),
             columnSpan: 6,
-            optionsApi: '/taxes?all=true&fields=_id,name,rate,isDefault',
+            // `status=active` matters: rates are SUPERSEDED, not edited — when the
+            // Finance Act changes a rate you add a new row and deactivate the old
+            // one. Without this filter the retired rate stays selectable and the
+            // supersede rule achieves nothing.
+            optionsApi: PRODUCT_TAX_OPTIONS_API,
             defaultFlag: "isDefault",
             placeholder: tr('form.taxRatePlaceholder', "Select tax"),
           },
@@ -399,7 +429,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             label: tr('form.locationId', "Location"),
             hidden: true,
             columnSpan: 4,
-            optionsApi: `/locations?all=true&fields=_id,name`,
+            optionsApi: selectOptions("locations", { fields: "_id,name" }),
             placeholder: tr('form.locationIdPlaceholder', "Select location"),
             dependsOn: { field: "addToInventory", condition: "truthy", action: "show" },
           },

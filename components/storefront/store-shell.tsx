@@ -17,6 +17,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
 import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
+import { AnnouncementBar } from "@/components/storefront/announcement-bar";
 import { CampaignStrip } from "@/components/storefront/campaign-strip";
 import { StoreHeader } from "@/components/storefront/store-header";
 import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
@@ -53,6 +54,7 @@ export function StoreShell({
   const { data: fetchedCategories } = useStoreCategories(slug);
   const previewBrand = useSfPreview((s) => s.brand);
   const previewCollections = useSfPreview((s) => s.collections);
+  const previewAnnouncement = useSfPreview((s) => s.announcement);
 
   // The admin's Collections panel streams its unsaved draft; prefer it so
   // reordering/hiding previews live instead of waiting on a save + refetch.
@@ -90,7 +92,9 @@ export function StoreShell({
       }
     : {}) as CSSProperties;
 
-  const announcement = store?.nav?.announcement;
+  // Live preview override (admin Navigation editor) wins so the bar repaints as
+  // it's edited; otherwise the merchant's saved announcement.
+  const announcement = previewAnnouncement ?? store?.nav?.announcement;
 
   const onHome = pathname === base || pathname === `${base}/` || pathname === "/";
   const crumb = !onHome ? crumbLabel(pathname, t) : "";
@@ -109,31 +113,8 @@ export function StoreShell({
           color: "var(--text)",
         }}
       >
-        {/* Announcement — text colour derived from the owner's custom bg so a
-            light banner colour never gets unreadable white text. */}
-        {announcement?.enabled && announcement.text ? (
-          <div
-            className="sf-noprint"
-            style={{
-              background: announcement.bgColor || "var(--primary)",
-              color: announcement.bgColor
-                ? readableTextOn(announcement.bgColor)
-                : "var(--on-primary)",
-              textAlign: "center",
-              fontSize: 12.5,
-              fontWeight: 500,
-              padding: "7px 16px",
-            }}
-          >
-            {announcement.link ? (
-              <Link href={announcement.link} style={{ color: "inherit" }}>
-                {announcement.text}
-              </Link>
-            ) : (
-              announcement.text
-            )}
-          </div>
-        ) : null}
+        {/* Announcement bar — admin Navigation tab (icon, CTA, dismissible). */}
+        <AnnouncementBar announcement={announcement} base={base} slug={slug} />
 
         {/* Header — admin-selectable variant (templates.header). */}
         <StoreHeader

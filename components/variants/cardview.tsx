@@ -12,9 +12,18 @@ import { Edit2, MoreVertical, Palette, Trash2 } from "lucide-react";
 import { ValuesPopover } from "@/components/shared/values-popover";
 import { formatDate } from "@/lib/format";
 import type { Translator, AppLocale } from "@/i18n/config";
+import type { ApiVariantAttribute } from "@/types/api";
 
+/**
+ * Typed against the generated `ApiVariantAttribute`, deliberately — not `any`.
+ *
+ * A card renderer taking `any` opts out of the generated contract, so a field
+ * removed on the backend keeps compiling and fails silently at runtime. That is
+ * exactly how the taxes card kept reading a deleted `Tax.type` and rendered
+ * every rate as a currency amount.
+ */
 const VariantCardView = (
-  variant: any,
+  variant: ApiVariantAttribute,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
   options: { t: Translator; locale: AppLocale },
 ) => {

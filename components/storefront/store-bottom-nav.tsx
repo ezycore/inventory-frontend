@@ -49,7 +49,7 @@ export function StoreBottomNav({
 }) {
   const pathname = usePathname();
   const { t } = useStorefrontUI();
-  const { cartCount, goCart } = useCartNav(slug, base);
+  const { cartCount, goCart } = useCartNav(slug);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const onHome =

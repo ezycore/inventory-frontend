@@ -7,10 +7,8 @@ import { createResourceHooks } from "../query-helpers";
 const unitHooks = createResourceHooks<ApiUnit, CreateUnitDto>(
   unitsApi,
   queryKeys.units,
-  { relatedQueryKeys: [queryKeys.products.all(), 
-    [ "select-options", "/units?all=true&fields=_id,name,shortName"],
-    [ "select-options", "/units?all=true&fields=_id,name,shortName,isDefault"]
-  ] },
+  // Product/inventory rows embed the unit name.
+  { events: ["catalog.changed"] },
 );
 
 export const useUnits = unitHooks.useList;

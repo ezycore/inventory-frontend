@@ -32,7 +32,7 @@ The **DataTable** is a self-contained table component that integrates data fetch
 ```tsx
 import { DataTable } from "@/ui/components/dataTable";
 import { brandsApi } from "@/lib/api-client";
-import { queryKeys } from "@/lib/query-keys";
+import { queryKeys } from "@/services/api/query-keys";
 import { useCreateBrand, useUpdateBrand, useDeleteBrand } from "@/hooks/queries";
 import type { Brand } from "@/types";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -1280,7 +1280,7 @@ const customActions: CustomAction[] = [
 
 - **Types:** `types/DataTable.ts`, `types/filter.ts`
 - **API Client:** `lib/api-client.ts` (filter serialization)
-- **Query Keys:** `lib/query-keys.ts` (TanStack Query cache keys)
+- **Query Keys:** `services/api/query-keys.ts` (TanStack Query cache keys)
 - **Hooks:** `hooks/use-crud-handlers.ts`, `hooks/queries/*` (mutations)
 - **Form:** `ui/components/form/index.tsx`, `ui/components/form/type.ts`
 - **Filters:** `ui/components/filters/global-filter.tsx`, `ui/components/filters/filter-field-renderer.tsx`
