@@ -356,12 +356,28 @@ export interface StorefrontOrder {
   shippingAddress: ShippingAddress;
   notes?: string;
   courier?: {
+    /** `"manual"` = a courier the merchant drives by hand (no tracking API). */
+    integration?: "api" | "manual";
     provider?: string;
+    /**
+     * Carrier display name, snapshotted at dispatch. The only carrier identity a
+     * shopper sees — a merchant's own courier ("RedX") reads exactly like an
+     * integrated one. `customCourierId` is stripped server-side and never arrives.
+     */
+    name?: string;
+    /** Public tracking page for this parcel, when the carrier has one. */
+    trackingUrl?: string;
     trackingCode?: string;
     consignmentId?: string;
     /** Raw provider status (admin-only). Shopper UI renders `normalizedStatus`. */
     status?: string;
     normalizedStatus?: CourierNormalizedStatus;
+    /**
+     * The parcel's progress feed. For a manual courier these are the merchant's
+     * own updates — the only delivery detail the shopper gets. The staff `by` is
+     * stripped server-side.
+     */
+    history?: { status: string; note?: string; at?: string }[];
   };
   createdAt: string;
   statusHistory?: { status: string; at: string }[];

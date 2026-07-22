@@ -41,13 +41,8 @@ const TABS: { label: string; value: string }[] = [
 
 // Radix Select forbids an empty-string item value, so "all" is the clear-filter
 // sentinel and maps to `undefined` (no filter) when the query is built.
-const COURIER_OPTIONS = [
-  { label: "All couriers", value: "all" },
-  { label: "Pathao", value: "pathao" },
-  { label: "Steadfast", value: "steadfast" },
-  { label: "eCourier", value: "ecourier" },
-  { label: "No courier", value: "none" },
-];
+/** Custom couriers are namespaced so an id can never collide with a provider name. */
+const CUSTOM_PREFIX = "custom:";
 const FULFILLMENT_OPTIONS = [
   { label: "All fulfillment", value: "all" },
   { label: "Delivery", value: "delivery" },
@@ -86,6 +81,21 @@ function OrdersList() {
 
   const { data: couriersData } = useCouriers();
   const enabledCouriers = (couriersData?.couriers ?? []).filter((c) => c.enabled);
+  const customCouriers = (couriersData?.customCouriers ?? []).filter(
+    (c) => c.active,
+  );
+  // One carrier list for both the filter and the bulk picker — integrated
+  // providers first, then the merchant's own.
+  const carrierOptions = [
+    ...enabledCouriers.map((c) => ({
+      label: `${c.provider[0].toUpperCase()}${c.provider.slice(1)} Courier`,
+      value: c.provider,
+    })),
+    ...customCouriers.map((c) => ({
+      label: c.name,
+      value: `${CUSTOM_PREFIX}${c._id}`,
+    })),
+  ];
   const bulkConsign = useBulkConsignment();
   const { data: stats, isLoading: statsLoading } = useOrderStats();
 
@@ -140,11 +150,14 @@ function OrdersList() {
     (o) => selected.has(o._id) && o.status === "pending",
   );
   // Dispatchable = selected, confirmed/processing, not already sent to a courier.
+  // A manual dispatch may carry no consignment id, so its marker is the carrier
+  // name — matching the backend's `isDispatched`.
   const dispatchable = items.filter(
     (o) =>
       selected.has(o._id) &&
       (o.status === "confirmed" || o.status === "processing") &&
-      !o.courier?.consignmentId,
+      !o.courier?.consignmentId &&
+      !o.courier?.name,
   );
 
   const toggleAll = (on: boolean) =>
@@ -174,8 +187,15 @@ function OrdersList() {
 
   const onBulkDispatch = () => {
     if (!bulkProvider || dispatchable.length === 0) return;
+    const isCustom = bulkProvider.startsWith(CUSTOM_PREFIX);
     bulkConsign.mutate(
-      { orderIds: dispatchable.map((o) => o._id), provider: bulkProvider },
+      {
+        orderIds: dispatchable.map((o) => o._id),
+        provider: isCustom ? undefined : bulkProvider,
+        customCourierId: isCustom
+          ? bulkProvider.slice(CUSTOM_PREFIX.length)
+          : undefined,
+      },
       {
         onSuccess: (res) => {
           const { successful, failed } = res.data;
@@ -217,7 +237,13 @@ function OrdersList() {
           <SimpleSelect
             value={courier}
             onValueChange={changeCourier}
-            options={COURIER_OPTIONS}
+            options={[
+              // "all" is the clear-filter sentinel (Radix Select forbids an empty
+              // value); "none" means never dispatched — pickup + not-yet-shipped.
+              { label: "All couriers", value: "all" },
+              ...carrierOptions,
+              { label: "No courier", value: "none" },
+            ]}
             className="h-9 w-40"
           />
           <SimpleSelect
@@ -272,15 +298,12 @@ function OrdersList() {
           >
             Confirm{confirmable.length ? ` (${confirmable.length})` : ""}
           </Button>
-          {dispatchable.length > 0 && enabledCouriers.length > 0 ? (
+          {dispatchable.length > 0 && carrierOptions.length > 0 ? (
             <div className="flex items-center gap-2">
               <SimpleSelect
                 value={bulkProvider}
                 onValueChange={setBulkProvider}
-                options={enabledCouriers.map((c) => ({
-                  label: `${c.provider[0].toUpperCase()}${c.provider.slice(1)} Courier`,
-                  value: c.provider,
-                }))}
+                options={carrierOptions}
                 placeholder="Courier"
                 className="h-9 w-40"
               />
