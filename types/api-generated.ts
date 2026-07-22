@@ -31604,7 +31604,11 @@ export interface operations {
                     weightKg?: number;
                     removeImages?: string | string[];
                     clearFields?: string | string[];
-                    variantPricing?: string | unknown[];
+                    variantPricing?: {
+                        variantId: string;
+                        onlinePrice?: number | ("null" | null);
+                        compareAtPrice?: number | ("null" | null);
+                    }[];
                 };
             };
         };
