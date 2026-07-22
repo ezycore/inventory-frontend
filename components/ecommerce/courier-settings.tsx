@@ -12,10 +12,12 @@ import {
 import { Spinner } from "@/ui/components/spinner";
 import { CourierRow } from "./courier-row";
 import { CourierWebhookCard } from "./courier-webhook-card";
+import { CustomCourierCard } from "./custom-courier-card";
 
 /**
- * Storefront courier integrations. One collapsible row per provider — the
- * per-row state (configured vs. connect form) lives in `CourierRow`.
+ * Storefront courier integrations. One collapsible row per integrated provider —
+ * the per-row state (configured vs. connect form) lives in `CourierRow` — plus
+ * the merchant's own manual couriers, which carry no credentials at all.
  */
 export function CourierSettings() {
   const { data, isLoading } = useCouriers();
@@ -47,6 +49,7 @@ export function CourierSettings() {
         )}
       </CardContent>
     </Card>
+    <CustomCourierCard couriers={data?.customCouriers ?? []} />
     <CourierWebhookCard />
     </div>
   );
