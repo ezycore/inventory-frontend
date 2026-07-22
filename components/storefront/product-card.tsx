@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import type { CatalogProduct } from "@/lib/storefront-client";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useStore } from "@/services/storefront/hooks";
@@ -49,7 +49,9 @@ export function ProductCard({
   const router = useRouter();
   const price = product.price ?? 0;
   const pct = discountPct(product.price, product.compareAtPrice);
-  const outOfStock = product.availableQuantity <= 0;
+  // Backorder products stay buyable at zero stock; only "show"/"hide" are sold out.
+  const canBackorder = product.outOfStockBehavior === "backorder";
+  const soldOut = product.availableQuantity <= 0 && !canBackorder;
   const thumb = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
   const href = storeHref(base, `/products/${product.slug}`);
   // Variable products can't be added blindly — the shopper picks a variant on
@@ -67,7 +69,8 @@ export function ProductCard({
       name: product.name,
       price,
       image: product.images?.[0]?.thumbnailUrl,
-      maxQty: product.availableQuantity,
+      // Backorder → uncapped (the store treats maxQty<=0 as no limit).
+      maxQty: canBackorder ? 0 : product.availableQuantity,
     });
     toast.success(t.added);
   };
@@ -131,7 +134,7 @@ export function ProductCard({
             </span>
             <button
               type="button"
-              disabled={outOfStock}
+              disabled={soldOut}
               onClick={add}
               aria-label={t.addToCart}
               style={{
@@ -143,9 +146,9 @@ export function ProductCard({
                 borderRadius: 7,
                 fontSize: 18,
                 fontWeight: 600,
-                cursor: outOfStock ? "not-allowed" : "pointer",
+                cursor: soldOut ? "not-allowed" : "pointer",
                 lineHeight: 1,
-                opacity: outOfStock ? 0.5 : 1,
+                opacity: soldOut ? 0.5 : 1,
               }}
             >
               +
@@ -168,7 +171,7 @@ export function ProductCard({
             </div>
             <button
               type="button"
-              disabled={outOfStock}
+              disabled={soldOut}
               onClick={add}
               style={{
                 marginTop: "auto",
@@ -182,11 +185,11 @@ export function ProductCard({
                 fontWeight: bold ? 700 : 600,
                 textTransform: bold ? "uppercase" : "none",
                 letterSpacing: bold ? "0.03em" : "normal",
-                cursor: outOfStock ? "not-allowed" : "pointer",
-                opacity: outOfStock ? 0.55 : 1,
+                cursor: soldOut ? "not-allowed" : "pointer",
+                opacity: soldOut ? 0.55 : 1,
               }}
             >
-              {outOfStock ? t.outOfStock : hasVariants ? t.selectOptions : t.addToCart}
+              {soldOut ? t.outOfStock : hasVariants ? t.selectOptions : t.addToCart}
             </button>
           </>
         )}

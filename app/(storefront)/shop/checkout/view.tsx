@@ -4,11 +4,12 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import {
   usePlaceOrder,
   useShopperAccount,
   useStore,
+  useStorePages,
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -132,6 +133,7 @@ export default function CheckoutPage() {
   const [applied, setApplied] = useState<{ code: string; discountAmount: number } | null>(null);
   const [applying, setApplying] = useState(false);
   const [step, setStep] = useState(1);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [placed, setPlaced] = useState<StorefrontOrder | null>(null);
 
   // Fulfillment: courier delivery (default) or in-store pickup (when the store
@@ -186,17 +188,51 @@ export default function CheckoutPage() {
     }
   };
 
-  const contactComplete = !!(addr.name.trim() && addr.phone.trim());
-  // Delivery needs the full canonical address; pickup only needs name + phone.
-  const deliveryComplete = !!(
-    addr.address.trim() &&
-    geo.district.trim() &&
-    geo.area.trim()
+  // Merchant-configured checkout rules (admin Store Settings → Checkout). Name
+  // and phone are structurally required everywhere; address/area are toggleable.
+  // The district/area pair is also forced whenever zone shipping is on, since it
+  // prices the order — matches the backend enforcement in placeOrder.
+  const required = new Set(
+    store?.checkout?.requiredFields ?? ["name", "phone", "address"],
   );
-  const canSubmit = isPickup ? contactComplete : contactComplete && deliveryComplete;
+  const needAddress = required.has("address");
+  const needArea = required.has("area") || zoned;
+  const contactComplete = !!(
+    (!required.has("name") || addr.name.trim()) &&
+    (!required.has("phone") || addr.phone.trim())
+  );
+  // Delivery honours the configured fields; pickup only needs name + phone.
+  const deliveryComplete = !!(
+    (!needAddress || addr.address.trim()) &&
+    (!needArea || (geo.district.trim() && geo.area.trim()))
+  );
+  const addressComplete = isPickup
+    ? contactComplete
+    : contactComplete && deliveryComplete;
+
+  const minOrder = store?.checkout?.minOrderValue ?? 0;
+  const belowMin = minOrder > 0 && subtotal < minOrder;
+  const termsRequired = !!store?.checkout?.termsRequired;
+
+  // The terms checkbox links to the merchant's chosen CMS page; if none is set (or
+  // it no longer resolves) fall back to a page slugged like "terms", else plain
+  // text (no dead link). Only resolved when terms are actually required.
+  const contentPages = useStorePages(slug).data ?? [];
+  const explicitTermsSlug = store?.checkout?.termsPageSlug;
+  const termsSlug =
+    termsRequired
+      ? (explicitTermsSlug &&
+          contentPages.some((p) => p.slug === explicitTermsSlug)
+          ? explicitTermsSlug
+          : contentPages.find((p) => /^terms($|-)|^tos$|conditions$/i.test(p.slug))
+              ?.slug)
+      : undefined;
+
+  const canSubmit =
+    addressComplete && !belowMin && (!termsRequired || termsAccepted);
   // Per-step advance gate (multi-step template): step 1 = address/contact,
-  // step 2 = payment.
-  const stepBlocked = step === 1 && !canSubmit;
+  // step 2 = payment. Terms/min-order are settled at the final submit, not here.
+  const stepBlocked = step === 1 && !addressComplete;
 
   // Best-effort: remember the picked district/area on the chosen address (or save
   // a brand-new one), so the next checkout is pre-filled. Never blocks the order.
@@ -238,6 +274,7 @@ export default function CheckoutPage() {
         shippingAddress,
         paymentMethod: effectivePayment,
         couponCode: applied?.code,
+        termsAccepted: termsRequired ? termsAccepted : undefined,
       },
       {
         onSuccess: (order) => {
@@ -462,6 +499,59 @@ export default function CheckoutPage() {
               <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
                 {t.shipTo}: <span style={{ color: "var(--text)" }}>{(isPickup ? `${t.fulfillmentPickup}${store?.pickup?.location ? ` · ${store.pickup.location.name}` : ""}` : [geo.area, geo.district].filter(Boolean).join(", "))} · {effectivePayment === "cod" ? t.cod : t.bankTransfer}</span>
               </div>
+            </div>
+          ) : null}
+
+          {/* Terms + minimum-order gates (settled at the submit step). */}
+          {(!multi || showReview) && (belowMin || termsRequired) ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 18 }}>
+              {belowMin ? (
+                <div
+                  style={{
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: "var(--text)",
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    padding: "9px 12px",
+                  }}
+                >
+                  {t.minOrderNotice} {money(minOrder, currency)}
+                </div>
+              ) : null}
+              {termsRequired ? (
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--muted)", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                  />
+                  {/* {terms} splits the sentence so only the terms phrase links.
+                      Clicking an <a> inside a <label> navigates without toggling
+                      the checkbox (HTML: interactive descendants don't activate it). */}
+                  <span>
+                    {t.agreeToTerms.split("{terms}").map((part, i) => (
+                      <span key={i}>
+                        {i > 0 &&
+                          (termsSlug ? (
+                            <Link
+                              href={storeHref(base, `/pages/${termsSlug}`)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "var(--text)", fontWeight: 600, textDecoration: "underline" }}
+                            >
+                              {t.termsLinkLabel}
+                            </Link>
+                          ) : (
+                            t.termsLinkLabel
+                          ))}
+                        {part}
+                      </span>
+                    ))}
+                  </span>
+                </label>
+              ) : null}
             </div>
           ) : null}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
 import {
@@ -60,7 +61,7 @@ export default function CampaignsPage() {
           createMutation: useCreateCampaign(),
           updateMutation: useUpdateCampaign(),
           deleteMutation: useDeleteCampaign(),
-          queryKey: ["campaigns"],
+          queryKey: queryKeys.campaigns.all(),
           entityName: "Campaign",
           editTooltip: "Edit campaign",
           deleteTooltip: "Delete campaign",

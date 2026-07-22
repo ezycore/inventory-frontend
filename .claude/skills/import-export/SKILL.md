@@ -1,6 +1,6 @@
 ---
 name: import-export
-description: 'CSV import & export on the FRONTEND — the shared ImportDialog + ColumnMapper preview/commit flow, the `createImportApi` request pair, and the DataTable ExportDialog / DataTableExportConfig. USE WHEN: adding import or export to a list page, wiring a preview→map→commit flow, header-mismatch column mapping, showing import warnings/row errors, a dataset/column-preset export choice, "import silently skipped rows", "export missing columns", or the template download. Touches `easystock-frontend/{components/shared/import,components/shared/export,services/api/modules/import-api.ts,ui/components/dataTable,types/DataTable.ts}`. The CSV SPEC ENGINE (column definitions, feature-gated columns, warnings, preview-vs-commit semantics) is the BACKEND''s — read `easystock-backend/.claude/skills/import-export/SKILL.md`; this file does not duplicate it.'
+description: 'CSV import & export on the FRONTEND — the shared ImportDialog + ColumnMapper preview/commit flow, the `createImportApi` request pair, and the DataTable ExportDialog / DataTableExportConfig. USE WHEN: adding import or export to a list page, wiring a preview→map→commit flow, header-mismatch column mapping, showing import warnings/row errors, a dataset/column-preset export choice, "import silently skipped rows", "export missing columns", or the template download. Touches `inventory-frontend/{components/shared/import,components/shared/export,services/api/modules/import-api.ts,ui/components/dataTable,types/DataTable.ts}`. The CSV SPEC ENGINE (column definitions, feature-gated columns, warnings, preview-vs-commit semantics) is the BACKEND''s — read `inventory-backend/.claude/skills/import-export/SKILL.md`; this file does not duplicate it.'
 ---
 
 # Import / Export Skill (Frontend)
@@ -11,7 +11,7 @@ UX and renders the result.
 
 > **The spec engine is NOT here.** Column definitions, feature-gated columns, `ImportResult.warnings`
 > (visible soft-skips) and the preview-vs-commit contract live in
-> [`easystock-backend/.claude/skills/import-export/SKILL.md`](../../../../easystock-backend/.claude/skills/import-export/SKILL.md)
+> [`inventory-backend/.claude/skills/import-export/SKILL.md`](../../../../inventory-backend/.claude/skills/import-export/SKILL.md)
 > (`src/export-import/`). Read it before changing what a column means.
 
 ---

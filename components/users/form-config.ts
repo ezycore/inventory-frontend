@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import { ApiResponse, Location, PaginatedResponse } from "@/types";
 import { FilterConfig } from "@/types/DataTable";
@@ -58,7 +59,7 @@ export const getUserFormConfig = (t: Translator): DynamicFormConfig => ({
       name: "locationIds",
       type: "select",
       label: t("form.locations"),
-      optionsApi: "/locations/active",
+      optionsApi: selectOptions("activeLocations"),
       mode: "multiple",
       columnSpan: 12,
       required: false,

@@ -38,6 +38,8 @@ export type ApiBrand = Schemas["Brand"];
 export type BrandListItem = Schemas["BrandListItem"];
 export type ApiCategory = Schemas["Category"];
 export type CategoryListItem = Schemas["CategoryListItem"];
+/** Result of re-pointing a category's products at its default VAT rate. */
+export type CategoryApplyTaxResult = Schemas["CategoryApplyTax"];
 export type ApiUnit = Schemas["Unit"];
 export type ApiTax = Schemas["Tax"];
 export type ApiDiscount = Schemas["Discount"];
@@ -97,6 +99,9 @@ export type StockValuationReport = Schemas["StockValuationReport"];
 export type TaxReport = Schemas["TaxReport"];
 export type TaxLedger = Schemas["TaxLedger"];
 export type CashReport = Schemas["CashReport"];
+export type CapitalReport = Schemas["CapitalReport"];
+export type ProfitLossReport = Schemas["ProfitLossReport"];
+export type PositionReport = Schemas["PositionReport"];
 export type EmployeeReport = Schemas["EmployeeReport"];
 export type ComboSalesReport = Schemas["ComboSalesReport"];
 
@@ -111,6 +116,7 @@ export type StorefrontOrderList = Schemas["StorefrontOrderList"];
 export type OrderStats = Schemas["OrderStats"];
 export type StorefrontDashboard = Schemas["StorefrontDashboard"];
 export type CatalogList = Schemas["CatalogList"];
+export type CatalogVariant = Schemas["CatalogVariant"];
 export type StorefrontCollection = Schemas["Collection"];
 export type CourierList = Schemas["CourierList"];
 export type CourierUpsert = Schemas["CourierUpsert"];

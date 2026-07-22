@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/query-keys'
+import { invalidate } from '@/services/api/invalidation'
+import { queryKeys } from '@/services/api/query-keys'
 import { handleMutationError } from '@/lib/error-handling'
 import { variantAttributesApi } from '@/services/api'
 import type { VariantAttribute, CreateVariantAttributeDto } from '@/types'
@@ -39,7 +40,7 @@ export const useCreateVariantAttribute = () => {
       variantAttributesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
+      invalidate(queryClient, "catalog.changed")
     },
     onError: handleMutationError,
   })
@@ -67,7 +68,7 @@ export const useUpdateVariantAttribute = () => {
         : variables.id;
       queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
       queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.detail(id) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
+      invalidate(queryClient, "catalog.changed")
     },
     onError: handleMutationError,
   })
@@ -83,7 +84,7 @@ export const useDeleteVariantAttribute = () => {
     mutationFn: (id: string) => variantAttributesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.variantAttributes.all() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() })
+      invalidate(queryClient, "catalog.changed")
     },
     onError: handleMutationError,
   })
@@ -94,7 +95,7 @@ export const useDeleteVariantAttribute = () => {
  */
 export const useVariantStats = () => {
   return useQuery({
-    queryKey: [...queryKeys.variantAttributes.all(), 'stats'],
+    queryKey: queryKeys.variantAttributes.stats(),
     queryFn: () => variantAttributesApi.getStats(),
     select: (data) => data.data,
     staleTime: 10 * 60 * 1000,

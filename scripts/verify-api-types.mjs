@@ -19,26 +19,35 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
-const SPEC = "../easystock-backend/docs/reference/openapi.json";
+const SPEC = "../inventory-backend/docs/reference/openapi.json";
 const GENERATED = "types/api-generated.ts";
 const REGEN_CMD = "pnpm gen:api-types";
 
 if (!existsSync(SPEC)) {
   console.warn(
     `⚠ Skipping API-types check: backend spec not found at ${SPEC}.\n` +
-      "  (Expected the easystock-backend repo checked out beside this one.)",
+      "  (Expected the inventory-backend repo checked out beside this one.)",
   );
   process.exit(0);
 }
+
+// Run openapi-typescript's CLI directly with node — spawning the `pnpm`/`.cmd`
+// shim is not cross-platform (recent Node rejects `.cmd` without a shell).
+const require = createRequire(import.meta.url);
+const otPkgPath = require.resolve("openapi-typescript/package.json");
+const otBin = JSON.parse(readFileSync(otPkgPath, "utf8")).bin;
+const otBinRel = typeof otBin === "string" ? otBin : otBin["openapi-typescript"];
+const OT_CLI = join(dirname(otPkgPath), otBinRel);
 
 const tmpFile = join(tmpdir(), `api-generated.check.${process.pid}.ts`);
 
 let fresh;
 try {
-  execFileSync("pnpm", ["exec", "openapi-typescript", SPEC, "-o", tmpFile], {
+  execFileSync(process.execPath, [OT_CLI, SPEC, "-o", tmpFile], {
     stdio: ["ignore", "ignore", "inherit"],
   });
   fresh = readFileSync(tmpFile, "utf8");
@@ -52,7 +61,11 @@ try {
 
 const current = existsSync(GENERATED) ? readFileSync(GENERATED, "utf8") : "";
 
-if (fresh !== current) {
+// Compare content only — a Windows checkout stores the committed file CRLF while
+// openapi-typescript always emits LF, which would otherwise be a false "drift".
+const normalize = (s) => s.replace(/\r\n/g, "\n");
+
+if (normalize(fresh) !== normalize(current)) {
   console.error(
     `✖ ${GENERATED} is out of date with the backend OpenAPI spec.\n` +
       "  The backend response contract changed but the frontend types were not regenerated,\n" +

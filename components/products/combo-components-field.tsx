@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { selectOptions } from "@/services/api/select-options";
 import { useTranslations } from "next-intl";
 import { useWatch } from "react-hook-form";
 import { X } from "lucide-react";
@@ -46,7 +47,7 @@ export default function ComboComponentsField({
   const productType = useWatch({ control, name: "productType" });
   const selfId = useWatch({ control, name: "_id" });
   const { data: options = [] } = useSelectOptions(
-    "/products?all=true&fields=_id,name,price,productType,variants",
+    selectOptions("products", { fields: "_id,name,price,productType,variants" }),
   );
 
   // Fully controlled by the form field: `value` is the source of truth and every

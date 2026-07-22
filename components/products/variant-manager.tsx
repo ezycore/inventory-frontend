@@ -1,6 +1,7 @@
 'use client'
 // coding-standard: maintained
 
+import { selectOptions } from "@/services/api/select-options";
 import React, { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { useWatch } from 'react-hook-form'
@@ -113,7 +114,7 @@ export default function VariantManager({
   const createVariantAttribute = useCreateVariantAttribute()
 
   // Unit options for UOM selectors
-  const { data: unitOptions = [] } = useSelectOptions('/units?all=true&fields=_id,name,shortName')
+  const { data: unitOptions = [] } = useSelectOptions(selectOptions("units", { fields: "_id,name,shortName" }))
   const baseUnit = unitOptions.find(
     (opt: any) => opt.value === baseUnitId || (opt as any)._id === baseUnitId,
   )

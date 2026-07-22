@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { stockMovementsApi, stockApi } from "@/services/api";
 import type { StockMovementPeriod } from "@/services/api/modules/stock/api";
+import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationError } from '@/lib/error-handling'
 import type { StockAdjustmentDto } from '@/types/products'
@@ -41,7 +42,7 @@ export const useStockMovementStats = (filters: {
   endDate?: string;
 } = {}) => {
   return useQuery({
-    queryKey: [...queryKeys.stockMovements.all(), "stats", filters],
+    queryKey: queryKeys.stockMovements.stats(filters),
     queryFn: () => stockMovementsApi.getStats(filters),
   });
 };
@@ -52,8 +53,7 @@ export const useInventoryHistory = (
  variantId?: string
 ) => {
  return useQuery({
-  queryKey: [],
-  // queryKey: queryKeys.stockMovements.inventoryHistory(productId, locationId, variantId),
+  queryKey: queryKeys.stockMovements.inventoryHistory(productId, locationId, variantId),
   queryFn: () => stockMovementsApi.getInventoryHistory(productId, locationId, variantId),
   enabled: !!productId && !!locationId,
  });
@@ -61,7 +61,7 @@ export const useInventoryHistory = (
 
 export const useStockLevels = () => {
  return useQuery({
-  queryKey: queryKeys.stock?.levels() || ['stock', 'levels'],
+  queryKey: queryKeys.stock.levels(),
   queryFn: () => stockApi.getStockLevels(),
   staleTime: 1 * 60 * 1000, // 1 minute
  });
@@ -78,12 +78,7 @@ export const useAdjustStock = () => {
  return useMutation({
   mutationFn: (data: StockAdjustmentDto) => stockApi.adjustStock(data),
   onSuccess: (_, variables) => {
-   // Invalidate stock-related queries
-   queryClient.invalidateQueries({ queryKey: ['stock'] })
-   queryClient.invalidateQueries({ queryKey: ['stockMovements'] })
-
-   // Invalidate variant queries to update stock quantity
-   queryClient.invalidateQueries({ queryKey: ['variants'] })
+   invalidate(queryClient, "stock.moved")
   },
   onError: handleMutationError,
  })
@@ -99,10 +94,7 @@ export const useTransferStock = () => {
   mutationFn: (data: StockAdjustmentDto & { from_location: string; to_location: string }) =>
    stockApi.transferStock(data),
   onSuccess: () => {
-   // Invalidate all stock-related queries
-   queryClient.invalidateQueries({ queryKey: ['stock'] })
-   queryClient.invalidateQueries({ queryKey: ['stockMovements'] })
-   queryClient.invalidateQueries({ queryKey: ['variants'] })
+   invalidate(queryClient, "stock.moved")
   },
   onError: handleMutationError,
  })
@@ -118,10 +110,7 @@ export const useBulkStockAdjustment = () => {
   mutationFn: (adjustments: StockAdjustmentDto[]) =>
    Promise.all(adjustments.map(adjustment => stockApi.adjustStock(adjustment))),
   onSuccess: () => {
-   // Invalidate all stock and variant queries
-   queryClient.invalidateQueries({ queryKey: ['stock'] })
-   queryClient.invalidateQueries({ queryKey: ['stockMovements'] })
-   queryClient.invalidateQueries({ queryKey: ['variants'] })
+   invalidate(queryClient, "stock.moved")
   },
   onError: handleMutationError,
  })

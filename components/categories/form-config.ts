@@ -1,6 +1,19 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import type { Translator } from '@/i18n/config'
+
+/**
+ * `status=active` matters here for the same reason it does on the product form:
+ * rates are SUPERSEDED, not edited, so a retired rate must not stay selectable.
+ * No `defaultFlag` — a category default has to be a deliberate choice, otherwise
+ * every category would silently claim the org-wide rate and the fallback would
+ * never be reached.
+ */
+export const TAX_OPTIONS_API = selectOptions("taxes", {
+  status: "active",
+  fields: "_id,name,rate,vatCategory",
+});
 
 /**
  * Static English config — used by the module-scope quick-add registry and the
@@ -60,6 +73,16 @@ export const categoryFormConfig: DynamicFormConfig = {
       columnSpan: 12,
       defaultValue: false,
     },
+    {
+      name: "defaultTaxId",
+      type: "select",
+      label: "Default VAT rate",
+      columnSpan: 12,
+      optionsApi: TAX_OPTIONS_API,
+      placeholder: "Use the organization default",
+      helperText:
+        "Prefilled on new products in this category, on both the purchase and the sales side. Existing products are never re-priced.",
+    },
   ],
 }
 
@@ -115,6 +138,15 @@ export const getCategoryFormConfig = (t: Translator): DynamicFormConfig => ({
       description: t("form.isDefaultDescription"),
       columnSpan: 12,
       defaultValue: false,
+    },
+    {
+      name: "defaultTaxId",
+      type: "select",
+      label: t("form.defaultTax"),
+      columnSpan: 12,
+      optionsApi: TAX_OPTIONS_API,
+      placeholder: t("form.defaultTaxPlaceholder"),
+      helperText: t("form.defaultTaxHint"),
     },
   ],
 })

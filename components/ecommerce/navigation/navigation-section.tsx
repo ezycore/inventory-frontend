@@ -19,7 +19,10 @@ import {
   AnnouncementCard,
   type AnnouncementDraft,
 } from "@/components/ecommerce/navigation/announcement-card";
-import { FooterLinksCard } from "@/components/ecommerce/navigation/footer-links-card";
+import {
+  FooterLinksCard,
+  type FooterContentPagesDraft,
+} from "@/components/ecommerce/navigation/footer-links-card";
 import { HeaderMenuCard } from "@/components/ecommerce/navigation/header-menu-card";
 import type { NavOption } from "@/components/ecommerce/navigation/menu-item-fields";
 
@@ -35,6 +38,8 @@ export function NavigationSection({
   setSource,
   header,
   setHeader,
+  announcement,
+  setAnnouncement,
   collections,
   onManageCollections,
 }: {
@@ -43,6 +48,10 @@ export function NavigationSection({
   setSource: (v: HeaderMenuSource) => void;
   header: StorefrontMenuItem[];
   setHeader: (v: StorefrontMenuItem[]) => void;
+  // Announcement draft is lifted to CustomizeWorkspace so the live preview
+  // repaints as it's edited (footer stays local — the preview doesn't render it).
+  announcement: AnnouncementDraft;
+  setAnnouncement: (patch: Partial<AnnouncementDraft>) => void;
   collections: CollectionRowValue[];
   onManageCollections: () => void;
 }) {
@@ -51,12 +60,14 @@ export function NavigationSection({
 
   const nav = settings.nav;
   const [footer, setFooter] = useState<StorefrontFooterGroup[]>(nav?.footer ?? []);
-  const [announcement, setAnnouncement] = useState<AnnouncementDraft>({
-    enabled: nav?.announcement?.enabled ?? false,
-    text: nav?.announcement?.text ?? "",
-    link: nav?.announcement?.link ?? "",
-    bgColor: nav?.announcement?.bgColor ?? "#2563eb",
-  });
+  // Auto content-pages column: `show` defaults on (legacy behaviour) so existing
+  // stores keep showing it; blank title ⇒ the built-in "Information" heading.
+  const [contentPages, setContentPages] = useState<FooterContentPagesDraft>(() => ({
+    show: nav?.footerContentPages?.show ?? true,
+    title: nav?.footerContentPages?.title ?? "",
+  }));
+  const patchContentPages = (patch: Partial<FooterContentPagesDraft>) =>
+    setContentPages((c) => ({ ...c, ...patch }));
 
   // Menu links target categories by slug; slugless ones (legacy seed data) are
   // unlinkable — and Radix Select crashes on empty-string item values.
@@ -75,8 +86,10 @@ export function NavigationSection({
         .map((it) => ({
           label: it.label.trim(),
           type: it.type,
-          value: it.value.trim(),
-          children: it.children?.length
+          value: it.type === "collections" ? "" : it.value.trim(),
+          // A collections block expands inline; drop children left over from
+          // before the row's type was switched.
+          children: it.type !== "collections" && it.children?.length
             ? it.children
                 .filter((c) => c.label.trim())
                 .map((c) => ({
@@ -94,11 +107,26 @@ export function NavigationSection({
           title: g.title.trim(),
           links: g.links.filter((l) => l.label.trim()),
         })),
+      footerContentPages: {
+        show: contentPages.show,
+        title: contentPages.title.trim() || undefined,
+      },
       announcement: {
         enabled: announcement.enabled,
         text: announcement.text.trim() || undefined,
         link: announcement.link.trim() || undefined,
         bgColor: announcement.bgColor,
+        textColor: announcement.textColor.trim() || undefined,
+        icon: announcement.icon.trim() || undefined,
+        ctaLabel: announcement.ctaLabel.trim() || undefined,
+        dismissible: announcement.dismissible,
+        size: announcement.size,
+        // Sent wholesale (nav replaces on PATCH); null clears a removed image
+        // and the backend deletes the orphaned asset.
+        bgImage: announcement.bgImage,
+        overlay: announcement.overlay,
+        overlayOpacity: announcement.overlayOpacity,
+        bgFit: announcement.bgFit,
       },
     };
     save.mutate({
@@ -123,11 +151,13 @@ export function NavigationSection({
           pageOptions={pageOptions}
           onManageCollections={onManageCollections}
         />
-        <AnnouncementCard
-          value={announcement}
-          onChange={(patch) => setAnnouncement((a) => ({ ...a, ...patch }))}
+        <AnnouncementCard value={announcement} onChange={setAnnouncement} />
+        <FooterLinksCard
+          groups={footer}
+          setGroups={setFooter}
+          contentPages={contentPages}
+          setContentPages={patchContentPages}
         />
-        <FooterLinksCard groups={footer} setGroups={setFooter} />
       </div>
       <div className="flex flex-none justify-end">
         <Button onClick={submit} disabled={save.isPending}>

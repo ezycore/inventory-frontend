@@ -21,6 +21,7 @@ import { useCreateTax, useDeleteTax, useUpdateTax } from "@/services/api";
 import { taxesApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
+import type { ApiTax } from "@/types/api";
 
 // ── Form config ─────────────────────────────────────────────────────────
 const getTaxFormConfig = (t: (key: string) => string): DynamicFormConfig => ({
@@ -42,14 +43,21 @@ const getTaxFormConfig = (t: (key: string) => string): DynamicFormConfig => ({
       columnSpan: 6,
     },
     {
-      name: "type",
+      // What KIND of supply this rate represents. Not cosmetic: zero-rated and
+      // exempt are both 0%, but only zero-rated allows an input rebate and they
+      // sit in different boxes on the মূসক 9.1. Without this field a merchant
+      // cannot create an exempt or zero-rated rate at all.
+      name: "vatCategory",
       type: "select",
-      label: t("form.type"),
+      label: t("form.vatCategory"),
+      description: t("form.vatCategoryDescription"),
       required: true,
       columnSpan: 6,
       options: [
-        { value: "percentage", label: t("form.percentage") },
-        { value: "fixed", label: t("form.fixed") },
+        { value: "standard", label: t("form.categories.standard") },
+        { value: "reduced", label: t("form.categories.reduced") },
+        { value: "zero_rated", label: t("form.categories.zero_rated") },
+        { value: "exempt", label: t("form.categories.exempt") },
       ],
     },
     {
@@ -84,13 +92,15 @@ const getTaxFilterConfig = (t: (key: string) => string): FilterConfig => ({
       placeholder: t("filters.searchPlaceholder"),
     },
     {
-      name: "type",
-      label: t("filters.typeLabel"),
+      name: "vatCategory",
+      label: t("filters.categoryLabel"),
       type: "select",
-      placeholder: t("filters.typePlaceholder"),
+      placeholder: t("filters.categoryPlaceholder"),
       options: [
-        { label: t("form.percentage"), value: "percentage" },
-        { label: t("form.fixed"), value: "fixed" },
+        { label: t("form.categories.standard"), value: "standard" },
+        { label: t("form.categories.reduced"), value: "reduced" },
+        { label: t("form.categories.zero_rated"), value: "zero_rated" },
+        { label: t("form.categories.exempt"), value: "exempt" },
       ],
     },
     {
@@ -110,7 +120,7 @@ const getTaxFilterConfig = (t: (key: string) => string): FilterConfig => ({
 const defaultValues = {
   name: "",
   rate: 0,
-  type: "percentage" as const,
+  vatCategory: "standard" as const,
   status: "active" as const,
   isDefault: false,
 };
@@ -137,7 +147,7 @@ export default function TaxesPage() {
     createMutation: useCreateTax(),
     updateMutation: useUpdateTax(),
     deleteMutation: useDeleteTax(),
-    queryKey: [...queryKeys.taxes.all()],
+    queryKey: queryKeys.taxes.all(),
     entityName: "Tax" as const,
   };
 
@@ -152,7 +162,10 @@ export default function TaxesPage() {
       />
 
       {/* Card View */}
-      <DataCard
+      {/* Explicit generic: without it TData infers as `{ _id: string }` and the
+          card renderer silently accepts anything — which is how a removed field
+          went unnoticed. */}
+      <DataCard<ApiTax>
         cardTitle={(n) => t("allTaxesCount", { count: n })}
         defaultPageSize={12}
         pageSizes={[12, 24, 48]}

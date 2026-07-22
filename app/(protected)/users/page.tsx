@@ -152,7 +152,7 @@ export default function UsersPage() {
     createMutation,
     updateMutation,
     deleteMutation,
-    queryKey: [...queryKeys.users.all()],
+    queryKey: queryKeys.users.all(),
     entityName: "User",
     isViewAvailable: false,
     editTooltip: t("form.editTooltip"),

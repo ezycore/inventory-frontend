@@ -1,16 +1,26 @@
 // coding-standard: maintained
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import type {
   RichDocBlockNode,
   RichDocInlineNode,
   RichDocRoot,
   RichDocTextNode,
 } from "@/lib/storefront-rich-doc";
-import { FAQ_LIST_NODE, SAFE_RICH_HREF } from "@/lib/storefront-rich-doc";
+import {
+  CALLOUT_NODE,
+  FAQ_LIST_NODE,
+  safeAlign,
+  safeCssColor,
+  SAFE_RICH_HREF,
+  TABLE_NODE,
+} from "@/lib/storefront-rich-doc";
 import { RichDocFaqView } from "@/components/storefront/rich-doc-faq-view";
+import { RichDocTableView } from "@/components/storefront/rich-doc-table-view";
+import { RichDocCalloutView } from "@/components/storefront/rich-doc-callout-view";
 import {
   proseDivider,
   proseHeading,
+  proseHighlight,
   proseLink,
   proseList,
   proseParagraph,
@@ -21,8 +31,9 @@ import {
  * Renders rich-doc CMS page bodies (lib/storefront-rich-doc tree) as React
  * nodes — the rich-format twin of markdown-view.tsx, and the XSS boundary for
  * owner content: the stored JSON is untrusted (writable via the raw API, not
- * just the admin editor), so link hrefs are re-validated here regardless of
- * what the editor allowed, and no raw HTML is ever rendered.
+ * just the admin editor), so every attribute that becomes a style/href (link,
+ * colour, alignment, table span) is re-validated here, and no raw HTML is ever
+ * rendered.
  */
 
 function renderTextNode(node: RichDocTextNode, key: number): ReactNode {
@@ -32,6 +43,16 @@ function renderTextNode(node: RichDocTextNode, key: number): ReactNode {
       el = <strong style={{ fontWeight: 700 }}>{el}</strong>;
     } else if (mark.type === "italic") {
       el = <em>{el}</em>;
+    } else if (mark.type === "underline") {
+      el = <u>{el}</u>;
+    } else if (mark.type === "strike") {
+      el = <s>{el}</s>;
+    } else if (mark.type === "textStyle") {
+      const color = safeCssColor(mark.attrs?.color);
+      if (color) el = <span style={{ color }}>{el}</span>;
+      // Invalid colour: mark dropped, text stays plain.
+    } else if (mark.type === "highlight") {
+      el = <mark style={proseHighlight(safeCssColor(mark.attrs?.color))}>{el}</mark>;
     } else if (mark.type === "link" && SAFE_RICH_HREF.test(mark.attrs?.href ?? "")) {
       const external = /^https?:\/\//i.test(mark.attrs.href);
       el = (
@@ -63,17 +84,23 @@ export function RichDocInline({ nodes }: { nodes?: RichDocInlineNode[] }) {
 const clampLevel = (level: number): 1 | 2 | 3 =>
   (Math.min(3, Math.max(1, Math.round(level) || 1)) as 1 | 2 | 3);
 
+// Only set textAlign when it's a validated value, so untagged blocks inherit.
+const withAlign = (base: CSSProperties, align: unknown): CSSProperties => {
+  const a = safeAlign(align);
+  return a ? { ...base, textAlign: a } : base;
+};
+
 export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
   switch (block.type) {
     case "heading":
       return (
-        <div style={proseHeading(clampLevel(block.attrs?.level ?? 1))}>
+        <div style={withAlign(proseHeading(clampLevel(block.attrs?.level ?? 1)), block.attrs?.textAlign)}>
           <RichDocInline nodes={block.content} />
         </div>
       );
     case "paragraph":
       return (
-        <p style={proseParagraph}>
+        <p style={withAlign(proseParagraph, block.attrs?.textAlign)}>
           <RichDocInline nodes={block.content} />
         </p>
       );
@@ -110,6 +137,10 @@ export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
       return <hr style={proseDivider} />;
     case FAQ_LIST_NODE:
       return <RichDocFaqView items={block.content ?? []} />;
+    case TABLE_NODE:
+      return <RichDocTableView table={block} />;
+    case CALLOUT_NODE:
+      return <RichDocCalloutView callout={block} />;
     default:
       return null;
   }

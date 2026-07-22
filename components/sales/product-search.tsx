@@ -1,5 +1,6 @@
 "use client";
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { useTranslations } from "next-intl";
 import { useSelectOptions } from "@/services/api";
 import { formatCurrency } from "@/lib/currency";
@@ -40,7 +41,7 @@ export function ProductSearch({ onSelect, placeholder }: ProductSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: products = [], isLoading } = useSelectOptions("/inventory/sellable-products", productItemsCreateCallback);
+  const { data: products = [], isLoading } = useSelectOptions(selectOptions("sellableProducts"), productItemsCreateCallback);
 
   const castProducts = products as unknown as ExtractedProduct[];
 

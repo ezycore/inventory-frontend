@@ -1,4 +1,6 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
+import { queryKeys } from "@/services/api/query-keys";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -15,10 +17,10 @@ export function useOrderAccountOptions() {
   );
 
   const { data } = useQuery({
-    queryKey: ["accounts", "order-options"],
+    queryKey: queryKeys.accounts.orderOptions(),
     queryFn: () =>
       apiClient.get<{ data: { items: { _id: string; name: string }[] } }>(
-        "/accounts?all=true&fields=_id,name",
+        selectOptions("accounts", { fields: "_id,name" }),
       ),
     enabled: !!accountsEnabled,
     staleTime: 5 * 60 * 1000,

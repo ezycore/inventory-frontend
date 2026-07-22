@@ -7,10 +7,10 @@ import { createResourceHooks } from "../query-helpers";
 const taxHooks = createResourceHooks<ApiTax, CreateTaxDto>(
   taxesApi,
   queryKeys.taxes,
-    { relatedQueryKeys: [queryKeys.products.all(), 
-      [ "select-options", "/taxes?all=true&fields=_id,name,rate"],
-      [ "select-options", "/taxes?all=true&fields=_id,name,rate,isDefault"]
-    ] },
+  {
+    // Products and categories store a rate snapshot.
+    events: ["catalog.changed"],
+  },
 );
 
 export const useTaxes = taxHooks.useList;

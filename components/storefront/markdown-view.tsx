@@ -19,6 +19,16 @@ function Inline({ nodes }: { nodes: SfInline[] }) {
       {nodes.map((n, i) => {
         if (n.kind === "bold") return <strong key={i} style={{ fontWeight: 700 }}>{n.text}</strong>;
         if (n.kind === "italic") return <em key={i}>{n.text}</em>;
+        if (n.kind === "code") {
+          return (
+            <code
+              key={i}
+              style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 5, padding: "1px 5px", fontSize: "0.9em" }}
+            >
+              {n.text}
+            </code>
+          );
+        }
         if (n.kind === "link") {
           const external = /^https?:\/\//i.test(n.href);
           return (
@@ -80,6 +90,34 @@ function Block({ block }: { block: SfBlock }) {
       );
     case "divider":
       return <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "24px 0" }} />;
+    case "table":
+      // Scrolls in its own box so a wide table never widens the page on a phone.
+      return (
+        <div style={{ overflowX: "auto", margin: "16px 0" }}>
+          <table style={{ ...bodyText, borderCollapse: "collapse", width: "100%" }}>
+            <thead>
+              <tr>
+                {block.headers.map((cell, i) => (
+                  <th key={i} style={{ textAlign: "left", fontWeight: 700, padding: "8px 12px", borderBottom: "2px solid var(--border)", whiteSpace: "nowrap" }}>
+                    <Inline nodes={cell} />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row, i) => (
+                <tr key={i}>
+                  {row.map((cell, j) => (
+                    <td key={j} style={{ padding: "8px 12px", borderBottom: "1px solid var(--border)", verticalAlign: "top" }}>
+                      <Inline nodes={cell} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
     case "faq":
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 12, margin: "16px 0" }}>

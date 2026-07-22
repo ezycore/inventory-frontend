@@ -12,23 +12,60 @@ import { Edit2, MoreVertical, Percent, Hash, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import type { Translator } from "@/i18n/config";
 import type { AppLocale } from "@/i18n/config";
+import type { ApiTax } from "@/types/api";
 
-const typeStyles: Record<string, { bg: string; icon: typeof Percent }> = {
-  percentage: { bg: "bg-violet-100 text-violet-700", icon: Percent },
-  fixed: { bg: "bg-amber-100 text-amber-700", icon: Hash },
+// Keyed by VAT category. `Tax.type` ("percentage" | "fixed") was removed —
+// every rate is a percentage, so the card now distinguishes what the rate MEANS
+// instead of how it is calculated.
+type VatCategory = ApiTax["vatCategory"];
+
+const categoryStyles: Record<
+  VatCategory,
+  { bg: string; icon: typeof Percent; accent: string }
+> = {
+  standard: {
+    bg: "bg-violet-100 text-violet-700",
+    icon: Percent,
+    accent: "bg-gradient-to-r from-violet-500 to-purple-500",
+  },
+  reduced: {
+    bg: "bg-sky-100 text-sky-700",
+    icon: Percent,
+    accent: "bg-gradient-to-r from-sky-500 to-blue-500",
+  },
+  zero_rated: {
+    bg: "bg-emerald-100 text-emerald-700",
+    icon: Hash,
+    accent: "bg-gradient-to-r from-emerald-500 to-teal-500",
+  },
+  exempt: {
+    bg: "bg-amber-100 text-amber-700",
+    icon: Hash,
+    accent: "bg-gradient-to-r from-amber-500 to-orange-500",
+  },
 };
 
+/**
+ * Typed against the generated `ApiTax`, deliberately — not `any`.
+ *
+ * This card read `tax.type` ("percentage" | "fixed") long after that field was
+ * removed from the backend, rendering every rate as "৳15" instead of "15%".
+ * `typecheck` stayed green the whole time because the parameter was `any`. The
+ * generated contract exists so a removed field is a compile error; opting out
+ * of it here is what let the bug through.
+ */
 const TaxCardView = (
-  tax: any,
+  tax: ApiTax,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
   options: { t: Translator; locale: AppLocale },
 ) => {
   const { t, locale } = options;
-  const { name, rate, type, status, isDefault, createdAt } = tax;
+  const { name, rate, vatCategory, status, isDefault, createdAt } = tax;
 
-  const typeConfig = typeStyles[type] || typeStyles.percentage;
+  const typeConfig = categoryStyles[vatCategory] || categoryStyles.standard;
   const TypeIcon = typeConfig.icon;
-  const displayValue = type === "percentage" ? `${rate}%` : `৳${Number(rate).toLocaleString()}`;
+  // Every VAT rate is a percentage.
+  const displayValue = `${rate}%`;
 
   const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
 
@@ -36,11 +73,7 @@ const TaxCardView = (
     <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 border-border/60">
       {/* Top color accent bar */}
       <div
-        className={`h-1 w-full ${
-          type === "percentage"
-            ? "bg-gradient-to-r from-violet-500 to-purple-500"
-            : "bg-gradient-to-r from-amber-500 to-orange-500"
-        }`}
+        className={`h-1 w-full ${typeConfig.accent}`}
       />
 
       <div className="p-5 space-y-4">
@@ -65,8 +98,8 @@ const TaxCardView = (
                 >
                   {status === "active" ? t("form.active") : t("form.inactive")}
                 </Badge>
-                <Badge variant="outline" className="text-[11px] px-2 py-0 capitalize">
-                  {type === "percentage" ? t("form.percentage") : t("form.fixed")}
+                <Badge variant="outline" className="text-[11px] px-2 py-0">
+                  {t(`form.categories.${vatCategory ?? "standard"}`)}
                 </Badge>
                 {isDefault && (
                   <Badge

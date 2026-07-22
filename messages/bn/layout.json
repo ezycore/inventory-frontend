@@ -1,11 +1,11 @@
 {
   "nav": {
     "groups": {
-      "overview": "ওভারভিউ",
-      "operations": "কার্যক্রম",
-      "contacts": "পরিচিতি",
-      "catalog": "ক্যাটালগ",
+      "sell": "বিক্রয়",
+      "buy": "ক্রয়",
+      "stock": "স্টক",
       "money": "অর্থ",
+      "insights": "রিপোর্ট",
       "admin": "অ্যাডমিন"
     },
     "items": {
@@ -15,7 +15,7 @@
       "sales-report": "বিক্রয় রিপোর্ট",
       "purchase-report": "ক্রয় রিপোর্ট",
       "cash-report": "নগদ রিপোর্ট",
-      "tax-report": "কর রিপোর্ট",
+      "vat-report": "ভ্যাট রিপোর্ট",
       "stock-value": "স্টক মূল্য",
       "expiry-report": "মেয়াদ রিপোর্ট",
       "staff-report": "কর্মচারী রিপোর্ট",
@@ -39,6 +39,16 @@
       "stock-by-location": "লোকেশন অনুযায়ী স্টক",
       "customers": "গ্রাহক",
       "suppliers": "সরবরাহকারী",
+      "online-store": "অনলাইন স্টোর",
+      "store-overview": "স্টোর ওভারভিউ",
+      "online-orders": "অনলাইন অর্ডার",
+      "catalog": "ক্যাটালগ",
+      "campaigns": "ক্যাম্পেইন",
+      "coupons": "কুপন",
+      "customize": "কাস্টমাইজ",
+      "content": "কনটেন্ট",
+      "store-customers": "স্টোর গ্রাহক",
+      "store-settings": "স্টোর সেটিংস",
       "products": "পণ্য",
       "categories": "ক্যাটাগরি",
       "brands": "ব্র্যান্ড",
@@ -49,26 +59,35 @@
       "transactions": "লেনদেন",
       "pricing": "মূল্য নির্ধারণ",
       "discounts": "ছাড়",
-      "tax-rates": "করের হার",
+      "vat-rates": "ভ্যাটের হার",
       "settings": "সেটিংস",
       "organization": "প্রতিষ্ঠান",
       "users": "ব্যবহারকারী",
       "roles": "রোল",
       "feature-settings": "ফিচার সেটিংস",
       "field-settings": "ফিল্ড সেটিংস",
-      "tax-settings": "কর সেটিংস",
+      "vat": "ভ্যাট",
       "receipt-print": "রসিদ ও প্রিন্ট",
       "custom-domains": "কাস্টম ডোমেইন",
-      "billing": "বিলিং"
+      "billing": "বিলিং",
+      "details": "বিস্তারিত",
+      "profit-loss": "লাভ ও ক্ষতি",
+      "business-position": "ব্যবসার অবস্থান"
     }
   },
   "userMenu": {
     "profile": "প্রোফাইল",
-    "billing": "বিলিং",
+    "help": "সহায়তা",
     "logout": "লগআউট"
   },
   "kbar": {
     "navigation": "নেভিগেশন",
     "goTo": "{title} খুলুন"
+  },
+  "help": {
+    "title": "সহায়তা",
+    "tooltip": "এই পাতার সহায়তা",
+    "subtitle": "দোকান চালানোর ধাপে ধাপে নির্দেশনা।",
+    "allTopics": "সব সহায়তার বিষয়"
   }
 }

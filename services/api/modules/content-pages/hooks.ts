@@ -1,19 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
+import { invalidate } from "@/services/api/invalidation";
+import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
 import { contentPagesApi, type ContentPageInput } from "./api";
 
-const ROOT = ["content-pages"] as const;
-
 export const useContentPages = () =>
   useQuery({
-    queryKey: ROOT,
+    queryKey: queryKeys.contentPages.list(),
     queryFn: () => contentPagesApi.list(),
     select: (r) => r.data,
   });
-
-const invalidate = (qc: ReturnType<typeof useQueryClient>) =>
-  qc.invalidateQueries({ queryKey: ROOT });
 
 export const useCreateContentPage = () => {
   const qc = useQueryClient();
@@ -21,7 +18,7 @@ export const useCreateContentPage = () => {
     mutationFn: (body: ContentPageInput) => contentPagesApi.create(body),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Page created");
-      invalidate(qc);
+      invalidate(qc, "storefront.catalog.changed");
     },
     onError: handleMutationError,
   });
@@ -34,7 +31,7 @@ export const useUpdateContentPage = () => {
       contentPagesApi.update(v.id, v.body),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Page updated");
-      invalidate(qc);
+      invalidate(qc, "storefront.catalog.changed");
     },
     onError: handleMutationError,
   });
@@ -46,7 +43,7 @@ export const useDeleteContentPage = () => {
     mutationFn: (id: string) => contentPagesApi.remove(id),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Page deleted");
-      invalidate(qc);
+      invalidate(qc, "storefront.catalog.changed");
     },
     onError: handleMutationError,
   });

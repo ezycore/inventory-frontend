@@ -1,6 +1,7 @@
 // coding-standard: maintained
 "use client";
 
+import { queryKeys } from "@/services/api/query-keys";
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
@@ -30,7 +31,7 @@ interface InventoryScopeFilterProps {
 export function InventoryScopeFilter({ value, onChange }: InventoryScopeFilterProps) {
   const t = useTranslations("inventory.movements");
   const { data } = useQuery({
-    queryKey: ["inventory", "scope-options"],
+    queryKey: queryKeys.inventory.scopeOptions(),
     queryFn: () => inventoryApi.getAll({ limit: 1000 }),
     select: (res) => res.data?.items ?? [],
     staleTime: 5 * 60 * 1000,

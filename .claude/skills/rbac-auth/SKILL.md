@@ -1,6 +1,6 @@
 ---
 name: rbac-auth
-description: 'RBAC, feature gates and session handling on the FRONTEND — permission-based UI gating, the auth store, feature-flag helpers, subscription/billing enforcement, and the role/permission editors. USE WHEN: hiding/showing UI by permission (`useHasPermission`, `costs.view`, `users.manage`), gating a module by plan feature (`isFeatureEnabled`), a page that should force-logout or show an overdue banner, "button visible but 403 on click" / "nav item missing" / "logged out unexpectedly" / "workspace blocked", editing roles or the permissions matrix, or reading `user.permissions` / `user.organization.features`. Touches `easystock-frontend/{services/stores/use-auth-store.ts,hooks/use-has-permission.ts,lib/feature-utils.ts,lib/subscription-utils.ts,components/shared/permissions,app/(protected)/layout.tsx,components/profile/permissions-tab.tsx,services/api/modules/{roles,users}}`. The BACKEND owns the real gates (authenticate → checkPermission → requireFeature, org scoping) — read `easystock-backend/.claude/skills/rbac-auth/SKILL.md`; this file does not duplicate it.'
+description: 'RBAC, feature gates and session handling on the FRONTEND — permission-based UI gating, the auth store, feature-flag helpers, subscription/billing enforcement, and the role/permission editors. USE WHEN: hiding/showing UI by permission (`useHasPermission`, `costs.view`, `users.manage`), gating a module by plan feature (`isFeatureEnabled`), a page that should force-logout or show an overdue banner, "button visible but 403 on click" / "nav item missing" / "logged out unexpectedly" / "workspace blocked", editing roles or the permissions matrix, or reading `user.permissions` / `user.organization.features`. Touches `inventory-frontend/{services/stores/use-auth-store.ts,hooks/use-has-permission.ts,lib/feature-utils.ts,lib/subscription-utils.ts,components/shared/permissions,app/(protected)/layout.tsx,components/profile/permissions-tab.tsx,services/api/modules/{roles,users}}`. The BACKEND owns the real gates (authenticate → checkPermission → requireFeature, org scoping) — read `inventory-backend/.claude/skills/rbac-auth/SKILL.md`; this file does not duplicate it.'
 ---
 
 # RBAC & Auth Skill (Frontend)
@@ -9,7 +9,7 @@ The frontend gates are **UI affordances only** — they hide what a user can't d
 correctly. The real enforcement is server-side. Never treat an FE permission check as security.
 
 > **The three server gates (authenticate → permission → feature), roles, and org/location scoping**
-> live in [`easystock-backend/.claude/skills/rbac-auth/SKILL.md`](../../../../easystock-backend/.claude/skills/rbac-auth/SKILL.md).
+> live in [`inventory-backend/.claude/skills/rbac-auth/SKILL.md`](../../../../inventory-backend/.claude/skills/rbac-auth/SKILL.md).
 > If a button is hidden here but the endpoint is still reachable, that is by design — the backend is the
 > gate. If a user *has* the permission but gets 403, the bug is on the backend side.
 
@@ -19,7 +19,7 @@ correctly. The real enforcement is server-side. Never treat an FE permission che
 
 - **`useHasPermission(permission)`** ([`hooks/use-has-permission.ts`](../../../hooks/use-has-permission.ts))
   reads `user.permissions` from the auth store and returns a boolean. The `PERMISSIONS` const there
-  mirrors the backend catalog (`easystock-backend/src/constants/permissions.ts`) — the two known
+  mirrors the backend catalog (`inventory-backend/src/constants/permissions.ts`) — the two known
   strings today are `costs.view` (COGS/unit-cost figures) and `users.manage` (user admin + the Roles
   settings page). **Never hardcode a permission string** in a component — add it to `PERMISSIONS`.
 - Permission strings are `resource.action`. Display helpers (grouping, action icons, category colors)
@@ -51,7 +51,10 @@ every request via the `X-Active-Location` header in `lib/api-client.ts`.
 [`lib/feature-utils.ts`](../../../lib/feature-utils.ts) reads `user.organization.features`:
 
 - `isFeatureEnabled(org, key)` / `areAllFeaturesEnabled` / `isAnyFeatureEnabled` — gate a module/nav item.
-- `isTaxActive(org, "sales" | "purchase")` — the tax surfaces (see the tax conventions in CLAUDE.md).
+- `isVatActive(org)` — every VAT surface. **No area argument**: VAT registration belongs to the
+  organization, so sales and purchases share one answer. Replaced `isTaxActive(org, area)`.
+  `claimsInputRebate(org)` is the separate "may it reclaim input VAT?" question — see the
+  [`vat`](../vat/SKILL.md) skill.
 - `FEATURE`, `getFeatureDisplayNames`, `getFeatureDescriptions` — labels for the plan/settings UI.
 
 `OrganizationFeatures` is the org's plan ceiling ANDed with overrides on the backend; the FE just reads

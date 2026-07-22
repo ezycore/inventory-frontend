@@ -36,17 +36,26 @@ jobs:
       - name: Run ESLint
         run: pnpm run lint
 
+      # Fails when a help page quotes UI text the app no longer renders, or when a new sidebar
+      # route is neither documented nor deferred in docs/help/BACKLOG.md. Self-contained — reads
+      # only this repo, so it needs no sibling checkout.
+      - name: Verify customer help docs
+        run: pnpm run help:verify
+
       - name: Run Next.js build
         run: pnpm run build
 
-      # Optional: run tests if you have them
-      # - name: Run tests
-      #   run: pnpm test
+      # Includes services/api/__tests__/invalidation.test.ts — the gate that fails when a new
+      # mutation hook invalidates nothing, or an EFFECTS entry names a key no resource owns.
+      # See docs/plan/query-invalidation.md.
+      - name: Run tests
+        run: pnpm test
 
 # Local verification notes:
 # To validate locally before creating a PR, run the following in your macOS zsh terminal:
 #
 # pnpm install --frozen-lockfile
 # pnpm lint
+# pnpm test
 # pnpm build
 

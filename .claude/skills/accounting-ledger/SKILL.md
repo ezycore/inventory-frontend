@@ -1,6 +1,6 @@
 ---
 name: accounting-ledger
-description: 'Accounts, transactions, payments and dues on the FRONTEND — the accounts page, the transactions table + create/transfer dialogs, investment entry, and the payment/due drawers reused across sales and purchases. USE WHEN: building or fixing the accounts list, a transaction or fund-transfer form, recording a payment against a customer/supplier due, showing a ledger/balance, "balance wrong / not updating", credit-balance UI, or the `accounts` feature gate. Touches `easystock-frontend/{app/(protected)/accounts,components/accounts,services/api/modules/accounts,services/api/modules/transactions}`. The MONEY rules (ledger postings, due/credit math, payment→transaction linkage, what is authoritative) are the BACKEND''s — read `easystock-backend/.claude/skills/accounting-ledger/SKILL.md`; this file does not duplicate them.'
+description: 'Accounts, transactions, payments and dues on the FRONTEND — the accounts page, the transactions table + create/transfer dialogs, investment entry, and the payment/due drawers reused across sales and purchases. USE WHEN: building or fixing the accounts list, a transaction or fund-transfer form, recording a payment against a customer/supplier due, showing a ledger/balance, "balance wrong / not updating", credit-balance UI, or the `accounts` feature gate. Touches `inventory-frontend/{app/(protected)/accounts,components/accounts,services/api/modules/accounts,services/api/modules/transactions}`. The MONEY rules (ledger postings, due/credit math, payment→transaction linkage, what is authoritative) are the BACKEND''s — read `inventory-backend/.claude/skills/accounting-ledger/SKILL.md`; this file does not duplicate them.'
 ---
 
 # Accounting & Ledger Skill (Frontend)
@@ -11,7 +11,7 @@ authoritative for every number** — the FE displays and submits, it never re-de
 
 > **The ledger rules are NOT here.** How a payment posts to `Transaction`, how dues and credit balances
 > are computed, and what each `type`/`category` means live in
-> [`easystock-backend/.claude/skills/accounting-ledger/SKILL.md`](../../../../easystock-backend/.claude/skills/accounting-ledger/SKILL.md).
+> [`inventory-backend/.claude/skills/accounting-ledger/SKILL.md`](../../../../inventory-backend/.claude/skills/accounting-ledger/SKILL.md).
 > Read it before touching anything that changes a balance. FE-entered amounts are requests; the server
 > decides the ledger effect.
 

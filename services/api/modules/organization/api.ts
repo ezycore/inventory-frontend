@@ -2,14 +2,16 @@ import { apiClient } from "@/lib/api-client";
 import type {
   ApiResponse,
   AvailablePlansInfo,
-  FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
   StorefrontHeroSlide,
   StorefrontSettings,
   SubscriptionInfo,
   UpdateStorefrontSettingsDto,
-  TaxSettings,
+  VatSettings,
+  VatRegistrationEntry,
+  VatRegistrationType,
+  VatPeriod,
 } from "@/types";
 import type { ApiOrganization } from "@/types/api";
 
@@ -120,14 +122,22 @@ export const organizationApi = {
   ): Promise<ApiResponse<{ excludedColumns: ExcludedColumnsSettings }>> =>
     apiClient.put(`/organization/column-settings`, data),
 
-  // PUT /api/organization/tax-settings - Update per-area tax sub-toggles +
-  // financial-year boundary. Used in: Tax settings page.
-  updateTaxSettings: (data: {
-    taxSettings?: Partial<TaxSettings>;
-    financialYear?: Partial<FinancialYearConfig>;
+  // PUT /api/organization/vat-settings - Update VAT settings and/or append a
+  // dated registration change. Used in: VAT settings page.
+  //
+  // `registration` is appended, never overwritten: the history is what decides
+  // every document's VAT treatment and doubles as the audit trail. The server
+  // rejects an `effectiveFrom` inside a filed period with `VAT_PERIOD_CLOSED`.
+  updateVatSettings: (data: {
+    vatSettings?: Partial<VatSettings>;
+    registration?: { type: VatRegistrationType; effectiveFrom: string };
   }): Promise<
-    ApiResponse<{ taxSettings: TaxSettings; financialYear: FinancialYearConfig }>
-  > => apiClient.put(`/organization/tax-settings`, data),
+    ApiResponse<{
+      vatSettings?: VatSettings;
+      vatRegistrationHistory: VatRegistrationEntry[];
+      vatPeriods: VatPeriod[];
+    }>
+  > => apiClient.put(`/organization/vat-settings`, data),
 
   // DELETE /api/organization/demo-data - Clear all demo/sample data
   // Used in: useClearDemoData → demo banner "Clear sample data" button
@@ -153,9 +163,10 @@ export const organizationApi = {
   ): Promise<ApiResponse<StorefrontSettings>> =>
     apiClient.patch(`/organization/storefront/media`, data),
 
-  // POST /api/organization/storefront/media/hero-slide - Upload one hero-slide
-  // image (FormData `image`); returns uploadInfo to embed in a heroSlides PATCH.
-  uploadHeroSlideImage: (
+  // POST /api/organization/storefront/media/hero-slide - Upload one storefront
+  // image (FormData `image`); returns uploadInfo to embed in a settings PATCH.
+  // Shared by hero slides and the announcement-bar background image.
+  uploadStorefrontImage: (
     data: FormData,
   ): Promise<ApiResponse<NonNullable<StorefrontHeroSlide["image"]>>> =>
     apiClient.post(`/organization/storefront/media/hero-slide`, data),

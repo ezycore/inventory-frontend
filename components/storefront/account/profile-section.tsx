@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/storefront-toast";
 import type { ShopperProfile } from "@/lib/storefront-client";
 import { useShopperAccount } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";

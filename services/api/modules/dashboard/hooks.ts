@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/query-keys'
+import { queryKeys } from '@/services/api/query-keys'
 import { dashboardApi, type DashboardOverviewParams } from '@/services/api'
 
 /**

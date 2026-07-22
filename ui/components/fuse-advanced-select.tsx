@@ -315,7 +315,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     const newItemId = result?.data?._id;
     if (moduleConfig && newItemId) {
       await queryClient.invalidateQueries({
-        queryKey: ["select-options", moduleConfig.optionsApiPath],
+        queryKey: moduleConfig.queryRoot(),
       });
       await new Promise((r) => setTimeout(r, 0));
       if (mode === "multiple") {

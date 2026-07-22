@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import {
   useUpdateStorefrontSettings,
-  useUploadHeroSlideImage,
+  useUploadStorefrontImage,
 } from "@/services/api";
 import type { StorefrontHeroSlide } from "@/types";
 import { cn } from "@/ui/lib/utils";
@@ -48,7 +48,7 @@ export function HeroSlidesPanel({
   onClose: () => void;
 }) {
   const save = useUpdateStorefrontSettings();
-  const upload = useUploadHeroSlideImage();
+  const upload = useUploadStorefrontImage();
   const fileInput = useRef<HTMLInputElement>(null);
   const uploadTarget = useRef<number>(0);
   const [expanded, setExpanded] = useState<number | null>(

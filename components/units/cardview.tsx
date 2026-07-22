@@ -11,9 +11,18 @@ import {
 import { Edit2, MoreVertical, Ruler, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import type { Translator, AppLocale } from "@/i18n/config";
+import type { ApiUnit } from "@/types/api";
 
+/**
+ * Typed against the generated `ApiUnit`, deliberately — not `any`.
+ *
+ * A card renderer taking `any` opts out of the generated contract, so a field
+ * removed on the backend keeps compiling and fails silently at runtime. That is
+ * exactly how the taxes card kept reading a deleted `Tax.type` and rendered
+ * every rate as a currency amount.
+ */
 const UnitCardView = (
-  unit: any,
+  unit: ApiUnit,
   { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
   options: { t: Translator; locale: AppLocale },
 ) => {

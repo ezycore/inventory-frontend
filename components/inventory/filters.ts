@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import { FilterConfig } from "@/types/DataTable";
 import type { Translator } from "@/i18n/config";
 
@@ -18,7 +19,7 @@ export function getInventoryFilterConfig(t: Translator): FilterConfig {
         type: "select",
         placeholder: t("filters.allBrands"),
         columnSpan: 1,
-        optionsApi: "/brands?all=true&fields=_id,name",
+        optionsApi: selectOptions("brands", { fields: "_id,name" }),
       },
       {
         name: "categoryId",
@@ -26,7 +27,7 @@ export function getInventoryFilterConfig(t: Translator): FilterConfig {
         type: "select",
         placeholder: t("filters.allCategories"),
         columnSpan: 1,
-        optionsApi: "/categories?all=true&fields=_id,name",
+        optionsApi: selectOptions("categories", { fields: "_id,name" }),
       },
       {
         name: "isLowStock",

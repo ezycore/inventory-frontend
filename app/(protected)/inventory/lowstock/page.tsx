@@ -340,7 +340,7 @@ export default function LowStock() {
         }
         operations={{
           getAllData: (params: any) => inventoryApi.getShortlist(params),
-          queryKey: [...queryKeys.inventory.list({})],
+          queryKey: queryKeys.inventory.list({}),
           entityName: t("lowstock.entity"),
         }}
         defaultPageSize={50}

@@ -113,8 +113,8 @@
     "netRefund": "Net Refund",
     "subtotal": "Subtotal",
     "discount": "Discount",
-    "taxAdded": "Tax (added)",
-    "taxInPrice": "Tax (in price)",
+    "taxAdded": "VAT (added)",
+    "taxInPrice": "VAT (in price)",
     "total": "Total",
     "paid": "Paid",
     "refundCreditsApplied": "Refund Credits Applied",
@@ -138,8 +138,8 @@
       "totalRefundLabel": "Total refund",
       "grossRefundLabel": "Gross refund",
       "deductionFeeLabel": "Deduction / fee",
-      "taxAddedLabel": "Tax (added)",
-      "taxInPriceLabel": "Tax (in price)",
+      "taxAddedLabel": "VAT (added)",
+      "taxInPriceLabel": "VAT (in price)",
       "item": "Item",
       "qty": "Qty",
       "salePrice": "Sale price",
@@ -162,8 +162,8 @@
       "returnedItems": "Returned items",
       "noItemsRecorded": "No items recorded",
       "costLine": "Cost {amount}",
-      "taxLineIncl": "Tax {rate}% incl. · {amount}",
-      "taxLineExcl": "Tax {rate}% · {amount}"
+      "taxLineIncl": "VAT {rate}% incl. · {amount}",
+      "taxLineExcl": "VAT {rate}% · {amount}"
     }
   },
   "payments": {
@@ -195,9 +195,9 @@
     "ref": "Ref:"
   },
   "tax": {
-    "added": "Tax (added)",
-    "includesInPrice": "Includes {amount} tax in price",
-    "totalTaxSuffix": " · total tax {amount}"
+    "added": "VAT (added)",
+    "includesInPrice": "Includes {amount} VAT in price",
+    "totalTaxSuffix": " · total VAT {amount}"
   },
   "statement": {
     "totalBilled": "Total billed",
@@ -229,10 +229,10 @@
     "bangla": "বাংলা"
   },
   "printDoc": {
-    "taxRegNo": "Tax Reg. No",
+    "taxRegNo": "VAT Reg. No (BIN)",
     "inWords": "In words:",
     "authorizedSignature": "Authorized Signature",
-    "taxInvoice": "Tax Invoice",
+    "taxInvoice": "VAT Invoice",
     "invoice": "Invoice",
     "purchaseOrder": "Purchase Order",
     "salesReturn": "Sales Return",
@@ -254,8 +254,8 @@
     "refund": "Refund",
     "subtotal": "Subtotal",
     "discount": "Discount",
-    "tax": "Tax",
-    "taxRate": "Tax {rate}%",
+    "tax": "VAT",
+    "taxRate": "VAT {rate}%",
     "total": "Total",
     "paid": "Paid",
     "due": "Due",

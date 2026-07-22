@@ -11,8 +11,6 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   collection: "grid4",
   product: "left",
   checkout: "single",
-  cart: "page",
-  search: "grid",
   footer: "columns",
   header: "classic",
   productCard: "standard",
@@ -25,8 +23,6 @@ const HOME = { classic: "classic", "hero-split": "hero-split", minimal: "minimal
 const COLLECTION = { "grid-3": "grid3", "grid-4": "grid4", sidebar: "sidebar" } as const;
 const PRODUCT = { "gallery-left": "left", "gallery-top": "top", "sticky-bar": "sticky" } as const;
 const CHECKOUT = { "single-page": "single", "multi-step": "multi" } as const;
-const CART = { "two-column": "page", drawer: "drawer" } as const;
-const SEARCH = { grid: "grid", list: "list" } as const;
 const FOOTER = { columns: "columns", simple: "simple", rich: "rich" } as const;
 const HEADER = { classic: "classic", minimal: "minimal", centered: "centered" } as const;
 const PRODUCTCARD = { standard: "standard", compact: "compact", bold: "bold" } as const;
@@ -51,8 +47,6 @@ export function resolveTemplates(
     collection: pick(COLLECTION, t.collection, DEFAULT_TEMPLATES.collection),
     product: pick(PRODUCT, t.product, DEFAULT_TEMPLATES.product),
     checkout: pick(CHECKOUT, t.checkout, DEFAULT_TEMPLATES.checkout),
-    cart: pick(CART, t.cart, DEFAULT_TEMPLATES.cart),
-    search: pick(SEARCH, t.search, DEFAULT_TEMPLATES.search),
     footer: pick(FOOTER, t.footer, DEFAULT_TEMPLATES.footer),
     header: pick(HEADER, t.header, DEFAULT_TEMPLATES.header),
     productCard: pick(PRODUCTCARD, t.productCard, DEFAULT_TEMPLATES.productCard),

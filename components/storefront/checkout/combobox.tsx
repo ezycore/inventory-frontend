@@ -3,6 +3,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { input } from "./checkout-bits";
+import { optionRow, popoverMenu } from "@/components/storefront/menu-styles";
 
 export interface ComboOption {
   value: string;
@@ -91,30 +92,8 @@ export function Combobox({
   };
 
   const wrap: CSSProperties = { position: "relative", opacity: disabled ? 0.6 : 1 };
-  const menu: CSSProperties = {
-    position: "absolute",
-    top: "calc(100% + 4px)",
-    left: 0,
-    right: 0,
-    zIndex: 30,
-    maxHeight: 240,
-    overflowY: "auto",
-    background: "var(--surface)",
-    border: "1px solid var(--border-strong)",
-    borderRadius: 8,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-    padding: 4,
-  };
-  const row = (on: boolean): CSSProperties => ({
-    display: "flex",
-    alignItems: "center",
-    padding: "9px 11px",
-    borderRadius: 6,
-    fontSize: 14,
-    cursor: "pointer",
-    background: on ? "var(--primary-soft)" : "transparent",
-    color: on ? "var(--primary)" : "var(--text)",
-  });
+  const menu: CSSProperties = { ...popoverMenu, left: 0, right: 0 };
+  const row = optionRow;
 
   return (
     <div ref={wrapRef} style={wrap}>

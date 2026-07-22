@@ -52,7 +52,7 @@ const EXEMPT = [path.join("docs", "archive"), path.join("docs", "plan")];
  * Sibling repos in the ecosystem, resolved relative to this one. A frontend doc citing
  * `src/services/auth.service.ts` means the backend; a path is dead only if it exists in **no** repo.
  */
-const SIBLING_REPOS = ["easystock-backend", "easystock-frontend", "mission-control"];
+const SIBLING_REPOS = ["inventory-backend", "inventory-frontend", "mission-control"];
 const AVAILABLE_SIBLINGS = SIBLING_REPOS.filter(
   (r) => r !== THIS_REPO && fs.existsSync(path.join(ECOSYSTEM_ROOT, r)),
 );
@@ -68,7 +68,7 @@ const MISSING_SIBLINGS = SIBLING_REPOS.filter(
  */
 const ENDPOINTS_FILE = path.join(
   ECOSYSTEM_ROOT,
-  "easystock-backend",
+  "inventory-backend",
   "docs",
   "reference",
   "endpoints.json",
@@ -94,18 +94,34 @@ function resolveCitation(cited) {
 }
 
 /**
- * A `src/…` reference (the backend, since the frontend has no `src/`) or a qualified sibling path
- * (`easystock-backend/docs/features/tax.md`). Both are unambiguous claims that the file exists.
+ * Source-file extensions, longest-first so `.json` is never chopped down to a `.js` match. The
+ * trailing lookahead is what actually enforces that: without it the greedy path class backtracks
+ * until *some* alternative fits, so `messages/en/purchases.json` matched as `…/purchases.js` and
+ * was then reported dead — a real doc citing a real file, flagged because of the regex.
+ *
+ * `.mjs` earns its place because this repo's tooling *is* `.mjs` — `scripts/verify-docs.mjs` is
+ * cited by path in CLAUDE.md and `docs/help/README.md`, and until the extension was listed here
+ * neither citation was checked: the gate skipped exactly the scripts that enforce the other gates.
+ * Bare filenames with no directory (`cdp.mjs` in the storefront skill) stay unmatched by design —
+ * they name scratchpad throwaways, not repo files.
  */
-const SRC_PATH = /(?<![\w/.-])(src\/[A-Za-z0-9_@/.-]+\.(?:tsx|ts|js))/g;
+const EXT = "(?:tsx|json|mjs|ts|js)(?![A-Za-z0-9_])";
+
+/**
+ * A `src/…` reference (the backend, since the frontend has no `src/`) or a qualified sibling path
+ * (`inventory-backend/docs/features/tax.md`). Both are unambiguous claims that the file exists.
+ */
+const SRC_PATH = new RegExp(`(?<![\\w/.-])(src/[A-Za-z0-9_@/.-]+\\.${EXT})`, "g");
 
 /**
  * Bare, repo-relative-ish paths the docs use as shorthand — `utils/tax.ts`,
  * `components/sales/sell/use-sell-page.ts`, `services/api/query-keys.ts`. Union of the frontend's
  * own top-level dirs and the backend's, so a bare path from either side is recognised.
  */
-const BARE_PATH =
-  /(?<![\w/.-])((?:app|components|config|constants|hooks|i18n|lib|messages|public|scripts|services|types|ui|utils|tests|models|controllers|routes|validators|middleware|jobs)\/[A-Za-z0-9_@/.-]+\.(?:tsx|ts|js))/g;
+const BARE_PATH = new RegExp(
+  `(?<![\\w/.-])((?:app|components|config|constants|hooks|i18n|lib|messages|public|scripts|services|types|ui|utils|tests|models|controllers|routes|validators|middleware|jobs)/[A-Za-z0-9_@/.-]+\\.${EXT})`,
+  "g",
+);
 
 const HTTP_VERB = "(?:GET|POST|PUT|PATCH|DELETE)";
 
@@ -193,7 +209,9 @@ function declaredAbsent(content) {
     for (const entry of body.matchAll(new RegExp(`(${HTTP_VERB})${VERB_PATH_GAP}(/api/\\S+)`, "g"))) {
       routes.set(routeKey(entry[1], entry[2]), startLine);
     }
-    for (const entry of body.matchAll(/((?:src|components|utils|services|lib|hooks|app)\/[A-Za-z0-9_@/.-]+\.(?:tsx|ts|js))/g)) {
+    for (const entry of body.matchAll(
+      new RegExp(`((?:src|components|utils|services|lib|hooks|app)/[A-Za-z0-9_@/.-]+\\.${EXT})`, "g"),
+    )) {
       files.set(entry[1], startLine);
     }
   }
@@ -273,7 +291,7 @@ function main() {
   if (!knownRoutes) {
     console.warn(
       `⚠ Backend endpoint index not found at ${path.relative(REPO_ROOT, ENDPOINTS_FILE)}.\n` +
-        "  Skipping the phantom-route check (expected the easystock-backend repo beside this one,\n" +
+        "  Skipping the phantom-route check (expected the inventory-backend repo beside this one,\n" +
         "  with `pnpm docs:all` having generated docs/reference/endpoints.json). Path/link checks still run.",
     );
   }

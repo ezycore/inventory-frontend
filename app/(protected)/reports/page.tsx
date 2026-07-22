@@ -9,7 +9,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Card, CardContent } from "@/ui/components/card";
 import PageHeader from "@/ui/components/header";
 import { ChevronRightIcon } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
+import { NavIcon } from "@/components/shared/nav-icon";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -47,7 +47,7 @@ export default function ReportsPage() {
             <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/50">
               <CardContent className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <DynamicIcon name={report.icon as any} className="h-5 w-5" />
+                  <NavIcon name={report.icon} className="h-5 w-5" />
                 </div>
                 <span className="flex-1 font-medium">{itemLabel(report.title)}</span>
                 <ChevronRightIcon className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />

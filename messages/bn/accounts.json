@@ -34,7 +34,8 @@
       "edit": "সম্পাদনা",
       "addInvestment": "বিনিয়োগ যোগ করুন",
       "viewTransactions": "লেনদেন দেখুন",
-      "delete": "মুছুন"
+      "delete": "মুছুন",
+      "withdrawCapital": "মূলধন উত্তোলন"
     },
     "form": {
       "name": "হিসাবের নাম",
@@ -63,20 +64,6 @@
       "statusPlaceholder": "সব স্ট্যাটাস"
     }
   },
-  "investmentDialog": {
-    "title": "বিনিয়োগ যোগ করুন",
-    "description": "<strong>{name}</strong>-এ একটি মূলধন বিনিয়োগ রেকর্ড করুন। এটি হিসাবের স্থিতি বাড়ায় এবং একটি বিনিয়োগ লেনদেন হিসেবে লগ হয়।",
-    "amountLabel": "বিনিয়োগের পরিমাণ",
-    "amountPlaceholder": "পরিমাণ লিখুন",
-    "referenceLabel": "রেফারেন্স (ঐচ্ছিক)",
-    "referencePlaceholder": "চেক / ট্রান্সফার রেফারেন্স",
-    "noteLabel": "নোট (ঐচ্ছিক)",
-    "notePlaceholder": "যেমন: মালিকের মূলধন বিনিয়োগ",
-    "submitLabel": "বিনিয়োগ যোগ করুন",
-    "validation": {
-      "amountPositive": "পরিমাণ অবশ্যই ধনাত্মক হতে হবে"
-    }
-  },
   "transactions": {
     "page": {
       "title": "লেনদেন",
@@ -100,14 +87,19 @@
     "categories": {
       "sale": "বিক্রয়",
       "purchase": "ক্রয়",
+      "saleRefund": "বিক্রয় ফেরত",
+      "purchaseRefund": "ক্রয় ফেরত",
       "salary": "বেতন",
       "rent": "ভাড়া",
       "utilities": "ইউটিলিটি",
-      "refund": "রিফান্ড",
+      "shipping": "শিপিং",
+      "delivery": "ডেলিভারি",
       "adjustment": "সমন্বয়",
+      "other": "অন্যান্য",
+      "capital_in": "মালিকের বিনিয়োগ",
+      "capital_out": "মালিকের উত্তোলন",
       "transfer": "ট্রান্সফার",
-      "investment": "বিনিয়োগ",
-      "other": "অন্যান্য"
+      "opening_balance": "প্রারম্ভিক স্থিতি"
     },
     "types": {
       "income": "আয়",
@@ -169,5 +161,32 @@
         "selectDestinationAccount": "গন্তব্য হিসাব নির্বাচন করুন"
       }
     }
+  },
+  "capitalDialog": {
+    "titleIn": "বিনিয়োগ যোগ করুন",
+    "titleOut": "মূলধন উত্তোলন করুন",
+    "descriptionIn": "<strong>{name}</strong>-এ একটি মূলধন বিনিয়োগ রেকর্ড করুন। এটি হিসাবের স্থিতি বাড়ায় এবং মালিকের মূলধন হিসেবে রেকর্ড হয় — আয় হিসেবে নয়।",
+    "descriptionOut": "<strong>{name}</strong> থেকে মালিকের উত্তোলন রেকর্ড করুন। এটি হিসাবের স্থিতি কমায় এবং মালিকের মূলধন হিসেবে রেকর্ড হয় — ব্যবসায়িক খরচ হিসেবে নয়।",
+    "amountLabelIn": "বিনিয়োগের পরিমাণ",
+    "amountLabelOut": "উত্তোলনের পরিমাণ",
+    "amountPlaceholder": "পরিমাণ লিখুন",
+    "referenceLabel": "রেফারেন্স (ঐচ্ছিক)",
+    "referencePlaceholder": "চেক / ট্রান্সফার রেফারেন্স",
+    "noteLabel": "নোট (ঐচ্ছিক)",
+    "notePlaceholder": "যেমন: মালিকের মূলধন বিনিয়োগ",
+    "submitLabelIn": "বিনিয়োগ যোগ করুন",
+    "submitLabelOut": "উত্তোলন করুন",
+    "confirmOut": "{amount} উত্তোলনের পর {name}-এ থাকবে {balance}।",
+    "insufficient": "পরিমাণ উপলব্ধ স্থিতি {balance} ছাড়িয়ে গেছে।",
+    "validation": {
+      "amountPositive": "পরিমাণ অবশ্যই ধনাত্মক হতে হবে"
+    }
+  },
+  "capitalSummary": {
+    "title": "মালিকের মূলধন",
+    "subtitle": "সর্বমোট — ইকুইটি, আয় নয়",
+    "invested": "বিনিয়োগ",
+    "withdrawn": "উত্তোলন",
+    "net": "ব্যবসায় নিট"
   }
 }

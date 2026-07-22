@@ -1,3 +1,4 @@
+import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import {
   ExcludedColumnsSettings,
@@ -6,12 +7,12 @@ import {
 } from "@/services/api";
 import type {
   ApiResponse,
-  FinancialYearConfig,
   OrganizationFeatures,
   PlanChangeResult,
   SubscriptionInfo,
   UpdateStorefrontSettingsDto,
-  TaxSettings,
+  VatSettings,
+  VatRegistrationType,
 } from "@/types";
 import type { ReceiptSettings } from "@/types/receipt";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,7 +23,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 // GET /api/organization - Get organization details
 export const useGetOrganizationApi = () => {
   return useQuery({
-    queryKey: queryKeys.organization.get(),
+    queryKey: queryKeys.organization.all(),
     queryFn: () => organizationApi.get(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -176,7 +177,7 @@ export const useUpdateOrganization = () => {
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -193,7 +194,7 @@ export const useUpdateFormSettings = () => {
       handleMutationSuccess(
         result.message || "Form settings updated successfully!",
       );
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -227,26 +228,26 @@ export const useUpdateFeatures = () => {
       // instead of invalidating: avoids a refetch where the other switches —
       // and the just-toggled one — briefly render stale (the blink).
       queryClient.setQueryData(queryKeys.organization.features(), result);
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
 };
 
-// PUT /api/organization/tax-settings - Update tax sub-toggles + financial year
-export const useUpdateTaxSettings = () => {
+// PUT /api/organization/vat-settings - Update VAT settings / registration
+export const useUpdateVatSettings = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: {
-      taxSettings?: Partial<TaxSettings>;
-      financialYear?: Partial<FinancialYearConfig>;
-    }) => organizationApi.updateTaxSettings(data),
+      vatSettings?: Partial<VatSettings>;
+      registration?: { type: VatRegistrationType; effectiveFrom: string };
+    }) => organizationApi.updateVatSettings(data),
     onSuccess: (result) => {
       handleMutationSuccess(
-        result.message || "Tax settings updated successfully!",
+        result.message || "VAT settings updated successfully!",
       );
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -281,7 +282,7 @@ export const useUpdateColumnSettings = () => {
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: queryKeys.organization.get() });
+      invalidate(queryClient, "org.changed");
     },
     onError: handleMutationError,
   });
@@ -329,15 +330,16 @@ export const useUpdateStorefrontMedia = () => {
   });
 };
 
-// POST /api/organization/storefront/media/hero-slide - Upload one hero-slide
+// POST /api/organization/storefront/media/hero-slide - Upload one storefront
 // image. Returns uploadInfo only (no cache write): the editor embeds it in a
-// slide and persists via the heroSlides settings PATCH.
-export const useUploadHeroSlideImage = () => {
+// slide / announcement and persists via the settings PATCH. Shared by the hero
+// slides panel and the announcement-bar background.
+export const useUploadStorefrontImage = () => {
   return useMutation({
     mutationFn: (file: File) => {
       const fd = new FormData();
       fd.append("image", file);
-      return organizationApi.uploadHeroSlideImage(fd);
+      return organizationApi.uploadStorefrontImage(fd);
     },
     onError: handleMutationError,
   });
@@ -367,7 +369,9 @@ export const useClearDemoData = () => {
         });
       }
 
-      // Demo data spanned every module — refresh everything.
+      // Clearing demo data deletes rows in every module at once — there is no smaller honest
+      // answer than "everything".
+      // eslint-disable-next-line query-cache/no-blanket-invalidate -- demo data spans every module
       queryClient.invalidateQueries();
     },
     onError: handleMutationError,

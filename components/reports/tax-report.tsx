@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useTaxReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { useAuthStore } from '@/services/stores'
-import { isTaxActive } from '@/lib/feature-utils'
+import { isVatActive } from '@/lib/feature-utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { useReportPeriod } from './use-report-period'
@@ -20,8 +20,8 @@ export function TaxReport() {
   const tEmpty = useTranslations('common.empty')
   const { user } = useAuthStore()
   const taxOn =
-    isTaxActive(user?.organization, 'sales') ||
-    isTaxActive(user?.organization, 'purchase')
+    isVatActive(user?.organization) ||
+    isVatActive(user?.organization)
 
   const { period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd, params } =
     useReportPeriod()
@@ -96,6 +96,14 @@ export function TaxReport() {
                         reclaimed: formatCurrency(data.input.reclaimed),
                       })}
                     </p>
+                    {/* Only a standard-rated registrant may reclaim this. For
+                        everyone else it is a cost, and saying so is the whole
+                        point — the old report implied a rebate they cannot claim. */}
+                    {!data.input.recoverable && (
+                      <p className="mt-1 text-xs text-amber-600">
+                        {t('inputNotRecoverable')}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -125,7 +133,9 @@ export function TaxReport() {
               </div>
 
               <p className="text-xs text-muted-foreground leading-snug">
-                {t('explainer')}
+                {data.input.recoverable
+                  ? t('explainerStandard')
+                  : t('explainerNoRebate')}
               </p>
 
               <TaxTrendChart data={data.chart} formatCurrency={formatCurrency} />

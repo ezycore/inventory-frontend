@@ -20,7 +20,7 @@ import {
 import PageHeader from "@/ui/components/header";
 import { Switch } from "@/ui/components/switch";
 import { Loader2, Lock } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
+import { NavIcon } from "@/components/shared/nav-icon";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -139,8 +139,8 @@ export default function FeatureSettingsPage() {
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      <DynamicIcon
-                        name={FEATURE_ICONS[feature] as any}
+                      <NavIcon
+                        name={FEATURE_ICONS[feature]}
                         className="h-5 w-5"
                       />
                     </div>

@@ -1,6 +1,6 @@
 ---
 name: inventory-stock
-description: 'Inventory & stock on the FRONTEND — the current-stock list, stock movements table, receive/adjust/transfer flows, low-stock and per-product inventory detail, plus the stock/inventory API modules and their zustand page stores. USE WHEN: building or fixing the inventory list, a stock adjustment or transfer form, the movements/history view, low-stock alerts, opening-stock creation, batch/expiry columns, "stock not updating after a sale/purchase" in the UI, negative or wrong quantities shown, or active-location scoping of stock. Touches `easystock-frontend/{app/(protected)/inventory,components/inventory,services/api/modules/stock,services/api/modules/inventory,services/stores/stock-adjustment-store.ts,services/stores/stock-transfer-store.ts}`. The stock INVARIANTS (movement-before-update, ≥0, one row per tuple, base-unit cost) are the BACKEND''s — read `easystock-backend/.claude/skills/inventory-stock/SKILL.md`; this file does not duplicate them.'
+description: 'Inventory & stock on the FRONTEND — the current-stock list, stock movements table, receive/adjust/transfer flows, low-stock and per-product inventory detail, plus the stock/inventory API modules and their zustand page stores. USE WHEN: building or fixing the inventory list, a stock adjustment or transfer form, the movements/history view, low-stock alerts, opening-stock creation, batch/expiry columns, "stock not updating after a sale/purchase" in the UI, negative or wrong quantities shown, or active-location scoping of stock. Touches `inventory-frontend/{app/(protected)/inventory,components/inventory,services/api/modules/stock,services/api/modules/inventory,services/stores/stock-adjustment-store.ts,services/stores/stock-transfer-store.ts}`. The stock INVARIANTS (movement-before-update, ≥0, one row per tuple, base-unit cost) are the BACKEND''s — read `inventory-backend/.claude/skills/inventory-stock/SKILL.md`; this file does not duplicate them.'
 ---
 
 # Inventory & Stock Skill (Frontend)
@@ -11,7 +11,7 @@ read its history. The numbers and the rules are the backend's; the FE renders an
 > **The invariants are NOT here.** Every quantity change is a `StockMovement` created *before* the
 > inventory update; quantity is always ≥ 0; one inventory row per `(org, location, product, variant)`;
 > cost and quantity are both stored in **base units**. All of that is enforced server-side and documented
-> in [`easystock-backend/.claude/skills/inventory-stock/SKILL.md`](../../../../easystock-backend/.claude/skills/inventory-stock/SKILL.md).
+> in [`inventory-backend/.claude/skills/inventory-stock/SKILL.md`](../../../../inventory-backend/.claude/skills/inventory-stock/SKILL.md).
 > The FE must not re-derive stock value with a UOM factor — the server already returns per-base-unit cost.
 
 ---

@@ -3,9 +3,10 @@ import type { ApiResponse } from "@/types";
 import type {
   BulkOperationResult,
   CatalogList,
+  CatalogVariant,
   StorefrontCollection,
 } from "@/types/api";
-export type { StorefrontCollection };
+export type { StorefrontCollection, CatalogVariant };
 
 // Response shapes generated from the backend catalog DTOs (`ecommerce.dto.ts`).
 // `CatalogProduct` is the list row (carries `availableQuantity`); the sub-shapes derive from it.
@@ -16,6 +17,13 @@ export type CatalogImage = NonNullable<CatalogProduct["images"]>[number];
 export type OutOfStockBehavior = NonNullable<
   CatalogProductStorefront["outOfStockBehavior"]
 >;
+
+/** One per-variant pricing override the editor sends (null clears the field). */
+export interface VariantPricingEntry {
+  variantId: string;
+  onlinePrice: number | null;
+  compareAtPrice: number | null;
+}
 
 export interface CatalogListParams {
   search?: string;
@@ -67,6 +75,10 @@ export const storefrontCatalogApi = {
     id: string,
     dto: UpdateStorefrontListingDto | FormData,
   ): Promise<ApiResponse<CatalogProduct>> => apiClient.patch(`${base}/${id}`, dto),
+  // Variants of a variable product with their per-variant storefront pricing
+  // overlay — read by the editor so it can show/edit each option's online price.
+  listVariants: (id: string): Promise<ApiResponse<CatalogVariant[]>> =>
+    apiClient.get(`${base}/${id}/variants`),
   bulkUpdate: (
     dto: BulkStorefrontDto,
   ): Promise<ApiResponse<BulkStorefrontResult>> =>

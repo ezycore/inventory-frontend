@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { selectOptions } from "@/services/api/select-options";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
 
@@ -42,8 +43,10 @@ export function getSupplierFormConfig(t: Translator): DynamicFormConfig {
         label: t("form.defaultDiscount"),
         placeholder: t("form.defaultDiscountPlaceholder"),
         columnSpan: 6,
-        optionsApi:
-          "/discounts/purchase?all=true&status=active&fields=_id,name,value,isDefaultPurchase",
+        optionsApi: selectOptions("purchaseDiscounts", {
+          status: "active",
+          fields: "_id,name,value,isDefaultPurchase",
+        }),
         defaultFlag: "isDefaultPurchase",
         description: t("form.defaultDiscountHelp"),
         creatable: true,
@@ -110,8 +113,10 @@ export const supplierFormConfig: DynamicFormConfig = {
       label: "Default Discount",
       placeholder: "Select a default discount (optional)",
       columnSpan: 6,
-      optionsApi:
-        "/discounts/purchase?all=true&status=active&fields=_id,name,value,isDefaultPurchase",
+      optionsApi: selectOptions("purchaseDiscounts", {
+        status: "active",
+        fields: "_id,name,value,isDefaultPurchase",
+      }),
       defaultFlag: "isDefaultPurchase",
       description: "Applied automatically to purchases from this supplier",
       creatable: true,
