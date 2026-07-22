@@ -8,8 +8,8 @@ description: 'VAT (Bangladesh) on the FRONTEND — the `isVatActive` gate, the t
 > Verified against source 2026-07-20.
 >
 > **The contract is backend-owned and written once.** The registration model, the write gate, the
-> cost basis, categories and the report rules live in `easystock-backend/.claude/skills/vat/SKILL.md`
-> and `easystock-backend/docs/features/vat.md`. This skill covers only what is *frontend-specific*
+> cost basis, categories and the report rules live in `inventory-backend/.claude/skills/vat/SKILL.md`
+> and `inventory-backend/docs/features/vat.md`. This skill covers only what is *frontend-specific*
 > and does not restate them.
 
 ---
