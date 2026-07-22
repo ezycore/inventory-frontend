@@ -106,6 +106,23 @@ export const EFFECTS = {
     ...DERIVED,
   ],
 
+  /**
+   * Order dispatched to a courier (API or manual). Dispatch is **commit-first**: it books the
+   * order's Sale and consumes the stock reservation, so it dirties strictly more than
+   * `order.changed` — the sales list, the customer, the ledger and stock all move with it.
+   */
+  "order.dispatched": union(
+    [
+      k.storefrontOrders.all(),
+      k.storefrontDashboard.all(),
+      k.storefrontCustomers.all(),
+      k.salesOrders.all(),
+      k.customers.all(),
+    ],
+    MONEY,
+    STOCK,
+  ),
+
   /** Order confirmed — stock is reserved for it. */
   "order.confirmed": union(
     [

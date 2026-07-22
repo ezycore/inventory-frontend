@@ -6,10 +6,10 @@ import { useShopperOrder, useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { ORDER_PIPELINE, ORDER_STATUS } from "@/lib/storefront-i18n";
-import { courierStatusPresentation } from "@/lib/courier-status";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { StatusPill, Media } from "@/components/storefront/sf-bits";
+import { CourierProgress } from "./courier-progress";
 
 const card: CSSProperties = {
   background: "var(--card)",
@@ -151,35 +151,9 @@ export function TrackingSection({
                           {statusNow}
                         </div>
                       ) : null}
-                      {active && order.courier?.normalizedStatus ? (() => {
-                        const p = courierStatusPresentation(order.courier.normalizedStatus);
-                        return (
-                          <div
-                            style={{
-                              marginTop: 9,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 8,
-                              padding: "7px 11px",
-                              borderRadius: 10,
-                              background: `${p.tone}1a`,
-                              boxShadow: `inset 0 0 0 1px ${p.tone}40`,
-                            }}
-                          >
-                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: p.tone, flex: "none" }} />
-                            <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
-                              <span style={{ fontSize: 12.5, fontWeight: 650, color: p.tone }}>
-                                {p.shopper[lang === "bn" ? "bn" : "en"]}
-                              </span>
-                              {order.courier?.provider ? (
-                                <span style={{ fontSize: 10.5, color: "var(--faint)", textTransform: "capitalize" }}>
-                                  {order.courier.provider}
-                                </span>
-                              ) : null}
-                            </span>
-                          </div>
-                        );
-                      })() : null}
+                      {active && order.courier?.normalizedStatus ? (
+                        <CourierProgress courier={order.courier} />
+                      ) : null}
                     </div>
                   </div>
                 );

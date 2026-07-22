@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
@@ -11,6 +12,8 @@ import type {
   CourierTest,
   CourierUpsert,
   CourierWebhook,
+  CustomCourier,
+  CustomCourierRemoved,
   FraudScore,
   OrderStats,
   StorefrontOrderList,
@@ -48,6 +51,29 @@ export type OrderFraudScore = FraudScore;
 export type CourierConfigEntry = CourierUpsert;
 export type CourierListResult = CourierList;
 export type CourierCredField = CourierList["providers"][string][number];
+export type CustomCourierEntry = CustomCourier;
+
+/**
+ * Manual-dispatch payload. Every tracking field is optional — plenty of local couriers
+ * hand over nothing but a phone call, and the order must still be shippable.
+ */
+export interface ManualConsignmentPayload {
+  customCourierId: string;
+  trackingCode?: string;
+  consignmentId?: string;
+  /** Overrides the partner's `defaultCharge` as the order's courier cost. */
+  shippingCost?: number;
+  note?: string;
+}
+
+/** Create/update payload for a merchant-defined courier — no credentials, no mode. */
+export interface CustomCourierPayload {
+  name?: string;
+  phone?: string;
+  trackingUrlTemplate?: string;
+  defaultCharge?: number;
+  active?: boolean;
+}
 
 const base = "/ecommerce/orders";
 
@@ -157,6 +183,18 @@ export const storefrontOrdersApi = {
     provider: string,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/consignment`, { provider }),
+  /** Dispatch to a merchant-defined courier — every tracking field is optional. */
+  manualConsignment: (
+    id: string,
+    body: ManualConsignmentPayload,
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(`${base}/${id}/manual-consignment`, body),
+  /** The merchant's own delivery-status update — manual couriers only. */
+  setCourierStatus: (
+    id: string,
+    body: { normalizedStatus: string; note?: string },
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.patch(`${base}/${id}/courier-status`, body),
   refreshTracking: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/refresh-tracking`, {}),
   courierPrice: (
@@ -166,11 +204,12 @@ export const storefrontOrdersApi = {
     apiClient.get(
       `${base}/${id}/courier-price?provider=${encodeURIComponent(provider)}`,
     ),
+  /** Dispatch many orders to one carrier — exactly one of provider / customCourierId. */
   bulkConsignment: (
     orderIds: string[],
-    provider: string,
+    carrier: { provider?: string; customCourierId?: string },
   ): Promise<ApiResponse<CourierBulkResult>> =>
-    apiClient.post(`${base}/bulk-consignment`, { orderIds, provider }),
+    apiClient.post(`${base}/bulk-consignment`, { orderIds, ...carrier }),
   // Map an order's canonical address to a provider's own location codes before dispatch.
   resolveLocation: (
     id: string,
@@ -214,4 +253,20 @@ export const couriersApi = {
     apiClient.get(`${couriersBase}/webhook`),
   regenerateWebhook: (): Promise<ApiResponse<CourierWebhook>> =>
     apiClient.post(`${couriersBase}/webhook/regenerate`, {}),
+
+  // Merchant-defined couriers (manual dispatch). There is no `list` here on
+  // purpose: `couriersApi.list` already returns `customCouriers`, so the settings
+  // page, the dispatch picker and the orders filter all read them from that one
+  // request rather than each firing a second.
+  createCustom: (
+    body: CustomCourierPayload,
+  ): Promise<ApiResponse<CustomCourierEntry>> =>
+    apiClient.post(`${couriersBase}/custom`, body),
+  updateCustom: (
+    id: string,
+    body: CustomCourierPayload,
+  ): Promise<ApiResponse<CustomCourierEntry>> =>
+    apiClient.put(`${couriersBase}/custom/${id}`, body),
+  removeCustom: (id: string): Promise<ApiResponse<CustomCourierRemoved>> =>
+    apiClient.delete(`${couriersBase}/custom/${id}`),
 };
