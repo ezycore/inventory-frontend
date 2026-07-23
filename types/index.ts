@@ -328,6 +328,8 @@ export interface Entitlement {
   planSlug?: string;
   planName?: string;
   interval?: "month" | "year" | "one_time";
+  /** Billing period = `intervalCount × interval` (e.g. month × 6). Missing = 1. */
+  intervalCount?: number;
   amount?: number;
   modules: string[];
   features: Partial<OrganizationFeatures>;
@@ -385,7 +387,13 @@ export interface AvailablePlan {
   slug: string;
   description?: string;
   interval: "month" | "year" | "one_time";
+  /** Billing period = `intervalCount × interval` (e.g. month × 6). Missing = 1. */
+  intervalCount?: number;
   amount: number;
+  /** Struck-through anchor price — MC only sends it when > `amount`. */
+  compareAtAmount?: number;
+  /** Limited-time-offer end date (ISO). Display-only. */
+  offerEndsAt?: string;
   trialDays?: number;
   modules: string[];
   features: string[];

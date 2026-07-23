@@ -362,7 +362,10 @@
       "year": "Yearly",
       "monthSuffix": "/mo",
       "yearSuffix": "/yr",
-      "oneTime": "One-time"
+      "oneTime": "One-time",
+      "everyNMonths": "Every {n} months",
+      "everyNMonthsSuffix": "/{n} mo",
+      "everyNYearsSuffix": "/{n} yr"
     },
     "plans": {
       "title": "Available Plans",
@@ -374,7 +377,8 @@
       "currentPlanBtn": "Current Plan",
       "choosePlan": "Choose Plan",
       "upgrade": "Upgrade",
-      "downgrade": "Downgrade"
+      "downgrade": "Downgrade",
+      "offBadge": "{pct}% off"
     }
   },
   "users": {

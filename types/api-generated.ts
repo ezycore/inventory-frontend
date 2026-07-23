@@ -9164,7 +9164,11 @@ export interface components {
             description?: string;
             /** @enum {string} */
             interval: "month" | "year" | "one_time";
+            intervalCount?: number;
             amount: number;
+            compareAtAmount?: number;
+            /** Format: date-time */
+            offerEndsAt?: string;
             currency?: string;
             trialDays?: number;
             modules: string[];
@@ -9185,7 +9189,11 @@ export interface components {
                 description?: string;
                 /** @enum {string} */
                 interval: "month" | "year" | "one_time";
+                intervalCount?: number;
                 amount: number;
+                compareAtAmount?: number;
+                /** Format: date-time */
+                offerEndsAt?: string;
                 currency?: string;
                 trialDays?: number;
                 modules: string[];
@@ -9269,6 +9277,7 @@ export interface components {
             planName?: string;
             /** @enum {string} */
             interval?: "month" | "year" | "one_time";
+            intervalCount?: number;
             amount?: number;
             modules: string[];
             features?: {
@@ -9790,6 +9799,7 @@ export interface components {
                 planName?: string;
                 /** @enum {string} */
                 interval?: "month" | "year" | "one_time";
+                intervalCount?: number;
                 amount?: number;
                 modules: string[];
                 features?: {
