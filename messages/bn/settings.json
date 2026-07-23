@@ -362,7 +362,10 @@
       "year": "বাৎসরিক",
       "monthSuffix": "/মাস",
       "yearSuffix": "/বছর",
-      "oneTime": "একবার"
+      "oneTime": "একবার",
+      "everyNMonths": "প্রতি {n} মাস",
+      "everyNMonthsSuffix": "/{n} মাস",
+      "everyNYearsSuffix": "/{n} বছর"
     },
     "plans": {
       "title": "উপলব্ধ প্ল্যান",
@@ -374,7 +377,8 @@
       "currentPlanBtn": "বর্তমান প্ল্যান",
       "choosePlan": "প্ল্যান নির্বাচন করুন",
       "upgrade": "আপগ্রেড",
-      "downgrade": "ডাউনগ্রেড"
+      "downgrade": "ডাউনগ্রেড",
+      "offBadge": "{pct}% ছাড়"
     }
   },
   "users": {

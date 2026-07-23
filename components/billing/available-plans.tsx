@@ -56,11 +56,22 @@ export function AvailablePlans() {
   const currentAmount = sub?.entitlement?.amount ?? null;
   const scheduledChange = getScheduledPlanChange(sub?.entitlement);
 
-  const intervalSuffix = (interval: string) => {
-    if (interval === "month") return tInterval("monthSuffix");
-    if (interval === "year") return tInterval("yearSuffix");
+  // Suffix honors intervalCount — a 6-month plan is "/6 mo", never "/mo".
+  const intervalSuffix = (plan: AvailablePlan) => {
+    const n = plan.intervalCount ?? 1;
+    if (plan.interval === "month")
+      return n > 1 ? tInterval("everyNMonthsSuffix", { n }) : tInterval("monthSuffix");
+    if (plan.interval === "year")
+      return n > 1 ? tInterval("everyNYearsSuffix", { n }) : tInterval("yearSuffix");
     return "";
   };
+
+  // Whole-number % off vs the anchor price; MC only sends compareAtAmount
+  // when it is a real discount, but never trust a struck price ≤ the real one.
+  const discountPct = (plan: AvailablePlan) =>
+    plan.compareAtAmount && plan.compareAtAmount > plan.amount
+      ? Math.round((1 - plan.amount / plan.compareAtAmount) * 100)
+      : null;
 
   const handleChange = (plan: AvailablePlan) => {
     if (planChange.isPending) return;
@@ -143,12 +154,22 @@ export function AvailablePlans() {
                   <CardDescription>{plan.description}</CardDescription>
                 )}
                 <div className="pt-2">
+                  {discountPct(plan) !== null && (
+                    <span className="mr-2 text-sm text-muted-foreground line-through">
+                      {formatCurrency(plan.compareAtAmount as number, currency)}
+                    </span>
+                  )}
                   <span className="text-2xl font-bold">
                     {formatCurrency(plan.amount, currency)}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {intervalSuffix(plan.interval)}
+                    {intervalSuffix(plan)}
                   </span>
+                  {discountPct(plan) !== null && (
+                    <Badge variant="secondary" className="ml-2 align-middle">
+                      {tPlans("offBadge", { pct: discountPct(plan) as number })}
+                    </Badge>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">

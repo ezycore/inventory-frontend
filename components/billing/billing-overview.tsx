@@ -55,9 +55,12 @@ function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
   const { formatDate } = useFormatters();
   const subStatus = entitlement.subscriptionStatus ?? entitlement.status;
 
-  const intervalLabel = (interval?: string) => {
+  // Honors intervalCount — a 6-month plan reads "Every 6 months", not "Monthly".
+  const intervalLabel = (interval?: string, intervalCount?: number) => {
     if (!interval) return "—";
-    if (interval === "month") return tInterval("month");
+    const n = intervalCount ?? 1;
+    if (interval === "month")
+      return n > 1 ? tInterval("everyNMonths", { n }) : tInterval("month");
     if (interval === "year") return tInterval("year");
     if (interval === "one_time") return tInterval("oneTime");
     return interval;
@@ -79,7 +82,7 @@ function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
           </Badge>
         </Detail>
         <Detail label={t("billing")}>
-          {intervalLabel(entitlement.interval)}
+          {intervalLabel(entitlement.interval, entitlement.intervalCount)}
         </Detail>
         <Detail label={t("amount")}>
           {entitlement.amount != null
