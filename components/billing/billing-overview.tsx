@@ -6,11 +6,20 @@ import { useGetSubscription } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useFormatters } from "@/hooks/use-formatters";
 import { formatCurrency } from "@/lib/currency";
-import { getScheduledPlanChange } from "@/lib/subscription-utils";
+import {
+  getScheduledCancellation,
+  getScheduledPlanChange,
+} from "@/lib/subscription-utils";
+import {
+  CancelSubscriptionButton,
+  ScheduledCancellationBanner,
+  isCancelable,
+} from "@/components/billing/cancel-subscription";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/ui/components/card";
@@ -18,7 +27,6 @@ import { Badge } from "@/ui/components/badge";
 import { Progress } from "@/ui/components/progress";
 import { Skeleton } from "@/ui/components/skeleton";
 import { AlertCircle, CalendarClock, CheckCircle2, CreditCard } from "lucide-react";
-import type { Translator } from "@/i18n/config";
 import type { Entitlement, SubscriptionUsage } from "@/types";
 
 const SUB_STATUS_VARIANT: Record<
@@ -33,20 +41,49 @@ const SUB_STATUS_VARIANT: Record<
 };
 
 /**
- * Maps an entitlement limit key to a live usage count.
- * Limit keys are standardized by Mission Control (the source of truth).
- * `t` is bound to `settings.billing.usage`.
+ * The usage categories the billing meter renders, in order. Each resolves its
+ * ceiling from the entitlement's `limits` map by alias — MC may store a limit
+ * under either key form, and we mirror the backend's `LIMIT_ALIASES`
+ * (plan-limits.ts) so the meter reads the same value enforcement does. The card
+ * is driven off this fixed list, not off the `limits` map's keys: an entitlement
+ * with `limits: {}` (e.g. an unlimited enterprise plan) still renders every row,
+ * each as "unlimited", instead of showing an empty card.
  */
-const getLimitUsage = (
-  t: Translator,
-): Record<string, { label: string; usageKey: keyof SubscriptionUsage }> => ({
-  locations: { label: t("locations"), usageKey: "locations" },
-  maxLocations: { label: t("locations"), usageKey: "locations" },
-  users: { label: t("users"), usageKey: "users" },
-  maxUsers: { label: t("users"), usageKey: "users" },
-  inventory: { label: t("inventory"), usageKey: "inventory" },
-  maxInventoryProducts: { label: t("inventory"), usageKey: "inventory" },
-});
+const USAGE_CATEGORIES: {
+  labelKey: string;
+  usageKey: keyof SubscriptionUsage;
+  aliases: string[];
+}[] = [
+  { labelKey: "locations", usageKey: "locations", aliases: ["maxLocations", "locations"] },
+  { labelKey: "users", usageKey: "users", aliases: ["maxUsers", "users"] },
+  {
+    labelKey: "inventory",
+    usageKey: "inventory",
+    aliases: ["maxInventoryProducts", "maxProducts", "inventory", "products"],
+  },
+  { labelKey: "salesPerDay", usageKey: "salesToday", aliases: ["salesPerDay", "maxSalesPerDay"] },
+  {
+    labelKey: "purchasePerDay",
+    usageKey: "purchasesToday",
+    aliases: ["purchasePerDay", "maxPurchasePerDay"],
+  },
+];
+
+/**
+ * First positive alias value in the limits map, or `undefined` when none is set.
+ * A missing or non-positive ceiling means "unlimited" — the same convention the
+ * backend enforces (plan-limits.ts resolveLimit) and MC/marketing use.
+ */
+function resolveLimit(
+  limits: Record<string, number>,
+  aliases: string[],
+): number | undefined {
+  for (const alias of aliases) {
+    const value = limits[alias];
+    if (typeof value === "number" && value > 0) return value;
+  }
+  return undefined;
+}
 
 function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
   const t = useTranslations("settings.billing.plan");
@@ -99,6 +136,11 @@ function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
           {entitlement.trialEndsAt ? formatDate(entitlement.trialEndsAt) : "—"}
         </Detail>
       </CardContent>
+      {isCancelable(entitlement) && !getScheduledCancellation(entitlement) && (
+        <CardFooter className="justify-end border-t pt-4">
+          <CancelSubscriptionButton entitlement={entitlement} />
+        </CardFooter>
+      )}
     </Card>
   );
 }
@@ -158,18 +200,14 @@ function UsageCard({
   usage: SubscriptionUsage;
 }) {
   const t = useTranslations("settings.billing.usage");
-  const limitUsage = getLimitUsage(t);
-  const rows = Object.entries(entitlement.limits ?? {})
-    .map(([key, max]) => {
-      const meta = limitUsage[key];
-      if (!meta) return null;
-      const used = usage[meta.usageKey] ?? 0;
-      const pct = max > 0 ? Math.min((used / max) * 100, 100) : 0;
-      return { key, label: meta.label, used, max, pct };
-    })
-    .filter((r): r is NonNullable<typeof r> => r !== null);
-
-  if (rows.length === 0) return null;
+  const limits = entitlement.limits ?? {};
+  const rows = USAGE_CATEGORIES.map((cat) => {
+    const max = resolveLimit(limits, cat.aliases);
+    const used = usage[cat.usageKey] ?? 0;
+    const unlimited = max === undefined;
+    const pct = unlimited ? 0 : Math.min((used / max) * 100, 100);
+    return { key: cat.labelKey, label: t(cat.labelKey), used, max, pct, unlimited };
+  });
 
   return (
     <Card>
@@ -181,7 +219,7 @@ function UsageCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {rows.map((row) => {
-          const atLimit = row.used >= row.max;
+          const atLimit = row.max !== undefined && row.used >= row.max;
           return (
             <div key={row.key} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
@@ -193,10 +231,12 @@ function UsageCard({
                       : "text-muted-foreground"
                   }
                 >
-                  {row.used} / {row.max}
+                  {row.unlimited
+                    ? `${row.used} / ${t("unlimited")}`
+                    : `${row.used} / ${row.max}`}
                 </span>
               </div>
-              <Progress value={row.pct} />
+              {row.unlimited ? null : <Progress value={row.pct} />}
             </div>
           );
         })}
@@ -265,7 +305,13 @@ export function BillingOverview() {
   }
 
   const entitlement = data?.entitlement ?? null;
-  const usage = data?.usage ?? { locations: 0, users: 0, inventory: 0 };
+  const usage = data?.usage ?? {
+    locations: 0,
+    users: 0,
+    inventory: 0,
+    salesToday: 0,
+    purchasesToday: 0,
+  };
 
   if (!entitlement) {
     return (
@@ -285,6 +331,7 @@ export function BillingOverview() {
 
   return (
     <div className="space-y-4">
+      <ScheduledCancellationBanner entitlement={entitlement} />
       <ScheduledPlanChangeBanner entitlement={entitlement} />
       <PlanSummary entitlement={entitlement} />
       <div className="grid gap-4 md:grid-cols-2">

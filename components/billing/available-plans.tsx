@@ -52,8 +52,11 @@ export function AvailablePlans() {
   const plans = data.plans ?? [];
   if (plans.length === 0) return null;
 
-  const currentSlug = sub?.entitlement?.planSlug;
-  const currentAmount = sub?.entitlement?.amount ?? null;
+  // A canceled subscription has no "current" plan — every plan is a fresh
+  // reactivation (checkout), so don't mark the old plan current or disable it.
+  const isCanceled = sub?.entitlement?.subscriptionStatus === "canceled";
+  const currentSlug = isCanceled ? undefined : sub?.entitlement?.planSlug;
+  const currentAmount = isCanceled ? null : sub?.entitlement?.amount ?? null;
   const scheduledChange = getScheduledPlanChange(sub?.entitlement);
 
   // Suffix honors intervalCount — a 6-month plan is "/6 mo", never "/mo".
