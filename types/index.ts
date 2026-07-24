@@ -372,6 +372,10 @@ export interface SubscriptionUsage {
   locations: number;
   users: number;
   inventory: number;
+  /** Today's non-draft sale count — powers the `salesPerDay` meter. */
+  salesToday: number;
+  /** Today's non-draft purchase count — powers the `purchasePerDay` meter. */
+  purchasesToday: number;
 }
 
 /** Response of GET /api/organization/subscription. */

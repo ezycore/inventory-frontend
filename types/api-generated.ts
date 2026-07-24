@@ -9832,6 +9832,8 @@ export interface components {
                 locations: number;
                 users: number;
                 inventory: number;
+                salesToday: number;
+                purchasesToday: number;
             };
         };
         VatPeriod: {

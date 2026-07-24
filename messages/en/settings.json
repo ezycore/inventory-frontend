@@ -344,7 +344,10 @@
       "subtitle": "Current usage against your plan limits",
       "locations": "Locations",
       "users": "Users",
-      "inventory": "Inventory Products"
+      "inventory": "Inventory Products",
+      "salesPerDay": "Sales (today)",
+      "purchasePerDay": "Purchases (today)",
+      "unlimited": "Unlimited"
     },
     "features": {
       "title": "Plan Features",
