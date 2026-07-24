@@ -3,24 +3,28 @@ import type { Entitlement, ScheduledPlanChange } from "@/types";
 /**
  * How the current entitlement gates workspace access — the single state machine
  * both the layout gate and the overdue banner derive from:
- *  - `active`    → full access (active / trialing).
- *  - `read_only` → overdue but recoverable (past_due / read_only): keep the user
+ *  - `active`     → full access (active / trialing).
+ *  - `read_only`  → overdue but recoverable (past_due / read_only): keep the user
  *    in with the overdue banner + "Pay now" instead of logging them out.
- *  - `blocked`   → terminated / never provisioned (missing / inactive /
- *    canceled / incomplete): force logout → login.
+ *  - `reactivate` → subscription CANCELED but data retained: let the user in but
+ *    route them to billing to re-subscribe (backend confines them to billing
+ *    routes). Not a logout, not "Pay now".
+ *  - `blocked`    → terminated / never provisioned (missing / inactive /
+ *    incomplete): force logout → login.
  *
  * Mirrors the backend classifier `entitlementAccess` in
  * `easystock-backend/src/utils/subscription-status.ts` — keep the two in sync.
  */
-export type SubscriptionAccess = "active" | "read_only" | "blocked";
+export type SubscriptionAccess = "active" | "read_only" | "reactivate" | "blocked";
 
 export function classifyEntitlementAccess(
   entitlement?: Entitlement | null,
 ): SubscriptionAccess {
   if (!entitlement) return "blocked";
-  if (entitlement.status === "inactive") return "blocked";
   const sub = entitlement.subscriptionStatus;
-  if (sub === "canceled" || sub === "incomplete") return "blocked";
+  if (sub === "canceled") return "reactivate";
+  if (entitlement.status === "inactive") return "blocked";
+  if (sub === "incomplete") return "blocked";
   if (sub === "past_due" || entitlement.status === "read_only") {
     return "read_only";
   }
@@ -35,6 +39,30 @@ export function shouldBlockWorkspaceAccess(entitlement?: Entitlement | null) {
 /** Whether a payment is overdue (grace / read-only) — drives the overdue banner. */
 export function isPaymentOverdue(entitlement?: Entitlement | null) {
   return classifyEntitlementAccess(entitlement) === "read_only";
+}
+
+/**
+ * Whether the subscription is canceled and awaiting reactivation — the user is
+ * let into the app but should be routed to billing to re-subscribe. Their data
+ * is retained; cancel never deletes.
+ */
+export function needsReactivation(entitlement?: Entitlement | null) {
+  return classifyEntitlementAccess(entitlement) === "reactivate";
+}
+
+/**
+ * The standing at-period-end cancellation, or null. Returns the effective date
+ * (`cancelAt`, falling back to `currentPeriodEnd`) so the billing UI can render
+ * "cancels on {date}". Distinct from a scheduled *plan change* — a cancel ends
+ * the subscription outright, it does not move to another plan.
+ */
+export function getScheduledCancellation(
+  entitlement?: Entitlement | null,
+): { effectiveAt: string } | null {
+  if (!entitlement?.cancelAtPeriodEnd) return null;
+  const effectiveAt = entitlement.cancelAt ?? entitlement.currentPeriodEnd;
+  if (typeof effectiveAt !== "string" || !effectiveAt) return null;
+  return { effectiveAt };
 }
 
 function normalizeScheduledChange(

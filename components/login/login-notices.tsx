@@ -17,9 +17,27 @@ export function LoginNotices() {
   const registered = searchParams.get("registered");
   const subscription = searchParams.get("subscription");
   const reset = searchParams.get("reset");
+  // Set by Mission Control's post-checkout redirect after a paid signup.
+  const checkout = searchParams.get("checkout");
 
   return (
     <>
+      {checkout === "success" && (
+        <Alert className="border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-900">
+          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+          <AlertDescription className="text-green-800 dark:text-green-400 ml-2">
+            {t("checkoutSuccess")}
+          </AlertDescription>
+        </Alert>
+      )}
+      {(checkout === "cancel" || checkout === "fail") && (
+        <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900">
+          <Mail className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+          <AlertDescription className="text-amber-800 dark:text-amber-400 ml-2">
+            {t("checkoutCancelled")}
+          </AlertDescription>
+        </Alert>
+      )}
       {reset === "success" && (
         <Alert className="border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-900">
           <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />

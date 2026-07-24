@@ -2,12 +2,12 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, CalendarX, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useGetSubscription, useRequestPayLink } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatCurrency } from "@/lib/currency";
-import { isPaymentOverdue } from "@/lib/subscription-utils";
+import { isPaymentOverdue, needsReactivation } from "@/lib/subscription-utils";
 import { Button } from "@/ui/components/button";
 
 /**
@@ -23,6 +23,31 @@ export function BillingAlertBanner() {
   const payLink = useRequestPayLink();
 
   const entitlement = subscription.data?.entitlement;
+
+  // Canceled: data is retained, but the subscription has ended — point the user
+  // at billing to re-subscribe (no invoice to "Pay now").
+  if (entitlement && needsReactivation(entitlement)) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-500/40 bg-amber-500/10 px-4 py-2 text-amber-700 dark:text-amber-400">
+        <div className="flex items-center gap-2 text-sm">
+          <CalendarX className="h-4 w-4 shrink-0" />
+          <span>
+            Your subscription has <strong>ended</strong>. Your data is safe —
+            choose a plan to reactivate your workspace.
+          </span>
+        </div>
+        <Button
+          asChild
+          size="sm"
+          variant="outline"
+          className="border-amber-500/50 bg-transparent text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
+        >
+          <Link href="/dashboard/billing">Reactivate</Link>
+        </Button>
+      </div>
+    );
+  }
+
   if (!entitlement || !isPaymentOverdue(entitlement)) return null;
 
   const amount =

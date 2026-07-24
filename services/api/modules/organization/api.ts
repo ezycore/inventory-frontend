@@ -6,6 +6,7 @@ import type {
   PlanChangeResult,
   StorefrontHeroSlide,
   StorefrontSettings,
+  SubscriptionCancelResult,
   SubscriptionInfo,
   UpdateStorefrontSettingsDto,
   VatSettings,
@@ -77,6 +78,13 @@ export const organizationApi = {
     sessionId: string;
   }): Promise<ApiResponse<unknown>> =>
     apiClient.post(`/organization/plan-change/reconcile`, data),
+
+  // POST /api/organization/subscription/cancel - Self-serve at-period-end cancel
+  // (or resume with { resume: true }). Used in: useCancelSubscription → billing.
+  cancelSubscription: (data: {
+    resume?: boolean;
+  }): Promise<ApiResponse<SubscriptionCancelResult>> =>
+    apiClient.post(`/organization/subscription/cancel`, data),
 
   // PUT /api/organization - Update organization details
   // Used in: useUpdateOrganization → organization-tab.tsx
