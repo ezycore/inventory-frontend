@@ -1,12 +1,14 @@
 "use client";
 // coding-standard: maintained
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   useGetAvailablePlans,
   useGetSubscription,
   useRequestPlanChange,
 } from "@/services/api";
+import { TrialEndConfirmDialog } from "./trial-end-confirm-dialog";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useFormatters } from "@/hooks/use-formatters";
 import { formatCurrency } from "@/lib/currency";
@@ -45,6 +47,8 @@ export function AvailablePlans() {
   const { data: sub } = useGetSubscription();
   const { data, isLoading, isError } = useGetAvailablePlans();
   const planChange = useRequestPlanChange();
+  // Target plan awaiting the "your trial ends now" confirmation (null = closed).
+  const [confirmPlan, setConfirmPlan] = useState<AvailablePlan | null>(null);
 
   if (isLoading) return <PlansSkeleton />;
   if (isError || !data) return null;
@@ -56,6 +60,10 @@ export function AvailablePlans() {
   // reactivation (checkout), so don't mark the old plan current or disable it.
   const isCanceled = sub?.entitlement?.subscriptionStatus === "canceled";
   const currentSlug = isCanceled ? undefined : sub?.entitlement?.planSlug;
+  // On a live trial, switching to a different paid plan ends the trial now and
+  // requires payment — confirm before proceeding.
+  const isTrialing =
+    !isCanceled && sub?.entitlement?.subscriptionStatus === "trialing";
   const currentAmount = isCanceled ? null : sub?.entitlement?.amount ?? null;
   const scheduledChange = getScheduledPlanChange(sub?.entitlement);
 
@@ -76,7 +84,19 @@ export function AvailablePlans() {
       ? Math.round((1 - plan.amount / plan.compareAtAmount) * 100)
       : null;
 
+  // Gate paid switches made during a trial behind the "trial ends now" confirm;
+  // everything else (free target, same plan, already-paid upgrades) goes straight
+  // through.
   const handleChange = (plan: AvailablePlan) => {
+    if (planChange.isPending) return;
+    if (isTrialing && plan.amount > 0 && plan.slug !== currentSlug) {
+      setConfirmPlan(plan);
+      return;
+    }
+    proceedChange(plan);
+  };
+
+  const proceedChange = (plan: AvailablePlan) => {
     if (planChange.isPending) return;
     const returnUrl =
       typeof window !== "undefined"
@@ -117,6 +137,18 @@ export function AvailablePlans() {
 
   return (
     <div className="space-y-4">
+      <TrialEndConfirmDialog
+        plan={confirmPlan}
+        price={confirmPlan ? formatCurrency(confirmPlan.amount, currency) : ""}
+        onOpenChange={(open) => {
+          if (!open) setConfirmPlan(null);
+        }}
+        onConfirm={() => {
+          const plan = confirmPlan;
+          setConfirmPlan(null);
+          if (plan) proceedChange(plan);
+        }}
+      />
       <div className="space-y-1">
         <h2 className="text-lg font-semibold tracking-tight">{tPlans("title")}</h2>
         <p className="text-sm text-muted-foreground">
