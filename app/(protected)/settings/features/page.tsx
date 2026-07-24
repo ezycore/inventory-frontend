@@ -36,7 +36,8 @@ const FEATURE_ORDER: FeatureName[] = [
   "invoicePrinting",
   "uomConversion",
   "storefront",
-  "tax"
+  "tax",
+  "combo"
 ];
 
 export default function FeatureSettingsPage() {
