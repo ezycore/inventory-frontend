@@ -321,6 +321,21 @@
       "downgradeCancelled": "Downgrade cancelled. You'll stay on the {planName} plan.",
       "checkoutCancelled": "Checkout was not completed. Your plan is unchanged."
     },
+    "cancel": {
+      "button": "Cancel subscription",
+      "resumeButton": "Resume subscription",
+      "confirmTitle": "Cancel your subscription?",
+      "confirmBody": "You'll keep full access until {date}. After that your workspace will be locked until you subscribe again.",
+      "confirmBodyNoDate": "You'll keep full access until the end of your current billing period. After that your workspace will be locked until you subscribe again.",
+      "confirmAction": "Cancel subscription",
+      "keep": "Keep subscription",
+      "bannerTitle": "Subscription scheduled to cancel",
+      "bannerBody": "Your subscription ends on {date}. You keep full access until then; after that your workspace will be locked until you subscribe again.",
+      "toasts": {
+        "scheduled": "Your subscription will cancel on {date}. You keep access until then.",
+        "resumed": "Subscription resumed. Your plan will renew as normal."
+      }
+    },
     "plan": {
       "title": "Current Plan",
       "subtitle": "Your active subscription",
@@ -344,7 +359,10 @@
       "subtitle": "Current usage against your plan limits",
       "locations": "Locations",
       "users": "Users",
-      "inventory": "Inventory Products"
+      "inventory": "Inventory Products",
+      "salesPerDay": "Sales (today)",
+      "purchasePerDay": "Purchases (today)",
+      "unlimited": "Unlimited"
     },
     "features": {
       "title": "Plan Features",

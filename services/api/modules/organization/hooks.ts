@@ -9,6 +9,7 @@ import type {
   ApiResponse,
   OrganizationFeatures,
   PlanChangeResult,
+  SubscriptionCancelResult,
   SubscriptionInfo,
   UpdateStorefrontSettingsDto,
   VatSettings,
@@ -108,6 +109,51 @@ function addScheduledChangeToSubscription(
           planName: change.planName,
           effectiveAt: change.effectiveAt,
         },
+      },
+    },
+  };
+}
+
+// POST /api/organization/subscription/cancel - Self-serve at-period-end cancel
+// (or resume with { resume: true }). Writes the resulting cancel state straight
+// into the subscription cache so the "cancels on {date}" banner flips instantly,
+// then reconciles with a refetch.
+export const useCancelSubscription = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { resume?: boolean }) =>
+      organizationApi.cancelSubscription(data),
+    onSuccess: (result) => {
+      const outcome = result.data;
+      queryClient.setQueryData<ApiResponse<SubscriptionInfo>>(
+        queryKeys.organization.subscription(),
+        (current) => applyCancellationToSubscription(current, outcome),
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.organization.subscription(),
+      });
+    },
+    onError: handleMutationError,
+  });
+};
+
+function applyCancellationToSubscription(
+  current: ApiResponse<SubscriptionInfo> | undefined,
+  outcome: SubscriptionCancelResult | undefined,
+): ApiResponse<SubscriptionInfo> | undefined {
+  const entitlement = current?.data?.entitlement;
+  if (!current || !entitlement || !outcome) return current;
+
+  const scheduled = outcome.mode === "scheduled";
+  return {
+    ...current,
+    data: {
+      ...current.data,
+      entitlement: {
+        ...entitlement,
+        cancelAtPeriodEnd: scheduled,
+        cancelAt: scheduled ? outcome.cancelAt ?? entitlement.currentPeriodEnd : null,
       },
     },
   };
