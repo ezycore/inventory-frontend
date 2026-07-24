@@ -6,11 +6,20 @@ import { useGetSubscription } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useFormatters } from "@/hooks/use-formatters";
 import { formatCurrency } from "@/lib/currency";
-import { getScheduledPlanChange } from "@/lib/subscription-utils";
+import {
+  getScheduledCancellation,
+  getScheduledPlanChange,
+} from "@/lib/subscription-utils";
+import {
+  CancelSubscriptionButton,
+  ScheduledCancellationBanner,
+  isCancelable,
+} from "@/components/billing/cancel-subscription";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/ui/components/card";
@@ -127,6 +136,11 @@ function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
           {entitlement.trialEndsAt ? formatDate(entitlement.trialEndsAt) : "—"}
         </Detail>
       </CardContent>
+      {isCancelable(entitlement) && !getScheduledCancellation(entitlement) && (
+        <CardFooter className="justify-end border-t pt-4">
+          <CancelSubscriptionButton entitlement={entitlement} />
+        </CardFooter>
+      )}
     </Card>
   );
 }
@@ -317,6 +331,7 @@ export function BillingOverview() {
 
   return (
     <div className="space-y-4">
+      <ScheduledCancellationBanner entitlement={entitlement} />
       <ScheduledPlanChangeBanner entitlement={entitlement} />
       <PlanSummary entitlement={entitlement} />
       <div className="grid gap-4 md:grid-cols-2">

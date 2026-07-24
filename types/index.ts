@@ -351,6 +351,10 @@ export interface Entitlement {
   pendingPlanSlug?: string;
   pendingPlanName?: string;
   pendingPlanEffectiveAt?: string | null;
+  /** Set when an at-period-end cancel is scheduled: access holds until `cancelAt`
+   * (= `currentPeriodEnd`), then the workspace is blocked. Cleared on resume. */
+  cancelAtPeriodEnd?: boolean;
+  cancelAt?: string | null;
   nextPlanSlug?: string;
   nextPlanName?: string;
   nextPlanEffectiveAt?: string | null;
@@ -427,6 +431,23 @@ export type PlanChangeResult =
     }
   | { mode: "activated"; planSlug: string; planName: string }
   | { mode: "current"; planSlug: string; planName: string };
+
+/**
+ * Result of POST /api/organization/subscription/cancel (proxied from Mission
+ * Control). Discriminated by `mode`:
+ *   - "scheduled": at-period-end cancel now standing; access holds until `cancelAt`
+ *   - "resumed":   a pending cancel was undone; the plan renews as normal
+ *   - "noop":      nothing to change
+ */
+export type SubscriptionCancelResult =
+  | {
+      mode: "scheduled";
+      planSlug?: string;
+      planName?: string;
+      cancelAt?: string | null;
+    }
+  | { mode: "resumed"; planSlug?: string; planName?: string }
+  | { mode: "noop" };
 
 // Base interfaces
 export interface BaseEntity {

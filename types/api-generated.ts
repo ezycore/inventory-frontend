@@ -1000,6 +1000,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organization/subscription/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/subscription/cancel
+         * @description Defined in `src/routes/organization.routes.ts:73`. Requires permission `organization.edit`.
+         */
+        post: operations["post_api_organization_subscription_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organization/form-settings": {
         parameters: {
             query?: never;
@@ -1010,7 +1030,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/form-settings
-         * @description Defined in `src/routes/organization.routes.ts:73`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:81`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_form_settings"];
         post?: never;
@@ -1029,12 +1049,12 @@ export interface paths {
         };
         /**
          * GET /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:84`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:92`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_features"];
         /**
          * PUT /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:92`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:100`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_features"];
         post?: never;
@@ -1054,7 +1074,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/column-settings
-         * @description Defined in `src/routes/organization.routes.ts:101`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:109`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_column_settings"];
         post?: never;
@@ -1073,7 +1093,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:112`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:120`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront"];
         put?: never;
@@ -1083,7 +1103,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:120`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:128`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront"];
         trace?: never;
@@ -1103,7 +1123,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/media
-         * @description Defined in `src/routes/organization.routes.ts:129`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:137`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
@@ -1119,7 +1139,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/hero-slide
-         * @description Defined in `src/routes/organization.routes.ts:142`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:150`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_hero_slide"];
         delete?: never;
@@ -1138,7 +1158,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:152`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:160`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -9299,6 +9319,9 @@ export interface components {
             pendingPlanSlug?: string;
             /** Format: date-time */
             pendingPlanEffectiveAt?: string | null;
+            cancelAtPeriodEnd?: boolean;
+            /** Format: date-time */
+            cancelAt?: string | null;
             /** Format: date-time */
             syncedAt: string;
             /** Format: date-time */
@@ -9451,6 +9474,10 @@ export interface components {
             status: "active" | "inactive" | "read_only";
             /** Format: date-time */
             deletionScheduledAt?: string | null;
+            /** Format: date-time */
+            suspendedAt?: string | null;
+            /** Format: date-time */
+            lapsedAt?: string | null;
             /** @enum {string} */
             demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
             /** Format: date-time */
@@ -9791,6 +9818,22 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        SubscriptionCancelResult: {
+            /** @enum {string} */
+            mode: "scheduled";
+            planSlug?: string;
+            planName?: string;
+            /** Format: date-time */
+            cancelAt?: string | null;
+        } | {
+            /** @enum {string} */
+            mode: "resumed";
+            planSlug?: string;
+            planName?: string;
+        } | {
+            /** @enum {string} */
+            mode: "noop";
+        };
         Subscription: {
             entitlement: {
                 _id: string;
@@ -9821,6 +9864,9 @@ export interface components {
                 pendingPlanSlug?: string;
                 /** Format: date-time */
                 pendingPlanEffectiveAt?: string | null;
+                cancelAtPeriodEnd?: boolean;
+                /** Format: date-time */
+                cancelAt?: string | null;
                 /** Format: date-time */
                 syncedAt: string;
                 /** Format: date-time */
@@ -11630,6 +11676,10 @@ export interface components {
             workspaceExternalId?: string;
             status?: string;
             acknowledged?: boolean;
+            /** Format: date-time */
+            suspendedAt?: string | null;
+            /** Format: date-time */
+            deletionScheduledAt?: string | null;
         };
         McEntitlement: {
             workspaceExternalId: string;
@@ -13911,6 +13961,49 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["PlanChangeReconcile"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_subscription_cancel: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["SubscriptionCancelResult"];
                     };
                 };
             };

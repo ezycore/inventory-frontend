@@ -6,7 +6,10 @@ import AppSidebar from "@/components/layout/app-sidebar";
 import Header from "@/components/layout/header";
 import { BillingAlertBanner } from "@/components/shared/billing-alert-banner";
 import { DemoBanner } from "@/components/shared/demo-banner";
-import { shouldBlockWorkspaceAccess } from "@/lib/subscription-utils";
+import {
+  needsReactivation,
+  shouldBlockWorkspaceAccess,
+} from "@/lib/subscription-utils";
 import { useGetSubscription, useMe } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -15,7 +18,7 @@ import { SidebarInset, SidebarProvider } from "@ui/components/sidebar";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCookie } from "cookies-next";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -27,6 +30,7 @@ export default function ProtectedLayout({
   const verifyMe = useMe();
   const subscription = useGetSubscription();
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const subscriptionLogoutHandled = useRef(false);
@@ -69,8 +73,19 @@ export default function ProtectedLayout({
     // keeps read access and sees <BillingAlertBanner> instead of a logout.
     if (shouldBlockWorkspaceAccess(subscription.data.entitlement)) {
       forceLogoutForSubscription();
+      return;
     }
-  }, [forceLogoutForSubscription, subscription.data]);
+
+    // Canceled workspaces are let in but confined to billing (the backend 403s
+    // every other route). Route them there so they land on a working page, not a
+    // wall of failed requests.
+    if (
+      needsReactivation(subscription.data.entitlement) &&
+      pathname !== "/dashboard/billing"
+    ) {
+      router.replace("/dashboard/billing");
+    }
+  }, [forceLogoutForSubscription, subscription.data, pathname, router]);
 
   useEffect(() => {
     if (!subscription.isError) return;
