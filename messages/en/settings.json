@@ -397,6 +397,12 @@
       "upgrade": "Upgrade",
       "downgrade": "Downgrade",
       "offBadge": "{pct}% off"
+    },
+    "trialSwitch": {
+      "title": "End your free trial?",
+      "body": "Switching to {planName} ends your trial now. You'll pay {price} to activate it — until then you stay on the free plan.",
+      "keep": "Keep trial",
+      "confirm": "End trial & continue"
     }
   },
   "users": {
