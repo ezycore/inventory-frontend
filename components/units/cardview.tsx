@@ -33,11 +33,11 @@ const UnitCardView = (
   const updatedDate = updatedAt ? formatDate(updatedAt, "dd MMM yyyy", locale) : null;
 
   return (
-    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 border-border/60">
+    <Card className="group relative overflow-hidden py-0 gap-0 hover:shadow-lg transition-all duration-300 border-border/60">
       {/* Top color accent bar */}
       <div className="h-1 w-full bg-gradient-to-r from-sky-500 to-blue-600" />
 
-      <div className="p-5 space-y-4">
+      <div className="p-5 space-y-3">
         {/* Header row */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5 min-w-0">
@@ -94,10 +94,10 @@ const UnitCardView = (
         </div>
 
         {/* Short name highlight */}
-        <div className="rounded-lg bg-muted/50 px-4 py-3 flex items-center justify-between">
+        <div className="rounded-lg bg-muted/50 px-4 py-2 flex items-center justify-between">
           <span className="text-sm text-muted-foreground font-medium">{t("card.abbreviation")}</span>
           {shortName ? (
-            <span className="text-lg font-bold tracking-tight text-foreground font-mono uppercase">
+            <span className="text-base font-bold tracking-tight text-foreground font-mono uppercase">
               {shortName}
             </span>
           ) : (

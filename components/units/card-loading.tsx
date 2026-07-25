@@ -3,11 +3,11 @@ import { Card } from "@/ui/components/card";
 
 const UnitCardLoading = () => {
   return (
-    <Card className="overflow-hidden animate-pulse">
+    <Card className="overflow-hidden py-0 gap-0 animate-pulse">
       {/* Top accent bar skeleton */}
       <div className="h-1 w-full bg-muted" />
 
-      <div className="p-5 space-y-4">
+      <div className="p-5 space-y-3">
         {/* Header row */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5">
@@ -24,9 +24,9 @@ const UnitCardLoading = () => {
         </div>
 
         {/* Short name highlight skeleton */}
-        <div className="rounded-lg bg-muted/50 px-4 py-3 flex items-center justify-between">
+        <div className="rounded-lg bg-muted/50 px-4 py-2 flex items-center justify-between">
           <div className="h-4 w-20 bg-muted rounded" />
-          <div className="h-6 w-12 bg-muted rounded" />
+          <div className="h-5 w-12 bg-muted rounded" />
         </div>
 
         {/* Footer skeleton */}
