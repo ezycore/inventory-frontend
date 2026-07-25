@@ -10,7 +10,6 @@ import { useTranslations } from "next-intl";
 import { DataTable } from "@/ui/components/dataTable";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
-import { Progress } from "@/ui/components/progress";
 import PageHeader from "@/ui/components/header";
 import StatsCard, { type StatData } from "@/ui/components/StatsCard";
 import type { Translator } from "@/i18n/config";
@@ -135,7 +134,6 @@ function getShortlistColumns(t: Translator): ColumnDef<ShortlistItem>[] {
         const quantity = row.getValue("quantity") as number;
         const alertQty = row.original.quantityAlert || 1;
         const unitName = getUnitShortName(row.original);
-        const ratio = Math.min((quantity / alertQty) * 100, 100);
         const isCritical = quantity === 0;
 
         const breakdown = row.original.quantityBreakdown;
@@ -183,17 +181,6 @@ function getShortlistColumns(t: Translator): ColumnDef<ShortlistItem>[] {
                 {t("lowstock.alertHint", { level: alertQty, unit: unitName })}
               </span>
             </div>
-            <Progress
-              value={ratio}
-              className="h-1.5"
-              indicatorClassName={
-                isCritical
-                  ? "bg-destructive"
-                  : ratio < 50
-                    ? "bg-chart-1"
-                    : "bg-chart-2"
-              }
-            />
           </div>
         );
       },
@@ -263,7 +250,7 @@ export default function LowStock() {
   const stats = dashboardData?.data;
 
   const columns = useMemo(() => getShortlistColumns(t), [t]);
-  const filterConfig = useMemo(() => getInventoryFilterConfig(t), [t]);
+  const filterConfig = useMemo(() => getInventoryFilterConfig(t, "shortlist"), [t]);
 
   const handleSelectionChange = useCallback((rows: ShortlistItem[]) => {
     setSelectedItems(rows);
@@ -276,6 +263,12 @@ export default function LowStock() {
   }, [selectedItems, router]);
 
   const shortlistStats: StatData[] = [
+    {
+      label: t("lowstock.statTotalAlerts"),
+      value: (stats?.variants?.lowStock || 0) + (stats?.variants?.outOfStock || 0),
+      icon: Package,
+      variant: "info",
+    },
     {
       label: t("lowstock.statLowStock"),
       value: stats?.variants?.lowStock || 0,
@@ -290,13 +283,6 @@ export default function LowStock() {
       variant:
         (stats?.variants?.outOfStock || 0) > 0 ? "destructive" : "success",
       description: t("lowstock.statOutOfStockDesc"),
-    },
-    {
-      label: t("lowstock.statTotalAlerts"),
-      value: (stats?.variants?.lowStock || 0) + (stats?.variants?.outOfStock || 0),
-      icon: Package,
-      variant: "info",
-      description: t("lowstock.statTotalAlertsDesc"),
     },
   ];
 
