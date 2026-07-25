@@ -13,28 +13,49 @@ import {
 
 interface DashboardStats {
   stock?: {
-    totalItems: number;
+    totalItems: number; // SUM of quantity (units in stock) — NOT a variant count
     totalValue: number; // cost (purchase) price valuation
     totalRetailValue: number; // quantity × product/variant price
   };
   variants?: {
+    active: number; // count of active tracked variants — the health denominator
     lowStock: number;
     outOfStock: number;
   };
 }
+
+// Health is a ratio of COUNTS: active variants that are neither low nor out.
+// The base must be a variant count (`variants.active`), never `stock.totalItems`
+// (a sum of quantities) — subtracting counts from a quantity sum is meaningless.
+// Backend already makes lowStock/outOfStock mutually exclusive (lowStock is
+// quantity>0), so they never double-subtract; clamp at 0 guards any scope drift.
+const deriveHealth = (stats: DashboardStats | undefined) => {
+  const activeItems = stats?.variants?.active || 0;
+  const lowStockCount = stats?.variants?.lowStock || 0;
+  const outOfStockCount = stats?.variants?.outOfStock || 0;
+  const healthyStock = Math.max(0, activeItems - lowStockCount - outOfStockCount);
+  const healthyPercentage =
+    activeItems > 0 ? Math.round((healthyStock / activeItems) * 100) : 100;
+  return { activeItems, lowStockCount, outOfStockCount, healthyStock, healthyPercentage };
+};
 
 export const getInventoryKpiStats = (
   stats: DashboardStats | undefined,
   formatCurrency: (value: number) => string,
   t: Translator
 ): StatData[] => {
-  const totalItems = stats?.stock?.totalItems || 0;
-  const lowStockCount = stats?.variants?.lowStock || 0;
-  const outOfStockCount = stats?.variants?.outOfStock || 0;
-  const healthyStock = totalItems - lowStockCount - outOfStockCount;
-  const healthyPercentage = totalItems > 0 ? Math.round((healthyStock / totalItems) * 100) : 100;
+  const { activeItems, lowStockCount, outOfStockCount, healthyStock, healthyPercentage } =
+    deriveHealth(stats);
 
+  // Funnel order: total (active) → good (healthy) → warning (low) → critical (out).
   return [
+    {
+      label: t("stats.activeItems"),
+      value: activeItems.toLocaleString(),
+      icon: Boxes,
+      variant: "primary",
+      description: t("stats.trackedVariants"),
+    },
     {
       label: t("stats.healthyStock"),
       value: healthyStock.toLocaleString(),
@@ -56,13 +77,6 @@ export const getInventoryKpiStats = (
       variant: outOfStockCount > 0 ? "destructive" : "success",
       description: outOfStockCount > 0 ? t("stats.urgentNoStock") : t("stats.allInStock"),
     },
-    {
-      label: t("stats.activeItems"),
-      value: totalItems.toLocaleString(),
-      icon: Boxes,
-      variant: "primary",
-      description: t("stats.trackedVariants"),
-    },
   ];
 };
 
@@ -71,13 +85,9 @@ export const getInventorySummaryMetrics = (
   formatCurrency: (value: number) => string,
   t: Translator
 ) => {
-  const totalItems = stats?.stock?.totalItems || 0;
   const totalValue = stats?.stock?.totalValue || 0;
   const totalRetailValue = stats?.stock?.totalRetailValue || 0;
-  const lowStockCount = stats?.variants?.lowStock || 0;
-  const outOfStockCount = stats?.variants?.outOfStock || 0;
-  const healthyStock = totalItems - lowStockCount - outOfStockCount;
-  const healthyPercentage = totalItems > 0 ? Math.round((healthyStock / totalItems) * 100) : 100;
+  const { healthyPercentage } = deriveHealth(stats);
 
   return [
     {
