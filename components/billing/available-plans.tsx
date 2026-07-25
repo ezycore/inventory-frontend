@@ -12,7 +12,10 @@ import { TrialEndConfirmDialog } from "./trial-end-confirm-dialog";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useFormatters } from "@/hooks/use-formatters";
 import { formatCurrency } from "@/lib/currency";
-import { getScheduledPlanChange } from "@/lib/subscription-utils";
+import {
+  getScheduledCancellation,
+  getScheduledPlanChange,
+} from "@/lib/subscription-utils";
 import {
   Card,
   CardContent,
@@ -66,6 +69,17 @@ export function AvailablePlans() {
     !isCanceled && sub?.entitlement?.subscriptionStatus === "trialing";
   const currentAmount = isCanceled ? null : sub?.entitlement?.amount ?? null;
   const scheduledChange = getScheduledPlanChange(sub?.entitlement);
+  // The backend rejects plan changes in these states (see MC BILLING.md §5.8):
+  // a scheduled cancel must be resumed first (any change would clear it), and
+  // an overdue sub must settle its invoice first (free is still allowed — that
+  // is walking away from the paid plan, not acquiring one). Mirror that here so
+  // the buttons don't offer actions that can only fail.
+  const isCancelScheduled =
+    !isCanceled && !!getScheduledCancellation(sub?.entitlement);
+  const isPastDue =
+    !isCanceled && sub?.entitlement?.subscriptionStatus === "past_due";
+  const isChangeBlocked = (plan: AvailablePlan) =>
+    isCancelScheduled || (isPastDue && plan.amount > 0);
 
   // Suffix honors intervalCount — a 6-month plan is "/6 mo", never "/mo".
   const intervalSuffix = (plan: AvailablePlan) => {
@@ -88,7 +102,7 @@ export function AvailablePlans() {
   // everything else (free target, same plan, already-paid upgrades) goes straight
   // through.
   const handleChange = (plan: AvailablePlan) => {
-    if (planChange.isPending) return;
+    if (planChange.isPending || isChangeBlocked(plan)) return;
     if (isTrialing && plan.amount > 0 && plan.slug !== currentSlug) {
       setConfirmPlan(plan);
       return;
@@ -154,6 +168,16 @@ export function AvailablePlans() {
         <p className="text-sm text-muted-foreground">
           {tPlans("subtitle")}
         </p>
+        {isCancelScheduled && (
+          <p className="text-sm text-amber-600 dark:text-amber-500">
+            {tPlans("blockedCancelScheduled")}
+          </p>
+        )}
+        {!isCancelScheduled && isPastDue && (
+          <p className="text-sm text-amber-600 dark:text-amber-500">
+            {tPlans("blockedPastDue")}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -232,7 +256,7 @@ export function AvailablePlans() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    disabled={planChange.isPending}
+                    disabled={planChange.isPending || isChangeBlocked(plan)}
                     onClick={() => handleChange(plan)}
                   >
                     {tPlans("cancelDowngrade")}
@@ -244,7 +268,7 @@ export function AvailablePlans() {
                 ) : currentAmount == null ? (
                   <Button
                     className="w-full"
-                    disabled={planChange.isPending}
+                    disabled={planChange.isPending || isChangeBlocked(plan)}
                     onClick={() => handleChange(plan)}
                   >
                     {tPlans("choosePlan")}
@@ -252,7 +276,7 @@ export function AvailablePlans() {
                 ) : direction === "upgrade" ? (
                   <Button
                     className="w-full"
-                    disabled={planChange.isPending}
+                    disabled={planChange.isPending || isChangeBlocked(plan)}
                     onClick={() => handleChange(plan)}
                   >
                     <ArrowUpCircle className="size-4" />
@@ -262,7 +286,7 @@ export function AvailablePlans() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    disabled={planChange.isPending}
+                    disabled={planChange.isPending || isChangeBlocked(plan)}
                     onClick={() => handleChange(plan)}
                   >
                     <ArrowDownCircle className="size-4" />
