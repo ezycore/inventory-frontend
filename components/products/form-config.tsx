@@ -295,7 +295,14 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             optionsApi: selectOptions("units", { fields: "_id,name,shortName" }),
             placeholder: tr('form.purchaseUnitPlaceholder', "Select purchase unit"),
             tooltip: tr('form.purchaseUnitTooltip', "The unit you buy this product in (e.g. Box). Stock received in this unit is converted to the base unit using the conversion factor."),
-            dependsOn: { field: "enableUOMConversion", value: true, condition: "eq", action: "show" },
+            // Single-only: the enableUOMConversion checkbox is single-only, but its
+            // value can linger `true` after a switch to variable (hiding a field
+            // doesn't reset it) — gate on productType too so this hides (and is
+            // stripped from the payload) with the checkbox.
+            dependsOn: [
+              { field: "enableUOMConversion", value: true, condition: "eq", action: "show" },
+              { field: "productType", value: "single", condition: "eq" },
+            ],
           },
           {
             name: "purchaseUnit.conversionFactor",
@@ -308,7 +315,11 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             validation: { min: 1 },
             // customComponent: NumberInput,
             tooltip: tr('form.purchaseConversionFactorTooltip', "How many base units make up one purchase unit. For example, if you buy in Boxes and 1 box holds 100 pieces, enter 100."),
-            dependsOn: { field: "enableUOMConversion", value: true, condition: "eq", action: "show" },
+            // Single-only — see purchaseUnit.unitId above.
+            dependsOn: [
+              { field: "enableUOMConversion", value: true, condition: "eq", action: "show" },
+              { field: "productType", value: "single", condition: "eq" },
+            ],
           },
         ],
       },

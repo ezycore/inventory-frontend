@@ -23,6 +23,8 @@ import { Checkbox } from '@ui/components/checkbox'
 import { toast } from 'sonner'
 import { Plus, PlusCircle, Upload, X, ImageIcon } from 'lucide-react'
 import { useVariantAttributes, useCreateVariantAttribute, useSelectOptions } from '@/services/api'
+import { useAuthStore } from '@/services/stores'
+import { isFeatureEnabled } from '@/lib/feature-utils'
 import type { VariantAttribute } from '@/types'
 import DynamicForm from '@/ui/components/form'
 import getVariantAttributeFormConfig from '../variants/form-config'
@@ -98,18 +100,21 @@ export default function VariantManager({
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingVariant, setEditingVariant] = useState<EditModalData | null>(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [newAttributeName, setNewAttributeName] = useState('')
-  const [newAttributeValues, setNewAttributeValues] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
-  
+
   // Watch the price field from parent form using useWatch
   const basePrice = useWatch({ control, name: 'price' }) || 0
   const baseUnitId = useWatch({ control, name: 'unitId' })
   const addToInventory = useWatch({ control, name: 'addToInventory' })
   const hasExpiry = useWatch({ control, name: 'hasExpiry' })
 
+  // Feature gates — mirror the product form (hooks/use-filters.ts): a variant
+  // must not expose barcode / UOM fields the org's plan doesn't include.
+  const orgFeatures = useAuthStore((state) => state.user?.organization?.features)
+  const barcodeEnabled = isFeatureEnabled(orgFeatures, 'barcodeSystem')
+  const uomEnabled = isFeatureEnabled(orgFeatures, 'uomConversion')
+
   // Fetch variant attributes from API
-  const { data: attributesResponse, isLoading, error, refetch } = useVariantAttributes()
+  const { data: attributesResponse, isLoading, error } = useVariantAttributes()
   const variantAttributes = attributesResponse?.data?.items || []
   const createVariantAttribute = useCreateVariantAttribute()
 
@@ -121,7 +126,8 @@ export default function VariantManager({
 
   const baseUnitLabel: string | undefined = (baseUnit as { shortName?: string })?.shortName 
 
-  const {form: variantCreateForm} = useDynamicForm(getVariantAttributeFormConfig(tVariants))
+  const variantAttributeFormConfig = getVariantAttributeFormConfig(tVariants)
+  const {form: variantCreateForm} = useDynamicForm(variantAttributeFormConfig)
   
   // Update internal state when value prop changes (for edit mode)
   useEffect(() => {
@@ -257,43 +263,6 @@ export default function VariantManager({
       }
       return updated
     })
-  }
-
-  const handleCreateAttribute = async () => {
-    if (!newAttributeName.trim() || !newAttributeValues.trim()) {
-      toast.error(t('toasts.enterNameAndValues'))
-      return
-    }
-
-    setIsCreating(true)
-    try {
-      const values = newAttributeValues
-        .split(',')
-        .map(v => v.trim())
-        .filter(v => v)
-
-      if (values.length === 0) {
-        toast.error(t('toasts.enterValue'))
-        setIsCreating(false)
-        return
-      }
-
-      await createVariantAttribute.mutateAsync({
-        name: newAttributeName.trim(),
-        values,
-        status: 'active',
-      })
-
-      toast.success(t('toasts.attributeCreated'))
-      setCreateModalOpen(false)
-      setNewAttributeName('')
-      setNewAttributeValues('')
-      refetch()
-    } catch (error: any) {
-      toast.error(error?.message || t('toasts.attributeCreateFailed'))
-    } finally {
-      setIsCreating(false)
-    }
   }
 
   const variantColumns: SimpleColumn<VariantRow>[] = [
@@ -481,23 +450,26 @@ export default function VariantManager({
               </div>
 
               {/* Barcode VALUE (per variant). The barcode TYPE (symbology) is set
-                  once on the product form and shared by every variant. */}
-              <div className="grid grid-cols-2 gap-3 border-t pt-4">
-                <div className="space-y-1 col-span-2">
-                  <Label htmlFor="edit-barcode" className="text-xs">{t('barcodeLabel')}</Label>
-                  <Input
-                    id="edit-barcode"
-                    value={editingVariant.barcode || ''}
-                    placeholder={t('barcodePlaceholder')}
-                    onChange={e =>
-                      setEditingVariant({ ...editingVariant, barcode: e.target.value })
-                    }
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    {t('barcodeHint')}
-                  </p>
+                  once on the product form and shared by every variant. Gated by
+                  `barcodeSystem` to match the product form (hooks/use-filters.ts). */}
+              {barcodeEnabled && (
+                <div className="grid grid-cols-2 gap-3 border-t pt-4">
+                  <div className="space-y-1 col-span-2">
+                    <Label htmlFor="edit-barcode" className="text-xs">{t('barcodeLabel')}</Label>
+                    <Input
+                      id="edit-barcode"
+                      value={editingVariant.barcode || ''}
+                      placeholder={t('barcodePlaceholder')}
+                      onChange={e =>
+                        setEditingVariant({ ...editingVariant, barcode: e.target.value })
+                      }
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      {t('barcodeHint')}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Inventory (per variant) — only when Track stock is on */}
               {addToInventory && (
@@ -571,7 +543,9 @@ export default function VariantManager({
                 </div>
               )}
 
-              {/* UOM Conversion (per variant) */}
+              {/* UOM Conversion (per variant) — gated by `uomConversion` to match
+                  the product form (hooks/use-filters.ts). */}
+              {uomEnabled && (
               <div className="space-y-3 border-t pt-4">
                 <div className="flex items-start gap-2">
                   <Checkbox
@@ -681,6 +655,7 @@ export default function VariantManager({
                   </div>
                 )}
               </div>
+              )}
 
               {/* Variant Image Upload */}
               <div className="space-y-2 border-t pt-4">
@@ -777,7 +752,7 @@ export default function VariantManager({
         id='variant-form'
         className="space-y-6"
         form={variantCreateForm}
-        config={getVariantAttributeFormConfig(tVariants)}
+        config={variantAttributeFormConfig}
         // Container props
         openInside="modal"
         open={createModalOpen}
