@@ -166,7 +166,6 @@
     "unitCostHint": "This product has no cost yet. Enter a unit cost so the added stock is valued correctly.",
     "costRequired": "Enter a unit cost for the added stock",
     "expiryRequired": "An expiry date is required when adding expiry-tracked stock",
-    "expiryDecreaseUnsupported": "Can't decrease an expiry-tracked product here — use a purchase return",
     "statPendingItems": "Pending Items",
     "statIncrease": "Stock Increase",
     "statIncreaseDesc": "Units to add",
@@ -178,7 +177,27 @@
     "colNewQty": "New Qty",
     "colChange": "Change",
     "colValue": "Value",
-    "noChange": "No change"
+    "noChange": "No change",
+    "batchTargetLabel": "Where does the added stock go?",
+    "batchTargetNew": "New batch",
+    "batchTargetExisting": "Existing batch",
+    "batchExistingLabel": "Add to batch",
+    "batchExistingHint": "Tops up a lot you already hold instead of opening a duplicate one.",
+    "batchNumberOptional": "(optional)",
+    "batchRequired": "Choose which batch the added stock goes into",
+    "drawFromBatches": "Take the stock out of",
+    "drawAllocated": "{allocated} of {required} {unit}",
+    "drawQuantity": "Qty",
+    "drawAddBatch": "Add batch",
+    "drawRemoveRow": "Remove this batch",
+    "drawHint": "Expired lots are listed first — removing them writes the stock off.",
+    "drawRowsIncomplete": "Every row needs a batch and a quantity",
+    "drawsMismatch": "The batch quantities must add up to {required}",
+    "colBatches": "Batches",
+    "batchUnlabelled": "unlabelled lot",
+    "batchExpired": "Expired",
+    "batchExistingShort": "Existing lot",
+    "batchNewShort": "New lot"
   },
   "transfers": {
     "title": "Transfer Stock",
@@ -310,5 +329,12 @@
     "daysLeft": "{days}d left",
     "showLess": "Show less",
     "showAll": "Show all {count}"
+  },
+  "batch": {
+    "option": "Exp {expiry} · {left} left",
+    "optionWithLot": "Exp {expiry} · {lot} · {left} left",
+    "expiredPrefix": "EXPIRED · {label}",
+    "noExpiryDate": "no expiry date",
+    "choosePlaceholder": "Choose a batch…"
   }
 }

@@ -2,6 +2,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 
+/** One lot a decrease of an expiry-tracked product draws stock out of. */
+export interface BatchDraw {
+  batchId: string;
+  quantity: number;
+  /** Display only — the lot's expiry, so the review table can name it. */
+  expiryDate?: string | null;
+  batchNumber?: string;
+  /** Display only — the draw is a write-off of stock that had already gone off. */
+  expired?: boolean;
+}
+
 export interface AdjustmentItem {
   id: string; // local ID
   inventoryId: string; // the inventory record _id
@@ -22,10 +33,15 @@ export interface AdjustmentItem {
   conversionFactor?: number;
   purchaseUnitName?: string;
   baseUnitName?: string;
-  // Expiry-batch capture (only for expiry-tracked products on a stock increase)
+  // Expiry-batch capture (only for expiry-tracked products on a stock increase).
+  // `expiryDate` opens a new lot; `batchId` adds into an existing one — never both.
   hasExpiry?: boolean;
   expiryDate?: string;
   batchNumber?: string;
+  batchId?: string;
+  // Which lots a decrease of an expiry-tracked product comes out of. Must sum to
+  // currentQuantity - newQuantity.
+  batchDraws?: BatchDraw[];
 }
 
 /** Which unit a UOM product's quantity input opens in by default. */

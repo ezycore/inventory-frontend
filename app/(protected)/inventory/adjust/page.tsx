@@ -35,6 +35,7 @@ export default function StockAdjustmentPage() {
     currentStep,
     steps,
     pendingStats,
+    expiryTrackingEnabled,
   } = ctx
 
   const columns = getAdjustmentColumns({
@@ -42,6 +43,7 @@ export default function StockAdjustmentPage() {
     onEdit: handleEdit,
     onRemove: removeItem,
     t,
+    expiryEnabled: expiryTrackingEnabled,
   })
 
   return (

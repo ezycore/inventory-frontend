@@ -2,10 +2,10 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { ClipboardEdit, ListChecks, SendHorizonal, Wallet } from 'lucide-react'
-import type { StatData } from '@/ui/components/StatsCard'
-import { formatCurrency } from '@/lib/currency'
-import { itemValueDelta } from '@/components/inventory/adjust/adjustment-value'
+import {
+  buildAdjustStats,
+  buildAdjustSteps,
+} from '@/components/inventory/adjust/adjust-page-chrome'
 import {
   useStockAdjustmentStore,
   AdjustmentItem,
@@ -14,6 +14,10 @@ import { useAuthStore } from '@/services/stores/use-auth-store'
 import { useBulkAdjustStock } from '@/services/api'
 import { InventoryProduct } from '@/components/inventory/inventory-search'
 import { toBaseUnit, fromBaseUnit } from '@/utils/uom-conversion'
+import { useBatchDraws } from '@/components/inventory/adjust/use-batch-draws'
+
+/** Where an increase of an expiry-tracked product lands. */
+export type BatchTarget = 'new' | 'existing'
 
 export type AdjustStockContext = ReturnType<typeof useAdjustStock>
 
@@ -32,6 +36,9 @@ export function useAdjustStock() {
   // Expiry batch capture (expiry-tracked products, on a stock increase)
   const [expiryDate, setExpiryDate] = useState<string>('')
   const [batchNumber, setBatchNumber] = useState<string>('')
+  // Whether an increase opens a new lot or tops up an existing one
+  const [batchTarget, setBatchTarget] = useState<BatchTarget>('new')
+  const [batchId, setBatchId] = useState<string>('')
 
   const {
     items,
@@ -58,6 +65,10 @@ export function useAdjustStock() {
     setCostInput(null)
     setExpiryDate('')
     setBatchNumber('')
+    setBatchTarget('new')
+    setBatchId('')
+    // Drop any pinned rows so the new product gets its own suggestion.
+    resetBatchDraws()
     // For a UOM product, open in the user's preferred default unit.
     if (product.enableUOMConversion && product.conversionFactor) {
       const usePurchase = defaultUnit === 'purchase'
@@ -88,6 +99,21 @@ export function useAdjustStock() {
 
   // Show expiry/batch inputs for expiry-tracked products when stock is increasing.
   const showExpiryFields = isExpiryTracked && isIncrease
+  // A decrease has to say which lots the units leave from (backend requires it).
+  const showBatchDraws = isExpiryTracked && isDecrease
+  const removedQuantity = isDecrease ? currentQuantity - effectiveNewQuantity : 0
+
+  const {
+    draws: batchDraws,
+    setDraws: setBatchDraws,
+    resetDraws: resetBatchDraws,
+    isBalanced: drawsBalanced,
+  } = useBatchDraws({
+    productId: selectedProduct?.productId,
+    variantId: selectedProduct?.variantId,
+    enabled: showBatchDraws,
+    removedQuantity,
+  })
 
   // Ask for a unit cost only when adding stock to a row that has no cost basis yet
   // (new row, or opening/transfer stock stored at 0/undefined). Mirrors the backend.
@@ -101,6 +127,9 @@ export function useAdjustStock() {
     setCostInput(null)
     setExpiryDate('')
     setBatchNumber('')
+    setBatchTarget('new')
+    setBatchId('')
+    resetBatchDraws()
   }
 
   // Handle add or update item
@@ -113,16 +142,31 @@ export function useAdjustStock() {
       toast.error(t('adjust.quantityNonNegative'))
       return
     }
-    // #2: decreasing an expiry-tracked product via adjustment desyncs the batch
-    // ledger (FEFO write-off not built) — block it, matching the backend.
-    if (isExpiryTracked && isDecrease) {
-      toast.error(t('adjust.expiryDecreaseUnsupported'))
-      return
+    // #2: a decrease has to name the lots it draws from, and they have to add up —
+    // the batch ledger must stay equal to the aggregate quantity.
+    if (showBatchDraws) {
+      if (batchDraws.some((d) => !d.batchId || d.quantity <= 0)) {
+        toast.error(t('adjust.drawRowsIncomplete'))
+        return
+      }
+      if (!drawsBalanced) {
+        toast.error(
+          t('adjust.drawsMismatch', { required: removedQuantity }),
+        )
+        return
+      }
     }
-    // #3: adding expiry-tracked stock needs an expiry date (else no batch is made).
-    if (showExpiryFields && !expiryDate) {
-      toast.error(t('adjust.expiryRequired'))
-      return
+    // #3: adding expiry-tracked stock lands either in a new lot (needs an expiry
+    // date) or in an existing one (needs the lot picked).
+    if (showExpiryFields) {
+      if (batchTarget === 'new' && !expiryDate) {
+        toast.error(t('adjust.expiryRequired'))
+        return
+      }
+      if (batchTarget === 'existing' && !batchId) {
+        toast.error(t('adjust.batchRequired'))
+        return
+      }
     }
     // #1: a cost-less row needs a unit cost for the added units, else they value at 0.
     if (needsCost && (!costInput || costInput <= 0)) {
@@ -130,14 +174,19 @@ export function useAdjustStock() {
       return
     }
 
-    // Expiry/batch capture (only when shown for a tracked product on an increase)
-    const expiryPayload = showExpiryFields
-      ? {
-          hasExpiry: true,
-          expiryDate: expiryDate || undefined,
-          batchNumber: batchNumber || undefined,
-        }
-      : {}
+    // Batch capture. An increase carries exactly one of expiryDate (new lot) or
+    // batchId (existing lot); a decrease carries the per-lot draws. Every key is
+    // always present so editing an item back to a different mode clears the old
+    // one instead of leaving it merged in.
+    const opensNewBatch = showExpiryFields && batchTarget === 'new'
+    const expiryPayload = {
+      hasExpiry: isExpiryTracked || undefined,
+      expiryDate: opensNewBatch ? expiryDate || undefined : undefined,
+      batchNumber: opensNewBatch ? batchNumber || undefined : undefined,
+      batchId:
+        showExpiryFields && batchTarget === 'existing' ? batchId : undefined,
+      batchDraws: showBatchDraws ? batchDraws : undefined,
+    }
     // Cost capture (only when the row has no cost basis and we're increasing)
     const costPayload = needsCost ? { costPrice: costInput ?? undefined } : {}
 
@@ -211,6 +260,10 @@ export function useAdjustStock() {
     setCostInput(item.costPrice ?? null)
     setExpiryDate(item.expiryDate || '')
     setBatchNumber(item.batchNumber || '')
+    setBatchTarget(item.batchId ? 'existing' : 'new')
+    setBatchId(item.batchId || '')
+    // Seed the saved draws rather than re-suggesting over the user's choice.
+    resetBatchDraws(item.batchDraws || [])
   }
 
   // Handle cancel edit
@@ -227,6 +280,9 @@ export function useAdjustStock() {
     setCostInput(null)
     setExpiryDate('')
     setBatchNumber('')
+    setBatchTarget('new')
+    setBatchId('')
+    resetBatchDraws()
   }
 
   // Submit all adjustments
@@ -246,6 +302,16 @@ export function useAdjustStock() {
       // Expiry batch capture (backend creates a batch only for tracked products)
       ...(item.expiryDate ? { expiryDate: item.expiryDate } : {}),
       ...(item.batchNumber ? { batchNumber: item.batchNumber } : {}),
+      ...(item.batchId ? { batchId: item.batchId } : {}),
+      // Per-lot breakdown of a decrease — the API only wants id + quantity.
+      ...(item.batchDraws?.length
+        ? {
+            batchDraws: item.batchDraws.map((d) => ({
+              batchId: d.batchId,
+              quantity: d.quantity,
+            })),
+          }
+        : {}),
     }))
 
     try {
@@ -259,54 +325,8 @@ export function useAdjustStock() {
 
   // Step indicator
   const currentStep = items.length === 0 ? 0 : 1
-  const steps = [
-    { label: t('shared.stepAddItems'), description: t('adjust.stepAddDesc') },
-    { label: t('shared.stepReview'), description: t('shared.stepPendingCount', { count: items.length }) },
-    { label: t('shared.stepSubmit'), description: t('adjust.stepSubmitDesc') },
-  ]
-
-  // Stats
-  const totalIncrease = items.reduce((sum, i) => {
-    const diff = i.newQuantity - i.currentQuantity
-    return diff > 0 ? sum + diff : sum
-  }, 0)
-  const totalDecrease = items.reduce((sum, i) => {
-    const diff = i.newQuantity - i.currentQuantity
-    return diff < 0 ? sum + Math.abs(diff) : sum
-  }, 0)
-  // Net value impact at cost (signed): what the correction adds to / removes from stock value.
-  const netValue = items.reduce((sum, i) => sum + itemValueDelta(i), 0)
-  const netValueLabel = `${netValue < 0 ? '-' : '+'}${formatCurrency(Math.abs(netValue))}`
-
-  const pendingStats: StatData[] = [
-    {
-      label: t('adjust.statPendingItems'),
-      value: items.length,
-      icon: ListChecks,
-      variant: items.length > 0 ? 'primary' : 'default',
-    },
-    {
-      label: t('adjust.statIncrease'),
-      value: `+${totalIncrease}`,
-      icon: ClipboardEdit,
-      variant: 'success',
-      description: t('adjust.statIncreaseDesc'),
-    },
-    {
-      label: t('adjust.statDecrease'),
-      value: `-${totalDecrease}`,
-      icon: SendHorizonal,
-      variant: totalDecrease > 0 ? 'destructive' : 'default',
-      description: t('adjust.statDecreaseDesc'),
-    },
-    {
-      label: t('adjust.statNetValue'),
-      value: netValueLabel,
-      icon: Wallet,
-      variant: netValue > 0 ? 'success' : netValue < 0 ? 'destructive' : 'default',
-      description: t('adjust.statNetValueDesc'),
-    },
-  ]
+  const steps = buildAdjustSteps(items.length, t)
+  const pendingStats = buildAdjustStats(items, t)
 
   // Already-added inventory IDs (for filtering search results)
   const addedInventoryIds = items.map((i) => i.inventoryId)
@@ -327,10 +347,19 @@ export function useAdjustStock() {
     setExpiryDate,
     batchNumber,
     setBatchNumber,
+    batchTarget,
+    setBatchTarget,
+    batchId,
+    setBatchId,
+    batchDraws,
+    setBatchDraws,
     // derived
     hasUOM,
     computedBaseQuantity,
+    expiryTrackingEnabled,
     showExpiryFields,
+    showBatchDraws,
+    removedQuantity,
     needsCost,
     addedInventoryIds,
     // store + mutation
