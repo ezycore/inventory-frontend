@@ -160,6 +160,10 @@ When the section's `dependsOn` condition is not met, the **entire section render
 
 `columnSpan`: `1|2|3|4|6|8|12` (responsive: full on mobile, half on sm, configured on lg).
 
+`number` renders the shared `NumberField`, never a native `type="number"`. Always declare
+`precision` — `2` for money/percentages, `0` for base-unit quantities/counts/days, omit for
+conversion factors and free floats. The renderer deliberately has no default.
+
 ## Validation Cheatsheet
 
 ```ts
@@ -172,6 +176,7 @@ Required text fields produce `"<Label> is required"` (not Zod's default). Select
 - **`labelInValue` field submits a full object instead of an ID** — `labelInValue: true` intentionally stores the whole option object in form state. Always unwrap in `prepareSubmitData`: `const id = typeof raw === "object" ? raw.value : raw`. Without `prepareSubmitData`, the full object reaches the API. The schema generator handles this by using `z.any().refine(...)` for required `labelInValue` selects so Zod won't reject the object.
 - **"Submit button stays disabled"** — submit is gated on `formState.isDirty`. Either change a value or set `defaultValues` differently from current values during edit.
 - **"expected string, received undefined"** — required field without `defaultValue` and not in the auto-`""` list (e.g., `number`). Add `defaultValue: 0` or remove `required`.
+- **A cleared `number` field submits `null`, not `""`** — that is the `NumberField` contract, and the generated schema normalizes both to "no value". A required number that is emptied fails with `"<Label> is required"`. Don't add a `zodType` or `.nullable()` shim for it.
 - **API not called for templated `optionsApi`** — placeholder value is missing/empty, OR the dependency `condition` is not met (template only resolves when `shouldDisable === false`).
 - **Dependency comparing an ID string against an object property** — use `matchWithProp: "variant_count"` (the helper auto-enriches string values to full options when the dependency field is a `select`).
 - **Validation message lags one keystroke** — already fixed; `FormField` reads errors via `useFormState` not props. Don't revert.

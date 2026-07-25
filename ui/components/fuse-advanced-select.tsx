@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 /**
  * FuseAdvancedSelect Component
@@ -6,8 +7,17 @@
  * Drop-in replacement for AdvancedSelect that adds Fuse.js-powered fuzzy search.
  * Supports the same props as AdvancedSelect — single and multiple modes.
  *
+ * The field itself is the search box: it renders as a **combobox**, so one click
+ * focuses it and typing filters immediately. There is no second search input
+ * inside the dropdown — the popover is a plain listbox.
+ *
+ * This module is the orchestrator only. Value normalisation lives in
+ * `useFuseSelectValue`, keyboard nav in `useComboboxKeyboard`, the field markup
+ * in `fuse-select-fields`, and the listbox in `fuse-select-dropdown`.
+ *
  * Features:
  * - 🔍 Fuse.js fuzzy search — finds matches even with spelling mistakes
+ * - ⌨️ Full keyboard nav (↑/↓/Home/End/Enter/Esc, Backspace to drop a badge)
  * - 🆓 Form-independent — works standalone or with React Hook Form
  * - 📊 Static options via `options` prop
  * - 📡 Dynamic options via `optionsApi` prop with template support {{fieldName}}
@@ -15,83 +25,36 @@
  * - 🔄 Automatic data transformation from API responses
  * - 🔗 Unified dependency system with automatic template resolution
  * - ➕ Quick-add modal for creating new options inline
- * - ✅ Multiple selection mode with badge display + fuzzy search
+ * - ✅ Multiple selection mode with badge display + inline typeahead
  */
 
 import { quickAddConfig } from "@/config/quickAddConfig";
 import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import DynamicForm from "@/ui/components/form";
-import type { SelectOption, FieldDependencyConfig } from "@/ui/components/form/type";
+import type { SelectOption } from "@/ui/components/form/type";
 import { useQueryClient } from "@tanstack/react-query";
-import { Popover, PopoverContent, PopoverTrigger } from "@ui/components/popover";
-import { Badge } from "@ui/components/badge";
+import { Popover, PopoverAnchor } from "@ui/components/popover";
+import { FuseSelectDropdown } from "@ui/components/fuse-select-dropdown";
+import {
+  FuseMultiField,
+  FuseSingleField,
+  type FuseFieldContext,
+} from "@ui/components/fuse-select-fields";
+import type { FuseAdvancedSelectProps } from "@ui/components/fuse-select-types";
+import { useComboboxKeyboard } from "@ui/hooks/use-combobox-keyboard";
+import { useFuseSelectValue } from "@ui/hooks/use-fuse-select-value";
 import { cn } from "@ui/lib/utils";
-import { Check, ChevronDown, Loader2, Plus, Search, X } from "lucide-react";
+import { ChevronDown, Loader2, Plus } from "lucide-react";
 import Fuse from "fuse.js";
-import React, {
-  useState,
-  useMemo,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
+import React, { useCallback, useId, useMemo, useRef, useState } from "react";
 import { Button } from "./button";
 
-// ── Types (same as AdvancedSelect) ────────────────────────────────────────────
-
-export interface LabelValueOption {
-  label: string;
-  value: string;
-}
-
-export type FuseSelectValue =
-  | string
-  | string[]
-  | LabelValueOption
-  | LabelValueOption[];
-
-export interface FuseAdvancedSelectProps {
-  // Core select properties
-  value?: FuseSelectValue;
-  onValueChange?: (value: FuseSelectValue) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  className?: string;
-  error?: string;
-  /** When true, onChange returns {label, value} object(s) instead of just value string(s) */
-  labelInValue?: boolean;
-  /** "single" (default) or "multiple" */
-  mode?: "single" | "multiple";
-
-  // Options — either static or API-driven
-  options?: SelectOption[];
-  /** API endpoint. Supports template syntax: '/products/{{productId}}/variants' */
-  optionsApi?: string;
-
-  // Dependency system (used by DynamicForm)
-  dependsOn?: FieldDependencyConfig;
-
-  // Multi-select display
-  maxCount?: number;
-
-  // Quick-add functionality
-  creatable?: boolean;
-  quickAddModule?: string;
-  itemsCreateCallback?: (response: any) => SelectOption[];
-
-  /** Called once on mount with the current value (used for auto-fill on initial render) */
-  onMount?: (value: FuseSelectValue | undefined) => void;
-
-  /**
-   * Name of a boolean field on the fetched options that marks the default option
-   * (e.g. "isDefault", "isDefaultSales"). When set and the field is empty, the
-   * matching option is auto-selected once so create forms come pre-filled.
-   */
-  defaultFlag?: string;
-}
-
-// ── Component ─────────────────────────────────────────────────────────────────
+export type {
+  FuseAdvancedSelectProps,
+  FuseSelectValue,
+  LabelValueOption,
+} from "@ui/components/fuse-select-types";
 
 export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   value,
@@ -103,7 +66,6 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   mode = "single",
   options,
   optionsApi,
-  dependsOn,
   maxCount = 3,
   labelInValue = false,
   creatable = false,
@@ -112,16 +74,13 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   onMount,
   defaultFlag,
 }) => {
-  // ── Hooks (all before any early return) ───────────────────────────────────
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  // const hasMountedRef = useRef(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  // Guards the one-time default auto-select so we never override the user.
-  const defaultAppliedRef = useRef(false);
+  // null → the input mirrors the committed selection; string → a live query.
+  const [query, setQuery] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listId = useId();
+  const isMulti = mode === "multiple";
 
   const queryClient = useQueryClient();
 
@@ -143,78 +102,25 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   const apiError = queryError ? (queryError as Error).message : null;
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  const {
+    handleValueChange,
+    singleValue,
+    selectedLabel,
+    multiValues,
+    labelOf,
+  } = useFuseSelectValue({
+    value,
+    onValueChange,
+    mode,
+    finalOptions,
+    optionsApi,
+    labelInValue,
+    onMount,
+    defaultFlag,
+  });
 
-  const extractRaw = useCallback(
-    (val: FuseSelectValue | undefined): string | string[] => {
-      if (!val) return mode === "multiple" ? [] : "";
-      if (Array.isArray(val))
-        return val.map((v) => (typeof v === "object" ? v.value : v));
-      return typeof val === "object" ? val.value : val;
-    },
-    [mode]
-  );
+  // ── Filtering ─────────────────────────────────────────────────────────────
 
-  const findOption = useCallback(
-    (valueStr: string): SelectOption | LabelValueOption =>
-      finalOptions.find((o) => o.value === valueStr) ?? {
-        label: valueStr,
-        value: valueStr,
-      },
-    [finalOptions]
-  );
-
-  const formatValue = useCallback(
-    (raw: string | string[]): FuseSelectValue => {
-      if (!labelInValue) return raw;
-      if (Array.isArray(raw)) return raw.map((v) => findOption(v));
-      return findOption(raw);
-    },
-    [labelInValue, findOption]
-  );
-
-  const handleValueChange = useCallback(
-    (raw: string | string[]) => {
-      onValueChange?.(formatValue(raw));
-    },
-    [formatValue, onValueChange]
-  );
-
-  // onMount enrichment
-  useEffect(() => {
-    if (!onMount) return;
-    if (optionsApi && finalOptions.length === 0) return;
-    const rawVal = extractRaw(value);
-    if (!rawVal || (Array.isArray(rawVal) && rawVal.length === 0)) return;
-    // hasMountedRef.current = true;
-    onMount(labelInValue ? formatValue(rawVal) : value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalOptions, value]);
-
-  // Auto-select the default option once for empty single-selects. Editing an
-  // existing record keeps its value (we only fill when nothing is set).
-  useEffect(() => {
-    if (!defaultFlag || mode === "multiple" || defaultAppliedRef.current) return;
-    if (optionsApi && finalOptions.length === 0) return;
-
-    const rawVal = extractRaw(value);
-    const hasValue = Array.isArray(rawVal) ? rawVal.length > 0 : !!rawVal;
-    if (hasValue) {
-      defaultAppliedRef.current = true;
-      return;
-    }
-
-    const defaultOption = finalOptions.find(
-      (opt) => (opt as unknown as Record<string, unknown>)[defaultFlag] === true,
-    );
-    if (defaultOption) {
-      defaultAppliedRef.current = true;
-      handleValueChange(defaultOption.value);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalOptions, value, defaultFlag]);
-
-  // Fuse instance
   const fuse = useMemo(
     () =>
       new Fuse(finalOptions, {
@@ -227,53 +133,54 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     [finalOptions]
   );
 
-  // Filtered options
   const filteredOptions = useMemo<SelectOption[]>(() => {
-    const q = searchQuery.trim();
+    const q = (query ?? "").trim();
     if (!q) return finalOptions;
     return fuse.search(q).map((r) => r.item);
-  }, [searchQuery, fuse, finalOptions]);
+  }, [query, fuse, finalOptions]);
 
-  // Auto-focus / clear search on open/close
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => searchInputRef.current?.focus(), 50);
-    } else {
-      setSearchQuery("");
-    }
-  }, [open]);
+  // ── Open / close ──────────────────────────────────────────────────────────
 
-  // ── Derived values ────────────────────────────────────────────────────────
+  // Opening always starts from a blank query so the full list is offered; the
+  // committed label survives as the placeholder until something else is picked.
+  const openDropdown = useCallback(() => {
+    if (disabled) return;
+    setQuery("");
+    setOpen(true);
+  }, [disabled]);
 
-  const actualValue = extractRaw(value);
+  const closeDropdown = useCallback(() => {
+    setOpen(false);
+    setQuery(null);
+  }, []);
 
-  // Single-select derived
-  const singleValue = Array.isArray(actualValue)
-    ? actualValue[0] || ""
-    : actualValue || "";
+  // What the input shows while it mirrors the committed selection.
+  const mirroredText = isMulti ? "" : selectedLabel;
 
-  const selectedLabel =
-    finalOptions.find((o) => o.value === singleValue)?.label ?? singleValue;
-
-  // Multi-select derived
-  const multiValues: string[] = useMemo(
-    () =>
-      Array.isArray(actualValue)
-        ? actualValue
-        : actualValue
-          ? [actualValue]
-          : [],
-    [actualValue],
+  const handleQueryChange = useCallback(
+    (next: string) => {
+      setQuery((prev) => {
+        if (prev !== null) return next;
+        // First keystroke while the input still mirrors the committed label
+        // (e.g. typing right after Escape): keep only what was actually typed,
+        // so the old label doesn't get prepended to the query.
+        return next.length > mirroredText.length && next.startsWith(mirroredText)
+          ? next.slice(mirroredText.length)
+          : next;
+      });
+      setOpen(true);
+    },
+    [mirroredText]
   );
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Selection handlers ────────────────────────────────────────────────────
 
   const handleSelectSingle = useCallback(
     (optionValue: string) => {
       handleValueChange(optionValue);
-      setOpen(false);
+      closeDropdown();
     },
-    [handleValueChange]
+    [handleValueChange, closeDropdown]
   );
 
   const handleToggleMulti = useCallback(
@@ -282,6 +189,8 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
         ? multiValues.filter((v) => v !== optionValue)
         : [...multiValues, optionValue];
       handleValueChange(next);
+      // Stay open and reset the query — picking several in a row is the point.
+      setQuery("");
     },
     [multiValues, handleValueChange]
   );
@@ -289,15 +198,23 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   const handleRemoveMulti = useCallback(
     (optionValue: string, e: React.MouseEvent) => {
       e.stopPropagation();
+      e.preventDefault();
       handleValueChange(multiValues.filter((v) => v !== optionValue));
     },
     [multiValues, handleValueChange]
   );
 
+  // Backspace on an empty query drops the last badge, like a tag input.
+  const handleBackspaceMulti = useCallback(() => {
+    if (multiValues.length === 0) return;
+    handleValueChange(multiValues.slice(0, -1));
+  }, [multiValues, handleValueChange]);
+
   const handleClearSingle = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       handleValueChange("");
+      setQuery(null);
     },
     [handleValueChange]
   );
@@ -305,12 +222,22 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   const handleClearAll = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      e.preventDefault();
       handleValueChange([]);
     },
     [handleValueChange]
   );
 
-  // Quick-add
+  const { activeIndex, setActiveIndex, onKeyDown } = useComboboxKeyboard({
+    open,
+    onOpen: openDropdown,
+    onClose: closeDropdown,
+    items: filteredOptions,
+    onSelect: isMulti ? handleToggleMulti : handleSelectSingle,
+    onBackspaceEmpty: isMulti ? handleBackspaceMulti : undefined,
+    isQueryEmpty: !query,
+  });
+
   const handleQuickAddSuccess = async (result: any) => {
     const newItemId = result?.data?._id;
     if (moduleConfig && newItemId) {
@@ -318,289 +245,122 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
         queryKey: moduleConfig.queryRoot(),
       });
       await new Promise((r) => setTimeout(r, 0));
-      if (mode === "multiple") {
-        handleValueChange([...multiValues, newItemId]);
-      } else {
-        handleValueChange(newItemId);
-      }
+      handleValueChange(isMulti ? [...multiValues, newItemId] : newItemId);
     }
     setIsModalOpen(false);
     form.reset();
   };
 
-  // ── Shared trigger style ──────────────────────────────────────────────────
-  const triggerCls = (extra?: string) =>
-    cn(
-      "flex h-9 w-full min-w-0 items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs",
-      "focus:outline-none focus:ring-1 focus:ring-ring",
-      "disabled:cursor-not-allowed disabled:opacity-50",
-      error ? "border-red-500" : "",
-      extra,
-      className
-    );
+  // ── Shared field box style ────────────────────────────────────────────────
 
-  // ── Shared dropdown content ───────────────────────────────────────────────
-
-  const renderDropdown = (
-    isMulti: boolean,
-    selectedValues: string[],
-    onSelectItem: (v: string) => void
-  ) => (
-    <PopoverContent
-      className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[12rem]"
-      align="start"
-      sideOffset={4}
-      onOpenAutoFocus={(e) => e.preventDefault()}
-    >
-      {/* Search box */}
-      <div className="flex items-center gap-2 border-b px-3 py-2">
-        <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <input
-          ref={searchInputRef}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search..."
-          className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          aria-label="Search options"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setOpen(false);
-            if (e.key === "Enter" && filteredOptions.length === 1) {
-              onSelectItem(filteredOptions[0].value);
-            }
-          }}
-        />
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => setSearchQuery("")}
-            className="shrink-0 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        )}
-      </div>
-
-      {/* Options */}
-      <div role="listbox" className="max-h-60 overflow-y-auto overflow-x-hidden py-1">
-        {filteredOptions.length === 0 ? (
-          <div className="py-6 text-center text-sm text-muted-foreground">
-            {searchQuery ? `No results for "${searchQuery}"` : "No data available"}
-          </div>
-        ) : (
-          filteredOptions.map((option) => {
-            const isSelected = selectedValues.includes(option.value);
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="option"
-                aria-selected={isSelected}
-                disabled={option.disabled}
-                onClick={() => !option.disabled && onSelectItem(option.value)}
-                className={cn(
-                  "relative flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none",
-                  "hover:bg-accent hover:text-accent-foreground",
-                  "disabled:pointer-events-none disabled:opacity-50",
-                  isSelected && "bg-accent text-accent-foreground font-medium"
-                )}
-              >
-                <Check
-                  className={cn(
-                    "h-4 w-4 shrink-0",
-                    isSelected ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {option.label}
-              </button>
-            );
-          })
-        )}
-      </div>
-    </PopoverContent>
+  // The single-mode input *is* this box; multi mode wraps badges + a bare input
+  // in it. `pr-8` reserves the chevron / clear slot.
+  const fieldCls = useCallback(
+    (extra?: string) =>
+      cn(
+        "w-full min-w-0 rounded-md border border-input bg-transparent px-3 pr-8 text-sm shadow-xs",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        extra,
+        error ? "border-red-500" : "",
+        className
+      ),
+    [error, className]
   );
 
-  // ── Loading state ─────────────────────────────────────────────────────────
+  // ── Loading / error states ────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <button type="button" disabled className={triggerCls()}>
-        <span className="flex items-center gap-2 text-muted-foreground">
+      <div className={fieldCls("flex h-9 items-center py-2 pr-3 opacity-50")}>
+        <span className="flex flex-1 items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading options...
         </span>
         <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-      </button>
+      </div>
     );
   }
-
-  // ── Error state ───────────────────────────────────────────────────────────
 
   if (apiError) {
     return (
-      <button type="button" disabled className={triggerCls("border-red-500")}>
-        <span className="truncate text-muted-foreground">Error: {apiError}</span>
-        <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-      </button>
-    );
-  }
-
-  // ── Multiple select mode ──────────────────────────────────────────────────
-
-  if (mode === "multiple") {
-    const visibleBadges = multiValues.slice(0, maxCount);
-    const overflowCount = multiValues.length - maxCount;
-
-    return (
-      <>
-        <div className="flex gap-2 w-full">
-          <Popover open={open} onOpenChange={disabled ? undefined : setOpen}>
-            <PopoverTrigger asChild>
-              <button
-                ref={triggerRef}
-                type="button"
-                disabled={disabled}
-                aria-expanded={open}
-                aria-haspopup="listbox"
-                className={cn(
-                  triggerCls(),
-                  "h-auto min-h-9 flex-wrap gap-1 py-1.5"
-                )}
-              >
-                {multiValues.length === 0 ? (
-                  <span className="text-muted-foreground">
-                    {placeholder || "Select options..."}
-                  </span>
-                ) : (
-                  <span className="flex flex-wrap gap-1 flex-1 min-w-0">
-                    {visibleBadges.map((v) => {
-                      const label =
-                        finalOptions.find((o) => o.value === v)?.label ?? v;
-                      return (
-                        <Badge
-                          key={v}
-                          variant="secondary"
-                          className="flex items-center gap-1 px-2 py-0.5 text-xs"
-                        >
-                          {label}
-                          {!disabled && (
-                            <span
-                              role="button"
-                              aria-label={`Remove ${label}`}
-                              onClick={(e) => handleRemoveMulti(v, e)}
-                              className="cursor-pointer hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </span>
-                          )}
-                        </Badge>
-                      );
-                    })}
-                    {overflowCount > 0 && (
-                      <Badge variant="secondary" className="px-2 py-0.5 text-xs">
-                        +{overflowCount} more
-                      </Badge>
-                    )}
-                  </span>
-                )}
-                <span className="ml-auto flex shrink-0 items-center gap-1">
-                  {multiValues.length > 0 && !disabled && (
-                    <span
-                      role="button"
-                      aria-label="Clear all"
-                      onClick={handleClearAll}
-                      className="cursor-pointer text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="h-4 w-4" />
-                    </span>
-                  )}
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </span>
-              </button>
-            </PopoverTrigger>
-            {renderDropdown(true, multiValues, handleToggleMulti)}
-          </Popover>
-
-          {creatable && moduleConfig && (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setIsModalOpen(true)}
-              disabled={disabled}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-
-        {creatable && moduleConfig && createMutation && (
-          <DynamicForm
-            form={form}
-            config={moduleConfig.formConfig}
-            mutationHook={createMutation}
-            openInside="modal"
-            open={isModalOpen}
-            onOpenChange={setIsModalOpen}
-            title={moduleConfig.title}
-            submitLabel={moduleConfig.submitLabel}
-            cancelLabel="Cancel"
-            onCancel={() => setIsModalOpen(false)}
-            onSuccess={handleQuickAddSuccess}
-            modalSize="md"
-          />
+      <div
+        className={fieldCls(
+          "flex h-9 items-center border-red-500 py-2 pr-3 opacity-50"
         )}
-      </>
+      >
+        <span className="flex-1 truncate text-muted-foreground">
+          Error: {apiError}
+        </span>
+        <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+      </div>
     );
   }
 
-  // ── Single select mode ────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  const fieldCtx: FuseFieldContext = {
+    inputRef,
+    disabled,
+    placeholder,
+    open,
+    query,
+    onQueryChange: handleQueryChange,
+    onOpen: openDropdown,
+    onClose: closeDropdown,
+    onKeyDown,
+    fieldCls,
+    listId,
+    activeDescendantId:
+      open && filteredOptions.length > 0
+        ? `${listId}-opt-${activeIndex}`
+        : undefined,
+  };
 
   return (
     <>
       <div className="flex gap-2 w-full">
-        <div className="relative w-full min-w-0 group">
-          <Popover open={open} onOpenChange={disabled ? undefined : setOpen}>
-            <PopoverTrigger asChild>
-              <button
-                ref={triggerRef}
-                type="button"
-                disabled={disabled}
-                aria-expanded={open}
-                aria-haspopup="listbox"
-                className={triggerCls(
-                  singleValue && !disabled
-                    ? "[&>svg.chevron]:group-hover:opacity-0"
-                    : ""
-                )}
-              >
-                <span
-                  className={cn(
-                    "line-clamp-1 text-left",
-                    !singleValue && "text-muted-foreground"
-                  )}
-                >
-                  {singleValue
-                    ? selectedLabel
-                    : placeholder || "Select an option..."}
-                </span>
-                <ChevronDown className="chevron h-4 w-4 shrink-0 opacity-50 transition-opacity" />
-              </button>
-            </PopoverTrigger>
+        <Popover
+          open={open}
+          onOpenChange={
+            disabled
+              ? undefined
+              : (next) => (next ? openDropdown() : closeDropdown())
+          }
+        >
+          {/* Anchor, not trigger: the input owns click and focus, so the popover
+              must position against it without also toggling on every click. */}
+          <PopoverAnchor asChild>
+            <div className="relative w-full min-w-0">
+              {isMulti ? (
+                <FuseMultiField
+                  ctx={fieldCtx}
+                  values={multiValues}
+                  labelOf={labelOf}
+                  maxCount={maxCount}
+                  onRemove={handleRemoveMulti}
+                  onClearAll={handleClearAll}
+                />
+              ) : (
+                <FuseSingleField
+                  ctx={fieldCtx}
+                  selectedValue={singleValue}
+                  selectedLabel={selectedLabel}
+                  onClear={handleClearSingle}
+                />
+              )}
+            </div>
+          </PopoverAnchor>
 
-            {/* Clear button — visible on hover */}
-            {singleValue && !disabled && (
-              <button
-                type="button"
-                onClick={handleClearSingle}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-10 cursor-pointer opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-              </button>
-            )}
-
-            {renderDropdown(false, singleValue ? [singleValue] : [], handleSelectSingle)}
-          </Popover>
-        </div>
+          <FuseSelectDropdown
+            listId={listId}
+            options={filteredOptions}
+            selectedValues={isMulti ? multiValues : singleValue ? [singleValue] : []}
+            activeIndex={activeIndex}
+            onActivate={setActiveIndex}
+            onSelect={isMulti ? handleToggleMulti : handleSelectSingle}
+            query={query ?? ""}
+          />
+        </Popover>
 
         {creatable && moduleConfig && (
           <Button

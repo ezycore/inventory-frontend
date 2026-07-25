@@ -53,6 +53,7 @@ const getCapitalFormConfig = (
     {
       name: "amount",
       type: "number",
+      precision: 2,
       label: direction === "in" ? t("amountLabelIn") : t("amountLabelOut"),
       placeholder: t("amountPlaceholder"),
       required: true,

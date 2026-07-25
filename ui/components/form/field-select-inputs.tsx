@@ -5,11 +5,19 @@ import { AdvancedSelect } from "../advanced-select";
 import { FuseAdvancedSelect } from "../fuse-advanced-select";
 import { resolveApiTemplate } from "./dependency-utils";
 import type { FieldRenderContext } from "./field-render-context";
+import type { FormFieldConfig } from "./type";
+import { shouldUseSearchableSelect } from "../select-strategy";
 
 /**
  * `select` and `fuseSelect`. Both resolve a `{{template}}` optionsApi against
  * the primary dependency and run the same autofill/copy-value side effects on
  * change and on mount — that shared logic lives here once.
+ *
+ * Both types render through one prop surface via one of two drop-in components:
+ * the plain <AdvancedSelect> (Radix dropdown, no search) or the searchable
+ * <FuseAdvancedSelect> (Fuse.js combobox). `select` picks between them
+ * automatically (see shouldUseSearch) so a remote or long list gets search
+ * without the author having to choose; `fuseSelect` always forces search.
  */
 
 // optionsApi with a {{placeholder}} only resolves once the dependency group is
@@ -54,7 +62,24 @@ function buildAutoFillHandler(ctx: FieldRenderContext) {
   };
 }
 
-export function renderSelect(ctx: FieldRenderContext): ReactNode {
+// Form and filter bar choose between the plain and searchable select the same
+// way — the heuristic lives once in select-strategy.ts.
+function shouldUseSearch(field: FormFieldConfig): boolean {
+  return shouldUseSearchableSelect({
+    mode: field.mode,
+    optionsApi: field.optionsApi,
+    optionCount: field.options?.length ?? 0,
+  });
+}
+
+// The <Controller> body is identical for both components (FuseAdvancedSelect is
+// a drop-in for AdvancedSelect), so it lives here once and takes the component
+// to render. Typed against FuseAdvancedSelect, whose props are a subset of
+// AdvancedSelect's — so AdvancedSelect is assignable here too.
+function renderAdvancedSelect(
+  ctx: FieldRenderContext,
+  Component: typeof FuseAdvancedSelect,
+): ReactNode {
   const { field, control, error, effectiveDisabled, isEditMode, handleChange } = ctx;
   return (
     <Controller
@@ -65,7 +90,7 @@ export function renderSelect(ctx: FieldRenderContext): ReactNode {
         const { dependsOn, autoFillFields, copyValueTo, ...selectProps } = field;
         const handleAutoFill = buildAutoFillHandler(ctx);
         return (
-          <AdvancedSelect
+          <Component
             value={controllerField.value}
             onMount={(mountedValue) => handleAutoFill(mountedValue)}
             onValueChange={(value) => {
@@ -87,35 +112,15 @@ export function renderSelect(ctx: FieldRenderContext): ReactNode {
   );
 }
 
+// type: "select" — auto-upgrades to the searchable variant when the list is
+// remote or long (shouldUseSearch); a short static enum stays a plain dropdown.
+export function renderSelect(ctx: FieldRenderContext): ReactNode {
+  const Component = shouldUseSearch(ctx.field) ? FuseAdvancedSelect : AdvancedSelect;
+  return renderAdvancedSelect(ctx, Component);
+}
+
+// type: "fuseSelect" — an explicit opt-in that always uses the searchable
+// combobox (e.g. a short static list an author still wants typeahead on).
 export function renderFuseSelect(ctx: FieldRenderContext): ReactNode {
-  const { field, control, error, effectiveDisabled, isEditMode, handleChange } = ctx;
-  return (
-    <Controller
-      name={field.name}
-      control={control}
-      render={({ field: controllerField }) => {
-        const resolvedOptionsApi = resolveOptionsApi(ctx);
-        const { dependsOn, autoFillFields, copyValueTo, ...selectProps } = field;
-        const handleAutoFill = buildAutoFillHandler(ctx);
-        return (
-          <FuseAdvancedSelect
-            value={controllerField.value}
-            onMount={(mountedValue) => handleAutoFill(mountedValue)}
-            onValueChange={(value) => {
-              controllerField.onChange(value);
-              handleChange(value);
-              if (field.onValueChange) field.onValueChange(value);
-            }}
-            className={error ? "border-red-500" : ""}
-            {...selectProps}
-            optionsApi={resolvedOptionsApi}
-            // Only prefill the default on create — never auto-fill on edit.
-            defaultFlag={isEditMode ? undefined : field.defaultFlag}
-            disabled={effectiveDisabled}
-            error={error}
-          />
-        );
-      }}
-    />
-  );
+  return renderAdvancedSelect(ctx, FuseAdvancedSelect);
 }

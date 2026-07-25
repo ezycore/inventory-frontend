@@ -6,6 +6,7 @@ import { cn } from "@ui/lib/utils";
 import { Input } from "../input";
 import { Textarea } from "../textarea";
 import { Password } from "../input-password";
+import { FieldAffix, affixPadding, resolveAffix } from "./field-affix";
 import type { FieldRenderContext } from "./field-render-context";
 
 // Loaded on demand: TipTap is heavy and the form engine is in every form's bundle.
@@ -19,65 +20,34 @@ const RichTextEditor = dynamic(
   },
 );
 
-/** `input` and `number` — shares prefix/suffix affix chrome. */
+/** `input` — text only. Numbers go through `renderNumberInput` (NumberField). */
 export function renderTextInput(ctx: FieldRenderContext): ReactNode {
   const { field, control, error, effectiveDisabled, handleChange, allValues } = ctx;
-  const suffixValue =
-    typeof field.suffix === "function" ? field.suffix(allValues) : field.suffix;
-  const prefixValue =
-    typeof field.prefix === "function" ? field.prefix(allValues) : field.prefix;
+  const prefix = resolveAffix(field.prefix, allValues);
+  const suffix = resolveAffix(field.suffix, allValues);
   return (
     <Controller
       name={field.name}
       control={control}
       render={({ field: controllerField }) => (
-        <div className="relative w-full">
-          {prefixValue && (
-            <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-xs text-muted-foreground select-none">
-              {prefixValue}
-            </span>
-          )}
+        <FieldAffix prefix={prefix} suffix={suffix}>
           <Input
             {...controllerField}
             value={controllerField.value ?? ""}
-            type={field.type === "number" ? "number" : "text"}
+            type="text"
             placeholder={field.placeholder}
             disabled={effectiveDisabled}
-            min={field.validation?.min}
-            max={field.validation?.max}
-            step={field.step}
             onChange={(e) => {
-              const rawValue = e.target.value;
-              let value;
-
-              if (field.type === "number") {
-                // Allow empty string for clearing the field
-                if (rawValue === "" || rawValue === null || rawValue === undefined) {
-                  value = "";
-                } else {
-                  const parsed = parseFloat(rawValue);
-                  value = isNaN(parsed) ? "" : parsed;
-                }
-              } else {
-                value = rawValue;
-              }
-
-              controllerField.onChange(value);
-              handleChange(value);
+              controllerField.onChange(e.target.value);
+              handleChange(e.target.value);
             }}
             className={cn(
               "w-full",
-              prefixValue ? "pl-8" : "",
-              suffixValue ? "pr-14" : "",
+              affixPadding(prefix, suffix),
               error ? "border-red-500" : "",
             )}
           />
-          {suffixValue && (
-            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs font-medium text-muted-foreground select-none">
-              {suffixValue}
-            </span>
-          )}
-        </div>
+        </FieldAffix>
       )}
     />
   );

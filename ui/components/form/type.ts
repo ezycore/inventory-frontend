@@ -126,6 +126,15 @@ export interface FormFieldConfig {
   disabled?: boolean;
   hidden?: boolean;
   hideInEdit?: boolean; // Hide this field when the form is in edit mode
+  /**
+   * Static read-only text rendered in place of the input when the field is
+   * locked in edit mode (its name is in `disabledFieldsInEdit`). Use for
+   * `select`/`fuseSelect` fields whose value is an id — the locked control
+   * would otherwise fetch the whole option list just to resolve one label, and
+   * a Radix `<SelectValue>` shows nothing when the current id is not on the
+   * fetched page. Receives all current form values. Select/fuseSelect only.
+   */
+  lockedDisplay?: (values: Record<string, any>) => ReactNode;
   defaultValue?: any; // Default value for the field
   description?: string;
   mode?: "single" | "multiple"; // For select fields
@@ -221,6 +230,14 @@ export interface FormFieldConfig {
   maxSize?: number; // For file upload (in bytes)
   multiple?: boolean; // For file upload and select
   step?: number; // For number inputs
+  /**
+   * Decimal places a `number` field rounds to, forwarded to <NumberField>.
+   * Declare it per field — money `2`, quantities/counts `0`, unit conversion
+   * factors and other free floats omit it. The renderer never defaults it.
+   */
+  precision?: number;
+  /** Show +/- stepper buttons on a `number` field. */
+  showSteppers?: boolean;
   helperText?: string | ((values: Record<string, any>) => string | undefined);
 
   // Static suffix/prefix appended/prepended inside the input.

@@ -31,6 +31,7 @@ export const couponFormConfig: DynamicFormConfig = {
     {
       name: "value",
       type: "number",
+      precision: 2,
       zodType: "number",
       label: "Value",
       placeholder: "0",
@@ -42,6 +43,7 @@ export const couponFormConfig: DynamicFormConfig = {
     {
       name: "maxDiscountAmount",
       type: "number",
+      precision: 2,
       label: "Max discount (cap)",
       placeholder: "Optional",
       columnSpan: 6,
@@ -64,6 +66,7 @@ export const couponFormConfig: DynamicFormConfig = {
     {
       name: "minOrderValue",
       type: "number",
+      precision: 2,
       label: "Min order value",
       placeholder: "Optional",
       columnSpan: 6,
@@ -72,6 +75,7 @@ export const couponFormConfig: DynamicFormConfig = {
     {
       name: "maxUses",
       type: "number",
+      precision: 0,
       label: "Max total uses",
       placeholder: "Optional",
       columnSpan: 6,
@@ -80,6 +84,7 @@ export const couponFormConfig: DynamicFormConfig = {
     {
       name: "perShopperLimit",
       type: "number",
+      precision: 0,
       label: "Per-shopper limit",
       placeholder: "Optional",
       columnSpan: 6,

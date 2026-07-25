@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import { FC, memo, useMemo } from "react";
+import { FC, memo, useMemo, type ReactNode } from "react";
 import { useFormState, useWatch } from "react-hook-form";
 import Link from "next/link";
 import { Info } from "lucide-react";
@@ -18,6 +18,24 @@ import { getColumnClass, getNestedValue } from "./form-utils";
 import { renderField } from "./field-renderer";
 import { renderFieldViewMode } from "./field-view-mode";
 import type { FieldRenderContext } from "./field-render-context";
+
+/**
+ * Read-only box for a select locked in edit mode. Shows `field.lockedDisplay`
+ * (a label derived from sibling form values) so the locked control never has to
+ * fetch its option list to resolve one id → label. Falls back to the raw value.
+ */
+function renderLockedDisplay(
+  field: FormFieldConfig,
+  allValues: Record<string, any>,
+  fieldValue: any,
+): ReactNode {
+  const display = field.lockedDisplay ? field.lockedDisplay(allValues) : fieldValue;
+  return (
+    <div className="flex h-9 w-full items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+      {display || "—"}
+    </div>
+  );
+}
 
 /**
  * One form field: resolves its live error, dependency-driven hidden/disabled
@@ -62,11 +80,13 @@ export const FormField: FC<{
   // Use useWatch for better performance - only subscribes to specific fields
   const fieldValue = useWatch({ control, name: field.name });
 
-  // Watch all form values when suffix/prefix/helperText is a function so they can react.
+  // Watch all form values when suffix/prefix/helperText/lockedDisplay is a
+  // function so they can react.
   const needsAllValues =
     typeof field.suffix === "function" ||
     typeof field.prefix === "function" ||
-    typeof field.helperText === "function";
+    typeof field.helperText === "function" ||
+    typeof field.lockedDisplay === "function";
   const allValues = useWatch({ control, disabled: !needsAllValues }) || {};
 
   // Normalize dependsOn to an array (single condition or AND-group)
@@ -193,9 +213,17 @@ export const FormField: FC<{
     shouldDisable,
   };
 
+  // A select locked in edit mode renders as static text — never mount the
+  // AdvancedSelect, so its option list is never fetched just to show one label.
+  const isLockedSelect =
+    !!isFieldDisabledInEdit &&
+    (field.type === "select" || field.type === "fuseSelect");
+
   const fieldInput = viewMode
     ? renderFieldViewMode(field, fieldValue)
-    : renderField(renderContext);
+    : isLockedSelect
+      ? renderLockedDisplay(field, allValues, fieldValue)
+      : renderField(renderContext);
 
   return (
     <div

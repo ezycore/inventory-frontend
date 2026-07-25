@@ -78,10 +78,10 @@ const VariantCardView = (
         </DropdownMenu>
       </div>
 
-      {/* Values grid - show 5 values then popover for the rest */}
+      {/* Values row — measured to stay on ONE line so cards keep equal height */}
       {allValues.length > 0 && (
         <div className="pt-2">
-          <ValuesPopover values={allValues} maxVisible={5} colorized />
+          <ValuesPopover values={allValues} maxVisible={5} colorized singleLine />
         </div>
       )}
 

@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from 'next-intl'
+import { useHydrated } from '@/hooks/use-hydrated'
 import { Button } from '@/ui/components/button'
 import { Card, CardContent } from '@/ui/components/card'
 import { Label } from '@/ui/components/label'
@@ -17,11 +18,14 @@ import { getAdjustmentColumns } from '@/components/inventory/adjust/columns'
 
 export default function StockAdjustmentPage() {
   const t = useTranslations('inventory')
+  const hydrated = useHydrated()
   const ctx = useAdjustStock()
   const {
     items,
     reason,
     setReason,
+    defaultUnit,
+    setDefaultUnit,
     clearAll,
     removeItem,
     editingId,
@@ -52,8 +56,33 @@ export default function StockAdjustmentPage() {
 
       {/* Stats (shown when items exist) */}
       {items.length > 0 && (
-        <StatsCard data={pendingStats} columns={{ default: 1, sm: 3 }} />
+        <StatsCard data={pendingStats} columns={{ default: 1, sm: 2, lg: 4 }} />
       )}
+
+      {/* Default input unit for UOM products (remembered per user) */}
+      <div className="flex items-center justify-end gap-2">
+        <span className="text-sm text-muted-foreground">
+          {t('adjust.defaultUnitLabel')}
+        </span>
+        <div className="inline-flex rounded-lg border p-0.5">
+          <Button
+            size="sm"
+            variant={(hydrated ? defaultUnit : 'base') === 'base' ? 'default' : 'ghost'}
+            onClick={() => setDefaultUnit('base')}
+            className="h-7"
+          >
+            {t('adjust.unitBase')}
+          </Button>
+          <Button
+            size="sm"
+            variant={(hydrated ? defaultUnit : 'base') === 'purchase' ? 'default' : 'ghost'}
+            onClick={() => setDefaultUnit('purchase')}
+            className="h-7"
+          >
+            {t('adjust.unitPurchase')}
+          </Button>
+        </div>
+      </div>
 
       {/* Add/Edit Item Card */}
       <AdjustmentFormCard ctx={ctx} />
