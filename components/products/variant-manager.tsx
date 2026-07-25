@@ -129,12 +129,12 @@ export default function VariantManager({
   const variantAttributeFormConfig = getVariantAttributeFormConfig(tVariants)
   const {form: variantCreateForm} = useDynamicForm(variantAttributeFormConfig)
   
-  // Update internal state when value prop changes (for edit mode)
-  useEffect(() => {
-    if (value && value.length > 0 && variants.length === 0) {
-      setVariants(value)
-    }
-  }, [value, variants.length])
+  // Hydrate internal state from the form value (edit mode loads it after mount).
+  // Adjusted during render rather than in an effect — an effect would commit an
+  // empty table first and re-render, and setState in an effect cascades renders.
+  if (value.length > 0 && variants.length === 0) {
+    setVariants(value)
+  }
 
   // Generate variants when attribute is selected
   const handleAttributeChange = (attributeId: string) => {
