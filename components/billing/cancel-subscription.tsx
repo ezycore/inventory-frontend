@@ -25,7 +25,13 @@ import type { Entitlement } from "@/types";
 /** Whether this entitlement is on a live plan the user could cancel. */
 export function isCancelable(entitlement: Entitlement): boolean {
   const sub = entitlement.subscriptionStatus ?? entitlement.status;
-  return sub === "active" || sub === "trialing";
+  if (sub !== "active" && sub !== "trialing") return false;
+  // The free baseline is the floor, not a billed commitment — there is no Stripe
+  // clock to stop, so an at-period-end cancel would just park a `cancelAtPeriodEnd`
+  // flag that never resolves (no `customer.subscription.deleted` ever fires) and
+  // has no boundary date to show. Only a paid/trialing sub (amount > 0 — a trial
+  // is a trial OF a paid plan) has a subscription to end.
+  return (entitlement.amount ?? 0) > 0;
 }
 
 /**
