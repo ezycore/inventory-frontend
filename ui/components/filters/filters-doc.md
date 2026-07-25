@@ -239,10 +239,10 @@ interface FilterOption {
 }
 ```
 
-**Rendered As:** `AdvancedSelect` (single-select mode) with support for both static `options` and dynamic `optionsApi` (remote) sources.
+**Rendered As:** a single-mode select whose renderer is chosen automatically by `shouldUseSearchableSelect()` (`ui/components/select-strategy.ts`) — the same auto-strategy the DynamicForm uses. A remote (`optionsApi`) or long (> 10 static `options`) list renders the searchable `FuseAdvancedSelect` (Fuse.js combobox); a short static enum stays the plain `AdvancedSelect` (Radix `Select`).
 
 - Notes:
-  - `AdvancedSelect` renders a native `Select` UI for static options and falls back to a `MultiSelect` when used in `mode: 'multiple'`.
+  - Search comes for free on remote/long lists — you don't configure it. Short static enums (status, yes/no) stay a plain dropdown where a search box would be noise.
   - Supports `optionsApi` (string) to fetch options via a query hook; includes built-in loading and error states while fetching.
   - The filter renderer preserves the original option value types (string | number | boolean) — values are converted to strings for the UI and converted back to their original types when applied.
 

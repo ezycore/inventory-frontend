@@ -45,6 +45,7 @@ export const contentFormConfig: DynamicFormConfig = {
     {
       name: "sortOrder",
       type: "number",
+      precision: 0,
       zodType: "number",
       label: "Footer order",
       placeholder: "0",

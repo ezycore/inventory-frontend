@@ -75,6 +75,7 @@ const buildMoneyFormConfig = (
     {
       name: "amount",
       type: "number",
+      precision: 2,
       label: t("amount"),
       placeholder: t("amountPlaceholder"),
       required: true,
@@ -135,6 +136,7 @@ export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
     {
       name: "amount",
       type: "number",
+      precision: 2,
       label: t("amount"),
       placeholder: t("amountPlaceholder"),
       required: true,

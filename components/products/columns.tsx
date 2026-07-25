@@ -8,6 +8,27 @@ import { Badge } from '@/ui/components/badge'
 import Link from 'next/link'
 import type { Translator } from '@/i18n/config'
 
+/**
+ * Price cell text. Single/combo products carry a top-level `price`; variable
+ * products don't — their price lives per-variant, so show the floor–ceiling
+ * range (e.g. `7 – 10`, or just `7` when every variant is priced the same).
+ */
+const formatPriceDisplay = (product: any): string | null => {
+  const price = product.price as number | undefined
+  if (typeof price === 'number' && price > 0) return Number(price).toLocaleString()
+
+  const variantPrices = (product.variants as { price?: number }[] | undefined)
+    ?.map((v) => v.price)
+    .filter((p): p is number => typeof p === 'number' && p > 0)
+  if (!variantPrices?.length) return null
+
+  const min = Math.min(...variantPrices)
+  const max = Math.max(...variantPrices)
+  return min === max
+    ? Number(min).toLocaleString()
+    : `${Number(min).toLocaleString()} – ${Number(max).toLocaleString()}`
+}
+
 export const getProductColumns = (t: Translator): ColumnDef<any>[] => [
   {
     header: t('columns.name'),
@@ -95,13 +116,13 @@ export const getProductColumns = (t: Translator): ColumnDef<any>[] => [
     header: t('columns.price'),
     accessorKey: 'price',
     cell: ({ row }) => {
-      const price = row.getValue("price") as number
+      const priceLabel = formatPriceDisplay(row.original)
       const unit = row.original.unit as { name?: string; shortName?: string } | undefined
       const unitLabel = unit?.shortName || unit?.name
       return (
         <span className="text-sm font-semibold tabular-nums">
-          {price ? Number(price).toLocaleString() : '-'}
-          {price && unitLabel ? (
+          {priceLabel ?? '-'}
+          {priceLabel && unitLabel ? (
             <span className="ml-1 text-xs font-normal text-muted-foreground">
               / {unitLabel}
             </span>

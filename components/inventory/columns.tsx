@@ -66,8 +66,13 @@ export function getInventoryColumns(t: Translator): ColumnDef<Inventory>[] {
           alertLevel
         );
         const statusLabel = t(`stockLevel.${statusKey}`);
-        const maxDisplay = Math.max(alertLevel * 2, quantity, 100);
-        const percentage = Math.min((quantity / maxDisplay) * 100, 100);
+        // Bar fills relative to the alert threshold: at/above alert = full, drains to empty at 0.
+        const percentage =
+          alertLevel > 0
+            ? Math.min((quantity / alertLevel) * 100, 100)
+            : quantity > 0
+              ? 100
+              : 0;
         const lines = getStockLevelLines(row.original as any);
         const baseUnitLabel =
           lines[0]?.text.split(" ").slice(1).join(" ") || t("shared.unitsFallback");

@@ -7,6 +7,7 @@ import type { AdjustmentItem } from '@/services/stores/stock-adjustment-store'
 import type { Translator } from '@/i18n/config'
 import { formatCurrency } from '@/lib/currency'
 import { fromBaseUnit, formatQuantity } from '@/utils/uom-conversion'
+import { itemValueDelta } from '@/components/inventory/adjust/adjustment-value'
 
 // Compute quantity change for display
 const getQuantityChange = (current: number, newQty: number, noChangeLabel: string) => {
@@ -107,6 +108,21 @@ export function getAdjustmentColumns({
               </div>
             )}
           </div>
+        )
+      },
+    },
+    {
+      id: 'value',
+      header: t('adjust.colValue'),
+      cell: ({ row }) => {
+        const value = itemValueDelta(row.original)
+        if (value === 0) {
+          return <span className="text-muted-foreground tabular-nums">—</span>
+        }
+        return (
+          <span className={`font-medium tabular-nums ${value > 0 ? 'text-green-600' : 'text-red-500'}`}>
+            {value > 0 ? '+' : '-'}{formatCurrency(Math.abs(value))}
+          </span>
         )
       },
     },

@@ -20,6 +20,7 @@ export const discountFormConfig: DynamicFormConfig = {
     {
       name: "value",
       type: "number",
+      precision: 2,
       label: "Discount Value",
       placeholder: "Enter discount value",
       required: true,
@@ -118,6 +119,7 @@ export const getDiscountFormConfig = (t: Translator): DynamicFormConfig => ({
     {
       name: "value",
       type: "number",
+      precision: 2,
       label: t("form.value"),
       placeholder: t("form.valuePlaceholder"),
       required: true,

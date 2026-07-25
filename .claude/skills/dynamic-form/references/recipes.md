@@ -34,6 +34,7 @@
 {
   name: "discountValue",
   type: "number",
+  precision: 2,
   label: "Discount %",
   dependsOn: { field: "discountType", condition: "eq", value: "percentage", action: "show" },
 }
@@ -146,7 +147,7 @@ category: {
 
 ```ts
 {
-  name: "quantityAlert", type: "number", label: "Alert Level", required: true,
+  name: "quantityAlert", type: "number", precision: 0, label: "Alert Level", required: true,
   suffix: (values) => values?.productId?.unit?.shortName || "",
   helperText: (values) => {
     const baseUnit = values?.productId?.unit?.shortName;

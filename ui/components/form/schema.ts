@@ -64,7 +64,9 @@ export const generateSchemaFromConfig = (
     // Determine base schema type
     switch (field.zodType || field.type) {
       case "number":
-        let numSchema = z.number();
+        let numSchema = z.number(
+          field.required ? { error: `${field.label} is required` } : undefined,
+        );
         if (field.validation?.min !== undefined) {
           numSchema = numSchema.min(
             field.validation.min,
@@ -77,7 +79,15 @@ export const generateSchemaFromConfig = (
             `Maximum value is ${field.validation.max}`,
           );
         }
-        fieldSchema = numSchema;
+        // A cleared NumberField emits `null` (older configs may still hold "").
+        // Both mean "no value": normalize to undefined so an optional number can
+        // be emptied, and a required one fails with "<label> is required"
+        // instead of Zod's "expected number, received null". `.optional()` must
+        // live INSIDE the pipe — an outer one only short-circuits `undefined`.
+        fieldSchema = z.preprocess(
+          (value) => (value === null || value === "" ? undefined : value),
+          field.required ? numSchema : numSchema.optional(),
+        );
         break;
 
       case "boolean":

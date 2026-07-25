@@ -10,6 +10,10 @@ export interface AdjustmentItem {
   currentQuantity: number;
   newQuantity: number; // always in base units
   notes?: string;
+  // The row's existing cost basis at add time (0/undefined ⇒ no basis yet)
+  rowCostPrice?: number;
+  // Cost for the added units, captured only when the row has no cost basis yet
+  costPrice?: number;
   // Display fields
   product_name: string;
   price: number;
@@ -24,13 +28,20 @@ export interface AdjustmentItem {
   batchNumber?: string;
 }
 
+/** Which unit a UOM product's quantity input opens in by default. */
+export type AdjustDefaultUnit = 'base' | 'purchase';
+
 interface StockAdjustmentStore {
   items: AdjustmentItem[];
   reason: string;
+  // User preference: default input unit for UOM products. Remembered across sessions,
+  // NOT cleared by clearAll (it's a preference, not adjustment data).
+  defaultUnit: AdjustDefaultUnit;
   addItem: (item: Omit<AdjustmentItem, 'id'>) => void;
   updateItem: (id: string, data: Partial<AdjustmentItem>) => void;
   removeItem: (id: string) => void;
   setReason: (reason: string) => void;
+  setDefaultUnit: (unit: AdjustDefaultUnit) => void;
   clearAll: () => void;
 }
 
@@ -38,6 +49,7 @@ export const useStockAdjustmentStore = create<StockAdjustmentStore>()(persist(
   (set) => ({
     items: [],
     reason: '',
+    defaultUnit: 'base',
 
     addItem: (item) =>
       set((state) => {
@@ -70,6 +82,8 @@ export const useStockAdjustmentStore = create<StockAdjustmentStore>()(persist(
       })),
 
     setReason: (reason) => set({ reason }),
+
+    setDefaultUnit: (unit) => set({ defaultUnit: unit }),
 
     clearAll: () => set({ items: [], reason: '' }),
   }),
