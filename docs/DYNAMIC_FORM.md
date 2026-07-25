@@ -231,7 +231,7 @@ Fields use a **12-column CSS grid**. Each field's `columnSpan` determines how ma
 | Type | Description | Renders |
 |------|-------------|---------|
 | `input` | Standard text input | `<Input />` |
-| `number` | Numeric input with step support | `<Input type="number" />` |
+| `number` | Numeric input — see [Number fields](#number-fields) | `<NumberField />` |
 | `password` | Password input with show/hide toggle | `<Password />` |
 | `textarea` | Multi-line text area | `<Textarea />` |
 | `select` | Dropdown or multi-select | `<AdvancedSelect />` |
@@ -242,6 +242,30 @@ Fields use a **12-column CSS grid**. Each field's `columnSpan` determines how ma
 | `file-upload` | File upload with drag & drop and preview | `<FileUpload />` |
 | `custom` | Render your own component | `customComponent` prop |
 | `custom-fields` | Dynamic custom field manager | Custom field builder |
+
+### Number fields
+
+`type: "number"` renders the shared **`NumberField`** (`ui/components/number-field.tsx`) via
+`ui/components/form/field-number-input.tsx` — **never** a native `<input type="number">`. That buys
+the whole form engine what every hand-rolled number input already had: no scroll-wheel value changes,
+`min`/`max` clamped on blur (not merely reported), no `e`/`+`/`-` exponent characters, arrow-key
+stepping, and locale-proof decimal parsing.
+
+**Empty means `null`.** A cleared `NumberField` emits `null`, and `generateSchemaFromConfig` maps
+`null`/`""` to `undefined` before validating. So an optional number can be emptied without tripping
+"expected number, received null", and a required one fails with `<label> is required`.
+
+**Declare `precision` per field — the renderer never defaults it**, because the same branch serves
+money, counts and unit factors. The repo convention:
+
+| Kind | `precision` | Examples |
+|---|---|---|
+| Money, percentages | `2` | `costPrice`, `paidAmount`, `discountValue`, tax `rate` |
+| Base-unit quantities, counts, days | `0` | `openingStock`, `quantityAlert`, `maxUses`, `expiryAlertDays` |
+| Unit conversion factors, free floats | omit | `purchaseUnit.conversionFactor` |
+
+`prefix`/`suffix` affixes work exactly as they do for `input` — both renderers share
+`ui/components/form/field-affix.tsx`.
 
 ---
 
@@ -1041,7 +1065,9 @@ This pattern means you define your form config once and the DataTable/DataCard h
 | **Textarea** | | | |
 | `rows` | `number` | `3` | Textarea rows |
 | **Number** | | | |
-| `step` | `number` | — | Number input step |
+| `step` | `number` | `1` | Number input step (also the arrow-key/stepper increment) |
+| `precision` | `number` | — | Decimal places a `number` field rounds to. Never defaulted — declare per field |
+| `showSteppers` | `boolean` | `false` | Show +/- stepper buttons on a `number` field |
 | **Multi-select** | | | |
 | `maxCount` | `number` | — | Max selected items |
 | `modalPopover` | `boolean` | — | Use modal popover |

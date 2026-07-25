@@ -230,6 +230,14 @@ export interface FormFieldConfig {
   maxSize?: number; // For file upload (in bytes)
   multiple?: boolean; // For file upload and select
   step?: number; // For number inputs
+  /**
+   * Decimal places a `number` field rounds to, forwarded to <NumberField>.
+   * Declare it per field — money `2`, quantities/counts `0`, unit conversion
+   * factors and other free floats omit it. The renderer never defaults it.
+   */
+  precision?: number;
+  /** Show +/- stepper buttons on a `number` field. */
+  showSteppers?: boolean;
   helperText?: string | ((values: Record<string, any>) => string | undefined);
 
   // Static suffix/prefix appended/prepended inside the input.

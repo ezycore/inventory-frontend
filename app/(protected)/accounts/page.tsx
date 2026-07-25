@@ -192,6 +192,7 @@ const getAccountFormConfig = (t: Translator): DynamicFormConfig => ({
     {
       name: "balance",
       type: "number",
+      precision: 2,
       label: t("form.balance"),
       placeholder: t("form.balancePlaceholder"),
       columnSpan: 6,

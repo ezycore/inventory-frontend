@@ -611,47 +611,6 @@ export default function VariantManager({
                         className="h-9"
                       />
                     </div>
-                    {/* <div className="space-y-1">
-                      <Label className="text-xs">Sale Unit</Label>
-                      <Select
-                        value={editingVariant.saleUnit?.unitId || ''}
-                        onValueChange={(val) =>
-                          setEditingVariant({
-                            ...editingVariant,
-                            saleUnit: { ...editingVariant.saleUnit, unitId: val, conversionFactor: editingVariant.saleUnit?.conversionFactor ?? 1 },
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {unitOptions.map((opt: any) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Sale Conversion Factor</Label>
-                      <Input
-                        type="number"
-                        min={0.0001}
-                        value={editingVariant.saleUnit?.conversionFactor ?? ''}
-                        onChange={e =>
-                          setEditingVariant({
-                            ...editingVariant,
-                            saleUnit: {
-                              ...editingVariant.saleUnit,
-                              conversionFactor: parseFloat(e.target.value) || undefined,
-                            },
-                          })
-                        }
-                        className="h-9"
-                      />
-                    </div> */}
                   </div>
                 )}
               </div>

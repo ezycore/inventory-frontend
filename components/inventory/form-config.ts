@@ -58,6 +58,7 @@ export function getInventoryFormConfig(t: Translator): DynamicFormConfig {
       {
         name: "quantityAlert",
         type: "number",
+        precision: 0,
         label: t("form.alertLevel"),
         placeholder: t("form.enterAlertLevel"),
         required: true,
@@ -107,6 +108,7 @@ export function getInventoryFormConfig(t: Translator): DynamicFormConfig {
       {
         name: "quantity",
         type: "number",
+        precision: 0,
         label: t("form.openingStock"),
         placeholder: "0",
         columnSpan: 6,
@@ -117,6 +119,7 @@ export function getInventoryFormConfig(t: Translator): DynamicFormConfig {
       {
         name: "costPrice",
         type: "number",
+        precision: 2,
         label: t("form.costPrice"),
         placeholder: "0.00",
         columnSpan: 6,

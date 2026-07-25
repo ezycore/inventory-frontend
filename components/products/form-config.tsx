@@ -244,6 +244,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
           {
             name: "expiryAlertDays",
             type: "number",
+            precision: 0,
             label: tr('form.expiryAlertDays', "Expiry alert (days before)"),
             columnSpan: 6,
             placeholder: "0",
@@ -307,13 +308,13 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
           {
             name: "purchaseUnit.conversionFactor",
             type: "number",
-            // zodType: "number",
+            // No `precision`: a conversion factor can be fractional (e.g. 0.5 kg
+            // per pack), so it stays an unrestricted float.
             label: tr('form.purchaseConversionFactor', "Purchase conversion factor"),
             columnSpan: 6,
             placeholder: "e.g. 100",
             defaultValue: 1,
             validation: { min: 1 },
-            // customComponent: NumberInput,
             tooltip: tr('form.purchaseConversionFactorTooltip', "How many base units make up one purchase unit. For example, if you buy in Boxes and 1 box holds 100 pieces, enter 100."),
             // Single-only — see purchaseUnit.unitId above.
             dependsOn: [
@@ -447,6 +448,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
           {
             name: "openingStock",
             type: "number",
+            precision: 0,
             zodType: "number",
             label: tr('form.openingStock', "Opening stock"),
             columnSpan: 4,
@@ -463,6 +465,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
           {
             name: "costPrice",
             type: "number",
+            precision: 2,
             zodType: "number",
             label: tr('form.costPrice', "Cost price (per unit)"),
             columnSpan: 4,
@@ -478,6 +481,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
           {
             name: "inventoryAlertLevel",
             type: "number",
+            precision: 0,
             zodType: "number",
             label: tr('form.inventoryAlertLevel', "Low stock threshold"),
             columnSpan: 4,

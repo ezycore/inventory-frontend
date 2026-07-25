@@ -37,6 +37,7 @@ const getTaxFormConfig = (t: (key: string) => string): DynamicFormConfig => ({
     {
       name: "rate",
       type: "number",
+      precision: 2,
       label: t("form.rate"),
       placeholder: t("form.ratePlaceholder"),
       required: true,
