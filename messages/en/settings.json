@@ -396,7 +396,9 @@
       "choosePlan": "Choose Plan",
       "upgrade": "Upgrade",
       "downgrade": "Downgrade",
-      "offBadge": "{pct}% off"
+      "offBadge": "{pct}% off",
+      "blockedCancelScheduled": "Plan changes are paused while your subscription is scheduled to cancel — resume it first.",
+      "blockedPastDue": "Plan changes are paused while a payment is overdue — pay the outstanding invoice first."
     },
     "trialSwitch": {
       "title": "End your free trial?",

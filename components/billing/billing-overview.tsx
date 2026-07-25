@@ -132,9 +132,13 @@ function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
             ? formatDate(entitlement.currentPeriodEnd)
             : "—"}
         </Detail>
-        <Detail label={t("trialEnds")}>
-          {entitlement.trialEndsAt ? formatDate(entitlement.trialEndsAt) : "—"}
-        </Detail>
+        {/* A past trial's end date lingers on the sub after upgrades — only a
+            live trial makes "Trial ends" meaningful. */}
+        {subStatus === "trialing" && (
+          <Detail label={t("trialEnds")}>
+            {entitlement.trialEndsAt ? formatDate(entitlement.trialEndsAt) : "—"}
+          </Detail>
+        )}
       </CardContent>
       {isCancelable(entitlement) && !getScheduledCancellation(entitlement) && (
         <CardFooter className="justify-end border-t pt-4">
