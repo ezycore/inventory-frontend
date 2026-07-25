@@ -94,6 +94,11 @@ Combine with `dependsOn` to both enable and require the field under the same con
 ### Dynamic UI
 `suffix` · `prefix` · `helperText` (each accepts `string` OR `(allValues) => string|undefined`)
 
+### Edit behavior
+`hideInEdit` (`boolean` — field returns `null` in edit mode) · `lockedDisplay` (`(allValues) => ReactNode`)
+
+**`lockedDisplay`** — for a `select`/`fuseSelect` whose `name` is in the form's `disabledFieldsInEdit`. In edit mode that field renders as a static read-only box showing `lockedDisplay(allValues)` **instead of mounting the select**, so its `optionsApi` is never fetched. Without it a locked id-valued select fetches its whole option list, and a Radix `<SelectValue>` still shows nothing when the current id is not on the fetched page. Derive the label from a sibling value the edit row already carries (e.g. inventory flattens the product name to `values.name`, variant attrs to `values.attributes`). Ignored for non-select fields and outside edit-lock.
+
 ### Custom
 `customComponent` · `customProps` · `onChange` · `onValueChange`
 

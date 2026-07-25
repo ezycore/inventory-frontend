@@ -13,6 +13,8 @@ export interface BulkAdjustmentItem {
   variantId?: string | null
   newQuantity: number
   notes?: string
+  // Cost for the added units — used by the backend only when the row has no cost basis yet
+  costPrice?: number
   // Expiry-batch capture (only honoured for expiry-tracked products on an increase)
   expiryDate?: string
   batchNumber?: string

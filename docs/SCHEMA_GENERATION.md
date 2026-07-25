@@ -74,13 +74,17 @@ const { form } = useDynamicForm(formConfig, {
   }
 }
 
-// Number with min/max
+// Number with min/max.
+// The generated schema is z.preprocess(empty → undefined, z.number()…): a
+// cleared NumberField emits `null`, which is normalized to "no value" so an
+// optional number can be emptied and a required one reports "Price is required".
 {
   name: "price",
   type: "number",
   zodType: "number", 
   label: "Price",
   required: true,
+  precision: 2,      // declare per field — never defaulted by the renderer
   validation: {
     min: 0,
     max: 999999

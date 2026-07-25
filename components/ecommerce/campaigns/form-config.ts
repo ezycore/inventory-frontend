@@ -42,6 +42,7 @@ export const campaignFormConfig: DynamicFormConfig = {
     {
       name: "value",
       type: "number",
+      precision: 2,
       zodType: "number",
       label: "Value",
       placeholder: "0",

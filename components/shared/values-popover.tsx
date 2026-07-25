@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useRef, useState } from "react";
 import { Badge } from "@/ui/components/badge";
@@ -7,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/ui/components/popover";
+import { useSingleLineFit } from "@/hooks/use-single-line-fit";
 
 // Color palette for colorized (card) variant
 const badgeColors = [
@@ -27,18 +29,30 @@ interface ValuesPopoverProps {
   maxVisible?: number;
   /** Use colourised pill badges (card style). Default: false (outline badges) */
   colorized?: boolean;
+  /**
+   * Keep every badge on one row, measuring how many actually fit instead of
+   * trusting `maxVisible` (which then acts as an upper cap only). Default: false.
+   */
+  singleLine?: boolean;
 }
 
 export function ValuesPopover({
   values = [],
   maxVisible = 3,
   colorized = false,
+  singleLine = false,
 }: ValuesPopoverProps) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const visible = values.slice(0, maxVisible);
-  const hidden = values.slice(maxVisible);
+  const { containerRef, measureRef, visibleCount } = useSingleLineFit(
+    values.length,
+    singleLine,
+  );
+
+  const shown = singleLine ? Math.min(visibleCount, maxVisible) : maxVisible;
+  const visible = values.slice(0, shown);
+  const hidden = values.slice(shown);
 
   const scheduleClose = () => {
     closeTimer.current = setTimeout(() => setOpen(false), 80);
@@ -51,62 +65,72 @@ export function ValuesPopover({
     }
   };
 
-  const renderBadge = (value: string, index: number) => {
+  const renderBadge = (value: string, colorIndex: number) => {
     if (colorized) {
       return (
         <span
-          key={index}
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${badgeColors[index % badgeColors.length]}`}
+          key={`${value}-${colorIndex}`}
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap ${badgeColors[colorIndex % badgeColors.length]}`}
         >
           {value}
         </span>
       );
     }
     return (
-      <Badge key={index} variant="outline" className="text-xs">
+      <Badge
+        key={`${value}-${colorIndex}`}
+        variant="outline"
+        className="text-xs whitespace-nowrap"
+      >
         {value}
       </Badge>
     );
   };
 
-  const renderHiddenBadge = (value: string, index: number) => {
-    const colorIndex = (maxVisible + index) % badgeColors.length;
-    if (colorized) {
-      return (
-        <span
-          key={index}
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${badgeColors[colorIndex]}`}
-        >
-          {value}
-        </span>
-      );
-    }
-    return (
-      <Badge key={index} variant="outline" className="text-xs">
-        {value}
-      </Badge>
-    );
-  };
+  const renderMoreChip = (count: number, interactive: boolean) => (
+    <Badge
+      variant="secondary"
+      className="text-xs cursor-pointer hover:bg-secondary/70 transition-colors select-none whitespace-nowrap"
+      onMouseEnter={
+        interactive
+          ? () => {
+              cancelClose();
+              setOpen(true);
+            }
+          : undefined
+      }
+      onMouseLeave={interactive ? scheduleClose : undefined}
+    >
+      +{count} more
+    </Badge>
+  );
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div
+      ref={containerRef}
+      className={
+        singleLine
+          ? "relative flex min-w-0 flex-nowrap items-center gap-1 overflow-hidden [&>*]:shrink-0"
+          : "flex flex-wrap gap-1"
+      }
+    >
+      {singleLine && (
+        // Off-screen width probe: all values plus the widest possible chip.
+        <div
+          ref={measureRef}
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-0 -z-10 flex w-max flex-nowrap items-center gap-1 opacity-0"
+        >
+          {values.map((value, index) => renderBadge(value, index))}
+          {renderMoreChip(values.length, false)}
+        </div>
+      )}
+
       {visible.map((value, index) => renderBadge(value, index))}
 
       {hidden.length > 0 && (
         <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Badge
-              variant="secondary"
-              className="text-xs cursor-pointer hover:bg-secondary/70 transition-colors select-none"
-              onMouseEnter={() => {
-                cancelClose();
-                setOpen(true);
-              }}
-              onMouseLeave={scheduleClose}
-            >
-              +{hidden.length} more
-            </Badge>
-          </PopoverTrigger>
+          <PopoverTrigger asChild>{renderMoreChip(hidden.length, true)}</PopoverTrigger>
           <PopoverContent
             className="w-auto max-w-[260px] p-3"
             onMouseEnter={cancelClose}
@@ -118,7 +142,7 @@ export function ValuesPopover({
               {hidden.length} more value{hidden.length !== 1 ? "s" : ""}
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {hidden.map((value, index) => renderHiddenBadge(value, index))}
+              {hidden.map((value, index) => renderBadge(value, shown + index))}
             </div>
           </PopoverContent>
         </Popover>

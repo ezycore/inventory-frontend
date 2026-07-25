@@ -7,6 +7,7 @@ import {
   renderTextInput,
   renderTextarea,
 } from "./field-text-inputs";
+import { renderNumberInput } from "./field-number-input";
 import { renderFuseSelect, renderSelect } from "./field-select-inputs";
 import { renderCheckbox, renderRadioGroup, renderSwitch } from "./field-choice-inputs";
 import { renderFileUpload } from "./field-file-input";
@@ -14,13 +15,14 @@ import { renderCustom, renderCustomFields, renderDate } from "./field-misc-input
 
 /**
  * Maps a field's `type` to its renderer. Kept a plain switch (not a lookup map)
- * so input/number can share a branch and unknown types fall through to null.
+ * so related types can share a branch and unknown types fall through to null.
  */
 export function renderField(ctx: FieldRenderContext): ReactNode {
   switch (ctx.field.type) {
     case "input":
-    case "number":
       return renderTextInput(ctx);
+    case "number":
+      return renderNumberInput(ctx);
     case "textarea":
       return renderTextarea(ctx);
     case "richtext":

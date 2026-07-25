@@ -231,10 +231,11 @@ Fields use a **12-column CSS grid**. Each field's `columnSpan` determines how ma
 | Type | Description | Renders |
 |------|-------------|---------|
 | `input` | Standard text input | `<Input />` |
-| `number` | Numeric input with step support | `<Input type="number" />` |
+| `number` | Numeric input — see [Number fields](#number-fields) | `<NumberField />` |
 | `password` | Password input with show/hide toggle | `<Password />` |
 | `textarea` | Multi-line text area | `<Textarea />` |
-| `select` | Dropdown or multi-select | `<AdvancedSelect />` |
+| `select` | Dropdown or multi-select, auto-searchable — see [Select fields](#select-fields) | `<AdvancedSelect />` / `<FuseAdvancedSelect />` (auto) |
+| `fuseSelect` | Force the searchable combobox — see [Select fields](#select-fields) | `<FuseAdvancedSelect />` |
 | `radio-group` | Radio button group | `<RadioGroup />` |
 | `checkbox` | Single checkbox | `<Checkbox />` |
 | `switch` | Toggle switch | `<Switch />` |
@@ -242,6 +243,61 @@ Fields use a **12-column CSS grid**. Each field's `columnSpan` determines how ma
 | `file-upload` | File upload with drag & drop and preview | `<FileUpload />` |
 | `custom` | Render your own component | `customComponent` prop |
 | `custom-fields` | Dynamic custom field manager | Custom field builder |
+
+### Select fields
+
+Two renderers, same config surface (`options` / `optionsApi`, `mode`, `labelInValue`,
+`defaultFlag`, `creatable` + `quickAddModule`, `dependsOn`, `autoFillFields`, `copyValueTo`) — both
+wired in `ui/components/form/field-select-inputs.tsx`.
+
+| | `select` | `fuseSelect` |
+|---|---|---|
+| Renders | `AdvancedSelect` (Radix `Select`), **or** `FuseAdvancedSelect` when the list warrants search (below) | always `FuseAdvancedSelect` (combobox + Popover listbox) |
+| Search | **auto** — on for remote / long single lists, off for short static enums | always on — the field **is** the search box: click, type, Fuse.js fuzzy-matches |
+| Keyboard | Radix defaults (plain) or combobox nav (searchable) | ↑/↓/Home/End move, Enter picks, Esc closes, Backspace drops the last badge (multi) |
+| Use for | **almost everything** — it picks the right renderer for you | the rare case you want typeahead on a *short* static list |
+
+**Prefer `select` and let it decide.** `renderSelect` calls `shouldUseSearch(field)`: a **single-mode**
+field renders the searchable `FuseAdvancedSelect` when it has an `optionsApi` (remote list, unbounded —
+categories, brands, suppliers, products) **or** more than **10** static `options`; otherwise it stays
+the plain `AdvancedSelect`. So an `optionsApi` select is searchable automatically — you no longer
+hand-pick `fuseSelect` for it. **Multiple-mode** selects stay on `AdvancedSelect`, which delegates to
+`MultiSelect` (already searchable inside its own popover), so the heuristic deliberately skips them.
+Reach for `fuseSelect` only to **force** search where the heuristic wouldn't — e.g. typeahead on a
+short fixed list.
+
+`FuseAdvancedSelect` is split across `ui/components/fuse-advanced-select.tsx` (orchestration),
+`fuse-select-fields.tsx` (the single / multi field markup), `fuse-select-dropdown.tsx` (the listbox),
+`fuse-select-types.ts`, plus `ui/hooks/use-fuse-select-value.ts` (value normalisation, `onMount`
+enrichment, `defaultFlag` pre-fill) and `ui/hooks/use-combobox-keyboard.ts` (reusable keyboard nav).
+
+Because the field owns focus, every affordance inside it — clear ✕, badge remove, option rows —
+cancels `mousedown` instead of handling `click`: a click fires after the blur that would already have
+closed the popover.
+
+### Number fields
+
+`type: "number"` renders the shared **`NumberField`** (`ui/components/number-field.tsx`) via
+`ui/components/form/field-number-input.tsx` — **never** a native `<input type="number">`. That buys
+the whole form engine what every hand-rolled number input already had: no scroll-wheel value changes,
+`min`/`max` clamped on blur (not merely reported), no `e`/`+`/`-` exponent characters, arrow-key
+stepping, and locale-proof decimal parsing.
+
+**Empty means `null`.** A cleared `NumberField` emits `null`, and `generateSchemaFromConfig` maps
+`null`/`""` to `undefined` before validating. So an optional number can be emptied without tripping
+"expected number, received null", and a required one fails with `<label> is required`.
+
+**Declare `precision` per field — the renderer never defaults it**, because the same branch serves
+money, counts and unit factors. The repo convention:
+
+| Kind | `precision` | Examples |
+|---|---|---|
+| Money, percentages | `2` | `costPrice`, `paidAmount`, `discountValue`, tax `rate` |
+| Base-unit quantities, counts, days | `0` | `openingStock`, `quantityAlert`, `maxUses`, `expiryAlertDays` |
+| Unit conversion factors, free floats | omit | `purchaseUnit.conversionFactor` |
+
+`prefix`/`suffix` affixes work exactly as they do for `input` — both renderers share
+`ui/components/form/field-affix.tsx`.
 
 ---
 
@@ -1041,7 +1097,9 @@ This pattern means you define your form config once and the DataTable/DataCard h
 | **Textarea** | | | |
 | `rows` | `number` | `3` | Textarea rows |
 | **Number** | | | |
-| `step` | `number` | — | Number input step |
+| `step` | `number` | `1` | Number input step (also the arrow-key/stepper increment) |
+| `precision` | `number` | — | Decimal places a `number` field rounds to. Never defaulted — declare per field |
+| `showSteppers` | `boolean` | `false` | Show +/- stepper buttons on a `number` field |
 | **Multi-select** | | | |
 | `maxCount` | `number` | — | Max selected items |
 | `modalPopover` | `boolean` | — | Use modal popover |

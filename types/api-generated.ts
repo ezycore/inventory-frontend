@@ -10391,6 +10391,7 @@ export interface components {
                 active: number;
             };
             stock: {
+                trackedItems: number;
                 totalItems: number;
                 totalValue: number;
                 totalRetailValue: number;
@@ -24048,6 +24049,7 @@ export interface operations {
                         restockStatus?: "normal" | "ordered" | "hidden";
                         newQuantity: number;
                         notes?: string;
+                        costPrice?: number;
                         /** Format: date-time */
                         expiryDate?: string;
                         /** Format: date-time */
