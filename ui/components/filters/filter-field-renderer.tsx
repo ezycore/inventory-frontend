@@ -5,6 +5,8 @@ import { Input } from '@ui/components/input';
 import { NumberField } from '@ui/components/number-field';
 import { Label } from '@ui/components/label';
 import { AdvancedSelect } from '@ui/components/advanced-select';
+import { FuseAdvancedSelect } from '@ui/components/fuse-advanced-select';
+import { shouldUseSearchableSelect } from '@ui/components/select-strategy';
 import { Checkbox } from '@ui/components/checkbox';
 import { DatePicker } from '@ui/components/date-picker';
 import { DateRangePicker } from '@ui/components/date-range-picker';
@@ -51,7 +53,7 @@ export function FilterFieldRenderer({
           />
         );
 
-      case 'select':
+      case 'select': {
         // Convert FilterOption[] to SelectOption[] format
         const selectOptions = field.options?.map((option) => ({
           label: option.label,
@@ -59,8 +61,18 @@ export function FilterFieldRenderer({
           disabled: false,
         })) || [];
 
+        // Same auto-strategy as DynamicForm selects (see select-strategy.ts): a
+        // remote or long list renders the searchable Fuse combobox; a short
+        // static enum stays a plain dropdown.
+        const SelectComponent: typeof FuseAdvancedSelect = shouldUseSearchableSelect({
+          optionsApi: field.optionsApi,
+          optionCount: selectOptions.length,
+        })
+          ? FuseAdvancedSelect
+          : AdvancedSelect;
+
         return (
-          <AdvancedSelect
+          <SelectComponent
             mode="single"
             value={value ? String(value) : ''}
             onValueChange={onChange}
@@ -70,6 +82,7 @@ export function FilterFieldRenderer({
             className={cn(controlClassName)}
           />
         );
+      }
 
       case 'checkbox':
         const selectedValues = Array.isArray(value) ? value : [];

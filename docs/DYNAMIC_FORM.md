@@ -234,7 +234,8 @@ Fields use a **12-column CSS grid**. Each field's `columnSpan` determines how ma
 | `number` | Numeric input — see [Number fields](#number-fields) | `<NumberField />` |
 | `password` | Password input with show/hide toggle | `<Password />` |
 | `textarea` | Multi-line text area | `<Textarea />` |
-| `select` | Dropdown or multi-select | `<AdvancedSelect />` |
+| `select` | Dropdown or multi-select, auto-searchable — see [Select fields](#select-fields) | `<AdvancedSelect />` / `<FuseAdvancedSelect />` (auto) |
+| `fuseSelect` | Force the searchable combobox — see [Select fields](#select-fields) | `<FuseAdvancedSelect />` |
 | `radio-group` | Radio button group | `<RadioGroup />` |
 | `checkbox` | Single checkbox | `<Checkbox />` |
 | `switch` | Toggle switch | `<Switch />` |
@@ -242,6 +243,37 @@ Fields use a **12-column CSS grid**. Each field's `columnSpan` determines how ma
 | `file-upload` | File upload with drag & drop and preview | `<FileUpload />` |
 | `custom` | Render your own component | `customComponent` prop |
 | `custom-fields` | Dynamic custom field manager | Custom field builder |
+
+### Select fields
+
+Two renderers, same config surface (`options` / `optionsApi`, `mode`, `labelInValue`,
+`defaultFlag`, `creatable` + `quickAddModule`, `dependsOn`, `autoFillFields`, `copyValueTo`) — both
+wired in `ui/components/form/field-select-inputs.tsx`.
+
+| | `select` | `fuseSelect` |
+|---|---|---|
+| Renders | `AdvancedSelect` (Radix `Select`), **or** `FuseAdvancedSelect` when the list warrants search (below) | always `FuseAdvancedSelect` (combobox + Popover listbox) |
+| Search | **auto** — on for remote / long single lists, off for short static enums | always on — the field **is** the search box: click, type, Fuse.js fuzzy-matches |
+| Keyboard | Radix defaults (plain) or combobox nav (searchable) | ↑/↓/Home/End move, Enter picks, Esc closes, Backspace drops the last badge (multi) |
+| Use for | **almost everything** — it picks the right renderer for you | the rare case you want typeahead on a *short* static list |
+
+**Prefer `select` and let it decide.** `renderSelect` calls `shouldUseSearch(field)`: a **single-mode**
+field renders the searchable `FuseAdvancedSelect` when it has an `optionsApi` (remote list, unbounded —
+categories, brands, suppliers, products) **or** more than **10** static `options`; otherwise it stays
+the plain `AdvancedSelect`. So an `optionsApi` select is searchable automatically — you no longer
+hand-pick `fuseSelect` for it. **Multiple-mode** selects stay on `AdvancedSelect`, which delegates to
+`MultiSelect` (already searchable inside its own popover), so the heuristic deliberately skips them.
+Reach for `fuseSelect` only to **force** search where the heuristic wouldn't — e.g. typeahead on a
+short fixed list.
+
+`FuseAdvancedSelect` is split across `ui/components/fuse-advanced-select.tsx` (orchestration),
+`fuse-select-fields.tsx` (the single / multi field markup), `fuse-select-dropdown.tsx` (the listbox),
+`fuse-select-types.ts`, plus `ui/hooks/use-fuse-select-value.ts` (value normalisation, `onMount`
+enrichment, `defaultFlag` pre-fill) and `ui/hooks/use-combobox-keyboard.ts` (reusable keyboard nav).
+
+Because the field owns focus, every affordance inside it — clear ✕, badge remove, option rows —
+cancels `mousedown` instead of handling `click`: a click fires after the blur that would already have
+closed the popover.
 
 ### Number fields
 
