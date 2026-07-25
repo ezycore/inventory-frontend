@@ -160,6 +160,7 @@
     "unitBase": "Base",
     "unitPurchase": "Purchase",
     "unitCostLabel": "Unit Cost",
+    "perUnit": "(per {unit})",
     "noCostOnRecord": "(no cost on record)",
     "unitCostPlaceholder": "Cost per unit for the added stock",
     "unitCostHint": "This product has no cost yet. Enter a unit cost so the added stock is valued correctly.",

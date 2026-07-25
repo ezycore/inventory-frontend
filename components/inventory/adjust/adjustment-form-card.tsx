@@ -226,19 +226,31 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
               <div className="space-y-1.5 rounded-lg border border-dashed border-amber-400/60 bg-amber-50/40 dark:bg-amber-950/20 p-4">
                 <Label htmlFor="unitCost">
                   {t('adjust.unitCostLabel')}
+                  {selectedProduct.baseUnitName && (
+                    <span className="text-muted-foreground text-xs ml-1">
+                      {t('adjust.perUnit', { unit: selectedProduct.baseUnitName })}
+                    </span>
+                  )}
                   <span className="text-amber-600 dark:text-amber-500 text-xs ml-2">
                     {t('adjust.noCostOnRecord')}
                   </span>
                 </Label>
-                <NumberField
-                  id="unitCost"
-                  precision={2}
-                  min={0}
-                  value={costInput}
-                  onChange={setCostInput}
-                  placeholder={t('adjust.unitCostPlaceholder')}
-                  className="h-11"
-                />
+                <div className="relative">
+                  <NumberField
+                    id="unitCost"
+                    precision={2}
+                    min={0}
+                    value={costInput}
+                    onChange={setCostInput}
+                    placeholder={t('adjust.unitCostPlaceholder')}
+                    className="h-11 pr-16"
+                  />
+                  {/* Cost is ALWAYS per base unit — never the purchase unit — so a
+                      box-mode entry can't be mistaken for a box price. */}
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                    /{selectedProduct.baseUnitName || t('shared.unitsFallback')}
+                  </span>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {t('adjust.unitCostHint')}
                 </p>
