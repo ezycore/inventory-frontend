@@ -41,6 +41,8 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
     setInputInPurchaseUnit,
     inputValue,
     setInputValue,
+    costInput,
+    setCostInput,
     expiryDate,
     setExpiryDate,
     batchNumber,
@@ -48,6 +50,7 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
     hasUOM,
     computedBaseQuantity,
     showExpiryFields,
+    needsCost,
     addedInventoryIds,
     handleProductSelect,
     handleAddOrUpdate,
@@ -217,6 +220,30 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                 />
               </div>
             </div>
+
+            {/* Unit cost — only when the row has no cost basis and stock is increasing */}
+            {needsCost && (
+              <div className="space-y-1.5 rounded-lg border border-dashed border-amber-400/60 bg-amber-50/40 dark:bg-amber-950/20 p-4">
+                <Label htmlFor="unitCost">
+                  {t('adjust.unitCostLabel')}
+                  <span className="text-amber-600 dark:text-amber-500 text-xs ml-2">
+                    {t('adjust.noCostOnRecord')}
+                  </span>
+                </Label>
+                <NumberField
+                  id="unitCost"
+                  precision={2}
+                  min={0}
+                  value={costInput}
+                  onChange={setCostInput}
+                  placeholder={t('adjust.unitCostPlaceholder')}
+                  className="h-11"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t('adjust.unitCostHint')}
+                </p>
+              </div>
+            )}
 
             {/* Expiry batch (expiry-tracked products, on a stock increase) */}
             {showExpiryFields && (
