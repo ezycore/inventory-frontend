@@ -20,6 +20,8 @@ export function getInventoryFormConfig(t: Translator): DynamicFormConfig {
         }),
         labelInValue: true,
         validation: { minLength: 1 },
+        // Locked in edit: the inventory row flattens the product name to `name`.
+        lockedDisplay: (values) => (values?.name as string) || "—",
       },
       {
         name: "variantId",
@@ -43,6 +45,14 @@ export function getInventoryFormConfig(t: Translator): DynamicFormConfig {
           condition: "gt",
           matchWithProp: "variant_count",
           value: 0,
+        },
+        // Locked in edit: the row flattens variant attributes to `attributes`.
+        lockedDisplay: (values) => {
+          const attributes = values?.attributes as Record<string, unknown> | undefined;
+          if (!attributes || Object.keys(attributes).length === 0) return "—";
+          return Object.entries(attributes)
+            .map(([key, value]) => `${key}: ${String(value)}`)
+            .join(", ");
         },
       },
       {
