@@ -335,6 +335,7 @@
     "optionWithLot": "Exp {expiry} · {lot} · {left} left",
     "expiredPrefix": "EXPIRED · {label}",
     "noExpiryDate": "no expiry date",
-    "choosePlaceholder": "Choose a batch…"
+    "choosePlaceholder": "Choose a batch…",
+    "noBatches": "No batches available"
   }
 }

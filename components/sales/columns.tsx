@@ -71,7 +71,7 @@ function BatchPickerCell({
       onChange={(batchId) => onUpdateBatch(item.id, batchId)}
       emptyLabel={t("autoFefo")}
       title={t("fefoTooltip")}
-      className="h-7 w-[150px] rounded-md border bg-background px-1 text-xs"
+      className="h-7 w-[150px] px-2 py-1 text-xs"
     />
   );
 }

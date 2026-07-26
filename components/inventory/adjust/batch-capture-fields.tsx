@@ -71,7 +71,6 @@ export function BatchCaptureFields({
             variantId={variantId}
             value={batchId || null}
             onChange={(id) => onBatchIdChange(id || '')}
-            className="h-11 w-full rounded-md border bg-background px-2 text-sm"
           />
           <p className="text-xs text-muted-foreground">
             {t('batchExistingHint')}

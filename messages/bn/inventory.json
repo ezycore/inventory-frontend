@@ -335,6 +335,7 @@
     "optionWithLot": "মেয়াদ {expiry} · {lot} · বাকি {left}",
     "expiredPrefix": "মেয়াদোত্তীর্ণ · {label}",
     "noExpiryDate": "মেয়াদের তারিখ নেই",
-    "choosePlaceholder": "ব্যাচ বেছে নিন…"
+    "choosePlaceholder": "ব্যাচ বেছে নিন…",
+    "noBatches": "কোনো ব্যাচ নেই"
   }
 }

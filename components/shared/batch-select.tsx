@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useProductBatches } from '@/services/api'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
 import { useFormatters } from '@/hooks/use-formatters'
+import { SimpleSelect, type SimpleSelectOption } from '@/ui/components/simple-select'
 
 /**
  * A lot is past its expiry. Expired stock is excluded from sale but stays
@@ -12,6 +13,12 @@ import { useFormatters } from '@/hooks/use-formatters'
  */
 export const isBatchExpired = (batch: BatchRow): boolean =>
   !!batch.expiryDate && new Date(batch.expiryDate) < new Date()
+
+/**
+ * Radix rejects an empty-string item value, so "no specific lot" needs a
+ * sentinel. It never leaves this file — `onChange` maps it back to null.
+ */
+const NO_BATCH = '__no_batch__'
 
 interface BatchSelectProps {
   productId: string
@@ -47,7 +54,7 @@ export function BatchSelect({
   enabled = true,
   disabled,
   title,
-  className = 'h-9 w-full rounded-md border bg-background px-2 text-xs',
+  className = 'h-11 w-full',
 }: BatchSelectProps) {
   const t = useTranslations('inventory.batch')
   const { formatDate } = useFormatters()
@@ -60,7 +67,7 @@ export function BatchSelect({
   const batches: BatchRow[] = (data?.data as BatchRow[]) || []
   // The currently chosen lot stays listed even if excluded elsewhere, else the
   // select would fall back to showing a blank for a value that is really set.
-  const options = batches.filter(
+  const visible = batches.filter(
     (b) => b._id === value || !excludeIds.includes(b._id),
   )
 
@@ -78,24 +85,23 @@ export function BatchSelect({
     return isBatchExpired(batch) ? t('expiredPrefix', { label: base }) : base
   }
 
+  const options: SimpleSelectOption[] = [
+    ...(emptyLabel !== undefined
+      ? [{ label: emptyLabel, value: NO_BATCH }]
+      : []),
+    ...visible.map((batch) => ({ label: labelFor(batch), value: batch._id })),
+  ]
+
   return (
-    <select
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value || null)}
+    <SimpleSelect
+      value={value ?? (emptyLabel !== undefined ? NO_BATCH : undefined)}
+      onValueChange={(next) => onChange(next === NO_BATCH ? null : next)}
+      options={options}
+      placeholder={t('choosePlaceholder')}
+      emptyMessage={t('noBatches')}
       disabled={disabled || isLoading}
-      className={className}
       title={title}
-    >
-      {emptyLabel !== undefined ? (
-        <option value="">{emptyLabel}</option>
-      ) : (
-        <option value="">{t('choosePlaceholder')}</option>
-      )}
-      {options.map((batch) => (
-        <option key={batch._id} value={batch._id}>
-          {labelFor(batch)}
-        </option>
-      ))}
-    </select>
+      className={className}
+    />
   )
 }

@@ -69,7 +69,6 @@ export function BatchDrawPicker({
               value={draw.batchId || null}
               onChange={(batchId) => update(index, { batchId: batchId || '' })}
               excludeIds={chosenIds}
-              className="h-11 w-full rounded-md border bg-background px-2 text-sm"
             />
           </div>
           <div className="w-28 shrink-0">
