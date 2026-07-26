@@ -24055,6 +24055,11 @@ export interface operations {
                         /** Format: date-time */
                         manufactureDate?: string;
                         batchNumber?: string;
+                        batchDraws?: {
+                            batchId: string;
+                            quantity: number;
+                        }[];
+                        batchId?: string;
                     }[];
                     reason?: string;
                 };
