@@ -3,15 +3,13 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { differenceInCalendarDays } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
-import { Badge } from '@ui/components/badge'
 import { Button } from '@ui/components/button'
 import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { CalendarClock, ChevronDown, ChevronUp } from 'lucide-react'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
-import type { Translator } from '@/i18n/config'
 import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
+import { ExpiryBadge } from '@/components/shared/expiry/expiry-badge'
 import { formatDate } from '@/components/products/detail/utils'
 
 interface InventoryBatchesProps {
@@ -22,16 +20,6 @@ interface InventoryBatchesProps {
 // Batches are FEFO-ordered (soonest expiry first); show the most urgent few and
 // let the user expand the rest in place — the full set is already loaded.
 const BATCH_PREVIEW_COUNT = 5
-
-/** Expiry badge: expired / near (≤30d) / ok. `t` is bound to `inventory.detail`. */
-function expiryBadge(expiryDate: string | null | undefined, t: Translator) {
-  if (!expiryDate) return <span className="text-muted-foreground">—</span>
-  const days = differenceInCalendarDays(new Date(expiryDate), new Date())
-  if (days < 0) return <Badge variant="destructive">{t('expired')}</Badge>
-  if (days <= 30)
-    return <Badge className="bg-amber-100 text-amber-700">{t('daysLeft', { days })}</Badge>
-  return <Badge variant="secondary">{t('daysLeft', { days })}</Badge>
-}
 
 export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesProps) {
   const t = useTranslations('inventory.detail')
@@ -75,7 +63,7 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       key: 'status',
       header: tStatus('label'),
       align: 'right',
-      cell: (b) => expiryBadge(b.expiryDate, t),
+      cell: (b) => <ExpiryBadge expiryDate={b.expiryDate} />,
     },
   ]
 

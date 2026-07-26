@@ -26,6 +26,7 @@ import {
 import { formatCurrency } from '@/lib/currency'
 import { InventorySearch } from '@/components/inventory/inventory-search'
 import { fromBaseUnit, formatQuantity } from '@/utils/uom-conversion'
+import { BatchDrawPicker } from './batch-draw-picker'
 import type { AdjustStockContext } from './use-adjust-stock'
 
 /** The "Add/Edit Adjustment" card: product search, quantity, notes, expiry batch. */
@@ -50,6 +51,9 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
     hasUOM,
     computedBaseQuantity,
     showExpiryFields,
+    showBatchDraws,
+    removedQuantity,
+    batchDraws,
     needsCost,
     addedInventoryIds,
     handleProductSelect,
@@ -288,6 +292,11 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                   />
                 </div>
               </div>
+            )}
+
+            {/* Batch draws (expiry-tracked products, on a stock decrease) */}
+            {showBatchDraws && (
+              <BatchDrawPicker draws={batchDraws} removedQuantity={removedQuantity} />
             )}
 
             {/* Action Buttons */}
