@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Sibling repos:** one of several under `easeventory/` (`inventory-backend`, `inventory-frontend`, `inventory-landing`, `mission-control`). For the repo map, aliases, and the cross-repo contracts that connect them, see the workspace-root [`../CLAUDE.md`](../CLAUDE.md).
+
 ## Working agreement (mandatory)
 
 Applies to **every file you touch**. The repo is brought to this standard **incrementally,
