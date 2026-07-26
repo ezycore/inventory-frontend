@@ -122,6 +122,11 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   `emailVerified: true` (random password; email reset flow still works).
 - Console setup: redirect URI = `{api-origin}/api/storefront/oauth/{provider}/callback`
   (prod: set `OAUTH_CALLBACK_BASE`). Unit tests: `src/services/__tests__/storefront-oauth.service.test.ts`.
+  **`redirect_uri_mismatch` after a deploy** = `OAUTH_CALLBACK_BASE` unset on the server. The fallback
+  is `${req.protocol}://${req.get("host")}`, and behind a TLS-terminating proxy `req.protocol` is
+  `http` — which Google refuses to register for anything but localhost. Both the start *and* the token
+  exchange build the URI, so the two agree only if the env var is set. (`trust proxy` is now on in
+  `src/server.ts`, but the env var stays the real fix — the fallback still guesses the host.)
 - Status: Google works with any creds; **Facebook app is in Development Mode pending Meta
   Business Verification** (consent screen already round-trips for app admins).
 
