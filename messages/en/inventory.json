@@ -156,6 +156,8 @@
     "batchNumber": "Batch Number",
     "batchPlaceholder": "e.g., LOT-2026-01",
     "quantityNonNegative": "Quantity must be non-negative",
+    "noChangeError": "New quantity is the same as the current stock — nothing to adjust",
+    "locationMismatch": "This list was prepared for another location. Switch back to that location or clear the list before submitting.",
     "defaultUnitLabel": "Default unit for box products:",
     "unitBase": "Base",
     "unitPurchase": "Purchase",

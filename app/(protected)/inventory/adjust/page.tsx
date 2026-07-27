@@ -4,11 +4,12 @@
 import { useTranslations } from 'next-intl'
 import { useHydrated } from '@/hooks/use-hydrated'
 import { Button } from '@/ui/components/button'
+import { Alert, AlertDescription } from '@/ui/components/alert'
 import { Card, CardContent } from '@/ui/components/card'
 import { Label } from '@/ui/components/label'
 import { Textarea } from '@/ui/components/textarea'
 import { CardTable } from '@/ui/components/custom/card-table'
-import { Trash } from 'lucide-react'
+import { AlertTriangle, Trash } from 'lucide-react'
 import PageHeader from '@/ui/components/header'
 import StepIndicator from '@/ui/components/StepIndicator'
 import StatsCard from '@/ui/components/StatsCard'
@@ -36,6 +37,7 @@ export default function StockAdjustmentPage() {
     steps,
     pendingStats,
     expiryTrackingEnabled,
+    hasForeignLocationItems,
   } = ctx
 
   const columns = getAdjustmentColumns({
@@ -86,6 +88,15 @@ export default function StockAdjustmentPage() {
         </div>
       </div>
 
+      {/* The pending list survives a location switch — its quantities were counted
+          at another location, so submitting it here would corrupt this one. */}
+      {hydrated && hasForeignLocationItems && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{t('adjust.locationMismatch')}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Add/Edit Item Card */}
       <AdjustmentFormCard ctx={ctx} />
 
@@ -134,7 +145,7 @@ export default function StockAdjustmentPage() {
               onClick: handleSubmitAll,
               variant: 'default',
               loading: bulkAdjustMutation.isPending,
-              disabled: bulkAdjustMutation.isPending,
+              disabled: bulkAdjustMutation.isPending || hasForeignLocationItems,
               requiresConfirmation: true,
               confirmationTitle: t('adjust.confirmTitle'),
               confirmationDescription: t('adjust.confirmDescription', { count: items.length }),

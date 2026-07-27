@@ -8,16 +8,27 @@ import type { ApiInventory } from '@/types/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+/** One row of `POST /inventory/bulk-adjust` — mirrors `bulkAdjustStockSchema`. */
 export interface BulkAdjustmentItem {
   productId: string
   variantId?: string | null
+  // The location the row was counted at — rejected if it isn't the active one
+  // (ADJUST_LOCATION_MISMATCH), so a list built elsewhere can't apply here
+  locationId: string
+  // What the row held when it was queued. `newQuantity` is absolute, so the backend
+  // fails the batch (ADJUST_QUANTITY_STALE) if stock moved since
+  expectedQuantity: number
   newQuantity: number
   notes?: string
   // Cost for the added units — used by the backend only when the row has no cost basis yet
   costPrice?: number
-  // Expiry-batch capture (only honoured for expiry-tracked products on an increase)
+  // Expiry-batch capture on an increase of an expiry-tracked product: exactly one of
+  // `expiryDate` (opens a new lot) or `batchId` (tops up an existing one)
   expiryDate?: string
   batchNumber?: string
+  batchId?: string
+  // Which lots a decrease comes out of — must sum to the removed quantity
+  batchDraws?: Array<{ batchId: string; quantity: number }>
 }
 
 const inventoryHooks = createResourceHooks<ApiInventory, CreateInventoryDto>(

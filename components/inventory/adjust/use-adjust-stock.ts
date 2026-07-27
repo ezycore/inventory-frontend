@@ -57,6 +57,12 @@ export function useAdjustStock() {
   const expiryTrackingEnabled = useAuthStore(
     (state) => !!state.user?.organization?.features?.expiryTracking,
   )
+  // Rows are stamped with the location they were prepared against; the pending
+  // list is persisted and survives a location switch.
+  const activeLocationId = useAuthStore((state) => state.activeLocationId)
+  const hasForeignLocationItems = items.some(
+    (item) => item.locationId !== activeLocationId,
+  )
 
   // Handle product selection from search
   const handleProductSelect = (product: InventoryProduct) => {
@@ -95,6 +101,8 @@ export function useAdjustStock() {
   const currentQuantity = selectedProduct?.quantity ?? 0
   const isIncrease = effectiveNewQuantity > currentQuantity
   const isDecrease = effectiveNewQuantity < currentQuantity
+  // Nothing to book: the backend skips such a row, so keep it out of the list.
+  const isNoChange = !!selectedProduct && effectiveNewQuantity === currentQuantity
   const isExpiryTracked = expiryTrackingEnabled && !!selectedProduct?.hasExpiry
 
   // Show expiry/batch inputs for expiry-tracked products when stock is increasing.
@@ -140,6 +148,11 @@ export function useAdjustStock() {
     }
     if (effectiveNewQuantity < 0) {
       toast.error(t('adjust.quantityNonNegative'))
+      return
+    }
+    // #0: an adjustment that lands on the quantity already held books nothing.
+    if (isNoChange) {
+      toast.error(t('adjust.noChangeError'))
       return
     }
     // #2: a decrease has to name the lots it draws from, and they have to add up —
@@ -204,6 +217,7 @@ export function useAdjustStock() {
         inventoryId: selectedProduct.value,
         productId: selectedProduct.productId,
         variantId: selectedProduct.variantId,
+        locationId: activeLocationId ?? '',
         currentQuantity: selectedProduct.quantity,
         newQuantity: effectiveNewQuantity,
         notes: notes || undefined,
@@ -291,10 +305,20 @@ export function useAdjustStock() {
       toast.error(t('shared.noItemsToSubmit'))
       return
     }
+    // The list is persisted, so it can outlive a location switch. Submitting it
+    // would apply quantities counted elsewhere to the location that is active now.
+    if (hasForeignLocationItems) {
+      toast.error(t('adjust.locationMismatch'))
+      return
+    }
 
     const adjustments = items.map((item) => ({
       productId: item.productId,
       variantId: item.variantId,
+      locationId: item.locationId,
+      // What the row held when it was queued — the backend rejects the batch if
+      // stock has moved since, rather than letting the absolute quantity win.
+      expectedQuantity: item.currentQuantity,
       newQuantity: item.newQuantity,
       notes: item.notes,
       // Cost for the added units (backend uses it only when the row has no cost basis)
@@ -361,6 +385,8 @@ export function useAdjustStock() {
     showBatchDraws,
     removedQuantity,
     needsCost,
+    isNoChange,
+    hasForeignLocationItems,
     addedInventoryIds,
     // store + mutation
     items,

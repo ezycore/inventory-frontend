@@ -72,7 +72,10 @@ adjustment or transfer that moved it.
 4. Check Stock History afterwards to confirm the corrections landed.
 
 Do it when the shop is closed, or at least when nothing is selling — a sale recorded mid-count will
-put you back where you started.
+put you back where you started. If stock does move while your list is open, submitting is refused
+rather than silently overwriting the sale: remove the affected rows, re-check the count, add them
+again. The same applies to the location — a list counted at one location cannot be submitted at
+another, so switch back or clear it.
 
 ## Next
 

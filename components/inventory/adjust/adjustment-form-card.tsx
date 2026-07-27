@@ -60,6 +60,7 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
     showBatchDraws,
     removedQuantity,
     needsCost,
+    isNoChange,
     addedInventoryIds,
     handleProductSelect,
     handleAddOrUpdate,
@@ -296,7 +297,12 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-3 pt-1">
-              <Button onClick={handleAddOrUpdate} className="gap-2">
+              {/* An unchanged quantity books nothing — the row would be skipped. */}
+              <Button
+                onClick={handleAddOrUpdate}
+                disabled={isNoChange}
+                className="gap-2"
+              >
                 {editingId ? (
                   <>
                     <Pencil className="h-4 w-4" />
@@ -313,6 +319,11 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                 <Button variant="outline" onClick={handleCancelEdit}>
                   {tCommon('cancel')}
                 </Button>
+              )}
+              {isNoChange && (
+                <p className="text-xs text-muted-foreground">
+                  {t('adjust.noChangeError')}
+                </p>
               )}
             </div>
           </>
