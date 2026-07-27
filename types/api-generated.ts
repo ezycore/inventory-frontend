@@ -24047,6 +24047,8 @@ export interface operations {
                         variantId?: string | null;
                         /** @enum {string} */
                         restockStatus?: "normal" | "ordered" | "hidden";
+                        locationId: string;
+                        expectedQuantity: number;
                         newQuantity: number;
                         notes?: string;
                         costPrice?: number;
@@ -24055,6 +24057,11 @@ export interface operations {
                         /** Format: date-time */
                         manufactureDate?: string;
                         batchNumber?: string;
+                        batchDraws?: {
+                            batchId: string;
+                            quantity: number;
+                        }[];
+                        batchId?: string;
                     }[];
                     reason?: string;
                 };
