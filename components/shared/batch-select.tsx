@@ -15,6 +15,34 @@ export const isBatchExpired = (batch: BatchRow): boolean =>
   !!batch.expiryDate && new Date(batch.expiryDate) < new Date()
 
 /**
+ * A lot with `expiryDate: null` is the **unknown-expiry lot** — stock that
+ * arrived without a date. It is an ordinary lot in every respect except that it
+ * never expires and sorts last in FEFO, so it has to read as a real thing the
+ * user can point at and act on. Rendering a blank makes it look like missing
+ * data and hides the one lot that most needs attention.
+ *
+ * The label is a UI concern only: `batchNumber` and `expiryDate` stay `null` in
+ * the data, because both are part of the unique lot-merge key on the server and
+ * a literal would have to be written identically at every write site or one lot
+ * would split into several.
+ */
+export const isUnknownExpiry = (batch: BatchRow): boolean => !batch.expiryDate
+
+/** `inventory.batch`-bound translator → the lot's batch-number cell. */
+export const batchNumberLabel = (
+  batch: BatchRow,
+  t: (key: string) => string,
+): string => batch.batchNumber || t('unknownBatch')
+
+/** `inventory.batch`-bound translator → the lot's expiry cell. */
+export const expiryLabel = (
+  batch: BatchRow,
+  t: (key: string) => string,
+  formatDate: (value: string) => string,
+): string =>
+  batch.expiryDate ? formatDate(batch.expiryDate) : t('unknownExpiry')
+
+/**
  * Radix rejects an empty-string item value, so "no specific lot" needs a
  * sentinel. It never leaves this file — `onChange` maps it back to null.
  */
@@ -72,16 +100,25 @@ export function BatchSelect({
   )
 
   const labelFor = (batch: BatchRow) => {
-    const expiry = batch.expiryDate
-      ? formatDate(batch.expiryDate, 'dd MMM yyyy')
-      : t('noExpiryDate')
-    const base = batch.batchNumber
-      ? t('optionWithLot', {
-          expiry,
-          lot: batch.batchNumber,
-          left: batch.remainingQuantity,
-        })
-      : t('option', { expiry, left: batch.remainingQuantity })
+    // The unknown lot gets its own templates rather than an "Exp {expiry}" row
+    // with a stand-in phrase inside it, which reads as "Exp no expiry date".
+    const base = isUnknownExpiry(batch)
+      ? batch.batchNumber
+        ? t('optionUnknownWithLot', {
+            lot: batch.batchNumber,
+            left: batch.remainingQuantity,
+          })
+        : t('optionUnknown', { left: batch.remainingQuantity })
+      : batch.batchNumber
+        ? t('optionWithLot', {
+            expiry: formatDate(batch.expiryDate as string, 'dd MMM yyyy'),
+            lot: batch.batchNumber,
+            left: batch.remainingQuantity,
+          })
+        : t('option', {
+            expiry: formatDate(batch.expiryDate as string, 'dd MMM yyyy'),
+            left: batch.remainingQuantity,
+          })
     return isBatchExpired(batch) ? t('expiredPrefix', { label: base }) : base
   }
 

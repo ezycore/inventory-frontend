@@ -296,6 +296,30 @@ export const useExpiredBatches = (
   })
 }
 
+/**
+ * Assign an expiry date to part or all of an unknown-expiry lot.
+ *
+ * Invalidates on `stock.moved` even though no stock moved: the lot list, the
+ * expiry reports and the batch pickers all change shape, and they are exactly
+ * what that key already covers.
+ */
+export const useAssignBatchExpiry = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      batchId,
+      ...data
+    }: {
+      batchId: string
+      quantity: number
+      expiryDate: string
+      batchNumber?: string
+    }) => inventoryApi.assignBatchExpiry(batchId, data),
+    onSuccess: () => invalidate(queryClient, 'stock.moved'),
+  })
+}
+
 // Per-batch breakdown for a single product
 export const useProductBatches = (
   productId: string,

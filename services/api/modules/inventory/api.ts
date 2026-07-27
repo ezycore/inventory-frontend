@@ -120,6 +120,22 @@ export const inventoryApi = {
       `/inventory/${productId}/batches${buildQueryParams(filters)}`,
     ),
 
+  /**
+   * Move part or all of an unknown-expiry lot into a dated one. Nothing moves
+   * off the shelf: `Inventory.quantity` is unchanged and no stock movement is
+   * written — the same units simply stop being described as undated.
+   */
+  assignBatchExpiry: (
+    batchId: string,
+    data: {
+      quantity: number
+      expiryDate: string
+      batchNumber?: string
+      manufactureDate?: string
+    },
+  ): Promise<ApiResponse<any>> =>
+    apiClient.post(`/inventory/batches/${batchId}/assign-expiry`, data),
+
   // Analytics (read-only) — powers the product- and inventory-detail pages.
   getProductAnalytics: (
     productId: string,

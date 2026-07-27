@@ -338,6 +338,20 @@
     "expiredPrefix": "মেয়াদোত্তীর্ণ · {label}",
     "noExpiryDate": "মেয়াদের তারিখ নেই",
     "choosePlaceholder": "ব্যাচ বেছে নিন…",
-    "noBatches": "কোনো ব্যাচ নেই"
+    "noBatches": "কোনো ব্যাচ নেই",
+    "unknownBatch": "অজানা ব্যাচ",
+    "unknownExpiry": "অজানা মেয়াদ",
+    "optionUnknown": "অজানা মেয়াদ · বাকি {left}",
+    "optionUnknownWithLot": "অজানা মেয়াদ · {lot} · বাকি {left}",
+    "assignExpiry": "মেয়াদ নির্ধারণ করুন",
+    "assignExpiryTitle": "মেয়াদের তারিখ নির্ধারণ",
+    "assignExpiryHelp": "এই অজানা-মেয়াদ স্টকের অংশ বা পুরোটা একটি তারিখযুক্ত ব্যাচে সরান। শেলফ থেকে কিছু সরছে না — একই ইউনিটগুলো শুধু একটি তারিখ পাচ্ছে।",
+    "assignQuantity": "যত ইউনিট নির্ধারণ করবেন",
+    "assignQuantityMax": "{max} টি আছে",
+    "assignExpiryDate": "মেয়াদের তারিখ",
+    "assignBatchNumber": "ব্যাচ নম্বর (ঐচ্ছিক)",
+    "assignSubmit": "নির্ধারণ করুন",
+    "assignSuccess": "{quantity} ইউনিটে মেয়াদের তারিখ বসানো হয়েছে",
+    "assignPastDateNote": "এই তারিখ অতীতের — ব্যাচটি মেয়াদোত্তীর্ণ হিসেবে চিহ্নিত হবে এবং পরে রাইট-অফ করা যাবে।"
   }
 }

@@ -1,78 +1,88 @@
 # Expiry Tracking (Frontend) — SKILL
 
-> **Status**: PLANNED — not yet implemented. Master plan: `inventory-backend/docs/ai/BARCODE_AND_EXPIRY_PLAN.md`.
-> Backend mirror: `inventory-backend/.claude/skills/expiry-tracking/SKILL.md`.
-> Cross-cuts: sales-flow and purchase-flow FE skills (FEFO chip + batch picker live inside those flows).
+> **Status**: implemented. Backend mirror: `inventory-backend/.claude/skills/expiry-tracking/SKILL.md`
+> and `inventory-backend/docs/features/expiry.md` (authoritative on behaviour).
+> Design history: `inventory-backend/docs/plan/expiry-batch-invariant.md`.
+>
+> **Rewritten 2026-07-28.** Until then this file described a design that was never built: it was
+> marked "PLANNED", pointed at a plan file (`docs/ai/BARCODE_AND_EXPIRY_PLAN.md`) and at five
+> component/module paths (`components/shared/expiry/*`, `services/api/modules/inventory-batches/`,
+> `app/(protected)/dashboard/reports/expiry/`) **none of which exist**, and specified a
+> `daysToExpiry`/`quarantined` wire contract the API does not return. Everything below is checked
+> against the code.
 
-## Scope
-Frontend batch / expiry UX:
-- PO row "Batch panel" (batchNumber, mfgDate, expiryDate, optional multi-batch split).
-- Sell page FEFO chip + manual batch picker drawer.
-- Inventory page "Near expiry / Expired" filter chips + per-row batch breakdown.
-- `/dashboard/reports/expiry` page (StatsCard + DataTable + bulk Quarantine/Mark-expired).
-- Dashboard `ExpiryWidget`.
-- Returns: batch picker auto-defaults to the source batch.
-- All gated by `useOrganizationFeatures().expiryTracking`.
+## What the FE actually renders
 
-## Touched files (planned)
-```
-components/shared/expiry/
-  batch-picker.tsx          # drawer: pick batch(es), shows expiry + qty + near-expiry badge
-  batch-row-panel.tsx       # expanding row inside PO create with batch fields
-  expiry-badge.tsx          # color-coded badge by daysToExpiry
-components/dashboard/                                # + ExpiryWidget (planned, not built)
-app/(protected)/dashboard/reports/expiry/page.tsx
-services/api/modules/inventory-batches/{api.ts,hooks.ts,index.ts}
-services/api/query-keys.ts                          # + queryKeys.inventoryBatches
-components/purchases/orders/                         # PO create form: use BatchRowPanel when hasExpiry
-components/sales/sell/*                             # FEFO chip + BatchPicker entry
-app/(protected)/inventory/page.tsx                  # + filter chips, + expandable batch rows
-components/sales/returns/*                          # batch picker + auto reason=expired when past date
-components/purchases/returns/*                      # same
-package.json                                        # (no new deps; date-fns already present)
-```
+| Surface | File |
+|---|---|
+| Lot picker (POS cart + adjustment) | `components/shared/batch-select.tsx` — the **one** picker |
+| Lot label helpers + `isBatchExpired` | same file (`batchNumberLabel`, `expiryLabel`, `isUnknownExpiry`) |
+| Adjustment draw allocation | `components/inventory/adjust/use-batch-draws.ts` |
+| Per-lot table on stock detail | `components/inventory/detail/inventory-batches.tsx` |
+| Assign-expiry dialog | `components/inventory/detail/assign-expiry-dialog.tsx` |
+| Expiry report | `components/reports/expiry-report.tsx` |
+| Receive-time capture + missing-date warning | `components/purchases/orders/receive-items-dialog.tsx` |
+| API + hooks | `services/api/modules/inventory/{api,hooks}.ts`; types in `analytics.types.ts` (`BatchRow`) |
 
-## Key rules (refine as code lands)
-1. Every UI surface wrapped in `useOrganizationFeatures().expiryTracking`. Existing flows behave EXACTLY as today when the flag is off — no extra clicks for non-expiry products even when the flag is on.
-2. The FE does NOT pick FEFO batches itself. On sale create, leave `items[i].batches` undefined and let backend allocate. FE only sends explicit `batches[]` when the user manually overrides via `BatchPicker`.
-3. PO create: for any line where `product.hasExpiry=true`, REQUIRE at least one batch with `expiryDate >= today` BEFORE submit; block submit and scroll to the offending row.
-4. `expiry-badge.tsx` color thresholds: `>= 60d` neutral, `30–59d` warning, `7–29d` orange, `< 7d` destructive, `<= 0` destructive solid + "EXPIRED" label.
-5. `useInventoryBatches` filters: `variantId?`, `locationId?`, `status?`, `daysToExpiry?`. Use the central `queryKeys.inventoryBatches.list(filters)` factory.
-6. Location switch invalidates all batch queries (location-scoped). Hook into existing location-switch handler.
-7. Date inputs use `date-fns-tz` against the org's `timezone` (already in auth store).
+## Key rules
 
-## Display contract (from BE response)
+1. **The ledger is not a feature flag.** Since backend D10 (2026-07-27) lots are maintained for
+   every `product.hasExpiry` product regardless of `features.expiryTracking`. The org feature gates
+   **presentation only** — expiry inputs, the reports, the CSV export, alerts.
+   - The corollary that bites: `GET /inventory/:productId/batches` is **not** feature-gated,
+     because `bulk-adjust` requires a tracked decrease to name its lots and that endpoint is where
+     they come from. Do not add a feature check around the lot picker: a feature-off org with a
+     `hasExpiry` product still has to be able to adjust it.
+2. **The FE does not choose FEFO for a sale.** Leave `items[i].batchId` undefined and let the
+   backend allocate. Send a `batchId` only when the user picks a lot in `BatchSelect`.
+   The backend refuses an expired lot even when named (`STOCK_BATCH_EXPIRED`).
+3. **An adjustment *decrease* of a tracked product must name its lots.** `useBatchDraws`
+   pre-allocates them (expired first, then earliest expiry, unknown last) and blocks submit until
+   `isBalanced`. The server rejects an unbalanced set anyway (`ADJUST_BATCH_DRAWS_MISMATCH`).
+4. **Never block a receive on a missing expiry date** — warn instead. Undated stock lands in the
+   product's unknown-expiry lot and can be dated later; blocking just moves the dead end to the
+   receive form.
+5. **The unknown-expiry lot is an ordinary lot with a `null` date**, not an error state. Render it
+   as "Unknown batch" / "Unknown expiry" via the shared helpers — never a blank cell, which reads
+   as missing data and hides the one lot most likely to go off unnoticed.
+   - The labels are **UI-only**. `batchNumber` and `expiryDate` stay `null` in the data: both are
+     part of the server's unique lot-merge key, and a literal like `"UNKNOWN"` written
+     inconsistently would split one lot into several.
+6. **Expired lots stay visible.** They are still on hand until written off, so pickers show them
+   (prefixed `EXPIRED`) rather than hiding them — a write-off is exactly when the user needs to
+   find them.
+7. Invalidate with `invalidate(qc, 'stock.moved')` after any lot write, including assign-expiry
+   (nothing moves, but every lot list and report changes shape).
+
+## Wire contract (`BatchRow`, `analytics.types.ts`)
+
 ```ts
-type InventoryBatch = {
-  _id: string;
-  productId: string; variantId: string; locationId: string;
-  batchNumber: string;
-  manufactureDate?: string;
-  expiryDate: string;
-  daysToExpiry: number;          // BE-computed
-  quantity: number;
-  initialQuantity: number;
-  costPrice: number;
-  value: number;                 // qty * costPrice, BE-computed
-  status: "active" | "depleted" | "expired" | "quarantined";
-  // populated:
-  product?: { name: string };
-  variant?: { name: string; attributes?: Record<string, string> };
-  location?: { name: string };
-};
+interface BatchRow {
+  _id: string
+  batchNumber?: string          // null/absent on the unknown lot
+  remainingQuantity: number
+  expiryDate?: string | null    // null = unknown-expiry lot
+  costPrice?: number
+}
 ```
+
+There is no `daysToExpiry`, no `initialQuantity`, no `value`, and no `quarantined` status — the
+server sends `active | depleted | expired` and the FE derives urgency from `expiryDate` itself
+(`differenceInCalendarDays`). `sortExpiry` exists server-side as the FEFO sort key but is
+`select: false` and never reaches the API.
 
 ## Pitfalls
-- Sell-page cart Zustand store currently has no batch concept. When user opens `BatchPicker` and overrides, store the override in cart item as `batches: [{ batchId, qty }]`. Backend trusts what FE sends only when present.
-- PO line qty MUST equal sum of its batch qtys when batches are provided. Add a Zod refine.
-- Returns: don't show a batch picker for products that aren't expiry-tracked. Use the source sale/PO item's `batches` to drive UI conditionally.
-- `/dashboard/reports/expiry` is already linked in `constants/navItem.ts` behind the flag — page just needs to exist. Don't add a new nav entry.
 
-## Maintenance discipline (MANDATORY once code lands)
-Any PR touching the files listed above MUST in the same commit:
-1. Update this skill.
-2. Update `inventory-backend/.claude/skills/expiry-tracking/SKILL.md` if the wire contract changes.
-3. Update sales-flow + purchase-flow FE skills if their write path branched on expiry changes.
-4. Update `BARCODE_AND_EXPIRY_PLAN.md` if scope/phasing changes.
+- **`new Date(null)` is the Unix epoch**, so any expiry comparison that forgets the null guard
+  reports the unknown lot as long expired — which would write off good stock and exclude it from
+  every sale. Use `isBatchExpired` / `isUnknownExpiry`, never a bare `new Date(b.expiryDate) < now`.
+- Sorting by expiry must send null **last**. `use-batch-draws.ts` maps it to `Infinity` for this.
+- The purchase-order line does **not** carry `hasExpiry`, so the receive dialog cannot tell which
+  lines are tracked; its missing-date warning counts every dateless line. Harmless — the receive
+  behaves identically either way — but do not build anything load-bearing on that count.
 
-Never let the skill drift from the code. Either both move or neither moves.
+## Maintenance discipline
+
+Any change to the files in the table above updates this skill in the same commit, plus
+`inventory-backend/docs/features/expiry.md` if the wire contract or behaviour moved. Either both
+move or neither moves — this file spent months describing a design that was never built.
