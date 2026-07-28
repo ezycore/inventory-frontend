@@ -2,6 +2,7 @@
 
 "use client";
 
+import { LEGAL_URLS } from "@/constants/brand";
 import {
   COUNTRY_OPTIONS,
   CURRENCY_OPTIONS,
@@ -563,8 +564,28 @@ export default function Signup() {
         {!createOwnerMutation.isPending && (
           <div className="sticky bottom-0 border-t bg-background/95 px-5 py-3.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-8 lg:px-10">
             <div className="mx-auto flex w-full max-w-2xl flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {/* Passive consent, deliberately not a checkbox — the links must
+                  reach the public marketing site, which is a different origin. */}
               <p className="text-xs text-muted-foreground">
-                By creating an account you agree to the Terms and Privacy Policy.
+                By creating an account you agree to the{" "}
+                <a
+                  href={LEGAL_URLS.terms}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+                >
+                  Terms
+                </a>{" "}
+                and{" "}
+                <a
+                  href={LEGAL_URLS.privacy}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+                >
+                  Privacy Policy
+                </a>
+                .
               </p>
               {/* Native submit for the form rendered above — DynamicForm's own
                   button only calls the same handler, so this is equivalent. */}
