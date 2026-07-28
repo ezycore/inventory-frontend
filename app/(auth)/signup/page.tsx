@@ -56,8 +56,8 @@ function SampleDataToggle({
       className={cn(
         "flex cursor-pointer items-start justify-between gap-4 rounded-xl border p-4 transition-colors",
         checked
-          ? "border-blue-500 bg-blue-50/70 ring-1 ring-blue-500 dark:bg-blue-950/30"
-          : "border-input hover:border-blue-300 hover:bg-accent/40",
+          ? "border-primary bg-primary/5 ring-1 ring-primary dark:bg-primary/10"
+          : "border-input hover:border-primary/40 hover:bg-accent/40",
       )}
     >
       <div className="flex gap-3">
@@ -65,8 +65,8 @@ function SampleDataToggle({
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors",
             checked
-              ? "bg-blue-600 text-white"
-              : "bg-blue-100 text-blue-600 dark:bg-blue-950",
+              ? "bg-primary text-primary-foreground"
+              : "bg-primary/10 text-primary dark:bg-primary/15",
           )}
         >
           <Sparkles className="h-5 w-5" />
@@ -337,7 +337,10 @@ export default function Signup() {
   return (
     <div className="min-h-svh w-full bg-gray-50 dark:bg-gray-950 lg:grid lg:grid-cols-2">
       {/* Branded panel */}
-      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 p-12 text-white lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:justify-between">
+      {/* Gradient runs the logo palette itself — brand green (#0E8F73) into the
+          mark's two navies — so the inverse logo mark sits on its own colours.
+          Fixed hexes, not theme tokens: this panel is always a dark surface. */}
+      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-[#0E8F73] via-[#16335E] to-[#0A1A33] p-12 text-white lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:justify-between">
         {/* Decorative glow */}
         <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
@@ -361,7 +364,7 @@ export default function Signup() {
             <h2 className="text-3xl font-bold leading-tight xl:text-4xl">
               Run your inventory with confidence.
             </h2>
-            <p className="max-w-md text-blue-100">
+            <p className="max-w-md text-white/80">
               Everything you need to manage stock, purchases, and sales — in one
               simple workspace.
             </p>
@@ -375,14 +378,14 @@ export default function Signup() {
                 </div>
                 <div>
                   <p className="font-medium">{feature.title}</p>
-                  <p className="text-sm text-blue-100">{feature.description}</p>
+                  <p className="text-sm text-white/75">{feature.description}</p>
                 </div>
               </li>
             ))}
           </ul>
         </div>
 
-        <p className="relative text-sm text-blue-200">
+        <p className="relative text-sm text-white/60">
           © {currentYear} EzyCore. All rights reserved.
         </p>
       </aside>
@@ -392,7 +395,7 @@ export default function Signup() {
         <div className="w-full max-w-xl">
           {/* Mobile logo (branded panel is hidden on small screens) */}
           <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#0E8F73] to-[#16335E] shadow-lg">
               <Building2 className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
@@ -410,7 +413,7 @@ export default function Signup() {
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-medium text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
+                className="font-medium text-primary underline-offset-4 hover:underline"
               >
                 Sign in
               </Link>
@@ -421,8 +424,8 @@ export default function Signup() {
               filled form returns intact if the request fails) */}
           {createOwnerMutation.isPending ? (
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border bg-white px-6 py-16 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950">
-                <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/15">
+                <Loader2 className="h-7 w-7 animate-spin text-primary" />
               </div>
               <div className="space-y-1">
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
