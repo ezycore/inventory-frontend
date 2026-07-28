@@ -1,78 +1,88 @@
 # Expiry Tracking (Frontend) — SKILL
 
-> **Status**: PLANNED — not yet implemented. Master plan: `inventory-backend/docs/ai/BARCODE_AND_EXPIRY_PLAN.md`.
-> Backend mirror: `inventory-backend/.claude/skills/expiry-tracking/SKILL.md`.
-> Cross-cuts: sales-flow and purchase-flow FE skills (FEFO chip + batch picker live inside those flows).
+> **Status**: SHIPPED (partially — see "Not built"). Backend mirror:
+> `inventory-backend/.claude/skills/expiry-tracking/SKILL.md` — that repo owns the batch ledger
+> invariants and FEFO allocation; this file does not restate them.
 
-## Scope
-Frontend batch / expiry UX:
-- PO row "Batch panel" (batchNumber, mfgDate, expiryDate, optional multi-batch split).
-- Sell page FEFO chip + manual batch picker drawer.
-- Inventory page "Near expiry / Expired" filter chips + per-row batch breakdown.
-- `/dashboard/reports/expiry` page (StatsCard + DataTable + bulk Quarantine/Mark-expired).
-- Dashboard `ExpiryWidget`.
-- Returns: batch picker auto-defaults to the source batch.
-- All gated by `useOrganizationFeatures().expiryTracking`.
+Everything here is gated on `organization.features.expiryTracking` **and** the product's own
+`hasExpiry`. Both must be true — the org flag alone does not make a product batch-tracked.
 
-## Touched files (planned)
-```
-components/shared/expiry/
-  batch-picker.tsx          # drawer: pick batch(es), shows expiry + qty + near-expiry badge
-  batch-row-panel.tsx       # expanding row inside PO create with batch fields
-  expiry-badge.tsx          # color-coded badge by daysToExpiry
-components/dashboard/                                # + ExpiryWidget (planned, not built)
-app/(protected)/dashboard/reports/expiry/page.tsx
-services/api/modules/inventory-batches/{api.ts,hooks.ts,index.ts}
-services/api/query-keys.ts                          # + queryKeys.inventoryBatches
-components/purchases/orders/                         # PO create form: use BatchRowPanel when hasExpiry
-components/sales/sell/*                             # FEFO chip + BatchPicker entry
-app/(protected)/inventory/page.tsx                  # + filter chips, + expandable batch rows
-components/sales/returns/*                          # batch picker + auto reason=expired when past date
-components/purchases/returns/*                      # same
-package.json                                        # (no new deps; date-fns already present)
-```
+## Where batches actually live (read this before adding an API call)
 
-## Key rules (refine as code lands)
-1. Every UI surface wrapped in `useOrganizationFeatures().expiryTracking`. Existing flows behave EXACTLY as today when the flag is off — no extra clicks for non-expiry products even when the flag is on.
-2. The FE does NOT pick FEFO batches itself. On sale create, leave `items[i].batches` undefined and let backend allocate. FE only sends explicit `batches[]` when the user manually overrides via `BatchPicker`.
-3. PO create: for any line where `product.hasExpiry=true`, REQUIRE at least one batch with `expiryDate >= today` BEFORE submit; block submit and scroll to the offending row.
-4. `expiry-badge.tsx` color thresholds: `>= 60d` neutral, `30–59d` warning, `7–29d` orange, `< 7d` destructive, `<= 0` destructive solid + "EXPIRED" label.
-5. `useInventoryBatches` filters: `variantId?`, `locationId?`, `status?`, `daysToExpiry?`. Use the central `queryKeys.inventoryBatches.list(filters)` factory.
-6. Location switch invalidates all batch queries (location-scoped). Hook into existing location-switch handler.
-7. Date inputs use `date-fns-tz` against the org's `timezone` (already in auth store).
+There is **no** `services/api/modules/inventory-batches/` module and **no** `queryKeys.inventoryBatches`
+factory. Batches are part of the **inventory** resource:
 
-## Display contract (from BE response)
-```ts
-type InventoryBatch = {
-  _id: string;
-  productId: string; variantId: string; locationId: string;
-  batchNumber: string;
-  manufactureDate?: string;
-  expiryDate: string;
-  daysToExpiry: number;          // BE-computed
-  quantity: number;
-  initialQuantity: number;
-  costPrice: number;
-  value: number;                 // qty * costPrice, BE-computed
-  status: "active" | "depleted" | "expired" | "quarantined";
-  // populated:
-  product?: { name: string };
-  variant?: { name: string; attributes?: Record<string, string> };
-  location?: { name: string };
-};
-```
+| Thing | Real location |
+|---|---|
+| API methods | `services/api/modules/inventory/api.ts` — `getExpiringBatches`, `getExpiredBatches`, `getProductBatches`, `exportBatchCsv` |
+| Hooks | `services/api/modules/inventory/hooks.ts` — `useExpiringBatches`, `useExpiredBatches`, `useProductBatches` |
+| Query keys | `queryKeys.inventory.{expiring,expired,productBatches}` — under the `inventory` root, so one `invalidateQueries({ queryKey: queryKeys.inventory.all() })` flushes batches too |
+| Response type | `ProductBatch` from `@/types/api` (generated — do not hand-write a batch type) |
 
-## Pitfalls
-- Sell-page cart Zustand store currently has no batch concept. When user opens `BatchPicker` and overrides, store the override in cart item as `batches: [{ batchId, qty }]`. Backend trusts what FE sends only when present.
-- PO line qty MUST equal sum of its batch qtys when batches are provided. Add a Zod refine.
-- Returns: don't show a batch picker for products that aren't expiry-tracked. Use the source sale/PO item's `batches` to drive UI conditionally.
-- `/dashboard/reports/expiry` is already linked in `constants/navItem.ts` behind the flag — page just needs to exist. Don't add a new nav entry.
+`GET /api/inventory/:productId/batches` returns only lots with `remainingQuantity > 0`, **FEFO-ordered
+(soonest expiry first)**, already scoped to the active location server-side. That order is contractual:
+the adjust picker relies on it. Do not re-sort client-side — a client sort would silently diverge from
+the server's idea of FEFO.
 
-## Maintenance discipline (MANDATORY once code lands)
-Any PR touching the files listed above MUST in the same commit:
-1. Update this skill.
-2. Update `inventory-backend/.claude/skills/expiry-tracking/SKILL.md` if the wire contract changes.
-3. Update sales-flow + purchase-flow FE skills if their write path branched on expiry changes.
-4. Update `BARCODE_AND_EXPIRY_PLAN.md` if scope/phasing changes.
+## Surfaces that exist today
 
-Never let the skill drift from the code. Either both move or neither moves.
+- **Adjust Stock** (`components/inventory/adjust/`) — both directions, see the next section.
+- **Inventory detail** — `components/inventory/detail/inventory-batches.tsx`, a per-lot table fed by
+  the analytics payload's `batches` (`BatchRow` in `services/api/modules/inventory/analytics.types.ts`).
+- **Expiry report** — `app/(protected)/reports/expiry/page.tsx` + `components/reports/expiry-report.tsx`.
+- **Purchases** — batch capture on receive (`components/purchases/orders/receive-items-dialog.tsx`,
+  `components/purchases/expiry-cells.tsx`).
+- **Sales** — batch handling in `components/sales/sell/use-sell-page.ts`.
+- **Shared** — `components/shared/expiry/expiry-badge.tsx`: `ExpiryBadge`, plus `daysToExpiry()` and
+  `isExpired()`. **Use these; never re-derive a day count or a threshold.** Thresholds are
+  `< 0` expired (destructive), `≤ 30d` amber, else neutral. Strings live at `inventory.expiry.*`
+  (moved out of `inventory.detail.*` when the badge became shared).
+
+## Adjust Stock: the batch rules (the part that bites)
+
+`Inventory.quantity` must stay equal to the sum of its batches' `remainingQuantity`, so **every**
+adjustment of a tracked product has to say which lot it touches. The backend enforces this; the UI
+mirrors it so the user is stopped at the form, not by a failed submit halfway through a bulk write.
+
+- **Increase** → `expiryDate` (opens a new lot) — captured by the expiry fields in
+  `adjustment-form-card.tsx`, guarded by `showExpiryFields`. The wire also accepts `batchId` to add
+  into an **existing** lot instead, which **the UI does not offer yet** (see "Not built").
+- **Decrease** → `batchDraws: [{ batchId, quantity }]`, summing **exactly** to the removed quantity.
+  Owned by `use-batch-draws.ts` (allocation state) and `batch-draw-picker.tsx` (the UI).
+
+Until 2026-07-26 the FE **blocked** a tracked decrease outright (`adjust.expiryDecreaseUnsupported`,
+now deleted) because the backend had no write-off path. It does now — do not reintroduce that guard.
+
+`useBatchDraws` pre-fills FEFO because a write-off almost always means the oldest stock, then lets the
+user move quantity between lots. It mirrors two backend errors up-front:
+`ADJUST_BATCH_DRAWS_MISMATCH` (draws must total the removed quantity → `isBalanced`) and
+`INSUFFICIENT_BATCH_STOCK` (no draw may exceed its lot → `hasOverdrawnLot`, plus `max` on the
+`NumberField`). `insufficientStock` is the separate case where *all* lots together can't cover the
+decrease — the adjustment is impossible, not merely mis-split.
+
+Two behaviours worth not breaking:
+
+- The seeding effect is keyed on the **joined batch ids + preset string + removed quantity**, not on
+  the array identity — otherwise a refetch returning equal data wipes the user's manual split.
+- `presetDraws` restores the saved split when re-opening a pending row for edit, but **only while it
+  still balances**; a changed quantity makes the old split meaningless, so it falls back to FEFO.
+  `updateItem` explicitly clears `batchDraws` before spreading the new payload, so a row that stops
+  being a tracked decrease can't carry a stale split.
+
+A draw from a **past-expiry** lot is booked by the backend as an expiry write-off
+(`MovementReason.EXPIRY`) rather than a plain `ADJUSTMENT` — same units leave stock, different report.
+The picker says so when such a lot is drawn from (`adjust.expiredDrawNote`).
+
+## Not built (do not assume these exist)
+
+- **`batchId` on an increase** — adding into an existing lot. The wire supports it; the UI always
+  opens a new lot via `expiryDate`.
+- A dedicated batch-picker **drawer** for sales returns / purchase returns.
+- A dashboard expiry widget.
+
+## Maintenance discipline (MANDATORY)
+
+A PR touching `components/inventory/adjust/{use-batch-draws,batch-draw-picker}.ts(x)`,
+`components/shared/expiry/*`, the batch API methods/hooks/keys above, or the batch fields on
+`AdjustmentItem` MUST update this skill in the same commit. If the **wire contract** changes, update
+the backend `expiry-tracking` skill too. Never let either drift.

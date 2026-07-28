@@ -1,6 +1,17 @@
+// coding-standard: maintained
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * One lot's share of a decrease on an expiry-tracked product. The backend
+ * requires the draws to sum to the removed quantity so `Inventory.quantity`
+ * stays equal to the sum of its batches' `remainingQuantity`.
+ */
+export interface BatchDraw {
+  batchId: string;
+  quantity: number;
+}
 
 export interface AdjustmentItem {
   id: string; // local ID
@@ -26,6 +37,9 @@ export interface AdjustmentItem {
   hasExpiry?: boolean;
   expiryDate?: string;
   batchNumber?: string;
+  // Which lots a DECREASE of an expiry-tracked product comes out of. Set only
+  // on that path; a plain product's decrease carries no draws.
+  batchDraws?: BatchDraw[];
 }
 
 /** Which unit a UOM product's quantity input opens in by default. */

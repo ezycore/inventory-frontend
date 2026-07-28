@@ -9,7 +9,9 @@ import { itemValueDelta } from '@/components/inventory/adjust/adjustment-value'
 import {
   useStockAdjustmentStore,
   AdjustmentItem,
+  type BatchDraw,
 } from '@/services/stores/stock-adjustment-store'
+import { useBatchDraws } from '@/components/inventory/adjust/use-batch-draws'
 import { useAuthStore } from '@/services/stores/use-auth-store'
 import { useBulkAdjustStock } from '@/services/api'
 import { InventoryProduct } from '@/components/inventory/inventory-search'
@@ -32,6 +34,9 @@ export function useAdjustStock() {
   // Expiry batch capture (expiry-tracked products, on a stock increase)
   const [expiryDate, setExpiryDate] = useState<string>('')
   const [batchNumber, setBatchNumber] = useState<string>('')
+  // The split saved on the row being edited, so re-opening it restores the
+  // user's allocation rather than re-deriving FEFO.
+  const [editingDraws, setEditingDraws] = useState<BatchDraw[] | undefined>()
 
   const {
     items,
@@ -89,6 +94,19 @@ export function useAdjustStock() {
   // Show expiry/batch inputs for expiry-tracked products when stock is increasing.
   const showExpiryFields = isExpiryTracked && isIncrease
 
+  // Decreasing an expiry-tracked product must say which lots it comes out of,
+  // else the batch ledger drifts from Inventory.quantity. The picker below is
+  // that choice; the backend enforces the same rule.
+  const showBatchDraws = isExpiryTracked && isDecrease
+  const removedQuantity = isDecrease ? currentQuantity - effectiveNewQuantity : 0
+  const batchDraws = useBatchDraws({
+    productId: selectedProduct?.productId,
+    variantId: selectedProduct?.variantId,
+    removedQuantity,
+    enabled: showBatchDraws,
+    presetDraws: editingDraws,
+  })
+
   // Ask for a unit cost only when adding stock to a row that has no cost basis yet
   // (new row, or opening/transfer stock stored at 0/undefined). Mirrors the backend.
   const needsCost = isIncrease && !selectedProduct?.costPrice
@@ -101,6 +119,7 @@ export function useAdjustStock() {
     setCostInput(null)
     setExpiryDate('')
     setBatchNumber('')
+    setEditingDraws(undefined)
   }
 
   // Handle add or update item
@@ -113,11 +132,18 @@ export function useAdjustStock() {
       toast.error(t('adjust.quantityNonNegative'))
       return
     }
-    // #2: decreasing an expiry-tracked product via adjustment desyncs the batch
-    // ledger (FEFO write-off not built) — block it, matching the backend.
-    if (isExpiryTracked && isDecrease) {
-      toast.error(t('adjust.expiryDecreaseUnsupported'))
-      return
+    // #2: a decrease on an expiry-tracked product must name the lots it draws
+    // from, summing exactly to the removed quantity — the backend rejects
+    // anything else (ADJUST_BATCH_DRAWS_MISMATCH / INSUFFICIENT_BATCH_STOCK).
+    if (showBatchDraws) {
+      if (batchDraws.insufficientStock) {
+        toast.error(t('adjust.batchesInsufficientShort'))
+        return
+      }
+      if (!batchDraws.isBalanced) {
+        toast.error(t('adjust.batchDrawsUnbalanced'))
+        return
+      }
     }
     // #3: adding expiry-tracked stock needs an expiry date (else no batch is made).
     if (showExpiryFields && !expiryDate) {
@@ -140,13 +166,19 @@ export function useAdjustStock() {
       : {}
     // Cost capture (only when the row has no cost basis and we're increasing)
     const costPayload = needsCost ? { costPrice: costInput ?? undefined } : {}
+    // Batch split for a decrease on an expiry-tracked product
+    const drawPayload = showBatchDraws ? { batchDraws: batchDraws.toPayload() } : {}
 
     if (editingId) {
       updateItem(editingId, {
         newQuantity: effectiveNewQuantity,
         notes: notes || undefined,
+        // Explicitly cleared when the edit is no longer a tracked decrease, so
+        // a stale split can't ride along on a row that changed direction.
+        batchDraws: undefined,
         ...expiryPayload,
         ...costPayload,
+        ...drawPayload,
       })
       setEditingId(null)
       toast.success(t('shared.itemUpdated'))
@@ -170,6 +202,7 @@ export function useAdjustStock() {
         } : {}),
         ...expiryPayload,
         ...costPayload,
+        ...drawPayload,
       })
       toast.success(t('shared.itemAdded'))
     }
@@ -211,6 +244,7 @@ export function useAdjustStock() {
     setCostInput(item.costPrice ?? null)
     setExpiryDate(item.expiryDate || '')
     setBatchNumber(item.batchNumber || '')
+    setEditingDraws(item.batchDraws)
   }
 
   // Handle cancel edit
@@ -227,6 +261,7 @@ export function useAdjustStock() {
     setCostInput(null)
     setExpiryDate('')
     setBatchNumber('')
+    setEditingDraws(undefined)
   }
 
   // Submit all adjustments
@@ -246,6 +281,8 @@ export function useAdjustStock() {
       // Expiry batch capture (backend creates a batch only for tracked products)
       ...(item.expiryDate ? { expiryDate: item.expiryDate } : {}),
       ...(item.batchNumber ? { batchNumber: item.batchNumber } : {}),
+      // Which lots a tracked decrease draws from (see useBatchDraws)
+      ...(item.batchDraws?.length ? { batchDraws: item.batchDraws } : {}),
     }))
 
     try {
@@ -331,6 +368,9 @@ export function useAdjustStock() {
     hasUOM,
     computedBaseQuantity,
     showExpiryFields,
+    showBatchDraws,
+    removedQuantity,
+    batchDraws,
     needsCost,
     addedInventoryIds,
     // store + mutation

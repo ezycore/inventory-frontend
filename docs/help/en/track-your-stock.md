@@ -52,6 +52,21 @@ later.
 Do **not** use Adjust Stock to record buying or selling. A purchase records what you paid and who you
 paid; an adjustment records neither, so using it for a purchase makes your profit figures wrong.
 
+### Products with expiry dates
+
+If a product is tracked by expiry date, stock is held in batches, and every adjustment has to say
+which batch it affects — otherwise the batch list and the total stock would stop agreeing.
+
+- **Adding stock** asks for the expiry date of what you are adding, and an optional batch number.
+- **Removing stock** shows your batches, soonest expiry first, and fills in the oldest ones
+  automatically. That is usually what you want, since the oldest stock is normally the spoiled stock.
+  If the damaged goods came from a different batch, change the numbers — they just have to add up to
+  the amount you are removing.
+
+Anything taken from a batch that is already past its expiry date is recorded as an **expiry
+write-off** rather than an ordinary adjustment, so spoilage stays separate from miscounts in your
+reports.
+
 ## Transfer Stock
 
 **Transfer Stock** lets you *Move stock from one location to another.* The sending location goes down, the

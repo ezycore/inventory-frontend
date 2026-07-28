@@ -1,7 +1,7 @@
 // coding-standard: maintained
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { lookupStoreByHost } from "@/lib/storefront-domain-lookup";
+import { hostnameOf, resolveStoreForHost } from "@/lib/storefront-host-map";
 
 /**
  * Option A routing + admin auth gate.
@@ -21,24 +21,10 @@ import { lookupStoreByHost } from "@/lib/storefront-domain-lookup";
  *   - `*.localhost`      `{slug}.localhost/shop/…`     → store, for local dev
  *   - everything else                                  → admin (auth-gated)
  *
- * `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN` is the tenant root (e.g. "ezycore.com");
- * empty in local dev, where `*.localhost` stands in for it. Baked at BUILD
- * time — must be passed as a Docker build-arg (deploy.yml).
+ * The host→store rules themselves live in `lib/storefront-host-map.ts` — shared,
+ * because `/robots.txt` and `/sitemap.xml` are excluded by the matcher below and
+ * so must resolve the host without going through this proxy.
  */
-const STOREFRONT_ROOT = process.env.NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN;
-
-/** Custom domains → store slug, e.g. `{"mystore.com":"rmc41"}`. Manual
- *  override/fallback — self-serve domains resolve dynamically instead. */
-const CUSTOM_DOMAIN_MAP: Record<string, string> = (() => {
-  try {
-    return JSON.parse(process.env.NEXT_PUBLIC_CUSTOM_DOMAIN_MAP || "{}");
-  } catch {
-    return {};
-  }
-})();
-
-// Subdomains on the tenant root that are NOT stores (central app, www).
-const RESERVED_SUBDOMAINS = new Set(["www", "app"]);
 
 // Public admin routes that don't require authentication.
 const publicRoutes = [
@@ -53,44 +39,6 @@ const publicRoutes = [
 // Auth routes that should redirect to the dashboard if already authenticated.
 const authRoutes = ["/login", "/signup"];
 
-type ResolvedStore = { slug: string; base: "/shop" | "" };
-
-/** Map a request host to its store, or null when the host is not a storefront. */
-function resolveStore(host: string): ResolvedStore | null {
-  // Custom domain: the whole host is the store, served at its root.
-  if (CUSTOM_DOMAIN_MAP[host]) {
-    return { slug: CUSTOM_DOMAIN_MAP[host], base: "" };
-  }
-  // Local dev: `{slug}.localhost` behaves like a tenant subdomain.
-  if (host.endsWith(".localhost")) {
-    const sub = host.slice(0, -".localhost".length);
-    if (sub && !RESERVED_SUBDOMAINS.has(sub)) return { slug: sub, base: "/shop" };
-  }
-  // Production tenant subdomain: `{slug}.ezycore.com`.
-  if (
-    STOREFRONT_ROOT &&
-    host !== STOREFRONT_ROOT &&
-    host.endsWith(`.${STOREFRONT_ROOT}`)
-  ) {
-    const sub = host.slice(0, host.length - STOREFRONT_ROOT.length - 1);
-    if (sub && !RESERVED_SUBDOMAINS.has(sub)) return { slug: sub, base: "/shop" };
-  }
-  return null;
-}
-
-/**
- * Hosts worth a dynamic custom-domain lookup: anything `resolveStore` couldn't
- * place statically that isn't localhost, the tenant root itself, or one of its
- * subdomains (reserved subdomains like `app`/`www` must stay admin, and a store
- * subdomain never needs the API). Everything else may be a merchant domain from
- * Settings → Domains.
- */
-const isCustomDomainCandidate = (host: string): boolean =>
-  host.includes(".") &&
-  !host.endsWith(".localhost") &&
-  (!STOREFRONT_ROOT ||
-    (host !== STOREFRONT_ROOT && !host.endsWith(`.${STOREFRONT_ROOT}`)));
-
 const isStorePath = (pathname: string) =>
   pathname === "/shop" || pathname.startsWith("/shop/");
 
@@ -99,16 +47,11 @@ const isLegacyStorePath = (pathname: string) =>
 
 export async function proxy(request: NextRequest) {
   const hostHeader = request.headers.get("host") || "";
-  const host = hostHeader.split(":")[0];
   const { pathname } = request.nextUrl;
 
-  let store = resolveStore(host);
-  // Unrecognized host → maybe a merchant custom domain (Settings → Domains).
-  // Cached lookup, so steady-state traffic doesn't pay an extra round trip.
-  if (!store && isCustomDomainCandidate(host)) {
-    const slug = await lookupStoreByHost(host);
-    if (slug) store = { slug, base: "" };
-  }
+  // Build-time config first, then the merchant custom-domain registry (cached, so
+  // steady-state traffic doesn't pay an extra round trip).
+  const store = await resolveStoreForHost(hostnameOf(hostHeader));
 
   // Never trust client-supplied store headers — strip them, then set our own
   // from the resolved host so they can't be spoofed.
