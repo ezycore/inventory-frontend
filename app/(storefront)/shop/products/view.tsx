@@ -23,6 +23,8 @@ import {
   type FilterChip,
 } from "@/components/storefront/filter-toolbar";
 import { SideDrawer } from "@/components/storefront/side-drawer";
+import { catalogQueryParams } from "@/lib/storefront-catalog-params";
+import type { ProductListResult } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -31,7 +33,11 @@ const wrap: CSSProperties = {
   padding: "18px var(--pad) 40px",
 };
 
-function CollectionInner() {
+function CollectionInner({
+  initialProducts,
+}: {
+  initialProducts?: ProductListResult;
+}) {
   const { slug } = useStoreContext();
   const { t } = useStorefrontUI();
   const router = useRouter();
@@ -60,16 +66,17 @@ function CollectionInner() {
   const { data: store } = useStore(slug);
   const { data: categories } = useStoreCategories(slug);
   const { data: brands } = useStoreBrands(slug);
-  const { data, isLoading } = useStoreProducts(slug, {
-    categoryId: categoryId || undefined,
-    brandId: brandId || undefined,
-    minPrice: minPrice || undefined,
-    maxPrice: maxPrice || undefined,
-    inStock: inStock ? "1" : undefined,
-    sort: sort || undefined,
-    page,
-    limit: 12,
-  });
+  // Built through the shared builder because the params object is the cache key —
+  // `page.tsx` seeds page 1 with the identical object (see storefront-catalog-params).
+  const { data, isLoading } = useStoreProducts(
+    slug,
+    catalogQueryParams(
+      { categoryId, brandId, minPrice, maxPrice, inStock: inStock ? "1" : "", sort },
+      page,
+    ),
+    true,
+    page === 1 ? initialProducts : undefined,
+  );
 
   const setParams = (patch: Record<string, string | undefined>) => {
     const qs = new URLSearchParams(sp.toString());
@@ -269,11 +276,15 @@ function PageBtn({
   );
 }
 
-export default function CollectionPage() {
+export default function CollectionPage({
+  initialProducts,
+}: {
+  initialProducts?: ProductListResult;
+}) {
   const { t } = useStorefrontUI();
   return (
     <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>
-      <CollectionInner />
+      <CollectionInner initialProducts={initialProducts} />
     </Suspense>
   );
 }

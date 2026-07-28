@@ -26,7 +26,7 @@ import {
   matchVariant,
 } from "@/components/storefront/variant-selector";
 import { LoadingSplash } from "@/components/storefront/loading-splash";
-import type { StorefrontImage } from "@/lib/storefront-client";
+import type { CatalogProduct, StorefrontImage } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -39,13 +39,23 @@ function imgUrl(i?: StorefrontImage) {
   return i?.url || i?.mediumUrl || i?.thumbnailUrl;
 }
 
-export default function ProductDetailPage() {
+/** `initialProduct` is server-fetched in `page.tsx` so this page's content is in
+ *  the SSR HTML — see the note there. */
+export default function ProductDetailPage({
+  initialProduct,
+}: {
+  initialProduct?: CatalogProduct;
+}) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const productSlug = String(useParams().productSlug);
 
   const { data: store } = useStore(slug);
-  const { data: product, isLoading, isError } = useStoreProduct(slug, productSlug);
+  const {
+    data: product,
+    isLoading,
+    isError,
+  } = useStoreProduct(slug, productSlug, initialProduct);
   // Related picks: same category when the product has one, latest otherwise.
   const { data: relatedData } = useStoreProducts(
     slug,

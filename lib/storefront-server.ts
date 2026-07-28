@@ -1,3 +1,4 @@
+// coding-standard: maintained
 /**
  * Server-side storefront data — for SSR/ISR + SEO metadata. Mirrors the public
  * endpoints used by `lib/storefront-client.ts`, but fetched on the server with
@@ -71,3 +72,21 @@ export const getStorePages = (slug: string) =>
 
 export const getStorePage = (slug: string, pageSlug: string) =>
   sf<ContentPageView>(slug, `/pages/${pageSlug}`, 300);
+
+/**
+ * Every crawlable URL for the store, for `app/sitemap.ts`. Server-only — no client
+ * hook consumes it, so unlike the types above this one lives here rather than in
+ * `storefront-client.ts`. Identifiers, not paths: only the request host knows
+ * whether the store is served at `/shop` or at the root.
+ */
+export interface StorefrontSitemap {
+  products: { slug: string; updatedAt?: string }[];
+  collections: { id: string }[];
+  brands: { id: string }[];
+  pages: { slug: string; updatedAt?: string }[];
+}
+
+/** Cached 1h: crawlers re-fetch far less often than shoppers browse, and the
+ *  `store:{slug}` tag still flushes it on an admin edit. */
+export const getStoreSitemap = (slug: string) =>
+  sf<StorefrontSitemap>(slug, "/sitemap", 3600);
