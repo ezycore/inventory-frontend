@@ -8,73 +8,117 @@
   scrollbar-color: var(--border) transparent;
 }
 
+/*
+ * EzyCore brand palette — the source of truth for every token below.
+ * Authored as hex, stored as oklch (the format the rest of this file uses);
+ * the hex is kept in the comment because nobody can read #12213D out of
+ * `oklch(0.251 0.057 261.8)`. The precision below is deliberate — each value
+ * round-trips to its hex exactly, and rounding --brand-teal-lift to 3 places
+ * shifts it by 1/255. Don't "tidy" it.
+ *
+ *   navy      #12213D  dominant surface — sidebar, headers, body text on light
+ *   navy-deep #1A2C4E  depth only — hover on navy, the mark's tile, dividers
+ *   teal      #008065  accent, on LIGHT grounds — buttons, links, focus ring.
+ *                      NOT the identity hex: the brand teal is #0E8F73, which
+ *                      tops out at 4.04:1 under a label (even a pure-white one)
+ *                      and so cannot carry button or link text at WCAG AA. This
+ *                      is that teal darkened by the smallest step that clears
+ *                      4.5:1 on paper — same hue and chroma, reads as the same
+ *                      color. #0E8F73 stays the identity hex and still lives in
+ *                      the logo marks under public/logo/.
+ *   teal-lift #34D2AE  the same accent on NAVY grounds (this is the teal the
+ *                      inverse logo mark uses; both light teals are too dark
+ *                      to read against navy)
+ *   paper     #F6F5F0  light ground — app canvas, text on navy
+ *
+ * Teal is a signal, never a large fill: it is `--primary`/`--ring` and the
+ * active-nav marker, and deliberately NOT `--accent` (which is every dropdown
+ * and menu hover — teal there would swamp the ~10% budget and stop reading as
+ * "action"). Neutrals are biased to the navy hue (262) rather than shadcn's
+ * default 286, so greys sit in the brand's family instead of drifting purple.
+ */
+:root {
+  --brand-navy: oklch(0.251 0.057 261.8);
+  --brand-navy-deep: oklch(0.297 0.066 262);
+  --brand-teal: oklch(0.53 0.1098 172.1);
+  --brand-teal-lift: oklch(0.7758 0.1372 173.2);
+  --brand-paper: oklch(0.97 0.007 97.4);
+}
+
 :root {
   --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
+  --background: var(--brand-paper);
+  --foreground: var(--brand-navy);
+  /* White, not paper: cards need to lift off the off-white canvas. */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
+  --card-foreground: var(--brand-navy);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.623 0.214 259.815);
-  --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
+  --popover-foreground: var(--brand-navy);
+  --primary: var(--brand-teal);
+  --primary-foreground: var(--brand-paper);
+  --secondary: oklch(0.955 0.006 262);
+  --secondary-foreground: var(--brand-navy);
+  --muted: oklch(0.955 0.006 262);
+  --muted-foreground: oklch(0.545 0.025 262);
+  --accent: oklch(0.945 0.01 262);
+  --accent-foreground: var(--brand-navy);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
+  --border: oklch(0.905 0.01 262);
+  --input: oklch(0.905 0.01 262);
+  --ring: var(--brand-teal);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.623 0.214 259.815);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  /*
+   * The sidebar is navy in BOTH themes — it is the brand's primary surface, not
+   * a light-mode surface that inverts. So this block is repeated verbatim in
+   * `.dark`; if you change one, change the other.
+   */
+  --sidebar: var(--brand-navy);
+  --sidebar-foreground: oklch(0.86 0.015 262);
+  --sidebar-primary: var(--brand-teal-lift);
+  --sidebar-primary-foreground: var(--brand-navy);
+  --sidebar-accent: var(--brand-navy-deep);
+  --sidebar-accent-foreground: var(--brand-paper);
+  --sidebar-border: oklch(0.34 0.05 262);
+  --sidebar-ring: var(--brand-teal-lift);
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.546 0.245 262.881);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Canvas sits BELOW the brand navy so navy cards read as raised, not flat. */
+  --background: oklch(0.185 0.035 262);
+  --foreground: var(--brand-paper);
+  --card: var(--brand-navy);
+  --card-foreground: var(--brand-paper);
+  --popover: var(--brand-navy);
+  --popover-foreground: var(--brand-paper);
+  --primary: var(--brand-teal-lift);
+  --primary-foreground: var(--brand-navy);
+  --secondary: var(--brand-navy-deep);
+  --secondary-foreground: var(--brand-paper);
+  --muted: var(--brand-navy-deep);
+  --muted-foreground: oklch(0.72 0.03 262);
+  --accent: oklch(0.34 0.055 262);
+  --accent-foreground: var(--brand-paper);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
+  --ring: var(--brand-teal-lift);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-foreground: oklch(0.379 0.146 265.522);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --sidebar: var(--brand-navy);
+  --sidebar-foreground: oklch(0.86 0.015 262);
+  --sidebar-primary: var(--brand-teal-lift);
+  --sidebar-primary-foreground: var(--brand-navy);
+  --sidebar-accent: var(--brand-navy-deep);
+  --sidebar-accent-foreground: var(--brand-paper);
+  --sidebar-border: oklch(0.34 0.05 262);
+  --sidebar-ring: var(--brand-teal-lift);
 }
 
 @theme inline {
@@ -114,6 +158,19 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/*
+ * Active nav item. `--sidebar-accent` is shared by hover and active in the
+ * sidebar's cva string, so the raised navy alone can't say which item you are
+ * ON — the brand teal does, via the label, the icon (currentColor) and a left
+ * rail. Unlayered so it outranks the `data-[active=true]:text-*` utility baked
+ * into that cva string.
+ */
+[data-sidebar="menu-button"][data-active="true"],
+[data-sidebar="menu-sub-button"][data-active="true"] {
+  color: var(--brand-teal-lift);
+  box-shadow: inset 2px 0 0 0 var(--brand-teal-lift);
 }
 
 .dark [data-today="true"],
