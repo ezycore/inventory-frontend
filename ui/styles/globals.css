@@ -146,4 +146,13 @@
   html {
     @apply font-sans;
   }
+  /* Tailwind v3's Preflight set `cursor: pointer` on buttons; v4 dropped it to
+     match the UA default, which for <button> is an arrow. Restored here rather
+     than per-component so raw <button> elements get it too. Lives in @layer
+     base, so any `cursor-*` utility (e.g. disabled:cursor-not-allowed) still
+     wins — utilities are a later cascade layer regardless of specificity. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }
