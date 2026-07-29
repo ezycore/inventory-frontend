@@ -3,9 +3,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { differenceInCalendarDays } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
-import { Badge } from '@ui/components/badge'
 import { Button } from '@ui/components/button'
 import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { CalendarClock, ChevronDown, ChevronUp } from 'lucide-react'
@@ -15,8 +13,8 @@ import {
   expiryLabel,
   isUnknownExpiry,
 } from '@/components/shared/batch-select'
+import { ExpiryBadge } from '@/components/shared/expiry/expiry-badge'
 import { AssignExpiryDialog } from './assign-expiry-dialog'
-import type { Translator } from '@/i18n/config'
 import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 import { formatDate } from '@/components/products/detail/utils'
 
@@ -28,28 +26,6 @@ interface InventoryBatchesProps {
 // Batches are FEFO-ordered (soonest expiry first); show the most urgent few and
 // let the user expand the rest in place — the full set is already loaded.
 const BATCH_PREVIEW_COUNT = 5
-
-/**
- * Expiry badge: unknown / expired / near (≤30d) / ok. `t` is bound to
- * `inventory.detail`; `tBatch` to `inventory.batch`.
- *
- * The unknown lot gets a badge of its own rather than a dash. It is the one row
- * a user can act on from here (see the Assign column), so it has to look like a
- * state rather than like missing data.
- */
-function expiryBadge(
-  expiryDate: string | null | undefined,
-  t: Translator,
-  tBatch: (key: string) => string,
-) {
-  if (!expiryDate)
-    return <Badge variant="outline">{tBatch('unknownExpiry')}</Badge>
-  const days = differenceInCalendarDays(new Date(expiryDate), new Date())
-  if (days < 0) return <Badge variant="destructive">{t('expired')}</Badge>
-  if (days <= 30)
-    return <Badge className="bg-amber-100 text-amber-700">{t('daysLeft', { days })}</Badge>
-  return <Badge variant="secondary">{t('daysLeft', { days })}</Badge>
-}
 
 export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesProps) {
   const t = useTranslations('inventory.detail')
@@ -100,7 +76,7 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       key: 'status',
       header: tStatus('label'),
       align: 'right',
-      cell: (b) => expiryBadge(b.expiryDate, t, tBatch),
+      cell: (b) => <ExpiryBadge expiryDate={b.expiryDate} />,
     },
     // The unknown lot's escape hatch. Without it that stock never gets a date,
     // never alerts, and sorts last in FEFO forever.

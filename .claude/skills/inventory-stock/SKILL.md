@@ -77,6 +77,9 @@ UI can build one bulk payload. Reset them on submit/cancel.
   server pre-computed.
 - Batch/expiry columns only appear when `expiryTracking` is enabled and the product has expiry — gate
   with the feature helper; see the `expiry-tracking` skill.
+- **Adjusting a batch-tracked product is not a plain quantity edit.** An increase must open (or name)
+  a lot and a decrease must say which lots it draws from, summing exactly to the removed quantity.
+  The adjust form handles both — read the `expiry-tracking` skill before touching it.
 
 ---
 
@@ -89,6 +92,7 @@ UI can build one bulk payload. Reset them on submit/cancel.
 | Stock value looks doubled/halved | client applied a UOM factor to cost | remove it — server cost is per base unit |
 | "Can't set quantity directly" | there is no direct-set endpoint | use the right `bulk*`/adjust flow (movement is written first) |
 | Batch columns missing | `expiryTracking` off or product `hasExpiry` false | expected — gate on the feature + product flag |
+| Adjust rejects a decrease on a tracked product | batch draws missing or not summing to the removed qty | assign the units across lots in the picker (`ADJUST_BATCH_DRAWS_MISMATCH`) — see `expiry-tracking` |
 
 ---
 

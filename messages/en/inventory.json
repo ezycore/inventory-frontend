@@ -330,8 +330,6 @@
     "colOnHand": "On hand",
     "colCost": "Cost",
     "colExpiry": "Expiry",
-    "expired": "Expired",
-    "daysLeft": "{days}d left",
     "showLess": "Show less",
     "showAll": "Show all {count}"
   },
@@ -356,5 +354,10 @@
     "assignSubmit": "Assign",
     "assignSuccess": "{quantity} units assigned an expiry date",
     "assignPastDateNote": "This date is in the past — the batch will be marked expired and can then be written off."
+  },
+  "expiry": {
+    "expired": "Expired",
+    "daysLeft": "{days}d left",
+    "unknown": "Unknown expiry"
   }
 }

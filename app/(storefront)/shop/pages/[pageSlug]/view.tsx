@@ -9,16 +9,27 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { ContentBodyView } from "@/components/storefront/content-body-view";
+import type { ContentPageView } from "@/lib/storefront-client";
 
 /**
  * CMS content page (About / FAQ / policies) — centered prose column rendering
  * the owner-authored body through the storefront markdown renderer.
+ *
+ * `initialPage` is server-fetched in `page.tsx` so the prose is in the SSR HTML.
  */
-export default function StoreContentPage() {
+export default function StoreContentPage({
+  initialPage,
+}: {
+  initialPage?: ContentPageView;
+}) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const pageSlug = String(useParams().pageSlug);
-  const { data: page, isLoading, isError } = useStorePage(slug, pageSlug);
+  const {
+    data: page,
+    isLoading,
+    isError,
+  } = useStorePage(slug, pageSlug, initialPage);
 
   const wrapStyle: CSSProperties = { maxWidth: 780, margin: "0 auto", padding: "30px var(--pad) 64px" };
 

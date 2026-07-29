@@ -10,6 +10,11 @@
 > `app/(protected)/dashboard/reports/expiry/`) **none of which exist**, and specified a
 > `daysToExpiry`/`quarantined` wire contract the API does not return. Everything below is checked
 > against the code.
+>
+> **Merged 2026-07-29** with the `development` copy, which was written against the same feature
+> built independently on another branch. Where the two disagreed, the merged tree won — see
+> "Resolved disagreements" below, which records what the other copy claimed and why it is not
+> repeated here.
 
 ## What the FE actually renders
 
@@ -17,12 +22,30 @@
 |---|---|
 | Lot picker (POS cart + adjustment) | `components/shared/batch-select.tsx` — the **one** picker |
 | Lot label helpers + `isBatchExpired` | same file (`batchNumberLabel`, `expiryLabel`, `isUnknownExpiry`) |
-| Adjustment draw allocation | `components/inventory/adjust/use-batch-draws.ts` |
+| Shelf-life badge + `isExpired` / `daysToExpiry` | `components/shared/expiry/expiry-badge.tsx` — the **one** threshold |
+| Adjustment draw allocation | `components/inventory/adjust/use-batch-draws.ts` (+ `.test.ts`) |
+| Adjustment draw UI | `components/inventory/adjust/batch-draw-picker.tsx` |
 | Per-lot table on stock detail | `components/inventory/detail/inventory-batches.tsx` |
 | Assign-expiry dialog | `components/inventory/detail/assign-expiry-dialog.tsx` |
-| Expiry report | `components/reports/expiry-report.tsx` |
-| Receive-time capture + missing-date warning | `components/purchases/orders/receive-items-dialog.tsx` |
+| Expiry report | `app/(protected)/reports/expiry/page.tsx` + `components/reports/expiry-report.tsx` |
+| Receive-time capture + missing-date warning | `components/purchases/orders/receive-items-dialog.tsx`, `components/purchases/expiry-cells.tsx` |
+| Sales-side lot handling | `components/sales/sell/use-sell-page.ts` |
 | API + hooks | `services/api/modules/inventory/{api,hooks}.ts`; types in `analytics.types.ts` (`BatchRow`) |
+
+## Where batches live (read this before adding an API call)
+
+There is **no** `services/api/modules/inventory-batches/` module and **no** `queryKeys.inventoryBatches`
+factory. Batches are part of the **inventory** resource:
+
+| Thing | Real location |
+|---|---|
+| API methods | `services/api/modules/inventory/api.ts` — `getExpiringBatches`, `getExpiredBatches`, `getProductBatches`, `exportBatchCsv` |
+| Hooks | `services/api/modules/inventory/hooks.ts` — `useExpiringBatches`, `useExpiredBatches`, `useProductBatches` |
+| Query keys | `services/api/query-keys.ts` → `queryKeys.inventory.{expiring,expired,productBatches}` — under the `inventory` root, so one invalidation of that root flushes batches too |
+| Response type | `BatchRow` from `services/api/modules/inventory/analytics.types.ts` |
+
+`GET /api/inventory/:productId/batches` returns only lots with `remainingQuantity > 0`,
+**FEFO-ordered (soonest expiry first)**, already scoped to the active location server-side.
 
 ## Key rules
 
@@ -37,8 +60,13 @@
    backend allocate. Send a `batchId` only when the user picks a lot in `BatchSelect`.
    The backend refuses an expired lot even when named (`STOCK_BATCH_EXPIRED`).
 3. **An adjustment *decrease* of a tracked product must name its lots.** `useBatchDraws`
-   pre-allocates them (expired first, then earliest expiry, unknown last) and blocks submit until
-   `isBalanced`. The server rejects an unbalanced set anyway (`ADJUST_BATCH_DRAWS_MISMATCH`).
+   pre-allocates them and blocks submit until `isBalanced`. The server rejects an unbalanced set
+   anyway (`ADJUST_BATCH_DRAWS_MISMATCH`).
+   - **Display order is the server's; allocation order is ours.** The API's FEFO order is
+     contractual for *rendering* — do not re-sort a lot list you are showing. `orderForWriteOff`
+     re-orders deliberately and only to seed the allocation (expired first, then earliest expiry,
+     unknown last), because a write-off almost always means clearing what has already gone off.
+     Keep that sort inside the allocation path; it is not a display sort.
 4. **Never block a receive on a missing expiry date** — warn instead. Undated stock lands in the
    product's unknown-expiry lot and can be dated later; blocking just moves the dead end to the
    receive form.
@@ -51,7 +79,17 @@
 6. **Expired lots stay visible.** They are still on hand until written off, so pickers show them
    (prefixed `EXPIRED`) rather than hiding them — a write-off is exactly when the user needs to
    find them.
-7. Invalidate with `invalidate(qc, 'stock.moved')` after any lot write, including assign-expiry
+7. **One definition of "expired".** `isExpired(expiryDate)` in `expiry-badge.tsx` is it;
+   `isBatchExpired(batch)` in `batch-select.tsx` is only the `BatchRow`-shaped wrapper around it.
+   It mirrors the server (`stock-batch.service.ts`): `expiryDate != null && new Date(expiryDate) < now`
+   — an **instant** comparison, not a calendar-day one. Do not re-derive it from
+   `daysToExpiry() < 0`: that calls a lot dated today "0 days left" while the backend already books
+   a draw from it as `MovementReason.EXPIRY`, and the two disagree for a whole day.
+   `daysToExpiry` is for the ≤30d amber band only.
+8. A draw from a past-expiry lot is booked by the backend as an expiry write-off
+   (`MovementReason.EXPIRY`) rather than a plain `ADJUSTMENT` — same units leave stock, different
+   report. Worth surfacing in the picker so the user knows which one they are filing.
+9. Invalidate with `invalidate(qc, 'stock.moved')` after any lot write, including assign-expiry
    (nothing moves, but every lot list and report changes shape).
 
 ## Wire contract (`BatchRow`, `analytics.types.ts`)
@@ -67,9 +105,17 @@ interface BatchRow {
 ```
 
 There is no `daysToExpiry`, no `initialQuantity`, no `value`, and no `quarantined` status — the
-server sends `active | depleted | expired` and the FE derives urgency from `expiryDate` itself
-(`differenceInCalendarDays`). `sortExpiry` exists server-side as the FEFO sort key but is
-`select: false` and never reaches the API.
+server sends `active | depleted | expired` and the FE derives urgency from `expiryDate` itself.
+`sortExpiry` exists server-side as the FEFO sort key but is `select: false` and never reaches the API.
+
+Adjustment wire, both directions:
+
+- **Increase** → `expiryDate` opens a new lot, **or** `batchId` adds into an existing one — never
+  both. Captured in `adjustment-form-card.tsx`, guarded by `showExpiryFields`.
+- **Decrease** → `batchDraws: [{ batchId, quantity }]`, summing **exactly** to the removed quantity.
+
+Until 2026-07-26 the FE **blocked** a tracked decrease outright (`adjust.expiryDecreaseUnsupported`,
+now deleted) because the backend had no write-off path. It does now — do not reintroduce that guard.
 
 ## Pitfalls
 
@@ -81,8 +127,35 @@ server sends `active | depleted | expired` and the FE derives urgency from `expi
   lines are tracked; its missing-date warning counts every dateless line. Harmless — the receive
   behaves identically either way — but do not build anything load-bearing on that count.
 
+## Open work (do not assume these exist)
+
+- **Front-loaded validation of a mis-split decrease.** `isBalanced` covers
+  `ADJUST_BATCH_DRAWS_MISMATCH` (the draws must total the removed quantity). Not yet mirrored:
+  a per-lot cap for `INSUFFICIENT_BATCH_STOCK` (no draw may exceed its own lot) and the separate
+  "all lots together cannot cover this decrease" case. Both currently fail server-side — which in a
+  **bulk** adjust means some rows commit and some do not.
+- **Restoring a saved split when re-opening a pending row** for edit. The row currently re-seeds
+  from the allocation instead of showing the split the user chose.
+- A dedicated batch-picker **drawer** for sales returns / purchase returns.
+- A dashboard expiry widget.
+
+## Resolved disagreements (2026-07-29 merge)
+
+The `development` copy of this skill was written 2026-07-27 against an independent build of the same
+feature. Two of its claims are **wrong for this tree** and should not be reinstated:
+
+- *"Everything here is gated on `organization.features.expiryTracking` **and** `hasExpiry`. Both must
+  be true."* — true when written, invalidated hours later by backend D10. See rule 1.
+- *"Use `daysToExpiry()`/`isExpired()`; `< 0` is expired."* — the helper survived, but its
+  calendar-day rule did not; it now mirrors the server's instant comparison. See rule 7.
+
+Its `ProductBatch from @/types/api` response type is also not what the batch surfaces use — they
+take `BatchRow` from `analytics.types.ts`.
+
 ## Maintenance discipline
 
-Any change to the files in the table above updates this skill in the same commit, plus
+A PR touching `components/inventory/adjust/{use-batch-draws,batch-draw-picker}.ts(x)`,
+`components/shared/expiry/*`, `components/shared/batch-select.tsx`, the batch API methods/hooks/keys
+above, or the batch fields on `AdjustmentItem` MUST update this skill in the same commit, plus
 `inventory-backend/docs/features/expiry.md` if the wire contract or behaviour moved. Either both
 move or neither moves — this file spent months describing a design that was never built.

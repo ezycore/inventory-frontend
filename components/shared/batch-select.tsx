@@ -6,13 +6,16 @@ import { useProductBatches } from '@/services/api'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
 import { useFormatters } from '@/hooks/use-formatters'
 import { SimpleSelect, type SimpleSelectOption } from '@/ui/components/simple-select'
+import { isExpired } from '@/components/shared/expiry/expiry-badge'
 
 /**
  * A lot is past its expiry. Expired stock is excluded from sale but stays
  * on-hand for write-off, so pickers must show it rather than hide it.
+ *
+ * Delegates to the shared `isExpired` so the picker and the ExpiryBadge cannot
+ * drift to two thresholds — this is only the `BatchRow`-shaped wrapper.
  */
-export const isBatchExpired = (batch: BatchRow): boolean =>
-  !!batch.expiryDate && new Date(batch.expiryDate) < new Date()
+export const isBatchExpired = (batch: BatchRow): boolean => isExpired(batch.expiryDate)
 
 /**
  * A lot with `expiryDate: null` is the **unknown-expiry lot** — stock that

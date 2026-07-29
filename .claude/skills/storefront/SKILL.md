@@ -10,7 +10,9 @@ every store; **the host picks the store**.
 
 - **Tenant hosts**: `{slug}.domain/shop` (dev: `http://rmc41.localhost:3000/shop`). Link base = `/shop`.
 - **Custom domains**: store at the domain root; link base = `""`. `proxy.ts` (root) resolves
-  host → slug and injects headers; `shop/layout.tsx` reads them and provides `{slug, base}` via
+  host → slug **via `lib/storefront-host-map.ts`** (the shared rules — `app/robots.ts` and
+  `app/sitemap.ts` use the same module, since the proxy matcher skips dotted paths) and injects
+  headers; `shop/layout.tsx` reads them and provides `{slug, base}` via
   `StoreContextProvider`. **Never hardcode `/shop`** — always `storeHref(base, path)`
   (`lib/storefront-links.ts`). Resolution order: `NEXT_PUBLIC_CUSTOM_DOMAIN_MAP` (manual
   override) → **dynamic lookup** `lib/storefront-domain-lookup.ts` → BE
@@ -51,6 +53,8 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
 - **Pattern**: `page.tsx` (server; SEO via `storePageMetadata` in `lib/storefront-metadata.ts`)
   + `view.tsx` (`"use client"`). Server data fetches go through `lib/storefront-server.ts`
   (Next `revalidate` + tag `store:{slug}` — **admin edits can take ~60s to show unless revalidated**).
+  **The `page.tsx` must also fetch the view's own data and pass it as `initialData`** — see
+  "SEO" below; a `page.tsx` that only returns `<View />` ships a spinner as its HTML.
 - **Design system**: no Tailwind on the storefront. Inline `CSSProperties` + CSS variables from
   `app/(storefront)/storefront.css` — `--primary/--on-primary/--primary-soft/--card/--border/
   --border-strong/--text/--muted/--faint/--pad/--gap/--maxw/--h2` etc. Dark mode = `data-theme`
@@ -122,6 +126,11 @@ store via **URL fragment** → `/account/oauth` landing (scrubs the hash, `me()`
   `emailVerified: true` (random password; email reset flow still works).
 - Console setup: redirect URI = `{api-origin}/api/storefront/oauth/{provider}/callback`
   (prod: set `OAUTH_CALLBACK_BASE`). Unit tests: `src/services/__tests__/storefront-oauth.service.test.ts`.
+  **`redirect_uri_mismatch` after a deploy** = `OAUTH_CALLBACK_BASE` unset on the server. The fallback
+  is `${req.protocol}://${req.get("host")}`, and behind a TLS-terminating proxy `req.protocol` is
+  `http` — which Google refuses to register for anything but localhost. Both the start *and* the token
+  exchange build the URI, so the two agree only if the env var is set. (`trust proxy` is now on in
+  `src/server.ts`, but the env var stays the real fix — the fallback still guesses the host.)
 - Status: Google works with any creds; **Facebook app is in Development Mode pending Meta
   Business Verification** (consent screen already round-trips for app admins).
 
@@ -150,6 +159,75 @@ phones and shop counters make that a routine path, not a race.
   nothing fails CI unless it is allowlisted with a reason.
 
 Background: [`docs/plan/query-invalidation.md`](../../../docs/plan/query-invalidation.md) §P4.
+
+## SEO (multi-tenant — every store must rank on its own)
+
+Each store is a separate public site with its own host, name, logo and copy. All of the following is
+resolved **per request from the host**, never baked.
+
+- **Metadata** — `generateMetadata` in each `page.tsx`. Home reads `store.seo.title/description`
+  (falling back to the store name), PDP reads `product.seo.*` then the online title/description,
+  og:image = product image ∥ store banner ∥ logo. Everything else goes through `storePageMetadata`
+  (`"<Page> · <Store>"`, host-correct canonical, robots directive). Favicon is a raw
+  `<link rel="icon">` in `shop/layout.tsx`, deliberately **not** `metadata.icons` (see the note there).
+- **Content must be in the SSR HTML.** `page.tsx` fetches with `lib/storefront-server.ts` and passes
+  the result to the client view as query `initialData` (`useStoreProduct` / `useStoreProducts` /
+  `useStorePage` / `useStore` / `useStorePages` / `useStoreCampaigns` all take it). This was a real
+  defect until 2026-07-27: the PDP, `/products` and CMS pages rendered `<View />` with no seed, so the
+  `<head>` was perfect and the `<body>` was a spinner. **Adding a new indexable route means seeding
+  it** — a client-only fetch is invisible to every crawler that doesn't run JS.
+- **The collection page's params object IS its cache key.** Server and client must build it through
+  `catalogQueryParams` (`lib/storefront-catalog-params.ts`); one mismatched key (`""` vs `undefined`)
+  silently misses the seed and you're back to an empty body. Only page 1 is seeded.
+- **`noindex` policy.** Transactional routes (cart, checkout, search, `/account/*`, invoices) pass
+  `index: false` → `noindex, nofollow`. Filtered collection URLs pass `index: false, follow: true`
+  **and no canonical** — `isIndexableCatalogUrl` allows a plain listing or a *single* category/brand
+  facet (those are real landing pages and self-canonicalize via `catalogCanonicalQuery`); price
+  bounds, `inStock`, a sort, or two facets at once are the same catalogue re-sliced and multiply
+  without limit. Never give a `noindex` page a canonical pointing elsewhere — that's two contradictory
+  instructions.
+- **`/robots.txt` + `/sitemap.xml`** — `app/robots.ts` / `app/sitemap.ts`, both
+  `dynamic = "force-dynamic"`. ⚠ **They do NOT get the `x-ezy-store-*` headers**: `proxy.ts`'s matcher
+  excludes any path containing a dot, so these routes resolve the host themselves via
+  **`lib/storefront-host-map.ts`** — the shared rule set the proxy now also uses. Change host→store
+  rules there, in one place, or robots/sitemap will describe a different store than the pages do.
+  Sitemap data comes from BE `GET /:slug/sitemap` (`lib/storefront-server.ts` `getStoreSitemap`,
+  cached 1h) which returns **identifiers**; the URLs are built here because only this side knows
+  whether the base is `/shop` or `""`. A non-store host gets a bare `Disallow: /` and an empty sitemap.
+- **Structured data (JSON-LD)** — builders in `lib/storefront-jsonld.ts` (pure, tested in
+  `storefront-jsonld.test.ts`), rendered by `<JsonLd>` (`components/storefront/json-ld.tsx`, a
+  **server** component — the markup must be in the SSR HTML). PDP emits `Product` + `BreadcrumbList`;
+  home emits one `Organization` (site-wide node, home only). **Never emit a claim the page doesn't
+  make** — structured data that disagrees with the visible page is a manual-action risk. Concretely:
+  a null price emits *no* offer rather than a zero, and sku/mpn/brand/ratings are absent because the
+  payload has none. Two traps encoded there: **a variable product leaves `product.price` null and
+  prices per variant**, so offers read variants first (a one-variant product would otherwise get no
+  offer at all), and `backorder` is `schema.org/BackOrder`, not `OutOfStock`.
+- **404s are real 404s.** `products/[productSlug]` and `pages/[pageSlug]` call `notFound()` →
+  `app/(storefront)/shop/not-found.tsx` (renders inside `StoreShell`, so the shopper keeps the store
+  chrome). ⚠ The guard is `if (store && !product) notFound()` — **not** a bare `!product`: the
+  `storefront-server.ts` helpers return null for *any* failure, so a backend blip would otherwise tell
+  crawlers a live product is permanently gone. A successful store fetch proves the API is reachable.
+- **One canonical host per store.** A shop with a custom domain is live on **both** `acme.com` and
+  `{slug}.ezycore.com/shop`; if each host canonicalized to itself the catalogue would be indexed twice
+  and the ranking signal would split. The BE picks the winner (`store.canonicalHost`); **every absolute
+  URL goes through `canonicalTarget` (`lib/storefront-canonical.ts`)** — canonical tag, `og:url`,
+  sitemap entries and JSON-LD `url`s. Miss one and the sitemap advertises URLs that disclaim
+  themselves. Note it returns `base: ""` for a custom domain (the shop is at the root there), so
+  carrying the request's `/shop` over would canonicalize to a URL that 404s. `null` ⇒ serving host ⇒
+  unchanged behaviour, which is every store with no custom domain. The BE rule is "active custom domain
+  beats the platform subdomain", **not** `isPrimary` — see the `custom-domains` skill §6 for why.
+  Tests: `storefront-canonical.test.ts` here, `canonical-store-host.test.ts` + a `getStoreInfo` case
+  there. **Not done:** a 301 from subdomain → canonical host (canonical tags are sufficient and
+  reversible; a redirect is neither and needs a per-request host lookup in the proxy).
+- **Known gaps — all recorded in
+  [`docs/plan/storefront-i18n-seo.md`](../../../docs/plan/storefront-i18n-seo.md)**, which is the
+  place to look before starting any further SEO work. Headline: Bangla has no `hreflang` and no
+  distinct URL (the toggle is `localStorage`), so **only English is indexable** — fixing it is a
+  routing change (locale-scoped URLs through `storeHref`), not a metadata one, and it gets more
+  expensive the longer the store is live. That doc also carries the cheap leftovers: no
+  `metadataBase`, `og:type` is `website` on the PDP, no `twitter:card`, no Search Console
+  verification token, and the 200-status "Store unavailable" branch.
 
 ## Other storefront subsystems
 
@@ -206,7 +284,62 @@ Background: [`docs/plan/query-invalidation.md`](../../../docs/plan/query-invalid
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-07-22)
+## Work log (what was built, newest first — as of 2026-07-28)
+
+- **One canonical host per store (BE + FE)** (2026-07-28): closed the duplicate-content hole — a shop
+  with a custom domain was fully indexable on **both** that domain and `{slug}.ezycore.com/shop`, each
+  canonicalizing to itself. BE `getStoreInfo` gained **`canonicalHost`**, picked by new
+  `canonicalStoreHost` (`utils/tenant-host.ts`). **`isPrimary` turned out to be unusable as-is**: it is
+  seeded `true` on the subdomain at signup and `false` on custom domains and nothing ever flips it, so
+  honouring it literally would have canonicalized every branded shop back to `{slug}.ezycore.com` —
+  the opposite of the intent. Rule is therefore "active custom domain wins", with `isPrimary` only
+  breaking ties between custom domains and oldest-first otherwise. Found mid-change that
+  `domain.service.activeCustomDomain` already answered the same question (first doc-order match) for
+  shopper-email links — consolidated onto the shared picker rather than shipping a second one, so an
+  email and a canonical tag can't name different hosts. FE: new `lib/storefront-canonical.ts`
+  `canonicalTarget`, threaded through `storePageMetadata`, the home metadata, the PDP JSON-LD and
+  `app/sitemap.ts`.
+
+- **JSON-LD + real 404s (FE)** (2026-07-28): the storefront emitted **zero** structured data, so no
+  result could ever carry a price or stock state. Added `lib/storefront-jsonld.ts` (`productJsonLd` /
+  `storeJsonLd` / `breadcrumbJsonLd`, 10 tests) + `components/storefront/json-ld.tsx` (server
+  component; escapes `<` → `<`, since `JSON.stringify` does not and a merchant description
+  containing `</script>` would otherwise break out of the tag). PDP → `Product` + `BreadcrumbList`,
+  home → `Organization` (logo/contact/`sameAs`, non-URL socials filtered). Offer logic reads
+  **variants first** because a VARIABLE product leaves `product.price` null — caught during live QA:
+  the first cut required `>1` variant and so emitted no offer at all for a single-variant product.
+  A null price emits no offer rather than a zero. Separately, missing products and CMS pages answered
+  **200** with "not found" text (soft 404s); they now `notFound()` into a new
+  `shop/not-found.tsx` — gated on `store && !product` so a backend outage can't 404 a live URL. The
+  "Store unavailable" layout branch gained an explicit `noindex` (it still answers 200; a layout
+  can't set a status).
+
+- **Storefront made crawlable: SSR-seeded pages + robots/sitemap (FE + BE)** (2026-07-27): the
+  three indexable route families rendered a **spinner as their SSR HTML** — `products/[productSlug]`,
+  `products` and `pages/[pageSlug]` each returned a bare `<View />`, and `useStoreProduct` /
+  `useStoreProducts` / `useStorePage` had no `initialData` (unlike `useStore`/`useStorePages`/
+  `useStoreCampaigns`, which `shop/layout.tsx` already seeded). Titles and OG tags were correct;
+  the body was empty. Each `page.tsx` now fetches server-side and seeds the view — on the PDP and CMS
+  page that is the same fetch `generateMetadata` already made, so it's a fetch-cache hit, not a second
+  round trip. New `lib/storefront-catalog-params.ts` owns the collection page's URL contract
+  (`catalogSearchParams` / `catalogQueryParams` / `catalogCanonicalQuery` / `isIndexableCatalogUrl`)
+  because the params object is the query key and the two sides must build it identically.
+  **Faceted-URL policy** added at the same time (SSR-seeding filtered URLs would otherwise have made
+  the crawl trap *better* indexed): a plain listing or a single category/brand facet self-canonicalizes
+  and indexes; price/inStock/sort/multi-facet get `noindex, follow` and **no** canonical.
+  `storePageMetadata` gained a `follow` option and now omits the canonical when `path` is absent.
+  **New `/robots.txt` + `/sitemap.xml`** (`app/robots.ts`, `app/sitemap.ts`, both force-dynamic) —
+  there were none at all. Host→store resolution was extracted out of `proxy.ts` into
+  **`lib/storefront-host-map.ts`** (`resolveStoreFromHost` / `isCustomDomainCandidate` /
+  `resolveStoreForHost` / `hostnameOf`) because the proxy matcher skips dotted paths, so these two
+  routes never see the `x-ezy-store-*` headers and must resolve the host themselves; `proxy.ts` is now
+  a consumer of that module rather than the owner of the rules. BE: new
+  `GET /api/storefront/:slug/sitemap` (`services/storefront-sitemap.service.ts` + `storefrontSitemapDto`)
+  returning identifiers only — it emits `storefront.slug ?? slug`, drops `hide`-behavior products at
+  zero stock, and includes **all** published CMS pages (not just footer-flagged ones). Contract test
+  seeds those exact awkward states. OpenAPI + `types/api-generated.ts` regenerated.
+
+### Earlier
 
 - **Compare-at precedence → highest-anchor-wins (BE)** (2026-07-22): when a campaign AND a manual
   compare-at both apply, the price is the campaign (lowest) price and the strikethrough is now
@@ -568,12 +701,21 @@ Background: [`docs/plan/query-invalidation.md`](../../../docs/plan/query-invalid
 ## Gotchas that have bitten before
 
 - **Prod "Store unavailable" on every shop = missing build-arg** (bit us 2026-07-12):
-  `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN` is baked at BUILD time into `proxy.ts`; if the Docker
-  image is built without it, `resolveStore()` returns null for every host and `shop/layout.tsx`
+  `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN` is baked at BUILD time into `lib/storefront-host-map.ts`
+  (it lived in `proxy.ts` until 2026-07-27); if the Docker image is built without it,
+  `resolveStoreFromHost()` returns null for every host and `shop/layout.tsx`
   renders the unavailable card (its `text-gray-500` variant = layout/no-slug branch;
   `store-shell.tsx`'s `text-[var(--muted)]` variant = backend-rejected branch — tells you which
   side failed from the SSR HTML alone). Wired in `Dockerfile` + `.github/workflows/deploy.yml`;
-  same applies to `NEXT_PUBLIC_CUSTOM_DOMAIN_MAP`. Prod API is `https://api.ezycore.com/api`
+  same applies to `NEXT_PUBLIC_CUSTOM_DOMAIN_MAP`.
+  ⚠ **`deploy.yml` bakes an EMPTY value on every branch except `main`** — so a staging/branch deploy
+  hits this by construction. Beyond the unavailable card, an empty root domain makes every tenant
+  subdomain resolve as a custom-domain candidate with `base: ""`, i.e. "store at the root" when it is
+  really at `/shop`: pages still render (the proxy rewrites) but a sitemap built on that base is a
+  list of 404s and robots would guard `/cart` instead of `/shop/cart`. `robots.ts` / `sitemap.ts`
+  therefore check `isTenantRoutingConfigured()` and emit their **neutral** answer (allow-all / empty)
+  rather than a confident wrong one. If a deployed store serves an empty `/sitemap.xml`, check that
+  build-arg first. Prod API is `https://api.ezycore.com/api`
   (NOT the onrender.com URL in `.env.example`); sanity-check with
   `curl https://api.ezycore.com/api/storefront/{slug}`.
 

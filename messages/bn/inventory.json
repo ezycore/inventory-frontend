@@ -330,8 +330,6 @@
     "colOnHand": "হাতে আছে",
     "colCost": "খরচ",
     "colExpiry": "মেয়াদ",
-    "expired": "মেয়াদোত্তীর্ণ",
-    "daysLeft": "{days} দিন বাকি",
     "showLess": "কম দেখুন",
     "showAll": "সব {count}টি দেখুন"
   },
@@ -356,5 +354,10 @@
     "assignSubmit": "নির্ধারণ করুন",
     "assignSuccess": "{quantity} ইউনিটে মেয়াদের তারিখ বসানো হয়েছে",
     "assignPastDateNote": "এই তারিখ অতীতের — ব্যাচটি মেয়াদোত্তীর্ণ হিসেবে চিহ্নিত হবে এবং পরে রাইট-অফ করা যাবে।"
+  },
+  "expiry": {
+    "expired": "মেয়াদোত্তীর্ণ",
+    "daysLeft": "{days} দিন বাকি",
+    "unknown": "অজানা মেয়াদ"
   }
 }
