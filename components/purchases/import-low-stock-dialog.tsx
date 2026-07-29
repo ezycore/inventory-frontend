@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import { useSelectOptions } from "@/services/api";
+import { deriveLinePricing } from "./helpers";
 
 // ---------- Types ----------
 
@@ -385,17 +386,13 @@ export function ImportLowStockDialog({
       const conversionFactor = item.purchaseUnit?.conversionFactor || 1;
       const quantity = orderQuantities[item._id] || getDefaultOrderQty(item);
 
-      // price = item.price * conversionFactor
-      const price = (item.price ?? 0) * conversionFactor;
-
-      // discount from local discount settings
-      const discount =
-        discountType === "percentage"
-          ? (price * discountValue) / 100
-          : discountValue;
-
-      // costPrice = price - discount
-      const costPrice = Math.max(0, price - discount);
+      // price = item.price * conversionFactor, then price/discount/costPrice
+      // rounded to 2dp exactly as the manual add-product form does.
+      const { price, discount, costPrice } = deriveLinePricing(
+        (item.price ?? 0) * conversionFactor,
+        discountType,
+        discountValue,
+      );
 
       const convertedQuantity = quantity * conversionFactor;
       const total = convertedQuantity * costPrice;

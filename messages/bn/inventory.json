@@ -54,6 +54,9 @@
     "fair": "মোটামুটি",
     "poor": "খারাপ"
   },
+  "restock": {
+    "ordered": "অর্ডার করা হয়েছে"
+  },
   "stockLevel": {
     "outOfStock": "স্টক নেই",
     "lowStock": "স্টক কম",

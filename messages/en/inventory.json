@@ -54,6 +54,9 @@
     "fair": "Fair",
     "poor": "Poor"
   },
+  "restock": {
+    "ordered": "Ordered"
+  },
   "stockLevel": {
     "outOfStock": "Out of Stock",
     "lowStock": "Low Stock",
