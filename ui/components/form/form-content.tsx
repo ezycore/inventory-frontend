@@ -21,6 +21,7 @@ export const FormContent: FC<{
   viewMode?: boolean;
   disabledFieldsInEdit?: string[];
   isEditMode?: boolean;
+  sectionChrome?: "card" | "plain";
 }> = ({
   config,
   control,
@@ -32,6 +33,7 @@ export const FormContent: FC<{
   viewMode = false,
   disabledFieldsInEdit,
   isEditMode = false,
+  sectionChrome = "card",
 }) => {
     // Collect all fields from config (sections or plain fields)
     const allFields = useMemo(() => {
@@ -59,6 +61,7 @@ export const FormContent: FC<{
               disabledFieldsInEdit={disabledFieldsInEdit}
               isEditMode={isEditMode}
               allFields={allFields}
+              chrome={sectionChrome}
             />
           ))}
 

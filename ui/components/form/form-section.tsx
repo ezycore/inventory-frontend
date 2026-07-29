@@ -31,6 +31,7 @@ export const FormSectionComponent: FC<{
   disabledFieldsInEdit?: string[];
   isEditMode?: boolean;
   allFields?: FormFieldConfig[];
+  chrome?: "card" | "plain";
 }> = ({
   section,
   control,
@@ -42,6 +43,7 @@ export const FormSectionComponent: FC<{
   disabledFieldsInEdit,
   isEditMode = false,
   allFields = [],
+  chrome = "card",
 }) => {
     const [isOpen, setIsOpen] = useState(section.defaultOpen ?? true);
 
@@ -105,7 +107,7 @@ export const FormSectionComponent: FC<{
               <CardHeader className="flex flex-row items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors px-4 py-4 sm:px-6">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   {section.icon && (
-                    <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       {section.icon}
                     </div>
                   )}
@@ -140,6 +142,50 @@ export const FormSectionComponent: FC<{
             <CollapsibleContent>{content}</CollapsibleContent>
           </Card>
         </Collapsible>
+      );
+    }
+
+    // Plain chrome: no card, no padding — the section reads as one part of a
+    // continuous column. Collapsible sections keep the card either way, since
+    // the chevron affordance needs a surface to sit on.
+    if (chrome === "plain") {
+      return (
+        <section className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-baseline gap-2 min-w-0 flex-1">
+              <h3 className="text-sm font-semibold text-foreground truncate">
+                {section.title}
+              </h3>
+              {section.description && (
+                <p className="text-xs text-muted-foreground truncate">
+                  {section.description}
+                </p>
+              )}
+            </div>
+            {section.headerAction && (
+              <div className="shrink-0">{section.headerAction({ control })}</div>
+            )}
+          </div>
+          <div
+            className={cn("grid grid-cols-12 gap-3 sm:gap-4 w-full", section.className)}
+          >
+            {section.fields.map((field) => (
+              <FormField
+                key={field.name}
+                field={field}
+                control={control}
+                formState={formState}
+                watch={watch}
+                setValue={setValue}
+                onFieldChange={onFieldChange}
+                viewMode={viewMode}
+                disabledFieldsInEdit={disabledFieldsInEdit}
+                isEditMode={isEditMode}
+                allFields={allFields}
+              />
+            ))}
+          </div>
+        </section>
       );
     }
 

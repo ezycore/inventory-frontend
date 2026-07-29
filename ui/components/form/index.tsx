@@ -72,7 +72,9 @@ const DynamicForm: FC<DynamicFormProps> = ({
     actionsPlacement = 'bottom',
     resetAfterSubmit = true,
     hideCancel = false,
-    
+    hideActions = false,
+    sectionChrome = 'card',
+
     // Disabled fields in edit mode
     disabledFieldsInEdit,
     isEditMode = false,
@@ -177,6 +179,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
             viewMode={viewMode}
             disabledFieldsInEdit={disabledFieldsInEdit}
             isEditMode={isEditMode}
+            sectionChrome={sectionChrome}
         />
     )
 
@@ -189,7 +192,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
         full: 'sm:max-w-[90vw]'
     }[modalSize]
 
-    const formActions = (viewMode && isModalMode) ? (
+    const formActions = hideActions ? null : (viewMode && isModalMode) ? (
         <div className={cn("flex justify-end")}>
             <Button type="button" variant="outline" onClick={handleContainerCancel}>
                 Close

@@ -345,8 +345,10 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           variant: "default" as const,
         });
 
+        // ring-0 is load-bearing: Card draws its outline with `ring-1`, not
+        // `border`, and tailwind-merge won't let `border-none` cancel a ring.
         return (
-    <Card className="border-none shadow-none py-0 gap-3 bg-transparent">
+    <Card className="border-none ring-0 shadow-none py-0 gap-3 bg-transparent">
       <CardContent className="p-0">
         <BaseDataTable
           {...restProps}

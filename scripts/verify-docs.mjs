@@ -61,6 +61,16 @@ const MISSING_SIBLINGS = SIBLING_REPOS.filter(
 );
 
 /**
+ * Is this resolved path inside the repo being checked?
+ *
+ * Anything outside it belongs to a sibling repo or the workspace container, and
+ * whether it exists depends on how the checkout was made — the full ecosystem
+ * locally, a single repo in CI. Those references are reported, never failed.
+ */
+const isInsideRepo = (resolved) =>
+  resolved === REPO_ROOT || resolved.startsWith(REPO_ROOT + path.sep);
+
+/**
  * The backend's generated flat endpoint index — the source of truth for what routes exist. The
  * frontend cannot introspect the Express router (it is another repo), but the backend emits this
  * file on every `pnpm docs:all`, so reading it is the same sibling-read pattern `verify-api-types`
@@ -298,6 +308,8 @@ function main() {
 
   const findings = [];
   const unverifiable = [];
+  /** `.md` links pointing outside this repo — advisory, never a build failure. */
+  const outsideRepo = [];
   const ambiguous = [];
 
   for (const file of walk(REPO_ROOT)) {
@@ -335,6 +347,19 @@ function main() {
         const target = m[1];
         const fromFile = path.resolve(path.dirname(file), target);
         const fromRoot = path.join(REPO_ROOT, target);
+
+        // A link that escapes this repo — the workspace-root `../CLAUDE.md`, or a
+        // paired backend skill — is only checkable when the whole ecosystem is
+        // checked out. CI clones ONE repo, so a hard failure there fails every PR
+        // for a link that is perfectly correct. Same treatment as sibling `src/…`
+        // citations: verify when present, report when not, never fail.
+        if (!isInsideRepo(fromFile) && !isInsideRepo(fromRoot)) {
+          if (!fs.existsSync(fromFile) && !fs.existsSync(fromRoot)) {
+            outsideRepo.push({ file: rel, line, target });
+          }
+          continue;
+        }
+
         if (!fs.existsSync(fromFile) && !fs.existsSync(fromRoot)) {
           findings.push({ file: rel, line, kind: "dead-link", detail: target, hint: suggestDoc(target) });
         }
@@ -424,6 +449,15 @@ function main() {
       console.log(`    listed as absent  ${f.detail}`);
       console.log(`    but it exists now — update the doc.`);
     }
+  }
+
+  if (outsideRepo.length) {
+    console.log(
+      `\nℹ ${outsideRepo.length} doc link(s) point outside this repo and are not ` +
+        `checked out here (sibling repo or the workspace root) — not a failure:`,
+    );
+    for (const o of outsideRepo.slice(0, 5)) console.log(`  ${o.file}:${o.line} → ${o.target}`);
+    if (outsideRepo.length > 5) console.log(`  … and ${outsideRepo.length - 5} more`);
   }
 
   if (unverifiable.length) {
