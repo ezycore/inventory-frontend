@@ -226,7 +226,8 @@ export default function Dashboard() {
 The component automatically adapts to your theme using CSS variables:
 
 - `--primary`, `--primary-foreground`
-- `--chart-1`, `--chart-2`, `--chart-4`
+- `--success` (green), `--warning` (amber)
+- `--chart-4`
 - `--destructive`
 - `--muted`, `--muted-foreground`
 - `--card`, `--foreground`

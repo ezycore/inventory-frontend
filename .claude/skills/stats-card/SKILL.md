@@ -56,12 +56,17 @@ Do NOT use for: charts (use `recharts`), single inline metric (just render a `Ca
 |---|---|---|
 | `default` | `bg-muted/50` / `text-foreground` / `text-muted-foreground` | Neutral / "other" |
 | `primary` | `bg-primary/10` / `text-primary` | Total / headline |
-| `success` | `bg-chart-2/10` / `text-chart-2` | Active / positive |
-| `warning` | `bg-chart-1/10` / `text-chart-1` | Inactive / pending |
+| `success` | `bg-success/10` / `text-success` | Active / positive |
+| `warning` | `bg-warning/10` / `text-warning` | Inactive / pending |
 | `destructive` / `danger` | `bg-destructive/10` / `text-destructive` | Errors / out-of-stock |
 | `info` | `bg-chart-4/10` / `text-chart-4` | Secondary metric |
 
 `destructive` and `danger` are aliases — same styling.
+
+`success`/`warning` use the semantic `--success` (emerald) / `--warning` (amber) tokens in
+`ui/styles/globals.css`, **not** `chart-2`/`chart-1`. The `--chart-*` ramp in this repo is a
+monochrome cyan brand scale for chart series, so it cannot express good/bad — a `warning` card
+painted `chart-1` renders light blue. Any new status colour goes on the semantic tokens.
 
 ## Procedure: Add a trend indicator
 
@@ -69,7 +74,7 @@ Do NOT use for: charts (use `recharts`), single inline metric (just render a `Ca
 { label: "Revenue", value: 54320, prefix: "$", icon: DollarSign, variant: "success",
   trend: { value: "+12.5%", direction: "up", label: "from last month" } }
 ```
-- `direction: "up"` → green (`text-chart-2`) + `TrendingUp` icon
+- `direction: "up"` → green (`text-success`) + `TrendingUp` icon
 - `direction: "down"` → red (`text-destructive`) + `TrendingDown` icon
 - `direction: "neutral"` (or omitted) → muted + `Minus` icon
 - `value` is rendered verbatim (string like `"+12.5%"` or a number)

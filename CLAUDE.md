@@ -245,8 +245,8 @@ renames the tab, and no page needs its own `metadata`. The storefront titles tab
 own `generateMetadata` (store name). **Do not add `export const metadata` with a title to a page
 under `app/(protected)/`** — it can't see the org and will fight the hook.
 
-Next owns the `<title>` tag, and that cuts both ways — both halves below were verified in a browser,
-because neither shows up in typecheck, lint, or tests:
+Next owns the `<title>` tag, and that cuts three ways — every case below was found in a browser,
+because none of them shows up in typecheck, lint, or tests:
 
 - **Initial load:** Next renders its metadata `<title>` *during hydration*, i.e. after the hook's
   effect. A one-shot `document.title = …` is silently reverted by every fresh load and every
@@ -255,6 +255,17 @@ because neither shows up in typecheck, lint, or tests:
 - **Unmount:** the restore is equally load-bearing — every route resolves to the same root metadata,
   so on a client-side exit React sees no change and would never repaint over our value, stranding a
   workspace title on the login screen.
+- **Navigation:** Next re-asserts root metadata on *every* client-side navigation, which flashed
+  `BRAND.documentTitle` on every sidebar click before the hook could rewrite it. **The root layout
+  therefore has no `title` at all** — same resolution as `metadata.icons`, and for the same reason.
+  Each tree owns its own instead: `(auth)` via its own `metadata`, `(protected)` via a raw `<title>`
+  in the layout JSX that React 19 hoists, the storefront via per-page `generateMetadata`. The
+  protected one renders a **constant** — React only writes the DOM when a rendered value changes, so
+  a constant is written once and then never fights the hook that rewrites its text. It must stay in
+  *both* return branches: SSR renders the `!hydrated` one, so dropping it there leaves the server HTML
+  titleless and the tab shows the raw URL until hydration.
+  **Do not "simplify" this back into root `metadata.title`.** Reaching for a metadata title anywhere
+  above `(protected)` reintroduces the flash, and nothing in typecheck, lint, or tests will catch it.
 
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.

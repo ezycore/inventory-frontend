@@ -32,7 +32,7 @@ export function LowStockAlerts({ lowStock, isLoading }: LowStockAlertsProps) {
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <div>
           <CardTitle className="text-base flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-chart-1" />
+            <AlertTriangle className="h-4 w-4 text-warning" />
             {t('title')}
           </CardTitle>
           <CardDescription>{t('subtitle')}</CardDescription>

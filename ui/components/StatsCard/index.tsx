@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { cn } from "@/ui/lib/utils";
 import { LucideIcon, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { Card } from "../card";
@@ -57,14 +58,14 @@ const variantStyles: Record<StatVariant, { bg: string; text: string; icon: strin
     icon: "text-primary",
   },
   success: {
-    bg: "bg-chart-2/10",
-    text: "text-chart-2",
-    icon: "text-chart-2",
+    bg: "bg-success/10",
+    text: "text-success",
+    icon: "text-success",
   },
   warning: {
-    bg: "bg-chart-1/10",
-    text: "text-chart-1",
-    icon: "text-chart-1",
+    bg: "bg-warning/10",
+    text: "text-warning",
+    icon: "text-warning",
   },
   destructive: {
     bg: "bg-destructive/10",
@@ -147,7 +148,7 @@ const StatCardItem = ({
 
   const trendColor =
     stat.trend?.direction === "up"
-      ? "text-chart-2"
+      ? "text-success"
       : stat.trend?.direction === "down"
         ? "text-destructive"
         : "text-muted-foreground";
