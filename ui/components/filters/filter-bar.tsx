@@ -87,9 +87,8 @@ export function FilterBar({ config, className }: FilterBarProps) {
               field={field}
               value={value}
               hideLabel
-              // `data-[size=default]:h-8` overrides SelectTrigger's h-9 data-variant;
-              // plain `h-8` sizes the text Input / NumberField to match search + button.
-              controlClassName="h-8 data-[size=default]:h-8"
+              // Sizes the select / text Input / NumberField to match search + button.
+              controlClassName="h-8"
               onChange={(v) =>
                 isFreeText
                   ? state.setFilterDebounced(field.name, v)

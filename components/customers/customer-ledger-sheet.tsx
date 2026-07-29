@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, HandCoins } from "lucide-react";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AppLocale } from "@/i18n/config";
@@ -17,7 +17,9 @@ import {
   useAccounts,
   useAddSalePayment,
   useCustomerLedger,
+  useCustomerOutstanding,
   useCustomerStatement,
+  useReceiveCustomerPayment,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import { useCurrency } from "@/lib/currency";
@@ -32,11 +34,14 @@ import type {
   AddPaymentDto,
   Customer,
   CustomerLedgerSale,
+  ReceiveCustomerPaymentDto,
 } from "@/types";
 import { CustomerLedgerEntries, type LedgerEntry } from "./customer-ledger-entries";
 import { EmailStatementButton } from "./email-statement-button";
+import { CustomerBulkPaymentForm } from "./customer-bulk-payment-form";
 import { CustomerLedgerSummary } from "./customer-ledger-summary";
 import { CustomerPaymentForm } from "./customer-payment-form";
+import { groupLedgerPayments } from "./group-ledger-payments";
 
 interface CustomerLedgerSheetProps {
   open: boolean;
@@ -54,6 +59,7 @@ export function CustomerLedgerSheet({
   onOpenSale,
 }: CustomerLedgerSheetProps) {
   const t = useTranslations("customers.ledger");
+  const tBulk = useTranslations("customers.bulkPayment");
   const tStatement = useTranslations("common.statement");
   const tPrintDoc = useTranslations("common.printDoc");
   const locale = useLocale() as AppLocale;
@@ -62,6 +68,9 @@ export function CustomerLedgerSheet({
   const [page, setPage] = useState(1);
   const limit = 20;
 
+  // "ledger" is the history; "invoice" pays one bill; "bulk" is a customer-level
+  // receipt settling several invoices at once.
+  const [mode, setMode] = useState<"ledger" | "invoice" | "bulk">("ledger");
   const [paymentSale, setPaymentSale] = useState<CustomerLedgerSale | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentAccountId, setPaymentAccountId] = useState("");
@@ -83,7 +92,13 @@ export function CustomerLedgerSheet({
     open,
   );
   const statement = statementResp?.data;
+  // Only fetched while the bulk form is open — it must reflect the dues as they
+  // are at that moment, not a value cached from opening the sheet.
+  const { data: outstandingResp, isLoading: isOutstandingLoading } =
+    useCustomerOutstanding(customer?._id ?? null, mode === "bulk");
+  const outstanding = outstandingResp?.data;
   const addPaymentMutation = useAddSalePayment();
+  const receivePaymentMutation = useReceiveCustomerPayment();
 
   const printStatementDoc = (paper: PaperSize) => {
     if (!statement) return false;
@@ -132,6 +147,7 @@ export function CustomerLedgerSheet({
   );
 
   const handleStartPayment = (sale: CustomerLedgerSale) => {
+    setMode("invoice");
     setPaymentSale(sale);
     setPaymentAmount(sale.dueAmount.toFixed(2));
     setPaymentAccountId("");
@@ -140,11 +156,22 @@ export function CustomerLedgerSheet({
   };
 
   const handleCancelPayment = () => {
+    setMode("ledger");
     setPaymentSale(null);
     setPaymentAmount("");
     setPaymentAccountId("");
     setPaymentNotes("");
     setUseCreditBalance(false);
+  };
+
+  const handleReceivePayment = async (data: ReceiveCustomerPaymentDto) => {
+    if (!customer) return;
+    try {
+      await receivePaymentMutation.mutateAsync({ customerId: customer._id, ...data });
+      setMode("ledger");
+    } catch {
+      // Error handled by mutation
+    }
   };
 
   const handleSubmitPayment = async () => {
@@ -173,16 +200,25 @@ export function CustomerLedgerSheet({
     }
   };
 
+  // A multi-invoice receipt writes one payment row per invoice; the ledger shows
+  // it as the single handover it was.
+  const { singles: singlePayments, receipts } = groupLedgerPayments(payments);
+
   const ledgerEntries: LedgerEntry[] = [
     ...sales.map((sale) => ({
       type: "sale" as const,
       data: sale,
       date: new Date(sale.createdAt),
     })),
-    ...payments.map((payment) => ({
+    ...singlePayments.map((payment) => ({
       type: "payment" as const,
       data: payment,
       date: new Date(payment.createdAt),
+    })),
+    ...receipts.map((receipt) => ({
+      type: "receipt" as const,
+      data: receipt,
+      date: new Date(receipt.createdAt),
     })),
     ...returns.map((returnItem) => ({
       type: "return" as const,
@@ -200,35 +236,50 @@ export function CustomerLedgerSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[550px] sm:max-w-[550px] flex flex-col h-full p-0">
         <SheetHeader className="px-6 py-4 border-b">
-          <div className="flex items-start justify-between gap-3 pr-8">
-            <div className="space-y-1">
-              <SheetTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                {paymentSale
-                  ? `Pay — ${paymentSale.invoiceNumber}`
+          {/* Title first, actions on their own row: three action buttons plus the
+              title never fit side-by-side in the 550px sheet, and side-by-side
+              squeezed the title to one word per line. */}
+          <div className="space-y-1 pr-8">
+            <SheetTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 shrink-0" />
+              {mode === "invoice" && paymentSale
+                ? `Pay — ${paymentSale.invoiceNumber}`
+                : mode === "bulk"
+                  ? `${tBulk("receivePaymentTitle")} — ${customer?.name}`
                   : `Customer Ledger - ${customer?.name}`}
-              </SheetTitle>
-              <SheetDescription>
-                {paymentSale
-                  ? "Record a payment for this sale"
+            </SheetTitle>
+            <SheetDescription>
+              {mode === "invoice"
+                ? "Record a payment for this sale"
+                : mode === "bulk"
+                  ? tBulk("receivePaymentDescription")
                   : "Transaction history and account summary"}
-              </SheetDescription>
-            </div>
-            {!paymentSale && statement && customer && (
-              <div className="flex items-center gap-2">
-                <PrintMenu
-                  appearance="solid"
-                  a4Label="Statement"
-                  defaultPaper={resolveDefaultPaper(user?.organization)}
-                  onPrint={printStatementDoc}
-                />
-                <EmailStatementButton
-                  customer={customer}
-                  totalDue={statement.summary.totalDue}
-                />
-              </div>
-            )}
+            </SheetDescription>
           </div>
+          {mode === "ledger" && statement && customer && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {isAccountsEnabled && statement.summary.totalDue > 0 && (
+                <Button
+                  size="sm"
+                  className="gap-1 whitespace-nowrap"
+                  onClick={() => setMode("bulk")}
+                >
+                  <HandCoins className="h-4 w-4" />
+                  {tBulk("receivePayment")}
+                </Button>
+              )}
+              <PrintMenu
+                appearance="solid"
+                a4Label="Statement"
+                defaultPaper={resolveDefaultPaper(user?.organization)}
+                onPrint={printStatementDoc}
+              />
+              <EmailStatementButton
+                customer={customer}
+                totalDue={statement.summary.totalDue}
+              />
+            </div>
+          )}
         </SheetHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col">
@@ -243,7 +294,19 @@ export function CustomerLedgerSheet({
             formatCurrency={formatCurrency}
           />
 
-          {paymentSale ? (
+          {mode === "bulk" ? (
+            <CustomerBulkPaymentForm
+              sales={outstanding?.sales ?? []}
+              totalDue={outstanding?.totalDue ?? 0}
+              creditBalance={outstanding?.creditBalance ?? creditBalance}
+              accounts={accounts}
+              formatCurrency={formatCurrency}
+              isLoading={isOutstandingLoading}
+              isSubmitting={receivePaymentMutation.isPending}
+              onCancel={() => setMode("ledger")}
+              onSubmit={handleReceivePayment}
+            />
+          ) : mode === "invoice" && paymentSale ? (
             <CustomerPaymentForm
               paymentSale={paymentSale}
               accounts={accounts}

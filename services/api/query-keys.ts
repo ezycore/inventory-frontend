@@ -160,6 +160,9 @@ export const queryKeys = {
       ["customers", "ledger", customerId, params ?? {}] as const,
     statement: (customerId: string, params?: Params) =>
       ["customers", "statement", customerId, params ?? {}] as const,
+    /** Open invoices behind the "Receive Payment" allocation table. */
+    outstanding: (customerId: string) =>
+      ["customers", "outstanding", customerId] as const,
   },
 
   suppliers: {

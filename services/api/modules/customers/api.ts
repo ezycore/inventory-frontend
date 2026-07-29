@@ -1,5 +1,14 @@
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, CustomerLedger, CustomerStatement, CustomersSummary, PaginatedResponse } from "@/types";
+import type {
+  ApiResponse,
+  CustomerLedger,
+  CustomerOutstanding,
+  CustomerReceipt,
+  CustomerStatement,
+  CustomersSummary,
+  PaginatedResponse,
+  ReceiveCustomerPaymentDto,
+} from "@/types";
 import type { ApiCustomer, CustomerListItem } from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
@@ -40,6 +49,17 @@ export const customersApi = {
     filters: { startDate?: string; endDate?: string } = {},
   ): Promise<ApiResponse<CustomerStatement>> =>
     apiClient.get(`/sales/customers/${customerId}/statement${buildQueryParams(filters)}`),
+
+  // Open invoices, oldest first — the allocation preview for a receipt
+  getOutstanding: (customerId: string): Promise<ApiResponse<CustomerOutstanding>> =>
+    apiClient.get(`/sales/customers/${customerId}/outstanding`),
+
+  // Settle one or more outstanding invoices with a single payment
+  receivePayment: (
+    customerId: string,
+    data: ReceiveCustomerPaymentDto,
+  ): Promise<ApiResponse<CustomerReceipt>> =>
+    apiClient.post(`/sales/customers/${customerId}/payments`, data),
 
   // Email an outstanding-dues statement to the customer (their email on file,
   // or an override address)

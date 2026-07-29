@@ -1,147 +1,110 @@
-'use client'
+"use client";
 // coding-standard: maintained
 
 import { useTranslations } from 'next-intl'
-import { AlertTriangle, CalendarClock, RotateCcw } from 'lucide-react'
-
+import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/ui/components/button'
+import { Label } from '@/ui/components/label'
 import { NumberField } from '@/ui/components/number-field'
-import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
-import { ExpiryBadge, isExpired } from '@/components/shared/expiry/expiry-badge'
-import { formatDate } from '@/components/products/detail/utils'
-import type { ProductBatch } from '@/types/api'
-import type { useBatchDraws } from './use-batch-draws'
+import { BatchSelect } from '@/components/shared/batch-select'
+import type { BatchDraw } from '@/services/stores/stock-adjustment-store'
 
 interface BatchDrawPickerProps {
-  draws: ReturnType<typeof useBatchDraws>
-  /** Units being removed — the number the draws must add up to. */
+  productId: string
+  variantId?: string | null
+  draws: BatchDraw[]
+  onChange: (draws: BatchDraw[]) => void
+  /** Units the adjustment removes — the draws have to add up to this. */
   removedQuantity: number
+  unitName?: string
 }
 
 /**
- * "Which lots does this come out of?" — the batch split for decreasing an
- * expiry-tracked product.
+ * Chooses which lots a stock decrease comes out of. An expiry-tracked product
+ * keeps `Inventory.quantity` equal to the sum of its batches, so the backend
+ * rejects a decrease that does not say where the units left from.
  *
- * Pre-filled FEFO by `useBatchDraws`, so the common case (write off the oldest
- * stock) is zero clicks and the user only touches it to correct which carton
- * actually went. Drawing from a past-expiry lot is called out because the
- * backend books those as an expiry write-off rather than a plain adjustment —
- * the same units leave stock either way, but they land in different reports.
+ * Rows are pre-filled expired-first then FEFO by the page hook — a write-off is
+ * usually clearing exactly the stock that has gone off.
  */
-export function BatchDrawPicker({ draws, removedQuantity }: BatchDrawPickerProps) {
+export function BatchDrawPicker({
+  productId,
+  variantId,
+  draws,
+  onChange,
+  removedQuantity,
+  unitName,
+}: BatchDrawPickerProps) {
   const t = useTranslations('inventory.adjust')
-  const {
-    batches,
-    isLoading,
-    draws: allocation,
-    setDraw,
-    resetToFefo,
-    allocated,
-    remaining,
-    availableTotal,
-    insufficientStock,
-    isBalanced,
-  } = draws
+  const allocated = draws.reduce((sum, d) => sum + (d.quantity || 0), 0)
+  const balanced = allocated === removedQuantity
+  const chosenIds = draws.map((d) => d.batchId).filter(Boolean) as string[]
 
-  const columns: SimpleColumn<ProductBatch>[] = [
-    {
-      key: 'batch',
-      header: t('colBatch'),
-      cellClassName: 'font-medium',
-      cell: (b) => b.batchNumber || t('batchUnnumbered'),
-    },
-    {
-      key: 'expiry',
-      header: t('colExpiry'),
-      cellClassName: 'text-muted-foreground',
-      cell: (b) => formatDate(b.expiryDate),
-    },
-    {
-      key: 'status',
-      header: t('colStatus'),
-      cell: (b) => <ExpiryBadge expiryDate={b.expiryDate} />,
-    },
-    {
-      key: 'onHand',
-      header: t('colOnHand'),
-      align: 'right',
-      cell: (b) => b.remainingQuantity.toLocaleString(),
-    },
-    {
-      key: 'draw',
-      header: t('colTakeFrom'),
-      align: 'right',
-      cell: (b) => (
-        <NumberField
-          value={allocation[b._id] ?? 0}
-          onChange={(v) => setDraw(b._id, v)}
-          min={0}
-          max={b.remainingQuantity}
-          precision={0}
-          className="h-9 w-24 ml-auto"
-          aria-label={t('drawFromBatch', { batch: b.batchNumber || t('batchUnnumbered') })}
-        />
-      ),
-    },
-  ]
+  const update = (index: number, patch: Partial<BatchDraw>) =>
+    onChange(draws.map((d, i) => (i === index ? { ...d, ...patch } : d)))
 
   return (
-    <div className="space-y-3 rounded-lg border border-dashed bg-muted/20 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="flex items-center gap-2 text-sm font-medium">
-            <CalendarClock className="h-4 w-4 text-amber-600" />
-            {t('batchDrawTitle')}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {t('batchDrawHint', { count: removedQuantity })}
-          </p>
-        </div>
-        <Button variant="ghost" size="sm" onClick={resetToFefo} className="gap-1.5 shrink-0">
-          <RotateCcw className="h-3.5 w-3.5" />
-          {t('resetToFefo')}
-        </Button>
+    <div className="space-y-3 rounded-lg border border-dashed border-red-400/60 bg-red-50/40 dark:bg-red-950/20 p-4">
+      <div className="flex items-center justify-between">
+        <Label>{t('drawFromBatches')}</Label>
+        <span
+          className={`text-xs font-medium tabular-nums ${
+            balanced ? 'text-green-600' : 'text-red-500'
+          }`}
+        >
+          {t('drawAllocated', {
+            allocated,
+            required: removedQuantity,
+            unit: unitName || '',
+          })}
+        </span>
       </div>
 
-      {isLoading ? (
-        <p className="py-2 text-sm text-muted-foreground">{t('batchesLoading')}</p>
-      ) : batches.length === 0 ? (
-        <p className="py-2 text-sm text-muted-foreground">{t('noBatches')}</p>
-      ) : (
-        <>
-          <SimpleTable columns={columns} rows={batches} getRowKey={(b) => b._id} />
-
-          {/* Running total: the backend requires an exact match, so show the
-              gap continuously rather than failing only on submit. */}
-          <div
-            className={`flex items-center justify-between rounded-md px-3 py-2 text-sm ${
-              isBalanced
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'bg-amber-50 text-amber-800'
-            }`}
-          >
-            <span>{t('allocatedOf', { allocated, total: removedQuantity })}</span>
-            {!isBalanced && (
-              <span className="font-medium">
-                {remaining > 0
-                  ? t('stillToAllocate', { count: remaining })
-                  : t('overAllocated', { count: Math.abs(remaining) })}
-              </span>
-            )}
+      {draws.map((draw, index) => (
+        <div key={index} className="flex items-start gap-2">
+          <div className="flex-1 min-w-0">
+            <BatchSelect
+              productId={productId}
+              variantId={variantId}
+              value={draw.batchId || null}
+              onChange={(batchId) => update(index, { batchId: batchId || '' })}
+              excludeIds={chosenIds}
+            />
           </div>
+          <div className="w-28 shrink-0">
+            <NumberField
+              precision={0}
+              min={0}
+              value={draw.quantity}
+              onChange={(v) => update(index, { quantity: Math.max(0, v ?? 0) })}
+              placeholder={t('drawQuantity')}
+              className="h-11"
+            />
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-11 w-9 shrink-0 text-destructive hover:text-destructive"
+            onClick={() => onChange(draws.filter((_, i) => i !== index))}
+            disabled={draws.length === 1}
+            aria-label={t('drawRemoveRow')}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ))}
 
-          {insufficientStock && (
-            <p className="flex items-center gap-2 text-sm text-destructive">
-              <AlertTriangle className="h-4 w-4 shrink-0" />
-              {t('batchesInsufficient', { available: availableTotal, needed: removedQuantity })}
-            </p>
-          )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-1.5"
+        onClick={() => onChange([...draws, { batchId: '', quantity: 0 }])}
+      >
+        <Plus className="h-3.5 w-3.5" />
+        {t('drawAddBatch')}
+      </Button>
 
-          {batches.some((b) => isExpired(b.expiryDate) && (allocation[b._id] ?? 0) > 0) && (
-            <p className="text-xs text-muted-foreground">{t('expiredDrawNote')}</p>
-          )}
-        </>
-      )}
+      <p className="text-xs text-muted-foreground">{t('drawHint')}</p>
     </div>
   )
 }

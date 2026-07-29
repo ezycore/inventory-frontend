@@ -28,9 +28,9 @@
  * - ✅ Multiple selection mode with badge display + inline typeahead
  */
 
-import { quickAddConfig } from "@/config/quickAddConfig";
 import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
+import { useQuickAddModule } from "@/hooks/use-quick-add-module";
 import DynamicForm from "@/ui/components/form";
 import type { SelectOption } from "@/ui/components/form/type";
 import { useQueryClient } from "@tanstack/react-query";
@@ -84,8 +84,9 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   const queryClient = useQueryClient();
 
-  const moduleConfig =
-    creatable && quickAddModule ? quickAddConfig[quickAddModule] : null;
+  // Feature-gated: e.g. the category quick-add drops its VAT picker while the
+  // org doesn't charge VAT.
+  const moduleConfig = useQuickAddModule(creatable, quickAddModule);
   const { form } = useDynamicForm(moduleConfig?.formConfig || { fields: [] });
   const createMutation = moduleConfig?.useMutation();
 

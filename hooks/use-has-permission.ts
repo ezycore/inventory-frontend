@@ -8,6 +8,8 @@ import { useAuthStore } from '@/services/stores';
 export const PERMISSIONS = {
   /** Unit costs / COGS figures shown in detail views. */
   costsView: 'costs.view',
+  /** Any write that changes stock — adjust, transfer, assign a lot an expiry. */
+  stockManage: 'stock.manage',
   /** User administration; also gates the Roles settings page. */
   usersManage: 'users.manage',
 } as const;

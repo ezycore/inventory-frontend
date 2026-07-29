@@ -1,11 +1,12 @@
 import { customersApi, CustomerLedgerFilters } from '@/services/api'
 import { createResourceHooks } from '../query-helpers'
 import { queryKeys } from '@/services/api/query-keys'
-import { CreateCustomerDto } from '@/types'
+import { CreateCustomerDto, ReceiveCustomerPaymentDto } from '@/types'
 import type { ApiCustomer, CustomerListItem } from '@/types/api'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { handleMutationError } from '@/lib/error-handling'
+import { invalidate } from '@/services/api/invalidation'
 
 const customerHooks = createResourceHooks<ApiCustomer, CreateCustomerDto, Partial<CreateCustomerDto>, CustomerListItem>(
  customersApi,
@@ -51,6 +52,36 @@ export const useCustomerStatement = (
     queryFn: () => customersApi.getStatement(customerId!, filters),
     enabled: !!customerId && enabled,
     staleTime: 1 * 60 * 1000,
+  })
+}
+
+// Open invoices behind the "Receive Payment" allocation table. Not cached —
+// the split it previews must match what the server will settle.
+export const useCustomerOutstanding = (customerId: string | null, enabled = true) => {
+  return useQuery({
+    queryKey: queryKeys.customers.outstanding(customerId!),
+    queryFn: () => customersApi.getOutstanding(customerId!),
+    enabled: !!customerId && enabled,
+    staleTime: 0,
+  })
+}
+
+// Settle several outstanding invoices with one payment. Dirties the same keys as
+// a per-invoice payment — it is the same money movement, just batched.
+export const useReceiveCustomerPayment = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      ...data
+    }: ReceiveCustomerPaymentDto & { customerId: string }) =>
+      customersApi.receivePayment(customerId, data),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Payment received')
+      invalidate(queryClient, 'sale.paid')
+    },
+    onError: handleMutationError,
   })
 }
 

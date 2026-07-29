@@ -8,8 +8,14 @@ import { Button } from '@ui/components/button'
 import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { CalendarClock, ChevronDown, ChevronUp } from 'lucide-react'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
-import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
+import {
+  batchNumberLabel,
+  expiryLabel,
+  isUnknownExpiry,
+} from '@/components/shared/batch-select'
 import { ExpiryBadge } from '@/components/shared/expiry/expiry-badge'
+import { AssignExpiryDialog } from './assign-expiry-dialog'
+import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 import { formatDate } from '@/components/products/detail/utils'
 
 interface InventoryBatchesProps {
@@ -23,9 +29,12 @@ const BATCH_PREVIEW_COUNT = 5
 
 export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesProps) {
   const t = useTranslations('inventory.detail')
+  const tBatch = useTranslations('inventory.batch')
   const tStatus = useTranslations('common.status')
   const canViewCosts = useHasPermission(PERMISSIONS.costsView)
+  const canManageStock = useHasPermission(PERMISSIONS.stockManage)
   const [expanded, setExpanded] = useState(false)
+  const [assigning, setAssigning] = useState<BatchRow | null>(null)
   const hasMore = batches.length > BATCH_PREVIEW_COUNT
   const shown = expanded ? batches : batches.slice(0, BATCH_PREVIEW_COUNT)
 
@@ -34,7 +43,11 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       key: 'batch',
       header: t('colBatch'),
       cellClassName: 'font-medium',
-      cell: (b) => b.batchNumber || '—',
+      cell: (b) => (
+        <span className={isUnknownExpiry(b) ? 'text-muted-foreground italic' : ''}>
+          {batchNumberLabel(b, tBatch)}
+        </span>
+      ),
     },
     {
       key: 'onHand',
@@ -57,7 +70,7 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       key: 'expiry',
       header: t('colExpiry'),
       cellClassName: 'text-muted-foreground',
-      cell: (b) => formatDate(b.expiryDate ?? undefined),
+      cell: (b) => expiryLabel(b, tBatch, (d) => formatDate(d) || d),
     },
     {
       key: 'status',
@@ -65,6 +78,23 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       align: 'right',
       cell: (b) => <ExpiryBadge expiryDate={b.expiryDate} />,
     },
+    // The unknown lot's escape hatch. Without it that stock never gets a date,
+    // never alerts, and sorts last in FEFO forever.
+    ...(canManageStock
+      ? [
+          {
+            key: 'assign',
+            header: '',
+            align: 'right',
+            cell: (b) =>
+              isUnknownExpiry(b) && b.remainingQuantity > 0 ? (
+                <Button variant="ghost" size="sm" onClick={() => setAssigning(b)}>
+                  {tBatch('assignExpiry')}
+                </Button>
+              ) : null,
+          } satisfies SimpleColumn<BatchRow>,
+        ]
+      : []),
   ]
 
   return (
@@ -94,6 +124,14 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
               )}
             </Button>
           </div>
+        )}
+
+        {assigning && (
+          <AssignExpiryDialog
+            batch={assigning}
+            open
+            onOpenChange={(next) => !next && setAssigning(null)}
+          />
         )}
       </CardContent>
     </Card>

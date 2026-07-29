@@ -14,6 +14,7 @@ import {
 import { Package } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
 import { getStockLevelInfo, getStockLevelLines } from "./helpers";
+import { RestockBadge } from "./restock-badge";
 
 /** Hint slug ("base" | "purchase" | "sale") → inventory.stockLevel.hint* key. */
 const hintKey = (hint: string) =>
@@ -51,6 +52,10 @@ export function getInventoryColumns(t: Translator): ColumnDef<Inventory>[] {
                 ))}
               </div>
             )}
+            <RestockBadge
+              restockStatus={row.original.restockStatus}
+              label={t("restock.ordered")}
+            />
           </div>
         );
       },

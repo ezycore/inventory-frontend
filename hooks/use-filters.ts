@@ -1,5 +1,8 @@
+// coding-standard: maintained
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import type { OrganizationFeatures } from "@/types";
 import { FilterField, FilterValues } from "@/types/filter";
+import { omitFormFields } from "@/ui/components/form/form-utils";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import { sanitize } from "@/utils";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -157,45 +160,6 @@ export function useFilters(
 export type UseFiltersReturn = ReturnType<typeof useFilters>;
 
 /**
- * Utility function to filter form config based on excluded fields
- */
-function filterFormConfig<T extends { sections?: any[]; fields?: any[] }>(
-  config: T,
-  excludedFields: string[],
-): T {
-  if (!excludedFields || excludedFields.length === 0) {
-    return config;
-  }
-
-  // Handle section-based config
-  if (config.sections) {
-    return {
-      ...config,
-      sections: config.sections
-        .map((section) => ({
-          ...section,
-          fields: section.fields.filter(
-            (field: any) => !excludedFields.includes(field.name),
-          ),
-        }))
-        .filter((section) => section.fields.length > 0),
-    };
-  }
-
-  // Handle flat fields config
-  if (config.fields) {
-    return {
-      ...config,
-      fields: config.fields.filter(
-        (field: any) => !excludedFields.includes(field.name),
-      ),
-    };
-  }
-
-  return config;
-}
-
-/**
  * Hook to get a filtered form config based on organization's excluded fields
  *
  * @param formConfig - The original form configuration
@@ -235,12 +199,58 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
         excludedFields.push("barcode", "barcodeSymbology");
       }
     }
-    return filterFormConfig(formConfig, excludedFields);
+    return omitFormFields(formConfig, excludedFields);
   }, [formConfig, user, module]);
 }
 
+const omitColumns = <T,>(
+  columns: ColumnDef<T>[],
+  keys: string[],
+): ColumnDef<T>[] =>
+  keys.length === 0
+    ? columns
+    : columns.filter(
+        (column: any) => !keys.includes(column.accessorKey || column.id),
+      );
+
 /**
- * Hook to filter table columns based on excluded columns from settings
+ * Columns the org's feature flags remove outright. Mirrors the field gate in
+ * `useFilteredFormConfig` — a column whose feature is off must not even show up
+ * in the "manage columns" picker, so this is applied to `fullColumns` too.
+ */
+function featureExcludedColumns(
+  features: OrganizationFeatures | undefined,
+  module: string,
+): string[] {
+  if (module !== "product") return [];
+  return features?.barcodeSystem ? [] : ["barcode"];
+}
+
+/**
+ * Hook to drop columns the org's plan doesn't include (feature gate only —
+ * user column preferences are left alone). Use for the `fullColumns` list.
+ * @param columns - The full column definitions array
+ * @param module - The module name (e.g., 'product', 'brand', 'category')
+ */
+export function useFeatureGatedColumns<T = any>(
+  columns: ColumnDef<T>[],
+  module: string,
+): ColumnDef<T>[] {
+  const user = useAuthStore((state) => state.user);
+
+  return useMemo(
+    () =>
+      omitColumns(
+        columns,
+        featureExcludedColumns(user?.organization?.features, module),
+      ),
+    [columns, user, module],
+  );
+}
+
+/**
+ * Hook to filter table columns based on excluded columns from settings,
+ * plus the feature gate above.
  * @param columns - The full column definitions array
  * @param module - The module name (e.g., 'product', 'brand', 'category')
  * @returns Filtered column definitions array
@@ -252,15 +262,10 @@ export function useFilteredColumns<T = any>(
   const user = useAuthStore((state) => state.user);
 
   return useMemo(() => {
-    const excludedColumns =
-      user?.organization?.settings?.excludedColumns?.[module] || [];
-    if (!excludedColumns || excludedColumns.length === 0) {
-      return columns;
-    }
-
-    return columns.filter((column: any) => {
-      const columnKey = column.accessorKey || column.id;
-      return !excludedColumns.includes(columnKey);
-    });
+    const excludedColumns = [
+      ...(user?.organization?.settings?.excludedColumns?.[module] || []),
+      ...featureExcludedColumns(user?.organization?.features, module),
+    ];
+    return omitColumns(columns, excludedColumns);
   }, [columns, user, module]);
 }

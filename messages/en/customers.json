@@ -52,6 +52,7 @@
     "source": "Source",
     "sourceStorefront": "Storefront",
     "sourceManual": "Manual",
+    "due": "Due",
     "creditBalance": "Credit Balance",
     "createdDate": "Created Date",
     "updatedDate": "Updated Date"
@@ -107,6 +108,23 @@
     "available": "Available: {amount}",
     "notesOptional": "Notes (optional)",
     "notesPlaceholder": "Add notes..."
+  },
+  "bulkPayment": {
+    "receivePayment": "Receive Payment",
+    "receivePaymentTitle": "Receive Payment",
+    "receivePaymentDescription": "Settle several invoices with a single payment",
+    "openInvoices": "Open invoices",
+    "totalOutstanding": "Total outstanding",
+    "allocation": "Allocation",
+    "autoAllocate": "Auto-allocate",
+    "invoiceColumn": "Invoice",
+    "allocatedColumn": "Allocated",
+    "dueOf": "Due {amount}",
+    "settled": "Settled",
+    "unallocated": "Unallocated",
+    "overAllocated": "Over-allocated by",
+    "receiptNumber": "Receipt {number}",
+    "invoicesCovered": "{count} invoices"
   },
   "emailStatement": {
     "button": "Email",
