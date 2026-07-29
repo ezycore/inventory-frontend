@@ -1,5 +1,6 @@
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { FilterField, FilterValues } from "@/types/filter";
+import { omitFormFields } from "@/ui/components/form/form-utils";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import { sanitize } from "@/utils";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -157,45 +158,6 @@ export function useFilters(
 export type UseFiltersReturn = ReturnType<typeof useFilters>;
 
 /**
- * Utility function to filter form config based on excluded fields
- */
-function filterFormConfig<T extends { sections?: any[]; fields?: any[] }>(
-  config: T,
-  excludedFields: string[],
-): T {
-  if (!excludedFields || excludedFields.length === 0) {
-    return config;
-  }
-
-  // Handle section-based config
-  if (config.sections) {
-    return {
-      ...config,
-      sections: config.sections
-        .map((section) => ({
-          ...section,
-          fields: section.fields.filter(
-            (field: any) => !excludedFields.includes(field.name),
-          ),
-        }))
-        .filter((section) => section.fields.length > 0),
-    };
-  }
-
-  // Handle flat fields config
-  if (config.fields) {
-    return {
-      ...config,
-      fields: config.fields.filter(
-        (field: any) => !excludedFields.includes(field.name),
-      ),
-    };
-  }
-
-  return config;
-}
-
-/**
  * Hook to get a filtered form config based on organization's excluded fields
  *
  * @param formConfig - The original form configuration
@@ -235,7 +197,7 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
         excludedFields.push("barcode", "barcodeSymbology");
       }
     }
-    return filterFormConfig(formConfig, excludedFields);
+    return omitFormFields(formConfig, excludedFields);
   }, [formConfig, user, module]);
 }
 

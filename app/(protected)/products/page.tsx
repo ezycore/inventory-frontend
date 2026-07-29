@@ -20,6 +20,7 @@ import { Sheet, SheetContent } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
 import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
+import { useVatGatedFormConfig } from '@/hooks/use-vat-gated-form-config'
 import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
 import { useViewMode } from '@/hooks/use-view-mode'
@@ -51,36 +52,9 @@ export default function ProductsPage() {
   const { data: statsData, isLoading: statsLoading } = useProductStats()
   const { user, activeLocationId } = useAuthStore();
 
-  // Hide the product tax-config fields for any side whose tax is inactive
-  // (master `tax` feature off, or that area's sub-toggle off).
-  const taxGatedFormConfig = useMemo(() => {
-    const hide = new Set<string>()
-    if (!isVatActive(user?.organization)) {
-      hide.add('salesTax.taxType'); hide.add('salesTax.taxId')
-    }
-    if (!isVatActive(user?.organization)) {
-      hide.add('purchaseTax.taxType'); hide.add('purchaseTax.taxId')
-    }
-    if (hide.size === 0) return filteredFormConfig
-    const cfg = filteredFormConfig as { sections?: any[]; fields?: any[] }
-    if (cfg.sections) {
-      return {
-        ...filteredFormConfig,
-        // Drop sections left empty after gating (the standalone Tax section has
-        // only tax fields, so it disappears entirely when both sides are off).
-        sections: cfg.sections
-          .map((s) => ({
-            ...s,
-            fields: (s.fields || []).filter((f: any) => !hide.has(f.name)),
-          }))
-          .filter((s) => (s.fields || []).length > 0),
-      }
-    }
-    return {
-      ...filteredFormConfig,
-      fields: (cfg.fields || []).filter((f: any) => !hide.has(f.name)),
-    }
-  }, [filteredFormConfig, user?.organization])
+  // Hide the product tax-config fields while the org doesn't charge VAT. The
+  // standalone Tax section holds nothing else, so it disappears with them.
+  const taxGatedFormConfig = useVatGatedFormConfig(filteredFormConfig, 'product')
   // Combo feature gate: when off, strip the "combo" product-type option and drop
   // the Combo composition section (leaves single/variable untouched).
   const comboEnabled = !!user?.organization?.features?.combo;

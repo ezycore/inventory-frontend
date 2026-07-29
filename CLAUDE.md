@@ -344,6 +344,10 @@ Keep these single sources — never re-derive VAT inline:
 
 - **Gate** every VAT surface with `isVatActive(org)` (`lib/feature-utils.ts`). When inactive: hide
   VAT UI/columns and neutralize VAT in previews.
+  - **Form fields:** `useVatGatedFormConfig(config, module)` (`hooks/use-vat-gated-form-config.ts`)
+    is the one gate — it lists the VAT-only field names per module and strips them (and any section
+    left empty). Pages and the quick-add modal (`hooks/use-quick-add-module.ts`) both run it, so a
+    new VAT field is registered there, never re-filtered inline.
   - There is **no per-area argument** any more. It replaced `isTaxActive(org, "sales" | "purchase")`:
     VAT registration is a property of the organization, so sales and purchases share one answer.
   - `isVatActive` mirrors the backend `resolveOrgVat(...).chargesLineVat`, including that
