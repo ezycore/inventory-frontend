@@ -3,19 +3,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import type { Customer } from "@/types";
 import type { Translator } from "@/i18n/config";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { MoneyCell } from "@/ui/components/dataTable/cells/money-cell";
 import { Badge } from "@/ui/components/badge";
-import { useCurrency } from "@/lib/currency";
-
-function CreditBalanceCell({ value }: { value: number }) {
-  const { format } = useCurrency();
-  return (
-    <span
-      className={value > 0 ? "font-medium text-blue-600" : "text-muted-foreground"}
-    >
-      {format(value)}
-    </span>
-  );
-}
 
 /** `t` is bound to the `customers` namespace. */
 export function getCustomerColumns(t: Translator): ColumnDef<Customer>[] {
@@ -51,10 +40,20 @@ export function getCustomerColumns(t: Translator): ColumnDef<Customer>[] {
       },
     },
     {
+      accessorKey: "totalDue",
+      header: t("columns.due"),
+      cell: ({ row }) => (
+        <MoneyCell value={row.original.totalDue ?? 0} accentClass="text-red-600" />
+      ),
+    },
+    {
       accessorKey: "creditBalance",
       header: t("columns.creditBalance"),
       cell: ({ row }) => (
-        <CreditBalanceCell value={(row.original.creditBalance as number) ?? 0} />
+        <MoneyCell
+          value={(row.original.creditBalance as number) ?? 0}
+          accentClass="text-blue-600"
+        />
       ),
     },
     {

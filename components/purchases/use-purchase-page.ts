@@ -2,9 +2,10 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue } from "@/components/purchases";
+import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue, deriveLinePricing } from "@/components/purchases";
 import { extractProductValue } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
+import { roundMoney } from "@/lib/money";
 import { isVatActive } from "@/lib/feature-utils";
 import { useCreatePurchaseOrder, useFinalizeDraftPurchaseOrder, usePurchaseOrder, useUpdateDraftPurchaseOrder } from "@/services/api";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -325,16 +326,13 @@ export function usePurchasePage() {
         const discountType = supplierForm.getValues("discountType") || "percentage";
         const discountValue = supplierForm.getValues("discountValue") || 0;
         const stock = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
-        let boxDiscount = 0;
-        if (discountType === "percentage") boxDiscount = parseFloat(((boxPrice * discountValue) / 100).toFixed(2));
-        else boxDiscount = discountValue;
-        const boxCostPrice = Math.max(0, boxPrice - boxDiscount);
+        const pricing = deriveLinePricing(boxPrice, discountType, discountValue);
         productForm.setValue("stock", stock);
         productForm.setValue("quantity", purchaseQuantity);
         productForm.setValue("convertedQuantity", convertedQuantity);
-        productForm.setValue("price", boxPrice);
-        productForm.setValue("discount", boxDiscount);
-        productForm.setValue("costPrice", boxCostPrice);
+        productForm.setValue("price", pricing.price);
+        productForm.setValue("discount", pricing.discount);
+        productForm.setValue("costPrice", pricing.costPrice);
       }
     } else if (fieldName === "quantity") {
       const product = extractProductValue(productForm.getValues("productId"));
@@ -369,7 +367,7 @@ export function usePurchasePage() {
     const product = extractProductValue(data.productId);
     if (!product) { toast.error(t("create.selectProduct")); return; }
     const conversionFactor = product.conversionFactor || 1;
-    const boxPrice = product.price * conversionFactor;
+    const boxPrice = roundMoney(product.price * conversionFactor);
     addItem(currentSeller.id, { inventoryId: product.value, productId: product.productId, variantId: product.variantId, productName: product.label, quantity: data.quantity, price: boxPrice, costPrice: data.costPrice, discount: data.discount, conversionFactor, convertedQuantity: data.convertedQuantity, unitName: product.unitName ?? undefined, purchaseUnitName: product.purchaseUnitName ?? undefined,
       // Per-line purchase tax from the product (neutralized when tax is inactive).
       taxRate: isTaxEnabled ? product.purchaseTaxRate ?? 0 : 0,

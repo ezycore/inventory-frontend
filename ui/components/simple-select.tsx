@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { cn } from "@ui/lib/utils";
 import {
   Select,
@@ -22,6 +23,15 @@ interface SimpleSelectProps {
   className?: string;
   error?: string;
   id?: string;
+  /** Trigger height preset — `sm` is h-8, `default` h-9. `className` overrides both. */
+  size?: "sm" | "default";
+  /** Native tooltip on the trigger. */
+  title?: string;
+  /**
+   * Shown when `options` is empty. `ui/` sits below the i18n layer, so the
+   * default is English — pass a translated string from a localised caller.
+   */
+  emptyMessage?: string;
 }
 
 export const SimpleSelect = ({
@@ -33,10 +43,18 @@ export const SimpleSelect = ({
   className,
   error,
   id,
+  size,
+  title,
+  emptyMessage = "No options available",
 }: SimpleSelectProps) => {
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger id={id} className={cn("w-full", error && "border-red-500", className)}>
+      <SelectTrigger
+        id={id}
+        size={size}
+        title={title}
+        className={cn("w-full", error && "border-red-500", className)}
+      >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent
@@ -46,7 +64,7 @@ export const SimpleSelect = ({
       >
         {options.length === 0 ? (
           <div className="py-6 text-center text-sm text-muted-foreground">
-            No options available
+            {emptyMessage}
           </div>
         ) : (
           options.map((opt) => (

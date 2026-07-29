@@ -2,19 +2,8 @@
 import type { Supplier } from "@/types";
 import type { Translator } from "@/i18n/config";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
-import { useCurrency } from "@/lib/currency";
+import { MoneyCell } from "@/ui/components/dataTable/cells/money-cell";
 import type { ColumnDef } from "@tanstack/react-table";
-
-function CreditBalanceCell({ value }: { value: number }) {
-  const { format } = useCurrency();
-  return (
-    <span
-      className={value > 0 ? "font-medium text-blue-600" : "text-muted-foreground"}
-    >
-      {format(value)}
-    </span>
-  );
-}
 
 /** `t` is bound to the `suppliers` namespace. */
 export function getSupplierColumns(t: Translator): ColumnDef<Supplier>[] {
@@ -41,7 +30,10 @@ export function getSupplierColumns(t: Translator): ColumnDef<Supplier>[] {
       accessorKey: "creditBalance",
       header: t("columns.creditBalance"),
       cell: ({ row }) => (
-        <CreditBalanceCell value={(row.original.creditBalance as number) ?? 0} />
+        <MoneyCell
+          value={(row.original.creditBalance as number) ?? 0}
+          accentClass="text-blue-600"
+        />
       ),
     },
     {

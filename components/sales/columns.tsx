@@ -1,7 +1,6 @@
 // coding-standard: maintained
 import { formatCurrency } from "@/lib/currency";
 import type { Translator } from "@/i18n/config";
-import { useProductBatches } from "@/services/api";
 import { SellOrderItem } from "@/services/stores";
 import { Button } from "@/ui/components/button";
 import { NumberField } from "@/ui/components/number-field";
@@ -10,6 +9,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { computeLineTax } from "@/utils/tax";
 import { LineTaxCell } from "@/components/shared/line-tax-cell";
+import { BatchSelect } from "@/components/shared/batch-select";
 
 /**
  * Editable number input that allows clearing and commits on blur/Enter
@@ -48,8 +48,7 @@ function EditableNumberCell({
 
 /**
  * Per-line batch picker for expiry-tracked products. Defaults to FEFO (auto);
- * the cashier can override which lot to sell from. Reads in-stock batches for
- * the product via the expiry read API.
+ * the cashier can override which lot to sell from.
  */
 function BatchPickerCell({
   item,
@@ -59,41 +58,21 @@ function BatchPickerCell({
   onUpdateBatch: (id: string, batchId: string | null) => void;
 }) {
   const t = useTranslations("sales.sell.cart");
-  // Only fetch batches for expiry-tracked lines — the Batch column renders a cell
-  // for every row, so gating on `hasExpiry` avoids one /batches request per
-  // non-tracked product in the cart.
-  const { data, isLoading } = useProductBatches(
-    item.productId,
-    { ...(item.variantId ? { variantId: item.variantId } : {}) },
-    { enabled: !!item.hasExpiry },
-  );
-  const batches: any[] = (data?.data as any[]) || [];
 
   if (!item.hasExpiry) {
     return <span className="text-xs text-muted-foreground">—</span>;
   }
 
   return (
-    <select
-      value={item.batchId ?? ""}
-      onChange={(e) => onUpdateBatch(item.id, e.target.value || null)}
-      disabled={isLoading}
-      className="h-7 w-[150px] rounded-md border bg-background px-1 text-xs"
+    <BatchSelect
+      productId={item.productId}
+      variantId={item.variantId}
+      value={item.batchId ?? null}
+      onChange={(batchId) => onUpdateBatch(item.id, batchId)}
+      emptyLabel={t("autoFefo")}
       title={t("fefoTooltip")}
-    >
-      <option value="">{t("autoFefo")}</option>
-      {batches.map((b) => {
-        const exp = b.expiryDate
-          ? new Date(b.expiryDate).toISOString().slice(0, 10)
-          : "no date";
-        const label = `Exp ${exp}${b.batchNumber ? ` · ${b.batchNumber}` : ""} · ${b.remainingQuantity} left`;
-        return (
-          <option key={b._id} value={b._id}>
-            {label}
-          </option>
-        );
-      })}
-    </select>
+      className="h-7 w-[150px] px-2 py-1 text-xs"
+    />
   );
 }
 

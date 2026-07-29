@@ -38,6 +38,17 @@ Two traps carried from the backend:
 
 When the gate is off: hide VAT UI and columns, and neutralize VAT in previews — do not just grey it.
 
+**Form fields go through one gate: `useVatGatedFormConfig(config, module)`**
+(`hooks/use-vat-gated-form-config.ts`). It owns `VAT_ONLY_FIELDS` — the VAT-only field names per form
+module (`product`: `salesTax.*` / `purchaseTax.*`; `category`: `defaultTaxId`) — and strips them,
+dropping any section left empty. Adding a VAT field to a form means adding its name **there**, not
+writing another inline filter. Used by the products page, the categories page and — via
+`useQuickAddModule` (`hooks/use-quick-add-module.ts`) — the quick-add modal a `creatable` picker
+opens, which is how "Add New Category" on the product form used to render a dead **Default VAT rate**
+picker whose options request answered *"Tax management feature is not enabled for your organization"*.
+The field-omission itself is `omitFormFields` (`ui/components/form/form-utils.ts`), shared with the
+org's `excludedFields` filter.
+
 ---
 
 ## 2. Math only through `utils/tax.ts`
@@ -120,9 +131,10 @@ Four rules, each load-bearing:
   *is* the TanStack cache key, so drift between the picker and the prefill would double the request
   and let the prefill read options with no `defaultTaxId` on them — a silent no-op.
 
-The category form's picker is in `components/categories/form-config.ts`; the categories **page** drops
-the field when `isVatActive` is false. `prepareSubmitData` must keep appending `defaultTaxId` — it
-hand-builds `FormData`, so a field it forgets is simply never sent.
+The category form's picker is in `components/categories/form-config.ts`; `useVatGatedFormConfig`
+(§1) drops the field when `isVatActive` is false — on the categories page **and** in the quick-add
+"Add New Category" modal the product form's category picker opens. `prepareSubmitData` must keep
+appending `defaultTaxId` — it hand-builds `FormData`, so a field it forgets is simply never sent.
 
 ⚠️ `AdvancedSelect` has no clear affordance, so a category default can be changed but not removed from
 the UI. The wire format supports it (`""` → `null`).

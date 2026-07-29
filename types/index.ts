@@ -548,6 +548,8 @@ export interface Customer extends BaseEntity {
   defaultDiscount?: Discount;
   /** Store credit currently available to apply against this customer's dues. */
   creditBalance?: number;
+  /** Outstanding balance (unpaid + partial dues) at the active location. List rows only. */
+  totalDue?: number;
   /** How the customer record was created: staff-entered vs self-registered on the storefront. */
   source?: "manual" | "storefront";
   /** Backref to the public Shopper account when source === "storefront". */
@@ -658,6 +660,11 @@ export interface CustomerLedgerPayment {
     _id: string;
     invoiceNumber: string;
   };
+  /**
+   * Shared by every row of one multi-invoice receipt. Absent on single-invoice
+   * payments; the ledger collapses rows that share it into one entry.
+   */
+  receiptNumber?: string;
 }
 
 export interface CustomerLedgerReturn {
@@ -717,6 +724,61 @@ export interface CustomerLedger {
   totalPages: number;
   hasNext: boolean;
   hasPrev: boolean;
+}
+
+/** One open invoice a customer-level receipt can settle. */
+export interface CustomerOutstandingSale {
+  _id: string;
+  invoiceNumber: string;
+  totalAmount: number;
+  paidAmount: number;
+  refundCreditApplied?: number;
+  dueAmount: number;
+  createdAt: string;
+  status: "due" | "partial";
+}
+
+/** `GET /sales/customers/:id/outstanding` — oldest invoice first. */
+export interface CustomerOutstanding {
+  sales: CustomerOutstandingSale[];
+  totalDue: number;
+  creditBalance: number;
+}
+
+/** One invoice targeted by a manual (non-FIFO) split. */
+export interface CustomerPaymentAllocationInput {
+  saleId: string;
+  amount: number;
+}
+
+/** `POST /sales/customers/:id/payments` — one receipt across many invoices. */
+export interface ReceiveCustomerPaymentDto {
+  amount: number;
+  /** Required unless useCreditBalance is true. */
+  accountId?: string;
+  paymentMethod?: "cash" | "card" | "bank" | "mfs" | "other";
+  useCreditBalance?: boolean;
+  /** Default true: the server fills invoices oldest-first. */
+  autoAllocate?: boolean;
+  /** Required when autoAllocate is false; must add up to `amount`. */
+  allocations?: CustomerPaymentAllocationInput[];
+  notes?: string;
+}
+
+/** What one invoice looked like after the receipt was applied. */
+export interface CustomerReceiptAllocation {
+  saleId: string;
+  invoiceNumber: string;
+  amount: number;
+  newDueAmount: number;
+  newStatus: string;
+}
+
+export interface CustomerReceipt {
+  receiptNumber: string;
+  totalAmount: number;
+  paymentMethod: string;
+  allocations: CustomerReceiptAllocation[];
 }
 
 /** One row in an account statement (customer/supplier). Amount is a magnitude. */
