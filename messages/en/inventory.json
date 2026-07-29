@@ -54,6 +54,9 @@
     "fair": "Fair",
     "poor": "Poor"
   },
+  "restock": {
+    "ordered": "Ordered"
+  },
   "stockLevel": {
     "outOfStock": "Out of Stock",
     "lowStock": "Low Stock",
@@ -156,6 +159,8 @@
     "batchNumber": "Batch Number",
     "batchPlaceholder": "e.g., LOT-2026-01",
     "quantityNonNegative": "Quantity must be non-negative",
+    "noChangeError": "New quantity is the same as the current stock — nothing to adjust",
+    "locationMismatch": "This list was prepared for another location. Switch back to that location or clear the list before submitting.",
     "defaultUnitLabel": "Default unit for box products:",
     "unitBase": "Base",
     "unitPurchase": "Purchase",
@@ -166,7 +171,6 @@
     "unitCostHint": "This product has no cost yet. Enter a unit cost so the added stock is valued correctly.",
     "costRequired": "Enter a unit cost for the added stock",
     "expiryRequired": "An expiry date is required when adding expiry-tracked stock",
-    "expiryDecreaseUnsupported": "Can't decrease an expiry-tracked product here — use a purchase return",
     "statPendingItems": "Pending Items",
     "statIncrease": "Stock Increase",
     "statIncreaseDesc": "Units to add",
@@ -178,7 +182,27 @@
     "colNewQty": "New Qty",
     "colChange": "Change",
     "colValue": "Value",
-    "noChange": "No change"
+    "noChange": "No change",
+    "batchTargetLabel": "Where does the added stock go?",
+    "batchTargetNew": "New batch",
+    "batchTargetExisting": "Existing batch",
+    "batchExistingLabel": "Add to batch",
+    "batchExistingHint": "Tops up a lot you already hold instead of opening a duplicate one.",
+    "batchNumberOptional": "(optional)",
+    "batchRequired": "Choose which batch the added stock goes into",
+    "drawFromBatches": "Take the stock out of",
+    "drawAllocated": "{allocated} of {required} {unit}",
+    "drawQuantity": "Qty",
+    "drawAddBatch": "Add batch",
+    "drawRemoveRow": "Remove this batch",
+    "drawHint": "Expired lots are listed first — removing them writes the stock off.",
+    "drawRowsIncomplete": "Every row needs a batch and a quantity",
+    "drawsMismatch": "The batch quantities must add up to {required}",
+    "colBatches": "Batches",
+    "batchUnlabelled": "unlabelled lot",
+    "batchExpired": "Expired",
+    "batchExistingShort": "Existing lot",
+    "batchNewShort": "New lot"
   },
   "transfers": {
     "title": "Transfer Stock",
@@ -306,9 +330,34 @@
     "colOnHand": "On hand",
     "colCost": "Cost",
     "colExpiry": "Expiry",
-    "expired": "Expired",
-    "daysLeft": "{days}d left",
     "showLess": "Show less",
     "showAll": "Show all {count}"
+  },
+  "batch": {
+    "option": "Exp {expiry} · {left} left",
+    "optionWithLot": "Exp {expiry} · {lot} · {left} left",
+    "expiredPrefix": "EXPIRED · {label}",
+    "noExpiryDate": "no expiry date",
+    "choosePlaceholder": "Choose a batch…",
+    "noBatches": "No batches available",
+    "unknownBatch": "Unknown batch",
+    "unknownExpiry": "Unknown expiry",
+    "optionUnknown": "Unknown expiry · {left} left",
+    "optionUnknownWithLot": "Unknown expiry · {lot} · {left} left",
+    "assignExpiry": "Assign expiry",
+    "assignExpiryTitle": "Assign an expiry date",
+    "assignExpiryHelp": "Move part or all of this unknown-expiry stock into a dated batch. Nothing moves off the shelf — the same units simply get a date.",
+    "assignQuantity": "Units to assign",
+    "assignQuantityMax": "{max} available",
+    "assignExpiryDate": "Expiry date",
+    "assignBatchNumber": "Batch number (optional)",
+    "assignSubmit": "Assign",
+    "assignSuccess": "{quantity} units assigned an expiry date",
+    "assignPastDateNote": "This date is in the past — the batch will be marked expired and can then be written off."
+  },
+  "expiry": {
+    "expired": "Expired",
+    "daysLeft": "{days}d left",
+    "unknown": "Unknown expiry"
   }
 }

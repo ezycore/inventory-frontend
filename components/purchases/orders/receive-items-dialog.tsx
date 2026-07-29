@@ -99,6 +99,16 @@ export function ReceiveItemsDialog({
     (sum, item) => sum + item.receivedQuantity,
     0,
   );
+  // Lines being received with no expiry date. Warned about, never blocked:
+  // supplier paperwork often has no date, and refusing the receive would just
+  // move the dead end here from the adjustment form. Such stock lands in the
+  // product's unknown-expiry batch and can be dated later from the stock detail
+  // page. The order line does not carry `hasExpiry`, so this counts every
+  // dateless line — for a product that does not track expiry the note is
+  // harmless, since nothing about the receive changes either way.
+  const linesMissingExpiry = receiveItems.filter(
+    (item) => item.receivedQuantity > 0 && !item.expiryDate,
+  ).length;
 
   const handleExpiryFieldChange = (
     index: number,
@@ -262,6 +272,13 @@ export function ReceiveItemsDialog({
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <PackageCheck className="h-3.5 w-3.5" />
             {t("expiryHint")}
+          </p>
+        )}
+
+        {isExpiryEnabled && linesMissingExpiry > 0 && (
+          <p className="flex items-center gap-1.5 text-xs text-amber-600">
+            <PackageCheck className="h-3.5 w-3.5 shrink-0" />
+            {t("missingExpiryWarning", { count: linesMissingExpiry })}
           </p>
         )}
 

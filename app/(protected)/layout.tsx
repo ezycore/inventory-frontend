@@ -13,6 +13,7 @@ import {
 import { useGetSubscription, useMe } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useOrgDocumentTitle } from "@/hooks/use-org-document-title";
 import { useOrgFavicon } from "@/hooks/use-org-favicon";
 import { SidebarInset, SidebarProvider } from "@ui/components/sidebar";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,8 +36,10 @@ export default function ProtectedLayout({
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const subscriptionLogoutHandled = useRef(false);
 
-  // Browser-tab icon = the organization's logo (default icon until set).
+  // Browser tab = the organization's identity: its logo as the icon, and
+  // "<Page> · <Org>" as the title (both client-side — see each hook).
   useOrgFavicon();
+  useOrgDocumentTitle();
 
   // Use consistent default for SSR, then update after mount
   const [sidebarOpen, setSidebarOpen] = useState(true);

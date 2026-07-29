@@ -54,6 +54,9 @@
     "fair": "মোটামুটি",
     "poor": "খারাপ"
   },
+  "restock": {
+    "ordered": "অর্ডার করা হয়েছে"
+  },
   "stockLevel": {
     "outOfStock": "স্টক নেই",
     "lowStock": "স্টক কম",
@@ -156,6 +159,8 @@
     "batchNumber": "ব্যাচ নম্বর",
     "batchPlaceholder": "যেমন: LOT-2026-01",
     "quantityNonNegative": "পরিমাণ ঋণাত্মক হতে পারবে না",
+    "noChangeError": "নতুন পরিমাণ বর্তমান স্টকের সমান — সমন্বয় করার কিছু নেই",
+    "locationMismatch": "এই তালিকাটি অন্য লোকেশনের জন্য তৈরি হয়েছিল। জমা দেওয়ার আগে সেই লোকেশনে ফিরে যান অথবা তালিকা মুছে ফেলুন।",
     "defaultUnitLabel": "বক্স পণ্যের ডিফল্ট একক:",
     "unitBase": "মূল একক",
     "unitPurchase": "ক্রয় একক",
@@ -166,7 +171,6 @@
     "unitCostHint": "এই পণ্যের কোনো ক্রয়মূল্য নেই। যোগ করা স্টক সঠিকভাবে মূল্যায়িত হতে একক ক্রয়মূল্য দিন।",
     "costRequired": "যোগ করা স্টকের জন্য একক ক্রয়মূল্য দিন",
     "expiryRequired": "মেয়াদ-ট্র্যাক করা স্টক যোগ করতে মেয়াদ উত্তীর্ণের তারিখ আবশ্যক",
-    "expiryDecreaseUnsupported": "মেয়াদ-ট্র্যাক করা পণ্য এখানে কমানো যাবে না — ক্রয় ফেরত ব্যবহার করুন",
     "statPendingItems": "অপেক্ষমাণ আইটেম",
     "statIncrease": "স্টক বৃদ্ধি",
     "statIncreaseDesc": "যোগ হবে (একক)",
@@ -178,7 +182,27 @@
     "colCurrent": "বর্তমান",
     "colNewQty": "নতুন পরিমাণ",
     "colChange": "পরিবর্তন",
-    "noChange": "কোনো পরিবর্তন নেই"
+    "noChange": "কোনো পরিবর্তন নেই",
+    "batchTargetLabel": "যোগ করা স্টক কোথায় যাবে?",
+    "batchTargetNew": "নতুন ব্যাচ",
+    "batchTargetExisting": "বিদ্যমান ব্যাচ",
+    "batchExistingLabel": "যে ব্যাচে যোগ হবে",
+    "batchExistingHint": "নতুন ব্যাচ না খুলে আপনার কাছে থাকা ব্যাচেই স্টক যোগ করে।",
+    "batchNumberOptional": "(ঐচ্ছিক)",
+    "batchRequired": "যোগ করা স্টক কোন ব্যাচে যাবে তা বেছে নিন",
+    "drawFromBatches": "যে ব্যাচ থেকে স্টক কমবে",
+    "drawAllocated": "{required} {unit} এর মধ্যে {allocated}",
+    "drawQuantity": "পরিমাণ",
+    "drawAddBatch": "ব্যাচ যোগ করুন",
+    "drawRemoveRow": "এই ব্যাচ সরান",
+    "drawHint": "মেয়াদোত্তীর্ণ ব্যাচ আগে দেখানো হয় — সেগুলো কমালে স্টক রাইট-অফ হয়।",
+    "drawRowsIncomplete": "প্রতিটি সারিতে ব্যাচ ও পরিমাণ দিতে হবে",
+    "drawsMismatch": "ব্যাচের পরিমাণের যোগফল {required} হতে হবে",
+    "colBatches": "ব্যাচ",
+    "batchUnlabelled": "নামহীন ব্যাচ",
+    "batchExpired": "মেয়াদোত্তীর্ণ",
+    "batchExistingShort": "বিদ্যমান ব্যাচ",
+    "batchNewShort": "নতুন ব্যাচ"
   },
   "transfers": {
     "title": "স্টক স্থানান্তর",
@@ -306,9 +330,34 @@
     "colOnHand": "হাতে আছে",
     "colCost": "খরচ",
     "colExpiry": "মেয়াদ",
-    "expired": "মেয়াদোত্তীর্ণ",
-    "daysLeft": "{days} দিন বাকি",
     "showLess": "কম দেখুন",
     "showAll": "সব {count}টি দেখুন"
+  },
+  "batch": {
+    "option": "মেয়াদ {expiry} · বাকি {left}",
+    "optionWithLot": "মেয়াদ {expiry} · {lot} · বাকি {left}",
+    "expiredPrefix": "মেয়াদোত্তীর্ণ · {label}",
+    "noExpiryDate": "মেয়াদের তারিখ নেই",
+    "choosePlaceholder": "ব্যাচ বেছে নিন…",
+    "noBatches": "কোনো ব্যাচ নেই",
+    "unknownBatch": "অজানা ব্যাচ",
+    "unknownExpiry": "অজানা মেয়াদ",
+    "optionUnknown": "অজানা মেয়াদ · বাকি {left}",
+    "optionUnknownWithLot": "অজানা মেয়াদ · {lot} · বাকি {left}",
+    "assignExpiry": "মেয়াদ নির্ধারণ করুন",
+    "assignExpiryTitle": "মেয়াদের তারিখ নির্ধারণ",
+    "assignExpiryHelp": "এই অজানা-মেয়াদ স্টকের অংশ বা পুরোটা একটি তারিখযুক্ত ব্যাচে সরান। শেলফ থেকে কিছু সরছে না — একই ইউনিটগুলো শুধু একটি তারিখ পাচ্ছে।",
+    "assignQuantity": "যত ইউনিট নির্ধারণ করবেন",
+    "assignQuantityMax": "{max} টি আছে",
+    "assignExpiryDate": "মেয়াদের তারিখ",
+    "assignBatchNumber": "ব্যাচ নম্বর (ঐচ্ছিক)",
+    "assignSubmit": "নির্ধারণ করুন",
+    "assignSuccess": "{quantity} ইউনিটে মেয়াদের তারিখ বসানো হয়েছে",
+    "assignPastDateNote": "এই তারিখ অতীতের — ব্যাচটি মেয়াদোত্তীর্ণ হিসেবে চিহ্নিত হবে এবং পরে রাইট-অফ করা যাবে।"
+  },
+  "expiry": {
+    "expired": "মেয়াদোত্তীর্ণ",
+    "daysLeft": "{days} দিন বাকি",
+    "unknown": "অজানা মেয়াদ"
   }
 }

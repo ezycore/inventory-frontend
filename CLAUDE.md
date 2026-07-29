@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Sibling repos:** one of several under `easeventory/` (`inventory-backend`, `inventory-frontend`, `inventory-landing`, `mission-control`). For the repo map, aliases, and the cross-repo contracts that connect them, see the workspace-root [`../CLAUDE.md`](../CLAUDE.md).
+
 ## Working agreement (mandatory)
 
 Applies to **every file you touch**. The repo is brought to this standard **incrementally,
@@ -234,6 +236,26 @@ The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern f
 or the current time/locale must gate on `useHydrated()` (`hooks/use-hydrated.ts`) so the first client
 render matches the SSR HTML — never hand-roll `useSyncExternalStore` or `typeof window` initializers.
 
+**Browser tab (title + icon) is client-side, by necessity.** The organization lives in the persisted
+auth store, which no server `generateMetadata` can read — so both are set imperatively from
+`app/(protected)/layout.tsx`: `useOrgFavicon()` (org logo → tab icon, via `useFaviconOverride`) and
+`useOrgDocumentTitle()` (`"<Page> · <Org>"`, e.g. `Products · ZeroDrop`). The page name is the **last
+breadcrumb**, so it is already translated and already matches the sidebar label — renaming a nav item
+renames the tab, and no page needs its own `metadata`. The storefront titles tabs separately via its
+own `generateMetadata` (store name). **Do not add `export const metadata` with a title to a page
+under `app/(protected)/`** — it can't see the org and will fight the hook.
+
+Next owns the `<title>` tag, and that cuts both ways — both halves below were verified in a browser,
+because neither shows up in typecheck, lint, or tests:
+
+- **Initial load:** Next renders its metadata `<title>` *during hydration*, i.e. after the hook's
+  effect. A one-shot `document.title = …` is silently reverted by every fresh load and every
+  refresh, while still looking correct after client-side navigation. `useOrgDocumentTitle` therefore
+  re-asserts via a `MutationObserver` on `<head>` (equality-checked, so it can't loop).
+- **Unmount:** the restore is equally load-bearing — every route resolves to the same root metadata,
+  so on a client-side exit React sees no change and would never repaint over our value, stranding a
+  workspace title on the login screen.
+
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.
 
@@ -344,6 +366,10 @@ Keep these single sources — never re-derive VAT inline:
 
 - **Gate** every VAT surface with `isVatActive(org)` (`lib/feature-utils.ts`). When inactive: hide
   VAT UI/columns and neutralize VAT in previews.
+  - **Form fields:** `useVatGatedFormConfig(config, module)` (`hooks/use-vat-gated-form-config.ts`)
+    is the one gate — it lists the VAT-only field names per module and strips them (and any section
+    left empty). Pages and the quick-add modal (`hooks/use-quick-add-module.ts`) both run it, so a
+    new VAT field is registered there, never re-filtered inline.
   - There is **no per-area argument** any more. It replaced `isTaxActive(org, "sales" | "purchase")`:
     VAT registration is a property of the organization, so sales and purchases share one answer.
   - `isVatActive` mirrors the backend `resolveOrgVat(...).chargesLineVat`, including that

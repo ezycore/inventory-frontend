@@ -44,6 +44,13 @@ export interface StorefrontStore {
   name: string;
   slug: string;
   currency?: string;
+  /**
+   * The store's active custom domain when it has one — the single host every
+   * public URL should be canonical against, so a shop live on both its own
+   * domain and `{slug}.ezycore.com/shop` is not indexed twice. Null ⇒ use the
+   * serving host. Always go through `canonicalTarget` (lib/storefront-canonical.ts).
+   */
+  canonicalHost?: string | null;
   logo?: StorefrontImage | null;
   banner?: StorefrontImage | null;
   contact?: { email?: string; phone?: string; address?: string };

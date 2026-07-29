@@ -7,8 +7,11 @@ import {
 } from "@tanstack/react-query";
 import {
   storefrontApi,
+  type CatalogProduct,
   type ContentPageLink,
+  type ContentPageView,
   type PlaceOrderInput,
+  type ProductListResult,
   type ShopperPrefs,
   type StoreCampaign,
   type StorefrontStore,
@@ -74,22 +77,36 @@ export const useStore = (slug: string, initialData?: StorefrontStore) =>
     initialData,
   });
 
+// `initialData` (server-fetched in the collection page) puts the first page of
+// results in the SSR HTML — without it a crawler sees only the skeleton grid.
+// The params object IS the cache key, so callers must build it through
+// `catalogQueryParams` (lib/storefront-catalog-params.ts) on both sides.
 export const useStoreProducts = (
   slug: string,
   params: Record<string, string | number | undefined> = {},
   enabled = true,
+  initialData?: ProductListResult,
 ) =>
   useQuery({
     queryKey: storefront.products(slug, params),
     queryFn: () => storefrontApi.listProducts(slug, params),
     enabled: !!slug && enabled,
+    initialData,
   });
 
-export const useStoreProduct = (slug: string, productSlug: string) =>
+// `initialData` (server-fetched in the PDP's page.tsx) is what makes the product
+// name, price and description part of the server-rendered HTML rather than
+// something that only exists after hydration.
+export const useStoreProduct = (
+  slug: string,
+  productSlug: string,
+  initialData?: CatalogProduct,
+) =>
   useQuery({
     queryKey: storefront.product(slug, productSlug),
     queryFn: () => storefrontApi.getProduct(slug, productSlug),
     enabled: !!slug && !!productSlug,
+    initialData,
   });
 
 export const useStoreCategories = (slug: string) =>
@@ -131,11 +148,18 @@ export const useStorePages = (slug: string, initialData?: ContentPageLink[]) =>
     initialData,
   });
 
-export const useStorePage = (slug: string, pageSlug: string) =>
+// `initialData` (server-fetched in the CMS page's page.tsx) — the body is the
+// only content on that route, so without it the SSR HTML is a "Loading…" line.
+export const useStorePage = (
+  slug: string,
+  pageSlug: string,
+  initialData?: ContentPageView,
+) =>
   useQuery({
     queryKey: storefront.page(slug, pageSlug),
     queryFn: () => storefrontApi.getPage(slug, pageSlug),
     enabled: !!slug && !!pageSlug,
+    initialData,
   });
 
 export const useVerifyEmail = (slug: string) =>

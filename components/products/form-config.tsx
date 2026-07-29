@@ -240,6 +240,14 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             label: tr('form.hasExpiry', "Track expiry dates"),
             columnSpan: 12,
             defaultValue: true,
+            // Surfaces the D7 downgrade rule before the save fails on it. The
+            // server refuses to untrack a product that still holds stock
+            // (PRODUCT_EXPIRY_DOWNGRADE_BLOCKED), because its batches would be
+            // left backing stock nothing reads any more.
+            tooltip: tr(
+              'form.hasExpiryTooltip',
+              "Records stock in batches with expiry dates, so it sells earliest-expiry-first and appears in expiry alerts. Turning this off later requires the product's stock to be zero at every location — batches cannot be left behind holding stock.",
+            ),
           },
           {
             name: "expiryAlertDays",

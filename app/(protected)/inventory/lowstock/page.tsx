@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 
 // UI Components
 import { DataTable } from "@/ui/components/dataTable";
+import { AvatarCell } from "@/ui/components/dataTable/cells";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import PageHeader from "@/ui/components/header";
@@ -25,6 +26,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { getInventoryFilterConfig } from "@/components/inventory/filters";
+import { RestockBadge } from "@/components/inventory/restock-badge";
 
 // Shortlist item type (flat structure from API)
 interface ShortlistItem {
@@ -33,6 +35,7 @@ interface ShortlistItem {
   variantId?: string;
   name: string;
   productType: string;
+  images?: { url: string; mediumUrl: string; thumbnailUrl: string; publicId: string }[];
   attributes?: Record<string, any> | null;
   price?: number;
   costPrice?: number;
@@ -105,9 +108,11 @@ function getShortlistColumns(t: Translator): ColumnDef<ShortlistItem>[] {
         const attributes = row.original.attributes;
         return (
           <div className="min-w-[180px]">
-            <span className="font-medium">
-              {getDisplayName(row.original, t("lowstock.unknownProduct"))}
-            </span>
+            <AvatarCell
+              imageUrl={row.original.images?.[0]?.thumbnailUrl}
+              name={getDisplayName(row.original, t("lowstock.unknownProduct"))}
+              fallbackIcon={Package}
+            />
             {row.original.location?.name && (
               <div className="text-xs text-muted-foreground">{row.original.location.name}</div>
             )}
@@ -123,6 +128,10 @@ function getShortlistColumns(t: Translator): ColumnDef<ShortlistItem>[] {
                 ))}
               </div>
             )}
+            <RestockBadge
+              restockStatus={row.original.restockStatus}
+              label={t("restock.ordered")}
+            />
           </div>
         );
       },

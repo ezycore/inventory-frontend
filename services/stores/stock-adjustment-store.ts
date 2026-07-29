@@ -1,12 +1,29 @@
+// coding-standard: maintained
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+
+/** One lot a decrease of an expiry-tracked product draws stock out of. */
+export interface BatchDraw {
+  batchId: string;
+  quantity: number;
+  /** Display only — the lot's expiry, so the review table can name it. */
+  expiryDate?: string | null;
+  batchNumber?: string;
+  /** Display only — the draw is a write-off of stock that had already gone off. */
+  expired?: boolean;
+}
 
 export interface AdjustmentItem {
   id: string; // local ID
   inventoryId: string; // the inventory record _id
   productId: string;
   variantId?: string | null;
+  // The location this row was prepared against. The list is persisted, so it can
+  // outlive a location switch — the page refuses to submit rows from elsewhere.
+  locationId: string;
+  // Quantity the row held when it was added. Sent as `expectedQuantity` so the
+  // backend rejects the batch if stock moved in the meantime.
   currentQuantity: number;
   newQuantity: number; // always in base units
   notes?: string;
@@ -22,10 +39,15 @@ export interface AdjustmentItem {
   conversionFactor?: number;
   purchaseUnitName?: string;
   baseUnitName?: string;
-  // Expiry-batch capture (only for expiry-tracked products on a stock increase)
+  // Expiry-batch capture (only for expiry-tracked products on a stock increase).
+  // `expiryDate` opens a new lot; `batchId` adds into an existing one — never both.
   hasExpiry?: boolean;
   expiryDate?: string;
   batchNumber?: string;
+  batchId?: string;
+  // Which lots a decrease of an expiry-tracked product comes out of. Must sum to
+  // currentQuantity - newQuantity.
+  batchDraws?: BatchDraw[];
 }
 
 /** Which unit a UOM product's quantity input opens in by default. */
@@ -89,5 +111,13 @@ export const useStockAdjustmentStore = create<StockAdjustmentStore>()(persist(
   }),
   {
     name: 'stock-adjustment-storage', // localStorage key
+    // v2 added the per-row `locationId`. Rows persisted before it have none, so
+    // they can never match the active location — drop them instead of leaving an
+    // un-submittable list behind.
+    version: 2,
+    migrate: (persisted) => ({
+      ...(persisted as StockAdjustmentStore),
+      items: [],
+    }),
   }
 ));

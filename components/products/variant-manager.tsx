@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { selectOptions } from "@/services/api/select-options";
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useWatch } from 'react-hook-form'
 import { Button } from '@ui/components/button'

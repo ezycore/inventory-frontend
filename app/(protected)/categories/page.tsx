@@ -11,6 +11,7 @@ import CategoryCardView from '@/components/categories/cardview'
 import CategoryCardLoading from '@/components/categories/card-loading'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
 import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
+import { useVatGatedFormConfig } from '@/hooks/use-vat-gated-form-config'
 import { useCreateCategory, useUpdateCategory, useDeleteCategory, useCategoryStats } from '@/services/api'
 import { categoriesApi } from '@/services/api'
 import { queryKeys } from '@/services/api/query-keys'
@@ -22,7 +23,7 @@ import MountingHandler from '@/components/MountingHandler'
 import { getCategoryStats, prepareSubmitData } from '@/components/categories/helper'
 import { isVatActive } from '@/lib/feature-utils'
 import { useAuthStore } from '@/services/stores'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Percent } from 'lucide-react'
 import { ApplyVatDialog, type ApplyVatTarget } from '@/components/categories/apply-vat-dialog'
 import type { AppLocale } from '@/i18n/config'
@@ -46,15 +47,8 @@ export default function CategoriesPage() {
   const baseFormConfig = useFilteredFormConfig(getCategoryFormConfig(t), 'category')
   const { user } = useAuthStore()
   // The default-VAT-rate picker only means anything while the org charges VAT.
-  const filteredFormConfig = useMemo(() => {
-    if (isVatActive(user?.organization)) return baseFormConfig
-    return {
-      ...baseFormConfig,
-      fields: (baseFormConfig.fields || []).filter(
-        (field) => field.name !== 'defaultTaxId',
-      ),
-    }
-  }, [baseFormConfig, user?.organization])
+  // Same gate the quick-add "Add New Category" modal runs (useQuickAddModule).
+  const filteredFormConfig = useVatGatedFormConfig(baseFormConfig, 'category')
   const filteredColumns = useFilteredColumns(getCategoryColumns(t), 'category')
   const categoryFilterConfig = getCategoryFilterConfig(t)
   const { data: statsData, isLoading: statsLoading } = useCategoryStats?.() ?? { data: undefined, isLoading: false }

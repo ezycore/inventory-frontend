@@ -14,7 +14,8 @@ import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { Label } from '@/ui/components/label'
 import { NumberField } from '@/ui/components/number-field'
-import { DatePicker } from '@/ui/components/date-picker'
+import { BatchCaptureFields } from '@/components/inventory/adjust/batch-capture-fields'
+import { BatchDrawPicker } from '@/components/inventory/adjust/batch-draw-picker'
 import {
   ArrowLeftRight,
   ClipboardEdit,
@@ -47,10 +48,19 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
     setExpiryDate,
     batchNumber,
     setBatchNumber,
+    batchTarget,
+    setBatchTarget,
+    batchId,
+    setBatchId,
+    batchDraws,
+    setBatchDraws,
     hasUOM,
     computedBaseQuantity,
     showExpiryFields,
+    showBatchDraws,
+    removedQuantity,
     needsCost,
+    isNoChange,
     addedInventoryIds,
     handleProductSelect,
     handleAddOrUpdate,
@@ -259,40 +269,40 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
 
             {/* Expiry batch (expiry-tracked products, on a stock increase) */}
             {showExpiryFields && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg border border-dashed bg-muted/20 p-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="expiryDate">
-                    {t('adjust.expiryDateLabel')}
-                    <span className="text-muted-foreground text-xs ml-2">
-                      {t('adjust.expiryForAddedStock')}
-                    </span>
-                  </Label>
-                  <DatePicker
-                    date={expiryDate || undefined}
-                    onSelect={(d) => setExpiryDate(d ?? '')}
-                    className="h-11"
-                    placeholder={t('adjust.pickExpiryDate')}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="batchNumber">
-                    {t('adjust.batchNumber')}{' '}
-                    <span className="text-muted-foreground text-xs">({t('form.optionalPlaceholder')})</span>
-                  </Label>
-                  <Input
-                    id="batchNumber"
-                    value={batchNumber}
-                    onChange={(e) => setBatchNumber(e.target.value)}
-                    placeholder={t('adjust.batchPlaceholder')}
-                    className="h-11"
-                  />
-                </div>
-              </div>
+              <BatchCaptureFields
+                productId={selectedProduct.productId}
+                variantId={selectedProduct.variantId}
+                target={batchTarget}
+                onTargetChange={setBatchTarget}
+                batchId={batchId}
+                onBatchIdChange={setBatchId}
+                expiryDate={expiryDate}
+                onExpiryDateChange={setExpiryDate}
+                batchNumber={batchNumber}
+                onBatchNumberChange={setBatchNumber}
+              />
+            )}
+
+            {/* Which lots a decrease of an expiry-tracked product comes out of */}
+            {showBatchDraws && (
+              <BatchDrawPicker
+                productId={selectedProduct.productId}
+                variantId={selectedProduct.variantId}
+                draws={batchDraws}
+                onChange={setBatchDraws}
+                removedQuantity={removedQuantity}
+                unitName={selectedProduct.baseUnitName}
+              />
             )}
 
             {/* Action Buttons */}
             <div className="flex items-center gap-3 pt-1">
-              <Button onClick={handleAddOrUpdate} className="gap-2">
+              {/* An unchanged quantity books nothing — the row would be skipped. */}
+              <Button
+                onClick={handleAddOrUpdate}
+                disabled={isNoChange}
+                className="gap-2"
+              >
                 {editingId ? (
                   <>
                     <Pencil className="h-4 w-4" />
@@ -309,6 +319,11 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                 <Button variant="outline" onClick={handleCancelEdit}>
                   {tCommon('cancel')}
                 </Button>
+              )}
+              {isNoChange && (
+                <p className="text-xs text-muted-foreground">
+                  {t('adjust.noChangeError')}
+                </p>
               )}
             </div>
           </>
