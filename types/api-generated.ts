@@ -3305,13 +3305,13 @@ export interface paths {
         };
         /**
          * GET /api/inventory
-         * @description Defined in `src/routes/inventory.routes.ts:19`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:20`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory"];
         put?: never;
         /**
          * POST /api/inventory
-         * @description Defined in `src/routes/inventory.routes.ts:127`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:145`. Requires permission `stock.manage`.
          */
         post: operations["post_api_inventory"];
         delete?: never;
@@ -3329,7 +3329,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/shortlist
-         * @description Defined in `src/routes/inventory.routes.ts:26`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:27`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory_shortlist"];
         put?: never;
@@ -3349,7 +3349,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/analytics/product/:productId
-         * @description Defined in `src/routes/inventory.routes.ts:35`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:36`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory_analytics_product_productId"];
         put?: never;
@@ -3369,7 +3369,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/analytics/item/:inventoryId
-         * @description Defined in `src/routes/inventory.routes.ts:41`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:42`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory_analytics_item_inventoryId"];
         put?: never;
@@ -3389,7 +3389,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/sellable-products
-         * @description Defined in `src/routes/inventory.routes.ts:47`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:48`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory_sellable_products"];
         put?: never;
@@ -3409,7 +3409,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/adjustable-products
-         * @description Defined in `src/routes/inventory.routes.ts:53`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:54`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory_adjustable_products"];
         put?: never;
@@ -3429,7 +3429,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/purchasable-products
-         * @description Defined in `src/routes/inventory.routes.ts:59`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:60`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory_purchasable_products"];
         put?: never;
@@ -3449,7 +3449,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/expiry/expiring
-         * @description Defined in `src/routes/inventory.routes.ts:68`. Requires permission `stock.view`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         * @description Defined in `src/routes/inventory.routes.ts:69`. Requires permission `stock.view`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_expiry_expiring"];
         put?: never;
@@ -3469,11 +3469,31 @@ export interface paths {
         };
         /**
          * GET /api/inventory/expiry/expired
-         * @description Defined in `src/routes/inventory.routes.ts:76`. Requires permission `stock.view`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         * @description Defined in `src/routes/inventory.routes.ts:77`. Requires permission `stock.view`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_expiry_expired"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/batches/{batchId}/assign-expiry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/inventory/batches/:batchId/assign-expiry
+         * @description Defined in `src/routes/inventory.routes.ts:89`. Requires permission `stock.manage`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         */
+        post: operations["post_api_inventory_batches_batchId_assign_expiry"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3489,7 +3509,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/:productId/batches
-         * @description Defined in `src/routes/inventory.routes.ts:84`. Requires permission `stock.view`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         * @description Defined in `src/routes/inventory.routes.ts:103`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory_productId_batches"];
         put?: never;
@@ -3509,7 +3529,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/export
-         * @description Defined in `src/routes/inventory.routes.ts:92`. Requires permission `stock.export`.
+         * @description Defined in `src/routes/inventory.routes.ts:110`. Requires permission `stock.export`.
          */
         get: operations["get_api_inventory_export"];
         put?: never;
@@ -3529,7 +3549,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/export/batch
-         * @description Defined in `src/routes/inventory.routes.ts:99`. Requires permission `stock.export`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         * @description Defined in `src/routes/inventory.routes.ts:117`. Requires permission `stock.export`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_export_batch"];
         put?: never;
@@ -3549,7 +3569,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/import/template
-         * @description Defined in `src/routes/inventory.routes.ts:107`. Requires permission `stock.import`.
+         * @description Defined in `src/routes/inventory.routes.ts:125`. Requires permission `stock.import`.
          */
         get: operations["get_api_inventory_import_template"];
         put?: never;
@@ -3571,7 +3591,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/import
-         * @description Defined in `src/routes/inventory.routes.ts:114`. Requires permission `stock.import`.
+         * @description Defined in `src/routes/inventory.routes.ts:132`. Requires permission `stock.import`.
          */
         post: operations["post_api_inventory_import"];
         delete?: never;
@@ -3589,18 +3609,18 @@ export interface paths {
         };
         /**
          * GET /api/inventory/:id
-         * @description Defined in `src/routes/inventory.routes.ts:121`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:139`. Requires permission `stock.view`.
          */
         get: operations["get_api_inventory_id"];
         /**
          * PUT /api/inventory/:id
-         * @description Defined in `src/routes/inventory.routes.ts:134`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:152`. Requires permission `stock.manage`.
          */
         put: operations["put_api_inventory_id"];
         post?: never;
         /**
          * DELETE /api/inventory/:id
-         * @description Defined in `src/routes/inventory.routes.ts:141`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:159`. Requires permission `stock.manage`.
          */
         delete: operations["delete_api_inventory_id"];
         options?: never;
@@ -3619,7 +3639,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/bulk-delete
-         * @description Defined in `src/routes/inventory.routes.ts:148`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:166`. Requires permission `stock.manage`.
          */
         post: operations["post_api_inventory_bulk_delete"];
         delete?: never;
@@ -3639,7 +3659,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/bulk-adjust
-         * @description Defined in `src/routes/inventory.routes.ts:154`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:172`. Requires permission `stock.manage`.
          */
         post: operations["post_api_inventory_bulk_adjust"];
         delete?: never;
@@ -3659,7 +3679,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/bulk-transfer
-         * @description Defined in `src/routes/inventory.routes.ts:163`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:181`. Requires permission `stock.manage`.
          */
         post: operations["post_api_inventory_bulk_transfer"];
         delete?: never;
@@ -6411,6 +6431,7 @@ export interface components {
                 /** @enum {string} */
                 type: "percentage" | "fixed";
             };
+            totalDue?: number;
         };
         Location: {
             _id: string;
@@ -6576,6 +6597,13 @@ export interface components {
             purchaseUnitName?: string;
             baseUnitName?: string;
         };
+        AssignBatchExpiry: {
+            batchId: string;
+            quantity: number;
+            /** Format: date-time */
+            expiryDate: string | null;
+            sourceRemaining: number;
+        };
         BulkOperationResult: {
             success: boolean;
             total: number;
@@ -6678,9 +6706,9 @@ export interface components {
         ProductBatch: {
             _id: string;
             organizationId: string;
-            batchNumber?: string;
+            batchNumber?: string | null;
             /** Format: date-time */
-            expiryDate: string;
+            expiryDate: string | null;
             /** Format: date-time */
             manufactureDate?: string;
             receivedQuantity: number;
@@ -6746,9 +6774,9 @@ export interface components {
         StockBatch: {
             _id: string;
             organizationId: string;
-            batchNumber?: string;
+            batchNumber?: string | null;
             /** Format: date-time */
-            expiryDate: string;
+            expiryDate: string | null;
             /** Format: date-time */
             manufactureDate?: string;
             receivedQuantity: number;
@@ -21220,6 +21248,7 @@ export interface operations {
                     items: {
                         productId: string;
                         variantId?: string;
+                        inventoryId?: string;
                         receivedQuantity: number;
                         /** Format: date-time */
                         expiryDate?: string;
@@ -23567,6 +23596,80 @@ export interface operations {
             };
         };
     };
+    post_api_inventory_batches_batchId_assign_expiry: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                batchId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    quantity: number;
+                    /** Format: date-time */
+                    expiryDate: string;
+                    /** Format: date-time */
+                    manufactureDate?: string;
+                    batchNumber?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["AssignBatchExpiry"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_inventory_productId_batches: {
         parameters: {
             query?: never;
@@ -23601,7 +23704,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied, or the required organization feature is disabled */
+            /** @description Permission denied */
             403: {
                 headers: {
                     [name: string]: unknown;

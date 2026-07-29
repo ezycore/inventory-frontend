@@ -52,6 +52,7 @@
     "source": "উৎস",
     "sourceStorefront": "স্টোরফ্রন্ট",
     "sourceManual": "ম্যানুয়াল",
+    "due": "বকেয়া",
     "creditBalance": "ক্রেডিট ব্যালেন্স",
     "createdDate": "তৈরির তারিখ",
     "updatedDate": "আপডেটের তারিখ"
@@ -107,6 +108,23 @@
     "available": "আছে: {amount}",
     "notesOptional": "নোট (ঐচ্ছিক)",
     "notesPlaceholder": "নোট যোগ করুন..."
+  },
+  "bulkPayment": {
+    "receivePayment": "পেমেন্ট গ্রহণ",
+    "receivePaymentTitle": "পেমেন্ট গ্রহণ",
+    "receivePaymentDescription": "একটি পেমেন্টে একাধিক চালান পরিশোধ করুন",
+    "openInvoices": "বকেয়া চালান",
+    "totalOutstanding": "মোট বকেয়া",
+    "allocation": "বণ্টন",
+    "autoAllocate": "স্বয়ংক্রিয় বণ্টন",
+    "invoiceColumn": "চালান",
+    "allocatedColumn": "বণ্টিত",
+    "dueOf": "বাকি {amount}",
+    "settled": "পরিশোধিত",
+    "unallocated": "অবণ্টিত",
+    "overAllocated": "অতিরিক্ত বণ্টন",
+    "receiptNumber": "রসিদ {number}",
+    "invoicesCovered": "{count}টি চালান"
   },
   "emailStatement": {
     "button": "ইমেইল",

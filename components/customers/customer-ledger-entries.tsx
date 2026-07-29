@@ -21,6 +21,8 @@ import type {
   CustomerLedgerReturn,
   CustomerLedgerSale,
 } from "@/types";
+import type { CustomerLedgerReceiptGroup } from "./group-ledger-payments";
+import { LedgerReceiptEntry } from "./ledger-receipt-entry";
 
 /** Status → badge variant + `customers.ledger.status*` message key. */
 const statusConfig: Record<
@@ -36,6 +38,7 @@ const statusConfig: Record<
 export type LedgerEntry =
   | { type: "sale"; data: CustomerLedgerSale; date: Date }
   | { type: "payment"; data: CustomerLedgerPayment; date: Date }
+  | { type: "receipt"; data: CustomerLedgerReceiptGroup; date: Date }
   | { type: "return"; data: CustomerLedgerReturn; date: Date }
   | { type: "inboundCredit"; data: CustomerLedgerInboundCredit; date: Date };
 
@@ -76,7 +79,9 @@ export function CustomerLedgerEntries({
                   ? entry.data._id
                   : entry.type === "inboundCredit"
                     ? entry.data.returnId
-                    : entry.data._id;
+                    : entry.type === "receipt"
+                      ? entry.data.receiptNumber
+                      : entry.data._id;
             return (
               <div
                 key={`${entry.type}-${keyId}-${index}`}
@@ -97,6 +102,13 @@ export function CustomerLedgerEntries({
                     date={entry.date}
                     formatCurrency={formatCurrency}
                     onOpenSale={onOpenSale}
+                    t={t}
+                  />
+                ) : entry.type === "receipt" ? (
+                  <LedgerReceiptEntry
+                    data={entry.data}
+                    date={entry.date}
+                    formatCurrency={formatCurrency}
                     t={t}
                   />
                 ) : entry.type === "return" ? (
