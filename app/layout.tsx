@@ -22,7 +22,10 @@ const notoSansBengali = Noto_Sans_Bengali({
 });
 
 export const metadata = {
-  title: `${BRAND.name} - Inventory Management System`,
+  // The signed-in app overrides this per page with "<Page> · <Organization>"
+  // (useOrgDocumentTitle) — the org name lives in the client auth store, so it
+  // can't be resolved here. Public/auth routes keep this default.
+  title: BRAND.documentTitle,
   description: "Modern inventory management system for businesses",
   // NOTE: deliberately NO `icons` here. The default favicon is served as the
   // static file `public/favicon.ico` (the browser's implicit request), which

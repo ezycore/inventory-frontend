@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import { useSelectOptions } from "@/services/api";
+import { deriveLinePricing } from "./helpers";
 
 // ---------- Types ----------
 
@@ -49,7 +50,14 @@ interface ShortlistLocation {
 export interface ShortlistItem {
   _id: string;
   productId: string;
-  variantId?: string;
+  variantId?: string | null;
+  /**
+   * The variant's attributes, flattened onto the row by the inventory list
+   * transform (`transformInventory` spreads `variantOverrides` at the top
+   * level). There is no nested `variant` object on this response — reading one
+   * is what silently dropped the variant off every imported line.
+   */
+  attributes?: Record<string, unknown> | null;
   name: string;
   productType: string;
   price?: number;
@@ -178,15 +186,24 @@ function getDefaultOrderQty(item: ShortlistItem): number {
   return Math.max(1, Math.ceil(neededQty / conversionFactor));
 }
 
+/** Attributes of the row's variant, whichever shape the response carries them in. */
+function getVariantAttributes(item: ShortlistItem): Record<string, unknown> | null {
+  return item.attributes ?? item.variant?.attributes ?? null;
+}
+
+/**
+ * `"Pantonix - Gastic Strength: 40"` — the same string the purchasable-products
+ * picker builds server-side (`inventory.service.getPurchasableProducts`), so a
+ * line reads identically whether it was imported here or added by hand.
+ */
 function getProductDisplayName(item: ShortlistItem, fallbackName: string): string {
   const name = item.name || fallbackName;
-  if (item.variant?.attributes) {
-    const attrs = Object.entries(item.variant.attributes)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(", ");
-    if (attrs) return `${name} (${attrs})`;
-  }
-  return name;
+  const attributes = getVariantAttributes(item);
+  if (!attributes) return name;
+  const attrs = Object.entries(attributes)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(", ");
+  return attrs ? `${name} - ${attrs}` : name;
 }
 
 // ---------- Component ----------
@@ -323,8 +340,9 @@ export function ImportLowStockDialog({
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const productName = item.name?.toLowerCase() || "";
-        const variantAttrs = item.variant?.attributes
-          ? Object.values(item.variant.attributes).join(" ").toLowerCase()
+        const attributes = getVariantAttributes(item);
+        const variantAttrs = attributes
+          ? Object.values(attributes).join(" ").toLowerCase()
           : "";
         const locationName = item.location?.name?.toLowerCase() || "";
         if (
@@ -385,24 +403,20 @@ export function ImportLowStockDialog({
       const conversionFactor = item.purchaseUnit?.conversionFactor || 1;
       const quantity = orderQuantities[item._id] || getDefaultOrderQty(item);
 
-      // price = item.price * conversionFactor
-      const price = (item.price ?? 0) * conversionFactor;
-
-      // discount from local discount settings
-      const discount =
-        discountType === "percentage"
-          ? (price * discountValue) / 100
-          : discountValue;
-
-      // costPrice = price - discount
-      const costPrice = Math.max(0, price - discount);
+      // price = item.price * conversionFactor, then price/discount/costPrice
+      // rounded to 2dp exactly as the manual add-product form does.
+      const { price, discount, costPrice } = deriveLinePricing(
+        (item.price ?? 0) * conversionFactor,
+        discountType,
+        discountValue,
+      );
 
       const convertedQuantity = quantity * conversionFactor;
       const total = convertedQuantity * costPrice;
       return {
         inventoryId: item._id,
         productId: item.productId || "",
-        variantId: item.variant?._id || null,
+        variantId: item.variantId || item.variant?._id || null,
         productName: getProductDisplayName(item, t("unknownProduct")),
         quantity,
         price,

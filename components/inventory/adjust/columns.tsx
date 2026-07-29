@@ -23,6 +23,8 @@ interface AdjustmentColumnOptions {
   onRemove: (id: string) => void
   /** Bound to the `inventory` namespace. */
   t: Translator
+  /** `org.features.expiryTracking` — adds the Batches column. */
+  expiryEnabled?: boolean
 }
 
 export function getAdjustmentColumns({
@@ -30,6 +32,7 @@ export function getAdjustmentColumns({
   onEdit,
   onRemove,
   t,
+  expiryEnabled,
 }: AdjustmentColumnOptions): ColumnDef<AdjustmentItem>[] {
   return [
     {
@@ -126,6 +129,61 @@ export function getAdjustmentColumns({
         )
       },
     },
+    // Only when the org has expiry tracking — otherwise no row can carry a lot
+    // and the column would be a wall of dashes.
+    ...(expiryEnabled
+      ? [{
+      id: 'batches',
+      header: t('adjust.colBatches'),
+      cell: ({ row }: { row: { original: AdjustmentItem } }) => {
+        const item = row.original
+        if (!item.hasExpiry) {
+          return <span className="text-muted-foreground">—</span>
+        }
+        // A decrease names the lots it drew from; an increase names the one lot
+        // it landed in (an existing pick, or the new one its expiry opens).
+        if (item.batchDraws?.length) {
+          return (
+            <div className="space-y-0.5">
+              {item.batchDraws.map((draw) => (
+                <div key={draw.batchId} className="text-xs whitespace-nowrap">
+                  <span className="tabular-nums font-medium">
+                    {draw.quantity}
+                  </span>{' '}
+                  <span className="text-muted-foreground">
+                    {draw.batchNumber || t('adjust.batchUnlabelled')}
+                  </span>
+                  {draw.expired && (
+                    <Badge
+                      variant="outline"
+                      className="ml-1 px-1 py-0 text-[10px] text-red-500"
+                    >
+                      {t('adjust.batchExpired')}
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        }
+        if (item.batchId) {
+          return (
+            <span className="text-xs text-muted-foreground">
+              {item.batchNumber || t('adjust.batchExistingShort')}
+            </span>
+          )
+        }
+        if (item.expiryDate) {
+          return (
+            <span className="text-xs text-muted-foreground">
+              {t('adjust.batchNewShort')}
+            </span>
+          )
+        }
+        return <span className="text-muted-foreground">—</span>
+      },
+    }]
+      : []),
     {
       accessorKey: 'notes',
       header: t('shared.notes'),

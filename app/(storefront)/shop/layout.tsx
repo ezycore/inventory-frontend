@@ -31,6 +31,12 @@ export default async function ShopLayout({
   if (!slug) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-2 p-6 text-center">
+        {/* This branch still answers HTTP 200 (a layout cannot set a status), so
+            without an explicit noindex an unpublished or unknown store would be
+            indexed as a soft 404 on every one of its URLs. React 19 hoists this
+            into <head>. A real 404 status is the fuller fix — it needs the owner
+            sign-in affordance in shop/page.tsx to move first. */}
+        <meta name="robots" content="noindex, nofollow" />
         <h1 className="text-xl font-semibold">Store unavailable</h1>
         <p className="text-sm text-gray-500">
           This store doesn&apos;t exist or isn&apos;t published yet.

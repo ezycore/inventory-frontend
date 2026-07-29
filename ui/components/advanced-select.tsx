@@ -19,9 +19,9 @@
  * - ➕ Quick-add modal for creating new options inline
  */
 
-import { quickAddConfig } from "@/config/quickAddConfig";
 import { useSelectOptions } from "@/services/api";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
+import { useQuickAddModule } from "@/hooks/use-quick-add-module";
 import DynamicForm from "@/ui/components/form";
 import type { SelectOption, FieldDependencyConfig } from "@/ui/components/form/type";
 import { useQueryClient } from "@tanstack/react-query";
@@ -121,9 +121,9 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   // Guards the one-time default auto-select so we never override the user.
   const defaultAppliedRef = useRef(false);
   const queryClient = useQueryClient();
-  // Get quick-add config if creatable
-  const moduleConfig =
-    creatable && quickAddModule ? quickAddConfig[quickAddModule] : null;
+  // Get quick-add config if creatable (feature-gated: e.g. no VAT fields while
+  // the org doesn't charge VAT)
+  const moduleConfig = useQuickAddModule(creatable, quickAddModule);
   const { form } = useDynamicForm(moduleConfig?.formConfig || { fields: [] });
   const createMutation = moduleConfig?.useMutation();
 

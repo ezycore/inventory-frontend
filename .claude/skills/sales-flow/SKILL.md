@@ -66,10 +66,16 @@ Customers list ──► CustomerLedgerSheet ──► header: opening / sales /
 | [components/sales/returns/use-refund-allocation.ts](../../../components/sales/returns/use-refund-allocation.ts) | `adjustSaleDue` / `adjustOtherDues` / `accountRefund` allocation state + remaining math |
 | [components/shared/returns/refund-allocation-card.tsx](../../../components/shared/returns/refund-allocation-card.tsx) | Shared card with optional `showCustomerCredit` slot (sales only) |
 | [components/shared/returns/return-details-sheet.tsx](../../../components/shared/returns/return-details-sheet.tsx) | Shared return sheet w/ reconciliation block (4-part allocation); copy-icon on cross-invoice refs via `CopyableRef` |
-| [components/customers/customer-ledger-sheet.tsx](../../../components/customers/customer-ledger-sheet.tsx) | Thin orchestrator (~210 lines) — owns ledger query, payment form state, pagination; composes the 3 sub-components below. |
+| [components/customers/customer-ledger-sheet.tsx](../../../components/customers/customer-ledger-sheet.tsx) | Thin orchestrator — owns ledger query, pagination and a `mode` of `"ledger" | "invoice" | "bulk"`; composes the sub-components below. `bulk` is the customer-level receipt (§4b of the BE skill) and is the only mode that fetches `useCustomerOutstanding`. |
 | [components/customers/customer-ledger-summary.tsx](../../../components/customers/customer-ledger-summary.tsx) | 4-stat header (Total Paid / Total Due / Refunded+credit / Store Credit); returns null when accounts disabled |
-| [components/customers/customer-ledger-entries.tsx](../../../components/customers/customer-ledger-entries.tsx) | Per-entry renderers (sale w/ Pay Due / inboundCredit / return / cashRefund / payment); exports `LedgerEntry` discriminated union |
-| [components/customers/customer-payment-form.tsx](../../../components/customers/customer-payment-form.tsx) | In-sheet payment form w/ sale mini-card, credit toggle, Cancel returns to ledger view |
+| [components/customers/customer-ledger-entries.tsx](../../../components/customers/customer-ledger-entries.tsx) | Per-entry renderers (sale w/ Pay Due / inboundCredit / return / cashRefund / payment / receipt); exports `LedgerEntry` discriminated union |
+| [components/customers/ledger-receipt-entry.tsx](../../../components/customers/ledger-receipt-entry.tsx) | One multi-invoice receipt row — total collapsed, expands to the per-invoice split |
+| [components/customers/group-ledger-payments.ts](../../../components/customers/group-ledger-payments.ts) | `groupLedgerPayments` — folds payment rows sharing a `receiptNumber` into one `receipt` entry; rows without one pass through |
+| [components/customers/customer-payment-form.tsx](../../../components/customers/customer-payment-form.tsx) | In-sheet **single-invoice** payment form w/ sale mini-card; Cancel returns to ledger view |
+| [components/customers/customer-bulk-payment-form.tsx](../../../components/customers/customer-bulk-payment-form.tsx) | **Receive Payment** — one amount across many invoices; blocks submit while anything is unallocated |
+| [components/customers/payment-allocation-table.tsx](../../../components/customers/payment-allocation-table.tsx) | Per-invoice split rows (checkbox + editable amount), oldest first |
+| [components/customers/use-bulk-payment-allocation.ts](../../../components/customers/use-bulk-payment-allocation.ts) | Allocation state. Auto mode mirrors the server's oldest-first fill; touching a row flips to manual and the split is sent with `autoAllocate: false` |
+| [components/customers/payment-source-fields.tsx](../../../components/customers/payment-source-fields.tsx) | **Shared** amount + account select + store-credit toggle + notes — used by BOTH payment forms. Do not re-inline these fields. |
 | [components/customers/columns.tsx](../../../components/customers/columns.tsx) | Customers list — includes `creditBalance` column (blue when > 0). Parity with suppliers list. |
 
 ### API
@@ -79,8 +85,8 @@ Customers list ──► CustomerLedgerSheet ──► header: opening / sales /
 | [services/api/modules/sales-orders/hooks.ts](../../../services/api/modules/sales-orders/hooks.ts) | `useSales`, `useSalePayments`, `useSaleTransactions`, `useAddSalePayment` |
 | [services/api/modules/sales-returns/api.ts](../../../services/api/modules/sales-returns/api.ts) | Sales return fetchers |
 | [services/api/modules/sales-returns/hooks.ts](../../../services/api/modules/sales-returns/hooks.ts) | `useSalesReturns`, `useSaleReturns`, `useCustomerPendingDues`, `useCreateSalesReturn` |
-| [services/api/modules/customers/api.ts](../../../services/api/modules/customers/api.ts) | `getLedger(customerId)` returns `{ sales, payments, returns, inboundCredits, creditBalance, page, limit, total, totalPages, hasNext, hasPrev }` |
-| [services/api/modules/customers/hooks.ts](../../../services/api/modules/customers/hooks.ts) | `useCustomerLedger` |
+| [services/api/modules/customers/api.ts](../../../services/api/modules/customers/api.ts) | `getLedger(customerId)` returns `{ sales, payments, returns, inboundCredits, creditBalance, page, limit, total, totalPages, hasNext, hasPrev }`; `getOutstanding(customerId)` returns `{ sales, totalDue, creditBalance }`; `receivePayment(customerId, dto)` |
+| [services/api/modules/customers/hooks.ts](../../../services/api/modules/customers/hooks.ts) | `useCustomerLedger`, `useCustomerOutstanding` (staleTime 0 — the preview must match the live dues), `useReceiveCustomerPayment` (spreads `sale.paid`) |
 
 ### Types
 | File | Purpose |

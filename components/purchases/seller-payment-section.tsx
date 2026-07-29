@@ -208,6 +208,7 @@ export function SellerPaymentSection({
               onChange={(v) => updatePayment(accountId, v ?? 0)}
               placeholder="0.00"
               className="h-9 text-sm"
+              defaultValue={seller.purchaseType === "instant" ? netAmount - creditApplied : 0}
             />
           </div>
         </div>

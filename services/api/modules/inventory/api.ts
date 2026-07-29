@@ -1,7 +1,7 @@
 // coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
-import type { ApiInventory } from "@/types/api";
+import type { ApiInventory, ProductBatch } from "@/types/api";
 import { buildQueryParams, type BaseFilters } from "../../utils";
 import { createImportApi } from "../import-api";
 import type { ProductAnalytics, InventoryAnalytics } from "./analytics.types";
@@ -112,13 +112,32 @@ export const inventoryApi = {
   ): Promise<ApiResponse<PaginatedResponse<any>>> =>
     apiClient.get(`/inventory/expiry/expired${buildQueryParams(filters)}`),
 
+  // In-stock batches for one product, FEFO-ordered (soonest expiry first) and
+  // scoped to the active location server-side. Drives the adjust-stock batch
+  // draw picker, so the order is contractual — do not re-sort on the client.
   getProductBatches: (
     productId: string,
     filters: { variantId?: string } = {},
-  ): Promise<ApiResponse<any>> =>
+  ): Promise<ApiResponse<ProductBatch[]>> =>
     apiClient.get(
       `/inventory/${productId}/batches${buildQueryParams(filters)}`,
     ),
+
+  /**
+   * Move part or all of an unknown-expiry lot into a dated one. Nothing moves
+   * off the shelf: `Inventory.quantity` is unchanged and no stock movement is
+   * written — the same units simply stop being described as undated.
+   */
+  assignBatchExpiry: (
+    batchId: string,
+    data: {
+      quantity: number
+      expiryDate: string
+      batchNumber?: string
+      manufactureDate?: string
+    },
+  ): Promise<ApiResponse<any>> =>
+    apiClient.post(`/inventory/batches/${batchId}/assign-expiry`, data),
 
   // Analytics (read-only) — powers the product- and inventory-detail pages.
   getProductAnalytics: (

@@ -7,6 +7,10 @@ import {
 } from "@/lib/storefront-server";
 import { getStoreContext } from "@/lib/storefront-host";
 import { adminUrlForDomain } from "@/lib/admin-url";
+import { storeJsonLd } from "@/lib/storefront-jsonld";
+import { canonicalTarget } from "@/lib/storefront-canonical";
+import { JsonLd } from "@/components/storefront/json-ld";
+import { storeHref } from "@/lib/storefront-links";
 import { StoreHome } from "@/components/storefront/store-home";
 
 // Host-resolved (dynamic render); product/store data is cached via the
@@ -41,7 +45,11 @@ export async function generateMetadata(): Promise<Metadata> {
   const description =
     store.seo?.description || `Shop ${store.name} online — order with delivery.`;
   const image = store.banner?.url || store.logo?.url;
-  const canonical = origin ? `${origin}${base || "/"}` : undefined;
+  // Custom domain wins over the serving host — see lib/storefront-canonical.ts.
+  const target = canonicalTarget(store, { origin, base });
+  const canonical = target.origin
+    ? `${target.origin}${target.base || "/"}`
+    : undefined;
   return {
     title,
     description,
@@ -76,14 +84,29 @@ export default async function StoreHomePage() {
 
   if (!store) return <Unavailable adminUrl={adminUrl} />;
 
+  // JSON-LD `url` must agree with the canonical, or the Organization node claims
+  // a different home page than the <link rel="canonical"> on the same document.
+  const home = canonicalTarget(store, { origin, base });
+  const canonicalHome = home.origin
+    ? `${home.origin}${storeHref(home.base)}`
+    : "";
+
   return (
-    <StoreHome
-      base={base}
-      store={store}
-      featured={featured?.items ?? []}
-      latest={latest?.items ?? []}
-      categories={categories ?? []}
-      campaigns={campaigns ?? []}
-    />
+    <>
+      {/* Ties the shop to its logo, contact details and social profiles — the
+          basis of a brand/knowledge-panel result. Emitted on the home page only:
+          one Organization node per site, not per page. */}
+      {canonicalHome ? (
+        <JsonLd data={storeJsonLd({ store, url: canonicalHome })} />
+      ) : null}
+      <StoreHome
+        base={base}
+        store={store}
+        featured={featured?.items ?? []}
+        latest={latest?.items ?? []}
+        categories={categories ?? []}
+        campaigns={campaigns ?? []}
+      />
+    </>
   );
 }
