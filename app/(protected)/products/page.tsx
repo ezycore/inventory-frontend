@@ -19,7 +19,7 @@ import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/services
 import { Sheet, SheetContent } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
 import { FieldSettingsLink } from '@/components/shared/field-settings-link'
-import { useFilteredFormConfig, useFilteredColumns } from '@/hooks/use-filters'
+import { useFilteredFormConfig, useFilteredColumns, useFeatureGatedColumns } from '@/hooks/use-filters'
 import { useVatGatedFormConfig } from '@/hooks/use-vat-gated-form-config'
 import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
@@ -48,6 +48,9 @@ export default function ProductsPage() {
   const [viewMode, setViewMode, isMounted] = useViewMode('products')
   const filteredFormConfig = useFilteredFormConfig(getProductFormConfig(t), 'product')
   const filteredColumns = useFilteredColumns(getProductColumns(t), 'product')
+  // Feature-gated full list: barcode is stripped when the org has no barcode
+  // system, so the "manage columns" picker can't bring it back.
+  const fullProductColumns = useFeatureGatedColumns(getProductColumns(t), 'product')
   const productFilterConfig = getProductFilterConfig(t)
   const { data: statsData, isLoading: statsLoading } = useProductStats()
   const { user, activeLocationId } = useAuthStore();
@@ -204,7 +207,7 @@ export default function ProductsPage() {
         <DataTable
           cardTitle={t("page.allProductsTitle")}
           columns={filteredColumns}
-          fullColumns={getProductColumns(t)}
+          fullColumns={fullProductColumns}
           selectable={true}
           manageColumns={true}
           module="product"
