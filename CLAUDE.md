@@ -94,7 +94,7 @@ posted documents stay immutable by design, not for the sake of old rows.
 ```bash
 pnpm dev          # Start dev server with Turbopack
 pnpm build        # Production build
-pnpm lint         # ESLint (no warnings allowed)
+pnpm lint         # ESLint — errors fail the run; warnings do not (--max-warnings=-1)
 pnpm lint:fix     # ESLint with auto-fix
 pnpm typecheck    # TypeScript type check (tsc --noEmit)
 pnpm test         # Run tests once (Vitest)
@@ -153,10 +153,20 @@ no fourth: `services/api/query-keys.ts` (every key), `services/api/invalidation.
 event dirties), `services/api/select-options.ts` (every `<select>` endpoint + its cache root). The
 invariant: **every key a resource owns starts with its `all()`**, so one
 `invalidateQueries({ queryKey: queryKeys.<r>.all() })` flushes the whole resource — lists, details,
-stats and dropdowns. Never inline a key array (ESLint rejects it); never hand-list another resource's
-keys in a mutation (declare an event instead). Enforced by `pnpm lint` and
-`services/api/__tests__/invalidation.test.ts`, both in CI. Background:
-`docs/plan/query-invalidation.md`.
+stats and dropdowns. Never inline a key array; never hand-list another resource's keys in a mutation
+(declare an event instead).
+
+Enforcement is deliberately two-tier (`eslint.config.mjs`), and only the hard tier can fail a build:
+
+- **Hard — errors.** Inlining a key array is `no-restricted-syntax`, so `pnpm lint` rejects it. The
+  mutation-coverage test `services/api/__tests__/invalidation.test.ts` is the other hard gate.
+- **Soft — warnings.** The `query-cache/*` rules (`no-blanket-invalidate`, `no-cross-resource-invalidate`,
+  `no-raw-shopper-logout`) are `warn` on purpose: each is usually wrong and occasionally right, so they
+  ask for an `eslint-disable-next-line` **with a reason** rather than refusing. Since `pnpm lint` runs
+  `--max-warnings=-1`, these **do not** fail lint or CI — a violation is a message, not a gate. Read
+  them; don't assume a green lint means none fired.
+
+Background: `docs/plan/query-invalidation.md`.
 
 ### API response types are generated from the backend (single source of truth)
 

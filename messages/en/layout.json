@@ -89,5 +89,11 @@
     "tooltip": "Help for this screen",
     "subtitle": "Step-by-step guides for running your shop.",
     "allTopics": "All help topics"
+  },
+  "locationSwitcher": {
+    "title": "Select Location",
+    "subtitle": "Choose your active location for operations",
+    "switched": "Switched to location: {name}",
+    "switchFailed": "Failed to switch location"
   }
 }

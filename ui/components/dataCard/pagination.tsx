@@ -155,8 +155,8 @@ export function DataCardPagination({
               className={cn(
                 "min-w-[36px] px-3 py-1.5 text-sm rounded-lg transition-colors",
                 currentPage === page
-                  ? "bg-blue-600 text-white font-medium shadow-sm"
-                  : "hover:bg-gray-100 text-gray-700"
+                  ? "bg-primary text-primary-foreground font-medium shadow-sm"
+                  : "hover:bg-muted text-muted-foreground"
               )}
             >
               {page}
