@@ -1,13 +1,9 @@
 // coding-standard: maintained
 import { Inventory } from "@/types";
-import {
-  Package,
-  AlertTriangle,
-  RefreshCw,
-  PackageX,
-} from "lucide-react";
 
-// Helper: Get stock level color and status key (inventory.stockLevel.* message key)
+// Helper: Get stock level color and status key (inventory.stockLevel.* message key).
+// Colours ramp destructive → warning → yellow → success. Never chart-*: that ramp
+// is a monochrome cyan brand scale, so it made "Low Stock" render as light blue.
 export const getStockLevelInfo = (quantity: number, alertLevel: number) => {
   if (quantity === 0) {
     return {
@@ -21,55 +17,28 @@ export const getStockLevelInfo = (quantity: number, alertLevel: number) => {
   if (quantity <= alertLevel) {
     return {
       statusKey: "lowStock" as const,
-      color: "text-chart-1",
-      bgColor: "bg-chart-1/10",
-      progressColor: "bg-chart-1",
+      color: "text-warning",
+      bgColor: "bg-warning/10",
+      progressColor: "bg-warning",
       variant: "secondary" as const,
     };
   }
   if (quantity <= alertLevel * 1.5) {
     return {
       statusKey: "warning" as const,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50",
+      color: "text-yellow-600 dark:text-yellow-400",
+      bgColor: "bg-yellow-500/10",
       progressColor: "bg-yellow-500",
       variant: "secondary" as const,
     };
   }
   return {
     statusKey: "healthy" as const,
-    color: "text-chart-2",
-    bgColor: "bg-chart-2/10",
-    progressColor: "bg-chart-2",
+    color: "text-success",
+    bgColor: "bg-success/10",
+    progressColor: "bg-success",
     variant: "default" as const,
   };
-};
-
-// Helper: Get restock status info (normal, ordered, hidden)
-export const getRestockInfo = (restockStatus: string) => {
-  switch (restockStatus) {
-    case "ordered":
-      return {
-        label: "Ordered",
-        color: "text-chart-4",
-        bgColor: "bg-chart-4/10 border-chart-4/20",
-        icon: RefreshCw,
-      };
-    case "hidden":
-      return {
-        label: "Hidden",
-        color: "text-muted-foreground",
-        bgColor: "bg-muted/50 border-muted",
-        icon: PackageX,
-      };
-    default: // normal
-      return {
-        label: "Normal",
-        color: "text-chart-2",
-        bgColor: "bg-chart-2/10 border-chart-2/20",
-        icon: Package,
-      };
-  }
 };
 
 // Prepare data for submit (create/update)

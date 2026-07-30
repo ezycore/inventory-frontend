@@ -164,7 +164,7 @@ function getShortlistColumns(t: Translator): ColumnDef<ShortlistItem>[] {
                   className={
                     isCritical
                       ? "text-destructive font-bold"
-                      : "text-chart-1 font-semibold"
+                      : "text-warning font-semibold"
                   }
                 >
                   {quantity} {unitName}
@@ -234,7 +234,7 @@ function getShortlistColumns(t: Translator): ColumnDef<ShortlistItem>[] {
         }
         if (ratio < 0.5) {
           return (
-            <Badge className="bg-chart-1/10 text-chart-1 border-chart-1/20 gap-1">
+            <Badge className="bg-warning/10 text-warning border-warning/20 gap-1">
               <AlertTriangle className="h-3 w-3" />
               {t("lowstock.urgencyHigh")}
             </Badge>
@@ -330,7 +330,7 @@ export default function LowStock() {
           row.quantity === 0
             ? "bg-destructive/5"
             : row.isLowStock
-              ? "bg-chart-1/5"
+              ? "bg-warning/5"
               : ""
         }
         operations={{

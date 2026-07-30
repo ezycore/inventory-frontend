@@ -94,7 +94,7 @@ posted documents stay immutable by design, not for the sake of old rows.
 ```bash
 pnpm dev          # Start dev server with Turbopack
 pnpm build        # Production build
-pnpm lint         # ESLint (no warnings allowed)
+pnpm lint         # ESLint — errors fail the run; warnings do not (--max-warnings=-1)
 pnpm lint:fix     # ESLint with auto-fix
 pnpm typecheck    # TypeScript type check (tsc --noEmit)
 pnpm test         # Run tests once (Vitest)
@@ -153,10 +153,20 @@ no fourth: `services/api/query-keys.ts` (every key), `services/api/invalidation.
 event dirties), `services/api/select-options.ts` (every `<select>` endpoint + its cache root). The
 invariant: **every key a resource owns starts with its `all()`**, so one
 `invalidateQueries({ queryKey: queryKeys.<r>.all() })` flushes the whole resource — lists, details,
-stats and dropdowns. Never inline a key array (ESLint rejects it); never hand-list another resource's
-keys in a mutation (declare an event instead). Enforced by `pnpm lint` and
-`services/api/__tests__/invalidation.test.ts`, both in CI. Background:
-`docs/plan/query-invalidation.md`.
+stats and dropdowns. Never inline a key array; never hand-list another resource's keys in a mutation
+(declare an event instead).
+
+Enforcement is deliberately two-tier (`eslint.config.mjs`), and only the hard tier can fail a build:
+
+- **Hard — errors.** Inlining a key array is `no-restricted-syntax`, so `pnpm lint` rejects it. The
+  mutation-coverage test `services/api/__tests__/invalidation.test.ts` is the other hard gate.
+- **Soft — warnings.** The `query-cache/*` rules (`no-blanket-invalidate`, `no-cross-resource-invalidate`,
+  `no-raw-shopper-logout`) are `warn` on purpose: each is usually wrong and occasionally right, so they
+  ask for an `eslint-disable-next-line` **with a reason** rather than refusing. Since `pnpm lint` runs
+  `--max-warnings=-1`, these **do not** fail lint or CI — a violation is a message, not a gate. Read
+  them; don't assume a green lint means none fired.
+
+Background: `docs/plan/query-invalidation.md`.
 
 ### API response types are generated from the backend (single source of truth)
 
@@ -245,8 +255,8 @@ renames the tab, and no page needs its own `metadata`. The storefront titles tab
 own `generateMetadata` (store name). **Do not add `export const metadata` with a title to a page
 under `app/(protected)/`** — it can't see the org and will fight the hook.
 
-Next owns the `<title>` tag, and that cuts both ways — both halves below were verified in a browser,
-because neither shows up in typecheck, lint, or tests:
+Next owns the `<title>` tag, and that cuts three ways — every case below was found in a browser,
+because none of them shows up in typecheck, lint, or tests:
 
 - **Initial load:** Next renders its metadata `<title>` *during hydration*, i.e. after the hook's
   effect. A one-shot `document.title = …` is silently reverted by every fresh load and every
@@ -255,6 +265,17 @@ because neither shows up in typecheck, lint, or tests:
 - **Unmount:** the restore is equally load-bearing — every route resolves to the same root metadata,
   so on a client-side exit React sees no change and would never repaint over our value, stranding a
   workspace title on the login screen.
+- **Navigation:** Next re-asserts root metadata on *every* client-side navigation, which flashed
+  `BRAND.documentTitle` on every sidebar click before the hook could rewrite it. **The root layout
+  therefore has no `title` at all** — same resolution as `metadata.icons`, and for the same reason.
+  Each tree owns its own instead: `(auth)` via its own `metadata`, `(protected)` via a raw `<title>`
+  in the layout JSX that React 19 hoists, the storefront via per-page `generateMetadata`. The
+  protected one renders a **constant** — React only writes the DOM when a rendered value changes, so
+  a constant is written once and then never fights the hook that rewrites its text. It must stay in
+  *both* return branches: SSR renders the `!hydrated` one, so dropping it there leaves the server HTML
+  titleless and the tab shows the raw URL until hydration.
+  **Do not "simplify" this back into root `metadata.title`.** Reaching for a metadata title anywhere
+  above `(protected)` reintroduces the flash, and nothing in typecheck, lint, or tests will catch it.
 
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.

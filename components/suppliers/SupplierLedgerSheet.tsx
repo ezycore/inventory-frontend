@@ -257,7 +257,7 @@ export function SupplierLedgerSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[550px] sm:max-w-[550px] flex flex-col h-full p-0">
+      <SheetContent className="flex h-full w-full flex-col p-0 sm:max-w-[550px]">
         <SheetHeader className="px-6 py-4 border-b">
           <div className="flex items-start justify-between gap-3 pr-8">
             <div className="space-y-1">
@@ -287,7 +287,10 @@ export function SupplierLedgerSheet({
         <div className="flex-1 overflow-hidden flex flex-col">
           {/* Summary Cards */}
           <div className="px-6 py-4 border-b bg-muted/30">
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {/* 2×2, not 4-across: `md:` is a viewport breakpoint, so inside a
+                550px sheet four columns leave ~113px each and clip long
+                currency values. */}
+            <div className="grid grid-cols-2 gap-4">
               {isAccountsEnabled && (
                 <>
                   <div className="space-y-1">

@@ -30,7 +30,9 @@ export function CustomerLedgerSummary({
   if (!isAccountsEnabled) return null;
   return (
     <div className="px-6 py-4 border-b bg-muted/30">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      {/* 2×2, not 4-across: `md:` is a viewport breakpoint, so inside a 550px
+          sheet four columns leave ~113px each and clip long currency values. */}
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground">{t("statTotalPaid")}</p>
           <p className="text-lg font-semibold text-green-600">

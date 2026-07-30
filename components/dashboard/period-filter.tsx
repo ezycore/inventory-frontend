@@ -35,15 +35,17 @@ export function PeriodFilter({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {PERIOD_OPTIONS.map((opt) => (
+        // Selected state is the `default` variant, not hand-rolled classes on
+        // `outline`: that spelling inherited outline's `hover:text-foreground`,
+        // which it never overrode, so hovering the selected pill flipped its
+        // label to near-black on the green fill. Same spelling as
+        // `reports/report-period-filter.tsx` — keep the two in step.
         <Button
           key={opt.value}
-          variant="outline"
+          variant={period === opt.value ? 'default' : 'outline'}
           size="sm"
           onClick={() => setPeriod(opt.value)}
-          className={`text-xs transition-colors ${period === opt.value
-              ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:border-primary'
-              : 'bg-transparent text-foreground border-border hover:bg-accent dark:border-white/20 dark:hover:bg-accent'
-            }`}
+          className="text-xs"
         >
           {opt.value === 'custom' && <Calendar className="h-3 w-3 mr-1" />}
           {tPeriod(opt.labelKey)}

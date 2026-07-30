@@ -1,9 +1,9 @@
 "use client";
+// coding-standard: maintained
 
 import { cn } from "@/ui/lib/utils";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { Skeleton } from "../skeleton";
-import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { ReactNode } from "react";
 
 interface SummaryMetric {
@@ -83,7 +83,7 @@ const SummaryBanner = ({
             const Icon = metric.icon;
             const trendColor =
               metric.trend?.direction === "up"
-                ? "text-chart-2"
+                ? "text-success"
                 : metric.trend?.direction === "down"
                   ? "text-destructive"
                   : "text-muted-foreground";
