@@ -44,6 +44,14 @@ interface StatsCardProps {
     lg?: number;
     xl?: number;
   };
+  /**
+   * Opt-in responsive mode: cards flex-wrap to however many fit the
+   * container's actual width and the last row's cards stretch to fill it —
+   * use instead of `columns` when a fixed-width sidebar makes viewport
+   * breakpoints size columns wrong (a `lg`/`xl` step doesn't reflect how much
+   * width is actually left beside the sidebar). Ignored if `columns` is set.
+   */
+  minCardWidth?: number;
 }
 
 const variantStyles: Record<StatVariant, { bg: string; text: string; icon: string }> = {
@@ -250,8 +258,24 @@ const xlColsMap: Record<number, string> = {
   6: "xl:grid-cols-6",
 };
 
-const StatsCard = ({ data, isLoading, columns }: StatsCardProps) => {
+const StatsCard = ({ data, isLoading, columns, minCardWidth }: StatsCardProps) => {
   if (!data) return null;
+
+  if (!columns && minCardWidth) {
+    return (
+      <div className="flex flex-wrap gap-4">
+        {data.map((stat, index) => (
+          <div
+            key={stat.label + index}
+            className="grow"
+            style={{ flexBasis: minCardWidth }}
+          >
+            <StatCardItem stat={stat} isLoading={isLoading} />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const gridCols = columns || { default: 1, sm: 2, lg: data.length };
   const gridClass = cn(
