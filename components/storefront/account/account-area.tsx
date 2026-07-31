@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/storefront-toast";
 import type { ShopperProfile } from "@/lib/storefront-client";
 import { storefrontApi } from "@/lib/storefront-client";
@@ -52,6 +52,7 @@ export function AccountArea({ shopper }: { shopper: ShopperProfile }) {
 
   const [tab, setTabState] = useState<AccountTab>("profile");
   const [trackedOrder, setTrackedOrder] = useState<string | null>(null);
+  const tabsRef = useRef<HTMLElement>(null);
 
   // Adopt the URL's ?tab=&order= once on mount (client-only page state).
   useEffect(() => {
@@ -91,6 +92,19 @@ export function AccountArea({ shopper }: { shopper: ShopperProfile }) {
     ? new Date(shopper.createdAt).getFullYear()
     : new Date().getFullYear();
 
+  // Keep the active chip in view in the mobile strip — a deep link (?tab=prefs)
+  // can land on a section that starts scrolled off the right. The overflow check
+  // makes this a no-op on desktop, where the nav is a column and never scrolls.
+  useEffect(() => {
+    const nav = tabsRef.current;
+    if (!nav || nav.scrollWidth <= nav.clientWidth) return;
+    const chip = nav.querySelector<HTMLElement>(`[data-tab="${activeKey}"]`);
+    if (!chip) return;
+    const left = chip.offsetLeft - (nav.clientWidth - chip.offsetWidth) / 2;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    nav.scrollTo({ left: Math.max(0, left), behavior: reduced ? "auto" : "smooth" });
+  }, [activeKey]);
+
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", width: "100%", padding: "22px var(--pad) 40px" }}>
       <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 20px", letterSpacing: "-0.02em" }}>
@@ -98,75 +112,62 @@ export function AccountArea({ shopper }: { shopper: ShopperProfile }) {
       </h1>
       {!shopper.emailVerified ? <VerifyEmailBanner /> : null}
       <div style={{ display: "grid", gridTemplateColumns: "var(--acctgrid)", gap: "var(--gap)", alignItems: "start" }}>
-        {/* ===== Sidebar ===== */}
-        {/* Stickiness is in storefront.css — it must apply only where this IS a
-            sidebar. Below 680px --acctgrid collapses to one column and this
-            stacks ABOVE the content, where sticky pinned ~62% of the viewport
-            and the content scrolled underneath it. */}
-        <aside className="sf-account-nav" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 6px 16px", borderBottom: "1px solid var(--border)", marginBottom: 12 }}>
-            <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--primary)", color: "var(--on-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, fontWeight: 700, flex: "none" }}>
+        {/* ===== Section nav =====
+            Layout lives in storefront.css (.sf-account-nav / .sf-acct-*): a
+            sticky 260px sidebar on desktop, a compact identity row plus a
+            scrolling section strip below 680px, where --acctgrid collapses and
+            this stacks above the content. Grid areas move the logout button
+            between the two positions, so there is only one copy of the nav. */}
+        <aside className="sf-account-nav">
+          <div className="sf-acct-identity">
+            <div className="sf-acct-avatar">
               {(shopper.name || "A").trim().charAt(0).toUpperCase()}
             </div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {shopper.name}
-              </div>
-              <div style={{ fontSize: 12, color: "var(--muted)" }}>
+              <div className="sf-acct-name">{shopper.name}</div>
+              <div className="sf-acct-since">
                 {t.memberSince} {memberYear}
               </div>
             </div>
           </div>
-          <nav style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+
+          <nav ref={tabsRef} className="sf-acct-tabs" aria-label={t.myAccount}>
             {TABS.map((item) => {
               const on = item.key === activeKey;
               return (
                 <button
                   key={item.key}
                   type="button"
+                  data-tab={item.key}
+                  aria-current={on ? "page" : undefined}
                   onClick={() => setTab(item.key)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "11px 12px",
-                    borderRadius: 10,
-                    cursor: "pointer",
-                    border: "none",
-                    textAlign: "start",
-                    fontFamily: "inherit",
-                    background: on ? "var(--primary-soft)" : "transparent",
-                    width: "100%",
-                  }}
+                  className={`sf-acct-tab${on ? " is-on" : ""}`}
                 >
-                  <span style={{ display: "flex", flex: "none", color: on ? "var(--primary)" : "var(--muted)" }}>
+                  <span className="sf-acct-tab-icon">
                     <Icon name={item.icon} size={18} />
                   </span>
                   <span style={{ minWidth: 0 }}>
-                    <span style={{ display: "block", fontSize: 14, fontWeight: 600, color: on ? "var(--primary)" : "var(--text)" }}>
-                      {t[item.label] as string}
-                    </span>
-                    <span style={{ display: "block", fontSize: 11.5, color: "var(--muted)", marginTop: 1 }}>
-                      {t[item.desc] as string}
-                    </span>
+                    <span className="sf-acct-tab-label">{t[item.label] as string}</span>
+                    <span className="sf-acct-tab-desc">{t[item.desc] as string}</span>
                   </span>
                 </button>
               );
             })}
           </nav>
-          <div style={{ borderTop: "1px solid var(--border)", marginTop: 12, paddingTop: 12 }}>
+
+          <div className="sf-acct-logout">
             <button
               type="button"
               onClick={() => {
                 logout();
                 toast.success(t.logout);
               }}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, cursor: "pointer", color: "var(--discount)", background: "transparent", border: "none", fontFamily: "inherit", width: "100%" }}
+              className="sf-acct-logout-btn"
             >
-              <span style={{ display: "flex" }}>
+              <span style={{ display: "flex", flex: "none" }}>
                 <Icon name="logOut" size={16} />
               </span>
-              <span style={{ fontSize: 14, fontWeight: 600 }}>{t.logout}</span>
+              {t.logout}
             </button>
           </div>
         </aside>

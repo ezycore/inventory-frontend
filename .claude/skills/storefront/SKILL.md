@@ -80,7 +80,16 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
     original price cut off mid-digit.
   - **Fixed heights get a viewport cap.** `.sf-hero` is `min(…, 70svh)` (62svh on mobile) — a flat
     430px was 76% of an iPhone SE screen and 89% in landscape. Use `svh`, not `vh`, so the
-    collapsing mobile URL bar doesn't resize it.
+    collapsing mobile URL bar doesn't resize it. Always declare a **non-`svh` fallback first**: the
+    hero's slides are `position: absolute`, so a browser without `svh` (pre-Chrome 108 / Safari 15.4)
+    drops the declaration and collapses it to nothing.
+  - **A desktop sidebar is not a mobile header.** `--acctgrid` / `--colmain` / `--cartgrid` collapse
+    to one column below 680px, so anything built as a side column *stacks above the content* there.
+    Check what that costs before it ships: the account nav was a 499px list (62% of the screen) and
+    also `position: sticky`, so it pinned itself over the content. Pattern for fixing it is
+    `.sf-account-nav` — **one** set of markup, `grid-template-areas` re-pointed at the breakpoint, so
+    a control can move (logout sits inline with the identity row on mobile, under the list on
+    desktop) without a second copy of the nav in the JSX.
 - **Overlays must lock the page behind them** — `useBodyScrollLock(open)`
   (`hooks/use-body-scroll-lock.ts`), used by `SideDrawer` (cart + filters), the bottom-nav
   `MenuSheet` and the mobile search takeover. It takes `<body>` out of flow (`position: fixed`
@@ -320,6 +329,22 @@ resolved **per request from the host**, never baked.
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
 ## Work log (what was built, newest first — as of 2026-07-31)
+
+- **Account nav → section strip on mobile (FE)** (2026-07-31): the account sidebar was a vertical
+  list of five labelled rows plus logout — right as a 260px desktop column, but below 680px
+  `--acctgrid` collapses and it stacked above the content as a **499px block, 62% of a 360×780
+  screen**, so the whole first view was navigation. (It was *also* `position: sticky` inline, so it
+  pinned there while the content scrolled underneath — fixed in the same pass.) Mobile is now a
+  compact identity row with logout inline, plus a horizontally scrolling strip of icon chips:
+  **499px → 149px**, content above the fold. Desktop is byte-for-byte the old sidebar (260px,
+  sticky at 88px, 46px avatar, descriptions shown) — verified by measurement, not by eye.
+  Implementation note worth keeping: it is **one** set of markup. `.sf-account-nav` is a grid whose
+  `grid-template-areas` re-point at the breakpoint (`"identity logout" / "tabs tabs"` → three stacked
+  rows), which is what lets the logout button move without a second copy of the nav. The active chip
+  is scrolled into view on `activeKey` change, guarded on `scrollWidth > clientWidth` so it no-ops on
+  desktop and never scrolls the page. Deep links (`?tab=`, `?tab=tracking&order=`) are untouched —
+  the strip renders state the component already had. Approved design sample (3 options, measured):
+  claude.ai/code/artifact/41602a8c-6ecf-4f34-a7bf-49d77bceb373.
 
 - **Mobile responsiveness pass (FE)** (2026-07-31): audited every shop route in a real browser at
   320 / 360 / 740px, EN + বাংলা, signed-in and out. No page ever scrolled horizontally and the

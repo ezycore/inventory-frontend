@@ -646,17 +646,182 @@
   }
 }
 
-/* ---- Account sidebar (account/account-area.tsx) ----
-   Sticky ONLY where it is actually a sidebar. --acctgrid is `1fr` below 680px,
-   so the nav stacks above the content there; sticky then pinned a ~500px block
-   (62% of a phone viewport) to the top and the account content scrolled
-   underneath it. `top` matches the sticky header's height. */
+/* ---- Account nav (account/account-area.tsx) ----
+   ONE set of markup, two layouts. --acctgrid is `1fr` below 680px, so the nav
+   stacks ABOVE the content on a phone; as a vertical list of labelled rows that
+   was 499px — 62% of a 360x780 screen — before a word of content. Mobile is
+   therefore a compact identity row plus a horizontally scrolling section strip
+   (~118px); desktop keeps the 260px sticky sidebar unchanged.
+   Grid areas do the repositioning so the logout button can sit inline on mobile
+   and below the list on desktop WITHOUT a second copy of the nav in the JSX. */
+.sf-account-nav {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "identity logout"
+    "tabs     tabs";
+  align-items: center;
+}
+.sf-acct-identity {
+  grid-area: identity;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 13px;
+}
+.sf-acct-logout { grid-area: logout; }
+/* Slightly tightened on mobile so the identity row and the inline logout fit on
+   one line; desktop restores the original sizes below. */
+.sf-acct-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+}
+.sf-acct-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sf-acct-since { font-size: 11.5px; color: var(--muted); }
+.sf-acct-tabs {
+  grid-area: tabs;
+  display: flex;
+  flex-direction: row;
+  gap: 7px;
+  padding: 10px 13px 11px;
+  border-top: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.sf-acct-tabs::-webkit-scrollbar { display: none; }
+
+/* Chip on mobile: icon over label, fixed width, own border. */
+.sf-acct-tab {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 66px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+.sf-acct-tab.is-on {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.sf-acct-tab-icon { display: flex; flex: none; color: currentColor; }
+.sf-acct-tab-label { display: block; }
+/* The second line ("Personal details") is what made the rows tall; the icon
+   plus label carries the chip, so it is desktop-only. */
+.sf-acct-tab-desc { display: none; }
+
+.sf-acct-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 13px;
+  border: none;
+  background: transparent;
+  color: var(--discount);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 @media (min-width: 680px) {
+  /* Back to the original sidebar: one column, stacked, sticky beside content. */
   .sf-account-nav {
     position: sticky;
     top: 88px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "identity"
+      "tabs"
+      "logout";
+    padding: 16px;
+    align-items: stretch;
+  }
+  .sf-acct-identity {
+    padding: 6px 6px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  /* Original sidebar proportions, unchanged by the mobile work. */
+  .sf-acct-avatar { width: 46px; height: 46px; font-size: 19px; }
+  .sf-acct-name { font-size: 15px; }
+  .sf-acct-since { font-size: 12px; }
+  .sf-acct-tabs {
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 0 0;
+    border-top: 0;
+    overflow: visible;
+  }
+  .sf-acct-tab {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    min-width: 0;
+    width: 100%;
+    padding: 11px 12px;
+    border-color: transparent;
+    background: transparent;
+    font-size: 14px;
+    text-align: start;
+  }
+  .sf-acct-tab.is-on {
+    border-color: transparent;
+    background: var(--primary-soft);
+  }
+  .sf-acct-tab-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .sf-acct-tab.is-on .sf-acct-tab-label { color: var(--primary); }
+  .sf-acct-tab-desc {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .sf-acct-logout-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    border-radius: 0;
+    font-size: 14px;
   }
 }
+
+/* ---- PDP "left rail" gallery (products/[productSlug]/view.tsx, `left` template) ----
 
 /* ---- PDP "left rail" gallery (products/[productSlug]/view.tsx, `left` template) ----
    Desktop: a fixed 62px thumbnail column beside the hero image. On a phone that
