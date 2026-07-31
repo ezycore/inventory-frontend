@@ -140,7 +140,10 @@ export function NavigationSection({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-5">
-      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
+      {/* `overflow-y-auto` forces overflow-x to `auto` too, so it clips at the
+          padding box — without this inset the cards' left border and focus ring
+          get shaved off. The negative margin keeps the rail width. */}
+      <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-1">
         <HeaderMenuCard
           source={source}
           setSource={setSource}
