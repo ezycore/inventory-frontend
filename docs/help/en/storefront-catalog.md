@@ -41,6 +41,11 @@ It also holds your store's **navigation**: the header menu shoppers use to move 
 links, and the announcement bar. Keep the menu short — one listing every category you have is harder
 to use than one listing the six that sell.
 
+One setting here changes how shoppers move through a long list: **Listing pagination**. Numbered
+pages give a shopper a sense of how much is left and a place to stop. Infinite scroll and the load
+more button keep them moving, which suits a catalogue people browse rather than search. Infinite
+scroll stops loading on its own after a couple of screens so your footer links stay reachable.
+
 Check it on a phone before you finish. Most shoppers will never see your store on a desktop, and a
 layout that looks balanced on a wide screen often does not survive the narrow one.
 

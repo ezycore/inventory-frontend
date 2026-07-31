@@ -9961,6 +9961,8 @@ export interface components {
                 header?: string;
                 productCard?: string;
                 hero?: string;
+                headerMenu?: string;
+                pagination?: string;
             };
             customersConfig?: {
                 allowAccounts?: boolean;
@@ -14662,6 +14664,7 @@ export interface operations {
                         productCard?: string;
                         hero?: string;
                         headerMenu?: string;
+                        pagination?: string;
                     };
                     customersConfig?: {
                         allowAccounts?: boolean;

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { resolveTemplates } from "@/lib/storefront-templates";
 import type {
   CatalogCategory,
   StoreAnnouncement,
@@ -7,7 +8,9 @@ import type {
   StoreHeroBanner,
   StoreHeroSlide,
   StoreMenuItem,
+  StoreTemplates,
   StorefrontImage,
+  StorefrontStore,
 } from "@/lib/storefront-client";
 
 /**
@@ -28,6 +31,8 @@ interface SfPreviewState {
   header: string | null;
   /** Raw product-card style (standard | compact | bold) the editor is drafting. */
   cardStyle: string | null;
+  /** Raw listing pagination mode (pages | infinite | load-more) the editor is drafting. */
+  pagination: string | null;
   /** Draft footer trust badges (Rich footer strip). */
   badges: { text: string; icon?: string }[] | null;
   /** Draft home hero carousel slides. */
@@ -75,6 +80,7 @@ interface SfPreviewState {
     footer?: string;
     header?: string;
     cardStyle?: string;
+    pagination?: string;
     badges?: { text: string; icon?: string }[];
     heroSlides?: StoreHeroSlide[];
     heroSrc?: string;
@@ -99,6 +105,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   footer: null,
   header: null,
   cardStyle: null,
+  pagination: null,
   badges: null,
   heroSlides: null,
   heroSrc: null,
@@ -120,6 +127,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       footer: patch.footer !== undefined ? patch.footer : s.footer,
       header: patch.header !== undefined ? patch.header : s.header,
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
+      pagination: patch.pagination !== undefined ? patch.pagination : s.pagination,
       badges: patch.badges !== undefined ? patch.badges : s.badges,
       heroSlides:
         patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
@@ -158,4 +166,19 @@ export const useSfPreviewImage = (
 ): StorefrontImage | null | undefined => {
   const draft = useSfPreview((s) => s[field]);
   return draft !== undefined ? draft : saved;
+};
+
+/**
+ * The store's listing pagination mode, with the Customize draft applied.
+ *
+ * Both listing pages need it, so the draft-beats-saved rule lives here once —
+ * the same reason `useSfPreviewImage` exists.
+ */
+export const useStorePaginationMode = (
+  store: Pick<StorefrontStore, "templates"> | null | undefined,
+): StoreTemplates["pagination"] => {
+  const draft = useSfPreview((s) => s.pagination);
+  return resolveTemplates({
+    templates: { ...store?.templates, ...(draft ? { pagination: draft } : {}) },
+  }).pagination;
 };

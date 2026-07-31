@@ -15,6 +15,7 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   header: "classic",
   productCard: "standard",
   hero: "slides",
+  pagination: "pages",
 };
 
 // The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
@@ -28,6 +29,10 @@ const HEADER = { classic: "classic", minimal: "minimal", centered: "centered" } 
 const PRODUCTCARD = { standard: "standard", compact: "compact", bold: "bold" } as const;
 const HERO = { slides: "slides", banner: "banner" } as const;
 const HEADER_MENU = { collections: "collections", custom: "custom" } as const;
+// How product listings advance past page 1. `pages` stays the default: it is what
+// every existing store already renders, and it is the only mode that puts a real
+// paginated crawl path in the HTML without help.
+const PAGINATION = { pages: "pages", infinite: "infinite", "load-more": "loadMore" } as const;
 
 function pick<M extends Record<string, string>>(
   map: M,
@@ -51,6 +56,7 @@ export function resolveTemplates(
     header: pick(HEADER, t.header, DEFAULT_TEMPLATES.header),
     productCard: pick(PRODUCTCARD, t.productCard, DEFAULT_TEMPLATES.productCard),
     hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
+    pagination: pick(PAGINATION, t.pagination, DEFAULT_TEMPLATES.pagination),
   };
 }
 

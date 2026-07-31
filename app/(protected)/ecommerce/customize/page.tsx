@@ -127,6 +127,9 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [cardStyle, setCardStyle] = useState(
     settings.templates?.productCard ?? "standard",
   );
+  const [pagination, setPagination] = useState(
+    settings.templates?.pagination ?? "pages",
+  );
   // Three fixed slots seeded by index — an empty slot keeps its default badge.
   const [badges, setBadges] = useState<StorefrontTrustBadge[]>(() =>
     DEFAULT_BADGES.map((d, i) => ({
@@ -294,6 +297,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setFooterTemplate={setFooterTemplate}
             setHeaderTemplate={setHeaderTemplate}
             setCardStyle={setCardStyle}
+            setPagination={setPagination}
             setHeroSrc={setHeroSrc}
             slideCount={heroSlides.filter((s) => s.title.trim()).length}
             onEditSlides={() => setSlidesPanelOpen(true)}
@@ -329,6 +333,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           footerTemplate={footerTemplate}
           headerTemplate={headerTemplate}
           cardStyle={cardStyle}
+          pagination={pagination}
           badges={badges}
           heroSlides={heroSlides}
           heroBanner={heroBanner}
@@ -381,6 +386,16 @@ const TEMPLATE_PAGES: {
         { value: "grid-3", label: "Grid 3-col" },
         { value: "grid-4", label: "Grid 4-col" },
         { value: "sidebar", label: "Sidebar filters" },
+      ],
+    },
+    {
+      key: "pagination",
+      label: "Listing pagination",
+      desc: "How product listings and search results load past the first page",
+      options: [
+        { value: "pages", label: "Numbered pages" },
+        { value: "infinite", label: "Infinite scroll" },
+        { value: "load-more", label: "Load more button" },
       ],
     },
     {
@@ -440,6 +455,7 @@ function TemplatesSection({
   setFooterTemplate,
   setHeaderTemplate,
   setCardStyle,
+  setPagination,
   setHeroSrc,
   slideCount,
   onEditSlides,
@@ -449,6 +465,7 @@ function TemplatesSection({
   setFooterTemplate: (v: string) => void;
   setHeaderTemplate: (v: string) => void;
   setCardStyle: (v: string) => void;
+  setPagination: (v: string) => void;
   setHeroSrc: (v: string) => void;
   slideCount: number;
   onEditSlides: () => void;
@@ -477,6 +494,7 @@ function TemplatesSection({
     if (key === "footer") setFooterTemplate(value);
     if (key === "header") setHeaderTemplate(value);
     if (key === "productCard") setCardStyle(value);
+    if (key === "pagination") setPagination(value);
     if (key === "hero") setHeroSrc(value);
   };
 
@@ -551,6 +569,7 @@ function BrowserPreview({
   footerTemplate,
   headerTemplate,
   cardStyle,
+  pagination,
   badges,
   heroSlides,
   heroBanner,
@@ -571,6 +590,7 @@ function BrowserPreview({
   footerTemplate: string;
   headerTemplate: string;
   cardStyle: string;
+  pagination: string;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
   heroBanner: StorefrontHeroBanner;
@@ -643,6 +663,7 @@ function BrowserPreview({
             productCard: cardStyle,
             hero: heroSrc,
             headerMenu: headerMenuSrc,
+            pagination,
           },
           trustBadges: JSON.parse(badgesKey),
           heroSlides: JSON.parse(slidesKey),
@@ -662,7 +683,7 @@ function BrowserPreview({
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey, footerGroupsKey, footerContentPagesKey, logoKey, bannerKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, pagination, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey, footerGroupsKey, footerContentPagesKey, logoKey, bannerKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {

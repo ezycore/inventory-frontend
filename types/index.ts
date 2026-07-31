@@ -197,6 +197,12 @@ export interface StorefrontTemplates {
    * which reproduces the old implicit behaviour rather than defaulting.
    */
   headerMenu?: string;
+  /**
+   * Product-listing pagination style: "pages" (numbered) | "infinite" |
+   * "load-more". Unset ⇒ "pages", which is what every store rendered before the
+   * control shipped.
+   */
+  pagination?: string;
 }
 
 export interface StorefrontCustomersConfig {

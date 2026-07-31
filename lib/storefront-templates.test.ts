@@ -51,4 +51,28 @@ describe("resolveTemplates", () => {
     expect(resolveTemplates({ templates: { home: "nope" } }).home).toBe("classic");
     expect(resolveTemplates({ templates: {} }).hero).toBe("slides");
   });
+
+  // The admin id is kebab-case ("load-more"); the storefront consumes a camel
+  // variant name. Getting that bridge wrong silently lands on the default, which
+  // for this surface means numbered pages — i.e. the setting looks ignored.
+  it("maps the listing pagination modes", () => {
+    expect(resolveTemplates({ templates: { pagination: "infinite" } }).pagination).toBe(
+      "infinite",
+    );
+    expect(resolveTemplates({ templates: { pagination: "load-more" } }).pagination).toBe(
+      "loadMore",
+    );
+    expect(resolveTemplates({ templates: { pagination: "pages" } }).pagination).toBe(
+      "pages",
+    );
+  });
+
+  // Every store predates this control, so unset must keep rendering what it
+  // rendered yesterday.
+  it("defaults pagination to numbered pages", () => {
+    expect(resolveTemplates({ templates: {} }).pagination).toBe("pages");
+    expect(resolveTemplates({ templates: { pagination: "bogus" } }).pagination).toBe(
+      "pages",
+    );
+  });
 });

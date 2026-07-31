@@ -228,7 +228,14 @@ export interface Dict {
   brandLabel: string;
   clearAll: string;
   applyFilters: string;
+  /**
+   * Listing progress under an infinite / load-more grid. A template, not a
+   * prefix: Bangla puts the total first, so composing this by concatenation
+   * would read backwards there.
+   */
   showingOf: string;
+  /** Tail button on an infinite / load-more listing. */
+  loadMore: string;
   prev: string;
   next: string;
   inStockFilter: string;
@@ -565,7 +572,8 @@ const en: Dict = {
   brandLabel: "Brand",
   clearAll: "Clear all",
   applyFilters: "Apply",
-  showingOf: "Showing",
+  showingOf: "Showing {n} of {total}",
+  loadMore: "Load more",
   prev: "Prev",
   next: "Next",
   inStockFilter: "In stock only",
@@ -901,7 +909,8 @@ const bn: Dict = {
   brandLabel: "ব্র্যান্ড",
   clearAll: "সব মুছুন",
   applyFilters: "প্রয়োগ",
-  showingOf: "দেখাচ্ছে",
+  showingOf: "{total}টির মধ্যে {n}টি দেখাচ্ছে",
+  loadMore: "আরও দেখুন",
   prev: "আগের",
   next: "পরের",
   inStockFilter: "শুধু স্টকে আছে",

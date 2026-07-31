@@ -122,6 +122,7 @@ export interface StoreTemplatesRaw {
   productCard?: string;
   hero?: string;
   headerMenu?: string;
+  pagination?: string;
 }
 
 /** What the storefront header's top links are built from. */
@@ -138,6 +139,11 @@ export interface StoreTemplates {
   productCard: "standard" | "compact" | "bold";
   /** Home hero source: carousel (when slides exist) vs the static banner hero. */
   hero: "slides" | "banner";
+  /**
+   * How product listings advance past page 1: numbered Prev/Next, auto-load on
+   * scroll (then a button), or a button only. Collection page + search results.
+   */
+  pagination: "pages" | "infinite" | "loadMore";
 }
 
 /** A header menu link target (category slug, page slug, or URL). */

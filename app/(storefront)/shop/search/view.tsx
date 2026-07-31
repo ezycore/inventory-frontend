@@ -5,11 +5,16 @@ import { Suspense, useEffect, useMemo, useState, type CSSProperties } from "reac
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
-import { useStore, useStoreProducts } from "@/services/storefront/hooks";
+import {
+  useStore,
+  useStoreProducts,
+  useStoreProductsInfinite,
+} from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useStorePaginationMode } from "@/services/stores/use-sf-preview-store";
 import { storeHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
 import { money } from "@/components/storefront/format";
@@ -17,6 +22,8 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
 import { SkeletonCard } from "@/components/storefront/sf-skeleton";
+import { LoadMore } from "@/components/storefront/load-more";
+import { Pager } from "@/components/storefront/pager";
 import type { CatalogProduct } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
@@ -25,6 +32,10 @@ const wrap: CSSProperties = {
   width: "100%",
   padding: "22px var(--pad) 40px",
 };
+
+/** Results per request. Larger than the collection page's 12 — search rows are
+ *  denser and a searcher is scanning, not browsing. */
+const SEARCH_PAGE_SIZE = 24;
 
 // Device-level shopper preference (like `sf-theme`) — grid vs list results.
 const VIEW_KEY = "sf-search-view";
@@ -44,10 +55,27 @@ function SearchInner() {
   }, [q]);
 
   const { data: store } = useStore(slug);
-  const { data, isLoading } = useStoreProducts(slug, {
-    q: debouncedQ || undefined,
-    limit: 24,
-  });
+  // Listing mode is the merchant's (Customize → Templates), shared with the
+  // collection page so search doesn't paginate in a second style.
+  const mode = useStorePaginationMode(store);
+  const paged = mode === "pages";
+  const [page, setPage] = useState(1);
+  // A new search term is a new result set — back to page 1 (render-time adjust).
+  const [prevQuery, setPrevQuery] = useState(debouncedQ);
+  if (prevQuery !== debouncedQ) {
+    setPrevQuery(debouncedQ);
+    setPage(1);
+  }
+
+  // Until 2026-07-31 this was a single un-paged fetch: a store with more than
+  // `SEARCH_PAGE_SIZE` matches silently dropped the rest, and the results line
+  // reported the truncated length as the total.
+  const params = { q: debouncedQ || undefined, limit: SEARCH_PAGE_SIZE };
+  const pagedQuery = useStoreProducts(slug, { ...params, page }, paged);
+  const infiniteQuery = useStoreProductsInfinite(slug, params, !paged);
+  const infinitePages = infiniteQuery.data?.pages ?? [];
+  const isLoading = paged ? pagedQuery.isLoading : infiniteQuery.isLoading;
+  const pagination = paged ? pagedQuery.data?.pagination : infinitePages[0]?.pagination;
 
   // The shopper picks grid vs list here (was an admin template). Default grid;
   // the persisted choice applies once hydrated (not via a setState-in-effect)
@@ -65,7 +93,10 @@ function SearchInner() {
   };
 
   const currency = store?.currency;
-  const items = data?.items ?? [];
+  const items = paged
+    ? (pagedQuery.data?.items ?? [])
+    : infinitePages.flatMap((p) => p.items);
+  const total = pagination?.total ?? items.length;
 
   return (
     <div style={wrap}>
@@ -101,7 +132,7 @@ function SearchInner() {
         <>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
             <div style={{ fontSize: 13, color: "var(--muted)" }}>
-              {items.length} {t.results}
+              {total} {t.results}
               {q ? ` · "${q}"` : ""}
             </div>
             <div style={{ display: "flex", border: "1px solid var(--border-strong)", borderRadius: 8, overflow: "hidden" }}>
@@ -147,6 +178,23 @@ function SearchInner() {
               ))}
             </div>
           )}
+
+          {paged && pagination ? (
+            <Pager page={pagination.page} totalPages={pagination.totalPages} onChange={setPage} />
+          ) : null}
+
+          {!paged ? (
+            // Keyed on the term so each new search gets its own auto-load budget.
+            <LoadMore
+              key={debouncedQ}
+              mode={mode === "infinite" ? "infinite" : "loadMore"}
+              hasMore={infiniteQuery.hasNextPage}
+              loading={infiniteQuery.isFetchingNextPage}
+              onLoad={() => infiniteQuery.fetchNextPage()}
+              shown={items.length}
+              total={total}
+            />
+          ) : null}
         </>
       )}
     </div>

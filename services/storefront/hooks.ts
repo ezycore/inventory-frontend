@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import {
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -34,6 +35,15 @@ export const storefront = {
   store: (slug: string) => ["storefront", slug, "store"] as const,
   products: (slug: string, params: unknown) =>
     ["storefront", slug, "products", params ?? {}] as const,
+  /**
+   * The infinite variant of `products`. Separate because its params must NOT
+   * contain `page` — an infinite query owns the page cursor, and folding it into
+   * the key would make every page its own cache entry, i.e. exactly the
+   * behaviour infinite scrolling exists to avoid. Still under the same
+   * `["storefront", slug, "products"]` prefix, so one eviction covers both.
+   */
+  productsInfinite: (slug: string, params: unknown) =>
+    ["storefront", slug, "products", "infinite", params ?? {}] as const,
   product: (slug: string, productSlug: string) =>
     ["storefront", slug, "product", productSlug] as const,
   categories: (slug: string) => ["storefront", slug, "categories"] as const,
@@ -92,6 +102,44 @@ export const useStoreProducts = (
     queryFn: () => storefrontApi.listProducts(slug, params),
     enabled: !!slug && enabled,
     initialData,
+  });
+
+/**
+ * Same endpoint as `useStoreProducts`, accumulated page by page — the store's
+ * "infinite" / "load more" pagination modes.
+ *
+ * Two things are load-bearing:
+ *
+ * - **`params` must not carry `page`.** The cursor lives in `pageParam`; a
+ *   `page` in the params object would change the cache key on every load and
+ *   defeat the accumulation.
+ * - **`initialData` is reshaped, not passed through.** The collection page seeds
+ *   page 1 from the server so the listing is in the SSR HTML; an infinite query
+ *   wants `{ pages, pageParams }`, and handing it a bare `ProductListResult`
+ *   silently misses the seed — which puts a spinner back in the crawlable body,
+ *   the exact defect the seeding exists to fix.
+ */
+export const useStoreProductsInfinite = (
+  slug: string,
+  params: Record<string, string | number | undefined> = {},
+  enabled = true,
+  initialData?: ProductListResult,
+) =>
+  useInfiniteQuery({
+    queryKey: storefront.productsInfinite(slug, params),
+    queryFn: ({ pageParam }) =>
+      storefrontApi.listProducts(slug, { ...params, page: pageParam }),
+    enabled: !!slug && enabled,
+    initialPageParam: 1,
+    // `undefined` ends the query — TanStack stops offering a next page, which is
+    // what the UI reads as "you've reached the end".
+    getNextPageParam: (last) =>
+      last.pagination.page < last.pagination.totalPages
+        ? last.pagination.page + 1
+        : undefined,
+    initialData: initialData
+      ? { pages: [initialData], pageParams: [1] }
+      : undefined,
   });
 
 // `initialData` (server-fetched in the PDP's page.tsx) is what makes the product

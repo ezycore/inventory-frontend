@@ -111,9 +111,20 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   while editing this file — verify with a grep count, key×3, before believing them.)
 - **Templates**: per-page layout variants chosen in the admin (Customize) —
   `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/checkout
-  (+ header/footer/productCard/hero) variant ids consumed by the views. `search` and `cart`
-  are retired: shoppers toggle grid/list on the search page, and Buy now always opens the
-  cart drawer.
+  (+ header/footer/productCard/hero/**pagination**) variant ids consumed by the views. `search` and
+  `cart` are retired: shoppers toggle grid/list on the search page, and Buy now always opens the
+  cart drawer. Note the admin ids are kebab-case and the storefront names are not
+  (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
+  resolves to the default, which reads as "the setting does nothing".
+- **Listing pagination** (`templates.pagination`, default `pages`): `pages` = numbered
+  `<Pager>`; `infinite` = auto-load `AUTO_LOADS` (2) pages then a button; `load-more` = button
+  only. Applies to **both** the collection page and search results, which share
+  `components/storefront/{pager,load-more}.tsx`. Reads through
+  **`useStorePaginationMode(store)`** (`use-sf-preview-store.ts`), never `resolveTemplates`
+  directly, so the Customize draft streams. Non-`pages` modes use
+  `useStoreProductsInfinite`; see the query-cache note below for why its key is separate.
+  `infinite` deliberately stops auto-loading: this footer holds real navigation and the mobile
+  bottom nav sits over it, so an endless list makes both unreachable.
 - **Client state (zustand, persisted)**: `services/stores/use-shopper-store.ts`
   (`easystock-shopper`: token/shopper/slug, `setAuth/setShopper/logout`),
   `use-cart-store` (slug-scoped items), `use-wishlist-store`. **Any component reading a persisted
@@ -261,6 +272,13 @@ phones and shop counters make that a routine path, not a race.
   action clears the token and leaves the cache.
 - Public store data (products, categories, campaigns, pages) is deliberately *not* evicted: identical
   for every visitor, SSR-seeded, so clearing it only causes a flash.
+- **`products` and `productsInfinite` are two keys over one endpoint**, both under the
+  `["storefront", slug, "products"]` prefix so eviction still takes one call. They are separate
+  because the paged key *contains* `page` and the infinite one must not: an infinite query owns its
+  cursor, and a `page` in its params gives every page its own cache entry — no accumulation, which
+  is the entire mode. Its `initialData` is also reshaped (`{ pages, pageParams }`), not passed
+  through; hand it a bare `ProductListResult` and the SSR seed silently misses, putting a spinner
+  back in the crawlable body.
 - `services/api/__tests__/invalidation.test.ts` covers this file too — a new mutation that invalidates
   nothing fails CI unless it is allowlisted with a reason.
 
@@ -413,6 +431,33 @@ resolved **per request from the host**, never baked.
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
 ## Work log (what was built, newest first — as of 2026-07-31)
+
+- **Listing pagination is a merchant choice; search finally pages at all (FE + BE)** (2026-07-31):
+  new `templates.pagination` — `pages` (the existing numbered pager, still the default) |
+  `infinite` | `load-more` — applied to the collection page **and** search. Standard
+  surface-template plumbing (BE model/validator/types/admin DTO; FE resolver + `StoreTemplates`;
+  Customize → Templates card; preview bridge), plus `useStoreProductsInfinite`.
+  **Search had no paging at all**: one `limit: 24` fetch, and the results line printed
+  `items.length`, so a store with more matches silently dropped them *and* reported the truncated
+  count as the total. That was live and is fixed here regardless of the mode chosen.
+  Four things worth keeping: **(1)** the infinite key must exclude `page` and its `initialData`
+  must be reshaped, or the SSR seed misses and the crawlable body goes back to a spinner;
+  **(2)** `infinite` auto-loads only 2 pages before asking — the footer carries real navigation and
+  the mobile bottom nav sits over it, so a truly endless list makes both unreachable, and a
+  screen-reader user never reaches an end; **(3)** the IntersectionObserver is rebuilt when
+  `loading` settles — an observer only reports *changes* in intersection, so one left mounted
+  across a fetch never re-fires while the sentinel stays on screen and the scroll stalls one page
+  in; **(4)** switching modes costs **no** crawl path, because the numbered pager was always
+  buttons — page 2 has never had a URL on this storefront.
+  Also fixed in passing: **the admin DTO omitted `templates.headerMenu`**, so the response stripped
+  it, the Customize editor re-derived the legacy fallback on every load, and
+  `navigation-section.tsx` could save that derived value back over an explicit choice. The public
+  payload was never affected (`storeInfoDto.templates` is a `z.unknown()` passthrough), which is
+  why the shop looked right while the editor did not. Locked down in the BE DTO round-trip test.
+  New shared `components/storefront/{pager,load-more}.tsx` (the pager was inline in the collection
+  view until search needed it); i18n `loadMore` ×3 and `showingOf` repurposed from an unused bare
+  "Showing" into a `{n}`/`{total}` template, because Bangla puts the total first.
+  OpenAPI + `types/api-generated.ts` regenerated.
 
 - **PDP hover zoom + gallery extracted (FE)** (2026-07-31): the product page had no way to inspect a
   product image — the hero was a flat `<Media>` and the only detail available was whatever the
