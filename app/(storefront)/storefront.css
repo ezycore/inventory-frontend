@@ -430,7 +430,12 @@
   /* The 70svh cap only bites on short viewports — a landscape phone is past the
      640px breakpoint below, so without it the hero took 89% of the screen and
      the header stack took the rest, leaving zero product content visible. On a
-     desktop 70svh is well above the 430px cap, so nothing changes there. */
+     desktop 70svh is well above the 430px cap, so nothing changes there.
+     The first declaration is a REQUIRED fallback, not redundancy: the slides are
+     `position: absolute`, so the hero has no intrinsic height, and a browser
+     without `svh` (pre-Chrome 108 / Safari 15.4) would drop the second line and
+     collapse the hero to nothing. */
+  height: clamp(320px, 40vw, 430px);
   height: min(clamp(320px, 40vw, 430px), 70svh);
   touch-action: pan-y;
 }
@@ -612,7 +617,12 @@
      can't eat the fold: a flat 430px was 76% of an iPhone SE screen, leaving
      no product visible above it. `svh` (small viewport height) is the stable
      value that ignores the collapsing mobile URL bar. */
-  .sf-hero { height: min(430px, 62svh); min-height: 260px; }
+  /* Fallback first — see the note on `.sf-hero` above. */
+  .sf-hero {
+    height: 430px;
+    height: min(430px, 62svh);
+    min-height: 260px;
+  }
   .sf-hero-nav { display: none; } /* swipe instead */
   .sf-hero-scrim {
     background: linear-gradient(
