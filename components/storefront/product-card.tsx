@@ -98,7 +98,7 @@ export function ProductCard({
               left: 9,
               background: "var(--discount-soft)",
               color: "var(--discount)",
-              fontSize: 11,
+              fontSize: 11.5,
               fontWeight: 600,
               padding: "3px 7px",
               borderRadius: 999,
@@ -124,12 +124,12 @@ export function ProductCard({
         </Link>
 
         {compactLayout ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
-            <span style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: "auto" }}>
+            <span style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "0 6px", minWidth: 0 }}>
               {hasVariants ? (
-                <span style={{ fontSize: 11, color: "var(--muted)" }}>{t.fromPrice}</span>
+                <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
               ) : null}
-              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", whiteSpace: "nowrap" }}>
                 {money(price, currency)}
               </span>
             </span>
@@ -142,8 +142,9 @@ export function ProductCard({
                 background: "var(--primary-soft)",
                 color: "var(--primary)",
                 border: "1px solid var(--primary)",
-                width: 32,
-                height: 32,
+                flex: "none",
+                width: 40,
+                height: 40,
                 borderRadius: 7,
                 fontSize: 18,
                 fontWeight: 600,
@@ -157,15 +158,19 @@ export function ProductCard({
           </div>
         ) : (
           <>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginBottom: 11 }}>
+            {/* Wraps between the parts, never inside one: a 2-column mobile grid
+                leaves ~130px here, and "From" + price + struck compare-at is
+                wider than that — unwrapped, each money string broke mid-value
+                and the card's overflow:hidden clipped the last one. */}
+            <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "2px 7px", marginBottom: 11 }}>
               {hasVariants ? (
                 <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
               ) : null}
-              <span style={{ fontSize: bold ? 16.5 : 14.5, fontWeight: 700, color: "var(--text)" }}>
+              <span style={{ fontSize: bold ? 16.5 : 14.5, fontWeight: 700, color: "var(--text)", whiteSpace: "nowrap" }}>
                 {money(price, currency)}
               </span>
               {pct > 0 ? (
-                <span style={{ fontSize: 12, color: "var(--faint)", textDecoration: "line-through" }}>
+                <span style={{ fontSize: 12, color: "var(--faint)", textDecoration: "line-through", whiteSpace: "nowrap" }}>
                   {money(product.compareAtPrice, currency)}
                 </span>
               ) : null}
@@ -179,7 +184,7 @@ export function ProductCard({
                 background: "var(--primary)",
                 color: "var(--on-primary)",
                 border: "none",
-                padding: bold ? 12 : 9,
+                padding: bold ? 13 : 11,
                 borderRadius: bold ? 9 : 7,
                 fontFamily: "inherit",
                 fontSize: bold ? 13.5 : 13,

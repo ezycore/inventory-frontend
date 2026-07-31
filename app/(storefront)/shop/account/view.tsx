@@ -16,6 +16,7 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { AccountArea } from "@/components/storefront/account/account-area";
 import { SocialLoginButtons } from "@/components/storefront/account/social-login-buttons";
 import { LoadingSplash } from "@/components/storefront/loading-splash";
+import { sfInput as input } from "@/components/storefront/field-styles";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -28,17 +29,6 @@ const card: CSSProperties = {
   border: "1px solid var(--border)",
   borderRadius: 12,
   padding: 22,
-};
-const input: CSSProperties = {
-  border: "1px solid var(--border-strong)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  borderRadius: 8,
-  padding: "11px 13px",
-  fontFamily: "inherit",
-  fontSize: 14,
-  outline: "none",
-  width: "100%",
 };
 const primaryBtn: CSSProperties = {
   width: "100%",

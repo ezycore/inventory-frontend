@@ -213,8 +213,10 @@ export default function ProductDetailPage({
             ) : null}
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 12 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, width: 62, flex: "none" }}>
+          // Layout lives in storefront.css (.sf-pdp-*) because it has to change
+          // at the breakpoint, and inline styles can't carry a media query.
+          <div className="sf-pdp-gallery">
+            <div className="sf-pdp-thumbs">
               {(thumbs.length ? thumbs : [undefined]).map((th, i) => (
                 <button
                   key={i}
@@ -227,7 +229,7 @@ export default function ProductDetailPage({
                 </button>
               ))}
             </div>
-            <div style={{ flex: 1 }}>
+            <div className="sf-pdp-hero">
               <Media src={main} alt={product.name} label="product" radius={14} />
             </div>
           </div>
@@ -405,8 +407,8 @@ const qtyBtn: CSSProperties = {
   background: "var(--surface)",
   color: "var(--text)",
   border: "none",
-  width: 36,
-  height: 36,
+  width: 44,
+  height: 44,
   fontSize: 17,
   cursor: "pointer",
 };
