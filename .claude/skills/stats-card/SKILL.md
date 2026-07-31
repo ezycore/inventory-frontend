@@ -72,6 +72,9 @@ Do NOT use for: charts (use `recharts`), single inline metric (just render a `Ca
 - `direction: "up"` → green (`text-chart-2`) + `TrendingUp` icon
 - `direction: "down"` → red (`text-destructive`) + `TrendingDown` icon
 - `direction: "neutral"` (or omitted) → muted + `Minus` icon
+- **`higherIsBetter: false` swaps the two colours** — the arrow still points the way the number
+  moved, but growth turns red. Required on every cost metric (expenses, cash out, returns,
+  overdue): a 100% jump in expenses rendered green reads as a win.
 - `value` is rendered verbatim (string like `"+12.5%"` or a number)
 - `label` appears next to it in muted text
 
@@ -164,5 +167,5 @@ import type { StatData, StatsCardProps, StatVariant, TrendDirection } from "@/ui
 | `variant` | `StatVariant` | Defaults `"default"`. |
 | `description` | `string` | Sub-line under label. |
 | `prefix` / `suffix` | `string` | `$`, `%`, etc. |
-| `trend` | `{ value, direction?, label? }` | direction: `"up" \| "down" \| "neutral"`. |
+| `trend` | `{ value, direction?, label?, higherIsBetter? }` | direction: `"up" \| "down" \| "neutral"`. `higherIsBetter: false` inverts the colour for cost metrics. |
 | `chart` | `{ data: number[]; color?: string }` | Sparkline; `color` is a `bg-*` class. |

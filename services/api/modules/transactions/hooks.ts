@@ -96,7 +96,19 @@ export function useCreateTransfer() {
   });
 }
 
-// Aliases for consistency
-export const useAddIncome = useCreateIncome;
-export const useAddExpense = useCreateExpense;
-export const useAddTransfer = useCreateTransfer;
+/**
+ * Post a compensating line against a transaction.
+ *
+ * Dirties `money.moved` like the create hooks: the reversal moves an account balance, so the
+ * ledger list, the stats, the account cards and the dashboard are all stale afterwards.
+ */
+export function useReverseTransaction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      transactionsApi.reverse(id, reason),
+    onSuccess: () => {
+      invalidate(queryClient, "money.moved");
+    },
+  });
+}

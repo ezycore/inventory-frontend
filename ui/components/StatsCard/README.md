@@ -194,6 +194,7 @@ export default function Dashboard() {
   value: string | number;    // e.g., "+12%" or 150
   direction?: "up" | "down" | "neutral";
   label?: string;            // e.g., "from last month"
+  higherIsBetter?: boolean;  // default true; false on cost metrics so a rise reads red
 }
 ```
 

@@ -15,7 +15,7 @@ import type {
 import { buildQueryParams, type BaseFilters } from "../../utils";
 
 export interface TransactionFilters extends BaseFilters {
-  type?: "income" | "expense" | "transfer";
+  type?: ApiTransaction["type"];
   category?: string;
   accountId?: string;
   startDate?: string;
@@ -62,4 +62,15 @@ export const transactionsApi = {
     data: CreateTransferDto,
   ): Promise<ApiResponse<TransactionTransfer>> =>
     apiClient.post("/transactions/transfer", data),
+
+  /**
+   * Correct a posted line. The ledger is append-only, so this writes a **new** compensating row
+   * linked by `reversalOf` — there is no edit and no delete. The API refuses settlement rows,
+   * transfer legs and second reversals; `isReversible` mirrors those guards for the UI.
+   */
+  reverse: (
+    id: string,
+    reason?: string,
+  ): Promise<ApiResponse<ApiTransaction>> =>
+    apiClient.post(`/transactions/${id}/reverse`, { reason }),
 };
