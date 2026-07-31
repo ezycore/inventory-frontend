@@ -18,6 +18,7 @@ import type {
 import type { ReceiptSettings } from "@/types/receipt";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
+import { revalidateStorefront } from "@/lib/revalidate-storefront";
 import { handleMutationSuccess } from "../query-helpers";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 
@@ -345,6 +346,12 @@ export const useGetStorefrontSettings = () => {
 };
 
 // PATCH /api/organization/storefront - Update storefront settings / publish state
+// This is the theme/templates/navigation/checkout save, i.e. the most visible
+// public change a merchant can make — so it flushes the shop's server-side cache
+// directly. It can't go through `invalidate()` like the storefront catalog
+// mutations do: the response IS the new settings, written straight into the cache
+// below, and any event carrying `organization.all()` would immediately refetch
+// what we just wrote.
 export const useUpdateStorefrontSettings = () => {
   const queryClient = useQueryClient();
 
@@ -356,12 +363,15 @@ export const useUpdateStorefrontSettings = () => {
         result.message || "Store settings updated successfully!",
       );
       queryClient.setQueryData(queryKeys.organization.storefront(), result);
+      void revalidateStorefront();
     },
     onError: handleMutationError,
   });
 };
 
 // PATCH /api/organization/storefront/media - Upload/replace/remove logo + banner
+// Logo and banner are rendered by the storefront shell (and the logo is its
+// favicon), so this flushes the public cache for the same reason as above.
 export const useUpdateStorefrontMedia = () => {
   const queryClient = useQueryClient();
 
@@ -371,6 +381,7 @@ export const useUpdateStorefrontMedia = () => {
     onSuccess: (result) => {
       handleMutationSuccess(result.message || "Storefront media updated");
       queryClient.setQueryData(queryKeys.organization.storefront(), result);
+      void revalidateStorefront();
     },
     onError: handleMutationError,
   });

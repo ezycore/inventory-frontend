@@ -8,6 +8,7 @@ import type { CSSProperties } from "react";
 const PATHS: Record<string, string> = {
   cart: '<circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2.5 3.5h2.2l2.2 11.2a1.1 1.1 0 0 0 1.1.9h8.7a1.1 1.1 0 0 0 1.1-.85L20.5 7H6"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>',
+  zoomIn: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/><path d="M8.4 11h5.2M11 8.4v5.2"/>',
   phone: '<path d="M6.5 3.5h3l1.4 4-1.8 1.2a12 12 0 0 0 5.2 5.2l1.2-1.8 4 1.4v3a1.6 1.6 0 0 1-1.7 1.6A16.5 16.5 0 0 1 5 5.2 1.6 1.6 0 0 1 6.5 3.5Z"/>',
   check: '<path d="M4 12.5 9 17.5 20 6.5"/>',
   truck: '<path d="M2.5 6.5h10v9h-10z"/><path d="M12.5 9.5h4l3 3v3h-7z"/><circle cx="6" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/>',

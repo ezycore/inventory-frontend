@@ -52,7 +52,8 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
 
 - **Pattern**: `page.tsx` (server; SEO via `storePageMetadata` in `lib/storefront-metadata.ts`)
   + `view.tsx` (`"use client"`). Server data fetches go through `lib/storefront-server.ts`
-  (Next `revalidate` + tag `store:{slug}` — **admin edits can take ~60s to show unless revalidated**).
+  (Next `revalidate` + tag `store:{slug}`, flushed on admin save — see "Cache + on-demand
+  revalidation" below).
   **The `page.tsx` must also fetch the view's own data and pass it as `initialData`** — see
   "SEO" below; a `page.tsx` that only returns `<View />` ships a spinner as its HTML.
 - **Design system**: no Tailwind on the storefront. Inline `CSSProperties` + CSS variables from
@@ -123,6 +124,75 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   current session token, the shopper session is dropped** (self-healing stale sessions).
   TanStack hooks in `services/storefront/hooks.ts` (`useStore`, `useStorePage`, `useShopperAuth`,
   `useShopperAccount`, `useResendVerification`, `usePlaceOrder`, …).
+
+## Cache + on-demand revalidation (why an admin edit used to take 5 minutes)
+
+The shop is served from **three** stacked caches, and only the third is in the shopper's browser:
+
+| Cache | Set by | Lifetime |
+|---|---|---|
+| Next **Data Cache** (per fetch) | `next: { revalidate, tags: ["store:{slug}"] }` in `lib/storefront-server.ts` | `getStore` 300s; products/campaigns 60s; sitemap 1h |
+| Next **Full Route Cache** (rendered HTML) | `export const revalidate` in each shop `page.tsx` | 60s (home/products/PDP), 300s (CMS pages) |
+| TanStack `staleTime` | `services/storefront/hooks.ts` | 5 min, seeded from the SSR value |
+
+The first two live **in the Next server and are shared by every visitor**, which is why a merchant
+could never clear one by reloading — hard reload tells the *browser* to refetch, and the server
+answers from the same stored copy. **Don't debug a "stale storefront" report in the browser.**
+
+Until 2026-07-31 the `store:{slug}` tag was declared on every fetch and **never called** — no
+`revalidateTag` existed anywhere in the workspace, so time expiry was the only flush and a theme
+colour took up to five minutes to appear. Now:
+
+- **`POST /api/storefront/revalidate`** (`app/api/storefront/revalidate/route.ts`) calls
+  `revalidateTag("store:{slug}", { expire: 0 })`. The slug comes from the caller's session via the
+  backend's `/auth/me` — **never from the request body**, or one tenant could strip another's cache.
+  Bearer header only (a cookie would make it CSRF-triggerable). `{ expire: 0 }` rather than the
+  `"max"` profile so there is no stale-while-revalidate window: with one, the merchant's *next*
+  reload still serves the old copy and they have to reload twice.
+- **`lib/revalidate-storefront.ts`** `revalidateStorefront()` is the only caller — fire-and-forget,
+  silent on failure (the save already succeeded and the timer is still a backstop), `keepalive` so
+  navigating away right after saving doesn't cancel it.
+- **Wiring**: `services/api/invalidation.ts` fires it for every event in `PUBLIC_STOREFRONT_EVENTS`
+  (`storefront.catalog.changed`, `catalog.changed`), so catalog/campaign/coupon/CMS mutations get it
+  for free. The two storefront-settings mutations in `services/api/modules/organization/hooks.ts`
+  call it directly — they write the response into the cache with `setQueryData` and so deliberately
+  don't go through `invalidate()`. **A new admin mutation that changes public shop data needs one of
+  those two paths**, or it ships the old bug.
+- **`stock.moved` is deliberately excluded** — stock moves on every sale, so flushing per movement
+  would keep the cache permanently empty. The 60s catalogue revalidate covers stock freshness.
+- **Deployment**: `revalidateTag` only reaches the instance that serves the POST. Multi-replica
+  needs a shared `cacheHandler`; single instance (current) is fine.
+
+## Live preview (Customize) — how it works, and how to add a field
+
+The right-hand panel of Customize is **the real storefront** in an iframe at `{store}?preview=1`. It
+mounts **once**; edits reach it by `postMessage`, never by refetching. An edit therefore costs zero
+server requests — do not "optimise" this into a save-then-reload, which would cost a full (and now
+cache-missing) SSR render per save.
+
+Four files, in payload order:
+
+1. `app/(protected)/ecommerce/customize/page.tsx` — `CustomizeWorkspace` holds **every**
+   preview-relevant draft (sections own none), and `BrowserPreview.post()` serializes it.
+2. `components/storefront/preview-bridge.tsx` — receives it inside the iframe (gated on `?preview=1`)
+   and calls `apply`. It announces `ezycore-preview-ready` on mount so the editor pushes immediately.
+3. `services/stores/use-sf-preview-store.ts` — the override state.
+4. The storefront component reads its override and prefers it over the saved payload.
+
+**Rules, each of which was a real defect:**
+
+- **Normalize in the payload exactly as `submit()`/`save()` does** — filter blank-titled footer
+  groups, blank-titled slides, `cleanHeroBanner`, the public `/categories` shape. A preview that
+  shows something the save would drop is worse than no preview.
+- **`?? saved` is the fallback for everything except images.** For `logo`/`banner`, `null` is a real
+  draft value meaning "removed", so use **`useSfPreviewImage(field, saved)`** — never re-derive the
+  `undefined`-vs-`null` check inline. Getting it wrong makes a deleted logo reappear.
+- **An empty array is a real draft** ("all groups removed"), so `previewGroups ?? saved` — never a
+  truthiness check.
+- **Media (logo/banner) is not a draft** — its PATCH saves on upload, so it streams from `settings`,
+  which the mutation has already refreshed in the query cache.
+- **Everything in Customize streams.** If you add a control there and skip this wiring, you have
+  re-created the exact inconsistency that nearly got the whole feature deleted.
 
 ## Backend (../inventory-backend)
 
@@ -275,6 +345,16 @@ resolved **per request from the host**, never baked.
   picking it for a card both upscales and crops the product out of frame. That was the bug on the
   shop grid until 2026-07-31. URL-imported images store one URL in all three fields, so every helper
   degrades to it.
+- **PDP gallery** — `components/storefront/product-gallery.tsx` owns the thumb rail + hero for both
+  product templates (`layout="top" | "side"`) **and** the hover-to-magnify. The page passes raw
+  `images` + the selected index; clamping lives in the gallery (a variant switch can swap in a
+  shorter list). Zoom = `transform: scale()` with `transform-origin` tracking the pointer inside an
+  `overflow: hidden` frame (`.sf-pdp-zoom*`); **only the scale is transitioned** — transition the
+  origin too and the tracking swims a quarter-second behind the cursor. Mouse-only by construction
+  (`e.pointerType !== "mouse"` bails), because a tap fires pointermove with no matching leave and
+  would strand the hero zoomed on a phone. `zoomOrigin()` is exported + tested
+  (`product-gallery.test.ts`): an unclamped origin pans past the edge and shows page background
+  inside the frame.
 - **CMS pages**: admin Ecommerce → Content (title/slug/body/published/showInFooter/sortOrder).
   Bodies are markdown via `lib/storefront-markdown.ts` (dependency-free subset parser → block
   model, React-node rendering = XSS-safe; **consecutive `Q:`/`A:` lines become styled FAQ cards**)
@@ -301,9 +381,13 @@ resolved **per request from the host**, never baked.
   `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy default), `title`
   overrides the heading. Simple is a deliberately flat link row (drops group titles) but still honours
   the show toggle. Edited in Customize → Navigation (`footer-links-card.tsx`, groups + the content-pages
-  Switch/heading) — **footer is NOT live-previewed** (only the variant is; group/content-pages edits
-  need a save + ~60s revalidate). Social links are edited in admin Store Settings → General → Social
-  links card; a bare WhatsApp phone number is normalized to `https://wa.me/<digits>` in `social-links.tsx`.
+  Switch/heading) — groups, the content-pages toggle/heading **and** the variant are all
+  live-previewed (2026-07-31; the groups were the last Customize control that wasn't). Social links
+  are edited in admin Store Settings → General → Social
+  links card. **All hrefs go through `hrefFor` in `social-links.tsx`** — it forces a scheme
+  (a schemeless `facebook.com/x` is a *relative* href, so the button used to 404 on the shop's own
+  origin) and turns a phone-shaped WhatsApp value into `https://wa.me/<digits>`. Tested in
+  `social-links.test.ts`; never render an owner-supplied URL without it.
 - **Checkout**: gates in order — `!shopper` (redirect to `/account?next=/checkout`, hydration-gated),
   `!emailVerified` (VerifyEmailGate), `placed` (OrderPlacedCard), empty cart. Single-page or
   multi-step per template. Coupons validated server-side; shipping = Dhaka inside/outside zones.
@@ -329,6 +413,59 @@ resolved **per request from the host**, never baked.
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
 ## Work log (what was built, newest first — as of 2026-07-31)
+
+- **PDP hover zoom + gallery extracted (FE)** (2026-07-31): the product page had no way to inspect a
+  product image — the hero was a flat `<Media>` and the only detail available was whatever the
+  1600px source showed at ~600px. Added hover-to-magnify (2.4×, origin tracking the pointer) in a
+  new `components/storefront/product-gallery.tsx`, which also took over the thumb rail for **both**
+  templates — the two layout branches were duplicated inline in `view.tsx` and each would have needed
+  its own copy of the zoom. Three decisions worth keeping: **(1)** only `transform` transitions,
+  never `transform-origin` — transitioning both makes the magnified area trail the cursor;
+  **(2)** the handler bails on `e.pointerType !== "mouse"`, so a tap can't strand a phone in a zoomed
+  state it has no hover-out to leave (this is why the feature needs no touch branch at all);
+  **(3)** the "Hover to zoom" hint is a CSS-gated `(hover: hover) and (pointer: fine)` element with
+  `pointer-events: none` — inline styles can't express the query, and without the pointer-events reset
+  the badge swallows the pointermove that drives the zoom over its own corner. i18n `zoomHint` ×3,
+  new `zoomIn` icon, `.sf-pdp-zoom*` in storefront.css, 3 tests on the clamped origin math.
+  `view.tsx` 415 → 369 lines. **Still owed** (unchanged by this pass, deliberately): the buy box and
+  sticky bar are inline, so that component is ~325 lines and the file carries no
+  `// coding-standard: maintained` marker.
+
+- **Social links 404'd on the shop itself (FE)** (2026-07-31): `hrefFor` only normalized WhatsApp and
+  assumed "every other platform is stored as a full URL". Owners don't write URLs that way — one had
+  saved `facebook.com/rkrashu`, which is a **relative** href, so the storefront's Facebook button
+  navigated shoppers to a 404 on the merchant's own store. Found in a dev server log
+  (`GET /facebook.com/rkrashu 404`, twice), not by any gate: nothing type-checks an `<a href>`.
+  Now every value goes through `absoluteUrl` (schemeless → `https://`, protocol-relative → pick the
+  scheme, already-absolute → untouched, including `http` — silently upgrading would break links that
+  genuinely have no TLS). WhatsApp's phone branch is now selected by **shape** (`^[\d\s+()-]+$`)
+  rather than by "has no scheme", which also stops `wa.me/8801…` being stripped to its digits.
+  Fixed at render, not on save, so already-stored values are corrected. 5 tests in
+  `social-links.test.ts`.
+
+- **Live preview covers every Customize control (FE)** (2026-07-31): two controls didn't stream, out
+  of fourteen that did, and the inconsistency read as a broken editor rather than a limit — the
+  proposal on the table was to delete live preview entirely. That would have been the wrong trade:
+  the bridge is `postMessage` into an iframe that mounts **once**, so an edit costs **zero** server
+  requests, while "reload the preview after save" costs a full SSR render per save — and now a
+  cache-missing one, since the save also flushes the tag. Closed the two gaps instead.
+  **(1) Footer groups + the content-pages column**: `footer`/`contentPages` moved out of
+  `navigation-section.tsx`'s local state up to `CustomizeWorkspace` (the same lift done for the
+  announcement bar in July), into `nav.footer`/`nav.footerContentPages` on the payload, and
+  `store-footer.tsx` now prefers them. The payload trims blank-titled groups **exactly like
+  `submit()` does**, so the preview can't promise a column the save drops.
+  **(2) Logo + banner**: these are saved by their own media PATCH the moment they upload, so they
+  come straight off `settings` rather than a draft. They needed a **different override rule** from
+  every other field: `null` is a real value ("removed"), so `draft ?? saved` would resurrect the old
+  logo the instant a merchant deleted it. Hence `undefined` = nothing sent, and one shared
+  `useSfPreviewImage(field, saved)` in the preview store rather than that rule re-derived in the
+  four places that read an image (header, footer, favicon, home banner). The editor sends the
+  **effective** logo (store logo ?? org logo), mirroring what the backend resolves for the public
+  payload — sending the raw store logo would blank the header on removal.
+  Non-preview rendering is byte-identical: with nothing streamed the helper returns the saved value.
+  **Not done:** the bridge still accepts a message from any origin
+  (`preview-bridge.tsx` checks `d.type` but never `e.origin`). Cosmetic-only impact, confined to
+  whoever embedded the page, but it is two lines whenever this file is next touched.
 
 - **Account nav → section strip on mobile (FE)** (2026-07-31): the account sidebar was a vertical
   list of five labelled rows plus logout — right as a 260px desktop column, but below 680px
@@ -377,7 +514,8 @@ resolved **per request from the host**, never baked.
   identical (the footer link padding is mobile-only, reset in the ≥680px block).
   **Not done:** `app/(storefront)/shop/products/[productSlug]/view.tsx` is 412 lines in one ~380-line
   component and breaches the file-size rule — the gallery fix was kept minimal by design, so
-  splitting the gallery / buy box / sticky bar into their own components is still owed.
+  splitting the gallery / buy box / sticky bar into their own components is still owed. *(Gallery
+  split done 2026-07-31 with the hover-zoom entry above; buy box + sticky bar still owed.)*
 
 - **One canonical host per store (BE + FE)** (2026-07-28): closed the duplicate-content hole — a shop
   with a custom domain was fully indexable on **both** that domain and `{slug}.ezycore.com/shop`, each
@@ -540,8 +678,9 @@ resolved **per request from the host**, never baked.
   `footer-links-card.tsx` gained the content-pages Switch + heading input, wired through
   `navigation-section.tsx`'s wholesale `nav` save. Mobile groups collapse to `useState`-driven
   accordions (SSR-safe: render open, no hydration flash; desktop heading inert + always-open via CSS
-  `!important`). **Footer still isn't live-previewed** — only the variant streams; group/content-pages
-  edits need a save. BE DTO round-trip test extended (`organization.dto.test.ts`). Dead `--footcols` var
+  `!important`). Footer wasn't live-previewed then — only the variant streamed (**superseded
+  2026-07-31**: groups and content-pages now stream too).
+  BE DTO round-trip test extended (`organization.dto.test.ts`). Dead `--footcols` var
   removed. `verify:api-types` needs a regen (admin DTO changed). Approved design sample:
   claude.ai/code/artifact/49d51fad-2a9d-4302-b686-d298f621f67e.
 
@@ -568,7 +707,8 @@ resolved **per request from the host**, never baked.
   the same way it does dropped hero slides. **Live preview**: the announcement draft was lifted from
   `NavigationSection` up to `CustomizeWorkspace` and streams via the postMessage bridge
   (`nav.announcement` in the payload → `use-sf-preview-store` `announcement` → `preview-bridge` →
-  `store-shell` prefers the override) — the bar was previously edited blind (footer still is). i18n
+  `store-shell` prefers the override) — the bar was previously edited blind, as the footer still was
+  at the time (**superseded 2026-07-31**). i18n
   +1 key ×3 (`dismiss`). Both repos typecheck clean.
 
 - **Header search → in-place typeahead** (2026-07-20): the header "search bar" used to be a
@@ -833,7 +973,8 @@ resolved **per request from the host**, never baked.
   partial `templates` silently wipes the other sections' choices — this nearly shipped twice.
 - **OAuth callback route order** (before `/:slug`), and same-document hash navigation does NOT
   remount the oauth landing page — QA must full-navigate.
-- **Store payload is cached** (~60s revalidate + 5-min client staleTime) — settings changes lag.
+- **Store payload is cached** (`getStore` = 300s + 5-min client staleTime). Merchant saves flush it
+  on demand; anything else changes it lags by the timer. See "Cache + on-demand revalidation".
 - **Turbopack can panic per-route persistently** ("Panic in async function" 500) — restart the
   frontend dev server; it purges the corrupted FS cache itself.
 - Known pre-existing type errors (NOT ours; don't chase): frontend `image-gallery-upload.tsx` ×3

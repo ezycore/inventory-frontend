@@ -2,9 +2,12 @@ import { create } from "zustand";
 import type {
   CatalogCategory,
   StoreAnnouncement,
+  StoreFooterContentPages,
+  StoreFooterGroup,
   StoreHeroBanner,
   StoreHeroSlide,
   StoreMenuItem,
+  StorefrontImage,
 } from "@/lib/storefront-client";
 
 /**
@@ -39,6 +42,24 @@ interface SfPreviewState {
   navHeader: StoreMenuItem[] | null;
   /** Draft announcement bar (Navigation → Announcement bar). */
   announcement: StoreAnnouncement | null;
+  /** Draft footer link groups (Navigation → Footer links), already trimmed like the save path. */
+  footerGroups: StoreFooterGroup[] | null;
+  /** Draft controls for the auto content-pages footer column. */
+  footerContentPages: StoreFooterContentPages | null;
+  /**
+   * Draft store logo and banner.
+   *
+   * These two are `undefined` until the editor has sent one, where every other field starts `null`,
+   * and the distinction is load-bearing: `null` is a *real* value here — "no image" — so a consumer
+   * cannot use `?? saved` to fall back. It must check `!== undefined`, or removing a logo would
+   * silently show the saved one again and the removal would look broken.
+   *
+   * The editor sends the **effective** logo (store logo, else the organization's), because that is
+   * what the backend resolves for the public payload — sending the raw store logo would blank the
+   * header the moment a merchant removed the store-specific override.
+   */
+  logo?: StorefrontImage | null;
+  banner?: StorefrontImage | null;
   /**
    * Draft collections from the Navigation → Collections panel: already ordered
    * and filtered to the listed ones, with display names applied. Overrides the
@@ -62,6 +83,11 @@ interface SfPreviewState {
     navHeader?: StoreMenuItem[];
     announcement?: StoreAnnouncement;
     collections?: CatalogCategory[];
+    footerGroups?: StoreFooterGroup[];
+    footerContentPages?: StoreFooterContentPages;
+    // `null` is meaningful (image removed), so these are nullable in the patch too.
+    logo?: StorefrontImage | null;
+    banner?: StorefrontImage | null;
   }) => void;
 }
 
@@ -81,6 +107,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   navHeader: null,
   announcement: null,
   collections: null,
+  footerGroups: null,
+  footerContentPages: null,
+  logo: undefined,
+  banner: undefined,
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
@@ -103,5 +133,29 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.announcement !== undefined ? patch.announcement : s.announcement,
       collections:
         patch.collections !== undefined ? patch.collections : s.collections,
+      footerGroups:
+        patch.footerGroups !== undefined ? patch.footerGroups : s.footerGroups,
+      footerContentPages:
+        patch.footerContentPages !== undefined
+          ? patch.footerContentPages
+          : s.footerContentPages,
+      logo: patch.logo !== undefined ? patch.logo : s.logo,
+      banner: patch.banner !== undefined ? patch.banner : s.banner,
     })),
 }));
+
+/**
+ * Resolve a previewable image against its saved value.
+ *
+ * Every other override can use `draft ?? saved`, because `null` means "nothing drafted". Images
+ * can't: `null` is a legitimate draft meaning "removed", so the sentinel for "the editor hasn't
+ * sent one" has to be `undefined`. Three components need that distinction (header, footer, favicon)
+ * plus the home banner — one helper so the rule is stated once and can't be half-remembered.
+ */
+export const useSfPreviewImage = (
+  field: "logo" | "banner",
+  saved?: StorefrontImage | null,
+): StorefrontImage | null | undefined => {
+  const draft = useSfPreview((s) => s[field]);
+  return draft !== undefined ? draft : saved;
+};

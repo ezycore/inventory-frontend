@@ -7,6 +7,12 @@
  *
  * Use these in Server Components / `generateMetadata`. Keep client interactivity
  * (cart, shopper auth) on the existing `services/storefront/hooks` client layer.
+ *
+ * The `revalidate` values below are the *backstop*, not the freshness guarantee:
+ * every entry is tagged `store:{slug}` and an admin save flushes the tag on demand
+ * via `POST /api/storefront/revalidate`. Raising one of these numbers is therefore
+ * cheap for merchant-authored data and expensive for anything else — see
+ * "Cache + on-demand revalidation" in `.claude/skills/storefront/SKILL.md`.
  */
 
 import type {

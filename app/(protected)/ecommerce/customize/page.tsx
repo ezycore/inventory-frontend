@@ -23,6 +23,8 @@ import type { HeaderMenuSource } from "@/lib/storefront-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { storefrontUrl } from "@/lib/storefront-url";
 import type {
+  Image,
+  StorefrontFooterGroup,
   StorefrontHeroBanner,
   StorefrontHeroSlide,
   StorefrontMenuItem,
@@ -39,6 +41,7 @@ import {
 import { CollectionsPanel } from "@/components/ecommerce/collections/collections-panel";
 import { NavigationSection } from "@/components/ecommerce/navigation/navigation-section";
 import type { AnnouncementDraft } from "@/components/ecommerce/navigation/announcement-card";
+import type { FooterContentPagesDraft } from "@/components/ecommerce/navigation/footer-links-card";
 import { HeroSlidesPanel } from "@/components/ecommerce/hero-slides-panel";
 import { HomeTemplateBlock } from "@/components/ecommerce/home-template-block";
 import { cn } from "@/ui/lib/utils";
@@ -88,6 +91,10 @@ function PageLoader() {
 
 function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const slug = useAuthStore((s) => s.user?.organization?.slug);
+  // The shop inherits the org logo when it has no store-specific one — the
+  // preview has to apply the same fallback or removing the store logo would
+  // blank the header instead of reverting to the org mark.
+  const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
   // ?section= deep-links the rail — the retired /ecommerce/navigation route
   // redirects here pointing at its section.
   const sectionParam = useSearchParams().get("section");
@@ -170,6 +177,25 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const patchAnnouncement = useCallback(
     (patch: Partial<AnnouncementDraft>) =>
       setAnnouncement((a) => ({ ...a, ...patch })),
+    [],
+  );
+  // Footer link groups + the auto content-pages column. Lifted for the preview
+  // like everything else on this page — they were the last Customize controls
+  // that only appeared after a save, which merchants read as the editor being
+  // broken rather than as a deliberate limit.
+  const [footerGroups, setFooterGroups] = useState<StorefrontFooterGroup[]>(
+    () => settings.nav?.footer ?? [],
+  );
+  // `show` defaults on (legacy behaviour) so existing stores keep the column;
+  // a blank title ⇒ the built-in "Information" heading.
+  const [footerContentPages, setFooterContentPages] =
+    useState<FooterContentPagesDraft>(() => ({
+      show: settings.nav?.footerContentPages?.show ?? true,
+      title: settings.nav?.footerContentPages?.title ?? "",
+    }));
+  const patchFooterContentPages = useCallback(
+    (patch: Partial<FooterContentPagesDraft>) =>
+      setFooterContentPages((c) => ({ ...c, ...patch })),
     [],
   );
 
@@ -281,6 +307,10 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setHeader={setNavHeader}
             announcement={announcement}
             setAnnouncement={patchAnnouncement}
+            footer={footerGroups}
+            setFooter={setFooterGroups}
+            contentPages={footerContentPages}
+            setContentPages={patchFooterContentPages}
             collections={collectionsDraft}
             onManageCollections={() => setCollectionsPanelOpen(true)}
           />
@@ -311,6 +341,14 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           navHeader={navHeader}
           announcement={announcement}
           collections={collectionsDraft}
+          footerGroups={footerGroups}
+          footerContentPages={footerContentPages}
+          // Media is saved by its own PATCH the moment it uploads, so these come
+          // straight off `settings` (already refreshed by the mutation) rather
+          // than from a draft. The store logo falls back to the organization's,
+          // mirroring what the backend resolves for the public payload.
+          logo={settings.logo ?? orgLogo ?? null}
+          banner={settings.banner ?? null}
         />
       </div>
     </div>
@@ -521,6 +559,10 @@ function BrowserPreview({
   navHeader,
   announcement,
   collections,
+  footerGroups,
+  footerContentPages,
+  logo,
+  banner,
 }: {
   slug?: string;
   brandColor: string;
@@ -537,6 +579,11 @@ function BrowserPreview({
   navHeader: StorefrontMenuItem[];
   announcement: AnnouncementDraft;
   collections: CollectionRowValue[];
+  footerGroups: StorefrontFooterGroup[];
+  footerContentPages: FooterContentPagesDraft;
+  /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
+  logo: Image | null;
+  banner: Image | null;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -553,6 +600,23 @@ function BrowserPreview({
   const heroBannerKey = JSON.stringify(cleanHeroBanner(heroBanner));
   const navHeaderKey = JSON.stringify(navHeader.filter((m) => m.label.trim()));
   const announcementKey = JSON.stringify(announcement);
+  // Trimmed exactly like `NavigationSection.submit` — a group with a blank title
+  // is dropped on save, so previewing it would promise a column that never ships.
+  const footerGroupsKey = JSON.stringify(
+    footerGroups
+      .filter((g) => g.title.trim())
+      .map((g) => ({
+        title: g.title.trim(),
+        links: g.links.filter((l) => l.label.trim()),
+      })),
+  );
+  // Blank title ⇒ omitted, so the footer falls back to its built-in heading.
+  const footerContentPagesKey = JSON.stringify({
+    show: footerContentPages.show,
+    title: footerContentPages.title.trim() || undefined,
+  });
+  const logoKey = JSON.stringify(logo);
+  const bannerKey = JSON.stringify(banner);
   // Mirror the public GET /:slug/categories contract exactly — listed only,
   // display name wins, draft order preserved — so the preview can't drift from
   // what shoppers will actually get.
@@ -586,13 +650,19 @@ function BrowserPreview({
           nav: {
             header: JSON.parse(navHeaderKey),
             announcement: JSON.parse(announcementKey),
+            footer: JSON.parse(footerGroupsKey),
+            footerContentPages: JSON.parse(footerContentPagesKey),
           },
           collections: JSON.parse(collectionsKey),
+          // `JSON.parse("null")` is null, not undefined — which is what the
+          // preview store needs to tell "removed" from "not sent yet".
+          logo: JSON.parse(logoKey),
+          banner: JSON.parse(bannerKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey, footerGroupsKey, footerContentPagesKey, logoKey, bannerKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {

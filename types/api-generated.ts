@@ -30977,8 +30977,7 @@ export interface operations {
                 "application/json": {
                     name: string;
                     phone?: string;
-                    /** Format: uri */
-                    trackingUrlTemplate?: string;
+                    trackingUrlTemplate?: "" | string;
                     defaultCharge?: number;
                     active?: boolean;
                 };
@@ -31042,8 +31041,7 @@ export interface operations {
                 "application/json": {
                     name?: string;
                     phone?: string;
-                    /** Format: uri */
-                    trackingUrlTemplate?: string;
+                    trackingUrlTemplate?: "" | string;
                     defaultCharge?: number;
                     active?: boolean;
                 };

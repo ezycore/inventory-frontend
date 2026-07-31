@@ -862,6 +862,55 @@
   }
 }
 
+/* ---- PDP hero zoom (product-gallery.tsx) ----
+   Hover-to-magnify: the image scales inside a clipping frame and its
+   `transform-origin` follows the pointer, so the shopper inspects detail in
+   place. Only the scale is transitioned — the origin jumps, which is what keeps
+   the tracking lag-free while the zoom in/out still eases. */
+.sf-pdp-zoom {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+}
+.sf-pdp-zoom-img {
+  transition: transform 0.25s ease;
+}
+/* The hint is a pointer affordance, so it exists only where hovering does — and
+   a media query is the one thing the component's inline styles cannot express.
+   `pointer-events: none` matters: over the image, the badge would otherwise
+   swallow the pointermove that drives the zoom. */
+.sf-pdp-zoom-hint {
+  display: none;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sf-pdp-zoom-hint {
+    display: inline-flex;
+  }
+  .sf-pdp-zoom:hover .sf-pdp-zoom-hint {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-pdp-zoom-img,
+  .sf-pdp-zoom-hint {
+    transition: none;
+  }
+}
+
 /* ---- Footer (Columns / Rich) ----
    One column PER footer group (auto-flowing) instead of the old fixed
    2fr-1fr-1fr grid that stacked every group inside a single cell. Below 680px

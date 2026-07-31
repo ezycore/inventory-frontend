@@ -253,6 +253,8 @@ export interface Dict {
   quantity: string;
   description: string;
   specifications: string;
+  /** PDP gallery affordance — CSS shows it only where a fine pointer can hover. */
+  zoomHint: string;
   relatedTitle: string;
   deliveryEst: string;
   reviewsWord: string;
@@ -587,6 +589,7 @@ const en: Dict = {
   quantity: "Quantity",
   description: "Description",
   specifications: "Specifications",
+  zoomHint: "Hover to zoom",
   relatedTitle: "You may also like",
   deliveryEst: "Delivery in 1–2 days inside Dhaka",
   reviewsWord: "reviews",
@@ -922,6 +925,7 @@ const bn: Dict = {
   quantity: "পরিমাণ",
   description: "বিবরণ",
   specifications: "স্পেসিফিকেশন",
+  zoomHint: "জুম করতে হোভার করুন",
   relatedTitle: "আরও পছন্দ হতে পারে",
   deliveryEst: "ঢাকার ভিতরে ১–২ দিনে ডেলিভারি",
   reviewsWord: "রিভিউ",
