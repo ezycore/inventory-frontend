@@ -46,7 +46,7 @@
     "logoTooLarge": "Logo must be smaller than 5MB",
     "tab": {
       "logoSectionLabel": "Organization Logo",
-      "logoHint": "PNG, JPG, SVG or WebP. Square images work best. Max 5MB.",
+      "logoHint": "Square 512 × 512 px works best — a wide logo gets cropped in the sidebar and browser tab. PNG, JPG or WebP up to 5MB.",
       "changeLogo": "Change logo",
       "uploadLogo": "Upload logo",
       "removeLogo": "Remove",

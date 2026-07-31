@@ -593,7 +593,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             maxFiles: 5,
             maxSize: 5 * 1024 * 1024, // 5MB
             showPreview: true,
-            dropzoneText: tr('form.imagesDropzone', "PNG, JPG, WEBP up to 5MB · Max 5 images"),
+            dropzoneText: tr('form.imagesDropzone', "Square 1600 × 1600 px works best · PNG, JPG, WEBP up to 5MB · Max 5 images"),
           },
         ],
       },
