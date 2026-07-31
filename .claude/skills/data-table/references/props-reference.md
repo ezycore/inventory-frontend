@@ -28,7 +28,7 @@
 | `onSelectionChange` | `(rows) => void` |  | — | Selection callback. |
 | `variant` | `"default" \| "compact" \| "relaxed" \| "card"` |  | `"default"` | Cell padding/density. |
 | `headless` | `boolean` |  | `false` | Hide header row. |
-| `borderless` | `boolean` |  | `false` | Remove all borders. |
+| `borderless` | `boolean` |  | `false` | Remove the row/cell borders. (There is no outer border to remove — the table always renders flush; framing comes from the hosting `Card`.) |
 | `rowSpacing` | `"none" \| "sm" \| "md" \| "lg"` |  | `"none"` | `border-separate` spacing between rows. |
 | `zebra` | `boolean` |  | `false` | Alternating row colors. |
 | `roundedRows` | `boolean` |  | `false` | Rounded row corners (needs `rowSpacing`). |

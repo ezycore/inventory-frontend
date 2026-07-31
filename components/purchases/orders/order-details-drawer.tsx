@@ -107,7 +107,7 @@ export function OrderDetailsDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[760px] sm:max-w-[760px] flex flex-col">
+      <SheetContent className="flex w-full flex-col sm:max-w-[760px]">
         <SheetHeader>
           <SheetHeaderBar
             action={
@@ -149,7 +149,7 @@ export function OrderDetailsDrawer({
 
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="mt-6 space-y-4 px-2">
+            <div className="mt-2 space-y-4 px-4 pb-6">
               <div className="flex gap-3">
                 {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-16 flex-1" />
@@ -159,7 +159,7 @@ export function OrderDetailsDrawer({
               <Skeleton className="h-32 w-full" />
             </div>
           ) : order ? (
-            <div className="mt-6 space-y-6 px-2">
+            <div className="mt-2 space-y-6 px-4 pb-6">
               <OrderStats order={order} />
 
               <PurchaseItemsTable
@@ -206,7 +206,7 @@ export function OrderDetailsDrawer({
         </div>
 
         {order && (canReceive || canCancel || canEdit) && (
-          <div className="flex flex-wrap gap-2 border-t px-2 py-3">
+          <div className="flex flex-wrap gap-2 border-t px-4 py-3">
             {canReceive && onReceiveItems && (
               <Button
                 className="min-w-[160px] flex-1"

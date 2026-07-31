@@ -4,17 +4,15 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
   type RefObject,
 } from "react";
 
+import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect";
+
 /** Matches Tailwind `gap-1` (0.25rem). */
 const DEFAULT_GAP_PX = 4;
-
-const useIsomorphicLayoutEffect =
-  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 interface SingleLineFit {
   /** Attach to the visible row — its client width is the budget. */

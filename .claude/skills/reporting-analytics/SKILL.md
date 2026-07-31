@@ -22,7 +22,8 @@ Under [`app/(protected)/reports/`](../../../app/(protected)/reports): `inventory
 `cash`, `employees`, `valuation` (stock valuation), `tax`, `expiry`, `export`, plus the index `page.tsx`.
 
 Each renders a component in [`components/reports/`](../../../components/reports):
-`inventory-report.tsx`, `sales-report.tsx`, `purchase-report.tsx`, `cash-report.tsx`,
+`inventory-report.tsx`, `sales-report.tsx`, `purchase-report.tsx`, `cash-report.tsx` (+ its
+`cash/` parts),
 `employee-report.tsx`, `valuation-report.tsx`, `expiry-report.tsx`, `tax-report.tsx` (+
 `tax-rate-table.tsx`, `tax-ledger-table.tsx`, `tax-trend-chart.tsx`), `top-combos-card.tsx`, and
 `export-data.tsx`.
@@ -67,6 +68,15 @@ tightened backend-side), so the period header type-checks against the report res
   [`vat`](../vat/SKILL.md) skill — `isTaxActive` no longer exists) and hide
   tax reports when off.
 - **Export**: report CSV export goes through `export-data.tsx` / the report `export` route — reuse it.
+- **Ledger money is "cash in / cash out", never "income / expense"** — the ledger totals include the
+  cash leg of a sale and exclude owner capital, so P&L words on them are wrong. Say Cash In, Cash
+  Out, Owner Capital (`reports.cash.*` and `accounts.transactions.stats.*` share the wording), and
+  group category rows by the backend's **`kind`**, never by `type` — see the backend
+  [`accounting-ledger`](../../../../inventory-backend/.claude/skills/accounting-ledger/SKILL.md)
+  skill. A section that groups by `type` puts owner capital under a total that excludes it.
+- **Category and enum labels are message keys, not string transforms.** Reuse
+  `accounts.transactions.categories.*` / `accounts.accounts.types.*` (`t.has(key)` guards the
+  unattributed row). A `replace(/([A-Z])/g,' $1')` prints `Capital_in` and stays English in Bangla.
 
 ---
 

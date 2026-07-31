@@ -314,6 +314,7 @@
   "billing": {
     "title": "Billing",
     "subtitle": "View your current plan, usage, and included features.",
+    "noPermissionDescription": "Billing is managed by the workspace owner. Ask an administrator if you need to change the plan.",
     "toasts": {
       "planUpdated": "Your plan has been updated.",
       "downgradeScheduled": "Downgrade to {planName} scheduled for {date}. You keep your current plan until then.",

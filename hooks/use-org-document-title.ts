@@ -1,10 +1,9 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect } from "react";
-
 import { BRAND } from "@/constants/brand";
 import { useBreadcrumbs } from "@/hooks/use-breadcrumbs";
+import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 
 /**
@@ -37,6 +36,17 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
  * fresh load and every refresh, which is the state this shipped in until it was
  * caught in a browser. Observing `<head>` wins regardless of when Next writes,
  * and the equality check keeps it from looping against itself.
+ *
+ * Nothing competes for the tag on navigation, and that is a precondition, not a
+ * detail: Next re-asserts root metadata on every client-side navigation, so
+ * while `app/layout.tsx` carried a `title` this hook lost the tab to
+ * `BRAND.documentTitle` for a frame on every sidebar click. The root layout has
+ * no title now — `(protected)` renders its own constant `<title>` — so the only
+ * writer here is this hook. Restoring a metadata title above `(protected)`
+ * brings the flash back.
+ *
+ * The effects run **before paint** (`useIsomorphicLayoutEffect`) so the tab is
+ * never painted with a stale value between mount and correction.
  */
 export function useOrgDocumentTitle() {
   const crumbs = useBreadcrumbs();
@@ -45,7 +55,7 @@ export function useOrgDocumentTitle() {
   const page = crumbs[crumbs.length - 1]?.title;
   const owner = orgName || BRAND.name;
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const desired = page ? `${page} · ${owner}` : owner;
 
     const apply = () => {
@@ -58,7 +68,7 @@ export function useOrgDocumentTitle() {
     return () => observer.disconnect();
   }, [page, owner]);
 
-  useEffect(() => () => {
+  useIsomorphicLayoutEffect(() => () => {
     document.title = BRAND.documentTitle;
   }, []);
 }

@@ -13,9 +13,11 @@
  * changes. This barrel is the only place that maps a backend schema name to a friendly FE name;
  * import response types from here (`@/types/api`), never reach into `api-generated` directly.
  */
-import type { components } from "./api-generated";
+import type { components, operations } from "./api-generated";
 
 export type Schemas = components["schemas"];
+/** Per-endpoint shapes. Used where a **request** body needs the spec's exact enum, not a hand union. */
+export type Operations = operations;
 
 // Envelopes ------------------------------------------------------------------
 export type SuccessResponse = Schemas["SuccessResponse"];
@@ -88,6 +90,26 @@ export type TransactionSummary = Schemas["TransactionSummary"];
 export type TransactionStats = Schemas["TransactionStats"];
 /** `POST /transactions/transfer` → the paired `{ outTransaction, inTransaction }` documents. */
 export type TransactionTransfer = Schemas["TransactionTransfer"];
+/**
+ * What a ledger line **is** (`classifyTxn` on the backend), as opposed to `type`, which is only the
+ * direction cash moved. Derived server-side and sent on every transaction — never re-derive it here.
+ */
+export type TransactionKind = ApiTransaction["kind"];
+
+/**
+ * Manual-post request bodies, taken from the generated **request** schemas rather than hand-written.
+ *
+ * The category enums here are the narrow manual sets (`capital_in | shipping | adjustment | other`,
+ * etc.), not the full stored vocabulary — which is the point: a settlement category like `"sale"`
+ * is rejected by the API, and typing these off the spec turns that into a compile error instead of
+ * a 400 the user meets after filling in the form.
+ */
+export type CreateIncomeBody =
+  Operations["post_api_transactions_income"]["requestBody"]["content"]["application/json"];
+export type CreateExpenseBody =
+  Operations["post_api_transactions_expense"]["requestBody"]["content"]["application/json"];
+export type CreateTransferBody =
+  Operations["post_api_transactions_transfer"]["requestBody"]["content"]["application/json"];
 
 // Dashboard & reports --------------------------------------------------------
 export type DashboardOverview = Schemas["DashboardOverview"];

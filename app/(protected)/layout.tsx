@@ -23,6 +23,27 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { BRAND } from "@/constants/brand";
+
+/**
+ * The workspace's own <title>, which React 19 hoists into <head>.
+ *
+ * Raw element rather than route metadata, exactly like the storefront's tab icon
+ * (see app/(storefront)/shop/layout.tsx): Next re-asserts metadata on every
+ * router-integrated navigation, so a metadata title here would overwrite
+ * `useOrgDocumentTitle` on every sidebar click and flash the platform default.
+ *
+ * The value is CONSTANT on purpose. React only touches the DOM when a rendered
+ * value changes, so rendering the same string forever means React writes this
+ * once and then never fights the hook, which rewrites the text to
+ * "<Page> · <Org>" client-side. It ships in the SSR HTML so the pre-hydration
+ * tab shows the product name rather than the raw URL.
+ *
+ * Rendered from both return branches below — SSR takes the `!hydrated` one, so
+ * omitting it there would mean no title in the server HTML at all.
+ */
+const workspaceTitle = <title>{BRAND.documentTitle}</title>;
+
 export default function ProtectedLayout({
   children,
 }: {
@@ -106,32 +127,42 @@ export default function ProtectedLayout({
   const hydrated = useHydrated();
   if (!hydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <>
+        {workspaceTitle}
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </>
     );
   }
 
   return (
-    <KBar>
-      <SidebarProvider
-        defaultOpen={sidebarOpen}
-        open={isMounted ? sidebarOpen : undefined}
-        onOpenChange={isMounted ? setSidebarOpen : undefined}
-      >
-        <AppSidebar />
-        <SidebarInset>
-          <BillingAlertBanner />
-          <DemoBanner />
-          <Header />
-          <div className="min-h-screen">
-            <div className="container mx-auto p-4 sm:p-6">
-              {children}
+    <>
+      {workspaceTitle}
+      <KBar>
+        <SidebarProvider
+          defaultOpen={sidebarOpen}
+          open={isMounted ? sidebarOpen : undefined}
+          onOpenChange={isMounted ? setSidebarOpen : undefined}
+        >
+          <AppSidebar />
+          <SidebarInset>
+            <BillingAlertBanner />
+            <DemoBanner />
+            <Header />
+            <div className="min-h-screen">
+              {/* Not `container`: its max-widths are keyed to the VIEWPORT, so inside
+                  an inset that is one sidebar narrower they never bind — it was a
+                  no-op that read like a constraint. 96rem is the cap `container`
+                  actually reached, so the rendered width is unchanged. */}
+              <div className="mx-auto w-full max-w-[96rem] p-4 sm:p-6">
+                {children}
+              </div>
             </div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </KBar>
+          </SidebarInset>
+        </SidebarProvider>
+      </KBar>
+    </>
   );
 }
 

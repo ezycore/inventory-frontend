@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { CatalogProduct, StorefrontStore } from "@/lib/storefront-client";
+import { fullImageUrl } from "@/lib/storefront-image";
 
 /**
  * schema.org structured data for the storefront.
@@ -46,7 +47,7 @@ function availabilityOf(product: CatalogProduct): string {
 /** Absolute, de-duplicated image URLs — schema.org requires crawlable URLs. */
 function imageUrls(product: CatalogProduct): string[] {
   const urls = product.images
-    .map((i) => i.url || i.mediumUrl || i.thumbnailUrl)
+    .map((i) => fullImageUrl(i))
     .filter((u): u is string => !!u && /^https?:\/\//.test(u));
   return [...new Set(urls)];
 }

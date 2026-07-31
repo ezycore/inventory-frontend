@@ -68,7 +68,9 @@ export function ReturnItemRow({
           onCheckedChange={(checked) => onSelect(index, !!checked)}
           disabled={isDisabled}
         />
-        <div className="flex-1 space-y-3">
+        {/* min-w-0: without it this flex item is floored at the fields grid's
+            min-content width, so the row cannot narrow on small screens. */}
+        <div className="min-w-0 flex-1 space-y-3">
           {/* Product name + max qty hint */}
           <div className="flex items-center justify-between gap-2">
             <div>

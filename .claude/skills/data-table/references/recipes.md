@@ -104,7 +104,7 @@ customActions={[
 <DataTable
   variant="compact"        // tighter padding
   headless                 // hide header row
-  borderless               // remove all borders
+  borderless               // remove the row/cell borders (there is no outer one)
   rowSpacing="md"          // separated rows (border-spacing-y-2)
   roundedRows              // round each row (needs rowSpacing != none)
   stickyHeader             // header sticks while scrolling (max-h 600px)

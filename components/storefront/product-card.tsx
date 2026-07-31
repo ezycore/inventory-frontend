@@ -12,6 +12,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
+import { cardImageUrl, thumbImageUrl } from "@/lib/storefront-image";
 import { money, discountPct } from "@/components/storefront/format";
 import { Media } from "@/components/storefront/sf-bits";
 
@@ -52,7 +53,7 @@ export function ProductCard({
   // Backorder products stay buyable at zero stock; only "show"/"hide" are sold out.
   const canBackorder = product.outOfStockBehavior === "backorder";
   const soldOut = product.availableQuantity <= 0 && !canBackorder;
-  const thumb = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
+  const thumb = cardImageUrl(product.images?.[0]);
   const href = storeHref(base, `/products/${product.slug}`);
   // Variable products can't be added blindly — the shopper picks a variant on
   // the PDP, so the card CTA navigates there and the price reads "From ৳X".
@@ -68,7 +69,7 @@ export function ProductCard({
       slug: product.slug,
       name: product.name,
       price,
-      image: product.images?.[0]?.thumbnailUrl,
+      image: thumbImageUrl(product.images?.[0]),
       // Backorder → uncapped (the store treats maxQty<=0 as no limit).
       maxQty: canBackorder ? 0 : product.availableQuantity,
     });

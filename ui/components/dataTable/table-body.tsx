@@ -75,10 +75,11 @@ export function DataTableBody<TData, TValue>({
     return rowBgColor || "";
   };
 
-  // Build wrapper classes
+  // Build wrapper classes. No outer chrome — the table sits flush on whatever
+  // surface hosts it; the page's own Card supplies any framing. `borderless`
+  // still controls the row/cell borders below.
   const wrapperClasses = cn(
     "overflow-hidden",
-    !borderless && "rounded-md border",
     stickyHeader && "max-h-[600px] overflow-y-auto",
   );
 

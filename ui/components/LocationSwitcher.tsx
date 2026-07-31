@@ -1,13 +1,17 @@
 "use client";
+// coding-standard: maintained
 import { sanitize, useMyLocations, useQueryClient } from "@/hooks";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Check, ChevronDown, MapPin, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { toast } from "sonner";
 
 export function LocationSwitcher() {
+  const t = useTranslations("layout.locationSwitcher");
+  const tCommon = useTranslations("common");
   const { data: locationsData, isLoading } = useMyLocations();
   const locations = useMemo(() => locationsData?.data || [], [locationsData]);
   const [open, setOpen] = useState(false);
@@ -52,7 +56,7 @@ export function LocationSwitcher() {
     }
   }, [activeLocationId, currentLocation?.id, setActiveLocation]);
 
-  const handleLocationSelect = async (location: { id: string; name: string }) => {
+  const handleLocationSelect = (location: { id: string; name: string }) => {
     try {
       setActiveLocation(location.id);
       setOpen(false);
@@ -62,9 +66,9 @@ export function LocationSwitcher() {
       // warehouse's heading. Location is request-scope state (the X-Active-Location header),
       // so nothing in the cache survives a switch.
       queryClient.clear();
-      toast.success(`Switched to location: ${location.name}`);
-    } catch (error) {
-      toast.error("Failed to switch location");
+      toast.success(t("switched", { name: location.name }));
+    } catch {
+      toast.error(t("switchFailed"));
     }
   };
 
@@ -74,10 +78,10 @@ export function LocationSwitcher() {
       <Button
         variant="ghost"
         disabled
-        className="group relative h-11 gap-2 px-4 rounded-full border border-gray-200/60 bg-white/80 backdrop-blur-sm"
+        className="group relative h-11 gap-2 px-4 rounded-full border border-border bg-card/80 backdrop-blur-sm"
       >
-        <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
-        <span className="text-sm font-semibold text-gray-900">Loading...</span>
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <span className="text-sm font-semibold">{tCommon("empty.loading")}</span>
       </Button>
     );
   }
@@ -95,35 +99,31 @@ export function LocationSwitcher() {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="group relative h-9 gap-2 px-4 rounded-full border border-gray-400 backdrop-blur-sm hover:border-gray-300 transition-all duration-300"
+          className="group relative h-9 gap-2 px-4 rounded-full border border-border backdrop-blur-sm hover:border-primary/40 transition-all duration-300"
         >
           <div className="flex items-center gap-2">
             <div className="relative">
-              <MapPin className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
-              <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+              <MapPin className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+              <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-primary rounded-full animate-pulse" />
             </div>
             <div className="flex flex-col items-start">
               <span className="text-sm font-semibold">
-                {currentLocation?.name || "Select Location"}
+                {currentLocation?.name || t("title")}
               </span>
             </div>
           </div>
           {accessibleLocations.length > 1 && (
-            <ChevronDown className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-80 p-2 mt-2 rounded-2xl border border-gray-200/60 backdrop-blur-xl shadow-2xl"
+        className="w-80 p-2 mt-2 rounded-2xl border border-border backdrop-blur-xl shadow-2xl"
         align="end"
       >
         <div className="px-3 py-2 mb-1">
-          <h4 className="text-sm font-semibold">
-            Select Location
-          </h4>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Choose your active location for operations
-          </p>
+          <h4 className="text-sm font-semibold">{t("title")}</h4>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("subtitle")}</p>
         </div>
         <div className="space-y-1 max-h-[300px] overflow-y-auto">
           {accessibleLocations.map((location) => (
@@ -131,23 +131,23 @@ export function LocationSwitcher() {
               key={location.id}
               onClick={() => handleLocationSelect(location)}
               variant="ghost"
-              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-gray-100/80 dark:hover:bg-gray-600 transition-all duration-200 group"
+              className="w-full flex items-center justify-between px-3 py-2.5 transition-all duration-200 group"
             >
               <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors">
-                  <MapPin className="h-3.5 w-3.5 text-blue-600" />
+                <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                  <MapPin className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <div className="flex flex-col items-start">
                   <span className="text-sm font-medium">
                     {location.name}
                   </span>
                   {location.isDefault && (
-                    <span className="text-xs">Default</span>
+                    <span className="text-xs text-muted-foreground">{tCommon("status.default")}</span>
                   )}
                 </div>
               </div>
               {currentLocation?.id === location.id && (
-                <Check className="h-4 w-4 text-blue-600" />
+                <Check className="h-4 w-4 text-primary" />
               )}
             </Button>
           ))}

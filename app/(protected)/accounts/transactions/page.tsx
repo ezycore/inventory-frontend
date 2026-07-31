@@ -15,13 +15,16 @@ import { PeriodFilter } from "@/components/dashboard/period-filter";
 import {
   getTransactionColumns,
   getTransactionFilterConfig,
+  isReversible,
   transactionTypeColorMap,
 } from "@/components/accounts/transactions/columns";
 import {
   ExpenseDialog,
   IncomeDialog,
   TransferDialog,
+  useCanPostCapital,
 } from "@/components/accounts/transactions/transaction-dialogs";
+import { ReverseTransactionDialog } from "@/components/accounts/transactions/reverse-transaction-dialog";
 import {
   TransactionStatsSection,
   type TransactionStatsParams,
@@ -32,6 +35,9 @@ import {
   useTransactionStats,
 } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
+import { useAuthStore } from "@/services/stores";
+import type { ApiTransaction } from "@/types/api";
+import { Undo2 } from "lucide-react";
 
 export default function TransactionsPage() {
   return (
@@ -49,6 +55,9 @@ function TransactionsContent() {
   const searchParams = useSearchParams();
   const accountId = searchParams.get("accountId") || undefined;
   const { data: scopedAccount } = useAccount(accountId ?? "");
+  const { user } = useAuthStore();
+  const canPostCapital = useCanPostCapital();
+  const [reverseTarget, setReverseTarget] = useState<ApiTransaction | null>(null);
   // ── Period filter state (reuses dashboard pattern) ──
   const [period, setPeriod] = useState<DashboardPeriod>("thisMonth");
   const [customStart, setCustomStart] = useState("");
@@ -71,7 +80,7 @@ function TransactionsContent() {
 
   const columns = getTransactionColumns(format, tColumns);
 
-  // Wrap getAllData to inject the account scope so the table only shows filtered rows.
+  // Wrap getAllData to inject the period and account scope so the table only shows filtered rows.
   // No manual memoization: the React Compiler infers a more precise dependency
   // than a hand-written array, so we let the compiler memoize this for us.
   const getAllDataWithPeriod = (filters: Record<string, unknown>) => {
@@ -80,8 +89,47 @@ function TransactionsContent() {
     if (accountId) {
       merged.accountId = accountId;
     }
+    // Scope to the selected period. Without this the cards read "This Month" while the table
+    // below listed every transaction ever — the resolved range was fetched and then never sent.
+    // The stats range END is exclusive (`$lt`) and the list filter is inclusive (`$lte`), so step
+    // back 1 ms: passing the instant through would let a midnight row into both periods.
+    if (stats?.period) {
+      merged.startDate = stats.period.startDate;
+      merged.endDate = new Date(
+        new Date(stats.period.endDate).getTime() - 1,
+      ).toISOString();
+    }
     return transactionsApi.getAll(merged);
   };
+
+  // Server-side sorting. The backend forwards `sort_by`/`sort_order` into the ledger query, so
+  // these reorder the whole result set — client-side sorting only ever reordered the current page.
+  // Only fields that are also columns belong here: the list is what makes a header sortable.
+  const sortingConfig = {
+    sortOptions: [
+      { field: "date", label: tColumns("columns.date") },
+      { field: "amount", label: tColumns("columns.amount") },
+    ],
+    defaultSortBy: "date",
+    defaultSortOrder: "desc" as const,
+  };
+
+  // The ledger has no edit and no delete: a correction is a compensating line. Offered only where
+  // the API will accept it, and only to a user who could have posted the original.
+  const canCreate = user?.permissions?.includes("transactions.create") ?? false;
+  const reverseAction = canCreate
+    ? [
+        {
+          type: "reverse",
+          placement: "cell" as const,
+          icon: <Undo2 className="h-4 w-4" />,
+          tooltip: tColumns("reverse.action"),
+          onClick: (row: ApiTransaction) => setReverseTarget(row),
+          hidden: (row: ApiTransaction) =>
+            !isReversible(row) || (row.kind === "equity" && !canPostCapital),
+        },
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -125,19 +173,26 @@ function TransactionsContent() {
 
       <TransactionStatsSection statsParams={statsParams} />
 
-      <DataTable
+      <DataTable<ApiTransaction>
         cardTitle={(n: number) => t("allTransactionsCount", { count: n })}
         defaultPageSize={20}
         pageSizes={[10, 20, 50, 100]}
         filterConfig={getTransactionFilterConfig(tColumns)}
         columns={columns}
         enableSorting
+        sortingConfig={sortingConfig}
+        customActions={reverseAction}
         rowClassName={(row) => transactionTypeColorMap[row.type] || ""}
         operations={{
           getAllData: getAllDataWithPeriod,
           queryKey: [...queryKeys.transactions.all(), { periodStart: stats?.period?.startDate, periodEnd: stats?.period?.endDate, accountId }],
           entityName: t("entity"),
         }}
+      />
+
+      <ReverseTransactionDialog
+        transaction={reverseTarget}
+        onClose={() => setReverseTarget(null)}
       />
     </div>
   );

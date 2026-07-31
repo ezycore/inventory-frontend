@@ -17,7 +17,13 @@ ui_labels:
   - accounts:accounts.card.addInvestment
   - accounts:transactions.page.subtitle
   - accounts:transactions.columns.balanceAfter
+  - accounts:transactions.columns.direction
+  - accounts:transactions.columns.kind
+  - accounts:transactions.stats.cashIn
+  - accounts:transactions.stats.cashOut
+  - accounts:transactions.stats.ownerCapital
   - accounts:transactions.stats.netChange
+  - accounts:transactions.reverse.action
 ---
 
 # Track your cash and bank
@@ -57,18 +63,32 @@ increases the balance and is logged separately, so your own money never gets mis
 
 ## Transactions
 
-The Transactions screen *Track all income, expenses, and transfers* — every movement, newest first.
+The Transactions screen *Track every taka moving in and out* — every movement, newest first.
 
 Entries appear automatically from sales, purchases, payments and refunds. You add the rest yourself:
 Salary, Rent, Utilities, and anything else under Other. Recording those is what turns "money in the
 drawer" into a real profit figure.
 
-Each row carries a category and a **Balance After** column, so you can follow the running balance and
-find exactly where it went wrong when it stops matching the drawer.
+Two columns say what a row is, and they answer different questions:
 
-The tiles across the top show total income, total expense and **Net Change** for the period. Net
-Change is the number to watch — a strong sales month with a worse net change means costs moved, and
-this is where you find which one.
+- **Direction** — which way the money went: Money In, Money Out, or a Transfer between your own
+  accounts.
+- **Kind** — what the money *is*. Operating income and expense are your real running costs and
+  earnings. **Settlement** is cash against a sale or purchase — the invoice already recorded that
+  business, this row is only the payment. **Owner capital** is your own money going in or coming
+  out, which is never profit and never a cost. **Internal** is a transfer or an opening balance.
+
+That split is why the tiles and the profit report can show different numbers for what sounds like
+the same thing — and both be right.
+
+Each row also carries a category and a **Balance After** column, so you can follow the running
+balance and find exactly where it went wrong when it stops matching the drawer.
+
+The tiles across the top show **Cash In**, **Cash Out**, transfers, **Owner Capital** and **Net
+Change** for the period. Cash In and Cash Out are what actually entered and left your accounts,
+payments for sales included — not your profit. Net Change is the number to watch: a strong sales
+month with a worse net change means costs moved, and this is where you find which one. Owner
+Capital sits on its own tile because your own money moving is not the business earning or spending.
 
 ## When the balance does not match reality
 
@@ -83,3 +103,15 @@ Almost always one of:
 
 Fix it with a transaction that explains itself, not by quietly editing history — next month you will
 want to know what happened.
+
+## Fix a wrong entry
+
+A posted transaction cannot be edited or deleted, on purpose: every row after it carries a running
+balance that would quietly become wrong. Use **Reverse** on the row instead. It posts an opposite
+entry for the same amount, puts the balance back where it was, and leaves both rows in the list with
+your reason attached — so the mistake and the correction are both visible a year from now.
+
+Reverse only appears where it is safe. A payment against a sale or purchase has no Reverse button:
+that money belongs to the invoice, so undo it with a return or a refund instead. Neither leg of a
+transfer can be reversed on its own — reverse the money by transferring it back. And a reversal
+cannot itself be reversed.

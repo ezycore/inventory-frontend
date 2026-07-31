@@ -67,7 +67,7 @@
   "transactions": {
     "page": {
       "title": "Transactions",
-      "subtitle": "Track all income, expenses, and transfers",
+      "subtitle": "Track every taka moving in and out",
       "showingFor": "Showing transactions for",
       "selectedAccount": "selected account",
       "clearFilter": "Clear filter",
@@ -77,12 +77,13 @@
     },
     "columns": {
       "date": "Date",
-      "type": "Type",
       "category": "Category",
       "amount": "Amount",
       "balanceAfter": "Balance After",
       "description": "Description",
-      "reference": "Reference"
+      "reference": "Reference",
+      "direction": "Direction",
+      "kind": "Kind"
     },
     "categories": {
       "sale": "Sale",
@@ -102,9 +103,12 @@
       "opening_balance": "Opening Balance"
     },
     "types": {
-      "income": "Income",
-      "expense": "Expense",
-      "transfer": "Transfer"
+      "income": "Money In",
+      "expense": "Money Out",
+      "transfer": "Transfer",
+      "transferIn": "Transfer (in)",
+      "transferOut": "Transfer (out)",
+      "opening_balance": "Opening balance"
     },
     "filters": {
       "searchLabel": "Search",
@@ -115,18 +119,19 @@
       "categoryPlaceholder": "All categories"
     },
     "stats": {
-      "totalIncome": "Total Income",
-      "totalExpense": "Total Expense",
       "transfers": "Transfers",
       "netChange": "Net Change",
       "vsPreviousDay": "vs previous day",
       "vsPreviousWeek": "vs previous week",
       "vsPreviousMonth": "vs previous month",
       "vsPreviousPeriod": "vs previous period",
-      "chartTitle": "Income vs Expense",
-      "chartIncome": "Income",
-      "chartExpense": "Expense",
-      "breakdownSuffix": "{period} – {grouping} breakdown"
+      "chartTitle": "Cash In vs Cash Out",
+      "chartIncome": "Cash In",
+      "chartExpense": "Cash Out",
+      "breakdownSuffix": "{period} – {grouping} breakdown",
+      "cashIn": "Cash In",
+      "cashOut": "Cash Out",
+      "ownerCapital": "Owner Capital"
     },
     "dialogs": {
       "addIncome": "Add Income",
@@ -160,6 +165,26 @@
         "selectSourceAccount": "Select source account",
         "selectDestinationAccount": "Select destination account"
       }
+    },
+    "kinds": {
+      "operating_income": "Operating income",
+      "operating_expense": "Operating expense",
+      "equity": "Owner capital",
+      "settlement": "Settlement",
+      "internal": "Internal",
+      "reversal": "Reversal"
+    },
+    "reverse": {
+      "action": "Reverse",
+      "title": "Reverse this transaction?",
+      "description": "The ledger is never edited. This posts an opposite line of {amount} and moves the balance back — both rows stay in the list.",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "e.g. Recorded twice",
+      "reasonHint": "Becomes the description of the correcting line.",
+      "cancel": "Cancel",
+      "submit": "Post reversal",
+      "submitting": "Posting...",
+      "success": "Reversal posted"
     }
   },
   "capitalDialog": {
