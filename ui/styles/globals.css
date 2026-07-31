@@ -27,6 +27,16 @@
   --accent: oklch(0.963 0.002 197.1);
   --accent-foreground: oklch(0.218 0.008 223.9);
   --destructive: oklch(0.577 0.245 27.325);
+  /* Text sitting ON --destructive (delete-confirm buttons, destructive badges).
+     Flips with the mode like --primary-foreground: near-white on the darker
+     light-mode red, near-black on the lighter dark-mode red. */
+  --destructive-foreground: oklch(0.985 0.016 27.3);
+  /* Semantic status colours. The --chart-* ramp below is a monochrome cyan scale
+     for chart series — it carries no good/bad meaning, so status UI (low stock,
+     healthy, warning KPIs) must use these, never chart-1/chart-2. Light mode is
+     amber-600 / emerald-600, dark is one step lighter, mirroring --destructive. */
+  --warning: oklch(0.666 0.179 58.318);
+  --success: oklch(0.596 0.145 163.225);
   --border: oklch(0.925 0.005 214.3);
   --input: oklch(0.925 0.005 214.3);
   --ring: oklch(0.550 0.106 172.1);
@@ -39,7 +49,11 @@
   --sidebar-foreground: oklch(0.148 0.004 228.8);
   --sidebar-primary: oklch(0.550 0.106 172.1);
   --sidebar-primary-foreground: oklch(0.985 0.008 172.1);
-  --sidebar-accent: oklch(0.963 0.002 197.1);
+  /* Hover / open-state tint for sidebar rows. Must stay ~0.04 lighter-to-darker
+     off --sidebar above, or hover is invisible against this near-white sidebar
+     (it was 0.963 — a 0.024 step with no chroma, i.e. nothing). Kept neutral
+     grey on purpose: the ACTIVE row is brand-green, so hover must not compete. */
+  --sidebar-accent: oklch(0.945 0.002 197.1);
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.550 0.106 172.1);
@@ -66,6 +80,9 @@
   --accent: oklch(0.275 0.011 216.9);
   --accent-foreground: oklch(0.987 0.002 197.1);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.258 0.092 26.042);
+  --warning: oklch(0.769 0.188 70.08);
+  --success: oklch(0.765 0.177 163.223);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.780 0.130 173.2);
@@ -101,6 +118,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

@@ -473,7 +473,7 @@ export function ReturnDetailsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[760px] sm:max-w-[760px] flex flex-col">
+      <SheetContent className="flex w-full flex-col sm:max-w-[760px]">
         <SheetHeader>
           <SheetHeaderBar
             action={
@@ -510,13 +510,13 @@ export function ReturnDetailsSheet({
 
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="mt-6 space-y-4 px-2">
+            <div className="mt-2 space-y-4 px-4 pb-6">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
           ) : returnData ? (
-            <div className="mt-6 space-y-6 px-2">
+            <div className="mt-2 space-y-6 px-4 pb-6">
               <ReturnStats
                 returnData={returnData}
                 cfg={cfg}

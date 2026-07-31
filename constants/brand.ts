@@ -7,9 +7,11 @@ export const BRAND = {
   name: NAME,
   tagline: "Make life easier",
   /**
-   * Default browser-tab title: the root route metadata, and what the workspace
-   * restores when it unmounts (see `useOrgDocumentTitle`). Signed-in pages
-   * replace it with "<Page> · <Organization>".
+   * Default browser-tab title. Owned by the signed-out tree's metadata and by
+   * the raw <title> the protected layout renders for its SSR pass — NOT by the
+   * root layout, whose metadata Next re-asserts on every client navigation.
+   * Signed-in pages replace it with "<Page> · <Organization>", and it is what
+   * the workspace restores when it unmounts (see `useOrgDocumentTitle`).
    */
   documentTitle: `${NAME} - Inventory Management System`,
 } as const;

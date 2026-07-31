@@ -234,7 +234,7 @@ export function CustomerLedgerSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[550px] sm:max-w-[550px] flex flex-col h-full p-0">
+      <SheetContent className="flex h-full w-full flex-col p-0 sm:max-w-[550px]">
         <SheetHeader className="px-6 py-4 border-b">
           {/* Title first, actions on their own row: three action buttons plus the
               title never fit side-by-side in the 550px sheet, and side-by-side

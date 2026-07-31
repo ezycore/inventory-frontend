@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { cn } from "@/ui/lib/utils";
 import { LucideIcon, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { Card } from "../card";
@@ -48,6 +49,14 @@ interface StatsCardProps {
     lg?: number;
     xl?: number;
   };
+  /**
+   * Opt-in responsive mode: cards flex-wrap to however many fit the
+   * container's actual width and the last row's cards stretch to fill it —
+   * use instead of `columns` when a fixed-width sidebar makes viewport
+   * breakpoints size columns wrong (a `lg`/`xl` step doesn't reflect how much
+   * width is actually left beside the sidebar). Ignored if `columns` is set.
+   */
+  minCardWidth?: number;
 }
 
 const variantStyles: Record<StatVariant, { bg: string; text: string; icon: string }> = {
@@ -62,14 +71,14 @@ const variantStyles: Record<StatVariant, { bg: string; text: string; icon: strin
     icon: "text-primary",
   },
   success: {
-    bg: "bg-chart-2/10",
-    text: "text-chart-2",
-    icon: "text-chart-2",
+    bg: "bg-success/10",
+    text: "text-success",
+    icon: "text-success",
   },
   warning: {
-    bg: "bg-chart-1/10",
-    text: "text-chart-1",
-    icon: "text-chart-1",
+    bg: "bg-warning/10",
+    text: "text-warning",
+    icon: "text-warning",
   },
   destructive: {
     bg: "bg-destructive/10",
@@ -156,12 +165,12 @@ const StatCardItem = ({
   const trendColor =
     stat.trend?.direction === "up"
       ? risingIsGood
-        ? "text-chart-2"
+        ? "text-success"
         : "text-destructive"
       : stat.trend?.direction === "down"
         ? risingIsGood
           ? "text-destructive"
-          : "text-chart-2"
+          : "text-success"
         : "text-muted-foreground";
 
   return (
@@ -261,8 +270,24 @@ const xlColsMap: Record<number, string> = {
   6: "xl:grid-cols-6",
 };
 
-const StatsCard = ({ data, isLoading, columns }: StatsCardProps) => {
+const StatsCard = ({ data, isLoading, columns, minCardWidth }: StatsCardProps) => {
   if (!data) return null;
+
+  if (!columns && minCardWidth) {
+    return (
+      <div className="flex flex-wrap gap-4">
+        {data.map((stat, index) => (
+          <div
+            key={stat.label + index}
+            className="grow"
+            style={{ flexBasis: minCardWidth }}
+          >
+            <StatCardItem stat={stat} isLoading={isLoading} />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const gridCols = columns || { default: 1, sm: 2, lg: data.length };
   const gridClass = cn(

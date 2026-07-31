@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { cn } from "@/ui/lib/utils";
 import { LucideIcon } from "lucide-react";
 
@@ -32,12 +33,12 @@ const variantStyles: Record<TimelineVariant, { dot: string; icon: string }> = {
     icon: "text-muted-foreground",
   },
   success: {
-    dot: "bg-chart-2/20",
-    icon: "text-chart-2",
+    dot: "bg-success/20",
+    icon: "text-success",
   },
   warning: {
-    dot: "bg-chart-1/20",
-    icon: "text-chart-1",
+    dot: "bg-warning/20",
+    icon: "text-warning",
   },
   destructive: {
     dot: "bg-destructive/20",
@@ -93,8 +94,8 @@ const ActivityTimeline = ({
                     <div
                       className={cn(
                         "h-2 w-2 rounded-full",
-                        variant === "success" && "bg-chart-2",
-                        variant === "warning" && "bg-chart-1",
+                        variant === "success" && "bg-success",
+                        variant === "warning" && "bg-warning",
                         variant === "destructive" && "bg-destructive",
                         variant === "info" && "bg-chart-4",
                         variant === "default" && "bg-muted-foreground",

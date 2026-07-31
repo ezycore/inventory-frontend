@@ -3,6 +3,15 @@ import type { ReactNode } from "react";
 
 import { ModeToggle } from "@/components/layout/ThemeToggle/theme-toggle";
 import { LocaleToggle } from "@/components/shared/locale-toggle";
+import { BRAND } from "@/constants/brand";
+
+// The signed-out pages own the product title. It lives here rather than in the
+// root layout because root metadata is re-asserted on every client navigation,
+// which made it fight `useOrgDocumentTitle` inside the app (see app/layout.tsx).
+// Re-asserting is harmless here: every page in this tree wants this same value.
+export const metadata = {
+  title: BRAND.documentTitle,
+};
 
 /**
  * Shell for the signed-out pages.

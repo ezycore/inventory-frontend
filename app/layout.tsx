@@ -32,10 +32,12 @@ const notoSansBengali = Noto_Sans_Bengali({
 });
 
 export const metadata = {
-  // The signed-in app overrides this per page with "<Page> · <Organization>"
-  // (useOrgDocumentTitle) — the org name lives in the client auth store, so it
-  // can't be resolved here. Public/auth routes keep this default.
-  title: BRAND.documentTitle,
+  // NOTE: deliberately NO `title` here, for the same reason as `icons` below —
+  // Next re-asserts root metadata on every router-integrated navigation, so a
+  // title here flashed BRAND.documentTitle on every sidebar click before
+  // useOrgDocumentTitle could rewrite it. Each tree now owns its own <title>:
+  // (auth) via its own metadata, (protected) via a raw <title> in the layout
+  // JSX that React hoists, and the storefront via per-page generateMetadata.
   description: "Modern inventory management system for businesses",
   // NOTE: deliberately NO `icons` here. The default favicon is served as the
   // static file `public/favicon.ico` (the browser's implicit request), which

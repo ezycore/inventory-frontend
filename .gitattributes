@@ -1,0 +1,21 @@
+# Store every text file with LF in the repository, regardless of the platform it
+# was committed from. Without this, a Windows checkout re-commits files with CRLF
+# and git sees a whole-file rewrite — which is exactly how the generated
+# lib/help/content.generated.ts turned a zero-content change into a merge conflict.
+* text=auto eol=lf
+
+# Binary assets — never inspected for line endings, never diffed as text.
+*.png  binary
+*.svg  text eol=lf
+*.ico  binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
+
+# Generated — the source of truth is docs/help/**; regenerate with `pnpm help:build`
+# rather than resolving a conflict here by hand.
+lib/help/content.generated.ts linguist-generated=true
+types/api-generated.ts        linguist-generated=true
+
+# Keep shell scripts LF even if a tool tries to normalize them.
+*.sh text eol=lf
