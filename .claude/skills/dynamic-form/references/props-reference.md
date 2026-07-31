@@ -22,10 +22,14 @@
 | `actionsPlacement` | `"top" \| "bottom" \| "both"` | `"bottom"` | Drawer header vs footer |
 | `resetAfterSubmit` | `boolean` | `true` | Reset form after success |
 | `hideCancel` | `boolean` | `false` | |
+| `hideActions` | `boolean` | `false` | No submit/cancel row at all — you render your own bar outside the `<form>` and submit via `<button type="submit" form="<form id>">`. Example: `app/(auth)/signup/page.tsx` |
+| `sectionChrome` | `"card" \| "plain"` | `"card"` | `"plain"` = sections without the `Card` wrapper, one continuous column. Collapsible sections ignore it |
 | `isEditMode` | `boolean` | `false` | Combine with `disabledFieldsInEdit` |
 | `disabledFieldsInEdit` | `string[]` | — | Lock fields in edit |
 
 **Submit button is disabled when:** `isSubmitting || mutationHook?.isPending || contentLoading || !form.formState.isDirty`.
+
+**With `hideActions`, that guard is yours to reproduce.** An external button is a plain `<Button>` — it does not inherit the dirty/submitting checks. The signup page deliberately omits the `isDirty` guard so the CTA is never dead on arrival, and relies on schema validation to block an empty submit.
 
 ## `FormFieldConfig`
 

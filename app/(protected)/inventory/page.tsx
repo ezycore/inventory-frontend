@@ -162,7 +162,7 @@ export default function InventoryPage() {
           row.quantity === 0
             ? "bg-destructive/5 border-l-2 border-l-destructive"
             : row.isLowStock
-              ? "bg-chart-1/5 border-l-2 border-l-chart-1"
+              ? "bg-warning/5 border-l-2 border-l-warning"
               : ""
         }
         operations={{

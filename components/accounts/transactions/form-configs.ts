@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
 import {
+  EQUITY_CATEGORIES,
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
 } from "@/constants/transactions";
@@ -107,11 +108,38 @@ const buildMoneyFormConfig = (
   ],
 });
 
-export const getIncomeFormConfig = (t: Translator, tCategories: Translator) =>
-  buildMoneyFormConfig(t, tCategories, INCOME_CATEGORIES);
+/**
+ * Owner capital rides the same two endpoints as everything else, but posting it needs
+ * `transactions.capital` — so offering it to a user without that permission only produces a 403
+ * after they have filled the form. `canPostCapital` drops it from the list instead.
+ */
+const visibleCategories = (
+  keys: readonly string[],
+  canPostCapital: boolean,
+): readonly string[] =>
+  canPostCapital ? keys : keys.filter((k) => !EQUITY_CATEGORIES.includes(k as never));
 
-export const getExpenseFormConfig = (t: Translator, tCategories: Translator) =>
-  buildMoneyFormConfig(t, tCategories, EXPENSE_CATEGORIES);
+export const getIncomeFormConfig = (
+  t: Translator,
+  tCategories: Translator,
+  canPostCapital = true,
+) =>
+  buildMoneyFormConfig(
+    t,
+    tCategories,
+    visibleCategories(INCOME_CATEGORIES, canPostCapital),
+  );
+
+export const getExpenseFormConfig = (
+  t: Translator,
+  tCategories: Translator,
+  canPostCapital = true,
+) =>
+  buildMoneyFormConfig(
+    t,
+    tCategories,
+    visibleCategories(EXPENSE_CATEGORIES, canPostCapital),
+  );
 
 export const getTransferFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [

@@ -135,7 +135,7 @@ export function PaymentsDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[760px] sm:max-w-[760px] flex flex-col">
+      <SheetContent className="flex w-full flex-col sm:max-w-[760px]">
         <SheetHeader>
           <SheetHeaderBar
             action={
@@ -179,7 +179,7 @@ export function PaymentsDrawer({
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto">
           {sale && (
-            <div className="mt-6 space-y-6 px-2">
+            <div className="mt-2 space-y-6 px-4 pb-6">
               {mode === 'payment' && (
                 <PaymentEntryForm
                   sale={sale}

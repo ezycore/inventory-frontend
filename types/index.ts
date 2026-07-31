@@ -1459,34 +1459,17 @@ export interface Transaction extends BaseEntity {
   supplier?: Supplier;
 }
 
-export interface CreateIncomeDto {
-  accountId: string;
-  amount: number;
-  category: TransactionCategory;
-  description?: string;
-  reference?: string;
-  customerId?: string;
-  date?: string;
-}
-
-export interface CreateExpenseDto {
-  accountId: string;
-  amount: number;
-  category: TransactionCategory;
-  description?: string;
-  reference?: string;
-  supplierId?: string;
-  date?: string;
-}
-
-export interface CreateTransferDto {
-  fromAccountId: string;
-  toAccountId: string;
-  amount: number;
-  description?: string;
-  reference?: string;
-  date?: string;
-}
+/**
+ * Manual-post bodies. Hand-written versions used to live here typed `category: TransactionCategory`
+ * — the **stored** vocabulary, which is wider than what the write endpoints accept — so a
+ * settlement default like `"sale"` type-checked and 400'd at runtime. They now come from the
+ * generated request schemas; see `CreateIncomeBody` in `types/api.ts`.
+ */
+export type {
+  CreateIncomeBody as CreateIncomeDto,
+  CreateExpenseBody as CreateExpenseDto,
+  CreateTransferBody as CreateTransferDto,
+} from "./api";
 
 export interface TransactionSummary {
   totalIncome: number;

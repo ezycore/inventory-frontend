@@ -81,8 +81,12 @@ export function FilterBar({ config, className }: FilterBarProps) {
           ? state.filterInputs[field.name]
           : state.values[field.name];
         const active = value !== "" && value != null;
+        // ITEM_WIDTH is the target width, not a floor — a chip may squeeze when the
+        // overflow measurement is momentarily stale (first paint renders them all,
+        // before the effect runs). Non-shrinkable chips instead pushed the document
+        // wide, and useInlineOverflow then measured that inflated width and latched.
         return (
-          <div key={field.name} className="relative w-40 shrink-0">
+          <div key={field.name} className="relative w-40 min-w-24 shrink">
             <FilterFieldRenderer
               field={field}
               value={value}

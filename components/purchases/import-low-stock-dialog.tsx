@@ -155,7 +155,7 @@ function getUrgencyBadge(
   }
   if (urgency === "High") {
     return (
-      <Badge className="bg-chart-1/10 text-chart-1 border-chart-1/20 gap-1 text-xs">
+      <Badge className="bg-warning/10 text-warning border-warning/20 gap-1 text-xs">
         <AlertTriangle className="h-3 w-3" />
         {labels.high}
       </Badge>
@@ -598,7 +598,7 @@ export function ImportLowStockDialog({
                   key={item._id}
                   onClick={() => toggleSelect(item._id)}
                   className={`flex items-center gap-3 rounded-lg border border-l-2 px-3 py-2 cursor-pointer transition-colors ${
-                    isCritical ? "border-l-destructive" : "border-l-chart-1"
+                    isCritical ? "border-l-destructive" : "border-l-warning"
                   } ${isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/40"}`}
                 >
                   <div className="flex-none" onClick={(e) => e.stopPropagation()}>
@@ -634,7 +634,7 @@ export function ImportLowStockDialog({
                     <div className="flex items-center gap-1.5">
                       <span
                         className={`text-sm tabular-nums ${
-                          isCritical ? "text-destructive font-bold" : "text-chart-1 font-semibold"
+                          isCritical ? "text-destructive font-bold" : "text-warning font-semibold"
                         }`}
                       >
                         {stock}

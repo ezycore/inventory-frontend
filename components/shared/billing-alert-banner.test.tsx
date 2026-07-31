@@ -7,6 +7,7 @@ import {
   waitFor,
 } from "@/tests/test-utils";
 import userEvent from "@testing-library/user-event";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { BillingAlertBanner } from "./billing-alert-banner";
 
 const toastInfo = vi.fn();
@@ -29,10 +30,25 @@ const subscription = (over: Record<string, unknown>) =>
 let hrefSpy: string;
 const originalLocation = window.location;
 
+/** Everyone sees the banner text, but only a billing manager gets the actions. */
+const signInAsBillingManager = () =>
+  useAuthStore.setState({
+    user: {
+      id: "user-1",
+      email: "owner@example.com",
+      role: "owner",
+      permissions: ["organization.edit"],
+      organization: { name: "Test Org", slug: "test-org", currency: "BDT" },
+    },
+    token: "test-token",
+    isAuthenticated: true,
+  });
+
 beforeEach(() => {
   toastInfo.mockClear();
   toastError.mockClear();
   hrefSpy = "";
+  signInAsBillingManager();
   // jsdom does not implement navigation; swap location for a capturable stub.
   Object.defineProperty(window, "location", {
     configurable: true,
@@ -53,6 +69,7 @@ afterEach(() => {
     configurable: true,
     value: originalLocation,
   });
+  useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
 });
 
 describe("BillingAlertBanner", () => {

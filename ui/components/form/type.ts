@@ -348,6 +348,19 @@ export interface DynamicFormProps extends React.FormHTMLAttributes<HTMLFormEleme
   isSubmitting?: boolean;
   resetAfterSubmit?: boolean;
   hideCancel?: boolean;
+  /**
+   * Suppress the form's own submit/cancel row entirely. For callers that render
+   * their own action bar outside the `<form>` — a native
+   * `<button type="submit" form="<the form id>">` submits it identically, since
+   * the internal button only calls the same handler. Give the form an `id`.
+   */
+  hideActions?: boolean;
+  /**
+   * Chrome around each titled section. `"card"` (default) keeps the bordered
+   * Card. `"plain"` drops the card so sections read as one continuous column —
+   * for single-purpose pages where competing boxes add nothing.
+   */
+  sectionChrome?: "card" | "plain";
 
   // Mutation-based form submission (alternative to onSubmit)
   mutationHook?: {

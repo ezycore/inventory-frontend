@@ -8,6 +8,7 @@ import { useGetSubscription, useRequestPayLink } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatCurrency } from "@/lib/currency";
 import { isPaymentOverdue, needsReactivation } from "@/lib/subscription-utils";
+import { useCanManageBilling } from "@/hooks/use-has-permission";
 import { Button } from "@/ui/components/button";
 
 /**
@@ -16,11 +17,16 @@ import { Button } from "@/ui/components/button";
  * Control (SSLCommerz session for SSL plans, Stripe hosted invoice for card) and
  * redirects — no hunting through the emailed link. Rendered in the protected
  * layout alongside the demo banner; hidden for healthy subscriptions.
+ *
+ * Everyone sees the message — a degraded workspace needs explaining to whoever
+ * hits it — but only a billing manager gets the actions, since both lead to a
+ * page they cannot open and "Pay now" mints a real payment session.
  */
 export function BillingAlertBanner() {
   const subscription = useGetSubscription();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const payLink = useRequestPayLink();
+  const canManageBilling = useCanManageBilling();
 
   const entitlement = subscription.data?.entitlement;
 
@@ -36,14 +42,16 @@ export function BillingAlertBanner() {
             choose a plan to reactivate your workspace.
           </span>
         </div>
-        <Button
-          asChild
-          size="sm"
-          variant="outline"
-          className="border-amber-500/50 bg-transparent text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
-        >
-          <Link href="/dashboard/billing">Reactivate</Link>
-        </Button>
+        {canManageBilling && (
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="border-amber-500/50 bg-transparent text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
+          >
+            <Link href="/dashboard/billing">Reactivate</Link>
+          </Button>
+        )}
       </div>
     );
   }
@@ -90,27 +98,29 @@ export function BillingAlertBanner() {
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          variant="destructive"
-          onClick={handlePayNow}
-          disabled={payLink.isPending}
-        >
-          {payLink.isPending && (
-            <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-          )}
-          Pay now
-        </Button>
-        <Button
-          asChild
-          size="sm"
-          variant="outline"
-          className="border-destructive/50 bg-transparent text-destructive hover:bg-destructive/10"
-        >
-          <Link href="/dashboard/billing">Billing</Link>
-        </Button>
-      </div>
+      {canManageBilling && (
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={handlePayNow}
+            disabled={payLink.isPending}
+          >
+            {payLink.isPending && (
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            )}
+            Pay now
+          </Button>
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="border-destructive/50 bg-transparent text-destructive hover:bg-destructive/10"
+          >
+            <Link href="/dashboard/billing">Billing</Link>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

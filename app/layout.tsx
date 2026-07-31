@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import { Noto_Sans_Bengali } from "next/font/google";
+import { Noto_Sans_Bengali, Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
@@ -12,6 +12,16 @@ import { WorkspaceGateScreen } from "@/components/workspace-gate-screen";
 import { BRAND } from "@/constants/brand";
 import { resolveWorkspaceGate } from "@/lib/workspace-status";
 import "@ui/styles/globals.css";
+import { cn } from "@ui/lib/utils";
+import { TooltipProvider } from "@ui/components/tooltip";
+
+// Latin UI font — backs `--font-sans`, which `@theme inline` in globals.css
+// maps onto the `font-sans` utility.
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 // Self-hosted variable font; unicode-range subsetting means the font files are
 // only fetched when Bengali glyphs actually render.
@@ -22,10 +32,12 @@ const notoSansBengali = Noto_Sans_Bengali({
 });
 
 export const metadata = {
-  // The signed-in app overrides this per page with "<Page> · <Organization>"
-  // (useOrgDocumentTitle) — the org name lives in the client auth store, so it
-  // can't be resolved here. Public/auth routes keep this default.
-  title: BRAND.documentTitle,
+  // NOTE: deliberately NO `title` here, for the same reason as `icons` below —
+  // Next re-asserts root metadata on every router-integrated navigation, so a
+  // title here flashed BRAND.documentTitle on every sidebar click before
+  // useOrgDocumentTitle could rewrite it. Each tree now owns its own <title>:
+  // (auth) via its own metadata, (protected) via a raw <title> in the layout
+  // JSX that React hoists, and the storefront via per-page generateMetadata.
   description: "Modern inventory management system for businesses",
   // NOTE: deliberately NO `icons` here. The default favicon is served as the
   // static file `public/favicon.ico` (the browser's implicit request), which
@@ -56,8 +68,14 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
 
+  // Both font variables must live on <html>: the body's `bn` branch below
+  // resolves --font-bengali, and everything else falls through to --font-sans.
   return (
-    <html lang={locale} suppressHydrationWarning className={notoSansBengali.variable}>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={cn("font-sans", inter.variable, notoSansBengali.variable)}
+    >
       <body
         className="font-sans antialiased"
         style={
@@ -66,25 +84,27 @@ export default async function RootLayout({
             : undefined
         }
       >
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <QueryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <AuthHydration />
-              <LocaleSync />
-              {gate.kind === "ok" ? (
-                children
-              ) : (
-                <WorkspaceGateScreen kind={gate.kind} host={gate.host} />
-              )}
-              <Toaster />
-            </ThemeProvider>
-          </QueryProvider>
-        </NextIntlClientProvider>
+        <TooltipProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <QueryProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <AuthHydration />
+                <LocaleSync />
+                {gate.kind === "ok" ? (
+                  children
+                ) : (
+                  <WorkspaceGateScreen kind={gate.kind} host={gate.host} />
+                )}
+                <Toaster />
+              </ThemeProvider>
+            </QueryProvider>
+          </NextIntlClientProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

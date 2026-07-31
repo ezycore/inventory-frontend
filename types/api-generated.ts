@@ -1709,7 +1709,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/summary
-         * @description Defined in `src/routes/customers.routes.ts:19`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:23`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_summary"];
         put?: never;
@@ -1729,13 +1729,13 @@ export interface paths {
         };
         /**
          * GET /api/customers
-         * @description Defined in `src/routes/customers.routes.ts:26`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:30`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers"];
         put?: never;
         /**
          * POST /api/customers
-         * @description Defined in `src/routes/customers.routes.ts:58`. Requires permission `customers.create`.
+         * @description Defined in `src/routes/customers.routes.ts:62`. Requires permission `customers.create`.
          */
         post: operations["post_api_customers"];
         delete?: never;
@@ -1753,7 +1753,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/active
-         * @description Defined in `src/routes/customers.routes.ts:34`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:38`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_active"];
         put?: never;
@@ -1773,7 +1773,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/slug/:slug
-         * @description Defined in `src/routes/customers.routes.ts:42`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:46`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_slug_slug"];
         put?: never;
@@ -1793,18 +1793,18 @@ export interface paths {
         };
         /**
          * GET /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:50`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:54`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_id"];
         /**
          * PUT /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:66`. Requires permission `customers.edit`.
+         * @description Defined in `src/routes/customers.routes.ts:70`. Requires permission `customers.edit`.
          */
         put: operations["put_api_customers_id"];
         post?: never;
         /**
          * DELETE /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:74`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:78`. Requires permission `customers.delete`.
          */
         delete: operations["delete_api_customers_id"];
         options?: never;
@@ -1823,7 +1823,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/bulk-delete
-         * @description Defined in `src/routes/customers.routes.ts:82`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:86`. Requires permission `customers.delete`.
          */
         post: operations["post_api_customers_bulk_delete"];
         delete?: never;
@@ -1841,7 +1841,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/dues
-         * @description Defined in `src/routes/customers.routes.ts:90`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:94`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_dues"];
         put?: never;
@@ -1861,11 +1861,51 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/ledger
-         * @description Defined in `src/routes/customers.routes.ts:97`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:101`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_ledger"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customers/{customerId}/outstanding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/customers/:customerId/outstanding
+         * @description Defined in `src/routes/customers.routes.ts:109`. Requires permission `sales.view`.
+         */
+        get: operations["get_api_customers_customerId_outstanding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customers/{customerId}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/customers/:customerId/payments
+         * @description Defined in `src/routes/customers.routes.ts:117`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         */
+        post: operations["post_api_customers_customerId_payments"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1881,7 +1921,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/statement
-         * @description Defined in `src/routes/customers.routes.ts:104`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:126`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_statement"];
         put?: never;
@@ -1903,7 +1943,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/:customerId/email-statement
-         * @description Defined in `src/routes/customers.routes.ts:112`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:134`. Requires permission `sales.view`.
          */
         post: operations["post_api_customers_customerId_email_statement"];
         delete?: never;
@@ -1921,7 +1961,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/summary
-         * @description Defined in `src/routes/customers.routes.ts:19`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:23`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_summary"];
         put?: never;
@@ -1941,13 +1981,13 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers
-         * @description Defined in `src/routes/customers.routes.ts:26`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:30`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers"];
         put?: never;
         /**
          * POST /api/sales/customers
-         * @description Defined in `src/routes/customers.routes.ts:58`. Requires permission `customers.create`.
+         * @description Defined in `src/routes/customers.routes.ts:62`. Requires permission `customers.create`.
          */
         post: operations["post_api_sales_customers"];
         delete?: never;
@@ -1965,7 +2005,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/active
-         * @description Defined in `src/routes/customers.routes.ts:34`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:38`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_active"];
         put?: never;
@@ -1985,7 +2025,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/slug/:slug
-         * @description Defined in `src/routes/customers.routes.ts:42`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:46`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_slug_slug"];
         put?: never;
@@ -2005,18 +2045,18 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:50`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:54`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_id"];
         /**
          * PUT /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:66`. Requires permission `customers.edit`.
+         * @description Defined in `src/routes/customers.routes.ts:70`. Requires permission `customers.edit`.
          */
         put: operations["put_api_sales_customers_id"];
         post?: never;
         /**
          * DELETE /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:74`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:78`. Requires permission `customers.delete`.
          */
         delete: operations["delete_api_sales_customers_id"];
         options?: never;
@@ -2035,7 +2075,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/bulk-delete
-         * @description Defined in `src/routes/customers.routes.ts:82`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:86`. Requires permission `customers.delete`.
          */
         post: operations["post_api_sales_customers_bulk_delete"];
         delete?: never;
@@ -2053,7 +2093,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/dues
-         * @description Defined in `src/routes/customers.routes.ts:90`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:94`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_dues"];
         put?: never;
@@ -2073,11 +2113,51 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/ledger
-         * @description Defined in `src/routes/customers.routes.ts:97`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:101`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_ledger"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sales/customers/{customerId}/outstanding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/sales/customers/:customerId/outstanding
+         * @description Defined in `src/routes/customers.routes.ts:109`. Requires permission `sales.view`.
+         */
+        get: operations["get_api_sales_customers_customerId_outstanding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sales/customers/{customerId}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/sales/customers/:customerId/payments
+         * @description Defined in `src/routes/customers.routes.ts:117`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         */
+        post: operations["post_api_sales_customers_customerId_payments"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2093,7 +2173,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/statement
-         * @description Defined in `src/routes/customers.routes.ts:104`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:126`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_statement"];
         put?: never;
@@ -2115,7 +2195,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/:customerId/email-statement
-         * @description Defined in `src/routes/customers.routes.ts:112`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:134`. Requires permission `sales.view`.
          */
         post: operations["post_api_sales_customers_customerId_email_statement"];
         delete?: never;
@@ -6956,6 +7036,7 @@ export interface components {
                 paymentMethod: string;
                 notes?: string;
                 allocations?: unknown[];
+                receiptNumber?: string | null;
                 status: string;
                 createdBy?: (string | {
                     _id: string;
@@ -7001,6 +7082,68 @@ export interface components {
             totalPages: number;
             hasNext: boolean;
             hasPrev: boolean;
+        };
+        CustomerOutstanding: {
+            sales: {
+                _id: string;
+                invoiceNumber: string;
+                totalAmount: number;
+                paidAmount: number;
+                refundCreditApplied?: number;
+                dueAmount: number;
+                /** @enum {string} */
+                status: "draft" | "due" | "partial" | "paid" | "cancelled";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            totalDue: number;
+            creditBalance: number;
+        };
+        CustomerReceipt: {
+            receiptNumber: string;
+            totalAmount: number;
+            paymentMethod: string;
+            allocations: {
+                saleId: string;
+                invoiceNumber: string;
+                amount: number;
+                newDueAmount: number;
+                newStatus: string;
+            }[];
+            payments: {
+                _id: string;
+                organizationId: string;
+                locationId: string;
+                type: string;
+                referenceId: string | {
+                    _id: string;
+                    invoiceNumber: string;
+                };
+                customerId?: string | null;
+                supplierId?: string | null;
+                accountId?: (string | {
+                    _id: string;
+                    name: string;
+                    type?: string;
+                }) | null;
+                amount: number;
+                paymentMethod: string;
+                notes?: string;
+                allocations?: unknown[];
+                receiptNumber?: string | null;
+                status: string;
+                createdBy?: (string | {
+                    _id: string;
+                    firstName?: string;
+                    lastName?: string;
+                    email?: string;
+                }) | null;
+                isDemoData?: boolean;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
         };
         CustomerStatement: {
             customer: {
@@ -7143,6 +7286,7 @@ export interface components {
                 paymentMethod: string;
                 notes?: string;
                 allocations?: unknown[];
+                receiptNumber?: string | null;
                 status: string;
                 createdBy?: (string | {
                     _id: string;
@@ -7323,6 +7467,7 @@ export interface components {
             paymentMethod: string;
             notes?: string;
             allocations?: unknown[];
+            receiptNumber?: string | null;
             status: string;
             createdBy?: (string | {
                 _id: string;
@@ -7469,6 +7614,7 @@ export interface components {
                 paymentMethod: string;
                 notes?: string;
                 allocations?: unknown[];
+                receiptNumber?: string | null;
                 status: string;
                 createdBy?: (string | {
                     _id: string;
@@ -10350,6 +10496,8 @@ export interface components {
             categoryBreakdown: {
                 type: string | null;
                 category?: string | null;
+                /** @enum {string} */
+                kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
                 total: number;
                 count: number;
             }[];
@@ -11572,6 +11720,8 @@ export interface components {
             type: "income" | "expense" | "transfer" | "opening_balance";
             /** @enum {string} */
             category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+            /** @enum {string} */
+            kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
             /** Format: date-time */
             date: string;
             amount: number;
@@ -11652,6 +11802,8 @@ export interface components {
                 type: "income" | "expense" | "transfer" | "opening_balance";
                 /** @enum {string} */
                 category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                /** @enum {string} */
+                kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
                 /** Format: date-time */
                 date: string;
                 amount: number;
@@ -11694,6 +11846,8 @@ export interface components {
                 type: "income" | "expense" | "transfer" | "opening_balance";
                 /** @enum {string} */
                 category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                /** @enum {string} */
+                kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
                 /** Format: date-time */
                 date: string;
                 amount: number;
@@ -17286,6 +17440,142 @@ export interface operations {
             };
         };
     };
+    get_api_customers_customerId_outstanding: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CustomerOutstanding"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_customers_customerId_payments: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    amount: number;
+                    accountId?: string;
+                    /**
+                     * @default cash
+                     * @enum {string}
+                     */
+                    paymentMethod?: "cash" | "card" | "bank" | "mfs" | "other";
+                    useCreditBalance?: boolean;
+                    autoAllocate?: boolean;
+                    allocations?: {
+                        saleId: string;
+                        amount: number;
+                    }[];
+                    notes?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CustomerReceipt"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_customers_customerId_statement: {
         parameters: {
             query?: never;
@@ -18087,6 +18377,142 @@ export interface operations {
                 };
             };
             /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_sales_customers_customerId_outstanding: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CustomerOutstanding"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_sales_customers_customerId_payments: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    amount: number;
+                    accountId?: string;
+                    /**
+                     * @default cash
+                     * @enum {string}
+                     */
+                    paymentMethod?: "cash" | "card" | "bank" | "mfs" | "other";
+                    useCreditBalance?: boolean;
+                    autoAllocate?: boolean;
+                    allocations?: {
+                        saleId: string;
+                        amount: number;
+                    }[];
+                    notes?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CustomerReceipt"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26617,6 +27043,11 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
+                type?: "income" | "expense" | "transfer" | "opening_balance";
+                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                accountId?: string;
+                startDate?: string;
+                endDate?: string;
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -26775,7 +27206,23 @@ export interface operations {
     };
     get_api_transactions_account_accountId: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: string;
+                start_date?: string;
+                end_date?: string;
+                type?: "income" | "expense" | "transfer" | "opening_balance";
+                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                accountId?: string;
+                startDate?: string;
+                endDate?: string;
+            };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
                 "X-Active-Location"?: string;

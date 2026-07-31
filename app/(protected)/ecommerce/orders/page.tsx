@@ -223,7 +223,7 @@ function OrdersList() {
       <StatsCard
         data={getOrderStats(stats, currency)}
         isLoading={statsLoading}
-        columns={{ default: 1, sm: 2, md: 3, lg: 6 }}
+        minCardWidth={280}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">

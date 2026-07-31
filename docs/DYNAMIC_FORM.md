@@ -180,9 +180,11 @@ For complex multi-section forms (products, signup, settings, etc.):
 const signupFormConfig: DynamicFormConfig = {
   sections: [
     {
-      title: "Personal Information",
-      description: "Manage your personal details",
-      icon: <User className="h-5 w-5 text-blue-600" />,
+      title: "Your account",
+      description: "You'll sign in with this",
+      // No colour on the icon — the section header's chip supplies
+      // `text-primary`, so a hardcoded class here fights the theme.
+      icon: <User className="h-4 w-4" />,
       collapsible: false,
       fields: [
         { name: "firstName", type: "input", label: "First Name", required: true, columnSpan: 6 },
@@ -1041,6 +1043,8 @@ This pattern means you define your form config once and the DataTable/DataCard h
 | `actionsPlacement` | `"top" \| "bottom" \| "both"` | `"bottom"` | Where to render action buttons |
 | `resetAfterSubmit` | `boolean` | `true` | Reset form after successful submit |
 | `hideCancel` | `boolean` | `false` | Hide the cancel button |
+| `hideActions` | `boolean` | `false` | Suppress the submit/cancel row entirely, for callers rendering their own action bar outside the `<form>`. Give the form an `id` and submit it with `<button type="submit" form="<id>">` — the internal button only calls the same handler, so the two are equivalent. See `app/(auth)/signup/page.tsx`. |
+| `sectionChrome` | `"card" \| "plain"` | `"card"` | Chrome around each titled section. `"plain"` drops the `Card` so sections read as one continuous column (single-purpose pages). Collapsible sections keep the card either way — the chevron needs a surface. |
 | `disabledFieldsInEdit` | `string[]` | — | Field names to disable in edit mode |
 | `isEditMode` | `boolean` | `false` | Whether the form is in edit mode |
 

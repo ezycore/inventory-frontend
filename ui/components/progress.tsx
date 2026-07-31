@@ -1,32 +1,39 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import * as ProgressPrimitive from "@radix-ui/react-progress";
-import { cn } from "@/ui/lib/utils";
+import * as React from "react"
+import { Progress as ProgressPrimitive } from "radix-ui"
 
-const Progress = React.forwardRef<
-  React.ComponentRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & {
-    indicatorClassName?: string;
-  }
->(({ className, value, indicatorClassName, ...props }, ref) => (
-  <ProgressPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
-      className,
-    )}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
+import { cn } from "@ui/lib/utils"
+
+function Progress({
+  className,
+  value,
+  // Lets a caller recolor just the filled portion — stock-level bars swap it to
+  // a threshold colour (see components/locations/stock-report).
+  indicatorClassName,
+  ...props
+}: React.ComponentProps<typeof ProgressPrimitive.Root> & {
+  indicatorClassName?: string
+}) {
+  return (
+    <ProgressPrimitive.Root
+      data-slot="progress"
       className={cn(
-        "h-full w-full flex-1 rounded-full bg-primary transition-all",
-        indicatorClassName,
+        "relative flex h-1.5 w-full items-center overflow-x-hidden rounded-full bg-muted",
+        className
       )}
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    />
-  </ProgressPrimitive.Root>
-));
-Progress.displayName = ProgressPrimitive.Root.displayName;
+      {...props}
+    >
+      <ProgressPrimitive.Indicator
+        data-slot="progress-indicator"
+        className={cn(
+          "size-full flex-1 bg-primary transition-all",
+          indicatorClassName
+        )}
+        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      />
+    </ProgressPrimitive.Root>
+  )
+}
 
-export { Progress };
+export { Progress }

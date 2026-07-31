@@ -162,7 +162,8 @@ export default function Dashboard() {
 | ----------- | ------------ | -------- | ------------------------- |
 | `data`      | `StatData[]` | required | Array of stat objects     |
 | `isLoading` | `boolean`    | `false`  | Show loading skeletons    |
-| `columns`   | `object`     | auto     | Grid column configuration |
+| `columns`   | `object`     | auto     | Grid column configuration, keyed off viewport breakpoints |
+| `minCardWidth` | `number` (px) | -    | Flex-wrap alternative to `columns`, sized off actual container width; ignored if `columns` is set |
 
 ### StatData
 
@@ -194,6 +195,7 @@ export default function Dashboard() {
   value: string | number;    // e.g., "+12%" or 150
   direction?: "up" | "down" | "neutral";
   label?: string;            // e.g., "from last month"
+  higherIsBetter?: boolean;  // default true; false on cost metrics so a rise reads red
 }
 ```
 
@@ -221,12 +223,29 @@ export default function Dashboard() {
 />
 ```
 
+## Responsive Cards Without Breakpoints (`minCardWidth`)
+
+`columns` breakpoints key off the browser viewport, not the grid's actual container width — on a
+page with a fixed-width sidebar, a wide viewport can still leave the grid a narrow container, so
+cards get squeezed and label text wraps even at a generous `columns.xl`. `minCardWidth` sidesteps
+this: cards lay out in a `flex flex-wrap` row, each with `flex-basis: minCardWidth`, so they wrap
+to however many actually fit the container and the last row's cards stretch to fill it (no ragged
+empty trailing cells).
+
+```tsx
+<StatsCard data={stats} minCardWidth={280} />
+```
+
+Ignored if `columns` is also passed. Pick `minCardWidth` from your longest label: the label column
+gets roughly `minCardWidth - 80px` (card padding + icon box).
+
 ## Theme Support
 
 The component automatically adapts to your theme using CSS variables:
 
 - `--primary`, `--primary-foreground`
-- `--chart-1`, `--chart-2`, `--chart-4`
+- `--success` (green), `--warning` (amber)
+- `--chart-4`
 - `--destructive`
 - `--muted`, `--muted-foreground`
 - `--card`, `--foreground`
