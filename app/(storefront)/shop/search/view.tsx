@@ -11,6 +11,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { storeHref } from "@/lib/storefront-links";
+import { thumbImageUrl } from "@/lib/storefront-image";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
@@ -171,7 +172,7 @@ function SearchRow({
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const router = useRouter();
-  const thumb = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
+  const thumb = thumbImageUrl(product.images?.[0]);
   const pdp = storeHref(base, `/products/${product.slug}`);
   const outOfStock = product.availableQuantity <= 0;
   return (

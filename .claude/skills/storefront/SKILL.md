@@ -231,6 +231,14 @@ resolved **per request from the host**, never baked.
 
 ## Other storefront subsystems
 
+- **Image variant per use site** — `lib/storefront-image.ts`, one of three helpers, never a hand-rolled
+  `img?.a || img?.b` chain: `cardImageUrl` (grid/card/tile, >~100px), `thumbImageUrl` (row thumb,
+  avatar, chip, ≤100px), `fullImageUrl` (PDP gallery hero, og:image, JSON-LD). The backend stores
+  `url` ≤1600w, `mediumUrl` 800w and `thumbnailUrl` as a **200×200 `fit:"cover"` square crop**
+  (`inventory-backend/src/utils/imageUpload.ts`) — only the thumbnail changes aspect ratio, so
+  picking it for a card both upscales and crops the product out of frame. That was the bug on the
+  shop grid until 2026-07-31. URL-imported images store one URL in all three fields, so every helper
+  degrades to it.
 - **CMS pages**: admin Ecommerce → Content (title/slug/body/published/showInFooter/sortOrder).
   Bodies are markdown via `lib/storefront-markdown.ts` (dependency-free subset parser → block
   model, React-node rendering = XSS-safe; **consecutive `Q:`/`A:` lines become styled FAQ cards**)

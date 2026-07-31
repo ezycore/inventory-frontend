@@ -16,6 +16,7 @@ import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useWishlistStore } from "@/services/stores/use-wishlist-store";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
+import { cardImageUrl, fullImageUrl, thumbImageUrl } from "@/lib/storefront-image";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
@@ -26,7 +27,7 @@ import {
   matchVariant,
 } from "@/components/storefront/variant-selector";
 import { LoadingSplash } from "@/components/storefront/loading-splash";
-import type { CatalogProduct, StorefrontImage } from "@/lib/storefront-client";
+import type { CatalogProduct } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -34,10 +35,6 @@ const wrap: CSSProperties = {
   width: "100%",
   padding: "22px var(--pad) 40px",
 };
-
-function imgUrl(i?: StorefrontImage) {
-  return i?.url || i?.mediumUrl || i?.thumbnailUrl;
-}
 
 /** `initialProduct` is server-fetched in `page.tsx` so this page's content is in
  *  the SSR HTML — see the note there. */
@@ -137,7 +134,7 @@ export default function ProductDetailPage({
     ? selectedVariant.images
     : (product.images ?? []);
   const activeIdx = Math.max(0, Math.min(imgIdx, images.length - 1));
-  const main = imgUrl(images[activeIdx]);
+  const main = fullImageUrl(images[activeIdx]);
   const thumbs = images.slice(0, 4);
   const thumbBtn = (active: boolean): CSSProperties => ({
     padding: 0,
@@ -163,9 +160,7 @@ export default function ProductDetailPage({
         slug: product.slug,
         name: product.name,
         price,
-        image:
-          images[0]?.thumbnailUrl ||
-          product.images?.[0]?.thumbnailUrl,
+        image: thumbImageUrl(images[0] ?? product.images?.[0]),
         // Backorder → uncapped (the store treats maxQty<=0 as no limit).
         maxQty: canBackorder ? 0 : availableQty,
       },
@@ -188,7 +183,8 @@ export default function ProductDetailPage({
       name: product.name,
       price: product.price,
       compareAtPrice: product.compareAtPrice,
-      image: product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url,
+      // The wishlist renders this at card size, not as a row thumb.
+      image: cardImageUrl(product.images?.[0]),
       hasVariants: variable,
       availableQuantity: product.availableQuantity,
     });
@@ -210,7 +206,7 @@ export default function ProductDetailPage({
                     aria-label={`${product.name} — ${i + 1}`}
                     style={{ ...thumbBtn(i === activeIdx), flex: 1 }}
                   >
-                    <Media src={imgUrl(th)} alt="" radius={8} style={{ display: "block" }} />
+                    <Media src={thumbImageUrl(th)} alt="" radius={8} style={{ display: "block" }} />
                   </button>
                 ))}
               </div>
@@ -227,7 +223,7 @@ export default function ProductDetailPage({
                   aria-label={`${product.name} — ${i + 1}`}
                   style={thumbBtn(i === activeIdx)}
                 >
-                  <Media src={imgUrl(th)} alt="" radius={8} style={{ display: "block" }} />
+                  <Media src={thumbImageUrl(th)} alt="" radius={8} style={{ display: "block" }} />
                 </button>
               ))}
             </div>

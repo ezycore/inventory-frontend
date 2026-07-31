@@ -6,6 +6,7 @@ import { breadcrumbJsonLd, productJsonLd } from "@/lib/storefront-jsonld";
 import { canonicalTarget } from "@/lib/storefront-canonical";
 import { JsonLd } from "@/components/storefront/json-ld";
 import { storeHref } from "@/lib/storefront-links";
+import { fullImageUrl } from "@/lib/storefront-image";
 import View from "./view";
 
 // Host-resolved (dynamic render); the product itself is cached via the
@@ -28,7 +29,7 @@ export async function generateMetadata({
       product?.description?.slice(0, 200) ||
       undefined,
     path: `/products/${productSlug}`,
-    image: product?.images?.[0]?.url || product?.images?.[0]?.mediumUrl,
+    image: fullImageUrl(product?.images?.[0]),
   });
 }
 
