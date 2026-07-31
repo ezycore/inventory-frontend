@@ -1,5 +1,19 @@
 // coding-standard: maintained
-import type { TransactionCategory } from "@/types";
+import type { TransactionCategory, TransactionType } from "@/types";
+
+/**
+ * Every `type` the ledger can store — the **direction cash moved**, not what the money is.
+ *
+ * `opening_balance` is the one everybody forgets: it is written by account creation, not by a
+ * person, so it never appears in a form — but it is in the list, and a UI that only handles the
+ * first three renders a raw message key for it.
+ */
+export const ALL_TRANSACTION_TYPES = [
+  "income",
+  "expense",
+  "transfer",
+  "opening_balance",
+] as const satisfies readonly TransactionType[];
 
 /**
  * The ledger category vocabulary, mirroring the backend's `src/constants/transaction.ts`.
@@ -53,5 +67,19 @@ export const EXPENSE_CATEGORIES = [
   "delivery",
   "adjustment",
   "other",
+  "capital_out",
+] as const satisfies readonly TransactionCategory[];
+
+/**
+ * The category a manual post may carry. Typing the create DTOs with these instead of the full
+ * `TransactionCategory` is what makes a settlement default (`"sale"`) a compile error rather than a
+ * 400 the user meets after filling the form.
+ */
+export type ManualIncomeCategory = (typeof INCOME_CATEGORIES)[number];
+export type ManualExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+
+/** Owner-capital categories — posting one needs the `transactions.capital` permission. */
+export const EQUITY_CATEGORIES = [
+  "capital_in",
   "capital_out",
 ] as const satisfies readonly TransactionCategory[];

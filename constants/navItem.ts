@@ -418,6 +418,7 @@ export const navGroups: NavGroup[] = [
             title: "Billing",
             url: "/dashboard/billing",
             icon: "credit-card",
+            permissions: ["organization.edit"],
           },
         ],
       },

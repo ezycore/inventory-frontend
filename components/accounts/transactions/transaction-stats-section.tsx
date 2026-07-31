@@ -6,6 +6,7 @@ import StatsCard, { type StatData } from "@/ui/components/StatsCard";
 import { AreaChart } from "@/ui/components/charts";
 import {
   ArrowRightLeft,
+  PiggyBank,
   TrendingDown,
   TrendingUp,
   Wallet,
@@ -51,9 +52,13 @@ export function TransactionStatsSection({
       })
     : "";
 
+  // Cash in / cash out, NOT the P&L's income and expense. These totals include the cash leg of
+  // sales and purchases (settlement) and exclude owner capital, which is reported on its own tile
+  // below — see `classifyTxn` in the backend. Labelling them "income"/"expense" is what made this
+  // page disagree with the profit report.
   const statData: StatData[] = [
     {
-      label: t("totalIncome"),
+      label: t("cashIn"),
       value: stats ? format(stats.totalIncome) : "0",
       icon: TrendingUp,
       variant: "success",
@@ -67,7 +72,7 @@ export function TransactionStatsSection({
       prefix: "+",
     },
     {
-      label: t("totalExpense"),
+      label: t("cashOut"),
       value: stats ? format(stats.totalExpense) : "0",
       icon: TrendingDown,
       variant: "destructive",
@@ -76,6 +81,8 @@ export function TransactionStatsSection({
           value: `${stats.expenseTrend >= 0 ? "+" : ""}${stats.expenseTrend}%`,
           direction: stats.expenseTrend >= 0 ? "up" : "down",
           label: trendLabel,
+          // Rising cash out is a cost, not growth — colour it red while the arrow stays honest.
+          higherIsBetter: false,
         }
         : undefined,
       prefix: "-",
@@ -85,6 +92,16 @@ export function TransactionStatsSection({
       value: stats ? format(stats.totalTransfers) : "0",
       icon: ArrowRightLeft,
       variant: "info",
+    },
+    {
+      // Owner money in minus out. It moves real cash — so it is in every account balance — but it
+      // is neither income nor expense, so the two tiles above exclude it. Until this tile existed
+      // a withdrawal appeared in the list and in no total at all, and the page did not add up.
+      label: t("ownerCapital"),
+      value: stats ? format(Math.abs(stats.netCapital)) : "0",
+      icon: PiggyBank,
+      variant: stats && stats.netCapital >= 0 ? "success" : "warning",
+      prefix: stats && stats.netCapital >= 0 ? "+" : "-",
     },
     {
       label: t("netChange"),
@@ -108,7 +125,7 @@ export function TransactionStatsSection({
       <StatsCard
         data={statData}
         isLoading={isLoading}
-        columns={{ default: 1, sm: 2, lg: 4 }}
+        columns={{ default: 1, sm: 2, lg: 3, xl: 5 }}
       />
 
       {/* Income vs Expense Area Chart */}

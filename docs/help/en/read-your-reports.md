@@ -23,6 +23,9 @@ ui_labels:
   - reports:landing.subtitle
   - reports:purchases.subtitle
   - reports:cash.subtitle
+  - reports:cash.cashIn
+  - reports:cash.cashOut
+  - reports:cash.ownerCapital
   - reports:profitLoss.subtitle
   - reports:profitLoss.expensesNotTracked
   - reports:position.subtitle
@@ -58,9 +61,15 @@ supplier negotiations, and for spotting a cost price that has crept up.
 
 ## Money and tax
 
-**Cash Report** — a *Cash flow and account balances overview*, with income, expense and transaction
-count per account. Needs the Accounts feature — see
-[Track your cash and bank](./money-in-and-out.md).
+**Cash Report** — a *Cash flow and account balances overview*, broken down per account and per
+category. Needs the Accounts feature — see [Track your cash and bank](./money-in-and-out.md).
+
+It reports **Cash In** and **Cash Out**, not profit: the payment for a sale is cash in, and the
+sale's own profit is a question for the Profit & Loss report below. **Owner Capital** — your own
+money going into or out of the business — sits on its own tile and its own line in the category
+list, because it is neither. Each category list ends in a subtotal that matches the tile above it,
+so you can check the page against itself. Transfers between your own accounts are left out of all
+of it; they move money without any of it entering or leaving the business.
 
 **Profit & Loss** — *Revenue minus cost of goods and operating expenses.* The one report that
 answers "did I actually make money this month". It reads top to bottom like a statement:

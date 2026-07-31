@@ -67,7 +67,7 @@
   "transactions": {
     "page": {
       "title": "লেনদেন",
-      "subtitle": "সব আয়, ব্যয় ও ট্রান্সফার ট্র্যাক করুন",
+      "subtitle": "প্রতিটি টাকা আসা-যাওয়ার হিসাব রাখুন",
       "showingFor": "এর জন্য লেনদেন দেখানো হচ্ছে",
       "selectedAccount": "নির্বাচিত হিসাব",
       "clearFilter": "ফিল্টার সাফ করুন",
@@ -77,12 +77,13 @@
     },
     "columns": {
       "date": "তারিখ",
-      "type": "ধরন",
       "category": "ক্যাটাগরি",
       "amount": "অঙ্ক",
       "balanceAfter": "পরবর্তী স্থিতি",
       "description": "বিবরণ",
-      "reference": "রেফারেন্স"
+      "reference": "রেফারেন্স",
+      "direction": "টাকার দিক",
+      "kind": "প্রকৃতি"
     },
     "categories": {
       "sale": "বিক্রয়",
@@ -102,9 +103,12 @@
       "opening_balance": "প্রারম্ভিক স্থিতি"
     },
     "types": {
-      "income": "আয়",
-      "expense": "ব্যয়",
-      "transfer": "ট্রান্সফার"
+      "income": "টাকা এসেছে",
+      "expense": "টাকা গেছে",
+      "transfer": "ট্রান্সফার",
+      "transferIn": "ট্রান্সফার (এসেছে)",
+      "transferOut": "ট্রান্সফার (গেছে)",
+      "opening_balance": "প্রারম্ভিক স্থিতি"
     },
     "filters": {
       "searchLabel": "খুঁজুন",
@@ -115,18 +119,19 @@
       "categoryPlaceholder": "সব ক্যাটাগরি"
     },
     "stats": {
-      "totalIncome": "মোট আয়",
-      "totalExpense": "মোট ব্যয়",
       "transfers": "ট্রান্সফার",
       "netChange": "নিট পরিবর্তন",
       "vsPreviousDay": "আগের দিনের তুলনায়",
       "vsPreviousWeek": "আগের সপ্তাহের তুলনায়",
       "vsPreviousMonth": "আগের মাসের তুলনায়",
       "vsPreviousPeriod": "আগের সময়ের তুলনায়",
-      "chartTitle": "আয় বনাম ব্যয়",
-      "chartIncome": "আয়",
-      "chartExpense": "ব্যয়",
-      "breakdownSuffix": "{period} – {grouping} বিভাজন"
+      "chartTitle": "টাকা আসা বনাম যাওয়া",
+      "chartIncome": "টাকা এসেছে",
+      "chartExpense": "টাকা গেছে",
+      "breakdownSuffix": "{period} – {grouping} বিভাজন",
+      "cashIn": "মোট টাকা এসেছে",
+      "cashOut": "মোট টাকা গেছে",
+      "ownerCapital": "মালিকের মূলধন"
     },
     "dialogs": {
       "addIncome": "আয় যোগ করুন",
@@ -160,6 +165,26 @@
         "selectSourceAccount": "উৎস হিসাব নির্বাচন করুন",
         "selectDestinationAccount": "গন্তব্য হিসাব নির্বাচন করুন"
       }
+    },
+    "kinds": {
+      "operating_income": "পরিচালন আয়",
+      "operating_expense": "পরিচালন ব্যয়",
+      "equity": "মালিকের মূলধন",
+      "settlement": "নিষ্পত্তি",
+      "internal": "অভ্যন্তরীণ",
+      "reversal": "রিভার্সাল"
+    },
+    "reverse": {
+      "action": "রিভার্স",
+      "title": "এই লেনদেন রিভার্স করবেন?",
+      "description": "খাতা কখনও এডিট করা হয় না। এটি {amount} টাকার বিপরীত একটি লাইন পোস্ট করবে এবং ব্যালেন্স আগের অবস্থায় ফিরিয়ে দেবে — দুটি সারিই তালিকায় থাকবে।",
+      "reasonLabel": "কারণ (ঐচ্ছিক)",
+      "reasonPlaceholder": "যেমন: দুইবার রেকর্ড হয়েছে",
+      "reasonHint": "সংশোধনী লাইনের বিবরণ হিসেবে দেখাবে।",
+      "cancel": "বাতিল",
+      "submit": "রিভার্সাল পোস্ট করুন",
+      "submitting": "পোস্ট হচ্ছে...",
+      "success": "রিভার্সাল পোস্ট হয়েছে"
     }
   },
   "capitalDialog": {

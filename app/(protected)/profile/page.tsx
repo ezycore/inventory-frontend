@@ -119,7 +119,12 @@ export default function ProfilePage() {
               <aside className="hidden lg:block w-64 shrink-0">
                 <div className="sticky top-6">
                   <nav className="space-y-1 rounded-xl border bg-card p-2">
-                    <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 gap-1">
+                    {/* `group-data-horizontal/tabs:h-auto` is required, not
+                        redundant: TabsList's base pins the list to `h-9` via
+                        that same variant, which outranks a plain `h-auto` on
+                        specificity — without it the stacked triggers overflow
+                        a 36px box and cover the header. */}
+                    <TabsList className="flex flex-col h-auto group-data-horizontal/tabs:h-auto w-full items-stretch justify-start bg-transparent p-0 gap-1">
                       {tabItems.map((tab) => {
                         const Icon = tab.icon;
                         return (
@@ -127,7 +132,7 @@ export default function ProfilePage() {
                             key={tab.value}
                             value={tab.value}
                             className={cn(
-                              "w-full justify-start gap-3 px-4 py-3 text-left font-medium",
+                              "w-full h-auto flex-none justify-start gap-3 px-4 py-3 text-left font-medium",
                               "rounded-lg transition-all",
                               "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm",
                               "hover:bg-muted data-[state=active]:hover:bg-primary",
@@ -151,7 +156,7 @@ export default function ProfilePage() {
               {/* Mobile Tab Navigation */}
               <div className="lg:hidden">
                 <ScrollArea className="w-full whitespace-nowrap">
-                  <TabsList className="inline-flex w-full justify-start gap-1 bg-card border rounded-xl p-1.5 h-auto">
+                  <TabsList className="inline-flex w-full justify-start gap-1 bg-card border rounded-xl p-1.5 h-auto group-data-horizontal/tabs:h-auto">
                     {tabItems.map((tab) => {
                       const Icon = tab.icon;
                       return (
@@ -159,7 +164,7 @@ export default function ProfilePage() {
                           key={tab.value}
                           value={tab.value}
                           className={cn(
-                            "flex items-center gap-2 px-4 py-2.5 rounded-lg shrink-0",
+                            "flex items-center gap-2 px-4 py-2.5 rounded-lg h-auto shrink-0",
                             "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
                             "transition-all",
                           )}

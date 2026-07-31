@@ -24,6 +24,11 @@ interface StatData {
     value: number | string;
     direction?: TrendDirection;
     label?: string;
+    /**
+     * Whether a rising number is good news, which is what the trend colour reports. Defaults to
+     * `true`; pass `false` on cost metrics (expenses, cash out, returns) so growth reads red.
+     */
+    higherIsBetter?: boolean;
   };
   chart?: {
     data: number[];
@@ -154,11 +159,18 @@ const StatCardItem = ({
     );
   }
 
+  // The arrow always points the way the number moved; only the colour says whether that is good
+  // news. On a cost metric it is the other way round — rising expenses in green read as a win.
+  const risingIsGood = stat.trend?.higherIsBetter !== false;
   const trendColor =
     stat.trend?.direction === "up"
-      ? "text-success"
+      ? risingIsGood
+        ? "text-success"
+        : "text-destructive"
       : stat.trend?.direction === "down"
-        ? "text-destructive"
+        ? risingIsGood
+          ? "text-destructive"
+          : "text-success"
         : "text-muted-foreground";
 
   return (

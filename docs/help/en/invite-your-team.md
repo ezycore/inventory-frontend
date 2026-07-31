@@ -36,7 +36,7 @@ permission for an area does not see it in the menu at all.
 |---|---|---|
 | Cashier | Make sales, look up products and customers | See cost prices, profit, or reports |
 | Stock Keeper | Record purchases, adjust and transfer stock | Make sales, manage users |
-| Manager | Everything operational, all reports | Change billing or delete the organization |
+| Manager | Everything operational, all reports, billing | Delete the organization |
 | Owner | Everything | — |
 
 The permission worth thinking hardest about is **cost price**. It appears in purchases, stock

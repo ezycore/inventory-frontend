@@ -7,6 +7,7 @@ import { Media } from "@/components/storefront/sf-bits";
 import { money, discountPct } from "@/components/storefront/format";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { CatalogCategory, CatalogProduct } from "@/lib/storefront-client";
+import { thumbImageUrl } from "@/lib/storefront-image";
 import type { HeaderSearchController } from "@/services/storefront/use-header-search";
 
 const sectionLabel: CSSProperties = {
@@ -217,7 +218,7 @@ function SearchResultRow({
   onHover: () => void;
 }) {
   const outOfStock = product.availableQuantity <= 0;
-  const thumb = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
+  const thumb = thumbImageUrl(product.images?.[0]);
   const onSale = discountPct(product.price, product.compareAtPrice) > 0;
   return (
     <button

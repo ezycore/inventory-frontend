@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { storeHref } from "@/lib/storefront-links";
+import { thumbImageUrl } from "@/lib/storefront-image";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
 import { HeroCarousel } from "@/components/storefront/hero-carousel";
@@ -96,7 +97,7 @@ export function Classic(props: TplProps) {
         <div style={{ ...wrap, padding: "0 var(--pad) 8px" }}>
           <div style={{ display: "flex", gap: 11, overflowX: "auto", paddingBottom: 6 }}>
             {categories.map((c) => {
-              const imgSrc = c.image?.thumbnailUrl || c.image?.url;
+              const imgSrc = thumbImageUrl(c.image);
               return (
                 <Link
                   key={c._id}

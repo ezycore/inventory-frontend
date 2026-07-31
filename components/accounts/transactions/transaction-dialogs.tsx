@@ -24,6 +24,7 @@ import {
   useCreateIncome,
   useCreateTransfer,
 } from "@/services/api";
+import { useAuthStore } from "@/services/stores";
 import {
   getExpenseFormConfig,
   makeExpenseSchema,
@@ -36,10 +37,22 @@ import {
   type TransferFormData,
 } from "./form-configs";
 
+/**
+ * Whether this user may post owner capital.
+ *
+ * Mirrors the backend's `requireCapitalPermission` gate: `capital_in` / `capital_out` ride the
+ * ordinary income and expense endpoints, so the extra authority cannot be read off the route.
+ */
+export function useCanPostCapital(): boolean {
+  const { user } = useAuthStore();
+  return user?.permissions?.includes("transactions.capital") ?? false;
+}
+
 export function IncomeDialog() {
   const t = useTranslations("accounts.transactions.dialogs");
   const tCategories = useTranslations("accounts.transactions.categories");
   const [open, setOpen] = useState(false);
+  const canPostCapital = useCanPostCapital();
   const createIncome = useCreateIncome();
   const incomeSchema = useMemo(
     () =>
@@ -56,7 +69,10 @@ export function IncomeDialog() {
     defaultValues: {
       accountId: "",
       amount: 0,
-      category: "sale",
+      // Empty, not a pre-picked category. It used to default to `"sale"` — a settlement category
+      // the API rejects and this form never offered — so submitting without touching the select
+      // 400'd on a value the user never chose.
+      category: "",
       description: "",
       reference: "",
     },
@@ -76,7 +92,7 @@ export function IncomeDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-green-600 hover:bg-green-700">
-          <ArrowDownCircle className="mr-2 h-4 w-4" />
+          <ArrowUpCircle className="mr-2 h-4 w-4" />
           {t("addIncome")}
         </Button>
       </DialogTrigger>
@@ -86,7 +102,7 @@ export function IncomeDialog() {
         </DialogHeader>
         <DynamicForm
           form={form}
-          config={getIncomeFormConfig(t, tCategories)}
+          config={getIncomeFormConfig(t, tCategories, canPostCapital)}
           mutationHook={createIncome}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
@@ -102,6 +118,7 @@ export function ExpenseDialog() {
   const t = useTranslations("accounts.transactions.dialogs");
   const tCategories = useTranslations("accounts.transactions.categories");
   const [open, setOpen] = useState(false);
+  const canPostCapital = useCanPostCapital();
   const createExpense = useCreateExpense();
   const expenseSchema = useMemo(
     () =>
@@ -118,7 +135,8 @@ export function ExpenseDialog() {
     defaultValues: {
       accountId: "",
       amount: 0,
-      category: "purchase",
+      // See IncomeDialog — `"purchase"` was the same unpostable default on this side.
+      category: "",
       description: "",
       reference: "",
     },
@@ -138,7 +156,7 @@ export function ExpenseDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="destructive">
-          <ArrowUpCircle className="mr-2 h-4 w-4" />
+          <ArrowDownCircle className="mr-2 h-4 w-4" />
           {t("addExpense")}
         </Button>
       </DialogTrigger>
@@ -148,7 +166,7 @@ export function ExpenseDialog() {
         </DialogHeader>
         <DynamicForm
           form={form}
-          config={getExpenseFormConfig(t, tCategories)}
+          config={getExpenseFormConfig(t, tCategories, canPostCapital)}
           mutationHook={createExpense}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
