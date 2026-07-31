@@ -104,7 +104,8 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   storefront toasts render **top-center** (the bottom strip belongs to the cart-drawer
   footer, the mobile bottom nav and the sticky buy bar; the admin's global Toaster default
   is bottom-right). The cart drawer `toast.dismiss()`es on open (the drawer IS the
-  add-to-cart confirmation) and the PDP's Buy now doesn't toast at all.
+  add-to-cart confirmation) and **Buy now never toasts** — on the PDP or on a card — because it
+  navigates to checkout and the toast would land on a screen the shopper has already left.
 - **i18n**: bilingual EN/বাংলা. `lib/storefront-i18n.ts` — every string is a key in the `Dict`
   interface **plus** the `en` **plus** the `bn` object (3 places, always). Components read
   `const { t } = useStorefrontUI()`. (IDE diagnostics often flag "missing properties" mid-batch
@@ -112,8 +113,8 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
 - **Templates**: per-page layout variants chosen in the admin (Customize) —
   `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/checkout
   (+ header/footer/productCard/hero/**pagination**) variant ids consumed by the views. `search` and
-  `cart` are retired: shoppers toggle grid/list on the search page, and Buy now always opens the
-  cart drawer. Note the admin ids are kebab-case and the storefront names are not
+  `cart` are retired: shoppers toggle grid/list on the search page, and Buy now always goes
+  straight to `/checkout`. Note the admin ids are kebab-case and the storefront names are not
   (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
   resolves to the default, which reads as "the setting does nothing".
 - **Listing pagination** (`templates.pagination`, default `pages`): `pages` = numbered
@@ -430,7 +431,49 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-07-31)
+## Work log (what was built, newest first — as of 2026-08-01)
+
+- **Quick buy from the grid; Buy now means checkout everywhere (FE)** (2026-08-01): a card's only
+  CTA was Add to cart, and a *variable* product's said **Select options** and navigated to the PDP —
+  so the fastest path from the home grid to a checkout form was 4 taps plus a full page load, and
+  **Buy now existed nowhere but the product page**. Cards now carry **Add to cart + Buy now**, and a
+  variable product resolves its options in place.
+  **Tiered by option complexity** (`optionsFitInline` in `variant-selector.tsx`): one axis of ≤6
+  values reveals `CardVariantFlyout` over the card image; multi-axis or a longer axis opens
+  `QuickBuySheet` (bottom sheet <680px, centred modal above). Picking one surface for both was the
+  thing to avoid — a modal over four size chips is heavy, and a Colour×Size product cannot fit a
+  ~150px card in the 2-column mobile grid.
+  Four things worth keeping: **(1)** the catalog list payload has `hasVariants` but **not
+  `variants`**, so a card cannot render a chip — or even *choose* its surface — without the detail
+  payload; `useCardQuickBuy` fetches it on **hover intent (120 ms, mouse only)** or first press,
+  against the PDP's own query key, so `""` keeps the query disabled and a 24-card grid does not fire
+  24 requests. **(2)** The **first press always reveals, never buys**: a variant is preselected, so
+  committing on press one would put a size the shopper never chose in their cart. **(3)** The flyout
+  renders only after variants load, so the CSS `:hover` reveal can't expose an empty bar; the tap
+  path (`.sf-open`) is the real mechanism and hover is a fine-pointer convenience — `pointerenter`
+  fires on tap too, hence the `pointerType !== "mouse"` bail, same as the gallery zoom. **(4)** The
+  flyout is a **sibling** of the card's `<Link>`, not a child — buttons inside an anchor are invalid
+  markup that browsers silently reparent. **(5)** The card must re-price off the **chosen** variant:
+  the first cut kept rendering the catalog "From ৳600" after the shopper picked the ৳780 variant, so
+  Buy now charged a price the card never displayed. Found in a browser, not by any gate — nothing
+  type-checks "the number on screen matches the number in the cart". Hence `chosen` (explicitly
+  picked) is exposed separately from `selected` (which includes `defaultSelection`'s pre-highlight):
+  pricing off `selected` would silently rewrite "From ৳600" into a definite price nobody chose.
+  **(6)** The card CTA labels are **fixed** — "Add to cart" + "Buy now", never "Select options".
+  A cut that swapped the label once a variant became resolvable was really keying off *"the variants
+  finished loading"*, and loading is triggered by hover, so the button relabelled itself under the
+  cursor with no click. A control that rewrites itself on hover reads as a glitch, and
+  "Select options" next to "Buy now" implied two destinations where the first press does the same
+  thing for both. "Add to cart" opening a picker is the standard storefront behaviour.
+  (`t.selectOptions` survives as the `compact` card's aria-label, where it is static.)
+  **`Buy now` now goes to `/checkout` on the PDP too** (it opened the cart drawer until today) —
+  the same word had to mean the same thing on both surfaces. The cart icon still opens the drawer.
+  Also extracted `hooks/use-overlay-transition.ts` (SideDrawer + the sheet had identical mount/exit
+  choreography) and added `compact` to `VariantSelector` so the flyout reuses its chip-disabling
+  logic rather than forking it. i18n `fullDetails` + `chooseOption` ×3.
+  **Not done:** the `compact` card template keeps its single "+" and has no Buy now — a dense row
+  has no width for a second CTA. Approved design sample (4 patterns, tappable):
+  claude.ai/code/artifact/7eb91177-5429-440f-bc01-a5db5ea04e4a.
 
 - **Listing pagination is a merchant choice; search finally pages at all (FE + BE)** (2026-07-31):
   new `templates.pagination` — `pages` (the existing numbered pager, still the default) |

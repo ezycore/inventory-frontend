@@ -24,6 +24,10 @@ export interface Dict {
   fromPrice: string;
   /** Card CTA for variable products — options are picked on the PDP. */
   selectOptions: string;
+  /** Quick-buy sheet: escape hatch to the full product page. */
+  fullDetails: string;
+  /** Quick-buy prompt while the shopper still owes an option choice. */
+  chooseOption: string;
   /** Drawer link to the full /cart page. */
   viewCart: string;
   /** Campaign strip: "«name» — 10% off · Ends 4 Jul". */
@@ -371,6 +375,8 @@ const en: Dict = {
   addToCart: "Add to cart",
   fromPrice: "From",
   selectOptions: "Select options",
+  fullDetails: "See full details",
+  chooseOption: "Choose an option",
   viewCart: "View cart",
   campaignOff: "off",
   campaignEnds: "Ends",
@@ -708,6 +714,8 @@ const bn: Dict = {
   addToCart: "কার্টে যোগ করুন",
   fromPrice: "শুরু",
   selectOptions: "ভ্যারিয়েন্ট বাছাই করুন",
+  fullDetails: "সম্পূর্ণ বিবরণ দেখুন",
+  chooseOption: "অপশন বাছাই করুন",
   viewCart: "কার্ট দেখুন",
   campaignOff: "ছাড়",
   campaignEnds: "শেষ",

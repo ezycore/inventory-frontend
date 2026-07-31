@@ -2,26 +2,36 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "@/lib/storefront-toast";
 import type { CatalogProduct } from "@/lib/storefront-client";
-import { useCartStore } from "@/services/stores/use-cart-store";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
-import { cardImageUrl, thumbImageUrl } from "@/lib/storefront-image";
+import { cardImageUrl } from "@/lib/storefront-image";
 import { money, discountPct } from "@/components/storefront/format";
 import { Media } from "@/components/storefront/sf-bits";
+import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
+import {
+  CardCtaRow,
+  CardVariantFlyout,
+} from "@/components/storefront/card-buy-actions";
+import { QuickBuySheet } from "@/components/storefront/quick-buy-sheet";
 
 const CARD_STYLES: readonly string[] = ["standard", "compact", "bold"];
 
 /**
- * Storefront product card. `full` shows a wide Add-to-cart button (featured /
- * collection grids); `compact` shows a small "+" (dense new-arrivals rows).
- * Reads slug/base from context; links to the PDP and adds to the cart store.
+ * Storefront product card. `full` shows the Add-to-cart / Buy-now pair
+ * (featured / collection grids); `compact` shows a small "+" (dense
+ * new-arrivals rows). Reads slug/base from context and links to the PDP.
+ *
+ * **Quick buy** — a variable product no longer has to send the shopper to the
+ * product page to be bought. `useCardQuickBuy` fetches its variants on hover
+ * intent (or first press) and reveals them either in `CardVariantFlyout` (one
+ * short axis) or `QuickBuySheet` (anything larger). The `compact` style keeps
+ * its single "+" and routes everything through the sheet — a dense row has no
+ * width for a second CTA, which is the whole point of that template.
  */
 export function ProductCard({
   product,
@@ -34,9 +44,9 @@ export function ProductCard({
 }) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
-  const addItem = useCartStore((s) => s.addItem);
   const { data: store } = useStore(slug);
   const previewCardStyle = useSfPreview((s) => s.cardStyle);
+  const qb = useCardQuickBuy(product);
 
   // Admin card style (live draft wins). "compact" forces the dense layout
   // everywhere; "bold" enlarges the CTA; "standard" respects the `variant`.
@@ -47,37 +57,26 @@ export function ProductCard({
     cardStyle === "compact" || (cardStyle === "standard" && variant === "compact");
   const bold = cardStyle === "bold";
 
-  const router = useRouter();
-  const price = product.price ?? 0;
-  const pct = discountPct(product.price, product.compareAtPrice);
-  // Backorder products stay buyable at zero stock; only "show"/"hide" are sold out.
-  const canBackorder = product.outOfStockBehavior === "backorder";
-  const soldOut = product.availableQuantity <= 0 && !canBackorder;
+  const soldOut = qb.soldOut;
   const thumb = cardImageUrl(product.images?.[0]);
   const href = storeHref(base, `/products/${product.slug}`);
-  // Variable products can't be added blindly — the shopper picks a variant on
-  // the PDP, so the card CTA navigates there and the price reads "From ৳X".
   const hasVariants = !!product.hasVariants;
 
-  const add = () => {
-    if (hasVariants) {
-      router.push(href);
-      return;
-    }
-    addItem(slug, {
-      productId: product._id,
-      slug: product.slug,
-      name: product.name,
-      price,
-      image: thumbImageUrl(product.images?.[0]),
-      // Backorder → uncapped (the store treats maxQty<=0 as no limit).
-      maxQty: canBackorder ? 0 : product.availableQuantity,
-    });
-    toast.success(t.added);
-  };
+  // A variable product reads "From ৳X" off its cheapest variant — until the
+  // shopper picks one in the flyout, at which point the card must show THAT
+  // variant's price. Skipping this lets them buy a ৳780 variant from a card
+  // still advertising ৳600, which is the price they'd swear they were quoted.
+  const chosen = qb.chosen;
+  const price = chosen?.price ?? product.price ?? 0;
+  const compareAt = chosen ? chosen.compareAtPrice : product.compareAtPrice;
+  const pct = discountPct(price, compareAt);
+  const showFrom = hasVariants && !chosen;
 
   return (
     <div
+      className="sf-qb-card"
+      onPointerEnter={qb.onPointerEnter}
+      onPointerLeave={qb.onPointerLeave}
       style={{
         background: "var(--card)",
         border: "1px solid var(--border)",
@@ -88,26 +87,32 @@ export function ProductCard({
         boxShadow: bold ? "0 8px 24px -16px rgba(0,0,0,0.35)" : undefined,
       }}
     >
-      <Link href={href} style={{ position: "relative", display: "block" }}>
-        <Media src={thumb} alt={product.name} label="product" radius={0} />
-        {pct > 0 ? (
-          <span
-            style={{
-              position: "absolute",
-              top: 9,
-              left: 9,
-              background: "var(--discount-soft)",
-              color: "var(--discount)",
-              fontSize: 11.5,
-              fontWeight: 600,
-              padding: "3px 7px",
-              borderRadius: 999,
-            }}
-          >
-            -{pct}%
-          </span>
-        ) : null}
-      </Link>
+      {/* The flyout is a sibling of the link, not a child: it holds buttons,
+          and a <button> inside an <a> is invalid markup that browsers reparent.
+          The wrapper carries the positioning context for both. */}
+      <div style={{ position: "relative" }}>
+        <Link href={href} style={{ position: "relative", display: "block" }}>
+          <Media src={thumb} alt={product.name} label="product" radius={0} />
+          {pct > 0 ? (
+            <span
+              style={{
+                position: "absolute",
+                top: 9,
+                left: 9,
+                background: "var(--discount-soft)",
+                color: "var(--discount)",
+                fontSize: 11.5,
+                fontWeight: 600,
+                padding: "3px 7px",
+                borderRadius: 999,
+              }}
+            >
+              -{pct}%
+            </span>
+          ) : null}
+        </Link>
+        <CardVariantFlyout qb={qb} />
+      </div>
       <div style={{ padding: "12px 13px 14px", display: "flex", flexDirection: "column", flex: 1 }}>
         <Link
           href={href}
@@ -126,7 +131,7 @@ export function ProductCard({
         {compactLayout ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: "auto" }}>
             <span style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "0 6px", minWidth: 0 }}>
-              {hasVariants ? (
+              {showFrom ? (
                 <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
               ) : null}
               <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", whiteSpace: "nowrap" }}>
@@ -135,9 +140,9 @@ export function ProductCard({
             </span>
             <button
               type="button"
-              disabled={soldOut}
-              onClick={add}
-              aria-label={t.addToCart}
+              disabled={soldOut || qb.pending}
+              onClick={() => qb.press("add")}
+              aria-label={hasVariants ? t.selectOptions : t.addToCart}
               style={{
                 background: "var(--primary-soft)",
                 color: "var(--primary)",
@@ -163,7 +168,7 @@ export function ProductCard({
                 wider than that — unwrapped, each money string broke mid-value
                 and the card's overflow:hidden clipped the last one. */}
             <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "2px 7px", marginBottom: 11 }}>
-              {hasVariants ? (
+              {showFrom ? (
                 <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
               ) : null}
               <span style={{ fontSize: bold ? 16.5 : 14.5, fontWeight: 700, color: "var(--text)", whiteSpace: "nowrap" }}>
@@ -171,35 +176,28 @@ export function ProductCard({
               </span>
               {pct > 0 ? (
                 <span style={{ fontSize: 12, color: "var(--faint)", textDecoration: "line-through", whiteSpace: "nowrap" }}>
-                  {money(product.compareAtPrice, currency)}
+                  {money(compareAt, currency)}
                 </span>
               ) : null}
             </div>
-            <button
-              type="button"
-              disabled={soldOut}
-              onClick={add}
-              style={{
-                marginTop: "auto",
-                background: "var(--primary)",
-                color: "var(--on-primary)",
-                border: "none",
-                padding: bold ? 13 : 11,
-                borderRadius: bold ? 9 : 7,
-                fontFamily: "inherit",
-                fontSize: bold ? 13.5 : 13,
-                fontWeight: bold ? 700 : 600,
-                textTransform: bold ? "uppercase" : "none",
-                letterSpacing: bold ? "0.03em" : "normal",
-                cursor: soldOut ? "not-allowed" : "pointer",
-                opacity: soldOut ? 0.55 : 1,
-              }}
-            >
-              {soldOut ? t.outOfStock : hasVariants ? t.selectOptions : t.addToCart}
-            </button>
+            <CardCtaRow qb={qb} bold={bold} />
           </>
         )}
       </div>
+
+      {/* Fallback surface for options too big for the flyout — multi-axis, or a
+          long single axis. Mounted only once its detail payload has landed. */}
+      {qb.detail ? (
+        <QuickBuySheet
+          open={qb.sheetOpen}
+          onClose={qb.closeSheet}
+          product={qb.detail}
+          currency={currency}
+          base={base}
+          onAdd={(line) => qb.commit(line, "add")}
+          onBuy={(line) => qb.commit(line, "buy")}
+        />
+      ) : null}
     </div>
   );
 }

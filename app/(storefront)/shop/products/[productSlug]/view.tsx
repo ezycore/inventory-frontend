@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
 import {
   useStore,
@@ -12,7 +12,6 @@ import {
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
-import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useWishlistStore } from "@/services/stores/use-wishlist-store";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
@@ -62,7 +61,7 @@ export default function ProductDetailPage({
       : { limit: 8 },
   );
   const addItem = useCartStore((s) => s.addItem);
-  const openCart = useCartUI((s) => s.openCart);
+  const router = useRouter();
   const toggleWish = useWishlistStore((s) => s.toggle);
   const wished = useWishlistStore(
     (s) =>
@@ -159,11 +158,12 @@ export default function ProductDetailPage({
     if (notify) toast.success(t.added);
   };
   const buyNow = () => {
-    // No toast: the drawer opening with the item IS the confirmation — quick
-    // review in place, checkout one tap away; the full /cart page stays
-    // reachable via the drawer's "View cart".
+    // Straight to checkout, matching the card's Buy now — "Buy now" has to mean
+    // the same thing on both surfaces or it means nothing. (It opened the cart
+    // drawer until 2026-08-01; /cart is still reachable from the cart icon.)
+    // No toast: the screen change is the confirmation.
     add(false);
-    openCart();
+    router.push(storeHref(base, "/checkout"));
   };
 
   const onWish = () =>
