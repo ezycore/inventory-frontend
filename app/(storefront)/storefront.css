@@ -646,6 +646,18 @@
   }
 }
 
+/* ---- Account sidebar (account/account-area.tsx) ----
+   Sticky ONLY where it is actually a sidebar. --acctgrid is `1fr` below 680px,
+   so the nav stacks above the content there; sticky then pinned a ~500px block
+   (62% of a phone viewport) to the top and the account content scrolled
+   underneath it. `top` matches the sticky header's height. */
+@media (min-width: 680px) {
+  .sf-account-nav {
+    position: sticky;
+    top: 88px;
+  }
+}
+
 /* ---- PDP "left rail" gallery (products/[productSlug]/view.tsx, `left` template) ----
    Desktop: a fixed 62px thumbnail column beside the hero image. On a phone that
    rail plus its gap ate 23% of the content width — the hero dropped to 254px on

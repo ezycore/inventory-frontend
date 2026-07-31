@@ -99,7 +99,11 @@ export function AccountArea({ shopper }: { shopper: ShopperProfile }) {
       {!shopper.emailVerified ? <VerifyEmailBanner /> : null}
       <div style={{ display: "grid", gridTemplateColumns: "var(--acctgrid)", gap: "var(--gap)", alignItems: "start" }}>
         {/* ===== Sidebar ===== */}
-        <aside style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 16, position: "sticky", top: 88 }}>
+        {/* Stickiness is in storefront.css — it must apply only where this IS a
+            sidebar. Below 680px --acctgrid collapses to one column and this
+            stacks ABOVE the content, where sticky pinned ~62% of the viewport
+            and the content scrolled underneath it. */}
+        <aside className="sf-account-nav" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 6px 16px", borderBottom: "1px solid var(--border)", marginBottom: 12 }}>
             <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--primary)", color: "var(--on-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, fontWeight: 700, flex: "none" }}>
               {(shopper.name || "A").trim().charAt(0).toUpperCase()}
