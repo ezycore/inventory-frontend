@@ -2,6 +2,7 @@
 // coding-standard: maintained
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { NotificationLog } from "@/components/notifications/notification-log";
 import { NotificationMatrix } from "@/components/notifications/notification-matrix";
 import {
   useNotificationSettings,
@@ -97,6 +98,16 @@ export default function NotificationsSettingsPage() {
       <Card>
         <CardContent className="pt-6">
           <NotificationMatrix />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("log.title")}</CardTitle>
+          <CardDescription>{t("log.subtitle")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NotificationLog />
         </CardContent>
       </Card>
     </div>

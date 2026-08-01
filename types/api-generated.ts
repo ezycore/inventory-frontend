@@ -876,6 +876,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-webhooks/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/email-webhooks/resend
+         * @description Defined in `src/routes/email-webhooks.routes.ts:14`.
+         */
+        post: operations["post_api_email_webhooks_resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organization": {
         parameters: {
             query?: never;
@@ -9415,6 +9435,13 @@ export interface components {
                 totalPages: number;
             };
         };
+        EmailWebhookAck: {
+            received: boolean;
+            /** @enum {string} */
+            event?: "email.bounced" | "email.complained";
+            suppressed: number;
+            consentCleared: number;
+        };
         NotificationEventRow: {
             key: string;
             /** @enum {string} */
@@ -13998,6 +14025,48 @@ export interface operations {
             };
             /** @description Not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_email_webhooks_resend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    type?: string;
+                    data?: {
+                        [key: string]: unknown;
+                    };
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["EmailWebhookAck"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

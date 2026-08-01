@@ -980,6 +980,40 @@
       "account.password_reset": "Password reset",
       "account.user_invited": "User invited",
       "account.low_credit": "Low notification credit"
+    },
+    "log": {
+      "title": "Message log",
+      "subtitle": "Every message this workspace produced, including the ones it deliberately didn't send.",
+      "empty": "No messages yet. This fills up as orders come in.",
+      "columns": {
+        "when": "When",
+        "event": "Event",
+        "recipient": "Sent to",
+        "channel": "Channel",
+        "status": "Status"
+      },
+      "status": {
+        "sent": "Sent",
+        "pending": "Queued",
+        "processing": "Sending",
+        "failed": "Failed",
+        "skipped": "Not sent"
+      },
+      "filters": {
+        "allEvents": "All events",
+        "allStatuses": "All statuses",
+        "allChannels": "All channels"
+      },
+      "skipReasons": {
+        "channel_off": "This channel is switched off for this event.",
+        "sms_disabled": "SMS is off for this workspace.",
+        "feature_off": "The feature behind this event is not enabled.",
+        "no_recipient": "No address on file for this person.",
+        "suppressed": "This address bounced before, so we stopped mailing it.",
+        "consent": "This person opted out of marketing.",
+        "cap_reached": "The monthly SMS limit was reached.",
+        "no_credit": "Out of SMS credits. Email is unaffected."
+      }
     }
   }
 }

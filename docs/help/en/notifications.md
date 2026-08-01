@@ -11,6 +11,8 @@ ui_labels:
   - settings:notifications.recipientsTitle
   - settings:notifications.alsoNotifyOwner
   - settings:notifications.smsNotLive
+  - settings:notifications.log.title
+  - settings:notifications.log.status.skipped
 ---
 
 # Notifications
@@ -66,6 +68,24 @@ Two things worth knowing before it lands:
 
 ## Checking what was sent
 
-Every message the system produces is recorded, including the ones it deliberately did *not*
-send — with the reason why, such as a customer having no email address on file. That record
-is the first place to look when someone says they never received something.
+At the bottom of the page, **Message log** records every message the system produced — including
+the ones it deliberately did *not* send. That is the first place to look when someone says they
+never received something.
+
+Each row shows when it happened, which event caused it, who it went to (the address is partly
+hidden — the log is not the place to browse customer contact details), the channel, and the
+outcome. Filter by event, status or channel to narrow it down.
+
+The rows marked **Not sent** are the useful ones, because each carries its reason:
+
+- *No address on file for this person* — the commonest cause. The customer never gave you an email.
+- *This address bounced before, so we stopped mailing it* — the address is dead, and continuing to
+  mail it would damage delivery for every other message you send. Ask the customer for a new one.
+- *This channel is switched off for this event* — the matrix above is doing exactly what you set it
+  to. Tick the box if that was not what you wanted.
+
+**Queued** means it is waiting for the next send cycle, which runs every thirty seconds. If a row
+stays queued much longer than that, the problem is the mail service rather than your settings.
+
+The log keeps six months of history. The message body itself is never stored for you to read back —
+some of these emails carry one-time sign-in links, and a readable log would be a way to steal one.
