@@ -7,7 +7,7 @@ import { Info } from "lucide-react";
 
 /** Where custom subdomains should CNAME to, and the apex A-record target. */
 const CNAME_TARGET = "connect.ezycore.com";
-const APEX_IP = "178.128.101.0";
+const APEX_IP = "139.99.90.41";
 const VERIFY_PREFIX = "_ezycore-verify";
 
 interface DnsRecordRowProps {
