@@ -41,8 +41,18 @@ export function LoadMore({
   const { t } = useStorefrontUI();
   const [autoUsed, setAutoUsed] = useState(0);
   const sentinel = useRef<HTMLDivElement>(null);
+
+  // The observer reads `onLoad` through a ref so it can stay out of that
+  // effect's deps: the parent re-creates the callback every render, and
+  // rebuilding the observer that often would keep resetting the rootMargin
+  // prefetch. Synced in an effect rather than during render — a render can be
+  // discarded under concurrent rendering, so writing a ref there can publish a
+  // callback from a render that never committed (and `react-hooks/refs` fails
+  // the build on it).
   const onLoadRef = useRef(onLoad);
-  onLoadRef.current = onLoad;
+  useEffect(() => {
+    onLoadRef.current = onLoad;
+  });
 
   const auto = mode === "infinite" && hasMore && autoUsed < AUTO_LOADS;
 
