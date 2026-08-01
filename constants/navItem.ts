@@ -409,6 +409,12 @@ export const navGroups: NavGroup[] = [
             permissions: ["organization.edit"],
           },
           {
+            title: "Notifications",
+            url: "/settings/notifications",
+            icon: "bell",
+            permissions: ["organization.manage"],
+          },
+          {
             title: "Custom Domains",
             url: "/settings/domains",
             icon: "globe",

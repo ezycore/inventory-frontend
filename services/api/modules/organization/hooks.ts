@@ -6,6 +6,10 @@ import {
   organizationApi,
 } from "@/services/api";
 import type {
+  NotificationLogParams,
+  UpdateNotificationSettingsDto,
+} from "./api";
+import type {
   ApiResponse,
   OrganizationFeatures,
   PlanChangeResult,
@@ -29,6 +33,41 @@ export const useGetOrganizationApi = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
+
+// GET /api/organization/notifications - Config + effective event matrix
+export const useNotificationSettings = () =>
+  useQuery({
+    queryKey: queryKeys.organization.notifications(),
+    queryFn: () => organizationApi.getNotificationSettings(),
+    select: (res) => res.data,
+    staleTime: 60 * 1000,
+  });
+
+// PATCH /api/organization/notifications - Partial config update
+export const useUpdateNotificationSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateNotificationSettingsDto) =>
+      organizationApi.updateNotificationSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Notification settings updated");
+      // The PATCH answers with the full effective matrix, so seed the cache
+      // with it instead of refetching.
+      queryClient.setQueryData(queryKeys.organization.notifications(), result);
+    },
+    onError: handleMutationError,
+  });
+};
+
+// GET /api/organization/notifications/log - Outbox/audit rows
+export const useNotificationLog = (params?: NotificationLogParams) =>
+  useQuery({
+    queryKey: queryKeys.organization.notificationLog(params),
+    queryFn: () => organizationApi.getNotificationLog(params),
+    select: (res) => res.data,
+    staleTime: 30 * 1000,
+  });
 
 // GET /api/organization/subscription - Current plan/entitlement + usage
 export const useGetSubscription = () => {

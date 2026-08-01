@@ -46,6 +46,9 @@ export const queryKeys = {
     subscription: () => ["organization", "subscription"] as const,
     plans: () => ["organization", "plans"] as const,
     storefront: () => ["organization", "storefront"] as const,
+    notifications: () => ["organization", "notifications"] as const,
+    notificationLog: (params?: object) =>
+      ["organization", "notifications", "log", params ?? {}] as const,
   },
 
   profile: {

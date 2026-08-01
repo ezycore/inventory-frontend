@@ -885,12 +885,12 @@ export interface paths {
         };
         /**
          * GET /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:23`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:29`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization"];
         /**
          * PUT /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:15`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:21`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization"];
         post?: never;
@@ -912,9 +912,53 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/demo-data
-         * @description Defined in `src/routes/organization.routes.ts:30`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:36`. Requires permission `organization.edit`.
          */
         delete: operations["delete_api_organization_demo_data"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/organization/notifications
+         * @description Defined in `src/routes/organization.routes.ts:43`. Requires permission `organization.manage`.
+         */
+        get: operations["get_api_organization_notifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * PATCH /api/organization/notifications
+         * @description Defined in `src/routes/organization.routes.ts:50`. Requires permission `organization.manage`.
+         */
+        patch: operations["patch_api_organization_notifications"];
+        trace?: never;
+    };
+    "/api/organization/notifications/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/organization/notifications/log
+         * @description Defined in `src/routes/organization.routes.ts:58`. Requires permission `organization.manage`.
+         */
+        get: operations["get_api_organization_notifications_log"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -929,7 +973,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/subscription
-         * @description Defined in `src/routes/organization.routes.ts:37`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:66`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_subscription"];
         put?: never;
@@ -949,7 +993,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/billing/pay-link
-         * @description Defined in `src/routes/organization.routes.ts:44`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:73`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_billing_pay_link"];
         put?: never;
@@ -969,7 +1013,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/plans
-         * @description Defined in `src/routes/organization.routes.ts:51`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:80`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_plans"];
         put?: never;
@@ -991,7 +1035,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change
-         * @description Defined in `src/routes/organization.routes.ts:58`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:87`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change"];
         delete?: never;
@@ -1011,7 +1055,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change/reconcile
-         * @description Defined in `src/routes/organization.routes.ts:65`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:94`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change_reconcile"];
         delete?: never;
@@ -1031,7 +1075,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/subscription/cancel
-         * @description Defined in `src/routes/organization.routes.ts:73`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:102`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_subscription_cancel"];
         delete?: never;
@@ -1050,7 +1094,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/form-settings
-         * @description Defined in `src/routes/organization.routes.ts:81`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:110`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_form_settings"];
         post?: never;
@@ -1069,12 +1113,12 @@ export interface paths {
         };
         /**
          * GET /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:92`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:121`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_features"];
         /**
          * PUT /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:100`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:129`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_features"];
         post?: never;
@@ -1094,7 +1138,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/column-settings
-         * @description Defined in `src/routes/organization.routes.ts:109`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:138`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_column_settings"];
         post?: never;
@@ -1113,7 +1157,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:120`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:149`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront"];
         put?: never;
@@ -1123,7 +1167,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:128`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:157`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront"];
         trace?: never;
@@ -1143,7 +1187,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/media
-         * @description Defined in `src/routes/organization.routes.ts:137`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:166`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
@@ -1159,7 +1203,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/hero-slide
-         * @description Defined in `src/routes/organization.routes.ts:150`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:179`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_hero_slide"];
         delete?: never;
@@ -1178,7 +1222,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:160`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:189`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -9371,6 +9415,99 @@ export interface components {
                 totalPages: number;
             };
         };
+        NotificationEventRow: {
+            key: string;
+            /** @enum {string} */
+            domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account";
+            /** @enum {string} */
+            category: "transactional" | "marketing";
+            mandatory: boolean;
+            audiences: ("customer" | "merchant")[];
+            vars: string[];
+            channels: {
+                customer?: {
+                    email: boolean;
+                    sms: boolean;
+                };
+                merchant?: {
+                    email: boolean;
+                    sms: boolean;
+                };
+            };
+            templates?: {
+                emailSubject?: string;
+                emailBody?: string;
+                sms?: string;
+            };
+            schedule?: {
+                hour: number;
+            };
+        };
+        NotificationLogItem: {
+            _id: string;
+            organizationId: string;
+            eventKey: string;
+            /** @enum {string} */
+            audience: "customer" | "merchant";
+            /** @enum {string} */
+            channel: "email" | "sms";
+            entityType?: string;
+            entityId?: string;
+            recipient: string;
+            subject?: string;
+            /** @enum {string} */
+            status: "pending" | "processing" | "sent" | "failed" | "skipped";
+            skipReason?: string;
+            attempts: number;
+            segments?: number;
+            providerMessageId?: string;
+            error?: string;
+            /** Format: date-time */
+            sentAt?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        NotificationSettings: {
+            sms: {
+                enabled: boolean;
+                monthlyCap?: number;
+            };
+            merchantRecipients: {
+                email?: string;
+                phone?: string;
+                alsoNotifyOwner: boolean;
+            };
+            events: {
+                key: string;
+                /** @enum {string} */
+                domain: "storefront" | "sales" | "purchase" | "inventory" | "reports" | "account";
+                /** @enum {string} */
+                category: "transactional" | "marketing";
+                mandatory: boolean;
+                audiences: ("customer" | "merchant")[];
+                vars: string[];
+                channels: {
+                    customer?: {
+                        email: boolean;
+                        sms: boolean;
+                    };
+                    merchant?: {
+                        email: boolean;
+                        sms: boolean;
+                    };
+                };
+                templates?: {
+                    emailSubject?: string;
+                    emailBody?: string;
+                    sms?: string;
+                };
+                schedule?: {
+                    hour: number;
+                };
+            }[];
+        };
         AvailablePlan: {
             id: string;
             name: string;
@@ -9930,28 +10067,6 @@ export interface components {
                 termsRequired?: boolean;
                 termsPageSlug?: string;
             };
-            notifications?: {
-                senderId?: string;
-                merchantAlertNumber?: string;
-                events?: {
-                    placed?: {
-                        enabled: boolean;
-                        template?: string;
-                    };
-                    confirmed?: {
-                        enabled: boolean;
-                        template?: string;
-                    };
-                    shipped?: {
-                        enabled: boolean;
-                        template?: string;
-                    };
-                    delivered?: {
-                        enabled: boolean;
-                        template?: string;
-                    };
-                };
-            };
             templates?: {
                 home?: string;
                 collection?: string;
@@ -10137,7 +10252,6 @@ export interface components {
                 dob?: string;
                 prefs: {
                     promoEmail: boolean;
-                    orderSms: boolean;
                     priceDrop: boolean;
                     newsletter: boolean;
                 };
@@ -10166,7 +10280,6 @@ export interface components {
             dob?: string;
             prefs: {
                 promoEmail: boolean;
-                orderSms: boolean;
                 priceDrop: boolean;
                 newsletter: boolean;
             };
@@ -13385,7 +13498,6 @@ export interface operations {
             content: {
                 "application/json": {
                     promoEmail?: boolean;
-                    orderSms?: boolean;
                     priceDrop?: boolean;
                     newsletter?: boolean;
                 };
@@ -14024,6 +14136,210 @@ export interface operations {
             };
         };
     };
+    get_api_organization_notifications: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["NotificationSettings"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patch_api_organization_notifications: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    sms?: {
+                        enabled?: boolean;
+                        monthlyCap?: number;
+                    };
+                    merchantRecipients?: {
+                        email?: (unknown | string) | "";
+                        phone?: (unknown | string) | "";
+                        alsoNotifyOwner?: boolean;
+                    };
+                    events?: {
+                        [key: string]: {
+                            customer?: {
+                                email?: boolean;
+                                sms?: boolean;
+                            };
+                            merchant?: {
+                                email?: boolean;
+                                sms?: boolean;
+                            };
+                            templates?: {
+                                emailSubject?: string;
+                                emailBody?: string;
+                                sms?: string;
+                            };
+                            schedule?: {
+                                hour: number;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["NotificationSettings"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_organization_notifications_log: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: string;
+                start_date?: string;
+                end_date?: string;
+                eventKey?: string;
+                channel?: "email" | "sms";
+                audience?: "customer" | "merchant";
+                entityId?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["NotificationLogItem"][];
+                            total?: number;
+                            page?: number;
+                            limit?: number;
+                            totalPages?: number;
+                            hasNext?: boolean;
+                            hasPrev?: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_organization_subscription: {
         parameters: {
             query?: never;
@@ -14629,28 +14945,6 @@ export interface operations {
                         orderPrefix?: string;
                         termsRequired?: boolean;
                         termsPageSlug?: string;
-                    };
-                    notifications?: {
-                        senderId?: string;
-                        merchantAlertNumber?: string;
-                        events?: {
-                            placed?: {
-                                enabled?: boolean;
-                                template?: string;
-                            };
-                            confirmed?: {
-                                enabled?: boolean;
-                                template?: string;
-                            };
-                            shipped?: {
-                                enabled?: boolean;
-                                template?: string;
-                            };
-                            delivered?: {
-                                enabled?: boolean;
-                                template?: string;
-                            };
-                        };
                     };
                     templates?: {
                         home?: string;
@@ -30977,8 +31271,7 @@ export interface operations {
                 "application/json": {
                     name: string;
                     phone?: string;
-                    /** Format: uri */
-                    trackingUrlTemplate?: string;
+                    trackingUrlTemplate?: "" | string;
                     defaultCharge?: number;
                     active?: boolean;
                 };
@@ -31042,8 +31335,7 @@ export interface operations {
                 "application/json": {
                     name?: string;
                     phone?: string;
-                    /** Format: uri */
-                    trackingUrlTemplate?: string;
+                    trackingUrlTemplate?: "" | string;
                     defaultCharge?: number;
                     active?: boolean;
                 };

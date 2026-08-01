@@ -285,10 +285,12 @@ export interface ProductListResult {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
-/** Account communication preferences (Notifications section). */
+/**
+ * Account MARKETING consent (Notifications section). Transactional order
+ * updates are not here — the store configures those per event per channel.
+ */
 export interface ShopperPrefs {
   promoEmail: boolean;
-  orderSms: boolean;
   priceDrop: boolean;
   newsletter: boolean;
 }

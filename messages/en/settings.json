@@ -923,5 +923,63 @@
       "cancel": "Cancel",
       "apply": "Change registration"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Choose which events send a message, to whom, and on which channel.",
+    "recipientsTitle": "Merchant alerts",
+    "recipientsSubtitle": "Where alerts meant for you (not the customer) are sent.",
+    "alertEmail": "Alert email",
+    "alertEmailHint": "Leave blank to use the workspace owner's email.",
+    "alertPhone": "Alert phone",
+    "alsoNotifyOwner": "Also send to the workspace owner",
+    "columns": {
+      "event": "Event"
+    },
+    "audiences": {
+      "customer": "Customer",
+      "merchant": "You"
+    },
+    "channels": {
+      "email": "Email",
+      "sms": "SMS"
+    },
+    "domains": {
+      "all": "All",
+      "storefront": "Online store",
+      "sales": "Sales",
+      "purchase": "Purchases",
+      "inventory": "Inventory",
+      "reports": "Reports",
+      "account": "Account"
+    },
+    "alwaysOn": "Always on",
+    "mandatoryHint": "This message can't be switched off — it's how people get back into their account.",
+    "smsLockedHint": "Turn on SMS for this workspace first.",
+    "smsNotLive": "SMS isn't live yet. Email notifications work now; SMS arrives with prepaid credits.",
+    "emptyEvents": "No notification events available for this workspace.",
+    "events": {
+      "order.placed": "Order placed",
+      "order.confirmed": "Order confirmed",
+      "order.processing": "Order being prepared",
+      "order.shipped": "Order shipped",
+      "order.delivered": "Order delivered",
+      "order.ready_for_pickup": "Ready for pickup",
+      "order.picked_up": "Order picked up",
+      "order.paid": "Order paid",
+      "order.cancelled": "Order cancelled",
+      "order.rejected": "Order rejected",
+      "order.returned": "Order returned",
+      "sale.completed": "Sale receipt",
+      "sale.due_reminder": "Payment due reminder",
+      "purchase.received": "Purchase received",
+      "inventory.expiry_alert": "Expiry alert",
+      "inventory.low_stock": "Low stock alert",
+      "reports.sales_digest": "Daily sales summary",
+      "account.email_verify": "Email verification",
+      "account.password_reset": "Password reset",
+      "account.user_invited": "User invited",
+      "account.low_credit": "Low notification credit"
+    }
   }
 }

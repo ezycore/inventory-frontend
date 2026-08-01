@@ -923,5 +923,63 @@
       "cancel": "বাতিল",
       "apply": "নিবন্ধন বদলান"
     }
+  },
+  "notifications": {
+    "title": "নোটিফিকেশন",
+    "subtitle": "কোন ইভেন্টে বার্তা যাবে, কার কাছে যাবে ও কোন চ্যানেলে যাবে তা বেছে নিন।",
+    "recipientsTitle": "মার্চেন্ট অ্যালার্ট",
+    "recipientsSubtitle": "আপনার জন্য (ক্রেতার জন্য নয়) অ্যালার্ট কোথায় যাবে।",
+    "alertEmail": "অ্যালার্ট ইমেইল",
+    "alertEmailHint": "ফাঁকা রাখলে ওয়ার্কস্পেস মালিকের ইমেইল ব্যবহার হবে।",
+    "alertPhone": "অ্যালার্ট ফোন",
+    "alsoNotifyOwner": "ওয়ার্কস্পেস মালিককেও পাঠান",
+    "columns": {
+      "event": "ইভেন্ট"
+    },
+    "audiences": {
+      "customer": "ক্রেতা",
+      "merchant": "আপনি"
+    },
+    "channels": {
+      "email": "ইমেইল",
+      "sms": "এসএমএস"
+    },
+    "domains": {
+      "all": "সব",
+      "storefront": "অনলাইন স্টোর",
+      "sales": "বিক্রয়",
+      "purchase": "ক্রয়",
+      "inventory": "ইনভেন্টরি",
+      "reports": "রিপোর্ট",
+      "account": "অ্যাকাউন্ট"
+    },
+    "alwaysOn": "সবসময় চালু",
+    "mandatoryHint": "এই বার্তা বন্ধ করা যায় না — এর মাধ্যমেই ব্যবহারকারী অ্যাকাউন্টে ফিরতে পারেন।",
+    "smsLockedHint": "আগে এই ওয়ার্কস্পেসে এসএমএস চালু করুন।",
+    "smsNotLive": "এসএমএস এখনো চালু হয়নি। ইমেইল নোটিফিকেশন এখনই কাজ করছে; এসএমএস আসবে প্রিপেইড ক্রেডিটের সাথে।",
+    "emptyEvents": "এই ওয়ার্কস্পেসের জন্য কোনো নোটিফিকেশন ইভেন্ট নেই।",
+    "events": {
+      "order.placed": "অর্ডার জমা হয়েছে",
+      "order.confirmed": "অর্ডার নিশ্চিত হয়েছে",
+      "order.processing": "অর্ডার প্রস্তুত হচ্ছে",
+      "order.shipped": "অর্ডার পাঠানো হয়েছে",
+      "order.delivered": "অর্ডার ডেলিভারি হয়েছে",
+      "order.ready_for_pickup": "পিকআপের জন্য প্রস্তুত",
+      "order.picked_up": "অর্ডার নেওয়া হয়েছে",
+      "order.paid": "অর্ডারের টাকা পরিশোধিত",
+      "order.cancelled": "অর্ডার বাতিল",
+      "order.rejected": "অর্ডার প্রত্যাখ্যাত",
+      "order.returned": "অর্ডার ফেরত",
+      "sale.completed": "বিক্রয় রসিদ",
+      "sale.due_reminder": "বকেয়া পরিশোধের রিমাইন্ডার",
+      "purchase.received": "ক্রয় গ্রহণ",
+      "inventory.expiry_alert": "মেয়াদ শেষের সতর্কতা",
+      "inventory.low_stock": "স্টক কমের সতর্কতা",
+      "reports.sales_digest": "দৈনিক বিক্রয় সারাংশ",
+      "account.email_verify": "ইমেইল যাচাই",
+      "account.password_reset": "পাসওয়ার্ড রিসেট",
+      "account.user_invited": "ব্যবহারকারী আমন্ত্রণ",
+      "account.low_credit": "নোটিফিকেশন ক্রেডিট কম"
+    }
   }
 }
