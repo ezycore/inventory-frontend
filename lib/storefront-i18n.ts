@@ -274,6 +274,13 @@ export interface Dict {
   variableMsg: string;
   callToOrder: string;
   cartTitle: string;
+  /** Abandoned-cart recovery link outcomes. `{n}` = lines no longer available. */
+  cartRestored: string;
+  cartRestoredPartial: string;
+  cartRestoreExpired: string;
+  cartRestoreEmpty: string;
+  /** Shown when signing in folded in a cart from another device. */
+  cartMerged: string;
   orderSummary: string;
   estDelivery: string;
   remove: string;
@@ -612,6 +619,12 @@ const en: Dict = {
   variableMsg: "This product has selectable options (size, bundle) and is not sold online. Visit any Rashid’s Mart outlet or call to order.",
   callToOrder: "Call to order",
   cartTitle: "Shopping cart",
+  cartRestored: "Welcome back — your cart is here.",
+  cartRestoredPartial:
+    "Your cart is back. {n} item(s) are no longer available and were removed.",
+  cartRestoreExpired: "That link has expired. Your cart may still be saved here.",
+  cartRestoreEmpty: "Those items are no longer available.",
+  cartMerged: "We added the items from your other device.",
   orderSummary: "Order summary",
   estDelivery: "Estimated delivery",
   remove: "Remove",
@@ -951,6 +964,12 @@ const bn: Dict = {
   variableMsg: "এই পণ্যে নির্বাচনযোগ্য অপশন (সাইজ, বান্ডেল) আছে এবং অনলাইনে বিক্রি হয় না। যেকোনো রশিদ’স মার্ট আউটলেটে যান বা কল করে অর্ডার করুন।",
   callToOrder: "কল করে অর্ডার",
   cartTitle: "শপিং কার্ট",
+  cartRestored: "আবার স্বাগতম — আপনার কার্ট এখানে আছে।",
+  cartRestoredPartial:
+    "আপনার কার্ট ফিরে এসেছে। {n}টি পণ্য আর পাওয়া যাচ্ছে না বলে সরিয়ে দেওয়া হয়েছে।",
+  cartRestoreExpired: "লিংকটির মেয়াদ শেষ। আপনার কার্ট এখানে সংরক্ষিত থাকতে পারে।",
+  cartRestoreEmpty: "ওই পণ্যগুলো আর পাওয়া যাচ্ছে না।",
+  cartMerged: "আপনার অন্য ডিভাইসের পণ্যগুলো যোগ করা হয়েছে।",
   orderSummary: "অর্ডার সামারি",
   estDelivery: "আনুমানিক ডেলিভারি",
   remove: "সরান",

@@ -7,6 +7,9 @@ import {
   Clock,
   Package,
   ShoppingBag,
+  ShoppingCart,
+  TrendingDown,
+  Wallet,
 } from "lucide-react";
 import { useEcommerceDashboard } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -90,6 +93,39 @@ export default function EcommerceDashboardPage() {
           label="Online products live"
           value={isLoading ? null : String(data?.stats.liveProducts ?? 0)}
           href="/ecommerce/catalog"
+        />
+        {/* Carts built and left. Links to the full funnel, which computes these
+            same numbers from the same aggregate — the tile and the page cannot
+            disagree. `abandonedRate` is null until there are carts to divide by;
+            rendering that as 0% would report a flawless funnel to a new store. */}
+        <StatCard
+          icon={<ShoppingCart className="h-4 w-4" />}
+          label="Abandoned carts"
+          value={isLoading ? null : String(data?.stats.abandonedCarts ?? 0)}
+          href="/ecommerce/carts"
+          highlight={!!data && data.stats.abandonedCarts > 0}
+        />
+        <StatCard
+          icon={<Wallet className="h-4 w-4" />}
+          label="Value left in carts"
+          value={
+            isLoading
+              ? null
+              : formatMoney(data?.stats.abandonedCartValue ?? 0, currency)
+          }
+          href="/ecommerce/carts"
+        />
+        <StatCard
+          icon={<TrendingDown className="h-4 w-4" />}
+          label="Cart abandonment"
+          value={
+            isLoading
+              ? null
+              : data?.stats.abandonedRate == null
+                ? "—"
+                : `${Math.round(data.stats.abandonedRate * 100)}%`
+          }
+          href="/ecommerce/carts"
         />
       </div>
 

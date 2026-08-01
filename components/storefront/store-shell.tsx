@@ -27,6 +27,7 @@ import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
 import { StoreFooter } from "@/components/storefront/store-footer";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
+import { CartSync } from "@/components/storefront/cart-sync";
 import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
 
 /**
@@ -182,6 +183,11 @@ export function StoreShell({
         <CartDrawer />
         <OwnerAdminBar />
         <StorePreviewBridge />
+        {/* Renders nothing — mirrors the cart to the server so the merchant can
+            see abandoned carts. Mounted here because it must be alive on every
+            shop route, and it deliberately holds no reactive cart subscription
+            (see cart-sync.tsx) so it cannot re-render this shell. */}
+        <CartSync slug={slug} />
       </div>
     </StoreContextProvider>
   );

@@ -1,3 +1,4 @@
+// coding-standard: maintained
 /**
  * Storefront client — a light fetch wrapper for the PUBLIC storefront API
  * (`/api/storefront/{slug}`). Separate from `lib/api-client.ts`: it carries the
@@ -423,10 +424,99 @@ export interface CouponPreview {
   discountAmount: number;
 }
 
+/** One line of the server-side cart mirror. Prices are the SERVER's. */
+export interface CartMirrorItem {
+  productId: string;
+  variantId?: string;
+  productName: string;
+  variantLabel?: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+/**
+ * The server's copy of the shopper's cart (see the backend
+ * `docs/plan/abandoned-cart.md`). Deliberately narrow — no `organizationId`,
+ * `anonymousId` or `shopperId`; those are merchant-side join keys.
+ *
+ * The client does NOT render from this. The browser cart stays authoritative for
+ * display; this is the mirror the merchant sees, echoed back only so the sync can
+ * be verified.
+ */
+export interface CartMirror {
+  _id: string;
+  items: CartMirrorItem[];
+  subtotal: number;
+  currency?: string;
+  status: "active" | "converted";
+  lastActivityAt: string;
+  checkoutStartedAt?: string;
+  signedInAt?: string;
+}
+
+/** What the client sends up — ids and quantities only; never prices. */
+export interface CartMirrorInput {
+  anonymousId: string;
+  items: { productId: string; variantId?: string; quantity: number }[];
+}
+
+/**
+ * One line of a cart restored from a recovery link. Richer than `CartMirrorItem`
+ * because the browser cart is rebuilt from it — hence `slug`, `image`, `maxQty`.
+ * `maxQty: 0` means no local cap (a backorder product, or stock unknown).
+ */
+export interface RestoredCartItem {
+  productId: string;
+  variantId?: string;
+  slug: string;
+  name: string;
+  variantLabel?: string;
+  image?: string;
+  quantity: number;
+  price: number;
+  maxQty: number;
+}
+
+/**
+ * The cart behind a recovery link, re-priced against the live catalogue.
+ * `removedCount` is how many lines are no longer purchasable — the shopper is
+ * told, never handed a quietly shorter cart.
+ */
+export interface RestoredCart {
+  items: RestoredCartItem[];
+  subtotal: number;
+  currency?: string;
+  removedCount: number;
+}
+
+/**
+ * The shopper's cart after signing in — with any cart they left on **another
+ * device** already folded in. `mergedCount > 0` means items arrived from
+ * elsewhere.
+ *
+ * The client MUST adopt these items: the merge happens server-side, so if the
+ * local cart were kept the next debounced sync would push it straight over the
+ * merge and undo it.
+ */
+export interface ClaimedCart {
+  items: RestoredCartItem[];
+  subtotal: number;
+  currency?: string;
+  mergedCount: number;
+}
+
 interface FetchOpts {
   method?: string;
   body?: unknown;
   token?: string | null;
+  /**
+   * Let the request outlive the page. Only the cart mirror's unload flush uses
+   * it: a shopper who adds an item and closes the tab inside the debounce window
+   * is exactly the abandoner worth recording, and a normal fetch is cancelled
+   * with the document.
+   */
+  keepalive?: boolean;
 }
 
 async function sfFetch<T>(
@@ -442,6 +532,7 @@ async function sfFetch<T>(
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
     cache: "no-store",
+    keepalive: opts.keepalive,
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -626,4 +717,29 @@ export const storefrontApi = {
       body,
       token,
     }),
+
+  // ---- cart mirror (analytics; never blocks the shopper) --------------------
+  // All three are fire-and-forget from the caller's point of view — see
+  // `components/storefront/cart-sync.tsx`, the only consumer.
+  syncCart: (slug: string, body: CartMirrorInput, keepalive?: boolean) =>
+    sfFetch<CartMirror>(slug, "/cart", { method: "PUT", body, keepalive }),
+  /**
+   * Attach the signed-in shopper to their cart and fold in any cart they left on
+   * another device. Idempotent. Returns the resulting cart — the caller adopts it.
+   */
+  claimCart: (slug: string, token: string, anonymousId: string) =>
+    sfFetch<ClaimedCart>(slug, "/cart/claim", {
+      method: "POST",
+      body: { anonymousId },
+      token,
+    }),
+  /** Funnel step: the shopper reached /checkout with something in the cart. */
+  markCheckoutStarted: (slug: string, anonymousId: string) =>
+    sfFetch<{ ok: boolean }>(slug, "/cart/checkout-started", {
+      method: "POST",
+      body: { anonymousId },
+    }),
+  /** Exchange a recovery-email token for the cart behind it. */
+  restoreCart: (slug: string, token: string) =>
+    sfFetch<RestoredCart>(slug, `/cart/restore/${token}`),
 };

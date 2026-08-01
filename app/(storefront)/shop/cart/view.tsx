@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { type CSSProperties } from "react";
 import { useStore } from "@/services/storefront/hooks";
+import { useCartRestore } from "@/services/storefront/use-cart-restore";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
@@ -53,6 +54,11 @@ export default function CartPage() {
   const updateQty = useCartStore((s) => s.updateQty);
   const removeItem = useCartStore((s) => s.removeItem);
   const hydrated = useHydrated();
+
+  // `?recover=<token>` from an abandoned-cart email rebuilds the cart from the
+  // server — the shopper is usually on a different device than the one that
+  // built it, which is the entire point of the link. No-ops without the param.
+  useCartRestore(slug);
 
   // The cart lives in a persisted (localStorage) store the server can't read.
   // Hold the neutral shell until hydration so the first client render matches

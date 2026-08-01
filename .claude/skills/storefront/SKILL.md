@@ -155,6 +155,23 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   `use-cart-store` (slug-scoped items), `use-wishlist-store`. **Any component reading a persisted
   store on first render must gate on `useHydrated()`** or SSR mismatch / redirect races follow
   (checkout had exactly this bug: direct load bounced signed-in shoppers to /account).
+- **Cart mirror** — the cart is *also* copied to the server so the merchant can see abandoned carts.
+  **`components/storefront/cart-sync.tsx` is the only place that does this**, mounted once in
+  `StoreShell`; the handle lives in `services/storefront/cart-identity.ts` under its **own**
+  `localStorage` key so `easystock-cart`'s persisted shape is untouched. Backend contract + the
+  merchant-side rules: [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md).
+  Four rules, each a real defect class: **(1)** it subscribes via `useCartStore.subscribe` inside an
+  effect, **never a selector** — a selector re-renders the whole shell on every quantity tap;
+  **(2)** it is gated on `persist.onFinishHydration`, or the first push overwrites a real server
+  cart with an empty one; **(3)** it is disabled under `?preview=1`, or a merchant theming their
+  shop in Customize pollutes their own funnel; **(4)** it flushes on `pagehide`/`visibilitychange`
+  with `keepalive`, because the shopper who adds an item and closes the tab inside the 2 s debounce
+  is precisely the abandoner worth recording. **Do not add a second sync call site** — new cart CTAs
+  are picked up automatically, which is the entire reason it is one subscription and not eight.
+  **`claimCart` returns the merged cart and `CartSync` adopts it** (`useCartStore.restore`) whenever
+  `mergedCount > 0`: signing in folds in the cart this shopper left on another device, server-side,
+  and if the client kept its own items the next debounced sync would push them over the merge and
+  undo it. Adoption is what makes cross-device carts actually work — it is not a nicety.
 - **API client**: `lib/storefront-client.ts` — `sfFetch` (no auth header unless `token` passed).
   Error payloads carry the message in `json.error`. On **401 with a token that is still the
   current session token, the shopper session is dropped** (self-healing stale sessions).
@@ -455,7 +472,84 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-01)
+## Work log (what was built, newest first — as of 2026-08-02)
+
+- **Abandoned-cart recovery — the `?recover=` link (FE + BE)** (2026-08-02): Phase 3 of
+  [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md). A shopper who
+  left items behind now gets an email with a one-click link back to their cart.
+  FE: `services/storefront/use-cart-restore.ts` (called from the cart page), a new `restore()` action
+  on `use-cart-store`, the merchant toggle `components/ecommerce/carts/cart-recovery-card.tsx`, and
+  4 i18n keys ×3.
+  Four things worth keeping: **(1)** the link is usually opened on a **different device**, which is
+  the entire reason it exists — so the cart is rebuilt from the server payload, never from local
+  storage, and the restore response therefore carries `slug`/`image`/`maxQty` that the mirror does
+  not store. **(2)** The token is stripped from the URL *before* the request resolves — it is a
+  bearer credential, and leaving it in the address bar puts it in history, in shared links and in
+  the `Referer` of every outbound click. **(3)** The effect is `ref`-guarded, not just dep-guarded:
+  StrictMode double-invokes effects in dev and the second call would hit an already-consumed token
+  and show a spurious error. **(4)** `restore()` is one `set` rather than `clear()` + N `addItem()`s,
+  so the cart-sync subscriber sees a single change instead of N.
+- **Store Settings split to standard (FE)** (2026-08-02): the page held all seven tabs plus their
+  primitives inline at **939 lines** with no `coding-standard: maintained` marker. It is now the tab
+  shell only (**102 lines**); each tab lives in `components/ecommerce/settings/` beside
+  `settings-primitives.tsx` (`Field` / `ToggleRow` / `SaveBar` / `useSave` / `Option`). Largest file
+  is 204 lines. **Add a new tab as a file there — never back into the page.**
+  Behaviour-preserving by construction: JSX copied verbatim and verified by diffing every substantive
+  line of the pre-split file against the new set **in both directions** — nothing dropped, no markup
+  added (the sole removal was a commented-out `<h3>`). Keep `key={tab}` on `<SettingsTab>`: it is
+  what re-seeds each tab's local state from `settings`, so without it a tab you switch away from and
+  back shows unsaved edits as though they had saved.
+
+## Work log (older)
+
+- **Abandoned carts, the merchant surface (FE + BE)** (2026-08-01): Phase 2 of
+  [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md). Phase 1 recorded
+  carts; nothing displayed them. New `/ecommerce/carts` — stat row, purchase funnel,
+  most-abandoned products, and a 4-tab list (Abandoned / Active now / Ordered / All) with debounced
+  search and expandable rows — plus three tiles on the ecommerce dashboard that link to it.
+  New API module `storefront-carts` (read-only: no mutation invalidates it, so it declares no
+  events), nav item + en/bn labels, and a help page in **both** locales — a new sidebar route with
+  no help page **fails `help:verify`**, which is the gate to remember here.
+  Four decisions worth keeping: **(1)** the funnel is **single-hue sequential**, not categorical —
+  five ordered stages of one measure is a magnitude comparison, so every bar wears `--chart-3` and
+  length alone carries the value; a ramp across the stages would double-encode, and `globals.css`
+  already reserves `--chart-*` as a monochrome scale "carrying no good/bad meaning" (status colours
+  would moralise a funnel step). Single series ⇒ **no legend**. **(2)** Drop-off is measured against
+  the **previous** step, not the top: the merchant's question is "which wall lost them", and a
+  share-of-total reading hides one brutal step behind a healthy overall number. **(3)** Rates render
+  **`—`, never `0%`**, when the backend sends `null` — a zero would tell a brand-new merchant their
+  funnel is flawless. **(4)** An unclaimed cart says **"Guest — not reachable"** rather than showing
+  a blank name: there is genuinely no contact detail and no consent record, and a blank would imply
+  the merchant could chase it.
+  **Not done:** recovery sends (Phase 3) — this page is read-only, and there is deliberately no
+  action on a cart.
+
+- **Server-side cart mirror — the merchant can finally see abandoned carts (FE + BE)** (2026-08-01):
+  the cart lived only in `localStorage`, so a merchant saw every order placed and **nothing** about
+  the ~70% of carts that never became one — no count, no value, no funnel, and no cross-device cart
+  either. Phase 1 of
+  [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md): a new
+  `StorefrontCart` collection mirrored from the browser, plus `PUT /:slug/cart`,
+  `POST /:slug/cart/checkout-started` (both **unauthenticated** — checkout requires an account, so
+  nearly all add-to-cart is anonymous and an auth-only mirror would start the funnel *after* the wall
+  it exists to measure) and `POST /:slug/cart/claim` (shopper-auth).
+  FE is two new files and **one line** in `store-shell.tsx`: `services/storefront/cart-identity.ts`
+  and `components/storefront/cart-sync.tsx`, which does all three jobs (mirror, claim, checkout
+  stamp) from one transient subscription. Nothing shopper-facing changed — every call is
+  fire-and-forget and the shop works identically with the endpoint dead.
+  Five things worth keeping: **(1)** the sync is **one subscription, not eight instrumented call
+  sites** — `addItem`/`updateQty`/`removeItem`/`clear` are called from seven files and the card
+  quick-buy site was added the same day, so a per-site call would silently stop reporting the next
+  time a CTA is added. **(2)** It must not use a selector: mounted in `StoreShell`, a reactive
+  subscription would re-render the entire storefront chrome on every quantity tap. **(3)** The
+  handle gets its **own** `localStorage` key rather than a field on `use-cart-store` — adding a
+  field changes that store's persisted shape, which eight components read. **(4)** `?preview=1` is
+  excluded, or a merchant clicking "Add to cart" while theming in Customize invents carts they never
+  had. **(5)** Prices are **server-resolved and campaign-repriced**, never taken from the request —
+  a client-supplied price would make the merchant's "recoverable value" whatever a crafted request
+  claimed (there is a test that sends one and asserts it is ignored).
+  **Not done:** the merchant-facing surface. Phase 1 records the data; the dashboard tiles, the
+  funnel and the abandoned-carts admin page are Phase 2, and recovery sends are Phase 3.
 
 - **Quick buy from the grid; Buy now means checkout everywhere (FE)** (2026-08-01): a card's only
   CTA was Add to cart, and a *variable* product's said **Select options** and navigated to the PDP —

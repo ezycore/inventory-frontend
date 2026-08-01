@@ -236,6 +236,9 @@ export interface StorefrontSettings {
   defaultDeliveryCost: number;
   /** In-store pickup option (collect from the fulfillment location). */
   pickup?: { enabled?: boolean; instructions?: string };
+  /** Abandoned-cart recovery emails. Off unless the merchant opts in;
+   *  `delaysMinutes` is sorted ascending and its length is the send cap. */
+  cartRecovery?: { enabled?: boolean; delaysMinutes?: number[] };
   bankInstructions?: string;
   theme?: StorefrontTheme;
   nav?: StorefrontNav;

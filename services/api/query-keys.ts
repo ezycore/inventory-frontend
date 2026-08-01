@@ -262,6 +262,17 @@ export const queryKeys = {
     all: () => ["ecommerce-dashboard"] as const,
   },
 
+  /**
+   * Abandoned carts + the purchase funnel. Read-only resource — carts are written
+   * by shoppers on the storefront, so no admin mutation ever invalidates these;
+   * they refresh on the global staleTime.
+   */
+  storefrontCarts: {
+    all: () => ["ecommerce-carts"] as const,
+    list: (params?: Params) => ["ecommerce-carts", "list", params ?? {}] as const,
+    stats: (days?: number) => ["ecommerce-carts", "stats", days ?? null] as const,
+  },
+
   campaigns: resourceKeys("campaigns"),
   coupons: resourceKeys("coupons"),
   contentPages: resourceKeys("content-pages"),
