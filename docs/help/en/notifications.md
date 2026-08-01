@@ -10,7 +10,8 @@ ui_labels:
   - settings:notifications.subtitle
   - settings:notifications.recipientsTitle
   - settings:notifications.alsoNotifyOwner
-  - settings:notifications.smsNotLive
+  - settings:notifications.sms.title
+  - settings:notifications.sms.empty
   - settings:notifications.log.title
   - settings:notifications.log.status.skipped
 ---
@@ -54,17 +55,27 @@ account.
 So if a customer says they are not getting order emails, check this page — not their
 account settings.
 
-## About SMS
+## SMS
 
-A banner on the page says so directly: *SMS isn't live yet. Email notifications work now;
-SMS arrives with prepaid credits.* Email works today; SMS is paid for with prepaid credits,
-because every message costs money to send.
+**SMS credit** at the top of the page shows how many messages you have left. Every SMS costs money
+to send, so it runs on a prepaid balance — email does not, and never stops because SMS ran out.
 
-Two things worth knowing before it lands:
+New workspaces start with a few free SMS so you can see it working before deciding whether to buy
+more. To add credit, contact us and we'll top it up. Credit is **non-refundable** once added.
 
-- **Turning SMS on never turns email off.** They are separate ticks, so a message can go
-  out on both.
-- **Running out of credit only silences SMS.** Order emails keep sending regardless.
+Three separate things have to be true before an SMS goes out, and the card tells you which one is
+missing:
+
+- **SMS is available on your workspace.** If it says otherwise, contact us — nothing on this page
+  will fix it.
+- **The switch is on.** It is off by default, so nothing costs you money by accident. Turning SMS on
+  never turns email off; they are independent ticks in the table below.
+- **You have credit.** At zero the card says so plainly — *You're out of SMS. Order emails keep
+  sending as normal — only SMS stops.*
+
+A long message counts as more than one. Roughly 160 English characters fit in one; Bangla is about
+70, because the alphabet needs more space per character. So a Bangla message that looks short can
+still cost two.
 
 ## Checking what was sent
 

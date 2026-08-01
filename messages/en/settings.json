@@ -955,8 +955,7 @@
     },
     "alwaysOn": "Always on",
     "mandatoryHint": "This message can't be switched off — it's how people get back into their account.",
-    "smsLockedHint": "Turn on SMS for this workspace first.",
-    "smsNotLive": "SMS isn't live yet. Email notifications work now; SMS arrives with prepaid credits.",
+    "smsLockedHint": "SMS can't send yet — see the SMS credit card above.",
     "emptyEvents": "No notification events available for this workspace.",
     "events": {
       "order.placed": "Order placed",
@@ -1014,6 +1013,20 @@
         "cap_reached": "The monthly SMS limit was reached.",
         "no_credit": "Out of SMS credits. Email is unaffected."
       }
+    },
+    "sms": {
+      "title": "SMS credit",
+      "subtitle": "SMS is charged per message. Email is always free and unaffected by this balance.",
+      "remaining": "SMS left",
+      "segmentHint": "A long message counts as more than one.",
+      "thisMonth": "sent this month",
+      "enable": "Send SMS from this workspace",
+      "enableHint": "Off by default. Turning it on never turns email off.",
+      "notOnPlan": "SMS is not available on this workspace. Contact us and we'll switch it on.",
+      "empty": "You're out of SMS. Order emails keep sending as normal — only SMS stops.",
+      "topUp": "To add more SMS, contact us and we'll top up your balance.",
+      "nonRefundable": "Non-refundable",
+      "locked": "SMS can't send yet — see the SMS credit card above."
     }
   }
 }

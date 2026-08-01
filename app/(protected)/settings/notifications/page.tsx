@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { NotificationLog } from "@/components/notifications/notification-log";
+import { SmsCreditCard } from "@/components/notifications/sms-credit-card";
 import { NotificationMatrix } from "@/components/notifications/notification-matrix";
 import {
   useNotificationSettings,
@@ -94,6 +95,8 @@ export default function NotificationsSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <SmsCreditCard />
 
       <Card>
         <CardContent className="pt-6">

@@ -210,12 +210,6 @@ export function NotificationMatrix({
         </Tabs>
       )}
 
-      {!smsAvailable && (
-        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
-          {t("smsNotLive")}
-        </div>
-      )}
-
       <div className="overflow-x-auto">
         <SimpleTable
           columns={columns}

@@ -204,6 +204,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mc/sms-credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/mc/sms-credits
+         * @description Defined in `src/routes/mc.routes.ts:22`. Mission Control inbound call: HMAC-signed, not JWT.
+         */
+        post: operations["post_api_mc_sms_credits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mc/sms-balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/mc/sms-balance
+         * @description Defined in `src/routes/mc.routes.ts:25`. Mission Control inbound call: HMAC-signed, not JWT.
+         */
+        get: operations["get_api_mc_sms_balance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/mc/roles": {
         parameters: {
             query?: never;
@@ -215,7 +255,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/roles
-         * @description Defined in `src/routes/mc.routes.ts:21`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:28`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_roles"];
         delete?: never;
@@ -235,7 +275,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/mc/commands
-         * @description Defined in `src/routes/mc.routes.ts:24`. Mission Control inbound call: HMAC-signed, not JWT.
+         * @description Defined in `src/routes/mc.routes.ts:31`. Mission Control inbound call: HMAC-signed, not JWT.
          */
         post: operations["post_api_mc_commands"];
         delete?: never;
@@ -9500,6 +9540,9 @@ export interface components {
             sms: {
                 enabled: boolean;
                 monthlyCap?: number;
+                available: boolean;
+                balance: number;
+                sentThisMonth: number;
             };
             merchantRecipients: {
                 email?: string;
@@ -9791,6 +9834,7 @@ export interface components {
                 storefront: boolean;
                 tax: boolean;
                 combo: boolean;
+                smsNotifications: boolean;
             };
             vatSettings?: {
                 bin?: string;
@@ -9824,6 +9868,7 @@ export interface components {
                 storefront: boolean;
                 tax: boolean;
                 combo: boolean;
+                smsNotifications: boolean;
             };
             featureOverrides: {
                 [key: string]: boolean;
@@ -9855,6 +9900,7 @@ export interface components {
                 storefront: boolean;
                 tax: boolean;
                 combo: boolean;
+                smsNotifications: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -9867,6 +9913,7 @@ export interface components {
                 storefront: boolean;
                 tax: boolean;
                 combo: boolean;
+                smsNotifications: boolean;
             };
         };
         OrganizationFeatures: {
@@ -9880,6 +9927,7 @@ export interface components {
             storefront: boolean;
             tax: boolean;
             combo: boolean;
+            smsNotifications: boolean;
         };
         OrganizationFormSettings: {
             excludedFields: {
@@ -11188,6 +11236,7 @@ export interface components {
                     storefront: boolean;
                     tax: boolean;
                     combo: boolean;
+                    smsNotifications: boolean;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -11296,6 +11345,7 @@ export interface components {
                     storefront: boolean;
                     tax: boolean;
                     combo: boolean;
+                    smsNotifications: boolean;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -11407,6 +11457,7 @@ export interface components {
                         storefront: boolean;
                         tax: boolean;
                         combo: boolean;
+                        smsNotifications: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -11515,6 +11566,7 @@ export interface components {
                         storefront: boolean;
                         tax: boolean;
                         combo: boolean;
+                        smsNotifications: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -11639,6 +11691,7 @@ export interface components {
                         storefront: boolean;
                         tax: boolean;
                         combo: boolean;
+                        smsNotifications: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -11770,6 +11823,7 @@ export interface components {
                         storefront: boolean;
                         tax: boolean;
                         combo: boolean;
+                        smsNotifications: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -12060,6 +12114,19 @@ export interface components {
             appliedAt: string;
         } & {
             [key: string]: unknown;
+        };
+        McSmsBalance: {
+            provider: string;
+            balance: number | null;
+            currency: string | null;
+            checkedAt: string;
+        };
+        McSmsCredit: {
+            workspaceExternalId: string;
+            segments: number;
+            mcSegments: number;
+            unreportedUsage: number;
+            appliedAt: string;
         };
     };
     responses: never;
@@ -12500,6 +12567,68 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["McEntitlement"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_mc_sms_credits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["McSmsCredit"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_mc_sms_balance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["McSmsBalance"];
                     };
                 };
             };
