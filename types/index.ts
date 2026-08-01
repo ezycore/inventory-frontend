@@ -189,6 +189,13 @@ export interface StorefrontTemplates {
   footer?: string;
   header?: string;
   productCard?: string;
+  /**
+   * Card CTA layout: "add" | "add-buy" | "icons" | "buy-first" | "reveal" |
+   * "icon-only". Independent of `productCard`, which is density only. Unset on
+   * stores predating the control — the storefront's `resolveTemplates` derives
+   * the fallback from `productCard` so a compact store keeps its inline "+".
+   */
+  cardActions?: string;
   /** Home hero source: "slides" (carousel when slides exist) | "banner" (static hero). */
   hero?: string;
   /**

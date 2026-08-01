@@ -9960,6 +9960,7 @@ export interface components {
                 footer?: string;
                 header?: string;
                 productCard?: string;
+                cardActions?: string;
                 hero?: string;
                 headerMenu?: string;
                 pagination?: string;
@@ -14662,6 +14663,7 @@ export interface operations {
                         footer?: string;
                         header?: string;
                         productCard?: string;
+                        cardActions?: string;
                         hero?: string;
                         headerMenu?: string;
                         pagination?: string;

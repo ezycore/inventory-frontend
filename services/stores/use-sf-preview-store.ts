@@ -31,6 +31,8 @@ interface SfPreviewState {
   header: string | null;
   /** Raw product-card style (standard | compact | bold) the editor is drafting. */
   cardStyle: string | null;
+  /** Raw card CTA layout (add | add-buy | icons | buy-first | reveal | icon-only). */
+  cardActions: string | null;
   /** Raw listing pagination mode (pages | infinite | load-more) the editor is drafting. */
   pagination: string | null;
   /** Draft footer trust badges (Rich footer strip). */
@@ -80,6 +82,7 @@ interface SfPreviewState {
     footer?: string;
     header?: string;
     cardStyle?: string;
+    cardActions?: string;
     pagination?: string;
     badges?: { text: string; icon?: string }[];
     heroSlides?: StoreHeroSlide[];
@@ -105,6 +108,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   footer: null,
   header: null,
   cardStyle: null,
+  cardActions: null,
   pagination: null,
   badges: null,
   heroSlides: null,
@@ -127,6 +131,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       footer: patch.footer !== undefined ? patch.footer : s.footer,
       header: patch.header !== undefined ? patch.header : s.header,
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
+      cardActions:
+        patch.cardActions !== undefined ? patch.cardActions : s.cardActions,
       pagination: patch.pagination !== undefined ? patch.pagination : s.pagination,
       badges: patch.badges !== undefined ? patch.badges : s.badges,
       heroSlides:

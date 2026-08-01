@@ -31,6 +31,7 @@ export function StorePreviewBridge() {
         footer: p.templates?.footer,
         header: p.templates?.header,
         cardStyle: p.templates?.productCard,
+        cardActions: p.templates?.cardActions,
         pagination: p.templates?.pagination,
         badges: p.trustBadges,
         heroSlides: p.heroSlides,

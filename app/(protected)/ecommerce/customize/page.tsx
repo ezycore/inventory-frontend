@@ -127,6 +127,13 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const [cardStyle, setCardStyle] = useState(
     settings.templates?.productCard ?? "standard",
   );
+  // Unset means "whatever the card used to do", which for a compact store is the
+  // inline "+" — mirror the storefront's `resolveCardActions` fallback so the
+  // editor opens showing what the shop actually renders.
+  const [cardActions, setCardActions] = useState(
+    settings.templates?.cardActions ??
+      (settings.templates?.productCard === "compact" ? "icon-only" : "add-buy"),
+  );
   const [pagination, setPagination] = useState(
     settings.templates?.pagination ?? "pages",
   );
@@ -297,6 +304,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setFooterTemplate={setFooterTemplate}
             setHeaderTemplate={setHeaderTemplate}
             setCardStyle={setCardStyle}
+            setCardActions={setCardActions}
             setPagination={setPagination}
             setHeroSrc={setHeroSrc}
             slideCount={heroSlides.filter((s) => s.title.trim()).length}
@@ -333,6 +341,7 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           footerTemplate={footerTemplate}
           headerTemplate={headerTemplate}
           cardStyle={cardStyle}
+          cardActions={cardActions}
           pagination={pagination}
           badges={badges}
           heroSlides={heroSlides}
@@ -411,11 +420,24 @@ const TEMPLATE_PAGES: {
     {
       key: "productCard",
       label: "Product card",
-      desc: "Card style across every listing",
+      desc: "Card density across every listing",
       options: [
         { value: "standard", label: "Standard" },
         { value: "compact", label: "Compact" },
         { value: "bold", label: "Bold CTA" },
+      ],
+    },
+    {
+      key: "cardActions",
+      label: "Card buttons",
+      desc: "Which actions each product card offers — independent of its density",
+      options: [
+        { value: "add-buy", label: "Add + Buy now" },
+        { value: "add", label: "Add to cart only" },
+        { value: "icons", label: "Icons only" },
+        { value: "buy-first", label: "Buy now first" },
+        { value: "reveal", label: "Show on hover" },
+        { value: "icon-only", label: "Single icon" },
       ],
     },
     {
@@ -455,6 +477,7 @@ function TemplatesSection({
   setFooterTemplate,
   setHeaderTemplate,
   setCardStyle,
+  setCardActions,
   setPagination,
   setHeroSrc,
   slideCount,
@@ -465,6 +488,7 @@ function TemplatesSection({
   setFooterTemplate: (v: string) => void;
   setHeaderTemplate: (v: string) => void;
   setCardStyle: (v: string) => void;
+  setCardActions: (v: string) => void;
   setPagination: (v: string) => void;
   setHeroSrc: (v: string) => void;
   slideCount: number;
@@ -481,8 +505,15 @@ function TemplatesSection({
       seed[p.key] = (t as Record<string, string>)[p.key] || p.options[0].value;
     }
     seed.hero = t.hero || "slides";
+    // `cardActions` is the one key whose unset meaning depends on another key:
+    // a compact store has always rendered the inline "+". Seeding it to the
+    // first option instead would write "add-buy" into the store the next time
+    // the owner saved ANY template, restyling their cards without them asking.
+    if (!t.cardActions) {
+      seed.cardActions = t.productCard === "compact" ? "icon-only" : "add-buy";
+    }
     // Retired options — shoppers pick grid/list on the search page itself, and
-    // Buy now always opens the cart drawer.
+    // Buy now always goes straight to checkout.
     delete seed.search;
     delete seed.cart;
     return seed;
@@ -494,6 +525,7 @@ function TemplatesSection({
     if (key === "footer") setFooterTemplate(value);
     if (key === "header") setHeaderTemplate(value);
     if (key === "productCard") setCardStyle(value);
+    if (key === "cardActions") setCardActions(value);
     if (key === "pagination") setPagination(value);
     if (key === "hero") setHeroSrc(value);
   };
@@ -569,6 +601,7 @@ function BrowserPreview({
   footerTemplate,
   headerTemplate,
   cardStyle,
+  cardActions,
   pagination,
   badges,
   heroSlides,
@@ -590,6 +623,7 @@ function BrowserPreview({
   footerTemplate: string;
   headerTemplate: string;
   cardStyle: string;
+  cardActions: string;
   pagination: string;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
@@ -661,6 +695,7 @@ function BrowserPreview({
             footer: footerTemplate,
             header: headerTemplate,
             productCard: cardStyle,
+            cardActions,
             hero: heroSrc,
             headerMenu: headerMenuSrc,
             pagination,
@@ -683,7 +718,7 @@ function BrowserPreview({
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, pagination, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey, footerGroupsKey, footerContentPagesKey, logoKey, bannerKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, cardActions, pagination, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey, footerGroupsKey, footerContentPagesKey, logoKey, bannerKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {

@@ -962,6 +962,49 @@
   }
 }
 
+/* The `reveal` CTA layout: buttons hidden until the card is hovered, then slid
+   up over the image — the fashion-retail look.
+
+   The default is OPEN, and the hover gating is layered on top only where a fine
+   pointer exists. Written the other way round (hidden by default, shown on
+   hover) a touch device would get a card with no buy button at all, since it can
+   never produce the hover that reveals it. Same reason `.sf-pdp-zoom-hint` is
+   declared inside its media query rather than outside it. */
+.sf-qb-reveal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 6px;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--card) 93%, transparent);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--border);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sf-qb-reveal {
+    transform: translateY(101%);
+    visibility: hidden;
+    transition:
+      transform 0.18s ease,
+      visibility 0s linear 0.18s;
+  }
+  .sf-qb-card:hover .sf-qb-reveal,
+  .sf-qb-card:focus-within .sf-qb-reveal {
+    transform: translateY(0);
+    visibility: visible;
+    transition:
+      transform 0.18s ease,
+      visibility 0s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-qb-reveal {
+    transition: none;
+  }
+}
+
 /* Sheet: bottom-anchored on phones (thumb-reachable, the platform idiom for a
    quick action), centred modal from 680px where a full-width sheet would be a
    1200px-wide strip of chips. One set of markup — only the scrim's alignment

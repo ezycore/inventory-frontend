@@ -2,12 +2,12 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import type { CatalogProduct } from "@/lib/storefront-client";
+import type { CatalogProduct, StoreTemplates } from "@/lib/storefront-client";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { resolveCardActions, resolveTemplates } from "@/lib/storefront-templates";
 import { storeHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
 import { money, discountPct } from "@/components/storefront/format";
@@ -15,7 +15,10 @@ import { Media } from "@/components/storefront/sf-bits";
 import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import {
   CardCtaRow,
+  CardRevealActions,
   CardVariantFlyout,
+  layoutOwnsImage,
+  type CardActions,
 } from "@/components/storefront/card-buy-actions";
 import { QuickBuySheet } from "@/components/storefront/quick-buy-sheet";
 
@@ -46,16 +49,32 @@ export function ProductCard({
   const { t } = useStorefrontUI();
   const { data: store } = useStore(slug);
   const previewCardStyle = useSfPreview((s) => s.cardStyle);
-  const qb = useCardQuickBuy(product);
+  const previewCardActions = useSfPreview((s) => s.cardActions);
 
-  // Admin card style (live draft wins). "compact" forces the dense layout
+  const templates = resolveTemplates(store);
+  // Admin card density (live draft wins). "compact" forces the dense layout
   // everywhere; "bold" enlarges the CTA; "standard" respects the `variant`.
   const cardStyle = CARD_STYLES.includes(previewCardStyle ?? "")
     ? previewCardStyle
-    : resolveTemplates(store).productCard;
+    : templates.productCard;
   const compactLayout =
     cardStyle === "compact" || (cardStyle === "standard" && variant === "compact");
   const bold = cardStyle === "bold";
+
+  // Which CTA the card offers — a separate axis from density, so a compact card
+  // can carry two buttons and a bold one a single icon.
+  //
+  // Resolved against the EFFECTIVE density (draft wins), not the saved one:
+  // an unset `cardActions` falls back to `iconOnly` on compact, so switching
+  // density to compact in Customize has to move that fallback too. Reading the
+  // saved density here made the preview show two buttons where the shop renders
+  // an inline "+". Same resolver as the storefront, so the two cannot diverge.
+  const actions: CardActions = resolveCardActions(
+    previewCardActions ?? store?.templates?.cardActions,
+    cardStyle as StoreTemplates["productCard"],
+  );
+  const ctaOwnsImage = layoutOwnsImage(actions);
+  const qb = useCardQuickBuy(product, ctaOwnsImage);
 
   const soldOut = qb.soldOut;
   const thumb = cardImageUrl(product.images?.[0]);
@@ -71,6 +90,43 @@ export function ProductCard({
   const compareAt = chosen ? chosen.compareAtPrice : product.compareAtPrice;
   const pct = discountPct(price, compareAt);
   const showFrom = hasVariants && !chosen;
+
+  /* Wraps between the parts, never inside one: a 2-column mobile grid leaves
+     ~130px here, and "From" + price + struck compare-at is wider than that —
+     unwrapped, each money string broke mid-value and the card's overflow:hidden
+     clipped the last one. The dense layout drops the struck compare-at, which
+     does not fit beside a 40px button. */
+  const priceRow = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        flexWrap: "wrap",
+        gap: compactLayout ? "0 6px" : "2px 7px",
+        marginBottom: actions === "iconOnly" ? 0 : 11,
+        minWidth: 0,
+      }}
+    >
+      {showFrom ? (
+        <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
+      ) : null}
+      <span
+        style={{
+          fontSize: compactLayout ? 14 : bold ? 16.5 : 14.5,
+          fontWeight: 700,
+          color: "var(--text)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {money(price, currency)}
+      </span>
+      {pct > 0 && !compactLayout ? (
+        <span style={{ fontSize: 12, color: "var(--faint)", textDecoration: "line-through", whiteSpace: "nowrap" }}>
+          {money(compareAt, currency)}
+        </span>
+      ) : null}
+    </div>
+  );
 
   return (
     <div
@@ -111,7 +167,9 @@ export function ProductCard({
             </span>
           ) : null}
         </Link>
-        <CardVariantFlyout qb={qb} />
+        {/* Only one of these can occupy the image bottom, which is exactly why
+            `layoutOwnsImage` sends `reveal` products to the sheet instead. */}
+        {ctaOwnsImage ? <CardRevealActions qb={qb} /> : <CardVariantFlyout qb={qb} />}
       </div>
       <div style={{ padding: "12px 13px 14px", display: "flex", flexDirection: "column", flex: 1 }}>
         <Link
@@ -128,59 +186,15 @@ export function ProductCard({
           {product.name}
         </Link>
 
-        {compactLayout ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: "auto" }}>
-            <span style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "0 6px", minWidth: 0 }}>
-              {showFrom ? (
-                <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
-              ) : null}
-              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", whiteSpace: "nowrap" }}>
-                {money(price, currency)}
-              </span>
-            </span>
-            <button
-              type="button"
-              disabled={soldOut || qb.pending}
-              onClick={() => qb.press("add")}
-              aria-label={hasVariants ? t.selectOptions : t.addToCart}
-              style={{
-                background: "var(--primary-soft)",
-                color: "var(--primary)",
-                border: "1px solid var(--primary)",
-                flex: "none",
-                width: 40,
-                height: 40,
-                borderRadius: 7,
-                fontSize: 18,
-                fontWeight: 600,
-                cursor: soldOut ? "not-allowed" : "pointer",
-                lineHeight: 1,
-                opacity: soldOut ? 0.5 : 1,
-              }}
-            >
-              +
-            </button>
-          </div>
+        {/* `iconOnly` has no room for a price row of its own — the price sits
+            inline beside the button, which is the shape the compact density has
+            always rendered. Every other layout keeps the price on its own line. */}
+        {actions === "iconOnly" ? (
+          <CardCtaRow qb={qb} actions={actions} bold={bold} price={priceRow} />
         ) : (
           <>
-            {/* Wraps between the parts, never inside one: a 2-column mobile grid
-                leaves ~130px here, and "From" + price + struck compare-at is
-                wider than that — unwrapped, each money string broke mid-value
-                and the card's overflow:hidden clipped the last one. */}
-            <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "2px 7px", marginBottom: 11 }}>
-              {showFrom ? (
-                <span style={{ fontSize: 11.5, color: "var(--muted)" }}>{t.fromPrice}</span>
-              ) : null}
-              <span style={{ fontSize: bold ? 16.5 : 14.5, fontWeight: 700, color: "var(--text)", whiteSpace: "nowrap" }}>
-                {money(price, currency)}
-              </span>
-              {pct > 0 ? (
-                <span style={{ fontSize: 12, color: "var(--faint)", textDecoration: "line-through", whiteSpace: "nowrap" }}>
-                  {money(compareAt, currency)}
-                </span>
-              ) : null}
-            </div>
-            <CardCtaRow qb={qb} bold={bold} />
+            {priceRow}
+            <CardCtaRow qb={qb} actions={actions} bold={bold} />
           </>
         )}
       </div>

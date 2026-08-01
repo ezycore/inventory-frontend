@@ -14,6 +14,7 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   footer: "columns",
   header: "classic",
   productCard: "standard",
+  cardActions: "addBuy",
   hero: "slides",
   pagination: "pages",
 };
@@ -27,6 +28,16 @@ const CHECKOUT = { "single-page": "single", "multi-step": "multi" } as const;
 const FOOTER = { columns: "columns", simple: "simple", rich: "rich" } as const;
 const HEADER = { classic: "classic", minimal: "minimal", centered: "centered" } as const;
 const PRODUCTCARD = { standard: "standard", compact: "compact", bold: "bold" } as const;
+// Card CTA layout. Separate from PRODUCTCARD on purpose: density and actions are
+// orthogonal, and folding them together would need one id per combination.
+const CARDACTIONS = {
+  add: "add",
+  "add-buy": "addBuy",
+  icons: "icons",
+  "buy-first": "buyFirst",
+  reveal: "reveal",
+  "icon-only": "iconOnly",
+} as const;
 const HERO = { slides: "slides", banner: "banner" } as const;
 const HEADER_MENU = { collections: "collections", custom: "custom" } as const;
 // How product listings advance past page 1. `pages` stays the default: it is what
@@ -47,6 +58,11 @@ export function resolveTemplates(
   store: Pick<StorefrontStore, "templates"> | null | undefined,
 ): StoreTemplates {
   const t = store?.templates ?? {};
+  const productCard = pick(
+    PRODUCTCARD,
+    t.productCard,
+    DEFAULT_TEMPLATES.productCard,
+  );
   return {
     home: pick(HOME, t.home, DEFAULT_TEMPLATES.home),
     collection: pick(COLLECTION, t.collection, DEFAULT_TEMPLATES.collection),
@@ -54,10 +70,34 @@ export function resolveTemplates(
     checkout: pick(CHECKOUT, t.checkout, DEFAULT_TEMPLATES.checkout),
     footer: pick(FOOTER, t.footer, DEFAULT_TEMPLATES.footer),
     header: pick(HEADER, t.header, DEFAULT_TEMPLATES.header),
-    productCard: pick(PRODUCTCARD, t.productCard, DEFAULT_TEMPLATES.productCard),
+    productCard,
+    cardActions: resolveCardActions(t.cardActions, productCard),
     hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
     pagination: pick(PAGINATION, t.pagination, DEFAULT_TEMPLATES.pagination),
   };
+}
+
+/**
+ * Resolve the card's CTA layout, falling back the way the card used to behave.
+ *
+ * Exported because the Customize live preview must resolve the same way against
+ * its **draft** density — reading the saved one made the preview show two
+ * buttons where a compact shop renders an inline "+".
+ *
+ * Until `cardActions` existed, `productCard: "compact"` hard-coded its own CTA —
+ * a single inline "+" beside the price. That is now the `iconOnly` layout, so an
+ * unset value on a compact store must resolve to it. Defaulting every store to
+ * `addBuy` would put two text buttons on every compact card without the owner
+ * choosing it — the same class of silent restyle `resolveHeaderMenu` avoids.
+ */
+export function resolveCardActions(
+  raw: string | null | undefined,
+  productCard: StoreTemplates["productCard"],
+): StoreTemplates["cardActions"] {
+  if (raw && raw in CARDACTIONS) {
+    return CARDACTIONS[raw as keyof typeof CARDACTIONS];
+  }
+  return productCard === "compact" ? "iconOnly" : DEFAULT_TEMPLATES.cardActions;
 }
 
 /**

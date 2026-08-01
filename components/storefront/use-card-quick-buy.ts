@@ -53,7 +53,7 @@ export type CardQuickBuy = ReturnType<typeof useCardQuickBuy>;
  * highlighted) and press two commits — except for a product with no options,
  * which has nothing to reveal and buys immediately.
  */
-export function useCardQuickBuy(product: CatalogProduct) {
+export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const router = useRouter();
@@ -76,7 +76,13 @@ export function useCardQuickBuy(product: CatalogProduct) {
   );
 
   const variants = detail?.variants ?? [];
-  const fitsInline = variants.length > 0 && optionsFitInline(variants);
+  // A layout that paints its CTA over the product image (`reveal`) has already
+  // taken the space the flyout would use, so those products go to the sheet
+  // regardless of how few options they have. Stacking the two instead would
+  // cover ~55% of a 158px card image, and letting the flyout replace the CTA
+  // would leave the shopper with a chosen size and no button to commit it.
+  const fitsInline =
+    !ctaOwnsImage && variants.length > 0 && optionsFitInline(variants);
   const selection = Object.keys(picked).length
     ? picked
     : defaultSelection(variants);

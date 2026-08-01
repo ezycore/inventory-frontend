@@ -76,3 +76,50 @@ describe("resolveTemplates", () => {
     );
   });
 });
+
+describe("resolveTemplates — cardActions", () => {
+  const actions = (templates: Record<string, string>) =>
+    resolveTemplates({ templates }).cardActions;
+
+  it("maps every admin id to its storefront name", () => {
+    expect(actions({ cardActions: "add" })).toBe("add");
+    expect(actions({ cardActions: "add-buy" })).toBe("addBuy");
+    expect(actions({ cardActions: "icons" })).toBe("icons");
+    expect(actions({ cardActions: "buy-first" })).toBe("buyFirst");
+    expect(actions({ cardActions: "reveal" })).toBe("reveal");
+    expect(actions({ cardActions: "icon-only" })).toBe("iconOnly");
+  });
+
+  /*
+   * The migration contract, and the reason `cardActions` is a separate key at
+   * all. Before it existed, `productCard: "compact"` hard-coded its own CTA — a
+   * single inline "+". An unset value on a compact store must therefore resolve
+   * to `iconOnly`, or every compact shop silently grows two text buttons its
+   * owner never chose.
+   */
+  it("keeps a legacy compact store on its inline icon when unset", () => {
+    expect(actions({ productCard: "compact" })).toBe("iconOnly");
+    expect(actions({ productCard: "compact", cardActions: "" })).toBe("iconOnly");
+    expect(actions({ productCard: "compact", cardActions: "bogus" })).toBe(
+      "iconOnly",
+    );
+  });
+
+  it("defaults every other density to both buttons", () => {
+    expect(actions({})).toBe("addBuy");
+    expect(actions({ productCard: "standard" })).toBe("addBuy");
+    expect(actions({ productCard: "bold" })).toBe("addBuy");
+    expect(resolveTemplates(undefined).cardActions).toBe("addBuy");
+  });
+
+  // The axes are independent: an explicit choice must beat the density-derived
+  // fallback, including on compact.
+  it("lets an explicit choice override the compact fallback", () => {
+    expect(actions({ productCard: "compact", cardActions: "add-buy" })).toBe(
+      "addBuy",
+    );
+    expect(actions({ productCard: "bold", cardActions: "icon-only" })).toBe(
+      "iconOnly",
+    );
+  });
+});

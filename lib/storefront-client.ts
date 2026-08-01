@@ -120,6 +120,7 @@ export interface StoreTemplatesRaw {
   footer?: string;
   header?: string;
   productCard?: string;
+  cardActions?: string;
   hero?: string;
   headerMenu?: string;
   pagination?: string;
@@ -137,6 +138,15 @@ export interface StoreTemplates {
   footer: "columns" | "simple" | "rich";
   header: "classic" | "minimal" | "centered";
   productCard: "standard" | "compact" | "bold";
+  /**
+   * Which actions the product card offers, and in what form. Independent of
+   * `productCard`, which controls density only — a compact card can still want
+   * two buttons, a bold card can still want one.
+   *
+   * `reveal` hides the CTA until hover and is therefore **desktop-only**; touch
+   * has no hover, so it falls back to `addBuy` below 680px.
+   */
+  cardActions: "add" | "addBuy" | "icons" | "buyFirst" | "reveal" | "iconOnly";
   /** Home hero source: carousel (when slides exist) vs the static banner hero. */
   hero: "slides" | "banner";
   /**

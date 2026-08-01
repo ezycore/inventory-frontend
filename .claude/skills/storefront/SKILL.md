@@ -117,6 +117,30 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   straight to `/checkout`. Note the admin ids are kebab-case and the storefront names are not
   (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
   resolves to the default, which reads as "the setting does nothing".
+- **Card CTA layout** (`templates.cardActions`, default `add-buy`) — **a second axis on the
+  product card, orthogonal to `productCard`**, which now means *density only*. Values:
+  `add` | `add-buy` | `icons` | `buy-first` | `reveal` | `icon-only`. Folding these into
+  `productCard` would need one id per density×layout pair; two keys is 3 + 6.
+  Read it through `resolveTemplates(store).cardActions`; the Customize preview streams the **raw**
+  kebab id, so `product-card.tsx` calls the exported **`resolveCardActions(raw, density)`** directly
+  rather than assuming a camelCase value.
+  - **Unset resolves off `productCard`, not off the default.** Before this key existed,
+    `productCard: "compact"` hard-coded its own CTA (an inline "+"), so an unset value on a compact
+    store must resolve to `iconOnly` — same migration shape as `resolveHeaderMenu`, and tested in
+    `storefront-templates.test.ts`. Defaulting everything to `add-buy` would put two text buttons on
+    every compact shop's cards without the owner choosing it.
+  - That conditional default has **three** call sites, and all three must agree: the resolver, the
+    card (which resolves against the *draft* density, or the preview lies), and the Customize
+    `tpl` seed — which would otherwise write `add-buy` into a compact store the next time its owner
+    saved **any** template, restyling their cards without asking.
+  - **`layoutOwnsImage(actions)` decides where variant options open**, and is the rule to keep:
+    a layout that paints its CTA over the product image (`reveal`) has taken the space the
+    in-card flyout uses, so those products go to the **quick-buy sheet** instead. The two obvious
+    alternatives are both broken — letting the flyout *replace* the CTA strands the shopper with a
+    chosen size and no button to commit it, and *stacking* them covers ~55% of a 158px card image.
+  - **`reveal` is hidden-on-hover, so its CSS defaults to OPEN** and layers the hiding inside
+    `@media (hover: hover) and (pointer: fine)`. Written the other way round, a touch device gets a
+    card with no buy button at all — it can never produce the hover that reveals it.
 - **Listing pagination** (`templates.pagination`, default `pages`): `pages` = numbered
   `<Pager>`; `infinite` = auto-load `AUTO_LOADS` (2) pages then a button; `load-more` = button
   only. Applies to **both** the collection page and search results, which share
