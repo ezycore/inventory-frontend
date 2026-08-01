@@ -180,7 +180,7 @@ export function CartDrawer() {
                           type="button"
                           onClick={() => removeItem(cartLineKey(i))}
                           aria-label={t.remove}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--faint)", display: "flex" }}
+                          style={removeBtn}
                         >
                           <Icon name="close" size={15} />
                         </button>
@@ -231,9 +231,20 @@ function qtyBtn(): React.CSSProperties {
     background: "var(--surface)",
     color: "var(--text)",
     border: "none",
-    width: 28,
-    height: 28,
+    width: 38,
+    height: 38,
     fontSize: 15,
     cursor: "pointer",
   };
 }
+
+/** Padding (not a size) grows the 15px glyph to a 39px touch target in place. */
+const removeBtn: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  color: "var(--faint)",
+  display: "flex",
+  padding: 12,
+  margin: -12,
+};

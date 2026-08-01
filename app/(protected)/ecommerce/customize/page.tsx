@@ -444,7 +444,10 @@ function TemplatesSection({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <div className="min-h-0 flex-1 space-y-5 lg:overflow-y-auto lg:pr-1">
+      {/* `overflow-y-auto` forces overflow-x to `auto` too, so it clips at the
+          padding box — without this inset the cards' left border and selection
+          ring get shaved off. The negative margin keeps the rail width. */}
+      <div className="min-h-0 flex-1 space-y-5 lg:-mx-1 lg:overflow-y-auto lg:px-1">
       <HomeTemplateBlock
         layout={tpl.home}
         onLayoutChange={(v) => pick("home", v)}

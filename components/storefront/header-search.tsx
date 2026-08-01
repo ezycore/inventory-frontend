@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { Icon } from "@/components/storefront/sf-icons";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import {
@@ -93,7 +94,9 @@ function SearchInput({
           outline: "none",
           background: "transparent",
           color: "var(--text)",
-          fontSize: 14,
+          // 16px floor — below it iOS Safari zooms the page on focus and never
+          // zooms back, which on the mobile takeover strands the shopper.
+          fontSize: 16,
           fontWeight: 500,
           fontFamily: "inherit",
           height: "100%",
@@ -199,14 +202,7 @@ export function HeaderSearchMobile({ categories }: { categories: CatalogCategory
   const c = useHeaderSearch(() => setOpen(false), open);
 
   // Lock the page behind the takeover while it's open.
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   return (
     <>
@@ -230,7 +226,7 @@ export function HeaderSearchMobile({ categories }: { categories: CatalogCategory
             <button
               type="button"
               onClick={() => setOpen(false)}
-              style={{ flex: "none", border: "none", background: "none", fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, color: "var(--primary)", cursor: "pointer", padding: "4px 2px" }}
+              style={{ flex: "none", border: "none", background: "none", fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, color: "var(--primary)", cursor: "pointer", padding: "11px 6px" }}
             >
               {t.cancelEdit}
             </button>

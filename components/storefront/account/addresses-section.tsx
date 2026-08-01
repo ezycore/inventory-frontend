@@ -9,18 +9,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { GeoPicker } from "@/components/storefront/checkout/geo-picker";
-
-const input: CSSProperties = {
-  width: "100%",
-  border: "1px solid var(--border-strong)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  borderRadius: 8,
-  padding: "11px 13px",
-  fontFamily: "inherit",
-  fontSize: 14,
-  outline: "none",
-};
+import { sfInput as input } from "@/components/storefront/field-styles";
 
 type Draft = {
   label: string;

@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { Icon } from "@/components/storefront/sf-icons";
 
 /** Must cover the .sf-drawer CSS transition (0.26s) so the exit finishes. */
@@ -36,6 +37,10 @@ export function SideDrawer({
 }) {
   const [mounted, setMounted] = useState(open);
   const [shown, setShown] = useState(false);
+
+  // Freeze the catalogue behind the panel — without this an overscroll inside
+  // the drawer's list scrolls the page underneath it.
+  useBodyScrollLock(open);
 
   // Enter mounts closed / exit drops .sf-open immediately — render-time state
   // adjustments (no effect), so the closed position paints before the slide.
@@ -110,6 +115,10 @@ export function SideDrawer({
               cursor: "pointer",
               color: "var(--muted)",
               display: "flex",
+              // Padding (not size) grows the 20px glyph to a 44px touch target;
+              // the negative margin keeps it sitting where it always did.
+              padding: 12,
+              margin: -12,
             }}
           >
             <Icon name="close" size={20} />
@@ -117,7 +126,14 @@ export function SideDrawer({
         </div>
         {children}
         {footer ? (
-          <div style={{ borderTop: "1px solid var(--border)", padding: "14px 20px" }}>
+          <div
+            style={{
+              borderTop: "1px solid var(--border)",
+              // The panel is bottom-anchored, so the footer CTA lands under the
+              // iPhone home indicator without the safe-area inset.
+              padding: "14px 20px calc(14px + env(safe-area-inset-bottom))",
+            }}
+          >
             {footer}
           </div>
         ) : null}

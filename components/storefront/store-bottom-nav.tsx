@@ -1,8 +1,10 @@
 "use client";
+// coding-standard: maintained
 
 import { useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import type {
   CatalogCategory,
   StoreMenuItem,
@@ -113,7 +115,7 @@ const tabBase: CSSProperties = {
   fontFamily: "inherit",
 };
 
-const tabLabel: CSSProperties = { fontSize: 10.5, fontWeight: 600, lineHeight: 1 };
+const tabLabel: CSSProperties = { fontSize: 11.5, fontWeight: 600, lineHeight: 1 };
 
 function TabInner({ icon, label, active, badge }: { icon: IconName; label: string; active?: boolean; badge?: number }) {
   const color = active ? "var(--primary)" : "var(--muted)";
@@ -130,11 +132,11 @@ function TabInner({ icon, label, active, badge }: { icon: IconName; label: strin
               right: -9,
               background: "var(--primary)",
               color: "var(--on-primary)",
-              fontSize: 9.5,
+              fontSize: 11,
               fontWeight: 700,
-              minWidth: 16,
-              height: 16,
-              borderRadius: 8,
+              minWidth: 18,
+              height: 18,
+              borderRadius: 9,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -181,6 +183,8 @@ function MenuSheet({
   t: T;
   onClose: () => void;
 }) {
+  useBodyScrollLock(true);
+
   // Flatten one level of admin menu items so nested links stay reachable.
   const menuLinks = menu.flatMap((m) => [
     { key: m.label, label: m.label, href: menuHref(m, base, categories) },
@@ -216,7 +220,7 @@ function MenuSheet({
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 12px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontSize: 15, fontWeight: 700 }}>{t.menu}</span>
-          <button type="button" onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "flex" }}>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "flex", padding: 12, margin: -12 }}>
             <Icon name="close" size={20} />
           </button>
         </div>

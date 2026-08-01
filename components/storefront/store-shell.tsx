@@ -140,14 +140,16 @@ export function StoreShell({
               maxWidth: "var(--maxw)",
               margin: "0 auto",
               width: "100%",
-              padding: "14px var(--pad) 0",
+              padding: "5px var(--pad) 0",
               display: "flex",
               alignItems: "center",
               gap: 8,
               fontSize: 12.5,
             }}
           >
-            <Link href={storeHref(base)} style={{ color: "var(--muted)" }}>
+            {/* Vertical padding (offset by the wrapper's reduced top padding)
+                gives the only interactive crumb a tappable height. */}
+            <Link href={storeHref(base)} style={{ color: "var(--muted)", padding: "9px 0" }}>
               {t.navHome}
             </Link>
             <span style={{ color: "var(--faint)" }}>/</span>

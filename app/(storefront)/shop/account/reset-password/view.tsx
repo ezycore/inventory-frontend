@@ -10,6 +10,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
+import { sfInput as input } from "@/components/storefront/field-styles";
 
 const wrap: CSSProperties = {
   maxWidth: 440,
@@ -22,17 +23,6 @@ const card: CSSProperties = {
   border: "1px solid var(--border)",
   borderRadius: 14,
   padding: "32px 28px",
-};
-const input: CSSProperties = {
-  border: "1px solid var(--border-strong)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  borderRadius: 8,
-  padding: "11px 13px",
-  fontFamily: "inherit",
-  fontSize: 14,
-  outline: "none",
-  width: "100%",
 };
 const fieldLabel: CSSProperties = {
   fontSize: 12.5,

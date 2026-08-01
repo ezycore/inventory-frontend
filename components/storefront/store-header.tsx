@@ -169,11 +169,14 @@ function MobileHeader({ ctx }: { ctx: HeaderCtx }) {
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Brand name={name} logo={logo} markSize={29} nameSize={15.5} />
         </Link>
+        {/* `tapPad` (padding + matching negative margin) lifts these from an
+            18px glyph to a 42px touch target without moving them or changing
+            the gap between them. */}
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button type="button" onClick={toggleLang} style={{ ...bareBtn, fontSize: 12, color: "var(--muted)", fontWeight: 500 }}>
+          <button type="button" onClick={toggleLang} style={{ ...bareBtn, ...tapPad, fontSize: 12.5, color: "var(--muted)", fontWeight: 500 }}>
             {lang === "en" ? "বাংলা" : "EN"}
           </button>
-          <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t.lightMode : t.darkMode} style={{ ...bareBtn, display: "flex", color: "var(--text)" }}>
+          <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t.lightMode : t.darkMode} style={{ ...bareBtn, ...tapPad, display: "flex", color: "var(--text)" }}>
             <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
           </button>
         </div>
@@ -287,6 +290,12 @@ const bareBtn: CSSProperties = {
   cursor: "pointer",
 };
 
+/** Grows a `bareBtn` icon/label to a comfortable touch target while leaving it
+ *  optically where it sits — the negative margin cancels the padding, so
+ *  surrounding gaps and alignment are unchanged. Mobile header only; the
+ *  desktop bars are pointer-driven and densely packed by design. */
+const tapPad: CSSProperties = { padding: 12, margin: -12 };
+
 function LangBtn({ ctx }: { ctx: HeaderCtx }) {
   return (
     <button type="button" onClick={ctx.toggleLang} style={{ ...bareBtn, fontWeight: 600, color: "var(--text)" }}>
@@ -362,11 +371,11 @@ function CartBadge({ count, compact }: { count: number; compact?: boolean }) {
         left: compact ? undefined : 14,
         background: "var(--primary)",
         color: "var(--on-primary)",
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: 700,
-        minWidth: compact ? 17 : 18,
-        height: compact ? 17 : 18,
-        borderRadius: 9,
+        minWidth: compact ? 18 : 19,
+        height: compact ? 18 : 19,
+        borderRadius: 10,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
