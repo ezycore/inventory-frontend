@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import Link from "next/link";
 import { type CSSProperties } from "react";
@@ -24,10 +25,22 @@ const qtyBtn: CSSProperties = {
   background: "var(--surface)",
   color: "var(--text)",
   border: "none",
-  width: 32,
-  height: 32,
+  width: 40,
+  height: 40,
   fontSize: 16,
   cursor: "pointer",
+};
+
+/** Padding (not a size) grows the 16px glyph to a 40px touch target without
+ *  moving it — the icon stays optically aligned with the line total. */
+const removeBtn: CSSProperties = {
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  color: "var(--faint)",
+  display: "flex",
+  padding: 12,
+  margin: -12,
 };
 
 export default function CartPage() {
@@ -96,7 +109,7 @@ export default function CartPage() {
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                       <span style={{ fontSize: 15, fontWeight: 700 }}>{money(i.price * i.quantity, currency)}</span>
-                      <button type="button" onClick={() => removeItem(cartLineKey(i))} aria-label={t.remove} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--faint)", display: "flex" }}>
+                      <button type="button" onClick={() => removeItem(cartLineKey(i))} aria-label={t.remove} style={removeBtn}>
                         <Icon name="close" size={16} />
                       </button>
                     </div>

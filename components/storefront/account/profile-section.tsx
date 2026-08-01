@@ -9,6 +9,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { PasswordCard } from "@/components/storefront/account/password-card";
+import { sfInput as input } from "@/components/storefront/field-styles";
 
 const card: CSSProperties = {
   background: "var(--card)",
@@ -18,17 +19,6 @@ const card: CSSProperties = {
 };
 const fieldLabel: CSSProperties = { fontSize: 12, color: "var(--muted)", marginBottom: 5 };
 const fieldValue: CSSProperties = { fontSize: 14.5, fontWeight: 600, color: "var(--text)" };
-const input: CSSProperties = {
-  width: "100%",
-  border: "1px solid var(--border-strong)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  borderRadius: 8,
-  padding: "11px 13px",
-  fontFamily: "inherit",
-  fontSize: 14,
-  outline: "none",
-};
 const editLabel: CSSProperties = {
   display: "block",
   fontSize: 12,
@@ -44,7 +34,7 @@ function VerifiedPill({ label }: { label: string }) {
   return (
     <span
       style={{
-        fontSize: 10,
+        fontSize: 11.5,
         fontWeight: 700,
         color: "#16a34a",
         background: "color-mix(in srgb, #16a34a 12%, transparent)",

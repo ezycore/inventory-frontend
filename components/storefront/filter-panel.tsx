@@ -153,7 +153,9 @@ export function FilterRow({
         fontWeight: active ? 600 : 400,
         background: "none",
         border: "none",
-        padding: 0,
+        // A bare row is only as tall as its 15px box — far too small to tap.
+        // Vertical padding takes it to 40px; the list gains the height it needs.
+        padding: "10px 0",
         cursor: "pointer",
         textAlign: "left",
       }}
@@ -246,8 +248,10 @@ const priceField: React.CSSProperties = {
   minWidth: 0,
   border: "1px solid var(--border-strong)",
   borderRadius: 8,
-  padding: "7px 9px",
-  fontSize: 12.5,
+  padding: "9px 9px",
+  // 16px is the floor that stops iOS Safari zooming the page on focus — and it
+  // never zooms back out, since the viewport meta (correctly) allows scaling.
+  fontSize: 16,
   fontFamily: "inherit",
   background: "var(--card)",
   color: "var(--text)",
@@ -276,7 +280,8 @@ function SwitchRow({
         width: "100%",
         background: "none",
         border: "none",
-        padding: 0,
+        // Matches the option rows above — the 18px switch alone is not tappable.
+        padding: "10px 0",
         cursor: "pointer",
         fontSize: 13,
         fontFamily: "inherit",

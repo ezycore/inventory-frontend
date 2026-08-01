@@ -6,18 +6,8 @@ import { toast } from "@/lib/storefront-toast";
 import { useShopperAccount } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { sfInput as input } from "@/components/storefront/field-styles";
 
-const input: CSSProperties = {
-  width: "100%",
-  border: "1px solid var(--border-strong)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  borderRadius: 8,
-  padding: "11px 13px",
-  fontFamily: "inherit",
-  fontSize: 14,
-  outline: "none",
-};
 const fieldLabel: CSSProperties = {
   display: "block",
   fontSize: 12,

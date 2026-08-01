@@ -61,6 +61,33 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   on `.sf-root` (toggle persisted as `sf-theme`). The org's `brandColor` overrides `--primary`
   inline, and **may be near-black — never rely on `var(--primary)` being visible on dark cards**
   (use `--muted` or `color-mix(... , var(--text))` for accents that must survive both themes).
+- **Mobile rules — the storefront is phone-first, and inline styles can't hold a media query.**
+  Anything that must change at a breakpoint goes in `storefront.css` behind a class (that is why
+  `.sf-pdp-*` and `.sf-footer-*` exist), never into a `style={{…}}`. Four standing rules, each
+  fixed a real defect (2026-07-31 audit at 320/360/740px):
+  - **Text fields are ≥16px.** Use `sfInput` (`components/storefront/field-styles.ts`) for every
+    shopper-facing input — one shared object, previously six pasted copies. Below 16px iOS Safari
+    zooms the page on focus and, since the viewport meta rightly permits scaling, never zooms back;
+    checkout's seven fields meant seven pinch-outs per order. Checkout keeps its own slightly
+    padded `input` in `checkout/checkout-bits.tsx`, also ≥16px.
+  - **Touch targets are ≥40px.** For icon buttons add `padding` plus a matching negative `margin`
+    (see `tapPad` in `store-header.tsx`) so the hit box grows without moving the glyph; for list
+    rows add real vertical padding. A bare `padding: 0` icon button is a bug — the hit box equals
+    the glyph (the cart's remove `×` was 15×15).
+  - **Money never breaks mid-value.** A price row is `flexWrap: "wrap"` with `whiteSpace: "nowrap"`
+    on each amount. Cards are ~130px wide in the 2-column mobile grid and clip
+    (`overflow: hidden`), so an unwrapped "From + price + struck compare-at" row rendered the
+    original price cut off mid-digit.
+  - **Fixed heights get a viewport cap.** `.sf-hero` is `min(…, 70svh)` (62svh on mobile) — a flat
+    430px was 76% of an iPhone SE screen and 89% in landscape. Use `svh`, not `vh`, so the
+    collapsing mobile URL bar doesn't resize it.
+- **Overlays must lock the page behind them** — `useBodyScrollLock(open)`
+  (`hooks/use-body-scroll-lock.ts`), used by `SideDrawer` (cart + filters), the bottom-nav
+  `MenuSheet` and the mobile search takeover. It takes `<body>` out of flow (`position: fixed`
+  offset by the scroll) and restores the position on close, because `overflow: hidden` alone does
+  not hold on iOS Safari. Without it an overscroll inside a drawer scrolls the catalogue behind it.
+  A bottom-anchored overlay footer also needs `env(safe-area-inset-bottom)` in its padding or its
+  CTA lands under the iPhone home indicator — `SideDrawer` and the bottom nav both do this.
 - **Icons**: `components/storefront/sf-icons.tsx` (`<Icon name=… />`, stroke, currentColor).
   Add paths there; do not import lucide into storefront components.
 - **Toasts**: import `toast` from `lib/storefront-toast.ts`, never from "sonner" directly —
@@ -292,7 +319,40 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-07-28)
+## Work log (what was built, newest first — as of 2026-07-31)
+
+- **Mobile responsiveness pass (FE)** (2026-07-31): audited every shop route in a real browser at
+  320 / 360 / 740px, EN + বাংলা, signed-in and out. No page ever scrolled horizontally and the
+  `--cols`/`--pdpgrid`/`--cartgrid` token system held up — the defects were all *inside* the
+  breakpoints, which is exactly what a layout-only check misses. Eight fixes, all now standing
+  rules under "Mobile rules" and "Overlays" above:
+  **(1)** the product card's price row was an unwrapped flex row of up to three items in a ~130px
+  card, so each money string broke mid-value and at 320px the struck compare-at was **clipped
+  mid-digit** by the card's `overflow: hidden` — now `flexWrap` + per-amount `nowrap`.
+  **(2)** touch targets: cart-drawer remove 15×15, cart-page remove 16×16, every drawer/sheet close
+  20×20, filter option rows 20px tall, header toggles 18×18, hero dots **7×7** — all now ≥36px, icon
+  buttons via `padding` + negative `margin` (new `tapPad`), the hero dot via a transparent 32×36
+  button with the dot painted by `::before` (dots therefore sit further apart than before).
+  **(3)** the cart drawer, filter drawer and menu sheet never locked body scroll (only the search
+  takeover did) — extracted `hooks/use-body-scroll-lock.ts`, upgraded to the `position: fixed`
+  recipe that actually holds on iOS, and adopted in all four.
+  **(4)** `SideDrawer`'s footer had no `env(safe-area-inset-bottom)`, putting the cart's Checkout CTA
+  under the iPhone home indicator.
+  **(5)** every shopper input was 14px (12.5px in the filter panel) → iOS zoom-on-focus with no way
+  back; six pasted copies of the same style object became `components/storefront/field-styles.ts`
+  `sfInput` at 16px.
+  **(6)** the `left` PDP template's fixed 62px thumbnail rail had no mobile branch and took 23% of the
+  width (hero 254px on a 360px phone) — new `.sf-pdp-*` classes flip it to a scrollable strip under a
+  full-width hero below 680px (hero 254→328px). Thumbs are fixed-width, **not** `flex: 1`: the images
+  are square, so a single-thumbnail product would have stretched one as large as the hero.
+  **(7)** `.sf-hero`'s flat 430px was 76% of an iPhone SE viewport and 89% in landscape (where the
+  3-row desktop header ate the rest and no product was visible) — now capped in `svh`.
+  **(8)** sub-11.5px text (bottom-nav labels, cart badges, the "Verified" pill).
+  Desktop verified unchanged at 1280px: hero 430px, PDP rail still a 62px `row`, footer density
+  identical (the footer link padding is mobile-only, reset in the ≥680px block).
+  **Not done:** `app/(storefront)/shop/products/[productSlug]/view.tsx` is 412 lines in one ~380-line
+  component and breaches the file-size rule — the gallery fix was kept minimal by design, so
+  splitting the gallery / buy box / sticky bar into their own components is still owed.
 
 - **One canonical host per store (BE + FE)** (2026-07-28): closed the duplicate-content hole — a shop
   with a custom domain was fully indexable on **both** that domain and `{slug}.ezycore.com/shop`, each

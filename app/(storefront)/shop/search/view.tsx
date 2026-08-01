@@ -76,7 +76,7 @@ function SearchInner() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t.searchPh}
-          style={{ flex: 1, border: "none", outline: "none", background: "transparent", color: "var(--text)", fontSize: 15, fontWeight: 500, fontFamily: "inherit" }}
+          style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", color: "var(--text)", fontSize: 16, fontWeight: 500, fontFamily: "inherit" }}
         />
       </div>
 

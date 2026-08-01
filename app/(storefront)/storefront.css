@@ -427,7 +427,16 @@
   border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--card);
+  /* The 70svh cap only bites on short viewports — a landscape phone is past the
+     640px breakpoint below, so without it the hero took 89% of the screen and
+     the header stack took the rest, leaving zero product content visible. On a
+     desktop 70svh is well above the 430px cap, so nothing changes there.
+     The first declaration is a REQUIRED fallback, not redundancy: the slides are
+     `position: absolute`, so the hero has no intrinsic height, and a browser
+     without `svh` (pre-Chrome 108 / Safari 15.4) would drop the second line and
+     collapse the hero to nothing. */
   height: clamp(320px, 40vw, 430px);
+  height: min(clamp(320px, 40vw, 430px), 70svh);
   touch-action: pan-y;
 }
 .sf-hero-slide {
@@ -546,27 +555,49 @@
   bottom: 16px;
   display: flex;
   justify-content: center;
-  gap: 7px;
+  align-items: center;
+  /* The dots carry their own tap padding, so the visual 7px gap is the sum of
+     the two neighbouring paddings — no extra gap here or they drift apart. */
+  gap: 0;
 }
+/* A 7px dot is far too small to tap. The <button> is a transparent 32×36 hit
+   area; `::before` paints the dot itself, so the visual design is unchanged. */
 .sf-hero-dot {
+  width: 32px;
+  height: 36px;
+  border-radius: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sf-hero-dot::before {
+  content: "";
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  border: 0;
-  padding: 0;
   background: rgba(255, 255, 255, 0.45);
-  cursor: pointer;
   transition: width 0.3s ease, background 0.3s ease;
-  position: relative;
-  overflow: hidden;
 }
-.sf-hero-dot-active {
+.sf-hero-dot-active::before {
   width: 30px;
   background: rgba(255, 255, 255, 0.35);
 }
+/* Progress sweep, painted over the active dot's ::before pill. It is sized and
+   centred explicitly (not `inset: 0`) because its button is now a 32×36 tap
+   target rather than the 30×7 pill itself. `margin-top` does the vertical
+   centring so `transform` stays free for the scaleX sweep. */
 .sf-hero-fill {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 1px;
+  width: 30px;
+  height: 7px;
+  margin-top: -3.5px;
   border-radius: 999px;
   background: #fff;
   transform-origin: left;
@@ -582,7 +613,16 @@
   }
 }
 @media (max-width: 640px) {
-  .sf-hero { height: 430px; }
+  /* Tall enough to hold the slide copy, but capped against the VIEWPORT so it
+     can't eat the fold: a flat 430px was 76% of an iPhone SE screen, leaving
+     no product visible above it. `svh` (small viewport height) is the stable
+     value that ignores the collapsing mobile URL bar. */
+  /* Fallback first — see the note on `.sf-hero` above. */
+  .sf-hero {
+    height: 430px;
+    height: min(430px, 62svh);
+    min-height: 260px;
+  }
   .sf-hero-nav { display: none; } /* swipe instead */
   .sf-hero-scrim {
     background: linear-gradient(
@@ -603,6 +643,45 @@
   .sf-hero-fill {
     animation: none;
     transform: scaleX(1);
+  }
+}
+
+/* ---- PDP "left rail" gallery (products/[productSlug]/view.tsx, `left` template) ----
+   Desktop: a fixed 62px thumbnail column beside the hero image. On a phone that
+   rail plus its gap ate 23% of the content width — the hero dropped to 254px on
+   a 360px screen — so below the breakpoint it flips to a horizontal strip UNDER
+   a full-width hero (which is what the `galleryTop` template already does).
+   `column-reverse` reorders visually without moving the hero ahead of the
+   thumbnails in the DOM, so tab order still reaches the thumbs first. */
+.sf-pdp-gallery {
+  display: flex;
+  gap: 12px;
+}
+.sf-pdp-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 62px;
+  flex: none;
+}
+.sf-pdp-hero {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 679px) {
+  .sf-pdp-gallery {
+    flex-direction: column-reverse;
+  }
+  .sf-pdp-thumbs {
+    flex-direction: row;
+    width: auto;
+    overflow-x: auto;
+  }
+  /* Fixed-width thumbs that scroll, NOT flex:1 — the images are square, so a
+     product with a single thumbnail would stretch it to the full row width and
+     render a second image as large as the hero itself. */
+  .sf-pdp-thumbs > button {
+    flex: 0 0 68px;
   }
 }
 
@@ -659,9 +738,11 @@
 .sf-footer-col-body {
   display: none;
   flex-direction: column;
-  gap: 10px;
+  /* Links carry 10px of vertical padding for tap size, so the visual rhythm
+     comes from that rather than a gap. */
+  gap: 0;
   margin: 0;
-  padding: 0 0 16px;
+  padding: 0 0 8px;
   list-style: none;
 }
 .sf-footer-col.sf-open .sf-footer-col-body {
@@ -672,6 +753,10 @@
   color: var(--muted);
   text-decoration: none;
   transition: color 0.15s ease;
+  /* A 16px-tall link in a stacked mobile column is a poor tap target; padding
+     lifts it to ~37px. The column's own `gap` is reduced to compensate below,
+     so the footer does not get taller. */
+  padding: 10px 0;
 }
 .sf-footer-link:hover {
   color: var(--text);
@@ -707,6 +792,12 @@
   }
   .sf-footer-col-body {
     display: flex !important;
+    padding: 0;
+    /* Desktop is pointer-driven: drop the mobile tap padding and go back to
+       gap-based rhythm so the column keeps its original density. */
+    gap: 10px;
+  }
+  .sf-footer-link {
     padding: 0;
   }
   .sf-footer-aside {

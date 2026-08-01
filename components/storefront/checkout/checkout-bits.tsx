@@ -14,6 +14,9 @@ export const label: CSSProperties = {
   marginBottom: 12,
 };
 
+/** iOS Safari zooms the page whenever a focused field is under 16px, and the
+ *  viewport meta (correctly) permits scaling, so it never zooms back — checkout
+ *  alone has 7 fields, which meant 7 zooms per order. 16px is the floor. */
 export const input: CSSProperties = {
   border: "1px solid var(--border-strong)",
   background: "var(--surface)",
@@ -21,7 +24,7 @@ export const input: CSSProperties = {
   borderRadius: 8,
   padding: "12px 14px",
   fontFamily: "inherit",
-  fontSize: 14,
+  fontSize: 16,
   outline: "none",
   width: "100%",
 };
