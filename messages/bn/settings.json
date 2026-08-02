@@ -953,27 +953,39 @@
     "smsLockedHint": "এসএমএস এখনো পাঠানো যাচ্ছে না — উপরের এসএমএস ক্রেডিট অংশ দেখুন।",
     "emptyEvents": "এই ওয়ার্কস্পেসের জন্য কোনো নোটিফিকেশন ইভেন্ট নেই।",
     "events": {
-      "order.placed": "অর্ডার জমা হয়েছে",
-      "order.confirmed": "অর্ডার নিশ্চিত হয়েছে",
-      "order.processing": "অর্ডার প্রস্তুত হচ্ছে",
-      "order.shipped": "অর্ডার পাঠানো হয়েছে",
-      "order.delivered": "অর্ডার ডেলিভারি হয়েছে",
-      "order.ready_for_pickup": "পিকআপের জন্য প্রস্তুত",
-      "order.picked_up": "অর্ডার নেওয়া হয়েছে",
-      "order.paid": "অর্ডারের টাকা পরিশোধিত",
-      "order.cancelled": "অর্ডার বাতিল",
-      "order.rejected": "অর্ডার প্রত্যাখ্যাত",
-      "order.returned": "অর্ডার ফেরত",
-      "sale.completed": "বিক্রয় রসিদ",
-      "sale.due_reminder": "বকেয়া পরিশোধের রিমাইন্ডার",
-      "purchase.received": "ক্রয় গ্রহণ",
-      "inventory.expiry_alert": "মেয়াদ শেষের সতর্কতা",
-      "inventory.low_stock": "স্টক কমের সতর্কতা",
-      "reports.sales_digest": "দৈনিক বিক্রয় সারাংশ",
-      "account.email_verify": "ইমেইল যাচাই",
-      "account.password_reset": "পাসওয়ার্ড রিসেট",
-      "account.user_invited": "ব্যবহারকারী আমন্ত্রণ",
-      "account.low_credit": "এসএমএস ব্যালেন্স কম"
+      "order": {
+        "placed": "অর্ডার জমা হয়েছে",
+        "confirmed": "অর্ডার নিশ্চিত হয়েছে",
+        "processing": "অর্ডার প্রস্তুত হচ্ছে",
+        "shipped": "অর্ডার পাঠানো হয়েছে",
+        "delivered": "অর্ডার ডেলিভারি হয়েছে",
+        "ready_for_pickup": "পিকআপের জন্য প্রস্তুত",
+        "picked_up": "অর্ডার নেওয়া হয়েছে",
+        "paid": "অর্ডারের টাকা পরিশোধিত",
+        "cancelled": "অর্ডার বাতিল",
+        "rejected": "অর্ডার প্রত্যাখ্যাত",
+        "returned": "অর্ডার ফেরত"
+      },
+      "sale": {
+        "completed": "বিক্রয় রসিদ",
+        "due_reminder": "বকেয়া পরিশোধের রিমাইন্ডার"
+      },
+      "purchase": {
+        "received": "ক্রয় গ্রহণ"
+      },
+      "inventory": {
+        "expiry_alert": "মেয়াদ শেষের সতর্কতা",
+        "low_stock": "স্টক কমের সতর্কতা"
+      },
+      "reports": {
+        "sales_digest": "দৈনিক বিক্রয় সারাংশ"
+      },
+      "account": {
+        "email_verify": "ইমেইল যাচাই",
+        "password_reset": "পাসওয়ার্ড রিসেট",
+        "user_invited": "ব্যবহারকারী আমন্ত্রণ",
+        "low_credit": "এসএমএস ব্যালেন্স কম"
+      }
     },
     "log": {
       "title": "বার্তার রেকর্ড",

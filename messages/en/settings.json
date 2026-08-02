@@ -953,27 +953,39 @@
     "smsLockedHint": "SMS can't send yet — see the SMS credit card above.",
     "emptyEvents": "No notification events available for this workspace.",
     "events": {
-      "order.placed": "Order placed",
-      "order.confirmed": "Order confirmed",
-      "order.processing": "Order being prepared",
-      "order.shipped": "Order shipped",
-      "order.delivered": "Order delivered",
-      "order.ready_for_pickup": "Ready for pickup",
-      "order.picked_up": "Order picked up",
-      "order.paid": "Order paid",
-      "order.cancelled": "Order cancelled",
-      "order.rejected": "Order rejected",
-      "order.returned": "Order returned",
-      "sale.completed": "Sale receipt",
-      "sale.due_reminder": "Payment due reminder",
-      "purchase.received": "Purchase received",
-      "inventory.expiry_alert": "Expiry alert",
-      "inventory.low_stock": "Low stock alert",
-      "reports.sales_digest": "Daily sales summary",
-      "account.email_verify": "Email verification",
-      "account.password_reset": "Password reset",
-      "account.user_invited": "User invited",
-      "account.low_credit": "Low SMS credit"
+      "order": {
+        "placed": "Order placed",
+        "confirmed": "Order confirmed",
+        "processing": "Order being prepared",
+        "shipped": "Order shipped",
+        "delivered": "Order delivered",
+        "ready_for_pickup": "Ready for pickup",
+        "picked_up": "Order picked up",
+        "paid": "Order paid",
+        "cancelled": "Order cancelled",
+        "rejected": "Order rejected",
+        "returned": "Order returned"
+      },
+      "sale": {
+        "completed": "Sale receipt",
+        "due_reminder": "Payment due reminder"
+      },
+      "purchase": {
+        "received": "Purchase received"
+      },
+      "inventory": {
+        "expiry_alert": "Expiry alert",
+        "low_stock": "Low stock alert"
+      },
+      "reports": {
+        "sales_digest": "Daily sales summary"
+      },
+      "account": {
+        "email_verify": "Email verification",
+        "password_reset": "Password reset",
+        "user_invited": "User invited",
+        "low_credit": "Low SMS credit"
+      }
     },
     "log": {
       "title": "Message log",

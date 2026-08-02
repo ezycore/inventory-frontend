@@ -88,7 +88,7 @@ export function SmsCreditCard() {
             {sms?.expiresAt && !expired && (
               <p className="text-xs text-muted-foreground">
                 {t("sms.validUntil", {
-                  date: formatDate(sms.expiresAt, locale),
+                  date: formatDate(sms.expiresAt, "dd MMM yyyy", locale),
                 })}
               </p>
             )}
