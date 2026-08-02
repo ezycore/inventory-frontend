@@ -91,16 +91,30 @@ If it fails, the reason shown comes straight from the SMS company, not from us. 
 what to quote if you contact support. You can send a handful of tests an hour; past that it stops
 you, because repeating a failing test is not diagnosis.
 
-## Daily summaries and the time they arrive
+## Scheduled messages and the time they arrive
 
-Two rows are summaries rather than reactions to something happening: **Daily sales summary** and
-**Expiry alert**. Each has a clock and a time picker under its name.
+Three rows go out on a clock rather than in reaction to something happening. Each has a clock icon
+and a time picker under its name: **Daily sales summary**, **Expiry alert** and **Payment due
+reminder**.
 
-The time is *your* local time, not ours. Set the sales summary to whenever you close, and it
-arrives with the day's takings already totalled. The expiry alert defaults to the morning, which is
-when there is still time to pull stock off the shelf.
+The time is *your* local time, not ours. Set the sales summary to whenever you close, and it arrives
+with the day's takings already totalled. The expiry alert defaults to the morning, which is when
+there is still time to pull stock off the shelf.
 
-Untick the row to stop the summary entirely — the picker is only about *when*, never *whether*.
+Untick the row to stop it entirely — the picker is only about *when*, never *whether*.
+
+### Payment due reminders
+
+This one emails customers who owe you money, so it is deliberately cautious:
+
+- Nothing is sent until an invoice is **a week past its due date**. Someone paying on agreed terms
+  is not late.
+- A customer hears from you at most **once a fortnight**, however long the debt stands.
+- One email per customer, not per invoice. Four unpaid invoices are one conversation, and the
+  statement lists all of them.
+
+It only appears if the Accounts module is on, since that is where dues come from. Sending a
+statement to one customer right now is a different thing — use **Email statement** on their ledger.
 
 ## Checking what was sent
 
