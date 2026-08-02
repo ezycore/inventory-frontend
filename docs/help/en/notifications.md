@@ -90,13 +90,29 @@ A long message counts as more than one. Roughly 160 English characters fit in on
 70, because the alphabet needs more space per character. So a Bangla message that looks short can
 still cost two.
 
+### Seeing what each SMS says, and what it costs
+
+You do not have to guess. In the table below, **hover an unticked SMS box** and the exact message
+appears. Tick it and the message moves under the event name, so at a glance you can read everything
+your shop is currently texting.
+
+The wording is shown with your real shop name filled in, because that is what decides the length.
+Every message we ship fits in one SMS with room to spare — but a very long shop name can push one
+over the edge, and then a red **2 segments** label appears beside it. That label means every message
+on that row costs you double. Shortening your shop name is usually all it takes.
+
 ### Testing that SMS works
 
-Once SMS is switched on, **Send test SMS** sends one message to your alert number so you can
-confirm it arrives before a real customer order depends on it.
+Once SMS is switched on, a **Send test to** box appears, already filled in with your alert number.
+Press **Send test SMS** and one message goes to whatever number is in that box, so you can confirm
+it arrives before a real customer order depends on it.
 
-It is a real message: *Sends one real message to your alert number and charges 1 SMS.* There is no
-free test — a test that did not go through the live gateway would not prove anything.
+You can type a different number in there — useful when you are fixing a wrong alert number and want
+to prove the new one works first. It only applies to that one test: *Sends one real message to this
+number and charges 1 SMS. Editing it here does not change your alert number.* To change the number
+permanently, edit **Alert phone** in the card above.
+
+There is no free test — a test that did not go through the live gateway would not prove anything.
 
 If it fails, the reason shown comes straight from the SMS company, not from us. That wording is
 what to quote if you contact support. You can send a handful of tests an hour; past that it stops

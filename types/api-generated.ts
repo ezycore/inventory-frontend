@@ -9561,6 +9561,16 @@ export interface components {
                     sms: boolean;
                 };
             };
+            smsPreview: {
+                customer?: {
+                    text: string;
+                    segments: number;
+                };
+                merchant?: {
+                    text: string;
+                    segments: number;
+                };
+            };
             templates?: {
                 emailSubject?: string;
                 emailBody?: string;
@@ -9610,6 +9620,13 @@ export interface components {
                 /** Format: date-time */
                 expiresAt?: string;
                 expired: boolean;
+                terms?: {
+                    pricePerSegmentBdt: number;
+                    version: string;
+                    effectiveFrom?: string;
+                    en: string;
+                    bn: string;
+                };
             };
             merchantRecipients: {
                 email?: string;
@@ -9633,6 +9650,16 @@ export interface components {
                     merchant?: {
                         email: boolean;
                         sms: boolean;
+                    };
+                };
+                smsPreview: {
+                    customer?: {
+                        text: string;
+                        segments: number;
+                    };
+                    merchant?: {
+                        text: string;
+                        segments: number;
                     };
                 };
                 templates?: {

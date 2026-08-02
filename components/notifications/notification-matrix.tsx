@@ -8,6 +8,7 @@ import {
   useUpdateNotificationSettings,
 } from "@/services/api";
 import type { NotificationEventRow } from "@/types/api";
+import { SmsPreviewNote } from "@/components/notifications/sms-preview-note";
 import { Badge } from "@/ui/components/badge";
 import { Checkbox } from "@/ui/components/checkbox";
 import { SimpleSelect } from "@/ui/components/simple-select";
@@ -121,18 +122,44 @@ export function NotificationMatrix({
         onCheckedChange={() => toggle(row, audience, channel)}
       />
     );
-    if (!locked) return box;
+
+    // A reserved same-size slot for the lock icon (present or not) keeps the
+    // checkbox itself at a fixed x-position — otherwise centering content of
+    // different widths (box alone vs. box+lock) shifts the box as state changes.
+    const content = (
+      <span className="inline-flex items-center gap-1">
+        {box}
+        {locked ? (
+          <Lock className="size-3 text-muted-foreground" />
+        ) : (
+          <span className="size-3" aria-hidden="true" />
+        )}
+      </span>
+    );
+
+    if (locked) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{content}</TooltipTrigger>
+          <TooltipContent>
+            {row.mandatory ? t("mandatoryHint") : t("smsLockedHint")}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    // An UNticked SMS box is exactly where the text matters: the merchant is
+    // deciding whether to start paying for this event, and the inline preview
+    // below only appears once it is already on. A tooltip answers "what would
+    // this say?" before the money is committed.
+    const preview = channel === "sms" ? row.smsPreview?.[audience] : undefined;
+    if (!preview || checked) return content;
 
     return (
       <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-flex items-center gap-1">
-            {box}
-            <Lock className="size-3 text-muted-foreground" />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>
-          {row.mandatory ? t("mandatoryHint") : t("smsLockedHint")}
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          <SmsPreviewNote preview={preview} audience={audience} />
         </TooltipContent>
       </Tooltip>
     );
@@ -181,6 +208,19 @@ export function NotificationMatrix({
             )}
           </div>
           <div className="text-xs text-muted-foreground">{row.key}</div>
+          {/* Only for audiences whose SMS is actually ON — this is the running
+              cost of the current configuration, not a catalogue. The text for
+              an event that is off lives in the checkbox tooltip instead. */}
+          {AUDIENCES.filter(
+            (audience) => row.channels[audience]?.sms && row.smsPreview?.[audience],
+          ).map((audience) => (
+            <SmsPreviewNote
+              key={audience}
+              className="mt-1.5 rounded-md border-l-2 border-muted pl-2"
+              preview={row.smsPreview?.[audience]}
+              audience={audience}
+            />
+          ))}
           {row.schedule && (
             <div className="mt-1.5 flex items-center gap-1.5">
               <Clock className="size-3 text-muted-foreground" />
@@ -205,6 +245,7 @@ export function NotificationMatrix({
           key: `${audience}-${channel}`,
           align: "center",
           headClassName: "w-24",
+          cellClassName: "w-24",
           header: (
             <div className="flex flex-col items-center gap-0.5">
               <span className="text-[11px] uppercase tracking-wide text-muted-foreground">

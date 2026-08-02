@@ -1,14 +1,15 @@
 "use client";
 // coding-standard: maintained
 import { useLocale, useTranslations } from "next-intl";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import {
   useNotificationSettings,
-  useSendSmsTest,
   useUpdateNotificationSettings,
 } from "@/services/api";
 import { formatDate } from "@/lib/format";
+import { SmsCreditTerms } from "@/components/notifications/sms-credit-terms";
 import { SmsQuietHours } from "@/components/notifications/sms-quiet-hours";
+import { SmsTestRow } from "@/components/notifications/sms-test-row";
 import { SmsUsageReport } from "@/components/notifications/sms-usage-report";
 import type { AppLocale } from "@/i18n/config";
 import { Badge } from "@/ui/components/badge";
@@ -41,19 +42,14 @@ import { Switch } from "@/ui/components/switch";
  * deferred), so topping up is deliberately a "contact us" instruction rather
  * than a button that would 404.
  *
- * The test button below sends a REAL, CHARGED message — it is the only way to
- * find out whether the gateway credentials work without waiting for a customer
- * order, and a free test path would be a free SMS path.
+ * The self-test lives in `<SmsTestRow>` — it owns its own number field, and it
+ * sends a REAL, CHARGED message.
  */
 export function SmsCreditCard() {
   const t = useTranslations("settings.notifications");
   const locale = useLocale() as AppLocale;
   const { data, isLoading } = useNotificationSettings();
   const updateSettings = useUpdateNotificationSettings();
-  const sendTest = useSendSmsTest();
-  // A rejection comes back as a successful response carrying the gateway's
-  // reason, so the verdict is read off `data`, not off the error.
-  const verdict = sendTest.data?.data;
 
   const sms = data?.sms;
   const balance = sms?.balance ?? 0;
@@ -161,36 +157,10 @@ export function SmsCreditCard() {
         {available && enabled && <SmsQuietHours />}
 
         {available && enabled && (
-          <div className="flex flex-wrap items-center gap-3 border-t pt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={sendTest.isPending || balance === 0 || expired}
-              onClick={() => sendTest.mutate(undefined)}
-            >
-              <Send className="size-3.5" />
-              {sendTest.isPending ? t("sms.testSending") : t("sms.test")}
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              {t("sms.testHint")}
-            </p>
-            {/* The gateway's own words on a rejection — the reason the button
-                exists. A generic "failed" would send the merchant to support
-                with nothing to say. */}
-            {verdict && (
-              <p
-                className={
-                  verdict.status === "sent"
-                    ? "w-full text-xs text-emerald-600 dark:text-emerald-400"
-                    : "w-full text-xs text-destructive"
-                }
-              >
-                {verdict.status === "sent"
-                  ? t("sms.testSent", { recipient: verdict.recipient })
-                  : verdict.error || t("sms.testFailed")}
-              </p>
-            )}
-          </div>
+          <SmsTestRow
+            alertPhone={data?.merchantRecipients.phone ?? ""}
+            disabled={balance === 0 || expired}
+          />
         )}
 
         <p className="text-xs text-muted-foreground">
@@ -199,6 +169,12 @@ export function SmsCreditCard() {
             {t("sms.nonRefundable")}
           </Badge>
         </p>
+
+        {/* The price and the full terms, straight from Mission Control. Shown
+            to every merchant with SMS on their plan, not only at the moment of
+            purchase: there is no self-serve checkout yet, so this card is the
+            only place they can go back and re-read what they bought. */}
+        {sms?.terms && <SmsCreditTerms terms={sms.terms} />}
 
         {available && <SmsUsageReport />}
       </CardContent>
