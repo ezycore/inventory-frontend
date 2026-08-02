@@ -3,6 +3,7 @@ import type {
   ApiResponse,
   AvailablePlansInfo,
   OrganizationFeatures,
+  PaginatedResponse,
   PlanChangeResult,
   StorefrontHeroSlide,
   StorefrontSettings,
@@ -14,7 +15,51 @@ import type {
   VatRegistrationType,
   VatPeriod,
 } from "@/types";
-import type { ApiOrganization } from "@/types/api";
+import type {
+  ApiOrganization,
+  NotificationLogItem,
+  NotificationSettings,
+  SmsTestResult,
+  SmsUsageReport,
+} from "@/types/api";
+
+/**
+ * PATCH body for the notification matrix. `events` is keyed by event key —
+ * each key sent REPLACES that event's stored config; keys omitted are left
+ * alone. (The backend stores an array internally; the wire shape is keyed.)
+ */
+export interface UpdateNotificationSettingsDto {
+  sms?: {
+    enabled?: boolean;
+    monthlyCap?: number;
+    /** `null` clears the window — an omitted key means "leave it alone". */
+    quietHours?: { start: number; end: number } | null;
+  };
+  merchantRecipients?: {
+    email?: string;
+    phone?: string;
+    alsoNotifyOwner?: boolean;
+  };
+  events?: Record<
+    string,
+    {
+      customer?: { email?: boolean; sms?: boolean };
+      merchant?: { email?: boolean; sms?: boolean };
+      templates?: { emailSubject?: string; emailBody?: string; sms?: string };
+      schedule?: { hour: number };
+    }
+  >;
+}
+
+export interface NotificationLogParams {
+  page?: number;
+  limit?: number;
+  eventKey?: string;
+  channel?: "email" | "sms";
+  audience?: "customer" | "merchant";
+  status?: string;
+  entityId?: string;
+}
 
 export interface ExcludedFieldsSettings {
   product?: string[];
@@ -151,6 +196,52 @@ export const organizationApi = {
   // Used in: useClearDemoData → demo banner "Clear sample data" button
   clearDemoData: (): Promise<ApiResponse<any>> =>
     apiClient.delete(`/organization/demo-data`),
+
+  // ============= Notifications (organization.manage) =============
+
+  // GET /api/organization/notifications - Config + effective event matrix
+  getNotificationSettings: (): Promise<ApiResponse<NotificationSettings>> =>
+    apiClient.get(`/organization/notifications`),
+
+  // PATCH /api/organization/notifications - Partial config update. `events` is
+  // keyed by event key; only the keys sent are replaced.
+  updateNotificationSettings: (
+    data: UpdateNotificationSettingsDto,
+  ): Promise<ApiResponse<NotificationSettings>> =>
+    apiClient.patch(`/organization/notifications`, data),
+
+  // POST /api/organization/notifications/sms/test - One real, charged test SMS.
+  // `phone` overrides the saved alert number for this send only.
+  sendSmsTest: (phone?: string): Promise<ApiResponse<SmsTestResult>> =>
+    apiClient.post(`/organization/notifications/sms/test`, phone ? { phone } : {}),
+
+  // GET /api/organization/notifications/log - Outbox/audit rows (paginated)
+  getNotificationLog: (
+    params?: NotificationLogParams,
+  ): Promise<ApiResponse<PaginatedResponse<NotificationLogItem>>> => {
+    const qs = new URLSearchParams();
+    for (const [key, value] of Object.entries(params ?? {})) {
+      if (value !== undefined && value !== "") qs.append(key, String(value));
+    }
+    const query = qs.toString();
+    return apiClient.get(
+      `/organization/notifications/log${query ? `?${query}` : ""}`,
+    );
+  },
+
+  // POST /api/organization/notifications/log/:id/resend - Dead-letter resend.
+  // Only `failed` rows and the two credit skips qualify; the backend rejects
+  // the rest rather than silently doing nothing.
+  resendNotification: (
+    id: string,
+  ): Promise<ApiResponse<NotificationLogItem>> =>
+    apiClient.post(`/organization/notifications/log/${id}/resend`, {}),
+
+  // GET /api/organization/notifications/sms/usage - Segments by event × month
+  getSmsUsage: (months?: number): Promise<ApiResponse<SmsUsageReport>> =>
+    apiClient.get(
+      `/organization/notifications/sms/usage${months ? `?months=${months}` : ""}`,
+    ),
 
   // ============= Storefront Settings (requires storefront feature) =============
 

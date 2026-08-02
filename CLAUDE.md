@@ -115,6 +115,41 @@ Run a single test file:
 pnpm test path/to/file.test.ts
 ```
 
+## Infra env templates (mandatory)
+
+**A new `NEXT_PUBLIC_*` is not done until four files agree.** Every env var this app reads is
+`NEXT_PUBLIC_*`, which means it is **baked into the image at BUILD time** — the running container
+reads nothing. So a var added here and nowhere else is not "missing in prod", it is *permanently
+empty in prod*, and no server-side env edit can fix it: it needs a rebuild.
+
+The four that move together, in the same change:
+
+| File | Role |
+|---|---|
+| `.env.example` (this repo) | local dev + the documented meaning of each var |
+| `Dockerfile` | `ARG X` + `ENV X=$X` — without this the build never sees it |
+| `.github/workflows/deploy.yml` | `build-args:` — the per-branch value (main → prod, else staging) |
+| [`easystock-infra/templates/frontend.env.example`](../easystock-infra/templates/frontend.env.example) | the deploy registry: runtime `NODE_ENV` only, plus these listed as build-time-only |
+
+Rules:
+
+- **Never add a runtime var to the infra template expecting it to work.** `env_file: ./.env.frontend`
+  is loaded, but Next has already inlined `NEXT_PUBLIC_*` into the bundle at build time — editing it
+  on the server changes nothing. If you genuinely need a runtime value, it has to be fetched from the
+  API, not read from `process.env`.
+- **The Dockerfile `ARG` and the workflow `build-arg` are separate steps.** Declaring the `ARG`
+  without passing the `build-arg` produces a silently empty value in every image —
+  `NEXT_PUBLIC_CUSTOM_DOMAIN_MAP` is in that state today (intentionally: self-serve domains resolve
+  dynamically via `/api/public/store-by-host`).
+- **`NEXT_PUBLIC_ROOT_DOMAIN` and `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN` must be equal** — the second
+  parses store slugs against the first's subdomains, and a mismatch breaks storefront host resolution.
+- **No secrets, ever.** `NEXT_PUBLIC_*` is shipped to the browser by definition.
+- **The audit command**, when you suspect drift:
+  ```bash
+  grep -rhoE 'process\.env\.[A-Z0-9_]+' --include='*.ts' --include='*.tsx' . \
+    --exclude-dir=node_modules --exclude-dir=.next | sort -u
+  ```
+
 ## Architecture
 
 This is a **Next.js 16 App Router** application for an inventory management SaaS. The stack is: React 19, TypeScript, TanStack Query, Zustand, Tailwind CSS v4, Radix UI, React Hook Form + Zod, and Sonner for toasts.
