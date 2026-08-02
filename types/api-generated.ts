@@ -945,12 +945,12 @@ export interface paths {
         };
         /**
          * GET /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:29`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:31`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization"];
         /**
          * PUT /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:21`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:23`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization"];
         post?: never;
@@ -972,7 +972,7 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/demo-data
-         * @description Defined in `src/routes/organization.routes.ts:36`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:38`. Requires permission `organization.edit`.
          */
         delete: operations["delete_api_organization_demo_data"];
         options?: never;
@@ -989,7 +989,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications
-         * @description Defined in `src/routes/organization.routes.ts:43`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:45`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications"];
         put?: never;
@@ -999,7 +999,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/notifications
-         * @description Defined in `src/routes/organization.routes.ts:50`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:52`. Requires permission `organization.manage`.
          */
         patch: operations["patch_api_organization_notifications"];
         trace?: never;
@@ -1013,11 +1013,31 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications/log
-         * @description Defined in `src/routes/organization.routes.ts:58`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:60`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications_log"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/notifications/sms/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/notifications/sms/test
+         * @description Defined in `src/routes/organization.routes.ts:70`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
+         */
+        post: operations["post_api_organization_notifications_sms_test"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1033,7 +1053,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/subscription
-         * @description Defined in `src/routes/organization.routes.ts:66`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:80`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_subscription"];
         put?: never;
@@ -1053,7 +1073,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/billing/pay-link
-         * @description Defined in `src/routes/organization.routes.ts:73`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:87`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_billing_pay_link"];
         put?: never;
@@ -1073,7 +1093,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/plans
-         * @description Defined in `src/routes/organization.routes.ts:80`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:94`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_plans"];
         put?: never;
@@ -1095,7 +1115,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change
-         * @description Defined in `src/routes/organization.routes.ts:87`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:101`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change"];
         delete?: never;
@@ -1115,7 +1135,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change/reconcile
-         * @description Defined in `src/routes/organization.routes.ts:94`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:108`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change_reconcile"];
         delete?: never;
@@ -1135,7 +1155,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/subscription/cancel
-         * @description Defined in `src/routes/organization.routes.ts:102`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:116`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_subscription_cancel"];
         delete?: never;
@@ -1154,7 +1174,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/form-settings
-         * @description Defined in `src/routes/organization.routes.ts:110`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:124`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_form_settings"];
         post?: never;
@@ -1173,12 +1193,12 @@ export interface paths {
         };
         /**
          * GET /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:121`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:135`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_features"];
         /**
          * PUT /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:129`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:143`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_features"];
         post?: never;
@@ -1198,7 +1218,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/column-settings
-         * @description Defined in `src/routes/organization.routes.ts:138`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:152`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_column_settings"];
         post?: never;
@@ -1217,7 +1237,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:149`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:163`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront"];
         put?: never;
@@ -1227,7 +1247,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:157`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:171`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront"];
         trace?: never;
@@ -1247,7 +1267,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/media
-         * @description Defined in `src/routes/organization.routes.ts:166`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:180`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
@@ -1263,7 +1283,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/hero-slide
-         * @description Defined in `src/routes/organization.routes.ts:179`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:193`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_hero_slide"];
         delete?: never;
@@ -1282,7 +1302,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:189`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:203`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -9578,6 +9598,15 @@ export interface components {
                 };
             }[];
         };
+        SmsTestResult: {
+            /** @enum {string} */
+            status: "sent" | "failed" | "skipped";
+            recipient: string;
+            segments: number;
+            segmentsCharged?: number;
+            error?: string;
+            balance: number;
+        };
         AvailablePlan: {
             id: string;
             name: string;
@@ -9804,16 +9833,6 @@ export interface components {
                 showDocTitle?: boolean;
                 showAmountInWords?: boolean;
                 amountInWordsLabel?: string;
-            };
-            notificationSettings?: {
-                salesDigest?: {
-                    enabled: boolean;
-                    hour: number;
-                };
-                expiryDigest?: {
-                    enabled: boolean;
-                    hour: number;
-                };
             };
             settings?: {
                 excludedFields?: {
@@ -14529,6 +14548,73 @@ export interface operations {
             };
             /** @description Permission denied */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_notifications_sms_test: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    phone?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["SmsTestResult"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limit exceeded (6 requests / 1 hour per IP) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

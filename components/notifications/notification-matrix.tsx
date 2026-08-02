@@ -2,7 +2,7 @@
 // coding-standard: maintained
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { Lock, Mail, MessageSquare } from "lucide-react";
+import { Clock, Lock, Mail, MessageSquare } from "lucide-react";
 import {
   useNotificationSettings,
   useUpdateNotificationSettings,
@@ -10,6 +10,7 @@ import {
 import type { NotificationEventRow } from "@/types/api";
 import { Badge } from "@/ui/components/badge";
 import { Checkbox } from "@/ui/components/checkbox";
+import { SimpleSelect } from "@/ui/components/simple-select";
 import { SimpleTable, type SimpleColumn } from "@/ui/components/simple-table";
 import { Skeleton } from "@/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/ui/components/tabs";
@@ -70,9 +71,12 @@ export function NotificationMatrix({
     [events, activeDomain],
   );
 
-  // SMS has no provider until Phase 3 of the notification plan; the column
-  // renders but every box is locked until the org's SMS master switch is on.
-  const smsAvailable = data?.sms.enabled === true;
+  // The SMS column renders always, but a box is only usable once the plan
+  // grants SMS AND the merchant has flipped the master switch — the credit
+  // balance is checked at send time, not here, because a merchant should be
+  // able to configure SMS before topping up.
+  const smsAvailable =
+    data?.sms.enabled === true && data?.sms.available === true;
 
   const toggle = (row: NotificationEventRow, audience: Audience, channel: Channel) => {
     const current = row.channels[audience];
@@ -134,6 +138,34 @@ export function NotificationMatrix({
     );
   };
 
+  /**
+   * Scheduled digests (the daily sales summary, the expiry report) carry an
+   * org-local hour. The backend always sends a resolved value, so this never
+   * has to know the default — which is what stops the picker and the job
+   * disagreeing about when "unset" means.
+   */
+  const setHour = (row: NotificationEventRow, hour: number) => {
+    updateSettings.mutate({
+      events: {
+        [row.key]: {
+          ...(row.channels.customer
+            ? { customer: { ...row.channels.customer } }
+            : {}),
+          ...(row.channels.merchant
+            ? { merchant: { ...row.channels.merchant } }
+            : {}),
+          ...(row.templates ? { templates: row.templates } : {}),
+          schedule: { hour },
+        },
+      },
+    });
+  };
+
+  const hourOptions = Array.from({ length: 24 }, (_, hour) => ({
+    value: String(hour),
+    label: `${String(hour).padStart(2, "0")}:00`,
+  }));
+
   const columns: SimpleColumn<NotificationEventRow>[] = [
     {
       key: "event",
@@ -149,6 +181,21 @@ export function NotificationMatrix({
             )}
           </div>
           <div className="text-xs text-muted-foreground">{row.key}</div>
+          {row.schedule && (
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <Clock className="size-3 text-muted-foreground" />
+              <SimpleSelect
+                size="sm"
+                className="h-7 w-24"
+                value={String(row.schedule.hour)}
+                onValueChange={(value) => setHour(row, Number(value))}
+                options={hourOptions}
+              />
+              <span className="text-xs text-muted-foreground">
+                {t("scheduleHint")}
+              </span>
+            </div>
+          )}
         </div>
       ),
     },

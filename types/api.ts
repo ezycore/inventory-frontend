@@ -158,6 +158,7 @@ export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 export type NotificationSettings = Schemas["NotificationSettings"];
 export type NotificationEventRow = NotificationSettings["events"][number];
 export type NotificationLogItem = Schemas["NotificationLogItem"];
+export type SmsTestResult = Schemas["SmsTestResult"];
 export type ApiCampaign = Schemas["Campaign"];
 export type ApiCoupon = Schemas["Coupon"];
 export type ApiContentPage = Schemas["ContentPage"];

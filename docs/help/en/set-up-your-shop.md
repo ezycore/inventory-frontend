@@ -14,9 +14,6 @@ ui_labels:
   - settings:features.names.expiryTracking
   - settings:features.names.storefront
   - settings:features.descriptions.expiryTracking
-  - settings:organization.tab.emailReportsSectionLabel
-  - settings:organization.tab.dailyDigest
-  - settings:organization.tab.expiryReport
 ---
 
 # Set up your shop
@@ -30,10 +27,10 @@ the invoices and receipts your customers receive, so use the details you want th
 
 ## Report emails
 
-The same page has an **Email Reports** section. EzyCore emails the owner a **Daily sales digest** on
-days you made sales, and — if Expiry Tracking is on — an **Expiry report** listing stock that has
-expired or is about to. Each one has its own switch and its own send time, in your own timezone. Turn
-off what you don't read; the expiry dates on your stock stay correct either way.
+Daily summaries now live under **Settings → Notifications**, alongside every other message the
+product sends — see [Notifications](notifications.md). You still choose whether each one goes out
+and at what hour of your own day; they just share one page with order emails and alerts instead of
+having a settings box of their own.
 
 ## Locations
 

@@ -12,6 +12,8 @@ ui_labels:
   - settings:notifications.alsoNotifyOwner
   - settings:notifications.sms.title
   - settings:notifications.sms.empty
+  - settings:notifications.sms.test
+  - settings:notifications.sms.testHint
   - settings:notifications.log.title
   - settings:notifications.log.status.skipped
 ---
@@ -76,6 +78,29 @@ missing:
 A long message counts as more than one. Roughly 160 English characters fit in one; Bangla is about
 70, because the alphabet needs more space per character. So a Bangla message that looks short can
 still cost two.
+
+### Testing that SMS works
+
+Once SMS is switched on, **Send test SMS** sends one message to your alert number so you can
+confirm it arrives before a real customer order depends on it.
+
+It is a real message: *Sends one real message to your alert number and charges 1 SMS.* There is no
+free test — a test that did not go through the live gateway would not prove anything.
+
+If it fails, the reason shown comes straight from the SMS company, not from us. That wording is
+what to quote if you contact support. You can send a handful of tests an hour; past that it stops
+you, because repeating a failing test is not diagnosis.
+
+## Daily summaries and the time they arrive
+
+Two rows are summaries rather than reactions to something happening: **Daily sales summary** and
+**Expiry alert**. Each has a clock and a time picker under its name.
+
+The time is *your* local time, not ours. Set the sales summary to whenever you close, and it
+arrives with the day's takings already totalled. The expiry alert defaults to the morning, which is
+when there is still time to pull stock off the shelf.
+
+Untick the row to stop the summary entirely — the picker is only about *when*, never *whether*.
 
 ## Checking what was sent
 

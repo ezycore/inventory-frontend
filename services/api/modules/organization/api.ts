@@ -19,6 +19,7 @@ import type {
   ApiOrganization,
   NotificationLogItem,
   NotificationSettings,
+  SmsTestResult,
 } from "@/types/api";
 
 /**
@@ -202,6 +203,11 @@ export const organizationApi = {
     data: UpdateNotificationSettingsDto,
   ): Promise<ApiResponse<NotificationSettings>> =>
     apiClient.patch(`/organization/notifications`, data),
+
+  // POST /api/organization/notifications/sms/test - One real, charged test SMS.
+  // `phone` overrides the saved alert number for this send only.
+  sendSmsTest: (phone?: string): Promise<ApiResponse<SmsTestResult>> =>
+    apiClient.post(`/organization/notifications/sms/test`, phone ? { phone } : {}),
 
   // GET /api/organization/notifications/log - Outbox/audit rows (paginated)
   getNotificationLog: (

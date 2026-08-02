@@ -1,12 +1,14 @@
 "use client";
 // coding-standard: maintained
 import { useTranslations } from "next-intl";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Send } from "lucide-react";
 import {
   useNotificationSettings,
+  useSendSmsTest,
   useUpdateNotificationSettings,
 } from "@/services/api";
 import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
 import {
   Card,
   CardContent,
@@ -34,11 +36,19 @@ import { Switch } from "@/ui/components/switch";
  * There is no self-serve checkout yet (notifications plan Phase 3.5 is
  * deferred), so topping up is deliberately a "contact us" instruction rather
  * than a button that would 404.
+ *
+ * The test button below sends a REAL, CHARGED message — it is the only way to
+ * find out whether the gateway credentials work without waiting for a customer
+ * order, and a free test path would be a free SMS path.
  */
 export function SmsCreditCard() {
   const t = useTranslations("settings.notifications");
   const { data, isLoading } = useNotificationSettings();
   const updateSettings = useUpdateNotificationSettings();
+  const sendTest = useSendSmsTest();
+  // A rejection comes back as a successful response carrying the gateway's
+  // reason, so the verdict is read off `data`, not off the error.
+  const verdict = sendTest.data?.data;
 
   const sms = data?.sms;
   const balance = sms?.balance ?? 0;
@@ -120,6 +130,39 @@ export function SmsCreditCard() {
           // saying so stops a merchant assuming notifications are broken.
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
             {t("sms.empty")}
+          </div>
+        )}
+
+        {available && enabled && (
+          <div className="flex flex-wrap items-center gap-3 border-t pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={sendTest.isPending || balance === 0}
+              onClick={() => sendTest.mutate(undefined)}
+            >
+              <Send className="size-3.5" />
+              {sendTest.isPending ? t("sms.testSending") : t("sms.test")}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              {t("sms.testHint")}
+            </p>
+            {/* The gateway's own words on a rejection — the reason the button
+                exists. A generic "failed" would send the merchant to support
+                with nothing to say. */}
+            {verdict && (
+              <p
+                className={
+                  verdict.status === "sent"
+                    ? "w-full text-xs text-emerald-600 dark:text-emerald-400"
+                    : "w-full text-xs text-destructive"
+                }
+              >
+                {verdict.status === "sent"
+                  ? t("sms.testSent", { recipient: verdict.recipient })
+                  : verdict.error || t("sms.testFailed")}
+              </p>
+            )}
           </div>
         )}
 

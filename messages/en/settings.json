@@ -66,11 +66,6 @@
       "addressSectionLabel": "Business Address",
       "address": "Address",
       "addressPlaceholder": "Enter organization address",
-      "emailReportsSectionLabel": "Email Reports",
-      "dailyDigest": "Daily sales digest",
-      "dailyDigestHint": "Emails the owner a summary on days with sales.",
-      "expiryReport": "Expiry report",
-      "expiryReportHint": "Emails the owner expiring-soon and expired stock.",
       "sendAt": "Send at",
       "sendAtPlaceholder": "Select time",
       "sendAtHint": "In your organization's timezone.",
@@ -978,7 +973,7 @@
       "account.email_verify": "Email verification",
       "account.password_reset": "Password reset",
       "account.user_invited": "User invited",
-      "account.low_credit": "Low notification credit"
+      "account.low_credit": "Low SMS credit"
     },
     "log": {
       "title": "Message log",
@@ -1026,7 +1021,13 @@
       "empty": "You're out of SMS. Order emails keep sending as normal — only SMS stops.",
       "topUp": "To add more SMS, contact us and we'll top up your balance.",
       "nonRefundable": "Non-refundable",
-      "locked": "SMS can't send yet — see the SMS credit card above."
-    }
+      "locked": "SMS can't send yet — see the SMS credit card above.",
+      "test": "Send test SMS",
+      "testSending": "Sending…",
+      "testHint": "Sends one real message to your alert number and charges 1 SMS.",
+      "testSent": "Sent to {recipient}.",
+      "testFailed": "The gateway rejected the message."
+    },
+    "scheduleHint": "your local time"
   }
 }

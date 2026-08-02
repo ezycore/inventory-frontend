@@ -60,6 +60,34 @@ export const useUpdateNotificationSettings = () => {
   });
 };
 
+/**
+ * POST /api/organization/notifications/sms/test — send one real, charged SMS.
+ *
+ * A `failed` verdict comes back as a SUCCESSFUL response carrying the
+ * gateway's own words, so it is not routed to `handleMutationError`: the
+ * rejection reason is the diagnostic the merchant pressed the button for, and
+ * a generic red toast would throw it away. The caller renders the verdict.
+ *
+ * The settings query is invalidated either way — the balance moved on a send,
+ * and the log gained a row in every case.
+ */
+export const useSendSmsTest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (phone?: string) => organizationApi.sendSmsTest(phone),
+    // One prefix covers both: `notificationLog` keys start with the
+    // `notifications` key, so this flushes the settings AND every filtered
+    // page of the log.
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.organization.notifications(),
+      });
+    },
+    onError: handleMutationError,
+  });
+};
+
 // GET /api/organization/notifications/log - Outbox/audit rows
 export const useNotificationLog = (params?: NotificationLogParams) =>
   useQuery({
