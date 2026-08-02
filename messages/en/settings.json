@@ -1003,12 +1003,14 @@
         "sms_disabled": "SMS is off for this workspace.",
         "feature_off": "The feature behind this event is not enabled.",
         "no_recipient": "No address on file for this person.",
-        "suppressed": "This address bounced before, so we stopped mailing it.",
+        "suppressed": "This address or number failed permanently before, so we stopped sending to it.",
         "consent": "This person opted out of marketing.",
         "cap_reached": "The monthly SMS limit was reached.",
         "no_credit": "Out of SMS credits. Email is unaffected.",
         "credit_expired": "SMS credit had expired when this was due to send"
-      }
+      },
+      "resend": "Resend",
+      "resendHint": "Resending an SMS charges your balance again."
     },
     "sms": {
       "title": "SMS credit",
@@ -1029,7 +1031,23 @@
       "testSent": "Sent to {recipient}.",
       "testFailed": "The gateway rejected the message.",
       "validUntil": "Valid until {date}",
-      "expired": "Your SMS credit has expired. The messages are still here — top up and they become usable again. Email is unaffected."
+      "expired": "Your SMS credit has expired. The messages are still here — top up and they become usable again. Email is unaffected.",
+      "quietHours": {
+        "title": "Quiet hours",
+        "hint": "SMS is held until morning, never dropped. Email is unaffected.",
+        "from": "From",
+        "to": "until",
+        "localTime": "Your workspace's local time"
+      },
+      "usage": {
+        "title": "Where your SMS went",
+        "event": "Event",
+        "messages": "Messages",
+        "segments": "SMS used",
+        "monthTotal": "{messages} messages · {segments} SMS",
+        "total": "Last 6 months: {messages} messages · {segments} SMS",
+        "empty": "No SMS sent yet."
+      }
     },
     "scheduleHint": "your local time"
   }

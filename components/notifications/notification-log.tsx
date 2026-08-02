@@ -2,19 +2,42 @@
 // coding-standard: maintained
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { Mail, MessageSquare } from "lucide-react";
+import { Mail, MessageSquare, RotateCw } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
-import { useNotificationLog, useNotificationSettings } from "@/services/api";
+import {
+  useNotificationLog,
+  useNotificationSettings,
+  useResendNotification,
+} from "@/services/api";
 import type { AppLocale } from "@/i18n/config";
 import type { NotificationLogItem } from "@/types/api";
 import { TablePager } from "@/components/shared/table-pager";
 import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { SimpleTable, type SimpleColumn } from "@/ui/components/simple-table";
 import { Skeleton } from "@/ui/components/skeleton";
 
 const PAGE_SIZE = 20;
 const ALL = "all";
+
+/**
+ * Which rows the backend will actually re-queue. Mirrored here so the button
+ * only appears where it works — an always-visible Resend that answers 400 on
+ * most rows teaches merchants to ignore it.
+ *
+ * A dispatcher-level skip (`channel_off`, `suppressed`, `consent`, …) is
+ * missing from this list for a concrete reason, not a policy one: those rows
+ * were never given a recipient address, so there is nowhere to resend them to.
+ * The fix for those is to remove the cause and let the next event send.
+ */
+const RESENDABLE_SKIP_REASONS = new Set(["no_credit", "credit_expired"]);
+
+const canResend = (row: NotificationLogItem): boolean =>
+  row.status === "failed" ||
+  (row.status === "skipped" &&
+    row.skipReason !== undefined &&
+    RESENDABLE_SKIP_REASONS.has(row.skipReason));
 
 /** Badge tone per status — `sent` is the only success state. */
 const STATUS_VARIANT: Record<
@@ -49,6 +72,10 @@ export function NotificationLog() {
   const [status, setStatus] = useState(ALL);
   const [channel, setChannel] = useState(ALL);
   const [eventKey, setEventKey] = useState(ALL);
+  const resend = useResendNotification();
+  // Tracked per row, not off `isPending` alone: the mutation is shared by every
+  // row, so a single flag would spin all of them.
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const { data, isLoading } = useNotificationLog({
     page,
@@ -88,6 +115,8 @@ export function NotificationLog() {
       value: row.key,
     })),
   ];
+
+  const rows = data?.items ?? [];
 
   const columns: SimpleColumn<NotificationLogItem>[] = [
     {
@@ -165,9 +194,34 @@ export function NotificationLog() {
         </div>
       ),
     },
+    {
+      key: "actions",
+      header: "",
+      headClassName: "w-28",
+      align: "right",
+      cell: (row) =>
+        canResend(row) ? (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={resend.isPending}
+            onClick={() => {
+              setResendingId(String(row._id));
+              resend.mutate(String(row._id), {
+                onSettled: () => setResendingId(null),
+              });
+            }}
+          >
+            <RotateCw
+              className={`size-3.5 ${
+                resendingId === String(row._id) ? "animate-spin" : ""
+              }`}
+            />
+            {t("log.resend")}
+          </Button>
+        ) : null,
+    },
   ];
-
-  const rows = data?.items ?? [];
 
   return (
     <div className="space-y-4">
@@ -194,6 +248,13 @@ export function NotificationLog() {
           options={channelOptions}
         />
       </div>
+
+      {/* Said once, above the rows, rather than on every button: a resend is
+          the same charge as the original send, and a merchant clearing a
+          backlog of failures should know that before the first click. */}
+      {rows.some((row) => canResend(row) && row.channel === "sms") && (
+        <p className="text-xs text-muted-foreground">{t("log.resendHint")}</p>
+      )}
 
       {isLoading ? (
         <div className="space-y-2">

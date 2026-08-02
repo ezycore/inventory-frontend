@@ -97,6 +97,40 @@ export const useNotificationLog = (params?: NotificationLogParams) =>
     staleTime: 30 * 1000,
   });
 
+/**
+ * POST /api/organization/notifications/log/:id/resend — dead-letter resend.
+ *
+ * Invalidates the whole `notifications` prefix rather than patching the row in
+ * place: an SMS resend also moves the balance, and the settings card sitting
+ * above the log shows that balance.
+ */
+export const useResendNotification = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => organizationApi.resendNotification(id),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Queued to send again");
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.organization.notifications(),
+      });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// GET /api/organization/notifications/sms/usage - Segments by event × month
+export const useSmsUsage = (months?: number, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.organization.smsUsage(months),
+    queryFn: () => organizationApi.getSmsUsage(months),
+    select: (res) => res.data,
+    staleTime: 60 * 1000,
+    enabled,
+  });
+
 // GET /api/organization/subscription - Current plan/entitlement + usage
 export const useGetSubscription = () => {
   return useQuery({

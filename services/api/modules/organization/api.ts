@@ -20,6 +20,7 @@ import type {
   NotificationLogItem,
   NotificationSettings,
   SmsTestResult,
+  SmsUsageReport,
 } from "@/types/api";
 
 /**
@@ -28,7 +29,12 @@ import type {
  * alone. (The backend stores an array internally; the wire shape is keyed.)
  */
 export interface UpdateNotificationSettingsDto {
-  sms?: { enabled?: boolean; monthlyCap?: number };
+  sms?: {
+    enabled?: boolean;
+    monthlyCap?: number;
+    /** `null` clears the window — an omitted key means "leave it alone". */
+    quietHours?: { start: number; end: number } | null;
+  };
   merchantRecipients?: {
     email?: string;
     phone?: string;
@@ -222,6 +228,20 @@ export const organizationApi = {
       `/organization/notifications/log${query ? `?${query}` : ""}`,
     );
   },
+
+  // POST /api/organization/notifications/log/:id/resend - Dead-letter resend.
+  // Only `failed` rows and the two credit skips qualify; the backend rejects
+  // the rest rather than silently doing nothing.
+  resendNotification: (
+    id: string,
+  ): Promise<ApiResponse<NotificationLogItem>> =>
+    apiClient.post(`/organization/notifications/log/${id}/resend`, {}),
+
+  // GET /api/organization/notifications/sms/usage - Segments by event × month
+  getSmsUsage: (months?: number): Promise<ApiResponse<SmsUsageReport>> =>
+    apiClient.get(
+      `/organization/notifications/sms/usage${months ? `?months=${months}` : ""}`,
+    ),
 
   // ============= Storefront Settings (requires storefront feature) =============
 

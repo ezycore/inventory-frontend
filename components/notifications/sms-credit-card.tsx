@@ -8,6 +8,8 @@ import {
   useUpdateNotificationSettings,
 } from "@/services/api";
 import { formatDate } from "@/lib/format";
+import { SmsQuietHours } from "@/components/notifications/sms-quiet-hours";
+import { SmsUsageReport } from "@/components/notifications/sms-usage-report";
 import type { AppLocale } from "@/i18n/config";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
@@ -156,6 +158,8 @@ export function SmsCreditCard() {
           </div>
         )}
 
+        {available && enabled && <SmsQuietHours />}
+
         {available && enabled && (
           <div className="flex flex-wrap items-center gap-3 border-t pt-4">
             <Button
@@ -195,6 +199,8 @@ export function SmsCreditCard() {
             {t("sms.nonRefundable")}
           </Badge>
         </p>
+
+        {available && <SmsUsageReport />}
       </CardContent>
     </Card>
   );
