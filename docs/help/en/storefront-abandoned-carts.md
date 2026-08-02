@@ -106,6 +106,12 @@ Two limits are deliberate:
 Shoppers who switch off *Promotional email* in their account never receive these, even when the
 feature is on. That switch is theirs, not yours.
 
+**If the shopper never verified their email, they get their verification link instead.** They cannot
+place an order until they confirm their address, so a "come back to your cart" note would send them
+into a wall — the useful message is the one that unblocks them. That link is not marketing, so it
+goes out even if they turned *Promotional email* off. Either way it counts as one of their two
+reminders.
+
 The link expires after 7 days and works once. It rebuilds the cart at **today's** prices, and drops
 anything no longer for sale — the shopper is told when that happens rather than handed a quietly
 shorter cart. Nothing in a cart is ever reserved.

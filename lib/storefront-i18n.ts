@@ -155,6 +155,8 @@ export interface Dict {
   iveVerified: string;
   stillUnverified: string;
   orContinueWith: string;
+  /** Divider UNDER the social buttons — they lead, email is the fallback. */
+  orUseEmail: string;
   continueWithGoogle: string;
   continueWithFacebook: string;
   oauthSigningIn: string;
@@ -509,6 +511,7 @@ const en: Dict = {
   iveVerified: "I've verified",
   stillUnverified: "Still unverified — click the link in your email first.",
   orContinueWith: "or continue with",
+  orUseEmail: "or use your email",
   continueWithGoogle: "Continue with Google",
   continueWithFacebook: "Continue with Facebook",
   oauthSigningIn: "Signing you in…",
@@ -854,6 +857,7 @@ const bn: Dict = {
   iveVerified: "যাচাই করেছি",
   stillUnverified: "এখনও যাচাই হয়নি — আগে ইমেইলের লিংকে ক্লিক করুন।",
   orContinueWith: "অথবা চালিয়ে যান",
+  orUseEmail: "অথবা ইমেইল ব্যবহার করুন",
   continueWithGoogle: "Google দিয়ে চালিয়ে যান",
   continueWithFacebook: "Facebook দিয়ে চালিয়ে যান",
   oauthSigningIn: "সাইন ইন করা হচ্ছে…",

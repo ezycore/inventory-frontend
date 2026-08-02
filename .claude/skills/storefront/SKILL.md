@@ -474,6 +474,16 @@ resolved **per request from the host**, never baked.
 
 ## Work log (what was built, newest first — as of 2026-08-02)
 
+- **Social sign-in leads the auth card (FE)** (2026-08-02): Phase 4 item 1 of
+  [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md).
+  `<SocialLoginButtons>` moved **above** the email/password form in `shop/account/view.tsx`, and its
+  divider flipped to a trailing "or use your email" (`orUseEmail` ×3). This store requires an account
+  before checkout, so sign-in is the biggest drop in the funnel — and an OAuth shopper arrives
+  `emailVerified: true`, so one tap clears the **second** wall too. **No auth rule changed.**
+  Two things to keep: the component returns `null` **including its divider** when no provider is
+  configured, so a store without OAuth renders the exact card it did before; and Facebook is still in
+  Meta Development Mode, so this is Google-only in practice.
+
 - **Abandoned-cart recovery — the `?recover=` link (FE + BE)** (2026-08-02): Phase 3 of
   [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md). A shopper who
   left items behind now gets an email with a one-click link back to their cart.
