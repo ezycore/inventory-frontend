@@ -1,12 +1,14 @@
 "use client";
 // coding-standard: maintained
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { MessageSquare, Send } from "lucide-react";
 import {
   useNotificationSettings,
   useSendSmsTest,
   useUpdateNotificationSettings,
 } from "@/services/api";
+import { formatDate } from "@/lib/format";
+import type { AppLocale } from "@/i18n/config";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
@@ -43,6 +45,7 @@ import { Switch } from "@/ui/components/switch";
  */
 export function SmsCreditCard() {
   const t = useTranslations("settings.notifications");
+  const locale = useLocale() as AppLocale;
   const { data, isLoading } = useNotificationSettings();
   const updateSettings = useUpdateNotificationSettings();
   const sendTest = useSendSmsTest();
@@ -54,6 +57,10 @@ export function SmsCreditCard() {
   const balance = sms?.balance ?? 0;
   const available = sms?.available === true;
   const enabled = sms?.enabled === true;
+  // `expired` is computed by the server, not by comparing the date here: a
+  // device with the wrong clock would otherwise disagree with the send guard
+  // and tell the merchant they have credit the backend refuses to spend.
+  const expired = sms?.expired === true;
 
   if (isLoading) return <Skeleton className="h-40 w-full" />;
 
@@ -76,6 +83,13 @@ export function SmsCreditCard() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground">{t("sms.segmentHint")}</p>
+            {sms?.expiresAt && !expired && (
+              <p className="text-xs text-muted-foreground">
+                {t("sms.validUntil", {
+                  date: formatDate(sms.expiresAt, locale),
+                })}
+              </p>
+            )}
           </div>
           {sms?.monthlyCap ? (
             <div>
@@ -125,6 +139,15 @@ export function SmsCreditCard() {
           </div>
         )}
 
+        {available && expired && balance > 0 && (
+          // Distinct from an empty balance on purpose: the segments are still
+          // there and the fix is a top-up to restart the clock, not "buy more
+          // of what you already have".
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
+            {t("sms.expired")}
+          </div>
+        )}
+
         {available && balance === 0 && (
           // Deliberately not framed as an error: email is unaffected, and
           // saying so stops a merchant assuming notifications are broken.
@@ -138,7 +161,7 @@ export function SmsCreditCard() {
             <Button
               variant="outline"
               size="sm"
-              disabled={sendTest.isPending || balance === 0}
+              disabled={sendTest.isPending || balance === 0 || expired}
               onClick={() => sendTest.mutate(undefined)}
             >
               <Send className="size-3.5" />

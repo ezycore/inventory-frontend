@@ -9563,6 +9563,9 @@ export interface components {
                 available: boolean;
                 balance: number;
                 sentThisMonth: number;
+                /** Format: date-time */
+                expiresAt?: string;
+                expired: boolean;
             };
             merchantRecipients: {
                 email?: string;
@@ -12145,6 +12148,8 @@ export interface components {
             segments: number;
             mcSegments: number;
             unreportedUsage: number;
+            /** Format: date-time */
+            expiresAt: string | null;
             appliedAt: string;
         };
     };

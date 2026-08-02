@@ -14,6 +14,7 @@ ui_labels:
   - settings:notifications.sms.empty
   - settings:notifications.sms.test
   - settings:notifications.sms.testHint
+  - settings:notifications.sms.expired
   - settings:notifications.log.title
   - settings:notifications.log.status.skipped
 ---
@@ -64,6 +65,12 @@ to send, so it runs on a prepaid balance — email does not, and never stops bec
 
 New workspaces start with a few free SMS so you can see it working before deciding whether to buy
 more. To add credit, contact us and we'll top it up. Credit is **non-refundable** once added.
+
+**Credit is valid for six months**, and the card shows the date under the balance. Any top-up
+extends the whole balance — including SMS you already had — so if you buy credit regularly, nothing
+ever runs out of time. If the date does pass, the messages are not deleted; the card says exactly
+that: *Your SMS credit has expired. The messages are still here — top up and they become usable
+again. Email is unaffected.*
 
 Three separate things have to be true before an SMS goes out, and the card tells you which one is
 missing:
@@ -133,6 +140,8 @@ The rows marked **Not sent** are the useful ones, because each carries its reaso
   mail it would damage delivery for every other message you send. Ask the customer for a new one.
 - *This channel is switched off for this event* — the matrix above is doing exactly what you set it
   to. Tick the box if that was not what you wanted.
+- *SMS credit had expired when this was due to send* — the balance was there but past its date. Top
+  up and it works again; this is not the same as running out.
 
 **Queued** means it is waiting for the next send cycle, which runs every thirty seconds. If a row
 stays queued much longer than that, the problem is the mail service rather than your settings.

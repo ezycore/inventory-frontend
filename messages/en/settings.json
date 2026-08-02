@@ -1006,7 +1006,8 @@
         "suppressed": "This address bounced before, so we stopped mailing it.",
         "consent": "This person opted out of marketing.",
         "cap_reached": "The monthly SMS limit was reached.",
-        "no_credit": "Out of SMS credits. Email is unaffected."
+        "no_credit": "Out of SMS credits. Email is unaffected.",
+        "credit_expired": "SMS credit had expired when this was due to send"
       }
     },
     "sms": {
@@ -1026,7 +1027,9 @@
       "testSending": "Sending…",
       "testHint": "Sends one real message to your alert number and charges 1 SMS.",
       "testSent": "Sent to {recipient}.",
-      "testFailed": "The gateway rejected the message."
+      "testFailed": "The gateway rejected the message.",
+      "validUntil": "Valid until {date}",
+      "expired": "Your SMS credit has expired. The messages are still here — top up and they become usable again. Email is unaffected."
     },
     "scheduleHint": "your local time"
   }
