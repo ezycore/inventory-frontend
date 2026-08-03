@@ -97,7 +97,9 @@ export default function AbandonedCartsPage() {
       value: s ? formatRate(s.checkoutAbandonmentRate) : "—",
       icon: PackageX,
       variant: "default" as const,
-      description: "Reached checkout, didn't order",
+      description: stats
+        ? `Reached checkout, didn't order · ${stats.windowDays} days`
+        : undefined,
     },
   ];
 
