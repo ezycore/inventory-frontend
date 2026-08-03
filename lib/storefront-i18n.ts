@@ -276,6 +276,8 @@ export interface Dict {
   variableMsg: string;
   callToOrder: string;
   cartTitle: string;
+  /** Why the cart quotes a "From" delivery fee — the zone is picked at checkout. */
+  deliveryEstimateNote: string;
   /** Abandoned-cart recovery link outcomes. `{n}` = lines no longer available. */
   cartRestored: string;
   cartRestoredPartial: string;
@@ -622,6 +624,8 @@ const en: Dict = {
   variableMsg: "This product has selectable options (size, bundle) and is not sold online. Visit any Rashid’s Mart outlet or call to order.",
   callToOrder: "Call to order",
   cartTitle: "Shopping cart",
+  deliveryEstimateNote:
+    "Delivery is charged by area. The exact amount is confirmed at checkout once you choose yours.",
   cartRestored: "Welcome back — your cart is here.",
   cartRestoredPartial:
     "Your cart is back. {n} item(s) are no longer available and were removed.",
@@ -968,6 +972,8 @@ const bn: Dict = {
   variableMsg: "এই পণ্যে নির্বাচনযোগ্য অপশন (সাইজ, বান্ডেল) আছে এবং অনলাইনে বিক্রি হয় না। যেকোনো রশিদ’স মার্ট আউটলেটে যান বা কল করে অর্ডার করুন।",
   callToOrder: "কল করে অর্ডার",
   cartTitle: "শপিং কার্ট",
+  deliveryEstimateNote:
+    "ডেলিভারি চার্জ এলাকা অনুযায়ী। আপনি এলাকা বেছে নিলে চেকআউটে সঠিক পরিমাণ নিশ্চিত হবে।",
   cartRestored: "আবার স্বাগতম — আপনার কার্ট এখানে আছে।",
   cartRestoredPartial:
     "আপনার কার্ট ফিরে এসেছে। {n}টি পণ্য আর পাওয়া যাচ্ছে না বলে সরিয়ে দেওয়া হয়েছে।",

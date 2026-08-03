@@ -10,7 +10,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { storeHref } from "@/lib/storefront-links";
-import { computeShipping } from "@/lib/storefront-shipping";
+import { shippingRange } from "@/lib/storefront-shipping";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
@@ -70,8 +70,15 @@ export default function CartPage() {
   const currency = store?.currency;
   const count = items.reduce((n, i) => n + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = computeShipping(store, subtotal);
+  // The delivery zone comes from the district picked at CHECKOUT, so here it is
+  // genuinely unknown. Show the cheapest possible fee prefixed "From" rather than
+  // silently quoting the inside-Dhaka rate to someone who will be charged the
+  // outside one — an unexpected delivery charge is the largest single cause of
+  // abandonment, and understating it is the worst version of that.
+  const { min: shipping, estimated } = shippingRange(store, subtotal);
   const total = subtotal + shipping;
+  const amount = (value: number) =>
+    estimated ? `${t.fromPrice} ${money(value, currency)}` : money(value, currency);
 
   return (
     <div style={wrap}>
@@ -129,12 +136,21 @@ export default function CartPage() {
             <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 16px" }}>{t.orderSummary}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 14 }}>
               <SummaryRow label={t.subtotal} value={money(subtotal, currency)} />
-              <SummaryRow label={t.shipping} value={shipping === 0 ? t.free : money(shipping, currency)} />
+              <SummaryRow
+                label={t.shipping}
+                value={shipping === 0 && !estimated ? t.free : amount(shipping)}
+              />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 700, borderTop: "1px solid var(--border)", paddingTop: 14, marginBottom: 16, letterSpacing: "-0.02em" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 700, borderTop: "1px solid var(--border)", paddingTop: 14, marginBottom: estimated ? 8 : 16, letterSpacing: "-0.02em" }}>
               <span>{t.total}</span>
-              <span className="sf-mono">{money(total, currency)}</span>
+              <span className="sf-mono">{amount(total)}</span>
             </div>
+            {/* Say why it is a range, so "From" doesn't read as evasive. */}
+            {estimated ? (
+              <p style={{ fontSize: 11.5, color: "var(--muted)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                {t.deliveryEstimateNote}
+              </p>
+            ) : null}
             <Link href={storeHref(base, "/checkout")} style={{ display: "block", textAlign: "center", background: "var(--primary)", color: "var(--on-primary)", padding: 14, borderRadius: 9, fontSize: 14.5, fontWeight: 700 }}>
               {t.proceed}
             </Link>

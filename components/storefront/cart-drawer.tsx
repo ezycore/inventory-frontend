@@ -10,7 +10,7 @@ import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
-import { computeShipping } from "@/lib/storefront-shipping";
+import { shippingRange } from "@/lib/storefront-shipping";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
@@ -47,8 +47,14 @@ export function CartDrawer() {
   const currency = store?.currency;
   const count = items.reduce((n, i) => n + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = computeShipping(store, subtotal);
+  // Zone is unknown until checkout, so quote the cheapest possible fee prefixed
+  // "From" rather than the inside-Dhaka rate. Same rule as the cart page — see
+  // `shippingRange`. The drawer is tight, so it carries the prefix without the
+  // explanatory note; the prefix alone stops the number reading as final.
+  const { min: shipping, estimated } = shippingRange(store, subtotal);
   const total = subtotal + shipping;
+  const amount = (value: number) =>
+    estimated ? `${t.fromPrice} ${money(value, currency)}` : money(value, currency);
 
   const goCheckout = () => {
     closeCart();
@@ -76,7 +82,7 @@ export function CartDrawer() {
             <Row label={t.subtotal} value={money(subtotal, currency)} />
             <Row
               label={t.shipping}
-              value={shipping === 0 ? t.free : money(shipping, currency)}
+              value={shipping === 0 && !estimated ? t.free : amount(shipping)}
               muted
             />
             <button
@@ -84,7 +90,7 @@ export function CartDrawer() {
               onClick={goCheckout}
               style={{ ...primaryBtn(), width: "100%", marginTop: 6 }}
             >
-              {t.proceed} · {money(total, currency)}
+              {t.proceed} · {amount(total)}
             </button>
             {/* Full cart page for editing at leisure — the drawer stays the quick path. */}
             <button

@@ -474,6 +474,18 @@ resolved **per request from the host**, never baked.
 
 ## Work log (what was built, newest first — as of 2026-08-02)
 
+- **Delivery cost stops lying before checkout (FE)** (2026-08-02): the cart page and drawer both
+  called `computeShipping(store, subtotal)` **without a zone** — and that argument defaults to
+  `"inside"`. A store with Dhaka zone rates therefore quoted ৳60 as final and charged ৳120 at
+  checkout, which is the #1 abandonment cause in its worst form: not an unexpected charge, an
+  *understated* one. New **`shippingRange(store, subtotal)`** returns `{min, max, estimated}` by
+  computing both zones; `estimated` is true only when they differ, so a flat rule, a
+  free-over-threshold rule and a free-shipping store still show one exact number. When estimated,
+  both surfaces prefix the fee **and the total** with the existing `fromPrice` idiom and the cart
+  page adds `deliveryEstimateNote`. **Any new pre-checkout surface that shows shipping must use
+  `shippingRange`, never `computeShipping` — the latter is correct only where the zone is known
+  (checkout).** 9 tests in `lib/storefront-shipping.test.ts`.
+
 - **Social sign-in leads the auth card (FE)** (2026-08-02): Phase 4 item 1 of
   [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md).
   `<SocialLoginButtons>` moved **above** the email/password form in `shop/account/view.tsx`, and its
