@@ -64,13 +64,16 @@ export default function AbandonedCartsPage() {
 
   const s = stats?.stats;
   const tiles = [
+    // Every tile states its period. All four share the one window the funnel uses,
+    // so a merchant reading them together is never comparing a rolling figure
+    // against an all-time one.
     {
       label: "Abandoned carts",
       value: s?.abandonedCount ?? 0,
       icon: ShoppingCart,
       variant: "warning" as const,
       description: stats
-        ? `No activity for ${stats.abandonedAfterMinutes}+ minutes`
+        ? `Idle ${stats.abandonedAfterMinutes}+ min, last ${stats.windowDays} days`
         : undefined,
     },
     {
@@ -78,7 +81,7 @@ export default function AbandonedCartsPage() {
       value: formatMoney(s?.abandonedValue ?? 0, currency),
       icon: Wallet,
       variant: "default" as const,
-      description: "What those carts were worth",
+      description: stats ? `In the last ${stats.windowDays} days` : undefined,
     },
     {
       label: "Cart abandonment",
@@ -196,8 +199,9 @@ function TopAbandonedProducts({
     <Card className="p-5">
       <h2 className="text-base font-semibold">Most-abandoned products</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Ranked by the value sitting in abandoned carts. One product dominating this
-        list usually means a price or stock problem, not a checkout problem.
+        Ranked by the value sitting in abandoned carts over the same period. One
+        product dominating this list usually means a price or stock problem, not a
+        checkout problem.
       </p>
 
       {isLoading ? (

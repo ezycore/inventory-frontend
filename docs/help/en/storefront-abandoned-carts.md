@@ -24,11 +24,15 @@ editing them.
   hour. The one-hour wait matters: without it you would be counting people who are still shopping.
 - **Value left behind** — what those carts add up to. Treat it as an *opportunity*, not lost money;
   a good share of it was never going to convert.
+
 - **Cart abandonment** — of the carts started in the last 30 days, the share that never became an
   order.
 - **Checkout abandonment** — of the carts that got as far as the checkout page, the share that never
   became an order. This is the harsher number, and the more useful one: these shoppers were trying to
   buy.
+
+**All four cover the same last 30 days**, as do the funnel and the most-abandoned list — so you can
+read them together without accidentally comparing different periods.
 
 A dash (—) instead of a percentage means there is not enough data yet. It does not mean zero.
 
