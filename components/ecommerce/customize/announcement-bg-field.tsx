@@ -4,13 +4,13 @@
 import { useRef } from "react";
 import { useUploadStorefrontImage } from "@/services/api";
 import type { Image } from "@/types";
-import { MediaField } from "@/components/ecommerce/theme/media-field";
+import { MediaField } from "@/components/ecommerce/customize/media-field";
 
 /**
  * Announcement-bar background image upload — reuses the shared MediaField tile
  * and the generic storefront image uploader. Uploads immediately and hands the
- * uploadInfo up; persistence happens with the rest of the announcement on
- * "Save navigation" (the settings PATCH also cleans up a replaced image).
+ * uploadInfo up; persistence happens with the rest of the announcement on the
+ * page's Save (the settings PATCH also cleans up a replaced image).
  */
 export function AnnouncementBgField({
   image,

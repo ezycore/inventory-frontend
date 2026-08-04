@@ -9,12 +9,13 @@ import type {
   StoreHeroSlide,
   StoreMenuItem,
   StoreTemplates,
+  StoreTemplatesRaw,
   StorefrontImage,
   StorefrontStore,
 } from "@/lib/storefront-client";
 
 /**
- * Ephemeral storefront preview overrides, streamed from the admin Theme editor
+ * Ephemeral storefront preview overrides, streamed from the admin Customize editor
  * via postMessage (see components/storefront/preview-bridge.tsx). Reading these
  * in the shell lets a draft brand colour repaint the ENTIRE preview (header,
  * footer, buttons) instantly — no reload — instead of only the homepage content.
@@ -35,6 +36,12 @@ interface SfPreviewState {
   cardActions: string | null;
   /** Raw listing pagination mode (pages | infinite | load-more) the editor is drafting. */
   pagination: string | null;
+  /** Raw collection-page layout (grid-3 | grid-4 | sidebar) the editor is drafting. */
+  collection: string | null;
+  /** Raw product-page layout (gallery-left | gallery-top | sticky-bar). */
+  product: string | null;
+  /** Raw checkout layout (single-page | multi-step) the editor is drafting. */
+  checkout: string | null;
   /** Draft footer trust badges (Rich footer strip). */
   badges: { text: string; icon?: string }[] | null;
   /** Draft home hero carousel slides. */
@@ -45,11 +52,11 @@ interface SfPreviewState {
   heroBanner: StoreHeroBanner | null;
   /** Draft header menu source ("collections" | "custom"). */
   headerMenuSrc: string | null;
-  /** Draft custom header menu items (Navigation → Header menu). */
+  /** Draft custom header menu items (Customize → Header). */
   navHeader: StoreMenuItem[] | null;
-  /** Draft announcement bar (Navigation → Announcement bar). */
+  /** Draft announcement bar (Customize → Announcement bar). */
   announcement: StoreAnnouncement | null;
-  /** Draft footer link groups (Navigation → Footer links), already trimmed like the save path. */
+  /** Draft footer link groups (Customize → Footer), already trimmed like the save path. */
   footerGroups: StoreFooterGroup[] | null;
   /** Draft controls for the auto content-pages footer column. */
   footerContentPages: StoreFooterContentPages | null;
@@ -68,7 +75,7 @@ interface SfPreviewState {
   logo?: StorefrontImage | null;
   banner?: StorefrontImage | null;
   /**
-   * Draft collections from the Navigation → Collections panel: already ordered
+   * Draft collections from the Customize collections panel: already ordered
    * and filtered to the listed ones, with display names applied. Overrides the
    * fetched category list everywhere it's shown (header links + home chips), so
    * unsaved reordering previews live.
@@ -84,6 +91,9 @@ interface SfPreviewState {
     cardStyle?: string;
     cardActions?: string;
     pagination?: string;
+    collection?: string;
+    product?: string;
+    checkout?: string;
     badges?: { text: string; icon?: string }[];
     heroSlides?: StoreHeroSlide[];
     heroSrc?: string;
@@ -110,6 +120,9 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   cardStyle: null,
   cardActions: null,
   pagination: null,
+  collection: null,
+  product: null,
+  checkout: null,
   badges: null,
   heroSlides: null,
   heroSrc: null,
@@ -134,6 +147,9 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       cardActions:
         patch.cardActions !== undefined ? patch.cardActions : s.cardActions,
       pagination: patch.pagination !== undefined ? patch.pagination : s.pagination,
+      collection: patch.collection !== undefined ? patch.collection : s.collection,
+      product: patch.product !== undefined ? patch.product : s.product,
+      checkout: patch.checkout !== undefined ? patch.checkout : s.checkout,
       badges: patch.badges !== undefined ? patch.badges : s.badges,
       heroSlides:
         patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
@@ -175,16 +191,27 @@ export const useSfPreviewImage = (
 };
 
 /**
- * The store's listing pagination mode, with the Customize draft applied.
- *
- * Both listing pages need it, so the draft-beats-saved rule lives here once —
- * the same reason `useSfPreviewImage` exists.
+ * Per-page layout keys the Customize editor streams under their own name. The
+ * rest of `templates` reaches its consumers through the shell (brand colours,
+ * header, footer, cards), so only the ones a single page reads live here.
  */
-export const useStorePaginationMode = (
+type DraftedTemplateKey = "collection" | "product" | "checkout" | "pagination";
+
+/**
+ * One page's layout variant, with the Customize draft applied.
+ *
+ * **Every page that renders a `templates` variant must read it through this
+ * hook, never `resolveTemplates(store)` directly** — that is what makes the
+ * choice repaint while a merchant is picking it. Reading the resolver directly
+ * pins the page to the SAVED value, so the picker looks broken until Save: the
+ * bug this hook was generalised (from a pagination-only version) to kill.
+ */
+export const useStoreTemplate = <K extends DraftedTemplateKey>(
   store: Pick<StorefrontStore, "templates"> | null | undefined,
-): StoreTemplates["pagination"] => {
-  const draft = useSfPreview((s) => s.pagination);
-  return resolveTemplates({
-    templates: { ...store?.templates, ...(draft ? { pagination: draft } : {}) },
-  }).pagination;
+  key: K,
+): StoreTemplates[K] => {
+  const draft = useSfPreview((s) => s[key]);
+  const templates: StoreTemplatesRaw = { ...store?.templates };
+  if (draft) templates[key] = draft;
+  return resolveTemplates({ templates })[key];
 };

@@ -117,6 +117,15 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   straight to `/checkout`. Note the admin ids are kebab-case and the storefront names are not
   (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
   resolves to the default, which reads as "the setting does nothing".
+  - **A page that renders a per-page variant reads it through
+    `useStoreTemplate(store, key)`** (`use-sf-preview-store.ts`), never `resolveTemplates(store)`
+    directly. The hook overlays the Customize draft on the saved value, which is what makes the
+    picker repaint while a merchant is choosing; reading the resolver pins the page to the SAVED
+    value and the control looks dead until Save. Covers the four keys only one page each reads —
+    `collection`, `product`, `checkout`, `pagination`. The rest (`home`, `header`, `footer`,
+    `productCard`, `cardActions`, `hero`, `headerMenu`) reach their consumers through the shell,
+    which already reads the preview store. Generalised 2026-08-04 from a pagination-only hook,
+    when the other three were found to be unpreviewable.
 - **Card CTA layout** (`templates.cardActions`, default `add-buy`) — **a second axis on the
   product card, orthogonal to `productCard`**, which now means *density only*. Values:
   `add` | `add-buy` | `icons` | `buy-first` | `reveal` | `icon-only`. Folding these into
@@ -145,8 +154,7 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   `<Pager>`; `infinite` = auto-load `AUTO_LOADS` (2) pages then a button; `load-more` = button
   only. Applies to **both** the collection page and search results, which share
   `components/storefront/{pager,load-more}.tsx`. Reads through
-  **`useStorePaginationMode(store)`** (`use-sf-preview-store.ts`), never `resolveTemplates`
-  directly, so the Customize draft streams. Non-`pages` modes use
+  **`useStoreTemplate(store, "pagination")`** — see the rule above. Non-`pages` modes use
   `useStoreProductsInfinite`; see the query-cache note below for why its key is separate.
   `infinite` deliberately stops auto-loading: this footer holds real navigation and the mobile
   bottom nav sits over it, so an endless list makes both unreachable.
@@ -440,8 +448,8 @@ resolved **per request from the host**, never baked.
   **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is controlled by
   `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy default), `title`
   overrides the heading. Simple is a deliberately flat link row (drops group titles) but still honours
-  the show toggle. Edited in Customize → Navigation (`footer-links-card.tsx`, groups + the content-pages
-  Switch/heading) — groups, the content-pages toggle/heading **and** the variant are all
+  the show toggle. Edited in Customize → **Footer** (`customize/footer-links-field.tsx`, groups + the
+  content-pages Switch/heading) — groups, the content-pages toggle/heading **and** the variant are all
   live-previewed (2026-07-31; the groups were the last Customize control that wasn't). Social links
   are edited in admin Store Settings → General → Social
   links card. **All hrefs go through `hrefFor` in `social-links.tsx`** — it forces a scheme
@@ -472,7 +480,42 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-02)
+## Work log (what was built, newest first — as of 2026-08-04)
+
+- **Customize re-cut into store parts, one Save** (2026-08-04): the three tabs were named after the
+  three settings objects the backend stores (`theme` / `templates` / `nav`), so one visible thing was
+  split across all of them — the footer's layout was in Templates, its © line and trust badges in
+  Theme, its link groups in Navigation, behind three different save buttons. The rail is now **one
+  list of store parts in the order a shopper meets them** (Brand, Announcement bar, Header, Hero, Home
+  page, Product cards, Collections, Product page, Footer, Checkout) in
+  `components/ecommerce/customize/`, over **one** save bar. Two defects drove it, both found by
+  reading rather than by any gate:
+  - **Unsaved edits were silently discarded.** The sections were a ternary, so each unmounted on tab
+    switch; preview-relevant state had been lifted but the rest was local and re-seeded from the
+    *saved* settings on remount. Picking "Hero Split", visiting Theme and coming back showed
+    "Classic" selected while the preview still showed Hero Split — and Save wrote Classic. The
+    slides panel did the same, and the button that opened it sat *inside* the section it destroyed.
+    Everything editable now lives in **`use-customize-draft.ts`**, one level above anything that can
+    unmount, with dirty state *derived* per part (`PART_SLICE`) rather than flagged by hand.
+  - **Six save models** (theme / templates / navigation / slides / collections + instant media) with
+    two dirty indicators between them. Now one PATCH carries theme+templates+nav, collections fold in
+    via their own mutations (`useUpdateCollection` gained `silent` so one Save = one toast), and only
+    image uploads still persist on their own. `beforeunload` guards the page — there is still no
+    route-level guard anywhere in the app.
+  - **`draft-payloads.ts` builds the save payload and the preview message together**, because the
+    trimming rules (blank footer group dropped, untitled slide dropped) were duplicated and could
+    drift — a preview promising a column that never ships is the bug class it prevents.
+  - Preview chrome: the decorative traffic-lights + dead URL bar became **Home / Collection / Product**
+    page tabs, and opening a part points the preview at a page that shows it. The product slug comes
+    from the **public** storefront endpoint — the admin catalog DTO only carries `storefront.slug`
+    when an owner typed a custom one, so sourcing it there left the tab permanently disabled.
+    **Checkout still has no tab**: an empty cart renders the empty-cart screen, which says nothing
+    about the layout just chosen.
+  - Shared primitives extracted: `ui/components/color-field.tsx` (two divergent copies) and
+    `ui/components/option-card.tsx` (the `border-primary ring-2` treatment had been pasted into five
+    files). Every template option now has a wireframe sketch — eight of nine pickers were bare text.
+  - `?section=` deep links became `?part=`; the retired `/ecommerce/navigation` route redirects to
+    `?part=header`.
 
 - **Delivery cost stops lying before checkout (FE)** (2026-08-02): the cart page and drawer both
   called `computeShipping(store, subtotal)` **without a zone** — and that argument defaults to

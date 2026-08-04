@@ -19,7 +19,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
  *     `auth-token` cookie); we never read it on the server, so storefront
  *     rendering stays public/cacheable.
  *   - Hidden inside an iframe (`window.top !== window.self`) so it doesn't appear
- *     in the admin Theme editor's live-preview embed.
+ *     in the admin Customize editor's live-preview embed.
  *
  * On a tenant subdomain admin + store share one origin, so the links navigate
  * same-origin (`/ecommerce/customize`, `/ecommerce/dashboard`).
@@ -32,7 +32,7 @@ export function OwnerAdminBar() {
 
   // Until hydrated, render nothing so SSR output stays identical for everyone.
   if (!hydrated) return null;
-  // Don't show inside the admin Theme editor's live-preview iframe.
+  // Don't show inside the admin Customize editor's live-preview iframe.
   if (window.top !== window.self) return null;
   // Only the staff of THIS store see the bar.
   if (!orgSlug || orgSlug !== slug) return null;
