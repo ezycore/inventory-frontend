@@ -46,6 +46,14 @@ export const queryKeys = {
     subscription: () => ["organization", "subscription"] as const,
     plans: () => ["organization", "plans"] as const,
     storefront: () => ["organization", "storefront"] as const,
+    notifications: () => ["organization", "notifications"] as const,
+    notificationLog: (params?: object) =>
+      ["organization", "notifications", "log", params ?? {}] as const,
+    // Under the `notifications` prefix on purpose: sending an SMS moves the
+    // balance, the log AND this roll-up, and one invalidation must flush all
+    // three or the usage figure quietly disagrees with the balance beside it.
+    smsUsage: (months?: number) =>
+      ["organization", "notifications", "sms-usage", months ?? null] as const,
   },
 
   profile: {

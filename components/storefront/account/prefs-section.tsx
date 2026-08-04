@@ -10,7 +10,6 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 
 const DEFAULT_PREFS: ShopperPrefs = {
   promoEmail: true,
-  orderSms: true,
   priceDrop: false,
   newsletter: true,
 };
@@ -18,12 +17,16 @@ const DEFAULT_PREFS: ShopperPrefs = {
 type Dict = ReturnType<typeof useStorefrontUI>["t"];
 const ROWS: { key: keyof ShopperPrefs; title: keyof Dict; sub: keyof Dict }[] = [
   { key: "promoEmail", title: "promoEmailT", sub: "promoEmailS" },
-  { key: "orderSms", title: "orderSmsT", sub: "orderSmsS" },
   { key: "priceDrop", title: "priceDropT", sub: "priceDropS" },
   { key: "newsletter", title: "newsletterT", sub: "newsletterS" },
 ];
 
-/** Notifications section — communication-preference toggles (optimistic). */
+/**
+ * Notifications section — MARKETING consent only (optimistic toggles).
+ * Order updates are deliberately absent: the store decides which order events
+ * it sends and on which channel, so there is nothing here for a shopper to
+ * turn off (backend docs/plan/notifications.md D2).
+ */
 export function PrefsSection({ shopper }: { shopper: ShopperProfile }) {
   const { slug } = useStoreContext();
   const { t } = useStorefrontUI();
@@ -52,6 +55,9 @@ export function PrefsSection({ shopper }: { shopper: ShopperProfile }) {
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 22 }}>
       <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.01em" }}>{t.prefsTitle}</h2>
       <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 18px" }}>{t.prefsSub}</p>
+      <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "-10px 0 18px", lineHeight: 1.5 }}>
+        {t.prefsOrderNote}
+      </p>
       <div style={{ display: "flex", flexDirection: "column" }}>
         {ROWS.map((row) => {
           const on = prefs[row.key];

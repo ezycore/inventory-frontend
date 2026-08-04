@@ -153,6 +153,14 @@ export type CustomCourier = Schemas["CustomCourier"];
 export type CustomCourierRemoved = Schemas["CustomCourierRemoved"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
+
+/** Notification engine (backend docs/plan/notifications.md). */
+export type NotificationSettings = Schemas["NotificationSettings"];
+export type NotificationEventRow = NotificationSettings["events"][number];
+export type NotificationLogItem = Schemas["NotificationLogItem"];
+export type SmsTestResult = Schemas["SmsTestResult"];
+export type SmsUsageReport = Schemas["SmsUsageReport"];
+export type SmsUsageMonth = SmsUsageReport["months"][number];
 export type ApiCampaign = Schemas["Campaign"];
 export type ApiCoupon = Schemas["Coupon"];
 export type ApiContentPage = Schemas["ContentPage"];

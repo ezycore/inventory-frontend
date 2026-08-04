@@ -60,8 +60,8 @@ export interface Dict {
   prefsSub: string;
   promoEmailT: string;
   promoEmailS: string;
-  orderSmsT: string;
-  orderSmsS: string;
+  /** Explains that transactional order updates are not shopper-configurable. */
+  prefsOrderNote: string;
   priceDropT: string;
   priceDropS: string;
   newsletterT: string;
@@ -417,8 +417,8 @@ const en: Dict = {
   prefsSub: "Choose what you want to hear about.",
   promoEmailT: "Promotional emails",
   promoEmailS: "Deals, offers and seasonal sales",
-  orderSmsT: "Order updates by SMS",
-  orderSmsS: "Delivery and status notifications",
+  prefsOrderNote:
+    "Order updates are sent by the store and can't be turned off here.",
   priceDropT: "Price-drop alerts",
   priceDropS: "When wishlist items get cheaper",
   newsletterT: "Weekly newsletter",
@@ -765,8 +765,8 @@ const bn: Dict = {
   prefsSub: "আপনি কী জানতে চান তা বেছে নিন।",
   promoEmailT: "প্রোমোশনাল ইমেইল",
   promoEmailS: "ডিল, অফার ও সিজনাল সেল",
-  orderSmsT: "এসএমএসে অর্ডার আপডেট",
-  orderSmsS: "ডেলিভারি ও স্ট্যাটাস নোটিফিকেশন",
+  prefsOrderNote:
+    "অর্ডার আপডেট স্টোর থেকে পাঠানো হয়, এখান থেকে বন্ধ করা যাবে না।",
   priceDropT: "দাম কমার অ্যালার্ট",
   priceDropS: "উইশলিস্টের পণ্যের দাম কমলে",
   newsletterT: "সাপ্তাহিক নিউজলেটার",
