@@ -8,6 +8,7 @@ import {
   useStoreBrands,
   useStoreCategories,
   useStoreProducts,
+  useStoreProductsInfinite,
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -22,8 +23,14 @@ import {
   SortSelect,
   type FilterChip,
 } from "@/components/storefront/filter-toolbar";
+import { useStorePaginationMode } from "@/services/stores/use-sf-preview-store";
 import { SideDrawer } from "@/components/storefront/side-drawer";
-import { catalogQueryParams } from "@/lib/storefront-catalog-params";
+import { LoadMore } from "@/components/storefront/load-more";
+import { Pager } from "@/components/storefront/pager";
+import {
+  catalogInfiniteParams,
+  catalogQueryParams,
+} from "@/lib/storefront-catalog-params";
 import type { ProductListResult } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
@@ -66,16 +73,30 @@ function CollectionInner({
   const { data: store } = useStore(slug);
   const { data: categories } = useStoreCategories(slug);
   const { data: brands } = useStoreBrands(slug);
-  // Built through the shared builder because the params object is the cache key —
-  // `page.tsx` seeds page 1 with the identical object (see storefront-catalog-params).
-  const { data, isLoading } = useStoreProducts(
+
+  // Which listing mode the merchant chose (Customize → Templates), with any
+  // unsaved draft from the live preview applied. `store` is SSR-seeded in
+  // shop/layout.tsx, so this is settled on the first render and the page never
+  // flips modes under the shopper.
+  const mode = useStorePaginationMode(store);
+  const paged = mode === "pages";
+  const filterState = { categoryId, brandId, minPrice, maxPrice, inStock: inStock ? "1" : "", sort };
+
+  // Both hooks are declared (hooks can't be conditional) and gated by `enabled`,
+  // so only the chosen one fetches. Params are built through the shared builders
+  // because the params object IS the cache key — `page.tsx` seeds page 1 with the
+  // identical object (see storefront-catalog-params).
+  const pagedQuery = useStoreProducts(
     slug,
-    catalogQueryParams(
-      { categoryId, brandId, minPrice, maxPrice, inStock: inStock ? "1" : "", sort },
-      page,
-    ),
-    true,
+    catalogQueryParams(filterState, page),
+    paged,
     page === 1 ? initialProducts : undefined,
+  );
+  const infiniteQuery = useStoreProductsInfinite(
+    slug,
+    catalogInfiniteParams(filterState),
+    !paged,
+    initialProducts,
   );
 
   const setParams = (patch: Record<string, string | undefined>) => {
@@ -90,9 +111,14 @@ function CollectionInner({
 
   const currency = store?.currency;
   const variant = resolveTemplates(store).collection;
-  const items = data?.items ?? [];
-  const pagination = data?.pagination;
+  const infinitePages = infiniteQuery.data?.pages ?? [];
+  const items = paged
+    ? (pagedQuery.data?.items ?? [])
+    : infinitePages.flatMap((p) => p.items);
+  // Every page carries the same totals, so page 1 answers for the whole set.
+  const pagination = paged ? pagedQuery.data?.pagination : infinitePages[0]?.pagination;
   const total = pagination?.total ?? items.length;
+  const isLoading = paged ? pagedQuery.isLoading : infiniteQuery.isLoading;
   const cats = categories ?? [];
   const brandList = brands ?? [];
   const activeCat = cats.find((c) => c._id === categoryId);
@@ -195,21 +221,22 @@ function CollectionInner({
         <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 16 }}>{t.noResults}</p>
       ) : null}
 
-      {pagination && pagination.totalPages > 1 ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 28 }}>
-          <PageBtn disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            {t.prev}
-          </PageBtn>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--on-primary)", background: "var(--primary)", borderRadius: 7, padding: "8px 14px" }}>
-            {pagination.page}
-          </span>
-          <span style={{ fontSize: 13, color: "var(--muted)", padding: "0 6px" }}>
-            / {pagination.totalPages}
-          </span>
-          <PageBtn disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)}>
-            {t.next}
-          </PageBtn>
-        </div>
+      {paged && pagination ? (
+        <Pager page={pagination.page} totalPages={pagination.totalPages} onChange={setPage} />
+      ) : null}
+
+      {!paged && !isLoading && items.length > 0 ? (
+        // Keyed on the filters so a new query gets its own auto-load budget —
+        // see the note in load-more.tsx.
+        <LoadMore
+          key={filterKey}
+          mode={mode === "infinite" ? "infinite" : "loadMore"}
+          hasMore={infiniteQuery.hasNextPage}
+          loading={infiniteQuery.isFetchingNextPage}
+          onLoad={() => infiniteQuery.fetchNextPage()}
+          shown={items.length}
+          total={total}
+        />
       ) : null}
 
       <SideDrawer
@@ -242,37 +269,6 @@ function CollectionInner({
         <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px 16px" }}>{panel}</div>
       </SideDrawer>
     </div>
-  );
-}
-
-function PageBtn({
-  children,
-  disabled,
-  onClick,
-}: {
-  children: React.ReactNode;
-  disabled?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      style={{
-        fontSize: 13,
-        fontWeight: 500,
-        color: "var(--text)",
-        border: "1px solid var(--border-strong)",
-        borderRadius: 7,
-        padding: "8px 13px",
-        background: "var(--card)",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
-      {children}
-    </button>
   );
 }
 

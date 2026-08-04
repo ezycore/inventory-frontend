@@ -39,8 +39,14 @@ export function catalogSearchParams(
   };
 }
 
-/** The exact request params `useStoreProducts` is called with on the collection page. */
-export function catalogQueryParams(sp: CatalogSearchParams, page = 1) {
+/**
+ * Everything the collection page filters and sorts by, minus the page cursor.
+ *
+ * This is what `useStoreProductsInfinite` is keyed on: an infinite query owns its
+ * own cursor, and a `page` in its params would give every page a separate cache
+ * entry — no accumulation, which is the whole point of the mode.
+ */
+export function catalogInfiniteParams(sp: CatalogSearchParams) {
   return {
     categoryId: sp.categoryId || undefined,
     brandId: sp.brandId || undefined,
@@ -48,9 +54,13 @@ export function catalogQueryParams(sp: CatalogSearchParams, page = 1) {
     maxPrice: sp.maxPrice || undefined,
     inStock: sp.inStock === "1" ? "1" : undefined,
     sort: sp.sort || undefined,
-    page,
     limit: PRODUCTS_PAGE_SIZE,
   };
+}
+
+/** The exact request params `useStoreProducts` is called with on the collection page. */
+export function catalogQueryParams(sp: CatalogSearchParams, page = 1) {
+  return { ...catalogInfiniteParams(sp), page };
 }
 
 /**

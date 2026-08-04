@@ -38,7 +38,7 @@ export function AnnouncementBgField({
       busy={upload.isPending}
       onPick={onPick}
       onRemove={() => onChange(null)}
-      hint="Optional. Painted behind the text with an overlay for readability — wide images work best."
+      hint="Optional. 1600 × 200 px works best (or a small seamless tile for the tile fit). Painted behind the text with an overlay for readability."
     />
   );
 }

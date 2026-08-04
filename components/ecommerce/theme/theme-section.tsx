@@ -228,8 +228,8 @@ export function ThemeSection({
             onRemove={settings.logo ? () => removeMedia("logo") : undefined}
             hint={
               settings.logo
-                ? "Store-specific logo. Remove it to fall back to your organization logo."
-                : "The store inherits your organization logo — upload only if the shop needs a different mark."
+                ? "600 × 200 px (up to 3:1) works best — the header caps it at 42px tall. Remove it to fall back to your organization logo."
+                : "600 × 200 px (up to 3:1) works best. The store inherits your organization logo — upload only if the shop needs a different mark."
             }
           />
           <p className="mt-2 text-[11px] text-muted-foreground">
@@ -294,7 +294,7 @@ export function ThemeSection({
               busy={pendingMedia === "banner"}
               onPick={(file) => uploadMedia("banner", file)}
               onRemove={settings.banner ? () => removeMedia("banner") : undefined}
-              hint="Uploads save immediately. Also the preview image for shared store links — even when the hero shows slides."
+              hint="1200 × 900 px (4:3) works best, subject centred. Uploads save immediately. Also the preview image for shared store links — even when the hero shows slides."
             />
             <BannerHeroFields value={heroBanner} onChange={touch(setHeroBanner)} />
           </div>

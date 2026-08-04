@@ -199,6 +199,12 @@ export default function AccountPage() {
             </p>
           </div>
 
+          {/* Social sign-in leads: it is one tap, and an OAuth shopper arrives
+              already email-verified, so it clears BOTH gates this store puts in
+              front of checkout. Renders nothing (divider included) when the
+              merchant has no provider configured. */}
+          <SocialLoginButtons />
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -241,8 +247,6 @@ export default function AccountPage() {
                   : t.createAccount}
             </button>
           </form>
-
-          <SocialLoginButtons />
 
           <div style={{ borderTop: "1px solid var(--border)", margin: "18px 0 14px" }} />
           <div style={{ textAlign: "center", fontSize: 13, color: "var(--muted)" }}>

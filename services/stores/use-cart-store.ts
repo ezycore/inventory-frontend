@@ -36,6 +36,13 @@ interface CartState {
   ) => void;
   updateQty: (lineKey: string, qty: number) => void;
   removeItem: (lineKey: string) => void;
+  /**
+   * Replace the whole cart in one write — used only by the abandoned-cart
+   * recovery link, which arrives with a server-rebuilt cart. One `set` rather
+   * than `clear()` + N `addItem()`s so subscribers (the server mirror) see a
+   * single change instead of N.
+   */
+  restore: (storeSlug: string, items: CartItem[]) => void;
   clear: () => void;
 }
 
@@ -91,6 +98,8 @@ export const useCartStore = create<CartState>()(
         set((s) => ({
           items: s.items.filter((i) => cartLineKey(i) !== lineKey),
         })),
+
+      restore: (storeSlug, items) => set({ storeSlug, items }),
 
       clear: () => set({ items: [] }),
     }),

@@ -16,7 +16,10 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useHydrated } from "@/hooks/use-hydrated";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import {
+  useSfPreview,
+  useSfPreviewImage,
+} from "@/services/stores/use-sf-preview-store";
 import { Icon } from "@/components/storefront/sf-icons";
 import {
   HeaderNav,
@@ -104,6 +107,7 @@ export function StoreHeader({
   const previewHeader = useSfPreview((s) => s.header);
   const previewMenuSrc = useSfPreview((s) => s.headerMenuSrc);
   const previewNavHeader = useSfPreview((s) => s.navHeader);
+  const previewLogo = useSfPreviewImage("logo", store?.logo);
 
   // Drafts from the admin Navigation editor win over the saved store payload.
   // The legacy-fallback check uses the RAW menu (a store whose menu is only a
@@ -119,7 +123,7 @@ export function StoreHeader({
   const ctx: HeaderCtx = {
     base,
     name: store?.name ?? "Store",
-    logo: store?.logo?.url || store?.logo?.thumbnailUrl,
+    logo: previewLogo?.url || previewLogo?.thumbnailUrl,
     phone: store?.contact?.phone ?? "",
     t,
     theme,

@@ -8,7 +8,10 @@ import type {
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { resolveTemplates } from "@/lib/storefront-templates";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import {
+  useSfPreview,
+  useSfPreviewImage,
+} from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Classic } from "@/components/storefront/home/home-classic";
 import { HeroSplit } from "@/components/storefront/home/home-hero-split";
@@ -48,12 +51,13 @@ export function StoreHome({
   const previewHeroSrc = useSfPreview((s) => s.heroSrc);
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
+  const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
   const tpl = HOME_VARIANTS.includes(previewHome ?? "")
     ? (previewHome as TplName)
     : resolved.home;
 
-  const banner = store.banner?.mediumUrl || store.banner?.url;
+  const banner = previewBanner?.mediumUrl || previewBanner?.url;
   // Hero source (templates.hero): "banner" forces the static hero even when
   // slides exist; "slides" (default) shows the carousel when there are slides.
   const heroSrc =

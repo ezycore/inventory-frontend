@@ -11,7 +11,10 @@ import type {
 } from "@/lib/storefront-client";
 import { useStore, useStoreCategories } from "@/services/storefront/hooks";
 import { useFaviconOverride } from "@/hooks/use-favicon-override";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import {
+  useSfPreview,
+  useSfPreviewImage,
+} from "@/services/stores/use-sf-preview-store";
 import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
@@ -24,6 +27,7 @@ import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
 import { StoreFooter } from "@/components/storefront/store-footer";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
+import { CartSync } from "@/components/storefront/cart-sync";
 import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
 
 /**
@@ -55,6 +59,7 @@ export function StoreShell({
   const previewBrand = useSfPreview((s) => s.brand);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewAnnouncement = useSfPreview((s) => s.announcement);
+  const logo = useSfPreviewImage("logo", store?.logo);
 
   // The admin's Collections panel streams its unsaved draft; prefer it so
   // reordering/hiding previews live instead of waiting on a save + refetch.
@@ -64,7 +69,7 @@ export function StoreShell({
   // navigations (page changes AND the account tab switch's replaceState) don't
   // flash the platform default — that's why it's a client hook, not layout
   // metadata (see use-favicon-override).
-  useFaviconOverride(store?.logo?.thumbnailUrl || store?.logo?.url);
+  useFaviconOverride(logo?.thumbnailUrl || logo?.url);
 
   if (isError) {
     return (
@@ -178,6 +183,11 @@ export function StoreShell({
         <CartDrawer />
         <OwnerAdminBar />
         <StorePreviewBridge />
+        {/* Renders nothing — mirrors the cart to the server so the merchant can
+            see abandoned carts. Mounted here because it must be alive on every
+            shop route, and it deliberately holds no reactive cart subscription
+            (see cart-sync.tsx) so it cannot re-render this shell. */}
+        <CartSync slug={slug} />
       </div>
     </StoreContextProvider>
   );

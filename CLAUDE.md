@@ -91,6 +91,16 @@ posted documents stay immutable by design, not for the sake of old rows.
 
 ## Commands
 
+**Node 22 LTS (`.nvmrc`) — `nvm use` before anything else.** Next 16 targets 20.9+/22 LTS. A dev
+server on Node 25 (a non-LTS *Current* release, so a newer V8 with different GC behaviour) was seen
+climbing to a **3.9 GB heap and dying** with `Ineffective mark-compacts near heap limit` after ~26
+minutes, having already tripped Next's own "approaching the used memory threshold, restarting"
+guard. That restart is also what produces a `ChunkLoadError` in an open tab: the recompile emits new
+content-hashed chunk names and the tab is still asking for the old ones (the overlay says
+**"(stale)"** when this is what happened — reloading fixes it, which is how you tell it apart from a
+real module error). `.nvmrc` is advisory, not enforced; there is deliberately no `engines` field,
+which would fail installs rather than warn.
+
 ```bash
 pnpm dev          # Start dev server with Turbopack
 pnpm build        # Production build
