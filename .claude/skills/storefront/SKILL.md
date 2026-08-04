@@ -117,6 +117,15 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   straight to `/checkout`. Note the admin ids are kebab-case and the storefront names are not
   (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
   resolves to the default, which reads as "the setting does nothing".
+  - **A page that renders a per-page variant reads it through
+    `useStoreTemplate(store, key)`** (`use-sf-preview-store.ts`), never `resolveTemplates(store)`
+    directly. The hook overlays the Customize draft on the saved value, which is what makes the
+    picker repaint while a merchant is choosing; reading the resolver pins the page to the SAVED
+    value and the control looks dead until Save. Covers the four keys only one page each reads —
+    `collection`, `product`, `checkout`, `pagination`. The rest (`home`, `header`, `footer`,
+    `productCard`, `cardActions`, `hero`, `headerMenu`) reach their consumers through the shell,
+    which already reads the preview store. Generalised 2026-08-04 from a pagination-only hook,
+    when the other three were found to be unpreviewable.
 - **Card CTA layout** (`templates.cardActions`, default `add-buy`) — **a second axis on the
   product card, orthogonal to `productCard`**, which now means *density only*. Values:
   `add` | `add-buy` | `icons` | `buy-first` | `reveal` | `icon-only`. Folding these into
@@ -145,8 +154,7 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   `<Pager>`; `infinite` = auto-load `AUTO_LOADS` (2) pages then a button; `load-more` = button
   only. Applies to **both** the collection page and search results, which share
   `components/storefront/{pager,load-more}.tsx`. Reads through
-  **`useStorePaginationMode(store)`** (`use-sf-preview-store.ts`), never `resolveTemplates`
-  directly, so the Customize draft streams. Non-`pages` modes use
+  **`useStoreTemplate(store, "pagination")`** — see the rule above. Non-`pages` modes use
   `useStoreProductsInfinite`; see the query-cache note below for why its key is separate.
   `infinite` deliberately stops auto-loading: this footer holds real navigation and the mobile
   bottom nav sits over it, so an endless list makes both unreachable.
@@ -225,8 +233,10 @@ cache-missing) SSR render per save.
 
 Four files, in payload order:
 
-1. `app/(protected)/ecommerce/customize/page.tsx` — `CustomizeWorkspace` holds **every**
-   preview-relevant draft (sections own none), and `BrowserPreview.post()` serializes it.
+1. `components/ecommerce/customize/use-customize-draft.ts` — holds **every** editable value (the
+   parts own none, so nothing is lost when one closes), and
+   `customize/draft-payloads.ts` `toPreviewPayload()` serializes it. That module also builds the
+   save payload, so the two cannot trim differently.
 2. `components/storefront/preview-bridge.tsx` — receives it inside the iframe (gated on `?preview=1`)
    and calls `apply`. It announces `ezycore-preview-ready` on mount so the editor pushes immediately.
 3. `services/stores/use-sf-preview-store.ts` — the override state.
@@ -244,6 +254,11 @@ Four files, in payload order:
   truthiness check.
 - **Media (logo/banner) is not a draft** — its PATCH saves on upload, so it streams from `settings`,
   which the mutation has already refreshed in the query cache.
+- **Stream the EFFECTIVE logo, not the store's own.** A store with no logo inherits the
+  organization's: `getStoreInfo` serves `s.logo ?? org.logo` (BE), so merchants upload once in org
+  settings and an upload in Customize is a store-only override (remove ⇒ back to inherited). The
+  editor must send `settings.logo ?? orgLogo ?? null` or removing the override blanks the previewed
+  header instead of reverting to the org mark.
 - **Everything in Customize streams.** If you add a control there and skip this wiring, you have
   re-created the exact inconsistency that nearly got the whole feature deleted.
 
@@ -440,8 +455,8 @@ resolved **per request from the host**, never baked.
   **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is controlled by
   `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy default), `title`
   overrides the heading. Simple is a deliberately flat link row (drops group titles) but still honours
-  the show toggle. Edited in Customize → Navigation (`footer-links-card.tsx`, groups + the content-pages
-  Switch/heading) — groups, the content-pages toggle/heading **and** the variant are all
+  the show toggle. Edited in Customize → **Footer** (`customize/footer-links-field.tsx`, groups + the
+  content-pages Switch/heading) — groups, the content-pages toggle/heading **and** the variant are all
   live-previewed (2026-07-31; the groups were the last Customize control that wasn't). Social links
   are edited in admin Store Settings → General → Social
   links card. **All hrefs go through `hrefFor` in `social-links.tsx`** — it forces a scheme
@@ -460,9 +475,10 @@ resolved **per request from the host**, never baked.
   of the zod validator INTO `placeOrder` (only there are store settings visible) — the schema now only
   guarantees name/phone shape.
 - **Admin ecommerce pages** (`app/(protected)/ecommerce/*`): dashboard, orders (+detail, invoice
-  print), content, customize (Theme | Templates | **Navigation** — header/footer/announcement moved
-  here 2026-07-18; `/ecommerce/navigation` is now a redirect to
-  `customize?section=navigation` and the sidebar entry is gone), catalog (products + collections),
+  print), content, customize (one rail of **store parts** in shopper order — Brand, Announcement
+  bar, Header, Hero, Home page, Product cards, Collections, Product page, Footer, Checkout — over
+  one Save; `/ecommerce/navigation` is a redirect to `customize?part=header` and the sidebar entry
+  is gone), catalog (products + collections),
   settings (General incl. social links + fulfillment location, Publish, payments/shipping/checkout
   tabs). Custom domains under app Settings → Custom Domains. List pages come in two shapes:
   CRUD-style (coupons/campaigns/content) are `DataTable` + `filterConfig` pages whose `getAll`
@@ -472,7 +488,45 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-02)
+## Work log (what was built, newest first — as of 2026-08-04)
+
+- **Customize re-cut into store parts, one Save** (2026-08-04): the three tabs were named after the
+  three settings objects the backend stores (`theme` / `templates` / `nav`), so one visible thing was
+  split across all of them — the footer's layout was in Templates, its © line and trust badges in
+  Theme, its link groups in Navigation, behind three different save buttons. The rail is now **one
+  list of store parts in the order a shopper meets them** (Brand, Announcement bar, Header, Hero, Home
+  page, Product cards, Collections, Product page, Footer, Checkout) in
+  `components/ecommerce/customize/`, over **one** save bar. Two defects drove it, both found by
+  reading rather than by any gate:
+  - **Unsaved edits were silently discarded.** The sections were a ternary, so each unmounted on tab
+    switch; preview-relevant state had been lifted but the rest was local and re-seeded from the
+    *saved* settings on remount. Picking "Hero Split", visiting Theme and coming back showed
+    "Classic" selected while the preview still showed Hero Split — and Save wrote Classic. The
+    slides panel did the same, and the button that opened it sat *inside* the section it destroyed.
+    Everything editable now lives in **`use-customize-draft.ts`**, one level above anything that can
+    unmount, with dirty state *derived* per part (`PART_SLICE`) rather than flagged by hand.
+  - **Six save models** (theme / templates / navigation / slides / collections + instant media) with
+    two dirty indicators between them. Now one PATCH carries theme+templates+nav, collections fold in
+    via their own mutations (`useUpdateCollection` gained `silent` so one Save = one toast), and only
+    image uploads still persist on their own. `beforeunload` guards the page — there is still no
+    route-level guard anywhere in the app.
+  - **`draft-payloads.ts` builds the save payload and the preview message together**, because the
+    trimming rules (blank footer group dropped, untitled slide dropped) were duplicated and could
+    drift — a preview promising a column that never ships is the bug class it prevents.
+  - Preview chrome: the decorative traffic-lights + dead URL bar became **Home / Collection / Product**
+    page tabs, and opening a part points the preview at a page that shows it. The product slug comes
+    from the **public** storefront endpoint — the admin catalog DTO only carries `storefront.slug`
+    when an owner typed a custom one, so sourcing it there left the tab permanently disabled.
+    **Checkout still has no tab**: an empty cart renders the empty-cart screen, which says nothing
+    about the layout just chosen.
+  - Shared primitives extracted: `ui/components/color-field.tsx` (two divergent copies) and
+    `ui/components/option-card.tsx` (the `border-primary ring-2` treatment had been pasted into five
+    files). Every template option now has a wireframe sketch — eight of nine pickers were bare text.
+  - `?section=` deep links became `?part=`; the retired `/ecommerce/navigation` route redirects to
+    `?part=header`.
+  - **Never trade the preview away for rail width.** The removed 380↔560px toggle (2026-07-18) beat
+    a hide-preview button for exactly this reason: hiding the preview kills the live edit-see loop
+    the page exists for. The rail is now a fixed 380px, widening to 440px at `2xl` on its own.
 
 - **Delivery cost stops lying before checkout (FE)** (2026-08-02): the cart page and drawer both
   called `computeShipping(store, subtotal)` **without a zone** — and that argument defaults to
@@ -1024,31 +1078,10 @@ resolved **per request from the host**, never baked.
   `list` icon in `sf-icons.tsx`, `gridView`/`listView` i18n keys ×3. Old saved
   `templates.search` values are harmless — zod strips unknown keys on PATCH.
 
-- **Customize rail width toggle** (2026-07-18): the left rail expands 380↔560px via a
-  ⇔ icon button beside the section tabs (lg-only, per-visit state, grid-template-columns
-  animated; panels opened while wide inherit the width). Chosen over a drag resizer and a
-  hide-preview button after an interactive options mock
-  (claude.ai/code/artifact/c994f91d-82e3-4ab5-bc70-775c5ac62d0f) — hide-preview was
-  rejected because it kills the live edit-see loop the page exists for.
-
-- **Theme rail redesign (settings-list accordion) + logo inheritance** (2026-07-18):
-  Customize → Theme's six stacked cards became ONE surface in `components/ecommerce/theme/`:
-  `theme-section.tsx` (container: accordion state, dirty flag, save; slides group inline) +
-  `theme-group.tsx` (collapsible row primitive: icon chip / title / live one-line summary) +
-  `theme-capsule.tsx` (pinned mini-storefront strip repainting with the brand/accent draft) +
-  `preset-group.tsx` (presets as mini storefront previews) + `colors-group.tsx` (pickers +
-  light/dark **contrast check** strip) + `media-field.tsx` (`MediaField` moved out of the
-  page; uploads still save instantly) + `footer-group.tsx` (footer © text + trust badges,
-  icon picker now a Popover; exports `DEFAULT_BADGES`) + `banner-hero-fields.tsx` (ex
-  `banner-hero-card.tsx` minus the Card wrapper; still exports `cleanHeroBanner`).
-  Groups: Preset · Brand colors · Logo · Hero slides · **Banner hero** (image + copy in one
-  group — they compose one storefront card) · Footer. **Store logo inherits the org logo**:
-  `getStoreInfo` serves `s.logo ?? org.logo` (BE), so merchants upload once in org settings;
-  the Logo group shows the inherited mark ("Using your organization logo") and an upload
-  there is a store-only override (remove ⇒ back to inherited). Save payload, props from
-  CustomizeWorkspace, and preview streaming unchanged; sticky save bar shows an amber
-  "Unsaved changes" dot (media uploads don't trip it). Approved sample:
-  claude.ai/code/artifact/8b213c7c-35d0-4ac1-afd6-495c2b3b11b6.
+  <!-- The 2026-07-18 "rail width toggle" and "Theme rail redesign" entries were removed on
+  2026-08-04: both described the three-tab Customize this repo no longer has, down to the file
+  names. Their two durable facts were promoted rather than lost — logo inheritance to the Live
+  preview section, and "never trade the preview away for rail width" to the 2026-08-04 entry. -->
 
 - **Editable banner-hero copy (`heroBanner`)** (2026-07-18): the static banner hero's
   badge/title/subtitle and its two buttons (labels + links) are merchant-editable.
@@ -1060,10 +1093,10 @@ resolved **per request from the host**, never baked.
   its uppercase kicker; Minimal's typographic hero is deliberately untouched. Buttons
   render through the shared `HeroCtaLink` (`home-shared.tsx` — full URL = new tab,
   else `storeHref(base, …)`, empty = `/products`; the carousel's `SlideCta` now uses
-  it too). Admin: Customize → Theme → **"Banner hero"** group
-  (`components/ecommerce/theme/banner-hero-fields.tsx`; placeholders = the standard EN
-  copy; saved by Save theme via `cleanHeroBanner` — blank field ⇒ built-in copy, so custom
-  text replaces BOTH languages as-is); preview store + bridge stream `heroBanner`.
+  it too). Admin: Customize → **Hero** → "Banner headline"
+  (`components/ecommerce/customize/banner-hero-fields.tsx`; placeholders = the standard EN
+  copy; `cleanHeroBanner` runs on save — blank field ⇒ built-in copy, so custom text replaces
+  BOTH languages as-is); preview store + bridge stream `heroBanner`.
 
 - **Explicit header-menu source + Navigation folded into Customize** (2026-07-18): the store
   header's top links used to be an invisible either/or (custom menu wins if non-empty, else raw
@@ -1099,23 +1132,21 @@ resolved **per request from the host**, never baked.
   height, sections scroll INSIDE it with their Save buttons pinned at the bottom, and the slides
   panel fills the same frame (pinned header/footer, scrolling rows) — eliminates the height-jump
   "blink" when the panel takes over. Mobile keeps natural flow (all `lg:` gated).
-- **Hero slides edit-in-place panel**: slide editing moved out of the Theme scroll into
-  `components/ecommerce/hero-slides-panel.tsx` — a takeover of the Customize LEFT rail (never a
-  modal/right-drawer: those would cover the live preview). Collapsed rows (SlideThumb + title,
-  expand one at a time), own footer **Save slides** (PATCHes only `heroSlides`) / Cancel-back-Esc
-  (restores an on-open snapshot). Opened from the Home template block's edit/add icon AND the Theme
-  section's compact "Hero slides" summary card ("Manage slides"); while open, BrowserPreview forces
-  `heroSrc="slides"` so edits always show. Theme's "Save theme" no longer saves slides.
-  `hero-slides-editor.tsx` deleted (superseded); shared `slide-thumb.tsx` added.
+- **Hero slides edit-in-place panel**: `components/ecommerce/customize/hero-slides-panel.tsx` —
+  a takeover of the Customize LEFT rail (never a modal/right-drawer: those would cover the live
+  preview). Collapsed rows (SlideThumb + title, expand one at a time). Opened from the Hero part's
+  slide rows; while open, BrowserPreview forces `heroSrc="slides"` so edits always show.
+  (2026-08-04: the panel's own Save/Cancel went away with the page's move to one Save — it now
+  edits the shared draft and "Done" just returns.) Shared `slide-thumb.tsx` added.
   Design sample: claude.ai/code/artifact/09f51325-0c70-4b4d-9359-569d99895bcd.
 - **Hero source switch (`templates.hero`: slides|banner)**: explicit control over what the home
   hero shows — carousel (when slides exist) or the static banner hero — so slides can stay saved
   but hidden. Standard surface-template plumbing (BE model/validator/types, FE `HERO` map in
   `storefront-templates.ts`, default `slides`); `store-home.tsx` withholds `heroSlides` from
   templates when resolved source is `banner`; preview store/bridge carry `heroSrc` (rides
-  `templates.hero` in the postMessage payload). Admin Templates "Home page" card redesigned →
-  `components/ecommerce/home-template-block.tsx` (wireframe layout tiles + "Hero area shows"
-  segmented control w/ slide-count chip, zero-slides warning + jump-to-Theme, Minimal note).
+  `templates.hero` in the postMessage payload). Admin: the Hero part's "The hero shows" pair
+  (`customize/parts/hero-part.tsx` — zero-slides warning, Minimal note; the wireframe layout tiles
+  it once shared a card with now live in the Home page part).
   Banner MediaField now documents its double duty (static hero + og:image, `shop/page.tsx`).
 
 - **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/badge?/title/

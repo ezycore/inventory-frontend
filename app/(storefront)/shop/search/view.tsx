@@ -14,7 +14,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useHydrated } from "@/hooks/use-hydrated";
-import { useStorePaginationMode } from "@/services/stores/use-sf-preview-store";
+import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { storeHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
 import { money } from "@/components/storefront/format";
@@ -55,9 +55,9 @@ function SearchInner() {
   }, [q]);
 
   const { data: store } = useStore(slug);
-  // Listing mode is the merchant's (Customize → Templates), shared with the
+  // Listing mode is the merchant's (Customize → Collections), shared with the
   // collection page so search doesn't paginate in a second style.
-  const mode = useStorePaginationMode(store);
+  const mode = useStoreTemplate(store, "pagination");
   const paged = mode === "pages";
   const [page, setPage] = useState(1);
   // A new search term is a new result set — back to page 1 (render-time adjust).

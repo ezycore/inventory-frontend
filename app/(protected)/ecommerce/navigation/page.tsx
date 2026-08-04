@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 
 /**
- * Navigation moved into Customize (Theme | Templates | Navigation) so header,
- * footer and announcement edits get the live preview. Kept as a redirect for
+ * Navigation moved into Customize, where the header, footer and announcement
+ * bar are edited beside the live preview — each with the rest of its own part
+ * of the store rather than in a tab of its own. Kept as a redirect for
  * bookmarks and any links that still point here.
  */
 export default function NavigationPage() {
-  redirect("/ecommerce/customize?section=navigation");
+  redirect("/ecommerce/customize?part=header");
 }

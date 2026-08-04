@@ -13,7 +13,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useWishlistStore } from "@/services/stores/use-wishlist-store";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { storeHref } from "@/lib/storefront-links";
 import { cardImageUrl, thumbImageUrl } from "@/lib/storefront-image";
 import { money } from "@/components/storefront/format";
@@ -87,6 +87,10 @@ export default function ProductDetailPage({
     setImgIdx(0);
   }
 
+  // Read above the early returns — it is a hook, and the loading/error branches
+  // below would otherwise make the call order conditional.
+  const variant = useStoreTemplate(store, "product");
+
   if (isLoading) return <div style={wrap}><LoadingSplash /></div>;
   if (isError || !product) {
     return (
@@ -100,7 +104,6 @@ export default function ProductDetailPage({
   }
 
   const currency = store?.currency;
-  const variant = resolveTemplates(store).product;
   const galleryTop = variant !== "left";
   const sticky = variant === "sticky";
 

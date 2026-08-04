@@ -11,10 +11,10 @@ import {
 import { cn } from "@/ui/lib/utils";
 
 /**
- * Logo/banner upload tile (moved from the Customize page when the Theme rail
- * became a settings list). The preview IS the upload control — click to add or
+ * Logo/banner upload tile. The preview IS the upload control — click to add or
  * replace, hover for remove. Uploads save immediately via the media PATCH,
- * independent of "Save theme".
+ * independent of the page's Save button; that is the one thing on Customize
+ * that still persists on its own, and every hint here says so.
  */
 export function MediaField({
   label,

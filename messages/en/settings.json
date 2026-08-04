@@ -966,6 +966,9 @@
         "rejected": "Order rejected",
         "returned": "Order returned"
       },
+      "cart": {
+        "recovery": "Abandoned cart reminder"
+      },
       "sale": {
         "completed": "Sale receipt",
         "due_reminder": "Payment due reminder"

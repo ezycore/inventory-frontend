@@ -6,8 +6,8 @@ import { cn } from "@/ui/lib/utils";
 
 /**
  * Tiny hero-slide thumbnail: the slide's image, or the brand-tinted panel
- * stand-in for imageless slides. Used by the slides panel rows and the Theme
- * section's summary card.
+ * stand-in for imageless slides. Used by the slides panel rows and the Hero
+ * part's slide list.
  */
 export function SlideThumb({
   slide,

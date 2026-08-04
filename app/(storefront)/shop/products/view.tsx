@@ -12,7 +12,6 @@ import {
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { resolveTemplates } from "@/lib/storefront-templates";
 import { money } from "@/components/storefront/format";
 import { ProductCard } from "@/components/storefront/product-card";
 import { SkeletonCard } from "@/components/storefront/sf-skeleton";
@@ -23,7 +22,7 @@ import {
   SortSelect,
   type FilterChip,
 } from "@/components/storefront/filter-toolbar";
-import { useStorePaginationMode } from "@/services/stores/use-sf-preview-store";
+import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { SideDrawer } from "@/components/storefront/side-drawer";
 import { LoadMore } from "@/components/storefront/load-more";
 import { Pager } from "@/components/storefront/pager";
@@ -74,11 +73,11 @@ function CollectionInner({
   const { data: categories } = useStoreCategories(slug);
   const { data: brands } = useStoreBrands(slug);
 
-  // Which listing mode the merchant chose (Customize → Templates), with any
+  // Which listing mode the merchant chose (Customize → Collections), with any
   // unsaved draft from the live preview applied. `store` is SSR-seeded in
   // shop/layout.tsx, so this is settled on the first render and the page never
   // flips modes under the shopper.
-  const mode = useStorePaginationMode(store);
+  const mode = useStoreTemplate(store, "pagination");
   const paged = mode === "pages";
   const filterState = { categoryId, brandId, minPrice, maxPrice, inStock: inStock ? "1" : "", sort };
 
@@ -110,7 +109,7 @@ function CollectionInner({
   };
 
   const currency = store?.currency;
-  const variant = resolveTemplates(store).collection;
+  const variant = useStoreTemplate(store, "collection");
   const infinitePages = infiniteQuery.data?.pages ?? [];
   const items = paged
     ? (pagedQuery.data?.items ?? [])

@@ -3,7 +3,6 @@
 
 import type { StorefrontTrustBadge } from "@/types";
 import { Input } from "@/ui/components/input";
-import { Label } from "@/ui/components/label";
 import {
   Popover,
   PopoverContent,
@@ -89,43 +88,24 @@ function BadgeRow({
   );
 }
 
-/** Footer group body: the © line plus the Rich footer's trust-badge strip. */
-export function FooterBody({
-  footerText,
-  setFooterText,
+/** The three trust badges the Rich footer shows above its link columns. */
+export function TrustBadgesField({
   badges,
   setBadge,
 }: {
-  footerText: string;
-  setFooterText: (v: string) => void;
   badges: StorefrontTrustBadge[];
   setBadge: (i: number, patch: Partial<StorefrontTrustBadge>) => void;
 }) {
   return (
-    <div className="space-y-3">
-      <div className="space-y-1.5">
-        <Label>Footer text</Label>
-        <Input
-          value={footerText}
-          onChange={(e) => setFooterText(e.target.value)}
-          maxLength={280}
-          placeholder="© Your store. All rights reserved."
+    <div className="space-y-2">
+      {badges.map((b, i) => (
+        <BadgeRow
+          key={i}
+          badge={b}
+          placeholder={BADGE_PLACEHOLDERS[i] ?? "Badge text"}
+          onChange={(patch) => setBadge(i, patch)}
         />
-      </div>
-      <div className="space-y-2">
-        <p className="text-[11px] text-muted-foreground">
-          Trust badges shown in the <span className="font-medium">Rich</span>{" "}
-          footer — pick an icon, leave the text empty to keep the default.
-        </p>
-        {badges.map((b, i) => (
-          <BadgeRow
-            key={i}
-            badge={b}
-            placeholder={BADGE_PLACEHOLDERS[i] ?? "Badge text"}
-            onChange={(patch) => setBadge(i, patch)}
-          />
-        ))}
-      </div>
+      ))}
     </div>
   );
 }

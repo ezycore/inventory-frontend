@@ -10,17 +10,14 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import {
-  useUpdateStorefrontSettings,
-  useUploadStorefrontImage,
-} from "@/services/api";
+import { useUploadStorefrontImage } from "@/services/api";
 import type { StorefrontHeroSlide } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
-import { SlideThumb } from "@/components/ecommerce/slide-thumb";
+import { SlideThumb } from "@/components/ecommerce/customize/slide-thumb";
 
 export const MAX_HERO_SLIDES = 5;
 
@@ -33,45 +30,43 @@ const newHeroSlide = (): StorefrontHeroSlide => ({
 });
 
 /**
- * Edit-in-place hero-slides panel. Takes over the Customize left rail (the
- * live preview stays visible and repaints as you type — the draft is lifted
- * to CustomizeWorkspace). Owns persistence: "Save slides" PATCHes only
- * `heroSlides`; Cancel/back/Esc restore the draft to what it was on open.
+ * Edit-in-place hero-slides panel: it takes over the Customize rail so the live
+ * preview stays visible and repaints as you type — never a modal.
+ *
+ * It owns no persistence and no snapshot. The slides it edits are the page's
+ * draft, so "Done" simply returns to the rail and the page's one Save ships
+ * them; Discard on the save bar reverts these along with everything else. Only
+ * image uploads hit the server here, because a file has to exist before it can
+ * be referenced.
  */
 export function HeroSlidesPanel({
   slides,
   setSlides,
+  initialExpanded,
   onClose,
 }: {
   slides: StorefrontHeroSlide[];
   setSlides: (v: StorefrontHeroSlide[]) => void;
+  /** Slide to open on entry — the row whose pencil was clicked. */
+  initialExpanded?: number;
   onClose: () => void;
 }) {
-  const save = useUpdateStorefrontSettings();
   const upload = useUploadStorefrontImage();
   const fileInput = useRef<HTMLInputElement>(null);
-  const uploadTarget = useRef<number>(0);
+  // State, not a ref: the row renders "Uploading…" from it, and a ref read
+  // during render doesn't repaint when it changes.
+  const [uploadTarget, setUploadTarget] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<number | null>(
-    slides.length === 0 ? 0 : null,
+    initialExpanded ?? (slides.length === 0 ? 0 : null),
   );
-  // Snapshot on open so Cancel/back/Esc can restore the unsaved draft.
-  const snapshot = useRef<StorefrontHeroSlide[]>(
-    JSON.parse(JSON.stringify(slides)),
-  );
-
-  const cancel = () => {
-    setSlides(snapshot.current);
-    onClose();
-  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") cancel();
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onClose]);
 
   const patch = (i: number, p: Partial<StorefrontHeroSlide>) =>
     setSlides(slides.map((s, idx) => (idx === i ? { ...s, ...p } : s)));
@@ -94,53 +89,33 @@ export function HeroSlidesPanel({
   };
 
   const pickImage = (i: number) => {
-    uploadTarget.current = i;
+    setUploadTarget(i);
     fileInput.current?.click();
   };
-  const onFile = async (file: File) => {
+  const onFile = async (file: File, target: number) => {
     try {
       const res = await upload.mutateAsync(file);
-      if (res.data) patch(uploadTarget.current, { image: res.data });
+      if (res.data) patch(target, { image: res.data });
     } catch {
       // handleMutationError already toasted; keep the slide unchanged.
-    }
-  };
-
-  const submit = async () => {
-    try {
-      // Untitled slides are drafts — dropped on save (title is required).
-      await save.mutateAsync({
-        heroSlides: slides
-          .filter((s) => s.title.trim())
-          .map((s) => ({
-            image: s.image ?? null,
-            badge: s.badge?.trim() || undefined,
-            title: s.title.trim(),
-            subtitle: s.subtitle?.trim() || undefined,
-            buttonLabel: s.buttonLabel?.trim() || undefined,
-            link: s.link?.trim() || undefined,
-          })),
-      });
-      onClose();
-    } catch {
-      // Error toast already shown; stay open so nothing is lost.
+    } finally {
+      setUploadTarget(null);
     }
   };
 
   return (
     <Card className="animate-in fade-in slide-in-from-left-6 flex h-full min-h-0 flex-col gap-0 p-0 shadow-none duration-200">
-      {/* Header */}
       <div className="flex items-center gap-2 border-b px-4 py-3">
         <button
           type="button"
-          onClick={cancel}
-          aria-label="Back (discard changes)"
+          onClick={onClose}
+          aria-label="Back to store parts"
           className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h3 className="text-sm font-semibold">Hero slides</h3>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
           {slides.length} / {MAX_HERO_SLIDES}
         </span>
         <Button
@@ -161,7 +136,7 @@ export function HeroSlidesPanel({
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) void onFile(file);
+          if (file && uploadTarget !== null) void onFile(file, uploadTarget);
           e.target.value = "";
         }}
       />
@@ -178,14 +153,15 @@ export function HeroSlidesPanel({
               <button
                 type="button"
                 onClick={() => setExpanded(expanded === i ? null : i)}
+                aria-expanded={expanded === i}
                 className="flex w-full items-center gap-2.5 p-2.5 text-left"
               >
                 <SlideThumb slide={s} className="h-8 w-[52px]" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-semibold">
+                  <span className="block truncate text-sm font-semibold">
                     {s.title.trim() || "Untitled slide"}
                   </span>
-                  <span className="block text-[10px] text-muted-foreground">
+                  <span className="block text-xs text-muted-foreground">
                     {[s.badge?.trim(), s.image ? "has image" : "brand panel"]
                       .filter(Boolean)
                       .join(" · ")}
@@ -200,7 +176,7 @@ export function HeroSlidesPanel({
               </button>
 
               {expanded === i && (
-                <div className="space-y-2 border-t border-dashed p-2.5">
+                <div className="space-y-2.5 border-t border-dashed p-2.5">
                   <div className="flex items-center gap-1">
                     <Button
                       type="button"
@@ -209,7 +185,7 @@ export function HeroSlidesPanel({
                       disabled={upload.isPending}
                       onClick={() => pickImage(i)}
                     >
-                      {upload.isPending && uploadTarget.current === i
+                      {upload.isPending && uploadTarget === i
                         ? "Uploading…"
                         : s.image
                           ? "Replace image"
@@ -258,7 +234,7 @@ export function HeroSlidesPanel({
                   {/* The hero is ~2.6:1 on desktop but crops to a tall centre
                       strip on mobile, and the desktop scrim darkens the left
                       where this copy sits — hence both halves of this advice. */}
-                  <p className="text-[10px] leading-snug text-muted-foreground">
+                  <p className="text-xs leading-snug text-muted-foreground">
                     1600 × 640 px (2.5:1) works best. Keep the subject right of
                     centre and away from the edges — the text sits on the left,
                     and phones crop to a tall centre strip.
@@ -270,7 +246,7 @@ export function HeroSlidesPanel({
                       onChange={(e) => patch(i, { title: e.target.value })}
                       maxLength={90}
                       placeholder="Mega sale coming on 12th December"
-                      className="h-8"
+                      className="h-9"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -281,7 +257,7 @@ export function HeroSlidesPanel({
                         onChange={(e) => patch(i, { badge: e.target.value })}
                         maxLength={40}
                         placeholder="Coming soon"
-                        className="h-8"
+                        className="h-9"
                       />
                     </div>
                     <div className="space-y-1">
@@ -291,7 +267,7 @@ export function HeroSlidesPanel({
                         onChange={(e) => patch(i, { buttonLabel: e.target.value })}
                         maxLength={30}
                         placeholder="Shop now"
-                        className="h-8"
+                        className="h-9"
                       />
                     </div>
                   </div>
@@ -302,7 +278,7 @@ export function HeroSlidesPanel({
                       onChange={(e) => patch(i, { subtitle: e.target.value })}
                       maxLength={160}
                       placeholder="Storewide deals — one day only."
-                      className="h-8"
+                      className="h-9"
                     />
                   </div>
                   <div className="space-y-1">
@@ -312,7 +288,7 @@ export function HeroSlidesPanel({
                       onChange={(e) => patch(i, { link: e.target.value })}
                       maxLength={300}
                       placeholder="/products or https://…"
-                      className="h-8"
+                      className="h-9"
                     />
                   </div>
                 </div>
@@ -322,13 +298,12 @@ export function HeroSlidesPanel({
         )}
       </div>
 
-      {/* Footer */}
-      <div className="flex justify-end gap-2 border-t px-4 py-3">
-        <Button variant="outline" size="sm" onClick={cancel}>
-          Cancel
-        </Button>
-        <Button size="sm" onClick={submit} disabled={save.isPending}>
-          {save.isPending ? "Saving…" : "Save slides"}
+      <div className="flex items-center gap-3 border-t px-4 py-3">
+        <p className="text-xs text-muted-foreground">
+          Saved with the rest of the page.
+        </p>
+        <Button size="sm" className="ml-auto" onClick={onClose}>
+          Done
         </Button>
       </div>
     </Card>

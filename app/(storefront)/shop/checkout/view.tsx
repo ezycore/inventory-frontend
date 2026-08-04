@@ -21,7 +21,7 @@ import type {
   ShippingAddress,
   StorefrontOrder,
 } from "@/lib/storefront-client";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import {
   computeShipping,
   hasZoneShipping,
@@ -85,7 +85,7 @@ export default function CheckoutPage() {
 
   const items = storeSlug === slug ? allItems : [];
   const currency = store?.currency;
-  const variant = resolveTemplates(store).checkout;
+  const variant = useStoreTemplate(store, "checkout");
   const multi = variant === "multi";
   const methods = store?.allowedPaymentMethods ?? ["cod"];
 
