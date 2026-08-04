@@ -31,6 +31,8 @@ export function StorePreviewBridge() {
         footer: p.templates?.footer,
         header: p.templates?.header,
         cardStyle: p.templates?.productCard,
+        cardActions: p.templates?.cardActions,
+        pagination: p.templates?.pagination,
         badges: p.trustBadges,
         heroSlides: p.heroSlides,
         heroSrc: p.templates?.hero,
@@ -39,6 +41,12 @@ export function StorePreviewBridge() {
         navHeader: p.nav?.header,
         announcement: p.nav?.announcement,
         collections: p.collections,
+        footerGroups: p.nav?.footer,
+        footerContentPages: p.nav?.footerContentPages,
+        // Sent as explicit `null` when there is no image — see the store's note
+        // on why these two can't use a `?? saved` fallback downstream.
+        logo: p.logo,
+        banner: p.banner,
       });
     };
     window.addEventListener("message", onMsg);

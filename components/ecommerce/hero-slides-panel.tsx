@@ -255,6 +255,14 @@ export function HeroSlidesPanel({
                       </button>
                     </span>
                   </div>
+                  {/* The hero is ~2.6:1 on desktop but crops to a tall centre
+                      strip on mobile, and the desktop scrim darkens the left
+                      where this copy sits — hence both halves of this advice. */}
+                  <p className="text-[10px] leading-snug text-muted-foreground">
+                    1600 × 640 px (2.5:1) works best. Keep the subject right of
+                    centre and away from the edges — the text sits on the left,
+                    and phones crop to a tall centre strip.
+                  </p>
                   <div className="space-y-1">
                     <Label className="text-xs">Title</Label>
                     <Input

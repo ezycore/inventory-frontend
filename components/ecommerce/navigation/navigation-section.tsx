@@ -1,7 +1,6 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
 import {
   useContentPages,
   useUpdateStorefrontSettings,
@@ -28,9 +27,10 @@ import type { NavOption } from "@/components/ecommerce/navigation/menu-item-fiel
 
 /**
  * Customize → Navigation: header menu (+ its source), footer link groups, and
- * the announcement bar. The preview-relevant draft (menu source + header items)
- * is lifted to CustomizeWorkspace so the live preview repaints as you edit;
- * footer/announcement are local since the preview doesn't render them.
+ * the announcement bar. **Every draft here is lifted to CustomizeWorkspace** so
+ * the live preview repaints as you edit — this section owns no preview-relevant
+ * state of its own. Footer groups were the last local holdout (they were the one
+ * Customize control with no live preview, which read as a bug); keep it that way.
  */
 export function NavigationSection({
   settings,
@@ -40,6 +40,10 @@ export function NavigationSection({
   setHeader,
   announcement,
   setAnnouncement,
+  footer,
+  setFooter,
+  contentPages,
+  setContentPages,
   collections,
   onManageCollections,
 }: {
@@ -48,26 +52,17 @@ export function NavigationSection({
   setSource: (v: HeaderMenuSource) => void;
   header: StorefrontMenuItem[];
   setHeader: (v: StorefrontMenuItem[]) => void;
-  // Announcement draft is lifted to CustomizeWorkspace so the live preview
-  // repaints as it's edited (footer stays local — the preview doesn't render it).
   announcement: AnnouncementDraft;
   setAnnouncement: (patch: Partial<AnnouncementDraft>) => void;
+  footer: StorefrontFooterGroup[];
+  setFooter: (v: StorefrontFooterGroup[]) => void;
+  contentPages: FooterContentPagesDraft;
+  setContentPages: (patch: Partial<FooterContentPagesDraft>) => void;
   collections: CollectionRowValue[];
   onManageCollections: () => void;
 }) {
   const save = useUpdateStorefrontSettings();
   const { data: pages } = useContentPages();
-
-  const nav = settings.nav;
-  const [footer, setFooter] = useState<StorefrontFooterGroup[]>(nav?.footer ?? []);
-  // Auto content-pages column: `show` defaults on (legacy behaviour) so existing
-  // stores keep showing it; blank title ⇒ the built-in "Information" heading.
-  const [contentPages, setContentPages] = useState<FooterContentPagesDraft>(() => ({
-    show: nav?.footerContentPages?.show ?? true,
-    title: nav?.footerContentPages?.title ?? "",
-  }));
-  const patchContentPages = (patch: Partial<FooterContentPagesDraft>) =>
-    setContentPages((c) => ({ ...c, ...patch }));
 
   // Menu links target categories by slug; slugless ones (legacy seed data) are
   // unlinkable — and Radix Select crashes on empty-string item values.
@@ -159,7 +154,7 @@ export function NavigationSection({
           groups={footer}
           setGroups={setFooter}
           contentPages={contentPages}
-          setContentPages={patchContentPages}
+          setContentPages={setContentPages}
         />
       </div>
       <div className="flex flex-none justify-end">

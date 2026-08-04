@@ -50,7 +50,7 @@ export const categoryFormConfig: DynamicFormConfig = {
       maxFiles: 1,
       maxSize: 5 * 1024 * 1024, // 5MB per file
       fileTypes: ["jpg", "jpeg", "png", "webp"],
-      dropzoneText: "PNG, JPG, WEBP up to 5MB",
+      dropzoneText: "Square 600 × 600 px works best · PNG, JPG, WEBP up to 5MB",
       showPreview: true,
     },
     {

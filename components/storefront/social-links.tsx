@@ -15,13 +15,38 @@ const ORDER: { key: keyof SocialConfig; icon: IconName; label: string }[] = [
   { key: "whatsapp", icon: "whatsapp", label: "WhatsApp" },
 ];
 
-// Owners often paste a bare phone number for WhatsApp — turn it into a wa.me
-// link. Every other platform is stored as a full URL and passes through as-is.
-function hrefFor(key: keyof SocialConfig, value: string): string {
-  if (key !== "whatsapp") return value;
-  return /^https?:\/\//i.test(value)
-    ? value
-    : `https://wa.me/${value.replace(/[^\d]/g, "")}`;
+/**
+ * Force an absolute URL.
+ *
+ * **A schemeless href is a RELATIVE href.** An owner who saves `facebook.com/rkrashu` — which is
+ * how most people write a URL — used to get `<a href="facebook.com/rkrashu">`, which the browser
+ * resolves against the shop's own origin. The Facebook button then navigated shoppers to a 404 on
+ * the merchant's own storefront. This was live: `GET /facebook.com/rkrashu 404` in the dev log.
+ *
+ * Fixed at render rather than on save so already-stored values are corrected too.
+ */
+function absoluteUrl(value: string): string {
+  if (/^https?:\/\//i.test(value)) return value;
+  // Protocol-relative (`//facebook.com/x`) is already absolute — just pick the scheme.
+  if (value.startsWith("//")) return `https:${value}`;
+  return `https://${value}`;
+}
+
+/** Only digits, spaces and phone punctuation — i.e. a phone number rather than a URL. */
+const PHONE_ONLY = /^[\d\s+()-]+$/;
+
+/**
+ * Owners paste WhatsApp as either a bare phone number or a link, and everything else as a URL that
+ * may or may not carry its scheme. Exported for its test — the failure mode here is a dead link on
+ * every storefront, which nothing else would catch.
+ */
+export function hrefFor(key: keyof SocialConfig, value: string): string {
+  // Phone-shaped input is the only case that isn't already a URL. Testing the shape (rather than
+  // "no scheme ⇒ phone") is what keeps `wa.me/8801…` from being stripped to its digits.
+  if (key === "whatsapp" && PHONE_ONLY.test(value)) {
+    return `https://wa.me/${value.replace(/\D/g, "")}`;
+  }
+  return absoluteUrl(value);
 }
 
 const btn: CSSProperties = {

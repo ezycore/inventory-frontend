@@ -364,7 +364,12 @@ export function ProductOnlineEditor({
             <p className="text-xs text-muted-foreground">
               First image is the primary one shown on the storefront. Up to 5.
             </p>
-            <ImageGalleryUpload value={images} onChange={setImages} maxFiles={5} />
+            <ImageGalleryUpload
+              value={images}
+              onChange={setImages}
+              maxFiles={5}
+              dropzoneText="Square 1600 × 1600 px works best · PNG, JPG, WEBP up to 5MB · Max 5 images"
+            />
           </div>
 
           {/* Out of stock behavior */}

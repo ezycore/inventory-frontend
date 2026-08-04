@@ -24,6 +24,10 @@ export interface Dict {
   fromPrice: string;
   /** Card CTA for variable products — options are picked on the PDP. */
   selectOptions: string;
+  /** Quick-buy sheet: escape hatch to the full product page. */
+  fullDetails: string;
+  /** Quick-buy prompt while the shopper still owes an option choice. */
+  chooseOption: string;
   /** Drawer link to the full /cart page. */
   viewCart: string;
   /** Campaign strip: "«name» — 10% off · Ends 4 Jul". */
@@ -151,6 +155,8 @@ export interface Dict {
   iveVerified: string;
   stillUnverified: string;
   orContinueWith: string;
+  /** Divider UNDER the social buttons — they lead, email is the fallback. */
+  orUseEmail: string;
   continueWithGoogle: string;
   continueWithFacebook: string;
   oauthSigningIn: string;
@@ -228,7 +234,14 @@ export interface Dict {
   brandLabel: string;
   clearAll: string;
   applyFilters: string;
+  /**
+   * Listing progress under an infinite / load-more grid. A template, not a
+   * prefix: Bangla puts the total first, so composing this by concatenation
+   * would read backwards there.
+   */
   showingOf: string;
+  /** Tail button on an infinite / load-more listing. */
+  loadMore: string;
   prev: string;
   next: string;
   inStockFilter: string;
@@ -253,6 +266,8 @@ export interface Dict {
   quantity: string;
   description: string;
   specifications: string;
+  /** PDP gallery affordance — CSS shows it only where a fine pointer can hover. */
+  zoomHint: string;
   relatedTitle: string;
   deliveryEst: string;
   reviewsWord: string;
@@ -261,6 +276,15 @@ export interface Dict {
   variableMsg: string;
   callToOrder: string;
   cartTitle: string;
+  /** Why the cart quotes a "From" delivery fee — the zone is picked at checkout. */
+  deliveryEstimateNote: string;
+  /** Abandoned-cart recovery link outcomes. `{n}` = lines no longer available. */
+  cartRestored: string;
+  cartRestoredPartial: string;
+  cartRestoreExpired: string;
+  cartRestoreEmpty: string;
+  /** Shown when signing in folded in a cart from another device. */
+  cartMerged: string;
   orderSummary: string;
   estDelivery: string;
   remove: string;
@@ -362,6 +386,8 @@ const en: Dict = {
   addToCart: "Add to cart",
   fromPrice: "From",
   selectOptions: "Select options",
+  fullDetails: "See full details",
+  chooseOption: "Choose an option",
   viewCart: "View cart",
   campaignOff: "off",
   campaignEnds: "Ends",
@@ -487,6 +513,7 @@ const en: Dict = {
   iveVerified: "I've verified",
   stillUnverified: "Still unverified — click the link in your email first.",
   orContinueWith: "or continue with",
+  orUseEmail: "or use your email",
   continueWithGoogle: "Continue with Google",
   continueWithFacebook: "Continue with Facebook",
   oauthSigningIn: "Signing you in…",
@@ -563,7 +590,8 @@ const en: Dict = {
   brandLabel: "Brand",
   clearAll: "Clear all",
   applyFilters: "Apply",
-  showingOf: "Showing",
+  showingOf: "Showing {n} of {total}",
+  loadMore: "Load more",
   prev: "Prev",
   next: "Next",
   inStockFilter: "In stock only",
@@ -587,6 +615,7 @@ const en: Dict = {
   quantity: "Quantity",
   description: "Description",
   specifications: "Specifications",
+  zoomHint: "Hover to zoom",
   relatedTitle: "You may also like",
   deliveryEst: "Delivery in 1–2 days inside Dhaka",
   reviewsWord: "reviews",
@@ -595,6 +624,14 @@ const en: Dict = {
   variableMsg: "This product has selectable options (size, bundle) and is not sold online. Visit any Rashid’s Mart outlet or call to order.",
   callToOrder: "Call to order",
   cartTitle: "Shopping cart",
+  deliveryEstimateNote:
+    "Delivery is charged by area. The exact amount is confirmed at checkout once you choose yours.",
+  cartRestored: "Welcome back — your cart is here.",
+  cartRestoredPartial:
+    "Your cart is back. {n} item(s) are no longer available and were removed.",
+  cartRestoreExpired: "That link has expired. Your cart may still be saved here.",
+  cartRestoreEmpty: "Those items are no longer available.",
+  cartMerged: "We added the items from your other device.",
   orderSummary: "Order summary",
   estDelivery: "Estimated delivery",
   remove: "Remove",
@@ -697,6 +734,8 @@ const bn: Dict = {
   addToCart: "কার্টে যোগ করুন",
   fromPrice: "শুরু",
   selectOptions: "ভ্যারিয়েন্ট বাছাই করুন",
+  fullDetails: "সম্পূর্ণ বিবরণ দেখুন",
+  chooseOption: "অপশন বাছাই করুন",
   viewCart: "কার্ট দেখুন",
   campaignOff: "ছাড়",
   campaignEnds: "শেষ",
@@ -822,6 +861,7 @@ const bn: Dict = {
   iveVerified: "যাচাই করেছি",
   stillUnverified: "এখনও যাচাই হয়নি — আগে ইমেইলের লিংকে ক্লিক করুন।",
   orContinueWith: "অথবা চালিয়ে যান",
+  orUseEmail: "অথবা ইমেইল ব্যবহার করুন",
   continueWithGoogle: "Google দিয়ে চালিয়ে যান",
   continueWithFacebook: "Facebook দিয়ে চালিয়ে যান",
   oauthSigningIn: "সাইন ইন করা হচ্ছে…",
@@ -898,7 +938,8 @@ const bn: Dict = {
   brandLabel: "ব্র্যান্ড",
   clearAll: "সব মুছুন",
   applyFilters: "প্রয়োগ",
-  showingOf: "দেখাচ্ছে",
+  showingOf: "{total}টির মধ্যে {n}টি দেখাচ্ছে",
+  loadMore: "আরও দেখুন",
   prev: "আগের",
   next: "পরের",
   inStockFilter: "শুধু স্টকে আছে",
@@ -922,6 +963,7 @@ const bn: Dict = {
   quantity: "পরিমাণ",
   description: "বিবরণ",
   specifications: "স্পেসিফিকেশন",
+  zoomHint: "জুম করতে হোভার করুন",
   relatedTitle: "আরও পছন্দ হতে পারে",
   deliveryEst: "ঢাকার ভিতরে ১–২ দিনে ডেলিভারি",
   reviewsWord: "রিভিউ",
@@ -930,6 +972,14 @@ const bn: Dict = {
   variableMsg: "এই পণ্যে নির্বাচনযোগ্য অপশন (সাইজ, বান্ডেল) আছে এবং অনলাইনে বিক্রি হয় না। যেকোনো রশিদ’স মার্ট আউটলেটে যান বা কল করে অর্ডার করুন।",
   callToOrder: "কল করে অর্ডার",
   cartTitle: "শপিং কার্ট",
+  deliveryEstimateNote:
+    "ডেলিভারি চার্জ এলাকা অনুযায়ী। আপনি এলাকা বেছে নিলে চেকআউটে সঠিক পরিমাণ নিশ্চিত হবে।",
+  cartRestored: "আবার স্বাগতম — আপনার কার্ট এখানে আছে।",
+  cartRestoredPartial:
+    "আপনার কার্ট ফিরে এসেছে। {n}টি পণ্য আর পাওয়া যাচ্ছে না বলে সরিয়ে দেওয়া হয়েছে।",
+  cartRestoreExpired: "লিংকটির মেয়াদ শেষ। আপনার কার্ট এখানে সংরক্ষিত থাকতে পারে।",
+  cartRestoreEmpty: "ওই পণ্যগুলো আর পাওয়া যাচ্ছে না।",
+  cartMerged: "আপনার অন্য ডিভাইসের পণ্যগুলো যোগ করা হয়েছে।",
   orderSummary: "অর্ডার সামারি",
   estDelivery: "আনুমানিক ডেলিভারি",
   remove: "সরান",

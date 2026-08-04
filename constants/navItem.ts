@@ -120,6 +120,13 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.view"],
           },
           {
+            title: "Abandoned Carts",
+            url: "/ecommerce/carts",
+            icon: "shopping-cart",
+            features: ["storefront"],
+            permissions: ["storefront.view"],
+          },
+          {
             title: "Store Settings",
             url: "/ecommerce/settings",
             icon: "settings",

@@ -167,6 +167,8 @@ export type ApiContentPage = Schemas["ContentPage"];
 export type ShopperListItem = Schemas["ShopperListItem"];
 export type ShopperDetail = Schemas["ShopperDetail"];
 export type ShopperOrder = Schemas["ShopperOrder"];
+export type AbandonedCartListItem = Schemas["AbandonedCartListItem"];
+export type AbandonedCartStats = Schemas["AbandonedCartStats"];
 
 // Auth & users ---------------------------------------------------------------
 export type Me = Schemas["Me"];

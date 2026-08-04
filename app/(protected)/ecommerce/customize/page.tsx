@@ -23,6 +23,8 @@ import type { HeaderMenuSource } from "@/lib/storefront-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { storefrontUrl } from "@/lib/storefront-url";
 import type {
+  Image,
+  StorefrontFooterGroup,
   StorefrontHeroBanner,
   StorefrontHeroSlide,
   StorefrontMenuItem,
@@ -39,6 +41,7 @@ import {
 import { CollectionsPanel } from "@/components/ecommerce/collections/collections-panel";
 import { NavigationSection } from "@/components/ecommerce/navigation/navigation-section";
 import type { AnnouncementDraft } from "@/components/ecommerce/navigation/announcement-card";
+import type { FooterContentPagesDraft } from "@/components/ecommerce/navigation/footer-links-card";
 import { HeroSlidesPanel } from "@/components/ecommerce/hero-slides-panel";
 import { HomeTemplateBlock } from "@/components/ecommerce/home-template-block";
 import { cn } from "@/ui/lib/utils";
@@ -88,6 +91,10 @@ function PageLoader() {
 
 function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const slug = useAuthStore((s) => s.user?.organization?.slug);
+  // The shop inherits the org logo when it has no store-specific one — the
+  // preview has to apply the same fallback or removing the store logo would
+  // blank the header instead of reverting to the org mark.
+  const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
   // ?section= deep-links the rail — the retired /ecommerce/navigation route
   // redirects here pointing at its section.
   const sectionParam = useSearchParams().get("section");
@@ -119,6 +126,16 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   );
   const [cardStyle, setCardStyle] = useState(
     settings.templates?.productCard ?? "standard",
+  );
+  // Unset means "whatever the card used to do", which for a compact store is the
+  // inline "+" — mirror the storefront's `resolveCardActions` fallback so the
+  // editor opens showing what the shop actually renders.
+  const [cardActions, setCardActions] = useState(
+    settings.templates?.cardActions ??
+      (settings.templates?.productCard === "compact" ? "icon-only" : "add-buy"),
+  );
+  const [pagination, setPagination] = useState(
+    settings.templates?.pagination ?? "pages",
   );
   // Three fixed slots seeded by index — an empty slot keeps its default badge.
   const [badges, setBadges] = useState<StorefrontTrustBadge[]>(() =>
@@ -170,6 +187,25 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
   const patchAnnouncement = useCallback(
     (patch: Partial<AnnouncementDraft>) =>
       setAnnouncement((a) => ({ ...a, ...patch })),
+    [],
+  );
+  // Footer link groups + the auto content-pages column. Lifted for the preview
+  // like everything else on this page — they were the last Customize controls
+  // that only appeared after a save, which merchants read as the editor being
+  // broken rather than as a deliberate limit.
+  const [footerGroups, setFooterGroups] = useState<StorefrontFooterGroup[]>(
+    () => settings.nav?.footer ?? [],
+  );
+  // `show` defaults on (legacy behaviour) so existing stores keep the column;
+  // a blank title ⇒ the built-in "Information" heading.
+  const [footerContentPages, setFooterContentPages] =
+    useState<FooterContentPagesDraft>(() => ({
+      show: settings.nav?.footerContentPages?.show ?? true,
+      title: settings.nav?.footerContentPages?.title ?? "",
+    }));
+  const patchFooterContentPages = useCallback(
+    (patch: Partial<FooterContentPagesDraft>) =>
+      setFooterContentPages((c) => ({ ...c, ...patch })),
     [],
   );
 
@@ -268,6 +304,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setFooterTemplate={setFooterTemplate}
             setHeaderTemplate={setHeaderTemplate}
             setCardStyle={setCardStyle}
+            setCardActions={setCardActions}
+            setPagination={setPagination}
             setHeroSrc={setHeroSrc}
             slideCount={heroSlides.filter((s) => s.title.trim()).length}
             onEditSlides={() => setSlidesPanelOpen(true)}
@@ -281,6 +319,10 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
             setHeader={setNavHeader}
             announcement={announcement}
             setAnnouncement={patchAnnouncement}
+            footer={footerGroups}
+            setFooter={setFooterGroups}
+            contentPages={footerContentPages}
+            setContentPages={patchFooterContentPages}
             collections={collectionsDraft}
             onManageCollections={() => setCollectionsPanelOpen(true)}
           />
@@ -299,6 +341,8 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           footerTemplate={footerTemplate}
           headerTemplate={headerTemplate}
           cardStyle={cardStyle}
+          cardActions={cardActions}
+          pagination={pagination}
           badges={badges}
           heroSlides={heroSlides}
           heroBanner={heroBanner}
@@ -311,6 +355,14 @@ function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
           navHeader={navHeader}
           announcement={announcement}
           collections={collectionsDraft}
+          footerGroups={footerGroups}
+          footerContentPages={footerContentPages}
+          // Media is saved by its own PATCH the moment it uploads, so these come
+          // straight off `settings` (already refreshed by the mutation) rather
+          // than from a draft. The store logo falls back to the organization's,
+          // mirroring what the backend resolves for the public payload.
+          logo={settings.logo ?? orgLogo ?? null}
+          banner={settings.banner ?? null}
         />
       </div>
     </div>
@@ -346,6 +398,16 @@ const TEMPLATE_PAGES: {
       ],
     },
     {
+      key: "pagination",
+      label: "Listing pagination",
+      desc: "How product listings and search results load past the first page",
+      options: [
+        { value: "pages", label: "Numbered pages" },
+        { value: "infinite", label: "Infinite scroll" },
+        { value: "load-more", label: "Load more button" },
+      ],
+    },
+    {
       key: "product",
       label: "Product page",
       desc: "Single product layout",
@@ -358,11 +420,24 @@ const TEMPLATE_PAGES: {
     {
       key: "productCard",
       label: "Product card",
-      desc: "Card style across every listing",
+      desc: "Card density across every listing",
       options: [
         { value: "standard", label: "Standard" },
         { value: "compact", label: "Compact" },
         { value: "bold", label: "Bold CTA" },
+      ],
+    },
+    {
+      key: "cardActions",
+      label: "Card buttons",
+      desc: "Which actions each product card offers — independent of its density",
+      options: [
+        { value: "add-buy", label: "Add + Buy now" },
+        { value: "add", label: "Add to cart only" },
+        { value: "icons", label: "Icons only" },
+        { value: "buy-first", label: "Buy now first" },
+        { value: "reveal", label: "Show on hover" },
+        { value: "icon-only", label: "Single icon" },
       ],
     },
     {
@@ -402,6 +477,8 @@ function TemplatesSection({
   setFooterTemplate,
   setHeaderTemplate,
   setCardStyle,
+  setCardActions,
+  setPagination,
   setHeroSrc,
   slideCount,
   onEditSlides,
@@ -411,6 +488,8 @@ function TemplatesSection({
   setFooterTemplate: (v: string) => void;
   setHeaderTemplate: (v: string) => void;
   setCardStyle: (v: string) => void;
+  setCardActions: (v: string) => void;
+  setPagination: (v: string) => void;
   setHeroSrc: (v: string) => void;
   slideCount: number;
   onEditSlides: () => void;
@@ -426,8 +505,15 @@ function TemplatesSection({
       seed[p.key] = (t as Record<string, string>)[p.key] || p.options[0].value;
     }
     seed.hero = t.hero || "slides";
+    // `cardActions` is the one key whose unset meaning depends on another key:
+    // a compact store has always rendered the inline "+". Seeding it to the
+    // first option instead would write "add-buy" into the store the next time
+    // the owner saved ANY template, restyling their cards without them asking.
+    if (!t.cardActions) {
+      seed.cardActions = t.productCard === "compact" ? "icon-only" : "add-buy";
+    }
     // Retired options — shoppers pick grid/list on the search page itself, and
-    // Buy now always opens the cart drawer.
+    // Buy now always goes straight to checkout.
     delete seed.search;
     delete seed.cart;
     return seed;
@@ -439,6 +525,8 @@ function TemplatesSection({
     if (key === "footer") setFooterTemplate(value);
     if (key === "header") setHeaderTemplate(value);
     if (key === "productCard") setCardStyle(value);
+    if (key === "cardActions") setCardActions(value);
+    if (key === "pagination") setPagination(value);
     if (key === "hero") setHeroSrc(value);
   };
 
@@ -513,6 +601,8 @@ function BrowserPreview({
   footerTemplate,
   headerTemplate,
   cardStyle,
+  cardActions,
+  pagination,
   badges,
   heroSlides,
   heroBanner,
@@ -521,6 +611,10 @@ function BrowserPreview({
   navHeader,
   announcement,
   collections,
+  footerGroups,
+  footerContentPages,
+  logo,
+  banner,
 }: {
   slug?: string;
   brandColor: string;
@@ -529,6 +623,8 @@ function BrowserPreview({
   footerTemplate: string;
   headerTemplate: string;
   cardStyle: string;
+  cardActions: string;
+  pagination: string;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
   heroBanner: StorefrontHeroBanner;
@@ -537,6 +633,11 @@ function BrowserPreview({
   navHeader: StorefrontMenuItem[];
   announcement: AnnouncementDraft;
   collections: CollectionRowValue[];
+  footerGroups: StorefrontFooterGroup[];
+  footerContentPages: FooterContentPagesDraft;
+  /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
+  logo: Image | null;
+  banner: Image | null;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -553,6 +654,23 @@ function BrowserPreview({
   const heroBannerKey = JSON.stringify(cleanHeroBanner(heroBanner));
   const navHeaderKey = JSON.stringify(navHeader.filter((m) => m.label.trim()));
   const announcementKey = JSON.stringify(announcement);
+  // Trimmed exactly like `NavigationSection.submit` — a group with a blank title
+  // is dropped on save, so previewing it would promise a column that never ships.
+  const footerGroupsKey = JSON.stringify(
+    footerGroups
+      .filter((g) => g.title.trim())
+      .map((g) => ({
+        title: g.title.trim(),
+        links: g.links.filter((l) => l.label.trim()),
+      })),
+  );
+  // Blank title ⇒ omitted, so the footer falls back to its built-in heading.
+  const footerContentPagesKey = JSON.stringify({
+    show: footerContentPages.show,
+    title: footerContentPages.title.trim() || undefined,
+  });
+  const logoKey = JSON.stringify(logo);
+  const bannerKey = JSON.stringify(banner);
   // Mirror the public GET /:slug/categories contract exactly — listed only,
   // display name wins, draft order preserved — so the preview can't drift from
   // what shoppers will actually get.
@@ -577,8 +695,10 @@ function BrowserPreview({
             footer: footerTemplate,
             header: headerTemplate,
             productCard: cardStyle,
+            cardActions,
             hero: heroSrc,
             headerMenu: headerMenuSrc,
+            pagination,
           },
           trustBadges: JSON.parse(badgesKey),
           heroSlides: JSON.parse(slidesKey),
@@ -586,13 +706,19 @@ function BrowserPreview({
           nav: {
             header: JSON.parse(navHeaderKey),
             announcement: JSON.parse(announcementKey),
+            footer: JSON.parse(footerGroupsKey),
+            footerContentPages: JSON.parse(footerContentPagesKey),
           },
           collections: JSON.parse(collectionsKey),
+          // `JSON.parse("null")` is null, not undefined — which is what the
+          // preview store needs to tell "removed" from "not sent yet".
+          logo: JSON.parse(logoKey),
+          banner: JSON.parse(bannerKey),
         },
       },
       "*",
     );
-  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey]);
+  }, [brandColor, accentColor, homeTemplate, footerTemplate, headerTemplate, cardStyle, cardActions, pagination, heroSrc, headerMenuSrc, badgesKey, slidesKey, heroBannerKey, navHeaderKey, announcementKey, collectionsKey, footerGroupsKey, footerContentPagesKey, logoKey, bannerKey]);
 
   // Push the draft whenever it changes…
   useEffect(() => {
