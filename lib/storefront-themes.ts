@@ -115,6 +115,35 @@ export const STORE_THEMES: StoreThemeManifest[] = [
     design: { font: "sans", scale: "compact", density: "dense", radius: "sharp" },
   },
   {
+    id: "corner-shop",
+    // Named for the shop, not the layout it uses — a theme called "Grocery"
+    // beside a home layout called "Grocery" would be two different controls
+    // with one name, which is what "Boutique" had to be renamed to avoid.
+    label: "Corner Shop",
+    description: "Fast and familiar — departments first, one-tap basket, nothing in the way",
+    preset: "default",
+    // Green reads as fresh and trustworthy for essentials; the orange accent is
+    // for savings, which is the only thing this shop shouts about.
+    brandColor: "#15803d",
+    accentColor: "#ea580c",
+    templates: {
+      header: "classic",
+      footer: "columns",
+      productCard: "compact",
+      // One button, not two. A grocery shopper is building a basket over
+      // several taps — "Buy now" on every tile fights the way the shop is used.
+      cardActions: "add",
+      home: "grocery",
+      collection: "grid-4",
+      pagination: "load-more",
+      product: "gallery-left",
+      // Single page: a weekly top-up should not become a three-step form.
+      checkout: "single-page",
+    },
+    homepageSections: ["hero", "categories", "deals", "featured", "trust", "latest"],
+    design: { font: "sans", scale: "compact", density: "dense", radius: "soft" },
+  },
+  {
     id: "boutique",
     label: "Boutique",
     description: "Premium and calm — filters beside the grid, one gentle button",
