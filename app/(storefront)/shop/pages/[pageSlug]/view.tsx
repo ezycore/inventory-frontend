@@ -9,6 +9,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { ContentBodyView } from "@/components/storefront/content-body-view";
+import { SkeletonLine } from "@/components/storefront/sf-skeleton";
 import type { ContentPageView } from "@/lib/storefront-client";
 
 /**
@@ -33,8 +34,27 @@ export default function StoreContentPage({
 
   const wrapStyle: CSSProperties = { maxWidth: 780, margin: "0 auto", padding: "30px var(--pad) 64px" };
 
+  // Prose-shaped, because that is what lands here: a title, the meta rule, then
+  // paragraphs. Ragged line widths so it reads as text rather than as a table.
   if (isLoading) {
-    return <p style={{ ...wrapStyle, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
+    return (
+      <div style={wrapStyle} role="status" aria-label={t.loading}>
+        <div style={{ paddingBottom: 18, marginBottom: 20, borderBottom: "1px solid var(--border)" }}>
+          <SkeletonLine width="62%" height={30} radius={8} />
+          <SkeletonLine width={140} height={11} style={{ marginTop: 12 }} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+          {["100%", "96%", "88%", "52%"].map((w, i) => (
+            <SkeletonLine key={i} width={w} />
+          ))}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 11, marginTop: 26 }}>
+          {["94%", "100%", "72%"].map((w, i) => (
+            <SkeletonLine key={i} width={w} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (isError || !page) {

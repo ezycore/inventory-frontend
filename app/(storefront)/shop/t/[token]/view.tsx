@@ -12,6 +12,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
+import { SkeletonLine } from "@/components/storefront/sf-skeleton";
 
 /**
  * Public order tracking — the page a tracking link opens.
@@ -69,9 +70,56 @@ const STATUS_LABEL: Record<string, string> = {
 const formatDate = (value?: string) =>
   value ? new Date(value).toLocaleString() : "";
 
+/** A `label ………… value` placeholder pair, matching `row` above. */
+function SkeletonRow({
+  label,
+  value,
+}: {
+  label: number | string;
+  value: number | string;
+}) {
+  return (
+    <div style={row}>
+      <SkeletonLine width={label} />
+      <SkeletonLine width={value} />
+    </div>
+  );
+}
+
+/**
+ * Built from the same `wrap`/`card`/`row` constants the real page uses, so the
+ * shapes cannot drift apart and nothing jumps when the data lands. A reload of a
+ * tracking link is a cold fetch with no cached anything, so this is the first
+ * thing the buyer sees — it should look like their order arriving, not like the
+ * page is broken.
+ */
+function TrackSkeleton({ label }: { label: string }) {
+  return (
+    <div style={wrap} role="status" aria-label={label}>
+      <SkeletonLine width={168} height={22} radius={7} style={{ marginBottom: 10 }} />
+      <SkeletonLine width={224} style={{ marginBottom: 22 }} />
+
+      <div style={card}>
+        <SkeletonRow label="52%" value={58} />
+        <SkeletonRow label="44%" value={58} />
+        <SkeletonRow label="36%" value={52} />
+        <SkeletonRow label="30%" value={64} />
+      </div>
+
+      <div style={card}>
+        <SkeletonLine width={82} style={{ marginBottom: 12 }} />
+        <SkeletonRow label="38%" value={104} />
+        <SkeletonRow label="30%" value={104} />
+      </div>
+
+      <SkeletonLine width="58%" />
+    </div>
+  );
+}
+
 export default function View() {
   const { slug, base } = useStoreContext();
-  const { lang } = useStorefrontUI();
+  const { t, lang } = useStorefrontUI();
   const params = useParams<{ token: string }>();
   const token = String(params?.token ?? "");
   const store = useStore(slug).data;
@@ -86,13 +134,7 @@ export default function View() {
     retry: false,
   });
 
-  if (isPending) {
-    return (
-      <div style={wrap}>
-        <div style={muted}>Loading…</div>
-      </div>
-    );
-  }
+  if (isPending) return <TrackSkeleton label={t.loading} />;
 
   if (isError || !data) {
     return (
