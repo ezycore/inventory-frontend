@@ -506,7 +506,11 @@ export interface CartMirrorInput {
 /**
  * One line of a cart restored from a recovery link. Richer than `CartMirrorItem`
  * because the browser cart is rebuilt from it — hence `slug`, `image`, `maxQty`.
- * `maxQty: 0` means no local cap (a backorder product, or stock unknown).
+ *
+ * `maxQty` follows `lib/storefront-cart-qty.ts`: `0` means **sold out**, and a
+ * NEGATIVE value means no local cap (backorder). They were the same value until
+ * a restored sold-out line came back uncapped and could be raised to any
+ * quantity checkout then refused.
  */
 export interface RestoredCartItem {
   productId: string;
