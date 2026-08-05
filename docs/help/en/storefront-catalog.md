@@ -59,16 +59,25 @@ you can then nudge whatever you disagree with.
 
 ### Change the whole shop at once
 
-**Theme** offers four ready-made looks — **Classic Shop**, **Editorial**, **Bold Market** and
-**Boutique**. Pick one and your colours, your header and footer, your product cards, and the layout
-of every page change together. The preview repaints immediately.
+**Theme** offers five ready-made looks. Pick the one closest to what you sell:
+
+| Theme | Suits |
+|---|---|
+| **Classic Shop** | Most shops. The familiar layout, and the safe first choice |
+| **Bold Market** | Electronics, hardware, general goods — many products, price to the front |
+| **Corner Shop** | Groceries and daily essentials — departments first, one tap to the basket |
+| **Boutique** | Clothing and anything bought on how it looks — big pictures, fewer products |
+| **Editorial** | A small range you want to present quietly |
+
+Pick one and your colours, your header and footer, your product cards, and the layout of every page
+change together. The preview repaints immediately.
 
 **A theme never touches what you have written.** Your hero slides, delivery promises, footer links,
 menu and announcement all survive it. A theme changes the shape of your shop, not its words.
 
-One thing to know: **Editorial** and **Boutique** use a plain typographic home page, which does not
-*show* hero slides. Nothing is deleted — pick another look and your slides are back. If you have
-slides, **Theme** tells you this before you choose.
+One thing to know: **Editorial** uses a plain typographic home page, which does not *show* hero
+slides. Nothing is deleted — pick another look and your slides are back. If you have slides,
+**Theme** tells you this before you choose.
 
 Two switches decide how much it changes:
 
@@ -98,7 +107,12 @@ drops into **Hidden** below, where you can switch it back on at any time.
 
 You cannot switch off the last remaining block — an empty home page is not a layout.
 
-Changing the layout above changes how each block *looks*, not which blocks you have.
+**Layouts offer different blocks.** Each one under **Layout** is a different design, not the same
+page rearranged, so the list of blocks changes with it — a deals row belongs to the shop layouts
+that sell on price, and the picture-led layouts have no design for it. If a block you were using
+disappears after switching layout, that layout simply does not have it; switch back and it returns.
+
+Within one layout, changing nothing else, the blocks stay as you left them.
 
 ### Write your own promises and promo tiles
 
