@@ -43,6 +43,17 @@ export function ThemePart({
   const applied = getStoreTheme(draft.appliedThemeId);
   const drift = applied ? themeDrift(applied, draft) : 0;
 
+  // The Minimal home layout renders a typographic hero and ignores slides and
+  // banner copy entirely. Two themes use it, so a merchant who has built a
+  // carousel can lose it in one click. The Hero part already explains this, but
+  // it is the wrong place — by the time they open it the choice is made.
+  const heroContent =
+    draft.heroSlides.filter((s) => s.title.trim()).length > 0 ||
+    Object.values(draft.heroBanner).some(
+      (v) => typeof v === "string" && v.trim(),
+    );
+  const hidesHero = STORE_THEMES.filter((t) => t.templates.home === "minimal");
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
@@ -113,6 +124,17 @@ export function ThemePart({
           Your slides, badges, links and menu are never changed by a theme.
         </p>
       </div>
+
+      {/* Nothing is deleted here — the hero content stays saved and comes back
+          with any other layout. Say that plainly, or the warning reads worse
+          than the thing it warns about. */}
+      {scope.layout && heroContent && (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11.5px] leading-snug text-amber-700 dark:text-amber-500">
+          You have hero {draft.heroSlides.filter((s) => s.title.trim()).length > 0 ? "slides" : "text"} set.{" "}
+          {hidesHero.map((t) => t.label).join(" and ")} use a typographic home
+          page that does not show them — pick another look and they come back.
+        </p>
+      )}
 
       {applied && (
         <p className="text-[11px] text-muted-foreground">

@@ -66,6 +66,10 @@ of every page change together. The preview repaints immediately.
 **A theme never touches what you have written.** Your hero slides, delivery promises, footer links,
 menu and announcement all survive it. A theme changes the shape of your shop, not its words.
 
+One thing to know: **Editorial** and **Boutique** use a plain typographic home page, which does not
+*show* hero slides. Nothing is deleted — pick another look and your slides are back. If you have
+slides, **Theme** tells you this before you choose.
+
 Two switches decide how much it changes:
 
 - **Layout** — the page layouts, product cards, header and footer.

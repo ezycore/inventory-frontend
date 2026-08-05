@@ -550,6 +550,12 @@ resolved **per request from the host**, never baked.
     there is no confirm dialog; adding one would be a second safety net over a working one.
   - The Layout / Colours switches are transient part state on purpose — a scope preference is not
     draft data and must stay out of the dirty comparison.
+  - **Two themes land on the Minimal home layout** (Editorial, Boutique), which renders a typographic
+    hero and ignores slides *and* `heroBanner` copy. The Hero part already said so, but that is the
+    wrong place — by the time a merchant opens it the choice is made. The Theme part now warns at the
+    point of decision, and only when the store actually has hero content. Keep that list derived from
+    `STORE_THEMES` (`templates.home === "minimal"`), never hardcoded, or a new manifest will silently
+    stop being covered.
   - `appliedThemeId` lives on `theme`, so **it is subject to the whole-subdocument replace trap** —
     it is in `toSettingsPayload` for the same reason `homepageSections` is.
 
