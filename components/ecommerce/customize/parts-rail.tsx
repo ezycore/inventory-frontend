@@ -10,6 +10,7 @@ import {
   Library,
   Megaphone,
   Package,
+  Palette,
   PanelBottom,
   PanelTop,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import { partSummary } from "@/components/ecommerce/customize/part-summaries";
 import { HomeSectionsField } from "@/components/ecommerce/customize/home-sections-field";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
+import { ThemePart } from "@/components/ecommerce/customize/parts/theme-part";
 import { CollectionsPart } from "@/components/ecommerce/customize/parts/collections-part";
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
@@ -44,6 +46,10 @@ import type {
  * its links each lived in a different tab behind a different save button.
  */
 const PARTS: { id: PartId; title: string; icon?: LucideIcon }[] = [
+  // First, and the one exception to "in the order a shopper meets it": a theme
+  // sets most of what follows, so a merchant who wants one should meet it
+  // before spending time on the individual pickers it would overwrite.
+  { id: "theme", title: "Theme", icon: Palette },
   { id: "brand", title: "Brand" },
   { id: "announcement", title: "Announcement bar", icon: Megaphone },
   { id: "header", title: "Header", icon: PanelTop },
@@ -131,7 +137,9 @@ export function PartsRail({
               ) : undefined
             }
           >
-            {part.id === "brand" ? (
+            {part.id === "theme" ? (
+              <ThemePart draft={draft} applyTheme={api.applyTheme} />
+            ) : part.id === "brand" ? (
               <BrandPart settings={settings} draft={draft} patch={patch} />
             ) : part.id === "announcement" ? (
               <AnnouncementPart draft={draft} patchAnnouncement={api.patchAnnouncement} />

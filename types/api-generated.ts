@@ -10324,6 +10324,7 @@ export interface components {
                 accentColor?: string;
                 footerText?: string;
                 homepageSections?: string[];
+                appliedThemeId?: string;
             };
             nav?: {
                 header?: {
@@ -15886,6 +15887,7 @@ export interface operations {
                         accentColor?: string;
                         footerText?: string;
                         homepageSections?: string[];
+                        appliedThemeId?: string;
                     };
                     nav?: {
                         header?: {

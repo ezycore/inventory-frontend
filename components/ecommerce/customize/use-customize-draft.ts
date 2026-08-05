@@ -9,6 +9,10 @@ import {
   useUpdateStorefrontSettings,
 } from "@/services/api";
 import { getPreset } from "@/lib/storefront-theme";
+import {
+  getStoreTheme,
+  type ThemeApplyScope,
+} from "@/lib/storefront-themes";
 import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import type {
   Image,
@@ -85,6 +89,8 @@ export interface CustomizeDraft {
    * its owner saved anything at all.
    */
   homepageSections: string[] | null;
+  /** Provenance of the last applied ready-made theme; "" once none applies. */
+  appliedThemeId: string;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
   heroBanner: StorefrontHeroBanner;
@@ -98,6 +104,7 @@ export interface CustomizeDraft {
 
 /** One row of the rail. Order = the order a shopper meets the part. */
 export type PartId =
+  | "theme"
   | "brand"
   | "announcement"
   | "header"
@@ -116,6 +123,10 @@ export type PartId =
  * to forget.
  */
 const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
+  // Only the marker. Applying a theme writes through to the parts it changes,
+  // so those light up dirty on their own — which is the point: the merchant
+  // sees exactly what a one-click theme touched before saving it.
+  theme: (d) => d.appliedThemeId,
   brand: (d) => [d.preset, d.brandColor, d.accentColor],
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
@@ -174,6 +185,7 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
     templates: seedTemplates(settings),
     // Deliberately NOT defaulted to the look's order — see the field's doc.
     homepageSections: t.homepageSections ?? null,
+    appliedThemeId: t.appliedThemeId ?? "",
     // Three fixed slots seeded by index — an empty slot keeps its default badge.
     badges: DEFAULT_BADGES.map((d, i) => ({
       text: settings.trustBadges?.[i]?.text ?? "",
@@ -215,6 +227,8 @@ export interface CustomizeDraftApi {
   patchTemplate: (key: string, value: string) => void;
   patchAnnouncement: (p: Partial<AnnouncementDraft>) => void;
   patchContentPages: (p: Partial<FooterContentPagesDraft>) => void;
+  /** Stamp a ready-made theme's colours and/or layout across the whole draft. */
+  applyTheme: (id: string, scope: ThemeApplyScope) => void;
   /** Parts whose values differ from what the server last confirmed. */
   dirtyParts: PartId[];
   isDirty: boolean;
@@ -281,6 +295,32 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     [],
   );
 
+  /**
+   * Apply a ready-made theme into the DRAFT, never straight to the server — so
+   * the live preview shows it, every part it touched reads dirty, and Discard
+   * is the undo. Nothing here writes content: slides, badges, footer groups,
+   * menu items and announcement copy are the merchant's and stay untouched.
+   */
+  const applyTheme = useCallback((id: string, scope: ThemeApplyScope) => {
+    const theme = getStoreTheme(id);
+    if (!theme) return;
+    setDraft((d) => ({
+      ...d,
+      ...(scope.colors && {
+        preset: theme.preset,
+        brandColor: theme.brandColor,
+        accentColor: theme.accentColor,
+      }),
+      ...(scope.layout && {
+        // Spread over the existing ids so keys no theme owns (`hero`,
+        // `headerMenu`) keep the merchant's choice.
+        templates: { ...d.templates, ...theme.templates },
+        homepageSections: [...theme.homepageSections],
+      }),
+      appliedThemeId: id,
+    }));
+  }, []);
+
   const discard = useCallback(() => setDraft(baseline), [baseline]);
 
   // The page owns real unsaved work and there is no route-level guard in the
@@ -345,6 +385,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     patchTemplate,
     patchAnnouncement,
     patchContentPages,
+    applyTheme,
     dirtyParts,
     isDirty,
     discard,

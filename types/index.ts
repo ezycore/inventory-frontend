@@ -91,6 +91,13 @@ export interface StorefrontTheme {
   accentColor?: string;
   footerText?: string;
   homepageSections?: string[];
+  /**
+   * Id of the ready-made theme last applied (`lib/storefront-themes.ts`).
+   * Provenance only — a theme stamps its values into `theme`/`templates`, so
+   * nothing renders from this. It lets Customize name the current theme and
+   * count what has changed since.
+   */
+  appliedThemeId?: string;
 }
 
 export type NavLinkType = "category" | "page" | "url" | "collections";

@@ -490,6 +490,27 @@ resolved **per request from the host**, never baked.
 
 ## Work log (what was built, newest first — as of 2026-08-05)
 
+- **Ready-made whole-store themes** (2026-08-05): `lib/storefront-themes.ts` holds four manifests
+  (Classic Shop / Editorial / Bold Market / Boutique) — colours + `templates.*` + a homepage section
+  order. Customize's first part, **Theme**, applies one in a click.
+  - **Themes are stamped, never resolved.** Applying writes the manifest's values into the draft;
+    the storefront renders from `theme`/`templates` exactly as for a hand-tuned store, and *nothing*
+    reads a theme at render time. So editing a manifest here can never repaint a live shop.
+    `theme.appliedThemeId` is **provenance for the editor only** — it drives the name and the
+    "3 changed since" count (`themeDrift`), and no renderer reads it.
+  - **A theme is layout + colour, never content.** Hero slides, trust-badge copy, footer link
+    groups, menu items and announcement text are the merchant's and are never written. Two keys are
+    also deliberately absent from every manifest: **`hero`** (forcing "banner" would hide slides the
+    merchant already built) and **`headerMenu`** (a decision about their own menu). `applyTheme`
+    spreads over the existing ids, so unowned keys keep the merchant's choice.
+  - **Applying goes into the DRAFT, not the server** — so the preview repaints, every part the theme
+    touched reads dirty (the merchant sees the blast radius), and Discard is the undo. That is why
+    there is no confirm dialog; adding one would be a second safety net over a working one.
+  - The Layout / Colours switches are transient part state on purpose — a scope preference is not
+    draft data and must stay out of the dirty comparison.
+  - `appliedThemeId` lives on `theme`, so **it is subject to the whole-subdocument replace trap** —
+    it is in `toSettingsPayload` for the same reason `homepageSections` is.
+
 - **Homepage is an ordered section list, not three page components** (2026-08-05): `theme.homepageSections`
   had been modelled, validated, seeded and served since E6a while **nothing read it** — the page came
   from one of three whole-page components picked by `templates.home`. Those two designs are now

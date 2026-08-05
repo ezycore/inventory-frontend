@@ -6,6 +6,7 @@ import {
   resolveHomeSections,
   HOME_SECTION_IDS,
 } from "@/lib/storefront-home-sections";
+import { getStoreTheme, themeDrift } from "@/lib/storefront-themes";
 import type { StorefrontSettings } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
 import type {
@@ -36,6 +37,14 @@ export function partSummary(
   const listed = draft.collections.filter((c) => c.isListed).length;
 
   switch (id) {
+    case "theme": {
+      const applied = getStoreTheme(draft.appliedThemeId);
+      if (!applied) return "None — your store is tuned by hand";
+      const drift = themeDrift(applied, draft);
+      return drift === 0
+        ? applied.label
+        : `${applied.label} · ${drift} changed since`;
+    }
     case "brand": {
       const preset = getPreset(draft.preset);
       const tuned =

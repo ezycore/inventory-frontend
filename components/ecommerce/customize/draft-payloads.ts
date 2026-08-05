@@ -136,6 +136,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       // never reordered: it keeps the key absent, which is what makes the
       // storefront use the look's default order.
       homepageSections: draft.homepageSections ?? undefined,
+      appliedThemeId: draft.appliedThemeId || undefined,
     },
     trustBadges: trimBadges(draft.badges),
     heroBanner: cleanHeroBanner(draft.heroBanner),
