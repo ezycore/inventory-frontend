@@ -565,6 +565,34 @@ interface FetchOpts {
   keepalive?: boolean;
 }
 
+/**
+ * A failed storefront request, carrying the HTTP status alongside the message.
+ *
+ * It exists because "the request failed" and "the thing you asked for is not
+ * there" are different answers and a bare `Error` cannot tell them apart — the
+ * order-tracking page rendered *every* failure, including a 429 and a dropped
+ * connection, as "this tracking link is no longer valid" and told the buyer to
+ * ask the merchant for a new one. Extends `Error`, so the many call sites doing
+ * `(e as Error).message` keep working unchanged.
+ */
+export class StorefrontApiError extends Error {
+  constructor(
+    message: string,
+    /** HTTP status. Branch on this — it is present whatever the body looks like. */
+    readonly status: number,
+    /**
+     * The machine code from the API envelope, when it sent one. Not every
+     * failure has it: `express-rate-limit` replies with its own body shape
+     * rather than going through the backend's error handler, so treat a missing
+     * code as normal and prefer `status`.
+     */
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = "StorefrontApiError";
+  }
+}
+
 async function sfFetch<T>(
   slug: string,
   path: string,
@@ -603,8 +631,14 @@ async function sfFetch<T>(
         }
       }
     }
-    // Error payloads carry the human message in `error` (see backend errorHandler).
-    throw new Error(json?.error || json?.message || `Request failed (${res.status})`);
+    // The backend's errorHandler puts the human message in `error` and the
+    // machine code in `code`. Rate limiters answer from express-rate-limit
+    // instead, whose body is shaped differently — hence the `message` fallback.
+    throw new StorefrontApiError(
+      json?.error || json?.message || `Request failed (${res.status})`,
+      res.status,
+      json?.code,
+    );
   }
   return json.data as T;
 }

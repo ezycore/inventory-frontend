@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { type CSSProperties } from "react";
-import { storefrontApi } from "@/lib/storefront-client";
+import { StorefrontApiError, storefrontApi } from "@/lib/storefront-client";
 import { storefront, useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -13,6 +13,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { SkeletonLine } from "@/components/storefront/sf-skeleton";
+import { ghostBtn } from "@/components/storefront/checkout/checkout-bits";
 
 /**
  * Public order tracking — the page a tracking link opens.
@@ -124,36 +125,69 @@ export default function View() {
   const token = String(params?.token ?? "");
   const store = useStore(slug).data;
 
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: storefront.trackedOrder(slug, token),
     queryFn: () => storefrontApi.trackOrder(slug, token),
     enabled: !!slug && !!token,
     // A tracking link is opened repeatedly while a parcel is in transit; there is
     // no session to invalidate against, so just keep it briefly fresh.
     staleTime: 30_000,
-    retry: false,
+    // Retry what a retry can fix. A 404 is the server's settled answer and
+    // asking again only delays the buyer's screen; a 5xx or a dropped mobile
+    // connection is exactly what one more attempt resolves. 429 is excluded on
+    // purpose — retrying a throttle is what earned the throttle.
+    retry: (count, err) => {
+      const status = err instanceof StorefrontApiError ? err.status : 0;
+      if (status === 404 || status === 429) return false;
+      return count < 2;
+    },
   });
 
   if (isPending) return <TrackSkeleton label={t.loading} />;
 
   if (isError || !data) {
+    // Three failures, three answers. Sending a buyer with a WORKING link to the
+    // merchant for a replacement is the expensive mistake here — the merchant
+    // cannot reproduce it, so it becomes a support ticket nobody can close. Only
+    // a 404 means the link is actually dead (the server answers unknown and
+    // expired identically, so this copy covers both without guessing).
+    const status = error instanceof StorefrontApiError ? error.status : 0;
+    const dead = status === 404;
+    const throttled = status === 429;
+    const title = dead
+      ? t.trackDeadTitle
+      : throttled
+        ? t.trackThrottledTitle
+        : t.trackFailedTitle;
+    const body = dead
+      ? t.trackDeadBody
+      : throttled
+        ? t.trackThrottledBody
+        : t.trackFailedBody;
+
     return (
       <div style={wrap}>
         <div style={card}>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>
-            This tracking link is no longer valid
-          </div>
-          {/* Unknown and expired answer identically on the server, so this copy
-              must cover both without guessing which one happened. */}
-          <div style={muted}>
-            It may have expired, or the address may be incomplete. Ask the store
-            for a fresh link, or look your order up with its number and your phone
-            number.
-          </div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>{title}</div>
+          <div style={muted}>{body}</div>
           <div style={{ marginTop: 12 }}>
-            <Link href={storeHref(base, "/orders/track")} style={{ textDecoration: "underline" }}>
-              Look up an order
-            </Link>
+            {/* The recovery lookup only helps when the link is genuinely dead —
+                offering it for a throttle or an outage sends the buyer to a
+                second form that will fail for the same reason. */}
+            {dead ? (
+              <Link href={storeHref(base, "/orders/track")} style={{ textDecoration: "underline" }}>
+                Look up an order
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => refetch()}
+                disabled={isFetching}
+                style={{ ...ghostBtn, opacity: isFetching ? 0.6 : 1 }}
+              >
+                {isFetching ? t.loading : t.tryAgain}
+              </button>
+            )}
           </div>
         </div>
       </div>

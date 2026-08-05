@@ -174,6 +174,19 @@ export interface Dict {
    *  guest checkout is deliberate, so this must not read as an error. */
   guestNoticeTitle: string;
   guestNoticeBody: string;
+  /**
+   * Order tracking failures. Three, not one: a dead link, a throttled buyer and
+   * a broken request need different things done about them, and telling someone
+   * with a working link to go ask the merchant for a new one is worse than
+   * saying nothing. See the `t/[token]` view.
+   */
+  trackDeadTitle: string;
+  trackDeadBody: string;
+  trackThrottledTitle: string;
+  trackThrottledBody: string;
+  trackFailedTitle: string;
+  trackFailedBody: string;
+  tryAgain: string;
   /** Confirmation screen: the buyer's tracking link + its copy control. */
   trackYourOrder: string;
   /** Why a guest should keep that link — no account means no other way back. */
@@ -546,6 +559,16 @@ const en: Dict = {
   guestNoticeTitle: "You're not signed in",
   guestNoticeBody:
     "You can order as a guest — nothing extra is needed. Just note this order won't be saved to an account, and the tracking link you get at the end will be your only way back to it.",
+  trackDeadTitle: "This tracking link is no longer valid",
+  trackDeadBody:
+    "It may have expired, or the address may be incomplete. Ask the store for a fresh link, or look your order up with its number and your phone number.",
+  trackThrottledTitle: "You've checked this a few times just now",
+  trackThrottledBody:
+    "Your link is fine — we've just paused the updates for a moment. Wait a minute and try again.",
+  trackFailedTitle: "We couldn't load your order",
+  trackFailedBody:
+    "Something went wrong at our end, not with your link. Try again in a moment.",
+  tryAgain: "Try again",
   trackYourOrder: "Track your order",
   guestKeepLink: "Save this link — without an account it's your only way back to this order.",
   copyLink: "Copy link",
@@ -903,6 +926,16 @@ const bn: Dict = {
   guestNoticeTitle: "আপনি সাইন ইন করেননি",
   guestNoticeBody:
     "গেস্ট হিসেবেও অর্ডার করতে পারবেন — বাড়তি কিছু লাগবে না। শুধু মনে রাখবেন, এই অর্ডারটি কোনো অ্যাকাউন্টে সংরক্ষিত থাকবে না, আর শেষে যে ট্র্যাকিং লিংক পাবেন সেটিই এই অর্ডারে ফিরে আসার একমাত্র উপায়।",
+  trackDeadTitle: "এই ট্র্যাকিং লিংকটি আর কাজ করছে না",
+  trackDeadBody:
+    "লিংকের মেয়াদ শেষ হয়ে থাকতে পারে, অথবা ঠিকানাটি অসম্পূর্ণ। দোকান থেকে নতুন লিংক চেয়ে নিন, কিংবা অর্ডার নম্বর ও ফোন নম্বর দিয়ে অর্ডারটি খুঁজুন।",
+  trackThrottledTitle: "আপনি একটু আগে কয়েকবার দেখেছেন",
+  trackThrottledBody:
+    "আপনার লিংক ঠিকই আছে — আমরা শুধু কিছুক্ষণের জন্য আপডেট দেখানো থামিয়েছি। এক মিনিট পর আবার চেষ্টা করুন।",
+  trackFailedTitle: "আপনার অর্ডার লোড করা যায়নি",
+  trackFailedBody:
+    "সমস্যাটি আমাদের দিকে, আপনার লিংকে নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  tryAgain: "আবার চেষ্টা করুন",
   trackYourOrder: "অর্ডার ট্র্যাক করুন",
   guestKeepLink: "লিংকটি সংরক্ষণ করুন — অ্যাকাউন্ট ছাড়া এই অর্ডারে ফিরে আসার এটিই একমাত্র উপায়।",
   copyLink: "লিংক কপি করুন",
