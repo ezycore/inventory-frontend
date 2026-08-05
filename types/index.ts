@@ -98,6 +98,13 @@ export interface StorefrontTheme {
    * count what has changed since.
    */
   appliedThemeId?: string;
+  /** Typeface / type scale / density / corner style stamped by a template. */
+  design?: {
+    font?: string;
+    scale?: string;
+    density?: string;
+    radius?: string;
+  };
 }
 
 export type NavLinkType = "category" | "page" | "url" | "collections";

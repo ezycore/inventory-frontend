@@ -52,6 +52,8 @@ interface SfPreviewState {
   badges: { text: string; subtitle?: string; icon?: string }[] | null;
   /** Draft home promo tiles (hero-split layout). */
   promoTiles: { label?: string; title?: string; link?: string }[] | null;
+  /** Draft visual vocabulary (typeface / type scale / density / corners). */
+  design: { font?: string; scale?: string; density?: string; radius?: string } | null;
   /** Draft home hero carousel slides. */
   heroSlides: StoreHeroSlide[] | null;
   /** Draft home hero source ("slides" | "banner") the editor is drafting. */
@@ -105,6 +107,7 @@ interface SfPreviewState {
     checkout?: string;
     badges?: { text: string; subtitle?: string; icon?: string }[];
     promoTiles?: { label?: string; title?: string; link?: string }[];
+    design?: { font?: string; scale?: string; density?: string; radius?: string };
     heroSlides?: StoreHeroSlide[];
     heroSrc?: string;
     heroBanner?: StoreHeroBanner;
@@ -136,6 +139,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   checkout: null,
   badges: null,
   promoTiles: null,
+  design: null,
   heroSlides: null,
   heroSrc: null,
   heroBanner: null,
@@ -169,6 +173,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       badges: patch.badges !== undefined ? patch.badges : s.badges,
       promoTiles:
         patch.promoTiles !== undefined ? patch.promoTiles : s.promoTiles,
+      design: patch.design !== undefined ? patch.design : s.design,
       heroSlides:
         patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
       heroSrc: patch.heroSrc !== undefined ? patch.heroSrc : s.heroSrc,

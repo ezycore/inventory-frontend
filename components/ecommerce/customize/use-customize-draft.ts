@@ -14,6 +14,7 @@ import {
   type ThemeApplyScope,
 } from "@/lib/storefront-themes";
 import type { PagePreset } from "@/lib/storefront-page-presets";
+import type { StoreDesign } from "@/lib/storefront-design-tokens";
 import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import type {
   Image,
@@ -93,6 +94,8 @@ export interface CustomizeDraft {
   homepageSections: string[] | null;
   /** Provenance of the last applied ready-made theme; "" once none applies. */
   appliedThemeId: string;
+  /** Typeface / type scale / density / corners stamped by that theme. */
+  design: StoreDesign;
   badges: StorefrontTrustBadge[];
   /** Two fixed promo-tile slots; blank fields keep the built-in copy. */
   promoTiles: StorefrontPromoTile[];
@@ -190,6 +193,9 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
     // Deliberately NOT defaulted to the look's order — see the field's doc.
     homepageSections: t.homepageSections ?? null,
     appliedThemeId: t.appliedThemeId ?? "",
+    // Seeded, not derived from appliedThemeId — the draft must load every field
+    // the payload writes, or saving deletes it (the badge-subtitle lesson).
+    design: t.design ?? {},
     // Three fixed slots seeded by index — an empty slot keeps its default badge.
     // Every field the badge has must be seeded here, or the next save writes it
     // away: the draft is what `toSettingsPayload` serialises, so a field the
@@ -333,6 +339,10 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
         // `headerMenu`) keep the merchant's choice.
         templates: { ...d.templates, ...theme.templates },
         homepageSections: [...theme.homepageSections],
+        // Typeface, type scale, density and corners travel with the layout —
+        // they are what makes the shop *feel* different rather than merely
+        // rearranged, so "Layout off" must leave them alone too.
+        design: { ...theme.design },
       }),
       appliedThemeId: id,
     }));

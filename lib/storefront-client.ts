@@ -85,6 +85,14 @@ export interface StorefrontStore {
     accentColor?: string;
     footerText?: string;
     homepageSections?: string[];
+    appliedThemeId?: string;
+    /** Typeface / type scale / density / corner style stamped by a template. */
+    design?: {
+      font?: string;
+      scale?: string;
+      density?: string;
+      radius?: string;
+    };
   };
   /** Org letterhead (Settings → Receipt & Print) — order invoices print with the
    * same letterhead as every other document. */

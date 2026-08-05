@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
-import { Inter, Noto_Sans_Bengali } from "next/font/google";
+import {
+  Inter,
+  Noto_Sans_Bengali,
+  Fraunces,
+  Space_Grotesk,
+} from "next/font/google";
 import { StorefrontUIProvider } from "@/services/storefront/ui-context";
 import "./storefront.css";
 
@@ -14,6 +19,24 @@ const notoBengali = Noto_Sans_Bengali({
   subsets: ["bengali"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-noto-bengali",
+  display: "swap",
+});
+
+// The two alternative Latin faces a design template can stamp in. They are
+// loaded for every storefront but only render when a template selects them —
+// next/font self-hosts and preloads, so the cost is the CSS, not a blocking
+// request per shop. Bengali is served by notoBengali in all three stacks.
+const grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-grotesk",
+  display: "swap",
+});
+
+const serif = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -34,7 +57,7 @@ export default function StorefrontGroupLayout({
   return (
     <>
       <div
-        className={`sf-root min-h-screen ${inter.variable} ${notoBengali.variable}`}
+        className={`sf-root min-h-screen ${inter.variable} ${notoBengali.variable} ${grotesk.variable} ${serif.variable}`}
         data-theme="light"
       >
         <StorefrontUIProvider>{children}</StorefrontUIProvider>

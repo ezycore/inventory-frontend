@@ -150,6 +150,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       // storefront use the look's default order.
       homepageSections: draft.homepageSections ?? undefined,
       appliedThemeId: draft.appliedThemeId || undefined,
+      design: Object.keys(draft.design).length ? draft.design : undefined,
     },
     trustBadges: trimBadges(draft.badges),
     promoTiles: trimPromoTiles(draft.promoTiles),
@@ -178,7 +179,13 @@ export function toPreviewPayload(
   },
 ) {
   return {
-    theme: { brandColor: draft.brandColor, accentColor: draft.accentColor },
+    theme: {
+      brandColor: draft.brandColor,
+      accentColor: draft.accentColor,
+      // Sent whole (not `|| undefined`) so clearing a design key repaints the
+      // preview back to the built-in look instead of leaving the last one on.
+      design: draft.design,
+    },
     // The RESOLVED order, never the raw draft: `null` (never reordered) has to
     // reach the preview as the look's real list, and sending `undefined` would
     // leave the preview store holding whatever was drafted before a Discard.

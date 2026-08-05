@@ -11,6 +11,7 @@ import type {
 } from "@/lib/storefront-client";
 import { useStore, useStoreCategories } from "@/services/storefront/hooks";
 import { useFaviconOverride } from "@/hooks/use-favicon-override";
+import { resolveDesignVars } from "@/lib/storefront-design-tokens";
 import {
   useSfPreview,
   useSfPreviewImage,
@@ -59,6 +60,7 @@ export function StoreShell({
   const previewBrand = useSfPreview((s) => s.brand);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewAnnouncement = useSfPreview((s) => s.announcement);
+  const previewDesign = useSfPreview((s) => s.design);
   const logo = useSfPreviewImage("logo", store?.logo);
 
   // The admin's Collections panel streams its unsaved draft; prefer it so
@@ -88,14 +90,22 @@ export function StoreShell({
   // a dark brand is auto-lifted on the dark theme and stays readable.
   const brandColor = previewBrand ?? store?.theme?.brandColor;
   const darkBrand = brandColor ? brightenForDark(brandColor) : undefined;
-  const shellVars = (brandColor
-    ? {
-        "--sf-brand-light": brandColor,
-        "--sf-brand-dark": darkBrand,
-        "--sf-brand-on-light": readableTextOn(brandColor),
-        "--sf-brand-on-dark": readableTextOn(darkBrand ?? brandColor),
-      }
-    : {}) as CSSProperties;
+  // The applied template's visual vocabulary — typeface, type scale, density,
+  // corner style. Emitted as `--t-*`; storefront.css reads them behind
+  // fallbacks, so a store with no design keys is byte-identical to before.
+  // Live preview wins, exactly like the brand colour above.
+  const design = previewDesign ?? store?.theme?.design;
+  const shellVars = {
+    ...(brandColor
+      ? {
+          "--sf-brand-light": brandColor,
+          "--sf-brand-dark": darkBrand,
+          "--sf-brand-on-light": readableTextOn(brandColor),
+          "--sf-brand-on-dark": readableTextOn(darkBrand ?? brandColor),
+        }
+      : {}),
+    ...resolveDesignVars(design),
+  } as CSSProperties;
 
   // Live preview override (admin Navigation editor) wins so the bar repaints as
   // it's edited; otherwise the merchant's saved announcement.

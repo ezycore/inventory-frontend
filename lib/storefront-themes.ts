@@ -1,6 +1,7 @@
 // coding-standard: maintained
 
 import type { HomeSectionId } from "@/lib/storefront-home-sections";
+import type { StoreDesign } from "@/lib/storefront-design-tokens";
 
 /**
  * Ready-made whole-store themes — one click instead of ten pickers.
@@ -34,6 +35,13 @@ export interface StoreThemeManifest {
   /** `templates.*` ids. Keys not listed here are left as the merchant had them. */
   templates: Record<string, string>;
   homepageSections: HomeSectionId[];
+  /**
+   * The visual vocabulary — typeface, type scale, spacing density and corner
+   * style (`lib/storefront-design-tokens.ts`). This is what makes two themes
+   * look like different shops rather than the same shop in another colour:
+   * without it a theme could only choose which pre-built block renders.
+   */
+  design: StoreDesign;
 }
 
 export const STORE_THEMES: StoreThemeManifest[] = [
@@ -56,6 +64,8 @@ export const STORE_THEMES: StoreThemeManifest[] = [
       checkout: "single-page",
     },
     homepageSections: ["hero", "categories", "featured", "latest"],
+    // The current default look, so every existing shop keeps its exact feel.
+    design: { font: "sans", scale: "normal", density: "normal", radius: "soft" },
   },
   {
     id: "editorial",
@@ -76,6 +86,9 @@ export const STORE_THEMES: StoreThemeManifest[] = [
       checkout: "single-page",
     },
     homepageSections: ["hero", "categories", "featured"],
+    // Serif at a large scale with square corners and air around everything —
+    // the furthest from the default, and the point of having a token layer.
+    design: { font: "serif", scale: "generous", density: "airy", radius: "sharp" },
   },
   {
     id: "bold-market",
@@ -96,6 +109,9 @@ export const STORE_THEMES: StoreThemeManifest[] = [
       checkout: "multi-step",
     },
     homepageSections: ["hero", "trust", "featured", "promo", "latest"],
+    // Geometric face, big type, tight grid, pill-soft corners — five products
+    // per row on desktop instead of four, which is the marketplace feel.
+    design: { font: "grotesk", scale: "generous", density: "dense", radius: "round" },
   },
   {
     id: "boutique",
@@ -116,6 +132,8 @@ export const STORE_THEMES: StoreThemeManifest[] = [
       checkout: "single-page",
     },
     homepageSections: ["hero", "categories", "featured", "trust"],
+    // Serif, but restrained — three products per row and generous padding.
+    design: { font: "serif", scale: "normal", density: "airy", radius: "soft" },
   },
 ];
 

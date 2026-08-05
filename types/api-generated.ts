@@ -10325,6 +10325,12 @@ export interface components {
                 footerText?: string;
                 homepageSections?: string[];
                 appliedThemeId?: string;
+                design?: {
+                    font?: string;
+                    scale?: string;
+                    density?: string;
+                    radius?: string;
+                };
             };
             nav?: {
                 header?: {
@@ -15895,6 +15901,12 @@ export interface operations {
                         footerText?: string;
                         homepageSections?: string[];
                         appliedThemeId?: string;
+                        design?: {
+                            font?: string;
+                            scale?: string;
+                            density?: string;
+                            radius?: string;
+                        };
                     };
                     nav?: {
                         header?: {

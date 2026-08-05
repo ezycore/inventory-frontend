@@ -42,6 +42,7 @@ export function StorePreviewBridge() {
         checkout: p.templates?.checkout,
         badges: p.trustBadges,
         promoTiles: p.promoTiles,
+        design: p.theme?.design,
         heroSlides: p.heroSlides,
         heroSrc: p.templates?.hero,
         heroBanner: p.heroBanner,

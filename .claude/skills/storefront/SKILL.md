@@ -488,7 +488,30 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-05)
+## Work log (what was built, newest first — as of 2026-08-06)
+
+- **Design tokens: a theme can change how the shop LOOKS, not just what renders** (2026-08-06):
+  until this, a theme could only pick which pre-built block rendered plus two colours — so two shops
+  on different themes shared one typeface, one heading scale, one spacing rhythm and one corner
+  radius, and never looked like genuinely different shops. `theme.design`
+  (`{ font, scale, density, radius }`) now stamps a visual vocabulary;
+  `lib/storefront-design-tokens.ts` maps each key to CSS custom properties.
+  - **The audit that shaped it:** density (`--pad`/`--gap`/`--cols`/`--maxw`) and type scale
+    (`--h1`/`--h1m`/`--h2`) were **already** tokenized and responsive in `.sf-root`, so three of the
+    four levers were nearly free. Only radius was not: **148 inline `borderRadius:` values across 50
+    files**, in 13 ad-hoc sizes. `--r-sm/md/lg/pill` now exist and new template components must use
+    them; the existing inline values are still un-migrated.
+  - **The trap, and it cost a wrong screenshot to find:** the shell writes `--t-*` onto
+    **`.sf-shell`**, so the tokens must be consumed there too. They were first derived on
+    `.sf-root` — the shell's *parent* — and custom properties inherit downward only, so the root can
+    never read a variable its own child sets. Fonts appeared to resolve while every size, column
+    count and radius silently stayed default. **If you add a token, derive it on `.sf-shell`.**
+  - The three breakpoint blocks are duplicated onto `.sf-shell` deliberately: a single base rule
+    there would out-specify `.sf-root`'s media queries and pin every shop to the mobile value.
+  - Every font stack keeps `--font-noto-bengali` after its Latin face. These are bilingual shops; a
+    stack without it renders Bangla in a mismatched system fallback.
+  - Verified by screenshot, not assertion — same store, three vocabularies: Inter/4-up/10px radius,
+    Fraunces at 64px/3-up/2px radius/1080px wide, Space Grotesk/5-up/16px radius/1320px wide.
 
 - **Owner copy for the trust row and promo tiles** (2026-08-05): both home sections rendered fixed
   dictionary text with no owner control — the promo tiles advertised "Eid Sale" and "Tools Clearance"
