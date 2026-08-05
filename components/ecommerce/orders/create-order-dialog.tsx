@@ -8,6 +8,7 @@ import type { AdminOrderChannel } from "@/services/api/modules/storefront-orders
 import { ProductSearch } from "@/components/sales/product-search";
 import type { ExtractedProduct } from "@/components/sales/types";
 import { BD_DISTRICTS, districtLabel, upazilasOf } from "@/lib/bd-geo";
+import { parseBdAddress } from "@/lib/parse-bd-address";
 import { formatCurrency } from "@/lib/currency";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { isValidBdPhone } from "@/services/storefront/bd-phone";
@@ -88,6 +89,7 @@ export function CreateOrderDialog({
   const [notes, setNotes] = useState("");
   const [shippingCharged, setShippingCharged] = useState<number | null>(null);
   const [confirmImmediately, setConfirmImmediately] = useState(true);
+  const [pasted, setPasted] = useState("");
 
   const reset = () => {
     setLines([]);
@@ -101,6 +103,61 @@ export function CreateOrderDialog({
     setNotes("");
     setShippingCharged(null);
     setConfirmImmediately(true);
+    setPasted("");
+  };
+
+  /**
+   * Prefill the address fields from the blob the buyer sent in chat.
+   *
+   * **Only fills what it is sure of, and only over an empty field.** A merchant
+   * who has already corrected something must not have it overwritten by a second
+   * paste — the parser is a typing shortcut, not an authority. Anything it could
+   * not identify (most often the district) is simply left for them to pick.
+   */
+  const applyPaste = () => {
+    const parsed = parseBdAddress(pasted);
+    const filled: string[] = [];
+    const fill = (
+      value: string | undefined,
+      current: string,
+      set: (v: string) => void,
+      label: string,
+    ) => {
+      if (!value || current.trim()) return;
+      set(value);
+      filled.push(label);
+    };
+
+    fill(parsed.name, name, setName, "name");
+    fill(parsed.phone, phone, setPhone, "phone");
+    fill(parsed.address, address, setAddress, "address");
+    if (parsed.district && !district) {
+      setDistrict(parsed.district);
+      filled.push("district");
+      // The area list is district-scoped, so it can only be set alongside the
+      // district it came from.
+      if (parsed.area) {
+        setArea(parsed.area);
+        filled.push("area");
+      }
+    }
+
+    if (!filled.length) {
+      toast.info("Nothing new to fill in — check the pasted text");
+      return;
+    }
+    // Name what was filled AND what was not: a silent partial parse is how a
+    // merchant ends up submitting an order with no district.
+    const missing = ["name", "phone", "district"].filter(
+      (f) =>
+        !filled.includes(f) &&
+        !{ name, phone, district }[f as "name" | "phone" | "district"].trim(),
+    );
+    toast.success(
+      missing.length
+        ? `Filled ${filled.join(", ")} — still needed: ${missing.join(", ")}`
+        : `Filled ${filled.join(", ")}`,
+    );
   };
 
   const addLine = (product: ExtractedProduct) => {
@@ -200,6 +257,33 @@ export function CreateOrderDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Buyers send one blob of text; retyping it into five fields is the
+              slowest part of taking a chat order. */}
+          <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
+            <Label>Paste the customer&apos;s message</Label>
+            <Textarea
+              value={pasted}
+              rows={3}
+              placeholder={"Rahim Uddin\n01712345678\nHouse 12, Road 4, Dhanmondi, Dhaka"}
+              onChange={(e) => setPasted(e.target.value)}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Fills only the fields it recognises, and never overwrites one you
+                have already typed.
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={applyPaste}
+                disabled={!pasted.trim()}
+              >
+                Fill fields
+              </Button>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label>Products</Label>
             <ProductSearch onSelect={addLine} placeholder="Search products…" />
