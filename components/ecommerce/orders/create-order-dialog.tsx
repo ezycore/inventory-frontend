@@ -120,6 +120,7 @@ export function CreateOrderDialog({
           </div>
 
           <CreateOrderLines
+            open={open}
             lines={form.lines}
             onAdd={form.addLine}
             onQuantity={form.setQuantity}

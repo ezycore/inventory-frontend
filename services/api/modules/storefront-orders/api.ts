@@ -17,9 +17,16 @@ import type {
   FraudScore,
   OrderQuote,
   OrderStats,
+  OrderableProduct,
   StorefrontOrderList,
 } from "@/types/api";
-export type { AdminStorefrontOrder, CourierPrice, OrderQuote, OrderStats };
+export type {
+  AdminStorefrontOrder,
+  CourierPrice,
+  OrderQuote,
+  OrderStats,
+  OrderableProduct,
+};
 
 /** The list-page filters — courier/fulfillment/payment narrow the status-tab counts too. */
 export interface AdminOrderListParams {
@@ -216,6 +223,13 @@ export const storefrontOrdersApi = {
    */
   quote: (body: QuoteAdminOrderInput): Promise<ApiResponse<OrderQuote>> =>
     apiClient.post(`${base}/quote`, body),
+  /**
+   * The create dialog's product picker — **not** the POS `sellableProducts` list.
+   * These rows carry the storefront price with any live campaign applied, and
+   * only include products a chat order may actually contain.
+   */
+  orderableProducts: (): Promise<ApiResponse<OrderableProduct[]>> =>
+    apiClient.get(`${base}/products`),
   confirm: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/confirm`, {}),
   updateStatus: (

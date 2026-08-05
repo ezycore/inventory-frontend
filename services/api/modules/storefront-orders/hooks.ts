@@ -48,6 +48,25 @@ export const useOrderFraudScore = () =>
   });
 
 /**
+ * The create dialog's product picker.
+ *
+ * Deliberately **not** the POS `sellableProducts` options list: these rows carry
+ * the storefront price with any live campaign applied, and exclude products a
+ * chat order cannot contain. Fetched only while the dialog is open — it is a
+ * whole-catalogue payload, and the orders list has no use for it.
+ */
+export const useOrderableProducts = (enabled: boolean) =>
+  useQuery({
+    queryKey: queryKeys.storefrontOrders.products(),
+    queryFn: () => storefrontOrdersApi.orderableProducts(),
+    enabled,
+    select: (r) => r.data ?? [],
+    // A campaign starting or ending changes every price here, and the merchant
+    // is about to read one out to a buyer.
+    staleTime: 0,
+  });
+
+/**
  * Live price for the order being typed into the create dialog.
  *
  * **A query, not a mutation, and that is the point** — it is a pure read that

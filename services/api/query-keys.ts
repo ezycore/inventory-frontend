@@ -254,6 +254,12 @@ export const queryKeys = {
      * that dirties orders drops the stale price too.
      */
     quote: (draft: Params) => ["storefront-orders", "quote", draft] as const,
+    /**
+     * The create dialog's picker rows — storefront-priced, campaign-applied.
+     * Under the orders root so a campaign or catalog change that dirties orders
+     * refreshes the prices the merchant is about to quote.
+     */
+    products: () => ["storefront-orders", "products"] as const,
   },
 
   /** Courier provider config — a sibling of orders, not a part of them. */

@@ -1,10 +1,15 @@
 "use client";
 // coding-standard: maintained
+import { useMemo } from "react";
 import { Trash2 } from "lucide-react";
 import { ProductSearch } from "@/components/sales/product-search";
 import type { ExtractedProduct } from "@/components/sales/types";
 import { formatCurrency } from "@/lib/currency";
-import type { OrderQuote } from "@/services/api/modules/storefront-orders/api";
+import { useOrderableProducts } from "@/services/api";
+import type {
+  OrderQuote,
+  OrderableProduct,
+} from "@/services/api/modules/storefront-orders/api";
 import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
@@ -14,13 +19,36 @@ import type { Line } from "./use-create-order-form";
 /**
  * The product picker and line table on the create-order dialog.
  *
- * **The Total column shows the QUOTED line total, never `price × quantity`.** The
- * picker is the POS catalogue, so its price is `product.price`; the order charges
- * `storefront.onlinePrice ?? price` repriced by any live campaign. Where the two
- * differ the row says so, because the merchant just read the other number off the
- * search result and is about to quote it to a buyer.
+ * **Both halves show storefront prices, not POS prices.** The picker is fed from
+ * `useOrderableProducts` — the storefront catalogue with any live campaign
+ * applied — rather than the POS list the sell screen uses, and the Total column
+ * shows the QUOTED line total rather than `price × quantity`. They have to agree,
+ * because the merchant reads one off the dropdown and the other off the summary
+ * before quoting a number in chat.
  */
+
+/**
+ * Map a picker row onto the shape `ProductSearch` renders.
+ *
+ * `costPrice` and `quantityAlert` are POS concepts with no storefront meaning; a
+ * chat order never reads either, so they are zeroed rather than faked from a
+ * catalogue that does not carry them.
+ */
+const toPickerItem = (row: OrderableProduct): ExtractedProduct =>
+  ({
+    value: `${row.productId}:${row.variantId ?? ""}`,
+    label: row.label,
+    price: row.price,
+    compareAt: row.compareAt,
+    costPrice: 0,
+    availableQuantity: row.availableQuantity,
+    productId: row.productId,
+    variantId: row.variantId ?? null,
+    quantityAlert: 0,
+  }) as ExtractedProduct;
+
 export function CreateOrderLines({
+  open,
   lines,
   onAdd,
   onQuantity,
@@ -30,6 +58,8 @@ export function CreateOrderLines({
   quoting,
   currency,
 }: {
+  /** Fetch the catalogue only while the dialog is open — it is a whole-store payload. */
+  open: boolean;
   lines: Line[];
   onAdd: (product: ExtractedProduct) => void;
   onQuantity: (line: Line, quantity: number) => void;
@@ -39,10 +69,18 @@ export function CreateOrderLines({
   quoting: boolean;
   currency?: string;
 }) {
+  const { data: orderable = [], isLoading } = useOrderableProducts(open);
+  const pickerItems = useMemo(() => orderable.map(toPickerItem), [orderable]);
+
   return (
     <div className="space-y-2">
       <Label>Products</Label>
-      <ProductSearch onSelect={onAdd} placeholder="Search products…" />
+      <ProductSearch
+        onSelect={onAdd}
+        placeholder="Search products…"
+        source={pickerItems}
+        loading={isLoading}
+      />
       {lines.length > 0 ? (
         <SimpleTable
           columns={[
@@ -84,9 +122,11 @@ export function CreateOrderLines({
                 return (
                   <span>
                     {formatCurrency(quoted.subtotal, currency)}
-                    {/* Surfaced only when it differs from the POS price the
-                        merchant just saw in the picker — otherwise it is noise
-                        on every row. */}
+                    {/* The picker is storefront-priced now, so these agree in the
+                        normal case and this stays hidden. It fires when the price
+                        MOVED between picking and quoting — a campaign starting or
+                        ending mid-session — which is worth saying out loud, since
+                        the merchant may already have quoted the old number. */}
                     {quoted.price !== l.price ? (
                       <span className="block text-xs text-muted-foreground">
                         online {formatCurrency(quoted.price, currency)} ea

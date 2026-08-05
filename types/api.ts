@@ -137,6 +137,7 @@ export type AdminStorefrontOrder = Schemas["StorefrontOrder"];
 export type StorefrontOrderList = Schemas["StorefrontOrderList"];
 export type OrderStats = Schemas["OrderStats"];
 export type OrderQuote = Schemas["OrderQuote"];
+export type OrderableProduct = Schemas["OrderableProduct"];
 export type StorefrontDashboard = Schemas["StorefrontDashboard"];
 export type CatalogList = Schemas["CatalogList"];
 export type CatalogVariant = Schemas["CatalogVariant"];
