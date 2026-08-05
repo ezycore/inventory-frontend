@@ -140,7 +140,7 @@ const dropLink: CSSProperties = {
 };
 
 /**
- * Storefront header menu (admin Navigation → "Header menu"). Renders one level
+ * Storefront header menu (admin Customize → Header). Renders one level
  * of dropdowns on hover/focus. The store-shell uses this when a menu is
  * configured and falls back to the raw category list otherwise.
  */

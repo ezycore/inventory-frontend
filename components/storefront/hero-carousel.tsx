@@ -41,7 +41,7 @@ function SlideCta({ slide, base }: { slide: StoreHeroSlide; base: string }) {
 }
 
 /**
- * Home hero carousel — owner-managed slides (Customize → Theme → Hero slides).
+ * Home hero carousel — owner-managed slides (Customize → Hero).
  * Crossfade + staggered text rise, 5s autoplay (paused on hover/press, skipped
  * for reduced-motion), dots with a time-to-next fill, arrows, and swipe.
  * Slides without an image get a brand-tinted panel; with an image, a scrim

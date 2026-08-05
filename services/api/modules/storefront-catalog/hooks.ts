@@ -70,13 +70,21 @@ export const useStorefrontCollections = () =>
 export const useUpdateCollection = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: string; isListed?: boolean; displayName?: string }) =>
+    // `silent` suppresses the toast only. Customize saves every changed
+    // collection inside one page-level Save, so the row-by-row toasts would
+    // stack up behind the single "Store settings updated" the merchant asked for.
+    mutationFn: (v: {
+      id: string;
+      isListed?: boolean;
+      displayName?: string;
+      silent?: boolean;
+    }) =>
       storefrontCatalogApi.updateCollection(v.id, {
         isListed: v.isListed,
         displayName: v.displayName,
       }),
-    onSuccess: (res) => {
-      handleMutationSuccess(res.message || "Collection updated");
+    onSuccess: (res, v) => {
+      if (!v.silent) handleMutationSuccess(res.message || "Collection updated");
       invalidate(qc, "storefront.catalog.changed");
     },
     onError: handleMutationError,
