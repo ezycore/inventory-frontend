@@ -64,6 +64,11 @@ export function OrderPlacedCard({
           <button type="button" onClick={copy} style={ghostLink}>
             {copied ? t.linkCopied : t.copyLink}
           </button>
+          {/* No message is promised here, so the link has to carry the weight —
+              say plainly that it is the record, not just a convenience. */}
+          <div style={{ fontSize: 12, color: "var(--faint)", marginTop: 10, lineHeight: 1.5 }}>
+            {t.guestKeepLink}
+          </div>
         </div>
       ) : null}
       <div style={{ display: "flex", gap: 11, justifyContent: "center", flexWrap: "wrap" }}>

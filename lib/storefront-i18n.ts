@@ -170,8 +170,14 @@ export interface Dict {
   phoneInvalid: string;
   /** Optional sign-in nudge beside the guest form — an offer, never a gate. */
   haveAccount: string;
+  /** Soft "you are not signed in" notice on checkout. Informs, never blocks —
+   *  guest checkout is deliberate, so this must not read as an error. */
+  guestNoticeTitle: string;
+  guestNoticeBody: string;
   /** Confirmation screen: the buyer's tracking link + its copy control. */
   trackYourOrder: string;
+  /** Why a guest should keep that link — no account means no other way back. */
+  guestKeepLink: string;
   copyLink: string;
   linkCopied: string;
   address: string;
@@ -212,6 +218,10 @@ export interface Dict {
   bankTransfer: string;
   placeOrder: string;
   orderPlaced: string;
+  /** Reassurance under "Order placed". Deliberately names NO channel: SMS is
+   *  plan-gated, off by default and runs on prepaid credit, and email needs an
+   *  address the shopper may never have given — so promising either is a
+   *  promise most stores cannot keep. Keep it channel-neutral. */
   orderThanks: string;
   orderNo: string;
   orderStatus: string;
@@ -533,7 +543,11 @@ const en: Dict = {
   phone: "Phone number",
   phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
   haveAccount: "Already have an account?",
+  guestNoticeTitle: "You're not signed in",
+  guestNoticeBody:
+    "You can order as a guest — nothing extra is needed. Just note this order won't be saved to an account, and the tracking link you get at the end will be your only way back to it.",
   trackYourOrder: "Track your order",
+  guestKeepLink: "Save this link — without an account it's your only way back to this order.",
   copyLink: "Copy link",
   linkCopied: "Link copied",
   address: "Full address",
@@ -573,7 +587,7 @@ const en: Dict = {
   bankTransfer: "Bank Transfer",
   placeOrder: "Place order",
   orderPlaced: "Order placed",
-  orderThanks: "We’ll send an SMS to confirm your order shortly.",
+  orderThanks: "Thanks — the store will confirm your order shortly.",
   orderNo: "Order",
   orderStatus: "Status",
   payStatus: "Payment",
@@ -886,7 +900,11 @@ const bn: Dict = {
   phone: "ফোন নম্বর",
   phoneInvalid: "সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮",
   haveAccount: "আগে থেকে অ্যাকাউন্ট আছে?",
+  guestNoticeTitle: "আপনি সাইন ইন করেননি",
+  guestNoticeBody:
+    "গেস্ট হিসেবেও অর্ডার করতে পারবেন — বাড়তি কিছু লাগবে না। শুধু মনে রাখবেন, এই অর্ডারটি কোনো অ্যাকাউন্টে সংরক্ষিত থাকবে না, আর শেষে যে ট্র্যাকিং লিংক পাবেন সেটিই এই অর্ডারে ফিরে আসার একমাত্র উপায়।",
   trackYourOrder: "অর্ডার ট্র্যাক করুন",
+  guestKeepLink: "লিংকটি সংরক্ষণ করুন — অ্যাকাউন্ট ছাড়া এই অর্ডারে ফিরে আসার এটিই একমাত্র উপায়।",
   copyLink: "লিংক কপি করুন",
   linkCopied: "লিংক কপি হয়েছে",
   address: "সম্পূর্ণ ঠিকানা",
@@ -926,7 +944,7 @@ const bn: Dict = {
   bankTransfer: "ব্যাংক ট্রান্সফার",
   placeOrder: "অর্ডার করুন",
   orderPlaced: "অর্ডার সম্পন্ন",
-  orderThanks: "অর্ডার নিশ্চিত করতে শীঘ্রই এসএমএস পাঠানো হবে।",
+  orderThanks: "ধন্যবাদ — দোকান শীঘ্রই আপনার অর্ডার নিশ্চিত করবে।",
   orderNo: "অর্ডার",
   orderStatus: "স্ট্যাটাস",
   payStatus: "পেমেন্ট",
