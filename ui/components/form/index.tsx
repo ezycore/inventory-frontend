@@ -263,7 +263,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                         </div>}
                     </SheetHeader>
 
-                    <div className="flex-1 overflow-y-auto px-6 pb-6">
+                    <div className="flex-1 overflow-y-auto px-6 pb-6 pt-1">
                         <form
                             {...props}
                             onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
