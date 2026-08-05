@@ -369,6 +369,12 @@ export interface ShippingAddress {
 export interface StorefrontOrder {
   _id: string;
   orderNumber: string;
+  /**
+   * The buyer's tracking link, returned **only on placement**. A guest's single
+   * chance to keep it — no SMS carries the link and they have no account to find
+   * it in later, so the confirmation screen must surface it.
+   */
+  trackUrl?: string;
   items: OrderItem[];
   subtotal: number;
   discountAmount: number;
@@ -419,6 +425,40 @@ export interface PlaceOrderInput {
   couponCode?: string;
   /** Shopper accepted the store's terms (required when `checkout.termsRequired`). */
   termsAccepted?: boolean;
+  /**
+   * The browser's cart handle, so a GUEST order can close its mirrored cart —
+   * the server's shopper-keyed path has no shopper to key on. Optional because
+   * `cartAnonymousId()` returns null where localStorage is unavailable, and an
+   * order must never depend on an analytics record.
+   */
+  anonymousId?: string;
+}
+
+/**
+ * The buyer's read-only view of one order, from a tracking link. Deliberately
+ * narrower than `StorefrontOrder`: no merchant cost, no ledger refs, no phone.
+ */
+export interface TrackedOrder {
+  orderNumber: string;
+  status: string;
+  fulfillmentType?: "delivery" | "pickup";
+  paymentMethod: "cod" | "bank" | "manual";
+  paymentStatus: "pending" | "paid" | "refunded";
+  placedAt?: string;
+  items: { productName: string; quantity: number; price: number; subtotal: number }[];
+  subtotal: number;
+  discountAmount: number;
+  shippingCharged: number;
+  totalAmount: number;
+  shipTo: { name: string; area?: string; district?: string };
+  courier?: {
+    name?: string;
+    trackingCode?: string;
+    trackingUrl?: string;
+    normalizedStatus?: string;
+    history: { status: string; note?: string; at?: string }[];
+  };
+  statusHistory: { status: string; at?: string }[];
 }
 
 export interface CouponPreview {
@@ -652,6 +692,20 @@ export const storefrontApi = {
       body,
       token,
     }),
+
+  /**
+   * Public order tracking. **No token** — the link itself is the credential, and
+   * the response is a narrow allowlist that cannot act on the order.
+   */
+  trackOrder: (slug: string, trackToken: string) =>
+    sfFetch<TrackedOrder>(slug, `/t/${encodeURIComponent(trackToken)}`),
+
+  /** Recovery for a lost link. The phone is required, not optional convenience. */
+  lookupOrder: (slug: string, orderNumber: string, phone: string) =>
+    sfFetch<TrackedOrder>(
+      slug,
+      `/orders/track?orderNumber=${encodeURIComponent(orderNumber)}&phone=${encodeURIComponent(phone)}`,
+    ),
   updateAddress: (
     slug: string,
     token: string,
@@ -697,7 +751,10 @@ export const storefrontApi = {
       body: { token, password },
     }),
 
-  placeOrder: (slug: string, token: string, body: PlaceOrderInput) =>
+  // `token` is optional: no token is a GUEST order, which the server accepts.
+  // A present-but-invalid token still 401s — absence and invalidity are different
+  // things and must not resolve the same way.
+  placeOrder: (slug: string, token: string | undefined, body: PlaceOrderInput) =>
     sfFetch<StorefrontOrder>(slug, "/orders", { method: "POST", body, token }),
   listOrders: (slug: string, token: string) =>
     sfFetch<StorefrontOrder[]>(slug, "/orders", { token }),
@@ -709,10 +766,17 @@ export const storefrontApi = {
       method: "POST",
       token,
     }),
+  // Guest-tolerant like `placeOrder`. `phone` carries the per-buyer coupon limit
+  // when there is no account to count against, so the quoted discount matches the
+  // one placement will charge.
   validateCoupon: (
     slug: string,
-    token: string,
-    body: { code: string; items: { productId: string; quantity: number }[] },
+    token: string | undefined,
+    body: {
+      code: string;
+      items: { productId: string; quantity: number }[];
+      phone?: string;
+    },
   ) =>
     sfFetch<CouponPreview>(slug, "/coupon/validate", {
       method: "POST",

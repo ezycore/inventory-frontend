@@ -342,6 +342,9 @@ function OrdersList() {
                 <th className="px-3 py-3">Payment</th>
                 <th className="px-3 py-3">Courier</th>
                 <th className="px-3 py-3">Status</th>
+                {/* Copy-tracking-link column — deliberately unlabelled, like the
+                    chevron: the icon and its tooltip carry the meaning. */}
+                <th className="w-10" />
                 <th className="w-8" />
               </tr>
             </thead>
@@ -349,14 +352,14 @@ function OrdersList() {
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="border-b">
-                    <td colSpan={9} className="px-4 py-3">
+                    <td colSpan={10} className="px-4 py-3">
                       <Skeleton className="h-5 w-full" />
                     </td>
                   </tr>
                 ))
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-16 text-center">
+                  <td colSpan={10} className="px-4 py-16 text-center">
                     <div className="text-sm font-semibold">No orders found</div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       Try adjusting your search or filters.

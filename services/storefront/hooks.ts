@@ -52,6 +52,14 @@ export const storefront = {
   pages: (slug: string) => ["storefront", slug, "pages"] as const,
   page: (slug: string, pageSlug: string) =>
     ["storefront", slug, "page", pageSlug] as const,
+  /**
+   * A public tracking link's order. Sits under the PUBLIC prefix, not
+   * `shopper(...)`: the reader is identified by the token in the URL, not by a
+   * session, so signing in or out must not evict it — and a guest, who has no
+   * session at all, is the main reader.
+   */
+  trackedOrder: (slug: string, token: string) =>
+    ["storefront", slug, "track", token] as const,
 
   /**
    * Everything private to the signed-in shopper. One prefix, on purpose: `clearShopperCache` drops
@@ -372,8 +380,11 @@ export const usePlaceOrder = (slug: string) => {
   const token = useShopperStore((s) => s.token);
   const qc = useQueryClient();
   return useMutation({
+    // `token ?? undefined`, never `token!` — a guest legitimately has none, and
+    // the server reads its absence as "guest order". Asserting it here was the
+    // shape that only made sense while checkout required an account.
     mutationFn: (body: PlaceOrderInput) =>
-      storefrontApi.placeOrder(slug, token!, body),
+      storefrontApi.placeOrder(slug, token ?? undefined, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: storefront.shopper(slug) }),
   });
 };
