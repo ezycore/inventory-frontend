@@ -3,6 +3,7 @@
 
 import { invalidate } from "@/services/api/invalidation";
 import { Suspense, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ import {
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { OrderRow } from "@/components/ecommerce/orders/order-row";
+import { CreateOrderDialog } from "@/components/ecommerce/orders/create-order-dialog";
 import { getOrderStats } from "@/components/ecommerce/orders/helpers";
 import { ListPagination } from "@/components/ecommerce/list-pagination";
 import { ListSearchInput } from "@/components/ecommerce/list-search-input";
@@ -69,6 +71,7 @@ function OrdersList() {
   const qc = useQueryClient();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
 
+  const [createOpen, setCreateOpen] = useState(false);
   const [status, setStatus] = useState(initialStatus);
   const [courier, setCourier] = useState("all");
   const [fulfillment, setFulfillment] = useState("all");
@@ -212,12 +215,22 @@ function OrdersList() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Online Orders</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Orders placed through your storefront.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Online Orders</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Orders from your storefront, and the ones you took in chat or by phone.
+          </p>
+        </div>
+        {/* Most of an f-commerce merchant's volume never touches the website, so
+            this is not a secondary action — it is how the majority of orders get
+            onto the courier/COD pipeline at all. */}
+        <Button onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Create order
+        </Button>
       </div>
+      <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
 
       {/* COD-cash stat cards */}
       <StatsCard

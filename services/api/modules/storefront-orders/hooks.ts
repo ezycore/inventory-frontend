@@ -4,6 +4,7 @@ import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
+import type { CreateAdminOrderInput } from "./api";
 import {
   couriersApi,
   storefrontOrdersApi,
@@ -45,6 +46,27 @@ export const useOrderFraudScore = () =>
     mutationFn: (id: string) => storefrontOrdersApi.fraudScore(id),
     onError: handleMutationError,
   });
+
+/**
+ * Create a merchant-taken order.
+ *
+ * Dirties `order.changed` rather than `order.confirmed` even when
+ * `confirmImmediately` is set: the confirm is best-effort server-side (a stock
+ * shortfall leaves the order pending rather than losing it), so the client
+ * cannot assume stock moved. `order.changed` already covers the order list, the
+ * stats and the storefront dashboard, which is what actually changed either way.
+ */
+export const useCreateStorefrontOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateAdminOrderInput) => storefrontOrdersApi.create(body),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order created");
+      invalidate(qc, "order.changed");
+    },
+    onError: handleMutationError,
+  });
+};
 
 export const useConfirmOrder = () => {
   const qc = useQueryClient();

@@ -77,6 +77,37 @@ export interface CustomCourierPayload {
 
 const base = "/ecommerce/orders";
 
+/** Body of `POST /api/ecommerce/orders`. */
+export interface CreateAdminOrderInput {
+  items: { productId: string; variantId?: string; quantity: number }[];
+  shippingAddress: {
+    name: string;
+    phone: string;
+    address?: string;
+    district?: string;
+    area?: string;
+    notes?: string;
+  };
+  fulfillmentType?: "delivery" | "pickup";
+  paymentMethod: "cod" | "bank" | "manual";
+  channel: AdminOrderChannel;
+  notes?: string;
+  /** Merchant-negotiated delivery charge. `0` is meaningful — "free, we agreed". */
+  shippingCharged?: number;
+  /** Skip the separate Confirm click; a chat order is already agreed. */
+  confirmImmediately?: boolean;
+}
+
+/** Where an order came from. Reporting only — never drives money or fulfilment. */
+export type AdminOrderChannel =
+  | "messenger"
+  | "whatsapp"
+  | "instagram"
+  | "comment"
+  | "phone"
+  | "manual"
+  | "website";
+
 export const storefrontOrdersApi = {
   list: (
     params: AdminOrderListParams,
@@ -132,6 +163,14 @@ export const storefrontOrdersApi = {
     apiClient.get(`${base}/${id}`),
   fraudScore: (id: string): Promise<ApiResponse<OrderFraudScore>> =>
     apiClient.get(`${base}/${id}/fraud-check`),
+  /**
+   * Record an order taken OFF the website — Messenger, WhatsApp, a post comment,
+   * a phone call. `channel` is required: capturing where the order came from is
+   * the whole reason this endpoint exists, and defaulting it would file every
+   * chat order as `website` and make the channel report a lie.
+   */
+  create: (body: CreateAdminOrderInput): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(base, body),
   confirm: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/confirm`, {}),
   updateStatus: (
