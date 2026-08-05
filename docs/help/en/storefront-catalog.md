@@ -34,14 +34,79 @@ so a small catalogue with good images and real descriptions outsells a large one
 
 ## Customize
 
-**Customize** controls how the store looks. The left side lists every part of your store in the
-order a shopper meets it — Brand, Announcement bar, Header, Hero, Home page, Product cards,
-Collections, Product page, Footer, Checkout — and the right side is your real shop, updating as you
-type. Open a part and everything about it is in one place: **Footer**, for example, holds its layout,
-its link groups, its copyright line and its trust badges together.
+**Customize** controls how the store looks. The left side lists every part of your store — Theme
+first, then the rest in the order a shopper meets them: Brand, Announcement bar, Header, Hero, Home
+page, Product cards, Collections, Product page, Footer, Checkout. The right side is your real shop,
+updating as you type. Open a part and everything about it is in one place: **Footer**, for example,
+holds its layout, its link groups, its copyright line and its trust badges together.
 
 With every part closed the list doubles as a summary of your shop, so you can check what it is set
 to without opening anything.
+
+### Three ways to change how it looks
+
+Start with the one that matches how much you want to change. Anything you pick can be adjusted
+afterwards, so none of them locks you in.
+
+| You want to | Use |
+|---|---|
+| Make the whole shop look different | **Theme** |
+| Change one page | **Start from**, inside that page's part |
+| Change one thing | The pickers inside each part |
+
+Most people should start at the top. Picking a theme sets sensible choices everywhere at once, and
+you can then nudge whatever you disagree with.
+
+### Change the whole shop at once
+
+**Theme** offers four ready-made looks — **Classic Shop**, **Editorial**, **Bold Market** and
+**Boutique**. Pick one and your colours, your header and footer, your product cards, and the layout
+of every page change together. The preview repaints immediately.
+
+**A theme never touches what you have written.** Your hero slides, delivery promises, footer links,
+menu and announcement all survive it. A theme changes the shape of your shop, not its words.
+
+Two switches decide how much it changes:
+
+- **Layout** — the page layouts, product cards, header and footer.
+- **Colours** — your brand and accent colours. **If you have already set your own colours, turn this
+  off before picking a theme**, or it will replace them.
+
+Once a theme is applied its name shows at the top of the list. Change something the theme set and it
+says how many things have moved since — pick the theme again to put them all back.
+
+### Change one page
+
+Home page and Collections each have a **Start from** row: ready-made layouts for that page alone,
+leaving the rest of your shop as it is. The Home page ones set both the layout and the list of
+sections; the Collections ones set both the grid and the way more products load.
+
+The pickers stay underneath. Once you change any one of them the ready-made layout is no longer
+highlighted, which is correct — it is no longer what you have.
+
+The product page and checkout have no **Start from** row, because each is a single choice already.
+
+### Choose what appears on your home page
+
+Under **Home page**, **Sections** lists the blocks of your home page from top to bottom. The arrows
+move a block up or down. The switch beside it takes the block off your home page entirely, and it
+drops into **Hidden** below, where you can switch it back on at any time.
+
+You cannot switch off the last remaining block — an empty home page is not a layout.
+
+Changing the layout above changes how each block *looks*, not which blocks you have.
+
+### Write your own promises and promo tiles
+
+Two blocks arrive with example wording, and it is other people's wording — a **Promo tiles** block
+still advertising a sale you are not running does more harm than no block at all. Replace both
+before you open the shop.
+
+- The delivery and returns row is edited under **Footer**, as **Trust badges** — the same three
+  promises your footer shows. Where the home page has room, each one takes a second line.
+- **Promo tiles** is edited under **Home page**, and only appears when that block is switched on.
+
+Leave any field empty and the built-in wording stays, so you can write one and leave the rest.
 
 **Everything saves together.** Edit as many parts as you like and press **Save changes** once; the
 bar at the bottom names the parts you have touched, and **Discard** puts them all back. Only images —
