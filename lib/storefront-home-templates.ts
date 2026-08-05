@@ -47,6 +47,19 @@ export const HOME_TEMPLATE_META: HomeTemplateMeta[] = [
     design: { font: "sans", scale: "normal", density: "normal", radius: "soft" },
   },
   {
+    id: "superstore",
+    label: "Superstore",
+    description: "Promo beside department shortcuts, deals first, dense grids",
+    // No `promo`: this look already closes with product, and two promo tiles
+    // under a deals rail is the same message twice.
+    available: ["hero", "categories", "deals", "featured", "latest", "trust"],
+    defaultOrder: ["hero", "trust", "deals", "categories", "featured", "latest"],
+    // Familiar rather than characterful, small type, tight grid, near-square
+    // corners: a general-retail shop is judged on breadth and price, and every
+    // vertical pixel of styling competes with another row of product.
+    design: { font: "sans", scale: "compact", density: "dense", radius: "sharp" },
+  },
+  {
     id: "minimal",
     label: "Minimal",
     description: "Centered manifesto, quiet product grid",

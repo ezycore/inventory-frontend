@@ -21,7 +21,12 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
 
 // The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
 // the storefront pages consume short variant names. These maps bridge the two.
-const HOME = { classic: "classic", "hero-split": "hero-split", minimal: "minimal" } as const;
+const HOME = {
+  classic: "classic",
+  "hero-split": "hero-split",
+  superstore: "superstore",
+  minimal: "minimal",
+} as const;
 const COLLECTION = { "grid-3": "grid3", "grid-4": "grid4", sidebar: "sidebar" } as const;
 const PRODUCT = { "gallery-left": "left", "gallery-top": "top", "sticky-bar": "sticky" } as const;
 const CHECKOUT = { "single-page": "single", "multi-step": "multi" } as const;

@@ -165,7 +165,7 @@ export type HeaderMenuSource = "collections" | "custom";
 
 /** Normalized storefront page-layout variants (resolved from the raw admin ids). */
 export interface StoreTemplates {
-  home: "classic" | "hero-split" | "minimal";
+  home: "classic" | "hero-split" | "superstore" | "minimal";
   collection: "grid3" | "grid4" | "sidebar";
   product: "left" | "top" | "sticky";
   checkout: "single" | "multi";

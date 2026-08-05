@@ -19,6 +19,7 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
   home: [
     { value: "classic", label: "Classic", description: "Hero card, category chips, product rails" },
     { value: "hero-split", label: "Hero Split", description: "Split hero, trust row, promo tiles" },
+    { value: "superstore", label: "Superstore", description: "Promo beside departments, deals first, dense grids" },
     { value: "minimal", label: "Minimal", description: "Centered manifesto, quiet product grid" },
   ],
   collection: [

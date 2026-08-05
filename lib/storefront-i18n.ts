@@ -105,6 +105,8 @@ export interface Dict {
   heroAs: string;
   shopNow: string;
   browseCats: string;
+  /** Superstore deals rail heading — discounted products only. */
+  deals: string;
   featured: string;
   shopByCat: string;
   newArrivals: string;
@@ -463,6 +465,7 @@ const en: Dict = {
   heroAs: "Groceries, electronics, tools and home needs — one cart, paid your way, delivered across Bangladesh.",
   shopNow: "Shop now",
   browseCats: "Browse categories",
+  deals: "Deals",
   featured: "Featured products",
   shopByCat: "Shop by category",
   newArrivals: "New arrivals",
@@ -811,6 +814,7 @@ const bn: Dict = {
   heroAs: "মুদি, ইলেকট্রনিক্স, টুলস ও হোম পণ্য — এক কার্টে, পছন্দমতো পেমেন্টে, সারা বাংলাদেশে ডেলিভারি।",
   shopNow: "কিনুন",
   browseCats: "ক্যাটাগরি দেখুন",
+  deals: "ডিল",
   featured: "ফিচার্ড পণ্য",
   shopByCat: "ক্যাটাগরি অনুযায়ী",
   newArrivals: "নতুন এসেছে",

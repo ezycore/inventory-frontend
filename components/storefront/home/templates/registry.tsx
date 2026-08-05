@@ -21,6 +21,13 @@ import {
   FeaturedGrid,
   FeaturedSelected,
 } from "@/components/storefront/home/sections/featured-section";
+import {
+  DealsRail,
+  DepartmentGrid,
+  SuperstoreHero,
+  SuperstoreLatest,
+  TrustStrip,
+} from "@/components/storefront/home/sections/superstore-blocks";
 import { LatestSection } from "@/components/storefront/home/sections/latest-section";
 import { TrustSection } from "@/components/storefront/home/sections/trust-section";
 import { PromoSection } from "@/components/storefront/home/sections/promo-section";
@@ -56,6 +63,14 @@ const SECTIONS: Record<string, SectionMap> = {
     latest: LatestSection,
     trust: TrustSection,
     promo: PromoSection,
+  },
+  superstore: {
+    hero: SuperstoreHero,
+    trust: TrustStrip,
+    deals: DealsRail,
+    categories: DepartmentGrid,
+    featured: FeaturedGrid,
+    latest: SuperstoreLatest,
   },
   minimal: {
     hero: ManifestoHero,

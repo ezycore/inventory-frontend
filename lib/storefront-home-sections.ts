@@ -22,6 +22,7 @@ export type HomeVariant = StoreTemplates["home"];
 export const HOME_SECTION_IDS = [
   "hero",
   "categories",
+  "deals",
   "featured",
   "latest",
   "trust",
@@ -37,6 +38,7 @@ export type HomeSectionId = (typeof HOME_SECTION_IDS)[number];
 export const HOME_SECTION_LABELS: Record<HomeSectionId, string> = {
   hero: "Hero",
   categories: "Category row",
+  deals: "Deals",
   featured: "Featured products",
   latest: "New arrivals",
   trust: "Delivery & returns row",
@@ -93,6 +95,22 @@ export function resolveHomeSections(
   return seen.size > 0 ? [...seen] : fallback;
 }
 
-/** Narrow an arbitrary `templates.home` string to a styling family. */
+/**
+ * Narrow an arbitrary `templates.home` string to a known template id.
+ *
+ * **Every new template must be added here.** Omitting one silently resolves it
+ * to Classic, and the admin editor would then offer Classic's blocks for a
+ * look that does not implement them — a failure typecheck cannot see, because
+ * the return type is satisfied either way.
+ */
+const KNOWN_HOME_TEMPLATES = [
+  "classic",
+  "hero-split",
+  "superstore",
+  "minimal",
+] as const;
+
 export const asHomeVariant = (value: string | undefined): HomeVariant =>
-  value === "hero-split" || value === "minimal" ? value : "classic";
+  (KNOWN_HOME_TEMPLATES as readonly string[]).includes(value ?? "")
+    ? (value as HomeVariant)
+    : "classic";
