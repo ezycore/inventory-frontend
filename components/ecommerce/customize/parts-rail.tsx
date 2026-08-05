@@ -22,6 +22,7 @@ import { Switch } from "@/ui/components/switch";
 import { PartBlock, PartGroup } from "@/components/ecommerce/customize/part-group";
 import { partSummary } from "@/components/ecommerce/customize/part-summaries";
 import { HomeSectionsField } from "@/components/ecommerce/customize/home-sections-field";
+import { PagePresetRow } from "@/components/ecommerce/customize/page-preset-row";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
 import { ThemePart } from "@/components/ecommerce/customize/parts/theme-part";
@@ -162,6 +163,7 @@ export function PartsRail({
               <CollectionsPart
                 draft={draft}
                 patchTemplate={patchTemplate}
+                applyPagePreset={api.applyPagePreset}
                 onManageCollections={onManageCollections}
               />
             ) : part.id === "footer" ? (
@@ -199,6 +201,16 @@ export function PartsRail({
               // which blocks there are. The look styles every section; the list
               // decides what a shopper actually scrolls past.
               <>
+                <PartBlock
+                  label="Start from"
+                  hint="Sets the layout and the section list together — then change anything below."
+                >
+                  <PagePresetRow
+                    pageKey="home"
+                    draft={draft}
+                    onApply={api.applyPagePreset}
+                  />
+                </PartBlock>
                 <PartBlock label="Layout">
                   <TemplatePicker
                     templateKey="home"

@@ -5,6 +5,7 @@ import { Pencil } from "lucide-react";
 import { Button } from "@/ui/components/button";
 import { PartBlock, PartHint } from "@/components/ecommerce/customize/part-group";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
+import { PagePresetRow } from "@/components/ecommerce/customize/page-preset-row";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 
 /**
@@ -16,10 +17,11 @@ import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-cus
 export function CollectionsPart({
   draft,
   patchTemplate,
+  applyPagePreset,
   onManageCollections,
 }: {
   onManageCollections: () => void;
-} & Pick<CustomizeDraftApi, "draft" | "patchTemplate">) {
+} & Pick<CustomizeDraftApi, "draft" | "patchTemplate" | "applyPagePreset">) {
   const listed = draft.collections.filter((c) => c.isListed);
 
   return (
@@ -66,6 +68,17 @@ export function CollectionsPart({
         >
           <Pencil className="mr-1.5 h-3.5 w-3.5" /> Rename, reorder or hide
         </Button>
+      </PartBlock>
+
+      <PartBlock
+        label="Start from"
+        hint="Sets the grid and the loading style together — then change either below."
+      >
+        <PagePresetRow
+          pageKey="collection"
+          draft={draft}
+          onApply={applyPagePreset}
+        />
       </PartBlock>
 
       <PartBlock label="Products per row">

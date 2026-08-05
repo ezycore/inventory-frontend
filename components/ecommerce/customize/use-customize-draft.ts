@@ -13,6 +13,7 @@ import {
   getStoreTheme,
   type ThemeApplyScope,
 } from "@/lib/storefront-themes";
+import type { PagePreset } from "@/lib/storefront-page-presets";
 import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import type {
   Image,
@@ -229,6 +230,8 @@ export interface CustomizeDraftApi {
   patchContentPages: (p: Partial<FooterContentPagesDraft>) => void;
   /** Stamp a ready-made theme's colours and/or layout across the whole draft. */
   applyTheme: (id: string, scope: ThemeApplyScope) => void;
+  /** Stamp one page's ready-made layout, leaving the rest of the store alone. */
+  applyPagePreset: (preset: PagePreset) => void;
   /** Parts whose values differ from what the server last confirmed. */
   dirtyParts: PartId[];
   isDirty: boolean;
@@ -321,6 +324,21 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     }));
   }, []);
 
+  /**
+   * Apply one page's preset. Deliberately does **not** clear `appliedThemeId`:
+   * restyling a single page is drift from the theme, not abandonment of it, and
+   * the drift count already reports that honestly.
+   */
+  const applyPagePreset = useCallback((preset: PagePreset) => {
+    setDraft((d) => ({
+      ...d,
+      templates: { ...d.templates, ...preset.templates },
+      ...(preset.homepageSections && {
+        homepageSections: [...preset.homepageSections],
+      }),
+    }));
+  }, []);
+
   const discard = useCallback(() => setDraft(baseline), [baseline]);
 
   // The page owns real unsaved work and there is no route-level guard in the
@@ -386,6 +404,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     patchAnnouncement,
     patchContentPages,
     applyTheme,
+    applyPagePreset,
     dirtyParts,
     isDirty,
     discard,

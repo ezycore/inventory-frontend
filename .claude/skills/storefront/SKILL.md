@@ -490,6 +490,21 @@ resolved **per request from the host**, never baked.
 
 ## Work log (what was built, newest first — as of 2026-08-05)
 
+- **Per-page presets ("Start from")** (2026-08-05): `lib/storefront-page-presets.ts` + the
+  `PagePresetRow` shown above the pickers in the Home and Collections parts. The middle rung between
+  a whole-store theme and a single dropdown, for a merchant who wants one page to look different
+  without touching the rest.
+  - **Only two pages have one**, and this is a deliberate ceiling, not an oversight: Home bundles
+    `home` + the section order, Collection bundles `collection` + `pagination`. **The product page and
+    checkout are a single setting each, so their existing picker already IS their page template** —
+    wrapping one dropdown in a "preset" would be ceremony. Add a page to `PAGE_PRESETS` only when it
+    gains a second setting to carry.
+  - The pickers stay underneath. A preset is a shortcut past them, never a replacement, and nudging
+    one setting afterwards simply un-highlights the preset — `isPagePresetActive` demands an exact
+    match on every key the preset owns, because the highlight means "this is what you have".
+  - `applyPagePreset` deliberately does **not** clear `appliedThemeId`: restyling one page is drift
+    from the theme, not abandonment of it, and `themeDrift()` already reports that.
+
 - **Ready-made whole-store themes** (2026-08-05): `lib/storefront-themes.ts` holds four manifests
   (Classic Shop / Editorial / Bold Market / Boutique) — colours + `templates.*` + a homepage section
   order. Customize's first part, **Theme**, applies one in a click.
