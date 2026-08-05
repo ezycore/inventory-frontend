@@ -60,6 +60,30 @@ export const HOME_TEMPLATE_META: HomeTemplateMeta[] = [
     design: { font: "sans", scale: "compact", density: "dense", radius: "sharp" },
   },
   {
+    id: "lookbook",
+    label: "Lookbook",
+    description: "Full-bleed opening image, collection panels, large quiet product tiles",
+    // No `deals` and no `promo`: a shop selling on how things look does not
+    // lead with a discount rail, and neither block has an editorial treatment.
+    available: ["hero", "categories", "featured", "latest", "trust"],
+    defaultOrder: ["hero", "categories", "featured", "latest", "trust"],
+    // Serif at a large scale with air around everything and near-square
+    // corners — the vocabulary of a printed lookbook rather than a catalogue.
+    design: { font: "serif", scale: "generous", density: "airy", radius: "sharp" },
+  },
+  {
+    id: "grocery",
+    label: "Grocery",
+    description: "Slim promo bar, departments first, compact shelves",
+    available: ["hero", "categories", "deals", "featured", "latest", "trust"],
+    // Departments before product: these shoppers know what they came for.
+    defaultOrder: ["hero", "categories", "deals", "featured", "trust", "latest"],
+    // Familiar sans, small type, tight grid, friendly corners. Speed over
+    // beauty — every decorative pixel is a row of shopping the customer has
+    // to scroll past on their way to the same six things they buy weekly.
+    design: { font: "sans", scale: "compact", density: "dense", radius: "soft" },
+  },
+  {
     id: "minimal",
     label: "Minimal",
     description: "Centered manifesto, quiet product grid",

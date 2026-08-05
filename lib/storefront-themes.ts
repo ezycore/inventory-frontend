@@ -102,16 +102,17 @@ export const STORE_THEMES: StoreThemeManifest[] = [
       footer: "rich",
       productCard: "bold",
       cardActions: "buy-first",
-      home: "hero-split",
+      home: "superstore",
       collection: "grid-4",
       pagination: "infinite",
       product: "sticky-bar",
       checkout: "multi-step",
     },
-    homepageSections: ["hero", "trust", "featured", "promo", "latest"],
-    // Geometric face, big type, tight grid, pill-soft corners — five products
-    // per row on desktop instead of four, which is the marketplace feel.
-    design: { font: "grotesk", scale: "generous", density: "dense", radius: "round" },
+    homepageSections: ["hero", "trust", "deals", "categories", "featured", "latest"],
+    // Familiar face, small type, tight grid, near-square corners — five
+    // products per row on desktop instead of four. Utility over character:
+    // this theme is judged on breadth and price, so styling yields to product.
+    design: { font: "sans", scale: "compact", density: "dense", radius: "sharp" },
   },
   {
     id: "boutique",
@@ -125,15 +126,17 @@ export const STORE_THEMES: StoreThemeManifest[] = [
       footer: "rich",
       productCard: "standard",
       cardActions: "add",
-      home: "minimal",
+      home: "lookbook",
       collection: "sidebar",
       pagination: "pages",
       product: "gallery-left",
       checkout: "single-page",
     },
-    homepageSections: ["hero", "categories", "featured", "trust"],
-    // Serif, but restrained — three products per row and generous padding.
-    design: { font: "serif", scale: "normal", density: "airy", radius: "soft" },
+    homepageSections: ["hero", "categories", "featured", "latest", "trust"],
+    // Serif at a large scale, air around everything, square corners — paired
+    // with the Lookbook home page, whose full-bleed opening image needs the
+    // rest of the shop to stay quiet around it.
+    design: { font: "serif", scale: "generous", density: "airy", radius: "sharp" },
   },
 ];
 

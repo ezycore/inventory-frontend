@@ -28,6 +28,19 @@ import {
   SuperstoreLatest,
   TrustStrip,
 } from "@/components/storefront/home/sections/superstore-blocks";
+import {
+  BoutiqueAssurance,
+  BoutiqueFeatured,
+  BoutiqueLatest,
+  CollectionPanels,
+  LookbookHero,
+} from "@/components/storefront/home/sections/boutique-blocks";
+import {
+  DepartmentShelf,
+  GroceryFeatured,
+  GroceryLatest,
+  PromoBar,
+} from "@/components/storefront/home/sections/grocery-blocks";
 import { LatestSection } from "@/components/storefront/home/sections/latest-section";
 import { TrustSection } from "@/components/storefront/home/sections/trust-section";
 import { PromoSection } from "@/components/storefront/home/sections/promo-section";
@@ -71,6 +84,24 @@ const SECTIONS: Record<string, SectionMap> = {
     categories: DepartmentGrid,
     featured: FeaturedGrid,
     latest: SuperstoreLatest,
+  },
+  lookbook: {
+    hero: LookbookHero,
+    categories: CollectionPanels,
+    featured: BoutiqueFeatured,
+    latest: BoutiqueLatest,
+    trust: BoutiqueAssurance,
+  },
+  grocery: {
+    hero: PromoBar,
+    categories: DepartmentShelf,
+    // Deliberately shared with Superstore: a grocery savings row and a
+    // retailer's are the same thing, and a second copy would be two files to
+    // keep in step for no visible difference.
+    deals: DealsRail,
+    featured: GroceryFeatured,
+    latest: GroceryLatest,
+    trust: TrustStrip,
   },
   minimal: {
     hero: ManifestoHero,

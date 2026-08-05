@@ -25,6 +25,8 @@ const HOME = {
   classic: "classic",
   "hero-split": "hero-split",
   superstore: "superstore",
+  lookbook: "lookbook",
+  grocery: "grocery",
   minimal: "minimal",
 } as const;
 const COLLECTION = { "grid-3": "grid3", "grid-4": "grid4", sidebar: "sidebar" } as const;

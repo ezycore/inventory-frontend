@@ -107,6 +107,8 @@ const KNOWN_HOME_TEMPLATES = [
   "classic",
   "hero-split",
   "superstore",
+  "lookbook",
+  "grocery",
   "minimal",
 ] as const;
 

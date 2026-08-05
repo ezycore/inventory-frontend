@@ -490,6 +490,31 @@ resolved **per request from the host**, never baked.
 
 ## Work log (what was built, newest first — as of 2026-08-06)
 
+- **Three segment home templates: Superstore, Lookbook, Grocery** (2026-08-06): the first genuinely
+  new designs, rather than new bundles of the existing three looks.
+  - **A template is a set of blocks + an order + a vocabulary.** Blocks live in
+    `home/sections/*-blocks.tsx`, the component map in `templates/registry.tsx`, and the data half
+    (ids, labels, `available`, `defaultOrder`, `design`) in `lib/storefront-home-templates.ts`.
+  - **Each was designed from one claim about its shopper**, and every choice follows from it.
+    *Superstore* — they arrive knowing their department and compare on price, so the promo shares its
+    row with a shortcut panel, deals get their own rail, reassurance is one thin band.
+    *Lookbook* — they are browsing for something they did not know they wanted, so the opening image
+    is full-bleed, products are large and few, and there are **no Add-to-cart buttons on the home
+    page** (buttons on every tile turn a lookbook back into a catalogue). *Grocery* — they are
+    refilling a list, so departments come before product and the promo is a slim bar, because a 400px
+    hero on a grocery home page is 400px of not-shopping.
+  - **Grocery deliberately reuses Superstore's `DealsRail` and `TrustStrip`.** A grocery savings row
+    and a retailer's are the same thing; a second copy would be two files to keep in step for no
+    visible difference. Share when the block genuinely is the same, not to save typing.
+  - **`asHomeVariant` validates against a list of known ids.** Adding a template without adding it
+    there silently resolves it to Classic, and the editor then offers blocks the look cannot draw —
+    typecheck cannot see it, because the return type is satisfied either way.
+  - **Watch for name collisions across tiers.** The new fashion layout was called "Boutique" until it
+    collided with the *Boutique theme* — two different controls with one name in the same editor. It
+    is "Lookbook" now. Themes and home templates are separate axes and both are merchant-visible.
+  - Themes now point at the matching layout (Bold Market → Superstore, Boutique → Lookbook) so the
+    two tiers agree instead of a "premium" theme rendering the Minimal home page.
+
 - **Design tokens: a theme can change how the shop LOOKS, not just what renders** (2026-08-06):
   until this, a theme could only pick which pre-built block rendered plus two colours — so two shops
   on different themes shared one typeface, one heading scale, one spacing rhythm and one corner
