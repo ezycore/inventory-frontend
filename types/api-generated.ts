@@ -9357,6 +9357,16 @@ export interface components {
                 type: string;
                 count: number;
             }[];
+            byChannel: {
+                channel: string;
+                count: number;
+                revenue: number;
+                deliveredCount: number;
+                failedCount: number;
+                successRatio: number;
+                /** @enum {string} */
+                band: "good" | "fair" | "poor" | "unknown";
+            }[];
         };
         ShopperDetail: {
             customer: {
@@ -9522,6 +9532,16 @@ export interface components {
                 image?: string;
                 availableQuantity: number;
             }[];
+            channelMix: {
+                windowDays: number;
+                total: number;
+                rows: {
+                    channel: string;
+                    count: number;
+                    revenue: number;
+                    share: number;
+                }[];
+            };
         };
         StorefrontOrder: {
             _id: string;
@@ -31222,6 +31242,7 @@ export interface operations {
                 courier?: string;
                 fulfillmentType?: "delivery" | "pickup";
                 paymentStatus?: "pending" | "paid" | "refunded";
+                channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */

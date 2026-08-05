@@ -27,6 +27,8 @@ export interface AdminOrderListParams {
   courier?: string;
   fulfillmentType?: string;
   paymentStatus?: string;
+  /** Where the order came from — see `AdminOrderChannel`. */
+  channel?: string;
   page?: number;
   limit?: number;
 }
@@ -119,6 +121,7 @@ export const storefrontOrdersApi = {
     if (params.fulfillmentType)
       qs.append("fulfillmentType", params.fulfillmentType);
     if (params.paymentStatus) qs.append("paymentStatus", params.paymentStatus);
+    if (params.channel) qs.append("channel", params.channel);
     if (params.page) qs.append("page", String(params.page));
     if (params.limit) qs.append("limit", String(params.limit));
     const s = qs.toString();

@@ -50,6 +50,17 @@ const FULFILLMENT_OPTIONS = [
   { label: "Delivery", value: "delivery" },
   { label: "Pickup", value: "pickup" },
 ];
+/** Mirrors the backend enum; "all" is the clear-filter sentinel like the others. */
+const CHANNEL_OPTIONS = [
+  { label: "All channels", value: "all" },
+  { label: "Website", value: "website" },
+  { label: "Messenger", value: "messenger" },
+  { label: "WhatsApp", value: "whatsapp" },
+  { label: "Instagram", value: "instagram" },
+  { label: "Post comment", value: "comment" },
+  { label: "Phone call", value: "phone" },
+  { label: "Other", value: "manual" },
+];
 
 export default function EcommerceOrdersPage() {
   return (
@@ -75,6 +86,7 @@ function OrdersList() {
   const [status, setStatus] = useState(initialStatus);
   const [courier, setCourier] = useState("all");
   const [fulfillment, setFulfillment] = useState("all");
+  const [channel, setChannel] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -125,6 +137,11 @@ function OrdersList() {
     setPage(1);
     setSelected(new Set());
   };
+  const changeChannel = (v: string) => {
+    setChannel(v);
+    setPage(1);
+    setSelected(new Set());
+  };
   const changeLimit = (n: number) => {
     setLimit(n);
     setPage(1);
@@ -140,6 +157,7 @@ function OrdersList() {
     search: search || undefined,
     courier: courier === "all" ? undefined : courier,
     fulfillmentType: fulfillment === "all" ? undefined : fulfillment,
+    channel: channel === "all" ? undefined : channel,
     page,
     limit,
   });
@@ -263,6 +281,12 @@ function OrdersList() {
             value={fulfillment}
             onValueChange={changeFulfillment}
             options={FULFILLMENT_OPTIONS}
+            className="h-9 w-40"
+          />
+          <SimpleSelect
+            value={channel}
+            onValueChange={changeChannel}
+            options={CHANNEL_OPTIONS}
             className="h-9 w-40"
           />
           <ListSearchInput

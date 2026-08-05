@@ -18,6 +18,7 @@ import { StoreStatusCard } from "@/components/ecommerce/store-status-card";
 import { storefrontUrl } from "@/lib/storefront-url";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
+import { ChannelMixCard } from "@/components/ecommerce/dashboard/channel-mix-card";
 import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
 
@@ -128,6 +129,14 @@ export default function EcommerceDashboardPage() {
           href="/ecommerce/carts"
         />
       </div>
+
+      {/* The number this whole omnichannel effort is measured by — and the way
+          into the orders list filtered by each source. */}
+      <ChannelMixCard
+        mix={data?.channelMix}
+        currency={currency}
+        isLoading={isLoading}
+      />
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Needs attention */}
