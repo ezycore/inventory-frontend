@@ -9,6 +9,8 @@ import type {
   StoreCampaign,
   StoreHeroBanner,
   StoreHeroSlide,
+  StorePromoTile,
+  StoreTrustBadge,
 } from "@/lib/storefront-client";
 import type { HomeVariant } from "@/lib/storefront-home-sections";
 import type { Dict } from "@/lib/storefront-i18n";
@@ -44,6 +46,14 @@ export interface TplProps {
   heroSlides?: StoreHeroSlide[];
   /** Owner overrides for the static banner hero's copy; unset → template copy. */
   heroBanner?: StoreHeroBanner;
+  /**
+   * SAVED owner copy for the trust row and promo tiles. Sections resolve the
+   * live draft against these themselves (same as the Rich footer does), rather
+   * than having it merged upstream — the preview store is the one source for
+   * "what is being edited right now".
+   */
+  trustBadges?: StoreTrustBadge[];
+  promoTiles?: StorePromoTile[];
 }
 
 /**

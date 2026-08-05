@@ -82,7 +82,20 @@ const trimContentPages = (c: FooterContentPagesDraft) => ({
 const trimBadges = (badges: CustomizeDraft["badges"]) =>
   // All three slots are kept (empty = the storefront's default copy) so their
   // positions survive a reload.
-  badges.map((b) => ({ text: b.text.trim(), icon: b.icon }));
+  badges.map((b) => ({
+    text: b.text.trim(),
+    subtitle: b.subtitle?.trim() || undefined,
+    icon: b.icon,
+  }));
+
+// Both slots kept for the same reason as the badges — an empty field means
+// "use the built-in copy for this tile", not "drop the tile".
+const trimPromoTiles = (tiles: CustomizeDraft["promoTiles"]) =>
+  tiles.map((t) => ({
+    label: t.label?.trim() || undefined,
+    title: t.title?.trim() || undefined,
+    link: t.link?.trim() || undefined,
+  }));
 
 /** Listed collections only, display name winning, draft order preserved —
  *  mirrors the public `GET /:slug/categories` contract exactly. */
@@ -139,6 +152,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       appliedThemeId: draft.appliedThemeId || undefined,
     },
     trustBadges: trimBadges(draft.badges),
+    promoTiles: trimPromoTiles(draft.promoTiles),
     heroBanner: cleanHeroBanner(draft.heroBanner),
     heroSlides: trimSlides(draft.heroSlides),
     templates: draft.templates,
@@ -190,6 +204,7 @@ export function toPreviewPayload(
         : draft.templates.headerMenu) as HeaderMenuSource,
     },
     trustBadges: trimBadges(draft.badges),
+    promoTiles: trimPromoTiles(draft.promoTiles),
     heroSlides: trimSlides(draft.heroSlides),
     heroBanner: cleanHeroBanner(draft.heroBanner),
     nav: toNav(draft),

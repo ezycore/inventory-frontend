@@ -94,6 +94,10 @@ export function StoreHome({
     banner,
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
+    // Saved copy only — the trust and promo sections resolve their own live
+    // draft against it, the way the Rich footer does.
+    trustBadges: store.trustBadges,
+    promoTiles: store.promoTiles,
     variant,
   };
 

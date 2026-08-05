@@ -21,6 +21,7 @@ import type {
   StorefrontHeroBanner,
   StorefrontHeroSlide,
   StorefrontMenuItem,
+  StorefrontPromoTile,
   StorefrontSettings,
   StorefrontTrustBadge,
 } from "@/types";
@@ -93,6 +94,8 @@ export interface CustomizeDraft {
   /** Provenance of the last applied ready-made theme; "" once none applies. */
   appliedThemeId: string;
   badges: StorefrontTrustBadge[];
+  /** Two fixed promo-tile slots; blank fields keep the built-in copy. */
+  promoTiles: StorefrontPromoTile[];
   heroSlides: StorefrontHeroSlide[];
   heroBanner: StorefrontHeroBanner;
   navHeader: StorefrontMenuItem[];
@@ -132,7 +135,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
-  home: (d) => [d.templates.home, d.homepageSections],
+  home: (d) => [d.templates.home, d.homepageSections, d.promoTiles],
   cards: (d) => [d.templates.productCard, d.templates.cardActions],
   collections: (d) => [d.collections, d.templates.collection, d.templates.pagination],
   product: (d) => d.templates.product,
@@ -191,6 +194,12 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
     badges: DEFAULT_BADGES.map((d, i) => ({
       text: settings.trustBadges?.[i]?.text ?? "",
       icon: settings.trustBadges?.[i]?.icon ?? d.icon,
+    })),
+    // Two fixed slots seeded by index, like the badges above.
+    promoTiles: [0, 1].map((i) => ({
+      label: settings.promoTiles?.[i]?.label ?? "",
+      title: settings.promoTiles?.[i]?.title ?? "",
+      link: settings.promoTiles?.[i]?.link ?? "",
     })),
     heroSlides: settings.heroSlides ?? [],
     heroBanner: settings.heroBanner ?? {},

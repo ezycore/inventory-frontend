@@ -10398,7 +10398,13 @@ export interface components {
             };
             trustBadges?: {
                 text?: string;
+                subtitle?: string;
                 icon?: string;
+            }[];
+            promoTiles?: {
+                label?: string;
+                title?: string;
+                link?: string;
             }[];
             heroSlides?: {
                 image?: {
@@ -10639,6 +10645,7 @@ export interface components {
             shippingZones?: unknown;
             templates?: unknown;
             trustBadges?: unknown;
+            promoTiles?: unknown;
             nav?: unknown;
             checkout?: unknown;
             bankInstructions?: unknown;
@@ -15961,7 +15968,13 @@ export interface operations {
                     };
                     trustBadges?: {
                         text: string;
+                        subtitle?: string;
                         icon?: string;
+                    }[];
+                    promoTiles?: {
+                        label?: string;
+                        title?: string;
+                        link?: string;
                     }[];
                     heroSlides?: {
                         image?: {

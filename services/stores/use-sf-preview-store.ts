@@ -48,8 +48,10 @@ interface SfPreviewState {
   product: string | null;
   /** Raw checkout layout (single-page | multi-step) the editor is drafting. */
   checkout: string | null;
-  /** Draft footer trust badges (Rich footer strip). */
-  badges: { text: string; icon?: string }[] | null;
+  /** Draft trust promises — Rich footer strip and the home trust row. */
+  badges: { text: string; subtitle?: string; icon?: string }[] | null;
+  /** Draft home promo tiles (hero-split layout). */
+  promoTiles: { label?: string; title?: string; link?: string }[] | null;
   /** Draft home hero carousel slides. */
   heroSlides: StoreHeroSlide[] | null;
   /** Draft home hero source ("slides" | "banner") the editor is drafting. */
@@ -101,7 +103,8 @@ interface SfPreviewState {
     collection?: string;
     product?: string;
     checkout?: string;
-    badges?: { text: string; icon?: string }[];
+    badges?: { text: string; subtitle?: string; icon?: string }[];
+    promoTiles?: { label?: string; title?: string; link?: string }[];
     heroSlides?: StoreHeroSlide[];
     heroSrc?: string;
     heroBanner?: StoreHeroBanner;
@@ -132,6 +135,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   product: null,
   checkout: null,
   badges: null,
+  promoTiles: null,
   heroSlides: null,
   heroSrc: null,
   heroBanner: null,
@@ -163,6 +167,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       product: patch.product !== undefined ? patch.product : s.product,
       checkout: patch.checkout !== undefined ? patch.checkout : s.checkout,
       badges: patch.badges !== undefined ? patch.badges : s.badges,
+      promoTiles:
+        patch.promoTiles !== undefined ? patch.promoTiles : s.promoTiles,
       heroSlides:
         patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
       heroSrc: patch.heroSrc !== undefined ? patch.heroSrc : s.heroSrc,

@@ -34,14 +34,25 @@ const BADGE_PLACEHOLDERS = [
   "Cash on delivery",
 ];
 
+const SUBTITLE_PLACEHOLDERS = [
+  "Inside Dhaka in 24 hours",
+  "7-day easy returns",
+  "Pay when it arrives",
+];
+
 /** One badge row: icon picker in a compact popover + the badge text. */
 function BadgeRow({
   badge,
   placeholder,
+  subtitlePlaceholder,
+  showSubtitle,
   onChange,
 }: {
   badge: StorefrontTrustBadge;
   placeholder: string;
+  subtitlePlaceholder: string;
+  /** The second line only renders on the home row — hidden when it can't show. */
+  showSubtitle: boolean;
   onChange: (patch: Partial<StorefrontTrustBadge>) => void;
 }) {
   return (
@@ -77,24 +88,43 @@ function BadgeRow({
           </div>
         </PopoverContent>
       </Popover>
-      <Input
-        value={badge.text}
-        onChange={(e) => onChange({ text: e.target.value })}
-        placeholder={placeholder}
-        maxLength={40}
-        className="h-9"
-      />
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <Input
+          value={badge.text}
+          onChange={(e) => onChange({ text: e.target.value })}
+          placeholder={placeholder}
+          maxLength={40}
+          className="h-9"
+        />
+        {showSubtitle && (
+          <Input
+            value={badge.subtitle ?? ""}
+            onChange={(e) => onChange({ subtitle: e.target.value })}
+            placeholder={subtitlePlaceholder}
+            maxLength={60}
+            className="h-8 text-[13px]"
+          />
+        )}
+      </div>
     </div>
   );
 }
 
-/** The three trust badges the Rich footer shows above its link columns. */
+/**
+ * The three trust promises, shown by the Rich footer (one line each) and the
+ * home delivery/returns row (which adds the second line). One editor for both:
+ * they are the same promises, and a merchant asked to write them twice would
+ * rightly wonder which set the shop uses.
+ */
 export function TrustBadgesField({
   badges,
   setBadge,
+  showSubtitle = false,
 }: {
   badges: StorefrontTrustBadge[];
   setBadge: (i: number, patch: Partial<StorefrontTrustBadge>) => void;
+  /** Show the second line — only the home trust row renders it. */
+  showSubtitle?: boolean;
 }) {
   return (
     <div className="space-y-2">
@@ -103,6 +133,8 @@ export function TrustBadgesField({
           key={i}
           badge={b}
           placeholder={BADGE_PLACEHOLDERS[i] ?? "Badge text"}
+          subtitlePlaceholder={SUBTITLE_PLACEHOLDERS[i] ?? "Second line"}
+          showSubtitle={showSubtitle}
           onChange={(patch) => setBadge(i, patch)}
         />
       ))}

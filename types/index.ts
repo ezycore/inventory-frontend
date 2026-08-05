@@ -254,6 +254,8 @@ export interface StorefrontSettings {
   templates?: StorefrontTemplates;
   customersConfig?: StorefrontCustomersConfig;
   trustBadges?: StorefrontTrustBadge[];
+  /** Home promo tiles (hero-split layout); unset slots → built-in copy. */
+  promoTiles?: StorefrontPromoTile[];
   /** Home hero carousel slides; unset/empty → the static built-in hero. */
   heroSlides?: StorefrontHeroSlide[];
   /** Static banner-hero copy overrides; unset fields → built-in copy. */
@@ -263,7 +265,17 @@ export interface StorefrontSettings {
 /** One owner-editable footer "trust" badge (Rich footer strip). */
 export interface StorefrontTrustBadge {
   text: string;
+  /** Second line — the home trust row shows it; the Rich footer ignores it. */
+  subtitle?: string;
   icon?: string;
+}
+
+/** One home promo tile (hero-split layout); blank fields → built-in copy. */
+export interface StorefrontPromoTile {
+  label?: string;
+  title?: string;
+  /** Store path or full URL; blank → the products collection. */
+  link?: string;
 }
 
 /**

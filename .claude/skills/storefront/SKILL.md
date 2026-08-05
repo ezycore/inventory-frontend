@@ -490,6 +490,27 @@ resolved **per request from the host**, never baked.
 
 ## Work log (what was built, newest first — as of 2026-08-05)
 
+- **Owner copy for the trust row and promo tiles** (2026-08-05): both home sections rendered fixed
+  dictionary text with no owner control — the promo tiles advertised "Eid Sale" and "Tools Clearance"
+  in *every* shop that showed them, i.e. someone else's promotion on your homepage. Themes made this
+  worse (Bold Market and the Campaign preset both put them on the page), so they are editable now.
+  - **`trustBadges` is shared with the Rich footer, not duplicated.** One merchant concept ("your
+    promises"), rendered at whatever size each surface has: the footer shows `text`, the home row adds
+    the new `subtitle`. Asking a merchant to write the same promises twice would raise the obvious
+    question of which set the shop actually uses.
+  - **`promoTiles` is new** (`{ label, title, link }`, two fixed slots), on the settings root beside
+    `trustBadges`. Links go through `HeroCtaLink`, so hero-button rules apply — full URL opens a tab,
+    a path rides `base`, blank means `/products`.
+  - **Fallback is per SLOT, everywhere.** A merchant who fills in one badge or one tile keeps the
+    built-in copy for the rest, instead of getting blank cards. Same rule the Rich footer already used.
+  - **Gating fix that came with it:** the trust-badge editor was shown only when
+    `templates.footer === "rich"`. Now that the home row uses the same badges, that would strand
+    anyone who enabled the row but kept a Columns footer — visible copy with nowhere to write it. It
+    is shown when **either** surface is on, and the subtitle input only when the home row is.
+  - **Behaviour change worth knowing:** a store that had already written footer trust badges will now
+    show that copy in the home trust row too, instead of the dictionary text. That is the point, but
+    it is a visible change to an existing shop.
+
 - **Per-page presets ("Start from")** (2026-08-05): `lib/storefront-page-presets.ts` + the
   `PagePresetRow` shown above the pickers in the Home and Collections parts. The middle rung between
   a whole-store theme and a single dropdown, for a merchant who wants one page to look different

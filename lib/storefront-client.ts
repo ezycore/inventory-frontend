@@ -27,6 +27,28 @@ export interface StoreHeroSlide {
 }
 
 /**
+ * One owner-written trust promise. Shared by the Rich footer, which renders
+ * `text` alone, and the home trust row, which adds `subtitle`. Both fall back
+ * per slot to the storefront's built-in localized copy.
+ */
+export interface StoreTrustBadge {
+  text: string;
+  subtitle?: string;
+  icon?: string;
+}
+
+/**
+ * One of the two promo tiles closing the hero-split home page. Every field
+ * falls back per slot to built-in copy; `link` is a store path or a full URL
+ * (same rules as slide links) and defaults to the products collection.
+ */
+export interface StorePromoTile {
+  label?: string;
+  title?: string;
+  link?: string;
+}
+
+/**
  * Owner overrides for the static banner hero's copy (Classic / Hero Split).
  * Unset fields fall back to the built-in localized copy; button links default
  * to /products. Links are store paths or full URLs (same rules as slide links).
@@ -89,7 +111,10 @@ export interface StorefrontStore {
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
-  trustBadges?: { text: string; icon?: string }[];
+  /** Trust promises: one line in the Rich footer, two in the home trust row. */
+  trustBadges?: StoreTrustBadge[];
+  /** Home promo tiles (hero-split); unset slots → built-in copy. */
+  promoTiles?: StorePromoTile[];
   /** Home hero carousel slides; unset/empty → the static built-in hero. */
   heroSlides?: StoreHeroSlide[];
   /** Static banner-hero copy overrides; unset fields → built-in copy. */

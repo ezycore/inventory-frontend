@@ -14,7 +14,10 @@ import {
   PanelBottom,
   PanelTop,
 } from "lucide-react";
-import { asHomeVariant } from "@/lib/storefront-home-sections";
+import {
+  asHomeVariant,
+  resolveHomeSections,
+} from "@/lib/storefront-home-sections";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
 import { Button } from "@/ui/components/button";
@@ -23,6 +26,7 @@ import { PartBlock, PartGroup } from "@/components/ecommerce/customize/part-grou
 import { partSummary } from "@/components/ecommerce/customize/part-summaries";
 import { HomeSectionsField } from "@/components/ecommerce/customize/home-sections-field";
 import { PagePresetRow } from "@/components/ecommerce/customize/page-preset-row";
+import { PromoTilesField } from "@/components/ecommerce/customize/promo-tiles-field";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
 import { ThemePart } from "@/components/ecommerce/customize/parts/theme-part";
@@ -228,6 +232,28 @@ export function PartsRail({
                     onChange={(homepageSections) => patch({ homepageSections })}
                   />
                 </PartBlock>
+                {/* Only when the tiles actually render — otherwise this is a
+                    form for something the shopper will never see. */}
+                {resolveHomeSections(
+                  draft.homepageSections,
+                  asHomeVariant(draft.templates.home),
+                ).includes("promo") && (
+                  <PartBlock
+                    label="Promo tiles"
+                    hint="The two boxes at the bottom of the home page. Leave a field empty to keep the default wording."
+                  >
+                    <PromoTilesField
+                      tiles={draft.promoTiles}
+                      setTile={(i, p) =>
+                        patch({
+                          promoTiles: draft.promoTiles.map((tile, idx) =>
+                            idx === i ? { ...tile, ...p } : tile,
+                          ),
+                        })
+                      }
+                    />
+                  </PartBlock>
+                )}
               </>
             ) : (
               // product / checkout are a single layout choice each, so the part
