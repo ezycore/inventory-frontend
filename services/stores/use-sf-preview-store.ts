@@ -26,6 +26,12 @@ interface SfPreviewState {
   accent: string | null;
   /** Raw home-template id (classic | hero-split | minimal) the editor is drafting. */
   home: string | null;
+  /**
+   * Draft homepage section order (Customize → Home page). An **empty array is a
+   * real draft** — "every section switched off" — so consumers must use
+   * `?? saved` and never a truthiness check. `null` alone means "not drafted".
+   */
+  homepageSections: string[] | null;
   /** Raw footer-template id (columns | simple | rich) the editor is drafting. */
   footer: string | null;
   /** Raw header-template id (classic | minimal | centered) the editor is drafting. */
@@ -86,6 +92,7 @@ interface SfPreviewState {
     brand?: string;
     accent?: string;
     home?: string;
+    homepageSections?: string[];
     footer?: string;
     header?: string;
     cardStyle?: string;
@@ -115,6 +122,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   brand: null,
   accent: null,
   home: null,
+  homepageSections: null,
   footer: null,
   header: null,
   cardStyle: null,
@@ -141,6 +149,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       brand: patch.brand !== undefined ? patch.brand : s.brand,
       accent: patch.accent !== undefined ? patch.accent : s.accent,
       home: patch.home !== undefined ? patch.home : s.home,
+      homepageSections:
+        patch.homepageSections !== undefined
+          ? patch.homepageSections
+          : s.homepageSections,
       footer: patch.footer !== undefined ? patch.footer : s.footer,
       header: patch.header !== undefined ? patch.header : s.header,
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,

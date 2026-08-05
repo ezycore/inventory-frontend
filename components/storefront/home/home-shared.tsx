@@ -10,6 +10,7 @@ import type {
   StoreHeroBanner,
   StoreHeroSlide,
 } from "@/lib/storefront-client";
+import type { HomeVariant } from "@/lib/storefront-home-sections";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
 import { ProductCard } from "@/components/storefront/product-card";
@@ -21,7 +22,15 @@ export const wrap: CSSProperties = {
   width: "100%",
 };
 
-/** Data every homepage template receives from the `StoreHome` dispatcher. */
+/** Re-exported so section components have one import for their props + look. */
+export type { HomeVariant };
+
+/** What a section component receives: the page data plus its styling family. */
+export interface SectionProps extends TplProps {
+  variant: HomeVariant;
+}
+
+/** Page data every homepage section receives from `StoreHome`. */
 export interface TplProps {
   base: string;
   currency?: string;

@@ -73,6 +73,18 @@ export interface CustomizeDraft {
   footerText: string;
   /** Every `templates.*` id, including `hero` and `headerMenu`. */
   templates: Record<string, string>;
+  /**
+   * Ordered ids of the homepage sections that render.
+   *
+   * `null` is not "empty" — it means **the merchant has never reordered the
+   * homepage**, which is what makes the storefront fall back to the default
+   * order of whichever look they chose. The editor shows that resolved order but
+   * leaves this `null` until they actually move or switch something off, and the
+   * save payload omits the key while it is `null`. Writing the resolved order
+   * eagerly would freeze every store into its current look's list the first time
+   * its owner saved anything at all.
+   */
+  homepageSections: string[] | null;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
   heroBanner: StorefrontHeroBanner;
@@ -108,7 +120,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
-  home: (d) => d.templates.home,
+  home: (d) => [d.templates.home, d.homepageSections],
   cards: (d) => [d.templates.productCard, d.templates.cardActions],
   collections: (d) => [d.collections, d.templates.collection, d.templates.pagination],
   product: (d) => d.templates.product,
@@ -160,6 +172,8 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
     accentColor: t.accentColor ?? presetDefaults.accentColor,
     footerText: t.footerText ?? "",
     templates: seedTemplates(settings),
+    // Deliberately NOT defaulted to the look's order — see the field's doc.
+    homepageSections: t.homepageSections ?? null,
     // Three fixed slots seeded by index — an empty slot keeps its default badge.
     badges: DEFAULT_BADGES.map((d, i) => ({
       text: settings.trustBadges?.[i]?.text ?? "",

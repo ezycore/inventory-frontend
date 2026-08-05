@@ -13,19 +13,26 @@ import {
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { Classic } from "@/components/storefront/home/home-classic";
-import { HeroSplit } from "@/components/storefront/home/home-hero-split";
-import { Minimal } from "@/components/storefront/home/home-minimal";
+import {
+  resolveHomeSections,
+  type HomeVariant,
+} from "@/lib/storefront-home-sections";
+import { HOME_SECTION_COMPONENTS } from "@/components/storefront/home/home-sections";
 
-type TplName = "classic" | "hero-split" | "minimal";
 const HOME_VARIANTS: readonly string[] = ["classic", "hero-split", "minimal"];
 
 /**
- * Storefront homepage — renders one of three admin-selectable templates
- * (Classic / Hero Split / Minimal, in `components/storefront/home/`) from
- * `templates.home`, server-rendered for SEO. Live brand-colour preview is
- * handled globally by the shell (it reads the preview store), so the whole
- * page — not just this content — repaints.
+ * Storefront homepage — an ordered list of sections, server-rendered for SEO.
+ *
+ * Two settings decide what renders. `theme.homepageSections` is the order (and
+ * therefore which sections appear at all); `templates.home` is the styling
+ * family every section renders in — the Classic / Hero Split / Minimal choice,
+ * which used to select one of three whole-page components. A store with no
+ * saved section list falls back to that variant's original order, so an
+ * un-customized shop is unchanged.
+ *
+ * Live brand-colour preview is handled globally by the shell (it reads the
+ * preview store), so the whole page — not just this content — repaints.
  */
 export function StoreHome({
   store,
@@ -51,10 +58,11 @@ export function StoreHome({
   const previewHeroSrc = useSfPreview((s) => s.heroSrc);
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
+  const previewSections = useSfPreview((s) => s.homepageSections);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
-  const tpl = HOME_VARIANTS.includes(previewHome ?? "")
-    ? (previewHome as TplName)
+  const variant: HomeVariant = HOME_VARIANTS.includes(previewHome ?? "")
+    ? (previewHome as HomeVariant)
     : resolved.home;
 
   const banner = previewBanner?.mediumUrl || previewBanner?.url;
@@ -86,9 +94,25 @@ export function StoreHome({
     banner,
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
+    variant,
   };
 
-  if (tpl === "hero-split") return <HeroSplit {...shared} />;
-  if (tpl === "minimal") return <Minimal {...shared} />;
-  return <Classic {...shared} />;
+  // `??`, not `||`: `null` means "the editor has not drafted an order", which is
+  // the only case that should read the saved one. A drafted list is used as-is —
+  // and if it is empty, `resolveHomeSections` lands on the look's default order
+  // rather than rendering a blank shop (the editor also refuses to switch the
+  // last section off, so empty should not arrive here in the first place).
+  const sections = resolveHomeSections(
+    previewSections ?? store.theme?.homepageSections,
+    variant,
+  );
+
+  return (
+    <div>
+      {sections.map((id) => {
+        const Section = HOME_SECTION_COMPONENTS[id];
+        return <Section key={id} {...shared} />;
+      })}
+    </div>
+  );
 }

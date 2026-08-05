@@ -1,6 +1,11 @@
 // coding-standard: maintained
 
 import { getPreset } from "@/lib/storefront-theme";
+import {
+  asHomeVariant,
+  resolveHomeSections,
+  HOME_SECTION_IDS,
+} from "@/lib/storefront-home-sections";
 import type { StorefrontSettings } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
 import type {
@@ -66,8 +71,15 @@ export function partSummary(
         : `Slides carousel · ${count(saveable, "slide")}`;
     }
     case "home": {
-      const option = TEMPLATE_OPTIONS.home.find((o) => o.value === draft.templates.home);
-      return option ? `${option.label} — ${option.description}` : draft.templates.home;
+      const shown = resolveHomeSections(
+        draft.homepageSections,
+        asHomeVariant(draft.templates.home),
+      ).length;
+      const sections =
+        shown === HOME_SECTION_IDS.length
+          ? `all ${shown} sections`
+          : `${shown} of ${HOME_SECTION_IDS.length} sections`;
+      return `${labelOf("home", draft.templates.home)} · ${sections}`;
     }
     case "cards":
       return `${labelOf("productCard", draft.templates.productCard)} · ${labelOf(

@@ -9,6 +9,10 @@ import type {
   StorefrontNav,
   UpdateStorefrontSettingsDto,
 } from "@/types";
+import {
+  asHomeVariant,
+  resolveHomeSections,
+} from "@/lib/storefront-home-sections";
 import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fields";
 import type {
   CustomizeDraft,
@@ -125,6 +129,13 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
       footerText: draft.footerText.trim() || undefined,
+      // The backend PATCH **replaces the whole `theme` subdocument**
+      // (`Object.assign(settings, dto)`), so a key omitted here is a key deleted
+      // from the store — saving the footer text would wipe a section order the
+      // merchant set earlier. `undefined` is still correct for a store that has
+      // never reordered: it keeps the key absent, which is what makes the
+      // storefront use the look's default order.
+      homepageSections: draft.homepageSections ?? undefined,
     },
     trustBadges: trimBadges(draft.badges),
     heroBanner: cleanHeroBanner(draft.heroBanner),
@@ -153,6 +164,13 @@ export function toPreviewPayload(
 ) {
   return {
     theme: { brandColor: draft.brandColor, accentColor: draft.accentColor },
+    // The RESOLVED order, never the raw draft: `null` (never reordered) has to
+    // reach the preview as the look's real list, and sending `undefined` would
+    // leave the preview store holding whatever was drafted before a Discard.
+    homepageSections: resolveHomeSections(
+      draft.homepageSections,
+      asHomeVariant(draft.templates.home),
+    ),
     templates: {
       home: draft.templates.home,
       footer: draft.templates.footer,

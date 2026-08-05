@@ -488,7 +488,46 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-04)
+## Work log (what was built, newest first — as of 2026-08-05)
+
+- **Homepage is an ordered section list, not three page components** (2026-08-05): `theme.homepageSections`
+  had been modelled, validated, seeded and served since E6a while **nothing read it** — the page came
+  from one of three whole-page components picked by `templates.home`. Those two designs are now
+  reconciled: `templates.home` picks the **styling family** (classic / hero-split / minimal) and
+  `homepageSections` picks **which sections render, in what order**.
+  - Sections live in `components/storefront/home/sections/*` — `hero` (card / split / manifesto),
+    `categories` (chips / text strip), `featured` (full / compact / minimal's bespoke six-up),
+    `latest`, `trust`, `promo`. Markup was **moved, not rewritten**; all three looks are unchanged.
+  - `home-sections.ts` owns `HOME_SECTION_IDS`, the id→component map, `DEFAULT_SECTION_ORDER` per
+    look, and `resolveHomeSections()`. `home-classic/-hero-split/-minimal.tsx` are **deleted**.
+  - **The trap, if you touch seeding:** an unset `homepageSections` is meaningful — it means "the
+    owner has not reordered the homepage" and resolves to the look's own order. The backend used to
+    seed a fixed classic-shaped list, which would have silently restyled every hero-split and minimal
+    store the moment the field went live; seeding it was removed. Don't put it back.
+  - Legacy `banner`/`products` ids alias to `hero`/`latest` in `resolveHomeSections`.
+  - The **pure** half (ids, labels, per-look orders, `resolveHomeSections`, `asHomeVariant`) lives in
+    `lib/storefront-home-sections.ts`; `home-sections.ts` keeps only the id→component map. They are
+    split so Customize can resolve an order without pulling six storefront components into the admin
+    bundle.
+
+- **Customize → Home page: reorder + hide sections** (2026-08-05): the editor half of the above.
+  `HomeSectionsField` (`customize/home-sections-field.tsx`) lists the order with up/down arrows and a
+  switch per section; hidden ones fall into a "Hidden" group. Streams live via the new
+  `useSfPreview.homepageSections`.
+  - **`draft.homepageSections` is `string[] | null`, and `null` is load-bearing** — it means "never
+    reordered", which is what keeps a store on its look's default order. The field renders the
+    *resolved* order while the draft stays `null`, and only a real edit writes an array. Seeding the
+    resolved order into the draft would freeze every store into its current look's list the first time
+    its owner saved anything.
+  - **The trap this exposed:** `updateSettings` does `Object.assign(settings, dto)`, so a PATCH
+    **replaces the whole `theme` subdocument**. `toSettingsPayload` sent `theme` without
+    `homepageSections`, meaning any save — changing footer text, a colour — would have deleted the
+    merchant's section order. The payload now always carries the key. **If you add a field to
+    `theme`, add it to `toSettingsPayload` in the same commit or saving anything erases it.**
+  - The preview payload sends the **resolved** list, never the raw draft: `undefined` would leave the
+    preview store holding a discarded order after a Discard.
+  - The editor refuses to switch off the last remaining section (an empty homepage is a broken page,
+    not a layout choice); `resolveHomeSections` treats an empty list as the look's default anyway.
 
 - **Customize re-cut into store parts, one Save** (2026-08-04): the three tabs were named after the
   three settings objects the backend stores (`theme` / `templates` / `nav`), so one visible thing was

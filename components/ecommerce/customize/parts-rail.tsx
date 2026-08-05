@@ -13,12 +13,14 @@ import {
   PanelBottom,
   PanelTop,
 } from "lucide-react";
+import { asHomeVariant } from "@/lib/storefront-home-sections";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
 import { Button } from "@/ui/components/button";
 import { Switch } from "@/ui/components/switch";
 import { PartBlock, PartGroup } from "@/components/ecommerce/customize/part-group";
 import { partSummary } from "@/components/ecommerce/customize/part-summaries";
+import { HomeSectionsField } from "@/components/ecommerce/customize/home-sections-field";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
 import { CollectionsPart } from "@/components/ecommerce/customize/parts/collections-part";
@@ -184,9 +186,32 @@ export function PartsRail({
                   />
                 </PartBlock>
               </>
+            ) : part.id === "home" ? (
+              // Two questions again: which look the blocks are drawn in, and
+              // which blocks there are. The look styles every section; the list
+              // decides what a shopper actually scrolls past.
+              <>
+                <PartBlock label="Layout">
+                  <TemplatePicker
+                    templateKey="home"
+                    value={draft.templates.home}
+                    onChange={(v) => patchTemplate("home", v)}
+                  />
+                </PartBlock>
+                <PartBlock
+                  label="Sections"
+                  hint="Top to bottom, as shoppers scroll. Switching the layout above changes how each one looks, not which ones show."
+                >
+                  <HomeSectionsField
+                    value={draft.homepageSections}
+                    variant={asHomeVariant(draft.templates.home)}
+                    onChange={(homepageSections) => patch({ homepageSections })}
+                  />
+                </PartBlock>
+              </>
             ) : (
-              // home / product / checkout are a single layout choice each, so
-              // the part IS its picker and its id IS the template key.
+              // product / checkout are a single layout choice each, so the part
+              // IS its picker and its id IS the template key.
               <TemplatePicker
                 templateKey={part.id}
                 value={draft.templates[part.id]}

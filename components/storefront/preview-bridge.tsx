@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useEffect } from "react";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
@@ -28,6 +29,9 @@ export function StorePreviewBridge() {
         brand: p.theme?.brandColor,
         accent: p.theme?.accentColor,
         home: p.templates?.home,
+        // Top-level, not under `templates` — the order lives on `theme` in the
+        // saved shape, and the editor always sends it resolved.
+        homepageSections: p.homepageSections,
         footer: p.templates?.footer,
         header: p.templates?.header,
         cardStyle: p.templates?.productCard,
