@@ -40,14 +40,14 @@ export function CategoriesSection({ base, categories, variant }: SectionProps) {
                 <img
                   src={imgSrc}
                   alt={c.name}
-                  style={{ width: 60, height: 60, borderRadius: 11, objectFit: "cover" }}
+                  style={{ width: 60, height: 60, borderRadius: "var(--r-md)", objectFit: "cover" }}
                 />
               ) : (
                 <span
                   style={{
                     width: 60,
                     height: 60,
-                    borderRadius: 11,
+                    borderRadius: "var(--r-md)",
                     background: "var(--primary-soft)",
                     color: "var(--primary)",
                     display: "flex",

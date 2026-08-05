@@ -482,7 +482,7 @@
 .sf-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   border: 1px solid var(--border);
   background: var(--card);
   /* The 70svh cap only bites on short viewports — a landscape phone is past the
@@ -715,7 +715,7 @@
 .sf-account-nav {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
@@ -928,7 +928,7 @@
 .sf-pdp-zoom {
   position: relative;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
 }
 .sf-pdp-zoom-img {
   transition: transform 0.25s ease;

@@ -500,7 +500,14 @@ resolved **per request from the host**, never baked.
     (`--h1`/`--h1m`/`--h2`) were **already** tokenized and responsive in `.sf-root`, so three of the
     four levers were nearly free. Only radius was not: **148 inline `borderRadius:` values across 50
     files**, in 13 ad-hoc sizes. `--r-sm/md/lg/pill` now exist and new template components must use
-    them; the existing inline values are still un-migrated.
+    them.
+  - **The radius migration is deliberately partial.** Migrated: the product card (the most repeated
+    shape in the shop), the shared `Media`/`Placeholder` default, every home section, and the
+    `.sf-hero` / `.sf-pdp-zoom` / `.sf-account-nav` CSS rules — i.e. everything that sets the shop's
+    corner character. **124 non-pill values remain**, almost all in account, checkout, search and
+    cart internals, which a shopper meets rarely and which do not read as "the look". Migrate them
+    opportunistically when touching those files; do not do a blind sweep. `999` pills are left alone
+    on purpose — a pill is a shape decision, not a size, and squaring it turns badges into blocks.
   - **The trap, and it cost a wrong screenshot to find:** the shell writes `--t-*` onto
     **`.sf-shell`**, so the tokens must be consumed there too. They were first derived on
     `.sf-root` — the shell's *parent* — and custom properties inherit downward only, so the root can

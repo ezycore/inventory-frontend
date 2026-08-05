@@ -38,7 +38,7 @@ export function TrustSection({ t, trustBadges }: SectionProps) {
     <div style={{ ...wrap, padding: "0 var(--pad) 4px" }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--trustcols), minmax(0,1fr))", gap: "var(--gap)" }}>
         {trust.map((tr) => (
-          <div key={tr.title} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 11, padding: "16px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+          <div key={tr.title} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "16px 18px", display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ color: "var(--primary)" }}>
               <Icon name={tr.icon} size={22} />
             </div>

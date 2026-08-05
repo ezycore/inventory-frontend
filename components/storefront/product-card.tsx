@@ -136,7 +136,9 @@ export function ProductCard({
       style={{
         background: "var(--card)",
         border: "1px solid var(--border)",
-        borderRadius: 12,
+        // The most repeated shape in the shop — this one radius does more to
+        // set the corner character than every other in the storefront.
+        borderRadius: "var(--r-md)",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",

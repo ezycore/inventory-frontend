@@ -48,7 +48,7 @@ function CardHero(props: SectionProps) {
           alignItems: "center",
           background: "var(--card)",
           border: "1px solid var(--border)",
-          borderRadius: 14,
+          borderRadius: "var(--r-lg)",
           padding: "clamp(20px,4vw,40px)",
           overflow: "hidden",
         }}
@@ -107,7 +107,7 @@ function SplitHero({ base, t, banner, heroBanner: hb }: SectionProps) {
           display: "grid",
           gridTemplateColumns: "var(--splitcols)",
           border: "1px solid var(--border)",
-          borderRadius: 16,
+          borderRadius: "var(--r-lg)",
           overflow: "hidden",
           background: "var(--card)",
         }}
@@ -152,7 +152,7 @@ function ManifestoHero({ base, t }: SectionProps) {
       </p>
       <Link
         href={storeHref(base, "/products")}
-        style={{ display: "inline-block", background: "var(--text)", color: "var(--card)", padding: "14px 32px", borderRadius: 8, fontSize: 14, fontWeight: 600 }}
+        style={{ display: "inline-block", background: "var(--text)", color: "var(--card)", padding: "14px 32px", borderRadius: "var(--r-sm)", fontSize: 14, fontWeight: 600 }}
       >
         {t.startShopping}
       </Link>

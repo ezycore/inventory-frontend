@@ -33,7 +33,7 @@ export function PromoSection({ base, t, promoTiles }: SectionProps) {
         <HeroCtaLink
           base={base}
           link={tiles[0].link}
-          style={{ borderRadius: 14, background: "var(--primary)", color: "var(--on-primary)", padding: "clamp(20px,3vw,32px)", minHeight: 150, display: "flex", flexDirection: "column", justifyContent: "center" }}
+          style={{ borderRadius: "var(--r-lg)", background: "var(--primary)", color: "var(--on-primary)", padding: "clamp(20px,3vw,32px)", minHeight: 150, display: "flex", flexDirection: "column", justifyContent: "center" }}
         >
           <span style={{ fontSize: 12, opacity: 0.85, fontWeight: 600, letterSpacing: "0.04em" }}>{tiles[0].label}</span>
           <span style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.15, margin: "6px 0 12px", maxWidth: 260 }}>{tiles[0].title}</span>
@@ -42,7 +42,7 @@ export function PromoSection({ base, t, promoTiles }: SectionProps) {
         <HeroCtaLink
           base={base}
           link={tiles[1].link}
-          style={{ borderRadius: 14, background: "var(--card)", border: "1px solid var(--border)", padding: "clamp(20px,3vw,32px)", minHeight: 150, display: "flex", flexDirection: "column", justifyContent: "center" }}
+          style={{ borderRadius: "var(--r-lg)", background: "var(--card)", border: "1px solid var(--border)", padding: "clamp(20px,3vw,32px)", minHeight: 150, display: "flex", flexDirection: "column", justifyContent: "center" }}
         >
           <span style={{ fontSize: 12, color: "var(--primary)", fontWeight: 600, letterSpacing: "0.04em" }}>{tiles[1].label}</span>
           <span style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.15, margin: "6px 0 12px", maxWidth: 260, color: "var(--text)" }}>{tiles[1].title}</span>

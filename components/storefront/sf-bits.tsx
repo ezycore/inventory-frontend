@@ -10,12 +10,14 @@ import { money, discountPct } from "@/components/storefront/format";
 export function Placeholder({
   label,
   ratio = "1 / 1",
-  radius = 11,
+  radius = "var(--r-md)",
   style,
 }: {
   label?: string;
   ratio?: string;
-  radius?: number;
+  /** A `--r-*` token by default; callers may still pass a fixed number (0 for
+   *  a flush edge, as the split hero does). */
+  radius?: number | string;
   style?: CSSProperties;
 }) {
   return (
@@ -56,7 +58,7 @@ export function Media({
   alt,
   label,
   ratio = "1 / 1",
-  radius = 11,
+  radius = "var(--r-md)",
   className,
   style,
 }: {
@@ -64,7 +66,9 @@ export function Media({
   alt?: string;
   label?: string;
   ratio?: string;
-  radius?: number;
+  /** A `--r-*` token by default; callers may still pass a fixed number (0 for
+   *  a flush edge, as the split hero does). */
+  radius?: number | string;
   className?: string;
   style?: CSSProperties;
 }) {
