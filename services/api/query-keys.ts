@@ -245,7 +245,16 @@ export const queryKeys = {
   },
 
   // ── Ecommerce / storefront (admin side) ─────────────────────────────────────
-  storefrontOrders: resourceKeys("storefront-orders"),
+  storefrontOrders: {
+    ...resourceKeys("storefront-orders"),
+    /**
+     * The create dialog's live price, keyed on the whole draft — every field in it
+     * (lines, coupon, discount, zone, shipping override) changes the answer, so
+     * the draft IS the key. Under the orders root so a campaign or coupon change
+     * that dirties orders drops the stale price too.
+     */
+    quote: (draft: Params) => ["storefront-orders", "quote", draft] as const,
+  },
 
   /** Courier provider config — a sibling of orders, not a part of them. */
   couriers: {

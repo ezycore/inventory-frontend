@@ -15,10 +15,11 @@ import type {
   CustomCourier,
   CustomCourierRemoved,
   FraudScore,
+  OrderQuote,
   OrderStats,
   StorefrontOrderList,
 } from "@/types/api";
-export type { AdminStorefrontOrder, CourierPrice, OrderStats };
+export type { AdminStorefrontOrder, CourierPrice, OrderQuote, OrderStats };
 
 /** The list-page filters — courier/fulfillment/payment narrow the status-tab counts too. */
 export interface AdminOrderListParams {
@@ -94,10 +95,41 @@ export interface CreateAdminOrderInput {
   paymentMethod: "cod" | "bank" | "manual";
   channel: AdminOrderChannel;
   notes?: string;
+  couponCode?: string;
+  /** Off-coupon discount agreed in the conversation — see `ManualDiscountInput`. */
+  discount?: ManualDiscountInput;
   /** Merchant-negotiated delivery charge. `0` is meaningful — "free, we agreed". */
   shippingCharged?: number;
   /** Skip the separate Confirm click; a chat order is already agreed. */
   confirmImmediately?: boolean;
+}
+
+/**
+ * An ad-hoc discount the merchant agreed in chat.
+ *
+ * **Send the type and value, never a resolved amount.** A percentage is applied to
+ * the *server's* subtotal — which is the storefront-priced one, not the POS-priced
+ * one this app can sum locally. Resolving it here would put the gap back.
+ */
+export interface ManualDiscountInput {
+  type: "fixed" | "percentage";
+  value: number;
+}
+
+/**
+ * Body of `POST /api/ecommerce/orders/quote` — the create dialog's live summary.
+ *
+ * A subset of the create payload holding only what moves a number: no `channel`,
+ * no `paymentMethod`, and an address reduced to the `zone` (which prices delivery)
+ * and the `phone` (which the per-buyer coupon limit counts against).
+ */
+export interface QuoteAdminOrderInput {
+  items: { productId: string; variantId?: string; quantity: number }[];
+  shippingAddress?: { phone?: string; zone?: "inside" | "outside" };
+  fulfillmentType?: "delivery" | "pickup";
+  couponCode?: string;
+  discount?: ManualDiscountInput;
+  shippingCharged?: number;
 }
 
 /** Where an order came from. Reporting only — never drives money or fulfilment. */
@@ -174,6 +206,16 @@ export const storefrontOrdersApi = {
    */
   create: (body: CreateAdminOrderInput): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(base, body),
+  /**
+   * What the order above would cost, priced by the code that will charge it.
+   *
+   * **Never sum the lines locally instead.** The product picker is the POS
+   * catalogue (`product.price`); the order path charges
+   * `storefront.onlinePrice ?? price` repriced by any live campaign, so a local
+   * sum quotes the buyer a total the order then silently disagrees with.
+   */
+  quote: (body: QuoteAdminOrderInput): Promise<ApiResponse<OrderQuote>> =>
+    apiClient.post(`${base}/quote`, body),
   confirm: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/confirm`, {}),
   updateStatus: (

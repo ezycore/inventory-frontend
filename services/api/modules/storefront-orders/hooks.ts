@@ -4,7 +4,7 @@ import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
-import type { CreateAdminOrderInput } from "./api";
+import type { CreateAdminOrderInput, QuoteAdminOrderInput } from "./api";
 import {
   couriersApi,
   storefrontOrdersApi,
@@ -45,6 +45,31 @@ export const useOrderFraudScore = () =>
   useMutation({
     mutationFn: (id: string) => storefrontOrdersApi.fraudScore(id),
     onError: handleMutationError,
+  });
+
+/**
+ * Live price for the order being typed into the create dialog.
+ *
+ * **A query, not a mutation, and that is the point** — it is a pure read that
+ * every keystroke re-asks, so it wants caching and dedupe. `placeholderData`
+ * keeps the previous total on screen while the next one loads, because a summary
+ * that blanks on every character is one the merchant stops trusting.
+ *
+ * Disabled until there is at least one line: an empty cart has no price, and
+ * asking for one would just be a guaranteed round-trip on dialog open.
+ */
+export const useOrderQuote = (draft: QuoteAdminOrderInput | null) =>
+  useQuery({
+    queryKey: queryKeys.storefrontOrders.quote(
+      (draft ?? {}) as unknown as Record<string, unknown>,
+    ),
+    queryFn: () => storefrontOrdersApi.quote(draft as QuoteAdminOrderInput),
+    enabled: !!draft?.items.length,
+    select: (r) => r.data,
+    placeholderData: (prev) => prev,
+    // Coupons and campaigns can change under a long-open dialog, and the number
+    // here is quoted to a buyer — so this one does not ride the 1-minute default.
+    staleTime: 0,
   });
 
 /**
