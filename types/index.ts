@@ -1029,7 +1029,12 @@ export interface UpdateDiscountDto extends Partial<CreateDiscountDto> { }
 export interface Inventory extends Product {
   productId: string;
   variantId?: string | null;
+  /** Physical on-hand, holds included — what a stock count would find. */
   quantity: number;
+  /** Of that on-hand, the part soft-held for confirmed storefront orders. */
+  reservedQuantity?: number;
+  /** `quantity − reservedQuantity`: what POS and the storefront will let anyone buy. */
+  availableQuantity?: number;
   quantityAlert: number;
   isLowStock: boolean;
   quantityBreakdown?: {

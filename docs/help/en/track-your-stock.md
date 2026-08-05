@@ -32,6 +32,23 @@ They are for when reality and the system disagree.
 **Current Stock** shows *Live stock levels for every product.* Counts are per location, so check the
 location picker in the top bar if a number looks wrong.
 
+### When a product says "reserved"
+
+If you run an online store, some rows show a second line like **4 reserved · 21 sellable**.
+
+The big number is always what is **physically on your shelf** — it is what a stock count would find,
+and it is what your stock value is based on. The reserved part is stock you have already promised to
+online orders you confirmed. It is still yours and still on the shelf, but it is spoken for, so the
+sell screen and your online store will not let anyone buy it twice.
+
+That is why the counter can offer fewer units than this page shows. Nothing is missing — the
+difference is sitting in your confirmed online orders. Cancelling one of those orders puts its stock
+straight back on sale.
+
+The practical lesson: confirm online orders you can actually fulfil, promptly, and cancel the ones
+you cannot. A confirmed order you never ship holds stock away from customers standing in front of
+you. See [Handle online orders](/help/storefront-orders).
+
 ## Low Stock
 
 **Low Stock** lists *Items running low that need restocking* — everything at or below the threshold

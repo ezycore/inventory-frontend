@@ -6995,6 +6995,8 @@ export interface components {
             productId: string;
             variantId?: string | null;
             quantity: number;
+            reservedQuantity: number;
+            availableQuantity: number;
             quantityAlert: number;
             isLowStock?: boolean;
             /** @enum {string} */
