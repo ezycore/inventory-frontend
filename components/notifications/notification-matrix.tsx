@@ -2,7 +2,14 @@
 // coding-standard: maintained
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { Clock, Lock, Mail, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import {
+  Clock,
+  Lock,
+  Mail,
+  MessageSquare,
+  SlidersHorizontal,
+} from "lucide-react";
 import {
   useNotificationSettings,
   useUpdateNotificationSettings,
@@ -26,6 +33,19 @@ type Channel = "email" | "sms";
 
 const AUDIENCES: Audience[] = ["customer", "merchant"];
 const CHANNELS: Channel[] = ["email", "sms"];
+
+/**
+ * Where an event's own switch lives, for the rows the backend marks `managedBy`.
+ *
+ * The registry sends a slug, not a URL — it is this side that knows its own
+ * routes. Two switches for one feature is a dead end, not a redundancy: a
+ * merchant who un-ticked the box here and later enabled the feature on its own
+ * page would get silence, with the send counted as done and nothing to read.
+ * So the box becomes a link to whoever actually owns the decision.
+ */
+const MANAGED_BY_ROUTE: Record<string, string> = {
+  "storefront.cartRecovery": "/ecommerce/settings?tab=checkout",
+};
 
 interface NotificationMatrixProps {
   /** Restrict to these domains; omit for every domain the org has. */
@@ -112,7 +132,10 @@ export function NotificationMatrix({
 
     const checked = toggles[channel];
     const smsLocked = channel === "sms" && !smsAvailable;
-    const locked = row.mandatory || smsLocked;
+    // A managed row reports what its feature currently does; the switch is
+    // elsewhere. The config API rejects an override for these keys outright, so
+    // an enabled box here would only ever produce a 400.
+    const locked = row.mandatory || smsLocked || !!row.managedBy;
 
     const box = (
       <Checkbox
@@ -142,7 +165,11 @@ export function NotificationMatrix({
         <Tooltip>
           <TooltipTrigger asChild>{content}</TooltipTrigger>
           <TooltipContent>
-            {row.mandatory ? t("mandatoryHint") : t("smsLockedHint")}
+            {row.mandatory
+              ? t("mandatoryHint")
+              : row.managedBy && !smsLocked
+                ? t("managedHint")
+                : t("smsLockedHint")}
           </TooltipContent>
         </Tooltip>
       );
@@ -208,6 +235,17 @@ export function NotificationMatrix({
             )}
           </div>
           <div className="text-xs text-muted-foreground">{row.key}</div>
+          {/* The row is read-only, so it has to say where the switch IS —
+              a locked box with no destination is the dead end, restated. */}
+          {row.managedBy && MANAGED_BY_ROUTE[row.managedBy] ? (
+            <Link
+              href={MANAGED_BY_ROUTE[row.managedBy]}
+              className="mt-1.5 inline-flex items-center gap-1 text-xs text-primary underline-offset-2 hover:underline"
+            >
+              <SlidersHorizontal className="size-3" />
+              {t("managedElsewhere")}
+            </Link>
+          ) : null}
           {/* Only for audiences whose SMS is actually ON — this is the running
               cost of the current configuration, not a catalogue. The text for
               an event that is off lives in the checkbox tooltip instead. */}

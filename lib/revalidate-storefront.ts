@@ -11,6 +11,10 @@
  * Best-effort by design. The save has already succeeded by the time this runs, the
  * cache still expires on its own timer, and a failed flush must never surface as a
  * failed save — so every error path is silent and nothing awaits the result.
+ *
+ * That includes the route's 429: the endpoint throttles per token, and a merchant
+ * who trips it has already queued a flush inside the same minute. Swallowing it
+ * is correct — the flush they need is the one that already went.
  */
 
 const ENDPOINT = "/api/storefront/revalidate";

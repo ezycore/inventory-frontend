@@ -232,6 +232,23 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
   );
   const isDirty = dirtyParts.length > 0;
 
+  // The draft is seeded once, but `settings` keeps arriving — a media upload
+  // PATCHes immediately and invalidates the query, and the page can sit open for
+  // a long time. Re-seed a CLEAN draft from the newer document, exactly as the
+  // collections block below does: without this the page holds an increasingly
+  // old copy of `templates`/`nav`/`heroSlides` and its wholesale PATCH pushes it
+  // back over whatever landed since. A dirty part is never touched — the
+  // merchant's unsaved work outranks a background refetch.
+  const [seededSettings, setSeededSettings] = useState(settings);
+  if (settings !== seededSettings) {
+    setSeededSettings(settings);
+    if (!isDirty) {
+      const fresh = { ...seedDraft(settings), collections: draft.collections };
+      setDraft(fresh);
+      setBaseline(fresh);
+    }
+  }
+
   // Collections arrive after the settings do. Seed the draft from them during
   // render (the "adjust state on prop change" pattern — an effect that mirrors
   // fetched data into state causes a cascading re-render), but never over the
