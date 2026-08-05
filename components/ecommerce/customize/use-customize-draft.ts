@@ -191,8 +191,13 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
     homepageSections: t.homepageSections ?? null,
     appliedThemeId: t.appliedThemeId ?? "",
     // Three fixed slots seeded by index — an empty slot keeps its default badge.
+    // Every field the badge has must be seeded here, or the next save writes it
+    // away: the draft is what `toSettingsPayload` serialises, so a field the
+    // draft never loaded is a field the merchant silently loses. `subtitle` was
+    // exactly that until a live save caught it.
     badges: DEFAULT_BADGES.map((d, i) => ({
       text: settings.trustBadges?.[i]?.text ?? "",
+      subtitle: settings.trustBadges?.[i]?.subtitle ?? "",
       icon: settings.trustBadges?.[i]?.icon ?? d.icon,
     })),
     // Two fixed slots seeded by index, like the badges above.

@@ -510,6 +510,12 @@ resolved **per request from the host**, never baked.
   - **Behaviour change worth knowing:** a store that had already written footer trust badges will now
     show that copy in the home trust row too, instead of the dictionary text. That is the point, but
     it is a visible change to an existing shop.
+  - **The bug a live save caught (fixed 2026-08-06):** `subtitle` was added to `trimBadges` (the write
+    path) but not to `seedDraft` (the read path), so reopening Customize loaded badges *without* their
+    subtitles and the next save wrote them away. **`seedDraft` and `toSettingsPayload` are two halves
+    of one contract — a field in the payload that the draft never loads is a field the merchant
+    silently loses.** Neither typecheck nor lint can see it, because omitting an optional field is
+    legal; only a save-and-read-back catches it. Add fields to both halves in the same commit.
 
 - **Per-page presets ("Start from")** (2026-08-05): `lib/storefront-page-presets.ts` + the
   `PagePresetRow` shown above the pickers in the Home and Collections parts. The middle rung between
