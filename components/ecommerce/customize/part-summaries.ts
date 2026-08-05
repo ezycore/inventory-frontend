@@ -4,8 +4,8 @@ import { getPreset } from "@/lib/storefront-theme";
 import {
   asHomeVariant,
   resolveHomeSections,
-  HOME_SECTION_IDS,
 } from "@/lib/storefront-home-sections";
+import { getHomeTemplateMeta } from "@/lib/storefront-home-templates";
 import { getStoreTheme, themeDrift } from "@/lib/storefront-themes";
 import type { StorefrontSettings } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
@@ -80,14 +80,14 @@ export function partSummary(
         : `Slides carousel · ${count(saveable, "slide")}`;
     }
     case "home": {
-      const shown = resolveHomeSections(
-        draft.homepageSections,
-        asHomeVariant(draft.templates.home),
-      ).length;
+      // Counted against what THIS look offers, not a global list — "3 of 4" on
+      // Minimal is the truth; "3 of 6" would imply two blocks it cannot show.
+      const template = getHomeTemplateMeta(asHomeVariant(draft.templates.home));
+      const shown = resolveHomeSections(draft.homepageSections, template).length;
       const sections =
-        shown === HOME_SECTION_IDS.length
+        shown === template.available.length
           ? `all ${shown} sections`
-          : `${shown} of ${HOME_SECTION_IDS.length} sections`;
+          : `${shown} of ${template.available.length} sections`;
       return `${labelOf("home", draft.templates.home)} · ${sections}`;
     }
     case "cards":

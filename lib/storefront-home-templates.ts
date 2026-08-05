@@ -1,0 +1,64 @@
+// coding-standard: maintained
+
+import type { StoreDesign } from "@/lib/storefront-design-tokens";
+import type { HomeSectionId } from "@/lib/storefront-home-sections";
+
+/**
+ * What each home template offers, as data — no React.
+ *
+ * The component map lives beside the components
+ * (`components/storefront/home/templates/registry.tsx`) and reads its order and
+ * capability from here, so the admin editor can ask "which blocks does this
+ * look have?" without importing a single storefront component into the admin
+ * bundle. Same split as `storefront-home-sections` vs. its renderer, for the
+ * same reason.
+ *
+ * `available` is the contract: a template only offers blocks it has a design
+ * for. Listing one it does not implement would put a block in the merchant's
+ * Hidden list that could never be switched on.
+ */
+export interface HomeTemplateMeta {
+  id: string;
+  /** Merchant-facing name, shown in the Layout picker. */
+  label: string;
+  /** One line describing the result, from the shop's side. */
+  description: string;
+  available: HomeSectionId[];
+  defaultOrder: HomeSectionId[];
+  /** Typeface / type scale / density / corners this look ships with. */
+  design: StoreDesign;
+}
+
+export const HOME_TEMPLATE_META: HomeTemplateMeta[] = [
+  {
+    id: "classic",
+    label: "Classic",
+    description: "Hero card, category chips, product rails",
+    available: ["hero", "categories", "featured", "latest", "trust", "promo"],
+    defaultOrder: ["hero", "categories", "featured", "latest"],
+    design: { font: "sans", scale: "normal", density: "normal", radius: "soft" },
+  },
+  {
+    id: "hero-split",
+    label: "Hero Split",
+    description: "Split hero, trust row, promo tiles",
+    available: ["hero", "categories", "featured", "latest", "trust", "promo"],
+    defaultOrder: ["hero", "trust", "featured", "promo"],
+    design: { font: "sans", scale: "normal", density: "normal", radius: "soft" },
+  },
+  {
+    id: "minimal",
+    label: "Minimal",
+    description: "Centered manifesto, quiet product grid",
+    // No `latest`, no `promo`: this look is deliberately one short page, and
+    // offering blocks it has no design for would be offering a worse version
+    // of another template.
+    available: ["hero", "categories", "featured", "trust"],
+    defaultOrder: ["hero", "categories", "featured"],
+    design: { font: "sans", scale: "normal", density: "normal", radius: "soft" },
+  },
+];
+
+/** Falls back to Classic — the look every store had before templates existed. */
+export const getHomeTemplateMeta = (id?: string): HomeTemplateMeta =>
+  HOME_TEMPLATE_META.find((t) => t.id === id) ?? HOME_TEMPLATE_META[0];

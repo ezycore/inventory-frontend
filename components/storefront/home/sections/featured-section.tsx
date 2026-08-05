@@ -14,45 +14,62 @@ import {
 } from "@/components/storefront/home/home-shared";
 
 /**
- * The featured-products block. The three looks differ by more than density:
- * each carries its own heading copy ("Featured" / "Weekly picks" / "Selected"),
- * and minimal renders its own card markup rather than `ProductCard` — a quieter
- * card with no badges or cart button, capped at six.
+ * Product blocks. The three differ by more than density — each carries its own
+ * heading copy, and the editorial one renders its own quieter card rather than
+ * the shared `ProductCard` (no badges, no cart button, capped at six).
+ *
+ * Exported separately so a template names the one it wants; `latest-section`
+ * holds the "New arrivals" block, which has only ever had one look.
  */
-export function FeaturedSection({
-  base,
-  currency,
-  featured,
-  t,
-  variant,
-}: SectionProps) {
+
+/** Full-size grid under "Featured products". */
+export function FeaturedGrid({ base, currency, featured, t }: SectionProps) {
   if (featured.length === 0) return null;
-  if (variant === "minimal") {
-    return (
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(48px,7vw,80px)" }}>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 28 }}>
-          <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>{t.selected}</h2>
-          <ViewAll href={storeHref(base, "/products")} label={t.viewAll} />
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--mincols), minmax(0,1fr))", gap: "clamp(20px,3vw,40px)" }}>
-          {featured.slice(0, 6).map((p) => (
-            <Link key={p._id} href={storeHref(base, `/products/${p.slug}`)} style={{ display: "flex", flexDirection: "column" }}>
-              <Media src={cardImageUrl(p.images?.[0])} alt={p.name} label="product" radius={12} style={{ marginBottom: 14 }} />
-              <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text)", lineHeight: 1.35, marginBottom: 4 }}>{p.name}</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{money(p.price, currency)}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  const split = variant === "hero-split";
   return (
     <div style={{ ...wrap, padding: "22px var(--pad)" }}>
       <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
-        {split ? t.weeklyPicks : t.featured}
+        {t.featured}
       </SectionTitle>
-      <Grid products={featured} currency={currency} variant={split ? "compact" : "full"} />
+      <Grid products={featured} currency={currency} variant="full" />
+    </div>
+  );
+}
+
+/** Tighter cards under "Weekly picks" — more product in the same height. */
+export function FeaturedCompact({ base, currency, featured, t }: SectionProps) {
+  if (featured.length === 0) return null;
+  return (
+    <div style={{ ...wrap, padding: "22px var(--pad)" }}>
+      <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
+        {t.weeklyPicks}
+      </SectionTitle>
+      <Grid products={featured} currency={currency} variant="compact" />
+    </div>
+  );
+}
+
+/**
+ * "Selected for you" — six products, bespoke card markup: picture, name, price,
+ * nothing else. The absence of badges and buttons is the design, not an
+ * oversight; adding them would make it the same block as the other two.
+ */
+export function FeaturedSelected({ base, currency, featured, t }: SectionProps) {
+  if (featured.length === 0) return null;
+  return (
+    <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(48px,7vw,80px)" }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 28 }}>
+        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>{t.selected}</h2>
+        <ViewAll href={storeHref(base, "/products")} label={t.viewAll} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--mincols), minmax(0,1fr))", gap: "clamp(20px,3vw,40px)" }}>
+        {featured.slice(0, 6).map((p) => (
+          <Link key={p._id} href={storeHref(base, `/products/${p.slug}`)} style={{ display: "flex", flexDirection: "column" }}>
+            <Media src={cardImageUrl(p.images?.[0])} alt={p.name} label="product" radius="var(--r-md)" style={{ marginBottom: 14 }} />
+            <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text)", lineHeight: 1.35, marginBottom: 4 }}>{p.name}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{money(p.price, currency)}</span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

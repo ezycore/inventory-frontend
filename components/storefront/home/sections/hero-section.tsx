@@ -14,29 +14,21 @@ import {
 } from "@/components/storefront/home/home-shared";
 
 /**
- * The homepage hero, in the three looks the page variants used to hard-code:
- * a bordered card (classic), a split image panel (hero-split), and a centered
- * manifesto (minimal).
+ * The three hero blocks, each exported on its own so a template can name the
+ * one it wants (`templates/*.ts`) instead of a dispatcher branching on a
+ * variant string. That branching is what would not have survived three more
+ * designs — six `if`s inside one component, times six sections.
  *
- * Only the first two honour owner hero content. Minimal deliberately ignores
- * `heroSlides` / `heroBanner` / `banner` and renders dictionary copy — that is
- * how it shipped, and quietly giving it a carousel would restyle every minimal
- * store the moment this refactor landed.
+ * `CardHero` and `SplitHero` yield to the owner's slide carousel when there is
+ * one; `ManifestoHero` deliberately does not, and renders dictionary copy. That
+ * is how the Minimal look shipped, and the Theme part warns before a template
+ * that uses it hides a merchant's slides.
  */
-export function HeroSection(props: SectionProps) {
-  if (props.variant === "minimal") return <ManifestoHero {...props} />;
-  // Owner slides replace the static hero in both card and split looks.
+
+export function CardHero(props: SectionProps) {
   if (props.heroSlides?.length) {
     return <HeroCarousel slides={props.heroSlides} base={props.base} />;
   }
-  return props.variant === "hero-split" ? (
-    <SplitHero {...props} />
-  ) : (
-    <CardHero {...props} />
-  );
-}
-
-function CardHero(props: SectionProps) {
   const { base, t, banner, heroBanner: hb } = props;
   return (
     <div style={{ ...wrap, padding: "var(--pad)" }}>
@@ -99,7 +91,11 @@ function CardHero(props: SectionProps) {
   );
 }
 
-function SplitHero({ base, t, banner, heroBanner: hb }: SectionProps) {
+export function SplitHero(props: SectionProps) {
+  if (props.heroSlides?.length) {
+    return <HeroCarousel slides={props.heroSlides} base={props.base} />;
+  }
+  const { base, t, banner, heroBanner: hb } = props;
   return (
     <div style={{ ...wrap, padding: "var(--pad)" }}>
       <div
@@ -138,7 +134,7 @@ function SplitHero({ base, t, banner, heroBanner: hb }: SectionProps) {
   );
 }
 
-function ManifestoHero({ base, t }: SectionProps) {
+export function ManifestoHero({ base, t }: SectionProps) {
   return (
     <div style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(48px,9vw,110px) var(--pad) clamp(36px,6vw,64px)", textAlign: "center" }}>
       <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500 }}>

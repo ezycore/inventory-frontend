@@ -18,6 +18,7 @@ import {
   asHomeVariant,
   resolveHomeSections,
 } from "@/lib/storefront-home-sections";
+import { getHomeTemplateMeta } from "@/lib/storefront-home-templates";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
 import { Button } from "@/ui/components/button";
@@ -236,7 +237,7 @@ export function PartsRail({
                     form for something the shopper will never see. */}
                 {resolveHomeSections(
                   draft.homepageSections,
-                  asHomeVariant(draft.templates.home),
+                  getHomeTemplateMeta(asHomeVariant(draft.templates.home)),
                 ).includes("promo") && (
                   <PartBlock
                     label="Promo tiles"

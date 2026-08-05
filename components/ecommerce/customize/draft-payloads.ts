@@ -13,6 +13,7 @@ import {
   asHomeVariant,
   resolveHomeSections,
 } from "@/lib/storefront-home-sections";
+import { getHomeTemplateMeta } from "@/lib/storefront-home-templates";
 import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fields";
 import type {
   CustomizeDraft,
@@ -191,7 +192,7 @@ export function toPreviewPayload(
     // leave the preview store holding whatever was drafted before a Discard.
     homepageSections: resolveHomeSections(
       draft.homepageSections,
-      asHomeVariant(draft.templates.home),
+      getHomeTemplateMeta(asHomeVariant(draft.templates.home)),
     ),
     templates: {
       home: draft.templates.home,

@@ -7,13 +7,15 @@ import { thumbImageUrl } from "@/lib/storefront-image";
 import { wrap, type SectionProps } from "@/components/storefront/home/home-shared";
 
 /**
- * The homepage category row: image chips (classic) or a bordered text strip
- * (minimal). Hero-split never rendered categories, so if an owner adds the
- * section to that page it inherits the chips — the richer of the two.
+ * Two ways to show the shop's categories, each exported for a template to pick:
+ * a horizontally-scrolling row of image chips, or a quiet bordered strip of
+ * names. Neither branches on a variant — the template names the one it wants.
  */
-export function CategoriesSection({ base, categories, variant }: SectionProps) {
+
+/** Names only, between hairlines. Reads as an index, not a shelf. */
+export function CategoryStrip({ base, categories }: SectionProps) {
   if (categories.length === 0) return null;
-  return variant === "minimal" ? (
+  return (
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(40px,6vw,64px)" }}>
       <div style={{ display: "flex", gap: 26, justifyContent: "center", flexWrap: "wrap", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "18px 0" }}>
         {categories.map((c) => (
@@ -23,7 +25,13 @@ export function CategoriesSection({ base, categories, variant }: SectionProps) {
         ))}
       </div>
     </div>
-  ) : (
+  );
+}
+
+/** Image chips — the richer of the two, and the default for most shops. */
+export function CategoryChips({ base, categories }: SectionProps) {
+  if (categories.length === 0) return null;
+  return (
     <div style={{ ...wrap, padding: "0 var(--pad) 8px" }}>
       <div style={{ display: "flex", gap: 11, overflowX: "auto", paddingBottom: 6 }}>
         {categories.map((c) => {

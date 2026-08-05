@@ -43,16 +43,10 @@ export const HOME_SECTION_LABELS: Record<HomeSectionId, string> = {
   promo: "Promo tiles",
 };
 
-/**
- * What each look rendered before sections existed, in the order it rendered
- * them. These are the fallback when a store has no saved order, so an
- * un-customized shop is byte-for-byte what it was.
- */
-export const DEFAULT_SECTION_ORDER: Record<HomeVariant, HomeSectionId[]> = {
-  classic: ["hero", "categories", "featured", "latest"],
-  "hero-split": ["hero", "trust", "featured", "promo"],
-  minimal: ["hero", "categories", "featured"],
-};
+// Per-template capability and default order moved to
+// `lib/storefront-home-templates.ts` when templates gained their own block
+// sets — a fixed map here could only describe looks that all offer the same
+// blocks, which stopped being true the moment Minimal dropped two of them.
 
 /**
  * The section ids the backend seeded before this catalogue existed
@@ -69,22 +63,34 @@ const isKnown = (id: string): id is HomeSectionId =>
   (HOME_SECTION_IDS as readonly string[]).includes(id);
 
 /**
- * Resolve a store's saved section list into renderable ids: aliases applied,
- * unknown ids dropped, duplicates collapsed. An unset — or entirely
- * unrecognised — list falls back to the look's own default order rather than
- * rendering an empty page.
+ * What a template offers: the ids it implements, and the order it renders them
+ * in when the merchant has not reordered. The renderer passes its registry
+ * entry; the admin editor passes the same, so the two can never disagree about
+ * which blocks a look has.
+ */
+export interface SectionCapability {
+  available: readonly string[];
+  defaultOrder: readonly string[];
+}
+
+/**
+ * Resolve a store's saved section list against the template that will render
+ * it: aliases applied, ids the template does not implement dropped, duplicates
+ * collapsed. An unset — or entirely unusable — list falls back to the
+ * template's own order rather than rendering an empty page.
  */
 export function resolveHomeSections(
   raw: string[] | null | undefined,
-  variant: HomeVariant,
+  template: SectionCapability,
 ): HomeSectionId[] {
-  if (!raw?.length) return DEFAULT_SECTION_ORDER[variant];
+  const fallback = [...template.defaultOrder] as HomeSectionId[];
+  if (!raw?.length) return fallback;
   const seen = new Set<HomeSectionId>();
   for (const entry of raw) {
     const id = LEGACY_SECTION_ALIASES[entry] ?? entry;
-    if (isKnown(id)) seen.add(id);
+    if (isKnown(id) && template.available.includes(id)) seen.add(id);
   }
-  return seen.size > 0 ? [...seen] : DEFAULT_SECTION_ORDER[variant];
+  return seen.size > 0 ? [...seen] : fallback;
 }
 
 /** Narrow an arbitrary `templates.home` string to a styling family. */

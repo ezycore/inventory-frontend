@@ -4,12 +4,12 @@
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
-  HOME_SECTION_IDS,
   HOME_SECTION_LABELS,
   resolveHomeSections,
   type HomeSectionId,
   type HomeVariant,
 } from "@/lib/storefront-home-sections";
+import { getHomeTemplateMeta } from "@/lib/storefront-home-templates";
 import { Switch } from "@/ui/components/switch";
 import { cn } from "@/ui/lib/utils";
 
@@ -33,8 +33,11 @@ export function HomeSectionsField({
   variant: HomeVariant;
   onChange: (next: HomeSectionId[]) => void;
 }) {
-  const enabled = resolveHomeSections(value, variant);
-  const hidden = HOME_SECTION_IDS.filter((id) => !enabled.includes(id));
+  // Only the blocks THIS look implements. A template that has no design for a
+  // block must not offer it — a merchant could switch it on and see nothing.
+  const template = getHomeTemplateMeta(variant);
+  const enabled = resolveHomeSections(value, template);
+  const hidden = template.available.filter((id) => !enabled.includes(id));
 
   const move = (i: number, dir: -1 | 1) => {
     const t = i + dir;

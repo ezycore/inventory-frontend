@@ -5,6 +5,7 @@ import {
   asHomeVariant,
   resolveHomeSections,
 } from "@/lib/storefront-home-sections";
+import { getHomeTemplateMeta } from "@/lib/storefront-home-templates";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { FooterLinksField } from "@/components/ecommerce/customize/footer-links-field";
@@ -34,7 +35,7 @@ export function FooterPart({
   const richFooter = draft.templates.footer === "rich";
   const homeTrustRow = resolveHomeSections(
     draft.homepageSections,
-    asHomeVariant(draft.templates.home),
+    getHomeTemplateMeta(asHomeVariant(draft.templates.home)),
   ).includes("trust");
 
   return (
