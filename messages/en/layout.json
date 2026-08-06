@@ -78,6 +78,7 @@
   },
   "userMenu": {
     "profile": "Profile",
+    "billing": "Billing",
     "help": "Help",
     "logout": "Logout"
   },
