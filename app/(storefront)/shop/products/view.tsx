@@ -9,6 +9,7 @@ import {
   useStoreCategories,
   useStoreProducts,
   useStoreProductsInfinite,
+  useStoreTags,
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -29,8 +30,13 @@ import { Pager } from "@/components/storefront/pager";
 import {
   catalogInfiniteParams,
   catalogQueryParams,
+  categoryPathInfiniteParams,
+  categoryPathQueryParams,
 } from "@/lib/storefront-catalog-params";
-import type { ProductListResult } from "@/lib/storefront-client";
+import type {
+  CatalogCategoryDetail,
+  ProductListResult,
+} from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -39,10 +45,22 @@ const wrap: CSSProperties = {
   padding: "18px var(--pad) 40px",
 };
 
+/**
+ * The collection grid, shared by two routes.
+ *
+ * `/products` renders it bare (every product, filters from the query string).
+ * `/{category}/{sub?}` renders it with a resolved `collection`, which swaps the
+ * `categoryId` query param for a `categoryPath` one — the backend then decides
+ * whether to match `categoryId` (a parent, so the whole branch) or
+ * `subcategoryId` (one child). Same component, so the two can never drift apart
+ * in layout, pagination mode or filter behaviour.
+ */
 function CollectionInner({
   initialProducts,
+  collection,
 }: {
   initialProducts?: ProductListResult;
+  collection?: CatalogCategoryDetail;
 }) {
   const { slug } = useStoreContext();
   const { t } = useStorefrontUI();
@@ -52,13 +70,26 @@ function CollectionInner({
   // links, panel rows, chips and the drawer all share one code path (same-route
   // query navigation re-renders without remounting).
   const sp = useSearchParams();
-  const categoryId = sp.get("categoryId") ?? "";
+  // On a path page the collection comes from the ROUTE, not the query string —
+  // there is no `?categoryId=` to read and the facet must not be user-editable.
+  const categoryPath = collection?.slugPath;
+  const categoryId = categoryPath ? "" : (sp.get("categoryId") ?? "");
   const brandId = sp.get("brandId") ?? "";
+  const tags = sp.get("tags") ?? "";
   const minPrice = sp.get("minPrice") ?? "";
   const maxPrice = sp.get("maxPrice") ?? "";
   const inStock = sp.get("inStock") === "1";
   const sort = sp.get("sort") ?? "";
-  const filterKey = [categoryId, brandId, minPrice, maxPrice, inStock, sort].join("|");
+  const filterKey = [
+    categoryPath ?? "",
+    categoryId,
+    brandId,
+    tags,
+    minPrice,
+    maxPrice,
+    inStock,
+    sort,
+  ].join("|");
 
   const [page, setPage] = useState(1);
   // Reset pagination whenever any filter/sort changes (render-time adjust).
@@ -72,6 +103,7 @@ function CollectionInner({
   const { data: store } = useStore(slug);
   const { data: categories } = useStoreCategories(slug);
   const { data: brands } = useStoreBrands(slug);
+  const { data: tagData } = useStoreTags(slug);
 
   // Which listing mode the merchant chose (Customize → Collections), with any
   // unsaved draft from the live preview applied. `store` is SSR-seeded in
@@ -79,7 +111,15 @@ function CollectionInner({
   // flips modes under the shopper.
   const mode = useStoreTemplate(store, "pagination");
   const paged = mode === "pages";
-  const filterState = { categoryId, brandId, minPrice, maxPrice, inStock: inStock ? "1" : "", sort };
+  const filterState = {
+    categoryId,
+    brandId,
+    tags,
+    minPrice,
+    maxPrice,
+    inStock: inStock ? "1" : "",
+    sort,
+  };
 
   // Both hooks are declared (hooks can't be conditional) and gated by `enabled`,
   // so only the chosen one fetches. Params are built through the shared builders
@@ -87,13 +127,17 @@ function CollectionInner({
   // identical object (see storefront-catalog-params).
   const pagedQuery = useStoreProducts(
     slug,
-    catalogQueryParams(filterState, page),
+    categoryPath
+      ? categoryPathQueryParams(categoryPath, filterState, page)
+      : catalogQueryParams(filterState, page),
     paged,
     page === 1 ? initialProducts : undefined,
   );
   const infiniteQuery = useStoreProductsInfinite(
     slug,
-    catalogInfiniteParams(filterState),
+    categoryPath
+      ? categoryPathInfiniteParams(categoryPath, filterState)
+      : catalogInfiniteParams(filterState),
     !paged,
     initialProducts,
   );
@@ -120,9 +164,18 @@ function CollectionInner({
   const isLoading = paged ? pagedQuery.isLoading : infiniteQuery.isLoading;
   const cats = categories ?? [];
   const brandList = brands ?? [];
+  const tagList = tagData ?? [];
+  const activeTagSlugs = tags ? tags.split(",").filter(Boolean) : [];
   const activeCat = cats.find((c) => c._id === categoryId);
   const activeBrand = brandList.find((b) => b._id === brandId);
-  const filters: ProductFilters = { categoryId, brandId, minPrice, maxPrice, inStock };
+  const filters: ProductFilters = {
+    categoryId,
+    brandId,
+    tags,
+    minPrice,
+    maxPrice,
+    inStock,
+  };
 
   const chips: FilterChip[] = [];
   if (activeCat)
@@ -148,6 +201,20 @@ function CollectionInner({
             : `≤ ${money(+maxPrice, currency)}`,
       onRemove: () => setParams({ minPrice: undefined, maxPrice: undefined }),
     });
+  // One chip per selected tag, each removing only itself — a single "Tags (3)"
+  // chip would force the shopper to clear all three to drop one.
+  for (const slugValue of activeTagSlugs) {
+    const tag = tagList.find((x) => x.slug === slugValue);
+    chips.push({
+      key: `tag:${slugValue}`,
+      label: tag?.name ?? slugValue,
+      onRemove: () =>
+        setParams({
+          tags:
+            activeTagSlugs.filter((s2) => s2 !== slugValue).join(",") || undefined,
+        }),
+    });
+  }
   if (inStock)
     chips.push({
       key: "stock",
@@ -156,17 +223,32 @@ function CollectionInner({
     });
   const clearAll = () =>
     setParams({
+      // `categoryId` is absent on a path page — clearing it there is a no-op,
+      // and the collection itself is the route, not a filter to drop.
       categoryId: undefined,
       brandId: undefined,
+      tags: undefined,
       minPrice: undefined,
       maxPrice: undefined,
       inStock: undefined,
     });
 
-  // A brand-only filter turns the page into that brand's landing page.
-  const heading = activeBrand && !activeCat ? activeBrand.name : (activeCat?.name ?? t.allProducts);
+  // A path page is named by its collection; otherwise a brand-only filter turns
+  // the page into that brand's landing page.
+  const heading =
+    collection?.name ??
+    (activeBrand && !activeCat ? activeBrand.name : (activeCat?.name ?? t.allProducts));
   const panel = (
-    <FilterPanel categories={cats} brands={brandList} filters={filters} onChange={setParams} />
+    <FilterPanel
+      categories={cats}
+      brands={brandList}
+      tags={tagList}
+      filters={filters}
+      onChange={setParams}
+      // The collection is the URL here, so offering it as a facet would let a
+      // shopper filter themselves off the page they are standing on.
+      hideCategories={!!categoryPath}
+    />
   );
 
   const gridClass = variant === "grid3" || variant === "sidebar" ? "sf-grid-3" : "sf-grid-4";
@@ -273,13 +355,16 @@ function CollectionInner({
 
 export default function CollectionPage({
   initialProducts,
+  collection,
 }: {
   initialProducts?: ProductListResult;
+  /** Set by the `/{category}/{sub?}` route; absent on the bare `/products` page. */
+  collection?: CatalogCategoryDetail;
 }) {
   const { t } = useStorefrontUI();
   return (
     <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>
-      <CollectionInner initialProducts={initialProducts} />
+      <CollectionInner initialProducts={initialProducts} collection={collection} />
     </Suspense>
   );
 }

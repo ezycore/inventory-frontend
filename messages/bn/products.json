@@ -27,7 +27,8 @@
       "brand": "ব্র্যান্ড",
       "type": "ধরন",
       "price": "মূল্য",
-      "status": "স্ট্যাটাস"
+      "status": "স্ট্যাটাস",
+      "tags": "ট্যাগ"
     },
     "filters": {
       "searchLabel": "পণ্য খুঁজুন",
@@ -40,7 +41,9 @@
       "statusPlaceholder": "সব স্ট্যাটাস",
       "statusActive": "সক্রিয়",
       "statusInactive": "নিষ্ক্রিয়",
-      "statusArchived": "আর্কাইভড"
+      "statusArchived": "আর্কাইভড",
+      "tagsLabel": "ট্যাগ",
+      "tagsPlaceholder": "যেকোনো ট্যাগ"
     },
     "stats": {
       "total": "মোট পণ্য",
@@ -145,7 +148,11 @@
       "expiryDateTooltip": "প্রারম্ভিক-স্টক ব্যাচের মেয়াদের তারিখ। এই পণ্যের মেয়াদ ট্র্যাকিং চালু থাকলেই প্রযোজ্য।",
       "images": "পণ্যের ছবি",
       "imagesDropzone": "বর্গাকার ১৬০০ × ১৬০০ px সবচেয়ে ভালো কাজ করে · PNG, JPG, WEBP সর্বোচ্চ ৫MB · সর্বোচ্চ ৫টি ছবি",
-      "hasExpiryTooltip": "স্টককে মেয়াদের তারিখসহ ব্যাচে রাখে, ফলে আগে-মেয়াদ-শেষ স্টক আগে বিক্রি হয় এবং মেয়াদ সতর্কতায় দেখায়। পরে এটি বন্ধ করতে হলে প্রতিটি লোকেশনে পণ্যটির স্টক শূন্য হতে হবে — স্টকসহ ব্যাচ ফেলে রাখা যাবে না।"
+      "hasExpiryTooltip": "স্টককে মেয়াদের তারিখসহ ব্যাচে রাখে, ফলে আগে-মেয়াদ-শেষ স্টক আগে বিক্রি হয় এবং মেয়াদ সতর্কতায় দেখায়। পরে এটি বন্ধ করতে হলে প্রতিটি লোকেশনে পণ্যটির স্টক শূন্য হতে হবে — স্টকসহ ব্যাচ ফেলে রাখা যাবে না।",
+      "subcategory": "উপ-বিভাগ",
+      "subcategoryPlaceholder": "উপ-বিভাগ বাছুন",
+      "tags": "ট্যাগ",
+      "tagsPlaceholder": "ট্যাগ যোগ করুন"
     },
     "taxType": {
       "inclusive": "অন্তর্ভুক্ত",
@@ -386,6 +393,61 @@
       "updatedOn": "আপডেট: {date}"
     }
   },
+  "tags": {
+    "page": {
+      "title": "ট্যাগ",
+      "subtitle": "পণ্যের উপর দেওয়া লেবেল — এগুলো দিয়ে ফিল্টার করুন, ক্যাম্পেইন চালান।",
+      "allTagsTitle": "সব ট্যাগ ({count})",
+      "searchPlaceholder": "নাম দিয়ে ট্যাগ খুঁজুন"
+    },
+    "columns": {
+      "name": "ট্যাগ",
+      "description": "বিবরণ",
+      "products": "পণ্য",
+      "productsCount": "{count}টি পণ্য",
+      "status": "স্ট্যাটাস",
+      "createdDate": "তৈরির তারিখ"
+    },
+    "filters": {
+      "searchLabel": "ট্যাগ খুঁজুন",
+      "searchPlaceholder": "ট্যাগ দিয়ে খুঁজুন...",
+      "statusLabel": "স্ট্যাটাস",
+      "statusPlaceholder": "সব স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়",
+      "createdDateLabel": "তৈরির তারিখ",
+      "createdDatePlaceholder": "তারিখের পরিসর বাছুন"
+    },
+    "form": {
+      "name": "ট্যাগের নাম",
+      "namePlaceholder": "যেমন: ঈদ স্পেশাল",
+      "description": "বিবরণ",
+      "descriptionPlaceholder": "এই ট্যাগটি কী কাজে",
+      "color": "রং",
+      "colorPlaceholder": "চিপের রং বাছুন",
+      "status": "স্ট্যাটাস",
+      "statusActive": "সক্রিয়",
+      "statusInactive": "নিষ্ক্রিয়"
+    },
+    "stats": {
+      "total": "মোট ট্যাগ",
+      "totalDescription": "আপনার তৈরি সব ট্যাগ",
+      "active": "সক্রিয় ট্যাগ",
+      "activeDescription": "এখন সক্রিয়",
+      "inactive": "নিষ্ক্রিয় ট্যাগ",
+      "inactiveDescription": "এখন নিষ্ক্রিয়",
+      "taggedProducts": "ট্যাগ করা পণ্য",
+      "taggedProductsDescription": "অন্তত একটি ট্যাগ আছে এমন পণ্য"
+    },
+    "card": {
+      "noDescription": "-",
+      "productsCount": "{count}টি পণ্য",
+      "edit": "সম্পাদনা",
+      "delete": "মুছুন",
+      "createdOn": "তৈরি {date}",
+      "updatedOn": "হালনাগাদ {date}"
+    }
+  },
   "categories": {
     "page": {
       "title": "ক্যাটাগরি",
@@ -400,7 +462,10 @@
       "productsCount": "{count}টি পণ্য",
       "status": "স্ট্যাটাস",
       "createdDate": "তৈরির তারিখ",
-      "updatedDate": "আপডেটের তারিখ"
+      "updatedDate": "আপডেটের তারিখ",
+      "parent": "প্যারেন্ট",
+      "topLevel": "শীর্ষ স্তর",
+      "subcategory": "উপ-বিভাগ"
     },
     "filters": {
       "searchLabel": "ক্যাটাগরি খুঁজুন",
@@ -412,7 +477,9 @@
       "createdDateLabel": "তৈরির তারিখ",
       "createdDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন",
       "updatedDateLabel": "আপডেটের তারিখ",
-      "updatedDatePlaceholder": "তারিখ নির্বাচন করুন"
+      "updatedDatePlaceholder": "তারিখ নির্বাচন করুন",
+      "parentLabel": "প্যারেন্ট ক্যাটাগরি",
+      "parentPlaceholder": "সব ক্যাটাগরি"
     },
     "form": {
       "name": "ক্যাটাগরির নাম",
@@ -429,7 +496,10 @@
       "isDefaultDescription": "নতুন পণ্য ফর্মে আগে থেকে নির্বাচিত থাকবে",
       "defaultTax": "ডিফল্ট ভ্যাট হার",
       "defaultTaxPlaceholder": "প্রতিষ্ঠানের ডিফল্ট ব্যবহার করুন",
-      "defaultTaxHint": "এই ক্যাটাগরির নতুন পণ্যে ক্রয় ও বিক্রয় — দুই দিকেই আগে থেকে বসানো হবে। বিদ্যমান পণ্যের হার কখনও বদলায় না।"
+      "defaultTaxHint": "এই ক্যাটাগরির নতুন পণ্যে ক্রয় ও বিক্রয় — দুই দিকেই আগে থেকে বসানো হবে। বিদ্যমান পণ্যের হার কখনও বদলায় না।",
+      "parent": "প্যারেন্ট ক্যাটাগরি",
+      "parentPlaceholder": "কোনোটি নয় — এটি একটি শীর্ষ স্তরের ক্যাটাগরি",
+      "parentHint": "শীর্ষ স্তরের ক্যাটাগরির জন্য খালি রাখুন। প্যারেন্ট বাছলে এটি উপ-বিভাগ হবে, ঠিকানা /প্যারেন্ট/এটি।"
     },
     "stats": {
       "total": "মোট ক্যাটাগরি",

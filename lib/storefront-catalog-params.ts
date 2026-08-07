@@ -17,6 +17,14 @@ export const PRODUCTS_PAGE_SIZE = 12;
 export interface CatalogSearchParams {
   categoryId?: string;
   brandId?: string;
+  /**
+   * Comma-joined tag SLUGS, OR-combined.
+   *
+   * ONE param holding a list, not a repeated `?tag=` — `one()` below takes the
+   * first of an array, so a repeated param would silently drop every tag but the
+   * first, and the SSR seed and the client would then disagree about the key.
+   */
+  tags?: string;
   minPrice?: string;
   maxPrice?: string;
   inStock?: string;
@@ -32,6 +40,7 @@ export function catalogSearchParams(
   return {
     categoryId: one(raw.categoryId),
     brandId: one(raw.brandId),
+    tags: one(raw.tags),
     minPrice: one(raw.minPrice),
     maxPrice: one(raw.maxPrice),
     inStock: one(raw.inStock),
@@ -50,6 +59,7 @@ export function catalogInfiniteParams(sp: CatalogSearchParams) {
   return {
     categoryId: sp.categoryId || undefined,
     brandId: sp.brandId || undefined,
+    tags: sp.tags || undefined,
     minPrice: sp.minPrice || undefined,
     maxPrice: sp.maxPrice || undefined,
     inStock: sp.inStock === "1" ? "1" : undefined,
@@ -75,7 +85,14 @@ export function catalogQueryParams(sp: CatalogSearchParams, page = 1) {
  */
 export function isIndexableCatalogUrl(sp: CatalogSearchParams): boolean {
   if (sp.minPrice || sp.maxPrice || sp.inStock || sp.sort) return false;
-  return !(sp.categoryId && sp.brandId);
+  // Tag facets combine without limit and every combination is the same product
+  // set re-sliced — exactly the case the rule above exists for.
+  if (sp.tags) return false;
+  // `?categoryId=` is no longer a landing page: a collection's canonical URL is
+  // its PATH (`/phones`), and two URLs claiming the same page compete. The query
+  // form still works for anyone holding an old link; it just isn't indexed.
+  if (sp.categoryId) return false;
+  return true;
 }
 
 /**
@@ -85,7 +102,34 @@ export function isIndexableCatalogUrl(sp: CatalogSearchParams): boolean {
  * because `isIndexableCatalogUrl` already rejected those URLs.
  */
 export function catalogCanonicalQuery(sp: CatalogSearchParams): string {
-  if (sp.categoryId) return `?categoryId=${encodeURIComponent(sp.categoryId)}`;
+  // Brand only: a category facet is never indexable now (its path page is), so
+  // it can never reach this function.
   if (sp.brandId) return `?brandId=${encodeURIComponent(sp.brandId)}`;
   return "";
+}
+
+/**
+ * The URL params for a category PATH page (`/phones`, `/phones/accessories`).
+ *
+ * `categoryPath` replaces `categoryId` — the backend resolves it and picks the
+ * right field to match on, which is what makes a parent page include its
+ * children's products. Everything else (tags, price, stock, sort) still applies
+ * on top, so a shopper can filter within a collection.
+ */
+export function categoryPathQueryParams(
+  categoryPath: string,
+  sp: CatalogSearchParams,
+  page = 1,
+) {
+  const { categoryId: _categoryId, ...rest } = catalogInfiniteParams(sp);
+  return { ...rest, categoryPath, page };
+}
+
+/** Infinite-scroll variant of the above — same params, minus the page cursor. */
+export function categoryPathInfiniteParams(
+  categoryPath: string,
+  sp: CatalogSearchParams,
+) {
+  const { categoryId: _categoryId, ...rest } = catalogInfiniteParams(sp);
+  return { ...rest, categoryPath };
 }

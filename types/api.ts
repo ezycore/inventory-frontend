@@ -40,6 +40,10 @@ export type ApiBrand = Schemas["Brand"];
 export type BrandListItem = Schemas["BrandListItem"];
 export type ApiCategory = Schemas["Category"];
 export type CategoryListItem = Schemas["CategoryListItem"];
+/** One node of `GET /categories/tree` — a parent with its `children[]`. */
+export type CategoryTreeNode = Schemas["CategoryTreeNode"];
+export type ApiTag = Schemas["Tag"];
+export type TagListItem = Schemas["TagListItem"];
 /** Result of re-pointing a category's products at its default VAT rate. */
 export type CategoryApplyTaxResult = Schemas["CategoryApplyTax"];
 export type ApiUnit = Schemas["Unit"];

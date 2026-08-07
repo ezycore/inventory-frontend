@@ -45,6 +45,7 @@ import {
   primaryLink,
 } from "@/components/storefront/checkout/checkout-bits";
 import { OrderPlacedCard } from "@/components/storefront/checkout/order-placed-card";
+import { GuestNotice } from "@/components/storefront/checkout/guest-notice";
 import { CheckoutAddressBook } from "@/components/storefront/checkout/checkout-address-book";
 import {
   GeoPicker,
@@ -415,18 +416,9 @@ export default function CheckoutPage() {
                 </>
               ) : null}
               {/* An OFFER, not a step. Signing in prefills saved addresses and
-                  files the order under the account; skipping it costs nothing. */}
-              {!shopper ? (
-                <div style={{ fontSize: 13, marginBottom: 14 }}>
-                  {t.haveAccount}{" "}
-                  <Link
-                    href={storeHref(base, "/account?next=/checkout")}
-                    style={{ textDecoration: "underline" }}
-                  >
-                    {t.signIn}
-                  </Link>
-                </div>
-              ) : null}
+                  files the order under the account; skipping it costs nothing —
+                  the notice just says what "skipping it" means. */}
+              {!shopper ? <GuestNotice base={base} t={t} /> : null}
               <div style={label}>{isPickup ? t.pickupHeading : t.deliveryAddress}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
                 <input style={input} placeholder={t.fullName} value={addr.name} onChange={(e) => set("name", e.target.value)} />

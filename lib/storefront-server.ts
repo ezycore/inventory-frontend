@@ -20,9 +20,11 @@ import type {
   CatalogProduct,
   ContentPageLink,
   ContentPageView,
+  CatalogCategoryDetail,
   ProductListResult,
   StoreCampaign,
   StorefrontStore,
+  StoreTag,
 } from "@/lib/storefront-client";
 
 const API_BASE =
@@ -70,6 +72,21 @@ export const getStoreProduct = (slug: string, productSlug: string) =>
 export const getStoreCategories = (slug: string) =>
   sf<CatalogCategory[]>(slug, "/categories", 300);
 
+/**
+ * Resolve a collection path (`phones`, `phones/accessories`) to the category
+ * plus its breadcrumb parent. `null` when the path is unknown OR sits under a
+ * hidden parent — the page 404s on either.
+ */
+export const getStoreCategoryByPath = (slug: string, path: string) =>
+  sf<CatalogCategoryDetail>(
+    slug,
+    `/categories/resolve${query({ path })}`,
+    300,
+  );
+
+export const getStoreTags = (slug: string) =>
+  sf<StoreTag[]>(slug, "/tags", 300);
+
 export const getStoreCampaigns = (slug: string) =>
   sf<StoreCampaign[]>(slug, "/campaigns", 60);
 
@@ -87,7 +104,8 @@ export const getStorePage = (slug: string, pageSlug: string) =>
  */
 export interface StorefrontSitemap {
   products: { slug: string; updatedAt?: string }[];
-  collections: { id: string }[];
+  /** Collection PATHS (`phones`, `phones/accessories`) — both levels. */
+  collections: { path: string }[];
   brands: { id: string }[];
   pages: { slug: string; updatedAt?: string }[];
 }

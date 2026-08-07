@@ -1,0 +1,111 @@
+// coding-standard: maintained
+import { DynamicFormConfig } from "@/ui/components/form/type";
+import type { Translator } from "@/i18n/config";
+
+/**
+ * Tag form.
+ *
+ * Shorter than brand/category on purpose: a tag is a chip, so there is no image
+ * and no `isDefault` — a default tag would silently label the whole catalog,
+ * which is not what a label means.
+ */
+const COLOR_PRESETS = [
+  { value: "#2563eb", label: "Blue" },
+  { value: "#16a34a", label: "Green" },
+  { value: "#dc2626", label: "Red" },
+  { value: "#7c3aed", label: "Purple" },
+  { value: "#ea580c", label: "Orange" },
+  { value: "#0891b2", label: "Teal" },
+  { value: "#57534e", label: "Grey" },
+];
+
+/**
+ * Static English config — `config/quickAddConfig.ts` and the settings/fields
+ * visibility tool run at module scope and cannot call `useTranslations`. The
+ * Tags page itself uses `getTagFormConfig(t)`.
+ */
+export const tagFormConfig: DynamicFormConfig = {
+  fields: [
+    {
+      name: "name",
+      type: "input",
+      label: "Tag Name",
+      placeholder: "e.g. Eid Special",
+      required: true,
+      columnSpan: 12,
+      validation: { minLength: 1, maxLength: 50 },
+    },
+    {
+      name: "description",
+      type: "textarea",
+      label: "Description",
+      placeholder: "What this tag is for",
+      rows: 2,
+      columnSpan: 12,
+      validation: { maxLength: 200 },
+    },
+    {
+      name: "color",
+      type: "select",
+      label: "Colour",
+      placeholder: "Pick a chip colour",
+      columnSpan: 12,
+      options: COLOR_PRESETS,
+    },
+    {
+      name: "status",
+      type: "select",
+      label: "Status",
+      required: true,
+      columnSpan: 12,
+      defaultValue: "active",
+      options: [
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
+    },
+  ],
+};
+
+export const getTagFormConfig = (t: Translator): DynamicFormConfig => ({
+  fields: [
+    {
+      name: "name",
+      type: "input",
+      label: t("form.name"),
+      placeholder: t("form.namePlaceholder"),
+      required: true,
+      columnSpan: 12,
+      validation: { minLength: 1, maxLength: 50 },
+    },
+    {
+      name: "description",
+      type: "textarea",
+      label: t("form.description"),
+      placeholder: t("form.descriptionPlaceholder"),
+      rows: 2,
+      columnSpan: 12,
+      validation: { maxLength: 200 },
+    },
+    {
+      name: "color",
+      type: "select",
+      label: t("form.color"),
+      placeholder: t("form.colorPlaceholder"),
+      columnSpan: 12,
+      options: COLOR_PRESETS,
+    },
+    {
+      name: "status",
+      type: "select",
+      label: t("form.status"),
+      required: true,
+      columnSpan: 12,
+      defaultValue: "active",
+      options: [
+        { value: "active", label: t("form.statusActive") },
+        { value: "inactive", label: t("form.statusInactive") },
+      ],
+    },
+  ],
+});

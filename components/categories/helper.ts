@@ -16,6 +16,10 @@ export const prepareSubmitData = (
   // category's default VAT rate gets cleared. Omitting the key would mean
   // "leave unchanged" and the rate could never be removed once set.
   formData.append("defaultTaxId", data.defaultTaxId ?? "");
+  // Always sent, including empty, for the same reason as defaultTaxId above: the
+  // validator maps "" to null, which is how a sub-category is promoted back to
+  // top level. Omitting the key would mean "leave unchanged".
+  formData.append("parentId", (data as { parentId?: string }).parentId ?? "");
   if (data.description) {
     formData.append("description", data.description);
   }

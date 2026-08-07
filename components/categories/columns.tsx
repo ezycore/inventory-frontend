@@ -32,6 +32,36 @@ export const getCategoryColumns = (t: Translator): ColumnDef<Category>[] => [
     ),
   },
   {
+    // A sub-category is otherwise indistinguishable from a top-level one in a
+    // flat table, and the two behave differently (no default flag, no own VAT
+    // rate, a two-segment URL). The level chip says which this is at a glance.
+    accessorKey: "parentId",
+    header: t("columns.parent"),
+    cell: ({ row }) => {
+      // `parentId` says WHETHER this is a sub-category; `parent` carries the
+      // name to show. They are two fields on purpose — the edit form binds its
+      // parent select to the raw id, so the backend cannot populate it in place.
+      // `parent` is a plain lookup that can miss (a parent deleted out from
+      // under a child), hence the generic label as a fallback rather than a gap.
+      const { parentId, parent } = row.original as typeof row.original & {
+        parent?: { name?: string } | null;
+      };
+
+      if (!parentId) {
+        return (
+          <Badge variant="secondary" className="text-xs">
+            {t("columns.topLevel")}
+          </Badge>
+        );
+      }
+      return (
+        <span className="text-sm text-muted-foreground">
+          {parent?.name ?? t("columns.subcategory")}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: "productCount",
     header: t("columns.products"),
     cell: ({ row }) => (

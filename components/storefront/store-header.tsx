@@ -11,7 +11,7 @@ import type {
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { resolveHeaderMenu, resolveTemplates } from "@/lib/storefront-templates";
-import { storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
@@ -80,7 +80,7 @@ function headerLinks(ctx: HeaderCtx): { key: string; label: string; href: string
     : cats.map((c) => ({
         key: c._id,
         label: c.name,
-        href: storeHref(base, `/products?categoryId=${c._id}`),
+        href: collectionHref(base, c),
       }));
 }
 
@@ -356,7 +356,7 @@ function CategoryRow({ ctx, center }: { ctx: HeaderCtx; center?: boolean }) {
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "0 var(--pad) 11px", display: "flex", gap: 22, overflowX: "auto", justifyContent: center ? "center" : "flex-start" }}>
       {cats.map((c) => (
-        <Link key={c._id} href={storeHref(base, `/products?categoryId=${c._id}`)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
+        <Link key={c._id} href={collectionHref(base, c)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
           {c.name}
         </Link>
       ))}

@@ -27,6 +27,8 @@ question is "what would a shopkeeper call this?", not "what is the correct Bangl
 | Opening Stock | প্রারম্ভিক স্টক | mixed | |
 | Low Stock | স্টক কম | mixed | |
 | Out of Stock | স্টক নেই | mixed | |
+| Reserved (stock) | রিজার্ভ | transliterate | held for a confirmed online order; সংরক্ষিত reads formal/archival — REVIEW |
+| Available / Sellable | বিক্রয়যোগ্য | translate | on-hand minus reserved — what can still be sold; উপলব্ধ alt — REVIEW |
 | Purchase | ক্রয় | translate | standard accounting term |
 | Sale / Sell | বিক্রয় | translate | বিক্রি in casual UI copy is fine |
 | Return | ফেরত | translate | goods return |

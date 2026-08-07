@@ -48,6 +48,7 @@ export const storefront = {
     ["storefront", slug, "product", productSlug] as const,
   categories: (slug: string) => ["storefront", slug, "categories"] as const,
   brands: (slug: string) => ["storefront", slug, "brands"] as const,
+  tags: (slug: string) => ["storefront", slug, "tags"] as const,
   campaigns: (slug: string) => ["storefront", slug, "campaigns"] as const,
   pages: (slug: string) => ["storefront", slug, "pages"] as const,
   page: (slug: string, pageSlug: string) =>
@@ -178,6 +179,15 @@ export const useStoreBrands = (slug: string) =>
   useQuery({
     queryKey: storefront.brands(slug),
     queryFn: () => storefrontApi.listBrands(slug),
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
+  });
+
+/** The public tag facet. Curated server-side, so an empty list means "no tags in use". */
+export const useStoreTags = (slug: string) =>
+  useQuery({
+    queryKey: storefront.tags(slug),
+    queryFn: () => storefrontApi.listTags(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
   });

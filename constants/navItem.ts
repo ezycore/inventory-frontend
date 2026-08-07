@@ -225,6 +225,7 @@ export const navGroups: NavGroup[] = [
           { title: "Products", url: "/products", icon: "list" },
           { title: "Categories", url: "/categories", icon: "tag" },
           { title: "Brands", url: "/brands", icon: "star" },
+          { title: "Tags", url: "/tags", icon: "tag" },
           { title: "Variants", url: "/variants", icon: "layers" },
           { title: "Units", url: "/units", icon: "grid" },
         ],

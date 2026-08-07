@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import { storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
@@ -101,7 +101,7 @@ export function Classic(props: TplProps) {
               return (
                 <Link
                   key={c._id}
-                  href={storeHref(base, `/products?categoryId=${c._id}`)}
+                  href={collectionHref(base, c)}
                   style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: 84 }}
                 >
                   {/* Category image when the merchant set one; initial chip is the fallback. */}

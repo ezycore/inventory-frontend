@@ -62,6 +62,29 @@ function buildAutoFillHandler(ctx: FieldRenderContext) {
   };
 }
 
+/**
+ * Reset the fields this one invalidates when it changes (`clearFieldsOnChange`).
+ *
+ * Deliberately NOT part of `buildAutoFillHandler`: that one also runs `onMount`,
+ * and clearing a dependent field while an EDIT form is hydrating would wipe the
+ * stored value before the user touched anything. This runs on change only.
+ */
+function buildClearHandler(ctx: FieldRenderContext) {
+  const { field, watch, setValue, onFieldChange } = ctx;
+  return () => {
+    const targets = field.clearFieldsOnChange;
+    if (!targets?.length) return;
+    const allValues = watch();
+    targets.forEach((targetField) => {
+      setValue(targetField, undefined, {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+      if (onFieldChange) onFieldChange(targetField, undefined, allValues);
+    });
+  };
+}
+
 // Form and filter bar choose between the plain and searchable select the same
 // way — the heuristic lives once in select-strategy.ts.
 function shouldUseSearch(field: FormFieldConfig): boolean {
@@ -87,14 +110,22 @@ function renderAdvancedSelect(
       control={control}
       render={({ field: controllerField }) => {
         const resolvedOptionsApi = resolveOptionsApi(ctx);
-        const { dependsOn, autoFillFields, copyValueTo, ...selectProps } = field;
+        const {
+          dependsOn,
+          autoFillFields,
+          copyValueTo,
+          clearFieldsOnChange,
+          ...selectProps
+        } = field;
         const handleAutoFill = buildAutoFillHandler(ctx);
+        const handleClear = buildClearHandler(ctx);
         return (
           <Component
             value={controllerField.value}
             onMount={(mountedValue) => handleAutoFill(mountedValue)}
             onValueChange={(value) => {
               controllerField.onChange(value);
+              handleClear();
               handleChange(value);
               if (field.onValueChange) field.onValueChange(value);
             }}

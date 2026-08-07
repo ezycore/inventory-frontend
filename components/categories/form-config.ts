@@ -16,12 +16,44 @@ export const TAX_OPTIONS_API = selectOptions("taxes", {
 });
 
 /**
+ * Top-level categories only — a sub-category cannot itself be a parent (the tree
+ * is exactly two levels), so offering one here would only produce a rejected
+ * save. `parentId=null` is the backend's "top level only" filter.
+ */
+export const PARENT_CATEGORY_OPTIONS_API = selectOptions("categories", {
+  parentId: "null",
+  status: "active",
+  fields: "_id,name",
+});
+
+/**
+ * `isDefault` and `defaultTaxId` are meaningless on a sub-category: only a
+ * top-level category can be the org default, and a child inherits its parent's
+ * VAT rate when it has none of its own. Shown only while no parent is selected.
+ */
+const TOP_LEVEL_ONLY = {
+  field: "parentId",
+  condition: "falsy",
+  action: "show",
+} as const;
+
+/**
  * Static English config — used by the module-scope quick-add registry and the
  * settings/fields field-visibility tool, neither of which can call
  * `useTranslations`. The real Categories page uses `getCategoryFormConfig(t)`.
  */
 export const categoryFormConfig: DynamicFormConfig = {
   fields: [
+    {
+      name: "parentId",
+      type: "select",
+      label: "Parent category",
+      placeholder: "None — this is a top-level category",
+      columnSpan: 12,
+      optionsApi: PARENT_CATEGORY_OPTIONS_API,
+      helperText:
+        "Leave empty for a top-level category. Picking a parent makes this a sub-category, reachable at /parent/this-one.",
+    },
     {
       name: "name",
       type: "input",
@@ -72,12 +104,14 @@ export const categoryFormConfig: DynamicFormConfig = {
       description: "Pre-selected on new product forms",
       columnSpan: 12,
       defaultValue: false,
+      dependsOn: TOP_LEVEL_ONLY,
     },
     {
       name: "defaultTaxId",
       type: "select",
       label: "Default VAT rate",
       columnSpan: 12,
+      dependsOn: TOP_LEVEL_ONLY,
       optionsApi: TAX_OPTIONS_API,
       placeholder: "Use the organization default",
       helperText:
@@ -88,6 +122,15 @@ export const categoryFormConfig: DynamicFormConfig = {
 
 export const getCategoryFormConfig = (t: Translator): DynamicFormConfig => ({
   fields: [
+    {
+      name: "parentId",
+      type: "select",
+      label: t("form.parent"),
+      placeholder: t("form.parentPlaceholder"),
+      columnSpan: 12,
+      optionsApi: PARENT_CATEGORY_OPTIONS_API,
+      helperText: t("form.parentHint"),
+    },
     {
       name: "name",
       type: "input",
@@ -138,12 +181,14 @@ export const getCategoryFormConfig = (t: Translator): DynamicFormConfig => ({
       description: t("form.isDefaultDescription"),
       columnSpan: 12,
       defaultValue: false,
+      dependsOn: TOP_LEVEL_ONLY,
     },
     {
       name: "defaultTaxId",
       type: "select",
       label: t("form.defaultTax"),
       columnSpan: 12,
+      dependsOn: TOP_LEVEL_ONLY,
       optionsApi: TAX_OPTIONS_API,
       placeholder: t("form.defaultTaxPlaceholder"),
       helperText: t("form.defaultTaxHint"),

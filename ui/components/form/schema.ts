@@ -297,7 +297,20 @@ export const generateSchemaFromConfig = (
         fieldSchema = fieldSchema.min(1, `${field.label} is required`);
       }
     } else if (!field.required) {
-      fieldSchema = fieldSchema.optional();
+      // `.nullish()`, not `.optional()`. An edit form is prefilled from an API
+      // row, and a nullable column arrives **present-and-null**, not absent —
+      // Mongoose writes an explicit `null` for any path with `default: null`
+      // (e.g. `Category.parentId`). `.optional()` accepts only `undefined`, so
+      // such a row failed validation with Zod's raw "Invalid input: expected
+      // string, received null" and the form could never be submitted again.
+      //
+      // The trap is that it hides until a row has been written *since* the
+      // nullable field was added: older documents omit the key entirely, so they
+      // pass, and the very first save is what makes the record un-editable.
+      //
+      // For an optional field `null` and `undefined` both mean "no value", which
+      // is already how the number branch above treats them.
+      fieldSchema = fieldSchema.nullish();
     }
 
     placeFieldSchema(field.name, fieldSchema);

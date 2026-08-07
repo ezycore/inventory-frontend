@@ -253,16 +253,33 @@
     opacity: 1;
   }
 }
-/* Loading shimmer (SkeletonCard etc.) — theme-aware via surface tokens. */
+/* Loading shimmer (SkeletonCard, SkeletonLine) — theme-aware via surface tokens.
+   The RESTING colour is solid `--surface-2` and the sweep is a translucent
+   highlight over it, deliberately: the gradient used to run
+   `--surface → --surface-2 → --surface`, so on any panel already painted
+   `--surface` the bar matched its own background at both ends of the sweep and
+   blinked out of existence twice per cycle — invisible in dark mode, where the
+   two tokens are closest. A placeholder has to hold its shape even when the
+   animation is at rest (or switched off entirely, below). */
 .sf-skeleton {
-  background: linear-gradient(
+  background-color: var(--surface-2);
+  background-image: linear-gradient(
     90deg,
-    var(--surface) 25%,
-    var(--surface-2) 50%,
-    var(--surface) 75%
+    rgba(255, 255, 255, 0) 25%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 75%
   );
   background-size: 200% 100%;
   animation: ezShimmer 1.4s ease-in-out infinite;
+}
+/* A white sweep at light-mode strength glares on a near-black page. */
+.sf-root[data-theme="dark"] .sf-skeleton {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0) 75%
+  );
 }
 @keyframes ezShimmer {
   from {
@@ -270,6 +287,15 @@
   }
   to {
     background-position: -200% 0;
+  }
+}
+/* A loading placeholder animates forever by definition, which is exactly the
+   kind of motion this setting asks us to stop. The bars stay — a still slab
+   still holds the layout — they just stop sweeping. */
+@media (prefers-reduced-motion: reduce) {
+  .sf-skeleton {
+    animation: none;
+    background-image: none;
   }
 }
 /* Social-link icon buttons (SocialLinks) — brand icons in every footer variant;
@@ -297,6 +323,13 @@
 @keyframes ezSpin {
   to {
     transform: rotate(360deg);
+  }
+}
+/* Slowed, not stopped: a frozen spinner reads as a hung page, and this is the
+   only thing on screen during a page-level wait. */
+@media (prefers-reduced-motion: reduce) {
+  .sf-spin {
+    animation-duration: 2.4s;
   }
 }
 @keyframes ezPop {

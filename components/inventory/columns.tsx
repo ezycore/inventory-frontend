@@ -82,6 +82,14 @@ export function getInventoryColumns(t: Translator): ColumnDef<Inventory>[] {
         const baseUnitLabel =
           lines[0]?.text.split(" ").slice(1).join(" ") || t("shared.unitsFallback");
         const unitName = row.original.unit?.shortName || "pcs";
+        // Stock held for confirmed online orders. The headline figure and the
+        // bar stay on PHYSICAL on-hand — that is what a stock count finds, and
+        // what the backend's own `isLowStock` is computed from — so the hold is
+        // surfaced beside it rather than folded into it. Without this line the
+        // sell page simply offers fewer units than this page shows, with nothing
+        // on either screen explaining the gap.
+        const reserved = row.original.reservedQuantity || 0;
+        const available = row.original.availableQuantity ?? quantity;
 
         return (
           <Tooltip>
@@ -122,11 +130,26 @@ export function getInventoryColumns(t: Translator): ColumnDef<Inventory>[] {
                   />
                 </div>
                 <p className={cn("text-[10px] font-medium", color)}>{statusLabel}</p>
+                {reserved > 0 && (
+                  <p className="text-[10px] text-muted-foreground tabular-nums">
+                    {t("columns.reservedSplit", {
+                      reserved: reserved.toLocaleString(),
+                      available: available.toLocaleString(),
+                      unit: unitName,
+                    })}
+                  </p>
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent>
               <div className="text-xs space-y-1">
                 <p>{t("columns.tooltipCurrent", { quantity: quantity.toLocaleString(), unit: baseUnitLabel })}</p>
+                {reserved > 0 && (
+                  <>
+                    <p>{t("columns.tooltipReserved", { quantity: reserved.toLocaleString(), unit: baseUnitLabel })}</p>
+                    <p>{t("columns.tooltipAvailable", { quantity: available.toLocaleString(), unit: baseUnitLabel })}</p>
+                  </>
+                )}
                 <p>{t("columns.tooltipAlertThreshold", { level: alertLevel, unit: baseUnitLabel })}</p>
                 <p>{t("columns.tooltipStatus", { status: statusLabel })}</p>
               </div>

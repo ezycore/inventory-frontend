@@ -162,7 +162,16 @@ export default function InvoicePage() {
       </div>
     );
   }
-  if (isLoading) return <p style={{ ...wrapStyle, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
+  // The same splash as the hydration gate above it — one screen, one wait, one
+  // visual. The invoice itself renders inside an opaque iframe, so there is no
+  // honest shape to skeleton here.
+  if (isLoading) {
+    return (
+      <div style={wrapStyle}>
+        <LoadingSplash />
+      </div>
+    );
+  }
   if (isError || !order) {
     return (
       <div style={wrapStyle}>

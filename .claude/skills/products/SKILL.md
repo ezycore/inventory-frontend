@@ -33,6 +33,26 @@ A **Product** is one of **three** types:
 
 Multi-tenant: every doc is scoped by `organizationId`. Never trust org/loc from the request body.
 
+### Taxonomy: category → sub-category, plus tags (2026-08-06)
+
+A product carries `categoryId` **+ optional `subcategoryId`**, and `tagIds[]`. The rule the whole
+frontend has to respect:
+
+> **`categoryId` is always the TOP-LEVEL category**, never the child.
+
+So the product form's category select MUST filter to `parentId: "null"` (it does — see
+`CATEGORY_OPTIONS_API`). Offering a sub-category there produces a product the backend rejects with
+`PRODUCT_SUBCATEGORY_MISMATCH`. The sub-category select is dependent: its `optionsApi` carries a
+`{{value}}` template resolved from the chosen category, and the category field declares
+`clearFieldsOnChange: ["subcategoryId"]` so a category change cannot leave a stale pair behind.
+
+Tags are a `select` with `mode: "multiple"` — no new field type. Filtering by tags is **OR**
+(`?tags=a,b` matches a product carrying either).
+
+Full behaviour, the invariant table and the merchant-facing rules:
+[`docs/features/catalog-taxonomy.md`](../../../../inventory-backend/docs/features/catalog-taxonomy.md)
+in the backend repo, and its `products` skill §2a.
+
 ---
 
 ## 2. The Backend Contract
@@ -203,3 +223,8 @@ If the returned variant lacks `enableUOMConversion`/`purchaseUnit`/`saleUnit` �
 - Don't inline query keys for products — always `queryKeys.products.*`.
 - Don't change the response envelope shape — frontend depends on `{ success, data, message, meta }`.
 - Don't add `/v1` to FE product API paths.
+- **Don't drop `parentId: "null"` from `CATEGORY_OPTIONS_API`.** It is what keeps a sub-category out
+  of the product's category select. `use-category-vat-prefill` reads the same constant, so the two
+  share one cache entry — change it in one place only.
+- Don't add a free-text tag input. Tags are a managed resource (`/tags`) so a rename propagates;
+  a string-array version existed as dead code and was deleted 2026-08-06.
