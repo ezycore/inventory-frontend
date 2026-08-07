@@ -9582,6 +9582,8 @@ export interface components {
             _id: string;
             name: string;
             slug?: string;
+            slugPath?: string;
+            parentId?: string | null;
             status?: string;
             storefront?: {
                 isListed?: boolean;
@@ -11287,6 +11289,7 @@ export interface components {
             description: string;
             featured: boolean;
             categoryId?: string | null;
+            subcategoryId?: string | null;
             productType: string;
             hasVariants: boolean;
             availableQuantity: number;
@@ -11330,6 +11333,7 @@ export interface components {
                 description: string;
                 featured: boolean;
                 categoryId?: string | null;
+                subcategoryId?: string | null;
                 productType: string;
                 hasVariants: boolean;
                 availableQuantity: number;

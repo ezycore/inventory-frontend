@@ -225,6 +225,12 @@ export interface CatalogProduct {
   description: string;
   featured: boolean;
   categoryId?: string;
+  /**
+   * The child collection, when the merchant set one. `categoryId` stays on the
+   * TOP-LEVEL category, so both are needed to place a product in the tree — see
+   * `categoryCrumbs` in `lib/storefront-breadcrumb.ts`.
+   */
+  subcategoryId?: string | null;
   productType: string;
   hasVariants?: boolean;
   availableQuantity: number;

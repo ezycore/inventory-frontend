@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
 import {
   useStore,
+  useStoreCategories,
   useStoreProduct,
   useStoreProducts,
 } from "@/services/storefront/hooks";
@@ -22,6 +23,8 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
 import { ProductGallery } from "@/components/storefront/product-gallery";
+import { Breadcrumb } from "@/components/storefront/breadcrumb";
+import { productCrumbs } from "@/lib/storefront-breadcrumb";
 import {
   VariantSelector,
   defaultSelection,
@@ -49,6 +52,13 @@ export default function ProductDetailPage({
   const productSlug = String(useParams().productSlug);
 
   const { data: store } = useStore(slug);
+  // Seeded by shop/layout.tsx through the shell, so the breadcrumb's category
+  // rungs are in the SSR HTML. That seeding was added because of this line: the
+  // query had no `initialData` at all, so the visible trail server-rendered as
+  // "Store › All products › Product" while the page's JSON-LD — built server-side
+  // from the same helper — already carried the real category trail. Two claims,
+  // one page, disagreeing until hydration.
+  const { data: categories } = useStoreCategories(slug);
   const {
     data: product,
     isLoading,
@@ -185,6 +195,20 @@ export default function ProductDetailPage({
 
   return (
     <div style={wrap}>
+      {/* Same crumbs as the page's BreadcrumbList JSON-LD — one builder, so the
+          visible trail and the structured data cannot disagree. */}
+      <Breadcrumb
+        base={base}
+        crumbs={productCrumbs({
+          storeName: store?.name ?? "",
+          productName: product.name,
+          productSlug,
+          categories: categories ?? [],
+          categoryId: product.categoryId,
+          subcategoryId: product.subcategoryId,
+          allProductsLabel: t.allProducts,
+        })}
+      />
       <div style={{ display: "grid", gridTemplateColumns: galleryTop ? "1fr" : "var(--pdpgrid)", gap: "clamp(22px,3vw,44px)", alignItems: "start" }}>
         <ProductGallery
           images={images}

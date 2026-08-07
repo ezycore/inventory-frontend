@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type {
+  CatalogCategory,
   ContentPageLink,
   StoreCampaign,
   StorefrontStore,
@@ -42,6 +43,7 @@ export function StoreShell({
   initialStore,
   initialPages,
   initialCampaigns,
+  initialCategories,
   children,
 }: {
   slug: string;
@@ -49,13 +51,15 @@ export function StoreShell({
   initialStore?: StorefrontStore;
   initialPages?: ContentPageLink[];
   initialCampaigns?: StoreCampaign[];
+  /** Seeded HERE and nowhere else — see the note on `useStoreCategories`. */
+  initialCategories?: CatalogCategory[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
   const { t } = useStorefrontUI();
 
   const { data: store, isError } = useStore(slug, initialStore);
-  const { data: fetchedCategories } = useStoreCategories(slug);
+  const { data: fetchedCategories } = useStoreCategories(slug, initialCategories);
   const previewBrand = useSfPreview((s) => s.brand);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewAnnouncement = useSfPreview((s) => s.announcement);

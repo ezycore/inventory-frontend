@@ -16,6 +16,12 @@ export const PRODUCTS_PAGE_SIZE = 12;
 /** The filter/sort params the collection page reads off the URL. */
 export interface CatalogSearchParams {
   categoryId?: string;
+  /**
+   * Narrows a `categoryId` facet to one of its children. Sent alongside the
+   * parent, never instead of it: a child's product carries BOTH ids, so the two
+   * AND-combine correctly and the parent row stays lit while the child is on.
+   */
+  subcategoryId?: string;
   brandId?: string;
   /**
    * Comma-joined tag SLUGS, OR-combined.
@@ -39,6 +45,7 @@ export function catalogSearchParams(
     (Array.isArray(v) ? v[0] : v) || "";
   return {
     categoryId: one(raw.categoryId),
+    subcategoryId: one(raw.subcategoryId),
     brandId: one(raw.brandId),
     tags: one(raw.tags),
     minPrice: one(raw.minPrice),
@@ -58,6 +65,7 @@ export function catalogSearchParams(
 export function catalogInfiniteParams(sp: CatalogSearchParams) {
   return {
     categoryId: sp.categoryId || undefined,
+    subcategoryId: sp.subcategoryId || undefined,
     brandId: sp.brandId || undefined,
     tags: sp.tags || undefined,
     minPrice: sp.minPrice || undefined,
@@ -91,7 +99,8 @@ export function isIndexableCatalogUrl(sp: CatalogSearchParams): boolean {
   // `?categoryId=` is no longer a landing page: a collection's canonical URL is
   // its PATH (`/phones`), and two URLs claiming the same page compete. The query
   // form still works for anyone holding an old link; it just isn't indexed.
-  if (sp.categoryId) return false;
+  // `?subcategoryId=` is the same URL one level down (`/phones/accessories`).
+  if (sp.categoryId || sp.subcategoryId) return false;
   return true;
 }
 
@@ -111,7 +120,7 @@ export function catalogCanonicalQuery(sp: CatalogSearchParams): string {
 /**
  * The URL params for a category PATH page (`/phones`, `/phones/accessories`).
  *
- * `categoryPath` replaces `categoryId` — the backend resolves it and picks the
+ * `categoryPath` replaces BOTH id facets — the backend resolves it and picks the
  * right field to match on, which is what makes a parent page include its
  * children's products. Everything else (tags, price, stock, sort) still applies
  * on top, so a shopper can filter within a collection.
@@ -121,7 +130,11 @@ export function categoryPathQueryParams(
   sp: CatalogSearchParams,
   page = 1,
 ) {
-  const { categoryId: _categoryId, ...rest } = catalogInfiniteParams(sp);
+  const {
+    categoryId: _categoryId,
+    subcategoryId: _subcategoryId,
+    ...rest
+  } = catalogInfiniteParams(sp);
   return { ...rest, categoryPath, page };
 }
 
@@ -130,6 +143,10 @@ export function categoryPathInfiniteParams(
   categoryPath: string,
   sp: CatalogSearchParams,
 ) {
-  const { categoryId: _categoryId, ...rest } = catalogInfiniteParams(sp);
+  const {
+    categoryId: _categoryId,
+    subcategoryId: _subcategoryId,
+    ...rest
+  } = catalogInfiniteParams(sp);
   return { ...rest, categoryPath };
 }

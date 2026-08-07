@@ -74,4 +74,38 @@ describe("expandHeaderMenu", () => {
       ).map((m) => m.label),
     ).toEqual(["About"]);
   });
+
+  // A merchant who picks their top links one by one never gets a `collections`
+  // block, and used to end up with a flat menu — sub-categories reachable only
+  // by landing on the parent first.
+  it("gives a hand-picked category item its sub-categories as a dropdown", () => {
+    const [led] = expandHeaderMenu(
+      [{ label: "Led", type: "category", value: "led" }],
+      cats,
+    );
+    expect(led.children).toEqual([
+      { label: "Strips", type: "url", value: "/led/strips" },
+    ]);
+  });
+
+  it("leaves an explicitly authored child list alone", () => {
+    // The merchant overrode the default; an inherited list would silently
+    // replace a deliberate choice.
+    const authored: StoreMenuItem = {
+      label: "Led",
+      type: "category",
+      value: "led",
+      children: [link("Only this")],
+    };
+    expect(expandHeaderMenu([authored], cats)[0].children).toEqual([
+      link("Only this"),
+    ]);
+  });
+
+  it("leaves a childless category item flat", () => {
+    const menu: StoreMenuItem[] = [
+      { label: "Hand Tools", type: "category", value: "hand-tools" },
+    ];
+    expect(expandHeaderMenu(menu, cats)[0].children).toBeUndefined();
+  });
 });

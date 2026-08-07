@@ -25,6 +25,12 @@ import {
 } from "@/components/storefront/filter-toolbar";
 import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { SideDrawer } from "@/components/storefront/side-drawer";
+import { Breadcrumb } from "@/components/storefront/breadcrumb";
+import {
+  SubcategoryStrip,
+  subcategoriesFor,
+} from "@/components/storefront/subcategory-strip";
+import type { Crumb } from "@/lib/storefront-breadcrumb";
 import { LoadMore } from "@/components/storefront/load-more";
 import { Pager } from "@/components/storefront/pager";
 import {
@@ -58,11 +64,13 @@ const wrap: CSSProperties = {
 function CollectionInner({
   initialProducts,
   collection,
+  crumbs,
 }: {
   initialProducts?: ProductListResult;
   collection?: CatalogCategoryDetail;
+  crumbs?: Crumb[];
 }) {
-  const { slug } = useStoreContext();
+  const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const router = useRouter();
   const pathname = usePathname();
@@ -74,6 +82,7 @@ function CollectionInner({
   // there is no `?categoryId=` to read and the facet must not be user-editable.
   const categoryPath = collection?.slugPath;
   const categoryId = categoryPath ? "" : (sp.get("categoryId") ?? "");
+  const subcategoryId = categoryPath ? "" : (sp.get("subcategoryId") ?? "");
   const brandId = sp.get("brandId") ?? "";
   const tags = sp.get("tags") ?? "";
   const minPrice = sp.get("minPrice") ?? "";
@@ -83,6 +92,7 @@ function CollectionInner({
   const filterKey = [
     categoryPath ?? "",
     categoryId,
+    subcategoryId,
     brandId,
     tags,
     minPrice,
@@ -113,6 +123,7 @@ function CollectionInner({
   const paged = mode === "pages";
   const filterState = {
     categoryId,
+    subcategoryId,
     brandId,
     tags,
     minPrice,
@@ -166,10 +177,17 @@ function CollectionInner({
   const brandList = brands ?? [];
   const tagList = tagData ?? [];
   const activeTagSlugs = tags ? tags.split(",").filter(Boolean) : [];
+  // Drill-down row for a collection page: this collection's children, or its
+  // siblings when it IS a child. See `subcategoriesFor`.
+  const subcategories = subcategoriesFor(collection, cats);
   const activeCat = cats.find((c) => c._id === categoryId);
+  // The tree is exactly two levels, so a selected child is always on the active
+  // parent's `children` — no search across the whole list is needed.
+  const activeSub = activeCat?.children?.find((c) => c._id === subcategoryId);
   const activeBrand = brandList.find((b) => b._id === brandId);
   const filters: ProductFilters = {
     categoryId,
+    subcategoryId,
     brandId,
     tags,
     minPrice,
@@ -182,7 +200,18 @@ function CollectionInner({
     chips.push({
       key: "category",
       label: activeCat.name,
-      onRemove: () => setParams({ categoryId: undefined }),
+      // Dropping the parent drops the child with it — a `subcategoryId` left
+      // behind would keep narrowing the list with nothing on screen saying so.
+      onRemove: () =>
+        setParams({ categoryId: undefined, subcategoryId: undefined }),
+    });
+  if (activeSub)
+    chips.push({
+      key: "subcategory",
+      label: activeSub.name,
+      // Removing only the child widens back to the parent branch, which is why
+      // it is its own chip rather than being folded into the category one.
+      onRemove: () => setParams({ subcategoryId: undefined }),
     });
   if (activeBrand)
     chips.push({
@@ -226,6 +255,7 @@ function CollectionInner({
       // `categoryId` is absent on a path page — clearing it there is a no-op,
       // and the collection itself is the route, not a filter to drop.
       categoryId: undefined,
+      subcategoryId: undefined,
       brandId: undefined,
       tags: undefined,
       minPrice: undefined,
@@ -235,9 +265,13 @@ function CollectionInner({
 
   // A path page is named by its collection; otherwise a brand-only filter turns
   // the page into that brand's landing page.
+  // The narrowest active facet names the page: a chosen sub-category is what the
+  // shopper is actually looking at, so it beats its own parent.
   const heading =
     collection?.name ??
-    (activeBrand && !activeCat ? activeBrand.name : (activeCat?.name ?? t.allProducts));
+    (activeBrand && !activeCat
+      ? activeBrand.name
+      : (activeSub?.name ?? activeCat?.name ?? t.allProducts));
   const panel = (
     <FilterPanel
       categories={cats}
@@ -262,6 +296,10 @@ function CollectionInner({
 
   return (
     <div style={wrap}>
+      {/* Collection pages only — the bare `/products` listing is a top-level
+          page with nothing above it but home, and `Breadcrumb` drops a trail
+          that short anyway. */}
+      {crumbs ? <Breadcrumb base={base} crumbs={crumbs} /> : null}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
@@ -281,6 +319,15 @@ function CollectionInner({
           <SortSelect sort={sort} onChange={(s) => setParams({ sort: s })} />
         </div>
       </div>
+
+      {/* Under the heading, above the filters: it is navigation into the tree,
+          not another facet — and a shopper scanning the page should read the
+          collection's name before its subdivisions. */}
+      <SubcategoryStrip
+        base={base}
+        items={subcategories}
+        activeId={collection?._id}
+      />
 
       <FilterChips chips={chips} onClearAll={clearAll} />
 
@@ -356,15 +403,22 @@ function CollectionInner({
 export default function CollectionPage({
   initialProducts,
   collection,
+  crumbs,
 }: {
   initialProducts?: ProductListResult;
   /** Set by the `/{category}/{sub?}` route; absent on the bare `/products` page. */
   collection?: CatalogCategoryDetail;
+  /** Built server-side so the visible trail matches the page's JSON-LD exactly. */
+  crumbs?: Crumb[];
 }) {
   const { t } = useStorefrontUI();
   return (
     <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>
-      <CollectionInner initialProducts={initialProducts} collection={collection} />
+      <CollectionInner
+        initialProducts={initialProducts}
+        collection={collection}
+        crumbs={crumbs}
+      />
     </Suspense>
   );
 }
