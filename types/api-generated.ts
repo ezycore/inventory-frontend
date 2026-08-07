@@ -18239,7 +18239,7 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
-                parentId?: string | "null" | "";
+                parentId?: string | "null" | "!null" | "";
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -18518,7 +18518,7 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
-                parentId?: string | "null" | "";
+                parentId?: string | "null" | "!null" | "";
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
