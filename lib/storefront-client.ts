@@ -212,6 +212,20 @@ export interface StoreNav {
   announcement?: StoreAnnouncement;
 }
 
+/**
+ * A merchant label carried by a product (`CatalogProduct.tags`). Narrower than
+ * `StoreTag`, the facet row: no `productCount`, because a chip says what this
+ * product IS, not how many others share the label. The backend emits only
+ * ACTIVE tags, so a chip always links to a facet value the store still serves.
+ */
+export interface ProductTag {
+  _id: string;
+  name: string;
+  /** The facet value (`/products?tags=eid-sale`). */
+  slug?: string;
+  color?: string | null;
+}
+
 export interface CatalogProduct {
   _id: string;
   name: string;
@@ -231,6 +245,9 @@ export interface CatalogProduct {
    * `categoryCrumbs` in `lib/storefront-breadcrumb.ts`.
    */
   subcategoryId?: string | null;
+  /** Merchant labels, in the order they were attached. Optional so a fixture or
+   *  a preview payload can omit it; the API always sends an array. */
+  tags?: ProductTag[];
   productType: string;
   hasVariants?: boolean;
   availableQuantity: number;

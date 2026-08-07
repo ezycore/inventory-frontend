@@ -13,6 +13,10 @@
 
 export const PRODUCTS_PAGE_SIZE = 12;
 
+/** Results per request on `/search` — larger than the collection page's, because
+ *  search rows are denser and a searcher is scanning, not browsing. */
+export const SEARCH_PAGE_SIZE = 24;
+
 /** The filter/sort params the collection page reads off the URL. */
 export interface CatalogSearchParams {
   categoryId?: string;
@@ -79,6 +83,33 @@ export function catalogInfiniteParams(sp: CatalogSearchParams) {
 /** The exact request params `useStoreProducts` is called with on the collection page. */
 export function catalogQueryParams(sp: CatalogSearchParams, page = 1) {
   return { ...catalogInfiniteParams(sp), page };
+}
+
+/**
+ * The `/search` contract: a term plus the **same facets the collection page
+ * offers**, over the same endpoint.
+ *
+ * Keeping search on these builders is what stops the two pages disagreeing about
+ * what a facet means — a tag on `/search` narrows exactly as it does on
+ * `/products`, because it is literally the same param. The term rides along as
+ * `q`, which the backend matches against the product name, the catalog overlay's
+ * online title/description, the description, the barcode, and its tag names.
+ */
+export function searchInfiniteParams(q: string, sp: CatalogSearchParams) {
+  return {
+    ...catalogInfiniteParams(sp),
+    q: q || undefined,
+    limit: SEARCH_PAGE_SIZE,
+  };
+}
+
+/** Paged variant — same params plus the cursor. See the note above. */
+export function searchQueryParams(
+  q: string,
+  sp: CatalogSearchParams,
+  page = 1,
+) {
+  return { ...searchInfiniteParams(q, sp), page };
 }
 
 /**

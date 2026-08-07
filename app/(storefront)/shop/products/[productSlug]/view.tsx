@@ -23,6 +23,7 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
 import { ProductGallery } from "@/components/storefront/product-gallery";
+import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { Breadcrumb } from "@/components/storefront/breadcrumb";
 import { productCrumbs } from "@/lib/storefront-breadcrumb";
 import {
@@ -223,7 +224,12 @@ export default function ProductDetailPage({
           <h1 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 700, margin: "0 0 10px", letterSpacing: "-0.025em", lineHeight: 1.15 }}>
             {product.name}
           </h1>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          {/* Stock state and the merchant's labels share one badge row directly
+              under the title — the labels are what the merchant is merchandising
+              on ("Eid sale", "Organic"), so burying them below the fold would
+              make the tags page look like it does nothing. Wraps, because a
+              product can carry several and the column is narrow on a phone. */}
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
             <span
               style={{
                 fontSize: 12,
@@ -236,6 +242,10 @@ export default function ProductDetailPage({
             >
               {soldOut ? t.outOfStock : outOfStock ? t.backorder : t.inStock}
             </span>
+            {/* Each chip is a link into the tag facet, so a shopper who likes a
+                label can see the rest of it — a chip that only decorates is a
+                wasted exit. */}
+            <ProductTagChips tags={product.tags} base={base} />
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 11, marginBottom: 18 }}>
             <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em" }}>{money(price, currency)}</span>

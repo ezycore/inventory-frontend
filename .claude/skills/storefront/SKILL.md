@@ -497,6 +497,52 @@ resolved **per request from the host**, never baked.
   tree is already fetched for the nav. Unlike the header's category row this MAY scroll
   horizontally: flat links, no dropdown for the scroll box to clip.
 
+- **Catalog facets** — `components/storefront/use-catalog-facets.ts` is the **one** owner of the
+  facet layer (URL state, the facet lists, the active-filter chips, `clearAll`, `setParams`), shared
+  by the collection grid and `/search`. It was inline in `products/view.tsx` until search gained
+  facets; a second copy would have drifted on the first change to chip behaviour, and those two
+  pages are exactly the ones a shopper compares. **A new page that filters the catalogue uses this
+  hook** — do not re-read `?tags=`/`?brandId=` off `useSearchParams` by hand.
+  - The URL is the single source of truth, so nothing here stages state; `setParams` writes the
+    query string and the next render reads it back. `setParams` is `useCallback`-stable so it can
+    sit in an effect's deps (the search page syncs `?q=` that way without looping).
+  - `categoryPath` blanks the id facets: on a path page the collection is the ROUTE, and a shopper
+    must not be able to filter themselves off the page they are standing on.
+  - Request params come from `lib/storefront-catalog-params.ts` — `catalog*Params` for the
+    collection, `categoryPath*Params` for a path page, **`search*Params` for `/search`** (adds `q`,
+    uses `SEARCH_PAGE_SIZE`). Same builders on both pages is what makes a tag mean the same thing on
+    each; the params object is also the cache key, so hand-building one re-introduces the
+    silently-missed-seed bug.
+  - ⚠ **On a results page the filter toolbar and chips must render OUTSIDE the empty-state branch.**
+    Filters can produce zero results, and a shopper who over-narrows them needs a way back — if the
+    controls live inside the non-empty branch, the only exit is the browser's back button. `/search`
+    also swaps its empty-state CTA from "view all products" to "clear all" when chips are active.
+- **Product tag chips** — `components/storefront/product-tag-chips.tsx`, the one renderer for
+  `CatalogProduct.tags` (the merchant's labels; the backend emits **active** tags only, so a chip
+  always points at a facet value the store still serves). Three homes: the PDP badge row beside the
+  stock pill, the product card's image, and the search page's list rows. Two **independent** axes —
+  - **`tone`** — `soft` (tinted, for a page/card background) or `solid` (full-strength colour +
+    `readableTextOn`, for laying over a product photo). Not decoration: a soft tint is invisible
+    over an arbitrary photo.
+  - **`base` decides `<Link>` vs `<span>`.** Pass it ⇒ chips link to `/products?tags=<slug>`; omit
+    it ⇒ inert spans. Omit it whenever the chips sit *inside* another link — the card image and the
+    search row's text block are each wrapped in one, and an `<a>` in an `<a>` is invalid markup
+    browsers reparent (same rule as `CardVariantFlyout` being a sibling, not a child).
+    ⚠ **The check is `base != null`, never truthiness** — a custom-domain store has `base === ""`,
+    so a falsy test silently unlinks every chip on exactly the half of the estate you are least
+    likely to have open in dev.
+  - On the card it is capped at **2** and pinned **top-right**: top-left is the discount badge and
+    the image bottom belongs to `CardRevealActions`/`CardVariantFlyout`. Colour follows `StatusPill`
+    (`color-mix(… 72%, var(--text))`, never the raw hue) so a merchant colour survives both themes
+    with no JS branch. A tag with no `slug` is dropped, not rendered inert.
+  - **`?q=` matches far more than the product name** (BE `listProducts`): name,
+    `storefront.onlineTitle`, description, `storefront.onlineDescription`, `barcode` (there is no
+    `sku` field) and active **tag names**. The two `storefront.*` clauses are load-bearing — the shop
+    renders `onlineTitle || name`, so without them a merchant who set an online title had a product
+    whose *displayed* name was unsearchable. **Any field the catalog overlay can override must be
+    searched next to the field it overrides.** This is also why the search list row shows chips: a
+    row whose name contains none of the typed words is not a bug, and the chip is the only thing on
+    screen explaining the match. One endpoint, so the header typeahead inherits all of it.
 - **Image variant per use site** — `lib/storefront-image.ts`, one of three helpers, never a hand-rolled
   `img?.a || img?.b` chain: `cardImageUrl` (grid/card/tile, >~100px), `thumbImageUrl` (row thumb,
   avatar, chip, ≤100px), `fullImageUrl` (PDP gallery hero, og:image, JSON-LD). The backend stores
@@ -574,6 +620,24 @@ resolved **per request from the host**, never baked.
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
 ## Work log (what was built, newest first — as of 2026-08-07)
+
+- **Product tags became visible on the shop (FE + BE)** (2026-08-07): tags were filterable and
+  nowhere displayed — `GET …/tags` served the facet, `?tags=` filtered, but no product payload
+  carried its own tags, so a merchant labelling a product "Eid sale" saw that label nowhere on their
+  own shop. BE `toCatalogProduct` now emits `tags` via a new batched `tagChips(store, rows)` (one
+  query per page), wired into **all three** call sites — the fast list path, `listProductsComputed`
+  and `getProductBySlug`; `CATALOG_SELECT` already projected `tagIds` for campaign scoping, so only
+  the join was missing. FE: new `ProductTagChips` (see the subsystem bullet above) on the PDP badge
+  row and the card image. Contract test seeds an **inactive** tag beside two active ones and asserts
+  the computed list path too — an untagged fixture cannot fail a payload that drops tags, and a
+  change that edits only `toCatalogProduct` passes the fast path while missing the sorted one.
+  **`?q=` was `name` regex only** — so the very words a merchant merchandises on ("eid", "organic")
+  returned nothing, and neither did descriptions, barcodes, or the online title the shop actually
+  displays. It now unions all of them plus active tag ids. **`/search` also gained the full facet
+  panel** (`useCatalogFacets`, extracted from the collection view rather than copied), so a tag is
+  now reachable from search results, not just from `/products`. The header typeahead shares the
+  endpoint and inherited the matching for free.
+  Full write-up: [`ecommerce-implementation.md`](../../../../inventory-backend/docs/features/ecommerce-implementation.md).
 
 - **Sub-categories reached the navigation (FE)** (2026-08-07): the taxonomy's P3 shipped the routing
   (`[...categoryPath]`, `collectionHref`, tree endpoint, sitemap, canonical) but left four surfaces
