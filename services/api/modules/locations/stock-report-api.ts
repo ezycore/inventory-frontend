@@ -29,6 +29,8 @@ export interface LocationStockItem {
   isOutOfStock: boolean;
   status: string;
   categoryName: string | null;
+  /** The child level. Null for a product filed directly under a top-level category. */
+  subcategoryName: string | null;
   brandName: string | null;
 }
 

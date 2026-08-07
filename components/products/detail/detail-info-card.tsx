@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Separator } from '@ui/components/separator'
 import { Info } from 'lucide-react'
+import { CategoryPath } from '@/components/shared/category-path'
 import type { InventoryItem } from './utils'
 
 interface DetailInfoCardProps {
@@ -36,7 +37,10 @@ export function DetailInfoCard({ product, inventoryItems, expiryEnabled }: Detai
         <div className="space-y-3">
           <Row label={t('productType')} value={<span className="capitalize">{product.productType}</span>} />
           <Row label={t('brand')} value={product.brand?.name || '—'} />
-          <Row label={t('category')} value={product.category?.name || '—'} />
+          <Row
+            label={t('category')}
+            value={<CategoryPath category={product.category?.name} subcategory={product.subcategory?.name} fallback="—" />}
+          />
           <Row label={t('unit')} value={product.unit?.name || '—'} />
           {expiryEnabled && (
             <Row label={t('expiryTracking')} value={product.hasExpiry ? t('enabled') : t('off')} />

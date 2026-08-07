@@ -11926,6 +11926,7 @@ export interface components {
                 isOutOfStock: boolean;
                 status?: string | null;
                 categoryName: string | null;
+                subcategoryName: string | null;
                 brandName: string | null;
             }[];
             pagination: {

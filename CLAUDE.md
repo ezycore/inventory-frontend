@@ -325,6 +325,15 @@ because none of them shows up in typecheck, lint, or tests:
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.
 
+**Category display:** a product's place in the taxonomy renders via `<CategoryPath>`
+(`components/shared/category-path.tsx`) — `Personal Care › Skin Care`, with the child dimmed by
+`opacity` so it inherits the caller's colour. **Never print `product.category?.name` on its own.**
+The pair is denormalized (`categoryId` = the top-level category, `subcategoryId` = its child), so
+reading only the first half renders cleanly and silently loses half the answer — that is exactly how
+the products card view, the detail hero, the detail info card and the location stock report each
+showed less than the table beside them (fixed 2026-08-07). Callers pass names, not objects, so a
+report row with `categoryName`/`subcategoryName` strings uses it too.
+
 **Printed documents (one engine):** every printout (sales invoice/receipt, PO, return, payment receipt,
 statement, AND storefront/ecommerce order invoices) renders through `utils/print-documents.ts`, whose
 letterhead is the org's `receiptSettings` (Settings → Receipt & Print) via `orgToPrintHeader`. Order

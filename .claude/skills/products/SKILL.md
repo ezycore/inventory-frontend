@@ -60,6 +60,13 @@ the one place the denormalization is easy to get wrong:
   `clearFieldsOnChange`. See "Dependent filters" in
   [`ui/components/filters/filters-doc.md`](../../../ui/components/filters/filters-doc.md).
 
+**Displaying the pair is also one component.** `<CategoryPath>`
+(`components/shared/category-path.tsx`) renders `Personal Care › Skin Care`; every surface that
+names a product's category goes through it — the table column, the card view, the detail hero, the
+detail info card, and the location stock report. Printing `product.category?.name` alone looks fine
+and silently drops the child, which is how four of those five surfaces disagreed with each other
+until 2026-08-07.
+
 Tags are a `select` with `mode: "multiple"` — no new field type. Filtering by tags is **OR**
 (`?tags=a,b` matches a product carrying either).
 

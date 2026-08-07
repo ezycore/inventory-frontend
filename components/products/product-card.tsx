@@ -9,6 +9,7 @@ import { Card } from "@/ui/components/card";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { StatusBadge } from "@/ui/components/status-badge";
+import { CategoryPath } from "@/components/shared/category-path";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +28,6 @@ interface ProductCardProps {
 export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardProps) {
   const t = useTranslations("products.products");
   const thumbnailUrl = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
-  const categoryName = product.category?.name || t("columns.uncategorized");
   const brandName = product.brand?.name;
   const price = product.price;
   const productType = product.productType;
@@ -116,9 +116,13 @@ export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardPr
 
       {/* Content Section */}
       <div className="p-3.5 space-y-2.5">
-        {/* Category */}
+        {/* Category — both levels, matching the table view of the same row. */}
         <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium truncate mb-1">
-          {categoryName}
+          <CategoryPath
+            category={product.category?.name}
+            subcategory={product.subcategory?.name}
+            fallback={t("columns.uncategorized")}
+          />
         </p>
 
         {/* Product Name */}

@@ -6,6 +6,7 @@ import { StatusBadge } from '@/ui/components/status-badge'
 import { ProductStatus } from '@/types'
 import { Badge } from '@/ui/components/badge'
 import Link from 'next/link'
+import { CategoryPath } from '@/components/shared/category-path'
 import type { Translator } from '@/i18n/config'
 
 /**
@@ -73,12 +74,12 @@ export const getProductColumns = (t: Translator): ColumnDef<any>[] => [
       const category = row.getValue("category") as any
       const subcategory = (row.original as any).subcategory
       return (
-        <span className="text-muted-foreground text-sm">
-          {category?.name || t('columns.uncategorized')}
-          {subcategory?.name && (
-            <span className="text-muted-foreground/70"> › {subcategory.name}</span>
-          )}
-        </span>
+        <CategoryPath
+          category={category?.name}
+          subcategory={subcategory?.name}
+          fallback={t('columns.uncategorized')}
+          className="text-muted-foreground text-sm"
+        />
       )
     },
   },
