@@ -134,11 +134,10 @@ export function useHeaderSearch(onClose: () => void, open: boolean) {
     onClose();
     router.push(storeHref(base, `/products/${product.slug}`));
   };
-  // The collection's canonical URL is its PATH, so route through
-  // `collectionHref` rather than hand-building the legacy `?categoryId=` facet.
-  // That form only ever matches a TOP-LEVEL id — a sub-category chip would
-  // silently land on an unfiltered listing — and it costs the collection page
-  // the URL it is actually indexed under.
+  // A collection is addressed by its PATH (`/phones`, `/phones/accessories`), so
+  // the chip takes the whole category, not an id. The `?categoryId=` form this
+  // used to push still resolves, but it is `noindex` and canonicalizes elsewhere
+  // — navigating a shopper to a URL the store itself disclaims.
   const goCategory = (category: CatalogCategory) => {
     onClose();
     router.push(collectionHref(base, category));

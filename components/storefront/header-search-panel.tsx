@@ -108,6 +108,10 @@ export function SearchPanel({
               <span>{t.categoriesLabel}</span>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: "6px 16px 14px" }}>
+              {/* Top level only — these are a jump to a broad area of the shop,
+                  and flattening the tree here would let one parent's children
+                  eat the whole eight-chip budget. Sub-categories are reached
+                  from the header nav, the menu sheet, or a collection page. */}
               {categories.slice(0, 8).map((cat) => (
                 <button key={cat._id} type="button" className="sf-search-chip" onClick={() => c.goCategory(cat)} style={chip}>
                   {cat.name}

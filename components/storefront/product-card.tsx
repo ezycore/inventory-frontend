@@ -12,6 +12,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
 import { money, discountPct } from "@/components/storefront/format";
 import { Media } from "@/components/storefront/sf-bits";
+import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import {
   CardCtaRow,
@@ -166,6 +167,23 @@ export function ProductCard({
               -{pct}%
             </span>
           ) : null}
+          {/* Top-RIGHT, because the three other corners are spoken for: the
+              discount badge owns top-left, and the image bottom belongs to
+              whichever of `CardRevealActions` / `CardVariantFlyout` this layout
+              renders. Two chips max — a third turns a 130px mobile card into a
+              wall of pills and hides the product it is labelling. */}
+          <ProductTagChips
+            tags={product.tags}
+            tone="solid"
+            max={2}
+            style={{
+              position: "absolute",
+              top: 9,
+              right: 9,
+              maxWidth: "72%",
+              justifyContent: "flex-end",
+            }}
+          />
         </Link>
         {/* Only one of these can occupy the image bottom, which is exactly why
             `layoutOwnsImage` sends `reveal` products to the sheet instead. */}
