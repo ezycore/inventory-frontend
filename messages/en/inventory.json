@@ -76,6 +76,8 @@
     "allBrands": "All brands",
     "category": "Category",
     "allCategories": "All categories",
+    "subcategory": "Sub-category",
+    "allSubcategories": "All sub-categories",
     "stockLevel": "Stock Level",
     "allLevels": "All levels",
     "lowStock": "Low Stock",
