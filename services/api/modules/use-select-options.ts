@@ -11,8 +11,13 @@ import { useQuery, type QueryKey } from "@tanstack/react-query";
  * The URL is only a disambiguator between projections of the same data — it is the **root** that
  * makes a mutation refresh every dropdown listing that resource. Which root a path belongs to is
  * declared once in `services/api/select-options.ts`, not inferred here.
+ *
+ * Exported so a caller can read an already-fetched option list straight out of the cache
+ * (`queryClient.getQueryData(selectOptionsKey(url))`) instead of re-requesting it — the product
+ * VAT prefill needs the sub-category list the select beside it has already loaded. Build the `url`
+ * with `selectOptions()`, never by hand, or the key will not match the one the select wrote.
  */
-const optionsKey = (url: string): QueryKey => {
+export const selectOptionsKey = (url: string): QueryKey => {
   const root = optionSourceRoot(url);
 
   if (!root) {
@@ -44,7 +49,7 @@ export const useSelectOptions = (
   itemsCreateCallback?: (response: any) => SelectOption[],
 ) => {
   return useQuery({
-    queryKey: url ? optionsKey(url) : ["select-options", null],
+    queryKey: url ? selectOptionsKey(url) : ["select-options", null],
     queryFn: async (): Promise<SelectOption[]> => {
       if (!url) return [];
 

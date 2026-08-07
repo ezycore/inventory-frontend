@@ -86,7 +86,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   // Feature-gated: e.g. the category quick-add drops its VAT picker while the
   // org doesn't charge VAT.
-  const moduleConfig = useQuickAddModule(creatable, quickAddModule);
+  const moduleConfig = useQuickAddModule(creatable, quickAddModule, optionsApi);
   const { form } = useDynamicForm(moduleConfig?.formConfig || { fields: [] });
   const createMutation = moduleConfig?.useMutation();
 
@@ -373,7 +373,12 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
             type="button"
             variant="outline"
             size="icon"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              // Open already scoped to whatever narrows this select's
+              // options, so a child cannot be created at the wrong level.
+              form.reset(moduleConfig.defaults);
+              setIsModalOpen(true);
+            }}
             disabled={disabled}
           >
             <Plus className="h-4 w-4" />

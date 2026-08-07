@@ -7024,6 +7024,7 @@ export interface components {
                 name: string;
                 slug?: string;
                 slugPath?: string;
+                defaultTaxId?: string | null;
             } | null;
         };
         CategoryStats: {
@@ -7070,6 +7071,7 @@ export interface components {
                 name: string;
                 slug?: string;
                 slugPath?: string;
+                defaultTaxId?: string | null;
             } | null;
             descendantProductCount: number;
             children: {
@@ -7110,6 +7112,7 @@ export interface components {
                     name: string;
                     slug?: string;
                     slugPath?: string;
+                    defaultTaxId?: string | null;
                 } | null;
                 descendantProductCount: number;
             }[];

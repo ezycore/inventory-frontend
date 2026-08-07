@@ -3,10 +3,10 @@
 
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { useStore, useStoreProducts } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
-import type { CatalogProduct } from "@/lib/storefront-client";
+import type { CatalogCategory, CatalogProduct } from "@/lib/storefront-client";
 
 const RESULT_LIMIT = 6;
 const RECENTS_LIMIT = 5;
@@ -134,9 +134,14 @@ export function useHeaderSearch(onClose: () => void, open: boolean) {
     onClose();
     router.push(storeHref(base, `/products/${product.slug}`));
   };
-  const goCategory = (categoryId: string) => {
+  // The collection's canonical URL is its PATH, so route through
+  // `collectionHref` rather than hand-building the legacy `?categoryId=` facet.
+  // That form only ever matches a TOP-LEVEL id — a sub-category chip would
+  // silently land on an unfiltered listing — and it costs the collection page
+  // the URL it is actually indexed under.
+  const goCategory = (category: CatalogCategory) => {
     onClose();
-    router.push(storeHref(base, `/products?categoryId=${categoryId}`));
+    router.push(collectionHref(base, category));
   };
   const runAction = (action: SearchAction) =>
     action.kind === "product" ? goProduct(action.product) : goSearchPage();

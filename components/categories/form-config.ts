@@ -27,9 +27,12 @@ export const PARENT_CATEGORY_OPTIONS_API = selectOptions("categories", {
 });
 
 /**
- * `isDefault` and `defaultTaxId` are meaningless on a sub-category: only a
- * top-level category can be the org default, and a child inherits its parent's
- * VAT rate when it has none of its own. Shown only while no parent is selected.
+ * `isDefault` is meaningless on a sub-category — only a top-level category can
+ * be the org default, and the product form prefills one category. Shown only
+ * while no parent is selected.
+ *
+ * `defaultTaxId` is deliberately NOT gated this way: a child inherits its
+ * parent's rate but may override it, so the field is offered at both levels.
  */
 const TOP_LEVEL_ONLY = {
   field: "parentId",
@@ -111,11 +114,10 @@ export const categoryFormConfig: DynamicFormConfig = {
       type: "select",
       label: "Default VAT rate",
       columnSpan: 12,
-      dependsOn: TOP_LEVEL_ONLY,
       optionsApi: TAX_OPTIONS_API,
-      placeholder: "Use the organization default",
+      placeholder: "Inherit — parent, then the organization default",
       helperText:
-        "Prefilled on new products in this category, on both the purchase and the sales side. Existing products are never re-priced.",
+        "Prefilled on new products in this category, on both the purchase and the sales side. Leave empty to inherit: a sub-category falls back to its parent's rate, a top-level one to the organization default. Existing products are never re-priced.",
     },
   ],
 }
@@ -188,7 +190,6 @@ export const getCategoryFormConfig = (t: Translator): DynamicFormConfig => ({
       type: "select",
       label: t("form.defaultTax"),
       columnSpan: 12,
-      dependsOn: TOP_LEVEL_ONLY,
       optionsApi: TAX_OPTIONS_API,
       placeholder: t("form.defaultTaxPlaceholder"),
       helperText: t("form.defaultTaxHint"),

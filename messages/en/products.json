@@ -497,8 +497,8 @@
       "isDefault": "Set as default category",
       "isDefaultDescription": "Pre-selected on new product forms",
       "defaultTax": "Default VAT rate",
-      "defaultTaxPlaceholder": "Use the organization default",
-      "defaultTaxHint": "Prefilled on new products in this category, on both the purchase and the sales side. Existing products are never re-priced.",
+      "defaultTaxPlaceholder": "Inherit — parent, then the organization default",
+      "defaultTaxHint": "Prefilled on new products in this category, on both the purchase and the sales side. Leave empty to inherit: a sub-category falls back to its parent's rate, a top-level one to the organization default. Existing products are never re-priced.",
       "parent": "Parent category",
       "parentPlaceholder": "None — this is a top-level category",
       "parentHint": "Leave empty for a top-level category. Picking a parent makes this a sub-category, reachable at /parent/this-one."

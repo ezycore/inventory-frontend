@@ -86,7 +86,10 @@ export interface CrossLocationComparison {
 
 export interface LocationStockFilters {
   search?: string;
+  /** TOP-LEVEL category id — sweeps the whole branch. */
   category?: string;
+  /** Child id — narrows to one sub-category. Not interchangeable with `category`. */
+  subcategory?: string;
   brand?: string;
   status?: string;
   stockStatus?: string;
