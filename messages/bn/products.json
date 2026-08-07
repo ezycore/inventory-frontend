@@ -515,6 +515,8 @@
       "default": "ডিফল্ট",
       "noDescription": "কোনো বিবরণ নেই",
       "productsCount": "{count}টি পণ্য",
+      "topLevel": "শীর্ষ স্তর",
+      "subcategory": "উপ-বিভাগ",
       "edit": "সম্পাদনা",
       "delete": "মুছুন",
       "createdOn": "তৈরি: {date}",

@@ -515,6 +515,8 @@
       "default": "Default",
       "noDescription": "No description",
       "productsCount": "{count} Products",
+      "topLevel": "Top level",
+      "subcategory": "Sub-category",
       "edit": "Edit",
       "delete": "Delete",
       "createdOn": "Created: {date}",
