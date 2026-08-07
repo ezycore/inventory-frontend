@@ -2,29 +2,30 @@
 // coding-standard: maintained
 
 import { Suspense, useState, type CSSProperties } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   useStore,
-  useStoreBrands,
-  useStoreCategories,
   useStoreProducts,
   useStoreProductsInfinite,
-  useStoreTags,
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { money } from "@/components/storefront/format";
 import { ProductCard } from "@/components/storefront/product-card";
 import { SkeletonCard } from "@/components/storefront/sf-skeleton";
-import { FilterPanel, type ProductFilters } from "@/components/storefront/filter-panel";
+import { FilterPanel } from "@/components/storefront/filter-panel";
 import {
   FilterChips,
   FiltersButton,
   SortSelect,
-  type FilterChip,
 } from "@/components/storefront/filter-toolbar";
+import { useCatalogFacets } from "@/components/storefront/use-catalog-facets";
 import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { SideDrawer } from "@/components/storefront/side-drawer";
+import { Breadcrumb } from "@/components/storefront/breadcrumb";
+import {
+  SubcategoryStrip,
+  subcategoriesFor,
+} from "@/components/storefront/subcategory-strip";
+import type { Crumb } from "@/lib/storefront-breadcrumb";
 import { LoadMore } from "@/components/storefront/load-more";
 import { Pager } from "@/components/storefront/pager";
 import {
@@ -58,38 +59,21 @@ const wrap: CSSProperties = {
 function CollectionInner({
   initialProducts,
   collection,
+  crumbs,
 }: {
   initialProducts?: ProductListResult;
   collection?: CatalogCategoryDetail;
+  crumbs?: Crumb[];
 }) {
-  const { slug } = useStoreContext();
+  const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
-  const router = useRouter();
-  const pathname = usePathname();
-  // The URL is the single source of truth for every filter, so header/home
-  // links, panel rows, chips and the drawer all share one code path (same-route
-  // query navigation re-renders without remounting).
-  const sp = useSearchParams();
   // On a path page the collection comes from the ROUTE, not the query string —
   // there is no `?categoryId=` to read and the facet must not be user-editable.
   const categoryPath = collection?.slugPath;
-  const categoryId = categoryPath ? "" : (sp.get("categoryId") ?? "");
-  const brandId = sp.get("brandId") ?? "";
-  const tags = sp.get("tags") ?? "";
-  const minPrice = sp.get("minPrice") ?? "";
-  const maxPrice = sp.get("maxPrice") ?? "";
-  const inStock = sp.get("inStock") === "1";
-  const sort = sp.get("sort") ?? "";
-  const filterKey = [
-    categoryPath ?? "",
-    categoryId,
-    brandId,
-    tags,
-    minPrice,
-    maxPrice,
-    inStock,
-    sort,
-  ].join("|");
+  // Every facet lives in the URL; the hook owns reading it, the chips and the
+  // reset. Shared with /search so the two pages can't drift on what a facet does.
+  const facets = useCatalogFacets({ categoryPath });
+  const { filterKey, setParams, chips, clearAll, sort } = facets;
 
   const [page, setPage] = useState(1);
   // Reset pagination whenever any filter/sort changes (render-time adjust).
@@ -101,9 +85,6 @@ function CollectionInner({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { data: store } = useStore(slug);
-  const { data: categories } = useStoreCategories(slug);
-  const { data: brands } = useStoreBrands(slug);
-  const { data: tagData } = useStoreTags(slug);
 
   // Which listing mode the merchant chose (Customize → Collections), with any
   // unsaved draft from the live preview applied. `store` is SSR-seeded in
@@ -111,15 +92,7 @@ function CollectionInner({
   // flips modes under the shopper.
   const mode = useStoreTemplate(store, "pagination");
   const paged = mode === "pages";
-  const filterState = {
-    categoryId,
-    brandId,
-    tags,
-    minPrice,
-    maxPrice,
-    inStock: inStock ? "1" : "",
-    sort,
-  };
+  const filterState = facets.params;
 
   // Both hooks are declared (hooks can't be conditional) and gated by `enabled`,
   // so only the chosen one fetches. Params are built through the shared builders
@@ -142,17 +115,7 @@ function CollectionInner({
     initialProducts,
   );
 
-  const setParams = (patch: Record<string, string | undefined>) => {
-    const qs = new URLSearchParams(sp.toString());
-    for (const [k, v] of Object.entries(patch)) {
-      if (v === undefined || v === "") qs.delete(k);
-      else qs.set(k, v);
-    }
-    const s = qs.toString();
-    router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false });
-  };
-
-  const currency = store?.currency;
+  const currency = facets.currency;
   const variant = useStoreTemplate(store, "collection");
   const infinitePages = infiniteQuery.data?.pages ?? [];
   const items = paged
@@ -162,88 +125,27 @@ function CollectionInner({
   const pagination = paged ? pagedQuery.data?.pagination : infinitePages[0]?.pagination;
   const total = pagination?.total ?? items.length;
   const isLoading = paged ? pagedQuery.isLoading : infiniteQuery.isLoading;
-  const cats = categories ?? [];
-  const brandList = brands ?? [];
-  const tagList = tagData ?? [];
-  const activeTagSlugs = tags ? tags.split(",").filter(Boolean) : [];
-  const activeCat = cats.find((c) => c._id === categoryId);
-  const activeBrand = brandList.find((b) => b._id === brandId);
-  const filters: ProductFilters = {
-    categoryId,
-    brandId,
-    tags,
-    minPrice,
-    maxPrice,
-    inStock,
-  };
-
-  const chips: FilterChip[] = [];
-  if (activeCat)
-    chips.push({
-      key: "category",
-      label: activeCat.name,
-      onRemove: () => setParams({ categoryId: undefined }),
-    });
-  if (activeBrand)
-    chips.push({
-      key: "brand",
-      label: activeBrand.name,
-      onRemove: () => setParams({ brandId: undefined }),
-    });
-  if (minPrice || maxPrice)
-    chips.push({
-      key: "price",
-      label:
-        minPrice && maxPrice
-          ? `${money(+minPrice, currency)} – ${money(+maxPrice, currency)}`
-          : minPrice
-            ? `≥ ${money(+minPrice, currency)}`
-            : `≤ ${money(+maxPrice, currency)}`,
-      onRemove: () => setParams({ minPrice: undefined, maxPrice: undefined }),
-    });
-  // One chip per selected tag, each removing only itself — a single "Tags (3)"
-  // chip would force the shopper to clear all three to drop one.
-  for (const slugValue of activeTagSlugs) {
-    const tag = tagList.find((x) => x.slug === slugValue);
-    chips.push({
-      key: `tag:${slugValue}`,
-      label: tag?.name ?? slugValue,
-      onRemove: () =>
-        setParams({
-          tags:
-            activeTagSlugs.filter((s2) => s2 !== slugValue).join(",") || undefined,
-        }),
-    });
-  }
-  if (inStock)
-    chips.push({
-      key: "stock",
-      label: t.inStockFilter,
-      onRemove: () => setParams({ inStock: undefined }),
-    });
-  const clearAll = () =>
-    setParams({
-      // `categoryId` is absent on a path page — clearing it there is a no-op,
-      // and the collection itself is the route, not a filter to drop.
-      categoryId: undefined,
-      brandId: undefined,
-      tags: undefined,
-      minPrice: undefined,
-      maxPrice: undefined,
-      inStock: undefined,
-    });
+  // Drill-down row for a collection page: this collection's children, or its
+  // siblings when it IS a child. See `subcategoriesFor`.
+  const subcategories = subcategoriesFor(collection, facets.categories);
 
   // A path page is named by its collection; otherwise a brand-only filter turns
   // the page into that brand's landing page.
+  // The narrowest active facet names the page: a chosen sub-category is what the
+  // shopper is actually looking at, so it beats its own parent.
   const heading =
     collection?.name ??
-    (activeBrand && !activeCat ? activeBrand.name : (activeCat?.name ?? t.allProducts));
+    (facets.activeBrand && !facets.activeCategory
+      ? facets.activeBrand.name
+      : (facets.activeSubcategory?.name ??
+        facets.activeCategory?.name ??
+        t.allProducts));
   const panel = (
     <FilterPanel
-      categories={cats}
-      brands={brandList}
-      tags={tagList}
-      filters={filters}
+      categories={facets.categories}
+      brands={facets.brands}
+      tags={facets.tags}
+      filters={facets.filters}
       onChange={setParams}
       // The collection is the URL here, so offering it as a facet would let a
       // shopper filter themselves off the page they are standing on.
@@ -262,6 +164,10 @@ function CollectionInner({
 
   return (
     <div style={wrap}>
+      {/* Collection pages only — the bare `/products` listing is a top-level
+          page with nothing above it but home, and `Breadcrumb` drops a trail
+          that short anyway. */}
+      {crumbs ? <Breadcrumb base={base} crumbs={crumbs} /> : null}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
@@ -281,6 +187,15 @@ function CollectionInner({
           <SortSelect sort={sort} onChange={(s) => setParams({ sort: s })} />
         </div>
       </div>
+
+      {/* Under the heading, above the filters: it is navigation into the tree,
+          not another facet — and a shopper scanning the page should read the
+          collection's name before its subdivisions. */}
+      <SubcategoryStrip
+        base={base}
+        items={subcategories}
+        activeId={collection?._id}
+      />
 
       <FilterChips chips={chips} onClearAll={clearAll} />
 
@@ -356,15 +271,22 @@ function CollectionInner({
 export default function CollectionPage({
   initialProducts,
   collection,
+  crumbs,
 }: {
   initialProducts?: ProductListResult;
   /** Set by the `/{category}/{sub?}` route; absent on the bare `/products` page. */
   collection?: CatalogCategoryDetail;
+  /** Built server-side so the visible trail matches the page's JSON-LD exactly. */
+  crumbs?: Crumb[];
 }) {
   const { t } = useStorefrontUI();
   return (
     <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>
-      <CollectionInner initialProducts={initialProducts} collection={collection} />
+      <CollectionInner
+        initialProducts={initialProducts}
+        collection={collection}
+        crumbs={crumbs}
+      />
     </Suspense>
   );
 }

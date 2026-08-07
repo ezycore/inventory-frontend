@@ -51,6 +51,30 @@ org's `excludedFields` filter.
 
 ---
 
+## Category default rates inherit down the tree
+
+A category's `defaultTaxId` prefills new products filed under it. **The chain is
+sub-category → category → org default**, and each link is only a fallback:
+
+- A sub-category carries its own rate *optionally*. Left empty it inherits its
+  parent's — which is why the field is offered at both levels and gated only by
+  `isVatActive`, never by `parentId`.
+- `useCategoryVatPrefill` (`components/products/use-category-vat-prefill.ts`)
+  resolves that chain on **create only**, firing for `categoryId` *and*
+  `subcategoryId`. Picking a child that inherits must re-resolve back *down* to
+  the parent's rate — without that, switching from an overriding sibling to an
+  inheriting one strands the override on a product it does not describe.
+- The child's rate is read out of the TanStack cache
+  (`selectOptionsKey(subcategoryOptionsApi(parentId))`), not refetched: to have
+  picked a child at all, the select beside it has already loaded that list.
+  Both spellings of the URL come from `SUBCATEGORY_FIELDS` so the key matches.
+- `applyDefaultTaxToProducts` resolves the same `own ?? parent` chain, or it
+  would refuse on every child that is happy inheriting. The admin list carries
+  `parent.defaultTaxId` so the row can decide whether to offer the action.
+
+Prefill is a **copy taken at create time, not a live link** — nothing re-reads
+it, which is what "Apply VAT to products" exists to fix after a rate change.
+
 ## 2. Math only through `utils/tax.ts`
 
 | Function | Use |

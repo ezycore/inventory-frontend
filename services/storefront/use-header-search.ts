@@ -3,10 +3,10 @@
 
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { useStore, useStoreProducts } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
-import type { CatalogProduct } from "@/lib/storefront-client";
+import type { CatalogCategory, CatalogProduct } from "@/lib/storefront-client";
 
 const RESULT_LIMIT = 6;
 const RECENTS_LIMIT = 5;
@@ -134,9 +134,13 @@ export function useHeaderSearch(onClose: () => void, open: boolean) {
     onClose();
     router.push(storeHref(base, `/products/${product.slug}`));
   };
-  const goCategory = (categoryId: string) => {
+  // A collection is addressed by its PATH (`/phones`, `/phones/accessories`), so
+  // the chip takes the whole category, not an id. The `?categoryId=` form this
+  // used to push still resolves, but it is `noindex` and canonicalizes elsewhere
+  // — navigating a shopper to a URL the store itself disclaims.
+  const goCategory = (category: CatalogCategory) => {
     onClose();
-    router.push(storeHref(base, `/products?categoryId=${categoryId}`));
+    router.push(collectionHref(base, category));
   };
   const runAction = (action: SearchAction) =>
     action.kind === "product" ? goProduct(action.product) : goSearchPage();

@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { Package } from 'lucide-react'
 import { Card } from '@ui/components/card'
 import { StatusBadge } from '@/ui/components/status-badge'
+import { CategoryPath } from '@/components/shared/category-path'
 
 interface ProductImage {
   url?: string
@@ -108,7 +109,12 @@ export function DetailHero({ product, variant, sellingPrice, barcode, formatCurr
             )}
             {product.category?.name && (
               <span className="text-muted-foreground">
-                {t('category')} <span className="font-medium text-foreground">{product.category.name}</span>
+                {t('category')}{' '}
+                <CategoryPath
+                  category={product.category.name}
+                  subcategory={product.subcategory?.name}
+                  className="font-medium text-foreground"
+                />
               </span>
             )}
           </div>

@@ -8,6 +8,7 @@ import {
 import { canonicalTarget } from "@/lib/storefront-canonical";
 import { storeHref } from "@/lib/storefront-links";
 import { breadcrumbJsonLd } from "@/lib/storefront-jsonld";
+import { collectionCrumbs } from "@/lib/storefront-breadcrumb";
 import { JsonLd } from "@/components/storefront/json-ld";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import {
@@ -109,27 +110,26 @@ export default async function Page({
   const target = canonicalTarget(store, { origin, base });
   const abs = (p: string) =>
     target.origin ? `${target.origin}${storeHref(target.base, p)}` : "";
+  // A sub-category's parent is a real page, so it earns a crumb —
+  // `collectionCrumbs` handles that, and the view renders the SAME array as
+  // visible markup, so the two cannot drift.
+  const crumbs = [
+    { name: store?.name ?? "", path: "" },
+    ...collectionCrumbs(collection),
+  ];
   const trail =
     store && target.origin
-      ? [
-          { name: store.name, url: abs("") },
-          // A sub-category's parent is a real page, so it earns a crumb.
-          ...(collection.parent?.slugPath
-            ? [
-                {
-                  name: collection.parent.name,
-                  url: abs(`/${collection.parent.slugPath}`),
-                },
-              ]
-            : []),
-          { name: collection.name, url: abs(`/${collection.slugPath ?? path}`) },
-        ]
+      ? crumbs.map((c) => ({ name: c.name, url: abs(c.path) }))
       : null;
 
   return (
     <>
       {trail ? <JsonLd data={breadcrumbJsonLd(trail)} /> : null}
-      <View initialProducts={products ?? undefined} collection={collection} />
+      <View
+        initialProducts={products ?? undefined}
+        collection={collection}
+        crumbs={crumbs}
+      />
     </>
   );
 }

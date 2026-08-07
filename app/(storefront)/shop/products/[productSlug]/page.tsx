@@ -1,8 +1,13 @@
 import { notFound } from "next/navigation";
 import { getStoreContext } from "@/lib/storefront-host";
-import { getStore, getStoreProduct } from "@/lib/storefront-server";
+import {
+  getStore,
+  getStoreCategories,
+  getStoreProduct,
+} from "@/lib/storefront-server";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import { breadcrumbJsonLd, productJsonLd } from "@/lib/storefront-jsonld";
+import { productCrumbs } from "@/lib/storefront-breadcrumb";
 import { canonicalTarget } from "@/lib/storefront-canonical";
 import { JsonLd } from "@/components/storefront/json-ld";
 import { storeHref } from "@/lib/storefront-links";
@@ -50,9 +55,12 @@ export default async function Page({
 }) {
   const { productSlug } = await params;
   const { slug, base, origin } = await getStoreContext();
-  const [product, store] = await Promise.all([
+  const [product, store, categories] = await Promise.all([
     slug ? getStoreProduct(slug, productSlug) : null,
     slug ? getStore(slug) : null,
+    // For the breadcrumb's category rungs. Cached and already fetched by the
+    // shell for the header nav, so this is a fetch-cache hit, not a third trip.
+    slug ? getStoreCategories(slug) : null,
   ]);
 
   // Real 404, not a 200 saying "not found" — but only when the store payload came
@@ -69,15 +77,31 @@ export default async function Page({
   const abs = (path: string) =>
     target.origin ? `${target.origin}${storeHref(target.base, path)}` : "";
   const url = abs(`/products/${productSlug}`);
+  // Home › Category › Sub-category › Product. It used to be a flat
+  // `Home › Products › Product`, which described a one-level catalogue this shop
+  // no longer has. Built by the same helper as the visible trail below.
+  const crumbs =
+    product && store
+      ? productCrumbs({
+          storeName: store.name,
+          productName: product.name,
+          productSlug,
+          categories: categories ?? [],
+          categoryId: product.categoryId,
+          subcategoryId: product.subcategoryId,
+          // English on purpose: this is the structured-data copy, and only the
+          // English storefront is indexable (see the SEO notes in the skill).
+          allProductsLabel: "All products",
+        })
+      : [];
+
   const jsonLd =
     product && store && url
       ? [
           productJsonLd({ product, store, url }),
-          breadcrumbJsonLd([
-            { name: store.name, url: abs("") },
-            { name: "Products", url: abs("/products") },
-            { name: product.name, url },
-          ]),
+          breadcrumbJsonLd(
+            crumbs.map((c) => ({ name: c.name, url: abs(c.path) })),
+          ),
         ]
       : null;
 

@@ -39,7 +39,7 @@ export const getBrandColumns = (t: Translator): ColumnDef<Brand>[] => [
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Package className="h-4 w-4" />
         {row.original.productCount > 0 ? (
-          <Link href={`/products?categoryId=${row.original._id}`} className="hover:underline">
+          <Link href={`/products?brandId=${row.original._id}`} className="hover:underline">
             {t("columns.productsCount", { count: row.original.productCount || 0 })}
           </Link>
         ) : (

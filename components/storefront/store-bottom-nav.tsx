@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useState, type CSSProperties } from "react";
+import { Fragment, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
@@ -228,12 +228,26 @@ function MenuSheet({
         <div style={{ overflowY: "auto", padding: "8px 0 14px" }}>
           <SheetLink href={storeHref(base, "/products")} label={t.allProducts} onClose={onClose} strong />
           {categories.map((c) => (
-            <SheetLink
-              key={c._id}
-              href={collectionHref(base, c)}
-              label={c.name}
-              onClose={onClose}
-            />
+            <Fragment key={c._id}>
+              <SheetLink
+                href={collectionHref(base, c)}
+                label={c.name}
+                onClose={onClose}
+              />
+              {/* Sub-categories inline under their parent. This sheet is the
+                  ONLY category navigation on mobile — the header's dropdown row
+                  is desktop-only — so a child missing here is reachable only by
+                  landing on the parent collection first. */}
+              {(c.children ?? []).map((child) => (
+                <SheetLink
+                  key={child._id}
+                  href={collectionHref(base, child)}
+                  label={child.name}
+                  onClose={onClose}
+                  nested
+                />
+              ))}
+            </Fragment>
           ))}
 
           {menuLinks.length > 0 ? (
@@ -250,7 +264,20 @@ function MenuSheet({
   );
 }
 
-function SheetLink({ href, label, onClose, strong }: { href: string; label: string; onClose: () => void; strong?: boolean }) {
+function SheetLink({
+  href,
+  label,
+  onClose,
+  strong,
+  nested,
+}: {
+  href: string;
+  label: string;
+  onClose: () => void;
+  strong?: boolean;
+  /** A sub-category — indented and lighter, but still a ≥40px tap target. */
+  nested?: boolean;
+}) {
   return (
     <Link
       href={href}
@@ -259,10 +286,12 @@ function SheetLink({ href, label, onClose, strong }: { href: string; label: stri
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "13px 18px",
-        fontSize: 14.5,
-        fontWeight: strong ? 700 : 500,
-        color: "var(--text)",
+        // 12px of vertical padding around a ~16px line box keeps the nested row
+        // at 40px — the storefront's tap-target floor — despite the smaller type.
+        padding: nested ? "12px 18px 12px 34px" : "13px 18px",
+        fontSize: nested ? 13.5 : 14.5,
+        fontWeight: strong ? 700 : nested ? 400 : 500,
+        color: nested ? "var(--muted)" : "var(--text)",
       }}
     >
       {label}

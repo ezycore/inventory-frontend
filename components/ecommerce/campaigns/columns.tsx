@@ -4,6 +4,7 @@ import { DiscountCell } from "@/components/ecommerce/discount-cell";
 import { LifecycleBadge } from "@/components/ecommerce/lifecycle-badge";
 import { DateCell } from "@/ui/components/dataTable/cells";
 import type { ColumnDef } from "@tanstack/react-table";
+import { CAMPAIGN_SCOPE_LABEL, type CampaignScope } from "./form-config";
 
 export const campaignColumns: ColumnDef<Campaign>[] = [
   {
@@ -15,8 +16,9 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
     accessorKey: "scope",
     header: "Scope",
     cell: ({ row }) => (
-      <span className="capitalize text-muted-foreground">
-        {row.original.scope}
+      <span className="text-muted-foreground">
+        {CAMPAIGN_SCOPE_LABEL[row.original.scope as CampaignScope] ??
+          row.original.scope}
       </span>
     ),
   },

@@ -5,6 +5,9 @@
 
 import type { QueryKey } from "@tanstack/react-query";
 import { DynamicFormConfig } from "@/ui/components/form/type";
+// One shared CRUD contract: a ViewToggle page passes the SAME `operations`
+// object to DataTable and DataCard, so a private copy here would drift.
+import type { Operations } from "./DataTable";
 import { FilterField } from "./filter";
 import { SortingConfig } from "./DataTable";
 
@@ -242,30 +245,6 @@ export interface CardImageConfig<TData = any> {
   position?: "top" | "left" | "right" | "background";
 }
 
-// Operations interface (same as DataTable)
-interface Operations<TData = any> {
-  formConfig?: DynamicFormConfig;
-  defaultValues?: any;
-  getAllData?: any;
-  createMutation?: any;
-  updateMutation?: any;
-  deleteMutation?: any;
-  bulkDeleteMutation?: any;
-  queryKey?: QueryKey;
-  entityName?: string;
-  isViewAvailable?: boolean;
-  editTooltip?: string;
-  deleteTooltip?: string;
-  viewTooltip?: string;
-  prepareSubmitData?: (
-    data: TData,
-    isEdit: boolean,
-    originalItem?: TData,
-  ) => any;
-  transformEditData?: (item: TData) => any;
-  openInside?: "modal" | "drawer";
-  disabledFieldsInEdit?: string[];
-}
 
 /**
  * Main DataCard component props

@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
 import {
   useStore,
+  useStoreCategories,
   useStoreProduct,
   useStoreProducts,
 } from "@/services/storefront/hooks";
@@ -22,6 +23,9 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
 import { ProductGallery } from "@/components/storefront/product-gallery";
+import { ProductTagChips } from "@/components/storefront/product-tag-chips";
+import { Breadcrumb } from "@/components/storefront/breadcrumb";
+import { productCrumbs } from "@/lib/storefront-breadcrumb";
 import {
   VariantSelector,
   defaultSelection,
@@ -49,6 +53,13 @@ export default function ProductDetailPage({
   const productSlug = String(useParams().productSlug);
 
   const { data: store } = useStore(slug);
+  // Seeded by shop/layout.tsx through the shell, so the breadcrumb's category
+  // rungs are in the SSR HTML. That seeding was added because of this line: the
+  // query had no `initialData` at all, so the visible trail server-rendered as
+  // "Store › All products › Product" while the page's JSON-LD — built server-side
+  // from the same helper — already carried the real category trail. Two claims,
+  // one page, disagreeing until hydration.
+  const { data: categories } = useStoreCategories(slug);
   const {
     data: product,
     isLoading,
@@ -185,6 +196,20 @@ export default function ProductDetailPage({
 
   return (
     <div style={wrap}>
+      {/* Same crumbs as the page's BreadcrumbList JSON-LD — one builder, so the
+          visible trail and the structured data cannot disagree. */}
+      <Breadcrumb
+        base={base}
+        crumbs={productCrumbs({
+          storeName: store?.name ?? "",
+          productName: product.name,
+          productSlug,
+          categories: categories ?? [],
+          categoryId: product.categoryId,
+          subcategoryId: product.subcategoryId,
+          allProductsLabel: t.allProducts,
+        })}
+      />
       <div style={{ display: "grid", gridTemplateColumns: galleryTop ? "1fr" : "var(--pdpgrid)", gap: "clamp(22px,3vw,44px)", alignItems: "start" }}>
         <ProductGallery
           images={images}
@@ -199,7 +224,12 @@ export default function ProductDetailPage({
           <h1 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 700, margin: "0 0 10px", letterSpacing: "-0.025em", lineHeight: 1.15 }}>
             {product.name}
           </h1>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          {/* Stock state and the merchant's labels share one badge row directly
+              under the title — the labels are what the merchant is merchandising
+              on ("Eid sale", "Organic"), so burying them below the fold would
+              make the tags page look like it does nothing. Wraps, because a
+              product can carry several and the column is narrow on a phone. */}
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
             <span
               style={{
                 fontSize: 12,
@@ -212,6 +242,10 @@ export default function ProductDetailPage({
             >
               {soldOut ? t.outOfStock : outOfStock ? t.backorder : t.inStock}
             </span>
+            {/* Each chip is a link into the tag facet, so a shopper who likes a
+                label can see the rest of it — a chip that only decorates is a
+                wasted exit. */}
+            <ProductTagChips tags={product.tags} base={base} />
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 11, marginBottom: 18 }}>
             <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em" }}>{money(price, currency)}</span>

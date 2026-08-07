@@ -26,6 +26,10 @@ const toNum = (v: unknown): number | null => {
   return v === "" || v == null || Number.isNaN(n) || n === 0 ? null : n;
 };
 
+/** A multi-select's value, normalised to a clean id array. */
+const idList = (value: unknown): string[] =>
+  (Array.isArray(value) ? value : []).filter(Boolean).map(String);
+
 function cleanCoupon(data: Record<string, any>) {
   return {
     code: String(data.code ?? "").trim().toUpperCase(),
@@ -37,6 +41,11 @@ function cleanCoupon(data: Record<string, any>) {
     maxUses: toNum(data.maxUses),
     perShopperLimit: toNum(data.perShopperLimit),
     maxDiscountAmount: toNum(data.maxDiscountAmount),
+    // The three scopes are OR'd server-side; an empty list means "no limit on
+    // this axis", so send them as-is rather than mapping empty → undefined.
+    applicableProducts: idList(data.applicableProducts),
+    applicableCategories: idList(data.applicableCategories),
+    applicableTags: idList(data.applicableTags),
     status: data.status,
   };
 }
@@ -80,6 +89,9 @@ export default function CouponsPage() {
             maxUses: c.maxUses ?? 0,
             perShopperLimit: c.perShopperLimit ?? 0,
             maxDiscountAmount: c.maxDiscountAmount ?? 0,
+            applicableProducts: c.applicableProducts ?? [],
+            applicableCategories: c.applicableCategories ?? [],
+            applicableTags: c.applicableTags ?? [],
             status: c.status,
           }),
           // Create → flat CouponInput; edit → { body } (DataTable injects id),

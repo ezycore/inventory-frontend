@@ -54,6 +54,12 @@ export function useUrlFilters(
         }
       } else if (field.type === "boolean" || field.type === "checkbox") {
         filters[field.name] = urlValue === "true";
+      } else if (field.mode === "multiple") {
+        // A multi-select binds to an ARRAY. Handing it the raw string renders
+        // the control with nothing selected while the list *is* filtered — the
+        // active filter becomes invisible and only Reset can clear it. Comma is
+        // the separator the query builder emits for these (`?tags=a,b`).
+        filters[field.name] = urlValue.split(",").filter(Boolean);
       } else {
         // text, select, date, etc.
         filters[field.name] = urlValue;

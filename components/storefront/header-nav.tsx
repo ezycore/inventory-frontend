@@ -15,24 +15,37 @@ import { storeHref } from "@/lib/storefront-links";
  *                unfiltered listing if unknown.
  */
 /**
- * Build a leaf-slug → slugPath lookup for resolving category menu items.
+ * Build a leaf-slug → category lookup for resolving category menu items.
  *
  * Both levels are indexed. A leaf slug is only unique *within its parent*, so two
  * children can share one — the first wins here, which is the same ambiguity the
- * menu editor itself has (it stores a bare slug). Picking the parent's own entry
- * first keeps the common case right.
+ * menu editor itself has (it stores a bare slug). **Every parent is indexed
+ * before any child** so a top-level collection always beats a same-named child;
+ * a single interleaved pass would let the first parent's child shadow a later
+ * parent, which is the opposite of the intended precedence.
  */
-function catMap(categories: CatalogCategory[]): Map<string, string> {
-  const m = new Map<string, string>();
+function catMap(categories: CatalogCategory[]): Map<string, CatalogCategory> {
+  const m = new Map<string, CatalogCategory>();
   for (const c of categories) {
-    if (c.slug && c.slugPath && !m.has(c.slug)) m.set(c.slug, c.slugPath);
+    if (c.slug && c.slugPath && !m.has(c.slug)) m.set(c.slug, c);
+  }
+  for (const c of categories) {
     for (const child of c.children ?? []) {
-      if (child.slug && child.slugPath && !m.has(child.slug)) {
-        m.set(child.slug, child.slugPath);
-      }
+      if (child.slug && child.slugPath && !m.has(child.slug)) m.set(child.slug, child);
     }
   }
   return m;
+}
+
+/** A category's sub-categories as dropdown links. Unroutable nodes are dropped. */
+function childItems(category: CatalogCategory | undefined): StoreMenuItem[] {
+  return (category?.children ?? [])
+    .filter((child) => !!child.slugPath)
+    .map((child) => ({
+      label: child.name,
+      type: "url" as const,
+      value: `/${child.slugPath}`,
+    }));
 }
 
 /** Convenience href resolver for a single menu item (used by compact headers). */
@@ -58,35 +71,46 @@ export function expandHeaderMenu(
   menu: StoreMenuItem[],
   categories: CatalogCategory[],
 ): StoreMenuItem[] {
-  if (!menu.some((m) => m.type === "collections")) return menu;
-  return menu.flatMap((m) =>
-    m.type === "collections"
-      ? categories
-          .filter((c) => !!c.slugPath)
-          .map(
-            (c): StoreMenuItem => ({
-              label: c.name,
-              type: "url",
-              value: `/${c.slugPath}`,
-              // Sub-categories become the item's dropdown children, so a shopper
-              // reaches "Phones › Accessories" without leaving the header.
-              children: (c.children ?? [])
-                .filter((child) => !!child.slugPath)
-                .map((child) => ({
-                  label: child.name,
-                  type: "url" as const,
-                  value: `/${child.slugPath}`,
-                })),
-            }),
-          )
-      : [m],
+  // Two kinds of item need the tree. Checked up front so a menu needing neither
+  // keeps its identity and the header does not re-render for nothing.
+  const needsTree = menu.some(
+    (m) =>
+      m.type === "collections" || (m.type === "category" && !m.children?.length),
   );
+  if (!needsTree) return menu;
+
+  const bySlug = catMap(categories);
+  return menu.flatMap((m): StoreMenuItem[] => {
+    if (m.type === "collections") {
+      return categories
+        .filter((c) => !!c.slugPath)
+        .map((c) => ({
+          label: c.name,
+          type: "url",
+          value: `/${c.slugPath}`,
+          // Sub-categories become the item's dropdown children, so a shopper
+          // reaches "Phones › Accessories" without leaving the header.
+          children: childItems(c),
+        }));
+    }
+    // A HAND-PICKED category item inherits its own sub-categories too. Without
+    // this, nesting only worked for stores using a `collections` block — a
+    // merchant who chose their top links one by one (the common case once you
+    // open Customize) got a flat menu, which is the whole complaint.
+    // An explicitly authored child list always wins: that is the merchant
+    // overriding the default, not an empty one to fill in.
+    if (m.type === "category" && !m.children?.length) {
+      const kids = childItems(bySlug.get(m.value));
+      return kids.length ? [{ ...m, children: kids }] : [m];
+    }
+    return [m];
+  });
 }
 
 function resolveHref(
   item: StoreMenuItem,
   base: string,
-  catBySlug: Map<string, string>,
+  catBySlug: Map<string, CatalogCategory>,
 ): { href: string; external: boolean } {
   if (item.type === "url") {
     const v = item.value || "/";
@@ -97,7 +121,7 @@ function resolveHref(
     return { href: storeHref(base, `/pages/${item.value}`), external: false };
   }
   // category — linked by PATH, which is the collection's canonical URL.
-  const path = catBySlug.get(item.value);
+  const path = catBySlug.get(item.value)?.slugPath;
   return {
     href: storeHref(base, path ? `/${path}` : "/products"),
     external: false,

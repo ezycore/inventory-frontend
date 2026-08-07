@@ -346,6 +346,15 @@ function CartButton({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boolean })
   );
 }
 
+/**
+ * The whole category tree as a menu: one `collections` block, which
+ * `expandHeaderMenu` turns into a top-level link per parent carrying its
+ * sub-categories as dropdown children.
+ */
+const COLLECTIONS_MENU: StoreMenuItem[] = [
+  { label: "", type: "collections", value: "" },
+];
+
 function CategoryRow({ ctx, center }: { ctx: HeaderCtx; center?: boolean }) {
   const { base, headerMenu, menuSource, cats } = ctx;
   if (menuSource === "custom") {
@@ -353,14 +362,22 @@ function CategoryRow({ ctx, center }: { ctx: HeaderCtx; center?: boolean }) {
     return <HeaderNav base={base} menu={headerMenu} categories={cats} center={center} />;
   }
   if (cats.length === 0) return null;
+  // Collections mode goes through the SAME component as a custom menu, so a
+  // sub-category gets the same hover/focus dropdown under its parent. This was a
+  // bare link row until now, which meant the default store — the one whose owner
+  // never opened Customize — surfaced no sub-categories in the header at all.
+  //
+  // It also has to stop being an `overflowX: auto` strip: a scroll container
+  // establishes a clipping box on BOTH axes, so the absolutely-positioned
+  // dropdown panel would be cut off at the row's bottom edge. `HeaderNav` wraps
+  // instead, which is what lets the panel escape.
   return (
-    <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "0 var(--pad) 11px", display: "flex", gap: 22, overflowX: "auto", justifyContent: center ? "center" : "flex-start" }}>
-      {cats.map((c) => (
-        <Link key={c._id} href={collectionHref(base, c)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
-          {c.name}
-        </Link>
-      ))}
-    </div>
+    <HeaderNav
+      base={base}
+      menu={expandHeaderMenu(COLLECTIONS_MENU, cats)}
+      categories={cats}
+      center={center}
+    />
   );
 }
 

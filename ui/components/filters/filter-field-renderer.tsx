@@ -1,6 +1,7 @@
 "use client";
 
 import { FilterField } from '@/types/filter';
+import { resolveApiTemplate } from '@ui/components/form/dependency-utils';
 import { Input } from '@ui/components/input';
 import { NumberField } from '@ui/components/number-field';
 import { Label } from '@ui/components/label';
@@ -16,16 +17,37 @@ interface FilterFieldRendererProps {
   field: FilterField;
   value: any;
   onChange: (value: any) => void;
+  /**
+   * All current filter values — only needed to resolve a `{{template}}`
+   * `optionsApi` against a sibling filter. Both entry points pass it.
+   */
+  values?: Record<string, any>;
   /** Hide the field label — for inline bar controls where the placeholder labels it. */
   hideLabel?: boolean;
   /** Extra classes for the underlying text/number/select control (e.g. `h-8` inline). */
   controlClassName?: string;
 }
 
+/**
+ * A `{{fieldName}}` optionsApi resolved against the sibling filter it names —
+ * the same `resolveApiTemplate` the form selects use, so the two surfaces
+ * cannot drift. `null` means the dependency has no value yet: the caller must
+ * then fetch nothing and disable the control, because the unresolved URL would
+ * either 404 or (worse) return every row unfiltered.
+ */
+function resolveOptionsApi(
+  field: FilterField,
+  values: Record<string, any> | undefined,
+): string | null {
+  if (!field.optionsApi?.includes('{{')) return field.optionsApi ?? null;
+  return resolveApiTemplate(field.optionsApi, values ?? {});
+}
+
 export function FilterFieldRenderer({
   field,
   value,
   onChange,
+  values,
   hideLabel = false,
   controlClassName,
 }: FilterFieldRendererProps) {
@@ -65,6 +87,13 @@ export function FilterFieldRenderer({
         // string so existing filters are untouched.
         const isMulti = field.mode === 'multiple';
 
+        // A dependent select (`?parentId={{categoryId}}`) is inert until the
+        // filter it names has a value — disabled rather than hidden, matching
+        // how the form renders the same pair, so the filter stays discoverable
+        // instead of appearing out of nowhere.
+        const optionsApi = resolveOptionsApi(field, values);
+        const awaitingDependency = optionsApi === null && !!field.optionsApi;
+
         // Same auto-strategy as DynamicForm selects (see select-strategy.ts): a
         // remote or long list renders the searchable Fuse combobox; a short
         // static enum stays a plain dropdown.
@@ -98,7 +127,8 @@ export function FilterFieldRenderer({
             onValueChange={onChange}
             placeholder={field.placeholder || 'Select...'}
             options={selectOptions}
-            optionsApi={field.optionsApi}
+            optionsApi={optionsApi ?? undefined}
+            disabled={awaitingDependency}
             className={cn(controlClassName)}
           />
         );
