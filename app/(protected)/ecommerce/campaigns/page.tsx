@@ -15,16 +15,24 @@ import {
   campaignDefaultValues,
   campaignFilterConfig,
   campaignFormConfig,
+  CAMPAIGN_TARGET_FIELD,
+  type CampaignScope,
 } from "@/components/ecommerce/campaigns";
 
+/** Empty target arrays for every scope — the base both transforms build on. */
+const emptyTargets = () =>
+  Object.fromEntries(
+    Object.values(CAMPAIGN_TARGET_FIELD).map((field) => [field, [] as string[]]),
+  );
+
 function cleanCampaign(data: Record<string, any>) {
-  const scope = data.scope;
-  const picked =
-    scope === "category"
-      ? data.categoryTargets
-      : scope === "product"
-        ? data.productTargets
-        : [];
+  const scope = data.scope as CampaignScope;
+  // Driven by the shared table, so adding a scope cannot leave the fold behind
+  // — which is how `subcategory` and `tag` stayed unbuildable: the engine
+  // supported them, three of the four places that map scope → field did not.
+  const field =
+    CAMPAIGN_TARGET_FIELD[scope as keyof typeof CAMPAIGN_TARGET_FIELD];
+  const picked = field ? data[field] : [];
   const targets = (Array.isArray(picked) ? picked : []).filter(Boolean);
   return {
     name: String(data.name ?? "").trim(),
@@ -74,8 +82,18 @@ export default function CampaignsPage() {
             value: c.value ?? 0,
             startsAt: c.startsAt ?? "",
             endsAt: c.endsAt ?? "",
-            categoryTargets: c.scope === "category" ? c.targets ?? [] : [],
-            productTargets: c.scope === "product" ? c.targets ?? [] : [],
+            // Only the field matching this campaign's scope is filled; the
+            // rest stay empty so switching scope in the form starts clean.
+            ...emptyTargets(),
+            ...(CAMPAIGN_TARGET_FIELD[
+              c.scope as keyof typeof CAMPAIGN_TARGET_FIELD
+            ]
+              ? {
+                  [CAMPAIGN_TARGET_FIELD[
+                    c.scope as keyof typeof CAMPAIGN_TARGET_FIELD
+                  ]]: c.targets ?? [],
+                }
+              : {}),
             status: c.status,
           }),
           // Create → flat CampaignInput; edit → { body } (DataTable injects id),

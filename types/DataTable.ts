@@ -236,7 +236,14 @@ export interface DataTableApiConfig<TData = any> {
 }
 
 // operations
-interface Operations<TData = any> {
+/**
+ * The CRUD contract a list page hands its view. **Shared by DataTable AND
+ * DataCard** — a page using the ViewToggle passes ONE `operations` object to
+ * both, so they must agree on every key. `types/DataCard.ts` kept a private
+ * copy labelled "same as DataTable" until 2026-08-07; it had silently drifted,
+ * and the missing `onFieldChange` disabled every cross-field rule in card view.
+ */
+export interface Operations<TData = any> {
   formConfig?: DynamicFormConfig; // DynamicFormConfig
   defaultValues?: any;
   getAllData?: any;

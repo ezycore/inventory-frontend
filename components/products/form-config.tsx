@@ -41,6 +41,14 @@ export const CATEGORY_OPTIONS_API = selectOptions("categories", {
 });
 
 /**
+ * The projection both spellings of the sub-category list must request. One
+ * const because the two MUST produce byte-identical URLs — the URL is the cache
+ * key, so a drift here would have the VAT prefill miss the very list the select
+ * beside it just fetched.
+ */
+const SUBCATEGORY_FIELDS = "_id,name,defaultTaxId";
+
+/**
  * Sub-category options — the children of whichever category is selected.
  *
  * `{{value}}` is substituted by the form renderer from this field's primary
@@ -49,8 +57,17 @@ export const CATEGORY_OPTIONS_API = selectOptions("categories", {
  */
 const SUBCATEGORY_OPTIONS_API = selectOptions("categories", {
   parentId: "{{value}}",
-  fields: "_id,name,defaultTaxId",
+  fields: SUBCATEGORY_FIELDS,
 });
+
+/**
+ * The same URL with the parent already substituted — what the renderer's
+ * `resolveApiTemplate` produces, and therefore the cache key the select's
+ * options are stored under. `useCategoryVatPrefill` reads that entry to resolve
+ * a chosen child's own rate without issuing a second request.
+ */
+export const subcategoryOptionsApi = (parentId: string): string =>
+  selectOptions("categories", { parentId, fields: SUBCATEGORY_FIELDS });
 
 const TAG_OPTIONS_API = selectOptions("tags", {
   status: "active",

@@ -1,3 +1,4 @@
+import { selectOptions } from "@/services/api/select-options";
 import type { FilterConfig } from "@/types/DataTable";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 
@@ -91,6 +92,65 @@ export const couponFormConfig: DynamicFormConfig = {
       defaultValue: 0,
     },
     {
+      // ── Scope ──────────────────────────────────────────────────────────
+      // Additive and OR'd, unlike a campaign's single `scope` enum: an item
+      // matching ANY of the three lists is eligible, and leaving all three
+      // empty applies the coupon to the whole order.
+      name: "applicableProducts",
+      type: "select",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Limit to products",
+      placeholder: "Any product",
+      helperText: "Leave every scope empty to discount the whole order.",
+      columnSpan: 12,
+      optionsApi: selectOptions("products", { fields: "_id,name" }),
+    },
+    {
+      name: "applicableCategories",
+      type: "select",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Limit to categories",
+      placeholder: "Any category",
+      helperText:
+        "A top-level category covers its whole branch; a sub-category covers only itself.",
+      columnSpan: 12,
+      // BOTH levels, unlike the campaign picker. A campaign's `category` scope
+      // is matched against `product.categoryId` alone, so a child there would
+      // match nothing — but the coupon checker tests an item's `categoryId`
+      // AND its `subcategoryId` against this one list, so either level is valid
+      // here and offering only parents would remove real capability.
+      optionsApi: selectOptions("categories", {
+        fields: "_id,name,parentId",
+      }),
+      // Children are labelled "Parent > Child": a child name is unique only
+      // within its parent, so a mixed flat list can otherwise show two
+      // identical entries meaning different things.
+      itemsCreateCallback: (response: any) =>
+        (response?.data?.items ?? []).map((item: any) => ({
+          ...item,
+          value: item._id,
+          label: item.parent?.name
+            ? `${item.parent.name} › ${item.name}`
+            : item.name,
+        })),
+    },
+    {
+      name: "applicableTags",
+      type: "select",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Limit to tags",
+      placeholder: "Any tag",
+      helperText: "Any product carrying one of these tags is eligible.",
+      columnSpan: 12,
+      optionsApi: selectOptions("tags", { status: "active", fields: "_id,name" }),
+    },
+    {
       name: "status",
       type: "select",
       label: "Status",
@@ -114,6 +174,9 @@ export const couponDefaultValues = {
   minOrderValue: 0,
   maxUses: 0,
   perShopperLimit: 0,
+  applicableProducts: [] as string[],
+  applicableCategories: [] as string[],
+  applicableTags: [] as string[],
   status: "active" as const,
 };
 

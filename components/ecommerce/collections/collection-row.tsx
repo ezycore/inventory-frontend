@@ -19,6 +19,10 @@ export interface CollectionRowValue {
   _id: string;
   name: string;
   slug?: string;
+  /** Addressable path. Carried so the Customize preview can link the row. */
+  slugPath?: string;
+  /** Set on a sub-collection — lets the preview rebuild the two-level tree. */
+  parentId?: string | null;
   displayName: string;
   isListed: boolean;
 }
@@ -125,12 +129,16 @@ export function toRowValue(c: {
   _id: string;
   name: string;
   slug?: string;
+  slugPath?: string;
+  parentId?: string | null;
   storefront?: { isListed?: boolean; displayName?: string };
 }): CollectionRowValue {
   return {
     _id: c._id,
     name: c.name,
     slug: c.slug,
+    slugPath: c.slugPath,
+    parentId: c.parentId ?? null,
     displayName: c.storefront?.displayName ?? "",
     isListed: c.storefront?.isListed !== false,
   };

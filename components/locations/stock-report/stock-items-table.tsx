@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/ui/lib/utils";
 import { Badge } from "@/ui/components/badge";
 import { Card, CardHeader, CardTitle } from "@/ui/components/card";
+import { CategoryPath } from "@/components/shared/category-path";
 import type {
   LocationStockItem,
   LocationStockDetailReport,
@@ -123,7 +124,12 @@ function StockItemRow({ item, t }: { item: LocationStockItem; t: Translator }) {
         </div>
       </td>
       <td className="px-4 py-3 text-sm text-muted-foreground">
-        {item.categoryName || "—"}
+        {/* Both levels, through the same renderer the products table uses. */}
+        <CategoryPath
+          category={item.categoryName}
+          subcategory={item.subcategoryName}
+          fallback="—"
+        />
       </td>
       <td className="px-4 py-3 text-sm text-muted-foreground">
         {item.brandName || "—"}

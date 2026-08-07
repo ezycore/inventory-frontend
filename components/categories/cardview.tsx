@@ -9,8 +9,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { Edit2, MoreVertical, Package, Percent, Tag, Trash2 } from "lucide-react";
+import { CornerDownRight, Edit2, MoreVertical, Package, Percent, Tag, Trash2 } from "lucide-react";
 import { TruncatedText } from "@/components/shared/truncated-text";
+import { categoryProductsHref } from "./helper";
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import type { Translator, AppLocale } from "@/i18n/config";
@@ -52,7 +53,16 @@ const CategoryCardView = (
   options: { t: Translator; locale: AppLocale },
 ) => {
   const { t, locale } = options;
-  const { name, description, status, isDefault, images, createdAt, updatedAt, productCount, _id } = category;
+  // `parentId` says WHETHER this is a sub-category; `parent` carries the name to
+  // show. Two fields on purpose — the edit form binds its parent select to the
+  // raw id, so the backend cannot populate it in place. `parent` is a plain
+  // lookup that can miss (a parent deleted out from under a child), hence the
+  // generic label as a fallback rather than a gap. Same contract as the table
+  // column, which is the view this card is read side-by-side with.
+  const {
+    name, description, status, isDefault, images, createdAt, updatedAt,
+    productCount, parentId, parent,
+  } = category;
 
   const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
   const updatedDate = formatDate(updatedAt, "dd MMM yyyy", locale);
@@ -125,14 +135,30 @@ const CategoryCardView = (
         </DropdownMenu>
       </div>
 
-       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Package className="h-4 w-4" />
-        {productCount > 0 ? (
-          <Link href={`/products?categoryId=${_id}`} className="hover:underline">
-            {t("card.productsCount", { count: productCount || 0 })}
-          </Link>
+      <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 shrink-0">
+          <Package className="h-4 w-4" />
+          {productCount > 0 ? (
+            <Link href={categoryProductsHref(category)} className="hover:underline">
+              {t("card.productsCount", { count: productCount || 0 })}
+            </Link>
+          ) : (
+            <span>{t("card.productsCount", { count: productCount || 0 })}</span>
+          )}
+        </div>
+
+        {/* Parent — a sub-category is otherwise indistinguishable from a
+            top-level one on a flat grid, and the two behave differently (no
+            default flag, no own VAT rate, a two-segment URL). */}
+        {parentId ? (
+          <span className="flex items-center gap-1.5 min-w-0" title={parent?.name}>
+            <CornerDownRight className="h-4 w-4 shrink-0" />
+            <span className="truncate">{parent?.name ?? t("card.subcategory")}</span>
+          </span>
         ) : (
-          <span>{t("card.productsCount", { count: productCount || 0 })}</span>
+          <Badge variant="secondary" className="text-xs shrink-0">
+            {t("card.topLevel")}
+          </Badge>
         )}
       </div>
 

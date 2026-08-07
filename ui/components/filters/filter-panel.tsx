@@ -99,6 +99,7 @@ export function FilterPanel({ config, state, trigger, showReset }: FilterPanelPr
               <FilterFieldRenderer
                 field={field}
                 value={values[field.name]}
+                values={values}
                 onChange={(value) => updateField(field.name, value)}
               />
             </div>

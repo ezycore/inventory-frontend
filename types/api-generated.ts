@@ -7024,6 +7024,7 @@ export interface components {
                 name: string;
                 slug?: string;
                 slugPath?: string;
+                defaultTaxId?: string | null;
             } | null;
         };
         CategoryStats: {
@@ -7070,6 +7071,7 @@ export interface components {
                 name: string;
                 slug?: string;
                 slugPath?: string;
+                defaultTaxId?: string | null;
             } | null;
             descendantProductCount: number;
             children: {
@@ -7110,6 +7112,7 @@ export interface components {
                     name: string;
                     slug?: string;
                     slugPath?: string;
+                    defaultTaxId?: string | null;
                 } | null;
                 descendantProductCount: number;
             }[];
@@ -9582,6 +9585,8 @@ export interface components {
             _id: string;
             name: string;
             slug?: string;
+            slugPath?: string;
+            parentId?: string | null;
             status?: string;
             storefront?: {
                 isListed?: boolean;
@@ -9622,6 +9627,7 @@ export interface components {
             maxDiscountAmount?: number | null;
             applicableProducts?: string[];
             applicableCategories?: string[];
+            applicableTags?: string[];
             /** @enum {string} */
             status: "active" | "inactive";
             /** Format: date-time */
@@ -11287,6 +11293,13 @@ export interface components {
             description: string;
             featured: boolean;
             categoryId?: string | null;
+            tags: {
+                _id: string;
+                name: string;
+                slug?: string;
+                color: string | null;
+            }[];
+            subcategoryId?: string | null;
             productType: string;
             hasVariants: boolean;
             availableQuantity: number;
@@ -11330,6 +11343,13 @@ export interface components {
                 description: string;
                 featured: boolean;
                 categoryId?: string | null;
+                tags: {
+                    _id: string;
+                    name: string;
+                    slug?: string;
+                    color: string | null;
+                }[];
+                subcategoryId?: string | null;
                 productType: string;
                 hasVariants: boolean;
                 availableQuantity: number;
@@ -11926,6 +11946,7 @@ export interface components {
                 isOutOfStock: boolean;
                 status?: string | null;
                 categoryName: string | null;
+                subcategoryName: string | null;
                 brandName: string | null;
             }[];
             pagination: {
@@ -18235,7 +18256,7 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
-                parentId?: string | "null" | "";
+                parentId?: string | "null" | "!null" | "";
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -18514,7 +18535,7 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
-                parentId?: string | "null" | "";
+                parentId?: string | "null" | "!null" | "";
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -34742,6 +34763,7 @@ export interface operations {
                     maxDiscountAmount?: number;
                     applicableProducts?: string[];
                     applicableCategories?: string[];
+                    applicableTags?: string[];
                     /** @enum {string} */
                     status?: "active" | "inactive";
                 };
@@ -34878,6 +34900,7 @@ export interface operations {
                     maxDiscountAmount?: number;
                     applicableProducts?: string[];
                     applicableCategories?: string[];
+                    applicableTags?: string[];
                     /** @enum {string} */
                     status?: "active" | "inactive";
                 };

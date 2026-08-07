@@ -3,6 +3,7 @@
 import { useCrudModal } from "@/hooks/use-crud-handlers";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { useUrlFilters } from "@/hooks/use-url-filters";
+import { stripHiddenValues } from "../form/type";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type { DataCardProps } from "@/types/DataCard";
 import { Card, CardContent } from "@/ui/components/card";
@@ -62,6 +63,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     transformEditData,
     prepareSubmitData,
     disabledFieldsInEdit,
+    onFieldChange,
   } = operations || {};
 
   // Read initial filter values from URL query params
@@ -352,6 +354,22 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
             onSuccess={handleCloseModal}
             disabledFieldsInEdit={disabledFieldsInEdit}
             isEditMode={!!editingItem}
+            // Same bridge as DataTable: the form is created in here, so
+            // appending it is the only way a caller's cross-field rule gets a
+            // `setValue`. Missing entirely until 2026-08-07, which silently
+            // disabled every `operations.onFieldChange` on a card-view page —
+            // the products VAT prefill among them, since cards are that page's
+            // default view.
+            onFieldChange={
+              onFieldChange &&
+              ((fieldName: string, value: any, all: any) =>
+                onFieldChange(
+                  fieldName,
+                  value,
+                  stripHiddenValues(formConfig, all),
+                  form,
+                ))
+            }
           />
         )}
       </CardContent>

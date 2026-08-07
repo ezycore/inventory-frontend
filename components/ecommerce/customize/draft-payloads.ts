@@ -80,16 +80,37 @@ const trimBadges = (badges: CustomizeDraft["badges"]) =>
   // positions survive a reload.
   badges.map((b) => ({ text: b.text.trim(), icon: b.icon }));
 
-/** Listed collections only, display name winning, draft order preserved —
- *  mirrors the public `GET /:slug/categories` contract exactly. */
-const publicCollections = (collections: CustomizeDraft["collections"]) =>
-  collections
-    .filter((c) => c.isListed)
-    .map((c) => ({
-      _id: c._id,
-      name: c.displayName.trim() || c.name,
-      slug: c.slug,
+/**
+ * Listed collections only, display name winning, draft order preserved —
+ * mirrors the public `GET /:slug/categories` contract exactly.
+ *
+ * "Exactly" is load-bearing and was **not** true between 2026-08-06 and
+ * 2026-08-07: this emitted a FLAT `{_id, name, slug}` list while the endpoint had
+ * become a two-level tree carrying `slugPath`. The storefront drops a node with
+ * no `slugPath` (it cannot be linked), so the live preview rendered an EMPTY
+ * header menu the moment the header source was set to "collections" — the editor
+ * looked broken while the saved shop was fine.
+ *
+ * Two rules to keep, both mirroring the service:
+ *  - a node with no `slugPath` is dropped, not emitted as a dead link;
+ *  - an unlisted parent takes its children with it (they are unreachable by path
+ *    anyway, so advertising them would produce dead links).
+ */
+export const publicCollections = (collections: CustomizeDraft["collections"]) => {
+  const linkable = collections.filter((c) => c.isListed && c.slugPath);
+  const shape = (c: CustomizeDraft["collections"][number]) => ({
+    _id: c._id,
+    name: c.displayName.trim() || c.name,
+    slug: c.slug,
+    slugPath: c.slugPath,
+  });
+  return linkable
+    .filter((c) => !c.parentId)
+    .map((parent) => ({
+      ...shape(parent),
+      children: linkable.filter((c) => c.parentId === parent._id).map(shape),
     }));
+};
 
 function toNav(draft: CustomizeDraft): StorefrontNav {
   const a = draft.announcement;

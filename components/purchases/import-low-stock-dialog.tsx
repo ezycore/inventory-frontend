@@ -268,7 +268,14 @@ export function ImportLowStockDialog({
 
   // Fetch brands and categories for filters
   const { data: brandOptions } = useSelectOptions(open ? selectOptions("brands", { fields: "_id,name" }) : null);
-  const { data: categoryOptions } = useSelectOptions(open ? selectOptions("categories", { fields: "_id,name" }) : null);
+  // Top-level only (`parentId: "null"`). The rows are filtered client-side on
+  // `item.categoryId`, which the inventory list populates from
+  // `Product.categoryId` — always the TOP-LEVEL category. Offering a
+  // sub-category here matched no row and emptied the list, and the inventory
+  // response carries no `subcategoryId` to filter on instead.
+  const { data: categoryOptions } = useSelectOptions(
+    open ? selectOptions("categories", { parentId: "null", fields: "_id,name" }) : null,
+  );
 
   // Resolve brand/category ids to display names using the already-fetched filter options.
   const brandNameById = useMemo(() => {

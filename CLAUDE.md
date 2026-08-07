@@ -325,6 +325,22 @@ because none of them shows up in typecheck, lint, or tests:
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.
 
+**Tag display:** a product's tags render via `<TagChips>` (`components/shared/tag-chips.tsx`) —
+coloured outline chips with a `max` before collapsing to `+N` (2 in a table row, `Infinity` on a
+detail page). **Never map `product.tags` to chips inline.** The colour goes on the border and text,
+never as a fill: merchants pick arbitrary colours and half of them would make a filled chip
+unreadable. Until 2026-08-07 the table had the only copy and the card view plus both detail panels
+showed nothing, so switching views silently lost the tags.
+
+**Category display:** a product's place in the taxonomy renders via `<CategoryPath>`
+(`components/shared/category-path.tsx`) — `Personal Care › Skin Care`, with the child dimmed by
+`opacity` so it inherits the caller's colour. **Never print `product.category?.name` on its own.**
+The pair is denormalized (`categoryId` = the top-level category, `subcategoryId` = its child), so
+reading only the first half renders cleanly and silently loses half the answer — that is exactly how
+the products card view, the detail hero, the detail info card and the location stock report each
+showed less than the table beside them (fixed 2026-08-07). Callers pass names, not objects, so a
+report row with `categoryName`/`subcategoryName` strings uses it too.
+
 **Printed documents (one engine):** every printout (sales invoice/receipt, PO, return, payment receipt,
 statement, AND storefront/ecommerce order invoices) renders through `utils/print-documents.ts`, whose
 letterhead is the org's `receiptSettings` (Settings → Receipt & Print) via `orgToPrintHeader`. Order
@@ -370,11 +386,18 @@ frontend diff (valuation method, tax rules) — check the reports pages by hand.
 - **`SimpleTable`** (`ui/components/simple-table.tsx`) for the small tables embedded in cards / detail panels. Column-driven: `<SimpleTable columns rows getRowKey />`, where each `SimpleColumn` has `header`, `cell: (row) => node`, optional `align`/`headClassName`/`cellClassName`; plus `rowClassName`/`headerRowClassName` for per-row styling. Cells can hold inputs/checkboxes, so lightly interactive grids fit too (see `variant-manager.tsx`).
 - Only drop to the raw `ui/components/table` primitives inside `SimpleTable` itself.
 
-**Cross-field rules in a DataTable's CRUD form** go through `operations.onFieldChange(fieldName,
-value, allValues, form)`. The `form` argument is the DataTable's own `useForm` instance — the form is
+**Cross-field rules in a CRUD form** go through `operations.onFieldChange(fieldName,
+value, allValues, form)` — wired by **both** DataTable and DataCard. The `form` argument is that
+component's own `useForm` instance — the form is
 created inside the component, so that is the only way a caller gets `setValue`. See
 `components/products/use-category-vat-prefill.ts` (category → VAT rate). Do not fork the form or
 duplicate the field elsewhere to work around it.
+
+`operations` is ONE type (`Operations` in `types/DataTable.ts`), imported by `types/DataCard.ts`
+rather than copied — a ViewToggle page hands the same object to both views, so a private copy
+drifts. It did: DataCard's copy omitted `onFieldChange` and never bridged it, which silently
+disabled every cross-field rule in card view (the products VAT prefill among them, since cards are
+that page's default). Add a key to the shared type and wire it in **both** components.
 
 **Form inputs — use the shared primitives, never re-implement:** these carry the project's validation, empty-state, accessibility, and UX contracts. Reach for them before writing any new input, and before creating a new input abstraction.
 - **`NumberField`** (`ui/components/number-field.tsx`) for **every** numeric input — never a raw `<input type="number">`. Contract: `value: number | null`, `onChange: (number | null) => void`; empty → `null`; clamps `min`/`max` on blur; `precision` rounds (money `2`, qty/counts `0`, generic/UOM `undefined`); `showSteppers` for +/- buttons. Do **not** default `precision` in generic/config-driven renderers.

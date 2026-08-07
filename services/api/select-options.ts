@@ -81,8 +81,10 @@ interface OptionParams {
   all?: boolean;
   /**
    * Category level. `"null"` asks for top-level categories only — the value
-   * `product.categoryId` must hold. May also be a `{{value}}` template the form
-   * renderer substitutes with the selected parent's id (the sub-category select).
+   * `product.categoryId` must hold. May also be a template substituted with the
+   * selected parent's id, by either renderer that owns a sub-category select:
+   * `{{value}}` in a form (resolved from the field's `dependsOn`), or
+   * `{{categoryId}}` in a filter bar (resolved from the sibling filter).
    */
   parentId?: string;
 }
