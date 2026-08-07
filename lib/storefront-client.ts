@@ -1,3 +1,4 @@
+// coding-standard: maintained
 /**
  * Storefront client — a light fetch wrapper for the PUBLIC storefront API
  * (`/api/storefront/{slug}`). Separate from `lib/api-client.ts`: it carries the
@@ -120,8 +121,10 @@ export interface StoreTemplatesRaw {
   footer?: string;
   header?: string;
   productCard?: string;
+  cardActions?: string;
   hero?: string;
   headerMenu?: string;
+  pagination?: string;
 }
 
 /** What the storefront header's top links are built from. */
@@ -136,8 +139,22 @@ export interface StoreTemplates {
   footer: "columns" | "simple" | "rich";
   header: "classic" | "minimal" | "centered";
   productCard: "standard" | "compact" | "bold";
+  /**
+   * Which actions the product card offers, and in what form. Independent of
+   * `productCard`, which controls density only — a compact card can still want
+   * two buttons, a bold card can still want one.
+   *
+   * `reveal` hides the CTA until hover and is therefore **desktop-only**; touch
+   * has no hover, so it falls back to `addBuy` below 680px.
+   */
+  cardActions: "add" | "addBuy" | "icons" | "buyFirst" | "reveal" | "iconOnly";
   /** Home hero source: carousel (when slides exist) vs the static banner hero. */
   hero: "slides" | "banner";
+  /**
+   * How product listings advance past page 1: numbered Prev/Next, auto-load on
+   * scroll (then a button), or a button only. Collection page + search results.
+   */
+  pagination: "pages" | "infinite" | "loadMore";
 }
 
 /** A header menu link target (category slug, page slug, or URL). */
@@ -262,9 +279,37 @@ export interface StoreCampaign {
 export interface CatalogCategory {
   _id: string;
   name: string;
+  /** Leaf segment only. Link with `slugPath`, which carries the full path. */
   slug: string;
+  /** Public path: "phones" (top level) or "phones/accessories" (child). */
+  slugPath?: string;
   /** Collection thumbnail (single image); absent when the merchant set none. */
   image?: StorefrontImage | null;
+  /**
+   * Sub-categories. Present on top-level nodes only — the tree is exactly two
+   * levels deep, and a hidden parent takes its children with it, so anything
+   * listed here is reachable at its own `slugPath`.
+   */
+  children?: CatalogCategory[];
+}
+
+/** `GET …/categories/resolve?path=` — one collection, plus its breadcrumb parent. */
+export interface CatalogCategoryDetail extends CatalogCategory {
+  description?: string | null;
+  isSubcategory: boolean;
+  parent?: { _id: string; name: string; slugPath?: string } | null;
+}
+
+/**
+ * One public tag (`GET …/tags`) — curated like brands: active tags carrying at
+ * least one listed product, so a facet row can never come back empty.
+ */
+export interface StoreTag {
+  _id: string;
+  name: string;
+  slug: string;
+  color?: string | null;
+  productCount: number;
 }
 
 /**
@@ -285,10 +330,12 @@ export interface ProductListResult {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
-/** Account communication preferences (Notifications section). */
+/**
+ * Account MARKETING consent (Notifications section). Transactional order
+ * updates are not here — the store configures those per event per channel.
+ */
 export interface ShopperPrefs {
   promoEmail: boolean;
-  orderSms: boolean;
   priceDrop: boolean;
   newsletter: boolean;
 }
@@ -350,6 +397,12 @@ export interface ShippingAddress {
 export interface StorefrontOrder {
   _id: string;
   orderNumber: string;
+  /**
+   * The buyer's tracking link, returned **only on placement**. A guest's single
+   * chance to keep it — no SMS carries the link and they have no account to find
+   * it in later, so the confirmation screen must surface it.
+   */
+  trackUrl?: string;
   items: OrderItem[];
   subtotal: number;
   discountAmount: number;
@@ -400,6 +453,40 @@ export interface PlaceOrderInput {
   couponCode?: string;
   /** Shopper accepted the store's terms (required when `checkout.termsRequired`). */
   termsAccepted?: boolean;
+  /**
+   * The browser's cart handle, so a GUEST order can close its mirrored cart —
+   * the server's shopper-keyed path has no shopper to key on. Optional because
+   * `cartAnonymousId()` returns null where localStorage is unavailable, and an
+   * order must never depend on an analytics record.
+   */
+  anonymousId?: string;
+}
+
+/**
+ * The buyer's read-only view of one order, from a tracking link. Deliberately
+ * narrower than `StorefrontOrder`: no merchant cost, no ledger refs, no phone.
+ */
+export interface TrackedOrder {
+  orderNumber: string;
+  status: string;
+  fulfillmentType?: "delivery" | "pickup";
+  paymentMethod: "cod" | "bank" | "manual";
+  paymentStatus: "pending" | "paid" | "refunded";
+  placedAt?: string;
+  items: { productName: string; quantity: number; price: number; subtotal: number }[];
+  subtotal: number;
+  discountAmount: number;
+  shippingCharged: number;
+  totalAmount: number;
+  shipTo: { name: string; area?: string; district?: string };
+  courier?: {
+    name?: string;
+    trackingCode?: string;
+    trackingUrl?: string;
+    normalizedStatus?: string;
+    history: { status: string; note?: string; at?: string }[];
+  };
+  statusHistory: { status: string; at?: string }[];
 }
 
 export interface CouponPreview {
@@ -407,10 +494,131 @@ export interface CouponPreview {
   discountAmount: number;
 }
 
+/** One line of the server-side cart mirror. Prices are the SERVER's. */
+export interface CartMirrorItem {
+  productId: string;
+  variantId?: string;
+  productName: string;
+  variantLabel?: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+/**
+ * The server's copy of the shopper's cart (see the backend
+ * `docs/plan/abandoned-cart.md`). Deliberately narrow — no `organizationId`,
+ * `anonymousId` or `shopperId`; those are merchant-side join keys.
+ *
+ * The client does NOT render from this. The browser cart stays authoritative for
+ * display; this is the mirror the merchant sees, echoed back only so the sync can
+ * be verified.
+ */
+export interface CartMirror {
+  _id: string;
+  items: CartMirrorItem[];
+  subtotal: number;
+  currency?: string;
+  status: "active" | "converted";
+  lastActivityAt: string;
+  checkoutStartedAt?: string;
+  signedInAt?: string;
+}
+
+/** What the client sends up — ids and quantities only; never prices. */
+export interface CartMirrorInput {
+  anonymousId: string;
+  items: { productId: string; variantId?: string; quantity: number }[];
+}
+
+/**
+ * One line of a cart restored from a recovery link. Richer than `CartMirrorItem`
+ * because the browser cart is rebuilt from it — hence `slug`, `image`, `maxQty`.
+ *
+ * `maxQty` follows `lib/storefront-cart-qty.ts`: `0` means **sold out**, and a
+ * NEGATIVE value means no local cap (backorder). They were the same value until
+ * a restored sold-out line came back uncapped and could be raised to any
+ * quantity checkout then refused.
+ */
+export interface RestoredCartItem {
+  productId: string;
+  variantId?: string;
+  slug: string;
+  name: string;
+  variantLabel?: string;
+  image?: string;
+  quantity: number;
+  price: number;
+  maxQty: number;
+}
+
+/**
+ * The cart behind a recovery link, re-priced against the live catalogue.
+ * `removedCount` is how many lines are no longer purchasable — the shopper is
+ * told, never handed a quietly shorter cart.
+ */
+export interface RestoredCart {
+  items: RestoredCartItem[];
+  subtotal: number;
+  currency?: string;
+  removedCount: number;
+}
+
+/**
+ * The shopper's cart after signing in — with any cart they left on **another
+ * device** already folded in. `mergedCount > 0` means items arrived from
+ * elsewhere.
+ *
+ * The client MUST adopt these items: the merge happens server-side, so if the
+ * local cart were kept the next debounced sync would push it straight over the
+ * merge and undo it.
+ */
+export interface ClaimedCart {
+  items: RestoredCartItem[];
+  subtotal: number;
+  currency?: string;
+  mergedCount: number;
+}
+
 interface FetchOpts {
   method?: string;
   body?: unknown;
   token?: string | null;
+  /**
+   * Let the request outlive the page. Only the cart mirror's unload flush uses
+   * it: a shopper who adds an item and closes the tab inside the debounce window
+   * is exactly the abandoner worth recording, and a normal fetch is cancelled
+   * with the document.
+   */
+  keepalive?: boolean;
+}
+
+/**
+ * A failed storefront request, carrying the HTTP status alongside the message.
+ *
+ * It exists because "the request failed" and "the thing you asked for is not
+ * there" are different answers and a bare `Error` cannot tell them apart — the
+ * order-tracking page rendered *every* failure, including a 429 and a dropped
+ * connection, as "this tracking link is no longer valid" and told the buyer to
+ * ask the merchant for a new one. Extends `Error`, so the many call sites doing
+ * `(e as Error).message` keep working unchanged.
+ */
+export class StorefrontApiError extends Error {
+  constructor(
+    message: string,
+    /** HTTP status. Branch on this — it is present whatever the body looks like. */
+    readonly status: number,
+    /**
+     * The machine code from the API envelope, when it sent one. Not every
+     * failure has it: `express-rate-limit` replies with its own body shape
+     * rather than going through the backend's error handler, so treat a missing
+     * code as normal and prefer `status`.
+     */
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = "StorefrontApiError";
+  }
 }
 
 async function sfFetch<T>(
@@ -426,6 +634,7 @@ async function sfFetch<T>(
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
     cache: "no-store",
+    keepalive: opts.keepalive,
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -450,8 +659,14 @@ async function sfFetch<T>(
         }
       }
     }
-    // Error payloads carry the human message in `error` (see backend errorHandler).
-    throw new Error(json?.error || json?.message || `Request failed (${res.status})`);
+    // The backend's errorHandler puts the human message in `error` and the
+    // machine code in `code`. Rate limiters answer from express-rate-limit
+    // instead, whose body is shaped differently — hence the `message` fallback.
+    throw new StorefrontApiError(
+      json?.error || json?.message || `Request failed (${res.status})`,
+      res.status,
+      json?.code,
+    );
   }
   return json.data as T;
 }
@@ -489,6 +704,7 @@ export const storefrontApi = {
   listCategories: (slug: string) =>
     sfFetch<CatalogCategory[]>(slug, "/categories"),
   listBrands: (slug: string) => sfFetch<StoreBrand[]>(slug, "/brands"),
+  listTags: (slug: string) => sfFetch<StoreTag[]>(slug, "/tags"),
   listCampaigns: (slug: string) =>
     sfFetch<StoreCampaign[]>(slug, "/campaigns"),
   listPages: (slug: string) =>
@@ -543,6 +759,20 @@ export const storefrontApi = {
       body,
       token,
     }),
+
+  /**
+   * Public order tracking. **No token** — the link itself is the credential, and
+   * the response is a narrow allowlist that cannot act on the order.
+   */
+  trackOrder: (slug: string, trackToken: string) =>
+    sfFetch<TrackedOrder>(slug, `/t/${encodeURIComponent(trackToken)}`),
+
+  /** Recovery for a lost link. The phone is required, not optional convenience. */
+  lookupOrder: (slug: string, orderNumber: string, phone: string) =>
+    sfFetch<TrackedOrder>(
+      slug,
+      `/orders/track?orderNumber=${encodeURIComponent(orderNumber)}&phone=${encodeURIComponent(phone)}`,
+    ),
   updateAddress: (
     slug: string,
     token: string,
@@ -588,7 +818,10 @@ export const storefrontApi = {
       body: { token, password },
     }),
 
-  placeOrder: (slug: string, token: string, body: PlaceOrderInput) =>
+  // `token` is optional: no token is a GUEST order, which the server accepts.
+  // A present-but-invalid token still 401s — absence and invalidity are different
+  // things and must not resolve the same way.
+  placeOrder: (slug: string, token: string | undefined, body: PlaceOrderInput) =>
     sfFetch<StorefrontOrder>(slug, "/orders", { method: "POST", body, token }),
   listOrders: (slug: string, token: string) =>
     sfFetch<StorefrontOrder[]>(slug, "/orders", { token }),
@@ -600,14 +833,46 @@ export const storefrontApi = {
       method: "POST",
       token,
     }),
+  // Guest-tolerant like `placeOrder`. `phone` carries the per-buyer coupon limit
+  // when there is no account to count against, so the quoted discount matches the
+  // one placement will charge.
   validateCoupon: (
     slug: string,
-    token: string,
-    body: { code: string; items: { productId: string; quantity: number }[] },
+    token: string | undefined,
+    body: {
+      code: string;
+      items: { productId: string; quantity: number }[];
+      phone?: string;
+    },
   ) =>
     sfFetch<CouponPreview>(slug, "/coupon/validate", {
       method: "POST",
       body,
       token,
     }),
+
+  // ---- cart mirror (analytics; never blocks the shopper) --------------------
+  // All three are fire-and-forget from the caller's point of view — see
+  // `components/storefront/cart-sync.tsx`, the only consumer.
+  syncCart: (slug: string, body: CartMirrorInput, keepalive?: boolean) =>
+    sfFetch<CartMirror>(slug, "/cart", { method: "PUT", body, keepalive }),
+  /**
+   * Attach the signed-in shopper to their cart and fold in any cart they left on
+   * another device. Idempotent. Returns the resulting cart — the caller adopts it.
+   */
+  claimCart: (slug: string, token: string, anonymousId: string) =>
+    sfFetch<ClaimedCart>(slug, "/cart/claim", {
+      method: "POST",
+      body: { anonymousId },
+      token,
+    }),
+  /** Funnel step: the shopper reached /checkout with something in the cart. */
+  markCheckoutStarted: (slug: string, anonymousId: string) =>
+    sfFetch<{ ok: boolean }>(slug, "/cart/checkout-started", {
+      method: "POST",
+      body: { anonymousId },
+    }),
+  /** Exchange a recovery-email token for the cart behind it. */
+  restoreCart: (slug: string, token: string) =>
+    sfFetch<RestoredCart>(slug, `/cart/restore/${token}`),
 };

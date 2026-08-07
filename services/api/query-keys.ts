@@ -46,6 +46,14 @@ export const queryKeys = {
     subscription: () => ["organization", "subscription"] as const,
     plans: () => ["organization", "plans"] as const,
     storefront: () => ["organization", "storefront"] as const,
+    notifications: () => ["organization", "notifications"] as const,
+    notificationLog: (params?: object) =>
+      ["organization", "notifications", "log", params ?? {}] as const,
+    // Under the `notifications` prefix on purpose: sending an SMS moves the
+    // balance, the log AND this roll-up, and one invalidation must flush all
+    // three or the usage figure quietly disagrees with the balance beside it.
+    smsUsage: (months?: number) =>
+      ["organization", "notifications", "sms-usage", months ?? null] as const,
   },
 
   profile: {
@@ -62,11 +70,18 @@ export const queryKeys = {
   categories: {
     ...resourceKeys("categories"),
     bySlug: (slug: string) => ["categories", "slug", slug] as const,
+    /** The two-level tree with per-node product counts (`GET /categories/tree`). */
+    tree: () => ["categories", "tree"] as const,
   },
 
   brands: {
     ...resourceKeys("brands"),
     bySlug: (slug: string) => ["brands", "slug", slug] as const,
+  },
+
+  tags: {
+    ...resourceKeys("tags"),
+    bySlug: (slug: string) => ["tags", "slug", slug] as const,
   },
 
   units: resourceKeys("units"),
@@ -237,7 +252,22 @@ export const queryKeys = {
   },
 
   // ── Ecommerce / storefront (admin side) ─────────────────────────────────────
-  storefrontOrders: resourceKeys("storefront-orders"),
+  storefrontOrders: {
+    ...resourceKeys("storefront-orders"),
+    /**
+     * The create dialog's live price, keyed on the whole draft — every field in it
+     * (lines, coupon, discount, zone, shipping override) changes the answer, so
+     * the draft IS the key. Under the orders root so a campaign or coupon change
+     * that dirties orders drops the stale price too.
+     */
+    quote: (draft: Params) => ["storefront-orders", "quote", draft] as const,
+    /**
+     * The create dialog's picker rows — storefront-priced, campaign-applied.
+     * Under the orders root so a campaign or catalog change that dirties orders
+     * refreshes the prices the merchant is about to quote.
+     */
+    products: () => ["storefront-orders", "products"] as const,
+  },
 
   /** Courier provider config — a sibling of orders, not a part of them. */
   couriers: {
@@ -260,6 +290,17 @@ export const queryKeys = {
 
   storefrontDashboard: {
     all: () => ["ecommerce-dashboard"] as const,
+  },
+
+  /**
+   * Abandoned carts + the purchase funnel. Read-only resource — carts are written
+   * by shoppers on the storefront, so no admin mutation ever invalidates these;
+   * they refresh on the global staleTime.
+   */
+  storefrontCarts: {
+    all: () => ["ecommerce-carts"] as const,
+    list: (params?: Params) => ["ecommerce-carts", "list", params ?? {}] as const,
+    stats: (days?: number) => ["ecommerce-carts", "stats", days ?? null] as const,
   },
 
   campaigns: resourceKeys("campaigns"),

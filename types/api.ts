@@ -40,6 +40,10 @@ export type ApiBrand = Schemas["Brand"];
 export type BrandListItem = Schemas["BrandListItem"];
 export type ApiCategory = Schemas["Category"];
 export type CategoryListItem = Schemas["CategoryListItem"];
+/** One node of `GET /categories/tree` — a parent with its `children[]`. */
+export type CategoryTreeNode = Schemas["CategoryTreeNode"];
+export type ApiTag = Schemas["Tag"];
+export type TagListItem = Schemas["TagListItem"];
 /** Result of re-pointing a category's products at its default VAT rate. */
 export type CategoryApplyTaxResult = Schemas["CategoryApplyTax"];
 export type ApiUnit = Schemas["Unit"];
@@ -136,6 +140,8 @@ export type ApiOrganizationFeatures = Schemas["OrganizationFeatures"];
 export type AdminStorefrontOrder = Schemas["StorefrontOrder"];
 export type StorefrontOrderList = Schemas["StorefrontOrderList"];
 export type OrderStats = Schemas["OrderStats"];
+export type OrderQuote = Schemas["OrderQuote"];
+export type OrderableProduct = Schemas["OrderableProduct"];
 export type StorefrontDashboard = Schemas["StorefrontDashboard"];
 export type CatalogList = Schemas["CatalogList"];
 export type CatalogVariant = Schemas["CatalogVariant"];
@@ -153,12 +159,22 @@ export type CustomCourier = Schemas["CustomCourier"];
 export type CustomCourierRemoved = Schemas["CustomCourierRemoved"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
+
+/** Notification engine (backend docs/plan/notifications.md). */
+export type NotificationSettings = Schemas["NotificationSettings"];
+export type NotificationEventRow = NotificationSettings["events"][number];
+export type NotificationLogItem = Schemas["NotificationLogItem"];
+export type SmsTestResult = Schemas["SmsTestResult"];
+export type SmsUsageReport = Schemas["SmsUsageReport"];
+export type SmsUsageMonth = SmsUsageReport["months"][number];
 export type ApiCampaign = Schemas["Campaign"];
 export type ApiCoupon = Schemas["Coupon"];
 export type ApiContentPage = Schemas["ContentPage"];
 export type ShopperListItem = Schemas["ShopperListItem"];
 export type ShopperDetail = Schemas["ShopperDetail"];
 export type ShopperOrder = Schemas["ShopperOrder"];
+export type AbandonedCartListItem = Schemas["AbandonedCartListItem"];
+export type AbandonedCartStats = Schemas["AbandonedCartStats"];
 
 // Auth & users ---------------------------------------------------------------
 export type Me = Schemas["Me"];

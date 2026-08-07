@@ -22,6 +22,9 @@
     "stockLevel": "স্টক লেভেল",
     "alert": "অ্যালার্ট: {level} {unit}",
     "tooltipCurrent": "বর্তমান: {quantity} {unit}",
+    "reservedSplit": "{reserved} রিজার্ভ · {available} {unit} বিক্রয়যোগ্য",
+    "tooltipReserved": "অনলাইন অর্ডারের জন্য রিজার্ভ: {quantity} {unit}",
+    "tooltipAvailable": "বিক্রয়যোগ্য: {quantity} {unit}",
     "tooltipAlertThreshold": "অ্যালার্ট সীমা: {level} {unit}",
     "tooltipStatus": "স্ট্যাটাস: {status}",
     "stockValue": "স্টকের মূল্য",
@@ -81,7 +84,9 @@
     "status": "স্ট্যাটাস",
     "allStatuses": "সব স্ট্যাটাস",
     "active": "সক্রিয়",
-    "inactive": "নিষ্ক্রিয়"
+    "inactive": "নিষ্ক্রিয়",
+    "tagsLabel": "ট্যাগ",
+    "tagsPlaceholder": "যেকোনো ট্যাগ"
   },
   "form": {
     "product": "পণ্য",

@@ -26,6 +26,35 @@ export function hasZoneShipping(
  * otherwise it falls back to the merchant's flat/free-over `shippingRule`.
  * Mirrors the backend `computeShipping` so the preview matches what's charged.
  */
+/**
+ * What delivery will cost when the zone is **not known yet** — i.e. everywhere
+ * before checkout, since the zone is derived from the district the shopper picks
+ * there.
+ *
+ * `computeShipping` defaults to `"inside"`, which is fine at checkout (the real
+ * zone is passed) but **understates** the fee on the cart for any shopper outside
+ * Dhaka: they saw ৳60 and are charged ৳120. Unexpected delivery cost is the
+ * single largest cause of cart abandonment, so a number that is quietly wrong in
+ * the shopper's disfavour is worse than an honest range.
+ *
+ * `estimated` is true only when the two zones actually differ — a flat rule, a
+ * free-over-threshold rule (the subtotal is known) and a free-shipping store all
+ * yield one exact number and are shown as such. Half-configured zones fall
+ * through to the rule inside `computeShipping`, so they collapse correctly too.
+ */
+export function shippingRange(
+  store: Pick<StorefrontStore, "shippingRule" | "shippingZones"> | null | undefined,
+  subtotal: number,
+): { min: number; max: number; estimated: boolean } {
+  const inside = computeShipping(store, subtotal, "inside");
+  const outside = computeShipping(store, subtotal, "outside");
+  return {
+    min: Math.min(inside, outside),
+    max: Math.max(inside, outside),
+    estimated: inside !== outside,
+  };
+}
+
 export function computeShipping(
   store: Pick<StorefrontStore, "shippingRule" | "shippingZones"> | null | undefined,
   subtotal: number,

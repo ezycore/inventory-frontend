@@ -162,7 +162,16 @@ export default function InvoicePage() {
       </div>
     );
   }
-  if (isLoading) return <p style={{ ...wrapStyle, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>;
+  // The same splash as the hydration gate above it — one screen, one wait, one
+  // visual. The invoice itself renders inside an opaque iframe, so there is no
+  // honest shape to skeleton here.
+  if (isLoading) {
+    return (
+      <div style={wrapStyle}>
+        <LoadingSplash />
+      </div>
+    );
+  }
   if (isError || !order) {
     return (
       <div style={wrapStyle}>
@@ -178,7 +187,8 @@ export default function InvoicePage() {
     <div style={wrapStyle}>
       {/* Toolbar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
-        <Link href={storeHref(base, "/account?tab=orders")} style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "var(--muted)" }}>
+        {/* Padding + cancelling margin: a 40px touch target, same position. */}
+        <Link href={storeHref(base, "/account?tab=orders")} style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "var(--muted)", padding: "10px 0", margin: "-10px 0" }}>
           <Icon name="back" size={16} /> {t.backToOrders}
         </Link>
         <button

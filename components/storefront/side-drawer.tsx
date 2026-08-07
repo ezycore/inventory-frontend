@@ -1,8 +1,9 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { useOverlayTransition } from "@/hooks/use-overlay-transition";
 import { Icon } from "@/components/storefront/sf-icons";
 
 /** Must cover the .sf-drawer CSS transition (0.26s) so the exit finishes. */
@@ -35,35 +36,11 @@ export function SideDrawer({
   footer?: ReactNode;
   children: ReactNode;
 }) {
-  const [mounted, setMounted] = useState(open);
-  const [shown, setShown] = useState(false);
-
   // Freeze the catalogue behind the panel — without this an overscroll inside
   // the drawer's list scrolls the page underneath it.
   useBodyScrollLock(open);
 
-  // Enter mounts closed / exit drops .sf-open immediately — render-time state
-  // adjustments (no effect), so the closed position paints before the slide.
-  if (open && !mounted) setMounted(true);
-  if (!open && shown) setShown(false);
-
-  // Async halves: flip to .sf-open a frame after the closed state painted
-  // (double rAF — a single one can land too early for the transition to run),
-  // and unmount only after the exit transition finished.
-  useEffect(() => {
-    if (open) {
-      let raf2 = 0;
-      const raf1 = requestAnimationFrame(() => {
-        raf2 = requestAnimationFrame(() => setShown(true));
-      });
-      return () => {
-        cancelAnimationFrame(raf1);
-        cancelAnimationFrame(raf2);
-      };
-    }
-    const timer = setTimeout(() => setMounted(false), EXIT_MS);
-    return () => clearTimeout(timer);
-  }, [open]);
+  const { mounted, shown } = useOverlayTransition(open, EXIT_MS);
 
   // Esc closes — the drawer never holds unsaved state, so closing is always safe.
   useEffect(() => {

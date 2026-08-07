@@ -189,6 +189,13 @@ export interface StorefrontTemplates {
   footer?: string;
   header?: string;
   productCard?: string;
+  /**
+   * Card CTA layout: "add" | "add-buy" | "icons" | "buy-first" | "reveal" |
+   * "icon-only". Independent of `productCard`, which is density only. Unset on
+   * stores predating the control — the storefront's `resolveTemplates` derives
+   * the fallback from `productCard` so a compact store keeps its inline "+".
+   */
+  cardActions?: string;
   /** Home hero source: "slides" (carousel when slides exist) | "banner" (static hero). */
   hero?: string;
   /**
@@ -197,6 +204,12 @@ export interface StorefrontTemplates {
    * which reproduces the old implicit behaviour rather than defaulting.
    */
   headerMenu?: string;
+  /**
+   * Product-listing pagination style: "pages" (numbered) | "infinite" |
+   * "load-more". Unset ⇒ "pages", which is what every store rendered before the
+   * control shipped.
+   */
+  pagination?: string;
 }
 
 export interface StorefrontCustomersConfig {
@@ -223,6 +236,9 @@ export interface StorefrontSettings {
   defaultDeliveryCost: number;
   /** In-store pickup option (collect from the fulfillment location). */
   pickup?: { enabled?: boolean; instructions?: string };
+  /** Abandoned-cart recovery emails. Off unless the merchant opts in;
+   *  `delaysMinutes` is sorted ascending and its length is the send cap. */
+  cartRecovery?: { enabled?: boolean; delaysMinutes?: number[] };
   bankInstructions?: string;
   theme?: StorefrontTheme;
   nav?: StorefrontNav;
@@ -1013,7 +1029,12 @@ export interface UpdateDiscountDto extends Partial<CreateDiscountDto> { }
 export interface Inventory extends Product {
   productId: string;
   variantId?: string | null;
+  /** Physical on-hand, holds included — what a stock count would find. */
   quantity: number;
+  /** Of that on-hand, the part soft-held for confirmed storefront orders. */
+  reservedQuantity?: number;
+  /** `quantity − reservedQuantity`: what POS and the storefront will let anyone buy. */
+  availableQuantity?: number;
   quantityAlert: number;
   isLowStock: boolean;
   quantityBreakdown?: {

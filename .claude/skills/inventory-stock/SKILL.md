@@ -75,6 +75,13 @@ UI can build one bulk payload. Reset them on submit/cancel.
 - **Cost is already per base unit** — render `quantity × costPrice` directly; do **not** divide by a
   conversion factor on the client (that was the old per-purchase-unit model). COGS/profit come from the
   server pre-computed.
+- **Three quantities, and the headline is the physical one.** A row carries `quantity` (on-hand),
+  `reservedQuantity` (soft-held for confirmed storefront orders) and `availableQuantity`
+  (`quantity − reserved`, what POS and the store will actually sell). The stock-level cell keeps
+  `quantity` as the big number, the bar and the status — it is what a stock count finds, and what the
+  server's own `isLowStock` is computed from — and shows `N reserved · M sellable` beneath only when a
+  hold exists. **Never sum or subtract these client-side:** the server sends `availableQuantity`
+  precisely so every surface reports one number. Why holds exist: backend `inventory-stock` skill.
 - Batch/expiry columns only appear when `expiryTracking` is enabled and the product has expiry — gate
   with the feature helper; see the `expiry-tracking` skill.
 - **Adjusting a batch-tracked product is not a plain quantity edit.** An increase must open (or name)
@@ -92,6 +99,7 @@ UI can build one bulk payload. Reset them on submit/cancel.
 | Stock value looks doubled/halved | client applied a UOM factor to cost | remove it — server cost is per base unit |
 | "Can't set quantity directly" | there is no direct-set endpoint | use the right `bulk*`/adjust flow (movement is written first) |
 | Batch columns missing | `expiryTracking` off or product `hasExpiry` false | expected — gate on the feature + product flag |
+| Sell page offers fewer units than the inventory page shows | stock is reserved for confirmed online orders | expected — the row's `reserved · sellable` line explains the gap; cancelling the order releases it |
 | Adjust rejects a decrease on a tracked product | batch draws missing or not summing to the removed qty | assign the units across lots in the picker (`ADJUST_BATCH_DRAWS_MISMATCH`) — see `expiry-tracking` |
 
 ---

@@ -24,6 +24,10 @@ export interface Dict {
   fromPrice: string;
   /** Card CTA for variable products — options are picked on the PDP. */
   selectOptions: string;
+  /** Quick-buy sheet: escape hatch to the full product page. */
+  fullDetails: string;
+  /** Quick-buy prompt while the shopper still owes an option choice. */
+  chooseOption: string;
   /** Drawer link to the full /cart page. */
   viewCart: string;
   /** Campaign strip: "«name» — 10% off · Ends 4 Jul". */
@@ -56,8 +60,8 @@ export interface Dict {
   prefsSub: string;
   promoEmailT: string;
   promoEmailS: string;
-  orderSmsT: string;
-  orderSmsS: string;
+  /** Explains that transactional order updates are not shopper-configurable. */
+  prefsOrderNote: string;
   priceDropT: string;
   priceDropS: string;
   newsletterT: string;
@@ -151,6 +155,8 @@ export interface Dict {
   iveVerified: string;
   stillUnverified: string;
   orContinueWith: string;
+  /** Divider UNDER the social buttons — they lead, email is the fallback. */
+  orUseEmail: string;
   continueWithGoogle: string;
   continueWithFacebook: string;
   oauthSigningIn: string;
@@ -160,6 +166,33 @@ export interface Dict {
   deliveryDetails: string;
   fullName: string;
   phone: string;
+  /** Inline error under the phone field when a guest types a non-BD mobile. */
+  phoneInvalid: string;
+  /** Optional sign-in nudge beside the guest form — an offer, never a gate. */
+  haveAccount: string;
+  /** Soft "you are not signed in" notice on checkout. Informs, never blocks —
+   *  guest checkout is deliberate, so this must not read as an error. */
+  guestNoticeTitle: string;
+  guestNoticeBody: string;
+  /**
+   * Order tracking failures. Three, not one: a dead link, a throttled buyer and
+   * a broken request need different things done about them, and telling someone
+   * with a working link to go ask the merchant for a new one is worse than
+   * saying nothing. See the `t/[token]` view.
+   */
+  trackDeadTitle: string;
+  trackDeadBody: string;
+  trackThrottledTitle: string;
+  trackThrottledBody: string;
+  trackFailedTitle: string;
+  trackFailedBody: string;
+  tryAgain: string;
+  /** Confirmation screen: the buyer's tracking link + its copy control. */
+  trackYourOrder: string;
+  /** Why a guest should keep that link — no account means no other way back. */
+  guestKeepLink: string;
+  copyLink: string;
+  linkCopied: string;
   address: string;
   addressLabel: string;
   addressLabelCustom: string;
@@ -198,6 +231,10 @@ export interface Dict {
   bankTransfer: string;
   placeOrder: string;
   orderPlaced: string;
+  /** Reassurance under "Order placed". Deliberately names NO channel: SMS is
+   *  plan-gated, off by default and runs on prepaid credit, and email needs an
+   *  address the shopper may never have given — so promising either is a
+   *  promise most stores cannot keep. Keep it channel-neutral. */
   orderThanks: string;
   orderNo: string;
   orderStatus: string;
@@ -226,9 +263,18 @@ export interface Dict {
   category: string;
   priceRange: string;
   brandLabel: string;
+  /** Tag facet heading on the collection filter panel. */
+  tagsLabel: string;
   clearAll: string;
   applyFilters: string;
+  /**
+   * Listing progress under an infinite / load-more grid. A template, not a
+   * prefix: Bangla puts the total first, so composing this by concatenation
+   * would read backwards there.
+   */
   showingOf: string;
+  /** Tail button on an infinite / load-more listing. */
+  loadMore: string;
   prev: string;
   next: string;
   inStockFilter: string;
@@ -253,6 +299,8 @@ export interface Dict {
   quantity: string;
   description: string;
   specifications: string;
+  /** PDP gallery affordance — CSS shows it only where a fine pointer can hover. */
+  zoomHint: string;
   relatedTitle: string;
   deliveryEst: string;
   reviewsWord: string;
@@ -261,6 +309,15 @@ export interface Dict {
   variableMsg: string;
   callToOrder: string;
   cartTitle: string;
+  /** Why the cart quotes a "From" delivery fee — the zone is picked at checkout. */
+  deliveryEstimateNote: string;
+  /** Abandoned-cart recovery link outcomes. `{n}` = lines no longer available. */
+  cartRestored: string;
+  cartRestoredPartial: string;
+  cartRestoreExpired: string;
+  cartRestoreEmpty: string;
+  /** Shown when signing in folded in a cart from another device. */
+  cartMerged: string;
   orderSummary: string;
   estDelivery: string;
   remove: string;
@@ -362,6 +419,8 @@ const en: Dict = {
   addToCart: "Add to cart",
   fromPrice: "From",
   selectOptions: "Select options",
+  fullDetails: "See full details",
+  chooseOption: "Choose an option",
   viewCart: "View cart",
   campaignOff: "off",
   campaignEnds: "Ends",
@@ -391,8 +450,8 @@ const en: Dict = {
   prefsSub: "Choose what you want to hear about.",
   promoEmailT: "Promotional emails",
   promoEmailS: "Deals, offers and seasonal sales",
-  orderSmsT: "Order updates by SMS",
-  orderSmsS: "Delivery and status notifications",
+  prefsOrderNote:
+    "Order updates are sent by the store and can't be turned off here.",
   priceDropT: "Price-drop alerts",
   priceDropS: "When wishlist items get cheaper",
   newsletterT: "Weekly newsletter",
@@ -487,6 +546,7 @@ const en: Dict = {
   iveVerified: "I've verified",
   stillUnverified: "Still unverified — click the link in your email first.",
   orContinueWith: "or continue with",
+  orUseEmail: "or use your email",
   continueWithGoogle: "Continue with Google",
   continueWithFacebook: "Continue with Facebook",
   oauthSigningIn: "Signing you in…",
@@ -496,6 +556,25 @@ const en: Dict = {
   deliveryDetails: "Delivery details",
   fullName: "Full name",
   phone: "Phone number",
+  phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
+  haveAccount: "Already have an account?",
+  guestNoticeTitle: "You're not signed in",
+  guestNoticeBody:
+    "You can order as a guest — nothing extra is needed. Just note this order won't be saved to an account, and the tracking link you get at the end will be your only way back to it.",
+  trackDeadTitle: "This tracking link is no longer valid",
+  trackDeadBody:
+    "It may have expired, or the address may be incomplete. Ask the store for a fresh link, or look your order up with its number and your phone number.",
+  trackThrottledTitle: "You've checked this a few times just now",
+  trackThrottledBody:
+    "Your link is fine — we've just paused the updates for a moment. Wait a minute and try again.",
+  trackFailedTitle: "We couldn't load your order",
+  trackFailedBody:
+    "Something went wrong at our end, not with your link. Try again in a moment.",
+  tryAgain: "Try again",
+  trackYourOrder: "Track your order",
+  guestKeepLink: "Save this link — without an account it's your only way back to this order.",
+  copyLink: "Copy link",
+  linkCopied: "Link copied",
   address: "Full address",
   addressLabel: "Address label",
   addressLabelCustom: "Label name",
@@ -533,7 +612,7 @@ const en: Dict = {
   bankTransfer: "Bank Transfer",
   placeOrder: "Place order",
   orderPlaced: "Order placed",
-  orderThanks: "We’ll send an SMS to confirm your order shortly.",
+  orderThanks: "Thanks — the store will confirm your order shortly.",
   orderNo: "Order",
   orderStatus: "Status",
   payStatus: "Payment",
@@ -561,9 +640,11 @@ const en: Dict = {
   category: "Category",
   priceRange: "Price range",
   brandLabel: "Brand",
+  tagsLabel: "Tags",
   clearAll: "Clear all",
   applyFilters: "Apply",
-  showingOf: "Showing",
+  showingOf: "Showing {n} of {total}",
+  loadMore: "Load more",
   prev: "Prev",
   next: "Next",
   inStockFilter: "In stock only",
@@ -587,6 +668,7 @@ const en: Dict = {
   quantity: "Quantity",
   description: "Description",
   specifications: "Specifications",
+  zoomHint: "Hover to zoom",
   relatedTitle: "You may also like",
   deliveryEst: "Delivery in 1–2 days inside Dhaka",
   reviewsWord: "reviews",
@@ -595,6 +677,14 @@ const en: Dict = {
   variableMsg: "This product has selectable options (size, bundle) and is not sold online. Visit any Rashid’s Mart outlet or call to order.",
   callToOrder: "Call to order",
   cartTitle: "Shopping cart",
+  deliveryEstimateNote:
+    "Delivery is charged by area. The exact amount is confirmed at checkout once you choose yours.",
+  cartRestored: "Welcome back — your cart is here.",
+  cartRestoredPartial:
+    "Your cart is back. {n} item(s) are no longer available and were removed.",
+  cartRestoreExpired: "That link has expired. Your cart may still be saved here.",
+  cartRestoreEmpty: "Those items are no longer available.",
+  cartMerged: "We added the items from your other device.",
   orderSummary: "Order summary",
   estDelivery: "Estimated delivery",
   remove: "Remove",
@@ -697,6 +787,8 @@ const bn: Dict = {
   addToCart: "কার্টে যোগ করুন",
   fromPrice: "শুরু",
   selectOptions: "ভ্যারিয়েন্ট বাছাই করুন",
+  fullDetails: "সম্পূর্ণ বিবরণ দেখুন",
+  chooseOption: "অপশন বাছাই করুন",
   viewCart: "কার্ট দেখুন",
   campaignOff: "ছাড়",
   campaignEnds: "শেষ",
@@ -726,8 +818,8 @@ const bn: Dict = {
   prefsSub: "আপনি কী জানতে চান তা বেছে নিন।",
   promoEmailT: "প্রোমোশনাল ইমেইল",
   promoEmailS: "ডিল, অফার ও সিজনাল সেল",
-  orderSmsT: "এসএমএসে অর্ডার আপডেট",
-  orderSmsS: "ডেলিভারি ও স্ট্যাটাস নোটিফিকেশন",
+  prefsOrderNote:
+    "অর্ডার আপডেট স্টোর থেকে পাঠানো হয়, এখান থেকে বন্ধ করা যাবে না।",
   priceDropT: "দাম কমার অ্যালার্ট",
   priceDropS: "উইশলিস্টের পণ্যের দাম কমলে",
   newsletterT: "সাপ্তাহিক নিউজলেটার",
@@ -822,6 +914,7 @@ const bn: Dict = {
   iveVerified: "যাচাই করেছি",
   stillUnverified: "এখনও যাচাই হয়নি — আগে ইমেইলের লিংকে ক্লিক করুন।",
   orContinueWith: "অথবা চালিয়ে যান",
+  orUseEmail: "অথবা ইমেইল ব্যবহার করুন",
   continueWithGoogle: "Google দিয়ে চালিয়ে যান",
   continueWithFacebook: "Facebook দিয়ে চালিয়ে যান",
   oauthSigningIn: "সাইন ইন করা হচ্ছে…",
@@ -831,6 +924,25 @@ const bn: Dict = {
   deliveryDetails: "ডেলিভারি তথ্য",
   fullName: "পুরো নাম",
   phone: "ফোন নম্বর",
+  phoneInvalid: "সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮",
+  haveAccount: "আগে থেকে অ্যাকাউন্ট আছে?",
+  guestNoticeTitle: "আপনি সাইন ইন করেননি",
+  guestNoticeBody:
+    "গেস্ট হিসেবেও অর্ডার করতে পারবেন — বাড়তি কিছু লাগবে না। শুধু মনে রাখবেন, এই অর্ডারটি কোনো অ্যাকাউন্টে সংরক্ষিত থাকবে না, আর শেষে যে ট্র্যাকিং লিংক পাবেন সেটিই এই অর্ডারে ফিরে আসার একমাত্র উপায়।",
+  trackDeadTitle: "এই ট্র্যাকিং লিংকটি আর কাজ করছে না",
+  trackDeadBody:
+    "লিংকের মেয়াদ শেষ হয়ে থাকতে পারে, অথবা ঠিকানাটি অসম্পূর্ণ। দোকান থেকে নতুন লিংক চেয়ে নিন, কিংবা অর্ডার নম্বর ও ফোন নম্বর দিয়ে অর্ডারটি খুঁজুন।",
+  trackThrottledTitle: "আপনি একটু আগে কয়েকবার দেখেছেন",
+  trackThrottledBody:
+    "আপনার লিংক ঠিকই আছে — আমরা শুধু কিছুক্ষণের জন্য আপডেট দেখানো থামিয়েছি। এক মিনিট পর আবার চেষ্টা করুন।",
+  trackFailedTitle: "আপনার অর্ডার লোড করা যায়নি",
+  trackFailedBody:
+    "সমস্যাটি আমাদের দিকে, আপনার লিংকে নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  tryAgain: "আবার চেষ্টা করুন",
+  trackYourOrder: "অর্ডার ট্র্যাক করুন",
+  guestKeepLink: "লিংকটি সংরক্ষণ করুন — অ্যাকাউন্ট ছাড়া এই অর্ডারে ফিরে আসার এটিই একমাত্র উপায়।",
+  copyLink: "লিংক কপি করুন",
+  linkCopied: "লিংক কপি হয়েছে",
   address: "সম্পূর্ণ ঠিকানা",
   addressLabel: "ঠিকানার লেবেল",
   addressLabelCustom: "লেবেলের নাম",
@@ -868,7 +980,7 @@ const bn: Dict = {
   bankTransfer: "ব্যাংক ট্রান্সফার",
   placeOrder: "অর্ডার করুন",
   orderPlaced: "অর্ডার সম্পন্ন",
-  orderThanks: "অর্ডার নিশ্চিত করতে শীঘ্রই এসএমএস পাঠানো হবে।",
+  orderThanks: "ধন্যবাদ — দোকান শীঘ্রই আপনার অর্ডার নিশ্চিত করবে।",
   orderNo: "অর্ডার",
   orderStatus: "স্ট্যাটাস",
   payStatus: "পেমেন্ট",
@@ -896,9 +1008,11 @@ const bn: Dict = {
   category: "ক্যাটাগরি",
   priceRange: "দামের পরিসীমা",
   brandLabel: "ব্র্যান্ড",
+  tagsLabel: "ট্যাগ",
   clearAll: "সব মুছুন",
   applyFilters: "প্রয়োগ",
-  showingOf: "দেখাচ্ছে",
+  showingOf: "{total}টির মধ্যে {n}টি দেখাচ্ছে",
+  loadMore: "আরও দেখুন",
   prev: "আগের",
   next: "পরের",
   inStockFilter: "শুধু স্টকে আছে",
@@ -922,6 +1036,7 @@ const bn: Dict = {
   quantity: "পরিমাণ",
   description: "বিবরণ",
   specifications: "স্পেসিফিকেশন",
+  zoomHint: "জুম করতে হোভার করুন",
   relatedTitle: "আরও পছন্দ হতে পারে",
   deliveryEst: "ঢাকার ভিতরে ১–২ দিনে ডেলিভারি",
   reviewsWord: "রিভিউ",
@@ -930,6 +1045,14 @@ const bn: Dict = {
   variableMsg: "এই পণ্যে নির্বাচনযোগ্য অপশন (সাইজ, বান্ডেল) আছে এবং অনলাইনে বিক্রি হয় না। যেকোনো রশিদ’স মার্ট আউটলেটে যান বা কল করে অর্ডার করুন।",
   callToOrder: "কল করে অর্ডার",
   cartTitle: "শপিং কার্ট",
+  deliveryEstimateNote:
+    "ডেলিভারি চার্জ এলাকা অনুযায়ী। আপনি এলাকা বেছে নিলে চেকআউটে সঠিক পরিমাণ নিশ্চিত হবে।",
+  cartRestored: "আবার স্বাগতম — আপনার কার্ট এখানে আছে।",
+  cartRestoredPartial:
+    "আপনার কার্ট ফিরে এসেছে। {n}টি পণ্য আর পাওয়া যাচ্ছে না বলে সরিয়ে দেওয়া হয়েছে।",
+  cartRestoreExpired: "লিংকটির মেয়াদ শেষ। আপনার কার্ট এখানে সংরক্ষিত থাকতে পারে।",
+  cartRestoreEmpty: "ওই পণ্যগুলো আর পাওয়া যাচ্ছে না।",
+  cartMerged: "আপনার অন্য ডিভাইসের পণ্যগুলো যোগ করা হয়েছে।",
   orderSummary: "অর্ডার সামারি",
   estDelivery: "আনুমানিক ডেলিভারি",
   remove: "সরান",

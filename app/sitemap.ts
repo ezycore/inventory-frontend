@@ -25,9 +25,18 @@ import { storeHref } from "@/lib/storefront-links";
 // (`getStoreSitemap` revalidates hourly), so a crawler hit is cheap.
 export const dynamic = "force-dynamic";
 
-/** Collection and brand landing pages are query-filtered, not path-based. */
+/** Brand landing pages are still query-filtered. Collections are not — see below. */
 const facetUrl = (base: string, key: string, id: string) =>
   `${storeHref(base, "/products")}?${key}=${encodeURIComponent(id)}`;
+
+/**
+ * A collection's canonical URL is its PATH (`/phones`, `/phones/accessories`),
+ * not the `?categoryId=` facet it used to be. The query form still resolves for
+ * anyone holding an old link, but it now canonicalizes to the path — so
+ * advertising it here would point crawlers at URLs that disclaim themselves.
+ */
+const collectionUrl = (base: string, path: string) =>
+  storeHref(base, `/${path.split("/").map(encodeURIComponent).join("/")}`);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const h = await headers();
@@ -78,7 +87,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const c of data.collections) {
     entries.push({
-      url: url(facetUrl(base, "categoryId", c.id)),
+      url: url(collectionUrl(base, c.path)),
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,

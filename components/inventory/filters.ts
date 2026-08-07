@@ -65,6 +65,15 @@ export function getInventoryFilterConfig(
       columnSpan: 1,
       optionsApi: selectOptions("categories", { fields: "_id,name" }),
     },
+    {
+      // OR semantics — a row whose product carries ANY selected tag matches.
+      name: "tags",
+      label: t("filters.tagsLabel"),
+      type: "select" as const,
+      mode: "multiple" as const,
+      placeholder: t("filters.tagsPlaceholder"),
+      optionsApi: selectOptions("tags", { status: "active", fields: "_id,name" }),
+    },
     levelField,
   ];
 

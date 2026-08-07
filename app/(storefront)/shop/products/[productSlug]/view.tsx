@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
 import {
   useStore,
@@ -12,15 +12,16 @@ import {
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
-import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useWishlistStore } from "@/services/stores/use-wishlist-store";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { storeHref } from "@/lib/storefront-links";
-import { cardImageUrl, fullImageUrl, thumbImageUrl } from "@/lib/storefront-image";
+import { cardImageUrl, thumbImageUrl } from "@/lib/storefront-image";
+import { cartLineCap } from "@/lib/storefront-cart-qty";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
-import { Media, SectionTitle } from "@/components/storefront/sf-bits";
+import { SectionTitle } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
+import { ProductGallery } from "@/components/storefront/product-gallery";
 import {
   VariantSelector,
   defaultSelection,
@@ -61,7 +62,7 @@ export default function ProductDetailPage({
       : { limit: 8 },
   );
   const addItem = useCartStore((s) => s.addItem);
-  const openCart = useCartUI((s) => s.openCart);
+  const router = useRouter();
   const toggleWish = useWishlistStore((s) => s.toggle);
   const wished = useWishlistStore(
     (s) =>
@@ -87,6 +88,10 @@ export default function ProductDetailPage({
     setImgIdx(0);
   }
 
+  // Read above the early returns — it is a hook, and the loading/error branches
+  // below would otherwise make the call order conditional.
+  const variant = useStoreTemplate(store, "product");
+
   if (isLoading) return <div style={wrap}><LoadingSplash /></div>;
   if (isError || !product) {
     return (
@@ -100,7 +105,6 @@ export default function ProductDetailPage({
   }
 
   const currency = store?.currency;
-  const variant = resolveTemplates(store).product;
   const galleryTop = variant !== "left";
   const sticky = variant === "sticky";
 
@@ -133,17 +137,6 @@ export default function ProductDetailPage({
   const images = variable && selectedVariant?.images?.length
     ? selectedVariant.images
     : (product.images ?? []);
-  const activeIdx = Math.max(0, Math.min(imgIdx, images.length - 1));
-  const main = fullImageUrl(images[activeIdx]);
-  const thumbs = images.slice(0, 4);
-  const thumbBtn = (active: boolean): CSSProperties => ({
-    padding: 0,
-    background: "none",
-    cursor: "pointer",
-    borderRadius: 10,
-    overflow: "hidden",
-    border: active ? "2px solid var(--primary)" : "2px solid transparent",
-  });
 
   const related = (relatedData?.items ?? [])
     .filter((p) => p.slug !== product.slug)
@@ -161,19 +154,19 @@ export default function ProductDetailPage({
         name: product.name,
         price,
         image: thumbImageUrl(images[0] ?? product.images?.[0]),
-        // Backorder → uncapped (the store treats maxQty<=0 as no limit).
-        maxQty: canBackorder ? 0 : availableQty,
+        maxQty: cartLineCap(availableQty, canBackorder),
       },
       qty,
     );
     if (notify) toast.success(t.added);
   };
   const buyNow = () => {
-    // No toast: the drawer opening with the item IS the confirmation — quick
-    // review in place, checkout one tap away; the full /cart page stays
-    // reachable via the drawer's "View cart".
+    // Straight to checkout, matching the card's Buy now — "Buy now" has to mean
+    // the same thing on both surfaces or it means nothing. (It opened the cart
+    // drawer until 2026-08-01; /cart is still reachable from the cart icon.)
+    // No toast: the screen change is the confirmation.
     add(false);
-    openCart();
+    router.push(storeHref(base, "/checkout"));
   };
 
   const onWish = () =>
@@ -187,53 +180,19 @@ export default function ProductDetailPage({
       image: cardImageUrl(product.images?.[0]),
       hasVariants: variable,
       availableQuantity: product.availableQuantity,
+      outOfStockBehavior: product.outOfStockBehavior,
     });
 
   return (
     <div style={wrap}>
       <div style={{ display: "grid", gridTemplateColumns: galleryTop ? "1fr" : "var(--pdpgrid)", gap: "clamp(22px,3vw,44px)", alignItems: "start" }}>
-        {/* Gallery */}
-        {galleryTop ? (
-          <div>
-            <Media src={main} alt={product.name} label="product" ratio="16 / 11" radius={14} />
-            {thumbs.length > 1 ? (
-              <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-                {thumbs.map((th, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setImgIdx(i)}
-                    aria-label={`${product.name} — ${i + 1}`}
-                    style={{ ...thumbBtn(i === activeIdx), flex: 1 }}
-                  >
-                    <Media src={thumbImageUrl(th)} alt="" radius={8} style={{ display: "block" }} />
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          // Layout lives in storefront.css (.sf-pdp-*) because it has to change
-          // at the breakpoint, and inline styles can't carry a media query.
-          <div className="sf-pdp-gallery">
-            <div className="sf-pdp-thumbs">
-              {(thumbs.length ? thumbs : [undefined]).map((th, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setImgIdx(i)}
-                  aria-label={`${product.name} — ${i + 1}`}
-                  style={thumbBtn(i === activeIdx)}
-                >
-                  <Media src={thumbImageUrl(th)} alt="" radius={8} style={{ display: "block" }} />
-                </button>
-              ))}
-            </div>
-            <div className="sf-pdp-hero">
-              <Media src={main} alt={product.name} label="product" radius={14} />
-            </div>
-          </div>
-        )}
+        <ProductGallery
+          images={images}
+          alt={product.name}
+          layout={galleryTop ? "top" : "side"}
+          index={imgIdx}
+          onSelect={setImgIdx}
+        />
 
         {/* Info */}
         <div>

@@ -9,14 +9,29 @@ import { storeHref } from "@/lib/storefront-links";
  * Resolve an admin-configured menu item to a concrete href.
  *   - url      → relative paths go through `storeHref`; absolute http(s) stay as-is.
  *   - page     → `/pages/{slug}` under the store base.
- *   - category → the editor stores the category *slug*, but the product listing
- *                filters by *id*, so we look the id up in the live category list
- *                (client-side) and fall back to the unfiltered listing if unknown.
+ *   - category → the editor stores the category's LEAF slug, but a collection is
+ *                addressed by its full path (`phones/accessories`), so the path
+ *                is looked up in the live category list and we fall back to the
+ *                unfiltered listing if unknown.
  */
-/** Build a slug→id lookup for resolving category-type menu items. */
+/**
+ * Build a leaf-slug → slugPath lookup for resolving category menu items.
+ *
+ * Both levels are indexed. A leaf slug is only unique *within its parent*, so two
+ * children can share one — the first wins here, which is the same ambiguity the
+ * menu editor itself has (it stores a bare slug). Picking the parent's own entry
+ * first keeps the common case right.
+ */
 function catMap(categories: CatalogCategory[]): Map<string, string> {
   const m = new Map<string, string>();
-  for (const c of categories) if (c.slug) m.set(c.slug, c._id);
+  for (const c of categories) {
+    if (c.slug && c.slugPath && !m.has(c.slug)) m.set(c.slug, c.slugPath);
+    for (const child of c.children ?? []) {
+      if (child.slug && child.slugPath && !m.has(child.slug)) {
+        m.set(child.slug, child.slugPath);
+      }
+    }
+  }
   return m;
 }
 
@@ -34,9 +49,10 @@ export function menuHref(
  * place. Runs once where the header menu enters the component tree
  * (StoreHeader's ctx), so every variant — dropdown nav, Minimal, mobile — and
  * the admin live preview render the expansion without knowing about the type.
- * Expanded links use the id-based products URL (same as collections mode), so
- * slugless legacy categories still filter correctly. Top level only; a block's
- * `children` are ignored.
+ * Expanded links use each collection's PATH — its canonical URL. A node with no
+ * `slugPath` cannot route and is skipped rather than emitted as a dead link.
+ * Top level only; the category tree's own `children` are surfaced by the
+ * dropdown, not by flattening them into the top bar.
  */
 export function expandHeaderMenu(
   menu: StoreMenuItem[],
@@ -45,13 +61,24 @@ export function expandHeaderMenu(
   if (!menu.some((m) => m.type === "collections")) return menu;
   return menu.flatMap((m) =>
     m.type === "collections"
-      ? categories.map(
-          (c): StoreMenuItem => ({
-            label: c.name,
-            type: "url",
-            value: `/products?categoryId=${c._id}`,
-          }),
-        )
+      ? categories
+          .filter((c) => !!c.slugPath)
+          .map(
+            (c): StoreMenuItem => ({
+              label: c.name,
+              type: "url",
+              value: `/${c.slugPath}`,
+              // Sub-categories become the item's dropdown children, so a shopper
+              // reaches "Phones › Accessories" without leaving the header.
+              children: (c.children ?? [])
+                .filter((child) => !!child.slugPath)
+                .map((child) => ({
+                  label: child.name,
+                  type: "url" as const,
+                  value: `/${child.slugPath}`,
+                })),
+            }),
+          )
       : [m],
   );
 }
@@ -69,10 +96,10 @@ function resolveHref(
   if (item.type === "page") {
     return { href: storeHref(base, `/pages/${item.value}`), external: false };
   }
-  // category
-  const id = catBySlug.get(item.value);
+  // category — linked by PATH, which is the collection's canonical URL.
+  const path = catBySlug.get(item.value);
   return {
-    href: storeHref(base, id ? `/products?categoryId=${id}` : "/products"),
+    href: storeHref(base, path ? `/${path}` : "/products"),
     external: false,
   };
 }
@@ -140,7 +167,7 @@ const dropLink: CSSProperties = {
 };
 
 /**
- * Storefront header menu (admin Navigation → "Header menu"). Renders one level
+ * Storefront header menu (admin Customize → Header). Renders one level
  * of dropdowns on hover/focus. The store-shell uses this when a menu is
  * configured and falls back to the raw category list otherwise.
  */

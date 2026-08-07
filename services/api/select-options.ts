@@ -33,6 +33,7 @@ interface OptionSource {
 export const OPTION_SOURCES = {
   accounts: { path: "/accounts", root: queryKeys.accounts.all },
   brands: { path: "/brands", root: queryKeys.brands.all },
+  tags: { path: "/tags", root: queryKeys.tags.all },
   categories: { path: "/categories", root: queryKeys.categories.all },
   customers: { path: "/sales/customers", root: queryKeys.customers.all },
   purchaseDiscounts: { path: "/discounts/purchase", root: queryKeys.discounts.all },
@@ -78,6 +79,12 @@ interface OptionParams {
   status?: string;
   inventory?: boolean;
   all?: boolean;
+  /**
+   * Category level. `"null"` asks for top-level categories only — the value
+   * `product.categoryId` must hold. May also be a `{{value}}` template the form
+   * renderer substitutes with the selected parent's id (the sub-category select).
+   */
+  parentId?: string;
 }
 
 /**
@@ -105,7 +112,20 @@ export const selectOptions = (
     if (value !== undefined) query.set(key, String(value));
   }
 
-  const qs = query.toString();
+  // `URLSearchParams.toString()` percent-encodes everything, which turns a
+  // `{{value}}` template into `%7B%7Bvalue%7D%7D`. That silently breaks the
+  // dependent-select machinery: `field-select-inputs.tsx` decides whether to
+  // hold a request back by testing `optionsApi.includes("{{")`, so an encoded
+  // template reads as an ordinary URL, the gate never fires, and the LITERAL
+  // placeholder is sent to the API — a 400 the select renders verbatim
+  // ("Error: query.parentId: Invalid ObjectId format"), before and after the
+  // dependency is chosen, because `resolveApiTemplate` is never reached either.
+  //
+  // Restoring the braces keeps `{{…}}` the one canonical spelling for every
+  // consumer. Path templates (`/products/{{_id}}/variants`) never hit this —
+  // they are not built through URLSearchParams, which is why this stayed hidden
+  // until the first template landed in a QUERY parameter.
+  const qs = query.toString().replace(/%7B%7B(.+?)%7D%7D/g, "{{$1}}");
   return qs ? `${source.path}?${qs}` : source.path;
 };
 

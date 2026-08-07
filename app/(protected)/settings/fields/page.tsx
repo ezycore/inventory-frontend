@@ -4,13 +4,14 @@
 import { useTranslations } from "next-intl";
 import { brandFormConfig } from "@/components/brands/form-config";
 import { categoryFormConfig } from "@/components/categories/form-config";
+import { tagFormConfig } from "@/components/tags/form-config";
 import FieldSettingsManager from "@/components/products/field-settings-manager";
 import { productFormConfig } from "@/components/products/form-config";
 import { useAuthStore } from "@/services/stores";
 import type { Translator } from "@/i18n/config";
 import PageHeader from "@/ui/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
-import { Loader2, Package, Star, Tag } from "lucide-react";
+import { Loader2, Package, Star, Tag, Tags } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
 import { toast } from "sonner";
@@ -35,9 +36,15 @@ const getModules = (t: Translator) => [
     icon: Tag,
     formConfig: categoryFormConfig,
   },
+  {
+    key: "tag",
+    label: t("tabs.tag"),
+    icon: Tags,
+    formConfig: tagFormConfig,
+  },
 ];
 
-const validTabs = ["product", "brand", "category"];
+const validTabs = ["product", "brand", "category", "tag"];
 
 function FieldSettingsForm() {
   const t = useTranslations("settings.fields");

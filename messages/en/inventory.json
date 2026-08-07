@@ -22,6 +22,9 @@
     "stockLevel": "Stock Level",
     "alert": "Alert: {level} {unit}",
     "tooltipCurrent": "Current: {quantity} {unit}",
+    "reservedSplit": "{reserved} reserved · {available} {unit} sellable",
+    "tooltipReserved": "Reserved for online orders: {quantity} {unit}",
+    "tooltipAvailable": "Available to sell: {quantity} {unit}",
     "tooltipAlertThreshold": "Alert Threshold: {level} {unit}",
     "tooltipStatus": "Status: {status}",
     "stockValue": "Stock Value",
@@ -81,7 +84,9 @@
     "status": "Status",
     "allStatuses": "All statuses",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "Any tag"
   },
   "form": {
     "product": "Product",

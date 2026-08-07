@@ -2,13 +2,15 @@
 // coding-standard: maintained
 
 import { useState, type ReactNode } from "react";
-import type { CatalogCategory, StoreBrand } from "@/lib/storefront-client";
+import type { CatalogCategory, StoreBrand, StoreTag } from "@/lib/storefront-client";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 
 /** Active product-list filters, straight from the URL ("" / false = unset). */
 export interface ProductFilters {
   categoryId: string;
   brandId: string;
+  /** Comma-joined tag slugs, OR-combined. "" = no tag filter. */
+  tags: string;
   minPrice: string;
   maxPrice: string;
   inStock: boolean;
@@ -27,32 +29,53 @@ export type FilterPatch = Record<string, string | undefined>;
 export function FilterPanel({
   categories,
   brands,
+  tags = [],
   filters,
   onChange,
+  hideCategories = false,
 }: {
   categories: CatalogCategory[];
   brands: StoreBrand[];
+  tags?: StoreTag[];
   filters: ProductFilters;
   onChange: (patch: FilterPatch) => void;
+  /**
+   * Drop the Category facet. Set on a category PATH page, where the collection
+   * is the URL — offering it as a filter would let a shopper navigate off the
+   * page they are standing on without the address bar changing.
+   */
+  hideCategories?: boolean;
 }) {
   const { t } = useStorefrontUI();
+  const activeTags = filters.tags ? filters.tags.split(",").filter(Boolean) : [];
+  // Tags are OR-combined and multi-select, so each row toggles itself in or out
+  // of the list rather than replacing it (the brand/category facets are single).
+  const toggleTag = (slug: string) => {
+    const next = activeTags.includes(slug)
+      ? activeTags.filter((s) => s !== slug)
+      : [...activeTags, slug];
+    onChange({ tags: next.join(",") || undefined });
+  };
+
   return (
     <div>
-      <Group title={t.category}>
-        <FilterRow
-          label={t.allProducts}
-          active={!filters.categoryId}
-          onClick={() => onChange({ categoryId: undefined })}
-        />
-        {categories.map((c) => (
+      {hideCategories ? null : (
+        <Group title={t.category}>
           <FilterRow
-            key={c._id}
-            label={c.name}
-            active={filters.categoryId === c._id}
-            onClick={() => onChange({ categoryId: c._id })}
+            label={t.allProducts}
+            active={!filters.categoryId}
+            onClick={() => onChange({ categoryId: undefined })}
           />
-        ))}
-      </Group>
+          {categories.map((c) => (
+            <FilterRow
+              key={c._id}
+              label={c.name}
+              active={filters.categoryId === c._id}
+              onClick={() => onChange({ categoryId: c._id })}
+            />
+          ))}
+        </Group>
+      )}
 
       {brands.length > 0 ? (
         <Group title={t.brandLabel} divider>
@@ -68,6 +91,20 @@ export function FilterPanel({
               count={b.productCount}
               active={filters.brandId === b._id}
               onClick={() => onChange({ brandId: b._id })}
+            />
+          ))}
+        </Group>
+      ) : null}
+
+      {tags.length > 0 ? (
+        <Group title={t.tagsLabel} divider>
+          {tags.map((tag) => (
+            <FilterRow
+              key={tag._id}
+              label={tag.name}
+              count={tag.productCount}
+              active={activeTags.includes(tag.slug)}
+              onClick={() => toggleTag(tag.slug)}
             />
           ))}
         </Group>

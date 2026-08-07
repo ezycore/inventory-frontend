@@ -120,6 +120,13 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.view"],
           },
           {
+            title: "Abandoned Carts",
+            url: "/ecommerce/carts",
+            icon: "shopping-cart",
+            features: ["storefront"],
+            permissions: ["storefront.view"],
+          },
+          {
             title: "Store Settings",
             url: "/ecommerce/settings",
             icon: "settings",
@@ -218,6 +225,7 @@ export const navGroups: NavGroup[] = [
           { title: "Products", url: "/products", icon: "list" },
           { title: "Categories", url: "/categories", icon: "tag" },
           { title: "Brands", url: "/brands", icon: "star" },
+          { title: "Tags", url: "/tags", icon: "tag" },
           { title: "Variants", url: "/variants", icon: "layers" },
           { title: "Units", url: "/units", icon: "grid" },
         ],
@@ -409,17 +417,20 @@ export const navGroups: NavGroup[] = [
             permissions: ["organization.edit"],
           },
           {
+            title: "Notifications",
+            url: "/settings/notifications",
+            icon: "bell",
+            permissions: ["organization.manage"],
+          },
+          {
             title: "Custom Domains",
             url: "/settings/domains",
             icon: "globe",
             permissions: ["organization.view"],
           },
-          {
-            title: "Billing",
-            url: "/dashboard/billing",
-            icon: "credit-card",
-            permissions: ["organization.edit"],
-          },
+          // Billing is deliberately absent: it lives in the sidebar's user menu
+          // (`AppSidebar` footer), not under Settings — one entry, one place.
+          // Its breadcrumb/tab title still resolves via `layout.nav.items.billing`.
         ],
       },
     ],

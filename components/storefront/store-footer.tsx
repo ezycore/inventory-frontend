@@ -9,7 +9,10 @@ import type {
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { useStorePages } from "@/services/storefront/hooks";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import {
+  useSfPreview,
+  useSfPreviewImage,
+} from "@/services/stores/use-sf-preview-store";
 import type { FooterProps } from "@/components/storefront/footer/footer-pieces";
 import {
   ColumnsFooter,
@@ -41,6 +44,9 @@ export function StoreFooter({
   const { t } = useStorefrontUI();
   const { data: pages } = useStorePages(slug, initialPages);
   const previewFooter = useSfPreview((s) => s.footer);
+  const previewGroups = useSfPreview((s) => s.footerGroups);
+  const previewContentPages = useSfPreview((s) => s.footerContentPages);
+  const logo = useSfPreviewImage("logo", store?.logo);
 
   const variant: StoreTemplates["footer"] = FOOTER_VARIANTS.includes(
     previewFooter ?? "",
@@ -53,10 +59,12 @@ export function StoreFooter({
     store,
     t,
     name: store?.name ?? "Store",
-    logo: store?.logo?.url || store?.logo?.thumbnailUrl,
+    logo: logo?.url || logo?.thumbnailUrl,
     phone: store?.contact?.phone ?? "",
-    footerGroups: store?.nav?.footer ?? [],
-    footerContentPages: store?.nav?.footerContentPages,
+    // Draft groups win — an empty array is a real draft ("all groups removed"),
+    // so this must not collapse to the saved value on falsiness.
+    footerGroups: previewGroups ?? store?.nav?.footer ?? [],
+    footerContentPages: previewContentPages ?? store?.nav?.footerContentPages,
     infoPages: pages ?? [],
   };
 

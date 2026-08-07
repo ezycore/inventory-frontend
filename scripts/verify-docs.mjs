@@ -15,7 +15,8 @@
  *   1. DEAD PATH     — a doc cites `src/…`, `components/…`, etc. that resolves in **no** repo.
  *   2. DEAD LINK     — a relative `[text](./foo.md)` link whose target does not exist (so a docs
  *                      reorg that moves a skill is self-correcting instead of silently broken).
- *   3. PHANTOM ROUTE — a doc documents `GET /api/…` the backend router does not serve.
+ *   3. PHANTOM ROUTE — a doc documents `GET /api/…` that neither the backend router nor this
+ *                      repo's own `app/api/**` route handlers serve.
  *   4. RESURRECTED   — a doc declares an endpoint/file absent that actually exists now.
  *
  * What it deliberately does NOT check: response-DTO / query-schema coverage. That contract is
@@ -23,8 +24,9 @@
  * second-copy the plan says to avoid. The frontend consumes the generated types (see
  * `verify-api-types.mjs`); it does not re-document the API.
  *
- * Cross-repo, gracefully. The known-route set comes from the backend's generated
- * `docs/reference/endpoints.json`, and backend `src/…` citations are resolved against the backend
+ * Cross-repo, gracefully. The known-route set is the backend's generated
+ * `docs/reference/endpoints.json` plus this repo's own `app/api/**` route handlers, and backend
+ * `src/…` citations are resolved against the backend
  * checked out beside this repo. When a sibling repo is absent (an isolated frontend checkout) the
  * checks that need it are skipped, never failed — so this never blocks a build that has no backend
  * to compare against.
@@ -289,11 +291,56 @@ function suggestDoc(target) {
   return undefined;
 }
 
+/**
+ * This repo's own Next route handlers (`app/api/**\/route.ts`).
+ *
+ * Not every `/api/…` in these docs is the Express backend's. The frontend serves a small number of
+ * routes itself — things that must run where the Next cache lives, like
+ * `POST /api/storefront/revalidate`. Without this the phantom check called our own shipped route a
+ * lie, and the only escape hatches were `docs-verify: external` (which claims a *different service*
+ * owns it — false) or deleting the doc. Both would have traded a true doc for a green gate.
+ *
+ * Read from the filesystem rather than a generated index because App Router routing IS the
+ * filesystem: the directory path is the URL and the exported function names are the methods, so
+ * there is nothing to generate and nothing to drift.
+ */
+function loadLocalRouteHandlers() {
+  const apiRoot = path.join(REPO_ROOT, "app", "api");
+  if (!fs.existsSync(apiRoot)) return [];
+
+  const found = [];
+  const visit = (dir, segments) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // Route groups `(x)` are organisational and contribute no URL segment; dynamic segments
+        // `[id]` / `[...rest]` collapse to the same placeholder `normalizePath` uses.
+        const isGroup = entry.name.startsWith("(") && entry.name.endsWith(")");
+        const isDynamic = entry.name.startsWith("[");
+        visit(full, isGroup ? segments : [...segments, isDynamic ? ":param" : entry.name]);
+      } else if (/^route\.(ts|tsx|js|mjs)$/.test(entry.name)) {
+        const source = fs.readFileSync(full, "utf8");
+        for (const match of source.matchAll(
+          new RegExp(`export\\s+(?:async\\s+function|const|function)\\s+(${HTTP_VERB})\\b`, "g"),
+        )) {
+          found.push(routeKey(match[1], `/api/${segments.join("/")}`));
+        }
+      }
+    }
+  };
+  visit(apiRoot, []);
+  return found;
+}
+
 function loadKnownRoutes() {
+  const local = loadLocalRouteHandlers();
+  // The backend index is the optional half — absent (sibling not checked out) the check degrades to
+  // a skip, and claiming our handful of local routes are the only ones would fail every backend
+  // citation in the repo.
   if (!fs.existsSync(ENDPOINTS_FILE)) return null;
   const parsed = JSON.parse(fs.readFileSync(ENDPOINTS_FILE, "utf8"));
   const rows = Array.isArray(parsed) ? parsed : (parsed.endpoints ?? []);
-  return new Set(rows.map((r) => routeKey(r.method, r.path)));
+  return new Set([...rows.map((r) => routeKey(r.method, r.path)), ...local]);
 }
 
 function main() {

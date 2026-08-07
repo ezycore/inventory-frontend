@@ -11,7 +11,7 @@ import {
 } from '@ui/components/breadcrumb';
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { Fragment } from 'react';
-import { SlashIcon } from 'lucide-react';
+import { ChevronRight, SlashIcon } from 'lucide-react';
 
 export function Breadcrumbs() {
   const items = useBreadcrumbs();
@@ -19,7 +19,7 @@ export function Breadcrumbs() {
 
   return (
     <Breadcrumb className='hidden md:flex'>
-      <BreadcrumbList>
+      <BreadcrumbList className='sm:gap-1.5'>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
@@ -38,7 +38,7 @@ export function Breadcrumbs() {
                     )}
                   </BreadcrumbItem>
                   <BreadcrumbSeparator className='hidden md:block'>
-                    <SlashIcon />
+                    <ChevronRight />
                   </BreadcrumbSeparator>
                 </>
               )}

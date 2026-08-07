@@ -6,6 +6,10 @@ import {
   organizationApi,
 } from "@/services/api";
 import type {
+  NotificationLogParams,
+  UpdateNotificationSettingsDto,
+} from "./api";
+import type {
   ApiResponse,
   OrganizationFeatures,
   PlanChangeResult,
@@ -18,6 +22,7 @@ import type {
 import type { ReceiptSettings } from "@/types/receipt";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
+import { revalidateStorefront } from "@/lib/revalidate-storefront";
 import { handleMutationSuccess } from "../query-helpers";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 
@@ -29,6 +34,103 @@ export const useGetOrganizationApi = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
+
+// GET /api/organization/notifications - Config + effective event matrix
+export const useNotificationSettings = () =>
+  useQuery({
+    queryKey: queryKeys.organization.notifications(),
+    queryFn: () => organizationApi.getNotificationSettings(),
+    select: (res) => res.data,
+    staleTime: 60 * 1000,
+  });
+
+// PATCH /api/organization/notifications - Partial config update
+export const useUpdateNotificationSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateNotificationSettingsDto) =>
+      organizationApi.updateNotificationSettings(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Notification settings updated");
+      // The PATCH answers with the full effective matrix, so seed the cache
+      // with it instead of refetching.
+      queryClient.setQueryData(queryKeys.organization.notifications(), result);
+    },
+    onError: handleMutationError,
+  });
+};
+
+/**
+ * POST /api/organization/notifications/sms/test — send one real, charged SMS.
+ *
+ * A `failed` verdict comes back as a SUCCESSFUL response carrying the
+ * gateway's own words, so it is not routed to `handleMutationError`: the
+ * rejection reason is the diagnostic the merchant pressed the button for, and
+ * a generic red toast would throw it away. The caller renders the verdict.
+ *
+ * The settings query is invalidated either way — the balance moved on a send,
+ * and the log gained a row in every case.
+ */
+export const useSendSmsTest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (phone?: string) => organizationApi.sendSmsTest(phone),
+    // One prefix covers both: `notificationLog` keys start with the
+    // `notifications` key, so this flushes the settings AND every filtered
+    // page of the log.
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.organization.notifications(),
+      });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// GET /api/organization/notifications/log - Outbox/audit rows
+export const useNotificationLog = (params?: NotificationLogParams) =>
+  useQuery({
+    queryKey: queryKeys.organization.notificationLog(params),
+    queryFn: () => organizationApi.getNotificationLog(params),
+    select: (res) => res.data,
+    staleTime: 30 * 1000,
+  });
+
+/**
+ * POST /api/organization/notifications/log/:id/resend — dead-letter resend.
+ *
+ * Invalidates the whole `notifications` prefix rather than patching the row in
+ * place: an SMS resend also moves the balance, and the settings card sitting
+ * above the log shows that balance.
+ */
+export const useResendNotification = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => organizationApi.resendNotification(id),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Queued to send again");
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.organization.notifications(),
+      });
+    },
+    onError: handleMutationError,
+  });
+};
+
+// GET /api/organization/notifications/sms/usage - Segments by event × month
+export const useSmsUsage = (months?: number, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.organization.smsUsage(months),
+    queryFn: () => organizationApi.getSmsUsage(months),
+    select: (res) => res.data,
+    staleTime: 60 * 1000,
+    enabled,
+  });
 
 // GET /api/organization/subscription - Current plan/entitlement + usage
 export const useGetSubscription = () => {
@@ -345,6 +447,12 @@ export const useGetStorefrontSettings = () => {
 };
 
 // PATCH /api/organization/storefront - Update storefront settings / publish state
+// This is the theme/templates/navigation/checkout save, i.e. the most visible
+// public change a merchant can make — so it flushes the shop's server-side cache
+// directly. It can't go through `invalidate()` like the storefront catalog
+// mutations do: the response IS the new settings, written straight into the cache
+// below, and any event carrying `organization.all()` would immediately refetch
+// what we just wrote.
 export const useUpdateStorefrontSettings = () => {
   const queryClient = useQueryClient();
 
@@ -356,12 +464,15 @@ export const useUpdateStorefrontSettings = () => {
         result.message || "Store settings updated successfully!",
       );
       queryClient.setQueryData(queryKeys.organization.storefront(), result);
+      void revalidateStorefront();
     },
     onError: handleMutationError,
   });
 };
 
 // PATCH /api/organization/storefront/media - Upload/replace/remove logo + banner
+// Logo and banner are rendered by the storefront shell (and the logo is its
+// favicon), so this flushes the public cache for the same reason as above.
 export const useUpdateStorefrontMedia = () => {
   const queryClient = useQueryClient();
 
@@ -371,6 +482,7 @@ export const useUpdateStorefrontMedia = () => {
     onSuccess: (result) => {
       handleMutationSuccess(result.message || "Storefront media updated");
       queryClient.setQueryData(queryKeys.organization.storefront(), result);
+      void revalidateStorefront();
     },
     onError: handleMutationError,
   });

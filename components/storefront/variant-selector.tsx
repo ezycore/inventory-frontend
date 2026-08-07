@@ -55,14 +55,35 @@ export function defaultSelection(
   return { ...(pick?.attributes ?? {}) };
 }
 
+/** Widest single-axis chip row that still fits a card flyout at 2-column mobile. */
+const INLINE_MAX_VALUES = 6;
+
+/**
+ * Whether a product's options fit in the card's inline flyout, or need the
+ * quick-buy sheet. One axis of a few values is a single chip row; two axes need
+ * labelled rows, and a ~150px card in the 2-column mobile grid has room for
+ * neither. Drives the tiering in `card-buy-actions.tsx`.
+ */
+export function optionsFitInline(variants: CatalogVariant[]): boolean {
+  const axes = variantAxes(variants);
+  return axes.length === 1 && axes[0].values.length <= INLINE_MAX_VALUES;
+}
+
 export function VariantSelector({
   variants,
   selection,
   onSelect,
+  compact = false,
 }: {
   variants: CatalogVariant[];
   selection: Record<string, string>;
   onSelect: (next: Record<string, string>) => void;
+  /**
+   * Card-flyout density: no axis headings, tighter chips, no trailing margin.
+   * Only ever used where `optionsFitInline` passed, i.e. a single axis — which
+   * is why dropping the heading loses nothing (there is only one thing to pick).
+   */
+  compact?: boolean;
 }) {
   const axes = variantAxes(variants);
 
@@ -80,19 +101,35 @@ export function VariantSelector({
     );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: compact ? 8 : 14,
+        marginBottom: compact ? 0 : 20,
+      }}
+    >
       {axes.map((axis) => (
         <div key={axis.name}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-            {axis.name}
-            {selection[axis.name] ? (
-              <span style={{ color: "var(--muted)", fontWeight: 500 }}>
-                {" "}
-                · {selection[axis.name]}
-              </span>
-            ) : null}
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {compact ? null : (
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+              {axis.name}
+              {selection[axis.name] ? (
+                <span style={{ color: "var(--muted)", fontWeight: 500 }}>
+                  {" "}
+                  · {selection[axis.name]}
+                </span>
+              ) : null}
+            </div>
+          )}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: compact ? 6 : 8,
+              justifyContent: compact ? "center" : undefined,
+            }}
+          >
             {axis.values.map((value) => {
               const selected = selection[axis.name] === value;
               const disabled = !canPick(axis.name, value);
@@ -100,9 +137,11 @@ export function VariantSelector({
                 <button
                   key={value}
                   type="button"
+                  aria-label={`${axis.name}: ${value}`}
+                  aria-pressed={selected}
                   disabled={disabled && !selected}
                   onClick={() => onSelect({ ...selection, [axis.name]: value })}
-                  style={chip(selected, disabled)}
+                  style={chip(selected, disabled, compact)}
                 >
                   {value}
                 </button>
@@ -115,12 +154,22 @@ export function VariantSelector({
   );
 }
 
-function chip(selected: boolean, disabled: boolean): CSSProperties {
+function chip(
+  selected: boolean,
+  disabled: boolean,
+  compact: boolean,
+): CSSProperties {
   return {
     fontFamily: "inherit",
-    fontSize: 13.5,
+    fontSize: compact ? 12.5 : 13.5,
     fontWeight: 600,
-    padding: "9px 16px",
+    // Compact trades padding for an explicit minHeight so a narrower chip still
+    // clears the 40px touch-target floor — the flyout is a phone surface too,
+    // not just a desktop hover affordance.
+    padding: compact ? "0 11px" : "9px 16px",
+    ...(compact
+      ? { minHeight: 40, display: "inline-flex", alignItems: "center" }
+      : null),
     borderRadius: 8,
     cursor: disabled && !selected ? "not-allowed" : "pointer",
     border: selected

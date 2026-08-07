@@ -5,6 +5,7 @@ import { formatMoney } from "@/components/storefront/format";
 import { cn } from "@/ui/lib/utils";
 import { Checkbox } from "@/ui/components/checkbox";
 import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
+import { CopyTrackLink } from "@/components/ecommerce/orders/copy-track-link";
 
 export const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
   pending: "pending",
@@ -86,6 +87,14 @@ export function OrderRow({
       </td>
       <td className="px-3 py-3">
         <StatusBadge status={ORDER_STATUS_BADGE[order.status] ?? "info"} />
+      </td>
+      {/* The buyer's link, one tap from the list — for a guest or a Messenger
+          order this is the only way they ever receive it. */}
+      <td className="px-1 py-3" onClick={(e) => e.stopPropagation()}>
+        <CopyTrackLink
+          trackUrl={order.trackUrl}
+          orderNumber={order.orderNumber}
+        />
       </td>
       <td className="px-3 py-3 text-muted-foreground">
         <ChevronRight className="h-4 w-4" />

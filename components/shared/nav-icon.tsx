@@ -2,6 +2,7 @@
 import {
   ArrowRightLeft,
   BarChart2,
+  Bell,
   Boxes,
   Building2,
   Calendar,
@@ -62,6 +63,7 @@ import {
 const NAV_ICONS: Record<string, LucideIcon> = {
   "arrow-right-left": ArrowRightLeft,
   "bar-chart-2": BarChart2,
+  bell: Bell,
   "building-2": Building2,
   calendar: Calendar,
   "calendar-clock": CalendarClock,

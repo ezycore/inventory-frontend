@@ -8,6 +8,7 @@
 export * from './accounts'
 export * from './auth'
 export * from './brands'
+export * from './tags'
 export * from './categories'
 export * from './customers'
 export * from './dashboard'

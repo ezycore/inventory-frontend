@@ -3,6 +3,7 @@
 import { UserAvatarProfile } from "@/components/user-avatar-profile";
 import { navGroups } from "@/constants/navItem";
 import { useLogout } from "@/hooks";
+import { useCanManageBilling } from "@/hooks/use-has-permission";
 import { filterNavItems } from "@/lib/nav-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
@@ -38,6 +39,7 @@ import {
 import {
   ChevronDownIcon,
   ChevronRightIcon,
+  CreditCardIcon,
   HelpCircleIcon,
   LogOutIcon,
   UserCircleIcon,
@@ -154,6 +156,7 @@ export default function AppSidebar() {
   const { features } = user?.organization || {};
   const logout = useLogout();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const canManageBilling = useCanManageBilling();
   const tUserMenu = useTranslations("layout.userMenu");
   const { itemLabel, groupLabel } = useNavLabels();
 
@@ -255,8 +258,18 @@ export default function AppSidebar() {
                       <UserCircleIcon className="mr-2 h-4 w-4" />
                       {tUserMenu("profile")}
                     </DropdownMenuItem>
-                    {/* Billing lives in Settings → Billing, not here — one entry, one place.
-                        This slot gives the help guides their only route into `/help`; the
+                    {/* Billing lives here, not under Settings — one entry, one place.
+                        Gated by `useCanManageBilling` (the page's own gate), so the
+                        owner keeps access even if their role loses `organization.edit`. */}
+                    {canManageBilling && (
+                      <DropdownMenuItem
+                        onClick={() => router.push("/dashboard/billing")}
+                      >
+                        <CreditCardIcon className="mr-2 h-4 w-4" />
+                        {tUserMenu("billing")}
+                      </DropdownMenuItem>
+                    )}
+                    {/* This slot gives the help guides their only route into `/help`; the
                         header's "?" only ever opens the guide for the current screen. */}
                     <DropdownMenuItem onClick={() => router.push("/help")}>
                       <HelpCircleIcon className="mr-2 h-4 w-4" />

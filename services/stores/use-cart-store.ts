@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { resolveCartCap } from "@/lib/storefront-cart-qty";
 
 /**
  * Client-side cart (Zustand + localStorage). There is no backend cart in v1;
@@ -18,6 +19,11 @@ export interface CartItem {
   price: number;
   image?: string;
   quantity: number;
+  /**
+   * Sellable ceiling for this line. `0` = sold out; NEGATIVE = uncapped
+   * (backorder). Build it with `cartLineCap`, read it with `resolveCartCap` —
+   * never compare it by hand (`lib/storefront-cart-qty.ts` says why).
+   */
   maxQty: number;
 }
 
@@ -36,6 +42,13 @@ interface CartState {
   ) => void;
   updateQty: (lineKey: string, qty: number) => void;
   removeItem: (lineKey: string) => void;
+  /**
+   * Replace the whole cart in one write — used only by the abandoned-cart
+   * recovery link, which arrives with a server-rebuilt cart. One `set` rather
+   * than `clear()` + N `addItem()`s so subscribers (the server mirror) see a
+   * single change instead of N.
+   */
+  restore: (storeSlug: string, items: CartItem[]) => void;
   clear: () => void;
 }
 
@@ -56,7 +69,12 @@ export const useCartStore = create<CartState>()(
           const base = s.storeSlug === storeSlug ? s.items : [];
           const key = cartLineKey(item);
           const existing = base.find((i) => cartLineKey(i) === key);
-          const cap = item.maxQty > 0 ? item.maxQty : Infinity;
+          const cap = resolveCartCap(item.maxQty);
+          // A zero cap is a sold-out line, not an unlimited one — adding it
+          // would put a `quantity: 0` row in the cart that renders as a line the
+          // shopper cannot remove by decrementing. Refuse it here; the CTA is
+          // already disabled on every surface, so this is the backstop.
+          if (cap <= 0) return s;
           let items: CartItem[];
           if (existing) {
             items = base.map((i) =>
@@ -77,10 +95,7 @@ export const useCartStore = create<CartState>()(
               cartLineKey(i) === lineKey
                 ? {
                     ...i,
-                    quantity: Math.max(
-                      1,
-                      Math.min(i.maxQty > 0 ? i.maxQty : Infinity, qty),
-                    ),
+                    quantity: Math.max(1, Math.min(resolveCartCap(i.maxQty), qty)),
                   }
                 : i,
             )
@@ -91,6 +106,8 @@ export const useCartStore = create<CartState>()(
         set((s) => ({
           items: s.items.filter((i) => cartLineKey(i) !== lineKey),
         })),
+
+      restore: (storeSlug, items) => set({ storeSlug, items }),
 
       clear: () => set({ items: [] }),
     }),

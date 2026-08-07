@@ -11,7 +11,7 @@ import { cn } from "@/ui/lib/utils";
  * override, and the Listed toggle.
  *
  * Presentational on purpose: it is shared by Catalog → Collections (which saves
- * each field as you touch it) and the Customize → Navigation panel (which drafts
+ * each field as you touch it) and the Customize collections panel (which drafts
  * everything behind its own Save), so the save policy stays with the caller.
  * `compact` narrows it for the 380px Customize rail.
  */

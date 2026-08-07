@@ -48,6 +48,7 @@
       "customize": "কাস্টমাইজ",
       "content": "কনটেন্ট",
       "store-customers": "স্টোর গ্রাহক",
+      "abandoned-carts": "পরিত্যক্ত কার্ট",
       "store-settings": "স্টোর সেটিংস",
       "products": "পণ্য",
       "categories": "ক্যাটাগরি",
@@ -77,6 +78,7 @@
   },
   "userMenu": {
     "profile": "প্রোফাইল",
+    "billing": "বিলিং",
     "help": "সহায়তা",
     "logout": "লগআউট"
   },
