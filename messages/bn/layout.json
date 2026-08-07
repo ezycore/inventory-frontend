@@ -78,6 +78,7 @@
   },
   "userMenu": {
     "profile": "প্রোফাইল",
+    "billing": "বিলিং",
     "help": "সহায়তা",
     "logout": "লগআউট"
   },

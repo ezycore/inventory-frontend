@@ -428,12 +428,9 @@ export const navGroups: NavGroup[] = [
             icon: "globe",
             permissions: ["organization.view"],
           },
-          {
-            title: "Billing",
-            url: "/dashboard/billing",
-            icon: "credit-card",
-            permissions: ["organization.edit"],
-          },
+          // Billing is deliberately absent: it lives in the sidebar's user menu
+          // (`AppSidebar` footer), not under Settings — one entry, one place.
+          // Its breadcrumb/tab title still resolves via `layout.nav.items.billing`.
         ],
       },
     ],
