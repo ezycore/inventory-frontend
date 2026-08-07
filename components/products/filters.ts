@@ -23,12 +23,31 @@ export const getProductFilterConfig = (t: Translator): FilterConfig => ({
     {
       // Top-level only: filtering by a parent already includes every product in
       // its sub-categories, because `product.categoryId` stays on the parent.
+      // Narrowing to one child is what the sub-category filter below is for.
       name: "categoryId",
       label: t("filters.categoryLabel"),
       type: "select",
       placeholder: t("filters.categoryPlaceholder"),
       optionsApi: selectOptions("categories", {
         parentId: "null",
+        fields: "_id,name",
+      }),
+      // A sub-category exists under exactly one parent, so switching the parent
+      // invalidates it. Left behind, the pair matches no product at all.
+      clearFieldsOnChange: ["subcategoryId"],
+    },
+    {
+      // Matches `product.subcategoryId`, NOT `categoryId` — the pair is
+      // denormalized (parent in `categoryId`, child in `subcategoryId`), which
+      // is exactly why filtering a child on `categoryId` silently returns
+      // nothing. Disabled until a category is chosen: the options ARE that
+      // category's children, so `{{categoryId}}` cannot resolve before then.
+      name: "subcategoryId",
+      label: t("filters.subcategoryLabel"),
+      type: "select",
+      placeholder: t("filters.subcategoryPlaceholder"),
+      optionsApi: selectOptions("categories", {
+        parentId: "{{categoryId}}",
         fields: "_id,name",
       }),
     },

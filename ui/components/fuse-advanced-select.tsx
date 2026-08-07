@@ -86,7 +86,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   // Feature-gated: e.g. the category quick-add drops its VAT picker while the
   // org doesn't charge VAT.
-  const moduleConfig = useQuickAddModule(creatable, quickAddModule);
+  const moduleConfig = useQuickAddModule(creatable, quickAddModule, optionsApi);
   const { form } = useDynamicForm(moduleConfig?.formConfig || { fields: [] });
   const createMutation = moduleConfig?.useMutation();
 
@@ -270,12 +270,17 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   // ── Loading / error states ────────────────────────────────────────────────
 
+  // Both placeholder strings are longer than the value they stand in for, and
+  // this box is often much narrower than a form field — a filter-bar chip is
+  // 160px. Without `min-w-0` + `truncate` the text wraps to a second line and
+  // spills out of the fixed height, so the whole toolbar row visibly breaks for
+  // as long as the options are in flight. Truncate, don't wrap.
   if (loading) {
     return (
       <div className={fieldCls("flex h-9 items-center py-2 pr-3 opacity-50")}>
-        <span className="flex flex-1 items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Loading options...
+        <span className="flex min-w-0 flex-1 items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+          <span className="truncate">Loading options...</span>
         </span>
         <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
       </div>
@@ -289,7 +294,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
           "flex h-9 items-center border-red-500 py-2 pr-3 opacity-50"
         )}
       >
-        <span className="flex-1 truncate text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate text-muted-foreground">
           Error: {apiError}
         </span>
         <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -368,7 +373,12 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
             type="button"
             variant="outline"
             size="icon"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              // Open already scoped to whatever narrows this select's
+              // options, so a child cannot be created at the wrong level.
+              form.reset(moduleConfig.defaults);
+              setIsModalOpen(true);
+            }}
             disabled={disabled}
           >
             <Plus className="h-4 w-4" />

@@ -1,7 +1,43 @@
+// coding-standard: maintained
 import { Category } from "@/types";
 import { StatData } from "@/ui/components/StatsCard";
 import { CheckCircle2, ShoppingBag, Tag, XCircle } from "lucide-react";
 import type { Translator } from "@/i18n/config";
+
+/** A populated `parentId`/`parent` ref, or the raw id string the list may send instead. */
+type CategoryRef = string | { _id?: string } | null | undefined;
+
+const refId = (ref: CategoryRef): string | undefined =>
+  typeof ref === "string" ? ref : (ref?._id ?? undefined);
+
+/**
+ * The products-list URL for one category row — the "N Products" link on both
+ * the table and the card.
+ *
+ * Which param carries the id depends on the LEVEL, because the pair is
+ * denormalized: a product stores its top-level category in `categoryId` and its
+ * child in `subcategoryId`. So a sub-category's products are NOT reachable by
+ * `?categoryId=<its id>` — that matched nothing while the row cheerfully
+ * reported a non-zero count, since `productCount` counts both fields
+ * (`category.service.ts` → `afterGetMany`). The backend draws the same
+ * distinction when applying a default VAT rate.
+ *
+ * The parent is sent alongside the child so the products page shows a coherent
+ * filter pair: its sub-category dropdown lists one category's children, so the
+ * chip would otherwise render with nothing selected above it. Falls back to the
+ * child alone when the parent lookup missed (deleted out from under it) — the
+ * result set is identical either way.
+ */
+export const categoryProductsHref = (category: Category): string => {
+  const { _id, parentId, parent } = category as Category & { parent?: CategoryRef };
+  if (!parentId) return `/products?categoryId=${_id}`;
+
+  const parentKey = refId(parent) ?? refId(parentId);
+  const params = new URLSearchParams();
+  if (parentKey) params.set("categoryId", parentKey);
+  params.set("subcategoryId", String(_id));
+  return `/products?${params.toString()}`;
+};
 
 export const prepareSubmitData = (
   data: Category,

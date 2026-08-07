@@ -68,7 +68,13 @@ export default function CategoriesPage() {
   
   // "Apply this category's VAT rate to its products" — the action a Finance Act
   // rate change needs. Only offered when VAT is on, the user may edit products,
-  // and the category actually has a default to apply.
+  // and there is a rate to apply.
+  //
+  // A sub-category inherits its parent's rate, so a child with none of its own
+  // still has one to apply as long as the parent does — which is why the list
+  // response carries `parent.defaultTaxId`.
+  const hasRateToApply = (row: any) =>
+    !!(row?.defaultTaxId || row?.parent?.defaultTaxId)
   const [vatTarget, setVatTarget] = useState<ApplyVatTarget | null>(null)
   const canApplyVat =
     isVatActive(user?.organization) &&
@@ -81,7 +87,7 @@ export default function CategoriesPage() {
           icon: <Percent className="h-4 w-4" />,
           tooltip: t('applyVat.tooltip'),
           onClick: (row: any) => setVatTarget(row as ApplyVatTarget),
-          hidden: (row: any) => !row?.defaultTaxId,
+          hidden: (row: any) => !hasRateToApply(row),
         },
       ]
     : []
@@ -160,7 +166,7 @@ export default function CategoriesPage() {
               item,
               {
                 ...actions,
-                ...(canApplyVat && item.defaultTaxId
+                ...(canApplyVat && hasRateToApply(item)
                   ? { onApplyVat: () => setVatTarget(item as ApplyVatTarget) }
                   : {}),
               },

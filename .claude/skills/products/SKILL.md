@@ -46,8 +46,37 @@ So the product form's category select MUST filter to `parentId: "null"` (it does
 `{{value}}` template resolved from the chosen category, and the category field declares
 `clearFieldsOnChange: ["subcategoryId"]` so a category change cannot leave a stale pair behind.
 
+**The same pair exists in the products FILTER bar** (`components/products/filters.ts`), and it is
+the one place the denormalization is easy to get wrong:
+
+- `categoryId` lists **top-level only** and matches `product.categoryId`, which already sweeps every
+  product in that branch — a parent filter includes its children for free.
+- `subcategoryId` matches `product.subcategoryId`, and **nothing else does**. Filtering a child on
+  `categoryId` returns zero rows, silently. That is the bug the category page's "N Products" link
+  shipped with; it now routes through `categoryProductsHref` (`components/categories/helper.ts`),
+  which picks the param by level and sends the parent alongside the child.
+- The filter select is dependent exactly like the form's, using the filter-side spelling of the
+  template (`parentId: "{{categoryId}}"`, resolved against the sibling filter) plus
+  `clearFieldsOnChange`. See "Dependent filters" in
+  [`ui/components/filters/filters-doc.md`](../../../ui/components/filters/filters-doc.md).
+
+**Displaying the pair is also one component.** `<CategoryPath>`
+(`components/shared/category-path.tsx`) renders `Personal Care › Skin Care`; every surface that
+names a product's category goes through it — the table column, the card view, the detail hero, the
+detail info card, and the location stock report. Printing `product.category?.name` alone looks fine
+and silently drops the child, which is how four of those five surfaces disagreed with each other
+until 2026-08-07.
+
 Tags are a `select` with `mode: "multiple"` — no new field type. Filtering by tags is **OR**
-(`?tags=a,b` matches a product carrying either).
+(`?tags=a,b` matches a product carrying either), and **`?tags=` needs an explicit translation to
+`tagIds: { $in: [...] }`** at every consumer: `tagIds` is an ARRAY of refs, so the generic filter
+builder would match it against a raw string and find nothing. `product.service.getAll` does this;
+`resolveInventoryFilters` did **not** until 2026-08-07, which is why the inventory tag filter
+returned an empty stock list.
+
+Display goes through `<TagChips>` (`components/shared/tag-chips.tsx`) on every surface that names a
+product — table, card, detail. Mapping `product.tags` inline is how three of the four ended up
+showing nothing.
 
 Full behaviour, the invariant table and the merchant-facing rules:
 [`docs/features/catalog-taxonomy.md`](../../../../inventory-backend/docs/features/catalog-taxonomy.md)

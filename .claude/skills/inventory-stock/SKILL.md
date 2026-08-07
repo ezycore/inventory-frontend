@@ -32,6 +32,16 @@ Under [`app/(protected)/inventory/`](../../../app/(protected)/inventory):
 Feature/columns: [`components/inventory/`](../../../components/inventory) — `columns.tsx`, `filters.ts`,
 `stats.ts`, `helpers.ts`, `form-config.ts`, `inventory-search.tsx`.
 
+**Category filters must be pinned to a level.** `getInventoryFilterConfig` (`filters.ts`) feeds both
+the current-stock and shortlist tables, and its `categoryId` is resolved server-side against
+`Product.categoryId` — which always holds the TOP-LEVEL category. So that dropdown carries
+`parentId: "null"`, and a `subcategoryId` filter (dependent, `parentId: "{{categoryId}}"` +
+`clearFieldsOnChange`) is what narrows to one child. Until 2026-08-07 the dropdown listed *every*
+category with no pin, so picking a sub-category silently returned an empty stock list. The same trap
+applies to any client-side category filter over an inventory row — see the top-level pin in
+`components/purchases/import-low-stock-dialog.tsx`, whose response carries no `subcategoryId` at all.
+Backend half: `resolveInventoryFilters` in the backend `inventory-stock` skill.
+
 ---
 
 ## 2. API modules

@@ -43,6 +43,30 @@ every store; **the host picks the store**.
   email-verification token hash straight into Mongo (`shoppers` collection, URI from backend
   `.env`) so the real `/auth/verify-email` endpoint can be exercised end-to-end.
 
+## Campaign scopes — five, and the form must offer all five
+
+`campaign.scope` is `storewide | category | subcategory | product | tag`, and
+`campaign.service.buildPricer` matches each against a different field. The admin
+form offered only three until 2026-08-07, so `subcategory` and `tag` campaigns
+were implemented, priced and **unbuildable**.
+
+Two rules, both learned from the same bug:
+
+- **`category` targets TOP-LEVEL ids only** (`parentId: "null"`). The engine
+  matches that scope against `product.categoryId`, which always holds the
+  parent, so a child id there discounts **nothing** — with no error, on a
+  storefront pricing surface. `subcategory` targets children only
+  (`parentId: "!null"`) and matches `product.subcategoryId`.
+- **One table owns scope → target field**: `CAMPAIGN_TARGET_FIELD`
+  (`components/ecommerce/campaigns/form-config.ts`). Four places consume it —
+  the field configs, the defaults, `transformEditData` and the submit fold — and
+  three of them had silently fallen behind the enum. Adding a scope means adding
+  a row there, and `form-config.test.ts` fails if the form and the engine drift.
+
+Sub-category options are labelled `Parent › Child`: a child name is unique only
+within its parent, so a flat list can show two identical entries meaning
+different things.
+
 ## Frontend layout
 
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,

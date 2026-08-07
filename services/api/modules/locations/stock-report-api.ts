@@ -29,6 +29,8 @@ export interface LocationStockItem {
   isOutOfStock: boolean;
   status: string;
   categoryName: string | null;
+  /** The child level. Null for a product filed directly under a top-level category. */
+  subcategoryName: string | null;
   brandName: string | null;
 }
 
@@ -84,7 +86,10 @@ export interface CrossLocationComparison {
 
 export interface LocationStockFilters {
   search?: string;
+  /** TOP-LEVEL category id — sweeps the whole branch. */
   category?: string;
+  /** Child id — narrows to one sub-category. Not interchangeable with `category`. */
+  subcategory?: string;
   brand?: string;
   status?: string;
   stockStatus?: string;

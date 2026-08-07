@@ -58,12 +58,37 @@ export function getInventoryFilterConfig(
       optionsApi: selectOptions("brands", { fields: "_id,name" }),
     },
     {
+      // Top-level only. Without the `parentId` pin this dropdown listed parents
+      // and children indistinguishably, and picking a child returned an EMPTY
+      // list: the backend resolves this key against `Product.categoryId`, which
+      // always holds the top-level category. Narrowing to one child is what the
+      // sub-category filter below is for.
       name: "categoryId",
       label: t("filters.category"),
       type: "select",
       placeholder: t("filters.allCategories"),
       columnSpan: 1,
-      optionsApi: selectOptions("categories", { fields: "_id,name" }),
+      optionsApi: selectOptions("categories", {
+        parentId: "null",
+        fields: "_id,name",
+      }),
+      // A sub-category belongs to exactly one parent, so switching the parent
+      // invalidates it — the pair would then match no product at all.
+      clearFieldsOnChange: ["subcategoryId"],
+    },
+    {
+      // Matches `Product.subcategoryId`. Disabled until a category is chosen:
+      // the options ARE that category's children, so `{{categoryId}}` cannot
+      // resolve before then.
+      name: "subcategoryId",
+      label: t("filters.subcategory"),
+      type: "select",
+      placeholder: t("filters.allSubcategories"),
+      columnSpan: 1,
+      optionsApi: selectOptions("categories", {
+        parentId: "{{categoryId}}",
+        fields: "_id,name",
+      }),
     },
     {
       // OR semantics — a row whose product carries ANY selected tag matches.

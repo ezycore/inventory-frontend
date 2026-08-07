@@ -76,6 +76,8 @@
     "allBrands": "সব ব্র্যান্ড",
     "category": "ক্যাটাগরি",
     "allCategories": "সব ক্যাটাগরি",
+    "subcategory": "উপ-বিভাগ",
+    "allSubcategories": "সব উপ-বিভাগ",
     "stockLevel": "স্টক লেভেল",
     "allLevels": "সব লেভেল",
     "lowStock": "স্টক কম",

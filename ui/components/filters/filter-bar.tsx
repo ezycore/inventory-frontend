@@ -90,6 +90,7 @@ export function FilterBar({ config, className }: FilterBarProps) {
             <FilterFieldRenderer
               field={field}
               value={value}
+              values={state.values}
               hideLabel
               // Sizes the select / text Input / NumberField to match search + button.
               controlClassName="h-8"
