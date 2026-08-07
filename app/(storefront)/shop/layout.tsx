@@ -4,6 +4,7 @@ import { getStoreContext } from "@/lib/storefront-host";
 import {
   getStore,
   getStoreCampaigns,
+  getStoreCategories,
   getStorePages,
 } from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
@@ -45,13 +46,19 @@ export default async function ShopLayout({
     );
   }
 
-  // Fetch store + footer pages + live campaigns server-side so the shell
-  // paints the real name/brand/logo immediately and footer links + the
-  // campaign strip are in the SSR HTML — all seeded as initialData.
-  const [store, pages, campaigns] = await Promise.all([
+  // Fetch store + footer pages + live campaigns + the category tree server-side
+  // so the shell paints the real name/brand/logo immediately and footer links,
+  // the campaign strip and every category surface are in the SSR HTML — all
+  // seeded as initialData.
+  //
+  // Categories are seeded HERE rather than by the pages that read them because
+  // the shell is the outermost consumer of that query: it creates the entry, so
+  // initialData handed in by a deeper component would arrive too late to matter.
+  const [store, pages, campaigns, categories] = await Promise.all([
     getStore(slug),
     getStorePages(slug),
     getStoreCampaigns(slug),
+    getStoreCategories(slug),
   ]);
 
   const favicon = store?.logo?.thumbnailUrl || store?.logo?.url;
@@ -68,6 +75,7 @@ export default async function ShopLayout({
         initialStore={store ?? undefined}
         initialPages={pages ?? undefined}
         initialCampaigns={campaigns ?? undefined}
+        initialCategories={categories ?? undefined}
       >
         {children}
       </StoreShell>

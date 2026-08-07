@@ -13,9 +13,19 @@
 
 export const PRODUCTS_PAGE_SIZE = 12;
 
+/** Results per request on `/search` — larger than the collection page's, because
+ *  search rows are denser and a searcher is scanning, not browsing. */
+export const SEARCH_PAGE_SIZE = 24;
+
 /** The filter/sort params the collection page reads off the URL. */
 export interface CatalogSearchParams {
   categoryId?: string;
+  /**
+   * Narrows a `categoryId` facet to one of its children. Sent alongside the
+   * parent, never instead of it: a child's product carries BOTH ids, so the two
+   * AND-combine correctly and the parent row stays lit while the child is on.
+   */
+  subcategoryId?: string;
   brandId?: string;
   /**
    * Comma-joined tag SLUGS, OR-combined.
@@ -39,6 +49,7 @@ export function catalogSearchParams(
     (Array.isArray(v) ? v[0] : v) || "";
   return {
     categoryId: one(raw.categoryId),
+    subcategoryId: one(raw.subcategoryId),
     brandId: one(raw.brandId),
     tags: one(raw.tags),
     minPrice: one(raw.minPrice),
@@ -58,6 +69,7 @@ export function catalogSearchParams(
 export function catalogInfiniteParams(sp: CatalogSearchParams) {
   return {
     categoryId: sp.categoryId || undefined,
+    subcategoryId: sp.subcategoryId || undefined,
     brandId: sp.brandId || undefined,
     tags: sp.tags || undefined,
     minPrice: sp.minPrice || undefined,
@@ -71,6 +83,33 @@ export function catalogInfiniteParams(sp: CatalogSearchParams) {
 /** The exact request params `useStoreProducts` is called with on the collection page. */
 export function catalogQueryParams(sp: CatalogSearchParams, page = 1) {
   return { ...catalogInfiniteParams(sp), page };
+}
+
+/**
+ * The `/search` contract: a term plus the **same facets the collection page
+ * offers**, over the same endpoint.
+ *
+ * Keeping search on these builders is what stops the two pages disagreeing about
+ * what a facet means — a tag on `/search` narrows exactly as it does on
+ * `/products`, because it is literally the same param. The term rides along as
+ * `q`, which the backend matches against the product name, the catalog overlay's
+ * online title/description, the description, the barcode, and its tag names.
+ */
+export function searchInfiniteParams(q: string, sp: CatalogSearchParams) {
+  return {
+    ...catalogInfiniteParams(sp),
+    q: q || undefined,
+    limit: SEARCH_PAGE_SIZE,
+  };
+}
+
+/** Paged variant — same params plus the cursor. See the note above. */
+export function searchQueryParams(
+  q: string,
+  sp: CatalogSearchParams,
+  page = 1,
+) {
+  return { ...searchInfiniteParams(q, sp), page };
 }
 
 /**
@@ -91,7 +130,8 @@ export function isIndexableCatalogUrl(sp: CatalogSearchParams): boolean {
   // `?categoryId=` is no longer a landing page: a collection's canonical URL is
   // its PATH (`/phones`), and two URLs claiming the same page compete. The query
   // form still works for anyone holding an old link; it just isn't indexed.
-  if (sp.categoryId) return false;
+  // `?subcategoryId=` is the same URL one level down (`/phones/accessories`).
+  if (sp.categoryId || sp.subcategoryId) return false;
   return true;
 }
 
@@ -111,7 +151,7 @@ export function catalogCanonicalQuery(sp: CatalogSearchParams): string {
 /**
  * The URL params for a category PATH page (`/phones`, `/phones/accessories`).
  *
- * `categoryPath` replaces `categoryId` — the backend resolves it and picks the
+ * `categoryPath` replaces BOTH id facets — the backend resolves it and picks the
  * right field to match on, which is what makes a parent page include its
  * children's products. Everything else (tags, price, stock, sort) still applies
  * on top, so a shopper can filter within a collection.
@@ -121,7 +161,11 @@ export function categoryPathQueryParams(
   sp: CatalogSearchParams,
   page = 1,
 ) {
-  const { categoryId: _categoryId, ...rest } = catalogInfiniteParams(sp);
+  const {
+    categoryId: _categoryId,
+    subcategoryId: _subcategoryId,
+    ...rest
+  } = catalogInfiniteParams(sp);
   return { ...rest, categoryPath, page };
 }
 
@@ -130,6 +174,10 @@ export function categoryPathInfiniteParams(
   categoryPath: string,
   sp: CatalogSearchParams,
 ) {
-  const { categoryId: _categoryId, ...rest } = catalogInfiniteParams(sp);
+  const {
+    categoryId: _categoryId,
+    subcategoryId: _subcategoryId,
+    ...rest
+  } = catalogInfiniteParams(sp);
   return { ...rest, categoryPath };
 }

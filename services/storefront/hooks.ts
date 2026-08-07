@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import {
   storefrontApi,
+  type CatalogCategory,
   type CatalogProduct,
   type ContentPageLink,
   type ContentPageView,
@@ -166,12 +167,24 @@ export const useStoreProduct = (
     initialData,
   });
 
-export const useStoreCategories = (slug: string) =>
+// `initialData` (server-fetched in shop/layout.tsx) seeds the whole tree before
+// anything renders. It must be seeded at the SHELL, not per page: the shell is
+// the outermost consumer, so it creates this query first, and initialData passed
+// by a deeper component would arrive after the query already exists and be
+// ignored. Without it the header's category row, the collection page's
+// sub-category strip and the PDP breadcrumb's category rungs are all absent from
+// the SSR HTML — and the breadcrumb is the sharp case, because its JSON-LD twin
+// IS server-built, so the two disagreed until hydration.
+export const useStoreCategories = (
+  slug: string,
+  initialData?: CatalogCategory[],
+) =>
   useQuery({
     queryKey: storefront.categories(slug),
     queryFn: () => storefrontApi.listCategories(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
+    initialData,
   });
 
 /** Curated brand facet (products page filter; brand names for chips/headings). */

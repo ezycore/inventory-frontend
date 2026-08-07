@@ -22,9 +22,22 @@ import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
+import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { SkeletonCard } from "@/components/storefront/sf-skeleton";
 import { LoadMore } from "@/components/storefront/load-more";
 import { Pager } from "@/components/storefront/pager";
+import { FilterPanel } from "@/components/storefront/filter-panel";
+import {
+  FilterChips,
+  FiltersButton,
+  SortSelect,
+} from "@/components/storefront/filter-toolbar";
+import { SideDrawer } from "@/components/storefront/side-drawer";
+import { useCatalogFacets } from "@/components/storefront/use-catalog-facets";
+import {
+  searchInfiniteParams,
+  searchQueryParams,
+} from "@/lib/storefront-catalog-params";
 import type { CatalogProduct } from "@/lib/storefront-client";
 
 const wrap: CSSProperties = {
@@ -34,10 +47,6 @@ const wrap: CSSProperties = {
   padding: "22px var(--pad) 40px",
 };
 
-/** Results per request. Larger than the collection page's 12 — search rows are
- *  denser and a searcher is scanning, not browsing. */
-const SEARCH_PAGE_SIZE = 24;
-
 // Device-level shopper preference (like `sf-theme`) — grid vs list results.
 const VIEW_KEY = "sf-search-view";
 type SearchView = "grid" | "list";
@@ -45,7 +54,10 @@ type SearchView = "grid" | "list";
 function SearchInner() {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
-  const initialQ = useSearchParams().get("q") ?? "";
+  const sp = useSearchParams();
+  // Read once, into state — the box owns the term after mount, and the effect
+  // below pushes it back to the URL. Re-reading `sp` here would fight that.
+  const initialQ = sp.get("q") ?? "";
   const [q, setQ] = useState(initialQ);
   // Debounced copy of `q` drives the API query — one request per pause in
   // typing instead of one per keystroke.
@@ -56,24 +68,47 @@ function SearchInner() {
   }, [q]);
 
   const { data: store } = useStore(slug);
+  // The same facet layer the collection page uses — one hook, so a tag or a
+  // price bound narrows identically on both pages (it is literally the same URL
+  // param hitting the same endpoint).
+  const facets = useCatalogFacets();
+  const { setParams, chips, clearAll } = facets;
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Keep `?q=` in step with the box. The facets write the URL too, so a stale
+  // term would be resurrected on reload — and now that the filters live in the
+  // URL, the URL is the thing a shopper copies, shares and refreshes.
+  useEffect(() => {
+    if ((sp.get("q") ?? "") !== debouncedQ) setParams({ q: debouncedQ || undefined });
+  }, [debouncedQ, sp, setParams]);
+
   // Listing mode is the merchant's (Customize → Collections), shared with the
   // collection page so search doesn't paginate in a second style.
   const mode = useStoreTemplate(store, "pagination");
   const paged = mode === "pages";
   const [page, setPage] = useState(1);
-  // A new search term is a new result set — back to page 1 (render-time adjust).
-  const [prevQuery, setPrevQuery] = useState(debouncedQ);
-  if (prevQuery !== debouncedQ) {
-    setPrevQuery(debouncedQ);
+  // A new term OR a changed facet is a new result set — back to page 1
+  // (render-time adjust).
+  const resultKey = `${debouncedQ}|${facets.filterKey}`;
+  const [prevQuery, setPrevQuery] = useState(resultKey);
+  if (prevQuery !== resultKey) {
+    setPrevQuery(resultKey);
     setPage(1);
   }
 
   // Until 2026-07-31 this was a single un-paged fetch: a store with more than
   // `SEARCH_PAGE_SIZE` matches silently dropped the rest, and the results line
   // reported the truncated length as the total.
-  const params = { q: debouncedQ || undefined, limit: SEARCH_PAGE_SIZE };
-  const pagedQuery = useStoreProducts(slug, { ...params, page }, paged);
-  const infiniteQuery = useStoreProductsInfinite(slug, params, !paged);
+  const pagedQuery = useStoreProducts(
+    slug,
+    searchQueryParams(debouncedQ, facets.params, page),
+    paged,
+  );
+  const infiniteQuery = useStoreProductsInfinite(
+    slug,
+    searchInfiniteParams(debouncedQ, facets.params),
+    !paged,
+  );
   const infinitePages = infiniteQuery.data?.pages ?? [];
   const isLoading = paged ? pagedQuery.isLoading : infiniteQuery.isLoading;
   const pagination = paged ? pagedQuery.data?.pagination : infinitePages[0]?.pagination;
@@ -112,30 +147,19 @@ function SearchInner() {
         />
       </div>
 
-      {isLoading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--searchcols), minmax(0,1fr))", gap: "var(--gap)" }}>
-          {Array.from({ length: 8 }, (_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "60px 30px", textAlign: "center" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14, color: "var(--faint)" }}>
-            <Icon name="search" size={40} />
+      {/* The toolbar and chips render even with zero results, and that is the
+          point: a shopper who over-narrows the filters must be able to widen
+          them again. Inside the empty branch, the only way out would be the
+          browser's back button. */}
+      {isLoading ? null : (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 13, color: "var(--muted)" }}>
+            {total} {t.results}
+            {q ? ` · "${q}"` : ""}
           </div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{t.noResults}</h3>
-          <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 auto 20px", maxWidth: 360 }}>{t.noResultsMsg}</p>
-          <Link href={storeHref(base, "/products")} style={{ display: "inline-block", background: "var(--primary)", color: "var(--on-primary)", padding: "12px 24px", borderRadius: 9, fontSize: 14, fontWeight: 600 }}>
-            {t.viewAllProducts}
-          </Link>
-        </div>
-      ) : (
-        <>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, color: "var(--muted)" }}>
-              {total} {t.results}
-              {q ? ` · "${q}"` : ""}
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
+            <FiltersButton activeCount={chips.length} onClick={() => setDrawerOpen(true)} />
+            <SortSelect sort={facets.sort} onChange={(s) => setParams({ sort: s })} />
             <div style={{ display: "flex", border: "1px solid var(--border-strong)", borderRadius: 8, overflow: "hidden" }}>
               {(["grid", "list"] as const).map((v) => {
                 const active = view === v;
@@ -166,6 +190,42 @@ function SearchInner() {
               })}
             </div>
           </div>
+        </div>
+      )}
+
+      {isLoading ? null : <FilterChips chips={chips} onClearAll={clearAll} />}
+
+      {isLoading ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--searchcols), minmax(0,1fr))", gap: "var(--gap)" }}>
+          {Array.from({ length: 8 }, (_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "60px 30px", textAlign: "center" }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14, color: "var(--faint)" }}>
+            <Icon name="search" size={40} />
+          </div>
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{t.noResults}</h3>
+          <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 auto 20px", maxWidth: 360 }}>{t.noResultsMsg}</p>
+          {/* With filters on, "browse everything" is the wrong advice — clearing
+              them is the shorter route back to results. */}
+          {chips.length > 0 ? (
+            <button
+              type="button"
+              onClick={clearAll}
+              style={{ background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "12px 24px", borderRadius: 9, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+            >
+              {t.clearAll}
+            </button>
+          ) : (
+            <Link href={storeHref(base, "/products")} style={{ display: "inline-block", background: "var(--primary)", color: "var(--on-primary)", padding: "12px 24px", borderRadius: 9, fontSize: 14, fontWeight: 600 }}>
+              {t.viewAllProducts}
+            </Link>
+          )}
+        </div>
+      ) : (
+        <>
           {view === "list" ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {items.map((p) => (
@@ -185,9 +245,10 @@ function SearchInner() {
           ) : null}
 
           {!paged ? (
-            // Keyed on the term so each new search gets its own auto-load budget.
+            // Keyed on the term AND the facets, so each new result set gets its
+            // own auto-load budget — see the note in load-more.tsx.
             <LoadMore
-              key={debouncedQ}
+              key={resultKey}
               mode={mode === "infinite" ? "infinite" : "loadMore"}
               hasMore={infiniteQuery.hasNextPage}
               loading={infiniteQuery.isFetchingNextPage}
@@ -198,6 +259,46 @@ function SearchInner() {
           ) : null}
         </>
       )}
+
+      {/* Same panel, same drawer as the collection page — search has no sidebar
+          template, so this is its only home here. */}
+      <SideDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        side="left"
+        title={t.filters}
+        headerAccessory={
+          chips.length > 0 ? (
+            <button
+              type="button"
+              onClick={clearAll}
+              style={{ fontSize: 12, fontWeight: 600, fontFamily: "inherit", color: "var(--muted)", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}
+            >
+              {t.reset}
+            </button>
+          ) : undefined
+        }
+        footer={
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(false)}
+            style={{ width: "100%", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "12px 22px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+          >
+            {/* Live count — filters apply instantly, this just closes the drawer. */}
+            {t.showResults.replace("{n}", String(total))}
+          </button>
+        }
+      >
+        <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px 16px" }}>
+          <FilterPanel
+            categories={facets.categories}
+            brands={facets.brands}
+            tags={facets.tags}
+            filters={facets.filters}
+            onChange={setParams}
+          />
+        </div>
+      </SideDrawer>
     </div>
   );
 }
@@ -232,6 +333,11 @@ function SearchRow({
       <Link href={storeHref(base, `/products/${product.slug}`)} style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.3, margin: "0 0 6px" }}>{product.name}</div>
         <span style={{ fontSize: 15, fontWeight: 700 }}>{money(product.price, currency)}</span>
+        {/* The search term matches a product's TAGS as well as its name, so a
+            row whose name contains none of the typed words is not a bug — the
+            chip is the reason it is here. No `base`: this whole block is one
+            <Link>, and a link inside a link is invalid markup. */}
+        <ProductTagChips tags={product.tags} max={3} style={{ marginTop: 7 }} />
       </Link>
       <button
         type="button"

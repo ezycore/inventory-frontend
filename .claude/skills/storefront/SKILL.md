@@ -69,6 +69,26 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
 hidden parent takes its children with it. Link to a collection with **`collectionHref(base, cat)`**
 (`lib/storefront-links.ts`) — never hand-build `?categoryId=` again.
 
+**A category surface that ignores `children` is a bug, not a simplification** (four of them shipped
+this way and were fixed 2026-08-07 — see the work log). The rule: anything that renders the category
+list renders the tree. Concretely, `store-header.tsx`'s `CategoryRow` feeds **both** its branches
+through `HeaderNav` — the collections branch passes a synthetic one-item `collections` menu and lets
+`expandHeaderMenu` nest it, so there is one dropdown implementation, not two. ⚠ Such a row can never
+be an **`overflowX: auto`** strip: a scroll container clips on *both* axes, so the absolutely
+positioned dropdown gets cut off at the row's bottom edge. `HeaderNav` wraps for exactly that reason.
+
+The `/products` facet form is **`?categoryId=` + `?subcategoryId=` together**, never the child alone
+— a child's product carries both ids, so they AND-combine. Both are `noindex` (the path page is the
+landing page) and both are stripped by `categoryPath*Params`, since a path already names its level.
+
+**The facet shows the whole tree at once**, children indented under their parents. It was
+progressive-disclosure first (children revealed only under the selected parent) and that was wrong:
+the panel already sits behind a Filters button inside a drawer, so finding a sub-category took two
+hidden steps and merchants reported the feature as missing. If a catalogue ever makes the list
+unwieldy, cap or group it — **don't put it back behind a click**. The parent row is lit only when
+the whole branch is selected; with children permanently visible, a lit parent under a lit child
+reads as two filters at once.
+
 - **Pattern**: `page.tsx` (server; SEO via `storePageMetadata` in `lib/storefront-metadata.ts`)
   + `view.tsx` (`"use client"`). Server data fetches go through `lib/storefront-server.ts`
   (Next `revalidate` + tag `store:{slug}`, flushed on admin save — see "Cache + on-demand
@@ -266,6 +286,15 @@ Four files, in payload order:
 - **Normalize in the payload exactly as `submit()`/`save()` does** — filter blank-titled footer
   groups, blank-titled slides, `cleanHeroBanner`, the public `/categories` shape. A preview that
   shows something the save would drop is worse than no preview.
+  - ⚠ **`publicCollections` mirrors `GET /:slug/categories`, and that is a claim needing a test.**
+    It silently drifted when categories became a tree — it kept emitting a flat
+    `{_id, name, slug}` with no `slugPath`, so the preview's header menu went **empty** the moment
+    the source was set to "collections" (the storefront drops a node it cannot link). It now
+    nests, carries `slugPath`, and hides an unlisted parent's children — and is exported and
+    tested (`draft-payloads.test.ts`) precisely because nothing else can catch that drift: the two
+    sides live in different repos and the failure looks like an empty UI, not an error.
+    The admin `collectionDto` / `COLLECTION_FIELDS` carry `slugPath` + `parentId` to make it
+    possible at all.
 - **`?? saved` is the fallback for everything except images.** For `logo`/`banner`, `null` is a real
   draft value meaning "removed", so use **`useSfPreviewImage(field, saved)`** — never re-derive the
   `undefined`-vs-`null` check inline. Getting it wrong makes a deleted logo reappear.
@@ -379,6 +408,15 @@ resolved **per request from the host**, never baked.
 - **The collection page's params object IS its cache key.** Server and client must build it through
   `catalogQueryParams` (`lib/storefront-catalog-params.ts`); one mismatched key (`""` vs `undefined`)
   silently misses the seed and you're back to an empty body. Only page 1 is seeded.
+- **Seed a query at its OUTERMOST consumer.** `useStoreCategories` is seeded in `shop/layout.tsx`
+  via `StoreShell`, never by the page that reads it: the shell mounts first, so it creates the
+  query, and `initialData` handed in by a deeper component arrives after the entry exists and is
+  ignored. Until 2026-08-07 it had no seed at all, which put the header's category row, the
+  sub-category strip and the PDP breadcrumb's category rungs outside the SSR HTML. The breadcrumb
+  was the sharp case: its JSON-LD twin **is** server-built, so the page server-rendered a visible
+  `Store › All products › Product` while its own structured data claimed the real category trail —
+  the exact disagreement the shared builder exists to prevent. Found by curling the SSR HTML;
+  nothing in typecheck, lint or 374 tests saw it.
 - **`noindex` policy.** Transactional routes (cart, checkout, search, `/account/*`, invoices) pass
   `index: false` → `noindex, nofollow`. Filtered collection URLs pass `index: false, follow: true`
   **and no canonical** — `isIndexableCatalogUrl` allows a plain listing or a *single brand* facet
@@ -434,6 +472,77 @@ resolved **per request from the host**, never baked.
 
 ## Other storefront subsystems
 
+- **Breadcrumbs** — `lib/storefront-breadcrumb.ts` (pure, tested) builds the trail;
+  `components/storefront/breadcrumb.tsx` renders it. **Every page with a trail renders it twice** —
+  once as `BreadcrumbList` JSON-LD, once as visible markup — so both MUST come from the same
+  builder call. Structured data that disagrees with the visible page is a manual-action risk, and
+  the PDP's trail was a hardcoded `Store › Products › Product` until 2026-08-07 while the shop had
+  a two-level taxonomy.
+  - `categoryCrumbs(tree, categoryId, subcategoryId)` reads the two ids **independently** —
+    `categoryId` is the parent even when a child is set. A level is **skipped** when it cannot be
+    linked (unlisted, or no `slugPath`): a crumb to a 404 is worse than a shorter trail.
+  - `productCrumbs` never collapses to `Store › Product` — an uncategorized product keeps an
+    "All products" rung, so there is always one link upward.
+  - Crumbs carry **store-relative** paths; the caller decides absolute (JSON-LD, via
+    `canonicalTarget`) vs relative (visible, via `storeHref`). The label for the fallback rung is
+    passed in because the server-rendered JSON-LD cannot read the client i18n dictionary — it is
+    English there on purpose, matching the "only English is indexable" note in SEO above.
+
+- **Sub-category drill-down** — `components/storefront/subcategory-strip.tsx`. A collection page
+  shows a chip row of its sub-collections under the `<h1>`; `subcategoriesFor(collection, tree)`
+  (exported, tested) decides which: a PARENT page shows its children, a CHILD page shows its
+  **siblings** with the current one active. A child has no children of its own (two levels), so
+  showing nothing there makes every drill-down a dead end. It reads the **tree**, not the
+  collection payload — `GET …/categories/resolve` returns `parent` but not `children`, and the
+  tree is already fetched for the nav. Unlike the header's category row this MAY scroll
+  horizontally: flat links, no dropdown for the scroll box to clip.
+
+- **Catalog facets** — `components/storefront/use-catalog-facets.ts` is the **one** owner of the
+  facet layer (URL state, the facet lists, the active-filter chips, `clearAll`, `setParams`), shared
+  by the collection grid and `/search`. It was inline in `products/view.tsx` until search gained
+  facets; a second copy would have drifted on the first change to chip behaviour, and those two
+  pages are exactly the ones a shopper compares. **A new page that filters the catalogue uses this
+  hook** — do not re-read `?tags=`/`?brandId=` off `useSearchParams` by hand.
+  - The URL is the single source of truth, so nothing here stages state; `setParams` writes the
+    query string and the next render reads it back. `setParams` is `useCallback`-stable so it can
+    sit in an effect's deps (the search page syncs `?q=` that way without looping).
+  - `categoryPath` blanks the id facets: on a path page the collection is the ROUTE, and a shopper
+    must not be able to filter themselves off the page they are standing on.
+  - Request params come from `lib/storefront-catalog-params.ts` — `catalog*Params` for the
+    collection, `categoryPath*Params` for a path page, **`search*Params` for `/search`** (adds `q`,
+    uses `SEARCH_PAGE_SIZE`). Same builders on both pages is what makes a tag mean the same thing on
+    each; the params object is also the cache key, so hand-building one re-introduces the
+    silently-missed-seed bug.
+  - ⚠ **On a results page the filter toolbar and chips must render OUTSIDE the empty-state branch.**
+    Filters can produce zero results, and a shopper who over-narrows them needs a way back — if the
+    controls live inside the non-empty branch, the only exit is the browser's back button. `/search`
+    also swaps its empty-state CTA from "view all products" to "clear all" when chips are active.
+- **Product tag chips** — `components/storefront/product-tag-chips.tsx`, the one renderer for
+  `CatalogProduct.tags` (the merchant's labels; the backend emits **active** tags only, so a chip
+  always points at a facet value the store still serves). Three homes: the PDP badge row beside the
+  stock pill, the product card's image, and the search page's list rows. Two **independent** axes —
+  - **`tone`** — `soft` (tinted, for a page/card background) or `solid` (full-strength colour +
+    `readableTextOn`, for laying over a product photo). Not decoration: a soft tint is invisible
+    over an arbitrary photo.
+  - **`base` decides `<Link>` vs `<span>`.** Pass it ⇒ chips link to `/products?tags=<slug>`; omit
+    it ⇒ inert spans. Omit it whenever the chips sit *inside* another link — the card image and the
+    search row's text block are each wrapped in one, and an `<a>` in an `<a>` is invalid markup
+    browsers reparent (same rule as `CardVariantFlyout` being a sibling, not a child).
+    ⚠ **The check is `base != null`, never truthiness** — a custom-domain store has `base === ""`,
+    so a falsy test silently unlinks every chip on exactly the half of the estate you are least
+    likely to have open in dev.
+  - On the card it is capped at **2** and pinned **top-right**: top-left is the discount badge and
+    the image bottom belongs to `CardRevealActions`/`CardVariantFlyout`. Colour follows `StatusPill`
+    (`color-mix(… 72%, var(--text))`, never the raw hue) so a merchant colour survives both themes
+    with no JS branch. A tag with no `slug` is dropped, not rendered inert.
+  - **`?q=` matches far more than the product name** (BE `listProducts`): name,
+    `storefront.onlineTitle`, description, `storefront.onlineDescription`, `barcode` (there is no
+    `sku` field) and active **tag names**. The two `storefront.*` clauses are load-bearing — the shop
+    renders `onlineTitle || name`, so without them a merchant who set an online title had a product
+    whose *displayed* name was unsearchable. **Any field the catalog overlay can override must be
+    searched next to the field it overrides.** This is also why the search list row shows chips: a
+    row whose name contains none of the typed words is not a bug, and the chip is the only thing on
+    screen explaining the match. One endpoint, so the header typeahead inherits all of it.
 - **Image variant per use site** — `lib/storefront-image.ts`, one of three helpers, never a hand-rolled
   `img?.a || img?.b` chain: `cardImageUrl` (grid/card/tile, >~100px), `thumbImageUrl` (row thumb,
   avatar, chip, ≤100px), `fullImageUrl` (PDP gallery hero, og:image, JSON-LD). The backend stores
@@ -510,7 +619,63 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-04)
+## Work log (what was built, newest first — as of 2026-08-07)
+
+- **Product tags became visible on the shop (FE + BE)** (2026-08-07): tags were filterable and
+  nowhere displayed — `GET …/tags` served the facet, `?tags=` filtered, but no product payload
+  carried its own tags, so a merchant labelling a product "Eid sale" saw that label nowhere on their
+  own shop. BE `toCatalogProduct` now emits `tags` via a new batched `tagChips(store, rows)` (one
+  query per page), wired into **all three** call sites — the fast list path, `listProductsComputed`
+  and `getProductBySlug`; `CATALOG_SELECT` already projected `tagIds` for campaign scoping, so only
+  the join was missing. FE: new `ProductTagChips` (see the subsystem bullet above) on the PDP badge
+  row and the card image. Contract test seeds an **inactive** tag beside two active ones and asserts
+  the computed list path too — an untagged fixture cannot fail a payload that drops tags, and a
+  change that edits only `toCatalogProduct` passes the fast path while missing the sorted one.
+  **`?q=` was `name` regex only** — so the very words a merchant merchandises on ("eid", "organic")
+  returned nothing, and neither did descriptions, barcodes, or the online title the shop actually
+  displays. It now unions all of them plus active tag ids. **`/search` also gained the full facet
+  panel** (`useCatalogFacets`, extracted from the collection view rather than copied), so a tag is
+  now reachable from search results, not just from `/products`. The header typeahead shares the
+  endpoint and inherited the matching for free.
+  Full write-up: [`ecommerce-implementation.md`](../../../../inventory-backend/docs/features/ecommerce-implementation.md).
+
+- **Sub-categories reached the navigation (FE)** (2026-08-07): the taxonomy's P3 shipped the routing
+  (`[...categoryPath]`, `collectionHref`, tree endpoint, sitemap, canonical) but left four surfaces
+  built for a flat list, so on a default store a child collection had a working URL that **nothing
+  linked to**. Fixed: `use-header-search.ts`'s `goCategory` (it still pushed
+  `/products?categoryId=`, a URL the *same commit* had made `noindex` — the one link site the P3
+  sweep missed); `store-header.tsx`'s `CategoryRow` collections branch (a bare link row, so the
+  store whose owner never opened Customize showed **no** sub-categories in the header — now
+  `HeaderNav` for both branches); `store-bottom-nav.tsx`'s menu sheet (the *only* category
+  navigation on a phone, parents-only); and `filter-panel.tsx`'s category facet.
+  `?subcategoryId=` was already accepted by the backend and sent by nothing — now wired through
+  `storefront-catalog-params.ts` end to end. Full write-up, including the three things left
+  deliberately flat (Minimal header, search chips, home tiles):
+  [`ecommerce-implementation.md`](../../../../inventory-backend/docs/features/ecommerce-implementation.md).
+  **The lesson:** none of the four failed a build, a test, or `docs:verify` — they all rendered
+  fine and simply showed less than they should. A taxonomy is only shipped when every surface that
+  lists categories lists the *tree*; grep `children` when adding one.
+
+- **Nested header menu for hand-picked categories + the drill-down strip (FE)** (2026-08-07):
+  `expandHeaderMenu` nested sub-categories only inside a `collections` block, so a merchant who
+  picked their top links **one by one** — which is what Customize encourages — got a flat menu
+  where a category and its children read as peers. A `type: "category"` item now inherits its own
+  children as its dropdown, unless the merchant authored a child list explicitly (that is an
+  override, not an empty slot). `catMap` also became slug→**node** and indexes every parent before
+  any child, so a top-level collection can no longer be shadowed by an earlier parent's same-named
+  child. New `subcategory-strip.tsx` puts the children under a collection's `<h1>`. 8 new tests.
+
+- **Breadcrumbs, and the product payload's missing second level (FE + BE)** (2026-08-07): the PDP
+  emitted `Store › Products › Product` as JSON-LD and **no visible trail anywhere** — so a shopper
+  on `/phones/accessories` had no way back to `/phones`, and the structured data described a
+  one-level catalogue the shop no longer had. Blocked on a real gap: the public product payload
+  carried `categoryId` (the parent) but **not `subcategoryId`**, so the PDP could not know its own
+  child collection. BE `toCatalogProduct` + `storefrontProductDto` now emit it (`CATALOG_SELECT`
+  already selected it), with a contract test that seeds a genuine two-level branch — the flat
+  fixture could not have failed a DTO that dropped the field. FE: new
+  `lib/storefront-breadcrumb.ts` (11 tests) + `components/storefront/breadcrumb.tsx`, wired into
+  the PDP (page JSON-LD + view) and the collection page, which passes the **same array** to both.
+  `pnpm docs:all` + `gen:api-types` regenerated.
 
 - **Customize re-cut into store parts, one Save** (2026-08-04): the three tabs were named after the
   three settings objects the backend stores (`theme` / `templates` / `nav`), so one visible thing was
@@ -1188,6 +1353,14 @@ resolved **per request from the host**, never baked.
   an `insertMany` hook (+ in-batch dedupe); nav page filters slugless categories from options;
   one-time heal = `npx tsx -r dotenv/config src/scripts/backfill-slugs.ts` (idempotent, must be
   run per environment). Tests: `src/utils/__tests__/slugPlugin.test.ts`.
+  **Extended 2026-08-07 to compose `Category.slugPath` too, and it is now DRY RUN by default —
+  pass `--apply` to write.** `slugPath` had exactly the same save-hook-only story as `slug` and
+  nothing ever backfilled it, which is worse than unlinkable: `listCategories` **drops** a
+  category with no `slugPath`, so every pre-feature category was *invisible* on the storefront —
+  no home tile, no header entry, no collection page. The dev DB was in exactly that state
+  (85/85 categories pathless, 51 of them also slugless) until this ran. **Run it once per
+  environment before trusting anything category-shaped on the shop**, and check its output rather
+  than the browser — a store with zero collections renders as a store that simply has none.
 - **Collections overlay now live on the shop (BE fix)**: public `GET /:slug/categories` previously
   ignored `Category.storefront` — the admin Catalog → Collections tab (display name, Listed,
   reorder) saved settings no shopper saw. `listCategories` now filters `isListed`, serves

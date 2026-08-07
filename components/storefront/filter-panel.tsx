@@ -1,13 +1,15 @@
 "use client";
 // coding-standard: maintained
 
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import type { CatalogCategory, StoreBrand, StoreTag } from "@/lib/storefront-client";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 
 /** Active product-list filters, straight from the URL ("" / false = unset). */
 export interface ProductFilters {
   categoryId: string;
+  /** A child of `categoryId`; "" = the whole parent branch. */
+  subcategoryId: string;
   brandId: string;
   /** Comma-joined tag slugs, OR-combined. "" = no tag filter. */
   tags: string;
@@ -64,15 +66,50 @@ export function FilterPanel({
           <FilterRow
             label={t.allProducts}
             active={!filters.categoryId}
-            onClick={() => onChange({ categoryId: undefined })}
+            onClick={() =>
+              onChange({ categoryId: undefined, subcategoryId: undefined })
+            }
           />
+          {/* The whole tree is always visible. It was progressive-disclosure
+              first — children revealed only under the selected parent — to keep
+              the list short, but that hid the feature: this panel already lives
+              behind a Filters button in a drawer, so a shopper had to open the
+              drawer AND guess that picking a parent would reveal more. Two
+              hidden steps to find a facet is the same as not having it. If a
+              catalogue ever grows big enough for this to be unwieldy, cap or
+              group it — do not put it back behind a click. */}
           {categories.map((c) => (
-            <FilterRow
-              key={c._id}
-              label={c.name}
-              active={filters.categoryId === c._id}
-              onClick={() => onChange({ categoryId: c._id })}
-            />
+            <Fragment key={c._id}>
+              <FilterRow
+                label={c.name}
+                // Lit only when the WHOLE branch is selected. With children
+                // permanently on screen, keeping the parent lit under an active
+                // child would read as two filters applied at once.
+                active={filters.categoryId === c._id && !filters.subcategoryId}
+                // Re-picking the parent widens back to the whole branch.
+                onClick={() =>
+                  onChange({ categoryId: c._id, subcategoryId: undefined })
+                }
+              />
+              {(c.children ?? []).map((child) => (
+                <FilterRow
+                  key={child._id}
+                  label={child.name}
+                  nested
+                  active={filters.subcategoryId === child._id}
+                  onClick={() =>
+                    onChange({
+                      categoryId: c._id,
+                      // Toggle: tapping the active child widens to the parent.
+                      subcategoryId:
+                        filters.subcategoryId === child._id
+                          ? undefined
+                          : child._id,
+                    })
+                  }
+                />
+              ))}
+            </Fragment>
           ))}
         </Group>
       )}
@@ -169,11 +206,14 @@ export function FilterRow({
   label,
   active,
   count,
+  nested,
   onClick,
 }: {
   label: string;
   active: boolean;
   count?: number;
+  /** A sub-category row — indented under its parent, same tap height. */
+  nested?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -185,7 +225,7 @@ export function FilterRow({
         alignItems: "center",
         gap: 9,
         width: "100%",
-        fontSize: 13,
+        fontSize: nested ? 12.5 : 13,
         color: active ? "var(--text)" : "var(--muted)",
         fontWeight: active ? 600 : 400,
         background: "none",
@@ -193,6 +233,9 @@ export function FilterRow({
         // A bare row is only as tall as its 15px box — far too small to tap.
         // Vertical padding takes it to 40px; the list gains the height it needs.
         padding: "10px 0",
+        // Indent only — never a shorter row. The tap floor applies at every
+        // level, so nesting costs horizontal space, not height.
+        paddingLeft: nested ? 16 : undefined,
         cursor: "pointer",
         textAlign: "left",
       }}
