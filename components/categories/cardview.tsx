@@ -11,6 +11,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { CornerDownRight, Edit2, MoreVertical, Package, Percent, Tag, Trash2 } from "lucide-react";
 import { TruncatedText } from "@/components/shared/truncated-text";
+import { categoryProductsHref } from "./helper";
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import type { Translator, AppLocale } from "@/i18n/config";
@@ -60,7 +61,7 @@ const CategoryCardView = (
   // column, which is the view this card is read side-by-side with.
   const {
     name, description, status, isDefault, images, createdAt, updatedAt,
-    productCount, parentId, parent, _id,
+    productCount, parentId, parent,
   } = category;
 
   const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
@@ -138,7 +139,7 @@ const CategoryCardView = (
         <div className="flex items-center gap-2 shrink-0">
           <Package className="h-4 w-4" />
           {productCount > 0 ? (
-            <Link href={`/products?categoryId=${_id}`} className="hover:underline">
+            <Link href={categoryProductsHref(category)} className="hover:underline">
               {t("card.productsCount", { count: productCount || 0 })}
             </Link>
           ) : (

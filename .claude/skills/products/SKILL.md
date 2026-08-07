@@ -46,6 +46,20 @@ So the product form's category select MUST filter to `parentId: "null"` (it does
 `{{value}}` template resolved from the chosen category, and the category field declares
 `clearFieldsOnChange: ["subcategoryId"]` so a category change cannot leave a stale pair behind.
 
+**The same pair exists in the products FILTER bar** (`components/products/filters.ts`), and it is
+the one place the denormalization is easy to get wrong:
+
+- `categoryId` lists **top-level only** and matches `product.categoryId`, which already sweeps every
+  product in that branch — a parent filter includes its children for free.
+- `subcategoryId` matches `product.subcategoryId`, and **nothing else does**. Filtering a child on
+  `categoryId` returns zero rows, silently. That is the bug the category page's "N Products" link
+  shipped with; it now routes through `categoryProductsHref` (`components/categories/helper.ts`),
+  which picks the param by level and sends the parent alongside the child.
+- The filter select is dependent exactly like the form's, using the filter-side spelling of the
+  template (`parentId: "{{categoryId}}"`, resolved against the sibling filter) plus
+  `clearFieldsOnChange`. See "Dependent filters" in
+  [`ui/components/filters/filters-doc.md`](../../../ui/components/filters/filters-doc.md).
+
 Tags are a `select` with `mode: "multiple"` — no new field type. Filtering by tags is **OR**
 (`?tags=a,b` matches a product carrying either).
 

@@ -37,6 +37,8 @@
       "brandPlaceholder": "All brands",
       "categoryLabel": "Filter by Category",
       "categoryPlaceholder": "All categories",
+      "subcategoryLabel": "Filter by Sub-category",
+      "subcategoryPlaceholder": "All sub-categories",
       "statusLabel": "Status",
       "statusPlaceholder": "All statuses",
       "statusActive": "Active",

@@ -37,6 +37,8 @@
       "brandPlaceholder": "সব ব্র্যান্ড",
       "categoryLabel": "ক্যাটাগরি অনুযায়ী ফিল্টার",
       "categoryPlaceholder": "সব ক্যাটাগরি",
+      "subcategoryLabel": "উপ-বিভাগ অনুযায়ী ফিল্টার",
+      "subcategoryPlaceholder": "সব উপ-বিভাগ",
       "statusLabel": "স্ট্যাটাস",
       "statusPlaceholder": "সব স্ট্যাটাস",
       "statusActive": "সক্রিয়",

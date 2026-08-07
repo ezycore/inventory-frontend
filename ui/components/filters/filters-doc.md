@@ -159,7 +159,16 @@ interface FilterField {
   // API Mapping
   /** Map to different API parameter name */
   apiKey?: string;
-  
+
+  /** Endpoint the options are fetched from. Supports `{{fieldName}}` — see below. */
+  optionsApi?: string;
+
+  /** "multiple" emits an array, joined with commas for the backend's OR filters. */
+  mode?: "single" | "multiple";
+
+  /** Filters reset to their default whenever this one changes — see below. */
+  clearFieldsOnChange?: string[];
+
   // Validation
   /** Minimum value (for number types) */
   min?: number;
@@ -168,13 +177,51 @@ interface FilterField {
   max?: number;
   
   // Conditional Visibility
-  /** Field name this depends on */
+  /** Declared but NOT read by any renderer — use `showWhen`, or a template `optionsApi`. */
   dependsOn?: string;
   
   /** Function to determine if field should be shown */
   showWhen?: (values: Record<string, any>) => boolean;
 }
 ```
+
+### Dependent filters
+
+A filter whose options depend on another filter's value — the products page's
+sub-category, whose options are the selected category's children — needs both
+halves, because either one alone is broken:
+
+```ts
+{
+  name: "categoryId",
+  type: "select",
+  optionsApi: selectOptions("categories", { parentId: "null", fields: "_id,name" }),
+  // 1. Drop the stale child when the parent changes.
+  clearFieldsOnChange: ["subcategoryId"],
+},
+{
+  name: "subcategoryId",
+  type: "select",
+  // 2. `{{categoryId}}` resolves against the sibling FILTER's current value.
+  optionsApi: selectOptions("categories", { parentId: "{{categoryId}}", fields: "_id,name" }),
+},
+```
+
+- **`{{fieldName}}` in `optionsApi`** is resolved by `FilterFieldRenderer` via the
+  same `resolveApiTemplate` the form selects use (`ui/components/form/dependency-utils.ts`),
+  against the current filter values. Until the named filter has a value the
+  template cannot resolve: no request is made and the control renders
+  **disabled** — matching how the form renders the same pair, so the filter
+  stays visible instead of appearing out of nowhere. Both entry points
+  (`FilterPanel`, `FilterBar`) pass the values needed for this.
+- **`clearFieldsOnChange`** is applied by `useFilters` inside the *same* state
+  update as the change itself, so an inline control's live `onApply` never fires
+  for the impossible intermediate pair. Without it the stale child survives in
+  `values`, `pickActive` keeps sending it, and the list empties for no visible
+  reason.
+- Prefer this over `showWhen` for a dependent select: hiding a field in
+  `FilterBar` leaves its inline slot empty, since overflow is measured before
+  visibility.
 
 ### FilterFieldType (8 Types)
 

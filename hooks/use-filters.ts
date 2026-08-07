@@ -57,12 +57,34 @@ export function useFilters(
     }
   }, []);
 
+  // The patch a change to `name` produces: the field itself, plus any dependent
+  // filter it declares `clearFieldsOnChange` for, reset to its default. Without
+  // the reset a stale child survives in `values` and `pickActive` keeps sending
+  // it — e.g. a sub-category that does not belong to the newly picked category,
+  // which filters the list down to nothing.
+  const fieldPatch = useCallback(
+    (name: string, value: any): FilterValues => {
+      const patch: FilterValues = { [name]: value };
+      const dependents = fields.find((f) => f.name === name)?.clearFieldsOnChange;
+      dependents?.forEach((dependent) => {
+        patch[dependent] =
+          fields.find((f) => f.name === dependent)?.defaultValue ?? "";
+      });
+      return patch;
+    },
+    [fields],
+  );
+
   // Update single field (panel edits) — also syncs the input mirror so a field
   // rendered both inline and in the panel stays consistent.
-  const updateField = useCallback((name: string, value: any) => {
-    setValues((prev) => ({ ...prev, [name]: value }));
-    setFilterInputs((prev) => ({ ...prev, [name]: value }));
-  }, []);
+  const updateField = useCallback(
+    (name: string, value: any) => {
+      const patch = fieldPatch(name, value);
+      setValues((prev) => ({ ...prev, ...patch }));
+      setFilterInputs((prev) => ({ ...prev, ...patch }));
+    },
+    [fieldPatch],
+  );
 
   // Set a single field and apply immediately — for inline controls that commit
   // on change (closure-safe via `valuesRef`, no stale `values`). Cancels any
@@ -70,12 +92,13 @@ export function useFilters(
   const setFieldAndApply = useCallback(
     (name: string, value: any) => {
       clearTimer(name);
-      const next = { ...valuesRef.current, [name]: value };
+      const patch = fieldPatch(name, value);
+      const next = { ...valuesRef.current, ...patch };
       setValues(next);
-      setFilterInputs((prev) => ({ ...prev, [name]: value }));
+      setFilterInputs((prev) => ({ ...prev, ...patch }));
       onApply?.(pickActive(next));
     },
-    [onApply, clearTimer],
+    [onApply, clearTimer, fieldPatch],
   );
 
   // Set a free-text field with a debounced commit — the input mirror updates
