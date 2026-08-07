@@ -46,13 +46,33 @@ every store; **the host picks the store**.
 ## Frontend layout
 
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,
-`cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS), and `account/*` (auth card +
+`cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS), `account/*` (auth card +
 account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orderNumber]`,
-`orders/[orderNumber]/invoice`).
+`orders/[orderNumber]/invoice`), and the **`[...categoryPath]` catch-all**.
+
+### `[...categoryPath]` — collection pages at real paths (2026-08-06)
+
+`/phones` and `/phones/accessories`. Three things to know before touching it:
+
+- **It is a catch-all, so it loses to every static segment** — `/cart`, `/products`, `/search`,
+  `/account`, `/orders`, `/pages`, `/t`, `/checkout` all still win. A category whose slug collides
+  with one of those would not break the route, it would be **silently unreachable** — which is why the
+  backend refuses such a name (`RESERVED_STOREFRONT_SLUGS`). **Add a static storefront segment ⇒ add
+  it to that list**, or the next merchant to name a category after it gets a dead collection.
+- **It renders the SAME grid as `/products`** — `products/view.tsx` with an optional `collection`
+  prop. Do not fork it; a second copy would drift on pagination mode, filter chips or layout.
+- **Depth is capped at 2 and an unknown path is a hard 404.** Not an empty grid: a mistyped
+  collection URL must not look like a store with no stock. The service returns zero rows for an
+  unresolved path independently of the route guard, so neither alone can leak the whole catalog.
+
+`GET …/categories` is a two-level **tree** (`children[]`, each node carrying `slugPath`), and a
+hidden parent takes its children with it. Link to a collection with **`collectionHref(base, cat)`**
+(`lib/storefront-links.ts`) — never hand-build `?categoryId=` again.
 
 - **Pattern**: `page.tsx` (server; SEO via `storePageMetadata` in `lib/storefront-metadata.ts`)
   + `view.tsx` (`"use client"`). Server data fetches go through `lib/storefront-server.ts`
-  (Next `revalidate` + tag `store:{slug}` — **admin edits can take ~60s to show unless revalidated**).
+  (Next `revalidate` + tag `store:{slug}`, flushed on admin save — see "Cache + on-demand
+  revalidation" below).
   **The `page.tsx` must also fetch the view's own data and pass it as `initialData`** — see
   "SEO" below; a `page.tsx` that only returns `<View />` ships a spinner as its HTML.
 - **Design system**: no Tailwind on the storefront. Inline `CSSProperties` + CSS variables from
@@ -80,7 +100,16 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
     original price cut off mid-digit.
   - **Fixed heights get a viewport cap.** `.sf-hero` is `min(…, 70svh)` (62svh on mobile) — a flat
     430px was 76% of an iPhone SE screen and 89% in landscape. Use `svh`, not `vh`, so the
-    collapsing mobile URL bar doesn't resize it.
+    collapsing mobile URL bar doesn't resize it. Always declare a **non-`svh` fallback first**: the
+    hero's slides are `position: absolute`, so a browser without `svh` (pre-Chrome 108 / Safari 15.4)
+    drops the declaration and collapses it to nothing.
+  - **A desktop sidebar is not a mobile header.** `--acctgrid` / `--colmain` / `--cartgrid` collapse
+    to one column below 680px, so anything built as a side column *stacks above the content* there.
+    Check what that costs before it ships: the account nav was a 499px list (62% of the screen) and
+    also `position: sticky`, so it pinned itself over the content. Pattern for fixing it is
+    `.sf-account-nav` — **one** set of markup, `grid-template-areas` re-pointed at the breakpoint, so
+    a control can move (logout sits inline with the identity row on mobile, under the list on
+    desktop) without a second copy of the nav in the JSX.
 - **Overlays must lock the page behind them** — `useBodyScrollLock(open)`
   (`hooks/use-body-scroll-lock.ts`), used by `SideDrawer` (cart + filters), the bottom-nav
   `MenuSheet` and the mobile search takeover. It takes `<body>` out of flow (`position: fixed`
@@ -94,26 +123,163 @@ account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orde
   storefront toasts render **top-center** (the bottom strip belongs to the cart-drawer
   footer, the mobile bottom nav and the sticky buy bar; the admin's global Toaster default
   is bottom-right). The cart drawer `toast.dismiss()`es on open (the drawer IS the
-  add-to-cart confirmation) and the PDP's Buy now doesn't toast at all.
+  add-to-cart confirmation) and **Buy now never toasts** — on the PDP or on a card — because it
+  navigates to checkout and the toast would land on a screen the shopper has already left.
 - **i18n**: bilingual EN/বাংলা. `lib/storefront-i18n.ts` — every string is a key in the `Dict`
   interface **plus** the `en` **plus** the `bn` object (3 places, always). Components read
   `const { t } = useStorefrontUI()`. (IDE diagnostics often flag "missing properties" mid-batch
   while editing this file — verify with a grep count, key×3, before believing them.)
 - **Templates**: per-page layout variants chosen in the admin (Customize) —
   `lib/storefront-templates.ts` `resolveTemplates(store)` → home/collection/product/checkout
-  (+ header/footer/productCard/hero) variant ids consumed by the views. `search` and `cart`
-  are retired: shoppers toggle grid/list on the search page, and Buy now always opens the
-  cart drawer.
+  (+ header/footer/productCard/hero/**pagination**) variant ids consumed by the views. `search` and
+  `cart` are retired: shoppers toggle grid/list on the search page, and Buy now always goes
+  straight to `/checkout`. Note the admin ids are kebab-case and the storefront names are not
+  (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
+  resolves to the default, which reads as "the setting does nothing".
+  - **A page that renders a per-page variant reads it through
+    `useStoreTemplate(store, key)`** (`use-sf-preview-store.ts`), never `resolveTemplates(store)`
+    directly. The hook overlays the Customize draft on the saved value, which is what makes the
+    picker repaint while a merchant is choosing; reading the resolver pins the page to the SAVED
+    value and the control looks dead until Save. Covers the four keys only one page each reads —
+    `collection`, `product`, `checkout`, `pagination`. The rest (`home`, `header`, `footer`,
+    `productCard`, `cardActions`, `hero`, `headerMenu`) reach their consumers through the shell,
+    which already reads the preview store. Generalised 2026-08-04 from a pagination-only hook,
+    when the other three were found to be unpreviewable.
+- **Card CTA layout** (`templates.cardActions`, default `add-buy`) — **a second axis on the
+  product card, orthogonal to `productCard`**, which now means *density only*. Values:
+  `add` | `add-buy` | `icons` | `buy-first` | `reveal` | `icon-only`. Folding these into
+  `productCard` would need one id per density×layout pair; two keys is 3 + 6.
+  Read it through `resolveTemplates(store).cardActions`; the Customize preview streams the **raw**
+  kebab id, so `product-card.tsx` calls the exported **`resolveCardActions(raw, density)`** directly
+  rather than assuming a camelCase value.
+  - **Unset resolves off `productCard`, not off the default.** Before this key existed,
+    `productCard: "compact"` hard-coded its own CTA (an inline "+"), so an unset value on a compact
+    store must resolve to `iconOnly` — same migration shape as `resolveHeaderMenu`, and tested in
+    `storefront-templates.test.ts`. Defaulting everything to `add-buy` would put two text buttons on
+    every compact shop's cards without the owner choosing it.
+  - That conditional default has **three** call sites, and all three must agree: the resolver, the
+    card (which resolves against the *draft* density, or the preview lies), and the Customize
+    `tpl` seed — which would otherwise write `add-buy` into a compact store the next time its owner
+    saved **any** template, restyling their cards without asking.
+  - **`layoutOwnsImage(actions)` decides where variant options open**, and is the rule to keep:
+    a layout that paints its CTA over the product image (`reveal`) has taken the space the
+    in-card flyout uses, so those products go to the **quick-buy sheet** instead. The two obvious
+    alternatives are both broken — letting the flyout *replace* the CTA strands the shopper with a
+    chosen size and no button to commit it, and *stacking* them covers ~55% of a 158px card image.
+  - **`reveal` is hidden-on-hover, so its CSS defaults to OPEN** and layers the hiding inside
+    `@media (hover: hover) and (pointer: fine)`. Written the other way round, a touch device gets a
+    card with no buy button at all — it can never produce the hover that reveals it.
+- **Listing pagination** (`templates.pagination`, default `pages`): `pages` = numbered
+  `<Pager>`; `infinite` = auto-load `AUTO_LOADS` (2) pages then a button; `load-more` = button
+  only. Applies to **both** the collection page and search results, which share
+  `components/storefront/{pager,load-more}.tsx`. Reads through
+  **`useStoreTemplate(store, "pagination")`** — see the rule above. Non-`pages` modes use
+  `useStoreProductsInfinite`; see the query-cache note below for why its key is separate.
+  `infinite` deliberately stops auto-loading: this footer holds real navigation and the mobile
+  bottom nav sits over it, so an endless list makes both unreachable.
 - **Client state (zustand, persisted)**: `services/stores/use-shopper-store.ts`
   (`easystock-shopper`: token/shopper/slug, `setAuth/setShopper/logout`),
   `use-cart-store` (slug-scoped items), `use-wishlist-store`. **Any component reading a persisted
   store on first render must gate on `useHydrated()`** or SSR mismatch / redirect races follow
   (checkout had exactly this bug: direct load bounced signed-in shoppers to /account).
+- **Cart mirror** — the cart is *also* copied to the server so the merchant can see abandoned carts.
+  **`components/storefront/cart-sync.tsx` is the only place that does this**, mounted once in
+  `StoreShell`; the handle lives in `services/storefront/cart-identity.ts` under its **own**
+  `localStorage` key so `easystock-cart`'s persisted shape is untouched. Backend contract + the
+  merchant-side rules: [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md).
+  Four rules, each a real defect class: **(1)** it subscribes via `useCartStore.subscribe` inside an
+  effect, **never a selector** — a selector re-renders the whole shell on every quantity tap;
+  **(2)** it is gated on `persist.onFinishHydration`, or the first push overwrites a real server
+  cart with an empty one; **(3)** it is disabled under `?preview=1`, or a merchant theming their
+  shop in Customize pollutes their own funnel; **(4)** it flushes on `pagehide`/`visibilitychange`
+  with `keepalive`, because the shopper who adds an item and closes the tab inside the 2 s debounce
+  is precisely the abandoner worth recording. **Do not add a second sync call site** — new cart CTAs
+  are picked up automatically, which is the entire reason it is one subscription and not eight.
+  **`claimCart` returns the merged cart and `CartSync` adopts it** (`useCartStore.restore`) whenever
+  `mergedCount > 0`: signing in folds in the cart this shopper left on another device, server-side,
+  and if the client kept its own items the next debounced sync would push them over the merge and
+  undo it. Adoption is what makes cross-device carts actually work — it is not a nicety.
 - **API client**: `lib/storefront-client.ts` — `sfFetch` (no auth header unless `token` passed).
   Error payloads carry the message in `json.error`. On **401 with a token that is still the
   current session token, the shopper session is dropped** (self-healing stale sessions).
   TanStack hooks in `services/storefront/hooks.ts` (`useStore`, `useStorePage`, `useShopperAuth`,
   `useShopperAccount`, `useResendVerification`, `usePlaceOrder`, …).
+
+## Cache + on-demand revalidation (why an admin edit used to take 5 minutes)
+
+The shop is served from **three** stacked caches, and only the third is in the shopper's browser:
+
+| Cache | Set by | Lifetime |
+|---|---|---|
+| Next **Data Cache** (per fetch) | `next: { revalidate, tags: ["store:{slug}"] }` in `lib/storefront-server.ts` | `getStore` 300s; products/campaigns 60s; sitemap 1h |
+| Next **Full Route Cache** (rendered HTML) | `export const revalidate` in each shop `page.tsx` | 60s (home/products/PDP), 300s (CMS pages) |
+| TanStack `staleTime` | `services/storefront/hooks.ts` | 5 min, seeded from the SSR value |
+
+The first two live **in the Next server and are shared by every visitor**, which is why a merchant
+could never clear one by reloading — hard reload tells the *browser* to refetch, and the server
+answers from the same stored copy. **Don't debug a "stale storefront" report in the browser.**
+
+Until 2026-07-31 the `store:{slug}` tag was declared on every fetch and **never called** — no
+`revalidateTag` existed anywhere in the workspace, so time expiry was the only flush and a theme
+colour took up to five minutes to appear. Now:
+
+- **`POST /api/storefront/revalidate`** (`app/api/storefront/revalidate/route.ts`) calls
+  `revalidateTag("store:{slug}", { expire: 0 })`. The slug comes from the caller's session via the
+  backend's `/auth/me` — **never from the request body**, or one tenant could strip another's cache.
+  Bearer header only (a cookie would make it CSRF-triggerable). `{ expire: 0 }` rather than the
+  `"max"` profile so there is no stale-while-revalidate window: with one, the merchant's *next*
+  reload still serves the old copy and they have to reload twice.
+- **`lib/revalidate-storefront.ts`** `revalidateStorefront()` is the only caller — fire-and-forget,
+  silent on failure (the save already succeeded and the timer is still a backstop), `keepalive` so
+  navigating away right after saving doesn't cancel it.
+- **Wiring**: `services/api/invalidation.ts` fires it for every event in `PUBLIC_STOREFRONT_EVENTS`
+  (`storefront.catalog.changed`, `catalog.changed`), so catalog/campaign/coupon/CMS mutations get it
+  for free. The two storefront-settings mutations in `services/api/modules/organization/hooks.ts`
+  call it directly — they write the response into the cache with `setQueryData` and so deliberately
+  don't go through `invalidate()`. **A new admin mutation that changes public shop data needs one of
+  those two paths**, or it ships the old bug.
+- **`stock.moved` is deliberately excluded** — stock moves on every sale, so flushing per movement
+  would keep the cache permanently empty. The 60s catalogue revalidate covers stock freshness.
+- **Deployment**: `revalidateTag` only reaches the instance that serves the POST. Multi-replica
+  needs a shared `cacheHandler`; single instance (current) is fine.
+
+## Live preview (Customize) — how it works, and how to add a field
+
+The right-hand panel of Customize is **the real storefront** in an iframe at `{store}?preview=1`. It
+mounts **once**; edits reach it by `postMessage`, never by refetching. An edit therefore costs zero
+server requests — do not "optimise" this into a save-then-reload, which would cost a full (and now
+cache-missing) SSR render per save.
+
+Four files, in payload order:
+
+1. `components/ecommerce/customize/use-customize-draft.ts` — holds **every** editable value (the
+   parts own none, so nothing is lost when one closes), and
+   `customize/draft-payloads.ts` `toPreviewPayload()` serializes it. That module also builds the
+   save payload, so the two cannot trim differently.
+2. `components/storefront/preview-bridge.tsx` — receives it inside the iframe (gated on `?preview=1`)
+   and calls `apply`. It announces `ezycore-preview-ready` on mount so the editor pushes immediately.
+3. `services/stores/use-sf-preview-store.ts` — the override state.
+4. The storefront component reads its override and prefers it over the saved payload.
+
+**Rules, each of which was a real defect:**
+
+- **Normalize in the payload exactly as `submit()`/`save()` does** — filter blank-titled footer
+  groups, blank-titled slides, `cleanHeroBanner`, the public `/categories` shape. A preview that
+  shows something the save would drop is worse than no preview.
+- **`?? saved` is the fallback for everything except images.** For `logo`/`banner`, `null` is a real
+  draft value meaning "removed", so use **`useSfPreviewImage(field, saved)`** — never re-derive the
+  `undefined`-vs-`null` check inline. Getting it wrong makes a deleted logo reappear.
+- **An empty array is a real draft** ("all groups removed"), so `previewGroups ?? saved` — never a
+  truthiness check.
+- **Media (logo/banner) is not a draft** — its PATCH saves on upload, so it streams from `settings`,
+  which the mutation has already refreshed in the query cache.
+- **Stream the EFFECTIVE logo, not the store's own.** A store with no logo inherits the
+  organization's: `getStoreInfo` serves `s.logo ?? org.logo` (BE), so merchants upload once in org
+  settings and an upload in Customize is a store-only override (remove ⇒ back to inherited). The
+  editor must send `settings.logo ?? orgLogo ?? null` or removing the override blanks the previewed
+  header instead of reverting to the org mark.
+- **Everything in Customize streams.** If you add a control there and skip this wiring, you have
+  re-created the exact inconsistency that nearly got the whole feature deleted.
 
 ## Backend (../inventory-backend)
 
@@ -182,6 +348,13 @@ phones and shop counters make that a routine path, not a race.
   action clears the token and leaves the cache.
 - Public store data (products, categories, campaigns, pages) is deliberately *not* evicted: identical
   for every visitor, SSR-seeded, so clearing it only causes a flash.
+- **`products` and `productsInfinite` are two keys over one endpoint**, both under the
+  `["storefront", slug, "products"]` prefix so eviction still takes one call. They are separate
+  because the paged key *contains* `page` and the infinite one must not: an infinite query owns its
+  cursor, and a `page` in its params gives every page its own cache entry — no accumulation, which
+  is the entire mode. Its `initialData` is also reshaped (`{ pages, pageParams }`), not passed
+  through; hand it a bare `ProductListResult` and the SSR seed silently misses, putting a spinner
+  back in the crawlable body.
 - `services/api/__tests__/invalidation.test.ts` covers this file too — a new mutation that invalidates
   nothing fails CI unless it is allowlisted with a reason.
 
@@ -208,11 +381,14 @@ resolved **per request from the host**, never baked.
   silently misses the seed and you're back to an empty body. Only page 1 is seeded.
 - **`noindex` policy.** Transactional routes (cart, checkout, search, `/account/*`, invoices) pass
   `index: false` → `noindex, nofollow`. Filtered collection URLs pass `index: false, follow: true`
-  **and no canonical** — `isIndexableCatalogUrl` allows a plain listing or a *single* category/brand
-  facet (those are real landing pages and self-canonicalize via `catalogCanonicalQuery`); price
-  bounds, `inStock`, a sort, or two facets at once are the same catalogue re-sliced and multiply
-  without limit. Never give a `noindex` page a canonical pointing elsewhere — that's two contradictory
-  instructions.
+  **and no canonical** — `isIndexableCatalogUrl` allows a plain listing or a *single brand* facet
+  (which self-canonicalizes via `catalogCanonicalQuery`); price bounds, `inStock`, a sort, or a `tags`
+  facet are the same catalogue re-sliced and multiply without limit. Never give a `noindex` page a
+  canonical pointing elsewhere — that's two contradictory instructions.
+  - **`?categoryId=` is deliberately NOT indexable any more.** A collection's canonical URL is its
+    PATH (`/phones`), and two URLs claiming the same page compete. The query form still resolves so
+    old links keep working; it just never earns an index slot, and the sitemap emits paths only
+    (`collections: {path}` at both levels). Tag facets are excluded from the sitemap entirely.
 - **`/robots.txt` + `/sitemap.xml`** — `app/robots.ts` / `app/sitemap.ts`, both
   `dynamic = "force-dynamic"`. ⚠ **They do NOT get the `x-ezy-store-*` headers**: `proxy.ts`'s matcher
   excludes any path containing a dot, so these routes resolve the host themselves via
@@ -266,6 +442,16 @@ resolved **per request from the host**, never baked.
   picking it for a card both upscales and crops the product out of frame. That was the bug on the
   shop grid until 2026-07-31. URL-imported images store one URL in all three fields, so every helper
   degrades to it.
+- **PDP gallery** — `components/storefront/product-gallery.tsx` owns the thumb rail + hero for both
+  product templates (`layout="top" | "side"`) **and** the hover-to-magnify. The page passes raw
+  `images` + the selected index; clamping lives in the gallery (a variant switch can swap in a
+  shorter list). Zoom = `transform: scale()` with `transform-origin` tracking the pointer inside an
+  `overflow: hidden` frame (`.sf-pdp-zoom*`); **only the scale is transitioned** — transition the
+  origin too and the tracking swims a quarter-second behind the cursor. Mouse-only by construction
+  (`e.pointerType !== "mouse"` bails), because a tap fires pointermove with no matching leave and
+  would strand the hero zoomed on a phone. `zoomOrigin()` is exported + tested
+  (`product-gallery.test.ts`): an unclamped origin pans past the edge and shows page background
+  inside the frame.
 - **CMS pages**: admin Ecommerce → Content (title/slug/body/published/showInFooter/sortOrder).
   Bodies are markdown via `lib/storefront-markdown.ts` (dependency-free subset parser → block
   model, React-node rendering = XSS-safe; **consecutive `Q:`/`A:` lines become styled FAQ cards**)
@@ -291,10 +477,14 @@ resolved **per request from the host**, never baked.
   **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is controlled by
   `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy default), `title`
   overrides the heading. Simple is a deliberately flat link row (drops group titles) but still honours
-  the show toggle. Edited in Customize → Navigation (`footer-links-card.tsx`, groups + the content-pages
-  Switch/heading) — **footer is NOT live-previewed** (only the variant is; group/content-pages edits
-  need a save + ~60s revalidate). Social links are edited in admin Store Settings → General → Social
-  links card; a bare WhatsApp phone number is normalized to `https://wa.me/<digits>` in `social-links.tsx`.
+  the show toggle. Edited in Customize → **Footer** (`customize/footer-links-field.tsx`, groups + the
+  content-pages Switch/heading) — groups, the content-pages toggle/heading **and** the variant are all
+  live-previewed (2026-07-31; the groups were the last Customize control that wasn't). Social links
+  are edited in admin Store Settings → General → Social
+  links card. **All hrefs go through `hrefFor` in `social-links.tsx`** — it forces a scheme
+  (a schemeless `facebook.com/x` is a *relative* href, so the button used to 404 on the shop's own
+  origin) and turns a phone-shaped WhatsApp value into `https://wa.me/<digits>`. Tested in
+  `social-links.test.ts`; never render an owner-supplied URL without it.
 - **Checkout**: gates in order — `!shopper` (redirect to `/account?next=/checkout`, hydration-gated),
   `!emailVerified` (VerifyEmailGate), `placed` (OrderPlacedCard), empty cart. Single-page or
   multi-step per template. Coupons validated server-side; shipping = Dhaka inside/outside zones.
@@ -307,9 +497,10 @@ resolved **per request from the host**, never baked.
   of the zod validator INTO `placeOrder` (only there are store settings visible) — the schema now only
   guarantees name/phone shape.
 - **Admin ecommerce pages** (`app/(protected)/ecommerce/*`): dashboard, orders (+detail, invoice
-  print), content, customize (Theme | Templates | **Navigation** — header/footer/announcement moved
-  here 2026-07-18; `/ecommerce/navigation` is now a redirect to
-  `customize?section=navigation` and the sidebar entry is gone), catalog (products + collections),
+  print), content, customize (one rail of **store parts** in shopper order — Brand, Announcement
+  bar, Header, Hero, Home page, Product cards, Collections, Product page, Footer, Checkout — over
+  one Save; `/ecommerce/navigation` is a redirect to `customize?part=header` and the sidebar entry
+  is gone), catalog (products + collections),
   settings (General incl. social links + fulfillment location, Publish, payments/shipping/checkout
   tabs). Custom domains under app Settings → Custom Domains. List pages come in two shapes:
   CRUD-style (coupons/campaigns/content) are `DataTable` + `filterConfig` pages whose `getAll`
@@ -319,7 +510,282 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-07-31)
+## Work log (what was built, newest first — as of 2026-08-04)
+
+- **Customize re-cut into store parts, one Save** (2026-08-04): the three tabs were named after the
+  three settings objects the backend stores (`theme` / `templates` / `nav`), so one visible thing was
+  split across all of them — the footer's layout was in Templates, its © line and trust badges in
+  Theme, its link groups in Navigation, behind three different save buttons. The rail is now **one
+  list of store parts in the order a shopper meets them** (Brand, Announcement bar, Header, Hero, Home
+  page, Product cards, Collections, Product page, Footer, Checkout) in
+  `components/ecommerce/customize/`, over **one** save bar. Two defects drove it, both found by
+  reading rather than by any gate:
+  - **Unsaved edits were silently discarded.** The sections were a ternary, so each unmounted on tab
+    switch; preview-relevant state had been lifted but the rest was local and re-seeded from the
+    *saved* settings on remount. Picking "Hero Split", visiting Theme and coming back showed
+    "Classic" selected while the preview still showed Hero Split — and Save wrote Classic. The
+    slides panel did the same, and the button that opened it sat *inside* the section it destroyed.
+    Everything editable now lives in **`use-customize-draft.ts`**, one level above anything that can
+    unmount, with dirty state *derived* per part (`PART_SLICE`) rather than flagged by hand.
+  - **Six save models** (theme / templates / navigation / slides / collections + instant media) with
+    two dirty indicators between them. Now one PATCH carries theme+templates+nav, collections fold in
+    via their own mutations (`useUpdateCollection` gained `silent` so one Save = one toast), and only
+    image uploads still persist on their own. `beforeunload` guards the page — there is still no
+    route-level guard anywhere in the app.
+  - **`draft-payloads.ts` builds the save payload and the preview message together**, because the
+    trimming rules (blank footer group dropped, untitled slide dropped) were duplicated and could
+    drift — a preview promising a column that never ships is the bug class it prevents.
+  - Preview chrome: the decorative traffic-lights + dead URL bar became **Home / Collection / Product**
+    page tabs, and opening a part points the preview at a page that shows it. The product slug comes
+    from the **public** storefront endpoint — the admin catalog DTO only carries `storefront.slug`
+    when an owner typed a custom one, so sourcing it there left the tab permanently disabled.
+    **Checkout still has no tab**: an empty cart renders the empty-cart screen, which says nothing
+    about the layout just chosen.
+  - Shared primitives extracted: `ui/components/color-field.tsx` (two divergent copies) and
+    `ui/components/option-card.tsx` (the `border-primary ring-2` treatment had been pasted into five
+    files). Every template option now has a wireframe sketch — eight of nine pickers were bare text.
+  - `?section=` deep links became `?part=`; the retired `/ecommerce/navigation` route redirects to
+    `?part=header`.
+  - **Never trade the preview away for rail width.** The removed 380↔560px toggle (2026-07-18) beat
+    a hide-preview button for exactly this reason: hiding the preview kills the live edit-see loop
+    the page exists for. The rail is now a fixed 380px, widening to 440px at `2xl` on its own.
+
+- **Delivery cost stops lying before checkout (FE)** (2026-08-02): the cart page and drawer both
+  called `computeShipping(store, subtotal)` **without a zone** — and that argument defaults to
+  `"inside"`. A store with Dhaka zone rates therefore quoted ৳60 as final and charged ৳120 at
+  checkout, which is the #1 abandonment cause in its worst form: not an unexpected charge, an
+  *understated* one. New **`shippingRange(store, subtotal)`** returns `{min, max, estimated}` by
+  computing both zones; `estimated` is true only when they differ, so a flat rule, a
+  free-over-threshold rule and a free-shipping store still show one exact number. When estimated,
+  both surfaces prefix the fee **and the total** with the existing `fromPrice` idiom and the cart
+  page adds `deliveryEstimateNote`. **Any new pre-checkout surface that shows shipping must use
+  `shippingRange`, never `computeShipping` — the latter is correct only where the zone is known
+  (checkout).** 9 tests in `lib/storefront-shipping.test.ts`.
+
+- **Social sign-in leads the auth card (FE)** (2026-08-02): Phase 4 item 1 of
+  [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md).
+  `<SocialLoginButtons>` moved **above** the email/password form in `shop/account/view.tsx`, and its
+  divider flipped to a trailing "or use your email" (`orUseEmail` ×3). This store requires an account
+  before checkout, so sign-in is the biggest drop in the funnel — and an OAuth shopper arrives
+  `emailVerified: true`, so one tap clears the **second** wall too. **No auth rule changed.**
+  Two things to keep: the component returns `null` **including its divider** when no provider is
+  configured, so a store without OAuth renders the exact card it did before; and Facebook is still in
+  Meta Development Mode, so this is Google-only in practice.
+
+- **Abandoned-cart recovery — the `?recover=` link (FE + BE)** (2026-08-02): Phase 3 of
+  [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md). A shopper who
+  left items behind now gets an email with a one-click link back to their cart.
+  FE: `services/storefront/use-cart-restore.ts` (called from the cart page), a new `restore()` action
+  on `use-cart-store`, the merchant toggle `components/ecommerce/carts/cart-recovery-card.tsx`, and
+  4 i18n keys ×3.
+  Four things worth keeping: **(1)** the link is usually opened on a **different device**, which is
+  the entire reason it exists — so the cart is rebuilt from the server payload, never from local
+  storage, and the restore response therefore carries `slug`/`image`/`maxQty` that the mirror does
+  not store. **(2)** The token is stripped from the URL *before* the request resolves — it is a
+  bearer credential, and leaving it in the address bar puts it in history, in shared links and in
+  the `Referer` of every outbound click. **(3)** The effect is `ref`-guarded, not just dep-guarded:
+  StrictMode double-invokes effects in dev and the second call would hit an already-consumed token
+  and show a spurious error. **(4)** `restore()` is one `set` rather than `clear()` + N `addItem()`s,
+  so the cart-sync subscriber sees a single change instead of N.
+- **Store Settings split to standard (FE)** (2026-08-02): the page held all seven tabs plus their
+  primitives inline at **939 lines** with no `coding-standard: maintained` marker. It is now the tab
+  shell only (**102 lines**); each tab lives in `components/ecommerce/settings/` beside
+  `settings-primitives.tsx` (`Field` / `ToggleRow` / `SaveBar` / `useSave` / `Option`). Largest file
+  is 204 lines. **Add a new tab as a file there — never back into the page.**
+  Behaviour-preserving by construction: JSX copied verbatim and verified by diffing every substantive
+  line of the pre-split file against the new set **in both directions** — nothing dropped, no markup
+  added (the sole removal was a commented-out `<h3>`). Keep `key={tab}` on `<SettingsTab>`: it is
+  what re-seeds each tab's local state from `settings`, so without it a tab you switch away from and
+  back shows unsaved edits as though they had saved.
+
+## Work log (older)
+
+- **Abandoned carts, the merchant surface (FE + BE)** (2026-08-01): Phase 2 of
+  [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md). Phase 1 recorded
+  carts; nothing displayed them. New `/ecommerce/carts` — stat row, purchase funnel,
+  most-abandoned products, and a 4-tab list (Abandoned / Active now / Ordered / All) with debounced
+  search and expandable rows — plus three tiles on the ecommerce dashboard that link to it.
+  New API module `storefront-carts` (read-only: no mutation invalidates it, so it declares no
+  events), nav item + en/bn labels, and a help page in **both** locales — a new sidebar route with
+  no help page **fails `help:verify`**, which is the gate to remember here.
+  Four decisions worth keeping: **(1)** the funnel is **single-hue sequential**, not categorical —
+  five ordered stages of one measure is a magnitude comparison, so every bar wears `--chart-3` and
+  length alone carries the value; a ramp across the stages would double-encode, and `globals.css`
+  already reserves `--chart-*` as a monochrome scale "carrying no good/bad meaning" (status colours
+  would moralise a funnel step). Single series ⇒ **no legend**. **(2)** Drop-off is measured against
+  the **previous** step, not the top: the merchant's question is "which wall lost them", and a
+  share-of-total reading hides one brutal step behind a healthy overall number. **(3)** Rates render
+  **`—`, never `0%`**, when the backend sends `null` — a zero would tell a brand-new merchant their
+  funnel is flawless. **(4)** An unclaimed cart says **"Guest — not reachable"** rather than showing
+  a blank name: there is genuinely no contact detail and no consent record, and a blank would imply
+  the merchant could chase it.
+  **Not done:** recovery sends (Phase 3) — this page is read-only, and there is deliberately no
+  action on a cart.
+
+- **Server-side cart mirror — the merchant can finally see abandoned carts (FE + BE)** (2026-08-01):
+  the cart lived only in `localStorage`, so a merchant saw every order placed and **nothing** about
+  the ~70% of carts that never became one — no count, no value, no funnel, and no cross-device cart
+  either. Phase 1 of
+  [`abandoned-cart.md`](../../../../inventory-backend/docs/plan/abandoned-cart.md): a new
+  `StorefrontCart` collection mirrored from the browser, plus `PUT /:slug/cart`,
+  `POST /:slug/cart/checkout-started` (both **unauthenticated** — checkout requires an account, so
+  nearly all add-to-cart is anonymous and an auth-only mirror would start the funnel *after* the wall
+  it exists to measure) and `POST /:slug/cart/claim` (shopper-auth).
+  FE is two new files and **one line** in `store-shell.tsx`: `services/storefront/cart-identity.ts`
+  and `components/storefront/cart-sync.tsx`, which does all three jobs (mirror, claim, checkout
+  stamp) from one transient subscription. Nothing shopper-facing changed — every call is
+  fire-and-forget and the shop works identically with the endpoint dead.
+  Five things worth keeping: **(1)** the sync is **one subscription, not eight instrumented call
+  sites** — `addItem`/`updateQty`/`removeItem`/`clear` are called from seven files and the card
+  quick-buy site was added the same day, so a per-site call would silently stop reporting the next
+  time a CTA is added. **(2)** It must not use a selector: mounted in `StoreShell`, a reactive
+  subscription would re-render the entire storefront chrome on every quantity tap. **(3)** The
+  handle gets its **own** `localStorage` key rather than a field on `use-cart-store` — adding a
+  field changes that store's persisted shape, which eight components read. **(4)** `?preview=1` is
+  excluded, or a merchant clicking "Add to cart" while theming in Customize invents carts they never
+  had. **(5)** Prices are **server-resolved and campaign-repriced**, never taken from the request —
+  a client-supplied price would make the merchant's "recoverable value" whatever a crafted request
+  claimed (there is a test that sends one and asserts it is ignored).
+  **Not done:** the merchant-facing surface. Phase 1 records the data; the dashboard tiles, the
+  funnel and the abandoned-carts admin page are Phase 2, and recovery sends are Phase 3.
+
+- **Quick buy from the grid; Buy now means checkout everywhere (FE)** (2026-08-01): a card's only
+  CTA was Add to cart, and a *variable* product's said **Select options** and navigated to the PDP —
+  so the fastest path from the home grid to a checkout form was 4 taps plus a full page load, and
+  **Buy now existed nowhere but the product page**. Cards now carry **Add to cart + Buy now**, and a
+  variable product resolves its options in place.
+  **Tiered by option complexity** (`optionsFitInline` in `variant-selector.tsx`): one axis of ≤6
+  values reveals `CardVariantFlyout` over the card image; multi-axis or a longer axis opens
+  `QuickBuySheet` (bottom sheet <680px, centred modal above). Picking one surface for both was the
+  thing to avoid — a modal over four size chips is heavy, and a Colour×Size product cannot fit a
+  ~150px card in the 2-column mobile grid.
+  Four things worth keeping: **(1)** the catalog list payload has `hasVariants` but **not
+  `variants`**, so a card cannot render a chip — or even *choose* its surface — without the detail
+  payload; `useCardQuickBuy` fetches it on **hover intent (120 ms, mouse only)** or first press,
+  against the PDP's own query key, so `""` keeps the query disabled and a 24-card grid does not fire
+  24 requests. **(2)** The **first press always reveals, never buys**: a variant is preselected, so
+  committing on press one would put a size the shopper never chose in their cart. **(3)** The flyout
+  renders only after variants load, so the CSS `:hover` reveal can't expose an empty bar; the tap
+  path (`.sf-open`) is the real mechanism and hover is a fine-pointer convenience — `pointerenter`
+  fires on tap too, hence the `pointerType !== "mouse"` bail, same as the gallery zoom. **(4)** The
+  flyout is a **sibling** of the card's `<Link>`, not a child — buttons inside an anchor are invalid
+  markup that browsers silently reparent. **(5)** The card must re-price off the **chosen** variant:
+  the first cut kept rendering the catalog "From ৳600" after the shopper picked the ৳780 variant, so
+  Buy now charged a price the card never displayed. Found in a browser, not by any gate — nothing
+  type-checks "the number on screen matches the number in the cart". Hence `chosen` (explicitly
+  picked) is exposed separately from `selected` (which includes `defaultSelection`'s pre-highlight):
+  pricing off `selected` would silently rewrite "From ৳600" into a definite price nobody chose.
+  **(6)** The card CTA labels are **fixed** — "Add to cart" + "Buy now", never "Select options".
+  A cut that swapped the label once a variant became resolvable was really keying off *"the variants
+  finished loading"*, and loading is triggered by hover, so the button relabelled itself under the
+  cursor with no click. A control that rewrites itself on hover reads as a glitch, and
+  "Select options" next to "Buy now" implied two destinations where the first press does the same
+  thing for both. "Add to cart" opening a picker is the standard storefront behaviour.
+  (`t.selectOptions` survives as the `compact` card's aria-label, where it is static.)
+  **`Buy now` now goes to `/checkout` on the PDP too** (it opened the cart drawer until today) —
+  the same word had to mean the same thing on both surfaces. The cart icon still opens the drawer.
+  Also extracted `hooks/use-overlay-transition.ts` (SideDrawer + the sheet had identical mount/exit
+  choreography) and added `compact` to `VariantSelector` so the flyout reuses its chip-disabling
+  logic rather than forking it. i18n `fullDetails` + `chooseOption` ×3.
+  **Not done:** the `compact` card template keeps its single "+" and has no Buy now — a dense row
+  has no width for a second CTA. Approved design sample (4 patterns, tappable):
+  claude.ai/code/artifact/7eb91177-5429-440f-bc01-a5db5ea04e4a.
+
+- **Listing pagination is a merchant choice; search finally pages at all (FE + BE)** (2026-07-31):
+  new `templates.pagination` — `pages` (the existing numbered pager, still the default) |
+  `infinite` | `load-more` — applied to the collection page **and** search. Standard
+  surface-template plumbing (BE model/validator/types/admin DTO; FE resolver + `StoreTemplates`;
+  Customize → Templates card; preview bridge), plus `useStoreProductsInfinite`.
+  **Search had no paging at all**: one `limit: 24` fetch, and the results line printed
+  `items.length`, so a store with more matches silently dropped them *and* reported the truncated
+  count as the total. That was live and is fixed here regardless of the mode chosen.
+  Four things worth keeping: **(1)** the infinite key must exclude `page` and its `initialData`
+  must be reshaped, or the SSR seed misses and the crawlable body goes back to a spinner;
+  **(2)** `infinite` auto-loads only 2 pages before asking — the footer carries real navigation and
+  the mobile bottom nav sits over it, so a truly endless list makes both unreachable, and a
+  screen-reader user never reaches an end; **(3)** the IntersectionObserver is rebuilt when
+  `loading` settles — an observer only reports *changes* in intersection, so one left mounted
+  across a fetch never re-fires while the sentinel stays on screen and the scroll stalls one page
+  in; **(4)** switching modes costs **no** crawl path, because the numbered pager was always
+  buttons — page 2 has never had a URL on this storefront.
+  Also fixed in passing: **the admin DTO omitted `templates.headerMenu`**, so the response stripped
+  it, the Customize editor re-derived the legacy fallback on every load, and
+  `navigation-section.tsx` could save that derived value back over an explicit choice. The public
+  payload was never affected (`storeInfoDto.templates` is a `z.unknown()` passthrough), which is
+  why the shop looked right while the editor did not. Locked down in the BE DTO round-trip test.
+  New shared `components/storefront/{pager,load-more}.tsx` (the pager was inline in the collection
+  view until search needed it); i18n `loadMore` ×3 and `showingOf` repurposed from an unused bare
+  "Showing" into a `{n}`/`{total}` template, because Bangla puts the total first.
+  OpenAPI + `types/api-generated.ts` regenerated.
+
+- **PDP hover zoom + gallery extracted (FE)** (2026-07-31): the product page had no way to inspect a
+  product image — the hero was a flat `<Media>` and the only detail available was whatever the
+  1600px source showed at ~600px. Added hover-to-magnify (2.4×, origin tracking the pointer) in a
+  new `components/storefront/product-gallery.tsx`, which also took over the thumb rail for **both**
+  templates — the two layout branches were duplicated inline in `view.tsx` and each would have needed
+  its own copy of the zoom. Three decisions worth keeping: **(1)** only `transform` transitions,
+  never `transform-origin` — transitioning both makes the magnified area trail the cursor;
+  **(2)** the handler bails on `e.pointerType !== "mouse"`, so a tap can't strand a phone in a zoomed
+  state it has no hover-out to leave (this is why the feature needs no touch branch at all);
+  **(3)** the "Hover to zoom" hint is a CSS-gated `(hover: hover) and (pointer: fine)` element with
+  `pointer-events: none` — inline styles can't express the query, and without the pointer-events reset
+  the badge swallows the pointermove that drives the zoom over its own corner. i18n `zoomHint` ×3,
+  new `zoomIn` icon, `.sf-pdp-zoom*` in storefront.css, 3 tests on the clamped origin math.
+  `view.tsx` 415 → 369 lines. **Still owed** (unchanged by this pass, deliberately): the buy box and
+  sticky bar are inline, so that component is ~325 lines and the file carries no
+  `// coding-standard: maintained` marker.
+
+- **Social links 404'd on the shop itself (FE)** (2026-07-31): `hrefFor` only normalized WhatsApp and
+  assumed "every other platform is stored as a full URL". Owners don't write URLs that way — one had
+  saved `facebook.com/rkrashu`, which is a **relative** href, so the storefront's Facebook button
+  navigated shoppers to a 404 on the merchant's own store. Found in a dev server log
+  (`GET /facebook.com/rkrashu 404`, twice), not by any gate: nothing type-checks an `<a href>`.
+  Now every value goes through `absoluteUrl` (schemeless → `https://`, protocol-relative → pick the
+  scheme, already-absolute → untouched, including `http` — silently upgrading would break links that
+  genuinely have no TLS). WhatsApp's phone branch is now selected by **shape** (`^[\d\s+()-]+$`)
+  rather than by "has no scheme", which also stops `wa.me/8801…` being stripped to its digits.
+  Fixed at render, not on save, so already-stored values are corrected. 5 tests in
+  `social-links.test.ts`.
+
+- **Live preview covers every Customize control (FE)** (2026-07-31): two controls didn't stream, out
+  of fourteen that did, and the inconsistency read as a broken editor rather than a limit — the
+  proposal on the table was to delete live preview entirely. That would have been the wrong trade:
+  the bridge is `postMessage` into an iframe that mounts **once**, so an edit costs **zero** server
+  requests, while "reload the preview after save" costs a full SSR render per save — and now a
+  cache-missing one, since the save also flushes the tag. Closed the two gaps instead.
+  **(1) Footer groups + the content-pages column**: `footer`/`contentPages` moved out of
+  `navigation-section.tsx`'s local state up to `CustomizeWorkspace` (the same lift done for the
+  announcement bar in July), into `nav.footer`/`nav.footerContentPages` on the payload, and
+  `store-footer.tsx` now prefers them. The payload trims blank-titled groups **exactly like
+  `submit()` does**, so the preview can't promise a column the save drops.
+  **(2) Logo + banner**: these are saved by their own media PATCH the moment they upload, so they
+  come straight off `settings` rather than a draft. They needed a **different override rule** from
+  every other field: `null` is a real value ("removed"), so `draft ?? saved` would resurrect the old
+  logo the instant a merchant deleted it. Hence `undefined` = nothing sent, and one shared
+  `useSfPreviewImage(field, saved)` in the preview store rather than that rule re-derived in the
+  four places that read an image (header, footer, favicon, home banner). The editor sends the
+  **effective** logo (store logo ?? org logo), mirroring what the backend resolves for the public
+  payload — sending the raw store logo would blank the header on removal.
+  Non-preview rendering is byte-identical: with nothing streamed the helper returns the saved value.
+  **Not done:** the bridge still accepts a message from any origin
+  (`preview-bridge.tsx` checks `d.type` but never `e.origin`). Cosmetic-only impact, confined to
+  whoever embedded the page, but it is two lines whenever this file is next touched.
+
+- **Account nav → section strip on mobile (FE)** (2026-07-31): the account sidebar was a vertical
+  list of five labelled rows plus logout — right as a 260px desktop column, but below 680px
+  `--acctgrid` collapses and it stacked above the content as a **499px block, 62% of a 360×780
+  screen**, so the whole first view was navigation. (It was *also* `position: sticky` inline, so it
+  pinned there while the content scrolled underneath — fixed in the same pass.) Mobile is now a
+  compact identity row with logout inline, plus a horizontally scrolling strip of icon chips:
+  **499px → 149px**, content above the fold. Desktop is byte-for-byte the old sidebar (260px,
+  sticky at 88px, 46px avatar, descriptions shown) — verified by measurement, not by eye.
+  Implementation note worth keeping: it is **one** set of markup. `.sf-account-nav` is a grid whose
+  `grid-template-areas` re-point at the breakpoint (`"identity logout" / "tabs tabs"` → three stacked
+  rows), which is what lets the logout button move without a second copy of the nav. The active chip
+  is scrolled into view on `activeKey` change, guarded on `scrollWidth > clientWidth` so it no-ops on
+  desktop and never scrolls the page. Deep links (`?tab=`, `?tab=tracking&order=`) are untouched —
+  the strip renders state the component already had. Approved design sample (3 options, measured):
+  claude.ai/code/artifact/41602a8c-6ecf-4f34-a7bf-49d77bceb373.
 
 - **Mobile responsiveness pass (FE)** (2026-07-31): audited every shop route in a real browser at
   320 / 360 / 740px, EN + বাংলা, signed-in and out. No page ever scrolled horizontally and the
@@ -352,7 +818,8 @@ resolved **per request from the host**, never baked.
   identical (the footer link padding is mobile-only, reset in the ≥680px block).
   **Not done:** `app/(storefront)/shop/products/[productSlug]/view.tsx` is 412 lines in one ~380-line
   component and breaches the file-size rule — the gallery fix was kept minimal by design, so
-  splitting the gallery / buy box / sticky bar into their own components is still owed.
+  splitting the gallery / buy box / sticky bar into their own components is still owed. *(Gallery
+  split done 2026-07-31 with the hover-zoom entry above; buy box + sticky bar still owed.)*
 
 - **One canonical host per store (BE + FE)** (2026-07-28): closed the duplicate-content hole — a shop
   with a custom domain was fully indexable on **both** that domain and `{slug}.ezycore.com/shop`, each
@@ -515,8 +982,9 @@ resolved **per request from the host**, never baked.
   `footer-links-card.tsx` gained the content-pages Switch + heading input, wired through
   `navigation-section.tsx`'s wholesale `nav` save. Mobile groups collapse to `useState`-driven
   accordions (SSR-safe: render open, no hydration flash; desktop heading inert + always-open via CSS
-  `!important`). **Footer still isn't live-previewed** — only the variant streams; group/content-pages
-  edits need a save. BE DTO round-trip test extended (`organization.dto.test.ts`). Dead `--footcols` var
+  `!important`). Footer wasn't live-previewed then — only the variant streamed (**superseded
+  2026-07-31**: groups and content-pages now stream too).
+  BE DTO round-trip test extended (`organization.dto.test.ts`). Dead `--footcols` var
   removed. `verify:api-types` needs a regen (admin DTO changed). Approved design sample:
   claude.ai/code/artifact/49d51fad-2a9d-4302-b686-d298f621f67e.
 
@@ -543,7 +1011,8 @@ resolved **per request from the host**, never baked.
   the same way it does dropped hero slides. **Live preview**: the announcement draft was lifted from
   `NavigationSection` up to `CustomizeWorkspace` and streams via the postMessage bridge
   (`nav.announcement` in the payload → `use-sf-preview-store` `announcement` → `preview-bridge` →
-  `store-shell` prefers the override) — the bar was previously edited blind (footer still is). i18n
+  `store-shell` prefers the override) — the bar was previously edited blind, as the footer still was
+  at the time (**superseded 2026-07-31**). i18n
   +1 key ×3 (`dismiss`). Both repos typecheck clean.
 
 - **Header search → in-place typeahead** (2026-07-20): the header "search bar" used to be a
@@ -586,7 +1055,7 @@ resolved **per request from the host**, never baked.
   storefront-native dropdown (button trigger + popover listbox, keyboard + outside-click), sharing
   its menu card/row styles with the checkout Combobox via `menu-styles.ts`. Use it over a bare
   `<select>` (OS picker, unthemed) and over the admin Radix `SimpleSelect` (Tailwind tokens). Everything is
-  URL-driven — `?brandId=&minPrice=&maxPrice=&inStock=1&sort=` extends the `?categoryId=`
+  URL-driven — `?brandId=&tags=&minPrice=&maxPrice=&inStock=1&sort=` extends the `?categoryId=`
   pattern; filters apply instantly (no staged Apply) and a brand-only filter makes `/products`
   that brand's landing page (h1 = brand name). BE: public `GET /:slug/brands` (auto-curated:
   active, non-`isDefault`, ≥1 listed active product; productCount, alphabetical) and
@@ -631,31 +1100,10 @@ resolved **per request from the host**, never baked.
   `list` icon in `sf-icons.tsx`, `gridView`/`listView` i18n keys ×3. Old saved
   `templates.search` values are harmless — zod strips unknown keys on PATCH.
 
-- **Customize rail width toggle** (2026-07-18): the left rail expands 380↔560px via a
-  ⇔ icon button beside the section tabs (lg-only, per-visit state, grid-template-columns
-  animated; panels opened while wide inherit the width). Chosen over a drag resizer and a
-  hide-preview button after an interactive options mock
-  (claude.ai/code/artifact/c994f91d-82e3-4ab5-bc70-775c5ac62d0f) — hide-preview was
-  rejected because it kills the live edit-see loop the page exists for.
-
-- **Theme rail redesign (settings-list accordion) + logo inheritance** (2026-07-18):
-  Customize → Theme's six stacked cards became ONE surface in `components/ecommerce/theme/`:
-  `theme-section.tsx` (container: accordion state, dirty flag, save; slides group inline) +
-  `theme-group.tsx` (collapsible row primitive: icon chip / title / live one-line summary) +
-  `theme-capsule.tsx` (pinned mini-storefront strip repainting with the brand/accent draft) +
-  `preset-group.tsx` (presets as mini storefront previews) + `colors-group.tsx` (pickers +
-  light/dark **contrast check** strip) + `media-field.tsx` (`MediaField` moved out of the
-  page; uploads still save instantly) + `footer-group.tsx` (footer © text + trust badges,
-  icon picker now a Popover; exports `DEFAULT_BADGES`) + `banner-hero-fields.tsx` (ex
-  `banner-hero-card.tsx` minus the Card wrapper; still exports `cleanHeroBanner`).
-  Groups: Preset · Brand colors · Logo · Hero slides · **Banner hero** (image + copy in one
-  group — they compose one storefront card) · Footer. **Store logo inherits the org logo**:
-  `getStoreInfo` serves `s.logo ?? org.logo` (BE), so merchants upload once in org settings;
-  the Logo group shows the inherited mark ("Using your organization logo") and an upload
-  there is a store-only override (remove ⇒ back to inherited). Save payload, props from
-  CustomizeWorkspace, and preview streaming unchanged; sticky save bar shows an amber
-  "Unsaved changes" dot (media uploads don't trip it). Approved sample:
-  claude.ai/code/artifact/8b213c7c-35d0-4ac1-afd6-495c2b3b11b6.
+  <!-- The 2026-07-18 "rail width toggle" and "Theme rail redesign" entries were removed on
+  2026-08-04: both described the three-tab Customize this repo no longer has, down to the file
+  names. Their two durable facts were promoted rather than lost — logo inheritance to the Live
+  preview section, and "never trade the preview away for rail width" to the 2026-08-04 entry. -->
 
 - **Editable banner-hero copy (`heroBanner`)** (2026-07-18): the static banner hero's
   badge/title/subtitle and its two buttons (labels + links) are merchant-editable.
@@ -667,10 +1115,10 @@ resolved **per request from the host**, never baked.
   its uppercase kicker; Minimal's typographic hero is deliberately untouched. Buttons
   render through the shared `HeroCtaLink` (`home-shared.tsx` — full URL = new tab,
   else `storeHref(base, …)`, empty = `/products`; the carousel's `SlideCta` now uses
-  it too). Admin: Customize → Theme → **"Banner hero"** group
-  (`components/ecommerce/theme/banner-hero-fields.tsx`; placeholders = the standard EN
-  copy; saved by Save theme via `cleanHeroBanner` — blank field ⇒ built-in copy, so custom
-  text replaces BOTH languages as-is); preview store + bridge stream `heroBanner`.
+  it too). Admin: Customize → **Hero** → "Banner headline"
+  (`components/ecommerce/customize/banner-hero-fields.tsx`; placeholders = the standard EN
+  copy; `cleanHeroBanner` runs on save — blank field ⇒ built-in copy, so custom text replaces
+  BOTH languages as-is); preview store + bridge stream `heroBanner`.
 
 - **Explicit header-menu source + Navigation folded into Customize** (2026-07-18): the store
   header's top links used to be an invisible either/or (custom menu wins if non-empty, else raw
@@ -680,7 +1128,8 @@ resolved **per request from the host**, never baked.
   to "collections" blindly. `nav.header` items support **`type: "collections"`** — a block that
   expands inline to the listed collections via `expandHeaderMenu` (`header-nav.tsx`, tested),
   applied ONCE where `ctx.headerMenu` is built in `store-header.tsx` (covers all variants +
-  preview; expanded links are id-based `/products?categoryId=` so slugless cats work). Admin:
+  preview; expanded links are PATH-based since 2026-08-06 — a slugless category is dropped, not
+  linked). Admin:
   Customize gains a **Navigation** section (`components/ecommerce/navigation/*` — navigation-section,
   header-menu-card w/ source picker, menu-item-fields, announcement-card, footer-links-card) and a
   **CollectionsPanel** rail takeover (`components/ecommerce/collections/*`; HeroSlidesPanel
@@ -706,23 +1155,21 @@ resolved **per request from the host**, never baked.
   height, sections scroll INSIDE it with their Save buttons pinned at the bottom, and the slides
   panel fills the same frame (pinned header/footer, scrolling rows) — eliminates the height-jump
   "blink" when the panel takes over. Mobile keeps natural flow (all `lg:` gated).
-- **Hero slides edit-in-place panel**: slide editing moved out of the Theme scroll into
-  `components/ecommerce/hero-slides-panel.tsx` — a takeover of the Customize LEFT rail (never a
-  modal/right-drawer: those would cover the live preview). Collapsed rows (SlideThumb + title,
-  expand one at a time), own footer **Save slides** (PATCHes only `heroSlides`) / Cancel-back-Esc
-  (restores an on-open snapshot). Opened from the Home template block's edit/add icon AND the Theme
-  section's compact "Hero slides" summary card ("Manage slides"); while open, BrowserPreview forces
-  `heroSrc="slides"` so edits always show. Theme's "Save theme" no longer saves slides.
-  `hero-slides-editor.tsx` deleted (superseded); shared `slide-thumb.tsx` added.
+- **Hero slides edit-in-place panel**: `components/ecommerce/customize/hero-slides-panel.tsx` —
+  a takeover of the Customize LEFT rail (never a modal/right-drawer: those would cover the live
+  preview). Collapsed rows (SlideThumb + title, expand one at a time). Opened from the Hero part's
+  slide rows; while open, BrowserPreview forces `heroSrc="slides"` so edits always show.
+  (2026-08-04: the panel's own Save/Cancel went away with the page's move to one Save — it now
+  edits the shared draft and "Done" just returns.) Shared `slide-thumb.tsx` added.
   Design sample: claude.ai/code/artifact/09f51325-0c70-4b4d-9359-569d99895bcd.
 - **Hero source switch (`templates.hero`: slides|banner)**: explicit control over what the home
   hero shows — carousel (when slides exist) or the static banner hero — so slides can stay saved
   but hidden. Standard surface-template plumbing (BE model/validator/types, FE `HERO` map in
   `storefront-templates.ts`, default `slides`); `store-home.tsx` withholds `heroSlides` from
   templates when resolved source is `banner`; preview store/bridge carry `heroSrc` (rides
-  `templates.hero` in the postMessage payload). Admin Templates "Home page" card redesigned →
-  `components/ecommerce/home-template-block.tsx` (wireframe layout tiles + "Hero area shows"
-  segmented control w/ slide-count chip, zero-slides warning + jump-to-Theme, Minimal note).
+  `templates.hero` in the postMessage payload). Admin: the Hero part's "The hero shows" pair
+  (`customize/parts/hero-part.tsx` — zero-slides warning, Minimal note; the wireframe layout tiles
+  it once shared a card with now live in the Home page part).
   Banner MediaField now documents its double duty (static hero + og:image, `shop/page.tsx`).
 
 - **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/badge?/title/
@@ -808,7 +1255,8 @@ resolved **per request from the host**, never baked.
   partial `templates` silently wipes the other sections' choices — this nearly shipped twice.
 - **OAuth callback route order** (before `/:slug`), and same-document hash navigation does NOT
   remount the oauth landing page — QA must full-navigate.
-- **Store payload is cached** (~60s revalidate + 5-min client staleTime) — settings changes lag.
+- **Store payload is cached** (`getStore` = 300s + 5-min client staleTime). Merchant saves flush it
+  on demand; anything else changes it lags by the timer. See "Cache + on-demand revalidation".
 - **Turbopack can panic per-route persistently** ("Panic in async function" 500) — restart the
   frontend dev server; it purges the corrupted FS cache itself.
 - Known pre-existing type errors (NOT ours; don't chase): frontend `image-gallery-upload.tsx` ×3

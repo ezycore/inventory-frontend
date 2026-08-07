@@ -19,6 +19,13 @@ export interface WishItem {
   hasVariants?: boolean;
   /** Stock at save time — caps "Move to cart" (backend re-validates at order). */
   availableQuantity?: number;
+  /**
+   * Saved alongside the stock count because the two are only meaningful
+   * together: a backorder product is buyable at zero stock, so without this
+   * "Move to cart" would refuse exactly the products that are always in stock
+   * for ordering purposes. Absent (older saved rows) reads as not-backorder.
+   */
+  outOfStockBehavior?: "hide" | "show" | "backorder";
 }
 
 interface WishlistState {

@@ -39,7 +39,6 @@ import {
 } from "@/constants/organization-options";
 import { useGetOrganizationApi } from "@/hooks";
 import { isFeatureEnabled } from "@/lib/feature-utils";
-import { EmailReportsSection } from "./email-reports-section";
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB — must match backend uploadConfig limit
 
@@ -55,16 +54,10 @@ export function OrganizationTab() {
     timezone,
     logo,
     features,
-    notificationSettings,
   } = data?.data || {};
-  // Report-email defaults mirror the backend schema: enabled, 21:00 (sales) and
-  // 08:00 (expiry) org-local.
-  const serverDigestEnabled: boolean =
-    notificationSettings?.salesDigest?.enabled ?? true;
-  const serverDigestHour: number = notificationSettings?.salesDigest?.hour ?? 21;
-  const serverExpiryEnabled: boolean =
-    notificationSettings?.expiryDigest?.enabled ?? true;
-  const serverExpiryHour: number = notificationSettings?.expiryDigest?.hour ?? 8;
+  // The daily-summary and expiry-report schedules used to live here. They moved
+  // to Settings → Notifications, where they sit beside every other message the
+  // product sends and share its on/off matrix.
   const { user } = useAuthStore();
 
   const canManageOrganization =
@@ -114,10 +107,6 @@ export function OrganizationTab() {
       country: country || "",
       timezone: timezone || "",
       currency: currency || "",
-      salesDigestEnabled: serverDigestEnabled,
-      salesDigestHour: String(serverDigestHour),
-      expiryDigestEnabled: serverExpiryEnabled,
-      expiryDigestHour: String(serverExpiryHour),
     }),
     [
       name,
@@ -125,10 +114,6 @@ export function OrganizationTab() {
       country,
       timezone,
       currency,
-      serverDigestEnabled,
-      serverDigestHour,
-      serverExpiryEnabled,
-      serverExpiryHour,
     ]
   );
 
@@ -174,10 +159,6 @@ export function OrganizationTab() {
       fd.append("country", formData.country);
       fd.append("timezone", formData.timezone);
       fd.append("currency", formData.currency);
-      fd.append("salesDigestEnabled", String(formData.salesDigestEnabled));
-      fd.append("salesDigestHour", formData.salesDigestHour);
-      fd.append("expiryDigestEnabled", String(formData.expiryDigestEnabled));
-      fd.append("expiryDigestHour", formData.expiryDigestHour);
       if (pendingLogo instanceof File) {
         fd.append("logo", pendingLogo);
       } else {
@@ -195,10 +176,6 @@ export function OrganizationTab() {
       country: formData.country,
       timezone: formData.timezone,
       currency: formData.currency,
-      salesDigestEnabled: formData.salesDigestEnabled,
-      salesDigestHour: Number(formData.salesDigestHour),
-      expiryDigestEnabled: formData.expiryDigestEnabled,
-      expiryDigestHour: Number(formData.expiryDigestHour),
     });
   };
 
@@ -208,11 +185,7 @@ export function OrganizationTab() {
     formData.address !== (address || "") ||
     formData.country !== country ||
     formData.timezone !== timezone ||
-    formData.currency !== currency ||
-    formData.salesDigestEnabled !== serverDigestEnabled ||
-    formData.salesDigestHour !== String(serverDigestHour) ||
-    formData.expiryDigestEnabled !== serverExpiryEnabled ||
-    formData.expiryDigestHour !== String(serverExpiryHour);
+    formData.currency !== currency;
 
   const canSubmit =
     hasChanges &&
@@ -452,31 +425,6 @@ export function OrganizationTab() {
         </div>
       </div>
 
-      <EmailReportsSection
-        salesDigest={{
-          enabled: formData.salesDigestEnabled,
-          hour: formData.salesDigestHour,
-        }}
-        expiryDigest={{
-          enabled: formData.expiryDigestEnabled,
-          hour: formData.expiryDigestHour,
-        }}
-        showExpiryDigest={isFeatureEnabled(features, "expiryTracking")}
-        onSalesDigestChange={({ enabled, hour }) =>
-          setFormData((prev) => ({
-            ...prev,
-            salesDigestEnabled: enabled,
-            salesDigestHour: hour,
-          }))
-        }
-        onExpiryDigestChange={({ enabled, hour }) =>
-          setFormData((prev) => ({
-            ...prev,
-            expiryDigestEnabled: enabled,
-            expiryDigestHour: hour,
-          }))
-        }
-      />
 
       {/* Save Button */}
       <div className="flex justify-end pt-4 border-t">

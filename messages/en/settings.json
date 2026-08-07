@@ -46,7 +46,7 @@
     "logoTooLarge": "Logo must be smaller than 5MB",
     "tab": {
       "logoSectionLabel": "Organization Logo",
-      "logoHint": "PNG, JPG, SVG or WebP. Square images work best. Max 5MB.",
+      "logoHint": "Square 512 × 512 px works best — a wide logo gets cropped in the sidebar and browser tab. PNG, JPG or WebP up to 5MB.",
       "changeLogo": "Change logo",
       "uploadLogo": "Upload logo",
       "removeLogo": "Remove",
@@ -66,11 +66,6 @@
       "addressSectionLabel": "Business Address",
       "address": "Address",
       "addressPlaceholder": "Enter organization address",
-      "emailReportsSectionLabel": "Email Reports",
-      "dailyDigest": "Daily sales digest",
-      "dailyDigestHint": "Emails the owner a summary on days with sales.",
-      "expiryReport": "Expiry report",
-      "expiryReportHint": "Emails the owner expiring-soon and expired stock.",
       "sendAt": "Send at",
       "sendAtPlaceholder": "Select time",
       "sendAtHint": "In your organization's timezone.",
@@ -125,7 +120,8 @@
     "tabs": {
       "product": "Products",
       "brand": "Brands",
-      "category": "Categories"
+      "category": "Categories",
+      "tag": "Tags"
     },
     "manager": {
       "subtitle": "Customize which fields appear in the {module} form for your organization",
@@ -923,5 +919,158 @@
       "cancel": "Cancel",
       "apply": "Change registration"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Choose which events send a message, to whom, and on which channel.",
+    "recipientsTitle": "Merchant alerts",
+    "recipientsSubtitle": "Where alerts meant for you (not the customer) are sent.",
+    "alertEmail": "Alert email",
+    "alertEmailHint": "Leave blank to use the workspace owner's email.",
+    "alertPhone": "Alert phone",
+    "alsoNotifyOwner": "Also send to the workspace owner",
+    "columns": {
+      "event": "Event"
+    },
+    "audiences": {
+      "customer": "Customer",
+      "merchant": "You"
+    },
+    "channels": {
+      "email": "Email",
+      "sms": "SMS"
+    },
+    "domains": {
+      "all": "All",
+      "storefront": "Online store",
+      "sales": "Sales",
+      "purchase": "Purchases",
+      "inventory": "Inventory",
+      "reports": "Reports",
+      "account": "Account"
+    },
+    "alwaysOn": "Always on",
+    "mandatoryHint": "This message can't be switched off — it's how people get back into their account.",
+    "smsLockedHint": "SMS can't send yet — see the SMS credit card above.",
+    "managedHint": "This one is switched on and off with the feature itself, not here.",
+    "managedElsewhere": "Manage in Store settings",
+    "emptyEvents": "No notification events available for this workspace.",
+    "events": {
+      "order": {
+        "placed": "Order placed",
+        "confirmed": "Order confirmed",
+        "processing": "Order being prepared",
+        "shipped": "Order shipped",
+        "delivered": "Order delivered",
+        "ready_for_pickup": "Ready for pickup",
+        "picked_up": "Order picked up",
+        "paid": "Order paid",
+        "cancelled": "Order cancelled",
+        "rejected": "Order rejected",
+        "returned": "Order returned"
+      },
+      "cart": {
+        "recovery": "Abandoned cart reminder"
+      },
+      "sale": {
+        "completed": "Sale receipt",
+        "due_reminder": "Payment due reminder"
+      },
+      "purchase": {
+        "received": "Purchase received"
+      },
+      "inventory": {
+        "expiry_alert": "Expiry alert",
+        "low_stock": "Low stock alert"
+      },
+      "reports": {
+        "sales_digest": "Daily sales summary"
+      },
+      "account": {
+        "email_verify": "Email verification",
+        "password_reset": "Password reset",
+        "user_invited": "User invited",
+        "low_credit": "Low SMS credit"
+      }
+    },
+    "log": {
+      "title": "Message log",
+      "subtitle": "Every message this workspace produced, including the ones it deliberately didn't send.",
+      "empty": "No messages yet. This fills up as orders come in.",
+      "columns": {
+        "when": "When",
+        "event": "Event",
+        "recipient": "Sent to",
+        "channel": "Channel",
+        "status": "Status"
+      },
+      "status": {
+        "sent": "Sent",
+        "pending": "Queued",
+        "processing": "Sending",
+        "failed": "Failed",
+        "skipped": "Not sent"
+      },
+      "filters": {
+        "allEvents": "All events",
+        "allStatuses": "All statuses",
+        "allChannels": "All channels"
+      },
+      "skipReasons": {
+        "channel_off": "This channel is switched off for this event.",
+        "sms_disabled": "SMS is off for this workspace.",
+        "feature_off": "The feature behind this event is not enabled.",
+        "no_recipient": "No address on file for this person.",
+        "suppressed": "This address or number failed permanently before, so we stopped sending to it.",
+        "consent": "This person opted out of marketing.",
+        "cap_reached": "The monthly SMS limit was reached.",
+        "no_credit": "Out of SMS credits. Email is unaffected.",
+        "credit_expired": "SMS credit had expired when this was due to send"
+      },
+      "resend": "Resend",
+      "resendHint": "Resending an SMS charges your balance again."
+    },
+    "sms": {
+      "title": "SMS credit",
+      "subtitle": "SMS is charged per message. Email is always free and unaffected by this balance.",
+      "remaining": "SMS left",
+      "segmentHint": "A long message counts as more than one.",
+      "thisMonth": "sent this month",
+      "enable": "Send SMS from this workspace",
+      "enableHint": "Off by default. Turning it on never turns email off.",
+      "notOnPlan": "SMS is not available on this workspace. Contact us and we'll switch it on.",
+      "empty": "You're out of SMS. Order emails keep sending as normal — only SMS stops.",
+      "topUp": "To add more SMS, contact us and we'll top up your balance.",
+      "nonRefundable": "Non-refundable",
+      "rate": "{price} per SMS",
+      "termsVersion": "terms {version}",
+      "locked": "SMS can't send yet — see the SMS credit card above.",
+      "test": "Send test SMS",
+      "testSending": "Sending…",
+      "testTo": "Send test to",
+      "testHint": "Sends one real message to this number and charges 1 SMS. Editing it here does not change your alert number.",
+      "previewSegments": "{count} segments",
+      "testSent": "Sent to {recipient}.",
+      "testFailed": "The gateway rejected the message.",
+      "validUntil": "Valid until {date}",
+      "expired": "Your SMS credit has expired. The messages are still here — top up and they become usable again. Email is unaffected.",
+      "quietHours": {
+        "title": "Quiet hours",
+        "hint": "SMS is held until morning, never dropped. Email is unaffected.",
+        "from": "From",
+        "to": "until",
+        "localTime": "Your workspace's local time"
+      },
+      "usage": {
+        "title": "Where your SMS went",
+        "event": "Event",
+        "messages": "Messages",
+        "segments": "SMS used",
+        "monthTotal": "{messages} messages · {segments} SMS",
+        "total": "Last 6 months: {messages} messages · {segments} SMS",
+        "empty": "No SMS sent yet."
+      }
+    },
+    "scheduleHint": "your local time"
   }
 }

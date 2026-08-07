@@ -12,7 +12,7 @@ export const PERMISSIONS = {
   stockManage: 'stock.manage',
   /** User administration; also gates the Roles settings page. */
   usersManage: 'users.manage',
-  /** Organization-level settings; also gates the Billing page and its nav entry. */
+  /** Organization-level settings; also feeds the Billing gate below. */
   organizationEdit: 'organization.edit',
 } as const;
 
@@ -23,9 +23,10 @@ export function useHasPermission(permission: string): boolean {
 }
 
 /**
- * Whether the user may see and act on billing — the Billing page, and the
- * subscription banner's "Pay now" / "Reactivate" actions (which mint a real
- * payment session, so they are gated, not just hidden).
+ * Whether the user may see and act on billing — the Billing page, its entry in
+ * the sidebar's user menu, and the subscription banner's "Pay now" /
+ * "Reactivate" actions (which mint a real payment session, so they are gated,
+ * not just hidden).
  *
  * The owner is always allowed: a role can be edited out of `organization.edit`,
  * which would otherwise lock the organization out of its own subscription.

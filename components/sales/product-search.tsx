@@ -32,18 +32,42 @@ interface SellableProduct {
 interface ProductSearchProps {
   onSelect: (product: ExtractedProduct) => void;
   placeholder?: string;
+  /**
+   * Override the catalogue this picker searches.
+   *
+   * Default (absent) is the **POS** sellable-products list, priced at
+   * `product.price` — correct at the counter and nowhere else. The ecommerce
+   * create-order dialog passes its own storefront-priced, campaign-applied rows,
+   * because a chat order is charged `storefront.onlinePrice ?? price` and may
+   * only contain products the storefront order path accepts.
+   *
+   * Supplying this **skips the POS fetch entirely**; pass `loading` yourself.
+   */
+  source?: ExtractedProduct[];
+  loading?: boolean;
 }
 
-export function ProductSearch({ onSelect, placeholder }: ProductSearchProps) {
+export function ProductSearch({
+  onSelect,
+  placeholder,
+  source,
+  loading,
+}: ProductSearchProps) {
   const t = useTranslations("sales.sell.search");
   const resolvedPlaceholder = placeholder ?? t("products");
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: products = [], isLoading } = useSelectOptions(selectOptions("sellableProducts"), productItemsCreateCallback);
+  // A `null` url short-circuits the query, so a caller supplying `source` never
+  // pays for the POS list it is not going to show.
+  const { data: products = [], isLoading } = useSelectOptions(
+    source ? null : selectOptions("sellableProducts"),
+    productItemsCreateCallback,
+  );
 
-  const castProducts = products as unknown as ExtractedProduct[];
+  const castProducts = (source ??
+    (products as unknown as ExtractedProduct[])) as ExtractedProduct[];
 
   // Create Fuse instance for fuzzy search
   const fuse = useMemo(
@@ -120,7 +144,7 @@ export function ProductSearch({ onSelect, placeholder }: ProductSearchProps) {
           }}
         >
           <CommandList>
-            {isLoading ? (
+            {(source ? loading : isLoading) ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
                 Loading products...
               </div>
@@ -150,6 +174,15 @@ export function ProductSearch({ onSelect, placeholder }: ProductSearchProps) {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-medium text-sm">
+                          {/* `compareAt` is set only when a campaign actually
+                              lowered this row, so the struck "was" appears on a
+                              discounted product and nowhere else. The POS list
+                              never sets it. */}
+                          {product.compareAt ? (
+                            <span className="mr-1.5 text-xs font-normal text-muted-foreground line-through">
+                              {formatCurrency(product.compareAt)}
+                            </span>
+                          ) : null}
                           {formatCurrency(product.price || 0)}
                         </div>
                         <div

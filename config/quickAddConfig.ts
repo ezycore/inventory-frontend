@@ -3,7 +3,15 @@ import { categoryFormConfig } from "@/components/categories/form-config";
 import { customerFormConfig } from "@/components/customers/form-config";
 import { discountFormConfig } from "@/components/discounts/form-config";
 import { supplierFormConfig } from "@/components/suppliers/form-config";
-import { useCreateBrand, useCreateCategory, useCreateCustomer, useCreateDiscount, useCreateSupplier } from "@/services/api";
+import { tagFormConfig } from "@/components/tags/form-config";
+import {
+  useCreateBrand,
+  useCreateCategory,
+  useCreateCustomer,
+  useCreateDiscount,
+  useCreateSupplier,
+  useCreateTag,
+} from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import type { QueryKey } from "@tanstack/react-query";
@@ -47,6 +55,13 @@ export const quickAddConfig: Record<string, QuickAddModuleConfig> = {
     title: "Add New Brand",
     submitLabel: "Create Brand",
     queryRoot: queryKeys.brands.all,
+  },
+  tag: {
+    formConfig: tagFormConfig,
+    useMutation: useCreateTag,
+    title: "Add New Tag",
+    submitLabel: "Create Tag",
+    queryRoot: queryKeys.tags.all,
   },
   customer: {
     formConfig: customerFormConfig,

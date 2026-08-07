@@ -7,6 +7,12 @@
  *
  * Use these in Server Components / `generateMetadata`. Keep client interactivity
  * (cart, shopper auth) on the existing `services/storefront/hooks` client layer.
+ *
+ * The `revalidate` values below are the *backstop*, not the freshness guarantee:
+ * every entry is tagged `store:{slug}` and an admin save flushes the tag on demand
+ * via `POST /api/storefront/revalidate`. Raising one of these numbers is therefore
+ * cheap for merchant-authored data and expensive for anything else — see
+ * "Cache + on-demand revalidation" in `.claude/skills/storefront/SKILL.md`.
  */
 
 import type {
@@ -14,9 +20,11 @@ import type {
   CatalogProduct,
   ContentPageLink,
   ContentPageView,
+  CatalogCategoryDetail,
   ProductListResult,
   StoreCampaign,
   StorefrontStore,
+  StoreTag,
 } from "@/lib/storefront-client";
 
 const API_BASE =
@@ -64,6 +72,21 @@ export const getStoreProduct = (slug: string, productSlug: string) =>
 export const getStoreCategories = (slug: string) =>
   sf<CatalogCategory[]>(slug, "/categories", 300);
 
+/**
+ * Resolve a collection path (`phones`, `phones/accessories`) to the category
+ * plus its breadcrumb parent. `null` when the path is unknown OR sits under a
+ * hidden parent — the page 404s on either.
+ */
+export const getStoreCategoryByPath = (slug: string, path: string) =>
+  sf<CatalogCategoryDetail>(
+    slug,
+    `/categories/resolve${query({ path })}`,
+    300,
+  );
+
+export const getStoreTags = (slug: string) =>
+  sf<StoreTag[]>(slug, "/tags", 300);
+
 export const getStoreCampaigns = (slug: string) =>
   sf<StoreCampaign[]>(slug, "/campaigns", 60);
 
@@ -81,7 +104,8 @@ export const getStorePage = (slug: string, pageSlug: string) =>
  */
 export interface StorefrontSitemap {
   products: { slug: string; updatedAt?: string }[];
-  collections: { id: string }[];
+  /** Collection PATHS (`phones`, `phones/accessories`) — both levels. */
+  collections: { path: string }[];
   brands: { id: string }[];
   pages: { slug: string; updatedAt?: string }[];
 }

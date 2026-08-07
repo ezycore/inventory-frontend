@@ -29,9 +29,32 @@ import type { Translator } from '@/i18n/config'
  * Exported so `use-category-vat-prefill` can read the same query — the URL *is*
  * the TanStack cache key, so any drift between the two would double the request
  * and, worse, let the prefill read an option list without `defaultTaxId`.
+ *
+ * **`parentId=null` is load-bearing.** Sub-categories live in the same
+ * collection, and `product.categoryId` must always hold a TOP-LEVEL category —
+ * offering a child here would produce a product the backend rejects
+ * (`PRODUCT_SUBCATEGORY_MISMATCH`) or, worse, one filed at the wrong level.
  */
 export const CATEGORY_OPTIONS_API = selectOptions("categories", {
+  parentId: "null",
   fields: "_id,name,isDefault,defaultTaxId",
+});
+
+/**
+ * Sub-category options — the children of whichever category is selected.
+ *
+ * `{{value}}` is substituted by the form renderer from this field's primary
+ * `dependsOn` (the category select), so the list refetches per parent. Until a
+ * category is chosen the template cannot resolve and no request is made.
+ */
+const SUBCATEGORY_OPTIONS_API = selectOptions("categories", {
+  parentId: "{{value}}",
+  fields: "_id,name,defaultTaxId",
+});
+
+const TAG_OPTIONS_API = selectOptions("tags", {
+  status: "active",
+  fields: "_id,name,color",
 });
 
 /**
@@ -147,6 +170,29 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             placeholder: tr('form.categoryPlaceholder', "Choose category"),
             optionsApi: CATEGORY_OPTIONS_API,
             defaultFlag: "isDefault",
+            // A sub-category only exists under one category, so changing the
+            // category invalidates whatever was chosen. Without this the form
+            // posts a stale pair and only the server notices
+            // (PRODUCT_SUBCATEGORY_MISMATCH).
+            clearFieldsOnChange: ["subcategoryId"],
+            creatable: true,
+            quickAddModule: "category",
+          },
+          {
+            name: "subcategoryId",
+            type: "select",
+            label: tr('form.subcategory', "Sub-category"),
+            columnSpan: 6,
+            placeholder: tr('form.subcategoryPlaceholder', "Choose sub-category"),
+            optionsApi: SUBCATEGORY_OPTIONS_API,
+            // Disabled until a category is picked: the options ARE that
+            // category's children, and the pair is rejected server-side if the
+            // two disagree.
+            dependsOn: {
+              field: "categoryId",
+              condition: "truthy",
+              action: "enable",
+            },
             creatable: true,
             quickAddModule: "category",
           },
@@ -170,6 +216,17 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
           //   placeholder: "Select selling type",
           //   defaultValue: "retail",
           // },
+          {
+            name: "tagIds",
+            type: "select",
+            mode: "multiple",
+            label: tr('form.tags', "Tags"),
+            columnSpan: 12,
+            placeholder: tr('form.tagsPlaceholder', "Add tags"),
+            optionsApi: TAG_OPTIONS_API,
+            creatable: true,
+            quickAddModule: "tag",
+          },
           {
             name: "description",
             type: "textarea",
@@ -593,7 +650,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             maxFiles: 5,
             maxSize: 5 * 1024 * 1024, // 5MB
             showPreview: true,
-            dropzoneText: tr('form.imagesDropzone', "PNG, JPG, WEBP up to 5MB · Max 5 images"),
+            dropzoneText: tr('form.imagesDropzone', "Square 1600 × 1600 px works best · PNG, JPG, WEBP up to 5MB · Max 5 images"),
           },
         ],
       },

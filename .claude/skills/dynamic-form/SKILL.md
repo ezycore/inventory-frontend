@@ -51,6 +51,12 @@ See [./references/quick-start.md](./references/quick-start.md) and [./references
    - In `prepareSubmitData`, always extract the ID: `const id = typeof raw === "object" ? raw.value : raw`.
    - **Never** send the raw object to the API — it must be unwrapped before mutation.
 4. For dependent selects (e.g., variants per product), use template syntax: `optionsApi: "/products/{{productId}}/variants"` plus a `dependsOn` clause. Placeholder is resolved from the watched field's value (or `value`/`_id`/`id` if it's an object). Resolves to `null` when missing → API not called.
+   - A template also works inside a **query string**: `selectOptions("categories", { parentId: "{{value}}" })` is how the product form lists the sub-categories of the chosen category. Use `{{value}}` when the watched field holds a plain id — the enriched option object exposes it under `value`.
+5. **A dependent select needs `clearFieldsOnChange` on its PARENT.** Once the parent changes, the child's stored value belongs to the old parent and is no longer in its own option list — the form then silently posts a stale pair and only the server notices. Declare it on the parent field:
+   ```ts
+   { name: "categoryId", type: "select", clearFieldsOnChange: ["subcategoryId"], … }
+   ```
+   It fires on **change only**, never on mount — clearing while an edit form hydrates would wipe the stored value before the user touched anything.
 
 ## Procedure: Add field dependency
 
@@ -152,7 +158,8 @@ When the section's `dependsOn` condition is not met, the **entire section render
 - **DON'T** write Zod schemas by hand — they're generated. Override per-field with `zodType` only when needed.
 - **DON'T** mix `sections` and `fields` in the same config.
 - **DON'T** call `onSubmit` AND `mutationHook` for the same flow expecting both — `onSubmit` is treated as a transformer when `mutationHook` is set.
-- **DON'T** put `dependsOn`/`autoFillFields`/`copyValueTo` directly into rendered select props — they are stripped before passing to `AdvancedSelect`.
+- **DON'T** put `dependsOn`/`autoFillFields`/`copyValueTo`/`clearFieldsOnChange` directly into rendered select props — they are stripped before passing to `AdvancedSelect`. Add any new config-only key to that destructure in `field-select-inputs.tsx`, or React warns about an unknown DOM prop.
+- **DO** reach for `mode: "multiple"` on a `select` for a many-to-many field (product tags). It routes to `MultiSelect` via `AdvancedSelect` — there is no separate field type, and adding one would be wrong.
 
 ## Field Type Cheatsheet
 

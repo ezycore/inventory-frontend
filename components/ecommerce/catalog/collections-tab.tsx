@@ -20,7 +20,7 @@ import {
 /**
  * Catalog → Collections: the full-width home for the storefront category
  * overlay (listed / display name / order). Saves each field as you touch it —
- * the Customize → Navigation panel is the in-place shortcut and drafts instead.
+ * the Customize collections panel is the in-place shortcut and drafts instead.
  *
  * Collections drive the homepage chips and product filters regardless of the
  * header, so the banner spells out whether the header is currently using them.
@@ -101,10 +101,10 @@ export function CollectionsTab() {
           )}
         </div>
         <Link
-          href="/ecommerce/customize?section=navigation"
+          href="/ecommerce/customize?part=header"
           className="flex flex-none items-center gap-1 text-xs font-semibold text-primary hover:underline"
         >
-          Customize → Navigation
+          Customize → Header
           <ArrowRight className="h-3 w-3" />
         </Link>
       </div>

@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import { storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
 import { Media } from "@/components/storefront/sf-bits";
 import { money } from "@/components/storefront/format";
@@ -38,7 +38,7 @@ export function Minimal({ base, currency, featured, categories, t }: TplProps) {
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(40px,6vw,64px)" }}>
           <div style={{ display: "flex", gap: 26, justifyContent: "center", flexWrap: "wrap", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "18px 0" }}>
             {categories.map((c) => (
-              <Link key={c._id} href={storeHref(base, `/products?categoryId=${c._id}`)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
+              <Link key={c._id} href={collectionHref(base, c)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
                 {c.name}
               </Link>
             ))}

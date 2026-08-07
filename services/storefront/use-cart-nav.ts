@@ -8,7 +8,8 @@ import { useCartUI } from "@/services/stores/use-cart-ui-store";
  * bottom nav need the live cart count plus "go to cart", so it lives here as
  * one source instead of being re-derived per surface. The cart icon always
  * opens the drawer for a quick review — the full /cart page is reachable from
- * the drawer's "View cart" link. The PDP's "Buy now" opens the same drawer.
+ * the drawer's "View cart" link. "Buy now" (PDP and product cards) does NOT
+ * come through here: it adds the item and routes straight to /checkout.
  * (Search now has its own in-header typeahead — `components/storefront/
  * header-search.tsx` — so this no longer routes to a /search page.)
  */

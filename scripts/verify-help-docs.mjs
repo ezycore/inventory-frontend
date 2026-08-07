@@ -47,7 +47,9 @@ const BACKLOG_FILE = path.join(HELP_DIR, "BACKLOG.md");
 /** Routes that are real screens but deliberately outside the help docs' scope. */
 const SCOPE_EXEMPT = [
   "#", // group headers with no page of their own
-  "/dashboard/billing", // subscription/plan management, documented by sales not support
+  // Subscription/plan management — documented by sales, not support. Reached from the sidebar's
+  // user menu rather than a nav item, so this only bites if it ever returns to the sidebar.
+  "/dashboard/billing",
 ];
 
 const errors = [];

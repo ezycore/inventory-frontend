@@ -27,7 +27,8 @@
       "brand": "Brand",
       "type": "Type",
       "price": "Price",
-      "status": "Status"
+      "status": "Status",
+      "tags": "Tags"
     },
     "filters": {
       "searchLabel": "Search product",
@@ -40,7 +41,9 @@
       "statusPlaceholder": "All statuses",
       "statusActive": "Active",
       "statusInactive": "Inactive",
-      "statusArchived": "Archived"
+      "statusArchived": "Archived",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Any tag"
     },
     "stats": {
       "total": "Total Products",
@@ -144,8 +147,12 @@
       "expiryDate": "Opening expiry date",
       "expiryDateTooltip": "Expiry date for the opening-stock batch. Only applied when expiry tracking is on for this product.",
       "images": "Product images",
-      "imagesDropzone": "PNG, JPG, WEBP up to 5MB · Max 5 images",
-      "hasExpiryTooltip": "Records stock in batches with expiry dates, so it sells earliest-expiry-first and appears in expiry alerts. Turning this off later requires the product's stock to be zero at every location — batches cannot be left behind holding stock."
+      "imagesDropzone": "Square 1600 × 1600 px works best · PNG, JPG, WEBP up to 5MB · Max 5 images",
+      "hasExpiryTooltip": "Records stock in batches with expiry dates, so it sells earliest-expiry-first and appears in expiry alerts. Turning this off later requires the product's stock to be zero at every location — batches cannot be left behind holding stock.",
+      "subcategory": "Sub-category",
+      "subcategoryPlaceholder": "Choose sub-category",
+      "tags": "Tags",
+      "tagsPlaceholder": "Add tags"
     },
     "taxType": {
       "inclusive": "Inclusive",
@@ -204,7 +211,7 @@
       "imagesLabel": "Variant Images",
       "clickToUpload": "Click to upload",
       "orDragDrop": " or drag and drop",
-      "uploadHint": "PNG, JPG, GIF up to 5MB (Max 3 images)",
+      "uploadHint": "Square 1600 × 1600 px works best · PNG, JPG, WEBP up to 5MB · Max 3 images",
       "existingImage": "Existing image",
       "uploaded": "Uploaded",
       "cancel": "Cancel",
@@ -359,7 +366,7 @@
       "descriptionPlaceholder": "Enter brand description",
       "images": "Brand Image",
       "imagesPlaceholder": "Upload brand image",
-      "imagesDropzone": "PNG, JPG, WEBP up to 5MB",
+      "imagesDropzone": "Square 600 × 600 px works best · PNG, JPG, WEBP up to 5MB",
       "status": "Status",
       "statusActive": "Active",
       "statusInactive": "Inactive",
@@ -386,6 +393,61 @@
       "updatedOn": "Updated: {date}"
     }
   },
+  "tags": {
+    "page": {
+      "title": "Tags",
+      "subtitle": "Labels you put on products — filter by them, and run campaigns on them.",
+      "allTagsTitle": "All Tags ({count})",
+      "searchPlaceholder": "Search tags by name"
+    },
+    "columns": {
+      "name": "Tag",
+      "description": "Description",
+      "products": "Products",
+      "productsCount": "{count} Products",
+      "status": "Status",
+      "createdDate": "Created Date"
+    },
+    "filters": {
+      "searchLabel": "Search tag",
+      "searchPlaceholder": "Search by tag...",
+      "statusLabel": "Status",
+      "statusPlaceholder": "All statuses",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "createdDateLabel": "Created Date",
+      "createdDatePlaceholder": "Select date range"
+    },
+    "form": {
+      "name": "Tag Name",
+      "namePlaceholder": "e.g. Eid Special",
+      "description": "Description",
+      "descriptionPlaceholder": "What this tag is for",
+      "color": "Colour",
+      "colorPlaceholder": "Pick a chip colour",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "stats": {
+      "total": "Total Tags",
+      "totalDescription": "All tags you have created",
+      "active": "Active Tags",
+      "activeDescription": "Currently active",
+      "inactive": "Inactive Tags",
+      "inactiveDescription": "Currently inactive",
+      "taggedProducts": "Tagged Products",
+      "taggedProductsDescription": "Products carrying at least one tag"
+    },
+    "card": {
+      "noDescription": "-",
+      "productsCount": "{count} Products",
+      "edit": "Edit",
+      "delete": "Delete",
+      "createdOn": "Created {date}",
+      "updatedOn": "Updated {date}"
+    }
+  },
   "categories": {
     "page": {
       "title": "Categories",
@@ -400,7 +462,10 @@
       "productsCount": "{count} Products",
       "status": "Status",
       "createdDate": "Created Date",
-      "updatedDate": "Updated Date"
+      "updatedDate": "Updated Date",
+      "parent": "Parent",
+      "topLevel": "Top level",
+      "subcategory": "Sub-category"
     },
     "filters": {
       "searchLabel": "Search category",
@@ -412,7 +477,9 @@
       "createdDateLabel": "Created Date",
       "createdDatePlaceholder": "Select date range",
       "updatedDateLabel": "Updated Date",
-      "updatedDatePlaceholder": "Select date"
+      "updatedDatePlaceholder": "Select date",
+      "parentLabel": "Parent category",
+      "parentPlaceholder": "All categories"
     },
     "form": {
       "name": "Category Name",
@@ -421,7 +488,7 @@
       "descriptionPlaceholder": "Enter category description",
       "images": "Category Image",
       "imagesPlaceholder": "Upload category image",
-      "imagesDropzone": "PNG, JPG, WEBP up to 5MB",
+      "imagesDropzone": "Square 600 × 600 px works best · PNG, JPG, WEBP up to 5MB",
       "status": "Status",
       "statusActive": "Active",
       "statusInactive": "Inactive",
@@ -429,7 +496,10 @@
       "isDefaultDescription": "Pre-selected on new product forms",
       "defaultTax": "Default VAT rate",
       "defaultTaxPlaceholder": "Use the organization default",
-      "defaultTaxHint": "Prefilled on new products in this category, on both the purchase and the sales side. Existing products are never re-priced."
+      "defaultTaxHint": "Prefilled on new products in this category, on both the purchase and the sales side. Existing products are never re-priced.",
+      "parent": "Parent category",
+      "parentPlaceholder": "None — this is a top-level category",
+      "parentHint": "Leave empty for a top-level category. Picking a parent makes this a sub-category, reachable at /parent/this-one."
     },
     "stats": {
       "total": "Total Categories",

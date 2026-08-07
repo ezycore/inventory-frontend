@@ -75,6 +75,13 @@ export interface ExtractedProduct {
   value: string; // inventoryId
   label: string;
   price: number;
+  /**
+   * Pre-discount price, rendered as a struck-through "was" in the picker.
+   *
+   * Only the ecommerce create-order picker sets it, and only when a live
+   * campaign actually lowered the row — the POS list has no campaign concept.
+   */
+  compareAt?: number;
   costPrice: number;
   availableQuantity: number;
   productId: string;

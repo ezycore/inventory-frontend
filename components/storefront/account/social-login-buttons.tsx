@@ -8,10 +8,19 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 
 /**
- * "or continue with" block under the login/register form. Renders nothing
- * unless the backend reports providers with credentials configured. Buttons
- * navigate the whole page — the API owns the OAuth round-trip and lands the
- * shopper back on /account/oauth with the session token.
+ * Social sign-in, rendered **above** the email/password form as the primary path.
+ *
+ * That order is deliberate. This store requires an account before checkout, so
+ * the sign-in wall is the biggest single drop in the purchase funnel — and an
+ * OAuth shopper arrives `emailVerified: true`, which clears the *second* wall
+ * (`VERIFY_EMAIL_TO_ORDER`) at the same time. One tap replaces "type an email,
+ * invent a password, go find the verification mail". See the backend plan
+ * `docs/plan/abandoned-cart.md` → Phase 4.
+ *
+ * Renders **nothing** unless the backend reports providers with credentials
+ * configured — including the trailing divider, so a store with no OAuth set up
+ * shows exactly the form it showed before. Buttons navigate the whole page; the
+ * API owns the round-trip and lands the shopper on /account/oauth with a session.
  */
 export function SocialLoginButtons() {
   const { slug } = useStoreContext();
@@ -49,13 +58,6 @@ export function SocialLoginButtons() {
 
   return (
     <>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0 14px" }}>
-        <span style={{ flex: 1, borderTop: "1px solid var(--border)" }} />
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-          {t.orContinueWith}
-        </span>
-        <span style={{ flex: 1, borderTop: "1px solid var(--border)" }} />
-      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {providers.includes("google") ? (
           <button type="button" style={btn} onClick={() => go("google")}>
@@ -69,6 +71,15 @@ export function SocialLoginButtons() {
             {t.continueWithFacebook}
           </button>
         ) : null}
+      </div>
+      {/* Trailing divider — the buttons are the primary path, so this reads as
+          "or fall back to email", not as a heading for what follows. */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0 14px" }}>
+        <span style={{ flex: 1, borderTop: "1px solid var(--border)" }} />
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          {t.orUseEmail}
+        </span>
+        <span style={{ flex: 1, borderTop: "1px solid var(--border)" }} />
       </div>
     </>
   );

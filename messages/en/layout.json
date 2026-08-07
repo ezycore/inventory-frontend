@@ -48,6 +48,7 @@
       "customize": "Customize",
       "content": "Content",
       "store-customers": "Store Customers",
+      "abandoned-carts": "Abandoned Carts",
       "store-settings": "Store Settings",
       "products": "Products",
       "categories": "Categories",
@@ -77,6 +78,7 @@
   },
   "userMenu": {
     "profile": "Profile",
+    "billing": "Billing",
     "help": "Help",
     "logout": "Logout"
   },

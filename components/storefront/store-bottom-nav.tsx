@@ -10,7 +10,7 @@ import type {
   StoreMenuItem,
   StorefrontStore,
 } from "@/lib/storefront-client";
-import { storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
@@ -230,7 +230,7 @@ function MenuSheet({
           {categories.map((c) => (
             <SheetLink
               key={c._id}
-              href={storeHref(base, `/products?categoryId=${c._id}`)}
+              href={collectionHref(base, c)}
               label={c.name}
               onClose={onClose}
             />

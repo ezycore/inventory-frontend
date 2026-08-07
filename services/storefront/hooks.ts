@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import {
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -34,14 +35,32 @@ export const storefront = {
   store: (slug: string) => ["storefront", slug, "store"] as const,
   products: (slug: string, params: unknown) =>
     ["storefront", slug, "products", params ?? {}] as const,
+  /**
+   * The infinite variant of `products`. Separate because its params must NOT
+   * contain `page` — an infinite query owns the page cursor, and folding it into
+   * the key would make every page its own cache entry, i.e. exactly the
+   * behaviour infinite scrolling exists to avoid. Still under the same
+   * `["storefront", slug, "products"]` prefix, so one eviction covers both.
+   */
+  productsInfinite: (slug: string, params: unknown) =>
+    ["storefront", slug, "products", "infinite", params ?? {}] as const,
   product: (slug: string, productSlug: string) =>
     ["storefront", slug, "product", productSlug] as const,
   categories: (slug: string) => ["storefront", slug, "categories"] as const,
   brands: (slug: string) => ["storefront", slug, "brands"] as const,
+  tags: (slug: string) => ["storefront", slug, "tags"] as const,
   campaigns: (slug: string) => ["storefront", slug, "campaigns"] as const,
   pages: (slug: string) => ["storefront", slug, "pages"] as const,
   page: (slug: string, pageSlug: string) =>
     ["storefront", slug, "page", pageSlug] as const,
+  /**
+   * A public tracking link's order. Sits under the PUBLIC prefix, not
+   * `shopper(...)`: the reader is identified by the token in the URL, not by a
+   * session, so signing in or out must not evict it — and a guest, who has no
+   * session at all, is the main reader.
+   */
+  trackedOrder: (slug: string, token: string) =>
+    ["storefront", slug, "track", token] as const,
 
   /**
    * Everything private to the signed-in shopper. One prefix, on purpose: `clearShopperCache` drops
@@ -94,6 +113,44 @@ export const useStoreProducts = (
     initialData,
   });
 
+/**
+ * Same endpoint as `useStoreProducts`, accumulated page by page — the store's
+ * "infinite" / "load more" pagination modes.
+ *
+ * Two things are load-bearing:
+ *
+ * - **`params` must not carry `page`.** The cursor lives in `pageParam`; a
+ *   `page` in the params object would change the cache key on every load and
+ *   defeat the accumulation.
+ * - **`initialData` is reshaped, not passed through.** The collection page seeds
+ *   page 1 from the server so the listing is in the SSR HTML; an infinite query
+ *   wants `{ pages, pageParams }`, and handing it a bare `ProductListResult`
+ *   silently misses the seed — which puts a spinner back in the crawlable body,
+ *   the exact defect the seeding exists to fix.
+ */
+export const useStoreProductsInfinite = (
+  slug: string,
+  params: Record<string, string | number | undefined> = {},
+  enabled = true,
+  initialData?: ProductListResult,
+) =>
+  useInfiniteQuery({
+    queryKey: storefront.productsInfinite(slug, params),
+    queryFn: ({ pageParam }) =>
+      storefrontApi.listProducts(slug, { ...params, page: pageParam }),
+    enabled: !!slug && enabled,
+    initialPageParam: 1,
+    // `undefined` ends the query — TanStack stops offering a next page, which is
+    // what the UI reads as "you've reached the end".
+    getNextPageParam: (last) =>
+      last.pagination.page < last.pagination.totalPages
+        ? last.pagination.page + 1
+        : undefined,
+    initialData: initialData
+      ? { pages: [initialData], pageParams: [1] }
+      : undefined,
+  });
+
 // `initialData` (server-fetched in the PDP's page.tsx) is what makes the product
 // name, price and description part of the server-rendered HTML rather than
 // something that only exists after hydration.
@@ -122,6 +179,15 @@ export const useStoreBrands = (slug: string) =>
   useQuery({
     queryKey: storefront.brands(slug),
     queryFn: () => storefrontApi.listBrands(slug),
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
+  });
+
+/** The public tag facet. Curated server-side, so an empty list means "no tags in use". */
+export const useStoreTags = (slug: string) =>
+  useQuery({
+    queryKey: storefront.tags(slug),
+    queryFn: () => storefrontApi.listTags(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
   });
@@ -324,8 +390,11 @@ export const usePlaceOrder = (slug: string) => {
   const token = useShopperStore((s) => s.token);
   const qc = useQueryClient();
   return useMutation({
+    // `token ?? undefined`, never `token!` — a guest legitimately has none, and
+    // the server reads its absence as "guest order". Asserting it here was the
+    // shape that only made sense while checkout required an account.
     mutationFn: (body: PlaceOrderInput) =>
-      storefrontApi.placeOrder(slug, token!, body),
+      storefrontApi.placeOrder(slug, token ?? undefined, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: storefront.shopper(slug) }),
   });
 };

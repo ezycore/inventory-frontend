@@ -65,7 +65,9 @@ export function TrackingSection({
     <button
       type="button"
       onClick={onBack}
-      style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "var(--muted)", cursor: "pointer", alignSelf: "flex-start", background: "none", border: "none", fontFamily: "inherit", padding: 0 }}
+      // Vertical padding (cancelled by the negative margin) makes this a 40px
+      // touch target without shifting it off the content's left edge.
+      style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "var(--muted)", cursor: "pointer", alignSelf: "flex-start", background: "none", border: "none", fontFamily: "inherit", padding: "10px 0", margin: "-10px 0" }}
     >
       <Icon name="back" size={16} /> {t.backToOrders}
     </button>

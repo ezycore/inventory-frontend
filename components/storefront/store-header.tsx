@@ -11,12 +11,15 @@ import type {
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { resolveHeaderMenu, resolveTemplates } from "@/lib/storefront-templates";
-import { storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { useHydrated } from "@/hooks/use-hydrated";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import {
+  useSfPreview,
+  useSfPreviewImage,
+} from "@/services/stores/use-sf-preview-store";
 import { Icon } from "@/components/storefront/sf-icons";
 import {
   HeaderNav,
@@ -77,7 +80,7 @@ function headerLinks(ctx: HeaderCtx): { key: string; label: string; href: string
     : cats.map((c) => ({
         key: c._id,
         label: c.name,
-        href: storeHref(base, `/products?categoryId=${c._id}`),
+        href: collectionHref(base, c),
       }));
 }
 
@@ -104,6 +107,7 @@ export function StoreHeader({
   const previewHeader = useSfPreview((s) => s.header);
   const previewMenuSrc = useSfPreview((s) => s.headerMenuSrc);
   const previewNavHeader = useSfPreview((s) => s.navHeader);
+  const previewLogo = useSfPreviewImage("logo", store?.logo);
 
   // Drafts from the admin Navigation editor win over the saved store payload.
   // The legacy-fallback check uses the RAW menu (a store whose menu is only a
@@ -119,7 +123,7 @@ export function StoreHeader({
   const ctx: HeaderCtx = {
     base,
     name: store?.name ?? "Store",
-    logo: store?.logo?.url || store?.logo?.thumbnailUrl,
+    logo: previewLogo?.url || previewLogo?.thumbnailUrl,
     phone: store?.contact?.phone ?? "",
     t,
     theme,
@@ -352,7 +356,7 @@ function CategoryRow({ ctx, center }: { ctx: HeaderCtx; center?: boolean }) {
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "0 var(--pad) 11px", display: "flex", gap: 22, overflowX: "auto", justifyContent: center ? "center" : "flex-start" }}>
       {cats.map((c) => (
-        <Link key={c._id} href={storeHref(base, `/products?categoryId=${c._id}`)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
+        <Link key={c._id} href={collectionHref(base, c)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
           {c.name}
         </Link>
       ))}
