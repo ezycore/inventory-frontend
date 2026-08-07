@@ -10,6 +10,7 @@ import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { CategoryPath } from "@/components/shared/category-path";
+import { TagChips } from "@/components/shared/tag-chips";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -132,6 +133,10 @@ export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardPr
         >
           {product.name}
         </h3>
+
+        {/* Tags — the table shows these too; a card that omits them loses
+            merchandising state on a view switch. */}
+        <TagChips tags={product.tags} max={2} />
 
         {/* Price & Brand Row */}
         <div className="flex items-center justify-between pt-1 border-t border-border/40">

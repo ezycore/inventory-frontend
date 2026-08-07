@@ -9625,6 +9625,7 @@ export interface components {
             maxDiscountAmount?: number | null;
             applicableProducts?: string[];
             applicableCategories?: string[];
+            applicableTags?: string[];
             /** @enum {string} */
             status: "active" | "inactive";
             /** Format: date-time */
@@ -34746,6 +34747,7 @@ export interface operations {
                     maxDiscountAmount?: number;
                     applicableProducts?: string[];
                     applicableCategories?: string[];
+                    applicableTags?: string[];
                     /** @enum {string} */
                     status?: "active" | "inactive";
                 };
@@ -34882,6 +34884,7 @@ export interface operations {
                     maxDiscountAmount?: number;
                     applicableProducts?: string[];
                     applicableCategories?: string[];
+                    applicableTags?: string[];
                     /** @enum {string} */
                     status?: "active" | "inactive";
                 };

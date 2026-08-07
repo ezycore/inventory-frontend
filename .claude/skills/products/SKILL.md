@@ -68,7 +68,15 @@ and silently drops the child, which is how four of those five surfaces disagreed
 until 2026-08-07.
 
 Tags are a `select` with `mode: "multiple"` — no new field type. Filtering by tags is **OR**
-(`?tags=a,b` matches a product carrying either).
+(`?tags=a,b` matches a product carrying either), and **`?tags=` needs an explicit translation to
+`tagIds: { $in: [...] }`** at every consumer: `tagIds` is an ARRAY of refs, so the generic filter
+builder would match it against a raw string and find nothing. `product.service.getAll` does this;
+`resolveInventoryFilters` did **not** until 2026-08-07, which is why the inventory tag filter
+returned an empty stock list.
+
+Display goes through `<TagChips>` (`components/shared/tag-chips.tsx`) on every surface that names a
+product — table, card, detail. Mapping `product.tags` inline is how three of the four ended up
+showing nothing.
 
 Full behaviour, the invariant table and the merchant-facing rules:
 [`docs/features/catalog-taxonomy.md`](../../../../inventory-backend/docs/features/catalog-taxonomy.md)

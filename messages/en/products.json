@@ -275,6 +275,7 @@
         "brand": "Brand",
         "category": "Category",
         "unit": "Unit",
+        "tags": "Tags",
         "expiryTracking": "Expiry Tracking",
         "enabled": "Enabled",
         "off": "Off",

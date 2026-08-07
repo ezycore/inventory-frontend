@@ -325,6 +325,13 @@ because none of them shows up in typecheck, lint, or tests:
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.
 
+**Tag display:** a product's tags render via `<TagChips>` (`components/shared/tag-chips.tsx`) —
+coloured outline chips with a `max` before collapsing to `+N` (2 in a table row, `Infinity` on a
+detail page). **Never map `product.tags` to chips inline.** The colour goes on the border and text,
+never as a fill: merchants pick arbitrary colours and half of them would make a filled chip
+unreadable. Until 2026-08-07 the table had the only copy and the card view plus both detail panels
+showed nothing, so switching views silently lost the tags.
+
 **Category display:** a product's place in the taxonomy renders via `<CategoryPath>`
 (`components/shared/category-path.tsx`) — `Personal Care › Skin Care`, with the child dimmed by
 `opacity` so it inherits the caller's colour. **Never print `product.category?.name` on its own.**

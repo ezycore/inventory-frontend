@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Separator } from '@ui/components/separator'
 import { Info } from 'lucide-react'
 import { CategoryPath } from '@/components/shared/category-path'
+import { TagChips } from '@/components/shared/tag-chips'
 import type { InventoryItem } from './utils'
 
 interface DetailInfoCardProps {
@@ -42,6 +43,11 @@ export function DetailInfoCard({ product, inventoryItems, expiryEnabled }: Detai
             value={<CategoryPath category={product.category?.name} subcategory={product.subcategory?.name} fallback="—" />}
           />
           <Row label={t('unit')} value={product.unit?.name || '—'} />
+          {/* All of them here — the detail page has room, unlike a table row. */}
+          <Row
+            label={t('tags')}
+            value={<TagChips tags={product.tags} max={Infinity} empty="—" />}
+          />
           {expiryEnabled && (
             <Row label={t('expiryTracking')} value={product.hasExpiry ? t('enabled') : t('off')} />
           )}
