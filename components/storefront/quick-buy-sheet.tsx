@@ -9,6 +9,7 @@ import { useOverlayTransition } from "@/hooks/use-overlay-transition";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
+import { cartLineCap } from "@/lib/storefront-cart-qty";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
@@ -121,7 +122,7 @@ export function QuickBuySheet({
     name: product.name,
     price,
     image: thumbImageUrl(image),
-    maxQty: canBackorder ? 0 : availableQty,
+    maxQty: cartLineCap(availableQty, canBackorder),
     qty,
   });
 

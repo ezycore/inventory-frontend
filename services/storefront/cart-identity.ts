@@ -20,8 +20,18 @@ const KEY_PREFIX = "easystock-cart-id";
 
 const keyFor = (slug: string) => `${KEY_PREFIX}:${slug}`;
 
-/** `crypto.randomUUID` where available; a plain random string otherwise. The
- *  value only has to be unique per store, never unguessable. */
+/**
+ * `crypto.randomUUID` where available; a plain random string otherwise.
+ *
+ * **It has to be unguessable, not merely unique.** The handle is the only thing
+ * standing between a cart and anyone else: `PUT /:slug/cart` overwrites by handle
+ * without authentication, and `POST /:slug/cart/claim` hands the cart's items
+ * back to any signed-in shopper who supplies one. Both are deliberate (the mirror
+ * has to work before sign-in), which is exactly why the value must not be
+ * derivable — never "improve" this into a counter, a timestamp, or anything
+ * seeded from the shopper. The fallback keeps ~50 bits of `Math.random` beside
+ * the clock for the same reason.
+ */
 function generate(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();

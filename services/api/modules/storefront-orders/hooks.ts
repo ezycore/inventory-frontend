@@ -4,6 +4,7 @@ import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
+import type { CreateAdminOrderInput, QuoteAdminOrderInput } from "./api";
 import {
   couriersApi,
   storefrontOrdersApi,
@@ -45,6 +46,71 @@ export const useOrderFraudScore = () =>
     mutationFn: (id: string) => storefrontOrdersApi.fraudScore(id),
     onError: handleMutationError,
   });
+
+/**
+ * The create dialog's product picker.
+ *
+ * Deliberately **not** the POS `sellableProducts` options list: these rows carry
+ * the storefront price with any live campaign applied, and exclude products a
+ * chat order cannot contain. Fetched only while the dialog is open — it is a
+ * whole-catalogue payload, and the orders list has no use for it.
+ */
+export const useOrderableProducts = (enabled: boolean) =>
+  useQuery({
+    queryKey: queryKeys.storefrontOrders.products(),
+    queryFn: () => storefrontOrdersApi.orderableProducts(),
+    enabled,
+    select: (r) => r.data ?? [],
+    // A campaign starting or ending changes every price here, and the merchant
+    // is about to read one out to a buyer.
+    staleTime: 0,
+  });
+
+/**
+ * Live price for the order being typed into the create dialog.
+ *
+ * **A query, not a mutation, and that is the point** — it is a pure read that
+ * every keystroke re-asks, so it wants caching and dedupe. `placeholderData`
+ * keeps the previous total on screen while the next one loads, because a summary
+ * that blanks on every character is one the merchant stops trusting.
+ *
+ * Disabled until there is at least one line: an empty cart has no price, and
+ * asking for one would just be a guaranteed round-trip on dialog open.
+ */
+export const useOrderQuote = (draft: QuoteAdminOrderInput | null) =>
+  useQuery({
+    queryKey: queryKeys.storefrontOrders.quote(
+      (draft ?? {}) as unknown as Record<string, unknown>,
+    ),
+    queryFn: () => storefrontOrdersApi.quote(draft as QuoteAdminOrderInput),
+    enabled: !!draft?.items.length,
+    select: (r) => r.data,
+    placeholderData: (prev) => prev,
+    // Coupons and campaigns can change under a long-open dialog, and the number
+    // here is quoted to a buyer — so this one does not ride the 1-minute default.
+    staleTime: 0,
+  });
+
+/**
+ * Create a merchant-taken order.
+ *
+ * Dirties `order.changed` rather than `order.confirmed` even when
+ * `confirmImmediately` is set: the confirm is best-effort server-side (a stock
+ * shortfall leaves the order pending rather than losing it), so the client
+ * cannot assume stock moved. `order.changed` already covers the order list, the
+ * stats and the storefront dashboard, which is what actually changed either way.
+ */
+export const useCreateStorefrontOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateAdminOrderInput) => storefrontOrdersApi.create(body),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order created");
+      invalidate(qc, "order.changed");
+    },
+    onError: handleMutationError,
+  });
+};
 
 export const useConfirmOrder = () => {
   const qc = useQueryClient();

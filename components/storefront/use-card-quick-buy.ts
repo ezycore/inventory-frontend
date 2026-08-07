@@ -17,6 +17,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
+import { cartLineCap } from "@/lib/storefront-cart-qty";
 import {
   defaultSelection,
   matchVariant,
@@ -83,9 +84,9 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
   // would leave the shopper with a chosen size and no button to commit it.
   const fitsInline =
     !ctaOwnsImage && variants.length > 0 && optionsFitInline(variants);
-  const selection = Object.keys(picked).length
-    ? picked
-    : defaultSelection(variants);
+  /** The shopper touched a chip — as opposed to `defaultSelection`'s highlight. */
+  const hasPicked = Object.keys(picked).length > 0;
+  const selection = hasPicked ? picked : defaultSelection(variants);
   const selected = matchVariant(variants, selection);
 
   const canBackorder = product.outOfStockBehavior === "backorder";
@@ -139,8 +140,7 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
       name: product.name,
       price: product.price ?? 0,
       image: thumbImageUrl(product.images?.[0]),
-      // Backorder → uncapped (the store treats maxQty<=0 as no limit).
-      maxQty: canBackorder ? 0 : product.availableQuantity,
+      maxQty: cartLineCap(product.availableQuantity, canBackorder),
       qty: 1,
     }),
     [canBackorder, product],
@@ -158,7 +158,24 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
         setRevealOnLoad(true);
         return;
       }
+      // **A variant the shopper never chose is never committed.** `revealed` is
+      // also set by a 120ms mouse dwell, so without this a desktop shopper who
+      // brushed a card and then clicked Add bought whatever `defaultSelection`
+      // had highlighted — a size they never picked. Hover may reveal the
+      // options; only a pick may buy one.
+      if (!hasPicked) {
+        setRevealed(true);
+        if (fitsInline) setFlyoutOpen(true);
+        else setSheetOpen(true);
+        return;
+      }
       if (!selected || selected.price == null) return;
+      const cap = cartLineCap(selected.availableQuantity, canBackorder);
+      // The chips disable a sold-out value, but `defaultSelection` falls back to
+      // the first variant when none is in stock — so the committed one can still
+      // be empty. Checkout would reject it anyway; refusing here keeps it out of
+      // the cart instead of putting it there to fail later.
+      if (cap === 0) return;
       commit(
         {
           productId: product._id,
@@ -168,7 +185,7 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
           name: product.name,
           price: selected.price,
           image: thumbImageUrl(selected.images?.[0] ?? product.images?.[0]),
-          maxQty: canBackorder ? 0 : selected.availableQuantity,
+          maxQty: cap,
           qty: 1,
         },
         intent,
@@ -179,6 +196,7 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
       commit,
       fitsInline,
       flyoutOpen,
+      hasPicked,
       product,
       revealed,
       selected,
@@ -223,9 +241,10 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
      * The variant the shopper **explicitly picked**, as opposed to the one
      * `defaultSelection` pre-highlights. The card prices off this: switching
      * the headline price on a default nobody chose would silently rewrite
-     * "From ৳600" into a definite price the shopper never asked for.
+     * "From ৳600" into a definite price the shopper never asked for. `press`
+     * refuses to commit without it, for the same reason.
      */
-    chosen: Object.keys(picked).length ? selected : undefined,
+    chosen: hasPicked ? selected : undefined,
     soldOut,
     pending,
     flyoutOpen,

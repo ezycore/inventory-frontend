@@ -33,6 +33,8 @@ import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { VerifyEmailGate } from "@/components/storefront/verify-email-gate";
 import { LoadingSplash } from "@/components/storefront/loading-splash";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { cartAnonymousId } from "@/services/storefront/cart-identity";
+import { isValidBdPhone } from "@/services/storefront/bd-phone";
 import {
   StepsBar,
   SummaryRow,
@@ -71,14 +73,10 @@ export default function CheckoutPage() {
   const token = useShopperStore((s) => s.token);
   const hydrated = useHydrated();
 
-  // Guests go straight to sign-in (no intermediate "Account" step) and bounce
-  // back here after — the account page honours `?next=`. Wait for the persisted
-  // store to hydrate, or a signed-in shopper refreshing this page gets bounced.
-  useEffect(() => {
-    if (hydrated && !shopper) {
-      router.replace(storeHref(base, "/account?next=/checkout"));
-    }
-  }, [hydrated, shopper, router, base]);
+  // GUEST CHECKOUT: no sign-in wall. A shopper who is signed in gets their saved
+  // addresses and profile prefill; everyone else fills the form and orders. The
+  // account is post-purchase value (order history, saved addresses), and it is
+  // never worth more than the order — so it never gates one.
   const storeSlug = useCartStore((s) => s.storeSlug);
   const allItems = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
@@ -171,12 +169,17 @@ export default function CheckoutPage() {
   };
 
   const applyCoupon = async () => {
-    if (!coupon.trim() || !token) return;
+    if (!coupon.trim()) return;
     setApplying(true);
     try {
-      const res = await storefrontApi.validateCoupon(slug, token, {
+      // No token is a guest preview, which the server accepts. The phone rides
+      // along because it is what carries a per-buyer limit when there is no
+      // account to count against — omit it and the quoted discount could differ
+      // from the one actually charged.
+      const res = await storefrontApi.validateCoupon(slug, token || undefined, {
         code: coupon.trim(),
         items: items.map((i) => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })),
+        phone: addr.phone.trim() || undefined,
       });
       setApplied(res);
       toast.success(`${res.code} · ${money(res.discountAmount, currency)}`);
@@ -197,9 +200,18 @@ export default function CheckoutPage() {
   );
   const needAddress = required.has("address");
   const needArea = required.has("area") || zoned;
+  // A GUEST's phone is their identity, not just a contact detail — the server
+  // rejects one it cannot normalise with `INVALID_PHONE`, so validate the same
+  // rule here rather than letting them discover it at submit. A signed-in shopper
+  // keeps the looser check: they are already identified by their account, and
+  // tightening that is a separate change.
+  const phoneUsable = shopper
+    ? !!addr.phone.trim()
+    : isValidBdPhone(addr.phone);
+  const phoneInvalid = !shopper && !!addr.phone.trim() && !phoneUsable;
   const contactComplete = !!(
     (!required.has("name") || addr.name.trim()) &&
-    (!required.has("phone") || addr.phone.trim())
+    (!required.has("phone") || phoneUsable)
   );
   // Delivery honours the configured fields; pickup only needs name + phone.
   const deliveryComplete = !!(
@@ -232,6 +244,10 @@ export default function CheckoutPage() {
     addressComplete && !belowMin && (!termsRequired || termsAccepted);
   // Per-step advance gate (multi-step template): step 1 = address/contact,
   // step 2 = payment. Terms/min-order are settled at the final submit, not here.
+  //
+  // `addressComplete` already carries the phone rule, which is what makes the
+  // multi-step path safe: without it a guest advances past step 1 with a junk
+  // number and only meets the 400 two screens later.
   const stepBlocked = step === 1 && !addressComplete;
 
   // Best-effort: remember the picked district/area on the chosen address (or save
@@ -275,6 +291,12 @@ export default function CheckoutPage() {
         paymentMethod: effectivePayment,
         couponCode: applied?.code,
         termsAccepted: termsRequired ? termsAccepted : undefined,
+        // Lets the server close this browser's mirrored cart. Without it a guest
+        // order leaves the cart `active` — counted as abandoned, missing from the
+        // conversion funnel, and eventually eligible for a "you left these behind"
+        // reminder about a parcel that already arrived. `null` here is normal
+        // (Safari private mode), and the order must not depend on it.
+        anonymousId: cartAnonymousId(slug) ?? undefined,
       },
       {
         onSuccess: (order) => {
@@ -289,9 +311,10 @@ export default function CheckoutPage() {
   };
 
   // ----- gates -----
-  if (!shopper) {
-    // Either the persisted session hasn't hydrated yet or the effect above is
-    // redirecting a guest to sign-in — both get a neutral splash.
+  // Only one gate left, and it is about the persisted session loading — NOT about
+  // having an account. Rendering before hydration would flash the guest form at a
+  // signed-in shopper and lose their saved addresses.
+  if (!hydrated) {
     return (
       <div style={wrap}>
         <LoadingSplash />
@@ -299,8 +322,10 @@ export default function CheckoutPage() {
     );
   }
 
-  // Orders need a confirmed email (backend enforces the same rule).
-  if (!shopper.emailVerified && !placed) {
+  // The verification gate still has teeth for shoppers who HAVE an account — it
+  // protects the accounts that exist. A guest has no email to verify, so gating
+  // them on it would be gating them on nothing.
+  if (shopper && !shopper.emailVerified && !placed) {
     return (
       <div style={wrap}>
         <VerifyEmailGate />
@@ -311,7 +336,7 @@ export default function CheckoutPage() {
   if (placed) {
     return (
       <div style={wrap}>
-        <OrderPlacedCard order={placed} base={base} t={t} />
+        <OrderPlacedCard order={placed} base={base} t={t} isGuest={!shopper} />
       </div>
     );
   }
@@ -389,10 +414,36 @@ export default function CheckoutPage() {
                   />
                 </>
               ) : null}
+              {/* An OFFER, not a step. Signing in prefills saved addresses and
+                  files the order under the account; skipping it costs nothing. */}
+              {!shopper ? (
+                <div style={{ fontSize: 13, marginBottom: 14 }}>
+                  {t.haveAccount}{" "}
+                  <Link
+                    href={storeHref(base, "/account?next=/checkout")}
+                    style={{ textDecoration: "underline" }}
+                  >
+                    {t.signIn}
+                  </Link>
+                </div>
+              ) : null}
               <div style={label}>{isPickup ? t.pickupHeading : t.deliveryAddress}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
                 <input style={input} placeholder={t.fullName} value={addr.name} onChange={(e) => set("name", e.target.value)} />
-                <input style={input} placeholder={t.phone} value={addr.phone} onChange={(e) => set("phone", e.target.value)} />
+                <input
+                  style={phoneInvalid ? { ...input, borderColor: "#dc2626" } : input}
+                  placeholder={t.phone}
+                  value={addr.phone}
+                  inputMode="tel"
+                  onChange={(e) => set("phone", e.target.value)}
+                />
+                {/* Shown only once they have typed something — an empty field is
+                    incomplete, not wrong, and reads as nagging if flagged. */}
+                {phoneInvalid ? (
+                  <div style={{ fontSize: 12, color: "#dc2626", marginTop: -4 }}>
+                    {t.phoneInvalid}
+                  </div>
+                ) : null}
                 {!isPickup ? (
                   <>
                     <input style={input} placeholder={t.addressLine} value={addr.address} onChange={(e) => set("address", e.target.value)} />

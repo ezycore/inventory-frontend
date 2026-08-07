@@ -3,6 +3,7 @@
 
 import { invalidate } from "@/services/api/invalidation";
 import { Suspense, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ import {
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { OrderRow } from "@/components/ecommerce/orders/order-row";
+import { CreateOrderDialog } from "@/components/ecommerce/orders/create-order-dialog";
 import { getOrderStats } from "@/components/ecommerce/orders/helpers";
 import { ListPagination } from "@/components/ecommerce/list-pagination";
 import { ListSearchInput } from "@/components/ecommerce/list-search-input";
@@ -48,6 +50,17 @@ const FULFILLMENT_OPTIONS = [
   { label: "Delivery", value: "delivery" },
   { label: "Pickup", value: "pickup" },
 ];
+/** Mirrors the backend enum; "all" is the clear-filter sentinel like the others. */
+const CHANNEL_OPTIONS = [
+  { label: "All channels", value: "all" },
+  { label: "Website", value: "website" },
+  { label: "Messenger", value: "messenger" },
+  { label: "WhatsApp", value: "whatsapp" },
+  { label: "Instagram", value: "instagram" },
+  { label: "Post comment", value: "comment" },
+  { label: "Phone call", value: "phone" },
+  { label: "Other", value: "manual" },
+];
 
 export default function EcommerceOrdersPage() {
   return (
@@ -69,9 +82,11 @@ function OrdersList() {
   const qc = useQueryClient();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
 
+  const [createOpen, setCreateOpen] = useState(false);
   const [status, setStatus] = useState(initialStatus);
   const [courier, setCourier] = useState("all");
   const [fulfillment, setFulfillment] = useState("all");
+  const [channel, setChannel] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -122,6 +137,11 @@ function OrdersList() {
     setPage(1);
     setSelected(new Set());
   };
+  const changeChannel = (v: string) => {
+    setChannel(v);
+    setPage(1);
+    setSelected(new Set());
+  };
   const changeLimit = (n: number) => {
     setLimit(n);
     setPage(1);
@@ -137,6 +157,7 @@ function OrdersList() {
     search: search || undefined,
     courier: courier === "all" ? undefined : courier,
     fulfillmentType: fulfillment === "all" ? undefined : fulfillment,
+    channel: channel === "all" ? undefined : channel,
     page,
     limit,
   });
@@ -212,12 +233,22 @@ function OrdersList() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Online Orders</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Orders placed through your storefront.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Online Orders</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Orders from your storefront, and the ones you took in chat or by phone.
+          </p>
+        </div>
+        {/* Most of an f-commerce merchant's volume never touches the website, so
+            this is not a secondary action — it is how the majority of orders get
+            onto the courier/COD pipeline at all. */}
+        <Button onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Create order
+        </Button>
       </div>
+      <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
 
       {/* COD-cash stat cards */}
       <StatsCard
@@ -250,6 +281,12 @@ function OrdersList() {
             value={fulfillment}
             onValueChange={changeFulfillment}
             options={FULFILLMENT_OPTIONS}
+            className="h-9 w-40"
+          />
+          <SimpleSelect
+            value={channel}
+            onValueChange={changeChannel}
+            options={CHANNEL_OPTIONS}
             className="h-9 w-40"
           />
           <ListSearchInput
@@ -342,6 +379,9 @@ function OrdersList() {
                 <th className="px-3 py-3">Payment</th>
                 <th className="px-3 py-3">Courier</th>
                 <th className="px-3 py-3">Status</th>
+                {/* Copy-tracking-link column — deliberately unlabelled, like the
+                    chevron: the icon and its tooltip carry the meaning. */}
+                <th className="w-10" />
                 <th className="w-8" />
               </tr>
             </thead>
@@ -349,14 +389,14 @@ function OrdersList() {
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="border-b">
-                    <td colSpan={9} className="px-4 py-3">
+                    <td colSpan={10} className="px-4 py-3">
                       <Skeleton className="h-5 w-full" />
                     </td>
                   </tr>
                 ))
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-16 text-center">
+                  <td colSpan={10} className="px-4 py-16 text-center">
                     <div className="text-sm font-semibold">No orders found</div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       Try adjusting your search or filters.

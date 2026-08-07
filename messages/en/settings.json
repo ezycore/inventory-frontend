@@ -951,6 +951,8 @@
     "alwaysOn": "Always on",
     "mandatoryHint": "This message can't be switched off — it's how people get back into their account.",
     "smsLockedHint": "SMS can't send yet — see the SMS credit card above.",
+    "managedHint": "This one is switched on and off with the feature itself, not here.",
+    "managedElsewhere": "Manage in Store settings",
     "emptyEvents": "No notification events available for this workspace.",
     "events": {
       "order": {

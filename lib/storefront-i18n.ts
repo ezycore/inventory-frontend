@@ -166,6 +166,14 @@ export interface Dict {
   deliveryDetails: string;
   fullName: string;
   phone: string;
+  /** Inline error under the phone field when a guest types a non-BD mobile. */
+  phoneInvalid: string;
+  /** Optional sign-in nudge beside the guest form — an offer, never a gate. */
+  haveAccount: string;
+  /** Confirmation screen: the buyer's tracking link + its copy control. */
+  trackYourOrder: string;
+  copyLink: string;
+  linkCopied: string;
   address: string;
   addressLabel: string;
   addressLabelCustom: string;
@@ -523,6 +531,11 @@ const en: Dict = {
   deliveryDetails: "Delivery details",
   fullName: "Full name",
   phone: "Phone number",
+  phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
+  haveAccount: "Already have an account?",
+  trackYourOrder: "Track your order",
+  copyLink: "Copy link",
+  linkCopied: "Link copied",
   address: "Full address",
   addressLabel: "Address label",
   addressLabelCustom: "Label name",
@@ -871,6 +884,11 @@ const bn: Dict = {
   deliveryDetails: "ডেলিভারি তথ্য",
   fullName: "পুরো নাম",
   phone: "ফোন নম্বর",
+  phoneInvalid: "সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮",
+  haveAccount: "আগে থেকে অ্যাকাউন্ট আছে?",
+  trackYourOrder: "অর্ডার ট্র্যাক করুন",
+  copyLink: "লিংক কপি করুন",
+  linkCopied: "লিংক কপি হয়েছে",
   address: "সম্পূর্ণ ঠিকানা",
   addressLabel: "ঠিকানার লেবেল",
   addressLabelCustom: "লেবেলের নাম",

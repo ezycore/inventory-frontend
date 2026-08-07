@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
 import { storeHref } from "@/lib/storefront-links";
+import { cartLineCap } from "@/lib/storefront-cart-qty";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useWishlistStore } from "@/services/stores/use-wishlist-store";
 import { useStore } from "@/services/storefront/hooks";
@@ -65,7 +66,10 @@ export function WishlistSection() {
       name: item.name,
       price: item.price ?? 0,
       image: item.image,
-      maxQty: item.availableQuantity ?? 0,
+      maxQty: cartLineCap(
+        item.availableQuantity,
+        item.outOfStockBehavior === "backorder",
+      ),
     });
     removeWish(productId);
     toast.success(t.added);

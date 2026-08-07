@@ -16,6 +16,7 @@ import { useWishlistStore } from "@/services/stores/use-wishlist-store";
 import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { storeHref } from "@/lib/storefront-links";
 import { cardImageUrl, thumbImageUrl } from "@/lib/storefront-image";
+import { cartLineCap } from "@/lib/storefront-cart-qty";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { SectionTitle } from "@/components/storefront/sf-bits";
@@ -153,8 +154,7 @@ export default function ProductDetailPage({
         name: product.name,
         price,
         image: thumbImageUrl(images[0] ?? product.images?.[0]),
-        // Backorder → uncapped (the store treats maxQty<=0 as no limit).
-        maxQty: canBackorder ? 0 : availableQty,
+        maxQty: cartLineCap(availableQty, canBackorder),
       },
       qty,
     );
@@ -180,6 +180,7 @@ export default function ProductDetailPage({
       image: cardImageUrl(product.images?.[0]),
       hasVariants: variable,
       availableQuantity: product.availableQuantity,
+      outOfStockBehavior: product.outOfStockBehavior,
     });
 
   return (

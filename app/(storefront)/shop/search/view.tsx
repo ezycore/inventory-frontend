@@ -17,6 +17,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { storeHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
+import { cartLineCap } from "@/lib/storefront-cart-qty";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
@@ -247,7 +248,13 @@ function SearchRow({
             name: product.name,
             price: product.price ?? 0,
             image: thumb,
-            maxQty: product.availableQuantity,
+            // Backorder was never considered here, so a backorder product added
+            // from search used to arrive capped at its (often zero) on-hand
+            // stock. `cartLineCap` is the one rule; this surface now follows it.
+            maxQty: cartLineCap(
+              product.availableQuantity,
+              product.outOfStockBehavior === "backorder",
+            ),
           });
           toast.success(addedLabel);
         }}

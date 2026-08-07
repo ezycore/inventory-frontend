@@ -31,8 +31,9 @@ editing them.
   became an order. This is the harsher number, and the more useful one: these shoppers were trying to
   buy.
 
-**All four cover the same last 30 days**, as do the funnel and the most-abandoned list — so you can
-read them together without accidentally comparing different periods.
+**All four cover the same last 30 days** — as do the funnel, the most-abandoned list, and the cart
+rows below them. Everything on the page is one period, so you can read the headline number and the
+list under it together without accidentally comparing two different spans of time.
 
 A dash (—) instead of a percentage means there is not enough data yet. It does not mean zero.
 
@@ -100,6 +101,10 @@ The most common causes of abandonment, roughly in order:
 
 You can have EzyCore email a shopper a link back to their cart. Turn it on under **Store
 Settings → Checkout → Email shoppers who leave items behind**, and choose when the reminders go.
+
+That one switch is the only one. Settings → Notifications lists *Abandoned cart reminder* so you can
+see the message exists, but the row is read-only and links back here — one switch means there is
+never a second one quietly cancelling the first.
 
 Two limits are deliberate:
 
