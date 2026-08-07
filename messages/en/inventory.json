@@ -84,7 +84,9 @@
     "status": "Status",
     "allStatuses": "All statuses",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "Any tag"
   },
   "form": {
     "product": "Product",

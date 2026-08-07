@@ -25,6 +25,13 @@ export interface FilterField {
  // For API field mapping
  apiKey?: string; // Map to different API parameter name
  optionsApi?: string; // API endpoint to fetch options dynamically
+ /**
+  * Selection mode for `select` fields. Defaults to "single".
+  *
+  * "multiple" emits an array, which the query builder joins with commas — the
+  * shape the backend's OR filters take (e.g. products `?tags=a,b`).
+  */
+ mode?: "single" | "multiple";
  // Validation
  min?: number;
  max?: number;

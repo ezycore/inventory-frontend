@@ -286,6 +286,19 @@ export interface FormFieldConfig {
   // Example: copyValueTo: ['saleUnit.unitId'] will set saleUnit.unitId to this field's value
   copyValueTo?: string[];
 
+  /**
+   * Fields to RESET when this one changes.
+   *
+   * For a dependent select whose options are derived from this field: once the
+   * parent changes, the child's stored value belongs to the old parent and is no
+   * longer in its own option list. Left alone the form silently posts a stale
+   * pair, and only the server notices.
+   *
+   * Example: the product form's category clears `subcategoryId`, because a
+   * sub-category is only valid under the category it belongs to.
+   */
+  clearFieldsOnChange?: string[];
+
   // Output format for `date` fields (date-fns tokens). Forwarded to <DatePicker>.
   // Omit for a full ISO datetime; use "yyyy-MM-dd" to emit a local date-only value.
   outputFormat?: string;

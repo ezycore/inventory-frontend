@@ -21,11 +21,25 @@ export const getProductFilterConfig = (t: Translator): FilterConfig => ({
       optionsApi: selectOptions("brands", { fields: "_id,name" }),
     },
     {
+      // Top-level only: filtering by a parent already includes every product in
+      // its sub-categories, because `product.categoryId` stays on the parent.
       name: "categoryId",
       label: t("filters.categoryLabel"),
       type: "select",
       placeholder: t("filters.categoryPlaceholder"),
-      optionsApi: selectOptions("categories", { fields: "_id,name" }),
+      optionsApi: selectOptions("categories", {
+        parentId: "null",
+        fields: "_id,name",
+      }),
+    },
+    {
+      // OR semantics — a product carrying ANY selected tag matches.
+      name: "tags",
+      label: t("filters.tagsLabel"),
+      type: "select",
+      mode: "multiple",
+      placeholder: t("filters.tagsPlaceholder"),
+      optionsApi: selectOptions("tags", { status: "active", fields: "_id,name" }),
     },
     {
       name: "status",

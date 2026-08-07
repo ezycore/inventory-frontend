@@ -1,3 +1,4 @@
+import { selectOptions } from "@/services/api/select-options";
 import { FilterConfig } from '@/types/DataTable'
 import type { Translator } from '@/i18n/config'
 
@@ -8,6 +9,19 @@ export const getCategoryFilterConfig = (t: Translator): FilterConfig => ({
       label: t("filters.searchLabel"),
       type: "text",
       placeholder: t("filters.searchPlaceholder"),
+    },
+    {
+      // Narrows to one parent's children. Leaving it unset keeps the flat list of
+      // every category, parents and children together — the default the backend
+      // preserves for exactly this reason.
+      name: "parentId",
+      label: t("filters.parentLabel"),
+      type: "select",
+      placeholder: t("filters.parentPlaceholder"),
+      optionsApi: selectOptions("categories", {
+        parentId: "null",
+        fields: "_id,name",
+      }),
     },
     {
       name: "status",

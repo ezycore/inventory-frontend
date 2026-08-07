@@ -70,11 +70,18 @@ export const queryKeys = {
   categories: {
     ...resourceKeys("categories"),
     bySlug: (slug: string) => ["categories", "slug", slug] as const,
+    /** The two-level tree with per-node product counts (`GET /categories/tree`). */
+    tree: () => ["categories", "tree"] as const,
   },
 
   brands: {
     ...resourceKeys("brands"),
     bySlug: (slug: string) => ["brands", "slug", slug] as const,
+  },
+
+  tags: {
+    ...resourceKeys("tags"),
+    bySlug: (slug: string) => ["tags", "slug", slug] as const,
   },
 
   units: resourceKeys("units"),

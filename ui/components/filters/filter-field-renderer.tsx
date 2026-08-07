@@ -61,10 +61,24 @@ export function FilterFieldRenderer({
           disabled: false,
         })) || [];
 
+        // A multi-select emits an array; the single case keeps coercing to a
+        // string so existing filters are untouched.
+        const isMulti = field.mode === 'multiple';
+
         // Same auto-strategy as DynamicForm selects (see select-strategy.ts): a
         // remote or long list renders the searchable Fuse combobox; a short
         // static enum stays a plain dropdown.
+        //
+        // `mode` is load-bearing and was missing. The helper only returns
+        // "searchable" for SINGLE selects — Fuse has no multi path, so a
+        // multi-select must stay on AdvancedSelect (which delegates to
+        // MultiSelect). Omitting `mode` defaulted it to "single", and since
+        // every multi filter here is remote (`optionsApi` ⇒ true) they all
+        // rendered as plain single-pick dropdowns: no checkboxes, and picking a
+        // second value replaced the first. The declared `mode: "multiple"` on
+        // the products and inventory tag filters had no effect at all.
         const SelectComponent: typeof FuseAdvancedSelect = shouldUseSearchableSelect({
+          mode: isMulti ? 'multiple' : 'single',
           optionsApi: field.optionsApi,
           optionCount: selectOptions.length,
         })
@@ -73,8 +87,14 @@ export function FilterFieldRenderer({
 
         return (
           <SelectComponent
-            mode="single"
-            value={value ? String(value) : ''}
+            mode={isMulti ? 'multiple' : 'single'}
+            value={
+              isMulti
+                ? (Array.isArray(value) ? value.map(String) : [])
+                : value
+                  ? String(value)
+                  : ''
+            }
             onValueChange={onChange}
             placeholder={field.placeholder || 'Select...'}
             options={selectOptions}

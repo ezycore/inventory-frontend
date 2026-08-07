@@ -46,9 +46,28 @@ every store; **the host picks the store**.
 ## Frontend layout
 
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,
-`cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS), and `account/*` (auth card +
+`cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS), `account/*` (auth card +
 account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orderNumber]`,
-`orders/[orderNumber]/invoice`).
+`orders/[orderNumber]/invoice`), and the **`[...categoryPath]` catch-all**.
+
+### `[...categoryPath]` — collection pages at real paths (2026-08-06)
+
+`/phones` and `/phones/accessories`. Three things to know before touching it:
+
+- **It is a catch-all, so it loses to every static segment** — `/cart`, `/products`, `/search`,
+  `/account`, `/orders`, `/pages`, `/t`, `/checkout` all still win. A category whose slug collides
+  with one of those would not break the route, it would be **silently unreachable** — which is why the
+  backend refuses such a name (`RESERVED_STOREFRONT_SLUGS`). **Add a static storefront segment ⇒ add
+  it to that list**, or the next merchant to name a category after it gets a dead collection.
+- **It renders the SAME grid as `/products`** — `products/view.tsx` with an optional `collection`
+  prop. Do not fork it; a second copy would drift on pagination mode, filter chips or layout.
+- **Depth is capped at 2 and an unknown path is a hard 404.** Not an empty grid: a mistyped
+  collection URL must not look like a store with no stock. The service returns zero rows for an
+  unresolved path independently of the route guard, so neither alone can leak the whole catalog.
+
+`GET …/categories` is a two-level **tree** (`children[]`, each node carrying `slugPath`), and a
+hidden parent takes its children with it. Link to a collection with **`collectionHref(base, cat)`**
+(`lib/storefront-links.ts`) — never hand-build `?categoryId=` again.
 
 - **Pattern**: `page.tsx` (server; SEO via `storePageMetadata` in `lib/storefront-metadata.ts`)
   + `view.tsx` (`"use client"`). Server data fetches go through `lib/storefront-server.ts`
@@ -362,11 +381,14 @@ resolved **per request from the host**, never baked.
   silently misses the seed and you're back to an empty body. Only page 1 is seeded.
 - **`noindex` policy.** Transactional routes (cart, checkout, search, `/account/*`, invoices) pass
   `index: false` → `noindex, nofollow`. Filtered collection URLs pass `index: false, follow: true`
-  **and no canonical** — `isIndexableCatalogUrl` allows a plain listing or a *single* category/brand
-  facet (those are real landing pages and self-canonicalize via `catalogCanonicalQuery`); price
-  bounds, `inStock`, a sort, or two facets at once are the same catalogue re-sliced and multiply
-  without limit. Never give a `noindex` page a canonical pointing elsewhere — that's two contradictory
-  instructions.
+  **and no canonical** — `isIndexableCatalogUrl` allows a plain listing or a *single brand* facet
+  (which self-canonicalizes via `catalogCanonicalQuery`); price bounds, `inStock`, a sort, or a `tags`
+  facet are the same catalogue re-sliced and multiply without limit. Never give a `noindex` page a
+  canonical pointing elsewhere — that's two contradictory instructions.
+  - **`?categoryId=` is deliberately NOT indexable any more.** A collection's canonical URL is its
+    PATH (`/phones`), and two URLs claiming the same page compete. The query form still resolves so
+    old links keep working; it just never earns an index slot, and the sitemap emits paths only
+    (`collections: {path}` at both levels). Tag facets are excluded from the sitemap entirely.
 - **`/robots.txt` + `/sitemap.xml`** — `app/robots.ts` / `app/sitemap.ts`, both
   `dynamic = "force-dynamic"`. ⚠ **They do NOT get the `x-ezy-store-*` headers**: `proxy.ts`'s matcher
   excludes any path containing a dot, so these routes resolve the host themselves via
@@ -1033,7 +1055,7 @@ resolved **per request from the host**, never baked.
   storefront-native dropdown (button trigger + popover listbox, keyboard + outside-click), sharing
   its menu card/row styles with the checkout Combobox via `menu-styles.ts`. Use it over a bare
   `<select>` (OS picker, unthemed) and over the admin Radix `SimpleSelect` (Tailwind tokens). Everything is
-  URL-driven — `?brandId=&minPrice=&maxPrice=&inStock=1&sort=` extends the `?categoryId=`
+  URL-driven — `?brandId=&tags=&minPrice=&maxPrice=&inStock=1&sort=` extends the `?categoryId=`
   pattern; filters apply instantly (no staged Apply) and a brand-only filter makes `/products`
   that brand's landing page (h1 = brand name). BE: public `GET /:slug/brands` (auto-curated:
   active, non-`isDefault`, ≥1 listed active product; productCount, alphabetical) and
@@ -1106,7 +1128,8 @@ resolved **per request from the host**, never baked.
   to "collections" blindly. `nav.header` items support **`type: "collections"`** — a block that
   expands inline to the listed collections via `expandHeaderMenu` (`header-nav.tsx`, tested),
   applied ONCE where `ctx.headerMenu` is built in `store-header.tsx` (covers all variants +
-  preview; expanded links are id-based `/products?categoryId=` so slugless cats work). Admin:
+  preview; expanded links are PATH-based since 2026-08-06 — a slugless category is dropped, not
+  linked). Admin:
   Customize gains a **Navigation** section (`components/ecommerce/navigation/*` — navigation-section,
   header-menu-card w/ source picker, menu-item-fields, announcement-card, footer-links-card) and a
   **CollectionsPanel** rail takeover (`components/ecommerce/collections/*`; HeroSlidesPanel

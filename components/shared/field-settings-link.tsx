@@ -6,7 +6,8 @@ import { Settings2 } from "lucide-react";
 import Link from "next/link";
 
 interface FieldSettingsLinkProps {
-  module: "product" | "brand" | "category";
+  /** Must match a tab key in `app/(protected)/settings/fields/page.tsx`. */
+  module: "product" | "brand" | "category" | "tag";
 }
 
 /**

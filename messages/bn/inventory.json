@@ -84,7 +84,9 @@
     "status": "স্ট্যাটাস",
     "allStatuses": "সব স্ট্যাটাস",
     "active": "সক্রিয়",
-    "inactive": "নিষ্ক্রিয়"
+    "inactive": "নিষ্ক্রিয়",
+    "tagsLabel": "ট্যাগ",
+    "tagsPlaceholder": "যেকোনো ট্যাগ"
   },
   "form": {
     "product": "পণ্য",

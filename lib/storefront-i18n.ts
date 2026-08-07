@@ -263,6 +263,8 @@ export interface Dict {
   category: string;
   priceRange: string;
   brandLabel: string;
+  /** Tag facet heading on the collection filter panel. */
+  tagsLabel: string;
   clearAll: string;
   applyFilters: string;
   /**
@@ -638,6 +640,7 @@ const en: Dict = {
   category: "Category",
   priceRange: "Price range",
   brandLabel: "Brand",
+  tagsLabel: "Tags",
   clearAll: "Clear all",
   applyFilters: "Apply",
   showingOf: "Showing {n} of {total}",
@@ -1005,6 +1008,7 @@ const bn: Dict = {
   category: "ক্যাটাগরি",
   priceRange: "দামের পরিসীমা",
   brandLabel: "ব্র্যান্ড",
+  tagsLabel: "ট্যাগ",
   clearAll: "সব মুছুন",
   applyFilters: "প্রয়োগ",
   showingOf: "{total}টির মধ্যে {n}টি দেখাচ্ছে",

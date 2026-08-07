@@ -279,9 +279,37 @@ export interface StoreCampaign {
 export interface CatalogCategory {
   _id: string;
   name: string;
+  /** Leaf segment only. Link with `slugPath`, which carries the full path. */
   slug: string;
+  /** Public path: "phones" (top level) or "phones/accessories" (child). */
+  slugPath?: string;
   /** Collection thumbnail (single image); absent when the merchant set none. */
   image?: StorefrontImage | null;
+  /**
+   * Sub-categories. Present on top-level nodes only — the tree is exactly two
+   * levels deep, and a hidden parent takes its children with it, so anything
+   * listed here is reachable at its own `slugPath`.
+   */
+  children?: CatalogCategory[];
+}
+
+/** `GET …/categories/resolve?path=` — one collection, plus its breadcrumb parent. */
+export interface CatalogCategoryDetail extends CatalogCategory {
+  description?: string | null;
+  isSubcategory: boolean;
+  parent?: { _id: string; name: string; slugPath?: string } | null;
+}
+
+/**
+ * One public tag (`GET …/tags`) — curated like brands: active tags carrying at
+ * least one listed product, so a facet row can never come back empty.
+ */
+export interface StoreTag {
+  _id: string;
+  name: string;
+  slug: string;
+  color?: string | null;
+  productCount: number;
 }
 
 /**
@@ -676,6 +704,7 @@ export const storefrontApi = {
   listCategories: (slug: string) =>
     sfFetch<CatalogCategory[]>(slug, "/categories"),
   listBrands: (slug: string) => sfFetch<StoreBrand[]>(slug, "/brands"),
+  listTags: (slug: string) => sfFetch<StoreTag[]>(slug, "/tags"),
   listCampaigns: (slug: string) =>
     sfFetch<StoreCampaign[]>(slug, "/campaigns"),
   listPages: (slug: string) =>

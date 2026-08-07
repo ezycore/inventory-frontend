@@ -17,3 +17,23 @@ export function storeHref(base: string, path = ""): string {
   const suffix = path.startsWith("/") ? path : `/${path}`;
   return `${base}${suffix}`;
 }
+
+/**
+ * Link to a collection page.
+ *
+ * A collection's canonical URL is its PATH — `/phones`, `/phones/accessories` —
+ * so every category tile, nav row and footer link goes through here rather than
+ * hand-building a `?categoryId=` facet. The query form still resolves for anyone
+ * holding an old link, but it is no longer indexed and must not be emitted.
+ *
+ * A category with no `slugPath` (a legacy row predating the field) cannot route,
+ * so it falls back to the unfiltered listing instead of producing a dead link.
+ */
+export function collectionHref(
+  base: string,
+  category: { slugPath?: string } | null | undefined,
+): string {
+  const path = category?.slugPath;
+  if (!path) return storeHref(base, "/products");
+  return storeHref(base, `/${path.split("/").map(encodeURIComponent).join("/")}`);
+}

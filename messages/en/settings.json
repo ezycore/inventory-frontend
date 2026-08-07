@@ -120,7 +120,8 @@
     "tabs": {
       "product": "Products",
       "brand": "Brands",
-      "category": "Categories"
+      "category": "Categories",
+      "tag": "Tags"
     },
     "manager": {
       "subtitle": "Customize which fields appear in the {module} form for your organization",
