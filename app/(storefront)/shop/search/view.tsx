@@ -47,7 +47,8 @@ const wrap: CSSProperties = {
   padding: "22px var(--pad) 40px",
 };
 
-// Device-level shopper preference (like `sf-theme`) — grid vs list results.
+// Device-level shopper preference — grid vs list results. (Theme/lang live under
+// the `ezy-` prefix in ui-context.tsx; this one is deliberately page-local.)
 const VIEW_KEY = "sf-search-view";
 type SearchView = "grid" | "list";
 
