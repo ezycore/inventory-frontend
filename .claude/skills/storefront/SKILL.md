@@ -486,9 +486,12 @@ resolved **per request from the host**, never baked.
   `hooks/use-logo-tone.ts` is the React face of it. A logo whose ink matches the current theme gets
   a small contrasting plate — **everything else renders bare**, and `null` is the answer for a logo
   with its own background, a mid-tone/multi-colour mark, and any file CORS won't let us read.
-  Two rules: the hook must **not** seed from the module cache (a hit during hydration would
-  disagree with the SSR HTML), and the plate's colours are hardcoded, never theme tokens — the
-  plate exists precisely because the themed surface is the wrong tone.
+  Three rules: the hook must **not** seed from the module cache (a hit during hydration would
+  disagree with the SSR HTML); its state carries the `src` it was measured from and a mismatch
+  derives to `null`, because clearing stale state with a `setState` in the effect body is a
+  cascading render that `react-hooks/set-state-in-effect` **fails the build** on; and the plate's
+  colours are hardcoded, never theme tokens — the plate exists precisely because the themed surface
+  is the wrong tone.
   ⚠ **This needs CORS on the logo host.** Sampling reads pixels off a canvas, so the image is
   loaded `crossOrigin="anonymous"`; if the R2 bucket behind `*.r2.dev` / `cdn.ezycore.com` does not
   return `Access-Control-Allow-Origin`, every load fails and every logo falls back to bare — the
