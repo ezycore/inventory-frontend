@@ -316,7 +316,9 @@
       "downgradeScheduled": "Downgrade to {planName} scheduled for {date}. You keep your current plan until then.",
       "activated": "You're now on the {planName} plan.",
       "downgradeCancelled": "Downgrade cancelled. You'll stay on the {planName} plan.",
-      "checkoutCancelled": "Checkout was not completed. Your plan is unchanged."
+      "checkoutCancelled": "Checkout was not completed. Your plan is unchanged.",
+      "checkoutPending": "Your payment hasn't finished yet. We'll activate your plan automatically as soon as it clears — no need to pay again.",
+      "checkoutError": "We couldn't confirm your payment. If money left your account, contact support with your transaction ID — don't pay again."
     },
     "cancel": {
       "button": "Cancel subscription",
