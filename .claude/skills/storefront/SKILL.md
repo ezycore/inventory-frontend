@@ -194,7 +194,11 @@ reads as two filters at once.
 - **Listing pagination** (`templates.pagination`, default `pages`): `pages` = numbered
   `<Pager>`; `infinite` = auto-load `AUTO_LOADS` (2) pages then a button; `load-more` = button
   only. Applies to **both** the collection page and search results, which share
-  `components/storefront/{pager,load-more}.tsx`. Reads through
+  `components/storefront/{pager,load-more}.tsx`. The pager draws the real page numbers with
+  collapsed gaps (`‹ 1 … 9 10 11 … 20 ›`) from the exported, tested `pageItems(page, totalPages,
+  siblings?)`; its **slot count is constant at every page**, so the strip never resizes under the
+  cursor mid-walk — that invariant is what `pager.test.ts` asserts, so keep it if you touch the
+  window logic. Reads through
   **`useStoreTemplate(store, "pagination")`** — see the rule above. Non-`pages` modes use
   `useStoreProductsInfinite`; see the query-cache note below for why its key is separate.
   `infinite` deliberately stops auto-loading: this footer holds real navigation and the mobile
@@ -474,6 +478,24 @@ resolved **per request from the host**, never baked.
 
 ## Other storefront subsystems
 
+- **Brand lockup** — `components/storefront/logo-mark.tsx` (`<Brand>` = uploaded logo, else the
+  initial chip + store name; header and footer both use it). The uploaded logo is **measured, not
+  trusted**: a merchant's SVG/PNG wordmark usually has no backdrop, so black type disappears on the
+  dark theme and white type disappears on the light one, and nothing in the payload says which file
+  you have. `lib/logo-tone.ts` samples the pixels on a canvas and returns `"dark" | "light" | null`;
+  `hooks/use-logo-tone.ts` is the React face of it. A logo whose ink matches the current theme gets
+  a small contrasting plate — **everything else renders bare**, and `null` is the answer for a logo
+  with its own background, a mid-tone/multi-colour mark, and any file CORS won't let us read.
+  Two rules: the hook must **not** seed from the module cache (a hit during hydration would
+  disagree with the SSR HTML), and the plate's colours are hardcoded, never theme tokens — the
+  plate exists precisely because the themed surface is the wrong tone.
+  ⚠ **This needs CORS on the logo host.** Sampling reads pixels off a canvas, so the image is
+  loaded `crossOrigin="anonymous"`; if the R2 bucket behind `*.r2.dev` / `cdn.ezycore.com` does not
+  return `Access-Control-Allow-Origin`, every load fails and every logo falls back to bare — the
+  degradation is silent and looks exactly like "the fix didn't ship". That policy lives in the
+  Cloudflare dashboard, not in this repo. Check it with
+  `curl -I -H 'Origin: https://ezycore.com' <logo-url>` before debugging the code.
+
 - **Breadcrumbs** — `lib/storefront-breadcrumb.ts` (pure, tested) builds the trail;
   `components/storefront/breadcrumb.tsx` renders it. **Every page with a trail renders it twice** —
   once as `BreadcrumbList` JSON-LD, once as visible markup — so both MUST come from the same
@@ -621,7 +643,23 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-07)
+## Work log (what was built, newest first — as of 2026-08-08)
+
+- **Three storefront polish fixes: logo contrast, nav dropdown, pagination (FE)** (2026-08-08),
+  all reported from a real shop:
+  **(1) A transparent logo was invisible on one theme.** See the brand-lockup bullet above for the
+  mechanism. The tempting non-fixes were both worse: plating *every* logo boxes the wordmarks
+  designed for dark headers, and a CSS `invert()` wrecks anything with colour in it.
+  **(2) The category dropdown closed while the pointer was moving into it.** The panel sat
+  `marginTop: 6` below its trigger — but an absolutely-positioned panel is outside its parent's
+  box, so that 6px strip belonged to **no element**: crossing it fired `mouseleave` on the trigger
+  and closed the menu. Hence the intermittency (fast/diagonal moves cleared the gap, slow ones did
+  not). The offset is now `paddingTop` on a wrapping anchor, which puts the strip inside the
+  dropdown's own hit area, plus a 140ms close grace period for the frames a fast pointer lands in
+  neither box. **Never re-introduce a margin gap under a hover-opened panel.**
+  **(3) The pager was Prev / `n of N` / Next**, so a 20-page collection could only be walked one
+  click at a time. Now numbered with collapsed gaps — see the listing-pagination bullet.
+  i18n `pagination` + `pageX` ×2 locales; new `pager.test.ts`.
 
 - **Product tags became visible on the shop (FE + BE)** (2026-08-07): tags were filterable and
   nowhere displayed — `GET …/tags` served the facet, `?tags=` filtered, but no product payload

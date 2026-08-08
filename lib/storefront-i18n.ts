@@ -277,6 +277,10 @@ export interface Dict {
   loadMore: string;
   prev: string;
   next: string;
+  /** Landmark label on the numbered pager (`pages` mode). */
+  pagination: string;
+  /** Accessible name of one numbered page button. A template — `{n}` = page. */
+  pageX: string;
   inStockFilter: string;
   allBrands: string;
   availability: string;
@@ -647,6 +651,8 @@ const en: Dict = {
   loadMore: "Load more",
   prev: "Prev",
   next: "Next",
+  pagination: "Pagination",
+  pageX: "Page {n}",
   inStockFilter: "In stock only",
   allBrands: "All brands",
   availability: "Availability",
@@ -1015,6 +1021,8 @@ const bn: Dict = {
   loadMore: "আরও দেখুন",
   prev: "আগের",
   next: "পরের",
+  pagination: "পৃষ্ঠা নেভিগেশন",
+  pageX: "পৃষ্ঠা {n}",
   inStockFilter: "শুধু স্টকে আছে",
   allBrands: "সব ব্র্যান্ড",
   availability: "স্টক",
