@@ -11,9 +11,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
 import { BRAND } from "@/constants/brand";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export function AppTitle() {
   const { setOpenMobile } = useSidebar();
+  const t = useTranslations("layout.brand");
   const user = useAuthStore((state) => state.user);
 
   const orgName = user?.organization?.name || BRAND.name;
@@ -60,8 +62,11 @@ export function AppTitle() {
             {/* Hidden when sidebar collapses to icon mode so nothing overflows */}
             <div className="grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate font-bold">{orgName}</span>
+              {/* The workspace runs under the merchant's own name above, so
+                  this second line is the platform's signature — it says what
+                  the product does, not who they are. */}
               <span className="truncate text-xs text-muted-foreground">
-                {BRAND.tagline}
+                {t("tagline")}
               </span>
             </div>
           </Link>

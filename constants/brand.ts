@@ -2,10 +2,15 @@
 
 const NAME = "EzyCore";
 
-/** Single source for product branding shown in the app UI. */
+/**
+ * Single source for product branding shown in the app UI.
+ *
+ * The sidebar tagline is deliberately NOT here — it is a translated user-facing
+ * label, so it lives in `messages/{en,bn}/layout.json` under `layout.brand`
+ * like every other string a merchant reads.
+ */
 export const BRAND = {
   name: NAME,
-  tagline: "Make life easier",
   /**
    * Default browser-tab title. Owned by the signed-out tree's metadata and by
    * the raw <title> the protected layout renders for its SSR pass — NOT by the

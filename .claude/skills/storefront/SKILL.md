@@ -122,7 +122,9 @@ reads as two filters at once.
 - **Design system**: no Tailwind on the storefront. Inline `CSSProperties` + CSS variables from
   `app/(storefront)/storefront.css` — `--primary/--on-primary/--primary-soft/--card/--border/
   --border-strong/--text/--muted/--faint/--pad/--gap/--maxw/--h2` etc. Dark mode = `data-theme`
-  on `.sf-root` (toggle persisted as `sf-theme`). The org's `brandColor` overrides `--primary`
+  on `.sf-root` (toggle persisted as **`ezy-sf-theme`**, lang as `ezy-sf-lang` — both in
+  `services/storefront/ui-context.tsx`; note the storefront's *other* device preferences are
+  unprefixed, e.g. `sf-search-view`). The org's `brandColor` overrides `--primary`
   inline, and **may be near-black — never rely on `var(--primary)` being visible on dark cards**
   (use `--muted` or `color-mix(... , var(--text))` for accents that must survive both themes).
 - **Mobile rules — the storefront is phone-first, and inline styles can't hold a media query.**
