@@ -76,6 +76,9 @@
       "business-position": "Business Position"
     }
   },
+  "brand": {
+    "tagline": "Sell online. Stay in stock."
+  },
   "userMenu": {
     "profile": "Profile",
     "billing": "Billing",

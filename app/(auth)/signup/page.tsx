@@ -1,349 +1,38 @@
-// app/(auth)/signup/page.tsx
-
 "use client";
+// coding-standard: maintained
 
-import { LEGAL_URLS } from "@/constants/brand";
-import {
-  COUNTRY_OPTIONS,
-  CURRENCY_OPTIONS,
-  getCountryDefaults,
-  INDUSTRY_OPTIONS,
-  TIMEZONE_OPTIONS,
-} from "@/constants/organization-options";
-import { useSignupAPi } from "@/hooks";
-import { getRootDomain } from "@/lib/organization-utils";
-import useDynamicForm from "@/hooks/use-dynamic-form";
-import DynamicForm from "@/ui/components/form";
-import { DynamicFormConfig } from "@/ui/components/form/type";
 import Image from "next/image";
-import { Button } from "@/ui/components/button";
-import { Switch } from "@/ui/components/switch";
-import { cn } from "@/ui/lib/utils";
-import {
-  ArrowRight,
-  BarChart3,
-  Building2,
-  Check,
-  Loader2,
-  Package,
-  Receipt,
-  ShieldCheck,
-  ShieldAlert,
-  Sparkles,
-  User,
-} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef } from "react";
-import { type Control, useWatch } from "react-hook-form";
+import { ArrowRight, Loader2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
-// Rich toggle card for the "load sample data" option. Used as a `custom`
-// form field (with zodType "boolean") so it stays a boolean in the schema.
-function SampleDataToggle({
-  value,
-  onChange,
-}: {
-  value?: boolean;
-  onChange: (next: boolean) => void;
-}) {
-  const checked = Boolean(value);
-  return (
-    <div
-      role="switch"
-      aria-checked={checked}
-      tabIndex={0}
-      onClick={() => onChange(!checked)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onChange(!checked);
-        }
-      }}
-      className={cn(
-        "flex cursor-pointer items-start justify-between gap-4 rounded-xl border p-4 transition-colors",
-        checked
-          ? "border-primary bg-primary/5 ring-1 ring-primary dark:bg-primary/10"
-          : "border-input hover:border-primary/40 hover:bg-accent/40",
-      )}
-    >
-      <div className="flex gap-3">
-        <div
-          className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors",
-            checked
-              ? "bg-primary text-primary-foreground"
-              : "bg-primary/10 text-primary dark:bg-primary/15",
-          )}
-        >
-          <Sparkles className="h-5 w-5" />
-        </div>
-        <div className="space-y-0.5">
-          <p className="text-sm font-medium text-foreground">
-            Load sample data so I can explore
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Pre-fill your workspace with example products, stock, purchases and
-            sales. You can clear it anytime.
-          </p>
-        </div>
-      </div>
-      {/* Display-only — the whole card handles the toggle. */}
-      <Switch checked={checked} className="pointer-events-none mt-0.5" />
-    </div>
-  );
+import { ownerSetupFormConfig } from "@/components/setup/owner/owner-setup-form-config";
+import { SetupProgress } from "@/components/setup/owner/setup-progress";
+import {
+  SignupBrandPanel,
+  SignupHighlightStrip,
+} from "@/components/setup/owner/signup-brand-panel";
+import { BRAND, LEGAL_URLS } from "@/constants/brand";
+import { getCountryDefaults } from "@/constants/organization-options";
+import { useSignupAPi } from "@/hooks";
+import useDynamicForm from "@/hooks/use-dynamic-form";
+import { slugify } from "@/utils/slugify";
+import { Button } from "@/ui/components/button";
+import DynamicForm from "@/ui/components/form";
+
+/** Query params that carry a chosen plan across from the marketing site. */
+function getSignupPlanFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const planName =
+    params.get("planName") || params.get("plan") || params.get("planSlug");
+  const planSlug = params.get("planSlug") || undefined;
+
+  return {
+    planName: planName?.trim() || "free",
+    ...(planSlug && { planSlug }),
+  };
 }
-
-const ACCOUNT_FIELDS = ["firstName", "email", "password", "confirmPassword"];
-const ORG_FIELDS = [
-  "organizationName",
-  "organizationSlug",
-  "industry",
-  "country",
-  "timezone",
-  "currency",
-];
-
-/**
- * Two-part progress for the setup form. Both parts are on screen at once, so
- * this reports what is actually filled in rather than pretending to be a wizard
- * — a static "step 2 pending" would be decoration, not information.
- *
- * Subscribes via `useWatch` inside its own component so a keystroke re-renders
- * this rail and not the whole page (and not DynamicForm with it).
- */
-function SetupProgress({ control }: { control: Control<any> }) {
-  const values = useWatch({ control, name: [...ACCOUNT_FIELDS, ...ORG_FIELDS] });
-  const filled = (from: number, count: number) =>
-    values.slice(from, from + count).every((v) => Boolean(v));
-
-  const steps = [
-    { label: "Your account", done: filled(0, ACCOUNT_FIELDS.length) },
-    {
-      label: "Your organization",
-      done: filled(ACCOUNT_FIELDS.length, ORG_FIELDS.length),
-    },
-  ];
-
-  return (
-    <ol className="flex items-center gap-3">
-      {steps.map((step, i) => (
-        <li key={step.label} className="flex flex-1 items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className={cn(
-                "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-colors",
-                step.done
-                  ? "bg-primary text-primary-foreground"
-                  : "border border-border bg-muted text-muted-foreground",
-              )}
-            >
-              {step.done ? <Check className="h-3 w-3" /> : i + 1}
-            </span>
-            <span
-              className={cn(
-                "text-xs font-medium whitespace-nowrap",
-                step.done ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              {step.label}
-            </span>
-          </div>
-          {i < steps.length - 1 && <span className="h-px flex-1 bg-border" />}
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-// Turn an organization name into a URL-safe slug (matches the slug field's
-// `^[a-z0-9-]+$` validation): lowercase, non-alphanumerics → hyphens, trimmed.
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-// Highlights shown on the branded panel beside the signup form.
-const SIGNUP_FEATURES = [
-  {
-    icon: Package,
-    title: "Real-time stock tracking",
-    description: "Across every location, always in sync.",
-  },
-  {
-    icon: Receipt,
-    title: "Purchases, sales & returns",
-    description: "One streamlined flow from end to end.",
-  },
-  {
-    icon: BarChart3,
-    title: "Insightful analytics",
-    description: "Low-stock alerts and clear reports.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Secure by design",
-    description: "Role-based access and full control.",
-  },
-];
-
-const ownerSetupFormConfig: DynamicFormConfig = {
-  sections: [
-    {
-      title: "Your account",
-      description: "You'll sign in with this",
-      icon: <User className="h-4 w-4" />,
-      collapsible: false,
-      fields: [
-        {
-          name: "firstName",
-          type: "input",
-          label: "First Name",
-          columnSpan: 6,
-          placeholder: "John",
-          required: true,
-          validation: { minLength: 2, maxLength: 100 },
-        },
-        {
-          name: "lastName",
-          type: "input",
-          label: "Last Name",
-          columnSpan: 6,
-          placeholder: "Doe",
-          validation: { maxLength: 100 },
-        },
-        {
-          name: "email",
-          type: "input",
-          label: "Email Address",
-          columnSpan: 6,
-          placeholder: "john@company.com",
-          required: true,
-          validation: { email: true },
-        },
-        {
-          name: "phone",
-          type: "input",
-          label: "Phone Number",
-          columnSpan: 6,
-          placeholder: "+1 (234) 567-8900",
-          validation: { maxLength: 20 },
-        },
-        {
-          name: "password",
-          type: "password",
-          label: "Password",
-          columnSpan: 6,
-          placeholder: "Create a password",
-          required: true,
-          // Stated as persistent helper text rather than only a placeholder,
-          // which disappears the moment they start typing.
-          helperText: "Minimum 8 characters",
-          validation: { minLength: 8 },
-        },
-        {
-          name: "confirmPassword",
-          type: "password",
-          label: "Confirm Password",
-          columnSpan: 6,
-          placeholder: "Re-enter password",
-          required: true,
-          validation: { minLength: 8 },
-        },
-      ],
-    },
-    {
-      title: "Your organization",
-      description: "You can change all of this later",
-      icon: <Building2 className="h-4 w-4" />,
-      collapsible: false,
-      fields: [
-        {
-          name: "organizationName",
-          type: "input",
-          label: "Organization Name",
-          columnSpan: 6,
-          placeholder: "ABC Manufacturing Ltd",
-          required: true,
-          validation: { minLength: 2, maxLength: 200 },
-        },
-        {
-          name: "organizationSlug",
-          type: "input",
-          label: "Workspace address",
-          columnSpan: 6,
-          placeholder: "abc-manufacturing-ltd",
-          required: true,
-          // Rendered inside the field so the address is visible, not just
-          // described. Omitted when NEXT_PUBLIC_ROOT_DOMAIN is unset (local dev
-          // / single-host), where there is no subdomain to show.
-          suffix: () => {
-            const root = getRootDomain();
-            return root ? `.${root}` : undefined;
-          },
-          validation: {
-            minLength: 2,
-            maxLength: 100,
-            pattern: /^[a-z0-9-]+$/,
-            patternMessage:
-              "Only lowercase letters, numbers, and hyphens allowed",
-          },
-          tooltip:
-            "Where you and your team will sign in. Lowercase letters, numbers and hyphens. Prefer your own domain? You can connect one later in Settings → Domains.",
-        },
-        {
-          name: "industry",
-          type: "select",
-          label: "Industry",
-          columnSpan: 6,
-          placeholder: "Select industry",
-          required: true,
-          options: INDUSTRY_OPTIONS,
-        },
-        {
-          name: "country",
-          type: "select",
-          label: "Country",
-          columnSpan: 6,
-          placeholder: "Select country",
-          required: true,
-          options: COUNTRY_OPTIONS,
-        },
-        {
-          name: "timezone",
-          type: "select",
-          label: "Timezone",
-          columnSpan: 6,
-          placeholder: "Select timezone",
-          required: true,
-          options: TIMEZONE_OPTIONS,
-        },
-        {
-          name: "currency",
-          type: "select",
-          label: "Currency",
-          columnSpan: 6,
-          placeholder: "Select currency",
-          required: true,
-          options: CURRENCY_OPTIONS,
-        },
-        {
-          name: "loadSampleData",
-          type: "custom",
-          // Render as a rich toggle card while keeping a boolean in the schema.
-          zodType: "boolean",
-          defaultValue: false,
-          label: "",
-          columnSpan: 12,
-          customComponent: SampleDataToggle,
-        },
-      ],
-    },
-  ],
-};
 
 export default function Signup() {
   const createOwnerMutation = useSignupAPi();
@@ -398,13 +87,12 @@ export default function Signup() {
     // double-click before `isPending` re-renders would create two organizations.
     if (createOwnerMutation.isPending) return;
 
-    // Validate passwords match
     if (data.password !== data.confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
 
-    // Validate password length (schema already enforces this, belt-and-suspenders)
+    // Schema already enforces this — belt and suspenders.
     if (data.password.length < 8) {
       toast.error("Password must be at least 8 characters");
       return;
@@ -416,61 +104,9 @@ export default function Signup() {
     });
   };
 
-  const currentYear = new Date().getFullYear();
-
   return (
     <div className="min-h-svh w-full bg-background lg:grid lg:grid-cols-[42fr_58fr]">
-      {/* Branded panel */}
-      {/* Gradient runs the logo palette itself — brand green (#0E8F73) into the
-          mark's two navies — so the inverse logo mark sits on its own colours.
-          Fixed hexes, not theme tokens: this panel is always a dark surface. */}
-      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-[#0E8F73] via-[#16335E] to-[#0A1A33] p-10 text-white lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:gap-8">
-        {/* Decorative glow */}
-        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-[#34D2AE]/20 blur-3xl" />
-
-        {/* Logo */}
-        <div className="relative flex items-center gap-2.5">
-          <Image
-            src="/logo/ezycore-mark-inverse.svg"
-            alt=""
-            width={30}
-            height={30}
-          />
-          <span className="text-lg font-semibold tracking-tight">EzyCore</span>
-        </div>
-
-        <div className="relative space-y-3">
-          <h2 className="max-w-[13ch] text-3xl font-bold leading-[1.14] tracking-tight xl:text-4xl">
-            Run your inventory with confidence.
-          </h2>
-          <p className="max-w-sm text-sm text-white/75">
-            Stock, purchases and sales in one workspace — set up in about two
-            minutes.
-          </p>
-        </div>
-
-        {/* Pushed to the bottom so the pitch reads first and the panel has no
-            dead band in the middle. */}
-        <ul className="relative mt-auto">
-          {SIGNUP_FEATURES.map((feature) => (
-            <li
-              key={feature.title}
-              className="flex items-center gap-3.5 border-t border-white/10 py-3 first:border-t-0"
-            >
-              <feature.icon className="h-4 w-4 shrink-0 text-[#6FE3C4]" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{feature.title}</p>
-                <p className="text-xs text-white/60">{feature.description}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        <p className="relative text-xs text-white/50">
-          © {currentYear} EzyCore. All rights reserved.
-        </p>
-      </aside>
+      <SignupBrandPanel />
 
       {/* Form panel. On lg it owns its own scroll so the action bar can stick to
           the column's bottom; on smaller screens the page scrolls and the bar
@@ -487,7 +123,7 @@ export default function Signup() {
                 height={28}
               />
               <span className="text-lg font-semibold tracking-tight">
-                EzyCore
+                {BRAND.name}
               </span>
             </div>
 
@@ -495,10 +131,11 @@ export default function Signup() {
                 language + theme toggles in the top-right corner. */}
             <div className="space-y-1">
               <h1 className="text-2xl font-bold tracking-tight">
-                Create your workspace
+                Create your workspace and online store
               </h1>
               <p className="text-sm text-muted-foreground">
-                Two minutes, and you&apos;re in. Already have an account?{" "}
+                Two minutes, and you&apos;re in — with a storefront ready to
+                publish. Already have an account?{" "}
                 <Link
                   href="/login"
                   className="font-medium text-primary underline-offset-4 hover:underline"
@@ -507,6 +144,8 @@ export default function Signup() {
                 </Link>
               </p>
             </div>
+
+            <SignupHighlightStrip />
 
             {!createOwnerMutation.isPending && (
               <SetupProgress control={form.control} />
@@ -603,16 +242,4 @@ export default function Signup() {
       </main>
     </div>
   );
-}
-
-function getSignupPlanFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const planName =
-    params.get("planName") || params.get("plan") || params.get("planSlug");
-  const planSlug = params.get("planSlug") || undefined;
-
-  return {
-    planName: planName?.trim() || "free",
-    ...(planSlug && { planSlug }),
-  };
 }
