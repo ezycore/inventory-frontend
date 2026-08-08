@@ -357,7 +357,7 @@ export interface Entitlement {
     | "past_due"
     | "canceled"
     | "incomplete";
-  gateway?: "stripe" | "sslcommerz" | "manual";
+  gateway?: "stripe" | "sslcommerz" | "paystation" | "manual";
   currentPeriodEnd?: string | null;
   trialEndsAt?: string | null;
   pendingPlanChange?: ScheduledPlanChange | null;
@@ -432,7 +432,8 @@ export interface AvailablePlansInfo {
 /**
  * Result of POST /api/organization/plan-change (proxied from Mission Control).
  * Discriminated by `mode`:
- *   - "checkout":  redirect the user to `url` (hosted Stripe/SSLCommerz page)
+ *   - "checkout":  redirect the user to `url` (hosted Stripe / Bangladesh
+ *                 collector page)
  *   - "scheduled": downgrade applied at `effectiveAt` (current period end)
  *   - "activated": free/manual plan applied immediately
  *   - "current":   already on this plan
