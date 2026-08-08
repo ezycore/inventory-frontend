@@ -76,6 +76,9 @@
       "business-position": "ব্যবসার অবস্থান"
     }
   },
+  "brand": {
+    "tagline": "অনলাইনে বিক্রি, স্টক নিয়ন্ত্রণে।"
+  },
   "userMenu": {
     "profile": "প্রোফাইল",
     "billing": "বিলিং",

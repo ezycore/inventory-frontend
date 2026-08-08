@@ -34,13 +34,7 @@ import {
   type VariantPriceDraft,
 } from "@/components/ecommerce/catalog/variant-pricing-fields";
 import { formatMoney } from "@/components/storefront/format";
-
-const slugify = (s: string) =>
-  s
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+import { slugify } from "@/utils/slugify";
 
 const OUT_OF_STOCK_OPTIONS = [
   { value: "show", label: 'Show as "Out of stock"' },
