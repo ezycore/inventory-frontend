@@ -3,6 +3,7 @@ import { resolveTemplates } from "@/lib/storefront-templates";
 import type {
   CatalogCategory,
   StoreAnnouncement,
+  StoreContactButton,
   StoreFooterContentPages,
   StoreFooterGroup,
   StoreHeroBanner,
@@ -56,6 +57,16 @@ interface SfPreviewState {
   navHeader: StoreMenuItem[] | null;
   /** Draft announcement bar (Customize → Announcement bar). */
   announcement: StoreAnnouncement | null;
+  /**
+   * Draft contact launcher (Customize → WhatsApp button), already resolved by
+   * the editor into the PUBLIC shape the storefront renders.
+   *
+   * Starts `undefined`, not `null`, and for the same reason `logo`/`banner` do:
+   * `null` is a real value here — "the merchant has it switched off" — so a
+   * consumer cannot `?? saved`. Turning the switch off in the editor has to
+   * remove the button from the preview, not fall back to showing the saved one.
+   */
+  contactButton?: StoreContactButton | null;
   /** Draft footer link groups (Customize → Footer), already trimmed like the save path. */
   footerGroups: StoreFooterGroup[] | null;
   /** Draft controls for the auto content-pages footer column. */
@@ -101,6 +112,8 @@ interface SfPreviewState {
     headerMenuSrc?: string;
     navHeader?: StoreMenuItem[];
     announcement?: StoreAnnouncement;
+    // `null` is meaningful (launcher switched off), so nullable in the patch.
+    contactButton?: StoreContactButton | null;
     collections?: CatalogCategory[];
     footerGroups?: StoreFooterGroup[];
     footerContentPages?: StoreFooterContentPages;
@@ -130,6 +143,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   headerMenuSrc: null,
   navHeader: null,
   announcement: null,
+  contactButton: undefined,
   collections: null,
   footerGroups: null,
   footerContentPages: null,
@@ -161,6 +175,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       navHeader: patch.navHeader !== undefined ? patch.navHeader : s.navHeader,
       announcement:
         patch.announcement !== undefined ? patch.announcement : s.announcement,
+      contactButton:
+        patch.contactButton !== undefined ? patch.contactButton : s.contactButton,
       collections:
         patch.collections !== undefined ? patch.collections : s.collections,
       footerGroups:
