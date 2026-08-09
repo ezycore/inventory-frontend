@@ -12871,6 +12871,10 @@ export interface components {
             email: string;
             role?: string;
         };
+        PasswordChange: {
+            message: string;
+            token: string;
+        };
         PermissionCatalog: {
             modules: {
                 key: string;
@@ -17650,7 +17654,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["Deleted"];
+                        data?: components["schemas"]["PasswordChange"];
                     };
                 };
             };

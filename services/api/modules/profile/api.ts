@@ -26,10 +26,13 @@ export const profileApi = {
 
   // PUT /api/profile/password - Change password
   // Used in: useUpdatePassword → password-change-tab.tsx
+  // Returns a replacement bearer token: the change retires every session
+  // server-side, so this one needs the new token to survive its own request.
   updatePassword: (data: {
     currentPassword: string;
     newPassword: string;
-  }): Promise<ApiResponse<ApiMessage>> => apiClient.put("/profile/password", data),
+  }): Promise<ApiResponse<{ message: string; token: string }>> =>
+    apiClient.put("/profile/password", data),
 
   // ============= 2FA Methods =============
 

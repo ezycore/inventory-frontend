@@ -829,7 +829,7 @@
         "uppercase": "Contains uppercase letter",
         "lowercase": "Contains lowercase letter"
       },
-      "changedSignOutNotice": "Password changed. Signing you out of all devices — please sign in again."
+      "otherDevicesSignedOutNotice": "Your other devices have been signed out."
     },
     "twoFactor": {
       "title": "Two-Factor Authentication",

@@ -75,6 +75,8 @@ interface AuthState extends LoadingState {
 // Auth actions interface
 interface AuthActions {
   setUser: (user: User, token: string) => void;
+  /** Swap the bearer token without touching the session around it. */
+  setToken: (token: string) => void;
   updateUser: (updates: Partial<User>) => void;
   clearAuth: () => void;
   hydrateAuth: () => void;
@@ -129,6 +131,22 @@ export const useAuthStore = create<AuthStore>()(
               secure: process.env.NODE_ENV === "production",
             });
           }
+        },
+
+        // Replace only the token — used after a password change, where the
+        // backend retires every existing session and hands back a fresh token so
+        // THIS device stays signed in. Deliberately not `setUser`: that recomputes
+        // `activeLocationId` from the user's default and would silently throw away
+        // whichever location they had switched to.
+        setToken: (token: string) => {
+          set({ token });
+
+          setCookie("auth-token", token, {
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: "/",
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+          });
         },
 
         updateUser: (updates: Partial<User>) => {

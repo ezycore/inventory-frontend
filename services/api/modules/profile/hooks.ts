@@ -100,6 +100,16 @@ export function useUpdatePassword() {
   return useMutation({
     mutationFn: (data: UpdatePasswordDto) => profileApi.updatePassword(data),
     onSuccess: (response) => {
+      // The change retires every session server-side (`tokenValidAfter`), so the
+      // token this tab is holding is already dead. Swap in the replacement the
+      // endpoint returns: every OTHER device stays signed out — which is the
+      // point of the invalidation — while the person who just proved they know
+      // both passwords is not made to type one a third time.
+      const token = response.data?.token;
+      if (token) {
+        useAuthStore.getState().setToken(token);
+      }
+
       handleMutationSuccess(
         response.message || "Password changed successfully",
       );
