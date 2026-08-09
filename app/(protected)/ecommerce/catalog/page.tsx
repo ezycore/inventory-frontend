@@ -55,7 +55,7 @@ export default function EcommerceCatalogPage() {
   const [editing, setEditing] = useState<CatalogProduct | null>(null);
   const [tab, setTab] = useState<"products" | "collections">("products");
 
-  const { data, isLoading } = useCatalogProducts({
+  const { data, isLoading, isFetching } = useCatalogProducts({
     search: search || undefined,
     listed,
     featured: featuredOnly || undefined,
@@ -326,7 +326,9 @@ export default function EcommerceCatalogPage() {
             <ListPagination
               page={page}
               totalPages={pagination.totalPages}
+              total={pagination.total}
               limit={limit}
+              isFetching={isFetching}
               onPageChange={setPage}
               onLimitChange={(n) => {
                 setLimit(n);
