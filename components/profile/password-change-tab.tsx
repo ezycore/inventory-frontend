@@ -59,6 +59,13 @@ export function PasswordChangeTab() {
             newPassword: "",
             confirmPassword: "",
           });
+
+          // No sign-out here. The backend retires every session on a password
+          // change and returns a replacement token, which `useUpdatePassword`
+          // swaps into the store — so other devices are signed out and this one
+          // carries on. Tell the user that happened; it is the reason they might
+          // have to log in again on their phone.
+          toast.info(t("otherDevicesSignedOutNotice"));
         },
       },
     );

@@ -36,12 +36,25 @@ export function groupPermissions(permissions: string[]): Record<string, string[]
   return groups;
 }
 
-/** Human label for a permission's action part, e.g. "products.view" → "View". */
+/**
+ * Human label for everything after the category, e.g. `products.view` → "View".
+ *
+ * **Every segment after the first**, not just the second: the catalogue has
+ * three-part keys (`storefront.orders.view`, `storefront.orders.manage`) and
+ * reading only `[1]` rendered both as "Orders" — two identical, indistinguishable
+ * checkboxes sitting next to each other in the role builder. Joined with "·" so
+ * they read as "Orders · View" and "Orders · Manage".
+ *
+ * `getActionStyle` matches on substrings, so the verb still picks up its icon
+ * wherever it sits in the key.
+ */
 export function formatPermission(permission: string): string {
-  const [, action] = permission.split(".");
-  return action
-    ? action.charAt(0).toUpperCase() + action.slice(1).replace(/_/g, " ")
-    : permission;
+  const [, ...rest] = permission.split(".");
+  if (rest.length === 0) return permission;
+  return rest
+    .map((segment) => segment.replace(/_/g, " "))
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" · ");
 }
 
 /** Color classes per category; display names come from `settings.permissions.categories.*`. */

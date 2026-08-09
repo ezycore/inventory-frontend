@@ -10,8 +10,16 @@ export const PERMISSIONS = {
   costsView: 'costs.view',
   /** Any write that changes stock — adjust, transfer, assign a lot an expiry. */
   stockManage: 'stock.manage',
-  /** User administration; also gates the Roles settings page. */
+  /** User administration — placing people in roles. */
   usersManage: 'users.manage',
+  /** Reading the org's roles and the permission catalog. */
+  rolesView: 'roles.view',
+  /**
+   * Authoring roles. Deliberately separate from `usersManage`: adding a person
+   * to an existing role and rewriting what a role may do are different
+   * authorities. `manager` holds `rolesView` and not this.
+   */
+  rolesManage: 'roles.manage',
   /** Organization-level settings; also feeds the Billing gate below. */
   organizationEdit: 'organization.edit',
 } as const;

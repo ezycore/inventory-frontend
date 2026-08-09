@@ -1,6 +1,6 @@
 ---
 name: rbac-auth
-description: 'RBAC, feature gates and session handling on the FRONTEND — permission-based UI gating, the auth store, feature-flag helpers, subscription/billing enforcement, and the role/permission editors. USE WHEN: hiding/showing UI by permission (`useHasPermission`, `costs.view`, `users.manage`), gating a module by plan feature (`isFeatureEnabled`), a page that should force-logout or show an overdue banner, "button visible but 403 on click" / "nav item missing" / "logged out unexpectedly" / "workspace blocked", editing roles or the permissions matrix, or reading `user.permissions` / `user.organization.features`. Touches `inventory-frontend/{services/stores/use-auth-store.ts,hooks/use-has-permission.ts,lib/feature-utils.ts,lib/subscription-utils.ts,components/shared/permissions,app/(protected)/layout.tsx,components/profile/permissions-tab.tsx,services/api/modules/{roles,users}}`. The BACKEND owns the real gates (authenticate → checkPermission → requireFeature, org scoping) — read `inventory-backend/.claude/skills/rbac-auth/SKILL.md`; this file does not duplicate it.'
+description: 'RBAC, feature gates and session handling on the FRONTEND — permission-based UI gating, the auth store, feature-flag helpers, subscription/billing enforcement, and the merchant role builder. USE WHEN: hiding/showing UI by permission (`useHasPermission`, `costs.view`, `users.manage`, `roles.manage`), gating a module by plan feature (`isFeatureEnabled`), a page that should force-logout or show an overdue banner, "button visible but 403 on click" / "nav item missing" / "logged out unexpectedly" / "workspace blocked", building or editing a custom role, the permission picker / catalog, deleting a role and reassigning its holders, or reading `user.permissions` / `user.organization.features`. Touches `inventory-frontend/{services/stores/use-auth-store.ts,hooks/use-has-permission.ts,lib/feature-utils.ts,lib/subscription-utils.ts,components/shared/permissions,components/settings/roles,app/(protected)/settings/roles,app/(protected)/layout.tsx,components/profile/permissions-tab.tsx,services/api/modules/{roles,users}}`. The BACKEND owns the real gates (authenticate → checkPermission → requireFeature, org scoping) — read `inventory-backend/.claude/skills/rbac-auth/SKILL.md`; this file does not duplicate it.'
 ---
 
 # RBAC & Auth Skill (Frontend)
@@ -19,9 +19,11 @@ correctly. The real enforcement is server-side. Never treat an FE permission che
 
 - **`useHasPermission(permission)`** ([`hooks/use-has-permission.ts`](../../../hooks/use-has-permission.ts))
   reads `user.permissions` from the auth store and returns a boolean. The `PERMISSIONS` const there
-  mirrors the backend catalog (`inventory-backend/src/constants/permissions.ts`) — the two known
-  strings today are `costs.view` (COGS/unit-cost figures) and `users.manage` (user admin + the Roles
-  settings page). **Never hardcode a permission string** in a component — add it to `PERMISSIONS`.
+  mirrors the backend catalog (`inventory-backend/src/constants/permissions.ts`, **85** strings).
+  The five declared today: `costs.view` (COGS/unit-cost figures), `stock.manage`, `users.manage`
+  (user admin), `roles.view` / `roles.manage` (reading vs authoring roles — see §5), and
+  `organization.edit`. **Never hardcode a permission string** in a component — add it to
+  `PERMISSIONS`.
 - Permission strings are `resource.action`. Display helpers (grouping, action icons, category colors)
   and the `PermissionGroupCard` category card live in
   [`components/shared/permissions/`](../../../components/shared/permissions) — reuse them; don't
@@ -85,10 +87,37 @@ there — do not add a second, divergent gate.
 ## 5. Roles & users
 
 [`services/api/modules/roles`](../../../services/api/modules/roles) and
-[`services/api/modules/users`](../../../services/api/modules/users) back the Settings → Roles editor and
-user admin (both behind `users.manage`). A role is a named permission set; editing it changes what
-`user.permissions` contains on next login. Use the shared permissions components (§1) to render the
-matrix — never re-list permission strings by hand.
+[`services/api/modules/users`](../../../services/api/modules/users) back Settings → Roles and user
+admin. Since 2026-08-09 the roles page is a **full CRUD surface**, not a read-only list — merchants
+author their own roles alongside the built-in and platform ones.
+
+**Permissions differ per action** and the split is deliberate: `roles.view` reads,
+`roles.manage` writes, `users.manage` places people in roles. `manager` holds the first and third,
+not the second.
+
+Four things the UI has to get right, each with a reason in the backend:
+
+- **Only `source: "custom"` rows are editable.** `system` is defined in backend code; `mc` is owned
+  by Mission Control and the next push overwrites local edits. The table shows edit/delete only for
+  `custom`.
+- **The permission picker renders `GET /roles/catalog`, not `ALL_PERMISSIONS`.** The catalog is
+  filtered by the org's plan and marks unavailable modules `available: false` — render those
+  disabled with a reason rather than hiding them, or a merchant reads a missing module as a bug.
+  `grantable` is the set a role may actually be composed from.
+- **A permission the role already holds stays checked even when off-plan.** The backend grandfathers
+  it (so a downgraded org can still rename the role); disabling that checkbox would strand the
+  merchant with no way to remove it.
+- **Delete requires reassignment.** Deleting a role someone holds is a *lockout*, not a downgrade —
+  the backend refuses with `ROLE_IN_USE`. Read `GET /roles/:slug/usage` first and make the merchant
+  pick a target; surface the API error verbatim, because `REASSIGN_WOULD_STRAND_USERS` names a case
+  the dialog cannot pre-empt.
+
+A role edit takes effect on the holder's **next request** — permissions resolve per request
+server-side, with no re-login. That is why the `role.changed` invalidation event dirties `profile`
+as well as `roles` and `users`: miss it and the nav keeps offering pages that now 403.
+
+Use the shared permissions components (§1) to render the matrix — never re-list permission strings
+by hand.
 
 ---
 
@@ -102,6 +131,10 @@ matrix — never re-list permission strings by hand.
 | Logged out to `/login?subscription=inactive` | entitlement is `blocked` tier | that's `shouldBlockWorkspaceAccess`; `read_only` is NOT blocked |
 | Permission check always false | hardcoded string ≠ backend catalog | use `PERMISSIONS.*`, keep it in sync with the BE constants |
 | Costs/COGS columns hidden | `costs.view` not granted | expected — gate is `useHasPermission(PERMISSIONS.costsView)` |
+| Roles page loads but "New role" is missing | has `roles.view`, not `roles.manage` | expected — reading and authoring are separate grants |
+| Edit/delete missing on a role row | it is `system` or `mc` | expected — only `source: "custom"` is editable here |
+| A permission is absent from the builder | the org's plan excludes that module | expected — it renders disabled, not hidden; check `available` on the catalog module |
+| Delete says the role is in use after you moved everyone | the count is read live from `/usage` | refetch; someone was assigned between the read and the delete |
 
 ---
 

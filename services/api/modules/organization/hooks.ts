@@ -20,7 +20,12 @@ import type {
   VatRegistrationType,
 } from "@/types";
 import type { ReceiptSettings } from "@/types/receipt";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
 import { revalidateStorefront } from "@/lib/revalidate-storefront";
 import { handleMutationSuccess } from "../query-helpers";
@@ -95,6 +100,11 @@ export const useNotificationLog = (params?: NotificationLogParams) =>
     queryKey: queryKeys.organization.notificationLog(params),
     queryFn: () => organizationApi.getNotificationLog(params),
     select: (res) => res.data,
+    // `page`/`status`/`channel` are all in the key, so every paging or filter
+    // change is a cache miss and `isLoading` goes true — the log collapses to a
+    // spinner and re-appears. Keep the previous rows up while the next load
+    // settles. See the paginated-list rule in the query-cache skill.
+    placeholderData: keepPreviousData,
     staleTime: 30 * 1000,
   });
 

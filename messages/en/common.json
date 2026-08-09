@@ -64,6 +64,7 @@
     "previousPage": "Previous page",
     "nextPage": "Next page",
     "lastPage": "Last page",
+    "goToPage": "Go to page {page}",
     "exportCsv": "Export CSV",
     "print": "Print",
     "popupBlocked": "Please allow pop-ups to print."

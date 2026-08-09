@@ -28,7 +28,9 @@ Self-contained list table built on **TanStack Table v8 + TanStack Query v5 + Dyn
 | [ui/components/dataTable/columns.tsx](ui/components/dataTable/columns.tsx) | `useEnhancedColumns` — injects selection + actions columns, applies `serverSortableFields` |
 | [ui/components/dataTable/toolbar.tsx](ui/components/dataTable/toolbar.tsx) | Search input, bulk-delete, column visibility, GlobalFilter, header customActions, Add button |
 | [ui/components/dataTable/table-body.tsx](ui/components/dataTable/table-body.tsx) | Header (sort icons), body, loading spinner, empty state, row styling |
-| [ui/components/dataTable/pagination.tsx](ui/components/dataTable/pagination.tsx) | Page size select + numbered pager + total label |
+| [ui/components/dataTable/pagination.tsx](ui/components/dataTable/pagination.tsx) | Page size select + total label; the pager itself is the shared `<PaginationControls>` |
+| [ui/components/pagination-controls.tsx](ui/components/pagination-controls.tsx) | **Shared** first/prev/numbers/next/last row — used here AND by the hand-rolled ecommerce list pages' `ListPagination`. Extend this, never fork a second pager |
+| [utils/page-window.ts](utils/page-window.ts) | `pageWindow(page, totalPages, maxVisible?)` — which numbers to show and where the "…" fall. Pure + tested |
 | [ui/components/dataTable/hooks.ts](ui/components/dataTable/hooks.ts) | `usePaginationState`, `useDeleteDialog` |
 | [ui/components/dataTable/cells/avatar-cell.tsx](ui/components/dataTable/cells/avatar-cell.tsx) | `AvatarCell` (image/icon + name + active/inactive color) |
 | [ui/components/dataTable/cells/date-cell.tsx](ui/components/dataTable/cells/date-cell.tsx) | `DateCell` (timezone-aware via `useAuthStore`) |
