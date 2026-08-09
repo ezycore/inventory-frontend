@@ -828,7 +828,8 @@
         "number": "Contains a number",
         "uppercase": "Contains uppercase letter",
         "lowercase": "Contains lowercase letter"
-      }
+      },
+      "changedSignOutNotice": "Password changed. Signing you out of all devices — please sign in again."
     },
     "twoFactor": {
       "title": "Two-Factor Authentication",
@@ -839,7 +840,10 @@
       "disableShort": "Disable",
       "enable": "Enable 2FA",
       "enableShort": "Enable",
-      "enableError": "Failed to enable 2FA. Please try again.",
+      "enablePasswordTitle": "Confirm Your Password",
+      "enablePasswordDescription": "Enter your password to start setting up two-factor authentication.",
+      "enablePasswordRequiredError": "Please enter your password to continue.",
+      "continueToSetup": "Continue",
       "invalidCodeError": "Please enter a valid 6-digit code.",
       "passwordRequiredError": "Please enter your password to disable 2FA.",
       "copied": "Copied to clipboard",

@@ -1585,12 +1585,12 @@ export interface paths {
         };
         /**
          * GET /api/profile
-         * @description Defined in `src/routes/profile.routes.ts:16`.
+         * @description Defined in `src/routes/profile.routes.ts:17`.
          */
         get: operations["get_api_profile"];
         /**
          * PUT /api/profile
-         * @description Defined in `src/routes/profile.routes.ts:19`.
+         * @description Defined in `src/routes/profile.routes.ts:20`.
          */
         put: operations["put_api_profile"];
         post?: never;
@@ -1610,7 +1610,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/profile/password
-         * @description Defined in `src/routes/profile.routes.ts:27`.
+         * @description Defined in `src/routes/profile.routes.ts:28`.
          */
         put: operations["put_api_profile_password"];
         post?: never;
@@ -1629,7 +1629,7 @@ export interface paths {
         };
         /**
          * GET /api/profile/2fa/status
-         * @description Defined in `src/routes/profile.routes.ts:35`.
+         * @description Defined in `src/routes/profile.routes.ts:36`.
          */
         get: operations["get_api_profile_2fa_status"];
         put?: never;
@@ -1651,7 +1651,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/profile/2fa/enable
-         * @description Defined in `src/routes/profile.routes.ts:36`.
+         * @description Defined in `src/routes/profile.routes.ts:37`.
          */
         post: operations["post_api_profile_2fa_enable"];
         delete?: never;
@@ -1671,7 +1671,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/profile/2fa/verify
-         * @description Defined in `src/routes/profile.routes.ts:37`.
+         * @description Defined in `src/routes/profile.routes.ts:42`.
          */
         post: operations["post_api_profile_2fa_verify"];
         delete?: never;
@@ -1691,7 +1691,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/profile/2fa/disable
-         * @description Defined in `src/routes/profile.routes.ts:42`.
+         * @description Defined in `src/routes/profile.routes.ts:47`.
          */
         post: operations["post_api_profile_2fa_disable"];
         delete?: never;
@@ -1709,7 +1709,7 @@ export interface paths {
         };
         /**
          * GET /api/profile/organization/users
-         * @description Defined in `src/routes/profile.routes.ts:49`.
+         * @description Defined in `src/routes/profile.routes.ts:54`.
          */
         get: operations["get_api_profile_organization_users"];
         put?: never;
@@ -1731,7 +1731,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/profile/transfer-ownership
-         * @description Defined in `src/routes/profile.routes.ts:50`.
+         * @description Defined in `src/routes/profile.routes.ts:55`.
          */
         post: operations["post_api_profile_transfer_ownership"];
         delete?: never;
@@ -17718,7 +17718,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    password: string;
+                };
+            };
+        };
         responses: {
             /** @description Success */
             200: {
@@ -17729,6 +17735,15 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["TwoFactorSetup"];
                     };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Missing or invalid credentials */

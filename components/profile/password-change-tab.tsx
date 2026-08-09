@@ -2,7 +2,9 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useUpdatePassword } from "@/services/api";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
@@ -22,6 +24,7 @@ import { toast } from "sonner";
 
 export function PasswordChangeTab() {
   const t = useTranslations("settings.profile.password");
+  const router = useRouter();
   const updatePassword = useUpdatePassword();
 
   const [formData, setFormData] = useState({
@@ -59,6 +62,20 @@ export function PasswordChangeTab() {
             newPassword: "",
             confirmPassword: "",
           });
+
+          // The backend stamps `tokenValidAfter` on a password change, so every
+          // token issued before now is dead — this one included. That is the
+          // point: changing your password is how you evict someone who is
+          // already in your account, and it only works if the old sessions die.
+          //
+          // Sign out deliberately and say why, rather than letting the next
+          // background request 401 and bounce the user to login under a generic
+          // "session expired" they would read as a bug.
+          toast.success(t("changedSignOutNotice"));
+          setTimeout(() => {
+            useAuthStore.getState().clearAuth();
+            router.push("/login");
+          }, 1200);
         },
       },
     );

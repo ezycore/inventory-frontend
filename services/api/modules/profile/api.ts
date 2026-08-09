@@ -40,8 +40,10 @@ export const profileApi = {
 
   // POST /api/profile/2fa/enable - Enable 2FA and get QR code
   // Used in: useEnable2FA → two-factor-tab.tsx
-  enable2FA: (): Promise<ApiResponse<TwoFactorSetup>> =>
-    apiClient.post("/profile/2fa/enable", {}),
+  // Password-confirmed since 2026-08-09, same as disable2FA: turning 2FA ON from
+  // a hijacked session locks the real owner out of their own account.
+  enable2FA: (data: { password: string }): Promise<ApiResponse<TwoFactorSetup>> =>
+    apiClient.post("/profile/2fa/enable", data),
 
   // POST /api/profile/2fa/verify - Verify 2FA token and get backup codes
   // Used in: useVerify2FA → two-factor-tab.tsx

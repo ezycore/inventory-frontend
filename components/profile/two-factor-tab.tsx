@@ -39,6 +39,10 @@ export function TwoFactorTab() {
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [showEnableDialog, setShowEnableDialog] = useState(false);
   const [showDisableDialog, setShowDisableDialog] = useState(false);
+  // Password confirmation gate in front of enrolment — the backend requires it,
+  // and it stops someone on a borrowed session from locking the owner out.
+  const [showEnablePasswordDialog, setShowEnablePasswordDialog] = useState(false);
+  const [enablePassword, setEnablePassword] = useState("");
   const [qrCode, setQrCode] = useState<string>("");
   const [secret, setSecret] = useState<string>("");
   const [verificationToken, setVerificationToken] = useState("");
@@ -60,16 +64,29 @@ export function TwoFactorTab() {
   }, [checkStatus]);
 
   const handleEnable = () => {
-    enable2FA(undefined, {
+    if (!enablePassword) {
+      toast.error(t("enablePasswordRequiredError"));
+      return;
+    }
+
+    // No `onError` here on purpose: `useEnable2FA` already runs
+    // `handleMutationError`, which toasts the server's own message ("Current
+    // password is incorrect"). Adding a generic one stacked a second, vaguer
+    // toast on top of the useful one and told the user less than nothing.
+    enable2FA(enablePassword, {
       onSuccess: (data) => {
         setQrCode(data.qrCode);
         setSecret(data.secret);
+        setShowEnablePasswordDialog(false);
+        setEnablePassword("");
         setShowEnableDialog(true);
       },
-      onError: () => {
-        toast.error(t("enableError"));
-      },
     });
+  };
+
+  const closeEnablePasswordDialog = () => {
+    setShowEnablePasswordDialog(false);
+    setEnablePassword("");
   };
 
   const handleVerify = () => {
@@ -172,7 +189,11 @@ export function TwoFactorTab() {
                 <span className="sm:hidden">{t("disableShort")}</span>
               </Button>
             ) : (
-              <Button onClick={handleEnable} disabled={isEnabling} className="gap-2">
+              <Button
+                onClick={() => setShowEnablePasswordDialog(true)}
+                disabled={isEnabling}
+                className="gap-2"
+              >
                 {isEnabling ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -232,6 +253,60 @@ export function TwoFactorTab() {
           {t("infoAlert")}
         </AlertDescription>
       </Alert>
+
+      {/* Confirm password before enrolment */}
+      <Dialog
+        open={showEnablePasswordDialog}
+        onOpenChange={(open) => (open ? null : closeEnablePasswordDialog())}
+      >
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("enablePasswordTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("enablePasswordDescription")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="enable-password">{t("passwordLabel")}</Label>
+              <Input
+                id="enable-password"
+                type="password"
+                autoComplete="current-password"
+                placeholder={t("passwordPlaceholder")}
+                value={enablePassword}
+                onChange={(e) => setEnablePassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && enablePassword && !isEnabling) {
+                    handleEnable();
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={closeEnablePasswordDialog}
+              className="w-full sm:w-auto"
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              onClick={handleEnable}
+              disabled={isEnabling || !enablePassword}
+              className="w-full sm:w-auto"
+            >
+              {isEnabling ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {t("continueToSetup")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Enable 2FA Dialog */}
       <Dialog open={showEnableDialog} onOpenChange={setShowEnableDialog}>

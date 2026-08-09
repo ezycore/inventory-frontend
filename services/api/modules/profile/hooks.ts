@@ -133,8 +133,8 @@ export function use2FAStatus() {
 // Enable 2FA
 export function useEnable2FA() {
   return useMutation({
-    mutationFn: async () => {
-      const response = await profileApi.enable2FA();
+    mutationFn: async (password: string) => {
+      const response = await profileApi.enable2FA({ password });
       return response.data;
     },
     onError: handleMutationError,
