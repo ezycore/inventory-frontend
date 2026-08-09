@@ -42,6 +42,32 @@ permission for an area does not see it in the menu at all.
 The permission worth thinking hardest about is **cost price**. It appears in purchases, stock
 valuation and profit reports, and most owners would rather counter staff could not see their margins.
 
+## Build your own role
+
+The built-in roles rarely match a real shop exactly. Settings → Roles → **New role** lets you name a
+role and tick precisely the permissions it should carry — a Cashier who cannot see cost prices, a
+Stock Keeper for one branch only.
+
+Two things to know before you start:
+
+- **You can only grant what you hold yourself.** A manager building a role cannot give it powers
+  they do not have, which is what stops role-building from becoming a way around your own limits.
+- **"Access to all locations" is the setting to be deliberate about.** With it, the role reaches
+  every branch you will ever open. Without it, people see only the locations you assign them.
+
+Built-in roles and roles set up for you by the platform are shown but cannot be edited — copy the
+permissions into a role of your own instead.
+
+## Deleting a role
+
+You cannot delete a role while anyone still holds it. Deleting it out from under them would not
+demote them, it would lock them out of the app completely — so the app asks you to pick the role to
+move them to, and moves everyone in one step.
+
+If those people relied on the deleted role for all-locations access, they keep working at their own
+default location. Anyone who has no location at all has to be given one before the move can go
+ahead.
+
 ## Removing someone
 
 Deactivate the user rather than deleting them. Their access stops immediately, but their history

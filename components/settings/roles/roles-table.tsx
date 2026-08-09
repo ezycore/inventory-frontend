@@ -2,8 +2,9 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { ChevronRight, Lock, ShieldCheck } from "lucide-react";
+import { ChevronRight, Lock, Pencil, ShieldCheck, Trash2 } from "lucide-react";
 import { Badge } from "@/ui/components/badge";
+import { Button } from "@/ui/components/button";
 import { Card, CardContent } from "@/ui/components/card";
 import EmptyState from "@/ui/components/EmptyState";
 import { SimpleTable, type SimpleColumn } from "@/ui/components/simple-table";
@@ -20,9 +21,37 @@ interface RolesTableProps {
   roles: OrganizationRole[];
   isLoading: boolean;
   onSelect: (role: OrganizationRole) => void;
+  /** Omitted when the viewer lacks `roles.manage` — then the table stays read-only. */
+  onEdit?: (role: OrganizationRole) => void;
+  onDelete?: (role: OrganizationRole) => void;
 }
 
-const getColumns = (t: Translator): SimpleColumn<OrganizationRole>[] => [
+/**
+ * Three sources, three different owners: `system` is defined in code, `mc` is
+ * owned by the platform, `custom` is the merchant's own — and only the last is
+ * editable here.
+ */
+function SourceBadge({
+  source,
+  t,
+}: {
+  source: OrganizationRole["source"];
+  t: Translator;
+}) {
+  if (source === "system") return <Badge variant="secondary">{t("system")}</Badge>;
+  if (source === "mc") return <Badge variant="outline">{t("missionControl")}</Badge>;
+  return (
+    <Badge variant="outline" className="border-primary/40 text-primary">
+      {t("custom")}
+    </Badge>
+  );
+}
+
+const getColumns = (
+  t: Translator,
+  onEdit?: (role: OrganizationRole) => void,
+  onDelete?: (role: OrganizationRole) => void,
+): SimpleColumn<OrganizationRole>[] => [
   {
     key: "role",
     header: t("role"),
@@ -68,11 +97,7 @@ const getColumns = (t: Translator): SimpleColumn<OrganizationRole>[] => [
     header: t("source"),
     headClassName: "hidden sm:table-cell",
     cellClassName: "hidden sm:table-cell",
-    cell: (role) => (
-      <Badge variant={role.source === "system" ? "secondary" : "outline"}>
-        {role.source === "system" ? t("system") : t("missionControl")}
-      </Badge>
-    ),
+    cell: (role) => <SourceBadge source={role.source} t={t} />,
   },
   {
     key: "permissions",
@@ -88,9 +113,38 @@ const getColumns = (t: Translator): SimpleColumn<OrganizationRole>[] => [
     key: "open",
     header: <span className="sr-only">{t("open")}</span>,
     align: "right",
-    headClassName: "w-10",
-    cell: () => (
-      <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" />
+    headClassName: "w-24",
+    cell: (role) => (
+      <div
+        className="flex items-center justify-end gap-0.5"
+        // The row opens the read-only details drawer; the action buttons must
+        // not do that too.
+        onClick={(event) => event.stopPropagation()}
+      >
+        {role.source === "custom" && onEdit && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            aria-label={t("edit")}
+            onClick={() => onEdit(role)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        )}
+        {role.source === "custom" && onDelete && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            aria-label={t("delete")}
+            onClick={() => onDelete(role)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </div>
     ),
   },
 ];
@@ -112,10 +166,16 @@ function RolesTableSkeleton() {
   );
 }
 
-/** Read-only list of workspace roles; clicking a row opens the details drawer. */
-export function RolesTable({ roles, isLoading, onSelect }: RolesTableProps) {
+/** Workspace roles; clicking a row opens the details drawer. */
+export function RolesTable({
+  roles,
+  isLoading,
+  onSelect,
+  onEdit,
+  onDelete,
+}: RolesTableProps) {
   const t = useTranslations("settings.roles.table");
-  const columns = getColumns(t);
+  const columns = getColumns(t, onEdit, onDelete);
   return (
     <Card>
       <CardContent>
