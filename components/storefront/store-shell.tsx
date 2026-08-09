@@ -70,11 +70,16 @@ export function StoreShell({
   // reordering/hiding previews live instead of waiting on a save + refetch.
   const categories = previewCollections ?? fetchedCategories;
 
-  // Tab icon = the store's logo, swapped in place so router-integrated
+  // Tab icon = the store's favicon, swapped in place so router-integrated
   // navigations (page changes AND the account tab switch's replaceState) don't
   // flash the platform default — that's why it's a client hook, not layout
   // metadata (see use-favicon-override).
-  useFaviconOverride(logo?.thumbnailUrl || logo?.url);
+  //
+  // Reads the saved `store.favicon`, NOT the `logo` above: the logo is never a
+  // fallback for the tab icon, and the preview-store override that feeds `logo`
+  // is for the Customize editor's live brand preview, which has no business
+  // repainting the tab icon while someone drags a logo around.
+  useFaviconOverride(store?.favicon?.thumbnailUrl || store?.favicon?.url);
 
   if (isError) {
     return (

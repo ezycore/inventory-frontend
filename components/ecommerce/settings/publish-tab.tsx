@@ -19,11 +19,17 @@ import { SaveBar, useSave } from "./settings-primitives";
  * The switch is disabled until a fulfillment location exists (`!locationSet &&
  * !published`) — but only for turning the store ON. A published store can always
  * be taken back down, whatever its configuration.
+ *
+ * The favicon note below is advisory and never blocks publishing. It earns its
+ * place because the consequence is invisible from the admin app: with no org
+ * favicon the shop's browser tab shows the *platform* mark on the merchant's own
+ * domain, and the favicon deliberately has no logo fallback to paper over it.
  */
 export function PublishTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useSave();
   const [published, setPublished] = useState(settings.published);
   const slug = useAuthStore((s) => s.user?.organization?.slug);
+  const hasFavicon = useAuthStore((s) => !!s.user?.organization?.favicon);
   const liveUrl = slug ? storefrontUrl(slug) : null;
   const locationSet = !!settings.storefrontLocationId;
 
@@ -78,6 +84,14 @@ export function PublishTab({ settings }: { settings: StorefrontSettings }) {
         ) : (
           <div className="rounded-lg bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700">
             Set a fulfillment location (General tab) before publishing.
+          </div>
+        )}
+
+        {!hasFavicon && (
+          <div className="rounded-lg bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800">
+            No browser tab icon set — your shop&apos;s tab will show the EzyCore
+            icon. Add one under Settings → Organization. Your logo is not used
+            for this.
           </div>
         )}
       </Card>
