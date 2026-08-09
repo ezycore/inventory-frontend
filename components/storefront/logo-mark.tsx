@@ -1,8 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useLogoTone } from "@/hooks/use-logo-tone";
-import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStoreLogoStyle } from "@/services/storefront/use-logo-style";
 
 /** Square brand chip showing the store's initial — used in the header + footer. */
 export function LogoMark({ name, size = 38 }: { name: string; size?: number }) {
@@ -71,30 +70,23 @@ export function Brand({
   );
 }
 
-/** Plate colours are fixed rather than themed tokens on purpose: the plate only
- *  exists because the themed surface is the wrong tone for this particular
- *  logo, so painting it in a token of that same theme would achieve nothing. */
-const PLATE_FOR_DARK_INK = "#ffffff";
-const PLATE_FOR_LIGHT_INK = "#0f172a";
-/** Inset around a plated logo. Taken back off the image height so the header
- *  keeps its exact size whether or not a plate is applied. */
-const PLATE_PAD = 4;
-
 /**
- * The uploaded logo, height-constrained and aspect-preserved.
+ * The uploaded logo, with the owner's chrome applied (Customize → Brand).
  *
- * A logo with no backdrop of its own is drawn in one ink colour and the
- * storefront has two backdrops, so a black wordmark vanishes on the dark theme
- * and a white one vanishes on the light theme. `useLogoTone` measures which
- * case a given file is in (see `lib/logo-tone.ts`); when the ink matches the
- * page tone, the mark is set on a small contrasting plate — the same thing a
- * print-ready logo gets on a dark ad.
+ * The chrome exists because a transparent wordmark is drawn in ONE ink colour
+ * while the storefront has two backdrops: black type disappears on the dark
+ * theme, white type on the light one, and nothing in the file says which you
+ * have. Only the owner knows, so they set a backdrop — one colour that works
+ * under both themes, which is why `background` is a literal hex and not a theme
+ * token.
  *
- * Everything else renders bare, exactly as before: a logo with its own
- * background, a mid-tone or multi-colour mark, and any file the browser refuses
- * to let us sample. Adding the plate only where it is provably needed is the
- * point — plating every logo would put a white box around the wordmarks that
- * were designed for dark headers.
+ * A **height** override applies at every placement, so the number the owner
+ * types is the number of pixels they get in the header, the mobile bar and the
+ * footer alike. The alternative — scaling each placement by a ratio — keeps the
+ * design's size hierarchy but makes "48" mean 48 in exactly one of them, which
+ * is not a control anyone can aim.
+ *
+ * With no overrides this renders identically to the plain `<img>` it replaced.
  */
 function LogoImage({
   src,
@@ -104,27 +96,24 @@ function LogoImage({
 }: {
   src: string;
   alt: string;
+  /** The placement's default height, used when the owner set none. */
   height: number;
   maxWidth: number;
 }) {
-  const { theme } = useStorefrontUI();
-  const tone = useLogoTone(src);
-  // Dark ink on the dark theme, or light ink on the light theme — the two cases
-  // where the logo and the page behind it are the same tone.
-  const plated = tone !== null && tone === theme;
+  const style = useStoreLogoStyle();
+  const boxHeight = style.height ?? height;
+  // Padding is taken OUT of the height rather than added to it, so raising the
+  // padding insets the mark instead of growing the header around it.
+  const imageHeight = Math.max(boxHeight - style.padding * 2, 1);
 
   return (
     <span
       style={{
         display: "inline-flex",
-        ...(plated
-          ? {
-              background:
-                tone === "dark" ? PLATE_FOR_DARK_INK : PLATE_FOR_LIGHT_INK,
-              padding: PLATE_PAD,
-              borderRadius: 8,
-            }
-          : null),
+        background: style.background,
+        padding: style.padding,
+        borderRadius: style.radius,
+        flex: "none",
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -132,9 +121,9 @@ function LogoImage({
         src={src}
         alt={alt}
         style={{
-          height: plated ? height - PLATE_PAD * 2 : height,
+          height: imageHeight,
           width: "auto",
-          maxWidth: maxWidth - (plated ? PLATE_PAD * 2 : 0),
+          maxWidth,
           objectFit: "contain",
           display: "block",
         }}

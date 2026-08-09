@@ -7,7 +7,7 @@
  * can be parsed statically — anything else passes through unchanged.
  */
 
-export type Rgb = [number, number, number];
+type Rgb = [number, number, number];
 
 function parseHex(color: string): Rgb | null {
   const hex = color.trim().replace(/^#/, "");
@@ -23,7 +23,7 @@ function parseHex(color: string): Rgb | null {
 }
 
 /** WCAG relative luminance (0 = black, 1 = white). */
-export function relativeLuminance([r, g, b]: Rgb): number {
+function relativeLuminance([r, g, b]: Rgb): number {
   const [lr, lg, lb] = [r, g, b].map((v) => {
     const c = v / 255;
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;

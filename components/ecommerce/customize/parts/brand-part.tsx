@@ -7,6 +7,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
 import { PartBlock, PartHint } from "@/components/ecommerce/customize/part-group";
 import { BrandColorsField } from "@/components/ecommerce/customize/brand-colors-field";
+import { LogoStyleField } from "@/components/ecommerce/customize/logo-style-field";
 import { MediaField } from "@/components/ecommerce/customize/media-field";
 import { PresetTiles } from "@/components/ecommerce/customize/preset-tiles";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
@@ -32,6 +33,13 @@ export function BrandPart({
   // uploaded (the public payload falls back server-side the same way).
   const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
   const logoInput = useRef<HTMLInputElement>(null);
+  // The mark actually on the shop right now — the store's own, else the
+  // organization's, matching what the public payload resolves to.
+  const logoUrl =
+    settings.logo?.thumbnailUrl ||
+    settings.logo?.url ||
+    orgLogo?.thumbnailUrl ||
+    orgLogo?.url;
 
   const pickPreset = (id: string) => {
     const def = getPreset(id);
@@ -70,18 +78,13 @@ export function BrandPart({
       <PartBlock label="Logo">
         <MediaField
           label="Logo"
-          url={
-            settings.logo?.thumbnailUrl ||
-            settings.logo?.url ||
-            orgLogo?.thumbnailUrl ||
-            orgLogo?.url
-          }
+          url={logoUrl}
           inputRef={logoInput}
           disabled={media.isPending}
           busy={media.isPending}
           onPick={uploadLogo}
           onRemove={settings.logo ? removeLogo : undefined}
-          hint="600 × 200 px (up to 3:1) works best — the header caps it at 42px tall."
+          hint="600 × 200 px (up to 3:1) works best — the header shows it at 42px tall by default."
         />
         <PartHint>
           {settings.logo
@@ -91,6 +94,21 @@ export function BrandPart({
               : "Uploads save immediately. Set an organization logo instead to use one mark everywhere."}
         </PartHint>
       </PartBlock>
+
+      {/* Chrome, not media — these ride the page's single Save, unlike the file
+          above. Only worth showing once there is a logo to apply them to. */}
+      {logoUrl ? (
+        <PartBlock
+          label="Logo display"
+          hint="A logo drawn in one flat colour disappears on the shop theme that matches it — black type on the dark theme, white type on the light one. A backdrop fixes both at once."
+        >
+          <LogoStyleField
+            value={draft.logoStyle}
+            onChange={(logoStyle) => patch({ logoStyle })}
+            logoUrl={logoUrl}
+          />
+        </PartBlock>
+      ) : null}
     </>
   );
 }
