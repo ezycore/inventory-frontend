@@ -1,12 +1,17 @@
 // coding-standard: maintained
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
-import { STEP_LABELS } from "./order-detail-helpers";
+import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
+import { DEFAULT_ORDER_STATUS_LABELS } from "@/lib/order-status";
 
 /**
  * Horizontal lifecycle stepper. Renders whichever branch it is handed —
  * `DELIVERY_STEPS` (courier) or `PICKUP_STEPS` (in-store) — so a pickup order and
  * a delivery order each show their own path off `order.fulfillmentType`.
+ *
+ * Step wording is the organization's (merchants may rename the steps), with the
+ * canonical name kept as the node's tooltip so a support conversation about a
+ * renamed store still has a shared vocabulary.
  */
 export function OrderStepper({
   currentStep,
@@ -15,11 +20,17 @@ export function OrderStepper({
   currentStep: number;
   steps: readonly string[];
 }) {
+  const { labelFor } = useOrderStatusLabels();
+
   return (
     <div className="flex items-center">
       {steps.map((step, i) => {
         const done = i < currentStep;
         const current = i === currentStep;
+        const label = labelFor(step);
+        // Only worth a tooltip when the merchant actually renamed this step.
+        const canonical = DEFAULT_ORDER_STATUS_LABELS[step];
+        const title = canonical && canonical !== label ? canonical : undefined;
         return (
           <div key={step} className="flex flex-1 items-center last:flex-none">
             <div className="flex flex-col items-center gap-2">
@@ -34,6 +45,7 @@ export function OrderStepper({
                 {done ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
               </div>
               <span
+                title={title}
                 className={cn(
                   "text-xs",
                   current
@@ -41,7 +53,7 @@ export function OrderStepper({
                     : "text-muted-foreground",
                 )}
               >
-                {STEP_LABELS[step]}
+                {label}
               </span>
             </div>
             {i < steps.length - 1 && (

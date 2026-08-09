@@ -8,6 +8,7 @@ import { formatMoney } from "@/components/storefront/format";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { cap } from "./order-detail-helpers";
 import { CourierDispatchForm } from "./courier-dispatch-form";
 import { CourierTrackingSummary } from "./courier-tracking-summary";
@@ -27,6 +28,7 @@ const CUSTOM_PREFIX = "custom:";
  * carrier, not a "mode" — and the selection decides which form renders.
  */
 export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }) {
+  const { labelFor } = useOrderStatusLabels();
   const { data: couriersData } = useCouriers();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
 
@@ -175,7 +177,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
         )
       ) : (
         <p className="text-sm text-muted-foreground">
-          Available once the order reaches <b>Processing</b>.
+          Available once the order reaches <b>{labelFor("processing")}</b>.
         </p>
       )}
     </Card>

@@ -32,6 +32,7 @@ import { Textarea } from "@/ui/components/textarea";
 import { Skeleton } from "@/ui/components/skeleton";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { CourierSettings } from "@/components/ecommerce/courier-settings";
+import { OrderStepLabelsSettings } from "@/components/ecommerce/order-step-labels-settings";
 import { NotificationMatrix } from "@/components/notifications/notification-matrix";
 
 type Option = { label: string; value: string };
@@ -43,6 +44,7 @@ const TABS = [
   { id: "shipping", label: "Shipping" },
   { id: "couriers", label: "Couriers" },
   { id: "checkout", label: "Checkout" },
+  { id: "orderSteps", label: "Order steps" },
   { id: "notifications", label: "Notifications" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
@@ -109,6 +111,8 @@ function SettingsTab({
       return <CourierSettings />;
     case "checkout":
       return <CheckoutTab settings={settings} />;
+    case "orderSteps":
+      return <OrderStepLabelsSettings />;
     case "notifications":
       return <NotificationsTab />;
   }

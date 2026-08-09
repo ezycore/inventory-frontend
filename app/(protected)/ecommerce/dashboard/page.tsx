@@ -20,17 +20,9 @@ import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { ChannelMixCard } from "@/components/ecommerce/dashboard/channel-mix-card";
 import { Skeleton } from "@/ui/components/skeleton";
-import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
-
-const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
-  pending: "pending",
-  confirmed: "confirmed",
-  processing: "processing",
-  shipped: "shipped",
-  delivered: "delivered",
-  cancelled: "cancelled",
-  rejected: "rejected",
-};
+import { StatusBadge } from "@/ui/components/status-badge";
+import { ORDER_STATUS_BADGE } from "@/lib/order-status";
+import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 
 const shortDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, {
@@ -40,6 +32,7 @@ const shortDate = (iso: string) =>
 
 export default function EcommerceDashboardPage() {
   const { data, isLoading } = useEcommerceDashboard();
+  const { labelFor } = useOrderStatusLabels();
   const orgCurrency = useAuthStore((s) => s.user?.organization?.currency);
   const slug = useAuthStore((s) => s.user?.organization?.slug);
   const currency = data?.currency ?? orgCurrency;
@@ -235,6 +228,7 @@ export default function EcommerceDashboardPage() {
                     </div>
                     <StatusBadge
                       status={ORDER_STATUS_BADGE[o.status] ?? "info"}
+                      label={labelFor(o.status)}
                       size="sm"
                     />
                   </Link>

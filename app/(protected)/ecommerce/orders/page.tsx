@@ -15,6 +15,7 @@ import {
   useStorefrontOrders,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { OrderRow } from "@/components/ecommerce/orders/order-row";
 import { CreateOrderDialog } from "@/components/ecommerce/orders/create-order-dialog";
@@ -29,16 +30,19 @@ import { SimpleSelect } from "@/ui/components/simple-select";
 import { Skeleton } from "@/ui/components/skeleton";
 import StatsCard from "@/ui/components/StatsCard";
 
-const TABS: { label: string; value: string }[] = [
+// Tab labels come from the org's step wording at render time (merchants may
+// rename the pipeline steps); "All" and the terminal states are never renameable,
+// so they carry their own fixed label.
+const TABS: { label?: string; value: string }[] = [
   { label: "All", value: "" },
-  { label: "Pending", value: "pending" },
-  { label: "Confirmed", value: "confirmed" },
-  { label: "Processing", value: "processing" },
-  { label: "Shipped", value: "shipped" },
-  { label: "Delivered", value: "delivered" },
-  { label: "Returned", value: "returned" },
-  { label: "Cancelled", value: "cancelled" },
-  { label: "Rejected", value: "rejected" },
+  { value: "pending" },
+  { value: "confirmed" },
+  { value: "processing" },
+  { value: "shipped" },
+  { value: "delivered" },
+  { value: "returned" },
+  { value: "cancelled" },
+  { value: "rejected" },
 ];
 
 // Radix Select forbids an empty-string item value, so "all" is the clear-filter
@@ -151,6 +155,8 @@ function OrdersList() {
     setPage(p);
     setSelected(new Set());
   };
+
+  const { labelFor } = useOrderStatusLabels();
 
   const { data, isLoading, isFetching } = useStorefrontOrders({
     status: status || undefined,
@@ -312,7 +318,7 @@ function OrdersList() {
                   : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
-              {t.label}
+              {t.label ?? labelFor(t.value)}
               {count != null && (
                 <span className="text-xs text-muted-foreground/70">{count}</span>
               )}
@@ -410,6 +416,7 @@ function OrdersList() {
                     order={o}
                     currency={currency}
                     checked={selected.has(o._id)}
+                    statusLabel={labelFor(o.status)}
                     onToggle={(on) => toggleOne(o._id, on)}
                     onOpen={() => router.push(`/ecommerce/orders/${o._id}`)}
                   />

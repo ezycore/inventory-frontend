@@ -4,19 +4,9 @@ import type { AdminStorefrontOrder } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
 import { cn } from "@/ui/lib/utils";
 import { Checkbox } from "@/ui/components/checkbox";
-import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
+import { StatusBadge } from "@/ui/components/status-badge";
 import { CopyTrackLink } from "@/components/ecommerce/orders/copy-track-link";
-
-export const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
-  pending: "pending",
-  confirmed: "confirmed",
-  processing: "processing",
-  shipped: "shipped",
-  delivered: "delivered",
-  returned: "returned",
-  cancelled: "cancelled",
-  rejected: "rejected",
-};
+import { ORDER_STATUS_BADGE } from "@/lib/order-status";
 
 const cap = (s: string) => `${s[0]?.toUpperCase() ?? ""}${s.slice(1)}`;
 
@@ -31,12 +21,15 @@ export function OrderRow({
   order,
   currency,
   checked,
+  statusLabel,
   onToggle,
   onOpen,
 }: {
   order: AdminStorefrontOrder;
   currency?: string;
   checked: boolean;
+  /** The organization's wording for `order.status`, resolved once by the list. */
+  statusLabel: string;
   onToggle: (on: boolean) => void;
   onOpen: () => void;
 }) {
@@ -86,7 +79,10 @@ export function OrderRow({
         )}
       </td>
       <td className="px-3 py-3">
-        <StatusBadge status={ORDER_STATUS_BADGE[order.status] ?? "info"} />
+        <StatusBadge
+          status={ORDER_STATUS_BADGE[order.status] ?? "info"}
+          label={statusLabel}
+        />
       </td>
       {/* The buyer's link, one tap from the list — for a guest or a Messenger
           order this is the only way they ever receive it. */}
