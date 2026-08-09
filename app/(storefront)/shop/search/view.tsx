@@ -73,7 +73,7 @@ function SearchInner() {
   // price bound narrows identically on both pages (it is literally the same URL
   // param hitting the same endpoint).
   const facets = useCatalogFacets();
-  const { setParams, chips, clearAll } = facets;
+  const { setParams, chips, clearAll, page, setPage } = facets;
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Keep `?q=` in step with the box. The facets write the URL too, so a stale
@@ -87,15 +87,10 @@ function SearchInner() {
   // collection page so search doesn't paginate in a second style.
   const mode = useStoreTemplate(store, "pagination");
   const paged = mode === "pages";
-  const [page, setPage] = useState(1);
-  // A new term OR a changed facet is a new result set — back to page 1
-  // (render-time adjust).
+  // A new term or a changed facet is a new result set, and both arrive through
+  // `setParams` — which drops the cursor itself, so there is no reset to do
+  // here. `resultKey` survives only to re-key `<LoadMore>`.
   const resultKey = `${debouncedQ}|${facets.filterKey}`;
-  const [prevQuery, setPrevQuery] = useState(resultKey);
-  if (prevQuery !== resultKey) {
-    setPrevQuery(resultKey);
-    setPage(1);
-  }
 
   // Until 2026-07-31 this was a single un-paged fetch: a store with more than
   // `SEARCH_PAGE_SIZE` matches silently dropped the rest, and the results line
