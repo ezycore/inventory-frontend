@@ -1,6 +1,14 @@
 "use client";
+// coding-standard: maintained
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import type { CatalogCategory, StoreMenuItem } from "@/lib/storefront-client";
 import { storeHref } from "@/lib/storefront-links";
@@ -164,11 +172,23 @@ const topLink: CSSProperties = {
   padding: "2px 0",
 };
 
-const dropPanel: CSSProperties = {
+/**
+ * The dropdown's positioned box. The 6px offset below the trigger is **padding
+ * on this anchor, never a margin on the panel** — an absolutely-positioned
+ * panel sits outside its parent's box, so a margin gap belongs to no element at
+ * all: the pointer crossing it left the trigger, fired `mouseleave`, and the
+ * menu closed before the cursor ever reached an option. As padding, the strip
+ * is part of the dropdown's own hit area and the hover path is unbroken.
+ */
+const dropAnchor: CSSProperties = {
   position: "absolute",
   top: "100%",
   left: 0,
-  marginTop: 6,
+  paddingTop: 6,
+  zIndex: 40,
+};
+
+const dropPanel: CSSProperties = {
   minWidth: 180,
   background: "var(--card)",
   border: "1px solid var(--border)",
@@ -178,8 +198,55 @@ const dropPanel: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: 2,
-  zIndex: 40,
 };
+
+/**
+ * Grace period before a `mouseleave` actually closes the menu. The padding
+ * bridge above fixes the straight-down path; this covers the rest — a fast or
+ * diagonal move can have the pointer register outside both boxes for a frame,
+ * and re-entering within the delay simply cancels the close.
+ */
+const CLOSE_DELAY_MS = 140;
+
+/** Which top-level item is open, with the close grace period applied. */
+function useHoverMenu() {
+  const [open, setOpen] = useState<number | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    };
+  }, []);
+
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  return {
+    open,
+    show: (i: number) => {
+      cancelClose();
+      setOpen(i);
+    },
+    /** Pointer left — close unless the pointer comes back first. */
+    scheduleClose: (i: number) => {
+      cancelClose();
+      closeTimer.current = setTimeout(
+        () => setOpen((o) => (o === i ? null : o)),
+        CLOSE_DELAY_MS,
+      );
+    },
+    /** Focus left the item — no grace period, keyboard moves are deliberate. */
+    close: (i: number) => {
+      cancelClose();
+      setOpen((o) => (o === i ? null : o));
+    },
+  };
+}
 
 const dropLink: CSSProperties = {
   fontSize: 13,
@@ -208,7 +275,7 @@ export function HeaderNav({
 }) {
   const catBySlug = useMemo(() => catMap(categories), [categories]);
 
-  const [open, setOpen] = useState<number | null>(null);
+  const hover = useHoverMenu();
 
   return (
     <nav
@@ -231,12 +298,12 @@ export function HeaderNav({
           <div
             key={i}
             style={{ position: "relative" }}
-            onMouseEnter={() => hasKids && setOpen(i)}
-            onMouseLeave={() => setOpen((o) => (o === i ? null : o))}
-            onFocus={() => hasKids && setOpen(i)}
+            onMouseEnter={() => hasKids && hover.show(i)}
+            onMouseLeave={() => hover.scheduleClose(i)}
+            onFocus={() => hasKids && hover.show(i)}
             onBlur={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                setOpen((o) => (o === i ? null : o));
+                hover.close(i);
               }
             }}
           >
@@ -258,21 +325,23 @@ export function HeaderNav({
                 </svg>
               ) : null}
             </NavLink>
-            {hasKids && open === i ? (
-              <div style={dropPanel}>
-                {kids.map((child, ci) => {
-                  const c = resolveHref(child, base, catBySlug);
-                  return (
-                    <NavLink
-                      key={ci}
-                      href={c.href}
-                      external={c.external}
-                      style={dropLink}
-                    >
-                      {child.label}
-                    </NavLink>
-                  );
-                })}
+            {hasKids && hover.open === i ? (
+              <div style={dropAnchor}>
+                <div style={dropPanel}>
+                  {kids.map((child, ci) => {
+                    const c = resolveHref(child, base, catBySlug);
+                    return (
+                      <NavLink
+                        key={ci}
+                        href={c.href}
+                        external={c.external}
+                        style={dropLink}
+                      >
+                        {child.label}
+                      </NavLink>
+                    );
+                  })}
+                </div>
               </div>
             ) : null}
           </div>

@@ -42,6 +42,7 @@ export function BrowserPreview({
   /** Force the preview to show slides / collections while their panel is open. */
   forceHeroSlides,
   forceCollectionsMenu,
+  socialWhatsapp,
 }: {
   slug?: string;
   draft: CustomizeDraft;
@@ -52,6 +53,8 @@ export function BrowserPreview({
   onPageChange: (page: PreviewPage) => void;
   forceHeroSlides: boolean;
   forceCollectionsMenu: boolean;
+  /** Settings → General number, so the preview mirrors the blank-number fallback. */
+  socialWhatsapp?: string;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -85,8 +88,9 @@ export function BrowserPreview({
         banner,
         forceHeroSlides,
         forceCollectionsMenu,
+        socialWhatsapp,
       }),
-    [draft, logo, banner, forceHeroSlides, forceCollectionsMenu],
+    [draft, logo, banner, forceHeroSlides, forceCollectionsMenu, socialWhatsapp],
   );
 
   const post = useCallback(() => {

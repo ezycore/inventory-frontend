@@ -254,6 +254,27 @@ export interface Dict {
   navCheckout: string;
   navSearch: string;
   navAccount: string;
+  /* --- floating contact launcher (Customize → WhatsApp button) --- */
+  /** Default expanded label; the merchant can override it. */
+  chatWithUs: string;
+  /** Product page — the inline button beside Add to cart, and the launcher label. */
+  askAboutThis: string;
+  /** Cart + checkout label: the shopper is mid-order and stuck. */
+  chatNeedHelp: string;
+  /** Checkout label — for a shopper who would rather order in the chat. */
+  chatOrderInstead: string;
+  /** Order tracking label. */
+  chatTrackOrder: string;
+  /** `aria-label`, e.g. "Chat with Rashu Store on WhatsApp". */
+  chatAria: string;
+  /** Shown while the merchant is outside their reply hours. */
+  chatAway: string;
+  /** Closes the fanned-out channel list. */
+  chatClose: string;
+  /** Prefilled context sentences — `{x}` is filled by the page. */
+  ctxProduct: string;
+  ctxCart: string;
+  ctxOrder: string;
   menu: string;
   allProducts: string;
   results: string;
@@ -277,6 +298,10 @@ export interface Dict {
   loadMore: string;
   prev: string;
   next: string;
+  /** Landmark label on the numbered pager (`pages` mode). */
+  pagination: string;
+  /** Accessible name of one numbered page button. A template — `{n}` = page. */
+  pageX: string;
   inStockFilter: string;
   allBrands: string;
   availability: string;
@@ -631,6 +656,17 @@ const en: Dict = {
   navCheckout: "Checkout",
   navSearch: "Search",
   navAccount: "Account",
+  chatWithUs: "Chat with us",
+  askAboutThis: "Ask about this",
+  chatNeedHelp: "Need help?",
+  chatOrderInstead: "Order on chat instead",
+  chatTrackOrder: "Track on chat",
+  chatAria: "Chat with {store} on {channel}",
+  chatAway: "Away — back {when}",
+  chatClose: "Close chat options",
+  ctxProduct: "I'd like to know more about {product}.",
+  ctxCart: "I have {count} item(s) in my cart and need help.",
+  ctxOrder: "I'm checking on order {order}.",
   menu: "Menu",
   allProducts: "All products",
   results: "results",
@@ -647,6 +683,8 @@ const en: Dict = {
   loadMore: "Load more",
   prev: "Prev",
   next: "Next",
+  pagination: "Pagination",
+  pageX: "Page {n}",
   inStockFilter: "In stock only",
   allBrands: "All brands",
   availability: "Availability",
@@ -999,6 +1037,17 @@ const bn: Dict = {
   navCheckout: "চেকআউট",
   navSearch: "সার্চ",
   navAccount: "অ্যাকাউন্ট",
+  chatWithUs: "চ্যাট করুন",
+  askAboutThis: "এটি সম্পর্কে জিজ্ঞাসা",
+  chatNeedHelp: "সাহায্য লাগবে?",
+  chatOrderInstead: "চ্যাটে অর্ডার করুন",
+  chatTrackOrder: "চ্যাটে ট্র্যাক করুন",
+  chatAria: "{channel}-এ {store}-এর সাথে চ্যাট করুন",
+  chatAway: "এখন বন্ধ — {when} ফিরছি",
+  chatClose: "চ্যাট অপশন বন্ধ করুন",
+  ctxProduct: "আমি {product} সম্পর্কে জানতে চাই।",
+  ctxCart: "আমার কার্টে {count}টি পণ্য আছে, সাহায্য দরকার।",
+  ctxOrder: "আমি {order} অর্ডারটির খোঁজ নিচ্ছি।",
   menu: "মেনু",
   allProducts: "সব পণ্য",
   results: "ফলাফল",
@@ -1015,6 +1064,8 @@ const bn: Dict = {
   loadMore: "আরও দেখুন",
   prev: "আগের",
   next: "পরের",
+  pagination: "পৃষ্ঠা নেভিগেশন",
+  pageX: "পৃষ্ঠা {n}",
   inStockFilter: "শুধু স্টকে আছে",
   allBrands: "সব ব্র্যান্ড",
   availability: "স্টক",
