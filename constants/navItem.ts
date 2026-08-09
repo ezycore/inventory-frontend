@@ -113,7 +113,11 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.manage"],
           },
           {
-            title: "Store Customers",
+            // Lists Shoppers (storefront login accounts), NOT the Customer
+            // ledger — a buyer with no account never appears here. Named
+            // "Customers" it read as a subset of the main Customers page, which
+            // it is not: they are different collections.
+            title: "Storefront Accounts",
             url: "/ecommerce/customers",
             icon: "users",
             features: ["storefront"],

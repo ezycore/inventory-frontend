@@ -218,7 +218,11 @@ reads as two filters at once.
 - **Listing pagination** (`templates.pagination`, default `pages`): `pages` = numbered
   `<Pager>`; `infinite` = auto-load `AUTO_LOADS` (2) pages then a button; `load-more` = button
   only. Applies to **both** the collection page and search results, which share
-  `components/storefront/{pager,load-more}.tsx`. Reads through
+  `components/storefront/{pager,load-more}.tsx`. The pager draws the real page numbers with
+  collapsed gaps (`‹ 1 … 9 10 11 … 20 ›`) from the exported, tested `pageItems(page, totalPages,
+  siblings?)`; its **slot count is constant at every page**, so the strip never resizes under the
+  cursor mid-walk — that invariant is what `pager.test.ts` asserts, so keep it if you touch the
+  window logic. Reads through
   **`useStoreTemplate(store, "pagination")`** — see the rule above. Non-`pages` modes use
   `useStoreProductsInfinite`; see the query-cache note below for why its key is separate.
   `infinite` deliberately stops auto-loading: this footer holds real navigation and the mobile
@@ -324,6 +328,13 @@ Four files, in payload order:
 - **`?? saved` is the fallback for everything except images.** For `logo`/`banner`, `null` is a real
   draft value meaning "removed", so use **`useSfPreviewImage(field, saved)`** — never re-derive the
   `undefined`-vs-`null` check inline. Getting it wrong makes a deleted logo reappear.
+- **`contactButton` follows the IMAGE rule, not the `?? saved` rule.** `null` is a real
+  draft meaning "the merchant switched the launcher off", so the store seeds it `undefined` and
+  consumers test `draft !== undefined ? draft : saved`. A `??` here leaves the button visible in the
+  preview after it is switched off. Its preview builder (`toPreviewContactButton`) also has to mirror
+  `resolvePublicContactButton` on the backend — including returning `null` when no number resolves —
+  or the merchant judges a button their shoppers will never see. The number itself is not in the
+  draft (it lives in Settings → General), so `socialWhatsapp` is threaded in from the workspace.
 - **An empty array is a real draft** ("all groups removed"), so `previewGroups ?? saved` — never a
   truthiness check.
 - **Media (logo/banner) is not a draft** — its PATCH saves on upload, so it streams from `settings`,
@@ -498,6 +509,27 @@ resolved **per request from the host**, never baked.
 
 ## Other storefront subsystems
 
+- **Brand lockup** — `components/storefront/logo-mark.tsx` (`<Brand>` = uploaded logo, else the
+  initial chip + store name; header and footer both use it). The uploaded logo is **measured, not
+  trusted**: a merchant's SVG/PNG wordmark usually has no backdrop, so black type disappears on the
+  dark theme and white type disappears on the light one, and nothing in the payload says which file
+  you have. `lib/logo-tone.ts` samples the pixels on a canvas and returns `"dark" | "light" | null`;
+  `hooks/use-logo-tone.ts` is the React face of it. A logo whose ink matches the current theme gets
+  a small contrasting plate — **everything else renders bare**, and `null` is the answer for a logo
+  with its own background, a mid-tone/multi-colour mark, and any file CORS won't let us read.
+  Three rules: the hook must **not** seed from the module cache (a hit during hydration would
+  disagree with the SSR HTML); its state carries the `src` it was measured from and a mismatch
+  derives to `null`, because clearing stale state with a `setState` in the effect body is a
+  cascading render that `react-hooks/set-state-in-effect` **fails the build** on; and the plate's
+  colours are hardcoded, never theme tokens — the plate exists precisely because the themed surface
+  is the wrong tone.
+  ⚠ **This needs CORS on the logo host.** Sampling reads pixels off a canvas, so the image is
+  loaded `crossOrigin="anonymous"`; if the R2 bucket behind `*.r2.dev` / `cdn.ezycore.com` does not
+  return `Access-Control-Allow-Origin`, every load fails and every logo falls back to bare — the
+  degradation is silent and looks exactly like "the fix didn't ship". That policy lives in the
+  Cloudflare dashboard, not in this repo. Check it with
+  `curl -I -H 'Origin: https://ezycore.com' <logo-url>` before debugging the code.
+
 - **Breadcrumbs** — `lib/storefront-breadcrumb.ts` (pure, tested) builds the trail;
   `components/storefront/breadcrumb.tsx` renders it. **Every page with a trail renders it twice** —
   once as `BreadcrumbList` JSON-LD, once as visible markup — so both MUST come from the same
@@ -645,7 +677,69 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-07)
+## Work log (what was built, newest first — as of 2026-08-09)
+
+- **Structural split of the two storefront god-files (BE + FE)** (2026-08-09). No behaviour, no API
+  output and no route changed. Full module table:
+  `../inventory-backend/docs/features/ecommerce-implementation.md` → "Storefront service + product
+  page split"; the backend `storefront-orders` skill §5 carries the where-did-it-go table.
+  **Backend:** `storefront.service.ts` 2104 lines → eleven modules, each ≤ 402. It only holds
+  `getStoreInfo` now; it still re-exports `StoreContext`/`ShopperCtx` so old imports resolve, but
+  new code should take them from `storefront-context.ts` — a leaf module with no service imports,
+  which is what let `storefront-cart.service.ts` stop hand-redeclaring the type to dodge a cycle.
+  **Frontend:** the product page `view.tsx` 427 → 213 lines, over `use-product-detail.ts` (queries,
+  selection, derived price/stock, the three actions), `product-buy-panel.tsx` and
+  `product-sticky-bar.tsx`.
+  ⚠️ **The sticky bar owns its own ref.** It first took `buybarRef` off the shared hook return and
+  `react-hooks/refs` rejected it — reading a ref off a shared object during render. It now creates
+  the ref and calls `useBuybarHeight` itself, *before* its early return, so the hook order stays
+  unconditional and `--sf-buybar-h` resets to 0 on the layouts that render no bar. Do not move that
+  back up into the hook.
+
+- **Contact launcher — the floating WhatsApp button (BE + FE)** (2026-08-08). Merchant-controlled,
+  off by default, configured at **Ecommerce → Customize → WhatsApp button**. Full spec:
+  `../inventory-backend/docs/features/ecommerce.md` → "Contact launcher"; file-by-file log in
+  `ecommerce-implementation.md`; 42-step QA in `ecommerce-qa.md`. Four things worth carrying:
+  **(1) Presence is enabled.** `resolvePublicContactButton` OMITS the whole block from the public
+  payload when the switch is off or nothing resolves — never `enabled: false` — so the storefront
+  has no flag to check and an unpublished number cannot reach a visitor. It is also the only place
+  the blank-value fallback to `social.whatsapp` happens, so the browser never picks between two
+  copies of a phone number.
+  **(2) `--sf-buybar-h` is new and load-bearing.** The launcher anchors to
+  `calc(var(--sf-bottom-nav-h) + var(--sf-buybar-h) + 14px)` at `z-index: 45`. The product page's
+  sticky buy bar was ALREADY at `bottom: var(--sf-bottom-nav-h)`, so a button clearing only the tab
+  bar lands squarely on Add-to-cart on every mobile product page — while looking perfect on the home
+  page, on desktop, and in every screenshot. `useBuybarHeight` measures it and resets on unmount,
+  because the shell survives client-side navigation and a stale offset would follow the shopper
+  around the whole site.
+  **(3) The schema is plural, the registry has one row.** `contactButton.channels[]` with
+  `kind: "whatsapp"` as the only member, because `StorefrontOrder.channel` already enumerates
+  messenger/instagram/phone — a WhatsApp-only shape would be the one part of the storefront
+  disagreeing with its own data model. Adding a platform = a new enum member + a row in
+  `lib/storefront-contact-channels.ts`, whose `prefill` field is the one that actually varies
+  (`text` for wa.me/t.me/mailto, `ref` for m.me — webhook-only, invisible to the shopper — `none`
+  for ig.me). A launcher assuming every platform behaves like WhatsApp builds URLs Messenger and
+  Instagram silently drop.
+  **(4) One channel ≠ two.** One enabled channel → the button IS the channel (its colour, its glyph,
+  a direct link, one tap). Two or more → a neutral launcher in the merchant's brand colour that fans
+  them out. Green means WhatsApp, so only WhatsApp may be green — do not "simplify" this into always
+  showing the menu, which taxes the 90% of merchants who will only ever use one number.
+
+- **Three storefront polish fixes: logo contrast, nav dropdown, pagination (FE)** (2026-08-08),
+  all reported from a real shop:
+  **(1) A transparent logo was invisible on one theme.** See the brand-lockup bullet above for the
+  mechanism. The tempting non-fixes were both worse: plating *every* logo boxes the wordmarks
+  designed for dark headers, and a CSS `invert()` wrecks anything with colour in it.
+  **(2) The category dropdown closed while the pointer was moving into it.** The panel sat
+  `marginTop: 6` below its trigger — but an absolutely-positioned panel is outside its parent's
+  box, so that 6px strip belonged to **no element**: crossing it fired `mouseleave` on the trigger
+  and closed the menu. Hence the intermittency (fast/diagonal moves cleared the gap, slow ones did
+  not). The offset is now `paddingTop` on a wrapping anchor, which puts the strip inside the
+  dropdown's own hit area, plus a 140ms close grace period for the frames a fast pointer lands in
+  neither box. **Never re-introduce a margin gap under a hover-opened panel.**
+  **(3) The pager was Prev / `n of N` / Next**, so a 20-page collection could only be walked one
+  click at a time. Now numbered with collapsed gaps — see the listing-pagination bullet.
+  i18n `pagination` + `pageX` ×2 locales; new `pager.test.ts`.
 
 - **Product tags became visible on the shop (FE + BE)** (2026-08-07): tags were filterable and
   nowhere displayed — `GET …/tags` served the facet, `?tags=` filtered, but no product payload

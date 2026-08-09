@@ -227,6 +227,8 @@ export interface StorefrontSettings {
   allowedPaymentMethods: StorefrontPaymentMethod[];
   contact?: { email?: string; phone?: string; address?: string };
   social?: { facebook?: string; instagram?: string; whatsapp?: string };
+  /** Floating chat launcher (Ecommerce → Customize → WhatsApp button). */
+  contactButton?: StorefrontContactButton;
   seo?: { title?: string; description?: string };
   currency?: string;
   shippingRule: StorefrontShippingRule;
@@ -251,6 +253,60 @@ export interface StorefrontSettings {
   heroSlides?: StorefrontHeroSlide[];
   /** Static banner-hero copy overrides; unset fields → built-in copy. */
   heroBanner?: StorefrontHeroBanner;
+}
+
+/**
+ * A chat platform the storefront's contact launcher can open. One member wide
+ * today — the launcher ships WhatsApp-only — but `StorefrontOrder.channel`
+ * already enumerates messenger/instagram/phone, so adding a platform is a new
+ * member here plus a row in `lib/storefront-contact-channels.ts`.
+ */
+export type ContactChannelKind = "whatsapp";
+
+/** One row in the launcher's channel list. Array order is display order. */
+export interface StorefrontContactChannel {
+  kind: ContactChannelKind;
+  /** Blank means "use the WhatsApp number from Settings → General". */
+  value: string;
+  label?: string;
+  enabled?: boolean;
+}
+
+/** Storefront pages the launcher may appear on. */
+export type ContactButtonPage =
+  | "home"
+  | "collection"
+  | "product"
+  | "cart"
+  | "checkout"
+  | "order"
+  | "page"
+  | "account";
+
+/**
+ * The floating chat launcher, as the ADMIN edits it. Everything except
+ * `channels` is global on purpose — one launcher means one placement, one set of
+ * page rules and one greeting.
+ */
+export interface StorefrontContactButton {
+  enabled?: boolean;
+  label?: string;
+  /** Message template; `{store}` and `{context}` are resolved per page. */
+  greeting?: string;
+  position?: "right" | "left";
+  /** Whitelist. Absent/empty ⇒ every page the launcher supports. */
+  showOn?: ContactButtonPage[];
+  channels?: StorefrontContactChannel[];
+  hours?: {
+    enabled?: boolean;
+    /** Days the merchant answers, 0 = Sunday. */
+    days?: number[];
+    /** "HH:mm". */
+    from?: string;
+    to?: string;
+    offlineNote?: string;
+  };
+  nudge?: { enabled?: boolean; delaySeconds?: number; text?: string };
 }
 
 /** One owner-editable footer "trust" badge (Rich footer strip). */

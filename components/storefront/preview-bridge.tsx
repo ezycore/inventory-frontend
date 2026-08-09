@@ -46,6 +46,9 @@ export function StorePreviewBridge() {
         collections: p.collections,
         footerGroups: p.nav?.footer,
         footerContentPages: p.nav?.footerContentPages,
+        // Explicit `null` when the merchant has the launcher off — the store
+        // can't use a `?? saved` fallback for it, same as the images below.
+        contactButton: p.contactButton,
         // Sent as explicit `null` when there is no image — see the store's note
         // on why these two can't use a `?? saved` fallback downstream.
         logo: p.logo,
