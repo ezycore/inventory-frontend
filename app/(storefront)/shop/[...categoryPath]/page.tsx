@@ -12,6 +12,7 @@ import { collectionCrumbs } from "@/lib/storefront-breadcrumb";
 import { JsonLd } from "@/components/storefront/json-ld";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import {
+  catalogPage,
   catalogSearchParams,
   categoryPathQueryParams,
   isIndexableCatalogUrl,
@@ -58,10 +59,13 @@ export async function generateMetadata({
   if (!collection) return {};
 
   // The bare collection URL is the canonical landing page. Any filter on top —
-  // price, stock, sort, tags — is the same set re-sliced, so it is `noindex,
-  // follow` and gets no canonical at all (see `storePageMetadata`).
-  const sp = catalogSearchParams(await searchParams);
-  const indexable = isIndexableCatalogUrl(sp) && !sp.brandId;
+  // price, stock, sort, tags — is the same set re-sliced, and page 2+ is that
+  // same page deeper in, so those are `noindex, follow` and get no canonical at
+  // all (see `storePageMetadata`).
+  const raw = await searchParams;
+  const sp = catalogSearchParams(raw);
+  const indexable =
+    isIndexableCatalogUrl(sp, catalogPage(raw.page)) && !sp.brandId;
 
   return storePageMetadata({
     title: collection.name,
@@ -92,14 +96,17 @@ export default async function Page({
   // grid: a mistyped collection URL must not look like a store with no stock.
   if (!collection) notFound();
 
-  const sp = catalogSearchParams(await searchParams);
-  // Seeds the client's query cache with page 1, so the grid is real HTML rather
-  // than a skeleton. The params object IS the cache key, so it is built by the
-  // same helper `view.tsx` calls — see `lib/storefront-catalog-params.ts`.
+  const raw = await searchParams;
+  const sp = catalogSearchParams(raw);
+  // Seeds the client's query cache with the page `?page=` asked for, so the grid
+  // is real HTML rather than a skeleton — including on a Back into page 3. The
+  // params object IS the cache key, so it is built by the same helper `view.tsx`
+  // calls — see `lib/storefront-catalog-params.ts`.
+  const page = catalogPage(raw.page);
   const [products, store] = await Promise.all([
     getStoreProducts(
       slug,
-      categoryPathQueryParams(collection.slugPath ?? path, sp),
+      categoryPathQueryParams(collection.slugPath ?? path, sp, page),
     ),
     getStore(slug),
   ]);
@@ -127,6 +134,7 @@ export default async function Page({
       {trail ? <JsonLd data={breadcrumbJsonLd(trail)} /> : null}
       <View
         initialProducts={products ?? undefined}
+        initialPage={page}
         collection={collection}
         crumbs={crumbs}
       />

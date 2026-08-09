@@ -170,6 +170,7 @@ export function PartsRail({
             ) : part.id === "collections" ? (
               <CollectionsPart
                 draft={draft}
+                patch={patch}
                 patchTemplate={patchTemplate}
                 onManageCollections={onManageCollections}
               />

@@ -11059,6 +11059,19 @@ export interface components {
                 accentColor?: string;
                 footerText?: string;
                 homepageSections?: string[];
+                logo?: {
+                    background?: string;
+                    height?: number;
+                    padding?: number;
+                    radius?: number;
+                };
+                homeCollections?: {
+                    /** @enum {string} */
+                    layout?: "strip" | "grid";
+                    columns?: number;
+                    /** @enum {string} */
+                    align?: "left" | "center" | "right";
+                };
             };
             nav?: {
                 header?: {
@@ -16998,6 +17011,19 @@ export interface operations {
                         accentColor?: string;
                         footerText?: string;
                         homepageSections?: string[];
+                        logo?: {
+                            background?: string;
+                            height?: number;
+                            padding?: number;
+                            radius?: number;
+                        };
+                        homeCollections?: {
+                            /** @enum {string} */
+                            layout?: "strip" | "grid";
+                            columns?: number;
+                            /** @enum {string} */
+                            align?: "left" | "center" | "right";
+                        };
                     };
                     nav?: {
                         header?: {

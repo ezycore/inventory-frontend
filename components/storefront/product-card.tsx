@@ -17,6 +17,7 @@ import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import {
   CardCtaRow,
   CardRevealActions,
+  CardSoldOutOverlay,
   CardVariantFlyout,
   layoutOwnsImage,
   type CardActions,
@@ -184,6 +185,10 @@ export function ProductCard({
               justifyContent: "flex-end",
             }}
           />
+          {/* Last child, so the scrim fades the discount badge and tag chips
+              along with the image — a "-30%" burning bright over a product
+              nobody can buy is the wrong thing to draw the eye. */}
+          {soldOut ? <CardSoldOutOverlay label={t.outOfStock} /> : null}
         </Link>
         {/* Only one of these can occupy the image bottom, which is exactly why
             `layoutOwnsImage` sends `reveal` products to the sheet instead. */}
