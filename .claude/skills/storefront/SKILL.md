@@ -536,6 +536,30 @@ resolved **per request from the host**, never baked.
     passed in because the server-rendered JSON-LD cannot read the client i18n dictionary — it is
     English there on purpose, matching the "only English is indexable" note in SEO above.
 
+- **`?hideSoldOut=1` and `?inStock=1` are NOT the same filter** — they differ on exactly one row of
+  the truth table, and that row is why both exist. `inStock` keeps `availableQuantity > 0`;
+  `hideSoldOut` also keeps a **`backorder`** product, which sits at zero stock deliberately and is
+  still buyable ("Available on backorder"). So `inStock` on a curated row would hide a product the
+  shopper can order. Rule of thumb: **`inStock` is the shopper's "In stock only" facet** (they asked
+  for stock, so excluding backorder is right); **`hideSoldOut` is for merchandising rows the shop
+  chooses** — today the homepage's Featured and New arrivals, where an unbuyable card is dead space.
+  Collection and search pages deliberately still list sold-out products, with the sold-out card
+  treatment. Both live in `storefront-catalog.service.ts`'s computed path and are covered by
+  `storefront-products.test.ts` → `hideSoldOut`, including an assertion that `inStock` still drops
+  the backorder product — that test exists to stop the two being folded into one.
+  Also note both flags **force the computed path** (in-memory filter + hydrate), because
+  availability does not live in the products collection.
+
+- **The catalogue's default sort is `featured` first, not `newest`** —
+  `{ "storefront.featured": -1, createdAt: -1 }`, on both the fast path and the in-memory one
+  (`../inventory-backend/src/services/storefront-catalog.service.ts`). That is the right relevance
+  order for a collection page, and a trap everywhere else: **any "newest / latest / new arrivals"
+  query must pass `sort: "newest"` explicitly.** The homepage's New-arrivals row did not, so it
+  opened with the merchant's featured products in the same order as the Featured row directly above
+  it — the two sections looked identical, and got more identical the more the owner featured (fixed
+  2026-08-09, `app/(storefront)/shop/page.tsx`). Nothing fails when you forget: you get a plausible
+  list of the wrong products.
+
 - **Homepage collections row** — `components/storefront/home/home-collections.tsx`, rendered by the
   Classic template (the only one with a tile row; Minimal keeps its text links). Layout is the
   merchant's — `theme.homeCollections` (Customize → Collections → "On the homepage") via
@@ -676,8 +700,15 @@ resolved **per request from the host**, never baked.
   adapters filter/paginate CLIENT-side over the full backend list; workflow-style
   (orders/customers/catalog) hand-roll their tables but share
   `components/ecommerce/list-search-input.tsx` (debounced 300ms, trimmed commit) and
-  `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
-  these, never re-inline a search box or pagination row on an ecommerce list page.
+  `components/ecommerce/list-pagination.tsx` — reuse these, never re-inline a search box or
+  pagination row on an ecommerce list page.
+  `ListPagination` renders the **same footer as every `DataTable`**: the shared
+  `<PaginationControls>` (`ui/components/pagination-controls.tsx`), the same shadcn rows-per-page
+  `Select`, the same responsive ordering, and the same `common.table.*` strings. It was a bare
+  Previous/Next pair until 2026-08-09, which made reaching page 7 of the catalog five clicks while
+  every other list in the app offered a number to click — hand-rolling the rows is a markup
+  decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
+  without it the footer silently drops to pager-only.
 
 ## Work log (what was built, newest first — as of 2026-08-09)
 
@@ -702,6 +733,20 @@ resolved **per request from the host**, never baked.
   **(5) The footer blurb needed no code at all**: `theme.footerText` (Customize → Footer) already
   overrides `t.storeInfo`, and the reporter had only ever seen the fallback. Worth checking for an
   existing owner field before adding one.
+  **(6) "New arrivals" was showing the Featured row again** — the query omitted `sort`, and the
+  catalogue's default is featured-first. One line; see the default-sort bullet above, which is the
+  general trap.
+  **(7) Sold-out products were filling homepage slots.** New BE `?hideSoldOut=1`, on both homepage
+  rows. Deliberately a new flag rather than the existing `?inStock=1` — see the bullet above for the
+  backorder row that separates them.
+  **(8) The admin catalog page paged with bare Previous/Next.** So did orders, customers and carts —
+  they share `ListPagination`, so one fix covered all four. The paging window came out of
+  `DataTablePagination` into `utils/page-window.ts` (tested, behaviour-preserving) and the button
+  row into `ui/components/pagination-controls.tsx`; both pagers now render the same component. One
+  latent inconsistency fell out: the DataTable's **Last page** chevron used `table.getPageCount()`
+  while its last *number* button used `pagination.totalPages`, so on a server-paginated table the
+  two could jump to different pages. Both go through `totalPages` now — the count the visible
+  numbers are drawn from.
   Backend: both theme objects through model / validator / types / admin DTO, then `pnpm docs:all`
   and `pnpm gen:api-types`. Bounds (height 20–80, padding 0–24, radius 0–40, columns 2–6) are
   enforced in the validator **and** re-clamped in `resolveLogoStyle` / `resolveHomeCollections`,

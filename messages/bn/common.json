@@ -64,6 +64,7 @@
     "previousPage": "আগের পৃষ্ঠা",
     "nextPage": "পরের পৃষ্ঠা",
     "lastPage": "শেষ পৃষ্ঠা",
+    "goToPage": "পৃষ্ঠা {page}-এ যান",
     "exportCsv": "CSV এক্সপোর্ট",
     "print": "প্রিন্ট",
     "popupBlocked": "প্রিন্ট করতে পপ-আপ অনুমতি দিন।"

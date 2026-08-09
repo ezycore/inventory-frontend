@@ -76,8 +76,20 @@ export default async function StoreHomePage() {
   // preview can toggle/reorder any section without a round-trip.
   const [store, featured, latest, categories, campaigns] = await Promise.all([
     getStore(slug),
-    getStoreProducts(slug, { featured: "true", limit: 8 }),
-    getStoreProducts(slug, { limit: 8 }),
+    // `hideSoldOut` on both rows: the homepage is a shop window, and a card
+    // nobody can buy is dead space in the eight slots that decide whether a
+    // visitor goes any further. Collection and search pages deliberately keep
+    // listing sold-out products (with the sold-out treatment on the card) —
+    // there the shopper is browsing a catalogue, not being sold to.
+    // NOT `inStock`: that drops `backorder` products too, and those sit at zero
+    // stock on purpose and still sell. See the validator's note on the two flags.
+    getStoreProducts(slug, { featured: "true", limit: 8, hideSoldOut: "1" }),
+    // `sort: "newest"` is REQUIRED, not a tidy-up. The catalogue's default sort
+    // is `{ storefront.featured: -1, createdAt: -1 }` — featured first — which
+    // is right for a collection page and wrong for a row headed "New arrivals":
+    // omitting it made this section open with the same products, in the same
+    // order, as the Featured row directly above it.
+    getStoreProducts(slug, { limit: 8, sort: "newest", hideSoldOut: "1" }),
     getStoreCategories(slug),
     getStoreCampaigns(slug),
   ]);

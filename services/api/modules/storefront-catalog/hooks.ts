@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
@@ -14,6 +19,13 @@ export const useCatalogProducts = (params: CatalogListParams) =>
   useQuery({
     queryKey: queryKeys.storefrontCatalog.list(params),
     queryFn: () => storefrontCatalogApi.list(params),
+    // Keep the previous page on screen while the next one loads. `page` is part
+    // of the key, so page 2 is a cache MISS and `isLoading` goes true — without
+    // this the table collapses to "Loading…" and re-appears on every page
+    // change, search keystroke and filter tap. Same reason as
+    // `useAbandonedCarts` / `useOnlineCustomers`; this was the one paginated
+    // list that missed it.
+    placeholderData: keepPreviousData,
     select: (r) => r.data,
   });
 

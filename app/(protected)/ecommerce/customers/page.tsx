@@ -112,6 +112,7 @@ export default function EcommerceCustomersPage() {
       <ListPagination
         page={page}
         totalPages={pagination?.totalPages ?? 1}
+        total={pagination?.total}
         limit={limit}
         isFetching={isFetching}
         onPageChange={setPage}
