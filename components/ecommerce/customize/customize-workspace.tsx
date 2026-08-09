@@ -100,6 +100,9 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
           // writing slides changes nothing on screen.
           forceHeroSlides={slidesPanel !== null}
           forceCollectionsMenu={collectionsPanel}
+          // The contact button's number lives in Settings → General, not in this
+          // draft, so the preview needs it to mirror the blank-number fallback.
+          socialWhatsapp={settings.social?.whatsapp}
           // Media is saved by its own PATCH the moment it uploads, so these come
           // straight off `settings` (already refreshed by the mutation) rather
           // than from the draft.

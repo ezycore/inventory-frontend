@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   Library,
   Megaphone,
+  MessageCircle,
   Package,
   PanelBottom,
   PanelTop,
@@ -22,6 +23,7 @@ import { partSummary } from "@/components/ecommerce/customize/part-summaries";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
 import { CollectionsPart } from "@/components/ecommerce/customize/parts/collections-part";
+import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part";
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
 import { HeroPart } from "@/components/ecommerce/customize/parts/hero-part";
@@ -50,6 +52,7 @@ const PARTS: { id: PartId; title: string; icon?: LucideIcon }[] = [
   { id: "cards", title: "Product cards", icon: LayoutGrid },
   { id: "collections", title: "Collections", icon: Library },
   { id: "product", title: "Product page", icon: Package },
+  { id: "contact", title: "WhatsApp button", icon: MessageCircle },
   { id: "footer", title: "Footer", icon: PanelBottom },
   { id: "checkout", title: "Checkout", icon: CreditCard },
 ];
@@ -126,6 +129,23 @@ export function PartsRail({
                   }}
                   aria-label="Show the announcement bar"
                 />
+              ) : part.id === "contact" ? (
+                <Switch
+                  checked={draft.contactButton.enabled}
+                  // No number anywhere = nothing to link to, so the switch is
+                  // dead rather than shipping a `wa.me/` with no digits. The
+                  // collapsed part says where to add one.
+                  disabled={
+                    !draft.contactButton.enabled &&
+                    !settings.social?.whatsapp?.trim() &&
+                    !draft.contactButton.number.trim()
+                  }
+                  onCheckedChange={(enabled) => {
+                    api.patchContactButton({ enabled });
+                    if (enabled && open !== "contact") onToggle("contact");
+                  }}
+                  aria-label="Show the WhatsApp button"
+                />
               ) : undefined
             }
           >
@@ -153,6 +173,12 @@ export function PartsRail({
                 draft={draft}
                 patchTemplate={patchTemplate}
                 onManageCollections={onManageCollections}
+              />
+            ) : part.id === "contact" ? (
+              <ContactPart
+                settings={settings}
+                draft={draft}
+                patchContactButton={api.patchContactButton}
               />
             ) : part.id === "footer" ? (
               <FooterPart

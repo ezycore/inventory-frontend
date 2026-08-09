@@ -304,6 +304,13 @@ Four files, in payload order:
 - **`?? saved` is the fallback for everything except images.** For `logo`/`banner`, `null` is a real
   draft value meaning "removed", so use **`useSfPreviewImage(field, saved)`** — never re-derive the
   `undefined`-vs-`null` check inline. Getting it wrong makes a deleted logo reappear.
+- **`contactButton` follows the IMAGE rule, not the `?? saved` rule.** `null` is a real
+  draft meaning "the merchant switched the launcher off", so the store seeds it `undefined` and
+  consumers test `draft !== undefined ? draft : saved`. A `??` here leaves the button visible in the
+  preview after it is switched off. Its preview builder (`toPreviewContactButton`) also has to mirror
+  `resolvePublicContactButton` on the backend — including returning `null` when no number resolves —
+  or the merchant judges a button their shoppers will never see. The number itself is not in the
+  draft (it lives in Settings → General), so `socialWhatsapp` is threaded in from the workspace.
 - **An empty array is a real draft** ("all groups removed"), so `previewGroups ?? saved` — never a
   truthiness check.
 - **Media (logo/banner) is not a draft** — its PATCH saves on upload, so it streams from `settings`,
@@ -646,7 +653,53 @@ resolved **per request from the host**, never baked.
   `components/ecommerce/list-pagination.tsx` (rows-per-page + Previous/Next footer) — reuse
   these, never re-inline a search box or pagination row on an ecommerce list page.
 
-## Work log (what was built, newest first — as of 2026-08-08)
+## Work log (what was built, newest first — as of 2026-08-09)
+
+- **Structural split of the two storefront god-files (BE + FE)** (2026-08-09). No behaviour, no API
+  output and no route changed. Full module table:
+  `../inventory-backend/docs/features/ecommerce-implementation.md` → "Storefront service + product
+  page split"; the backend `storefront-orders` skill §5 carries the where-did-it-go table.
+  **Backend:** `storefront.service.ts` 2104 lines → eleven modules, each ≤ 402. It only holds
+  `getStoreInfo` now; it still re-exports `StoreContext`/`ShopperCtx` so old imports resolve, but
+  new code should take them from `storefront-context.ts` — a leaf module with no service imports,
+  which is what let `storefront-cart.service.ts` stop hand-redeclaring the type to dodge a cycle.
+  **Frontend:** the product page `view.tsx` 427 → 213 lines, over `use-product-detail.ts` (queries,
+  selection, derived price/stock, the three actions), `product-buy-panel.tsx` and
+  `product-sticky-bar.tsx`.
+  ⚠️ **The sticky bar owns its own ref.** It first took `buybarRef` off the shared hook return and
+  `react-hooks/refs` rejected it — reading a ref off a shared object during render. It now creates
+  the ref and calls `useBuybarHeight` itself, *before* its early return, so the hook order stays
+  unconditional and `--sf-buybar-h` resets to 0 on the layouts that render no bar. Do not move that
+  back up into the hook.
+
+- **Contact launcher — the floating WhatsApp button (BE + FE)** (2026-08-08). Merchant-controlled,
+  off by default, configured at **Ecommerce → Customize → WhatsApp button**. Full spec:
+  `../inventory-backend/docs/features/ecommerce.md` → "Contact launcher"; file-by-file log in
+  `ecommerce-implementation.md`; 42-step QA in `ecommerce-qa.md`. Four things worth carrying:
+  **(1) Presence is enabled.** `resolvePublicContactButton` OMITS the whole block from the public
+  payload when the switch is off or nothing resolves — never `enabled: false` — so the storefront
+  has no flag to check and an unpublished number cannot reach a visitor. It is also the only place
+  the blank-value fallback to `social.whatsapp` happens, so the browser never picks between two
+  copies of a phone number.
+  **(2) `--sf-buybar-h` is new and load-bearing.** The launcher anchors to
+  `calc(var(--sf-bottom-nav-h) + var(--sf-buybar-h) + 14px)` at `z-index: 45`. The product page's
+  sticky buy bar was ALREADY at `bottom: var(--sf-bottom-nav-h)`, so a button clearing only the tab
+  bar lands squarely on Add-to-cart on every mobile product page — while looking perfect on the home
+  page, on desktop, and in every screenshot. `useBuybarHeight` measures it and resets on unmount,
+  because the shell survives client-side navigation and a stale offset would follow the shopper
+  around the whole site.
+  **(3) The schema is plural, the registry has one row.** `contactButton.channels[]` with
+  `kind: "whatsapp"` as the only member, because `StorefrontOrder.channel` already enumerates
+  messenger/instagram/phone — a WhatsApp-only shape would be the one part of the storefront
+  disagreeing with its own data model. Adding a platform = a new enum member + a row in
+  `lib/storefront-contact-channels.ts`, whose `prefill` field is the one that actually varies
+  (`text` for wa.me/t.me/mailto, `ref` for m.me — webhook-only, invisible to the shopper — `none`
+  for ig.me). A launcher assuming every platform behaves like WhatsApp builds URLs Messenger and
+  Instagram silently drop.
+  **(4) One channel ≠ two.** One enabled channel → the button IS the channel (its colour, its glyph,
+  a direct link, one tap). Two or more → a neutral launcher in the merchant's brand colour that fans
+  them out. Green means WhatsApp, so only WhatsApp may be green — do not "simplify" this into always
+  showing the menu, which taxes the 90% of merchants who will only ever use one number.
 
 - **Three storefront polish fixes: logo contrast, nav dropdown, pagination (FE)** (2026-08-08),
   all reported from a real shop:

@@ -83,6 +83,17 @@ export function partSummary(
           )}`;
     case "product":
       return labelOf("product", draft.templates.product);
+    case "contact": {
+      const c = draft.contactButton;
+      if (!c.enabled) return "Off";
+      const number = c.number.trim() || settings.social?.whatsapp?.trim();
+      // On with no number resolves to no button at all on the live shop, so the
+      // summary says that rather than reporting a healthy "On".
+      if (!number) return "On, but no WhatsApp number saved";
+      const where =
+        c.showOn.length === 0 ? "every page" : `${count(c.showOn.length, "page")}`;
+      return `${number} · ${where} · bottom ${c.position}`;
+    }
     case "footer": {
       const groups = draft.footerGroups.filter((g) => g.title.trim()).length;
       const links = groups === 0 ? "no link groups" : count(groups, "link group");

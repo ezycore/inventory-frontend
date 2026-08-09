@@ -1,8 +1,12 @@
 // coding-standard: maintained
 
-import type { HeaderMenuSource } from "@/lib/storefront-client";
+import type {
+  HeaderMenuSource,
+  StoreContactButton,
+} from "@/lib/storefront-client";
 import type {
   Image,
+  StorefrontContactButton,
   StorefrontFooterGroup,
   StorefrontHeroSlide,
   StorefrontMenuItem,
@@ -112,6 +116,79 @@ export const publicCollections = (collections: CustomizeDraft["collections"]) =>
     }));
 };
 
+/**
+ * The editor's flat contact draft, back into the stored `channels` shape.
+ *
+ * A blank number is KEPT as an empty-valued row rather than dropped: blank means
+ * "use the WhatsApp number from Settings → General", and the backend resolver
+ * reads it that way. Dropping the row would instead mean "no channels", which
+ * the backend reads as "render nothing" — the switch would look on and the shop
+ * would show no button.
+ */
+function toContactButton(draft: CustomizeDraft): StorefrontContactButton {
+  const c = draft.contactButton;
+  return {
+    enabled: c.enabled,
+    label: c.label.trim() || undefined,
+    greeting: c.greeting.trim() || undefined,
+    position: c.position,
+    // Empty ⇒ every page. Sent as undefined rather than `[]` so the stored doc
+    // says "unset" instead of "an empty whitelist someone might later read
+    // literally".
+    showOn: c.showOn.length ? c.showOn : undefined,
+    channels: [{ kind: "whatsapp", value: c.number.trim(), enabled: true }],
+    hours: {
+      enabled: c.hoursEnabled,
+      from: c.hoursFrom,
+      to: c.hoursTo,
+      offlineNote: c.offlineNote.trim() || undefined,
+    },
+    nudge: {
+      enabled: c.nudgeEnabled,
+      delaySeconds: c.nudgeDelay,
+      text: c.nudgeText.trim() || undefined,
+    },
+  };
+}
+
+/**
+ * The same draft as the PUBLIC shape the storefront renders — i.e. what
+ * `resolvePublicContactButton` would return for it.
+ *
+ * Mirroring that resolver is the point: the preview has to hide the launcher in
+ * exactly the cases the live shop would (switched off, or no number anywhere),
+ * or the merchant judges a button their shoppers will never see. The one thing
+ * it cannot mirror is the `social.whatsapp` fallback — that value is not in this
+ * draft — so the caller passes it in.
+ */
+function toPreviewContactButton(
+  draft: CustomizeDraft,
+  socialWhatsapp: string | undefined,
+): StoreContactButton | null {
+  const c = draft.contactButton;
+  if (!c.enabled) return null;
+  const value = c.number.trim() || socialWhatsapp?.trim() || "";
+  if (!value) return null;
+  return {
+    label: c.label.trim() || undefined,
+    greeting: c.greeting.trim() || undefined,
+    position: c.position,
+    showOn: c.showOn.length ? c.showOn : undefined,
+    channels: [{ kind: "whatsapp", value }],
+    hours: {
+      enabled: c.hoursEnabled,
+      from: c.hoursFrom,
+      to: c.hoursTo,
+      offlineNote: c.offlineNote.trim() || undefined,
+    },
+    nudge: {
+      enabled: c.nudgeEnabled,
+      delaySeconds: c.nudgeDelay,
+      text: c.nudgeText.trim() || undefined,
+    },
+  };
+}
+
 function toNav(draft: CustomizeDraft): StorefrontNav {
   const a = draft.announcement;
   return {
@@ -152,6 +229,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
     heroSlides: trimSlides(draft.heroSlides),
     templates: draft.templates,
     nav: toNav(draft),
+    contactButton: toContactButton(draft),
   };
 }
 
@@ -163,6 +241,7 @@ export function toPreviewPayload(
     banner,
     forceHeroSlides,
     forceCollectionsMenu,
+    socialWhatsapp,
   }: {
     /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
     logo: Image | null;
@@ -170,6 +249,8 @@ export function toPreviewPayload(
     /** Preview slides / collections while their panel is open, whatever is saved. */
     forceHeroSlides: boolean;
     forceCollectionsMenu: boolean;
+    /** Settings → General's number, so the preview can mirror the blank-number fallback. */
+    socialWhatsapp?: string;
   },
 ) {
   return {
@@ -195,6 +276,9 @@ export function toPreviewPayload(
     heroSlides: trimSlides(draft.heroSlides),
     heroBanner: cleanHeroBanner(draft.heroBanner),
     nav: toNav(draft),
+    // `null` (not undefined) is what tells the preview store the launcher is
+    // switched off, as opposed to "nothing drafted yet" — see the store's note.
+    contactButton: toPreviewContactButton(draft, socialWhatsapp),
     collections: publicCollections(draft.collections),
     // `null` (not undefined) is what tells the preview store "removed" apart
     // from "not sent yet".

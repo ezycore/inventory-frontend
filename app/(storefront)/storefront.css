@@ -55,6 +55,14 @@
   --invcols: 1fr;
   /* Height reserved for the fixed mobile bottom nav; 0 on desktop. */
   --sf-bottom-nav-h: 0px;
+  /*
+   * Height of the product page's sticky buy bar, published by that page while
+   * the "sticky-bar" product template is active (0 everywhere else). The contact
+   * launcher stacks on TOP of both bars: clearing only the nav drops it straight
+   * onto Add-to-cart on every mobile product page — which looks correct on the
+   * home page, on desktop, and in every screenshot taken while building it.
+   */
+  --sf-buybar-h: 0px;
 
   /* ---- Type ---- */
   --font-storefront: var(--font-inter), var(--font-noto-bengali),
@@ -308,6 +316,151 @@
   color: var(--text);
   border-color: var(--border-strong);
   background: var(--surface);
+}
+
+/* ---- Contact launcher (floating chat button) ---- */
+/*
+ * Anchored off BOTH bottom-bar variables, so one rule serves phone and desktop
+ * with no media query: --sf-bottom-nav-h is 56px+safe-area under 680px and 0
+ * above it, and --sf-buybar-h is set only while the product page's sticky buy
+ * bar is mounted.
+ *
+ * z-index 45 is chosen against the storefront's existing ladder, not picked:
+ * above the header (30) and the bottom nav / header nav (40) which it must
+ * clear, below the owner admin bar (50), the mobile menu sheet (70) and the
+ * full-screen search (100), all of which must cover it.
+ */
+.sf-contact {
+  position: fixed;
+  bottom: calc(var(--sf-bottom-nav-h, 0px) + var(--sf-buybar-h, 0px) + 14px);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.sf-contact[data-pos="right"] {
+  right: 14px;
+}
+.sf-contact[data-pos="left"] {
+  left: 14px;
+  align-items: flex-start;
+}
+.sf-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px;
+  background: var(--sf-contact-color, #25d366);
+  box-shadow: 0 4px 14px -2px color-mix(in srgb, var(--sf-contact-color, #25d366) 55%, transparent),
+    0 2px 5px rgba(0, 0, 0, 0.18);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.sf-contact-btn > .sf-contact-glyph {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+/* Collapsed: a plain 56px circle. The label is present in the DOM for screen
+   readers and animates open on hover/focus, so there is no second element to
+   keep in sync and no layout shift when it expands. */
+.sf-contact-btn > .sf-contact-label {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transition: max-width 0.22s ease, opacity 0.16s ease, padding 0.22s ease;
+  padding-right: 0;
+}
+.sf-contact-btn:hover > .sf-contact-label,
+.sf-contact-btn:focus-visible > .sf-contact-label,
+.sf-contact-btn[data-open="1"] > .sf-contact-label {
+  max-width: 220px;
+  opacity: 1;
+  padding-right: 10px;
+}
+.sf-contact-btn:hover {
+  transform: translateY(-1px);
+}
+/* Outside the merchant's reply hours: still tappable, visibly not live. */
+.sf-contact-btn[data-away="1"] {
+  filter: saturate(0.55) brightness(0.92);
+}
+/* One channel with its own brand colour per fanned-out row. */
+.sf-contact-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 14px 5px 5px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.45);
+  animation: sfContactIn 0.16s ease both;
+}
+.sf-contact-row > span {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.sf-contact-note {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 3px 12px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--muted);
+  max-width: 210px;
+  box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.45);
+  animation: sfContactIn 0.18s ease both;
+}
+.sf-contact[data-pos="left"] .sf-contact-note {
+  border-radius: 12px 12px 12px 3px;
+}
+@keyframes sfContactIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* The label expansion and the fan-out are both affordance, not information —
+   the button reads identically without them. */
+@media (prefers-reduced-motion: reduce) {
+  .sf-contact-btn,
+  .sf-contact-btn > .sf-contact-label,
+  .sf-contact-row,
+  .sf-contact-note {
+    transition: none;
+    animation: none;
+  }
+  .sf-contact-btn:hover {
+    transform: none;
+  }
 }
 
 /* Centered page-loading spinner (LoadingSplash) — storefront twin of the
