@@ -1,5 +1,8 @@
+// coding-standard: maintained
 import type {
   HeaderMenuSource,
+  StoreHomeCollections,
+  StoreLogoStyle,
   StoreTemplates,
   StoreTemplatesRaw,
   StorefrontStore,
@@ -119,4 +122,77 @@ export function resolveHeaderMenu(
   const raw = templates?.headerMenu;
   if (raw && raw in HEADER_MENU) return HEADER_MENU[raw as HeaderMenuSource];
   return hasCustomMenu ? "custom" : "collections";
+}
+
+/**
+ * Clamp an owner-supplied number into the range the renderer can survive, or
+ * fall back when it is absent/unparseable.
+ *
+ * The backend validator enforces the same bounds, so this is not the gate — it
+ * exists because the **live preview** streams a half-typed draft that never
+ * reaches the backend, and a merchant mid-way through typing "8" on their way
+ * to "80" must not blow the header apart.
+ */
+function clampInt(
+  value: number | undefined,
+  min: number,
+  max: number,
+  fallback: number,
+): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(Math.max(Math.round(value), min), max);
+}
+
+/** Logo chrome with the owner's overrides applied and bounded. */
+export interface ResolvedLogoStyle {
+  /** Absent ⇒ transparent, which is what every store had before this setting. */
+  background?: string;
+  padding: number;
+  radius: number;
+  /** Absent ⇒ the placement keeps its own default height. */
+  height?: number;
+}
+
+/**
+ * Resolve `theme.logo` (Customize → Brand) for the header/footer lockup.
+ *
+ * The defaults reproduce the pre-setting rendering exactly — no backdrop, no
+ * padding, square corners, per-placement height — so a store whose owner has
+ * never opened this control renders byte-for-byte as it did.
+ */
+export function resolveLogoStyle(
+  raw: StoreLogoStyle | null | undefined,
+): ResolvedLogoStyle {
+  return {
+    background: raw?.background?.trim() || undefined,
+    padding: clampInt(raw?.padding, 0, 24, 0),
+    radius: clampInt(raw?.radius, 0, 40, 0),
+    height: raw?.height ? clampInt(raw.height, 20, 80, 0) : undefined,
+  };
+}
+
+/** Homepage collections row layout with the owner's overrides applied. */
+export interface ResolvedHomeCollections {
+  layout: "strip" | "grid";
+  /** Desktop columns in `grid`. Narrow screens pin to 2 — see storefront.css. */
+  columns: number;
+  align: "left" | "center" | "right";
+}
+
+/**
+ * Resolve `theme.homeCollections` (Customize → Collections).
+ *
+ * `strip` is the default because it is what the row has always been; switching
+ * the fallback to `grid` would restyle every existing homepage without its
+ * owner asking, which is the same trap `resolveHeaderMenu` documents.
+ */
+export function resolveHomeCollections(
+  raw: StoreHomeCollections | null | undefined,
+): ResolvedHomeCollections {
+  return {
+    layout: raw?.layout === "grid" ? "grid" : "strip",
+    columns: clampInt(raw?.columns, 2, 6, 4),
+    align:
+      raw?.align === "center" || raw?.align === "right" ? raw.align : "left",
+  };
 }

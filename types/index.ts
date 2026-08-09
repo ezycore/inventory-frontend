@@ -85,12 +85,43 @@ export interface StorefrontShippingRule {
   freeThreshold?: number;
 }
 
+/**
+ * Merchant overrides for how the uploaded logo is drawn (Customize → Brand).
+ *
+ * A transparent wordmark is one ink colour and the storefront has two
+ * backgrounds, so black type vanishes on the dark theme and white type on the
+ * light one — and nothing in the file says which you have. The merchant sets a
+ * backdrop rather than the storefront guessing. Every field absent ⇒ unchanged:
+ * no backdrop, the placement's own height, no padding, square corners.
+ */
+export interface StorefrontLogoStyle {
+  /** Backdrop behind the logo (hex). Absent/empty ⇒ transparent. */
+  background?: string;
+  /** Rendered height in px (20–80). Absent ⇒ the placement's own default. */
+  height?: number;
+  /** Inset between backdrop edge and image, in px (0–24). */
+  padding?: number;
+  /** Backdrop corner radius, in px (0–40). */
+  radius?: number;
+}
+
+/** Layout of the collections row on the storefront homepage. */
+export interface StorefrontHomeCollections {
+  /** `strip` = the scrolling chip row (default); `grid` = equal columns. */
+  layout?: "strip" | "grid";
+  /** Columns per row in `grid` (2–6). Ignored by `strip`. */
+  columns?: number;
+  align?: "left" | "center" | "right";
+}
+
 export interface StorefrontTheme {
   preset?: string;
   brandColor?: string;
   accentColor?: string;
   footerText?: string;
   homepageSections?: string[];
+  logo?: StorefrontLogoStyle;
+  homeCollections?: StorefrontHomeCollections;
 }
 
 export type NavLinkType = "category" | "page" | "url" | "collections";

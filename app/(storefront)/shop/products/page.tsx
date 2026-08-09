@@ -3,6 +3,7 @@ import { getStoreProducts } from "@/lib/storefront-server";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import {
   catalogCanonicalQuery,
+  catalogPage,
   catalogQueryParams,
   catalogSearchParams,
   isIndexableCatalogUrl,
@@ -20,11 +21,13 @@ export async function generateMetadata({
 }: {
   searchParams: SearchParams;
 }) {
-  const sp = catalogSearchParams(await searchParams);
-  // Filter/sort combinations are the same catalogue re-sliced; only a plain listing
-  // or a single category/brand facet earns an index slot. Non-indexable URLs get no
-  // canonical at all (see `storePageMetadata`) — just `noindex, follow`.
-  const indexable = isIndexableCatalogUrl(sp);
+  const raw = await searchParams;
+  const sp = catalogSearchParams(raw);
+  // Filter/sort combinations are the same catalogue re-sliced, and page 2+ is the
+  // same landing page deeper in; only a plain first page or a single brand facet
+  // earns an index slot. Non-indexable URLs get no canonical at all (see
+  // `storePageMetadata`) — just `noindex, follow`.
+  const indexable = isIndexableCatalogUrl(sp, catalogPage(raw.page));
   return storePageMetadata({
     title: "All products",
     path: indexable ? `/products${catalogCanonicalQuery(sp)}` : undefined,
@@ -44,10 +47,15 @@ export default async function Page({
 }: {
   searchParams: SearchParams;
 }) {
-  const sp = catalogSearchParams(await searchParams);
+  const raw = await searchParams;
+  const sp = catalogSearchParams(raw);
+  // The cursor lives in the URL, so the server seeds the page the shopper is
+  // actually asking for — a `?page=3` reload (or a Back into one) must render
+  // page 3 as HTML, not page 1 followed by a client-side correction.
+  const page = catalogPage(raw.page);
   const { slug } = await getStoreContext();
   const products = slug
-    ? await getStoreProducts(slug, catalogQueryParams(sp))
+    ? await getStoreProducts(slug, catalogQueryParams(sp, page))
     : null;
-  return <View initialProducts={products ?? undefined} />;
+  return <View initialProducts={products ?? undefined} initialPage={page} />;
 }

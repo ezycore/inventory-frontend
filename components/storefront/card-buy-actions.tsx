@@ -82,6 +82,87 @@ export function CardRevealActions({ qb }: { qb: CardQuickBuy }) {
 }
 
 /**
+ * Sold-out treatment, half one: a scrim and a chip over the product image.
+ *
+ * Paired with the status line `CardCtaRow` renders below, and the two only work
+ * together. On its own the old treatment was a single greyed-out **button** —
+ * which still looks like a button, so the card read as broken rather than the
+ * product as unavailable, and nothing about the product image said anything at
+ * all. The scrim is `--card`, not a fixed white or black, so it fades the image
+ * on the light theme and on the dark one.
+ *
+ * `aria-hidden` throughout: this is a visual restatement of the status line
+ * below, and announcing it twice inside one card is noise. It also sits inside
+ * the image's `<Link>`, where the text would otherwise be absorbed into that
+ * link's accessible name.
+ */
+export function CardSoldOutOverlay({ label }: { label: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {/* Its own layer, so the chip stays fully opaque over the faded image. */}
+      <span
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--card)",
+          opacity: 0.62,
+        }}
+      />
+      <span
+        style={{
+          position: "relative",
+          background: "var(--card)",
+          color: "var(--muted)",
+          border: "1px solid var(--border-strong)",
+          borderRadius: 999,
+          padding: "5px 12px",
+          fontSize: 11.5,
+          fontWeight: 700,
+          letterSpacing: "0.02em",
+        }}
+      >
+        {label}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Sold-out treatment, half two: a status line where the CTA would be.
+ *
+ * Keeps `cta()`'s 40px footprint so a sold-out card stays aligned with its
+ * neighbours in the grid, but is flat, borderless and muted — it must not read
+ * as a control the shopper failed to activate, which is exactly how a disabled
+ * button reads.
+ */
+function soldOutStatus(bold: boolean | undefined, inline: boolean): CSSProperties {
+  return {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: inline ? "none" : 1,
+    minHeight: 40,
+    padding: "10px 12px",
+    borderRadius: bold ? 9 : 7,
+    background: "var(--surface)",
+    color: "var(--muted)",
+    fontSize: 12.5,
+    fontWeight: 600,
+    textAlign: "center",
+    lineHeight: 1.15,
+  };
+}
+
+/**
  * Card CTA row for every layout that keeps its buttons in the card body.
  * Two-button layouts sit side by side where there is room and stack below it —
  * `auto-fit` rather than a media query, because the storefront's column count
@@ -102,20 +183,23 @@ export function CardCtaRow({
 }) {
   const { t } = useStorefrontUI();
 
-  if (OVER_IMAGE.includes(actions)) return null;
-
+  // Checked BEFORE the over-image layouts bail: `reveal` hides its buttons
+  // entirely when sold out, so without this that layout's only signal would be
+  // the image overlay — nothing in the DOM saying so, and nothing announced. It
+  // makes a sold-out `reveal` card slightly taller than its neighbours, which a
+  // grid absorbs and is a fair price for the card stating its own state.
   if (qb.soldOut) {
-    // One disabled control in every layout — including iconOnly, where the row
-    // still has to carry the price it normally sits beside.
+    // One status line in every layout — including iconOnly, where the row still
+    // has to carry the price it normally sits beside.
     return (
       <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8 }}>
         {actions === "iconOnly" ? <span style={{ flex: 1, minWidth: 0 }}>{price}</span> : null}
-        <button type="button" disabled style={{ ...cta(false, bold, true), flex: actions === "iconOnly" ? "none" : undefined }}>
-          {t.outOfStock}
-        </button>
+        <span style={soldOutStatus(bold, actions === "iconOnly")}>{t.outOfStock}</span>
       </div>
     );
   }
+
+  if (OVER_IMAGE.includes(actions)) return null;
 
   const add = () => qb.press("add");
   const buy = () => qb.press("buy");

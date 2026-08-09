@@ -14,7 +14,10 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { money } from "@/components/storefront/format";
 import type { ProductFilters } from "@/components/storefront/filter-panel";
 import type { FilterChip } from "@/components/storefront/filter-toolbar";
-import type { CatalogSearchParams } from "@/lib/storefront-catalog-params";
+import {
+  catalogPage,
+  type CatalogSearchParams,
+} from "@/lib/storefront-catalog-params";
 import type {
   CatalogCategory,
   StoreBrand,
@@ -48,9 +51,26 @@ export interface CatalogFacets {
    */
   filterKey: string;
   sort: string;
+  /**
+   * The 1-based page cursor, read from `?page=`.
+   *
+   * In the URL rather than component state so the browser restores it: a shopper
+   * on page 3 who opens a product and presses Back used to land on page 1 and
+   * have to walk back down. History remembers a URL, never a `useState`.
+   */
+  page: number;
+  /** Move the cursor. Page 1 drops the param rather than writing `?page=1`. */
+  setPage: (page: number) => void;
   chips: FilterChip[];
   clearAll: () => void;
-  /** Patch the query string; `undefined` or `""` deletes a param. Stable identity. */
+  /**
+   * Patch the query string; `undefined` or `""` deletes a param. Stable identity.
+   *
+   * **Always resets the cursor to page 1** — page 3 of the old filter is usually
+   * past the end of the new one, which shows the shopper an empty grid for a
+   * filter that has plenty. Use `setPage` to move within one result set; this is
+   * for changing what the result set *is*.
+   */
   setParams: (patch: Record<string, string | undefined>) => void;
   categories: CatalogCategory[];
   brands: StoreBrand[];
@@ -86,6 +106,7 @@ export function useCatalogFacets({
   const maxPrice = sp.get("maxPrice") ?? "";
   const inStock = sp.get("inStock") === "1";
   const sort = sp.get("sort") ?? "";
+  const page = catalogPage(sp.get("page"));
 
   const { data: store } = useStore(slug);
   const { data: categoryData } = useStoreCategories(slug);
@@ -96,19 +117,57 @@ export function useCatalogFacets({
   const tagList = tagData ?? [];
   const currency = store?.currency;
 
+  // `replace`, not `push`, for every write here: filters and the page cursor are
+  // one view of one page, and pushing would bury the page the shopper arrived
+  // from under a dozen entries they'd have to walk back through. Back still
+  // returns to whatever URL was current — which is the whole point of moving the
+  // cursor into the query string.
+  const writeQuery = useCallback(
+    (
+      mutate: (qs: URLSearchParams) => void,
+      { scroll }: { scroll: boolean } = { scroll: false },
+    ) => {
+      const qs = new URLSearchParams(sp.toString());
+      mutate(qs);
+      const s = qs.toString();
+      router.replace(s ? `${pathname}?${s}` : pathname, { scroll });
+    },
+    [sp, pathname, router],
+  );
+
   // Stable so a caller can put it in an effect's dependency list without the
   // effect re-firing every render (the /search page syncs `?q=` that way).
   const setParams = useCallback(
     (patch: Record<string, string | undefined>) => {
-      const qs = new URLSearchParams(sp.toString());
-      for (const [k, v] of Object.entries(patch)) {
-        if (v === undefined || v === "") qs.delete(k);
-        else qs.set(k, v);
-      }
-      const s = qs.toString();
-      router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false });
+      writeQuery((qs) => {
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === undefined || v === "") qs.delete(k);
+          else qs.set(k, v);
+        }
+        // See the `setParams` contract above — a new result set starts at its
+        // own first page. Doing it here rather than in each view is what
+        // retired the render-time `if (prevKey !== filterKey) setPage(1)`
+        // adjust the two listing pages each kept a copy of.
+        qs.delete("page");
+      });
     },
-    [sp, pathname, router],
+    [writeQuery],
+  );
+
+  const setPage = useCallback(
+    (next: number) => {
+      // Scrolls, unlike every other write here: the grid above the pager has
+      // been replaced wholesale, so leaving the shopper at the bottom of the
+      // viewport shows them the end of a page they have not seen the start of.
+      writeQuery(
+        (qs) => {
+          if (next > 1) qs.set("page", String(next));
+          else qs.delete("page");
+        },
+        { scroll: true },
+      );
+    },
+    [writeQuery],
   );
 
   const activeTagSlugs = tags ? tags.split(",").filter(Boolean) : [];
@@ -221,6 +280,8 @@ export function useCatalogFacets({
       sort,
     ].join("|"),
     sort,
+    page,
+    setPage,
     chips,
     clearAll,
     setParams,

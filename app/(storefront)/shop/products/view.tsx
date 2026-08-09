@@ -58,10 +58,12 @@ const wrap: CSSProperties = {
  */
 function CollectionInner({
   initialProducts,
+  initialPage,
   collection,
   crumbs,
 }: {
   initialProducts?: ProductListResult;
+  initialPage: number;
   collection?: CatalogCategoryDetail;
   crumbs?: Crumb[];
 }) {
@@ -73,15 +75,7 @@ function CollectionInner({
   // Every facet lives in the URL; the hook owns reading it, the chips and the
   // reset. Shared with /search so the two pages can't drift on what a facet does.
   const facets = useCatalogFacets({ categoryPath });
-  const { filterKey, setParams, chips, clearAll, sort } = facets;
-
-  const [page, setPage] = useState(1);
-  // Reset pagination whenever any filter/sort changes (render-time adjust).
-  const [prevKey, setPrevKey] = useState(filterKey);
-  if (prevKey !== filterKey) {
-    setPrevKey(filterKey);
-    setPage(1);
-  }
+  const { filterKey, setParams, chips, clearAll, sort, page, setPage } = facets;
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { data: store } = useStore(slug);
@@ -104,7 +98,10 @@ function CollectionInner({
       ? categoryPathQueryParams(categoryPath, filterState, page)
       : catalogQueryParams(filterState, page),
     paged,
-    page === 1 ? initialProducts : undefined,
+    // The server seeded ONE page — the one `?page=` named at request time. Hand
+    // it over only while the shopper is still on it; seeding page 5 with page
+    // 3's rows would render the wrong products as though they were fresh.
+    page === initialPage ? initialProducts : undefined,
   );
   const infiniteQuery = useStoreProductsInfinite(
     slug,
@@ -270,10 +267,17 @@ function CollectionInner({
 
 export default function CollectionPage({
   initialProducts,
+  initialPage = 1,
   collection,
   crumbs,
 }: {
   initialProducts?: ProductListResult;
+  /**
+   * Which page `initialProducts` holds — the `?page=` the server rendered for.
+   * Passed rather than re-read from the URL because the client's cursor moves as
+   * the shopper pages, and the seed is only valid for the page it was fetched at.
+   */
+  initialPage?: number;
   /** Set by the `/{category}/{sub?}` route; absent on the bare `/products` page. */
   collection?: CatalogCategoryDetail;
   /** Built server-side so the visible trail matches the page's JSON-LD exactly. */
@@ -284,6 +288,7 @@ export default function CollectionPage({
     <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>
       <CollectionInner
         initialProducts={initialProducts}
+        initialPage={initialPage}
         collection={collection}
         crumbs={crumbs}
       />

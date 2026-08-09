@@ -198,7 +198,16 @@ reads as two filters at once.
   collapsed gaps (`‹ 1 … 9 10 11 … 20 ›`) from the exported, tested `pageItems(page, totalPages,
   siblings?)`; its **slot count is constant at every page**, so the strip never resizes under the
   cursor mid-walk — that invariant is what `pager.test.ts` asserts, so keep it if you touch the
-  window logic. Reads through
+  window logic.
+  **The cursor lives in `?page=`, not component state** (`useCatalogFacets` owns it, like every
+  facet). History remembers a URL and never a `useState`, so before this a shopper on page 3 who
+  opened a product and pressed Back landed on page 1 and had to walk down again. Three consequences
+  to keep together: `setParams` **drops `page`** on any facet change (which retired the render-time
+  `if (prevKey !== filterKey) setPage(1)` adjust both listing views carried); the server pages
+  (`products/page.tsx`, `[...categoryPath]/page.tsx`) seed **that** page via `catalogPage(raw.page)`
+  and pass `initialPage`, so the view only consumes the seed while it is still on it; and
+  `isIndexableCatalogUrl(sp, page)` makes page 2+ `noindex, follow`, since a real URL now exists for
+  it and page 4 is thin duplicate copy of the page-1 landing page. Reads through
   **`useStoreTemplate(store, "pagination")`** — see the rule above. Non-`pages` modes use
   `useStoreProductsInfinite`; see the query-cache note below for why its key is separate.
   `infinite` deliberately stops auto-loading: this footer holds real navigation and the mobile
@@ -486,25 +495,30 @@ resolved **per request from the host**, never baked.
 ## Other storefront subsystems
 
 - **Brand lockup** — `components/storefront/logo-mark.tsx` (`<Brand>` = uploaded logo, else the
-  initial chip + store name; header and footer both use it). The uploaded logo is **measured, not
-  trusted**: a merchant's SVG/PNG wordmark usually has no backdrop, so black type disappears on the
-  dark theme and white type disappears on the light one, and nothing in the payload says which file
-  you have. `lib/logo-tone.ts` samples the pixels on a canvas and returns `"dark" | "light" | null`;
-  `hooks/use-logo-tone.ts` is the React face of it. A logo whose ink matches the current theme gets
-  a small contrasting plate — **everything else renders bare**, and `null` is the answer for a logo
-  with its own background, a mid-tone/multi-colour mark, and any file CORS won't let us read.
-  Three rules: the hook must **not** seed from the module cache (a hit during hydration would
-  disagree with the SSR HTML); its state carries the `src` it was measured from and a mismatch
-  derives to `null`, because clearing stale state with a `setState` in the effect body is a
-  cascading render that `react-hooks/set-state-in-effect` **fails the build** on; and the plate's
-  colours are hardcoded, never theme tokens — the plate exists precisely because the themed surface
-  is the wrong tone.
-  ⚠ **This needs CORS on the logo host.** Sampling reads pixels off a canvas, so the image is
-  loaded `crossOrigin="anonymous"`; if the R2 bucket behind `*.r2.dev` / `cdn.ezycore.com` does not
-  return `Access-Control-Allow-Origin`, every load fails and every logo falls back to bare — the
-  degradation is silent and looks exactly like "the fix didn't ship". That policy lives in the
-  Cloudflare dashboard, not in this repo. Check it with
-  `curl -I -H 'Origin: https://ezycore.com' <logo-url>` before debugging the code.
+  initial chip + store name; header and footer both use it). A merchant's SVG/PNG wordmark usually
+  has no backdrop and is drawn in ONE ink colour, so black type disappears on the dark theme and
+  white type on the light one — and nothing in the payload says which file you have. **The merchant
+  answers it, the storefront does not guess:** `theme.logo` (Customize → Brand → "Logo display")
+  carries `background` / `height` / `padding` / `radius`, resolved by `resolveLogoStyle`
+  (`lib/storefront-templates.ts`) and read through **`useStoreLogoStyle()`**
+  (`services/storefront/use-logo-style.ts`), which applies the live-preview draft first.
+  - **`<Brand>` reads the style itself rather than taking it as a prop** — it renders at six call
+    sites across the three header variants and the footer, and threading it would be six chances to
+    forget one. `useStore` is already cached by the header, so it costs nothing.
+  - **Padding is subtracted from the height, never added**, so raising it insets the mark instead of
+    growing the header around it. `logo-style-field.tsx` mirrors that arithmetic in its preview.
+  - **The admin preview renders both grounds side by side**, and must: the whole failure is a logo
+    that reads on one theme and not the other, so a single-ground preview would let an owner "fix"
+    dark and ship a mark that has vanished on light.
+  - Every field absent ⇒ **byte-identical to the pre-setting rendering** — no backdrop, per-placement
+    height, no padding, square corners. Keep it that way; the defaults are what stop this restyling
+    every existing shop.
+  - A **canvas auto-detection** (a `logo-tone` module plus its hook, 2026-08-08 — both **deleted**,
+    which is why you will not find them) was tried and removed the next day. It read the logo's pixels to pick a plate automatically, which
+    requires `crossOrigin="anonymous"` — and the R2 bucket behind `*.r2.dev` / `cdn.ezycore.com` has
+    no CORS policy, so every sample failed and every logo silently fell back to bare. Do not
+    reintroduce it without fixing the bucket policy first; an explicit control is better anyway,
+    because a coloured or part-transparent mark has no correct automatic answer.
 
 - **Breadcrumbs** — `lib/storefront-breadcrumb.ts` (pure, tested) builds the trail;
   `components/storefront/breadcrumb.tsx` renders it. **Every page with a trail renders it twice** —
@@ -521,6 +535,18 @@ resolved **per request from the host**, never baked.
     `canonicalTarget`) vs relative (visible, via `storeHref`). The label for the fallback rung is
     passed in because the server-rendered JSON-LD cannot read the client i18n dictionary — it is
     English there on purpose, matching the "only English is indexable" note in SEO above.
+
+- **Homepage collections row** — `components/storefront/home/home-collections.tsx`, rendered by the
+  Classic template (the only one with a tile row; Minimal keeps its text links). Layout is the
+  merchant's — `theme.homeCollections` (Customize → Collections → "On the homepage") via
+  `resolveHomeCollections` — with `strip` (the original scrolling chip row) as the default, because
+  changing that fallback would restyle every existing homepage without its owner asking.
+  Two things to keep: **the grid's columns live in CSS, not the inline style**
+  (`.sf-home-collections` in `storefront.css`, fed the count as `--sf-hc-cols`) because narrow
+  screens must pin to 2 whatever the merchant chose, and an inline style cannot carry a media query;
+  and `align` means **different things per layout** — `justify-content` on the scrolling strip
+  (with `safe`, or a centred overflowing row puts its first tile out of reach), `justify-items`
+  inside each column on the grid, which already spans the full width.
 
 - **Sub-category drill-down** — `components/storefront/subcategory-strip.tsx`. A collection page
   shows a chip row of its sub-collections under the `<h1>`; `subcategoriesFor(collection, tree)`
@@ -655,6 +681,32 @@ resolved **per request from the host**, never baked.
 
 ## Work log (what was built, newest first — as of 2026-08-09)
 
+- **Five more shop-owner reports: page cursor, logo controls, sold-out cards, homepage
+  collections (FE + BE)** (2026-08-09):
+  **(1) Paging was lost on Back.** The cursor was `useState`, so opening a product from page 3 and
+  pressing Back restarted at page 1. It is `?page=` now — see the listing-pagination bullet for the
+  three parts that move together (facet writes drop it, both server pages seed it, page 2+ is
+  `noindex, follow`).
+  **(2) The 2026-08-08 logo fix never worked, and merchant controls replaced it.** The canvas
+  auto-detection needed CORS that the R2 bucket does not send, so it silently degraded to the old
+  behaviour on every store — the failure mode the entry below had already flagged as the risk. New
+  `theme.logo` (background / height / padding / radius); the auto-detect files are deleted. See the
+  brand-lockup bullet.
+  **(3) Sold-out cards showed a greyed-out button**, which still reads as a button: shoppers click
+  it and conclude the card is broken rather than the product unavailable. Now a scrim + chip over
+  the image (`CardSoldOutOverlay`) plus a flat muted status line where the CTA sits, at `cta()`'s
+  40px footprint so the grid stays aligned. The sold-out branch moved **above** the `OVER_IMAGE`
+  bail, so `reveal` — which hides its buttons entirely — also states it in the DOM.
+  **(4) The homepage collections row had no controls.** New `theme.homeCollections`
+  (layout / columns / align) — see its bullet above.
+  **(5) The footer blurb needed no code at all**: `theme.footerText` (Customize → Footer) already
+  overrides `t.storeInfo`, and the reporter had only ever seen the fallback. Worth checking for an
+  existing owner field before adding one.
+  Backend: both theme objects through model / validator / types / admin DTO, then `pnpm docs:all`
+  and `pnpm gen:api-types`. Bounds (height 20–80, padding 0–24, radius 0–40, columns 2–6) are
+  enforced in the validator **and** re-clamped in `resolveLogoStyle` / `resolveHomeCollections`,
+  because the live preview streams half-typed drafts that never reach the backend.
+
 - **Structural split of the two storefront god-files (BE + FE)** (2026-08-09). No behaviour, no API
   output and no route changed. Full module table:
   `../inventory-backend/docs/features/ecommerce-implementation.md` → "Storefront service + product
@@ -703,9 +755,8 @@ resolved **per request from the host**, never baked.
 
 - **Three storefront polish fixes: logo contrast, nav dropdown, pagination (FE)** (2026-08-08),
   all reported from a real shop:
-  **(1) A transparent logo was invisible on one theme.** See the brand-lockup bullet above for the
-  mechanism. The tempting non-fixes were both worse: plating *every* logo boxes the wordmarks
-  designed for dark headers, and a CSS `invert()` wrecks anything with colour in it.
+  **(1) A transparent logo was invisible on one theme.** Fixed by canvas auto-detection, which
+  **did not work in practice and was removed the next day** — see the 2026-08-09 entry above.
   **(2) The category dropdown closed while the pointer was moving into it.** The panel sat
   `marginTop: 6` below its trigger — but an absolutely-positioned panel is outside its parent's
   box, so that 6px strip belonged to **no element**: crossing it fired `mouseleave` on the trigger
