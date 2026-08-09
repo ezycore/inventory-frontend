@@ -172,6 +172,7 @@ export default function AbandonedCartsPage() {
         <ListPagination
           page={page}
           totalPages={pagination.totalPages}
+          total={pagination.total}
           limit={limit}
           onPageChange={setPage}
           onLimitChange={(n) => {
