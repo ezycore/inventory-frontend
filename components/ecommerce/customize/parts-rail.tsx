@@ -137,8 +137,7 @@ export function PartsRail({
                   // collapsed part says where to add one.
                   disabled={
                     !draft.contactButton.enabled &&
-                    !settings.social?.whatsapp?.trim() &&
-                    !draft.contactButton.number.trim()
+                    !settings.social?.whatsapp?.trim()
                   }
                   onCheckedChange={(enabled) => {
                     api.patchContactButton({ enabled });

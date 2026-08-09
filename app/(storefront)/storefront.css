@@ -349,7 +349,14 @@
 .sf-contact-btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  /*
+   * NO `gap` here. A flex gap is applied between items whatever their size, so
+   * a gap plus the zero-width collapsed label made the resting button 66x56 —
+   * a circle with a flat strip of colour stuck to its right edge. The spacing
+   * belongs to the label instead, appearing only as it expands (and it is on
+   * the same transition, so it animates in with the text).
+   */
+  gap: 0;
   border: none;
   cursor: pointer;
   font-family: inherit;
@@ -381,14 +388,16 @@
   white-space: nowrap;
   opacity: 0;
   transition: max-width 0.22s ease, opacity 0.16s ease, padding 0.22s ease;
-  padding-right: 0;
+  /* Zero on BOTH sides so the collapsed button is exactly 40 + 8 + 8 = 56px
+     square, i.e. a true circle at border-radius 999px. */
+  padding: 0;
 }
 .sf-contact-btn:hover > .sf-contact-label,
 .sf-contact-btn:focus-visible > .sf-contact-label,
 .sf-contact-btn[data-open="1"] > .sf-contact-label {
   max-width: 220px;
   opacity: 1;
-  padding-right: 10px;
+  padding: 0 12px 0 8px;
 }
 .sf-contact-btn:hover {
   transform: translateY(-1px);

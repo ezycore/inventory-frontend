@@ -50,14 +50,12 @@ export interface AnnouncementDraft {
 
 /**
  * Contact-launcher draft. Every field defined so the inputs stay controlled, and
- * the number is a single string rather than the stored `channels` array: the
- * launcher ships one channel, so an array in the editor would be a list widget
- * with one permanent row. `toContactButton` puts it back into the array shape.
+ * the number is absent on purpose — it belongs to Settings → General, and two
+ * independently-edited copies of a phone number is how a merchant ends up
+ * answering the wrong one.
  */
 export interface ContactButtonDraft {
   enabled: boolean;
-  /** Blank ⇒ fall back to `social.whatsapp` from Settings → General. */
-  number: string;
   label: string;
   greeting: string;
   position: "right" | "left";
@@ -179,12 +177,12 @@ function seedTemplates(settings: StorefrontSettings): Record<string, string> {
 }
 
 /**
- * Flatten the stored `contactButton` into the editor's one-channel shape.
+ * Flatten the stored `contactButton` into the editor's shape.
  *
- * The whole `channels` array collapses to its first WhatsApp row's number. That
- * is lossy by construction and correct for now — the launcher ships one channel
- * kind, so a merchant cannot have created a second row. When a second `kind` is
- * registered this becomes a list field, and this function is where that starts.
+ * `channels` is deliberately NOT surfaced: the number lives at Settings →
+ * General and has exactly one home, so the editor has nothing to seed from it.
+ * When a second `kind` is registered this grows a channel list, and this
+ * function is where that starts.
  */
 function seedContactButton(settings: StorefrontSettings): ContactButtonDraft {
   const c = settings.contactButton;
@@ -192,7 +190,6 @@ function seedContactButton(settings: StorefrontSettings): ContactButtonDraft {
   const n = c?.nudge;
   return {
     enabled: c?.enabled ?? false,
-    number: c?.channels?.find((ch) => ch.kind === "whatsapp")?.value ?? "",
     label: c?.label ?? "",
     greeting: c?.greeting ?? "",
     position: c?.position === "left" ? "left" : "right",

@@ -86,7 +86,7 @@ export function partSummary(
     case "contact": {
       const c = draft.contactButton;
       if (!c.enabled) return "Off";
-      const number = c.number.trim() || settings.social?.whatsapp?.trim();
+      const number = settings.social?.whatsapp?.trim();
       // On with no number resolves to no button at all on the live shop, so the
       // summary says that rather than reporting a healthy "On".
       if (!number) return "On, but no WhatsApp number saved";

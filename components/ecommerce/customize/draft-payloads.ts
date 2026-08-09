@@ -119,11 +119,10 @@ export const publicCollections = (collections: CustomizeDraft["collections"]) =>
 /**
  * The editor's flat contact draft, back into the stored `channels` shape.
  *
- * A blank number is KEPT as an empty-valued row rather than dropped: blank means
- * "use the WhatsApp number from Settings → General", and the backend resolver
- * reads it that way. Dropping the row would instead mean "no channels", which
- * the backend reads as "render nothing" — the switch would look on and the shop
- * would show no button.
+ * `channels` is sent EMPTY on purpose. The editor no longer offers a per-button
+ * number — it lives at Settings → General — so there is no override to store,
+ * and `resolvePublicContactButton` synthesises the WhatsApp row from
+ * `social.whatsapp` for exactly this case.
  */
 function toContactButton(draft: CustomizeDraft): StorefrontContactButton {
   const c = draft.contactButton;
@@ -136,7 +135,7 @@ function toContactButton(draft: CustomizeDraft): StorefrontContactButton {
     // says "unset" instead of "an empty whitelist someone might later read
     // literally".
     showOn: c.showOn.length ? c.showOn : undefined,
-    channels: [{ kind: "whatsapp", value: c.number.trim(), enabled: true }],
+    channels: [],
     hours: {
       enabled: c.hoursEnabled,
       from: c.hoursFrom,
@@ -167,7 +166,7 @@ function toPreviewContactButton(
 ): StoreContactButton | null {
   const c = draft.contactButton;
   if (!c.enabled) return null;
-  const value = c.number.trim() || socialWhatsapp?.trim() || "";
+  const value = socialWhatsapp?.trim() || "";
   if (!value) return null;
   return {
     label: c.label.trim() || undefined,

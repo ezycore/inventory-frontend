@@ -65,29 +65,24 @@ export function ContactPart({
 
   return (
     <div className="grid gap-3">
-      <PartBlock
-        label="WhatsApp number"
-        hint={
-          fallback
-            ? "Leave blank to use the number from Settings → General."
-            : "No number saved in Settings → General, so this one is required."
-        }
-      >
-        <Input
-          value={value.number}
-          onChange={(e) => patchContactButton({ number: e.target.value })}
-          placeholder={fallback || "+8801XXXXXXXXX"}
-          maxLength={200}
-        />
-        {fallback ? (
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            Currently using <span className="font-medium">{value.number.trim() || fallback}</span>.{" "}
-            <Link href="/ecommerce/settings" className="underline underline-offset-2">
-              Change it in Settings
-            </Link>
-          </p>
-        ) : null}
-      </PartBlock>
+      {/*
+        Read-only on purpose. The number belongs to Settings → General and has
+        exactly ONE home — a second, independently-edited copy here is how a
+        merchant ends up answering the wrong one. This states which number the
+        button will use and links to the one place that changes it.
+      */}
+      <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2.5">
+        <div className="min-w-0">
+          <PartLabel>WhatsApp number</PartLabel>
+          <p className="mt-0.5 truncate text-sm font-medium">{fallback}</p>
+        </div>
+        <Link
+          href="/ecommerce/settings"
+          className="flex-none text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground"
+        >
+          Change in Settings
+        </Link>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
