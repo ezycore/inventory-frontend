@@ -14,6 +14,7 @@ import {
   PartLabel,
 } from "@/components/ecommerce/customize/part-group";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
+import { whatsappNumberLabel } from "@/lib/whatsapp-number";
 import type { ContactButtonPage, StorefrontSettings } from "@/types";
 
 /** Page keys in the order a shopper meets them, matching the rail's own logic. */
@@ -37,11 +38,14 @@ const SIDES: { value: "right" | "left"; label: string }[] = [
  * The floating chat button. Its on/off switch lives on the part row (like the
  * announcement bar), so the editor stays collapsed until the button is in use.
  *
- * The number is NOT edited here by default — it belongs to Settings → General,
- * and this part shows which one it will use with a link to change it. Two
- * independently-edited copies of a phone number is how a merchant ends up
- * answering the wrong one; the override field exists for the shop that genuinely
- * routes storefront chat somewhere else.
+ * The number is NOT edited here at all — it belongs to Settings → General, and
+ * this part only states which one the button will use, with a link to the one
+ * place that changes it. Two independently-edited copies of a phone number is
+ * how a merchant ends up answering the wrong one.
+ *
+ * It is shown through `whatsappNumberLabel` because owners usually paste
+ * WhatsApp's own share LINK rather than a number, and rendering that raw
+ * overflowed the row.
  */
 export function ContactPart({
   settings,
@@ -51,7 +55,8 @@ export function ContactPart({
   settings: StorefrontSettings;
 }) {
   const value = draft.contactButton;
-  const fallback = settings.social?.whatsapp?.trim();
+  // The stored value may be a pasted share link; show the number it resolves to.
+  const fallback = whatsappNumberLabel(settings.social?.whatsapp);
 
   if (!value.enabled) {
     return (

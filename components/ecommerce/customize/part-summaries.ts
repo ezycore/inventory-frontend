@@ -1,6 +1,7 @@
 // coding-standard: maintained
 
 import { getPreset } from "@/lib/storefront-theme";
+import { whatsappNumberLabel } from "@/lib/whatsapp-number";
 import type { StorefrontSettings } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
 import type {
@@ -86,7 +87,9 @@ export function partSummary(
     case "contact": {
       const c = draft.contactButton;
       if (!c.enabled) return "Off";
-      const number = settings.social?.whatsapp?.trim();
+      // Owners usually paste WhatsApp's share LINK, not a number — showing it
+      // raw truncates to a meaningless "…end/?phone=8801…".
+      const number = whatsappNumberLabel(settings.social?.whatsapp);
       // On with no number resolves to no button at all on the live shop, so the
       // summary says that rather than reporting a healthy "On".
       if (!number) return "On, but no WhatsApp number saved";

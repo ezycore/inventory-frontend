@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { IconName } from "@/components/storefront/sf-icons";
 import { hrefFor } from "@/components/storefront/social-links";
+import { whatsappNumberLabel } from "@/lib/whatsapp-number";
 import type { ContactChannelKind, StorefrontContactChannel } from "@/types";
 
 /**
@@ -41,13 +42,24 @@ export const CONTACT_CHANNELS: Record<ContactChannelKind, ContactChannelSpec> = 
     color: "#25D366",
     prefill: "text",
     placeholder: "+8801XXXXXXXXX",
-    // Reuses the storefront's existing phone-or-URL resolver rather than
-    // rebuilding it. `hrefFor` already handles a bare number AND a pasted
-    // wa.me/chat link, and it encodes the fix for a live bug where a schemeless
-    // value resolved against the shop's own origin. A second link builder would
-    // be a second place for that to come back.
+    /**
+     * Normalise whatever the owner saved down to digits first, then build a
+     * clean `wa.me/<digits>?text=…`.
+     *
+     * Most owners paste WhatsApp's share link, which already carries an EMPTY
+     * `text` param (`…/send/?phone=880…&text&type=phone_number`). Appending our
+     * own `&text=` to that produces two `text` params and the prefilled message
+     * is silently dropped — the whole point of the feature, gone, with a link
+     * that still opens correctly so nothing looks broken.
+     *
+     * Falls back to `hrefFor` when the value is a link we cannot read a number
+     * out of: that helper handles the schemeless-URL case whose fix was learned
+     * from a live bug, and a second link builder would be a second place for it
+     * to come back.
+     */
     href: (value, message) => {
-      const base = hrefFor("whatsapp", value);
+      const digits = whatsappNumberLabel(value).replace(/\D/g, "");
+      const base = digits ? `https://wa.me/${digits}` : hrefFor("whatsapp", value);
       if (!message) return base;
       return `${base}${base.includes("?") ? "&" : "?"}text=${encodeURIComponent(message)}`;
     },
