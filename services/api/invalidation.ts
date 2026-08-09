@@ -207,6 +207,20 @@ export const EFFECTS = {
     k.profile.all(),
     ...DERIVED,
   ],
+
+  /**
+   * A role was authored, edited or deleted.
+   *
+   * Narrower than `org.changed` on purpose — no `DERIVED`. A role decides who
+   * may *do* things, not what any figure equals, so no report or dashboard
+   * number moves. The three that do:
+   * - `roles` — the list and the permission catalog;
+   * - `users` — a row's role label, and a delete reassigns holders outright;
+   * - `profile` — permissions resolve per request, so editing your own role
+   *   changes what the app should show you on the very next one, with no
+   *   re-login. Miss this and the nav keeps offering pages that now 403.
+   */
+  "role.changed": [k.roles.all(), k.users.all(), k.profile.all()],
 } satisfies Record<string, QueryKey[]>;
 
 export type DomainEvent = keyof typeof EFFECTS;

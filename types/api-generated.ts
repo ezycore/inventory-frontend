@@ -1585,12 +1585,12 @@ export interface paths {
         };
         /**
          * GET /api/profile
-         * @description Defined in `src/routes/profile.routes.ts:16`.
+         * @description Defined in `src/routes/profile.routes.ts:17`.
          */
         get: operations["get_api_profile"];
         /**
          * PUT /api/profile
-         * @description Defined in `src/routes/profile.routes.ts:19`.
+         * @description Defined in `src/routes/profile.routes.ts:20`.
          */
         put: operations["put_api_profile"];
         post?: never;
@@ -1610,7 +1610,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/profile/password
-         * @description Defined in `src/routes/profile.routes.ts:27`.
+         * @description Defined in `src/routes/profile.routes.ts:28`.
          */
         put: operations["put_api_profile_password"];
         post?: never;
@@ -1629,7 +1629,7 @@ export interface paths {
         };
         /**
          * GET /api/profile/2fa/status
-         * @description Defined in `src/routes/profile.routes.ts:35`.
+         * @description Defined in `src/routes/profile.routes.ts:36`.
          */
         get: operations["get_api_profile_2fa_status"];
         put?: never;
@@ -1651,7 +1651,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/profile/2fa/enable
-         * @description Defined in `src/routes/profile.routes.ts:36`.
+         * @description Defined in `src/routes/profile.routes.ts:37`.
          */
         post: operations["post_api_profile_2fa_enable"];
         delete?: never;
@@ -1671,7 +1671,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/profile/2fa/verify
-         * @description Defined in `src/routes/profile.routes.ts:37`.
+         * @description Defined in `src/routes/profile.routes.ts:42`.
          */
         post: operations["post_api_profile_2fa_verify"];
         delete?: never;
@@ -1691,7 +1691,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/profile/2fa/disable
-         * @description Defined in `src/routes/profile.routes.ts:42`.
+         * @description Defined in `src/routes/profile.routes.ts:47`.
          */
         post: operations["post_api_profile_2fa_disable"];
         delete?: never;
@@ -1709,7 +1709,7 @@ export interface paths {
         };
         /**
          * GET /api/profile/organization/users
-         * @description Defined in `src/routes/profile.routes.ts:49`.
+         * @description Defined in `src/routes/profile.routes.ts:54`.
          */
         get: operations["get_api_profile_organization_users"];
         put?: never;
@@ -1731,7 +1731,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/profile/transfer-ownership
-         * @description Defined in `src/routes/profile.routes.ts:50`.
+         * @description Defined in `src/routes/profile.routes.ts:55`.
          */
         post: operations["post_api_profile_transfer_ownership"];
         delete?: never;
@@ -3032,6 +3032,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/roles/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/roles/catalog
+         * @description Defined in `src/routes/roles.routes.ts:17`. Requires permission `roles.view`.
+         */
+        get: operations["get_api_roles_catalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/roles": {
         parameters: {
             query?: never;
@@ -3041,12 +3061,60 @@ export interface paths {
         };
         /**
          * GET /api/roles
-         * @description Defined in `src/routes/roles.routes.ts:7`.
+         * @description Defined in `src/routes/roles.routes.ts:33`.
          */
         get: operations["get_api_roles"];
         put?: never;
+        /**
+         * POST /api/roles
+         * @description Defined in `src/routes/roles.routes.ts:36`. Requires permission `roles.manage`.
+         */
+        post: operations["post_api_roles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles/{slug}/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/roles/:slug/usage
+         * @description Defined in `src/routes/roles.routes.ts:44`. Requires permission `roles.manage`.
+         */
+        get: operations["get_api_roles_slug_usage"];
+        put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * PUT /api/roles/:slug
+         * @description Defined in `src/routes/roles.routes.ts:53`. Requires permission `roles.manage`.
+         */
+        put: operations["put_api_roles_slug"];
+        post?: never;
+        /**
+         * DELETE /api/roles/:slug
+         * @description Defined in `src/routes/roles.routes.ts:62`. Requires permission `roles.manage`.
+         */
+        delete: operations["delete_api_roles_slug"];
         options?: never;
         head?: never;
         patch?: never;
@@ -12803,8 +12871,9 @@ export interface components {
             slug: string;
             name: string;
             description?: string | null;
-            source: string;
-            locked?: boolean;
+            /** @enum {string} */
+            source: "system" | "mc" | "custom";
+            locked: boolean;
             permissions: string[];
             assignable: boolean;
         };
@@ -12814,6 +12883,29 @@ export interface components {
             lastName?: string;
             email: string;
             role?: string;
+        };
+        PasswordChange: {
+            message: string;
+            token: string;
+        };
+        PermissionCatalog: {
+            modules: {
+                key: string;
+                permissions: string[];
+                feature?: string;
+                available: boolean;
+            }[];
+            grantable: string[];
+        };
+        RoleDelete: {
+            /** @enum {boolean} */
+            deleted: true;
+            reassigned: number;
+            reassignedTo?: string;
+        };
+        RoleUsage: {
+            slug: string;
+            usersCount: number;
         };
         Signup: {
             user: {
@@ -13290,6 +13382,11 @@ export interface components {
         };
         McRoles: {
             workspaceExternalId: string;
+            upserted: number;
+            pruned: number;
+            skipped: string[];
+            reassigned: number;
+            retained: string[];
             appliedAt: string;
         } & {
             [key: string]: unknown;
@@ -17583,7 +17680,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["Deleted"];
+                        data?: components["schemas"]["PasswordChange"];
                     };
                 };
             };
@@ -17651,7 +17748,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    password: string;
+                };
+            };
+        };
         responses: {
             /** @description Success */
             200: {
@@ -17662,6 +17765,15 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["TwoFactorSetup"];
                     };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Missing or invalid credentials */
@@ -22962,6 +23074,49 @@ export interface operations {
             };
         };
     };
+    get_api_roles_catalog: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["PermissionCatalog"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_roles: {
         parameters: {
             query?: never;
@@ -22987,6 +23142,265 @@ export interface operations {
             };
             /** @description Missing or invalid credentials */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_roles: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    description?: string;
+                    permissions: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["OrgRole"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_roles_slug_usage: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["RoleUsage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_roles_slug: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name?: string;
+                    description?: string;
+                    permissions?: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["OrgRole"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_roles_slug: {
+        parameters: {
+            query?: {
+                reassignTo?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["RoleDelete"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

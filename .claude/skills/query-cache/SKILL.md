@@ -82,6 +82,30 @@ spread is a leftover from when the prop was `any[]`; drop it.
 **A lazy read modelled as a `useMutation`** (runs on click, not on mount) is legitimate — see
 `useOrderFraudScore`, `useOrganizationUsers`. It must be allowlisted in the gate (§7).
 
+### Every paginated hand-written `useQuery` needs `placeholderData: keepPreviousData`
+
+`page` (and each filter) is part of the key, so **page 2 is a cache miss**: `isLoading` flips true,
+and any page gated on it tears its table down to "Loading…" and rebuilds it. The result is a visible
+collapse-and-reappear on every page click, filter tap and search keystroke.
+
+`DataTable` and `DataCard` set it centrally, so their pages are already covered — this is only for
+**hand-rolled list pages**. Two of them shipped without it and had to be fixed after the fact
+(`useCatalogProducts`, `useNotificationLog`, both 2026-08-09), while `useAbandonedCarts` /
+`useOnlineCustomers` / `useOnlineCustomerOrders` had it from the start. Copy the shape:
+
+```ts
+useQuery({
+  queryKey: queryKeys.<r>.list(params),   // params include page + filters
+  queryFn: () => api.list(params),
+  placeholderData: keepPreviousData,      // keep last page up while the next loads
+  select: (r) => r.data,
+});
+```
+
+Then **gate the empty/loading row on `isLoading`, not `isFetching`** — with this set, `isLoading` is
+true only when there is genuinely nothing to show — and pass `isFetching` to the footer
+(`<ListPagination isFetching>`) so the shopkeeper still gets the "Updating…" cue.
+
 ---
 
 ## 4. Invalidation: declare the event, not the keys
@@ -243,6 +267,7 @@ unused directive and the original warning stands.
 | Previous location's rows flash after switching | invalidated instead of evicted | `queryClient.clear()` |
 | You can see another shopper's orders | session change didn't evict | `clearShopperCache`; use `useShopperLogout` |
 | Invalidation "runs" but nothing refetches | the key is a literal that no longer matches the root — or a prefix of nothing (`["stockMovements"]` vs `["stock","movements"]`) | use the registry |
+| Table blanks to "Loading…" and re-appears on every page click | hand-written paginated `useQuery` with no `placeholderData` — page 2 is a cache miss, so `isLoading` goes true | `placeholderData: keepPreviousData` (§3) |
 | `Page 1 of undefined` | list envelope lost its pagination meta | keep `{ success, data, message, meta }`; see the `api-module` skill |
 | `TS4104: readonly … cannot be assigned to any[]` | a prop typed `any[]` receiving a registry key | type the prop `QueryKey` |
 

@@ -1,12 +1,7 @@
 import { DataTablePagination as PaginationConfig } from "@/types/DataTable";
 import { useTranslations } from "next-intl";
 import { Table } from "@tanstack/react-table";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+import { PaginationControls } from "../pagination-controls";
 import {
   Select,
   SelectContent,
@@ -32,36 +27,10 @@ export function DataTablePagination<TData>({
 }: DataTablePaginationProps<TData>) {
   const t = useTranslations("common.table");
   const currentPage = paginationState.pageIndex + 1;
-  const getPageNumbers = () => {
-    const totalPages = pagination?.totalPages || table.getPageCount();
-    const pageNumbers = [];
-    const maxVisiblePages = 3;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i);
-    }
-
-    if (startPage > 1) {
-      pageNumbers.unshift(1);
-      if (startPage > 2) {
-        pageNumbers.splice(1, 0, "...");
-      }
-    }
-
-    if (endPage < totalPages) {
-      pageNumbers.push(totalPages);
-      if (endPage < totalPages - 1) {
-        pageNumbers.splice(pageNumbers.length - 1, 0, "...");
-      }
-    }
-    return pageNumbers;
-  };
+  // Server-paginated tables get their count from the API; client-side ones from
+  // the row model. Unchanged — the window logic moved to `utils/page-window.ts`
+  // so the ecommerce list pages could render the identical pager.
+  const totalPages = pagination?.totalPages || table.getPageCount();
 
   return (
     <div className="flex flex-wrap items-center gap-y-2 px-2">
@@ -94,70 +63,17 @@ export function DataTablePagination<TData>({
       {/* Page numbers
       - small: order-3 + w-full forces its own row, justify-center centers it
       - sm+:   order-2 + flex-1 + w-auto puts it back inline in the middle */}
-      <div className="order-3 w-full flex items-center justify-center gap-1 sm:order-2 sm:flex-1 sm:w-auto">
-        <button
-          onClick={() =>
-            onPaginationChange({ ...paginationState, pageIndex: 0 })
-          }
-          disabled={!table.getCanPreviousPage()}
-          className="p-2 rounded-lg hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          aria-label={t("firstPage")}
-        >
-          <ChevronsLeft className="w-4 h-4 text-secondary-foreground" />
-        </button>
-        <button
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-          className="p-2 rounded-lg hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          aria-label={t("previousPage")}
-        >
-          <ChevronLeft className="w-4 h-4 text-secondary-foreground" />
-        </button>
-
-        {getPageNumbers().map((page, index) => {
-          if (page === "...") {
-            return (
-              <span
-                key={`ellipsis-${index}`}
-                className="px-3 py-1.5 text-muted-foreground select-none"
-              >
-                ...
-              </span>
-            );
-          }
-          return (
-            <button
-              key={page}
-              // onClick={() => table.setPageIndex(page as number)}
-              onClick={() => table.setPageIndex((page as number) - 1)}
-              className={`min-w-[36px] px-3 py-1.5 text-sm rounded-lg transition-colors cursor-pointer ${
-                currentPage === page
-                  ? "bg-primary text-primary-foreground font-medium shadow-sm"
-                  : "text-foreground hover:bg-muted"
-              }`}
-            >
-              {page}
-            </button>
-          );
-        })}
-
-        <button
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-          className="p-2 rounded-lg hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          aria-label={t("nextPage")}
-        >
-          <ChevronRight className="w-4 h-4 text-secondary-foreground" />
-        </button>
-        <button
-          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-          disabled={!table.getCanNextPage()}
-          className="p-2 rounded-lg hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          aria-label={t("lastPage")}
-        >
-          <ChevronsRight className="w-4 h-4 text-secondary-foreground" />
-        </button>
-      </div>
+      <PaginationControls
+        className="order-3 w-full sm:order-2 sm:w-auto sm:flex-1"
+        page={currentPage}
+        totalPages={totalPages}
+        onPageChange={(next) => table.setPageIndex(next - 1)}
+        // From the table, not derived from `totalPages` — the two can disagree
+        // on a server-paginated table, and this is the answer that has always
+        // driven these buttons.
+        canPrevious={table.getCanPreviousPage()}
+        canNext={table.getCanNextPage()}
+      />
 
       {/* Total — small: order-2 + ml-auto pins it right on row 1 next to rows-per-page
               sm+:  order-3 + ml-0 sits naturally at the end */}
