@@ -89,7 +89,7 @@ sidebar must say which one it is opening.
 | Store Overview | স্টোর ওভারভিউ | transliterate | the storefront's own dashboard — never plain "Dashboard" |
 | Order (online) | অর্ডার | transliterate | matches Ordered = অর্ডারকৃত |
 | Online Orders | অনলাইন অর্ডার | mixed | distinct from Purchase Orders = ক্রয় অর্ডার |
-| Store Customers | স্টোর গ্রাহক | mixed | storefront shoppers, not counter Customers = গ্রাহক |
+| Storefront Accounts | স্টোরফ্রন্ট অ্যাকাউন্ট | transliterate | storefront LOGIN accounts (Shopper), a different collection from Customers = গ্রাহক — not a subset of it. Renamed from "Store Customers"/স্টোর গ্রাহক, which read as a filtered view of Customers |
 | Catalog | ক্যাটালগ | transliterate | which products are listed online |
 | Campaign | ক্যাম্পেইন | transliterate | |
 | Coupon | কুপন | transliterate | |

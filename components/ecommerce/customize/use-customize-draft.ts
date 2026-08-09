@@ -11,6 +11,7 @@ import {
 import { getPreset } from "@/lib/storefront-theme";
 import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import type {
+  ContactButtonPage,
   Image,
   StorefrontFooterGroup,
   StorefrontHeroBanner,
@@ -47,6 +48,28 @@ export interface AnnouncementDraft {
   bgFit: "cover" | "tile";
 }
 
+/**
+ * Contact-launcher draft. Every field defined so the inputs stay controlled, and
+ * the number is absent on purpose — it belongs to Settings → General, and two
+ * independently-edited copies of a phone number is how a merchant ends up
+ * answering the wrong one.
+ */
+export interface ContactButtonDraft {
+  enabled: boolean;
+  label: string;
+  greeting: string;
+  position: "right" | "left";
+  /** Empty ⇒ every page (see `isPageAllowed`). */
+  showOn: ContactButtonPage[];
+  hoursEnabled: boolean;
+  hoursFrom: string;
+  hoursTo: string;
+  offlineNote: string;
+  nudgeEnabled: boolean;
+  nudgeText: string;
+  nudgeDelay: number;
+}
+
 /** The auto content-pages footer column (show + heading override). */
 export interface FooterContentPagesDraft {
   show: boolean;
@@ -78,6 +101,7 @@ export interface CustomizeDraft {
   heroBanner: StorefrontHeroBanner;
   navHeader: StorefrontMenuItem[];
   announcement: AnnouncementDraft;
+  contactButton: ContactButtonDraft;
   footerGroups: StorefrontFooterGroup[];
   footerContentPages: FooterContentPagesDraft;
   /** Category docs, not settings — saved through their own mutations. */
@@ -94,6 +118,7 @@ export type PartId =
   | "cards"
   | "collections"
   | "product"
+  | "contact"
   | "footer"
   | "checkout";
 
@@ -112,6 +137,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   cards: (d) => [d.templates.productCard, d.templates.cardActions],
   collections: (d) => [d.collections, d.templates.collection, d.templates.pagination],
   product: (d) => d.templates.product,
+  contact: (d) => d.contactButton,
   footer: (d) => [
     d.templates.footer,
     d.footerText,
@@ -150,6 +176,34 @@ function seedTemplates(settings: StorefrontSettings): Record<string, string> {
   return seed;
 }
 
+/**
+ * Flatten the stored `contactButton` into the editor's shape.
+ *
+ * `channels` is deliberately NOT surfaced: the number lives at Settings →
+ * General and has exactly one home, so the editor has nothing to seed from it.
+ * When a second `kind` is registered this grows a channel list, and this
+ * function is where that starts.
+ */
+function seedContactButton(settings: StorefrontSettings): ContactButtonDraft {
+  const c = settings.contactButton;
+  const h = c?.hours;
+  const n = c?.nudge;
+  return {
+    enabled: c?.enabled ?? false,
+    label: c?.label ?? "",
+    greeting: c?.greeting ?? "",
+    position: c?.position === "left" ? "left" : "right",
+    showOn: c?.showOn ?? [],
+    hoursEnabled: h?.enabled ?? false,
+    hoursFrom: h?.from ?? "10:00",
+    hoursTo: h?.to ?? "20:00",
+    offlineNote: h?.offlineNote ?? "",
+    nudgeEnabled: n?.enabled ?? false,
+    nudgeText: n?.text ?? "",
+    nudgeDelay: n?.delaySeconds ?? 8,
+  };
+}
+
 function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collections"> {
   const t = settings.theme ?? {};
   const presetDefaults = getPreset(t.preset);
@@ -183,6 +237,7 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
       overlayOpacity: a?.overlayOpacity ?? 40,
       bgFit: a?.bgFit ?? "cover",
     },
+    contactButton: seedContactButton(settings),
     footerGroups: settings.nav?.footer ?? [],
     // `show` defaults on (legacy behaviour) so existing stores keep the column;
     // a blank title ⇒ the built-in "Information" heading.
@@ -200,6 +255,7 @@ export interface CustomizeDraftApi {
   patch: (p: Partial<CustomizeDraft>) => void;
   patchTemplate: (key: string, value: string) => void;
   patchAnnouncement: (p: Partial<AnnouncementDraft>) => void;
+  patchContactButton: (p: Partial<ContactButtonDraft>) => void;
   patchContentPages: (p: Partial<FooterContentPagesDraft>) => void;
   /** Parts whose values differ from what the server last confirmed. */
   dirtyParts: PartId[];
@@ -278,6 +334,11 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
       setDraft((d) => ({ ...d, announcement: { ...d.announcement, ...p } })),
     [],
   );
+  const patchContactButton = useCallback(
+    (p: Partial<ContactButtonDraft>) =>
+      setDraft((d) => ({ ...d, contactButton: { ...d.contactButton, ...p } })),
+    [],
+  );
   const patchContentPages = useCallback(
     (p: Partial<FooterContentPagesDraft>) =>
       setDraft((d) => ({ ...d, footerContentPages: { ...d.footerContentPages, ...p } })),
@@ -347,6 +408,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     patch,
     patchTemplate,
     patchAnnouncement,
+    patchContactButton,
     patchContentPages,
     dirtyParts,
     isDirty,

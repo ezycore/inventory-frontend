@@ -10998,6 +10998,32 @@ export interface components {
                 instagram?: string;
                 whatsapp?: string;
             };
+            contactButton?: {
+                enabled?: boolean;
+                label?: string;
+                greeting?: string;
+                /** @enum {string} */
+                position?: "right" | "left";
+                showOn?: string[];
+                channels?: {
+                    kind: string;
+                    value: string;
+                    label?: string;
+                    enabled?: boolean;
+                }[];
+                hours?: {
+                    enabled?: boolean;
+                    days?: number[];
+                    from?: string;
+                    to?: string;
+                    offlineNote?: string;
+                };
+                nudge?: {
+                    enabled?: boolean;
+                    delaySeconds?: number;
+                    text?: string;
+                };
+            };
             seo?: {
                 title?: string;
                 description?: string;
@@ -11336,6 +11362,30 @@ export interface components {
             banner?: unknown;
             contact?: unknown;
             social?: unknown;
+            contactButton?: {
+                label?: string;
+                greeting?: string;
+                /** @enum {string} */
+                position: "right" | "left";
+                showOn?: string[];
+                channels: {
+                    kind: string;
+                    value: string;
+                    label?: string;
+                }[];
+                hours?: {
+                    enabled: boolean;
+                    days?: number[];
+                    from?: string;
+                    to?: string;
+                    offlineNote?: string;
+                };
+                nudge?: {
+                    enabled: boolean;
+                    delaySeconds?: number;
+                    text?: string;
+                };
+            };
             seo?: unknown;
             theme?: unknown;
             heroSlides?: unknown;
@@ -16884,6 +16934,33 @@ export interface operations {
                         facebook?: string;
                         instagram?: string;
                         whatsapp?: string;
+                    };
+                    contactButton?: {
+                        enabled?: boolean;
+                        label?: string;
+                        greeting?: string;
+                        /** @enum {string} */
+                        position?: "right" | "left";
+                        showOn?: ("home" | "collection" | "product" | "cart" | "checkout" | "order" | "page" | "account")[];
+                        channels?: {
+                            /** @enum {string} */
+                            kind: "whatsapp";
+                            value: string;
+                            label?: string;
+                            enabled?: boolean;
+                        }[];
+                        hours?: {
+                            enabled?: boolean;
+                            days?: number[];
+                            from?: (unknown | string) | "";
+                            to?: (unknown | string) | "";
+                            offlineNote?: string;
+                        };
+                        nudge?: {
+                            enabled?: boolean;
+                            delaySeconds?: number;
+                            text?: string;
+                        };
                     };
                     seo?: {
                         title?: string;

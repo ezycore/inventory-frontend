@@ -6,6 +6,7 @@
  */
 
 import type { CourierNormalizedStatus } from "@/lib/courier-status";
+import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -41,6 +42,30 @@ export interface StoreHeroBanner {
   secondaryLink?: string;
 }
 
+/** One channel on the public payload — `value` is resolved, `enabled` is gone. */
+export interface StoreContactChannel {
+  kind: ContactChannelKind;
+  value: string;
+  label?: string;
+}
+
+/** The launcher as the public store payload carries it (see `contactButton`). */
+export interface StoreContactButton {
+  label?: string;
+  greeting?: string;
+  position: "right" | "left";
+  showOn?: ContactButtonPage[];
+  channels: StoreContactChannel[];
+  hours?: {
+    enabled: boolean;
+    days?: number[];
+    from?: string;
+    to?: string;
+    offlineNote?: string;
+  };
+  nudge?: { enabled: boolean; delaySeconds?: number; text?: string };
+}
+
 export interface StorefrontStore {
   name: string;
   slug: string;
@@ -56,6 +81,14 @@ export interface StorefrontStore {
   banner?: StorefrontImage | null;
   contact?: { email?: string; phone?: string; address?: string };
   social?: { facebook?: string; instagram?: string; whatsapp?: string };
+  /**
+   * Floating chat launcher. **Presence is enabled** — the backend omits the
+   * whole block when the merchant has it off or no channel resolves to a usable
+   * number, so there is no `enabled` flag to check and an unpublished number
+   * never reaches this payload. `channels[].value` is already resolved (a blank
+   * override has fallen back to `social.whatsapp` server-side).
+   */
+  contactButton?: StoreContactButton;
   seo?: { title?: string; description?: string };
   theme?: {
     preset?: string;

@@ -27,6 +27,7 @@ import { StoreHeader } from "@/components/storefront/store-header";
 import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
 import { StoreFooter } from "@/components/storefront/store-footer";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
+import { ContactLauncher } from "@/components/storefront/contact-launcher";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartSync } from "@/components/storefront/cart-sync";
 import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
@@ -183,6 +184,12 @@ export function StoreShell({
           store={store}
           categories={categories ?? []}
         />
+
+        {/* Floating chat launcher — renders nothing unless the merchant has it
+            on (Customize → WhatsApp button). Mounted AFTER the `isError` early
+            return above, so an unpublished store never exposes its owner's
+            phone number. */}
+        <ContactLauncher base={base} store={store} />
 
         <CartDrawer />
         <OwnerAdminBar />
