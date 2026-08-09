@@ -12884,6 +12884,10 @@ export interface components {
             email: string;
             role?: string;
         };
+        PasswordChange: {
+            message: string;
+            token: string;
+        };
         PermissionCatalog: {
             modules: {
                 key: string;
@@ -14133,7 +14137,6 @@ export interface operations {
                 minPrice?: number;
                 maxPrice?: number;
                 inStock?: "1" | "true";
-                hideSoldOut?: "1" | "true";
                 sort?: "featured" | "newest" | "price_asc" | "price_desc";
                 page?: number;
                 limit?: number;
@@ -17677,7 +17680,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["Deleted"];
+                        data?: components["schemas"]["PasswordChange"];
                     };
                 };
             };

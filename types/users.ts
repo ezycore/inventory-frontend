@@ -115,11 +115,16 @@ export interface PermissionsResponse {
   data: Permission[];
 }
 
+/**
+ * `system` — the 5 built-ins, defined in backend code and immutable.
+ * `mc` — pushed by Mission Control; the platform owns them.
+ * `custom` — authored in this workspace; the only kind editable here.
+ */
 export interface OrganizationRole {
   slug: string;
   name: string;
   description?: string;
-  source: "system" | "mc";
+  source: "system" | "mc" | "custom";
   locked: boolean;
   permissions: string[];
   assignable: boolean;

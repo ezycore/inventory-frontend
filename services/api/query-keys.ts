@@ -215,7 +215,13 @@ export const queryKeys = {
     myLocations: () => ["users", "me", "locations"] as const,
   },
 
-  roles: resourceKeys("roles"),
+  roles: {
+    ...resourceKeys("roles"),
+    /** The plan-filtered permission tree the role builder renders. */
+    catalog: () => ["roles", "catalog"] as const,
+    /** Holder count for one role, read before offering to delete it. */
+    usage: (slug: string) => ["roles", "usage", slug] as const,
+  },
 
   // ── Read models ─────────────────────────────────────────────────────────────
   dashboard: {
