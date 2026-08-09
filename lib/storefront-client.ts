@@ -17,6 +17,31 @@ export interface StorefrontImage {
   thumbnailUrl?: string;
 }
 
+/**
+ * Owner overrides for how the uploaded logo is drawn (Customize → Brand).
+ *
+ * A transparent wordmark is one ink colour and the storefront has two
+ * backgrounds, so black type vanishes on the dark theme and white type on the
+ * light one — nothing in the file says which you have, so the owner names a
+ * backdrop instead of the storefront guessing. Every field absent ⇒ unchanged:
+ * no backdrop, the placement's own height, no padding, square corners.
+ */
+export interface StoreLogoStyle {
+  background?: string;
+  height?: number;
+  padding?: number;
+  radius?: number;
+}
+
+/** Owner layout for the homepage collections row (Customize → Collections). */
+export interface StoreHomeCollections {
+  /** `strip` = the scrolling chip row (default); `grid` = equal columns. */
+  layout?: "strip" | "grid";
+  /** Columns per row in `grid` (2–6). Ignored by `strip`. */
+  columns?: number;
+  align?: "left" | "center" | "right";
+}
+
 /** One home-page hero slide (owner-managed carousel). */
 export interface StoreHeroSlide {
   image?: StorefrontImage | null;
@@ -96,6 +121,10 @@ export interface StorefrontStore {
     accentColor?: string;
     footerText?: string;
     homepageSections?: string[];
+    /** How the uploaded logo is drawn — see `StoreLogoStyle`. */
+    logo?: StoreLogoStyle;
+    /** Layout of the homepage collections row — see `StoreHomeCollections`. */
+    homeCollections?: StoreHomeCollections;
   };
   /** Org letterhead (Settings → Receipt & Print) — order invoices print with the
    * same letterhead as every other document. */

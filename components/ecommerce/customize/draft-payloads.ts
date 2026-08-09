@@ -222,6 +222,8 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
       footerText: draft.footerText.trim() || undefined,
+      logo: draft.logoStyle,
+      homeCollections: draft.homeCollections,
     },
     trustBadges: trimBadges(draft.badges),
     heroBanner: cleanHeroBanner(draft.heroBanner),
@@ -253,7 +255,12 @@ export function toPreviewPayload(
   },
 ) {
   return {
-    theme: { brandColor: draft.brandColor, accentColor: draft.accentColor },
+    theme: {
+      brandColor: draft.brandColor,
+      accentColor: draft.accentColor,
+      logo: draft.logoStyle,
+      homeCollections: draft.homeCollections,
+    },
     templates: {
       home: draft.templates.home,
       footer: draft.templates.footer,

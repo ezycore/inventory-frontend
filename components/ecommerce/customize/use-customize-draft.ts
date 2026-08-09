@@ -16,6 +16,8 @@ import type {
   StorefrontFooterGroup,
   StorefrontHeroBanner,
   StorefrontHeroSlide,
+  StorefrontHomeCollections,
+  StorefrontLogoStyle,
   StorefrontMenuItem,
   StorefrontSettings,
   StorefrontTrustBadge,
@@ -94,6 +96,14 @@ export interface CustomizeDraft {
   brandColor: string;
   accentColor: string;
   footerText: string;
+  /**
+   * How the uploaded logo is drawn. Unlike the logo FILE (which saves on upload
+   * through its own multipart PATCH), this is ordinary draft state on the page's
+   * single Save — it is settings, not media.
+   */
+  logoStyle: StorefrontLogoStyle;
+  /** Homepage collections row layout (Customize → Collections). */
+  homeCollections: StorefrontHomeCollections;
   /** Every `templates.*` id, including `hero` and `headerMenu`. */
   templates: Record<string, string>;
   badges: StorefrontTrustBadge[];
@@ -129,13 +139,18 @@ export type PartId =
  * to forget.
  */
 const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
-  brand: (d) => [d.preset, d.brandColor, d.accentColor],
+  brand: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle],
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
   home: (d) => d.templates.home,
   cards: (d) => [d.templates.productCard, d.templates.cardActions],
-  collections: (d) => [d.collections, d.templates.collection, d.templates.pagination],
+  collections: (d) => [
+    d.collections,
+    d.templates.collection,
+    d.templates.pagination,
+    d.homeCollections,
+  ],
   product: (d) => d.templates.product,
   contact: (d) => d.contactButton,
   footer: (d) => [
@@ -213,6 +228,10 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
     brandColor: t.brandColor ?? presetDefaults.brandColor,
     accentColor: t.accentColor ?? presetDefaults.accentColor,
     footerText: t.footerText ?? "",
+    // Seeded as the saved object, empty when unset — an absent field means
+    // "leave it as it was", which is exactly what the resolvers default to.
+    logoStyle: t.logo ?? {},
+    homeCollections: t.homeCollections ?? {},
     templates: seedTemplates(settings),
     // Three fixed slots seeded by index — an empty slot keeps its default badge.
     badges: DEFAULT_BADGES.map((d, i) => ({

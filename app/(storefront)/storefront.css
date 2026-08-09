@@ -233,6 +233,24 @@
   }
 }
 
+/* ---- Homepage collections row (grid layout) ----
+   The merchant's column count arrives as `--sf-hc-cols` from
+   `home-collections.tsx`. It applies from 680px up only: below that the row is
+   pinned to 2 whatever they chose, because six 60px tiles on a 360px phone are
+   six unreadable slivers. This has to be CSS rather than an inline style for
+   exactly that reason — a breakpoint. */
+.sf-home-collections {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: 16px;
+}
+@media (min-width: 680px) {
+  .sf-home-collections {
+    grid-template-columns: repeat(var(--sf-hc-cols, 4), minmax(0, 1fr));
+  }
+}
+
 /* ---- Helpers ---- */
 .sf-root :where(h1, h2, h3) {
   letter-spacing: -0.02em;

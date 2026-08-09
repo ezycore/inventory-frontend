@@ -27,6 +27,8 @@ export function StorePreviewBridge() {
       apply({
         brand: p.theme?.brandColor,
         accent: p.theme?.accentColor,
+        logoStyle: p.theme?.logo,
+        homeCollections: p.theme?.homeCollections,
         home: p.templates?.home,
         footer: p.templates?.footer,
         header: p.templates?.header,

@@ -8,6 +8,8 @@ import type {
   StoreFooterGroup,
   StoreHeroBanner,
   StoreHeroSlide,
+  StoreHomeCollections,
+  StoreLogoStyle,
   StoreMenuItem,
   StoreTemplates,
   StoreTemplatesRaw,
@@ -92,6 +94,10 @@ interface SfPreviewState {
    * unsaved reordering previews live.
    */
   collections: CatalogCategory[] | null;
+  /** Draft logo chrome (Customize → Brand): backdrop, height, padding, radius. */
+  logoStyle: StoreLogoStyle | null;
+  /** Draft homepage collections layout (Customize → Collections). */
+  homeCollections: StoreHomeCollections | null;
   activate: () => void;
   apply: (patch: {
     brand?: string;
@@ -120,6 +126,8 @@ interface SfPreviewState {
     // `null` is meaningful (image removed), so these are nullable in the patch too.
     logo?: StorefrontImage | null;
     banner?: StorefrontImage | null;
+    logoStyle?: StoreLogoStyle;
+    homeCollections?: StoreHomeCollections;
   }) => void;
 }
 
@@ -149,6 +157,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   footerContentPages: null,
   logo: undefined,
   banner: undefined,
+  logoStyle: null,
+  homeCollections: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
@@ -187,6 +197,11 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
           : s.footerContentPages,
       logo: patch.logo !== undefined ? patch.logo : s.logo,
       banner: patch.banner !== undefined ? patch.banner : s.banner,
+      logoStyle: patch.logoStyle !== undefined ? patch.logoStyle : s.logoStyle,
+      homeCollections:
+        patch.homeCollections !== undefined
+          ? patch.homeCollections
+          : s.homeCollections,
     })),
 }));
 

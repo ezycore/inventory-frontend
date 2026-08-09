@@ -60,6 +60,29 @@ export function catalogSearchParams(
 }
 
 /**
+ * The 1-based page cursor, read from `?page=`.
+ *
+ * Deliberately **not** part of `CatalogSearchParams`: the facets describe *which*
+ * products, the cursor describes *where in them*, and the two builders below take
+ * the cursor as a separate argument precisely so an infinite query can drop it.
+ * Folding it into the facet object would give every caller a `page` it has to
+ * remember not to spread.
+ *
+ * Takes the raw value from either side — Next hands a server page
+ * `string | string[] | undefined`, `useSearchParams().get()` returns
+ * `string | null` — so the server and the client cannot read it differently.
+ * Anything unparseable or below 1 is page 1; a URL is shopper-editable and a
+ * `?page=abc` must not become `NaN` in a request.
+ */
+export function catalogPage(
+  raw: string | string[] | undefined | null,
+): number {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 1 ? parsed : 1;
+}
+
+/**
  * Everything the collection page filters and sorts by, minus the page cursor.
  *
  * This is what `useStoreProductsInfinite` is keyed on: an infinite query owns its
@@ -121,8 +144,18 @@ export function searchQueryParams(
  * re-sliced, and the combinations multiply without limit. Crawlers will happily
  * walk every one of them, so those get `noindex, follow`: the links are still
  * worth traversing, the URLs are not worth storing.
+ *
+ * `page` is that same judgement applied to depth. The cursor became a real URL
+ * when it moved into the query string (so returning from a product lands the
+ * shopper back where they were) — but page 4 of a collection is thin, duplicate
+ * copy of the page-1 landing page, and only page 1 should hold the index slot.
+ * `follow` still lets a crawler walk onward to the products themselves.
  */
-export function isIndexableCatalogUrl(sp: CatalogSearchParams): boolean {
+export function isIndexableCatalogUrl(
+  sp: CatalogSearchParams,
+  page = 1,
+): boolean {
+  if (page > 1) return false;
   if (sp.minPrice || sp.maxPrice || sp.inStock || sp.sort) return false;
   // Tag facets combine without limit and every combination is the same product
   // set re-sliced — exactly the case the rule above exists for.
