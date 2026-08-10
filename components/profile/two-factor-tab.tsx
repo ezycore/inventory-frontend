@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { copyText } from "@/utils/clipboard";
 
 export function TwoFactorTab() {
   const t = useTranslations("settings.profile.twoFactor");
@@ -122,14 +123,25 @@ export function TwoFactorTab() {
     });
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(t("copied"));
+  // Await the copy before claiming success — these are backup codes, and a
+  // false "copied" toast makes someone close the dialog believing they saved
+  // the only way back into a locked account.
+  const copyToClipboard = async (text: string) => {
+    try {
+      await copyText(text);
+      toast.success(t("copied"));
+    } catch {
+      toast.error(t("copyFailed"));
+    }
   };
 
-  const copyAllBackupCodes = () => {
-    navigator.clipboard.writeText(backupCodes.join("\n"));
-    toast.success(t("allCodesCopied"));
+  const copyAllBackupCodes = async () => {
+    try {
+      await copyText(backupCodes.join("\n"));
+      toast.success(t("allCodesCopied"));
+    } catch {
+      toast.error(t("copyFailed"));
+    }
   };
 
   return (

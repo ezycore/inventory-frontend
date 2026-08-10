@@ -412,6 +412,14 @@ It also fails on a sidebar route that no page covers and `docs/help/BACKLOG.md` 
 with the `help-docs` skill. Its one blind spot: a backend change that alters what a number *means* with no
 frontend diff (valuation method, tax rules) — check the reports pages by hand.
 
+**Copy to clipboard — always `copyText()` (`utils/clipboard.ts`), never `navigator.clipboard`
+directly.** That API only exists in a **secure context** (HTTPS / `localhost` / `127.0.0.1`), so a
+direct call is `undefined` and throws when the dev app is opened from a phone over LAN HTTP
+(`http://192.168.x.x:3000`) — the helper falls back to a hidden-textarea `execCommand("copy")` there.
+It **rejects** on failure, so keep your own try/catch and error toast: several call sites used to
+fire-and-forget and toast success unconditionally, which claimed a copy that never happened (worst
+on the 2FA backup codes).
+
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**
 - **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.
 - **`SimpleTable`** (`ui/components/simple-table.tsx`) for the small tables embedded in cards / detail panels. Column-driven: `<SimpleTable columns rows getRowKey />`, where each `SimpleColumn` has `header`, `cell: (row) => node`, optional `align`/`headClassName`/`cellClassName`; plus `rowClassName`/`headerRowClassName` for per-row styling. Cells can hold inputs/checkboxes, so lightly interactive grids fit too (see `variant-manager.tsx`).

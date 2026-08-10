@@ -8,6 +8,7 @@ import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
 import { StatusBadge } from "@/ui/components/status-badge";
+import { copyText } from "@/utils/clipboard";
 
 /** Strip scheme + trailing slash so a URL reads as a bare host for display. */
 const hostOf = (url: string) =>
@@ -41,7 +42,7 @@ export function StoreStatusCard({
   const copyUrl = async () => {
     if (!primaryUrl) return;
     try {
-      await navigator.clipboard.writeText(primaryUrl);
+      await copyText(primaryUrl);
       toast.success("Store URL copied");
     } catch {
       toast.error("Couldn't copy the URL");

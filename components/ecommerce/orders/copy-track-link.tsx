@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/ui/components/button";
+import { copyText } from "@/utils/clipboard";
 
 /**
  * Copies the buyer's tracking link for a merchant to paste into the chat the
@@ -44,9 +45,7 @@ export function CopyTrackLink({
     // The row opens the order on click; copying must not also navigate away.
     event.stopPropagation();
     try {
-      await navigator.clipboard.writeText(
-        `Your order ${orderNumber} - track it here: ${trackUrl}`,
-      );
+      await copyText(`Your order ${orderNumber} - track it here: ${trackUrl}`);
       setCopied(true);
       toast.success("Tracking link copied");
       setTimeout(() => setCopied(false), 2000);

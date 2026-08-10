@@ -260,6 +260,7 @@
     "statTotalDueDesc": "অপরিশোধিত ব্যালেন্স",
     "colInvoiceNo": "চালান #",
     "invoiceCopied": "চালান নম্বর কপি হয়েছে",
+    "copyFailed": "কপি করা যায়নি",
     "copyInvoiceTooltip": "চালান নম্বর কপি করুন",
     "colPurchaseDate": "ক্রয়ের তারিখ",
     "colSupplier": "সরবরাহকারী",
