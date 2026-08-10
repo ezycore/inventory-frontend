@@ -162,23 +162,72 @@ const printWhenReady = (
   );
 };
 
+/** Give up waiting for the tab's document rather than polling forever. */
+const TAB_READY_TIMEOUT_MS = 10_000;
+const TAB_READY_POLL_MS = 60;
+
 /**
  * Mobile path: a real top-level tab, which is the only frame those browsers
  * will print. Opened synchronously so it still counts as the user's click.
  * `onafterprint` closes it again; if the browser never fires that event the tab
  * simply stays, which is a visible, recoverable outcome — unlike printing the
  * wrong document.
+ *
+ * The document is served from a **blob: URL**, not `document.write` into
+ * `about:blank`: Chrome for Android refuses to print a written-into blank
+ * document and answers "There was a problem printing the page" — with no
+ * printer involved, since even Save-as-PDF goes through the same pipeline. A
+ * blob URL is a real navigation and prints normally. It also inherits this
+ * origin, so the document stays readable for the image/font wait below.
+ *
+ * Readiness is polled rather than hung off a `load` listener: the listener would
+ * have to be attached to the initial about:blank window, which is discarded when
+ * the blob document replaces it.
  */
 const printInNewTab = (html: string, locale: "en" | "bn"): boolean => {
-  const win = window.open("", "_blank");
-  if (!win) return false;
+  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  const win = window.open(url, "_blank");
+  if (!win) {
+    URL.revokeObjectURL(url);
+    return false;
+  }
 
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
+  const release = () => URL.revokeObjectURL(url);
+  const deadline = Date.now() + TAB_READY_TIMEOUT_MS;
 
-  win.onafterprint = () => win.close();
-  printWhenReady(win, win.document, locale);
+  const whenLoaded = () => {
+    let doc: Document | null = null;
+    try {
+      // Until the blob navigation commits, this is still the opener's initial
+      // about:blank — which reports `readyState: "complete"` and would print a
+      // blank sheet. The URL check is what distinguishes the two.
+      doc = win.location.href === url ? win.document : null;
+    } catch {
+      // Cross-origin only while the blob navigation is still in flight.
+      doc = null;
+    }
+
+    if (win.closed) {
+      release();
+      return;
+    }
+    if (!doc || doc.readyState !== "complete") {
+      if (Date.now() > deadline) {
+        release();
+        return;
+      }
+      setTimeout(whenLoaded, TAB_READY_POLL_MS);
+      return;
+    }
+
+    win.onafterprint = () => {
+      release();
+      win.close();
+    };
+    printWhenReady(win, doc, locale);
+  };
+
+  whenLoaded();
   return true;
 };
 
