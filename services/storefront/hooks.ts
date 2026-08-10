@@ -272,6 +272,11 @@ export const useResetPassword = (slug: string) =>
  */
 export const useShopperLogout = (slug: string) => {
   const qc = useQueryClient();
+  // The rule is matching its own implementation here: this function IS the
+  // evicting logout it tells callers to use, so the raw store action is exactly
+  // what belongs on this line — `clearShopperCache` two lines down is the half
+  // the rule exists to enforce, and it is right there.
+  // eslint-disable-next-line query-cache/no-raw-shopper-logout -- see above
   const logout = useShopperStore((s) => s.logout);
   return () => {
     logout();

@@ -293,12 +293,34 @@ render matches the SSR HTML — never hand-roll `useSyncExternalStore` or `typeo
 
 **Browser tab (title + icon) is client-side, by necessity.** The organization lives in the persisted
 auth store, which no server `generateMetadata` can read — so both are set imperatively from
-`app/(protected)/layout.tsx`: `useOrgFavicon()` (org logo → tab icon, via `useFaviconOverride`) and
+`app/(protected)/layout.tsx`: `useOrgFavicon()` (org **favicon** → tab icon, via `useFaviconOverride`) and
 `useOrgDocumentTitle()` (`"<Page> · <Org>"`, e.g. `Products · ZeroDrop`). The page name is the **last
 breadcrumb**, so it is already translated and already matches the sidebar label — renaming a nav item
 renames the tab, and no page needs its own `metadata`. The storefront titles tabs separately via its
 own `generateMetadata` (store name). **Do not add `export const metadata` with a title to a page
 under `app/(protected)/`** — it can't see the org and will fight the hook.
+
+**The favicon is `organization.favicon` and nothing else** — admin app, auth pages, storefront and
+custom domains all read that one field, and it **never falls back to the org or store logo**. The two
+are separate uploads (Settings → Organization) because they are separate jobs: a wordmark logo
+cover-cropped to the 200×200 thumbnail renders in a tab as an unreadable middle slice, so an org with
+no favicon gets the platform mark instead. Don't "helpfully" re-add a `favicon ?? logo` fallback in
+`useOrgFavicon`, `shop/layout.tsx` or `StoreShell` — it was removed on purpose. The **one** place the
+two mix is the 20×20 brand mark in storefront email (backend `storefront-shopper.service`), where
+`favicon ?? store.logo ?? org.logo` applies because no mark at all is worse than a cropped one.
+The storefront reads a **pre-resolved** `store.favicon` — the backend `getStoreInfo` owns that
+resolution, so nothing chains client-side.
+
+Three wiring points that browser QA caught and nothing else can, so don't unpick them:
+
+- **`useUpdateOrganization` must sync `favicon` into the auth store.** `useOrgFavicon` reads it
+  straight off that store, so a field missing from that `updateUser` block lags a full reload.
+- **`useUpdateOrganization` must call `revalidateStorefront()`.** The favicon is public storefront
+  data, and the shop's SSR payload is cached under `store:{slug}` for 5 minutes — without the flush
+  the merchant's change is invisible to shoppers until the window lapses.
+- **`useFaviconOverride` resets to the default when `href` goes from set → absent**, gated on an
+  `applied` ref. That ref is load-bearing: resetting whenever `href` is merely falsy would paint over
+  the SSR-rendered storefront icon during hydration, which is the flash the hook exists to prevent.
 
 Next owns the `<title>` tag, and that cuts three ways — every case below was found in a browser,
 because none of them shows up in typecheck, lint, or tests:
@@ -321,6 +343,15 @@ because none of them shows up in typecheck, lint, or tests:
   titleless and the tab shows the raw URL until hydration.
   **Do not "simplify" this back into root `metadata.title`.** Reaching for a metadata title anywhere
   above `(protected)` reintroduces the flash, and nothing in typecheck, lint, or tests will catch it.
+
+**Image upload fields:** a labelled upload tile (preview + upload/change/remove/cancel, staged until
+the surrounding form's Save) is `<ImageUploadField>` (`components/shared/image-upload-field.tsx`)
+over `useImageUploadField` (`hooks/use-image-upload-field.ts`), which owns the staged-file state and
+the blob-URL lifecycle. Settings → Organization renders two of them (logo, favicon). **Never
+hand-roll a file input + `URL.createObjectURL` preview** — the revoke is the part that gets dropped,
+and the hook also carries the 5 MB cap and accepted MIME list that must match the backend's multer
+`imageFilter`. (The storefront Customize editor's `MediaField` is a deliberate separate one: it
+uploads immediately via its own media PATCH rather than staging for a form Save.)
 
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.

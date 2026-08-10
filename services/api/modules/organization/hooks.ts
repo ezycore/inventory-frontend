@@ -303,8 +303,11 @@ export const useUpdateOrganization = () => {
         result.message || "Organization updated successfully!",
       );
 
-      // Sync the auth store so the sidebar (logo + name) reflects the change
-      // immediately without waiting for the next /auth/me refresh.
+      // Sync the auth store so the sidebar (logo + name) and the browser-tab
+      // icon (favicon) reflect the change immediately, without waiting for the
+      // next /auth/me refresh. Anything storefront- or chrome-visible that this
+      // endpoint can write has to be listed here or it silently lags a reload —
+      // which is exactly how the favicon behaved until browser QA caught it.
       const updated = result.data as
         | {
             name?: string;
@@ -314,6 +317,7 @@ export const useUpdateOrganization = () => {
             address?: string;
             receiptSettings?: ReceiptSettings;
             logo?: { url: string; mediumUrl: string; thumbnailUrl: string; publicId: string } | null;
+            favicon?: { url: string; mediumUrl: string; thumbnailUrl: string; publicId: string } | null;
           }
         | undefined;
       if (user && updated) {
@@ -331,11 +335,20 @@ export const useUpdateOrganization = () => {
             }),
             // Always sync logo (including removal where it becomes null/undefined)
             logo: updated.logo ?? undefined,
+            // Same for the favicon — `useOrgFavicon` reads it straight off this
+            // store, so without this line the tab keeps the old icon (or the
+            // platform default) until the next full load.
+            favicon: updated.favicon ?? undefined,
           },
         });
       }
 
       invalidate(queryClient, "org.changed");
+      // The org favicon is rendered by the public storefront (it is the shop's
+      // tab icon too), so an org save has to flush the shop's server-side cache
+      // for the same reason the storefront settings saves below do. Without it
+      // the change waits out the 5-minute `store:{slug}` window.
+      void revalidateStorefront();
     },
     onError: handleMutationError,
   });
@@ -481,8 +494,10 @@ export const useUpdateStorefrontSettings = () => {
 };
 
 // PATCH /api/organization/storefront/media - Upload/replace/remove logo + banner
-// Logo and banner are rendered by the storefront shell (and the logo is its
-// favicon), so this flushes the public cache for the same reason as above.
+// Logo and banner are rendered by the storefront shell, so this flushes the
+// public cache for the same reason as above. (The store logo is no longer the
+// shop's favicon — that is `organization.favicon`, saved from Settings →
+// Organization, which flushes the same tag from `useUpdateOrganization`.)
 export const useUpdateStorefrontMedia = () => {
   const queryClient = useQueryClient();
 
