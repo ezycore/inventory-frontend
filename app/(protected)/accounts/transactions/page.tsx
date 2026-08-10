@@ -133,12 +133,16 @@ function TransactionsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <PageHeader
-          title={t("title")}
-          subTitle={t("subtitle")}
-        />
-        <div className="flex gap-2">
+      {/* Three action buttons plus the title exceed a phone viewport on one row, and the
+          overflow scrolls the whole page sideways — stack them below the header on mobile. */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <PageHeader
+            title={t("title")}
+            subTitle={t("subtitle")}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
           <TransferDialog />
           <ExpenseDialog />
           <IncomeDialog />

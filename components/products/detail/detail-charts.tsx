@@ -106,8 +106,9 @@ export function DetailCharts({ analytics, salesEnabled, formatCurrency }: Detail
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <Card className="p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-xl font-bold">{value}</p>
+      <p className="truncate text-xs text-muted-foreground">{label}</p>
+      {/* Same half-width mobile tile as DetailStats — a long amount must wrap, not spill. */}
+      <p className="mt-1 break-words text-lg font-bold tabular-nums sm:text-xl">{value}</p>
     </Card>
   )
 }

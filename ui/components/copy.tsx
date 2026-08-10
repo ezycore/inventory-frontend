@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "../lib/utils";
+import { copyText } from "@/utils/clipboard";
 
 interface CopyFieldProps {
   value: string;
@@ -14,10 +15,14 @@ export function CopyField({ value, showValue = true, className }: CopyFieldProps
 
   const handleCopy = async () => {
     if (!value) return;
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    toast.success("Copied!", { description: value });
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await copyText(value);
+      setCopied(true);
+      toast.success("Copied!", { description: value });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy");
+    }
   };
 
   return (

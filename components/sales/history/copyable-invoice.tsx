@@ -5,13 +5,14 @@ import { useTranslations } from 'next-intl';
 import { Check, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/ui/components/button';
+import { copyText } from '@/utils/clipboard';
 
 export function CopyableInvoice({ value }: { value: string }) {
   const t = useTranslations('sales.history');
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(value);
+      await copyText(value);
       setCopied(true);
       toast.success(t('toasts.copied', { value }));
       setTimeout(() => setCopied(false), 1500);

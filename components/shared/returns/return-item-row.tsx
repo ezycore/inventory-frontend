@@ -119,8 +119,10 @@ export function ReturnItemRow({
               />
             </div>
 
-            {/* Return Qty (editable) */}
-            <div className="space-y-1">
+            {/* Return Qty (editable). Full row on mobile: the stepper needs
+                ~146px and a half-width column gives ~130px, which shrank the
+                input until the digit itself was clipped. */}
+            <div className="space-y-1 col-span-2 sm:col-span-1">
               <Label className="text-xs text-muted-foreground">Return Qty</Label>
               <div className="flex items-center gap-1">
                 <Button
@@ -133,7 +135,7 @@ export function ReturnItemRow({
                   <Minus className="h-3 w-3" />
                 </Button>
                 <NumberField
-                  className="h-9 w-16 text-center text-sm"
+                  className="h-9 min-w-0 flex-1 text-center text-sm sm:w-16 sm:flex-none"
                   value={item.returnQty}
                   onChange={(v) => onQtyChange(index, v ?? 0)}
                   precision={0}
@@ -153,7 +155,7 @@ export function ReturnItemRow({
             </div>
 
             {/* Refund Amount (read-only, auto-calculated) */}
-            <div className="space-y-1">
+            <div className="space-y-1 col-span-2 sm:col-span-1">
               <Label className="text-xs text-muted-foreground">Refund Amount</Label>
               <Input
                 value={formatCurrency(item.refundAmount)}

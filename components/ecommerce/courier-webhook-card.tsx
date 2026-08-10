@@ -15,6 +15,7 @@ import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { Spinner } from "@/ui/components/spinner";
+import { copyText } from "@/utils/clipboard";
 
 // eCourier has no documented push — it stays on the 30-min poll — so only the
 // providers that support webhooks are surfaced here.
@@ -37,7 +38,7 @@ export function CourierWebhookCard() {
   const urls = (data?.data?.urls ?? {}) as Record<string, string>;
 
   const copy = (url: string) => {
-    navigator.clipboard.writeText(url).then(
+    copyText(url).then(
       () => toast.success("Webhook URL copied"),
       () => toast.error("Could not copy"),
     );

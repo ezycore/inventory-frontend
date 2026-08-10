@@ -415,6 +415,8 @@ export interface Dict {
   passwordUpdated: string;
   passwordMismatch: string;
   passwordMin: string;
+  showPassword: string;
+  hidePassword: string;
   resetPwTitle: string;
   resetLinkInvalid: string;
   resetLinkSent: string;
@@ -795,6 +797,8 @@ const en: Dict = {
   passwordUpdated: "Password updated",
   passwordMismatch: "Passwords don't match",
   passwordMin: "Password must be at least 6 characters",
+  showPassword: "Show password",
+  hidePassword: "Hide password",
   resetPwTitle: "Reset your password",
   resetLinkInvalid: "This reset link is invalid or expired.",
   resetLinkSent: "Reset link sent — check your inbox",
@@ -1176,6 +1180,8 @@ const bn: Dict = {
   passwordUpdated: "পাসওয়ার্ড আপডেট হয়েছে",
   passwordMismatch: "পাসওয়ার্ড মিলছে না",
   passwordMin: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+  showPassword: "পাসওয়ার্ড দেখান",
+  hidePassword: "পাসওয়ার্ড লুকান",
   resetPwTitle: "পাসওয়ার্ড রিসেট করুন",
   resetLinkInvalid: "এই রিসেট লিংকটি অবৈধ বা মেয়াদোত্তীর্ণ।",
   resetLinkSent: "রিসেট লিংক পাঠানো হয়েছে — ইনবক্স দেখুন",

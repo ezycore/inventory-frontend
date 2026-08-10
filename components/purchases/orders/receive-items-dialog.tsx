@@ -177,9 +177,12 @@ export function ReceiveItemsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Items table */}
-        <div className="rounded-md border">
-          <Table>
+        {/* Items table. `min-w-0` is load-bearing: DialogContent is a grid, and a
+            grid item sizes to its min-content by default — without it the table's
+            intrinsic width stretches the whole dialog past the viewport on mobile
+            and clips every sibling below. Shrunk here, the table scrolls itself. */}
+        <div className="min-w-0 rounded-md border">
+          <Table className={isExpiryEnabled ? "min-w-[560px]" : undefined}>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("colProduct")}</TableHead>
@@ -343,7 +346,7 @@ export function ReceiveItemsDialog({
             <Pencil className="h-4 w-4 mr-1" />
             {t("editOrder")}
           </Button>
-          <div className="flex gap-2 ml-auto">
+          <div className="flex gap-2 sm:ml-auto">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
