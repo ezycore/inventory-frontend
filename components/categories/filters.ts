@@ -11,6 +11,25 @@ export const getCategoryFilterConfig = (t: Translator): FilterConfig => ({
       placeholder: t("filters.searchPlaceholder"),
     },
     {
+      // Level of the tree, not a specific parent — "show me only parents" /
+      // "only sub-categories". Its own query key (`level`) rather than the
+      // `parentId=null|!null` literals the backend also accepts, because a
+      // filter panel maps one control to one key and the parent picker below
+      // already owns `parentId`.
+      name: "level",
+      label: t("filters.typeLabel"),
+      type: "select",
+      placeholder: t("filters.typePlaceholder"),
+      options: [
+        { label: t("filters.typeParent"), value: "parent" },
+        { label: t("filters.typeSub"), value: "sub" },
+      ],
+      // Picking a level makes any chosen parent either redundant (`sub`) or
+      // contradictory (`parent`). The backend lets `parentId` win, so leaving it
+      // behind would make the type select look like it did nothing.
+      clearFieldsOnChange: ["parentId"],
+    },
+    {
       // Narrows to one parent's children. Leaving it unset keeps the flat list of
       // every category, parents and children together — the default the backend
       // preserves for exactly this reason.
@@ -22,6 +41,9 @@ export const getCategoryFilterConfig = (t: Translator): FilterConfig => ({
         parentId: "null",
         fields: "_id,name",
       }),
+      // Symmetric to the pair above: naming a parent already implies "sub", so a
+      // stale `level` on top of it is at best noise and at worst a contradiction.
+      clearFieldsOnChange: ["level"],
     },
     {
       name: "status",
