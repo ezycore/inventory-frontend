@@ -70,7 +70,15 @@ export function FilterBar({ config, className }: FilterBarProps) {
   return (
     <div
       ref={containerRef}
-      className={cn("flex min-w-0 flex-1 items-center gap-2", className)}
+      // `basis-full` below `sm`: both toolbars are `flex-wrap` rows that also
+      // carry a title and the action buttons, and the title cannot shrink below
+      // its text. Sharing one phone-width row left this bar too narrow for even
+      // the Filters button plus Reset, which then overflowed the card and got
+      // clipped. Taking a row of its own is what the wrap is there for.
+      className={cn(
+        "flex min-w-0 flex-1 basis-full items-center gap-2 sm:basis-0",
+        className,
+      )}
     >
       {visibleInline.map((field) => {
         if (field.showWhen && !field.showWhen(state.values)) return null;
@@ -124,14 +132,24 @@ export function FilterBar({ config, className }: FilterBarProps) {
         </div>
       )}
 
+      {/* Icon-only below `sm`: the label is the first thing worth dropping when
+          the row runs out of width. `outline`, not `ghost`, for exactly that
+          state — a bare muted ✕ is the same glyph in the same color as the
+          per-field clear button above, so with the label gone the two are
+          indistinguishable. The border is what says "button", and it matches
+          the Filters trigger it sits beside. Colour does NOT change by
+          breakpoint: one control, one colour, at every width. */}
       {state.activeCount > 0 && (
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={handleReset}
-          className="h-8 shrink-0 gap-1 text-muted-foreground"
+          aria-label="Reset filters"
+          title="Reset filters"
+          className="h-8 w-8 shrink-0 gap-1 px-0 text-muted-foreground hover:text-foreground sm:w-auto sm:px-2.5"
         >
-          <X className="h-3.5 w-3.5" /> Reset
+          <X className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Reset</span>
         </Button>
       )}
     </div>

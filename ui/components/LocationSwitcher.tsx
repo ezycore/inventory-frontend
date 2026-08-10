@@ -99,15 +99,17 @@ export function LocationSwitcher() {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="group relative h-9 gap-2 px-4 rounded-full border border-border backdrop-blur-sm hover:border-primary/40 transition-all duration-300"
+          // A long location name is the widest thing in the header — cap it on
+          // small screens and truncate rather than push the page sideways.
+          className="group relative h-9 min-w-0 max-w-[40vw] shrink gap-2 px-4 rounded-full border border-border backdrop-blur-sm transition-all duration-300 hover:border-primary/40 sm:max-w-none sm:shrink-0"
         >
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="relative shrink-0">
               <MapPin className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
               <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-primary rounded-full animate-pulse" />
             </div>
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold">
+            <div className="flex min-w-0 flex-col items-start">
+              <span className="truncate text-sm font-semibold">
                 {currentLocation?.name || t("title")}
               </span>
             </div>

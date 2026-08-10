@@ -14,22 +14,26 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Loader2,
   Lock,
+  AppWindow,
   Building2,
   Globe,
   Clock,
   DollarSign,
   MapPin,
   Link2,
-  Camera,
-  Trash2,
   ImageIcon,
 } from "lucide-react";
+import NextImage from "next/image";
 import { useUpdateOrganization } from "@/services/api";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
+import { ImageUploadField } from "@/components/shared/image-upload-field";
+import {
+  useImageUploadField,
+  type ImageRejection,
+} from "@/hooks/use-image-upload-field";
 import { toast } from "sonner";
 import {
   COUNTRY_OPTIONS as countryOptions,
@@ -39,8 +43,6 @@ import {
 } from "@/constants/organization-options";
 import { useGetOrganizationApi } from "@/hooks";
 import { isFeatureEnabled } from "@/lib/feature-utils";
-
-const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB — must match backend uploadConfig limit
 
 export function OrganizationTab() {
   const t = useTranslations("settings.organization");
@@ -53,6 +55,7 @@ export function OrganizationTab() {
     name,
     timezone,
     logo,
+    favicon,
     features,
   } = data?.data || {};
   // The daily-summary and expiry-report schedules used to live here. They moved
@@ -64,40 +67,21 @@ export function OrganizationTab() {
     !!user?.permissions?.includes("organization.edit") ||
     !!user?.permissions?.includes("organization.manage");
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  // `null` = no pending change. `File` = upload pending. `"remove"` = clear pending.
-  const [pendingLogo, setPendingLogo] = useState<File | "remove" | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  // Two independent image fields, both staged until the form's own Save. They
+  // are separate uploads because they do separate jobs: the logo is a brand
+  // mark rendered large, the favicon is the sole source of the browser-tab icon
+  // and is never derived from the logo.
+  const logoField = useImageUploadField(logo?.thumbnailUrl ?? logo?.url);
+  const faviconField = useImageUploadField(
+    favicon?.thumbnailUrl ?? favicon?.url,
+  );
 
-  // Build & cleanup blob URL for the chosen file so it never leaks.
-  useEffect(() => {
-    if (pendingLogo instanceof File) {
-      const url = URL.createObjectURL(pendingLogo);
-      setLogoPreview(url);
-      return () => URL.revokeObjectURL(url);
-    }
-    setLogoPreview(null);
-  }, [pendingLogo]);
-
-  const currentLogoUrl =
-    pendingLogo === "remove"
-      ? null
-      : logoPreview ?? logo?.thumbnailUrl ?? logo?.url ?? null;
-
-  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting the same file
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error(t("invalidImageType"));
-      return;
-    }
-    if (file.size > MAX_LOGO_SIZE) {
-      toast.error(t("logoTooLarge"));
-      return;
-    }
-    setPendingLogo(file);
-  };
+  const rejectLogo = (reason: ImageRejection) =>
+    toast.error(reason === "type" ? t("invalidImageType") : t("logoTooLarge"));
+  const rejectFavicon = (reason: ImageRejection) =>
+    toast.error(
+      reason === "type" ? t("invalidImageType") : t("faviconTooLarge"),
+    );
 
   // Initialize form data using useMemo to avoid cascading renders
   const initialFormData = useMemo(
@@ -150,22 +134,31 @@ export function OrganizationTab() {
       return;
     }
 
-    // Use FormData when there's a logo upload/removal so multer can parse it;
-    // otherwise fall back to plain JSON for cleanliness.
-    if (pendingLogo) {
+    // Use FormData when there's an image upload/removal so multer can parse it;
+    // otherwise fall back to plain JSON for cleanliness. Either field can carry
+    // a change on its own, and the backend treats them independently.
+    if (logoField.pending || faviconField.pending) {
       const fd = new FormData();
       fd.append("name", formData.name);
       fd.append("address", formData.address);
       fd.append("country", formData.country);
       fd.append("timezone", formData.timezone);
       fd.append("currency", formData.currency);
-      if (pendingLogo instanceof File) {
-        fd.append("logo", pendingLogo);
-      } else {
+      if (logoField.pending instanceof File) {
+        fd.append("logo", logoField.pending);
+      } else if (logoField.pending === "remove") {
         fd.append("removeLogo", "true");
       }
+      if (faviconField.pending instanceof File) {
+        fd.append("favicon", faviconField.pending);
+      } else if (faviconField.pending === "remove") {
+        fd.append("removeFavicon", "true");
+      }
       updateOrganization.mutate(fd, {
-        onSuccess: () => setPendingLogo(null),
+        onSuccess: () => {
+          logoField.clear();
+          faviconField.clear();
+        },
       });
       return;
     }
@@ -180,7 +173,8 @@ export function OrganizationTab() {
   };
 
   const hasChanges =
-    pendingLogo !== null ||
+    logoField.pending !== null ||
+    faviconField.pending !== null ||
     formData.name !== name ||
     formData.address !== (address || "") ||
     formData.country !== country ||
@@ -219,76 +213,68 @@ export function OrganizationTab() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Organization Logo */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <ImageIcon className="h-4 w-4" />
-          <span>{tTab("logoSectionLabel")}</span>
-        </div>
+      <ImageUploadField
+        sectionIcon={<ImageIcon className="h-4 w-4" />}
+        sectionLabel={tTab("logoSectionLabel")}
+        hint={tTab("logoHint")}
+        currentUrl={logoField.currentUrl}
+        fallback={initials}
+        fallbackClassName="rounded-lg text-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-semibold"
+        alt={formData.name || tTab("logoSectionLabel")}
+        pending={logoField.pending}
+        labels={{
+          upload: tTab("uploadLogo"),
+          change: tTab("changeLogo"),
+          remove: tTab("removeLogo"),
+          cancel: tTab("cancel"),
+        }}
+        onPick={(file) => logoField.select(file, rejectLogo)}
+        onRemove={logoField.remove}
+        onCancel={logoField.clear}
+      />
 
-        <div className="flex items-center gap-4">
-          <div className="relative group shrink-0">
-            <Avatar className="h-20 w-20 rounded-lg border-2 border-background shadow ring-1 ring-border">
-              {currentLogoUrl ? (
-                <AvatarImage
-                  key={currentLogoUrl}
-                  src={currentLogoUrl}
-                  alt={formData.name || tTab("logoSectionLabel")}
-                  className="object-contain bg-muted"
-                />
-              ) : null}
-              <AvatarFallback className="rounded-lg text-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-semibold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-
-          <div className="flex-1 space-y-2">
-            <p className="text-sm text-muted-foreground">
-              {tTab("logoHint")}
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Camera className="mr-2 h-4 w-4" />
-                {currentLogoUrl ? tTab("changeLogo") : tTab("uploadLogo")}
-              </Button>
-              {currentLogoUrl && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setPendingLogo("remove")}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {tTab("removeLogo")}
-                </Button>
-              )}
-              {pendingLogo && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setPendingLogo(null)}
-                >
-                  {tTab("cancel")}
-                </Button>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml,image/gif"
-              className="hidden"
-              onChange={handleLogoSelect}
-            />
-          </div>
-        </div>
-      </div>
+      {/* Browser tab icon — the single source of the favicon everywhere. */}
+      <ImageUploadField
+        sectionIcon={<AppWindow className="h-4 w-4" />}
+        sectionLabel={tTab("faviconSectionLabel")}
+        hint={
+          <>
+            {tTab("faviconHint")}
+            {!faviconField.currentUrl && (
+              <span className="mt-1 block text-xs">
+                {tTab("faviconEmptyHint")}
+              </span>
+            )}
+          </>
+        }
+        currentUrl={faviconField.currentUrl}
+        /* The empty state shows the real platform mark rather than the org
+           initials: that image IS what tabs display when no favicon is set, so
+           the tile answers "what am I getting?" instead of implying the logo
+           will be used. Paired with `faviconEmptyHint`, which says it in words. */
+        fallback={
+          <NextImage
+            src="/icon.png"
+            alt=""
+            aria-hidden
+            width={32}
+            height={32}
+            className="h-8 w-8 opacity-40"
+          />
+        }
+        fallbackClassName="rounded-lg bg-muted"
+        alt={tTab("faviconSectionLabel")}
+        pending={faviconField.pending}
+        labels={{
+          upload: tTab("uploadFavicon"),
+          change: tTab("changeFavicon"),
+          remove: tTab("removeFavicon"),
+          cancel: tTab("cancel"),
+        }}
+        onPick={(file) => faviconField.select(file, rejectFavicon)}
+        onRemove={faviconField.remove}
+        onCancel={faviconField.clear}
+      />
 
       {/* Organization Identity */}
       <div className="space-y-4 pt-2">

@@ -5,19 +5,25 @@ import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { stripHiddenValues } from "../form/type";
 import type { ApiResponse, PaginatedResponse } from "@/types";
-import type { DataCardProps } from "@/types/DataCard";
+import type { CardCustomAction, DataCardProps } from "@/types/DataCard";
 import { Card, CardContent } from "@/ui/components/card";
 import { ErrorBoundaryFallback } from "@/ui/components/error-boundary-fallback";
 import DynamicForm from "@/ui/components/form";
-import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { ExportDialog } from "@/components/shared/export/export-dialog";
+import { ImportDialog } from "@/components/shared/import/import-dialog";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Download, Plus, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { BaseDataCard } from "./base-data-card";
 
 export function DataCard<TData extends { _id: string }, TValue = any>(
   props: DataCardProps<TData, TValue>,
 ) {
+  const t = useTranslations("common");
   const { cardTitle, defaultPageSize, pageSizes, filterConfig, toolbarAction, data: externalData, customActions,
+    exportConfig,
+    importConfig,
     module, loading = false,
     // Sorting config
     sortingConfig,
@@ -69,10 +75,14 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
   // Read initial filter values from URL query params
   const urlFilters = useUrlFilters(filterConfig);
 
+  const queryClient = useQueryClient();
+
   // Internal state for self-contained mode
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(defaultPageSize || 12);
   const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
+  const [importOpen, setImportOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Server-side sorting state
   const isServerSorting = !!sortingConfig && !!getAllData;
@@ -203,6 +213,49 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     entityName: entityName || "Item",
   });
 
+  // Import / Export header buttons — same contract as DataTable, so a page that
+  // toggles between the two views keeps the buttons in both. Declared before the
+  // early `error` return so the hook order stays stable (rules-of-hooks).
+  const mergedCustomActions = useMemo<CardCustomAction[]>(() => {
+    const actions: CardCustomAction[] = [...(customActions || [])];
+
+    if (importConfig) {
+      actions.push({
+        type: "import",
+        placement: "header",
+        label: importConfig.label || t("table.import"),
+        icon: <Upload className="h-4 w-4" />,
+        variant: "outline",
+        onClick: () => setImportOpen(true),
+      });
+    }
+
+    // Export only makes sense with rows loaded — hide on an empty list.
+    if (exportConfig && data.length > 0) {
+      actions.push({
+        type: "export",
+        placement: "header",
+        label: exportConfig.label || t("table.exportCsv"),
+        icon: <Download className="h-4 w-4" />,
+        variant: "outline",
+        onClick: () => setExportOpen(true),
+      });
+    }
+
+    return actions;
+  }, [customActions, exportConfig, importConfig, data, t]);
+
+  // Export query params (current filters + server sort) + the server-side match
+  // count, threaded into the ExportDialog.
+  const exportParams = useMemo(
+    () => ({
+      ...filters,
+      ...(isServerSorting ? { sort_by: sortBy, sort_order: sortOrder } : {}),
+    }),
+    [filters, isServerSorting, sortBy, sortOrder],
+  );
+  const exportTotal = queryData?.data?.total ?? data.length;
+
   if (error) {
     return <ErrorBoundaryFallback error={error} onRetry={refetch} />;
   }
@@ -298,7 +351,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
           onDelete={handleDelete}
           onBulkDelete={bulkDeleteMutation ? handleBulkDelete : undefined}
           toolbarAction={mergedToolbarAction}
-          customActions={customActions}
+          customActions={mergedCustomActions}
           module={module}
           // Sorting
           sortBy={isServerSorting ? sortBy : undefined}
@@ -369,6 +422,38 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
                   stripHiddenValues(formConfig, all),
                   form,
                 ))
+            }
+          />
+        )}
+
+        {importConfig && (
+          <ImportDialog
+            open={importOpen}
+            onOpenChange={setImportOpen}
+            title={`Import ${entityName || ""}`.trim()}
+            downloadTemplate={importConfig.downloadTemplate}
+            preview={importConfig.preview}
+            commit={importConfig.commit}
+            // A bulk import stales the whole module family (stats cards,
+            // select-options, …), not just the visible list page — invalidate
+            // by the module root key so every active query refetches.
+            onCommitted={() =>
+              queryKey
+                ? queryClient.invalidateQueries({ queryKey })
+                : refetch()
+            }
+          />
+        )}
+
+        {exportConfig && (
+          <ExportDialog
+            open={exportOpen}
+            onOpenChange={setExportOpen}
+            total={exportTotal}
+            note={exportConfig.note}
+            options={exportConfig.options}
+            onExport={(params) =>
+              exportConfig.download({ ...exportParams, ...params })
             }
           />
         )}

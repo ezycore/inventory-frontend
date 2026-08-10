@@ -12,6 +12,13 @@ import type { KeyboardEvent, MouseEvent, RefObject } from "react";
  * affordance drawn here cancels mousedown rather than handling click, because a
  * click lands after the blur that would have closed the popover.
  *
+ * The pointer toggles the listbox on **mousedown**, not on focus or click.
+ * Focus is the wrong hook (it fires once, so a second click could never close
+ * the list, and opening inside the `focusin` dispatch makes Radix dismiss the
+ * layer it just mounted); click is too late (focus has already landed, so the
+ * two would fight). Mousedown runs before both, exactly once per press.
+ * Keyboard users open with ↓ or by typing — focus alone must not, per ARIA APG.
+ *
  * Purely presentational: state, filtering and keyboard handling stay in the
  * component / `useComboboxKeyboard`.
  */
@@ -30,6 +37,8 @@ export interface FuseFieldContext {
   onQueryChange: (next: string) => void;
   onOpen: () => void;
   onClose: () => void;
+  /** Pointer entry point: opens a closed listbox, closes an open one. */
+  onToggle: () => void;
   onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
   /** Box classes (border, error state, consumer `className`). */
   fieldCls: (extra?: string) => string;
@@ -82,8 +91,7 @@ export function FuseSingleField({
             : ctx.placeholder || "Select an option..."
         }
         onChange={(e) => ctx.onQueryChange(e.target.value)}
-        onFocus={ctx.onOpen}
-        onClick={ctx.onOpen}
+        onMouseDown={ctx.onToggle}
         onBlur={ctx.onClose}
         onKeyDown={ctx.onKeyDown}
         className={ctx.fieldCls(
@@ -193,8 +201,7 @@ export function FuseMultiField({
           values.length === 0 ? ctx.placeholder || "Select options..." : ""
         }
         onChange={(e) => ctx.onQueryChange(e.target.value)}
-        onFocus={ctx.onOpen}
-        onClick={ctx.onOpen}
+        onMouseDown={ctx.onToggle}
         onBlur={ctx.onClose}
         onKeyDown={ctx.onKeyDown}
         className={cn(bareInput, "h-6 w-16 min-w-0 flex-1")}

@@ -103,6 +103,14 @@ export interface StorefrontStore {
    */
   canonicalHost?: string | null;
   logo?: StorefrontImage | null;
+  /**
+   * Tab icon, already resolved server-side (backend `getStoreInfo`) so nothing
+   * here chains. Org-level and deliberately NOT derived from `logo`: a store
+   * whose owner never set one shows the platform default rather than a wordmark
+   * cover-cropped to a square. Null ⇒ render no `<link rel="icon">` at all and
+   * let the browser's implicit /favicon.ico request answer.
+   */
+  favicon?: StorefrontImage | null;
   banner?: StorefrontImage | null;
   contact?: { email?: string; phone?: string; address?: string };
   social?: { facebook?: string; instagram?: string; whatsapp?: string };
@@ -731,6 +739,11 @@ async function sfFetch<T>(
       const { useShopperStore } = await import("@/services/stores/use-shopper-store");
       const store = useShopperStore.getState();
       if (store.token === opts.token) {
+        // Hand-rolled `useShopperLogout`, because this is a module-scope fetch
+        // helper and cannot call a hook. Both halves are here — the token drop
+        // on this line and the cache eviction immediately below — so the rule's
+        // actual invariant holds even though its call-shape check cannot see it.
+        // eslint-disable-next-line query-cache/no-raw-shopper-logout -- see above
         store.logout();
         // Evict too, not just forget the token: an expired session's orders would
         // otherwise still be served from cache to whoever signs in next on this

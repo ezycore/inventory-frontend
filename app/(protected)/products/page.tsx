@@ -262,6 +262,15 @@ export default function ProductsPage() {
           variant="default"
           enableCardHover={true}
           filterConfig={productFilterConfig}
+          exportConfig={{
+            download: (params) => productsApi.exportCsv(params),
+            note: t("page.exportNote"),
+          }}
+          importConfig={{
+            downloadTemplate: productsApi.downloadImportTemplate,
+            preview: productsApi.importPreview,
+            commit: productsApi.importCommit,
+          }}
           renderCard={(row: any, actions) => (
             <ProductCard
               product={row}

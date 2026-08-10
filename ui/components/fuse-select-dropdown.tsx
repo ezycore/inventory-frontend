@@ -5,7 +5,7 @@ import type { SelectOption } from "@/ui/components/form/type";
 import { PopoverContent } from "@ui/components/popover";
 import { cn } from "@ui/lib/utils";
 import { Check } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, type RefObject } from "react";
 
 /**
  * Listbox popover for `FuseAdvancedSelect`. Purely presentational: the combobox
@@ -16,6 +16,8 @@ import { useCallback, useEffect, useRef } from "react";
 interface FuseSelectDropdownProps {
   /** Shared with the input's `aria-controls` / `aria-activedescendant`. */
   listId: string;
+  /** The combobox field — Radix's anchor, which must never dismiss this layer. */
+  anchorRef: RefObject<HTMLDivElement | null>;
   options: SelectOption[];
   selectedValues: string[];
   activeIndex: number;
@@ -27,6 +29,7 @@ interface FuseSelectDropdownProps {
 
 export function FuseSelectDropdown({
   listId,
+  anchorRef,
   options,
   selectedValues,
   activeIndex,
@@ -36,6 +39,20 @@ export function FuseSelectDropdown({
 }: FuseSelectDropdownProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const wheelCleanup = useRef<(() => void) | null>(null);
+
+  // The field is the Popover's *anchor*, and Radix counts an anchor as outside
+  // the layer — so the same interaction that opens the popover also dismisses
+  // it. The `focusin` case is the vicious one: opening during that dispatch
+  // mounts the layer, whose document listener is added below `document` and so
+  // still receives the very event that opened it. Veto both, and the field
+  // stays the one thing that decides whether the list is up.
+  const keepOpenOnAnchor = useCallback(
+    (event: Event) => {
+      if (event.target instanceof Node && anchorRef.current?.contains(event.target))
+        event.preventDefault();
+    },
+    [anchorRef]
+  );
 
   // Keep the keyboard highlight visible as ↑/↓ walks past the fold.
   useEffect(() => {
@@ -80,6 +97,7 @@ export function FuseSelectDropdown({
       // or typing stops dead. Radix moves it on both edges unless told not to.
       onOpenAutoFocus={(e) => e.preventDefault()}
       onCloseAutoFocus={(e) => e.preventDefault()}
+      onInteractOutside={keepOpenOnAnchor}
     >
       <div
         id={listId}

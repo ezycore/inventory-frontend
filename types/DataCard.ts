@@ -10,6 +10,12 @@ import { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Operations } from "./DataTable";
 import { FilterField } from "./filter";
 import { SortingConfig } from "./DataTable";
+// Export/import are view-agnostic — a card page exports the same rows a table
+// page does, so both views share one config shape instead of a card-only copy.
+import type {
+  DataTableExportConfig,
+  DataTableImportConfig,
+} from "./DataTable";
 
 /**
  * Sort option for card sorting
@@ -327,6 +333,10 @@ export interface DataCardProps<TData, TValue = any> {
   operations?: Operations<TData>;
   /** Custom actions that can override or extend built-in actions */
   customActions?: CardCustomAction[];
+  /** CSV export button config (dialog: confirm + column preset) */
+  exportConfig?: DataTableExportConfig;
+  /** CSV import button config (dialog: template → upload → preview → commit) */
+  importConfig?: DataTableImportConfig;
 
   // Module
   /**

@@ -132,7 +132,7 @@ export default function CapitalDialog({
 
   return (
     <Dialog open={!!account} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isIn ? t("titleIn") : t("titleOut")}</DialogTitle>
           <DialogDescription>
