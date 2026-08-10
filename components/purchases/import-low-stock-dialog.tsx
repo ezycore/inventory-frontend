@@ -454,19 +454,23 @@ export function ImportLowStockDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col">
+      {/* Near-full-height on a phone: the product list is the point of this
+          dialog, and at max-h-85vh the settings and filters left room for a
+          single row. dvh, not vh, so the browser chrome is accounted for. */}
+      <DialogContent className="flex h-[92dvh] flex-col gap-3 sm:h-auto sm:max-h-[85vh] sm:max-w-[700px] sm:gap-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Download className="h-5 w-5 text-primary" />
             {t("title")}
           </DialogTitle>
-          <DialogDescription>
+          {/* Two lines of explanation are not worth a row of products on mobile. */}
+          <DialogDescription className="hidden sm:block">
             {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         {/* Purchase Settings */}
-        <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+        <div className="shrink-0 rounded-lg border bg-muted/30 p-2.5 space-y-2 sm:p-3 sm:space-y-3">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             {t("purchaseSettings")}
           </p>
@@ -526,7 +530,7 @@ export function ImportLowStockDialog({
 
         {/* Search & Filters. The two fixed-width triggers left nothing for the
             search box on a phone, so it collapsed to just its icon. */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           <div className="relative w-full sm:flex-1">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -569,7 +573,7 @@ export function ImportLowStockDialog({
         </div>
 
         {/* Select-all bar */}
-        <div className="flex items-center justify-between px-1">
+        <div className="flex shrink-0 items-center justify-between px-1">
           <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
             <Checkbox checked={isAllSelected} onCheckedChange={toggleSelectAll} />
             {t("selectAll")}
@@ -579,7 +583,8 @@ export function ImportLowStockDialog({
           </span>
         </div>
 
-        {/* Product list — the primary focus */}
+        {/* Product list — the primary focus, so it takes every pixel the fixed
+            chrome above and below does not need. */}
         <div className="flex-1 overflow-auto min-h-0 space-y-1.5 pr-0.5">
           {isLoading ? (
             <p className="p-8 text-center text-sm text-muted-foreground">{t("loading")}</p>
@@ -694,7 +699,7 @@ export function ImportLowStockDialog({
         {/* Footer */}
         {/* flex-col (not the footer's default col-reverse) so the selection
             count stays above the actions on mobile instead of under them. */}
-        <DialogFooter className="flex-col items-center gap-2 sm:flex-row sm:justify-between">
+        <DialogFooter className="shrink-0 flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="inline-flex min-w-6 items-center justify-center rounded-md bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground tabular-nums">
               {selectedIds.size}
