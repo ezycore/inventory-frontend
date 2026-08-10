@@ -258,21 +258,29 @@ function StatCard({
   const inner = (
     <Card
       className={cn(
-        "p-4 shadow-none transition-colors",
+        // `h-full`: with an `href` the Link is the grid item and the Card no longer
+        // stretches with the row, so a tile whose value wrapped left its neighbour short.
+        "h-full p-4 shadow-none transition-colors",
         href && "hover:border-primary/40 hover:bg-muted/30",
         highlight && "border-yellow-300",
       )}
     >
       <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-        <span className="text-muted-foreground/80">{icon}</span>
+        <span className="shrink-0 text-muted-foreground/80">{icon}</span>
         {label}
       </div>
       {value === null ? (
         <Skeleton className="h-7 w-20" />
       ) : (
-        <div className="text-2xl font-bold tabular-nums">{value}</div>
+        // A money value at text-2xl is wider than a half-width mobile tile and the card
+        // does not clip — shrink it and let a long amount wrap rather than spill out.
+        <div className="break-words text-xl font-bold tabular-nums sm:text-2xl">{value}</div>
       )}
     </Card>
   );
-  return href ? <Link href={href}>{inner}</Link> : inner;
+  return href ? (
+    <Link href={href} className="block h-full">
+      {inner}
+    </Link>
+  ) : inner;
 }
