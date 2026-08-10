@@ -10,11 +10,12 @@ import { formatMoney } from "@/components/storefront/format";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import {
   DELIVERY_STEPS,
-  ORDER_STATUS_BADGE,
   PICKUP_STEPS,
   cap,
   longDate,
 } from "@/components/ecommerce/orders/order-detail-helpers";
+import { ORDER_STATUS_BADGE } from "@/lib/order-status";
+import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { OrderActionBar } from "@/components/ecommerce/orders/order-action-bar";
 import { OrderActivityLog } from "@/components/ecommerce/orders/order-activity-log";
 import { OrderFraudPanel } from "@/components/ecommerce/orders/order-fraud-panel";
@@ -61,6 +62,7 @@ export default function AdminOrderDetailPage() {
 
 function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
+  const { labelFor } = useOrderStatusLabels();
 
   const isPickup = order.fulfillmentType === "pickup";
   const isTerminalBad =
@@ -93,6 +95,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
             </h1>
             <StatusBadge
               status={ORDER_STATUS_BADGE[order.status] ?? "info"}
+              label={labelFor(order.status)}
               size="lg"
             />
           </div>

@@ -40,7 +40,14 @@ const errorColumns: SimpleColumn<ImportRowError>[] = [
     cell: (r) => (r.row > 0 ? r.row : "—"),
     headClassName: "w-16",
   },
-  { key: "errors", header: "Errors", cell: (r) => r.errors.join("; ") },
+  {
+    key: "errors",
+    header: "Errors",
+    cell: (r) => r.errors.join("; "),
+    // Table cells are `whitespace-nowrap` by default; long messages must wrap
+    // or they widen the dialog's grid track and push the footer out of the panel.
+    cellClassName: "whitespace-normal break-words",
+  },
 ];
 
 export function ImportDialog({
@@ -126,12 +133,16 @@ export function ImportDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      {/* `sm:` prefix required — the base DialogContent ships `sm:max-w-md`,
+          which outranks an unprefixed `max-w-2xl` from the sm breakpoint up. */}
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        {/* min-w-0: grid items default to a content-based minimum, so one long
+            unbreakable cell would otherwise stretch the whole dialog. */}
+        <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
@@ -162,7 +173,7 @@ export function ImportDialog({
             </Button>
 
             {file && (
-              <span className="text-sm text-muted-foreground truncate">
+              <span className="min-w-0 max-w-full truncate text-sm text-muted-foreground">
                 {file.name}
               </span>
             )}
@@ -212,7 +223,7 @@ export function ImportDialog({
               )}
 
               {result.warnings && result.warnings.length > 0 && (
-                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
                   <p className="mb-1 font-medium">
                     Some values will be skipped:
                   </p>
@@ -242,7 +253,7 @@ export function ImportDialog({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex min-w-0 flex-wrap justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => handleClose(false)} disabled={busy === "commit"}>
             Cancel
           </Button>

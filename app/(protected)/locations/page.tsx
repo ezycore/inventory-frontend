@@ -425,7 +425,7 @@ export default function LocationsPage() {
           defaultColumnVisibility={{ status: false }}
           enableRowHover={true}
           rowClassName={(row: LocationType) =>
-            row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+            row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : ""
           }
           operations={sharedOperations}
         />

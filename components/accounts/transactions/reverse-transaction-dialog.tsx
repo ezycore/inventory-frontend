@@ -63,7 +63,7 @@ export function ReverseTransactionDialog({
 
   return (
     <Dialog open={!!transaction} onOpenChange={(open) => !open && close()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>

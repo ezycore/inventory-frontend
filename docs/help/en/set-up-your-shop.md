@@ -9,6 +9,7 @@ covers_routes:
   - /locations
   - /locations/stock-report
 ui_labels:
+  - settings:organization.tab.faviconSectionLabel
   - settings:features.title
   - settings:features.names.sales
   - settings:features.names.expiryTracking
@@ -24,6 +25,16 @@ Do this once, before you add products. A few minutes here saves a lot of correct
 
 Under Settings → Organization, fill in your business name, address, phone and logo. These appear on
 the invoices and receipts your customers receive, so use the details you want them to see.
+
+## Your browser tab icon
+
+The same page has a **Browser Tab Icon**. It is the small square shown in browser tabs and
+bookmarks — both in the app you work in and in the shop your customers visit.
+
+It is a separate upload from your logo on purpose, and your logo is never used in its place. A wide
+logo squeezed into a tab-sized square comes out as an unreadable slice of itself, so put your full
+logo above and a simple square mark here — an initial, a symbol, whatever stays recognisable when
+it is tiny. Leave it empty and tabs show the EzyCore icon instead.
 
 ## Report emails
 

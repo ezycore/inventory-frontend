@@ -37,6 +37,13 @@ export interface User {
     currency?: string;
     timezone?: string;
     logo?: Image;
+    /**
+     * Browser-tab icon, and the only source of one — never derived from `logo`.
+     * An org without it shows the platform mark rather than a cover-cropped
+     * wordmark. Read by `useOrgFavicon`; must stay in the `populate` select in
+     * the backend `auth.service`, or it silently arrives undefined after login.
+     */
+    favicon?: Image;
     /** Business address — printed on invoices/receipts/returns. */
     address?: string;
     /** Letterhead / print configuration — see {@link ReceiptSettings}. */

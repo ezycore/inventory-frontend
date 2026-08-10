@@ -445,6 +445,10 @@ resolved **per request from the host**, never baked.
   og:image = product image ∥ store banner ∥ logo. Everything else goes through `storePageMetadata`
   (`"<Page> · <Store>"`, host-correct canonical, robots directive). Favicon is a raw
   `<link rel="icon">` in `shop/layout.tsx`, deliberately **not** `metadata.icons` (see the note there).
+  Its source is `store.favicon` — the **org-level favicon**, pre-resolved by the backend
+  `getStoreInfo` — and **not** the store logo: the tab icon never falls back to a logo, so a store
+  without a favicon renders no `<link>` at all and the browser's implicit `/favicon.ico` answers.
+  (The store *logo* keeps its own `settings.logo ?? org.logo` fallback; only the favicon is unchained.)
 - **Content must be in the SSR HTML.** `page.tsx` fetches with `lib/storefront-server.ts` and passes
   the result to the client view as query `initialData` (`useStoreProduct` / `useStoreProducts` /
   `useStorePage` / `useStore` / `useStorePages` / `useStoreCampaigns` all take it). This was a real

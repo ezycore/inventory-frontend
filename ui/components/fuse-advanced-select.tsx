@@ -79,6 +79,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   // null → the input mirrors the committed selection; string → a live query.
   const [query, setQuery] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const listId = useId();
   const isMulti = mode === "multiple";
 
@@ -144,16 +145,26 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   // Opening always starts from a blank query so the full list is offered; the
   // committed label survives as the placeholder until something else is picked.
+  // Re-entrant calls are ignored — the guard is what stops a second click on an
+  // open field from wiping whatever the user has already typed into it.
   const openDropdown = useCallback(() => {
-    if (disabled) return;
+    if (disabled || open) return;
     setQuery("");
     setOpen(true);
-  }, [disabled]);
+  }, [disabled, open]);
 
   const closeDropdown = useCallback(() => {
     setOpen(false);
     setQuery(null);
   }, []);
+
+  // The pointer's single entry point, so clicking the field closes a list it
+  // opened instead of reopening it forever.
+  const toggleDropdown = useCallback(() => {
+    if (disabled) return;
+    if (open) closeDropdown();
+    else openDropdown();
+  }, [disabled, open, openDropdown, closeDropdown]);
 
   // What the input shows while it mirrors the committed selection.
   const mirroredText = isMulti ? "" : selectedLabel;
@@ -313,6 +324,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     onQueryChange: handleQueryChange,
     onOpen: openDropdown,
     onClose: closeDropdown,
+    onToggle: toggleDropdown,
     onKeyDown,
     fieldCls,
     listId,
@@ -333,10 +345,13 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
               : (next) => (next ? openDropdown() : closeDropdown())
           }
         >
-          {/* Anchor, not trigger: the input owns click and focus, so the popover
-              must position against it without also toggling on every click. */}
+          {/* Anchor, not trigger: the input owns the pointer and focus, so the
+              popover must position against it without toggling itself. The
+              listbox vetoes any dismissal originating in here — see
+              `keepOpenOnAnchor` — which is why `anchorRef` wraps the whole
+              field and not just the input. */}
           <PopoverAnchor asChild>
-            <div className="relative w-full min-w-0">
+            <div ref={anchorRef} className="relative w-full min-w-0">
               {isMulti ? (
                 <FuseMultiField
                   ctx={fieldCtx}
@@ -359,6 +374,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
           <FuseSelectDropdown
             listId={listId}
+            anchorRef={anchorRef}
             options={filteredOptions}
             selectedValues={isMulti ? multiValues : singleValue ? [singleValue] : []}
             activeIndex={activeIndex}

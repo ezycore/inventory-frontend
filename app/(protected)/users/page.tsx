@@ -186,7 +186,7 @@ export default function UsersPage() {
               defaultColumnVisibility={{ phone: false }}
               enableRowHover={true}
               rowClassName={(row: User) =>
-                row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+                row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : ""
               }
               customActions={customActions}
               operations={sharedOperations}

@@ -427,7 +427,7 @@ export default function VariantManager({
 
       {/* Edit Modal for Additional Information */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('modalTitle')}</DialogTitle>
           </DialogHeader>

@@ -482,7 +482,11 @@
       "updatedDateLabel": "Updated Date",
       "updatedDatePlaceholder": "Select date",
       "parentLabel": "Parent category",
-      "parentPlaceholder": "All categories"
+      "parentPlaceholder": "All categories",
+      "typeLabel": "Type",
+      "typePlaceholder": "All types",
+      "typeParent": "Parent categories",
+      "typeSub": "Sub-categories"
     },
     "form": {
       "name": "Category Name",

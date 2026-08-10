@@ -9,7 +9,7 @@ import {
 } from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
 
-// Note: the browser-tab icon (store logo) is a raw <link rel="icon"> rendered
+// Note: the browser-tab icon (the store's favicon) is a raw <link rel="icon"> rendered
 // below (React hoists it into <head>), NOT `generateMetadata`. Metadata icons
 // are Next-managed and get re-asserted on every router-integrated navigation,
 // flashing the platform default. The raw link ships in the SSR HTML so the very
@@ -61,13 +61,14 @@ export default async function ShopLayout({
     getStoreCategories(slug),
   ]);
 
-  const favicon = store?.logo?.thumbnailUrl || store?.logo?.url;
+  const favicon = store?.favicon?.thumbnailUrl || store?.favicon?.url;
 
   return (
     <>
-      {/* Store logo as tab icon, in the SSR <head> from the first byte (see
-          note above). Without a logo the browser's implicit /favicon.ico is
-          the right default anyway — render nothing. */}
+      {/* The store's favicon as tab icon, in the SSR <head> from the first byte
+          (see note above). The store logo is NOT a fallback here — the favicon
+          is the only source of the tab icon — so without one the browser's
+          implicit /favicon.ico answers instead: render nothing. */}
       {favicon ? <link rel="icon" href={favicon} /> : null}
       <StoreShell
         slug={slug}

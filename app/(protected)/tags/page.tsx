@@ -105,7 +105,7 @@ export default function TagsPage() {
           selectable={true}
           enableSorting={true}
           defaultColumnVisibility={{ status: false }}
-          rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
+          rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : "")}
           enableRowHover={true}
           operations={sharedOperations}
         />

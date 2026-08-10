@@ -96,8 +96,11 @@ export function DataTableToolbar<TData>({
 
       {/* Right-side actions */}
       {hasRightActions && (
+        // flex-wrap, not shrink-0: on a phone the button row is wider than the
+        // viewport, and a non-wrapping shrink-0 row made the whole page scroll
+        // sideways instead of stacking.
         <div className={cn(
-          "flex items-center gap-2 shrink-0",
+          "flex min-w-0 flex-wrap items-center gap-2",
           !title && !hasInlineFilters && "ml-auto"
         )}>
         {/* Bulk Delete Button */}

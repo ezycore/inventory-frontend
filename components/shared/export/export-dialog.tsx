@@ -77,7 +77,9 @@ export function ExportDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !busy && onOpenChange(next)}>
-      <DialogContent className="max-w-md">
+      {/* `sm:` prefix required — DialogContent's own `sm:max-w-md` outranks an
+          unprefixed width from the sm breakpoint up. */}
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Export CSV</DialogTitle>
         </DialogHeader>

@@ -6,6 +6,7 @@ import {
   type AdminStorefrontOrder,
 } from "@/services/api";
 import { Button } from "@/ui/components/button";
+import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
 import { OrderReturnDialog } from "./order-return-dialog";
@@ -21,6 +22,10 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
   const confirm = useConfirmOrder();
   const updateStatus = useUpdateOrderStatus();
   const markPaid = useMarkOrderPaid();
+  // Each button names the step it moves the order INTO, so a renamed pipeline
+  // reads as one vocabulary — a "Mark processing" button under a stepper the
+  // merchant relabelled "Packing" is the mismatch this avoids.
+  const { labelFor } = useOrderStatusLabels();
 
   const isPaid = order.paymentStatus === "paid";
   const isPickup = order.fulfillmentType === "pickup";
@@ -73,7 +78,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             updateStatus.mutate({ id: order._id, status: "processing" })
           }
         >
-          Mark processing
+          Mark as {labelFor("processing")}
         </Button>
       )}
       {order.status === "confirmed" && isPickup && (
@@ -83,7 +88,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             updateStatus.mutate({ id: order._id, status: "ready_for_pickup" })
           }
         >
-          Ready for pickup — books the sale
+          {labelFor("ready_for_pickup")} — books the sale
         </Button>
       )}
       {order.status === "ready_for_pickup" && (
@@ -93,7 +98,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             updateStatus.mutate({ id: order._id, status: "picked_up" })
           }
         >
-          Mark collected
+          Mark as {labelFor("picked_up")}
         </Button>
       )}
       {order.status === "shipped" && (
@@ -103,7 +108,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             updateStatus.mutate({ id: order._id, status: "delivered" })
           }
         >
-          Mark delivered
+          Mark as {labelFor("delivered")}
         </Button>
       )}
       {(order.status === "delivered" || order.status === "picked_up") &&

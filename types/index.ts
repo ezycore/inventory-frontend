@@ -279,12 +279,39 @@ export interface StorefrontSettings {
   notifications?: StorefrontNotifications;
   templates?: StorefrontTemplates;
   customersConfig?: StorefrontCustomersConfig;
+  /** Admin-panel-only wording for the order pipeline steps; unset → built-ins. */
+  adminStatusLabels?: AdminOrderStatusLabels;
   trustBadges?: StorefrontTrustBadge[];
   /** Home hero carousel slides; unset/empty → the static built-in hero. */
   heroSlides?: StorefrontHeroSlide[];
   /** Static banner-hero copy overrides; unset fields → built-in copy. */
   heroBanner?: StorefrontHeroBanner;
 }
+
+/**
+ * The order statuses a merchant may rename. The seven pipeline steps only —
+ * the terminal states (`cancelled` / `rejected` / `returned`) are deliberately
+ * excluded: they are not steps, and a renamed "Cancelled" makes a support
+ * conversation unresolvable.
+ */
+export type AdminRenameableOrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "ready_for_pickup"
+  | "picked_up";
+
+/**
+ * Merchant-chosen wording for the order pipeline steps, shown **only in the
+ * admin panel**. `StorefrontOrder.status` keeps its canonical value, so nothing
+ * the shopper sees — the tracking page, the order emails, the SMS — changes when
+ * a merchant renames a step. Unset or blank falls back to the built-in label.
+ */
+export type AdminOrderStatusLabels = Partial<
+  Record<AdminRenameableOrderStatus, string>
+>;
 
 /**
  * A chat platform the storefront's contact launcher can open. One member wide
