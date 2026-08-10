@@ -1,10 +1,18 @@
 // coding-standard: maintained
 /**
- * Print helpers — render a standalone HTML document into a hidden same-origin
- * iframe and open the browser print dialog directly over the app. The iframe
- * (vs. the old popup window) means no popup blockers, no stray browser tab to
- * close, and one shared path for every print surface (labels, list tables,
- * POS/letterhead documents).
+ * Print helpers — build one standalone HTML document per print surface (labels,
+ * list tables, POS/letterhead documents) and open the browser print dialog on it.
+ *
+ * Two delivery paths, same document:
+ * - **Desktop** renders it into a hidden same-origin iframe and prints that. No
+ *   popup blocker, no stray tab, nothing about the app moves.
+ * - **Mobile** (Android Chrome, iOS) opens a real top-level tab instead, because
+ *   those browsers route a subframe's `print()` to the top document — the hidden
+ *   frame prints nothing and the user gets the app UI on paper. See
+ *   `needsTopLevelPrint`.
+ *
+ * Because of that second path, `printHtml` MUST be called synchronously from the
+ * click handler, or the tab is blocked.
  *
  * Images (logos/barcodes) are awaited before printing — counting an image as
  * pending only when it isn't already `complete`. (The popup era attached
@@ -73,11 +81,11 @@ export interface PrintHtmlOptions {
   /** CSS injected into the print document's <style>. */
   styles?: string;
   /**
-   * Print documents open in a fresh, isolated window (`window.open("", ...)`
-   * + `document.write`) — it does NOT inherit the app's self-hosted Bengali
-   * font (next/font is scoped to the main document). "bn" pulls in Noto Sans
-   * Bengali from Google Fonts so Bangla glyphs render instead of tofu boxes;
-   * omit/"en" for the Latin-only default (no extra network request).
+   * The print document is a fresh, isolated document on both paths, so it does
+   * NOT inherit the app's self-hosted Bengali font (next/font is scoped to the
+   * main document). "bn" pulls in Noto Sans Bengali from Google Fonts so Bangla
+   * glyphs render instead of tofu boxes; omit/"en" for the Latin-only default
+   * (no extra network request).
    */
   locale?: "en" | "bn";
 }
@@ -93,17 +101,13 @@ const BENGALI_FONT_LINK = `
 `;
 const BENGALI_FONT_FAMILY = "'Noto Sans Bengali', sans-serif";
 
-/**
- * Render `bodyHtml` as a standalone document in a hidden iframe and open the
- * print dialog. Returns `false` only if the frame couldn't be created (callers
- * historically used this to surface a popup-blocked hint; it is now near-dead).
- */
-export const printHtml = (
+/** The standalone print document, identical on both paths below. */
+const buildDocument = (
   bodyHtml: string,
-  options: PrintHtmlOptions = {},
-): boolean => {
-  const { title = "Print", styles = "", locale = "en" } = options;
-
+  title: string,
+  styles: string,
+  locale: "en" | "bn",
+): string => {
   const fontLink = locale === "bn" ? BENGALI_FONT_LINK : "";
   // Prepended so a document-level `body { font-family }` in `styles` still wins
   // (later rule, same specificity) while every element without its own
@@ -111,6 +115,75 @@ export const printHtml = (
   const fontFallback =
     locale === "bn" ? `body { font-family: ${BENGALI_FONT_FAMILY}; }` : "";
 
+  return `<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>${escapeHtml(title)}</title>
+      ${fontLink}
+      <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background: #fff; }
+        ${fontFallback}
+        ${styles}
+      </style>
+    </head>
+    <body>
+      ${bodyHtml}
+    </body>
+    </html>`;
+};
+
+/**
+ * Chrome for Android and every iOS browser route a subframe's `print()` to the
+ * TOP-LEVEL document: the hidden frame contributes nothing and the browser
+ * prints the app UI instead of the invoice. There is no feature test for it, so
+ * this is a platform check — those platforms print from their own tab instead.
+ * (iPadOS 13+ reports a Mac UA, hence the touch-point clause.)
+ */
+const needsTopLevelPrint = (): boolean => {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  if (/Android|iPhone|iPod|iPad/i.test(ua)) return true;
+  return /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+};
+
+/** Wait for the document's assets, then raise the dialog. */
+const printWhenReady = (
+  win: Window,
+  doc: Document,
+  locale: "en" | "bn",
+): void => {
+  void Promise.all([whenImagesReady(doc), whenFontsReady(doc, locale)]).then(
+    () => {
+      win.focus();
+      win.print();
+    },
+  );
+};
+
+/**
+ * Mobile path: a real top-level tab, which is the only frame those browsers
+ * will print. Opened synchronously so it still counts as the user's click.
+ * `onafterprint` closes it again; if the browser never fires that event the tab
+ * simply stays, which is a visible, recoverable outcome — unlike printing the
+ * wrong document.
+ */
+const printInNewTab = (html: string, locale: "en" | "bn"): boolean => {
+  const win = window.open("", "_blank");
+  if (!win) return false;
+
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+
+  win.onafterprint = () => win.close();
+  printWhenReady(win, win.document, locale);
+  return true;
+};
+
+/** Desktop path: a hidden same-origin iframe, so nothing about the app moves. */
+const printInHiddenFrame = (html: string, locale: "en" | "bn"): boolean => {
   // One print frame at a time — a leftover frame belongs to a finished dialog.
   document.getElementById(FRAME_ID)?.remove();
   const frame = document.createElement("iframe");
@@ -128,38 +201,35 @@ export const printHtml = (
   }
 
   doc.open();
-  doc.write(
-    `<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8" />
-      <title>${escapeHtml(title)}</title>
-      ${fontLink}
-      <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; background: #fff; }
-        ${fontFallback}
-        ${styles}
-      </style>
-    </head>
-    <body>
-      ${bodyHtml}
-    </body>
-    </html>`,
-  );
+  doc.write(html);
   doc.close();
 
   // Clean up only after the dialog closes — removing the frame earlier would
   // blank the print preview. If afterprint never fires (old browsers), the
   // invisible frame is swept by the next print call.
   win.onafterprint = () => frame.remove();
-  void Promise.all([whenImagesReady(doc), whenFontsReady(doc, locale)]).then(
-    () => {
-      win.focus();
-      win.print();
-    },
-  );
+  printWhenReady(win, doc, locale);
   return true;
+};
+
+/**
+ * Render `bodyHtml` as a standalone document and open the print dialog.
+ * Returns `false` when printing could not be started — on mobile that means the
+ * new tab was blocked, which callers surface as the popup-blocked hint.
+ *
+ * MUST be called synchronously from the user's click: the mobile path opens a
+ * tab, and a deferred `window.open` is blocked.
+ */
+export const printHtml = (
+  bodyHtml: string,
+  options: PrintHtmlOptions = {},
+): boolean => {
+  const { title = "Print", styles = "", locale = "en" } = options;
+  const html = buildDocument(bodyHtml, title, styles, locale);
+
+  return needsTopLevelPrint()
+    ? printInNewTab(html, locale)
+    : printInHiddenFrame(html, locale);
 };
 
 export interface PrintTableColumn<TRow> {

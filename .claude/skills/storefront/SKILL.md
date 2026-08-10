@@ -681,14 +681,20 @@ resolved **per request from the host**, never baked.
   through the shared letterhead print engine `utils/print-documents.ts` via the adapter
   `utils/print-storefront-order.ts`; letterhead = org Receipt & Print settings, shipped to the
   shopper via the store payload's `printable` block. Never hand-roll invoice markup.
-  **Mechanics** (`utils/print.ts`): `printHtml` renders into a **hidden same-origin iframe**
-  (`#app-print-frame`) and calls `print()` when images settle — no popup window, no popup
-  blockers. Only count `!img.complete` images as pending (cached images never fire `onload`;
-  that bug used to silently prevent the dialog from opening) and keep the grace timeout.
+  **Mechanics** (`utils/print.ts`): `printHtml` builds one standalone document and delivers it
+  two ways. **Desktop** renders it into a **hidden same-origin iframe** (`#app-print-frame`) and
+  calls `print()` when images settle — no popup, no blocker. **Mobile** (Android Chrome, iOS —
+  `needsTopLevelPrint`) opens a **top-level tab** instead and prints that, closing it on
+  `afterprint`: those browsers route a subframe's `print()` to the top document, so the hidden
+  frame printed the app UI instead of the invoice. That path makes the **synchronous-from-click**
+  rule load-bearing — a deferred `printHtml` gets its tab blocked, and callers already toast
+  `common.print.popupBlocked` on the `false` return. Only count `!img.complete` images as pending
+  (cached images never fire `onload`; that bug used to silently prevent the dialog from opening)
+  and keep the grace timeout.
   All print CSS uses **`@page { margin: 0 }`** so the browser cannot paint its default
   title/URL/date header-footer; whitespace lives in body padding (left/right — repeats every
   page) and `.doc` padding (top/bottom — repeats per document in bulk `.inv-page` breaks).
-  Don't reintroduce `@page` margins or `window.open` printing.
+  Don't reintroduce `@page` margins, and don't collapse the two paths back into one.
 - **Footer**: `store-footer.tsx` is the slim entry (variant resolve + prop build); the bodies live in
   `components/storefront/footer/` — `footer-pieces.tsx` (shell/brand/columns/aside/bottom-bar + the
   `FooterColumn` model helpers `groupColumns`/`contentPagesColumn`/`footerColumns`) and
