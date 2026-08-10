@@ -62,7 +62,7 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
       {/* LEFT — fixed-height sticky rail: content scrolls INSIDE it and each
           mode fills the same frame, so a panel takeover never changes the
           column height. */}
-      <div className="flex flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-8.75rem)]">
+      <div className="flex min-w-0 flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-8.75rem)]">
         {slidesPanel !== null ? (
           <HeroSlidesPanel
             slides={api.draft.heroSlides}
@@ -88,8 +88,11 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
         )}
       </div>
 
-      {/* RIGHT — the REAL storefront in preview mode */}
-      <div className="lg:sticky lg:top-6">
+      {/* RIGHT — the REAL storefront in preview mode.
+          `min-w-0` on both columns: stacked into one grid track on a phone, the
+          track's default `min-width: auto` sizes it to the WIDER child's minimum
+          — so the preview's toolbar was dragging the rail past the viewport. */}
+      <div className="min-w-0 lg:sticky lg:top-6">
         <BrowserPreview
           slug={slug}
           draft={api.draft}

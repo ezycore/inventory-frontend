@@ -39,10 +39,14 @@ function StatTile({ stat }: { stat: Stat }) {
     <Card>
       <CardContent className="pb-4 pt-5">
         <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-          <Icon className="h-4 w-4" />
-          <span className="text-sm font-medium">{stat.label}</span>
+          <Icon className="h-4 w-4 shrink-0" />
+          <span className="min-w-0 truncate text-sm font-medium">{stat.label}</span>
         </div>
-        <p className="text-3xl font-bold">{stat.value}</p>
+        {/* A currency amount at text-3xl is wider than a half-width mobile tile, and the
+            card does not clip — step the size down and wrap long amounts instead. */}
+        <p className="break-words text-xl font-bold tabular-nums sm:text-2xl lg:text-3xl">
+          {stat.value}
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">{stat.sub}</p>
       </CardContent>
     </Card>

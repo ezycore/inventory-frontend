@@ -7,7 +7,9 @@
     "close": "বন্ধ",
     "search": "খুঁজুন",
     "confirm": "নিশ্চিত করুন",
-    "viewDetails": "বিস্তারিত দেখুন"
+    "viewDetails": "বিস্তারিত দেখুন",
+    "showPassword": "পাসওয়ার্ড দেখান",
+    "hidePassword": "পাসওয়ার্ড লুকান"
   },
   "status": {
     "label": "স্ট্যাটাস",

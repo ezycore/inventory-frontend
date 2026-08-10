@@ -4,19 +4,10 @@
 import { useTranslations } from "next-intl";
 import { useUpdatePassword } from "@/services/api";
 import { Button } from "@/ui/components/button";
-import { Input } from "@/ui/components/input";
+import { Password } from "@/ui/components/input-password";
 import { Label } from "@/ui/components/label";
 import { cn } from "@/ui/lib/utils";
-import {
-  Check,
-  Eye,
-  EyeOff,
-  KeyRound,
-  Loader2,
-  Lock,
-  Shield,
-  X,
-} from "lucide-react";
+import { Check, KeyRound, Loader2, Lock, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -28,12 +19,6 @@ export function PasswordChangeTab() {
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-  });
-
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
   });
 
   const handleChange = (field: string, value: string) => {
@@ -71,10 +56,6 @@ export function PasswordChangeTab() {
     );
   };
 
-  const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
-    setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
-  };
-
   // Password requirements
   const requirements = [
     { label: t("requirements.minLength"), met: formData.newPassword.length >= 6 },
@@ -108,28 +89,14 @@ export function PasswordChangeTab() {
             <Lock className="h-4 w-4 text-muted-foreground" />
             {t("currentPassword")} <span className="text-destructive">*</span>
           </Label>
-          <div className="relative">
-            <Input
-              id="currentPassword"
-              type={showPasswords.current ? "text" : "password"}
-              value={formData.currentPassword}
-              onChange={(e) => handleChange("currentPassword", e.target.value)}
-              placeholder={t("currentPasswordPlaceholder")}
-              required
-              className="pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => togglePasswordVisibility("current")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {showPasswords.current ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </button>
-          </div>
+          <Password
+            id="currentPassword"
+            autoComplete="current-password"
+            value={formData.currentPassword}
+            onChange={(e) => handleChange("currentPassword", e.target.value)}
+            placeholder={t("currentPasswordPlaceholder")}
+            required
+          />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
@@ -139,29 +106,15 @@ export function PasswordChangeTab() {
               <KeyRound className="h-4 w-4 text-muted-foreground" />
               {t("newPassword")} <span className="text-destructive">*</span>
             </Label>
-            <div className="relative">
-              <Input
-                id="newPassword"
-                type={showPasswords.new ? "text" : "password"}
-                value={formData.newPassword}
-                onChange={(e) => handleChange("newPassword", e.target.value)}
-                placeholder={t("newPasswordPlaceholder")}
-                required
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => togglePasswordVisibility("new")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPasswords.new ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-              <p className="text-sm text-muted-foreground">{t("newPasswordHint")}</p>
+            <Password
+              id="newPassword"
+              autoComplete="new-password"
+              value={formData.newPassword}
+              onChange={(e) => handleChange("newPassword", e.target.value)}
+              placeholder={t("newPasswordPlaceholder")}
+              required
+            />
+            <p className="text-sm text-muted-foreground">{t("newPasswordHint")}</p>
           </div>
 
           {/* Confirm Password */}
@@ -173,36 +126,20 @@ export function PasswordChangeTab() {
               <KeyRound className="h-4 w-4 text-muted-foreground" />
               {t("confirmPassword")} <span className="text-destructive">*</span>
             </Label>
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                type={showPasswords.confirm ? "text" : "password"}
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  handleChange("confirmPassword", e.target.value)
-                }
-                placeholder={t("confirmPasswordPlaceholder")}
-                required
-                className={cn(
-                  "pr-10",
-                  formData.confirmPassword &&
-                    (passwordsMatch
-                      ? "border-green-500 focus-visible:ring-green-500"
-                      : "border-destructive focus-visible:ring-destructive"),
-                )}
-              />
-              <button
-                type="button"
-                onClick={() => togglePasswordVisibility("confirm")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPasswords.confirm ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
+            <Password
+              id="confirmPassword"
+              autoComplete="new-password"
+              value={formData.confirmPassword}
+              onChange={(e) => handleChange("confirmPassword", e.target.value)}
+              placeholder={t("confirmPasswordPlaceholder")}
+              required
+              className={cn(
+                formData.confirmPassword &&
+                  (passwordsMatch
+                    ? "border-green-500 focus-visible:ring-green-500"
+                    : "border-destructive focus-visible:ring-destructive"),
+              )}
+            />
             {formData.confirmPassword && (
               <p
                 className={cn(

@@ -855,6 +855,7 @@
       "passwordRequiredError": "Please enter your password to disable 2FA.",
       "copied": "Copied to clipboard",
       "allCodesCopied": "All backup codes copied to clipboard",
+      "copyFailed": "Failed to copy — copy the codes manually",
       "howItWorks": "How it works",
       "steps": {
         "download": "Download App",

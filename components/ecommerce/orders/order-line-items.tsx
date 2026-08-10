@@ -32,30 +32,38 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
 
   return (
     <Card className="overflow-hidden shadow-none">
-      <div className="flex items-center justify-between border-b px-5 py-3.5">
+      <div className="flex items-center justify-between gap-2 border-b px-4 py-3.5 sm:px-5">
         <h3 className="text-sm font-semibold">Line items</h3>
-        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="flex flex-none items-center gap-1.5 text-xs text-muted-foreground">
           <Lock className="h-3 w-3" /> snapshotted at purchase
         </span>
       </div>
       {order.items.map((it, idx) => (
-        <div key={idx} className="flex items-center gap-3 border-b px-5 py-3">
+        <div
+          key={idx}
+          className="flex items-center gap-3 border-b px-4 py-3 sm:px-5"
+        >
           <div className="flex h-10 w-10 flex-none items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
             {it.productName.slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{it.productName}</div>
           </div>
-          <div className="w-32 text-right text-xs tabular-nums text-muted-foreground">
-            {money(it.price)} × {it.quantity}
-          </div>
-          <div className="w-24 text-right text-sm font-semibold tabular-nums">
-            {money(it.subtotal)}
+          {/* Money stacks on a phone: side by side the two fixed columns alone
+              are wider than a 360px viewport, and a grid column's default
+              `min-width:auto` turned that into page-wide horizontal overflow. */}
+          <div className="flex flex-none flex-col items-end sm:flex-row sm:items-center sm:gap-3">
+            <div className="order-2 text-xs tabular-nums text-muted-foreground sm:order-1 sm:w-32 sm:text-right">
+              {money(it.price)} × {it.quantity}
+            </div>
+            <div className="order-1 text-sm font-semibold tabular-nums sm:order-2 sm:w-24 sm:text-right">
+              {money(it.subtotal)}
+            </div>
           </div>
         </div>
       ))}
 
-      <div className="space-y-2 px-5 py-4 text-sm">
+      <div className="space-y-2 px-4 py-4 text-sm sm:px-5">
         <BreakdownRow label="Subtotal" value={money(order.subtotal)} />
         {order.discountAmount > 0 && (
           <BreakdownRow
@@ -66,7 +74,7 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
             positive
           />
         )}
-        <div className="flex items-center justify-between text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-muted-foreground">
           <span>Shipping fee</span>
           {editingShipping ? (
             <span className="flex items-center gap-2">

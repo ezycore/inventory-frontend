@@ -124,7 +124,10 @@ export function BrowserPreview({
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-      <div className="flex items-center gap-3 border-b bg-muted/50 px-3 py-2">
+      {/* Wraps rather than clips: the page tabs and the device/reload/open
+          cluster together are wider than a phone viewport, and the card's
+          `overflow-hidden` would swallow whichever end lost. */}
+      <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-3 py-2">
         <div
           role="tablist"
           aria-label="Preview page"
@@ -218,7 +221,9 @@ export function BrowserPreview({
           className={cn(
             "flex-none overflow-hidden bg-white",
             device === "mobile"
-              ? "my-5 h-[calc(100%-2.5rem)] w-[390px] rounded-[2.2rem] border-[10px] border-neutral-800 shadow-2xl"
+              ? // `max-w-`, not a hard `w-`: 390px plus the 10px bezels is wider
+                // than the phone a merchant may be standing on.
+                "my-5 h-[calc(100%-2.5rem)] w-full max-w-[390px] rounded-[2.2rem] border-[10px] border-neutral-800 shadow-2xl"
               : "h-full w-full",
           )}
         >

@@ -107,7 +107,6 @@ export function renderPassword(ctx: FieldRenderContext): ReactNode {
       render={({ field: controllerField }) => (
         <Password
           {...controllerField}
-          type={"password"}
           placeholder={field.placeholder}
           disabled={effectiveDisabled}
           min={field.validation?.min}

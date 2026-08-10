@@ -260,6 +260,7 @@
     "statTotalDueDesc": "Outstanding balance",
     "colInvoiceNo": "Invoice #",
     "invoiceCopied": "Invoice number copied",
+    "copyFailed": "Failed to copy",
     "copyInvoiceTooltip": "Copy invoice number",
     "colPurchaseDate": "Purchase Date",
     "colSupplier": "Supplier",
