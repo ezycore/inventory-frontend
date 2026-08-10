@@ -242,7 +242,7 @@ export function ProductOnlineEditor({
               <Switch checked={featured} onCheckedChange={setFeatured} />
             </label>
             {blockReason && (
-              <p className="rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-700">
+              <p className="rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-200">
                 {blockReason} — it won&apos;t appear online regardless of this toggle.
               </p>
             )}

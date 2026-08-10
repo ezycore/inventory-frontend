@@ -77,7 +77,7 @@ export default function SuppliersPage() {
         defaultColumnVisibility={{ email: false, phone: false }}
         enableRowHover={true}
         rowClassName={(row: Supplier) =>
-          row.status === "inactive" ? "bg-red-50 opacity-70" : ""
+          row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : ""
         }
         customActions={customActions}
         operations={{

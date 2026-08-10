@@ -101,8 +101,10 @@ export function DataCardToolbar({
 
       {/* Right-side actions */}
       {hasRightActions && (
+        // flex-wrap, not shrink-0 — see the same note in dataTable/toolbar.tsx:
+        // a non-wrapping row overflows the viewport on a phone.
         <div className={cn(
-          "flex items-center gap-2 shrink-0",
+          "flex min-w-0 flex-wrap items-center gap-2",
           !title && !hasInlineFilters && "ml-auto"
         )}>
         {/* Sort Dropdown */}

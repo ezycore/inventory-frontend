@@ -338,11 +338,11 @@ function PublishTab({ settings }: { settings: StorefrontSettings }) {
         )}
 
         {locationSet ? (
-          <div className="rounded-lg bg-green-50 px-3.5 py-2.5 text-sm font-medium text-green-800">
+          <div className="rounded-lg bg-green-50 px-3.5 py-2.5 text-sm font-medium text-green-800 dark:bg-green-500/10 dark:text-green-200">
             ✓ Fulfillment location is set — you&apos;re ready to publish.
           </div>
         ) : (
-          <div className="rounded-lg bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700">
+          <div className="rounded-lg bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 dark:bg-red-500/10 dark:text-red-200">
             Set a fulfillment location (General tab) before publishing.
           </div>
         )}

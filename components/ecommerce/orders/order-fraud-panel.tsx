@@ -34,7 +34,7 @@ export function OrderFraudPanel({ orderId }: { orderId: string }) {
   // What they can act on is telling us.
   if (fraud.isError) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/40 dark:bg-amber-500/10">
         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-amber-900">
           <AlertTriangle className="h-3.5 w-3.5" /> Delivery check unavailable
         </div>
@@ -106,7 +106,7 @@ export function OrderFraudPanel({ orderId }: { orderId: string }) {
               outranks any ratio, and it is why the band can read `high` against
               healthy-looking numbers. */}
           {result.reports?.length ? (
-            <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-2.5">
+            <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-2.5 dark:border-red-500/40 dark:bg-red-500/10">
               <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-red-800">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 {result.reports.length} fraud report

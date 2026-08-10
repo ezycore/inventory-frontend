@@ -143,7 +143,7 @@ export default function EcommerceDashboardPage() {
                 href="/ecommerce/orders?status=pending"
                 className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
               >
-                <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md bg-yellow-50 text-yellow-700">
+                <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-200">
                   <Clock className="h-4 w-4" />
                 </span>
                 <div className="flex-1 text-sm">

@@ -254,7 +254,7 @@ export default function BarcodeLabelSheet({
 
  return (
   <Dialog open={open} onOpenChange={onOpenChange}>
-   <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col gap-3 overflow-hidden">
+   <DialogContent className="sm:max-w-5xl max-h-[90vh] flex flex-col gap-3 overflow-hidden">
     <DialogHeader>
      <DialogTitle>
       Print Barcode Labels &mdash; {labels.length} label
